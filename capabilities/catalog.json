@@ -6838,7 +6838,7 @@
       "description": "matplotlib/seaborn/plotly出版级图表、色盲安全、图例同步、矢量导出、配套表格",
       "input_contract": "数据、图表规格、样式要求",
       "output_contract": "PNG/SVG/PDF图表、生成脚本",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "paper-figure",
         "nature-figure",
@@ -6857,7 +6857,18 @@
       ],
       "high_risk_confirmation": "AI 插图生成涉及外部服务，需确认",
       "current_evidence": "C2 验收：figures/fig_science.png(51KB) 960×630 柱状图+误差棒（中文字体修复）",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T13:34:59Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "vision_api_configured_from_opencode_desktop",
+          "evidence": "benchmark_v2_20260818",
+          "score": 10,
+          "max_score": 11
+        }
+      ]
     },
     {
       "capability_id": "poster_slides",
