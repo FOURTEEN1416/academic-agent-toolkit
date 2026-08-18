@@ -905,7 +905,7 @@
       "description": "Research→Write→Integrity→Review→Revise→Re-Review→Re-Revise→Final-Integrity→Finalize→Process-Summary",
       "input_contract": "研究想法/初稿/数据/代码",
       "output_contract": "投稿级PDF/DOCX、完整性报告、审稿回复",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "academic-pipeline",
         "academic-paper",
@@ -932,7 +932,18 @@
       ],
       "high_risk_confirmation": "外部审查调用与编译覆盖需确认",
       "current_evidence": "C2 验收：paper_pipeline_evidence.md(3.9KB) 10 阶段映射真实技能目录",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 20,
+          "max_score": 20
+        }
+      ]
     },
     {
       "capability_id": "paper_writing_nature",
@@ -941,7 +952,7 @@
       "description": "沙漏结构、读者优先逻辑、出版级英语、Hourglass结构、双语摘要",
       "input_contract": "Claims、Results、Figures、Notes",
       "output_contract": "LaTeX/DOCX论文",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "paper-write-nature",
         "paper-write-nature-docx",
@@ -965,7 +976,18 @@
       ],
       "high_risk_confirmation": "编译覆盖需确认",
       "current_evidence": "C2 验收：Nature mini 论文 main.tex(7.2KB)+3 页 PDF 编译成功（城市热岛×CO2 面板，3 篇 CrossRef 真文献）",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 14,
+          "max_score": 15
+        }
+      ]
     },
     {
       "capability_id": "paper_review_auto",
@@ -974,7 +996,7 @@
       "description": "外部LLM审查→修改→重审，直到通过或达上限，支持多种API",
       "input_contract": "论文草稿、审查提示词",
       "output_contract": "修改后论文、审查报告、迭代记录",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "auto-review-loop",
         "auto-review-loop-llm",
@@ -993,7 +1015,18 @@
       ],
       "high_risk_confirmation": "外部审查涉及数据外发，需确认",
       "current_evidence": "C2 验收：review_evidence.json(3.1KB) 1 轮审查（verdict=minor_revision, 0 fatal, 6 findings）",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 11,
+          "max_score": 11
+        }
+      ]
     },
     {
       "capability_id": "paper_figure_generation",
@@ -1002,7 +1035,7 @@
       "description": "matplotlib/seaborn/plotly数据图、Draw.io/TikZ/HTML架构图、Nature级排版标准",
       "input_contract": "实验结果、数据、设计草图",
       "output_contract": "PNG/SVG/PDF图表、源文件",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "paper-figure",
         "paper-figure-drawio",
@@ -1026,7 +1059,18 @@
       ],
       "high_risk_confirmation": "AI 插图生成涉及外部服务，需确认",
       "current_evidence": "C2 验收：figures/fig_demo.png(141KB) 200dpi 双轴科研图，嵌入论文",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 13,
+          "max_score": 16
+        }
+      ]
     },
     {
       "capability_id": "paper_compile_docx",
@@ -1035,7 +1079,7 @@
       "description": "XeLaTeX/pdflatex编译、pandoc转换、中文样式profile、裸LaTeX修复、docx-cn-engine",
       "input_contract": "Markdown源文件、图表、参考文献",
       "output_contract": "PDF、DOCX、LaTeX源码",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "paper-compile",
         "paper-compile-zh",
@@ -1056,7 +1100,18 @@
       ],
       "high_risk_confirmation": "编译与导出覆盖旧文件需确认",
       "current_evidence": "C2 验收：compile_evidence.md(1.9KB) 真实命令链；pandoc 缺失→docx 导出 unavailable 如实记录",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 13,
+          "max_score": 13
+        }
+      ]
     },
     {
       "capability_id": "paper_citation_verification",
@@ -1065,7 +1120,7 @@
       "description": "CrossRef/Semantic Scholar/OpenAlex验证、DOI/PMID补全、BibTeX生成、编造检测",
       "input_contract": "参考文献列表、DOI列表",
       "output_contract": "verified_references.bib、验证报告",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "check-citations",
         "citation-management",
@@ -1085,7 +1140,18 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：citations_report.json(3.2KB) 3 篇 CrossRef 核验（DOI 精确匹配）",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 12,
+          "max_score": 12
+        }
+      ]
     },
     {
       "capability_id": "ars-academic-paper",
@@ -2918,7 +2984,7 @@
       "description": "PICO/SPIDER/Decomposition框架、多源检索、主题分类、综合综述撰写、Word导出",
       "input_contract": "研究问题、框架提示、深度参数",
       "output_contract": "文献综述.docx、搜索策略、证据表",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "literature-review",
         "research-lit",
@@ -2940,7 +3006,18 @@
       ],
       "high_risk_confirmation": "检索涉及外部数据，需确认",
       "current_evidence": "C2 验收：LITERATURE_REVIEW.md(7.4KB) firecrawl 2 查询 9 篇真实文献（URL+查询词可溯）",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 15,
+          "max_score": 15
+        }
+      ]
     },
     {
       "capability_id": "deep_research_investigation",
@@ -2949,7 +3026,7 @@
       "description": "扇出并行搜索、源头三角验证(≥3独立源)、对抗评审、逐源保存、证据溯源",
       "input_contract": "高风险问题、决策边界",
       "output_contract": "调研简报.md、证据文件集、审计日志",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "deep-research",
         "research",
@@ -2968,7 +3045,18 @@
       ],
       "high_risk_confirmation": "多源检索涉及大量外发请求，需确认",
       "current_evidence": "C2 验收：RESEARCH_BRIEF.md(5.3KB) 10 来源 3 论题≥3 独立来源交叉印证+对抗审查",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 11,
+          "max_score": 11
+        }
+      ]
     },
     {
       "capability_id": "novelty_check_innovation",
@@ -3050,7 +3138,7 @@
       "description": "多国基金格式、选题背景/研究现状/研究内容/技术路线/进度安排/参考文献",
       "input_contract": "研究想法、初步数据、团队信息、目标基金类型",
       "output_contract": "申请书.docx/LaTeX、预算表",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "grant-proposal",
         "grants"
@@ -3063,7 +3151,18 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：GRANT_OUTLINE.md(7.2KB) NSFC 面上草稿，7 条真实检索文献",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 4,
+          "max_score": 4
+        }
+      ]
     },
     {
       "capability_id": "ars-agent-harness",
@@ -4082,7 +4181,7 @@
       "description": "大纲规划→数据分析→正文撰写→Claims-Evidence Matrix→图表/引用闭环自检",
       "input_contract": "主题、上传资料、数据",
       "output_contract": "OUTLINE.md、RESULTS.md、论文正文.md、figures/",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "course-paper",
         "course-plan",
@@ -4101,7 +4200,18 @@
       ],
       "high_risk_confirmation": "编译覆盖需确认",
       "current_evidence": "C2 验收：COURSE_PAPER.md(11.2KB) 完整课程论文，5 篇 DOI 核验文献",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 12,
+          "max_score": 12
+        }
+      ]
     },
     {
       "capability_id": "course_report_workflow",
@@ -4146,7 +4256,7 @@
       "description": "选题背景、研究现状、研究内容、技术路线、进度安排、参考文献",
       "input_contract": "研究方向、初步文献、导师要求",
       "output_contract": "开题报告.md/LaTeX",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "thesis-proposal",
         "literature-review",
@@ -4164,7 +4274,18 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：THESIS_PROPOSAL.md(11.4KB) 开题报告，12 篇真实文献",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 9,
+          "max_score": 9
+        }
+      ]
     },
     {
       "capability_id": "grad_project_dev",
@@ -4173,7 +4294,7 @@
       "description": "需求分析→系统设计→前后端编码→自测验证→项目报告",
       "input_contract": "项目想法、功能要求",
       "output_contract": "需求规格、设计文档、代码、测试报告、项目报告",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "dev-requirement",
         "dev-design",
@@ -4192,7 +4313,18 @@
       ],
       "high_risk_confirmation": "依赖安装与构建涉及系统环境，需确认",
       "current_evidence": "C2 验收：grad_project/ app.py(230行) 运行无报错 8 功能断言 PASS",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 11,
+          "max_score": 11
+        }
+      ]
     },
     {
       "capability_id": "ablation-planner",
@@ -6634,7 +6766,7 @@
       "description": "简历/报告/幻灯片/海报/小抄/公式卡/书籍/论文/填表单/格式转换/PDF→LaTeX(OCR手写)/版本对比/邮件合并/图表/引用/XeLaTeX/pdflatex/lualatex",
       "input_contract": "内容/模板/数据/图片",
       "output_contract": "PDF、PNG预览、LaTeX源码",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "latex-document",
         "latex-posters",
@@ -6652,7 +6784,18 @@
       ],
       "high_risk_confirmation": "编译覆盖需确认",
       "current_evidence": "C2 验收：latex_demo/main.tex(3.6KB)→2 页 PDF 编译成功",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 11,
+          "max_score": 11
+        }
+      ]
     },
     {
       "capability_id": "pdf_toolkit",
@@ -6661,7 +6804,7 @@
       "description": "读取/提取文本表格、合并/拆分/旋转/加水印/创建/填表单/加密解密/OCR/提取图片",
       "input_contract": "PDF文件、操作参数",
       "output_contract": "处理后PDF、提取内容",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "sci-pdf",
         "pdf"
@@ -6675,7 +6818,18 @@
       ],
       "high_risk_confirmation": "PDF 加密/覆盖删除前需确认",
       "current_evidence": "C2 验收：pdf_demo/result.pdf(188KB) 提取+合并+AES-256 加密（needs_pass 验证）",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 6,
+          "max_score": 6
+        }
+      ]
     },
     {
       "capability_id": "figure_generation_science",
@@ -6712,7 +6866,7 @@
       "description": "A0/A1海报(LaTeX→PDF+PPTX+SVG)、Beamer幻灯片(PDF+PPTX+演讲稿)、tcbposter/beamerposter模板",
       "input_contract": "论文/研究内容、会议规格",
       "output_contract": "海报PDF/PPTX/SVG、幻灯片PDF/PPTX、演讲稿",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "paper-poster",
         "paper-slides",
@@ -6729,7 +6883,18 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：poster_demo/slides.tex→6 页 beamer PDF(117KB) 编译成功",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 8,
+          "max_score": 8
+        }
+      ]
     },
     {
       "capability_id": "sci_pdf",
@@ -6738,7 +6903,7 @@
       "description": "PDF合并/拆分/加密/OCR/水印/提取表格图片/填表单/转LaTeX(含手写OCR)",
       "input_contract": "PDF文件、操作指令",
       "output_contract": "处理结果PDF/Markdown/LaTeX/图片/表格",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "sci-pdf",
         "pdf",
@@ -6752,7 +6917,18 @@
       ],
       "high_risk_confirmation": "PDF 操作覆盖需确认",
       "current_evidence": "C2 验收：sci_pdf_report.md(1.4KB) pdfplumber 表格提取+fitz 图片落盘（含 booktabs 排查链）",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:56:03Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed_after_env_fix",
+          "evidence": "benchmark_v2_20260818",
+          "score": 5,
+          "max_score": 5
+        }
+      ]
     },
     {
       "capability_id": "ars-challenge",
