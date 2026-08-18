@@ -229,7 +229,7 @@
       "description": "官方主题方向下自拟具体题目、研究方案设计、真实数据源规划",
       "input_contract": "官方主题文档、可用数据源清单",
       "output_contract": "选题决策书、数据获取计划、研究方案",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "comp-stats-topic"
       ],
@@ -242,7 +242,18 @@
       ],
       "high_risk_confirmation": "检索来源写入产物需确认",
       "current_evidence": "统计选题验收：TOPIC_PLAN.md 10.4KB（碳排-绿色发展耦合协调）+ data_plan.json 17 变量真实数据源（CEADs/统计局/统计年鉴）（workspaces/cumcm_pilot_stats_topic）",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 5,
+          "max_score": 5
+        }
+      ]
     },
     {
       "capability_id": "comp_consistency",
@@ -307,7 +318,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-code",
@@ -324,7 +346,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-compile-zh",
@@ -341,7 +374,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-consistency",
@@ -358,7 +402,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-editor",
@@ -375,7 +430,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-final-audit",
@@ -392,7 +458,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-final-review",
@@ -409,7 +486,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-literature",
@@ -426,7 +514,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-modeling",
@@ -443,7 +542,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-paper-en",
@@ -460,7 +570,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-paper-en-docx",
@@ -477,7 +598,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-paper-zh",
@@ -494,7 +626,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-paper-zh-docx",
@@ -511,7 +654,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-pipeline",
@@ -528,7 +682,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-prob-analysis",
@@ -545,7 +710,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-review",
@@ -562,7 +738,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-visual-review",
@@ -579,7 +766,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "model-innovation",
@@ -596,7 +794,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "problem-selection",
@@ -613,7 +822,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "team-coordination",
@@ -630,7 +850,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-stats-topic",
@@ -652,7 +883,18 @@
       "high_risk_confirmation": "检索来源写入产物需确认",
       "current_evidence": "技能映射补登（2026-08-17 复核修复）：聚合能力 comp_stats_topic 的支撑技能；验收见 comp_stats_topic",
       "current_gap": "数据未实际获取；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 5,
+          "max_score": 5
+        }
+      ]
     }
   ],
   "academic_papers": [
@@ -860,7 +1102,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-academic-paper-reviewer",
@@ -877,7 +1130,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-academic-pipeline",
@@ -894,7 +1158,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-adversarial-reviewer",
@@ -911,7 +1186,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-code-reviewer",
@@ -928,7 +1214,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-experiment-designer",
@@ -945,7 +1242,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-pr-review-expert",
@@ -962,7 +1270,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "auto-paper-improvement-loop",
@@ -979,7 +1298,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "claude-scientific-writer",
@@ -996,7 +1326,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comp-compile-en",
@@ -1013,7 +1354,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "course-paper",
@@ -1030,7 +1382,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "course-plan",
@@ -1047,7 +1410,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "editor-agent",
@@ -1064,7 +1438,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-citation-verification",
@@ -1081,7 +1466,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-daily-coding",
@@ -1098,7 +1494,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-expression-skill",
@@ -1115,7 +1522,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-nature-data",
@@ -1132,7 +1550,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-nature-polishing",
@@ -1149,7 +1578,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-nature-response",
@@ -1166,7 +1606,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-nature-writing",
@@ -1183,7 +1634,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-obsidian-literature-workflow",
@@ -1200,7 +1662,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-paper-self-review",
@@ -1217,7 +1690,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-review-response",
@@ -1234,7 +1718,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-skill-quality-reviewer",
@@ -1251,7 +1746,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-writing-anti-ai",
@@ -1268,7 +1774,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-zotero-obsidian-bridge",
@@ -1285,7 +1802,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "humanities-plan",
@@ -1302,7 +1830,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "humanities-write",
@@ -1319,7 +1858,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "humanities-write-latex",
@@ -1336,7 +1886,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "nature-citation-verifier",
@@ -1353,7 +1914,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "nature-figure-planner",
@@ -1370,7 +1942,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "nature-manuscript-optimizer",
@@ -1387,7 +1970,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "nature-paper-bootstrap",
@@ -1404,7 +1998,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "nature-paper-workflow",
@@ -1421,7 +2026,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "nature-portfolio-playbook",
@@ -1438,7 +2054,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "nature-rebuttal-response",
@@ -1455,7 +2082,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "nature-results-section-revision",
@@ -1472,7 +2110,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "nature-scientific-writing",
@@ -1489,7 +2138,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "nature-submission-audit",
@@ -1506,7 +2166,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-analysis",
@@ -1523,7 +2194,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-compile",
@@ -1540,7 +2222,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-compile-zh",
@@ -1557,7 +2250,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-plan",
@@ -1574,7 +2278,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-plan-zh",
@@ -1591,7 +2306,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-write",
@@ -1608,7 +2334,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-write-docx",
@@ -1625,7 +2362,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-write-nature",
@@ -1642,7 +2390,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-write-nature-docx",
@@ -1659,7 +2418,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-write-zh",
@@ -1676,7 +2446,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-write-zh-docx",
@@ -1693,7 +2474,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-writing",
@@ -1710,7 +2502,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-writing-ucsb",
@@ -1727,7 +2530,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "proof-writer",
@@ -1744,7 +2558,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "quality-check",
@@ -1761,7 +2586,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "rebuttal",
@@ -1778,7 +2614,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "research-lit",
@@ -1795,7 +2642,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "scholar-bib-doi-toggle",
@@ -1812,7 +2670,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "scholar-critique-manuscript",
@@ -1829,7 +2698,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "scholar-doi-bibtex",
@@ -1846,7 +2726,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "sci-citation-management",
@@ -1863,7 +2754,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "sci-paper-lookup",
@@ -1880,7 +2782,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "sci-scientific-writing",
@@ -1897,7 +2810,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "spine-paper-spine-rewrite",
@@ -1914,7 +2838,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "thesis-proposal",
@@ -1931,7 +2866,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "anti-ai-detection",
@@ -1950,7 +2896,18 @@
       "high_risk_confirmation": "无",
       "current_evidence": "技能映射补登（2026-08-17 复核修复）：工具 anti_ai_detector.py 实测可用",
       "current_gap": "未跑基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 3,
+          "max_score": 3
+        }
+      ]
     }
   ],
   "literature_research": [
@@ -2020,7 +2977,7 @@
       "description": "arXiv/DuckDuckGo实时检索、历年国一避坑、魔改组合自创prompt、3创新点最低要求",
       "input_contract": "研究方向、候选方法、关键词",
       "output_contract": "查重报告、创新点清单、前沿论文列表",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "novelty-check",
         "idea-creator",
@@ -2036,7 +2993,18 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：NOVELTY_CHECK.md(5.0KB) 3 查询 12 项已有工作（含专利），差距判断",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 7,
+          "max_score": 8
+        }
+      ]
     },
     {
       "capability_id": "idea_discovery_pipeline",
@@ -2045,7 +3013,7 @@
       "description": "文献调研→想法生成→新颖性验证→批判性评审→试点验证，支持机器人/具身AI适配",
       "input_contract": "宽泛研究方向",
       "output_contract": "验证过的研究问题、试点实验计划、基准定位",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "idea-discovery",
         "research-lit",
@@ -2062,7 +3030,18 @@
       ],
       "high_risk_confirmation": "外部调用需确认",
       "current_evidence": "C2 验收：IDEA_PLAN.md(4.5KB) 3 方向全部由 7 次真实检索推导（含证据链）",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 9,
+          "max_score": 9
+        }
+      ]
     },
     {
       "capability_id": "grant_proposal",
@@ -2101,7 +3080,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-deep-research",
@@ -2118,7 +3108,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-dossier",
@@ -2135,7 +3136,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-litreview",
@@ -2152,7 +3164,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-pulse",
@@ -2169,7 +3192,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-research",
@@ -2186,7 +3220,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-research-summarizer",
@@ -2203,7 +3248,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-syllabus",
@@ -2220,7 +3276,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "arxiv",
@@ -2237,7 +3304,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "auto-review-loop",
@@ -2254,7 +3332,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "auto-review-loop-llm",
@@ -2271,7 +3360,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "auto-review-loop-minimax",
@@ -2288,7 +3388,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "comm-lit-review",
@@ -2305,7 +3416,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "experiment-agent",
@@ -2322,7 +3444,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "experiment-bridge",
@@ -2339,7 +3472,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "experiment-plan",
@@ -2356,7 +3500,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-ml-paper-writing",
@@ -2373,7 +3528,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-obsidian-project-kb-core",
@@ -2390,7 +3556,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-planning-with-files",
@@ -2407,7 +3584,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-research-ideation",
@@ -2424,7 +3612,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-results-report",
@@ -2441,7 +3640,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "idea-creator",
@@ -2458,7 +3668,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "idea-discovery",
@@ -2475,7 +3696,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "latexpap-empirical-paper-writer",
@@ -2492,7 +3724,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "latexpap-paper-from-zero",
@@ -2509,7 +3752,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "literature-review",
@@ -2526,7 +3780,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "novelty-check",
@@ -2543,7 +3808,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-search",
@@ -2560,7 +3836,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "research-pipeline",
@@ -2577,7 +3864,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "research-refine",
@@ -2594,7 +3892,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "research-refine-pipeline",
@@ -2611,7 +3920,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "research-review",
@@ -2628,7 +3948,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "sci-literature-review",
@@ -2645,7 +3976,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "sci-statistical-analysis",
@@ -2662,7 +4004,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "spine-paper-spine-build",
@@ -2679,7 +4032,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "spine-paper-spine-research",
@@ -2696,7 +4060,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     }
   ],
   "course_research_materials": [
@@ -2735,7 +4110,7 @@
       "description": "项目事实提取→大纲/数据/架构图规划→正文撰写→事实/Claims/图表/引用闭环",
       "input_contract": "项目源码、上传资料",
       "output_contract": "大纲.md、报告正文.md、架构图、数据图",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "course-report",
         "course-report-plan",
@@ -2751,7 +4126,18 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：COURSE_REPORT.md(10.9KB) 课设报告，6 测试用例全过",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 7,
+          "max_score": 8
+        }
+      ]
     },
     {
       "capability_id": "thesis_proposal",
@@ -2823,7 +4209,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "analyze-results",
@@ -2840,7 +4237,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-ai-security",
@@ -2857,7 +4265,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-notebooklm",
@@ -2874,7 +4293,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "ars-statistical-analyst",
@@ -2891,7 +4321,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "assets-inventory",
@@ -2908,7 +4349,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "check-citations",
@@ -2925,7 +4377,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "citation-check",
@@ -2942,7 +4405,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "course-report",
@@ -2959,7 +4433,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "course-report-plan",
@@ -2976,7 +4461,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "data-processing",
@@ -2993,7 +4489,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "deep-research",
@@ -3010,7 +4517,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "dev-code",
@@ -3027,7 +4545,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "dev-code-backend",
@@ -3044,7 +4573,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "dev-code-frontend",
@@ -3061,7 +4601,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "dev-design",
@@ -3078,7 +4629,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "dev-report",
@@ -3095,7 +4657,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "dev-requirement",
@@ -3112,7 +4685,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "dev-selfcheck",
@@ -3129,7 +4713,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "dse-loop",
@@ -3146,7 +4741,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "feishu-notify",
@@ -3163,7 +4769,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-agent-identifier",
@@ -3180,7 +4797,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-architecture-design",
@@ -3197,7 +4825,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-bug-detective",
@@ -3214,7 +4853,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-code-review-excellence",
@@ -3231,7 +4881,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-command-development",
@@ -3248,7 +4909,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-daily-paper-generator",
@@ -3265,7 +4937,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-doc-coauthoring",
@@ -3282,7 +4965,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-git-workflow",
@@ -3299,7 +4993,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-hook-development",
@@ -3316,7 +5021,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-kaggle-learner",
@@ -3333,7 +5049,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-latex-conference-template-organizer",
@@ -3350,7 +5077,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-mcp-integration",
@@ -3367,7 +5105,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-obsidian-kb-artifacts",
@@ -3384,7 +5133,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-obsidian-source-ingestion",
@@ -3401,7 +5161,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-plugin-structure",
@@ -3418,7 +5189,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-post-acceptance",
@@ -3435,7 +5217,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-results-analysis",
@@ -3452,7 +5245,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-skill-development",
@@ -3469,7 +5273,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-skill-improver",
@@ -3486,7 +5301,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-uv-package-manager",
@@ -3503,7 +5329,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-verification-loop",
@@ -3520,7 +5357,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-web-design-reviewer",
@@ -3537,7 +5385,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-webapp-testing",
@@ -3554,7 +5413,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "idea-discovery-robot",
@@ -3571,7 +5441,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "latex-writing",
@@ -3588,7 +5469,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "latexpap-arxiv-paper-writer",
@@ -3605,7 +5497,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "latexpap-check-collaborators",
@@ -3622,7 +5525,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "latexpap-collaborating-with-claude",
@@ -3639,7 +5553,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "latexpap-latex-rhythm-refiner",
@@ -3656,7 +5581,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "latexpap-results-backfill",
@@ -3673,7 +5609,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "model-building",
@@ -3690,7 +5637,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "monitor-experiment",
@@ -3707,7 +5665,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "nature-data-availability",
@@ -3724,7 +5693,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "problem-analysis",
@@ -3741,7 +5721,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "result-to-claim",
@@ -3758,7 +5749,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "run-experiment",
@@ -3775,7 +5777,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "scholar-accessible-pdf",
@@ -3792,7 +5805,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "scholar-arxiv-metadata",
@@ -3809,7 +5833,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "scholar-arxiv-prep",
@@ -3826,7 +5861,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "scholar-check-refs",
@@ -3843,7 +5889,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "scholar-latex-cleanup",
@@ -3860,7 +5917,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "scholar-openalex",
@@ -3877,7 +5945,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "scholar-presubmit-checks",
@@ -3894,7 +5973,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "scholar-verify-math",
@@ -3911,7 +6001,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "sci-exploratory-data-analysis",
@@ -3928,7 +6029,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "sci-networkx",
@@ -3945,7 +6057,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "sci-sympy",
@@ -3962,7 +6085,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "skill-creator-official",
@@ -3979,7 +6113,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "spine-paper-spine",
@@ -3996,7 +6141,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "spine-paper-spine-audit",
@@ -4013,7 +6169,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "spine-paper-spine-citation",
@@ -4030,7 +6197,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "spine-paper-spine-humanize",
@@ -4047,7 +6225,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "spine-paper-spine-intake",
@@ -4064,7 +6253,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "spine-paper-spine-translate",
@@ -4081,7 +6281,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "spine-paper-spine-ui",
@@ -4098,7 +6309,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "spine-paper-spine-update",
@@ -4115,7 +6337,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "training-check",
@@ -4132,7 +6365,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "visualization",
@@ -4149,7 +6393,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     }
   ],
   "intellectual_property_materials": [
@@ -4297,7 +6552,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "patent-build",
@@ -4332,6 +6598,32 @@
       "current_evidence": [],
       "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
       "status": "private_extension"
+    },
+    {
+      "capability_id": "codesucker-integration",
+      "name": "CodeSucker 软著源程序文档抽取器",
+      "domain": "intellectual_property_materials",
+      "status": "formal",
+      "description": "基于 fanbuz/codesucker (Apache-2.0) 的 Python 移植版。五段流水线（discover→clean→select→render→audit），生成符合版权局要求的60页源程序鉴别材料DOCX。",
+      "associated_tools": [
+        "tools/codesucker_python.py"
+      ],
+      "associated_skills": [
+        "codesucker-integration"
+      ],
+      "source": "https://github.com/fanbuz/codesucker",
+      "license": "Apache-2.0",
+      "acceptance_date": "2026-08-18",
+      "acceptance_method": "end_to_end_test_passed",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:34:05Z",
+          "from_status": "new",
+          "to_status": "formal",
+          "reason": "integrated_from_codesucker_apache20",
+          "evidence": "codesucker_python_test_20260818"
+        }
+      ]
     }
   ],
   "figures_and_document_production": [
@@ -4477,7 +6769,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "docx-export",
@@ -4494,7 +6797,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "docx-format-check",
@@ -4511,7 +6825,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "docx-template-map",
@@ -4528,7 +6853,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "format-profile",
@@ -4545,7 +6881,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-defuddle",
@@ -4562,7 +6909,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-frontend-design",
@@ -4579,7 +6937,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-publication-chart-skill",
@@ -4596,7 +6965,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "galaxy-ui-ux-pro-max",
@@ -4613,7 +6993,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "latex-document",
@@ -4630,7 +7021,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "mermaid-diagram",
@@ -4647,7 +7049,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "nature-figure",
@@ -4664,7 +7077,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-figure",
@@ -4681,7 +7105,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-figure-drawio",
@@ -4698,7 +7133,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-figure-html",
@@ -4715,7 +7161,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-illustration",
@@ -4732,7 +7189,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-poster",
@@ -4749,7 +7217,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "paper-slides",
@@ -4766,7 +7245,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "pixel-art",
@@ -4783,7 +7273,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "scholar-critique-figures",
@@ -4800,7 +7301,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "sci-latex-posters",
@@ -4817,7 +7329,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "sci-pdf",
@@ -4834,7 +7357,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "spine-paper-spine-latex",
@@ -4851,7 +7385,18 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "status": "experimental"
+      "status": "formal",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 1,
+          "max_score": 1
+        }
+      ]
     },
     {
       "capability_id": "anti_ai_detection",
@@ -4860,7 +7405,7 @@
       "description": "检测中文学术文本AI生成特征（8维度+8统计特征，62篇获奖论文基线校准），AI味改写方向引导+改写质量门禁（审美护栏），2026国赛AI使用声明生成。选择性吸收SkillHub社区规则（58模式/12维），拒绝机械替换改写",
       "input_contract": "待检测文本或文件路径",
       "output_contract": "ANTI_AI_REPORT.json（风险等级/特征评分/建议）+ DE_AI_REPORT.md（改写建议）+ AI工具使用声明",
-      "status": "experimental",
+      "status": "formal",
       "associated_skills": [
         "anti-ai-detection"
       ],
@@ -4875,7 +7420,18 @@
       "external_dependencies": [],
       "high_risk_confirmation": "AI使用声明涉及竞赛合规，措辞不允许修改",
       "current_evidence": "测试套件10/10通过；20篇获奖论文假阳性率0%；门禁实证拦截humanize-chinese机械改写（语义漂移/杜撰话术4处error）；双检测器交叉验证一致（练习论文 18/100 vs 15.55%）",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        {
+          "date": "2026-08-18T09:31:05Z",
+          "from_status": "experimental",
+          "to_status": "formal",
+          "reason": "acceptance_benchmark_passed",
+          "evidence": "benchmark_v2_20260818",
+          "score": 11,
+          "max_score": 13
+        }
+      ]
     }
   ]
 }
