@@ -20,7 +20,7 @@ AI 工具使用声明生成器 v1.0
 - AI工具使用详情.md（转 PDF 后作为支撑材料）
 
 用法：
-python tools/ai_usage_declaration.py --used --usage "语言润色、代码调试、文献检索" \
+python tools/ai_usage_declaration.py --used --usage "资料查询和语言润色" \
     --output <工作区>/AI使用声明
 """
 
@@ -70,7 +70,7 @@ DETAIL_MD_TEMPLATE = """# AI工具使用详情
 def build_declaration(used: bool, usage: str) -> str:
     """生成论文内声明段（插在参考文献之前）"""
     if used:
-        body = TEMPLATE_USED.format(usage=usage or "语言润色、代码调试等")
+        body = TEMPLATE_USED.format(usage=usage or "资料查询和语言润色")
     else:
         body = TEMPLATE_NOT_USED
     latex = (
@@ -91,8 +91,8 @@ def build_detail_md(usage: str, tools: list, usage_detail: str,
     )
     return DETAIL_MD_TEMPLATE.format(
         tools_table=table_rows,
-        usage=usage or "（填写：语言润色、代码调试、文献检索、图表绘制建议等）",
-        usage_detail=usage_detail or "（填写：在哪些环节使用了AI，例如——\n1. 模型求解阶段：使用AI调试Python求解代码；\n2. 论文写作阶段：使用AI润色语言表达；\n3. 文献检索阶段：使用AI辅助检索与筛选参考文献。）",
+        usage=usage or "（填写：资料查询和语言润色）",
+        usage_detail=usage_detail or "（填写：在哪些环节使用了AI，例如——\n1. 文献检索阶段：使用AI辅助检索与筛选参考文献；\n2. 论文润色阶段：使用AI辅助润色语言表达。）",
         prompt_detail=prompt_detail or "（填写：主要提示方式与过程说明，例如——\n以自然语言向工具描述需求，工具返回结果后由队员人工审查。提示词均围绕具体技术问题，不涉及赛题核心建模结论。）",
         examples=examples or "（可选：附1-2条典型交互示例，如——\n提问：「请帮我检查这段Python代码的语法错误」\n工具回答：「第X行缺少冒号，已修正为...」\n处理方式：人工核对后采纳。）",
         verification=verification or "（填写：对AI输出的采纳、人工修改和核验情况，例如——\n1. 代码：所有AI生成的代码均经人工逐行审查并运行验证；\n2. 文本：AI润色内容经全文复核，核心建模分析均由队员完成；\n3. 数据：所有计算结果均与题目数据独立核对。）",
@@ -103,7 +103,7 @@ def build_detail_md(usage: str, tools: list, usage_detail: str,
 def main():
     parser = argparse.ArgumentParser(description="AI工具使用声明生成器（2026国赛新规）")
     parser.add_argument("--used", action="store_true", help="使用了AI工具（默认未使用）")
-    parser.add_argument("--usage", default="", help="简要用途，如「语言润色、代码调试」")
+    parser.add_argument("--usage", default="", help="简要用途，如「资料查询和语言润色」（默认仅声明资料查询和润色）")
     parser.add_argument("--tools", default="", help="工具列表JSON: [{'name':'ChatGPT','version':'4o','category':'代码调试'}]")
     parser.add_argument("--output", default=".", help="输出目录（默认当前目录）")
     args = parser.parse_args()
