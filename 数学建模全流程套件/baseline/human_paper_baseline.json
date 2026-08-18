@@ -1,0 +1,764 @@
+{
+  "source": "D:\\Desktop\\数模竞赛\\参考论文\\论文风格分析报告.md",
+  "paper_count": 20,
+  "features": {
+    "total_chars": {
+      "mean": 8987.7,
+      "std": 1841.106,
+      "min": 6445,
+      "max": 12859,
+      "n": 20
+    },
+    "chinese_chars": {
+      "mean": 3570.6,
+      "std": 874.986,
+      "min": 2102,
+      "max": 4980,
+      "n": 20
+    },
+    "english_words": {
+      "mean": 601.55,
+      "std": 177.837,
+      "min": 322,
+      "max": 989,
+      "n": 20
+    },
+    "paragraphs": {
+      "mean": 49.2,
+      "std": 21.351,
+      "min": 18,
+      "max": 113,
+      "n": 20
+    },
+    "mean_paragraph_len": {
+      "mean": 289.22,
+      "std": 124.704,
+      "min": 109.8,
+      "max": 623.6,
+      "n": 20
+    },
+    "short_sent_pct": {
+      "mean": 67.21,
+      "std": 7.202,
+      "min": 54.4,
+      "max": 82.3,
+      "n": 20
+    },
+    "mid_sent_pct": {
+      "mean": 31.005,
+      "std": 6.643,
+      "min": 17.4,
+      "max": 42.3,
+      "n": 20
+    },
+    "long_sent_pct": {
+      "mean": 1.78,
+      "std": 1.788,
+      "min": 0.0,
+      "max": 7.7,
+      "n": 20
+    },
+    "passive_pct": {
+      "mean": 1.355,
+      "std": 1.234,
+      "min": 0.2,
+      "max": 4.8,
+      "n": 20
+    },
+    "academic_density_pct": {
+      "mean": 1.414,
+      "std": 0.697,
+      "min": 0.27,
+      "max": 2.87,
+      "n": 20
+    },
+    "connector_density_per_1000": {
+      "mean": 8.742,
+      "std": 2.411,
+      "min": 4.235,
+      "max": 12.291,
+      "n": 20
+    }
+  },
+  "papers": [
+    {
+      "paper_id": "2021_A028",
+      "total_chars": 8177,
+      "chinese_chars": 3778,
+      "english_words": 602,
+      "paragraphs": 55,
+      "mean_paragraph_len": 209.1,
+      "short_sent": 223,
+      "short_sent_pct": 57.0,
+      "mid_sent": 159,
+      "mid_sent_pct": 40.7,
+      "long_sent": 9,
+      "long_sent_pct": 2.3,
+      "passive_pct": 1.0,
+      "academic_density_pct": 0.56,
+      "connectors": {
+        "通过": 5,
+        "首先": 3,
+        "针对": 3,
+        "由于": 2,
+        "最后": 1,
+        "因此": 1,
+        "可见": 1
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 1
+    },
+    {
+      "paper_id": "2021_B026",
+      "total_chars": 9698,
+      "chinese_chars": 2785,
+      "english_words": 686,
+      "paragraphs": 69,
+      "mean_paragraph_len": 174.2,
+      "short_sent": 511,
+      "short_sent_pct": 78.1,
+      "mid_sent": 135,
+      "mid_sent_pct": 20.6,
+      "long_sent": 8,
+      "long_sent_pct": 1.2,
+      "passive_pct": 0.3,
+      "academic_density_pct": 1.04,
+      "connectors": {
+        "因此": 4,
+        "对于": 4,
+        "基于": 3,
+        "通过": 3,
+        "同时": 2,
+        "首先": 1,
+        "最后": 1,
+        "由于": 1
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 1
+    },
+    {
+      "paper_id": "2021_C066",
+      "total_chars": 11059,
+      "chinese_chars": 4980,
+      "english_words": 675,
+      "paragraphs": 25,
+      "mean_paragraph_len": 623.6,
+      "short_sent": 362,
+      "short_sent_pct": 60.8,
+      "mid_sent": 227,
+      "mid_sent_pct": 38.2,
+      "long_sent": 6,
+      "long_sent_pct": 1.0,
+      "passive_pct": 1.2,
+      "academic_density_pct": 1.18,
+      "connectors": {
+        "通过": 14,
+        "基于": 13,
+        "针对": 8,
+        "同时": 4,
+        "以及": 4,
+        "首先": 3,
+        "因此": 3,
+        "对于": 3
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 1
+    },
+    {
+      "paper_id": "2021_D017",
+      "total_chars": 6445,
+      "chinese_chars": 2640,
+      "english_words": 390,
+      "paragraphs": 36,
+      "mean_paragraph_len": 243.2,
+      "short_sent": 347,
+      "short_sent_pct": 77.8,
+      "mid_sent": 93,
+      "mid_sent_pct": 20.9,
+      "long_sent": 6,
+      "long_sent_pct": 1.3,
+      "passive_pct": 0.4,
+      "academic_density_pct": 1.47,
+      "connectors": {
+        "首先": 3,
+        "其次": 2,
+        "最后": 2,
+        "基于": 2,
+        "由于": 2,
+        "关于": 2,
+        "针对": 2,
+        "对于": 2
+      },
+      "direct_innovation": 1,
+      "embedded_innovation": 1
+    },
+    {
+      "paper_id": "2021_A115",
+      "total_chars": 8822,
+      "chinese_chars": 4418,
+      "english_words": 602,
+      "paragraphs": 66,
+      "mean_paragraph_len": 194.0,
+      "short_sent": 308,
+      "short_sent_pct": 63.5,
+      "mid_sent": 172,
+      "mid_sent_pct": 35.5,
+      "long_sent": 5,
+      "long_sent_pct": 1.0,
+      "passive_pct": 2.3,
+      "academic_density_pct": 0.88,
+      "connectors": {
+        "通过": 13,
+        "基于": 8,
+        "以及": 6,
+        "最后": 3,
+        "针对": 3,
+        "对于": 3,
+        "首先": 2,
+        "因此": 2
+      },
+      "direct_innovation": 1,
+      "embedded_innovation": 3
+    },
+    {
+      "paper_id": "2021_A217",
+      "total_chars": 7498,
+      "chinese_chars": 3614,
+      "english_words": 470,
+      "paragraphs": 39,
+      "mean_paragraph_len": 273.8,
+      "short_sent": 238,
+      "short_sent_pct": 60.7,
+      "mid_sent": 151,
+      "mid_sent_pct": 38.5,
+      "long_sent": 3,
+      "long_sent_pct": 0.8,
+      "passive_pct": 1.3,
+      "academic_density_pct": 1.33,
+      "connectors": {
+        "基于": 6,
+        "最后": 4,
+        "通过": 4,
+        "首先": 3,
+        "由于": 3,
+        "进而": 3,
+        "从而": 2,
+        "其次": 1
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 1
+    },
+    {
+      "paper_id": "2021_B007",
+      "total_chars": 8217,
+      "chinese_chars": 4475,
+      "english_words": 322,
+      "paragraphs": 67,
+      "mean_paragraph_len": 181.4,
+      "short_sent": 283,
+      "short_sent_pct": 64.0,
+      "mid_sent": 155,
+      "mid_sent_pct": 35.1,
+      "long_sent": 4,
+      "long_sent_pct": 0.9,
+      "passive_pct": 0.9,
+      "academic_density_pct": 2.87,
+      "connectors": {
+        "以及": 11,
+        "通过": 9,
+        "同时": 7,
+        "针对": 7,
+        "从而": 6,
+        "基于": 5,
+        "首先": 4,
+        "因此": 4
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 3
+    },
+    {
+      "paper_id": "2021_B050",
+      "total_chars": 7096,
+      "chinese_chars": 3738,
+      "english_words": 334,
+      "paragraphs": 42,
+      "mean_paragraph_len": 247.5,
+      "short_sent": 265,
+      "short_sent_pct": 66.9,
+      "mid_sent": 131,
+      "mid_sent_pct": 33.1,
+      "long_sent": 0,
+      "long_sent_pct": 0.0,
+      "passive_pct": 0.5,
+      "academic_density_pct": 2.78,
+      "connectors": {
+        "首先": 4,
+        "通过": 4,
+        "关于": 3,
+        "由于": 2,
+        "如果": 2,
+        "以及": 2,
+        "针对": 2,
+        "对于": 2
+      }
+    },
+    {
+      "paper_id": "2021_B160",
+      "total_chars": 8560,
+      "chinese_chars": 3824,
+      "english_words": 550,
+      "paragraphs": 55,
+      "mean_paragraph_len": 217.5,
+      "short_sent": 389,
+      "short_sent_pct": 71.6,
+      "mid_sent": 150,
+      "mid_sent_pct": 27.6,
+      "long_sent": 4,
+      "long_sent_pct": 0.7,
+      "passive_pct": 1.3,
+      "academic_density_pct": 1.36,
+      "connectors": {
+        "通过": 10,
+        "因此": 7,
+        "由于": 7,
+        "针对": 7,
+        "以及": 6,
+        "首先": 4,
+        "最后": 3,
+        "基于": 3
+      }
+    },
+    {
+      "paper_id": "2021_C085",
+      "total_chars": 7355,
+      "chinese_chars": 2270,
+      "english_words": 774,
+      "paragraphs": 18,
+      "mean_paragraph_len": 522.6,
+      "short_sent": 254,
+      "short_sent_pct": 64.0,
+      "mid_sent": 137,
+      "mid_sent_pct": 34.5,
+      "long_sent": 6,
+      "long_sent_pct": 1.5,
+      "passive_pct": 0.3,
+      "academic_density_pct": 1.14,
+      "connectors": {
+        "由于": 3,
+        "首先": 2,
+        "基于": 2,
+        "对于": 2,
+        "以及": 1
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 1
+    },
+    {
+      "paper_id": "2021_C169",
+      "total_chars": 6628,
+      "chinese_chars": 2714,
+      "english_words": 468,
+      "paragraphs": 48,
+      "mean_paragraph_len": 187.5,
+      "short_sent": 319,
+      "short_sent_pct": 74.4,
+      "mid_sent": 109,
+      "mid_sent_pct": 25.4,
+      "long_sent": 1,
+      "long_sent_pct": 0.2,
+      "passive_pct": 0.5,
+      "academic_density_pct": 1.24,
+      "connectors": {
+        "基于": 6,
+        "所以": 5,
+        "由于": 5,
+        "对于": 5,
+        "同时": 3,
+        "以及": 2,
+        "因此": 1,
+        "此外": 1
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 1
+    },
+    {
+      "paper_id": "2021_C283",
+      "total_chars": 10792,
+      "chinese_chars": 2189,
+      "english_words": 979,
+      "paragraphs": 113,
+      "mean_paragraph_len": 109.8,
+      "short_sent": 442,
+      "short_sent_pct": 70.8,
+      "mid_sent": 167,
+      "mid_sent_pct": 26.8,
+      "long_sent": 15,
+      "long_sent_pct": 2.4,
+      "passive_pct": 0.2,
+      "academic_density_pct": 0.27,
+      "connectors": {
+        "对于": 6,
+        "基于": 5,
+        "但是": 2,
+        "或者": 2,
+        "首先": 1,
+        "由于": 1,
+        "因为": 1,
+        "并且": 1
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 1
+    },
+    {
+      "paper_id": "2021_D026",
+      "total_chars": 12859,
+      "chinese_chars": 4919,
+      "english_words": 548,
+      "paragraphs": 60,
+      "mean_paragraph_len": 287.2,
+      "short_sent": 850,
+      "short_sent_pct": 82.3,
+      "mid_sent": 180,
+      "mid_sent_pct": 17.4,
+      "long_sent": 3,
+      "long_sent_pct": 0.3,
+      "passive_pct": 0.2,
+      "academic_density_pct": 0.91,
+      "connectors": {
+        "通过": 10,
+        "最后": 8,
+        "首先": 7,
+        "以及": 7,
+        "针对": 6,
+        "由于": 5,
+        "因此": 4,
+        "对于": 4
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 1
+    },
+    {
+      "paper_id": "2021_D034",
+      "total_chars": 9302,
+      "chinese_chars": 4336,
+      "english_words": 524,
+      "paragraphs": 39,
+      "mean_paragraph_len": 336.1,
+      "short_sent": 284,
+      "short_sent_pct": 62.3,
+      "mid_sent": 137,
+      "mid_sent_pct": 30.0,
+      "long_sent": 35,
+      "long_sent_pct": 7.7,
+      "passive_pct": 1.8,
+      "academic_density_pct": 1.0,
+      "connectors": {
+        "所以": 7,
+        "针对": 7,
+        "通过": 6,
+        "而且": 4,
+        "首先": 3,
+        "但是": 2,
+        "由于": 2,
+        "同时": 2
+      },
+      "direct_innovation": 5,
+      "embedded_innovation": 2
+    },
+    {
+      "paper_id": "2021_E014",
+      "total_chars": 7686,
+      "chinese_chars": 2102,
+      "english_words": 647,
+      "paragraphs": 24,
+      "mean_paragraph_len": 397.5,
+      "short_sent": 358,
+      "short_sent_pct": 72.2,
+      "mid_sent": 133,
+      "mid_sent_pct": 26.8,
+      "long_sent": 5,
+      "long_sent_pct": 1.0,
+      "passive_pct": 1.2,
+      "academic_density_pct": 0.83,
+      "connectors": {
+        "通过": 5,
+        "所以": 4,
+        "因此": 1,
+        "但是": 1,
+        "基于": 1,
+        "由于": 1,
+        "因为": 1,
+        "或者": 1
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 1
+    },
+    {
+      "paper_id": "2021_E025",
+      "total_chars": 12768,
+      "chinese_chars": 4065,
+      "english_words": 989,
+      "paragraphs": 70,
+      "mean_paragraph_len": 234.6,
+      "short_sent": 364,
+      "short_sent_pct": 59.8,
+      "mid_sent": 216,
+      "mid_sent_pct": 35.5,
+      "long_sent": 29,
+      "long_sent_pct": 4.8,
+      "passive_pct": 0.2,
+      "academic_density_pct": 2.29,
+      "connectors": {
+        "基于": 12,
+        "针对": 7,
+        "首先": 5,
+        "最后": 5,
+        "通过": 5,
+        "因此": 4,
+        "由于": 4,
+        "其次": 3
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 4
+    },
+    {
+      "paper_id": "2021_E037",
+      "total_chars": 8495,
+      "chinese_chars": 3097,
+      "english_words": 620,
+      "paragraphs": 52,
+      "mean_paragraph_len": 215.6,
+      "short_sent": 303,
+      "short_sent_pct": 66.3,
+      "mid_sent": 143,
+      "mid_sent_pct": 31.3,
+      "long_sent": 11,
+      "long_sent_pct": 2.4,
+      "passive_pct": 2.2,
+      "academic_density_pct": 2.26,
+      "connectors": {
+        "通过": 10,
+        "最后": 5,
+        "对于": 5,
+        "由于": 4,
+        "首先": 2,
+        "因此": 2,
+        "所以": 2,
+        "于是": 2
+      }
+    },
+    {
+      "paper_id": "2022_A001",
+      "total_chars": 7467,
+      "chinese_chars": 3183,
+      "english_words": 435,
+      "paragraphs": 24,
+      "mean_paragraph_len": 430.8,
+      "short_sent": 302,
+      "short_sent_pct": 68.8,
+      "mid_sent": 136,
+      "mid_sent_pct": 31.0,
+      "long_sent": 1,
+      "long_sent_pct": 0.2,
+      "passive_pct": 2.7,
+      "academic_density_pct": 2.09,
+      "connectors": {
+        "通过": 7,
+        "同时": 6,
+        "最后": 5,
+        "基于": 5,
+        "针对": 5,
+        "首先": 2,
+        "其次": 2,
+        "由于": 2
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 7
+    },
+    {
+      "paper_id": "2022_A022",
+      "total_chars": 10210,
+      "chinese_chars": 4118,
+      "english_words": 665,
+      "paragraphs": 45,
+      "mean_paragraph_len": 310.1,
+      "short_sent": 394,
+      "short_sent_pct": 68.5,
+      "mid_sent": 166,
+      "mid_sent_pct": 28.9,
+      "long_sent": 15,
+      "long_sent_pct": 2.6,
+      "passive_pct": 3.8,
+      "academic_density_pct": 0.95,
+      "connectors": {
+        "由于": 9,
+        "以及": 9,
+        "通过": 8,
+        "因此": 6,
+        "针对": 5,
+        "首先": 4,
+        "同时": 4,
+        "对于": 4
+      },
+      "direct_innovation": 0,
+      "embedded_innovation": 1
+    },
+    {
+      "paper_id": "2022_A171",
+      "total_chars": 10620,
+      "chinese_chars": 4167,
+      "english_words": 751,
+      "paragraphs": 37,
+      "mean_paragraph_len": 388.3,
+      "short_sent": 262,
+      "short_sent_pct": 54.4,
+      "mid_sent": 204,
+      "mid_sent_pct": 42.3,
+      "long_sent": 16,
+      "long_sent_pct": 3.3,
+      "passive_pct": 4.8,
+      "academic_density_pct": 1.84,
+      "connectors": {
+        "因此": 9,
+        "通过": 5,
+        "由于": 5,
+        "对于": 5,
+        "首先": 4,
+        "但是": 3,
+        "再次": 2,
+        "基于": 2
+      }
+    }
+  ],
+  "connectors": {
+    "top_global": [
+      [
+        "通过",
+        118
+      ],
+      [
+        "基于",
+        73
+      ],
+      [
+        "针对",
+        62
+      ],
+      [
+        "由于",
+        58
+      ],
+      [
+        "首先",
+        57
+      ],
+      [
+        "因此",
+        48
+      ],
+      [
+        "以及",
+        48
+      ],
+      [
+        "对于",
+        45
+      ],
+      [
+        "最后",
+        37
+      ],
+      [
+        "同时",
+        28
+      ],
+      [
+        "所以",
+        18
+      ],
+      [
+        "其次",
+        8
+      ],
+      [
+        "从而",
+        8
+      ],
+      [
+        "但是",
+        8
+      ],
+      [
+        "关于",
+        5
+      ],
+      [
+        "而且",
+        4
+      ],
+      [
+        "进而",
+        3
+      ],
+      [
+        "或者",
+        3
+      ],
+      [
+        "如果",
+        2
+      ],
+      [
+        "因为",
+        2
+      ],
+      [
+        "于是",
+        2
+      ],
+      [
+        "再次",
+        2
+      ],
+      [
+        "可见",
+        1
+      ],
+      [
+        "此外",
+        1
+      ],
+      [
+        "并且",
+        1
+      ]
+    ],
+    "paper_frequency": {
+      "通过": 16,
+      "首先": 18,
+      "针对": 12,
+      "由于": 17,
+      "最后": 10,
+      "因此": 13,
+      "可见": 1,
+      "对于": 12,
+      "基于": 14,
+      "同时": 7,
+      "以及": 9,
+      "其次": 4,
+      "关于": 2,
+      "进而": 1,
+      "从而": 2,
+      "如果": 1,
+      "所以": 4,
+      "此外": 1,
+      "但是": 4,
+      "或者": 2,
+      "因为": 2,
+      "并且": 1,
+      "而且": 1,
+      "于是": 1,
+      "再次": 1
+    }
+  }
+}
