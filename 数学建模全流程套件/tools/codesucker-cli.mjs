@@ -59,28 +59,30 @@ async function main() {
   fs.mkdirSync(temp, { recursive: true });
 
   const core = await import(pathToFileURL(CORE).href);
-  const version = fs.readFileSync(path.join(ROOT, 'codesucker-core', 'packages', 'core', 'src', 'version.ts'), 'utf8');
   const coreFiles = [];
   for (const file of fs.readdirSync(path.join(ROOT, 'codesucker-core', 'packages', 'core', 'src'))) {
     const full = path.join(ROOT, 'codesucker-core', 'packages', 'core', 'src', file);
     if (file.endsWith('.ts')) coreFiles.push(sha256(fs.readFileSync(full)));
   }
+  const schemaVersion = core.CONFIG_SCHEMA_VERSION;
+  const rulesVersion = core.RULES_VERSION;
   const normalized = {
     ...config,
-    schemaVersion: config.schemaVersion ?? 1,
+    schemaVersion,
     root: projectRoot,
     outputDir: 'source-materials',
   };
-  const defaults = {
-    removeComments: true, removeBlankLines: true, maskSensitive: true,
-    wrapLongLines: true, maxLineWidth: 78, tabWidth: 4,
-  };
+  const cleanDefaults = core.defaultCleanOptions();
   const projectConfig = {
-    root: projectRoot, title: String(config.title || ''), owner: config.owner || undefined,
+    root: projectRoot,
+    title: String(config.title || ''),
+    owner: config.owner || undefined,
     foundedDate: config.foundedDate || undefined,
-    extensions: (config.extensions || []).map((x) => String(x).replace(/^\./, '')),
-    excludes: config.excludes || [], sortMode: config.sortMode || 'entry',
-    clean: { ...defaults, ...(config.clean || {}) }, linesPerPage: config.linesPerPage || 50,
+    extensions: (config.extensions || core.DEFAULT_EXTENSIONS.slice()).map((x) => String(x).replace(/^\./, '')),
+    excludes: config.excludes || core.DEFAULT_EXCLUDES.slice(),
+    sortMode: config.sortMode || 'entry',
+    clean: { ...cleanDefaults, ...(config.clean || {}) },
+    linesPerPage: config.linesPerPage || 50,
     maxPages: config.maxPages || 60,
   };
   const discoveredByExtension = projectConfig.extensions.flatMap((extension) => (
@@ -114,9 +116,9 @@ async function main() {
   writeJson(path.join(temp, 'audit.json'), result.auditItems);
   writeJson(path.join(temp, 'stats.json'), { ...result.stats, errors: result.errors });
   const manifest = {
-    schemaVersion: 1, backend: 'vendored-codesucker-core', sourceMode: config.sourceMode || 'real',
+    schemaVersion, backend: 'vendored-codesucker-core', sourceMode: config.sourceMode || 'real',
     coreVersion: '0.4.4', coreCommit: 'b065a1825f4e32dca4c4b7fd8bccf3e020a77c5c',
-    rulesVersion: (version.match(/RULES_VERSION\s*=\s*['"]([^'"]+)/) || [])[1] || 'unknown',
+    rulesVersion,
     config: normalized, configSha256: sha256(JSON.stringify(stable(normalized))), coreSha256: sha256(coreFiles.join('')),
     projectRoot, outputDir: 'source-materials', audit: result.auditItems, errors: result.errors,
     rendered: rendered.map((file) => `source-materials/${relative(file)}`),

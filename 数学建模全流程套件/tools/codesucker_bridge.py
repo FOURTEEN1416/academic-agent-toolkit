@@ -64,7 +64,6 @@ def run_source_materials(
 
     config_path = workspace / "source-materials.config.json"
     config_payload = dict(config)
-    config_payload.setdefault("schemaVersion", 1)
     config_payload.setdefault("sourceMode", "real")
     config_path.write_text(json.dumps(config_payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     command = [
@@ -89,6 +88,13 @@ def run_source_materials(
     if not manifest_path.is_file():
         raise RuntimeError("CodeSucker CLI did not create SOURCE_MATERIALS_MANIFEST.json")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    # Validate manifest schema version matches core constant
+    if manifest.get("schemaVersion") != 1:
+        raise RuntimeError(f"unexpected manifest schemaVersion: {manifest.get('schemaVersion')}")
+    if manifest.get("coreVersion") != "0.4.4":
+        raise RuntimeError(f"manifest coreVersion mismatch: {manifest.get('coreVersion')}")
+    if manifest.get("coreCommit") != "b065a1825f4e32dca4c4b7fd8bccf3e020a77c5c":
+        raise RuntimeError(f"manifest coreCommit mismatch: {manifest.get('coreCommit')}")
     manifest["configFile"] = _safe_relative(config_path, workspace)
     manifest["configSha256"] = sha256_file(config_path)
     manifest["coreSha256"] = _core_hash()

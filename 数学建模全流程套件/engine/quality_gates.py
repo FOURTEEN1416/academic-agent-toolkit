@@ -664,6 +664,8 @@ class QualityGate:
         failures, warnings = [], []
         if manifest.get("backend") != "vendored-codesucker-core":
             failures.append("backend 不是 vendored-codesucker-core")
+        if manifest.get("schemaVersion") != 1:
+            failures.append("manifest schemaVersion 不是 1")
         for field in ("coreVersion", "coreCommit", "rulesVersion", "configSha256", "coreSha256"):
             if not manifest.get(field):
                 failures.append(f"manifest 缺少 {field}")
