@@ -1,0 +1,45 @@
+{
+  "name": "humanize-chinese",
+  "version": "2.1.0",
+  "description": "Detect and humanize AI-generated Chinese text. 20+ detection patterns, weighted 0-100 scoring, sentence-level analysis, 7 style transforms, academic AIGC reduction for CNKI/VIP/Wanfang. Pure Python, no dependencies.",
+  "main": "SKILL.md",
+  "scripts": {
+    "detect": "python scripts/detect_cn.py",
+    "humanize": "python scripts/humanize_cn.py",
+    "compare": "python scripts/compare_cn.py",
+    "style": "python scripts/style_cn.py",
+    "academic": "python scripts/academic_cn.py"
+  },
+  "keywords": [
+    "ai",
+    "chinese",
+    "humanize",
+    "detector",
+    "clawhub",
+    "skill",
+    "ai-detector",
+    "chinese-ai",
+    "deai",
+    "去ai化",
+    "aigc",
+    "降重",
+    "知网",
+    "维普",
+    "万方",
+    "academic",
+    "论文",
+    "humanizer",
+    "ai-writing",
+    "text-humanizer"
+  ],
+  "author": "voidborne-d",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/voidborne-d/humanize-chinese.git"
+  },
+  "bugs": {
+    "url": "https://github.com/voidborne-d/humanize-chinese/issues"
+  },
+  "homepage": "https://github.com/voidborne-d/humanize-chinese#readme"
+}

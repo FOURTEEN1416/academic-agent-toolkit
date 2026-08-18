@@ -1,0 +1,82 @@
+{
+  "profile_name": "general_paper_reference",
+  "source": "main.docx",
+  "page": {
+    "size": "A4",
+    "margin_top_cm": 2.5,
+    "margin_bottom_cm": 2.5,
+    "margin_left_cm": 2.5,
+    "margin_right_cm": 2.5
+  },
+  "fonts": {
+    "chinese_heading": "SimHei",
+    "chinese_body": "SimSun",
+    "latin": "Times New Roman",
+    "monospace": "Consolas"
+  },
+  "title": {
+    "font_size_pt": 18.0,
+    "bold": true,
+    "alignment": "center",
+    "color_rgb": "000000",
+    "line_spacing": 1.15,
+    "space_before_pt": 12,
+    "space_after_pt": 6
+  },
+  "headings": {
+    "level1_pt": 14.0,
+    "level2_pt": 12.0,
+    "level3_pt": 11.0,
+    "level4_pt": 11,
+    "bold": true,
+    "level1_alignment": "center",
+    "level2_alignment": "left",
+    "level3_alignment": "left",
+    "level4_alignment": "left",
+    "level1_color_rgb": "000000",
+    "level2_color_rgb": "000000",
+    "level3_color_rgb": "000000"
+  },
+  "body": {
+    "font_size_pt": 12,
+    "line_spacing": 1.28,
+    "first_line_indent_chars": 2,
+    "space_before_pt": 0,
+    "space_after_pt": 0,
+    "color_rgb": "000000"
+  },
+  "abstract": {
+    "label_size_pt": 14.0,
+    "body_size_pt": 12,
+    "label_bold": true,
+    "label_alignment": "center"
+  },
+  "keywords": {
+    "label_size_pt": 12,
+    "label_bold": true,
+    "font": "SimHei"
+  },
+  "table": {
+    "top_border_pt": 1.5,
+    "header_border_pt": 0.75,
+    "bottom_border_pt": 1.5,
+    "font_size_pt": 10.5,
+    "header_bold": true,
+    "cell_alignment": "center"
+  },
+  "image": {
+    "max_width_cm": 14,
+    "alignment": "center"
+  },
+  "code_block": {
+    "font_size_pt": 9,
+    "line_spacing": 1.0,
+    "background_color": "F5F5F5"
+  },
+  "references": {
+    "hanging_indent_cm": 0.74,
+    "font_size_pt": 10.5,
+    "numbering_style": "bracket"
+  },
+  "_derivation_note": "此 profile 派生自一份完整论文样本，仅作为 LLM 自检对照参考使用。不参与渲染、不当模板。具体的字号字体由参考论文实测得出，章节大纲与具体内容已被剥离，保留通用骨架。"
+}

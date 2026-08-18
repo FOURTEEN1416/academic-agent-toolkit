@@ -1,0 +1,22 @@
+[
+  {
+    "key": "vilsen2020deconvolution",
+    "title": "DNA mixture deconvolution using an evolutionary algorithm with multiple populations, hill-climbing, and guided mutation",
+    "authors": ["Søren B. Vilsen", "Torben Tvedebrink", "Poul Svante Eriksen"],
+    "year": 2020,
+    "source": "arXiv",
+    "id": "arXiv:2012.00513",
+    "doi": "",
+    "verification_status": "preset"
+  },
+  {
+    "key": "graversen2011estimation",
+    "title": "Estimation of Parameters in DNA Mixture Analysis",
+    "authors": ["Therese Graversen", "Steffen Lauritzen"],
+    "year": 2011,
+    "source": "arXiv",
+    "id": "arXiv:1108.1884",
+    "doi": "",
+    "verification_status": "preset"
+  }
+]

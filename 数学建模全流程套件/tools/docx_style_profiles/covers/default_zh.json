@@ -1,0 +1,23 @@
+{
+  "_comment": "通用中文竞赛封面（无 LaTeX 模板对照时的兜底）",
+  "language": "zh",
+  "preface": null,
+  "title_page": {
+    "show": true,
+    "title_size_pt": 22,
+    "title_alignment": "center",
+    "title_bold": true,
+    "title_font": "SimHei",
+    "info_lines": [
+      {"label": "题号：", "key": "problem"},
+      {"label": "参赛队号：", "key": "team_id"},
+      {"label": "学校：", "key": "school"},
+      {"label": "队员：", "key": "members"},
+      {"label": "指导教师：", "key": "advisor"},
+      {"label": "日期：", "key": "date"}
+    ],
+    "info_alignment": "center",
+    "info_size_pt": 14,
+    "page_break_after": true
+  }
+}

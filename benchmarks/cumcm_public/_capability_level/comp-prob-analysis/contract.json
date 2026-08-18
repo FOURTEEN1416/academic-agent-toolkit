@@ -1,0 +1,20 @@
+{
+  "benchmark_id": "comp-prob-analysis-p0",
+  "capability": "comp-prob-analysis",
+  "domain": "math_modeling_competition",
+  "name": "赛题分析验收基准",
+  "description": "合成微型赛题（共享单车调度），验收赛题分析能力的基本完整性和合规性",
+  "fixtures": {
+    "input": ["fixtures/problem.md", "fixtures/data.csv"],
+    "expected_output": ["PROBLEM_ANALYSIS.md", "CAPABILITY_CHECKLIST.json", "DATA_FACTS.json", "DATA_PROFILE.json"]
+  },
+  "scoring": {
+    "subproblem_count": {"min": 3, "description": "正确识别 3 个子问题"},
+    "figure_manifest": {"required": true, "description": "含 FIGURE_MANIFEST 区块"},
+    "capability_checklist": {"required": true, "description": "每个子问题至少 1 条能力项"},
+    "data_facts": {"required": true, "description": "DATA_FACTS.json 数据事实台账"},
+    "min_size_bytes": 1500
+  },
+  "scoring_script": "evaluate.py",
+  "status": "experimental"
+}

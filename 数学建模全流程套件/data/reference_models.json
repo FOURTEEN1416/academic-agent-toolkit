@@ -1,0 +1,240 @@
+{
+  "优化": {
+    "type_code": "OPT",
+    "description": "求最优解、调度、分配、路径",
+    "keywords": [
+      "最小",
+      "最大",
+      "最优",
+      "调度",
+      "分配",
+      "路径",
+      "最短",
+      "最大流"
+    ],
+    "baseline": {
+      "name": "线性规划 / 整数规划",
+      "lib": "scipy.optimize.linprog / pulp",
+      "complexity": "低",
+      "accuracy": "中",
+      "explainable": "高"
+    },
+    "improved_1": {
+      "name": "启发式算法（GA/SA/PSO/ACO）",
+      "lib": "scikit-opt / 自实现",
+      "complexity": "中",
+      "accuracy": "高",
+      "explainable": "中"
+    },
+    "improved_2": {
+      "name": "强化学习 / 深度学习优化",
+      "lib": "stable-baselines3 / torch",
+      "complexity": "高",
+      "accuracy": "高",
+      "explainable": "低"
+    },
+    "evaluation": [
+      "目标函数值",
+      "求解时间",
+      "约束违反率"
+    ],
+    "tips": "决策变量 + 目标 + 约束三件套；先 LP 试可行性"
+  },
+  "预测": {
+    "type_code": "PRED",
+    "description": "预测未来、估计趋势、走势分析",
+    "keywords": [
+      "预测",
+      "估计",
+      "未来",
+      "趋势",
+      "走势",
+      "forecast"
+    ],
+    "baseline": {
+      "name": "线性回归 / ARIMA",
+      "lib": "statsmodels / sklearn",
+      "complexity": "低",
+      "accuracy": "中",
+      "explainable": "高"
+    },
+    "improved_1": {
+      "name": "XGBoost / LightGBM / LSTM",
+      "lib": "xgboost / lightgbm / tensorflow",
+      "complexity": "中",
+      "accuracy": "高",
+      "explainable": "中"
+    },
+    "improved_2": {
+      "name": "Transformer / 集成学习",
+      "lib": "torch / sklearn.ensemble",
+      "complexity": "高",
+      "accuracy": "高",
+      "explainable": "低"
+    },
+    "evaluation": [
+      "RMSE",
+      "MAE",
+      "MAPE",
+      "R²"
+    ],
+    "tips": "训练/验证集 8:2 划分；时序数据严禁打乱"
+  },
+  "评价": {
+    "type_code": "EVAL",
+    "description": "打分、排名、比较、优劣",
+    "keywords": [
+      "评价",
+      "排名",
+      "打分",
+      "比较",
+      "优劣",
+      "综合"
+    ],
+    "baseline": {
+      "name": "AHP / TOPSIS",
+      "lib": "ahpy / 自实现",
+      "complexity": "低",
+      "accuracy": "中",
+      "explainable": "高"
+    },
+    "improved_1": {
+      "name": "熵权法 + 灰色关联",
+      "lib": "自实现 / skcriteria",
+      "complexity": "中",
+      "accuracy": "高",
+      "explainable": "高"
+    },
+    "improved_2": {
+      "name": "主成分分析 + 模糊综合",
+      "lib": "sklearn.decomposition",
+      "complexity": "中",
+      "accuracy": "高",
+      "explainable": "中"
+    },
+    "evaluation": [
+      "一致性比率",
+      "区分度",
+      "灵敏度"
+    ],
+    "tips": "指标体系必须全面；权重确定要合理（主客观结合）"
+  },
+  "统计": {
+    "type_code": "STAT",
+    "description": "关系、影响、因素、差异、相关性",
+    "keywords": [
+      "关系",
+      "影响",
+      "因素",
+      "差异",
+      "相关",
+      "显著"
+    ],
+    "baseline": {
+      "name": "多元线性回归 / 方差分析",
+      "lib": "statsmodels / scipy",
+      "complexity": "低",
+      "accuracy": "中",
+      "explainable": "高"
+    },
+    "improved_1": {
+      "name": "Lasso / Ridge / 贝叶斯回归",
+      "lib": "sklearn.linear_model",
+      "complexity": "中",
+      "accuracy": "高",
+      "explainable": "中"
+    },
+    "improved_2": {
+      "name": "结构方程模型 / 混合效应",
+      "lib": "semopy / statsmodels",
+      "complexity": "高",
+      "accuracy": "高",
+      "explainable": "高"
+    },
+    "evaluation": [
+      "R²",
+      "p-value",
+      "AIC/BIC",
+      "残差诊断"
+    ],
+    "tips": "显著性检验 + 残差分析；多重共线性用 VIF 检测"
+  },
+  "机理": {
+    "type_code": "MECH",
+    "description": "机理、原理、机制、演化、扩散",
+    "keywords": [
+      "机理",
+      "原理",
+      "机制",
+      "演化",
+      "扩散",
+      "方程"
+    ],
+    "baseline": {
+      "name": "Euler 法数值解",
+      "lib": "自实现 / scipy.integrate",
+      "complexity": "中",
+      "accuracy": "中",
+      "explainable": "高"
+    },
+    "improved_1": {
+      "name": "Runge-Kutta / 有限差分",
+      "lib": "scipy.integrate.odeint",
+      "complexity": "中",
+      "accuracy": "高",
+      "explainable": "高"
+    },
+    "improved_2": {
+      "name": "有限元 / 谱方法",
+      "lib": "FEniCS / 自实现",
+      "complexity": "高",
+      "accuracy": "高",
+      "explainable": "中"
+    },
+    "evaluation": [
+      "数值误差",
+      "守恒律",
+      "稳定性"
+    ],
+    "tips": "模型假设要明确；参数识别用最小二乘或贝叶斯"
+  },
+  "图论": {
+    "type_code": "GRAPH",
+    "description": "网络、路径、连接、最短、最大流",
+    "keywords": [
+      "网络",
+      "路径",
+      "连接",
+      "最短",
+      "最大流",
+      "节点"
+    ],
+    "baseline": {
+      "name": "Dijkstra / Floyd",
+      "lib": "networkx",
+      "complexity": "低",
+      "accuracy": "高",
+      "explainable": "高"
+    },
+    "improved_1": {
+      "name": "启发式（ACO/PSO/GA）",
+      "lib": "scikit-opt / 自实现",
+      "complexity": "中",
+      "accuracy": "高",
+      "explainable": "中"
+    },
+    "improved_2": {
+      "name": "复杂网络 / 强化学习",
+      "lib": "networkx / torch",
+      "complexity": "高",
+      "accuracy": "高",
+      "explainable": "低"
+    },
+    "evaluation": [
+      "路径长度",
+      "时间复杂度",
+      "鲁棒性"
+    ],
+    "tips": "节点 + 边 + 权重三件套；稀疏图用邻接表"
+  }
+}

@@ -1,0 +1,50 @@
+# 许可证（License）
+
+本发布包（releases/v1）由两部分构成，适用不同许可证：
+
+## 1. 核心代码与技能（MIT License）
+
+数学建模全流程套件（skills/、engine/、tools/、tests/）与根目录配置（opencode.json、README.md）采用 MIT 许可证：
+
+```
+MIT License
+
+Copyright (c) 2026 数模竞赛 Agent 工具箱项目
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## 2. 公开基准集（CC-BY-4.0）
+
+benchmarks/cumcm_public/（P01-P03 合成样例题、交付合同、评分量表、基线、评估器）采用
+[Creative Commons Attribution 4.0 International (CC-BY-4.0)](https://creativecommons.org/licenses/by/4.0/)：
+
+- 可自由共享与改编，但须注明出处（"数模竞赛 Agent 工具箱公开基准集"）。
+- 样例均为合成题面，不含任何真实竞赛题目、真实参赛数据或未授权材料。
+
+## 3. 明确排除（不在本发布包）
+
+- 私有扩展能力（capabilities/catalog.json 中 `private_extension` 条目）——保留私有范围。
+- 真实竞赛题面与演练产物（workspaces/cumcm-2026-practice、cumcm_private_pilot 等）——不随包分发。
+- 内部开发真相文档（dev-docs/）——不随包分发。
+
+## 4. 第三方组件
+
+- 各技能可能引用第三方库（scipy/numpy/pandas/matplotlib/ortools 等），遵循其各自许可证。
+- 技能文档中引用的外部服务（API）使用受其各自服务条款约束。

@@ -1,0 +1,24 @@
+{
+  "name": "CUMCM 公开基准集 (public benchmark)",
+  "version": "0.1.0",
+  "description": "小型、可再分发、本地可复现的数模竞赛验收样例题。用于 CUMCM 能力正式验收的公开基准层 (design §7 双层基准之公开层)。",
+  "license": "CC-BY-4.0 (样例为合成题面，不含真实参赛数据)",
+  "repro": "本地无外部依赖；数据内嵌于每题 data/ 目录，可离线运行。",
+  "problems": [
+    {
+      "id": "P01",
+      "type": "Q5-engineering",
+      "topic": "物流配送中心选址优化"
+    },
+    {
+      "id": "P02",
+      "type": "Q4-biological",
+      "topic": "传染病传播预测 (SIR)"
+    },
+    {
+      "id": "P03",
+      "type": "Q1-economic",
+      "topic": "区域经济发展综合评价"
+    }
+  ]
+}

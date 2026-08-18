@@ -1,0 +1,72 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "数模专家",
+  "skills": {
+    "paths": [
+      "./数学建模全流程套件/skills"
+    ]
+  },
+  "instructions": [
+    "数学建模全流程套件/AGENTS.md"
+  ],
+  "subagent_depth": 1,
+  "share": "disabled",
+  "plugin": [
+    "opencode-logger"
+  ],
+  "mcp": {
+    "docsearch": {
+      "type": "local",
+      "command": [
+        "C:\\Users\\FOUR\\.config\\opencode\\mcp\\docsearch-mcp\\.venv\\Scripts\\python.exe",
+        "C:\\Users\\FOUR\\.config\\opencode\\mcp\\docsearch-mcp\\server.py"
+      ],
+      "environment": {
+        "DOCSEARCH_ROOTS": "D:\\Desktop\\数模竞赛",
+        "DOCSEARCH_EXCLUDE_DIRS": "技能,skills,知识库,知识库搭建,node_modules,.venv,venv,.git,archive,assets,desc,__pycache__,.next"
+      },
+      "timeout": 30000
+    }
+  },
+  "agent": {
+    "数模视觉审查": {
+      "description": "只读数学建模图表与论文视觉审查子智能体。用于检查图表可读性、截断、重叠、题注、单位和导出质量。",
+      "mode": "subagent",
+      "model": "agnes/agnes-2.5-flash",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "bash": "ask",
+        "edit": "deny",
+        "skill": "allow"
+      }
+    },
+    "数模审稿人": {
+      "description": "只读数学建模审稿子智能体。用于复核问题理解、数学正确性、代码可复现性、统计结论和论文主张。",
+      "mode": "subagent",
+      "model": "opencode/mimo-v2.5-free",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "bash": "ask",
+        "edit": "deny",
+        "skill": "allow"
+      }
+    },
+    "数模编辑": {
+      "description": "根据数模审稿结论修改论文、图表说明和交付材料的受限编辑子智能体。",
+      "mode": "subagent",
+      "model": "opencode/mimo-v2.5-free",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "bash": "ask",
+        "edit": "allow",
+        "skill": "allow"
+      }
+    }
+  }
+}
