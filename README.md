@@ -1,5 +1,12 @@
 # Academic Agent Toolkit
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Benchmarks: CC-BY-4.0](https://img.shields.io/badge/Benchmarks-CC--BY--4.0-green.svg)](./LICENSE)
+[![OpenCode Desktop](https://img.shields.io/badge/Host-OpenCode%20Desktop-purple.svg)](https://opencode.ai)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-orange.svg)](https://www.python.org)
+[![CUMCM 2026](https://img.shields.io/badge/CUMCM-2026%20Ready-red.svg)](https://www.mcm.edu.cn)
+[![Skills](https://img.shields.io/badge/Skills-225%2B-brightgreen.svg)](./数学建模全流程套件/skills)
+
 > An academic Agent toolkit for mathematical modeling competitions (CUMCM/MCM/ICM), academic papers, literature research, course materials, intellectual-property materials, and scientific figure production.
 >
 > OpenCode Desktop 为唯一正式支持宿主。
