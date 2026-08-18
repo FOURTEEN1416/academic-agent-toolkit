@@ -1,0 +1,102 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+.venv*/
+venv/
+ENV/
+env/
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# Logs
+*.log
+logs/
+
+# Internal development truth docs (not for public delivery)
+dev-docs/
+
+# Engine state and audit trails (not for public delivery)
+.engine/
+**/.engine/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Node
+node_modules/
+.pnpm-store/
+
+# Third-party competition material and private references (no redistribution right)
+参考论文/
+参考论文使用指南.md
+附件*.pdf
+赛前试炼任务/
+extracted_images/
+screenshots/
+
+# Real practice/validation workspaces and private benchmarks
+workspaces/
+benchmarks/cumcm_private/
+
+# Legacy toolkit and release packages (kept locally for traceability)
+数学建模大赛工具集/
+releases/
+
+# Browser automation state and acceptance-test scratch artifacts
+.playwright-mcp/
+acceptance_testing/
+
+# Suite-internal private reference data and anti-AI baselines derived from award papers
+数学建模全流程套件/data/
+数学建模全流程套件/baseline/
+
+# Local test and vision-call residue
+数学建模全流程套件/_test_input.md
+**/.drawio_vision_calls.json
+**/.tikz_vision_calls.json

@@ -1,0 +1,2904 @@
+{
+  "copyright_source_materials": {
+    "pipeline_skill": "copyright-source-materials",
+    "display_name": "软著源程序材料",
+    "sub_steps": [
+      {
+        "skill_name": "copyright-source-materials",
+        "display_name": "离线源码抽取、分页与审计",
+        "output_files": [
+          "source-materials/SOURCE_MATERIALS_MANIFEST.json",
+          "source-materials/SOURCE_MATERIALS_REPORT.md",
+          "source-materials/audit.json",
+          "source-materials/rendered"
+        ],
+        "primary_output": "source-materials/SOURCE_MATERIALS_REPORT.md",
+        "required_checks": ["source_materials"],
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      }
+    ]
+  },
+  "idea_discovery": {
+    "pipeline_skill": "idea-discovery",
+    "display_name": "Idea 发现",
+    "sub_steps": [
+      {
+        "skill_name": "research-lit",
+        "display_name": "文献调研",
+        "output_files": [
+          "literature_review.md",
+          "references.bib"
+        ],
+        "primary_output": "literature_review.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "idea-creator",
+        "display_name": "Idea 生成",
+        "output_files": [
+          "IDEA_REPORT.md"
+        ],
+        "primary_output": "IDEA_REPORT.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "novelty-check",
+        "display_name": "新颖性验证",
+        "output_files": [
+          "novelty_check_report.md"
+        ],
+        "primary_output": "novelty_check_report.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "research-review",
+        "display_name": "外部评审",
+        "output_files": [
+          "review_report.md"
+        ],
+        "primary_output": "review_report.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "research-refine-pipeline",
+        "display_name": "方法精炼+实验规划",
+        "output_files": [
+          "refine-logs/FINAL_PROPOSAL.md",
+          "refine-logs/EXPERIMENT_PLAN.md"
+        ],
+        "primary_output": "refine-logs/FINAL_PROPOSAL.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "experiment_bridge": {
+    "pipeline_skill": "experiment-bridge",
+    "display_name": "实验桥接",
+    "sub_steps": [
+      {
+        "skill_name": "experiment-bridge",
+        "display_name": "实验实现+部署+出图",
+        "output_files": [
+          "experiment_results.md",
+          "figures/latex_includes.tex",
+          "figures/experiment_data.json"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "auto_review": {
+    "pipeline_skill": "auto-review-loop",
+    "display_name": "自动审稿循环",
+    "sub_steps": [
+      {
+        "skill_name": "auto-review-loop",
+        "display_name": "自动审稿循环",
+        "output_files": [
+          "NARRATIVE_REPORT.md",
+          "AUTO_REVIEW.md"
+        ],
+        "primary_output": "NARRATIVE_REPORT.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "paper_writing": {
+    "pipeline_skill": "paper-writing",
+    "display_name": "论文写作",
+    "sub_steps": [
+      {
+        "skill_name": "paper-plan",
+        "display_name": "论文大纲",
+        "output_files": [
+          "PAPER_PLAN.md"
+        ],
+        "primary_output": "PAPER_PLAN.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-analysis",
+        "display_name": "代码实现",
+        "output_files": [
+          "RESULTS.md",
+          "figures/all_results.json",
+          "code/main.py"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-write",
+        "display_name": "LaTeX 写作",
+        "output_files": [
+          "paper/main.tex",
+          "paper/references.bib"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-compile",
+        "display_name": "编译 PDF",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "auto-paper-improvement-loop",
+        "display_name": "论文改进循环",
+        "output_files": [
+          "paper/main.pdf",
+          "paper/PAPER_IMPROVEMENT_LOG.md"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "paper_writing_zh": {
+    "pipeline_skill": "paper-writing",
+    "display_name": "中文论文写作",
+    "sub_steps": [
+      {
+        "skill_name": "paper-plan-zh",
+        "display_name": "论文大纲（中文）",
+        "output_files": [
+          "PAPER_PLAN.md"
+        ],
+        "primary_output": "PAPER_PLAN.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-analysis",
+        "display_name": "代码实现",
+        "output_files": [
+          "RESULTS.md",
+          "figures/all_results.json",
+          "code/main.py"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-write-zh",
+        "display_name": "LaTeX 写作（中文）",
+        "output_files": [
+          "paper/main.tex",
+          "paper/references.bib"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-compile-zh",
+        "display_name": "编译 PDF（中文）",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "auto-paper-improvement-loop",
+        "display_name": "论文改进循环",
+        "output_files": [
+          "paper/main.pdf",
+          "paper/PAPER_IMPROVEMENT_LOG.md"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "nature_writing": {
+    "pipeline_skill": "paper-plan",
+    "display_name": "Nature 论文写作",
+    "sub_steps": [
+      {
+        "skill_name": "paper-plan",
+        "display_name": "论文规划",
+        "output_files": [
+          "PAPER_PLAN.md"
+        ],
+        "primary_output": "PAPER_PLAN.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-analysis",
+        "display_name": "数据分析",
+        "output_files": [
+          "RESULTS.md",
+          "figures/all_results.json"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "nature-figure",
+        "display_name": "Nature 图表",
+        "output_files": [
+          "figures/"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "架构图绘制",
+        "output_files": [
+          "figures/"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-write-nature",
+        "display_name": "Nature 写作",
+        "output_files": [
+          "paper/main.tex",
+          "paper/references.bib"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-compile",
+        "display_name": "论文编译",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "auto-paper-improvement-loop",
+        "display_name": "改进循环",
+        "output_files": [
+          "paper/main.pdf",
+          "paper/PAPER_IMPROVEMENT_LOG.md"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "full_pipeline": {
+    "pipeline_skill": "research-pipeline",
+    "display_name": "全流程",
+    "sub_steps": [
+      {
+        "skill_name": "research-lit",
+        "display_name": "文献调研",
+        "output_files": [
+          "literature_review.md",
+          "references.bib"
+        ],
+        "primary_output": "literature_review.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "idea-creator",
+        "display_name": "Idea 生成",
+        "output_files": [
+          "IDEA_REPORT.md"
+        ],
+        "primary_output": "IDEA_REPORT.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "novelty-check",
+        "display_name": "新颖性验证",
+        "output_files": [
+          "novelty_check_report.md"
+        ],
+        "primary_output": "novelty_check_report.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "research-review",
+        "display_name": "外部评审",
+        "output_files": [
+          "review_report.md"
+        ],
+        "primary_output": "review_report.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "research-refine-pipeline",
+        "display_name": "方法精炼+实验规划",
+        "output_files": [
+          "refine-logs/FINAL_PROPOSAL.md",
+          "refine-logs/EXPERIMENT_PLAN.md"
+        ],
+        "primary_output": "refine-logs/FINAL_PROPOSAL.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "experiment-bridge",
+        "display_name": "实验实现+出图",
+        "output_files": [
+          "experiment_results.md",
+          "figures/latex_includes.tex",
+          "figures/experiment_data.json"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-plan",
+        "display_name": "论文大纲",
+        "output_files": [
+          "PAPER_PLAN.md"
+        ],
+        "primary_output": "PAPER_PLAN.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-write",
+        "display_name": "LaTeX 写作",
+        "output_files": [
+          "paper/main.tex",
+          "paper/references.bib"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-compile",
+        "display_name": "编译 PDF",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "auto-paper-improvement-loop",
+        "display_name": "论文改进循环",
+        "output_files": [
+          "paper/main.pdf",
+          "paper/PAPER_IMPROVEMENT_LOG.md"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_cumcm": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "国赛数学建模 (CUMCM)",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-literature",
+        "display_name": "文献调研与核验",
+        "output_files": [
+          "LITERATURE.md",
+          "literature/search_evidence.json",
+          "paper/references.bib"
+        ],
+        "primary_output": "LITERATURE.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "literature_search"
+        ]
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md",
+          "figures/all_results.json"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md",
+          "COMP_REVIEW_VERDICT.json"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "requires_subagent": true
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "literature"
+        ]
+      },
+      {
+        "skill_name": "comp-consistency",
+        "display_name": "代码-论文一致性检查",
+        "output_files": [
+          "CONSISTENCY_REPORT.json"
+        ],
+        "primary_output": "CONSISTENCY_REPORT.json",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "consistency"
+        ]
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "literature",
+          "consistency"
+        ]
+      },
+      {
+        "skill_name": "comp-visual-review",
+        "display_name": "数模视觉审查",
+        "output_files": [
+          "VISUAL_REVIEW.md",
+          "VISUAL_REVIEW_VERDICT.json"
+        ],
+        "primary_output": "VISUAL_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "requires_subagent": true
+      },
+      {
+        "skill_name": "comp-editor",
+        "display_name": "数模编辑修订",
+        "output_files": [
+          "EDITOR_CHANGELOG.md"
+        ],
+        "primary_output": "EDITOR_CHANGELOG.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-final-review",
+        "display_name": "数模最终复审",
+        "output_files": [
+          "FINAL_REVIEW.md",
+          "FINAL_REVIEW_VERDICT.json",
+          "REVIEW_EXECUTION_EVIDENCE.json"
+        ],
+        "primary_output": "FINAL_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "review"
+        ],
+        "requires_subagent": true
+      },
+      {
+        "skill_name": "comp-final-audit",
+        "display_name": "最终交付审计",
+        "output_files": [
+          "AUDIT_REPORT.json"
+        ],
+        "primary_output": "AUDIT_REPORT.json",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "literature",
+          "review",
+          "consistency",
+          "final_audit"
+        ]
+      }
+    ]
+  },
+  "comp_mcm": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "美赛 (MCM/ICM)",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "Problem Analysis",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "Modeling & Solution",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "Programming",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "Figure Generation",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "Flow & Architecture Diagrams",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "Logic Adversarial Review",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-en",
+        "display_name": "Paper Writing (English)",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-en",
+        "display_name": "Compile & Compliance Check",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_huawei": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "华为杯研究生数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_apmcm_zh": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "亚太地区数学建模 (APMCM 中文赛项)",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_mathorcup": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "MathorCup 数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_apmcm": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "亚太数学建模 (APMCM)",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "Flow & Architecture Diagrams",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-en",
+        "display_name": "Paper Writing",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-en",
+        "display_name": "Compile & Compliance Check",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_stats": {
+    "pipeline_skill": "comp-stats-topic",
+    "display_name": "统计建模大赛",
+    "sub_steps": [
+      {
+        "skill_name": "comp-stats-topic",
+        "display_name": "选题与数据规划",
+        "output_files": [
+          "TOPIC_PLAN.md"
+        ],
+        "primary_output": "TOPIC_PLAN.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "数据采集与统计分析",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_teddy": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "泰迪杯数据挖掘挑战赛",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_certcup": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "认证杯数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_huazhong": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "华中杯数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_huadong": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "华东杯数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_wuyi": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "五一杯数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_shuwei": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "数维杯数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_zhongqing": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "中青杯数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_yangtze": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "长三角数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_diangong": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "电工杯数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_shenzhen": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "深圳杯数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_huashu": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "华数杯数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_tianfu": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "天府杯数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_liaoning": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "辽宁省/东三省数学建模",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_certcup_en": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "认证杯国际赛 (小美赛)",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "Problem Analysis",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "Modeling & Solution",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "Programming",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "Figure Generation",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "Flow & Architecture Diagrams",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "Logic Adversarial Review",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-en",
+        "display_name": "Paper Writing (English)",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-en",
+        "display_name": "Compile & Compliance Check",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "comp_shuwei_en": {
+    "pipeline_skill": "comp-prob-analysis",
+    "display_name": "数维杯国际赛",
+    "sub_steps": [
+      {
+        "skill_name": "comp-prob-analysis",
+        "display_name": "Problem Analysis",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "Modeling & Solution",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "Programming",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "Figure Generation",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "Flow & Architecture Diagrams",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "Logic Adversarial Review",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-paper-en",
+        "display_name": "Paper Writing (English)",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "comp-compile-en",
+        "display_name": "Compile & Compliance Check",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "thesis_proposal": {
+    "pipeline_skill": "thesis-proposal",
+    "display_name": "开题报告",
+    "sub_steps": [
+      {
+        "skill_name": "thesis-proposal",
+        "display_name": "文献调研与开题撰写",
+        "output_files": [
+          "literature_notes.md",
+          "PROPOSAL.md"
+        ],
+        "primary_output": "PROPOSAL.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "技术路线图绘制",
+        "output_files": [
+          "figures/fig_roadmap.png"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "docx-export",
+        "display_name": "格式检查与 Word 导出",
+        "output_files": [
+          "PROPOSAL.docx"
+        ],
+        "primary_output": "PROPOSAL.docx",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "literature_review": {
+    "pipeline_skill": "literature-review",
+    "display_name": "文献综述",
+    "sub_steps": [
+      {
+        "skill_name": "literature-review",
+        "display_name": "文献检索与综述撰写",
+        "output_files": [
+          "papers_pool.md",
+          "LITERATURE_REVIEW.md"
+        ],
+        "primary_output": "LITERATURE_REVIEW.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "docx-export",
+        "display_name": "格式检查与 Word 导出",
+        "output_files": [
+          "LITERATURE_REVIEW.docx"
+        ],
+        "primary_output": "LITERATURE_REVIEW.docx",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "course_paper": {
+    "pipeline_skill": "course-plan",
+    "display_name": "课程论文",
+    "sub_steps": [
+      {
+        "skill_name": "course-plan",
+        "display_name": "大纲与图表规划",
+        "output_files": [
+          "OUTLINE.md",
+          "PAPER_PLAN.md"
+        ],
+        "primary_output": "OUTLINE.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-analysis",
+        "display_name": "数据分析",
+        "output_files": [
+          "RESULTS.md",
+          "figures/all_results.json",
+          "code/main.py"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "架构图/流程图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "course-paper",
+        "display_name": "课程论文撰写",
+        "output_files": [
+          "COURSE_PAPER.md"
+        ],
+        "primary_output": "COURSE_PAPER.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "docx-export",
+        "display_name": "格式检查与 Word 导出",
+        "output_files": [
+          "COURSE_PAPER.docx"
+        ],
+        "primary_output": "COURSE_PAPER.docx",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "course_report": {
+    "pipeline_skill": "course-report-plan",
+    "display_name": "课程报告",
+    "sub_steps": [
+      {
+        "skill_name": "course-report-plan",
+        "display_name": "事实提取与大纲规划",
+        "output_files": [
+          "PROJECT_FACTS.md",
+          "OUTLINE.md",
+          "PAPER_PLAN.md"
+        ],
+        "primary_output": "OUTLINE.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-analysis",
+        "display_name": "数据分析",
+        "output_files": [
+          "RESULTS.md",
+          "figures/all_results.json",
+          "code/main.py"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "数据图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "架构图/流程图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "course-report",
+        "display_name": "课程报告撰写",
+        "output_files": [
+          "COURSE_REPORT.md"
+        ],
+        "primary_output": "COURSE_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "docx-export",
+        "display_name": "格式检查与 Word 导出",
+        "output_files": [
+          "COURSE_REPORT.docx"
+        ],
+        "primary_output": "COURSE_REPORT.docx",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "humanities_paper": {
+    "pipeline_skill": "humanities-plan",
+    "display_name": "人文社科论文",
+    "sub_steps": [
+      {
+        "skill_name": "humanities-plan",
+        "display_name": "选题与结构规划",
+        "output_files": [
+          "OUTLINE.md",
+          "PAPER_PLAN.md"
+        ],
+        "primary_output": "OUTLINE.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-analysis",
+        "display_name": "数据分析（可选）",
+        "output_files": [
+          "RESULTS.md",
+          "figures/all_results.json",
+          "code/main.py"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "数据图表生成（可选）",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "理论框架图/示意图（可选）",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "humanities-write",
+        "display_name": "论文撰写",
+        "output_files": [
+          "HUMANITIES_PAPER.md"
+        ],
+        "primary_output": "HUMANITIES_PAPER.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "docx-export",
+        "display_name": "格式检查与 Word 导出",
+        "output_files": [
+          "HUMANITIES_PAPER.docx"
+        ],
+        "primary_output": "HUMANITIES_PAPER.docx",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "paper_from_assets": {
+    "pipeline_skill": "assets-inventory",
+    "display_name": "已有资产 → 论文",
+    "sub_steps": [
+      {
+        "skill_name": "assets-inventory",
+        "display_name": "资产清点与一致性检查",
+        "output_files": [
+          "ASSETS_INVENTORY.md",
+          "_assets_index.json"
+        ],
+        "primary_output": "ASSETS_INVENTORY.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "assets_resolve"
+      },
+      {
+        "skill_name": "paper-plan",
+        "display_name": "论文规划",
+        "output_files": [
+          "PAPER_PLAN.md"
+        ],
+        "primary_output": "PAPER_PLAN.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "paper-analysis",
+        "display_name": "缺口补全(代码/结果)",
+        "output_files": [
+          "RESULTS.md",
+          "figures/all_results.json",
+          "code/main.py"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "缺口补全(图表)",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "缺口补全(架构图/路线图)",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-write",
+        "display_name": "论文撰写",
+        "output_files": [
+          "paper/main.tex",
+          "paper/references.bib"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-compile",
+        "display_name": "编译 PDF",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "grad_project": {
+    "pipeline_skill": "dev-requirement",
+    "display_name": "一句话生成项目",
+    "sub_steps": [
+      {
+        "skill_name": "dev-requirement",
+        "display_name": "需求分析",
+        "output_files": [
+          "REQUIREMENTS.md"
+        ],
+        "primary_output": "REQUIREMENTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "dev-design",
+        "display_name": "系统设计",
+        "output_files": [
+          "DESIGN.md",
+          "schema.sql"
+        ],
+        "primary_output": "DESIGN.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback"
+      },
+      {
+        "skill_name": "dev-code",
+        "display_name": "编码实现",
+        "output_files": [
+          "code/backend/main.py",
+          "RUN.md"
+        ],
+        "primary_output": "code/",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "dev-selfcheck",
+        "display_name": "自测验证",
+        "output_files": [
+          "TEST_REPORT.md"
+        ],
+        "primary_output": "TEST_REPORT.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "copyright_material": {
+    "pipeline_skill": "copyright-draft",
+    "display_name": "一句话生成软著申请资料",
+    "sub_steps": [
+      {
+        "skill_name": "copyright-draft",
+        "display_name": "起草申请资料",
+        "output_files": [
+          "软件著作权申请资料/草稿/申请表信息.md"
+        ],
+        "primary_output": "软件著作权申请资料/草稿/",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "copyright-build",
+        "display_name": "生成正式 Word/TXT",
+        "output_files": [
+          "软件著作权申请资料/正式资料/生成报告.md"
+        ],
+        "primary_output": "软件著作权申请资料/正式资料/",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  },
+  "patent_disclosure": {
+    "pipeline_skill": "patent-draft",
+    "display_name": "一句话生成专利交底书",
+    "sub_steps": [
+      {
+        "skill_name": "patent-draft",
+        "display_name": "起草技术交底书",
+        "output_files": [
+          "专利交底书/交底书草稿.md"
+        ],
+        "primary_output": "专利交底书/交底书草稿.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve"
+      },
+      {
+        "skill_name": "patent-build",
+        "display_name": "渲染图示并导出 Word",
+        "output_files": [
+          "专利交底书/交底书.docx"
+        ],
+        "primary_output": "专利交底书/交底书.docx",
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "asset_group_counts": {
+    "historical_exercises": 51,
+    "legacy_toolkit": 137,
+    "main_reference_data": 6,
+    "main_skills": 448,
+    "main_suite_support": 12,
+    "main_tools": 61,
+    "opencode_integration": 8,
+    "private_research_material": 6466,
+    "publication_governance": 17,
+    "root_historical_analysis": 57,
+    "root_unclassified_artifact": 28,
+    "runtime_core": 40,
+    "sensitive_local_state": 3921
+  },
+  "classification_counts": {
+    "candidate_public_core": 77,
+    "excluded_sensitive": 3921,
+    "experimental": 509,
+    "historical_reference": 273,
+    "private_extension": 6472
+  },
+  "generated_at_utc": "2026-08-13T11:50:30.529941+00:00",
+  "root": "D:\\Desktop\\数模竞赛",
+  "source_status_counts": {
+    "not_inspected_sensitive": 3921,
+    "partial_notice_declared": 25,
+    "project_authored_unverified": 77,
+    "unverified": 7229
+  },
+  "total_records": 11252
+}

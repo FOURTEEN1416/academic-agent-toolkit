@@ -1,0 +1,47 @@
+{
+  "_comment": "华为杯研究生数学建模封面布局（对标 gmcmthesis.cls）",
+  "language": "zh",
+  "preface": {
+    "title": "参赛承诺书",
+    "title_size_pt": 18,
+    "title_alignment": "center",
+    "body_size_pt": 11,
+    "body_text": "我们认真阅读了《华为杯》第X届中国研究生数学建模竞赛章程和参赛规则，承诺严格遵守，并保证以诚信原则参赛，所提交论文为我们的原创工作，未抄袭、剽窃他人成果。",
+    "form_underline_size_pt": 14,
+    "form_fields": [
+      {"label": "参赛队号：", "key": "team_id"},
+      {"label": "学校：", "key": "school"},
+      {"label": "队员1：", "key": "member1"},
+      {"label": "队员2：", "key": "member2"},
+      {"label": "队员3：", "key": "member3"},
+      {"label": "指导教师：", "key": "advisor"},
+      {"label": "日期：", "key": "date"}
+    ],
+    "page_break_after": true
+  },
+  "title_page": {
+    "show": true,
+    "show_logo": true,
+    "logo_path": "logo.pdf",
+    "show_decoration": true,
+    "decoration_path": "title.pdf",
+    "title_size_pt": 22,
+    "title_alignment": "center",
+    "title_bold": true,
+    "title_font": "SimHei",
+    "info_table": {
+      "_comment": "华为杯特色：信息以二列表格呈现",
+      "rows": [
+        {"label": "学    校", "key": "school"},
+        {"label": "参赛队号", "key": "team_id"},
+        {"label": "队员姓名 1.", "key": "member1"},
+        {"label": "         2.", "key": "member2"},
+        {"label": "         3.", "key": "member3"}
+      ],
+      "border_style": "Xhline",
+      "size_pt": 14,
+      "bold": true
+    },
+    "page_break_after": true
+  }
+}

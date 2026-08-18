@@ -1,0 +1,12 @@
+{
+  "capability_id": "figure_generation_pipeline",
+  "capability_name": "图表生成全流程",
+  "domain": "figures_and_document_production",
+  "benchmark_id": "DOC-01",
+  "input_contract": "数据集、可视化需求",
+  "output_contract": "数据可视化报告",
+  "quality_gates": {
+    "min_score": 70,
+    "min_figures": 4
+  }
+}

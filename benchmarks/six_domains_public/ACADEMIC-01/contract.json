@@ -1,0 +1,19 @@
+{
+  "capability_id": "academic_paper_full_pipeline",
+  "capability_name": "学术论文全流程",
+  "domain": "academic_papers",
+  "benchmark_id": "ACADEMIC-01",
+  "input_contract": "研究主题、文献资料",
+  "output_contract": "完整学术论文（LaTeX/PDF）",
+  "quality_gates": {
+    "min_score": 70,
+    "required_sections": ["摘要", "引言", "相关工作", "方法", "应用", "讨论", "结论"],
+    "min_references": 15,
+    "min_figures": 3
+  },
+  "evidence_required": [
+    "论文文件（.tex或.md）",
+    "参考文献（.bib）",
+    "图表文件"
+  ]
+}

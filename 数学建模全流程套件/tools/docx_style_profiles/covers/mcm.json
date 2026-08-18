@@ -1,0 +1,30 @@
+{
+  "_comment": "MCM/ICM 美赛封面布局（无承诺书，COMAP 风格）",
+  "language": "en",
+  "preface": null,
+  "title_page": {
+    "show": true,
+    "header_lines": [
+      {"text": "For office use only", "alignment": "left", "size_pt": 10},
+      {"text": "T1 ________________", "alignment": "left", "size_pt": 10},
+      {"text": "T2 ________________", "alignment": "left", "size_pt": 10},
+      {"text": "T3 ________________", "alignment": "left", "size_pt": 10},
+      {"text": "T4 ________________", "alignment": "left", "size_pt": 10}
+    ],
+    "form_block": {
+      "title": "Team Control Number",
+      "title_size_pt": 12,
+      "title_bold": true,
+      "fields": [
+        {"label": "Team Control Number:", "key": "team_id", "size_pt": 14, "bold": true},
+        {"label": "Problem Chosen:", "key": "problem", "size_pt": 14, "bold": true}
+      ]
+    },
+    "year_line": {"text_template": "{year}\nMathematical Contest in Modeling (MCM/ICM)\nSummary Sheet",
+                  "alignment": "center", "size_pt": 12, "bold": true},
+    "title_size_pt": 18,
+    "title_alignment": "center",
+    "title_bold": true,
+    "page_break_after": false
+  }
+}

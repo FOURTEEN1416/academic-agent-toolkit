@@ -1,0 +1,13 @@
+{
+  "capability_id": "literature_review_full",
+  "capability_name": "文献综述全流程",
+  "domain": "literature_research",
+  "benchmark_id": "LITERATURE-01",
+  "input_contract": "研究主题、文献数据库访问权限",
+  "output_contract": "结构化文献综述文档",
+  "quality_gates": {
+    "min_score": 70,
+    "min_references": 20,
+    "min_figures": 2
+  }
+}

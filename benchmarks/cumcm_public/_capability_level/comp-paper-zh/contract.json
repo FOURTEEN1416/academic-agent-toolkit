@@ -1,0 +1,20 @@
+{
+  "benchmark_id": "comp-paper-zh-p0",
+  "capability": "comp-paper-zh",
+  "domain": "math_modeling_competition",
+  "name": "中文竞赛论文验收基准",
+  "description": "验收中文论文的章节结构完整性与数值一致性基础",
+  "fixtures": {
+    "input": ["fixtures/paper_structure_reference.md"],
+    "expected_output": ["paper/main.tex"]
+  },
+  "scoring": {
+    "structure_sections": {"min": 8, "description": "论文含至少 8 个标准章节"},
+    "has_abstract": {"required": true, "description": "含 摘要 章节"},
+    "has_references": {"required": true, "description": "含 参考文献 章节"},
+    "has_appendix": {"required": true, "description": "含 附录 章节（国赛要求附录含代码）"},
+    "min_size_bytes": 10000
+  },
+  "scoring_script": "evaluate.py",
+  "status": "experimental"
+}
