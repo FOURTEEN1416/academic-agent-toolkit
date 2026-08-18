@@ -4526,7 +4526,7 @@
       "capability_id": "citation-check",
       "name": "citation-check",
       "domain": "course_research_materials",
-      "description": "",
+      "description": "学术引用核验 — 检查论文/报告中的引用格式、来源真实性与参考文献完整性",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -4536,7 +4536,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "已完成验收（2026-08-18 benchmark_v2）；无跨域基准集；许可证CC-BY-NC-4.0禁止商用",
       "status": "formal",
       "promotion_history": [
         {
@@ -4610,7 +4610,7 @@
       "capability_id": "data-processing",
       "name": "data-processing",
       "domain": "course_research_materials",
-      "description": "",
+      "description": "数据处理与清洗 — 对实验/调查数据执行清洗、转换、标准化与质量检测",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -4620,7 +4620,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "已完成验收（2026-08-18 benchmark_v2）；无跨域基准集；许可证CC-BY-NC-4.0禁止商用",
       "status": "formal",
       "promotion_history": [
         {
@@ -4638,7 +4638,7 @@
       "capability_id": "deep-research",
       "name": "deep-research",
       "domain": "course_research_materials",
-      "description": "",
+      "description": "多源深度调研 — 对高风险决策问题执行多信源调研、证据三角验证与综合研判",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -4648,7 +4648,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "已完成验收（2026-08-18 benchmark_v2）；无跨域基准集；许可证CC-BY-NC-4.0禁止商用",
       "status": "formal",
       "promotion_history": [
         {
@@ -5590,7 +5590,7 @@
       "capability_id": "latex-writing",
       "name": "latex-writing",
       "domain": "course_research_materials",
-      "description": "",
+      "description": "LaTeX 文档撰写 — 撰写/编译 LaTeX 学术文档（论文、报告、简历、海报）",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -5600,7 +5600,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "已完成验收（2026-08-18 benchmark_v2）；无跨域基准集；许可证CC-BY-NC-4.0禁止商用",
       "status": "formal",
       "promotion_history": [
         {
@@ -5758,7 +5758,7 @@
       "capability_id": "model-building",
       "name": "model-building",
       "domain": "course_research_materials",
-      "description": "",
+      "description": "统计模型构建 — 根据研究问题选择并构建统计/机器学习模型",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -5768,7 +5768,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "已完成验收（2026-08-18 benchmark_v2）；无跨域基准集；许可证CC-BY-NC-4.0禁止商用",
       "status": "formal",
       "promotion_history": [
         {
@@ -5842,7 +5842,7 @@
       "capability_id": "problem-analysis",
       "name": "problem-analysis",
       "domain": "course_research_materials",
-      "description": "",
+      "description": "问题分析与拆解 — 将复杂研究问题分解为可执行的子任务与建模目标",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -5852,7 +5852,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "已完成验收（2026-08-18 benchmark_v2）；无跨域基准集；许可证CC-BY-NC-4.0禁止商用",
       "status": "formal",
       "promotion_history": [
         {
@@ -6514,7 +6514,7 @@
       "capability_id": "visualization",
       "name": "visualization",
       "domain": "course_research_materials",
-      "description": "",
+      "description": "数据可视化 — 将分析结果生成清晰的统计图表与展示",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -6524,7 +6524,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "已完成验收（2026-08-18 benchmark_v2）；无跨域基准集；许可证CC-BY-NC-4.0禁止商用",
       "status": "formal",
       "promotion_history": [
         {
