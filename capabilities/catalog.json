@@ -242,7 +242,7 @@
       ],
       "high_risk_confirmation": "检索来源写入产物需确认",
       "current_evidence": "统计选题验收：TOPIC_PLAN.md 10.4KB（碳排-绿色发展耦合协调）+ data_plan.json 17 变量真实数据源（CEADs/统计局/统计年鉴）（workspaces/cumcm_pilot_stats_topic）",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "comp_consistency",
@@ -306,7 +306,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -323,7 +323,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -340,7 +340,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -357,7 +357,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -374,7 +374,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -391,7 +391,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -408,7 +408,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -425,7 +425,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -442,7 +442,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -459,7 +459,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -476,7 +476,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -493,7 +493,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -510,7 +510,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -527,7 +527,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -544,7 +544,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -561,7 +561,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -578,7 +578,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -595,7 +595,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -612,7 +612,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -629,7 +629,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -651,7 +651,7 @@
       ],
       "high_risk_confirmation": "检索来源写入产物需确认",
       "current_evidence": "技能映射补登（2026-08-17 复核修复）：聚合能力 comp_stats_topic 的支撑技能；验收见 comp_stats_topic",
-      "current_gap": "数据未实际获取；C5 未校准",
+      "current_gap": "数据未实际获取；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     }
   ],
@@ -690,7 +690,7 @@
       ],
       "high_risk_confirmation": "外部审查调用与编译覆盖需确认",
       "current_evidence": "C2 验收：paper_pipeline_evidence.md(3.9KB) 10 阶段映射真实技能目录",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "paper_writing_nature",
@@ -723,7 +723,7 @@
       ],
       "high_risk_confirmation": "编译覆盖需确认",
       "current_evidence": "C2 验收：Nature mini 论文 main.tex(7.2KB)+3 页 PDF 编译成功（城市热岛×CO2 面板，3 篇 CrossRef 真文献）",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "paper_review_auto",
@@ -751,7 +751,7 @@
       ],
       "high_risk_confirmation": "外部审查涉及数据外发，需确认",
       "current_evidence": "C2 验收：review_evidence.json(3.1KB) 1 轮审查（verdict=minor_revision, 0 fatal, 6 findings）",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "paper_figure_generation",
@@ -784,7 +784,7 @@
       ],
       "high_risk_confirmation": "AI 插图生成涉及外部服务，需确认",
       "current_evidence": "C2 验收：figures/fig_demo.png(141KB) 200dpi 双轴科研图，嵌入论文",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "paper_compile_docx",
@@ -814,7 +814,7 @@
       ],
       "high_risk_confirmation": "编译与导出覆盖旧文件需确认",
       "current_evidence": "C2 验收：compile_evidence.md(1.9KB) 真实命令链；pandoc 缺失→docx 导出 unavailable 如实记录",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "paper_citation_verification",
@@ -843,7 +843,7 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：citations_report.json(3.2KB) 3 篇 CrossRef 核验（DOI 精确匹配）",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "ars-academic-paper",
@@ -859,7 +859,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -876,7 +876,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -893,7 +893,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -910,7 +910,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -927,7 +927,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -944,7 +944,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -961,7 +961,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -978,7 +978,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -995,7 +995,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1012,7 +1012,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1029,7 +1029,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1046,7 +1046,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1063,7 +1063,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1080,7 +1080,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1097,7 +1097,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1114,7 +1114,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1131,7 +1131,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1148,7 +1148,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1165,7 +1165,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1182,7 +1182,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1199,7 +1199,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1216,7 +1216,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1233,7 +1233,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1250,7 +1250,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1267,7 +1267,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1284,7 +1284,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1301,7 +1301,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1318,7 +1318,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1335,7 +1335,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1352,7 +1352,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1369,7 +1369,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1386,7 +1386,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1403,7 +1403,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1420,7 +1420,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1437,7 +1437,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1454,7 +1454,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1471,7 +1471,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1488,7 +1488,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1505,7 +1505,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1522,7 +1522,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1539,7 +1539,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1556,7 +1556,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1573,7 +1573,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1590,7 +1590,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1607,7 +1607,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1624,7 +1624,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1641,7 +1641,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1658,7 +1658,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1675,7 +1675,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1692,7 +1692,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1709,7 +1709,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1726,7 +1726,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1743,7 +1743,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1760,7 +1760,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1777,7 +1777,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1794,7 +1794,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1811,7 +1811,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1828,7 +1828,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1845,7 +1845,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1862,7 +1862,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1879,7 +1879,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1896,7 +1896,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1913,7 +1913,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1930,7 +1930,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -1949,7 +1949,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "无",
       "current_evidence": "技能映射补登（2026-08-17 复核修复）：工具 anti_ai_detector.py 实测可用",
-      "current_gap": "未跑基准验收",
+      "current_gap": "未跑基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     }
   ],
@@ -1983,7 +1983,7 @@
       ],
       "high_risk_confirmation": "检索涉及外部数据，需确认",
       "current_evidence": "C2 验收：LITERATURE_REVIEW.md(7.4KB) firecrawl 2 查询 9 篇真实文献（URL+查询词可溯）",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "deep_research_investigation",
@@ -2011,7 +2011,7 @@
       ],
       "high_risk_confirmation": "多源检索涉及大量外发请求，需确认",
       "current_evidence": "C2 验收：RESEARCH_BRIEF.md(5.3KB) 10 来源 3 论题≥3 独立来源交叉印证+对抗审查",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "novelty_check_innovation",
@@ -2036,7 +2036,7 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：NOVELTY_CHECK.md(5.0KB) 3 查询 12 项已有工作（含专利），差距判断",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "idea_discovery_pipeline",
@@ -2062,7 +2062,7 @@
       ],
       "high_risk_confirmation": "外部调用需确认",
       "current_evidence": "C2 验收：IDEA_PLAN.md(4.5KB) 3 方向全部由 7 次真实检索推导（含证据链）",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "grant_proposal",
@@ -2084,7 +2084,7 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：GRANT_OUTLINE.md(7.2KB) NSFC 面上草稿，7 条真实检索文献",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "ars-agent-harness",
@@ -2100,7 +2100,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2117,7 +2117,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2134,7 +2134,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2151,7 +2151,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2168,7 +2168,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2185,7 +2185,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2202,7 +2202,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2219,7 +2219,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2236,7 +2236,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2253,7 +2253,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2270,7 +2270,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2287,7 +2287,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2304,7 +2304,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2321,7 +2321,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2338,7 +2338,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2355,7 +2355,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2372,7 +2372,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2389,7 +2389,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2406,7 +2406,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2423,7 +2423,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2440,7 +2440,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2457,7 +2457,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2474,7 +2474,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2491,7 +2491,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2508,7 +2508,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2525,7 +2525,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2542,7 +2542,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2559,7 +2559,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2576,7 +2576,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2593,7 +2593,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2610,7 +2610,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2627,7 +2627,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2644,7 +2644,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2661,7 +2661,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2678,7 +2678,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2695,7 +2695,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     }
   ],
@@ -2726,7 +2726,7 @@
       ],
       "high_risk_confirmation": "编译覆盖需确认",
       "current_evidence": "C2 验收：COURSE_PAPER.md(11.2KB) 完整课程论文，5 篇 DOI 核验文献",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "course_report_workflow",
@@ -2751,7 +2751,7 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：COURSE_REPORT.md(10.9KB) 课设报告，6 测试用例全过",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "thesis_proposal",
@@ -2778,7 +2778,7 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：THESIS_PROPOSAL.md(11.4KB) 开题报告，12 篇真实文献",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "grad_project_dev",
@@ -2806,7 +2806,7 @@
       ],
       "high_risk_confirmation": "依赖安装与构建涉及系统环境，需确认",
       "current_evidence": "C2 验收：grad_project/ app.py(230行) 运行无报错 8 功能断言 PASS",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "ablation-planner",
@@ -2822,7 +2822,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2839,7 +2839,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2856,7 +2856,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2873,7 +2873,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2890,7 +2890,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2907,7 +2907,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2924,7 +2924,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2941,7 +2941,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2958,7 +2958,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2975,7 +2975,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -2992,7 +2992,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3009,7 +3009,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3026,7 +3026,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3043,7 +3043,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3060,7 +3060,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3077,7 +3077,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3094,7 +3094,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3111,7 +3111,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3128,7 +3128,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3145,7 +3145,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3162,7 +3162,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3179,7 +3179,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3196,7 +3196,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3213,7 +3213,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3230,7 +3230,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3247,7 +3247,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3264,7 +3264,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3281,7 +3281,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3298,7 +3298,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3315,7 +3315,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3332,7 +3332,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3349,7 +3349,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3366,7 +3366,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3383,7 +3383,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3400,7 +3400,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3417,7 +3417,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3434,7 +3434,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3451,7 +3451,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3468,7 +3468,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3485,7 +3485,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3502,7 +3502,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3519,7 +3519,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3536,7 +3536,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3553,7 +3553,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3570,7 +3570,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3587,7 +3587,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3604,7 +3604,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3621,7 +3621,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3638,7 +3638,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3655,7 +3655,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3672,7 +3672,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3689,7 +3689,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3706,7 +3706,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3723,7 +3723,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3740,7 +3740,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3757,7 +3757,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3774,7 +3774,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3791,7 +3791,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3808,7 +3808,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3825,7 +3825,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3842,7 +3842,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3859,7 +3859,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3876,7 +3876,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3893,7 +3893,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3910,7 +3910,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3927,7 +3927,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3944,7 +3944,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3961,7 +3961,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3978,7 +3978,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -3995,7 +3995,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4012,7 +4012,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4029,7 +4029,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4046,7 +4046,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4063,7 +4063,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4080,7 +4080,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4097,7 +4097,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4114,7 +4114,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4131,7 +4131,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4148,11 +4148,140 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     }
   ],
   "intellectual_property_materials": [
+    {
+      "capability_id": "patent_draft_build",
+      "name": "专利交底书：草稿→成品",
+      "domain": "intellectual_property_materials",
+      "description": "背景技术/技术问题/技术方案(含HTML系统框图流程图)/优点/关键保护点/实施例→Electron截图PNG→DOCX成品",
+      "input_contract": "技术描述/交底要点",
+      "output_contract": "专利交底书草稿.md、专利交底书.docx、fig_*.png",
+      "status": "private_extension",
+      "associated_skills": [
+        "patent-draft",
+        "patent-build",
+        "patent"
+      ],
+      "associated_tools": [
+        "tools/html_figure_render.py",
+        "tools/docx_export.pyc"
+      ],
+      "external_dependencies": [
+        "Electron（图渲染）"
+      ],
+      "high_risk_confirmation": "无",
+      "current_evidence": "C2 验收：PATENT_DISCLOSURE.md(14.2KB) 六章交底书+fig_architecture.html；Electron 截图后端不可用如实记录（2026-08-17）",
+      "current_gap": "C3/C4 无专用基准集（2026-08-17 审核确认）；C5 未校准；许可证已改为CC-BY-NC-4.0禁止商用"
+    },
+    {
+      "capability_id": "copyright_draft_build",
+      "name": "软著申请资料：草稿→成品",
+      "domain": "intellectual_property_materials",
+      "description": "业务理解/申请表信息/代码材料(合成可运行示例)/操作手册/模拟截图→成品脚本生成DOCX/TXT",
+      "input_contract": "软件描述/功能清单",
+      "output_contract": "代码材料.docx、操作手册.docx、申请表信息.txt",
+      "status": "private_extension",
+      "associated_skills": [
+        "copyright-draft",
+        "copyright-build"
+      ],
+      "associated_tools": [
+        "tools/build_docx_from_md.py"
+      ],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "C2 验收：COPYRIGHT_DRAFT.md(24.9KB) 软著资料+290 行真实 Flask 代码（2026-08-17）",
+      "current_gap": "C3/C4 无专用基准集（2026-08-17 审核确认）；C5 未校准；许可证已改为CC-BY-NC-4.0禁止商用"
+    },
+    {
+      "capability_id": "ars-grants",
+      "name": "grants",
+      "domain": "intellectual_property_materials",
+      "description": "NIH grant research skill for clinical researchers. Grill-me intake (research idea + career stage + preliminary data + environment + submission posture + known institute targets) locks down the funding strategy before any search runs. Runs a 5-facet Consensus positioning analysis (with draft Significance/Innovation language), maps the research to the right NIH institutes and study sections via RePO",
+      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "ars-grants"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
+      "current_evidence": [],
+      "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
+      "status": "private_extension"
+    },
+    {
+      "capability_id": "ars-patent",
+      "name": "patent",
+      "domain": "intellectual_property_materials",
+      "description": "Patent prior-art and landscape intelligence skill — not generic patent help. Commits to one of five sub-use-cases via forcing intake (novelty search / freedom-to-operate / competitive landscape / acquisition diligence / litigation prior-art) before any search runs. Searches Google Patents, Espacenet, USPTO, and optionally Lens.org for citation-graph signals. Output is an editable Word document (.d",
+      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "ars-patent"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
+      "current_evidence": [],
+      "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
+      "status": "private_extension"
+    },
+    {
+      "capability_id": "copyright-build",
+      "name": "copyright-build",
+      "domain": "intellectual_property_materials",
+      "description": "读取 copyright-draft 产出的草稿与门禁 JSON，调用成品脚本 build_docx_from_md.py 生成正式的软件著作权申请资料 Word（代码材料、操作手册）和 TXT（申请表信息）。 是\"一句话生成软著申请资料\"工作流的第二步（成品阶段）。",
+      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "copyright-build"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
+      "current_evidence": [],
+      "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
+      "status": "private_extension"
+    },
+    {
+      "capability_id": "copyright-draft",
+      "name": "copyright-draft",
+      "domain": "intellectual_property_materials",
+      "description": "一句话/一段描述/一份大纲 → 起草软件著作权申请资料草稿。AI 直接撰写业务理解、 申请表信息、代码材料（合成可运行的示例源码）、操作手册，并生成模拟页面截图， 产出成品脚本所需的全部草稿与门禁 JSON。是\"一句话生成软著申请资料\"工作流的第一步。",
+      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "copyright-draft"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
+      "current_evidence": [],
+      "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
+      "status": "private_extension"
+    },
+    {
+      "capability_id": "grant-proposal",
+      "name": "grant-proposal",
+      "domain": "intellectual_property_materials",
+      "description": "Draft a structured grant proposal from research ideas and literature. Supports KAKENHI (Japan), NSF (US), NSFC (China, including 面上/青年/优青/杰青/海外优青/重点), ERC (EU), DFG (Germany), SNSF (Switzerland), ARC (Australia), NWO (Netherlands), and generic formats. Use when user says \"write grant\", \"grant proposal\", \"申請書\", \"write KAKENHI\", \"科研費\", \"基金申请\", \"写基金\", \"NSF proposal\", or wants to turn research ideas i",
+      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "grant-proposal"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
+      "current_evidence": [],
+      "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
+      "status": "private_extension"
+    },
     {
       "capability_id": "latexpap-collaborating-with-gemini",
       "name": "collaborating-with-gemini",
@@ -4167,8 +4296,42 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
+    },
+    {
+      "capability_id": "patent-build",
+      "name": "patent-build",
+      "domain": "intellectual_property_materials",
+      "description": "读取 patent-draft 产出的 专利交底书/交底书草稿.md 与自主设计的 fig_*.html，调用 html_figure_render.py 用 Electron 把系统框图/流程图截成 PNG（含几何自检自修复）， 再导出 专利交底书/交底书.docx。是\"一句话生成专利交底书\"工作流的第二步（成品阶段）。",
+      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "patent-build"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
+      "current_evidence": [],
+      "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
+      "status": "private_extension"
+    },
+    {
+      "capability_id": "patent-draft",
+      "name": "patent-draft",
+      "domain": "intellectual_property_materials",
+      "description": "一句话/一段技术描述/一份交底要点 → 起草专利技术交底书草稿。AI 直接撰写 背景技术、技术问题、技术方案（含自主设计的 HTML 系统框图与流程图）、优点、 关键保护点和实施例，产出 专利交底书/交底书草稿.md。是\"一句话生成专利交底书\" 工作流的第一步。",
+      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "patent-draft"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
+      "current_evidence": [],
+      "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
+      "status": "private_extension"
     }
   ],
   "figures_and_document_production": [
@@ -4197,7 +4360,7 @@
       ],
       "high_risk_confirmation": "编译覆盖需确认",
       "current_evidence": "C2 验收：latex_demo/main.tex(3.6KB)→2 页 PDF 编译成功",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "pdf_toolkit",
@@ -4220,7 +4383,7 @@
       ],
       "high_risk_confirmation": "PDF 加密/覆盖删除前需确认",
       "current_evidence": "C2 验收：pdf_demo/result.pdf(188KB) 提取+合并+AES-256 加密（needs_pass 验证）",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "figure_generation_science",
@@ -4248,7 +4411,7 @@
       ],
       "high_risk_confirmation": "AI 插图生成涉及外部服务，需确认",
       "current_evidence": "C2 验收：figures/fig_science.png(51KB) 960×630 柱状图+误差棒（中文字体修复）",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "poster_slides",
@@ -4274,7 +4437,7 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：poster_demo/slides.tex→6 页 beamer PDF(117KB) 编译成功",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "sci_pdf",
@@ -4297,7 +4460,7 @@
       ],
       "high_risk_confirmation": "PDF 操作覆盖需确认",
       "current_evidence": "C2 验收：sci_pdf_report.md(1.4KB) pdfplumber 表格提取+fitz 图片落盘（含 booktabs 排查链）",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准"
+      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     },
     {
       "capability_id": "ars-challenge",
@@ -4313,7 +4476,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4330,7 +4493,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4347,7 +4510,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4364,7 +4527,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4381,7 +4544,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4398,7 +4561,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4415,7 +4578,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4432,7 +4595,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4449,7 +4612,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4466,7 +4629,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4483,7 +4646,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4500,7 +4663,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4517,7 +4680,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4534,7 +4697,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4551,7 +4714,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4568,7 +4731,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4585,7 +4748,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4602,7 +4765,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4619,7 +4782,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4636,7 +4799,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4653,7 +4816,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4670,7 +4833,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4687,7 +4850,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收",
+      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental"
     },
     {
@@ -4712,7 +4875,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "AI使用声明涉及竞赛合规，措辞不允许修改",
       "current_evidence": "测试套件10/10通过；20篇获奖论文假阳性率0%；门禁实证拦截humanize-chinese机械改写（语义漂移/杜撰话术4处error）；双检测器交叉验证一致（练习论文 18/100 vs 15.55%）",
-      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行"
+      "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用"
     }
   ]
 }

@@ -2,33 +2,24 @@
 
 本发布包（releases/v1）由两部分构成，适用不同许可证：
 
-## 1. 核心代码与技能（MIT License）
+## 1. 核心代码与技能（CC-BY-NC-4.0）
 
-数学建模全流程套件（skills/、engine/、tools/、tests/）与根目录配置（opencode.json、README.md）采用 MIT 许可证：
+数学建模全流程套件（skills/、engine/、tools/、tests/）与根目录配置（opencode.json、README.md）采用
+[Creative Commons Attribution-NonCommercial 4.0 International (CC-BY-NC-4.0)](https://creativecommons.org/licenses/by-nc/4.0/)：
 
-```
-MIT License
+- ✅ 可自由共享、改编、再利用（含商用场景除外）
+- ✅ 须注明出处（"数模竞赛 Agent 工具箱"）及许可证声明
+- ❌ **禁止商业使用**——不得将本软件或其衍生作品用于商业销售、SaaS 服务、付费订阅或任何以盈利为目的的场景
+- ❌ **禁止用于训练 AI 模型**——不得将本软件内容用于训练、微调或评估任何 AI/ML 模型
 
-Copyright (c) 2026 数模竞赛 Agent 工具箱项目
+如需商业使用，请联系项目维护者获取单独授权。
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+### 商业使用例外
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+以下使用方式被视为非商业使用：
+- 个人学习、研究和教育目的
+- 非营利组织的内部使用
+- 学术论文引用和课堂演示
 
 ## 2. 公开基准集（CC-BY-4.0）
 
