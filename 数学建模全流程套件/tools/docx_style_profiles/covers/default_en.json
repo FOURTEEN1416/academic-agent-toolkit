@@ -1,0 +1,22 @@
+{
+  "_comment": "通用英文竞赛封面",
+  "language": "en",
+  "preface": null,
+  "title_page": {
+    "show": true,
+    "title_size_pt": 22,
+    "title_alignment": "center",
+    "title_bold": true,
+    "info_lines": [
+      {"label": "Problem:", "key": "problem"},
+      {"label": "Team #:", "key": "team_id"},
+      {"label": "Affiliation:", "key": "school"},
+      {"label": "Members:", "key": "members"},
+      {"label": "Advisor:", "key": "advisor"},
+      {"label": "Date:", "key": "date"}
+    ],
+    "info_alignment": "center",
+    "info_size_pt": 14,
+    "page_break_after": true
+  }
+}

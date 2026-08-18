@@ -1,0 +1,17 @@
+# 敏感配置
+.env
+
+# Python 编译缓存
+__pycache__/
+*.pyc
+
+# Vendored Node dependencies are installed locally for the CodeSucker adapter
+tools/codesucker-core/node_modules/
+
+# 运行产物
+runtime/texlive/
+*.log
+
+# 临时
+*.tmp
+.DS_Store

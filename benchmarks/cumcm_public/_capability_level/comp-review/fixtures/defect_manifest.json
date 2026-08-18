@@ -1,0 +1,32 @@
+{
+  "defects": [
+    {
+      "id": "D1",
+      "type": "direction_reversal",
+      "description": "把'识别高峰站点'写成'最小化高峰站点数'，方向反",
+      "location": "问题一 目标函数",
+      "keyword_hint": ["最小化高峰站点数", "minimize 高峰站点数"]
+    },
+    {
+      "id": "D2",
+      "type": "overclaim_extrapolation",
+      "description": "预测 500 辆远超训练观测区间(10-200)，外推口吻过硬未标情景模拟",
+      "location": "问题二 结果",
+      "keyword_hint": ["500 辆", "外推"]
+    },
+    {
+      "id": "D3",
+      "type": "double_counting_symbol_conflict",
+      "description": "d12 在同一报告被定义为两个不同数值(10 vs 8)，符号冲突/重复计量",
+      "location": "问题三 符号与结果",
+      "keyword_hint": ["d12", "10 vs 8", "符号"]
+    },
+    {
+      "id": "D4",
+      "type": "missing_variable",
+      "description": "题目要求容量约束(调度车≤3辆)但模型无容量变量/约束",
+      "location": "问题三 模型",
+      "keyword_hint": ["容量", "≤ 3", "漏"]
+    }
+  ]
+}

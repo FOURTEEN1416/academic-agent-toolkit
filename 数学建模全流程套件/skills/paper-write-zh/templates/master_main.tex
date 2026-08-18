@@ -1,0 +1,141 @@
+\documentclass[12pt,a4paper,openany]{ctexbook}
+
+% === 页面设置 ===
+\usepackage[top=3cm,bottom=3cm,left=3.5cm,right=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% === 字体 ===
+\ctexset{
+    chapter/format = \centering\zihao{3}\heiti,
+    chapter/beforeskip = 20pt,
+    chapter/afterskip = 20pt,
+    section/format = \zihao{4}\heiti,
+    subsection/format = \zihao{-4}\heiti,
+    subsubsection/format = \zihao{-4}\heiti,
+}
+
+% === 常用宏包 ===
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{labelsep=space}  % "图 1 xxx" 而非 "图 1: xxx"
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+\usepackage{algorithm2e}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{longtable}
+
+% === TikZ（仅用于架构图/流程图）===
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+% 注意：pgfplots 仅作为备用，数据图表应使用 \includegraphics 引用 matplotlib 生成的 PDF
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% === 引用格式 ===
+\usepackage[super,sort&compress]{gbt7714}
+
+% === 页眉页脚 ===
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[CE]{\zihao{5}\songti [学校名称]硕士学位论文}
+\fancyhead[CO]{\zihao{5}\songti \leftmark}
+\fancyfoot[C]{\thepage}
+
+% === 定理环境 ===
+\newtheorem{definition}{定义}[chapter]
+\newtheorem{theorem}{定理}[chapter]
+\newtheorem{lemma}{引理}[chapter]
+\newtheorem{proposition}{命题}[chapter]
+\newtheorem{corollary}{推论}[chapter]
+
+\begin{document}
+
+\frontmatter
+
+% === 封面（通常由学校模板提供） ===
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\zihao{-0}\heiti [学校名称]\par}
+\vspace{0.5cm}
+{\zihao{1}\heiti 硕士学位论文\par}
+\vspace{3cm}
+{\zihao{2}\heiti [论文标题]\par}
+\vspace{4cm}
+\begin{tabular}{rl}
+\zihao{4}\songti 研究生姓名：& [姓名] \\
+\zihao{4}\songti 学\hspace{2em}号：& [学号] \\
+\zihao{4}\songti 导\hspace{2em}师：& [导师] \\
+\zihao{4}\songti 学科专业：& [专业] \\
+\zihao{4}\songti 研究方向：& [方向] \\
+\end{tabular}
+\vfill
+{\zihao{4}\songti \today\par}
+\end{titlepage}
+
+% === 独创性声明 ===
+\chapter*{独创性声明}
+本人声明所呈交的学位论文是本人在导师指导下进行的研究工作及取得的研究成果。据我所知，除了文中特别加以标注和致谢的地方外，论文中不包含其他人已经发表或撰写过的研究成果。
+
+\vspace{3cm}
+\noindent 签名：\hspace{5cm} 日期：
+
+% === 中文摘要 ===
+\chapter*{摘\hspace{2em}要}
+\addcontentsline{toc}{chapter}{摘要}
+[中文摘要，500-1000字]
+
+\vspace{1em}
+\noindent\textbf{关键词：}[关键词1]；[关键词2]；[关键词3]；[关键词4]；[关键词5]
+
+% === 英文摘要 ===
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+[English abstract, 300-800 words]
+
+\vspace{1em}
+\noindent\textbf{Keywords:} keyword1; keyword2; keyword3; keyword4; keyword5
+
+% === 目录 ===
+\tableofcontents
+\listoffigures
+\listoftables
+
+\mainmatter
+
+% === 正文各章 ===
+\input{sections/ch1_introduction}
+\input{sections/ch2_related_work}
+\input{sections/ch3_method_a}
+\input{sections/ch4_method_b}
+\input{sections/ch5_experiments}
+\input{sections/ch6_conclusion}
+
+% === 参考文献 ===
+\bibliography{references}
+
+\backmatter
+
+% === 致谢 ===
+\chapter*{致\hspace{2em}谢}
+\addcontentsline{toc}{chapter}{致谢}
+[致谢内容]
+
+% === 攻读学位期间发表的学术论文 ===
+\chapter*{攻读学位期间发表的学术论文}
+\addcontentsline{toc}{chapter}{攻读学位期间发表的学术论文}
+[论文列表]
+
+% === 附录 ===
+\appendix
+\input{sections/appendix}
+
+\end{document}

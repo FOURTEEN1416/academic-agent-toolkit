@@ -1,0 +1,19 @@
+{
+  "benchmark_id": "comp-review-p0",
+  "capability": "comp-review",
+  "domain": "math_modeling_competition",
+  "name": "逻辑审稿缺陷检出验收基准",
+  "description": "预埋 4 类典型逻辑缺陷（方向反/重复计量/外推过硬/漏变量）于建模报告，验收审稿报告能否全部检出",
+  "fixtures": {
+    "input": ["fixtures/defective_modeling_report.md", "fixtures/defect_manifest.json"],
+    "expected_output": ["COMP_REVIEW.md", "COMP_REVIEW_VERDICT.json"]
+  },
+  "scoring": {
+    "detection_rate": {"min": 0.75, "description": "预埋 4 类缺陷至少检出 3 类"},
+    "verdict_json": {"required": true, "description": "COMP_REVIEW_VERDICT.json 存在且含 fatal_count/findings"},
+    "evidence_based": {"required": true, "description": "审稿报告引用具体行/数值（非泛泛而谈）"},
+    "min_size_bytes": 500
+  },
+  "scoring_script": "evaluate.py",
+  "status": "experimental"
+}

@@ -1,0 +1,11 @@
+{
+  "capability_id": "patent_draft_full",
+  "capability_name": "专利交底书全流程",
+  "domain": "intellectual_property_materials",
+  "benchmark_id": "IP-01",
+  "input_contract": "技术方案描述",
+  "output_contract": "专利技术交底书",
+  "quality_gates": {
+    "min_score": 70
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@modex/codesucker-core-vendored",
+  "version": "0.4.4+fanbuz.b065a18",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "upstream": "https://github.com/fanbuz/codesucker",
+  "upstreamCommit": "b065a1825f4e32dca4c4b7fd8bccf3e020a77c5c"
+}

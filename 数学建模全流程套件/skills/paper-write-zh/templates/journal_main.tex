@@ -1,0 +1,89 @@
+\documentclass[a4paper,11pt,twocolumn]{ctexart}
+
+% === 页面设置 ===
+\usepackage[top=2.5cm,bottom=2.5cm,left=2cm,right=2cm]{geometry}
+\usepackage{setspace}
+\setstretch{1.2}
+
+% === 字体 ===
+\ctexset{
+    section/format = \zihao{4}\heiti,
+    subsection/format = \zihao{-4}\heiti,
+    subsubsection/format = \zihao{-4}\kaishu,
+}
+
+% === 常用宏包 ===
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{labelsep=space}  % "图 1 xxx" 而非 "图 1: xxx"
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+\usepackage{algorithm2e}
+\usepackage{enumitem}
+\usepackage{abstract}
+
+% === TikZ（仅用于架构图/流程图）===
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+% 注意：pgfplots 仅作为备用，数据图表应使用 \includegraphics 引用 matplotlib 生成的 PDF
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% === 引用格式 ===
+\usepackage[super,sort&compress]{gbt7714}
+
+% === 定理环境 ===
+\newtheorem{definition}{定义}[section]
+\newtheorem{theorem}{定理}[section]
+\newtheorem{lemma}{引理}[section]
+
+\begin{document}
+
+% === 标题区域（单栏） ===
+\twocolumn[
+\begin{@twocolumnfalse}
+\centering
+{\zihao{2}\heiti [论文标题]\par}
+\vspace{1em}
+{\zihao{4}\songti [作者1]$^{1}$\quad [作者2]$^{2}$\par}
+\vspace{0.5em}
+{\zihao{5}\songti
+$^{1}$[单位1，城市 邮编]\par
+$^{2}$[单位2，城市 邮编]\par
+}
+\vspace{1em}
+
+\begin{minipage}{0.9\textwidth}
+\zihao{5}
+\textbf{摘\hspace{1em}要\hspace{1em}}[中文摘要，200-300字]
+
+\vspace{0.5em}
+\textbf{关键词\hspace{1em}}[关键词1]；[关键词2]；[关键词3]
+
+\vspace{1em}
+\textbf{Abstract\hspace{1em}}[English abstract, 150-250 words]
+
+\vspace{0.5em}
+\textbf{Keywords\hspace{1em}}keyword1; keyword2; keyword3
+\end{minipage}
+\vspace{1.5em}
+\end{@twocolumnfalse}
+]
+
+% === 正文 ===
+\input{sections/1_introduction}
+\input{sections/2_related_work}
+\input{sections/3_method}
+\input{sections/4_experiments}
+\input{sections/5_discussion}
+\input{sections/6_conclusion}
+
+% === 参考文献 ===
+\bibliography{references}
+
+\end{document}

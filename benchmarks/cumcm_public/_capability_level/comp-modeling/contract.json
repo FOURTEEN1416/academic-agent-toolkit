@@ -1,0 +1,20 @@
+{
+  "benchmark_id": "comp-modeling-p0",
+  "capability": "comp-modeling",
+  "domain": "math_modeling_competition",
+  "name": "建模求解报告验收基准",
+  "description": "基于合成赛题（共享单车调度 3 子问题），验收建模报告的子问题覆盖与能力清单认领",
+  "fixtures": {
+    "input": ["fixtures/problem_context.md"],
+    "expected_output": ["MODELING_REPORT.md"]
+  },
+  "scoring": {
+    "subproblem_coverage": {"min": 3, "description": "3 个子问题都有建模方案"},
+    "capability_claim": {"min": 3, "description": "建模报告为每条能力项（P1-C1 等）标注建模方案"},
+    "has_formula": {"required": true, "description": "含数学公式（$ 或 $$ 包裹）"},
+    "has_symbols": {"required": true, "description": "含符号说明表"},
+    "min_size_bytes": 2000
+  },
+  "scoring_script": "evaluate.py",
+  "status": "experimental"
+}

@@ -1,0 +1,34 @@
+{
+  "_comment": "国赛 CUMCM 封面布局（对标 cumcmthesis.cls 的承诺书风格 + 标题）",
+  "language": "zh",
+  "preface": {
+    "title": "承诺书",
+    "title_size_pt": 18,
+    "title_alignment": "center",
+    "body_size_pt": 11,
+    "body_text": "我们仔细阅读了《全国大学生数学建模竞赛章程》和《全国大学生数学建模竞赛参赛规则》，完全明白在竞赛开始后参赛队员不能以任何方式（包括电话、电子邮件、网上咨询等）与队外的任何人（包括指导教师）研究、讨论与赛题有关的问题。\n我们以中国大学生名誉和诚信郑重承诺，严格遵守竞赛规则，以保证竞赛的公正、公平性。如有违反竞赛规则的行为，我们将受到严肃处理。\n我们授权全国大学生数学建模竞赛组委会，可将我们的论文以任何形式进行公开展示（包括进行网上公示，在书籍、期刊和其他媒体进行正式或非正式发表等）。",
+    "form_underline_size_pt": 14,
+    "form_fields": [
+      {"label": "我们参赛选择的题号是（从A/B/C/D中选择一项填写）：", "key": "problem"},
+      {"label": "我们的参赛报名号为：", "key": "team_id"},
+      {"label": "所属学校（请填写完整的全名）：", "key": "school"},
+      {"label": "参赛队员（打印并签名）：1.", "key": "member1"},
+      {"label": "                          2.", "key": "member2"},
+      {"label": "                          3.", "key": "member3"},
+      {"label": "指导教师或指导教师组负责人（打印并签名）：", "key": "advisor"},
+      {"label": "（指导教师签名意味着对参赛队的行为和论文的真实性负责）", "key": null},
+      {"label": "日期：", "key": "date", "format": "{year}年{month}月{day}日"}
+    ],
+    "page_break_after": true
+  },
+  "title_page": {
+    "show": true,
+    "title_size_pt": 22,
+    "title_alignment": "center",
+    "title_bold": true,
+    "title_font": "SimHei",
+    "subtitle_text": "题目",
+    "subtitle_size_pt": 16,
+    "page_break_after": true
+  }
+}

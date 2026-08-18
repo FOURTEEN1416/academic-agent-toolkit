@@ -1,0 +1,20 @@
+{
+  "benchmark_id": "comp-literature-p0",
+  "capability": "comp-literature",
+  "domain": "math_modeling_competition",
+  "name": "文献调研验收基准",
+  "description": "预置检索结果（2 条真实论文），验收文献调研的引用真实性与证据记录完整性",
+  "fixtures": {
+    "input": ["fixtures/preset_search_results.json"],
+    "expected_output": ["LITERATURE.md", "literature/search_evidence.json", "paper/references.bib"]
+  },
+  "scoring": {
+    "search_evidence_json": {"required": true},
+    "bib_exists": {"required": true},
+    "bib_key_overlap": {"min": 2, "description": "references.bib 的 citation key 必须与 search_evidence 的 key 有交集"},
+    "no_invented_references": {"required": true, "description": "search_evidence 记录的必须是 preset 中的论文"},
+    "min_size_bytes": 1000
+  },
+  "scoring_script": "evaluate.py",
+  "status": "experimental"
+}

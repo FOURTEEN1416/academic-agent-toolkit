@@ -1,0 +1,323 @@
+{
+"comp_cumcm": {
+    "name": "全国大学生数学建模竞赛 (CUMCM)",
+    "language": "zh",
+    "max_pages": 30,
+    "page_scope": "body",
+    "body_start_pdf_page": 4,
+    "appendix_unlimited": true,
+    "official_rule_url": "https://www.mcm.edu.cn/html_cn/node/4cd596519c9eb9fbd866398f6df0caa3.html",
+    "template_cls": "cumcmthesis",
+    "rules": [
+      "电子版第 1 页保证书、第 2 页评阅编号、第 3 页题目摘要，**第 4 页开始正文**（不含目录）；**正文不超过 30 页**，正文之后附录页数不限（2026 年修订稿）",
+      "必须有摘要项（约 1 页），含关键词",
+      "⛔ 只需要中文摘要，不要英文摘要（国赛不要求英文摘要）",
+      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 模型检验 → 模型评价与推广 → 参考文献 → 附录",
+      "附录中必须包含完整代码",
+      "使用 cumcmthesis 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_mcm": {
+    "name": "MCM/ICM (COMAP)",
+    "language": "en",
+    "max_pages": 25,
+    "template_cls": "mcmthesis",
+    "rules": [
+      "Summary Sheet (摘要页) 必须是第一印象，决定一票否决权",
+      "论文结构：Summary → Introduction → Problem Analysis → Model Design → Solution → Sensitivity Analysis → Strengths & Weaknesses → Conclusions → References → Appendix",
+      "Summary 必须独立成页，包含 team control number",
+      "全英文撰写，使用 mcmthesis 文档类，pdflatex 编译",
+      "论文建议不超过 25 页"
+    ]
+  },
+  "comp_huawei": {
+    "name": "华为杯全国研究生数学建模竞赛",
+    "language": "zh",
+    "max_pages": 50,
+    "page_scope": "body",
+    "body_start_pdf_page": 2,
+    "appendix_unlimited": true,
+    "template_cls": "gmcmthesis",
+    "rules": [
+      "使用 gmcmthesis 文档类，XeLaTeX 编译",
+      "⛔ **MAX_PAGES 指正文页数**（章节 1 - 结论，含图表）— 不含 摘要 / 目录 / 参考文献 / **附录代码**。附录代码单独计 70-100 页（华为杯允许，是正式产出但不算正文）。实测出现过 AI 把附录代码算进正文目标，导致正文只写 36 页就以为达标了 → 必须区分",
+      "封面需包含 4 个 Logo（组委会提供）",
+      "论文格式有严格要求（参见规程、评审标准）",
+      "⛔ 正文目标 40-60 页区间（一等奖通常 55-65 页正文，二等奖 50-60 页正文）。短于 36 页 = 分析单薄高风险（实测出现过 36 页交稿被判薄弱）。目标 50 页左右（充分但不灌水）；写完不到 40 页必须扩展推导/补图/加灵敏度",
+      "⛔ 华为杯重点考察推导过程深度 — 每个子问题正文 ≥ 8-10 页 + ≥ 6-8 张图表 + ≥ 8-15 个公式（逐式编号 (n)）。结构应是：建模假设 → 公式推导（每一步可解释）→ 算法步骤 → 结果讨论 → 验证。不能「列模型，给结果」，必须展示每个关键步骤怎么来的",
+      "⛔ 鼓励过程图表化 — 不只画结果图，更要画过程图：建模流程图 / 算法流程图 / 数据预处理流程 / 推导路径图 / 决策树形图 / 参数空间搜索路径 / 优化迭代示意 / 仿真步骤快照 / 求解器分支图等都算正文图表。过程图表能直观展现「如何做的」，比一堆结果图更能体现工作量",
+      "⛔ 图表硬性下限：30-46 张图表总数（A/B 工程优化 40-46 / C/D 数据分析 33-39 / E/F 综合建模 35-41，详见 _utils/figure_exemplars.md）— 含 8-12 张数据图 + 6-12 张过程/架构图（TikZ）+ 8-12 张表。鼓励多面板组合图 [2-panel] / [4-panel] 提高信息密度，远多于国赛 24 个图表",
+      "⛔ **章节文件归类约束**：paper/sections/ 只放正文章节（绪论/方法/结果/讨论/结论），**严禁把代码、长数据表、求解日志放到 sections/** — 这些必须放 paper/appendix/。页数预检脚本仅统计 sections/，sections 含代码会让页数虚高但正文实际单薄",
+      "⛔ 只需要中文摘要，不要英文摘要（华为杯是中文竞赛）",
+      "灵敏度分析与模型推广 4-5 页（不能少于 3 页，要有 3+ 张图）",
+      "附录 70-100 页：完整代码 + 关键数据 + 公式补充推导 + 算法伪代码（附录算正式产出，不是凑数，但**不计入正文页数**）"
+    ]
+  },
+  "comp_mathorcup": {
+    "name": "MathorCup 数学建模挑战赛",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "ctexart",
+    "rules": [
+      "论文不超过 30 页",
+      "必须有目录页",
+      "页面顶部必须有队伍编号+题号表格（使用 mathorcup_main.tex 模板）",
+      "论文结构：摘要 → 目录 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 模型评价 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要（MathorCup 不要求英文摘要）",
+      "使用 mathorcup_main.tex 模板（基于 ctexart），XeLaTeX 编译"
+    ]
+  },
+  "comp_apmcm": {
+    "name": "亚太地区数学建模竞赛 (APMCM)",
+    "language": "en",
+    "max_pages": 25,
+    "template_cls": "apmcmthesis",
+    "rules": [
+      "按照官网上传的 PDF 模板格式提交",
+      "全英文撰写",
+      "论文结构参考美赛：Summary → Introduction → Model → Solution → Conclusions",
+      "使用 apmcmthesis 或通用模板，pdflatex 编译"
+    ]
+  },
+  "comp_apmcm_zh": {
+    "name": "亚太地区数学建模竞赛中文赛项 (APMCM 中文)",
+    "language": "zh",
+    "max_pages": 25,
+    "template_cls": "MathorCupmodeling",
+    "rules": [
+      "按照官网上传的 PDF 模板格式提交（亚太赛中文赛项）",
+      "中文撰写，封面含参赛队号、参赛队员",
+      "论文结构：摘要 → 关键词 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 灵敏度分析 → 模型评价 → 参考文献 → 附录",
+      "需要中文摘要 + 关键词（一般 3-5 个）",
+      "使用 MathorCupmodeling 文档类（\\bianhao/\\tihao/\\timu 设置队伍信息，\\keyword 设置关键词），XeLaTeX 编译"
+    ]
+  },
+  "comp_stats": {
+    "name": "全国大学生统计建模大赛",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "ctexart",
+    "rules": [
+      "自主选题（官方只给选题方向，不给具体题目）",
+      "必须自行采集真实数据（标注数据来源：国家统计局、Wind、CSMAR、Kaggle 等）",
+      "论文结构：摘要 → 引言 → 文献综述 → 数据与方法 → 实证分析 → 结论与建议 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要（统计建模大赛不要求英文摘要）",
+      "注重统计分析的规范性（必须报告 p 值、置信区间、显著性注释、水平、回归诊断、模型比较）",
+      "鼓励使用描述性统计、推断统计、回归分析等经典方法",
+      "准备答辩展示材料（PPT）",
+      "注重数据质量，不能抄袭已有研究",
+      "使用 ctexart 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_teddy": {
+    "name": "泰迪杯数据挖掘挑战赛",
+    "language": "zh",
+    "max_pages": 40,
+    "template_cls": "ctexart",
+    "rules": [
+      "赛程约 13 天，侧重数据挖掘与机器学习方向",
+      "论文结构：摘要 → 问题重述 → 数据预处理 → 特征工程 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "必须包含完整的数据预处理和特征工程描述",
+      "代码附录需包含关键算法实现",
+      "使用 ctexart 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_certcup": {
+    "name": "认证杯数学建模（第一/二阶段）",
+    "language": "zh",
+    "max_pages": 35,
+    "template_cls": "ctexart",
+    "rules": [
+      "分两阶段：第一阶段提交初步方案，第二阶段提交完整论文",
+      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 模型建立与求解 → 结果分析 → 模型评价 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "使用 ctexart 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_huazhong": {
+    "name": "华中杯数学建模邀请赛",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "cumcmthesis",
+    "rules": [
+      "论文不超过 30 页",
+      "使用 cumcmthesis 文档类（withoutpreface 选项去掉封面），XeLaTeX 编译",
+      "论文结构：摘要 → 目录 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 模型检验 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "使用 huazhong_main.tex 模板"
+    ]
+  },
+  "comp_huadong": {
+    "name": "华东杯数学建模邀请赛",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "ctexart",
+    "rules": [
+      "论文不超过 30 页",
+      "赛程较长（7月中旬至9月上旬）",
+      "侧重电气工程与能源方向的建模问题",
+      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "使用 ctexart 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_shuwei": {
+    "name": "数维杯数学建模（国内赛）",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "ctexart",
+    "rules": [
+      "论文不超过 30 页",
+      "赛程较长（7月中旬至9月上旬）",
+      "侧重电气工程与能源方向的建模问题",
+      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "使用 ctexart 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_zhongqing": {
+    "name": "中青杯数学建模竞赛",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "ctexart",
+    "rules": [
+      "论文不超过 30 页",
+      "赛程较长（7月中旬至9月上旬）",
+      "侧重电气工程与能源方向的建模问题",
+      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "使用 ctexart 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_yangtze": {
+    "name": "长三角高校数学建模竞赛",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "ctexart",
+    "rules": [
+      "论文不超过 30 页",
+      "赛程较长（7月中旬至9月上旬）",
+      "侧重电气工程与能源方向的建模问题",
+      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "使用 ctexart 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_diangong": {
+    "name": "电工杯数学建模竞赛",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "ctexart",
+    "rules": [
+      "论文不超过 30 页",
+      "赛程较长（7月中旬至9月上旬）",
+      "侧重电气工程与能源方向的建模问题",
+      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "使用 ctexart 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_shenzhen": {
+    "name": "深圳杯数学建模竞赛",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "ctexart",
+    "rules": [
+      "论文不超过 30 页",
+      "赛程较长（7月中旬至9月上旬）",
+      "侧重电气工程与能源方向的建模问题",
+      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "使用 ctexart 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_huashu": {
+    "name": "华数杯数学建模竞赛",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "ctexart",
+    "rules": [
+      "论文不超过 30 页",
+      "赛程较长（7月中旬至9月上旬）",
+      "侧重电气工程与能源方向的建模问题",
+      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "使用 ctexart 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_tianfu": {
+    "name": "天府杯数学建模竞赛",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "ctexart",
+    "rules": [
+      "论文不超过 30 页",
+      "赛程较长（7月中旬至9月上旬）",
+      "侧重电气工程与能源方向的建模问题",
+      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "使用 ctexart 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_liaoning": {
+    "name": "辽宁省大学生数学建模/东三省数学建模联赛",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "ctexart",
+    "rules": [
+      "论文不超过 30 页",
+      "赛程较长（7月中旬至9月上旬）",
+      "侧重电气工程与能源方向的建模问题",
+      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "使用 ctexart 文档类，XeLaTeX 编译"
+    ]
+  },
+  "comp_wuyi": {
+    "name": "五一杯数学建模竞赛",
+    "language": "zh",
+    "max_pages": 30,
+    "template_cls": "cumcmthesis",
+    "rules": [
+      "论文不超过 30 页",
+      "使用 cumcmthesis 文档类（withoutpreface 选项），XeLaTeX 编译",
+      "论文第一页为承诺书（模板已包含，不要删除）",
+      "第二页为封面（题目+关键词+摘要，手动排版格式）",
+      "论文结构：承诺书 → 封面(题目+关键词+摘要) → 目录 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 各问题建模与求解 → 模型评价 → 参考文献 → 附录",
+      "⛔ 只需要中文摘要，不要英文摘要",
+      "附录第一节为文件列表表格",
+      "参考文献使用 gbt7714-numerical 样式",
+      "使用 wuyi_main.tex 模板",
+      "⛔ 不要加 \\usepackage{cite}（和 natbib 冲突导致编译错误）",
+      "⛔ 不要重复加载 subcaption 和 float（cls 已包含）",
+      "⛔ 禁止使用 subfigure 并排图片，每张图独占一个 figure 环境，宽度 ≥ 0.85\\textwidth",
+      "⛔ 不要加 \\maketitle（五一杯用手写承诺书页）"
+    ]
+  },
+  "comp_certcup_en": {
+    "name": "认证杯国际赛 (小美赛)",
+    "language": "en",
+    "max_pages": 25,
+    "template_cls": "article",
+    "rules": [
+      "全英文撰写",
+      "论文结构参考美赛：Summary → Introduction → Model → Solution → Conclusions → References → Appendix",
+      "Summary 必须独立成页",
+      "使用 article 或 mcmthesis 文档类，pdflatex 编译",
+      "论文建议不超过 25 页"
+    ]
+  },
+  "comp_shuwei_en": {
+    "name": "数维杯国际赛 (ISTIC)",
+    "language": "en",
+    "max_pages": 25,
+    "template_cls": "article",
+    "rules": [
+      "全英文撰写",
+      "论文结构参考美赛：Summary → Introduction → Model → Solution → Conclusions → References → Appendix",
+      "使用 article 文档类，pdflatex 编译",
+      "论文建议不超过 25 页"
+    ]
+  }
+}

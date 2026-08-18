@@ -1,0 +1,12 @@
+{
+  "capability_id": "course_paper_full",
+  "capability_name": "课程论文全流程",
+  "domain": "course_research_materials",
+  "benchmark_id": "COURSE-01",
+  "input_contract": "课程主题、学习材料",
+  "output_contract": "完整课程报告",
+  "quality_gates": {
+    "min_score": 70,
+    "min_figures": 2
+  }
+}

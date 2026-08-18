@@ -1,0 +1,20 @@
+{
+  "benchmark_id": "comp-final-audit-p0",
+  "capability": "comp-final-audit",
+  "domain": "math_modeling_competition",
+  "name": "最终交付审计验收基准",
+  "description": "验收最终交付审计的 schema 完整性、证据链与交付决定（与 quality_gates check_final_audit_report 一致）",
+  "fixtures": {
+    "input": [],
+    "expected_output": ["AUDIT_REPORT.json", "REVIEW_EXECUTION_EVIDENCE.json", "CONSISTENCY_REPORT.json"]
+  },
+  "scoring": {
+    "audit_schema": {"required": true, "description": "AUDIT_REPORT.json 含 workflow_id/artifacts/gate_outcomes/waivers/delivery_decision"},
+    "artifacts_sha256": {"required": true, "description": "artifacts 每条含 path + 64 位 sha256"},
+    "review_evidence": {"required": true, "description": "REVIEW_EXECUTION_EVIDENCE.json 含 4 角色"},
+    "consistency": {"required": true, "description": "CONSISTENCY_REPORT.json ok=true 且 claims 非空"},
+    "delivery_decision_ready": {"required": true, "description": "delivery_decision = ready"}
+  },
+  "scoring_script": "evaluate.py",
+  "status": "experimental"
+}

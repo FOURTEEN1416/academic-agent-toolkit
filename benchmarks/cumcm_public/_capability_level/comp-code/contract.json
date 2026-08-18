@@ -1,0 +1,21 @@
+{
+  "benchmark_id": "comp-code-p0",
+  "capability": "comp-code",
+  "domain": "math_modeling_competition",
+  "name": "编程求解验收基准",
+  "description": "微型 STR 合成数据（3 样本 × 3 marker），验收代码实现、结果落盘与基础正确性",
+  "fixtures": {
+    "input": ["fixtures/str_micro_data.csv"],
+    "expected_output": ["code/main.py", "RESULTS.md", "figures/all_results.json", "figures/problem_1_results.json"]
+  },
+  "scoring": {
+    "code_exists": {"required": true},
+    "results_ledger": {"required": true, "description": "figures/all_results.json 存在且含 problem_1"},
+    "problem_results": {"required": true, "description": "figures/problem_1_results.json 存在"},
+    "results_md": {"required": true, "description": "RESULTS.md ≥1000B"},
+    "contributor_count_correct": {"required": true, "description": "P1 输出能区分 2人/3人混合（accuracy 或 predictions 有值）"},
+    "min_size_bytes": 500
+  },
+  "scoring_script": "evaluate.py",
+  "status": "experimental"
+}
