@@ -497,6 +497,36 @@ def test_full_review_gate_warns_but_does_not_block_model_mismatch(tmp_path, monk
     assert "glm-5.2" in result["warnings"][0] and "mimo-v2.5-free" in result["warnings"][0]
 
 
+def test_full_review_gate_can_hard_fail_on_model_mismatch_when_strict(tmp_path, monkeypatch):
+    """最终交付场景需要可选择性收紧：模型配置不一致应可切换为阻断。"""
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir()
+    for fname, model in (
+        ("数模审稿人.md", "opencode/mimo-v2.5-free"),
+        ("数模视觉审查.md", "agnes/agnes-2.5-flash"),
+        ("数模编辑.md", "opencode/mimo-v2.5-free"),
+        ("数模专家.md", "deepseek/deepseek-v4-flash"),
+    ):
+        (agents_dir / fname).write_text(f"---\nmodel: {model}\n---\n", encoding="utf-8")
+    monkeypatch.setenv("OPENCODE_AGENTS_DIR", str(agents_dir))
+
+    _write_review_files(tmp_path)
+    hashes = {
+        "reviewer": hashlib.sha256((tmp_path / "COMP_REVIEW_VERDICT.json").read_bytes()).hexdigest(),
+        "visual_reviewer": hashlib.sha256((tmp_path / "VISUAL_REVIEW_VERDICT.json").read_bytes()).hexdigest(),
+        "editor": hashlib.sha256((tmp_path / "EDITOR_CHANGELOG.md").read_bytes()).hexdigest(),
+        "final_reviewer": hashlib.sha256((tmp_path / "FINAL_REVIEW_VERDICT.json").read_bytes()).hexdigest(),
+    }
+    provenance = _provenance(hashes)
+    provenance["roles"]["reviewer"]["model"] = "sensenova/glm-5.2"
+    (tmp_path / "REVIEW_EXECUTION_EVIDENCE.json").write_text(json.dumps(provenance), encoding="utf-8")
+
+    result = QualityGate(tmp_path).check_review_evidence("full", strict_model_match=True)
+
+    assert result["ok"] is False
+    assert "glm-5.2" in result["reason"] or "不一致" in result["reason"]
+
+
 
 
 

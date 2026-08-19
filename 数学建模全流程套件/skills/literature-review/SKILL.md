@@ -241,4 +241,10 @@ Word 输出最常被识别为「AI 写的」就是因为下面这 6 条没遵守
 ## 输出文件
 
 - `papers_pool.md` — 候选文献池（含验证状态和分类）
-- `LITERATURE_REVIEW.md` — 最终文献综述（主产出）
+- `LITERATURE_REVIEW.md` — 最终文献综述（主产出）
+
+## STEP_MANIFEST 产出声明
+
+本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+
+建议额外记录：搜索词、源 API、结果数、fallback 链。

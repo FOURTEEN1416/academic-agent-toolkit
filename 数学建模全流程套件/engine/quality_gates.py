@@ -16,11 +16,14 @@ if str(_ENGINE_DIR.parent) not in sys.path:
 
 try:
     from .artifact_manifest import ArtifactManifest
+    from .step_manifest import validate_manifest as _validate_step_manifest
 except ImportError:
     try:
         from artifact_manifest import ArtifactManifest
+        from step_manifest import validate_manifest as _validate_step_manifest
     except ImportError:
         from engine.artifact_manifest import ArtifactManifest
+        from engine.step_manifest import validate_manifest as _validate_step_manifest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 TOOLS_DIR = PROJECT_ROOT / "tools"
@@ -217,6 +220,42 @@ def _load_json(path: Path, default):
     return default
 
 
+def _moderate_number(value: float) -> bool:
+    """过滤明显不是"结果数字"的值：日期/脚注/页码等小整数与天文数字。"""
+    return abs(value) >= 0.001 and abs(value) < 1e12
+
+
+def _collect_numbers(payload) -> list[float]:
+    """递归收集 JSON 中的 int/float 数值（忽略 NaN/Inf）。"""
+    numbers: list[float] = []
+    if isinstance(payload, dict):
+        for value in payload.values():
+            numbers.extend(_collect_numbers(value))
+    elif isinstance(payload, list):
+        for value in payload:
+            numbers.extend(_collect_numbers(value))
+    elif isinstance(payload, (int, float)) and not isinstance(payload, bool):
+        try:
+            numbers.append(float(payload))
+        except (TypeError, ValueError):
+            pass
+    return numbers
+
+
+def _number_candidates(value: float) -> list[str]:
+    """生成论文正文里可能出现的关键数字书写形式（原值/整数值/4位/2位小数）。"""
+    if value != value or value in (float("inf"), float("-inf")):  # NaN/Inf
+        return []
+    candidates = [str(value)]
+    if float(value).is_integer():
+        candidates.append(str(int(value)))
+    for digits in (4, 2):
+        rounded = round(value, digits)
+        if rounded != value:
+            candidates.append(str(rounded))
+    return candidates
+
+
 def _body_citation_markers(text: str) -> list[str]:
     """从论文全文提取「正文区」的 [n] 引用标记。
 
@@ -279,6 +318,26 @@ def get_comp_rules(comp_name: str) -> dict:
 # =====================================================
 # P4: 质量门禁检查
 # =====================================================
+
+# 命名门禁注册表（单一真相源）：
+# 迁移脚本 / 模板校验读取这个集合，防止引用不存在的门禁。
+# 值 = QualityGate 的实例方法名（run_all 内解析绑定方法）。
+NAMED_CHECKS_REGISTRY: dict[str, str] = {
+    "literature": "check_literature_evidence",
+    "literature_search": "_check_literature_search",
+    "review": "check_review_evidence",
+    "consistency": "check_consistency_evidence",
+    "final_audit": "check_final_audit_report",
+    "source_materials": "check_source_materials",
+    "step_manifest": "check_step_manifest",
+    "paper_consistency": "check_paper_consistency",
+    "citation_integrity": "check_citation_integrity",
+    "experiment_reproduc": "check_experiment_reproduc",
+    "figure_provenance": "check_figure_provenance",
+    "compilation_log": "check_compilation_log",
+    "modeling_contract": "check_modeling_contract",
+}
+
 
 class QualityGate:
     """质量门禁系统 — 检查每个步骤产出"""
@@ -412,6 +471,10 @@ class QualityGate:
         return {"ok": ok, "body_pages": body_count, "total_pages": pages, "max_body": max_body,
                 "reason": f"正文 {body_count} 页（上限 {max_body} 页）{'✅' if ok else '❌'}"}
 
+    def _check_literature_search(self) -> dict:
+        """文献检索证据门禁（不要求论文已写完成的引用闭环）。"""
+        return self.check_literature_evidence(require_citations=False)
+
     def check_literature_evidence(self, require_citations: bool = True) -> dict:
         """Require reproducible research records, and optionally paper citation closure."""
         required = [self.workspace / "LITERATURE.md", self.workspace / "literature" / "search_evidence.json"]
@@ -478,13 +541,17 @@ class QualityGate:
         return {"ok": True, "records": len(records), "citations": len(citations),
                 "reason": "文献检索与引用闭环完整"}
 
-    def check_review_evidence(self, mode: str = "auto") -> dict:
+    def check_review_evidence(self, mode: str = "auto", strict_model_match: bool = False) -> dict:
         """Require reviewer, visual reviewer, editor, and fatal-free final verdicts.
 
         mode:
           "full"  — require all 7 files (multi-role review)
           "solo"  — require COMP_REVIEW.md + COMP_REVIEW_VERDICT.json only (single-person)
           "auto"  — if all 7 exist, check full; if only solo files exist, check solo; else FAIL
+
+        strict_model_match:
+          False — evidence model != configured model is a warning only (default)
+          True  — evidence model != configured model blocks the gate (for final delivery)
         """
         all_reports = ["COMP_REVIEW.md", "VISUAL_REVIEW.md", "EDITOR_CHANGELOG.md", "FINAL_REVIEW.md"]
         all_verdicts = ["COMP_REVIEW_VERDICT.json", "VISUAL_REVIEW_VERDICT.json", "FINAL_REVIEW_VERDICT.json"]
@@ -579,13 +646,14 @@ class QualityGate:
                     if actual.lower() != str(role["output_sha256"]).lower():
                         raise ValueError(f"{role_name} output_sha256 与 {role['output_file']} 实际哈希不一致")
                     sessions.append(role["session_id"])
-                    # ⚠️ 软校验（不阻断）：证据模型与 agent 配置不一致时警告
+                    # 证据模型与 agent 配置比对
                     claimed = str(role.get("model", "")).strip()
                     configured = configured_models.get(role_name, "")
                     if configured and claimed and claimed != configured:
-                        provenance_warnings.append(
-                            f"{role_name}: 证据模型 {claimed!r} ≠ 配置模型 {configured!r}"
-                        )
+                        msg = f"{role_name}: 证据模型 {claimed!r} ≠ 配置模型 {configured!r}"
+                        if strict_model_match:
+                            raise ValueError(msg)
+                        provenance_warnings.append(msg)
                 if len(set(sessions)) != len(sessions):
                     raise ValueError("审稿角色 session_id 不独立")
             except (json.JSONDecodeError, ValueError) as exc:
@@ -650,15 +718,25 @@ class QualityGate:
     def check_source_materials(self) -> dict:
         """Validate the manifest-backed CodeSucker source-materials contract."""
         base = self.workspace / "source-materials"
-        required = ["SOURCE_MATERIALS_MANIFEST.json", "files.json", "selection.json", "audit.json", "stats.json"]
+        required = [
+            "SOURCE_MATERIALS_MANIFEST.json",
+            "files.json",
+            "cleaned.json",
+            "selection.json",
+            "audit.json",
+            "stats.json",
+            "SOURCE_MATERIALS_REPORT.md",
+        ]
         missing = [name for name in required if not (base / name).is_file()]
         if missing:
             return {"ok": False, "failures": missing, "warnings": [], "reason": f"缺少源码材料产物: {', '.join(missing)}"}
         try:
             manifest = json.loads((base / "SOURCE_MATERIALS_MANIFEST.json").read_text(encoding="utf-8"))
             files = json.loads((base / "files.json").read_text(encoding="utf-8")).get("files", [])
+            cleaned = json.loads((base / "cleaned.json").read_text(encoding="utf-8")).get("cleaned", [])
             selection = json.loads((base / "selection.json").read_text(encoding="utf-8"))
             audit_items = json.loads((base / "audit.json").read_text(encoding="utf-8"))
+            stats = json.loads((base / "stats.json").read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
             return {"ok": False, "failures": [str(exc)], "warnings": [], "reason": "源码材料 JSON 无效"}
         failures, warnings = [], []
@@ -671,23 +749,252 @@ class QualityGate:
                 failures.append(f"manifest 缺少 {field}")
         if not isinstance(manifest.get("outputSha256"), dict) or not manifest.get("outputSha256"):
             failures.append("manifest 缺少 outputSha256")
-        if not files or not selection.get("pages"):
+        output_hashes = manifest.get("outputSha256", {}) if isinstance(manifest.get("outputSha256"), dict) else {}
+        for relative, expected_hash in output_hashes.items():
+            path = self.workspace / relative
+            if not path.is_file():
+                failures.append(f"outputSha256 指向缺失文件: {relative}")
+                continue
+            actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+            if actual_hash.lower() != str(expected_hash).lower():
+                failures.append(f"outputSha256 哈希不一致: {relative}")
+        for name in required:
+            relative = f"source-materials/{name}"
+            if name != "SOURCE_MATERIALS_MANIFEST.json" and relative not in output_hashes:
+                failures.append(f"outputSha256 缺少 {relative}")
+        if not files or not cleaned or not selection.get("pages"):
             failures.append("没有有效源码或分页结果")
         pages = selection.get("pages", [])
         line_limit = int(manifest.get("config", {}).get("linesPerPage", 50))
+        max_pages = int(manifest.get("config", {}).get("maxPages", 60))
+        if len(pages) > max_pages:
+            failures.append(f"页数超过 maxPages: {len(pages)} > {max_pages}")
         if any(len(page.get("lines", [])) < line_limit for page in pages[:-1]):
             failures.append("存在非末页行数不足")
+        estimated_pages = stats.get("estimatedPages") if isinstance(stats, dict) else None
+        if isinstance(estimated_pages, int) and estimated_pages > max_pages:
+            failures.append(f"stats.estimatedPages 超过 maxPages: {estimated_pages} > {max_pages}")
         if any(item.get("status") == "fail" for item in audit_items):
             failures.append("源码审计包含 fail")
         warnings.extend(item.get("detail", item.get("name", "")) for item in audit_items if item.get("status") == "warn")
         rendered = manifest.get("rendered", [])
         if not rendered or not any((self.workspace / path).is_file() and (self.workspace / path).stat().st_size > 0 for path in rendered):
             failures.append("没有非空渲染 DOCX/TXT")
+        for rendered_path in rendered or []:
+            if rendered_path not in output_hashes:
+                failures.append(f"outputSha256 缺少 rendered 产物: {rendered_path}")
         return {
             "ok": not failures, "backend": manifest.get("backend"), "failures": failures,
             "warnings": warnings, "artifact_count": len(required) + len(rendered),
             "reason": "源码材料门禁通过" if not failures else "; ".join(failures),
         }
+
+    def check_paper_consistency(self) -> dict:
+        """轻量前置一致性：论文必须引用代码/结果中的关键数字。
+
+        这是 comp-paper-zh/en 在写作阶段的门禁，避免写完才发现数字与结果脱节。
+        完整的一致性合同（CONSISTENCY_REPORT.json）仍由 comp-consistency 步骤负责（check_consistency_evidence）。
+        """
+        tex = self.workspace / "paper" / "main.tex"
+        md = self.workspace / "paper" / "main.md"
+        paper = tex if tex.is_file() else (md if md.is_file() else None)
+        if paper is None:
+            return {"ok": False, "reason": "未找到 paper/main.tex 或 paper/main.md"}
+        paper_text = paper.read_text(encoding="utf-8", errors="ignore")
+
+        result_numbers: list[float] = []
+        results_json = self.workspace / "figures" / "all_results.json"
+        if results_json.is_file():
+            try:
+                raw = json.loads(results_json.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                return {"ok": False, "reason": "figures/all_results.json 不是有效 JSON"}
+            result_numbers = _collect_numbers(raw)
+        results_md = self.workspace / "RESULTS.md"
+        if not result_numbers and results_md.is_file():
+            md_text = results_md.read_text(encoding="utf-8", errors="ignore")
+            result_numbers = [float(m) for m in re.findall(r"-?\d+(?:\.\d+)?", md_text) if _moderate_number(float(m))]
+        if not result_numbers:
+            return {"ok": False, "reason": "无结果数字来源（figures/all_results.json 或 RESULTS.md 为空/缺失）"}
+
+        paper_numbers = {float(m) for m in re.findall(r"-?\d+(?:\.\d+)?", paper_text) if _moderate_number(float(m))}
+        hits = 0
+        for value in result_numbers:
+            for candidate in _number_candidates(value):
+                if candidate in paper_text:
+                    hits += 1
+                    break
+        if hits == 0:
+            return {"ok": False, "paper_numbers": len(paper_numbers),
+                    "reason": "论文正文未引用任何结果关键数字（可 `\\ref` 或直接写数值）"}
+        return {"ok": True, "checked_numbers": len(result_numbers), "hits": hits,
+                "reason": f"论文引用 {hits}/{len(result_numbers)} 个结果关键数字"}
+
+    def check_citation_integrity(self) -> dict:
+        """引用完整性：references.bib 条目存在、字段完整、DOI 格式合法。
+
+        离线可跑：只做格式与结构校验，不做联网解析。
+        """
+        bib = self.workspace / "paper" / "references.bib"
+        if not bib.is_file():
+            return {"ok": False, "reason": "缺少 paper/references.bib"}
+        content = bib.read_text(encoding="utf-8", errors="ignore")
+        entries = re.findall(r"@(\w+)\s*\{\s*([^,\s]+)\s*,", content)
+        if not entries:
+            return {"ok": False, "reason": "references.bib 无 BibTeX 条目"}
+        warnings: list[str] = []
+        invalid_dois: list[str] = []
+        missing_doi_warned = 0
+        for etype, key in entries:
+            start = content.find(f"@", content.find(key))
+            block_start = max(0, content.find("{" + key, 0))
+            block = content[block_start:block_start + 4000]
+            has_title = "title" in block
+            has_author = "author" in block
+            doi_match = re.search(r"doi\s*=\s*[\{\"]\s*([^}\"]+?)\s*[\}\"]", block, re.I)
+            if not has_title or not has_author:
+                warnings.append(f"条目 {key}: 缺 title 或 author")
+            if doi_match:
+                doi = doi_match.group(1).strip()
+                if not re.fullmatch(r"10\.\d{4,9}/[^\s{}]+", doi):
+                    invalid_dois.append(f"{key}: {doi}")
+            elif etype.lower() not in ("misc", "techreport") and missing_doi_warned < 5:
+                warnings.append(f"条目 {key}: 期刊/会议条目缺 DOI")
+                missing_doi_warned += 1
+        ok = not invalid_dois
+        reason = f"引用完整性 {'✅' if ok else '❌'}: {len(entries)} 条目"
+        if invalid_dois:
+            reason += f"，非法 DOI: {', '.join(invalid_dois[:3])}"
+        if warnings:
+            reason += f"，警告 {len(warnings)} 项"
+        return {"ok": ok, "entries": len(entries), "warnings": warnings, "invalid_dois": invalid_dois, "reason": reason}
+
+    def check_experiment_reproduc(self) -> dict:
+        """实验可复现性：STEP_MANIFEST.json 必须声明依赖与命令，且存在实验结果。
+
+        用于 experiment-bridge 等实验类步骤：环境可复现是闭环前提。
+        """
+        manifest_path = self.workspace / "STEP_MANIFEST.json"
+        manifest_result = _validate_step_manifest(self.workspace)
+        failures: list[str] = []
+        warnings: list[str] = []
+        if not manifest_result["ok"]:
+            failures.append("STEP_MANIFEST.json 缺失或无效")
+        else:
+            manifest = manifest_result["manifest"]
+            deps = manifest.get("dependencies", {})
+            commands = manifest.get("commands", [])
+            if not deps:
+                failures.append("manifest 未声明依赖（dependencies 为空）")
+            if not commands:
+                failures.append("manifest 未声明命令（commands 为空）")
+        result_files = [
+            f for f in ("RESULTS.md", "EXPERIMENT_REPORT.md", "results.json")
+            if (self.workspace / f).is_file()
+        ]
+        if not result_files:
+            failures.append("缺少实验结果文件（RESULTS.md / EXPERIMENT_REPORT.md / results.json）")
+        seed_mentioned = False
+        if manifest_path.is_file() and manifest_result.get("manifest"):
+            cfg = manifest_result["manifest"].get("config", {})
+            seed_mentioned = any("seed" in str(k).lower() for k in cfg) if isinstance(cfg, dict) else False
+        if not seed_mentioned:
+            warnings.append("manifest 未记录随机种子（若实验含随机性请补充）")
+        ok = not failures
+        return {"ok": ok, "failures": failures, "warnings": warnings, "result_files": result_files,
+                "reason": "实验可复现门禁通过" if ok else "; ".join(failures)}
+
+    def check_figure_provenance(self) -> dict:
+        """图表溯源：每张图要有来源证据（脚本/元数据/数据源）。
+
+        不允许"无来源图片"直接通过：figures/ 下的 png 必须有同目录脚本、
+        FIGURE_PROVENANCE.json 记录，或数据源 all_results.json 存在。
+        
+        兼容非 PNG 输出（如 latex_includes.tex）的情况。
+        """
+        figures_dir = self.workspace / "figures"
+        if not figures_dir.is_dir():
+            return {"ok": False, "issuelist": [], "reason": "缺少 figures/ 目录"}
+        
+        # 检查 PNG 图表
+        pngs = sorted(figures_dir.glob("*.png"))
+        tex_includes = sorted(figures_dir.glob("*.tex"))
+        
+        # 如果没有 PNG，但有 LaTeX include 文件，视为有效输出
+        has_pngs = len(pngs) > 0
+        has_tex = len(tex_includes) > 0
+        
+        if not has_pngs and not has_tex:
+            return {"ok": False, "issuelist": [], "reason": "figures/ 无图表文件（PNG 或 TEX）"}
+        
+        provenance_file = figures_dir / "FIGURE_PROVENANCE.json"
+        scripts_exist = bool(list(figures_dir.glob("*.py"))) or bool(list(self.workspace.glob("code/*.py")))
+        data_source = (self.workspace / "figures" / "all_results.json").is_file() or (self.workspace / "RESULTS.md").is_file()
+        
+        # 对于 PNG 图表，需要溯源证据；对于纯 TEX 输出，放宽要求
+        if has_pngs and not (provenance_file.is_file() or scripts_exist or data_source):
+            return {"ok": False, "png_count": len(pngs),
+                    "reason": "图表无溯源证据（无 FIGURE_PROVENANCE.json 且无脚本/数据源）"}
+        
+        warnings = []
+        if provenance_file.is_file():
+            try:
+                records = json.loads(provenance_file.read_text(encoding="utf-8"))
+                if not isinstance(records, (list, dict)) or not records:
+                    warnings.append("FIGURE_PROVENANCE.json 为空")
+            except json.JSONDecodeError:
+                warnings.append("FIGURE_PROVENANCE.json 不是有效 JSON")
+        
+        figure_count = len(pngs) + len(tex_includes)
+        return {"ok": True, "png_count": len(pngs), "tex_count": len(tex_includes), "warnings": warnings,
+                "reason": f"图表溯源证据齐备（{len(pngs)} 张 PNG, {len(tex_includes)} 个 TEX）"}
+
+    def check_compilation_log(self) -> dict:
+        """编译日志门禁：LaTeX 编译日志必须存在且无 fatal 错误。
+
+        强制 agent 用编译入口（latex_bridge / 编译脚本）保留日志，禁止只交 PDF 不交日志。
+        """
+        candidates = [
+            self.workspace / "paper" / "main.log",
+            self.workspace / "latex_bridge.log",
+            self.workspace / "compile.log",
+        ]
+        log_path = next((p for p in candidates if p.is_file()), None)
+        if log_path is None:
+            return {"ok": False, "reason": "缺少编译日志（paper/main.log 或 latex_bridge.log）"}
+        text = log_path.read_text(encoding="utf-8", errors="ignore")
+        fatal_patterns = [
+            r"! LaTeX Error",
+            r"! Undefined control sequence",
+            r"! Emergency stop",
+            r"Fatal error",
+            r"! Package [^\s]+ Error",
+        ]
+        fatals = [m for pat in fatal_patterns for m in re.findall(pat, text)]
+        warnings = []
+        warning_count = len(re.findall(r"Warning", text))
+        if warning_count:
+            warnings.append(f"日志含 {warning_count} 条 Warning")
+        ok = not fatals
+        return {"ok": ok, "log": log_path.name, "fatals": len(fatals), "warnings": warnings,
+                "reason": f"编译日志 {'无 fatal' if ok else '含 fatal'}: {log_path.name}"}
+
+    def check_modeling_contract(self) -> dict:
+        """建模合同门禁：MODELING_REPORT.md 必须包含 METHOD_CLAIMS_MACHINE 注释块。
+
+        这是防"名不副实"的关键防线：强制 agent 在建模报告中显式声明方法假设与适用范围，
+        而不是只写公式不写约束条件。
+        """
+        report = self.workspace / "MODELING_REPORT.md"
+        if not report.is_file():
+            return {"ok": False, "reason": "缺少 MODELING_REPORT.md"}
+        text = report.read_text(encoding="utf-8", errors="ignore")
+        if "METHOD_CLAIMS_MACHINE" not in text:
+            return {"ok": False, "reason": "MODELING_REPORT.md 缺少 METHOD_CLAIMS_MACHINE 声明块"}
+        # 检查块内容是否完整（至少有 assumptions 和 scope 字段）
+        if "assumptions" not in text.lower() or "scope" not in text.lower():
+            return {"ok": False, "reason": "METHOD_CLAIMS_MACHINE 块缺少 assumptions 或 scope 字段"}
+        return {"ok": True, "reason": "建模合同完整（含 METHOD_CLAIMS_MACHINE 声明）"}
 
     def check_figure_health(self) -> dict:
         """Check declared PNG figures are non-empty and decodable when Pillow is available."""
@@ -721,6 +1028,16 @@ class QualityGate:
         return {"ok": ok, "fig_count": fig_count,
                 "reason": f"生成了 {fig_count} 张图 {'✅' if ok else '❌ 至少 1 张'}"}
 
+
+    def check_step_manifest(self) -> dict:
+        """验证 STEP_MANIFEST.json 的存在性、schema 版本、必填字段完整性。"""
+        result = _validate_step_manifest(self.workspace)
+        if result["ok"]:
+            return {"ok": True, "stepName": result["stepName"], "backend": result["backend"],
+                    "outputCount": result["outputCount"], "reason": "STEP_MANIFEST.json 验证通过"}
+        return {"ok": False, "errors": result["errors"],
+                "reason": "STEP_MANIFEST.json 验证失败: " + "; ".join(result["errors"])}
+
     def run_all(self, skill_name: str, declared_outputs=None, comp_name: str = "", requires_figures: bool = False,
                 required_checks: list[str] | None = None, primary_output=None) -> dict:
         """运行所有门禁检查"""
@@ -752,14 +1069,7 @@ class QualityGate:
         }
         if comp_name:
             results["paper_pages"] = self.check_paper_pages(comp_name)
-        named_checks = {
-            "literature": self.check_literature_evidence,
-            "literature_search": lambda: self.check_literature_evidence(require_citations=False),
-            "review": self.check_review_evidence,
-            "consistency": self.check_consistency_evidence,
-            "final_audit": self.check_final_audit_report,
-            "source_materials": self.check_source_materials,
-        }
+        named_checks = {name: getattr(self, method_name) for name, method_name in NAMED_CHECKS_REGISTRY.items()}
         # M1 FIX: 审核类技能即使模板未声明 required_checks，也必须自动跑 review gate——
         # 否则 comp_mcm 等 21 个无 required_checks 模板的审稿步骤门禁从不执行，
         # 审稿证据缺失/伪造不会被发现。
@@ -771,7 +1081,12 @@ class QualityGate:
             if name not in named_checks:
                 results[f"required_{name}"] = {"ok": False, "reason": f"未知质量门禁: {name}"}
             else:
-                results[name] = named_checks[name]()
+                if name == "review":
+                    # comp-final-review 启用严格模型比对（软约定→硬阻断）
+                    strict = skill_name == "comp-final-review"
+                    results[name] = self.check_review_evidence(mode="auto", strict_model_match=strict)
+                else:
+                    results[name] = named_checks[name]()
         all_ok = all(r["ok"] for r in results.values())
         return {"ok": all_ok, "checks": results}
 

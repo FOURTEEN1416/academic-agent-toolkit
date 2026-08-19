@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -17,6 +18,9 @@ ROOT = Path(__file__).resolve().parent
 CLI = ROOT / "codesucker-cli.mjs"
 VENDOR = ROOT / "codesucker-core"
 TSX_LOADER = VENDOR / "node_modules" / "tsx" / "dist" / "loader.mjs"
+CONFIG_SCHEMA_VERSION = 1
+CORE_VERSION = "0.4.4"
+CORE_COMMIT = "b065a1825f4e32dca4c4b7fd8bccf3e020a77c5c"
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -49,6 +53,15 @@ def _output_hashes(workspace: Path) -> dict[str, str]:
     return result
 
 
+def _load_rules_version() -> str:
+    version_path = VENDOR / "packages" / "core" / "src" / "version.ts"
+    text = version_path.read_text(encoding="utf-8")
+    match = re.search(r"RULES_VERSION\s*=\s*['\"]([^'\"]+)['\"]", text)
+    if match:
+        return match.group(1)
+    raise RuntimeError("vendored CodeSucker rules version is unavailable")
+
+
 def run_source_materials(
     config: dict[str, Any],
     workspace: Path,
@@ -65,6 +78,10 @@ def run_source_materials(
     config_path = workspace / "source-materials.config.json"
     config_payload = dict(config)
     config_payload.setdefault("sourceMode", "real")
+    config_payload.setdefault("configSchemaVersion", CONFIG_SCHEMA_VERSION)
+    config_payload.setdefault("rulesVersion", _load_rules_version())
+    config_payload.setdefault("coreVersion", CORE_VERSION)
+    config_payload.setdefault("coreCommit", CORE_COMMIT)
     config_path.write_text(json.dumps(config_payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     command = [
         "node", "--import", TSX_LOADER.as_uri(), str(CLI),
@@ -91,10 +108,16 @@ def run_source_materials(
     # Validate manifest schema version matches core constant
     if manifest.get("schemaVersion") != 1:
         raise RuntimeError(f"unexpected manifest schemaVersion: {manifest.get('schemaVersion')}")
-    if manifest.get("coreVersion") != "0.4.4":
+    if manifest.get("coreVersion") != CORE_VERSION:
         raise RuntimeError(f"manifest coreVersion mismatch: {manifest.get('coreVersion')}")
-    if manifest.get("coreCommit") != "b065a1825f4e32dca4c4b7fd8bccf3e020a77c5c":
+    if manifest.get("coreCommit") != CORE_COMMIT:
         raise RuntimeError(f"manifest coreCommit mismatch: {manifest.get('coreCommit')}")
+    expected_rules_version = _load_rules_version()
+    if manifest.get("rulesVersion") != expected_rules_version:
+        raise RuntimeError(f"manifest rulesVersion mismatch: {manifest.get('rulesVersion')}")
+    # The config file records provenance inputs for the bridge; the vendored CLI
+    # owns the canonical manifest schema/rules/core fields. Keep both visible
+    # without requiring the CLI to echo every bridge-only config key.
     manifest["configFile"] = _safe_relative(config_path, workspace)
     manifest["configSha256"] = sha256_file(config_path)
     manifest["coreSha256"] = _core_hash()

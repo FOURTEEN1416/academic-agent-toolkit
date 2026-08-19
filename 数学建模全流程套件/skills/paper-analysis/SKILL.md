@@ -62,11 +62,17 @@ if [ "$PASS" != true ]; then
     echo "   正确做法: 用 Edit/Write 工具补全 RESULTS.md, 或重跑代码生成 figures/*.json"
 fi
 ```
-
-**如果验证失败,继续补全产出而不是退出**。Claude 必须看到"✅"才能结束本步骤。
-
-## 工作流程
-
+**如果验证失败,继续补全产出而不是退出**。Claude 必须看到"✅"才能结束本步骤。
+
+
+
+## STEP_MANIFEST 产出声明
+
+本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+
+建议额外记录：输入数据/大纲来源哈希。
+
+## 工作流程
 ### Step 0: 恢复检查（断线重跑必读）
 
 ⛔ **本步骤可能因为断线/手动重跑被多次启动**。每次启动前**必须**先扫描已有产物，避免重复劳动 + 覆盖用户修改：

@@ -239,4 +239,10 @@ else
     PASS=false
 fi
 [ "$PASS" != true ] && echo "⛔ Verification failed — must write report before ending step"
+
+## STEP_MANIFEST 产出声明
+
+本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+
+建议额外记录：搜索词、源 API、结果数、fallback 链。
 ```

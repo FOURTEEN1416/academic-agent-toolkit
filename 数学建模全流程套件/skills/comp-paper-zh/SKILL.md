@@ -10,19 +10,11 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetc
 
 ---
 
-
-
 # Competition Paper Writing (Chinese)
-
-
 
 Write a competition paper based on modeling results: **$ARGUMENTS**
 
-
-
 ## ⚡ 快速模式检测（开头先跑）
-
-
 
 ```bash
 
@@ -34,15 +26,9 @@ echo "FAST_MODE=$FAST_MODE"
 
 ```
 
-
-
 **若 `FAST_MODE=1`（速度优先）：** 仍必须产出完整论文（各章齐全、子问题全覆盖、图表按 manifest 嵌入、正文页数达标、引用真实数据不编造、通过产出验证），但**跳过**：图文数值一致性逐句核对、AUDIT_OK 溯源反查、发现小瑕疵后的反复润色重写。一次写成、结构与内容齐全即可。**若 `FAST_MODE=0`（默认）：** 后文所有一致性检查照常执行。
 
-
-
 ## Constants
-
-
 
 - **COMPETITION** — `stats` = 统计建模, `huazhong` = 华中杯, `wuyi` = 五一杯, `mathorcup` = MathorCup, others = 数模竞赛 (cumcm/huawei/etc.)
 
@@ -50,21 +36,13 @@ echo "FAST_MODE=$FAST_MODE"
 
 - **CUSTOM_REQUIREMENTS**
 
-
-
 ## Inputs
-
-
 
 1. PROBLEM_ANALYSIS.md, MODELING_REPORT.md, RESULTS.md
 
 2. figures/, code/
 
-
-
 ## Load shared rules
-
-
 
 ```bash
 
@@ -72,29 +50,17 @@ cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rul
 
 ```
 
-
-
 <paper_structure>
 
 ## Paper Structure by Competition Type
 
-
-
 ### 数模竞赛 (cumcm/huawei/mathorcup/huazhong/etc.)
-
-
 
 Template: `templates/cumcm/main.tex` (国赛/华为杯), `templates/mathorcup/main.tex` (MathorCup), `templates/apmcm_zh/main.tex` (亚太赛中文 APMCM), `templates/huazhong/main.tex` (华中杯), `templates/wuyi/main.tex` (五一杯)
 
-
-
 **⛔ MathorCup 与 亚太赛中文(APMCM) 都使用 `MathorCupmodeling.cls` 文档类**（模板文件夹已包含 cls）。使用 `\bianhao{}`、`\tihao{}`、`\timu{}` 设置队伍信息，`\keyword{}` 设置关键词。摘要用 `\begin{abstract}...\end{abstract}` 环境。参考文献用 `\begin{thebibliography}` 环境。
 
-
-
 **⛔ 华中杯必须使用 `cumcmthesis` 文档类**（模板文件夹 `huazhong/` 已包含 cls + 字体）。华中杯模板使用 `\begin{abstract}...\keywords{}\end{abstract}` 环境写摘要（不是手动排版），参考文献用 `\begin{thebibliography}` 环境（不是 `\bibliography{}`）。
-
-
 
 ```
 
@@ -145,27 +111,15 @@ Template: `templates/cumcm/main.tex` (国赛/华为杯), `templates/mathorcup/ma
 
 ```
 
-
-
 ### 统计建模 (stats)
-
-
 
 Template: `templates/stats/main.tex`
 
-
-
 **Chapter structure is driven by research content, not fixed templates.**
-
-
 
 Award-winning stats modeling papers vary wildly in structure — some organize by model, some by analysis step, some by research question. There is no "standard structure". Claude must design chapters autonomously based on the actual content in TOPIC_PLAN.md / MODELING_REPORT.md.
 
-
-
 #### Fixed skeleton (must keep)
-
-
 
 ```
 
@@ -193,15 +147,9 @@ N、结论与建议（结论 + 建议/展望 + 创新与不足）
 
 ```
 
-
-
 #### Middle chapter design guide
 
-
-
 After reading TOPIC_PLAN.md, design middle chapters following these principles:
-
-
 
 **Principle 1: Chapter titles must be specific, not generic**
 
@@ -209,15 +157,11 @@ After reading TOPIC_PLAN.md, design middle chapters following these principles:
 
 - ✗ "五、实证分析" → ✓ "五、生育意愿的影响因素——集成学习模型"
 
-
-
 **Principle 2: Organize by research logic chain, not by textbook methodology**
 
 - If the research has multiple sub-problems/models, each model can be its own chapter
 
 - If the research uses a single method with deep analysis, organize by analysis steps
-
-
 
 **Principle 3: Data and method chapters can be merged or separated**
 
@@ -225,35 +169,23 @@ After reading TOPIC_PLAN.md, design middle chapters following these principles:
 
 - Complex data (multi-source, heavy preprocessing) → separate chapter "数据描述与预处理"
 
-
-
 #### Award-winning paper structure examples (reference only, do not copy)
-
-
 
 **Example A — Classification + Path Analysis (fertility intention)**:
 
 前言 → 模型构建 (introduce ensemble + Bayesian network) → 数据说明和预处理 → 探索性特征分析 → 生育意愿的影响因素 (ensemble results) → 生育意愿影响路径 (Bayesian network results) → 结论与建议
 
-
-
 **Example B — Mixed Modeling (data factors & economic growth)**:
 
 研究背景+文献 → 研究思路和模型介绍 → 理论分析 → 模型构建 (production function + regression + ARIMA, each a section) → 模型应用 (GDP prediction) → 总结与建议 → 创新与不足
-
-
 
 **Example C — DEA Evaluation (economic sustainability)**:
 
 绪论 → 文献综述 → 研究区域概况 → 评价指标体系构建 → 数据优化处理 (normalization + PCA) → DEA 模型建立及求解 → 结论及建议
 
-
-
 **Example D — Deep Learning Prediction (water quality CNN)**:
 
 绪论 → 模型构建思路与创新 → 数据描述及预处理 → 主成分分析 → CNN 模型构建与评价 (with model comparison) → 结论与展望
-
-
 
 **Key observations**:
 
@@ -265,11 +197,7 @@ After reading TOPIC_PLAN.md, design middle chapters following these principles:
 
 - "Innovation & limitations" can be inside the conclusion or a standalone chapter
 
-
-
 #### Chapter design checklist (self-check before writing)
-
-
 
 - [ ] Does every chapter title contain specific research content (not generic "模型构建")?
 
@@ -281,29 +209,19 @@ After reading TOPIC_PLAN.md, design middle chapters following these principles:
 
 - [ ] Does the conclusion include "innovation" and "limitations" (reviewer bonus points)?
 
-
-
 Use Chinese numbering (一、二、三...) with sub-sections (一)(二)(三). Do not use 1、2、3 or 1.1、1.2 format.
 
 Fixed sections that must be kept: 表格清单, 插图清单, 中英文摘要, 绪论, 结论, 参考文献, 致谢.
 
 </paper_structure>
 
-
-
 ## ⛔⛔⛔ 完成铁律（最高优先级）
 
-
-
 **根据 `params.output_format` 决定主产物**：
-
-
 
 - **PDF 模式（默认）**：`paper/main.tex`（≥ 5KB）+ `paper/sections/*.tex` + `paper/references.bib`
 
 - **docx 模式**：`paper/main.md`（单文件，≥ 5KB）。**禁止产 paper/main.tex**
-
-
 
 ⛔ **结束前必跑产出验证**：
 
@@ -337,15 +255,9 @@ fi
 
 ```
 
-
-
 ## Workflow
 
-
-
 ### Step 0: Backup + resume check + upstream validation
-
-
 
 **⛔ 上游输出完整性检查（写论文前必做）：**
 
@@ -354,8 +266,6 @@ fi
 echo "=== 上游输出完整性检查 ==="
 
 UPSTREAM_OK=true
-
-
 
 # 1. 核心文件是否存在
 
@@ -379,8 +289,6 @@ for f in PROBLEM_ANALYSIS.md MODELING_REPORT.md RESULTS.md; do
 
 done
 
-
-
 # 2. 子问题覆盖度：赛题分析 vs 建模报告 vs 代码结果
 
 #    统一口径（历史 bug：这里正则漏了 0-9，"问题1/问题2"数不出来 → 覆盖度检查静默失效）
@@ -397,8 +305,6 @@ echo "子问题数: 分析=$PROB_COUNT, 建模=$MODEL_COUNT, 代码结果=$RESUL
 
 [ "$RESULT_FILES" -lt "$PROB_COUNT" ] && echo "⚠ 代码结果文件数少于子问题数"
 
-
-
 # 3. 图表文件是否存在
 
 PDF_COUNT=$(ls figures/*.pdf 2>/dev/null | wc -l)
@@ -407,25 +313,17 @@ echo "PDF 图表: $PDF_COUNT 个"
 
 [ "$PDF_COUNT" -eq 0 ] && echo "⚠ 没有 PDF 图表，论文将缺少图片"
 
-
-
 # 4. all_results.json 是否存在
 
 [ -f figures/all_results.json ] && echo "✅ all_results.json 存在" || echo "⚠ all_results.json 不存在，论文数值可能不准确"
-
-
 
 # 5. latex_includes.tex 是否存在
 
 [ -f figures/latex_includes.tex ] && echo "✅ latex_includes.tex 存在" || echo "⚠ latex_includes.tex 不存在，图表嵌入代码缺失"
 
-
-
 echo "=== 上游检查完成 ==="
 
 ```
-
-
 
 **⛔⛔ 能力验收闸门（写论文前必做，承接全链合同的最后一环，零额度两模式都跑）：** 论文是最终交付物，绝不能把没做到/做砸的能力写成成果。写正文前先核编码阶段的能力验收总账：
 
@@ -440,8 +338,6 @@ PCC=$?   # 0=全通过可写 1=有能力项未通过(FAIL/严格模式PENDING,�
 ```
 
 > `PCC=1` 说明有能力项在编码阶段验收就没通过（FAIL/PENDING）——**回到 comp-code 把它真做到 PASS，再来写论文**，别把没做成的能力写进最终稿。写完正文后本闸会再跑一次（见 Step 6），那次还会扫正文有没有"吹了没通过的能力"。⛔ 承上启下收口：赛题分析定合同 → 建模认领 → 编码实现验收 → **论文只如实书写验收通过的成果**。
-
-
 
 Back up existing `paper/`. Check for incomplete sections from previous runs:
 
@@ -475,11 +371,7 @@ fi
 
 Resume rules: only write placeholder sections (<500 chars or contains "待补充"/"placeholder"), skip completed ones (>2000 chars). Save each chapter immediately — do not accumulate in memory.
 
-
-
 ### Step 1: Copy template (based on COMPETITION type)
-
-
 
 ```bash
 
@@ -490,8 +382,6 @@ mkdir -p paper/sections
 TMPL_BASE="_templates"
 
 [ -d "$TMPL_BASE" ] || TMPL_BASE="templates"
-
-
 
 if [ "$COMPETITION" = "stats" ] || echo "$ARGUMENTS" | grep -qi "统计建模\|stats"; then
 
@@ -585,8 +475,6 @@ fi
 
 ```
 
-
-
 **⛔ 模板复制后立即验证（必须通过才能继续）：**
 
 ```bash
@@ -608,8 +496,6 @@ else
     grep -q 'thebibliography\|bibliography{' paper/main.tex && echo "✅ 参考文献结构存在" || echo "❌ 缺少参考文献"
 
     grep -q 'appendices\|\\appendix' paper/main.tex && echo "✅ 附录结构存在" || echo "❌ 缺少附录"
-
-
 
     # ⛔ 模板指纹校验：对比 paper/main.tex 和模板原文，确认是复制的不是 Claude 自己写的
 
@@ -640,8 +526,6 @@ else
         fi
 
     done
-
-
 
     if [ -n "$TMPL_MAIN" ]; then
 
@@ -681,8 +565,6 @@ fi
 
 ```
 
-
-
 Read the copied template to understand its structure before writing:
 
 ```bash
@@ -691,11 +573,7 @@ cat paper/main.tex
 
 ```
 
-
-
 **⛔ 你必须完整读取 main.tex 模板内容。后续写章节时，只修改 sections/*.tex 文件，不要重写 main.tex。**
-
-
 
 Use the template as-is. Only modify:
 
@@ -705,47 +583,25 @@ Use the template as-is. Only modify:
 
 - Fill in the abstract and keywords
 
-
-
 **⛔ CRITICAL TEMPLATE RULES (violation = broken PDF):**
-
-
 
 1. **NEVER rewrite main.tex from scratch** — the template has 100+ lines of carefully tuned preamble (fonts, margins, section numbering, citation format). Writing from scratch will break fonts, margins, and formatting.
 
-
-
 2. **NEVER replace `\listoftables`/`\listoffigures` with hand-written text lists** — the template uses LaTeX auto-generated lists. If you write "表1.xxx\n表2.yyy" manually, the list won't update when tables change.
-
-
 
 3. **NEVER add a separate cover page for MathorCup** — MathorCup 官方格式没有独立封面。队伍编号表格+标题+摘要都在第一页。不要自己加 `\maketitle` 或写一个大标题封面。直接用模板里的格式：表格 → 分隔线 → 标题 → 摘要。
 
-
-
 4. **NEVER change the cover page year/届数 format** — replace `[竞赛年份]` with the actual year (e.g., `2026`), `[届数]` with the actual number (e.g., `十二`).
-
-
 
 5. **Verify after writing**: `diff paper/main.tex` against the template — only bracket placeholders and `\input` lines should differ.
 
-
-
 6. **MathorCup 模板验证**：检查 main.tex 使用 `\documentclass{MathorCupmodeling}`，`\bianhao{}`/`\tihao{}`/`\timu{}` 已填写。
-
-
 
 7. **华中杯模板验证**：检查 `\documentclass[withoutpreface,bwprint]{cumcmthesis}` 未被修改，摘要使用 `\begin{abstract}...\keywords{}\end{abstract}` 环境，参考文献使用 `\begin{thebibliography}{99}...\end{thebibliography}`，附录使用 `\begin{appendices}...\end{appendices}`，不要自己加 `\usepackage{geometry}`。
 
-
-
 8. **⛔ 华为杯专属：模板与标题约束（gmcmthesis，只对华为杯生效）**：
 
-
-
    下面这段自检脚本**仅在华为杯工作流执行**（用 grep huawei 包住，其他竞赛跳过保持原本行为）：
-
-
 
    ```bash
 
@@ -757,8 +613,6 @@ Use the template as-is. Only modify:
 
        echo "[华为杯] Title: $title_line"
 
-
-
        # 1. 禁止 \\ 强制换行（避免第二行字号变小 bug，gmcmthesis v1.5.0+ 已支持自动按宽度换行）
 
        if echo "$title_line" | grep -qE '\\\\'; then
@@ -766,8 +620,6 @@ Use the template as-is. Only modify:
            echo "⛔ [华为杯] \\title{} 含 \\\\ 强制换行 — 改成单行让 cls 自动换行"
 
        fi
-
-
 
        # 2. 拦截 AI 美化标题（华为杯严禁自创标题，必须用赛题官方原标题）
 
@@ -780,8 +632,6 @@ Use the template as-is. Only modify:
            echo "  正确：直接抄赛题题面给的官方标题（不改一个字）"
 
        fi
-
-
 
        # 3. 提示对照赛题原始文本
 
@@ -797,8 +647,6 @@ Use the template as-is. Only modify:
 
    ```
 
-
-
    **⛔ 华为杯标题硬约束（其他竞赛保持原本，不受影响）**：
 
    - `\title{...}` 必须使用赛题官方原标题（从 `user_data/*_extracted.txt` 抄），严禁自创 "基于 X 的 Y"
@@ -807,15 +655,9 @@ Use the template as-is. Only modify:
 
    - 题目长就一行写完，模板自动换行渲染
 
-
-
 9. **五一杯模板验证**：检查承诺书页完整保留，摘要使用手动排版（`\noindent \textbf{关键词：}` 在上，`\noindent \textbf{摘\quad 要：}` 在下，不用 `\begin{abstract}` 环境），参考文献使用 `\begin{thebibliography}`，附录第一节是文件列表表格。**⛔ 五一杯额外检查**：(a) 不要加 `\usepackage{cite}`（和 natbib 冲突会导致编译错误），(b) 不要重复加载 `\usepackage{subcaption}` 和 `\usepackage{float}`（cls 已包含），(c) 不要加 `\maketitle`（五一杯用手写承诺书页，不用 cls 的 maketitle），(d) 不要删除 `withoutpreface` 选项。
 
-
-
 The cover page uses `\fzxbsong` (方正小标宋) and `\fsgb` (仿宋GB2312) fonts with `\cline{2-2}` underlines in a tabular. These fonts have fallback definitions — if the .ttf files are not installed, they fall back to `\heiti` and `\fangsong`.
-
-
 
 When replacing cover page placeholders, ONLY change the text inside `[...]` brackets. Do NOT touch `\cline{2-2}`, `\\`, `&`, or any LaTeX commands:
 
@@ -832,8 +674,6 @@ When replacing cover page placeholders, ONLY change the text inside `[...]` brac
 % NEVER remove \cline{2-2} (creates underline) or & (column separator)
 
 ```
-
-
 
 Do NOT modify:
 
@@ -855,45 +695,25 @@ Do NOT modify:
 
 - The cover page, abstract, TOC, and bibliography sections in main.tex — only replace placeholder text within them
 
-
-
 Write all chapter content in separate `paper/sections/*.tex` files. The main.tex `\input{sections/...}` lines load them automatically. Do not paste chapter content directly into main.tex.
-
-
 
 If you need to add packages, add them after the existing `\usepackage` block, before `\begin{document}`.
 
-
-
 Do not write main.tex from scratch — the template handles fonts, spacing, margins, citation format, headers/footers.
-
-
 
 Note: citation command depends on the template. **stats / huawei / dongsansheng / apmcm_zh / mathorcup / huashubei** load `natbib` with the `super`(or `\setcitestyle{super}`) option → use `\cite{key}` directly (auto-superscript). **cumcm / wuyi** load `natbib[numbers]` **without** super → `\cite` gives inline `[1]`, so body text MUST use `\upcite{key}` to get superscript. **huazhong / apmcm / changsanjiao / diangongbei / shuweibei / mcm** use a manual `\@cite` superscript hack (or manual thebibliography) → use `\cite{key}` directly. ⛔ `\upcite` is ONLY defined in cumcm / huazhong / wuyi / dongsansheng — do NOT use `\upcite` in any other template (undefined → compile error); use `\cite` there.
 
-
-
 Do not redefine LaTeX built-in commands (`\sin`, `\cos`, `\tanh`, `\log`, `\exp`, `\max`, `\min`, etc.) in math_commands.tex.
-
-
 
 ### Step 2: Abstracts
 
-
-
 **⛔ CRITICAL: Do NOT write the abstract now.** Skip this step entirely. Write a placeholder `[摘要待正文完成后填写]` in the abstract section. The abstract MUST be written LAST (after Step 5) because it needs specific numerical results from all chapters. Writing it first = making up numbers.
 
-
-
 Come back to fill the abstract in Step 5 (final check), after all body chapters are complete. At that point, read RESULTS.md and all section .tex files to extract the actual numbers.
-
-
 
 <abstract_format>
 
 The template uses manual typesetting for abstracts. Do not use two `\begin{abstract}` environments — ctexart shows "摘要" as title for both.
-
-
 
 **⛔ 华中杯例外**：华中杯模板基于 `cumcmthesis` 文档类，使用 `\begin{abstract}...\keywords{}\end{abstract}` 环境。不要改成手动排版格式。正确写法：
 
@@ -909,11 +729,7 @@ The template uses manual typesetting for abstracts. Do not use two `\begin{abstr
 
 ```
 
-
-
 **⛔ 五一杯说明**：五一杯模板有承诺书页（第一页）和封面页（第二页）。**五一杯摘要使用手动排版（不用 `\begin{abstract}` 环境）**：关键词在上（`\noindent \textbf{关键词：}...`），摘要在下（`\noindent \textbf{摘\quad 要：}`）。这是五一杯官方格式，跟国赛/华中杯不同。承诺书页不要删除。
-
-
 
 Correct format for cumcm/stats templates (already in template):
 
@@ -933,8 +749,6 @@ Correct format for cumcm/stats templates (already in template):
 
 \noindent\textbf{关键词：}...
 
-
-
 % === 英文摘要（新页）===
 
 \newpage
@@ -951,11 +765,7 @@ Correct format for cumcm/stats templates (already in template):
 
 ```
 
-
-
 **数模竞赛摘要（国赛/MathorCup/APMCM/五一杯等通用）**: 400-600 字, every sub-problem must have specific numerical results。
-
-
 
 ⛔⛔ **必须按问题分段，绝不允许所有问题挤成一大段。** 段骨架：
 
@@ -967,8 +777,6 @@ Correct format for cumcm/stats templates (already in template):
 
 - **段间强制用 LaTeX 空行分隔**（源码里空一行 = 一个新段落）。五一杯手动排版摘要，分段规则同样适用。
 
-
-
 ⛔⛔ **摘要关键内容加粗（只在摘要正文，用 LaTeX `\textbf{}`）**：评审快速扫读摘要抓重点，把最关键的方法与结果加粗是加分项。**只加粗以下三类"结论锚点"**：
 
 1. **关键结果数值**（最终答案数字）：如 `\textbf{2376.8}`、`\textbf{98.7\%}`、`\textbf{12.4 km}`（注意 `%` 在 LaTeX 里要写 `\%`）
@@ -976,8 +784,6 @@ Correct format for cumcm/stats templates (already in template):
 2. **核心方法/模型名**：如 `\textbf{NSGA-II}`、`\textbf{灰色预测 GM(1,1)}`——**每个方法名只在首次出现或结论处加粗一次**，不是每次提到都加
 
 3. **关键结论的核心名词**
-
-
 
 ⛔ **加粗铁律（防加粗过多反而杂乱，宁少勿多）**：
 
@@ -993,15 +799,9 @@ Correct format for cumcm/stats templates (already in template):
 
 - ⛔ 五一杯等手动排版摘要同样适用（`\textbf{}` 在正文任意位置都合法）。
 
-
-
 正例：`本文构建 \textbf{NSGA-II} 多目标模型，求得最优成本 \textbf{2376.8 万元}，较基线降低 \textbf{12.3\%}。`
 
-
-
 ⛔ **硬约束：一个自然段里绝不允许出现两个及以上"针对问题"。** 正反例：
-
-
 
 ```latex
 
@@ -1009,25 +809,15 @@ Correct format for cumcm/stats templates (already in template):
 
 本文针对……建立了……模型。
 
-
-
 针对问题一，首先……，采用……算法，最优解为……，适应度达 0.917。
-
-
 
 针对问题二，构建……模型，……MAPE 由 29.48\% 降至 14.93\%。
 
-
-
 针对问题三，……预测结果为 952.8、1570.5、11030.9。
-
-
 
 灵敏度分析表明……，模型评价显示……。
 
 ```
-
-
 
 ```latex
 
@@ -1036,8 +826,6 @@ Correct format for cumcm/stats templates (already in template):
 针对问题二，构建……模型，MAPE 14.93\%。针对问题三，预测结果为 952.8、1570.5。
 
 ```
-
-
 
 ⛔ **写完摘要后跑自检（检测→修复→再检测闭环，用 `python` 不是 `python3`）**：
 
@@ -1052,8 +840,6 @@ python - <<'PY'
 import re, os, glob, sys
 
 BS = chr(92)  # 反斜杠。不要在本脚本里写双反斜杠——经 bash 传输可能被折叠成单反斜杠，弄坏正则
-
-
 
 def locate_abstract():
 
@@ -1108,8 +894,6 @@ def locate_abstract():
                 return s, f
 
     return None, None
-
-
 
 text, where = locate_abstract()
 
@@ -1317,19 +1101,13 @@ PY
 
 ⛔ **闭环规则：若自检 `exit 1`（检测到挤段），立即回到检测输出括号里指出的摘要位置（main.tex 的 abstract 环境或手动排版段），在每个"针对问题 X"前补一个 LaTeX 空行拆成独立段落，然后重跑上面的自检，直到输出"✓ 摘要按问题分段正确"为止，方可进入下一步。**
 
-
-
 **⛔⛔ 丰满模式摘要标准（华为杯默认 / 任意竞赛开启丰满模式时生效，1500-2200 字，跨两页）**：
-
-
 
 ⛔ **触发条件**：若 `CLAUDE.md` 含以下任一关键词，本节规范覆盖通用 400-600 字规则：
 
 - `huawei` / `华为杯` — 华为杯默认走丰满模式
 
 - `丰满模式` / `rich_mode` — 任意竞赛通过前端"丰满模式"开关启用
-
-
 
 **自检命令**：
 
@@ -1343,11 +1121,7 @@ fi
 
 ```
 
-
-
 丰满模式下官方允许/鼓励摘要跨两页，**字数压在 400-600 字会让评委觉得工作量不够**。
-
-
 
 **篇幅与结构（强制）**：
 
@@ -1357,11 +1131,7 @@ fi
 
 - 段间用 LaTeX 空行分隔，**每段独立成块**，便于评委按问题快速定位
 
-
-
 **6 项展示要素清单（每段必须命中）**：
-
-
 
 | 要素 | 反例（AI 常犯） | 正例（华为杯优秀作品） |
 
@@ -1379,8 +1149,6 @@ fi
 
 | **6. 可视化手段提及** | 不提图表 | "借助混淆矩阵和残差图"、"对磁通密度可视化"、"部分结果以表格呈现" |
 
-
-
 **关键词数量**：8-12 个，**算法名 + 数学工具 + 模型族**全列，每个 `\quad` 分隔
 
 - ❌ 反例（5-6 个）：磁芯损耗 XGBoost Steinmetz方程 方差分解 NSGA-II
@@ -1388,8 +1156,6 @@ fi
 - ✅ 正例（8+ 个）：多层感知机 随机森林 最小二乘法 温度饱和模型 方差分析（ANOVA） 多目标优化 双目标-单目标转化 粒子群算法
 
 **⛔ 关键词行约束（国赛强制）**：`\keywords{...}` 或 `\noindent\textbf{关键词：}...` 中所有关键词加上 `\quad` 分隔后，**必须在一行内排完，不得换行**。若关键词过多导致换行，应精简至 6-8 个核心关键词，确保单行容纳。自检方法：编译 PDF 后检查关键词行是否有换行，若有则减少关键词数量。
-
-
 
 **5 段华为杯摘要骨架模板**（按这个填）：
 
@@ -1403,8 +1169,6 @@ fi
 
 本文针对[赛题 5 个子问题]，基于[数据集规模]，建立了[方法链概述]。
 
-
-
 % 第 2 段：问题一（280-400 字，过程式 + 候选对比 + 数值）
 
 针对问题一[简称]，[首先]...[再]...建立 [方法 A、B、C] 等模型进行对比，
@@ -1413,23 +1177,15 @@ fi
 
 [附件二/三/四 的具体结果如：分类为正弦波 20 个、三角波 44 个、梯形波 16 个]。
 
-
-
 % 第 3-5 段：问题二、三、四、五，结构同问题一
 
-
-
 % 第 6 段（可选）：模型评价与意义（80-150 字）
-
-
 
 % 关键词（8-12 个，\quad 分隔）
 
 \noindent\textbf{关键词：} 算法名1 \quad 算法名2 \quad ... \quad 数学工具N
 
 ```
-
-
 
 ⛔ **华为杯摘要写作禁区**：
 
@@ -1443,21 +1199,13 @@ fi
 
 - ❌ 不列附件预测代表数值：评委无法快速核验工作量
 
-
-
 **统计建模摘要**: 500-700 字, aim to fill most of one page but leave 3-4 lines margin at bottom — overflowing onto a second page looks worse than being slightly short. Content chain: 研究背景与意义 → 现有方法不足 → 本文方法 → 数据来源与处理 → 关键数值结果 → 应用价值与政策建议. English abstract: 350-500 words, same structure and all numerical results, also fit on one page.
 
 </abstract_format>
 
-
-
 ### Step 3: Figure inventory + mandatory embedding plan
 
-
-
 Before writing any chapter, build a complete inventory of available figures:
-
-
 
 ```bash
 
@@ -1489,8 +1237,6 @@ ls figures/tikz_*.pdf 2>/dev/null && echo "→ 有 TikZ 图，必须嵌入" || e
 
 ```
 
-
-
 **⛔ MANDATORY: Build a FIGURE EMBEDDING PLAN before writing any chapter:**
 
 ```
@@ -1508,8 +1254,6 @@ FIGURE EMBEDDING PLAN:
 ```
 
 > 表格按输出模式选格式：PDF 模式 `\input{figures/TABLE_*.tex}`；Word/docx 模式 `cat figures/TABLE_*.md`。figures/ 里有几个 TABLE 文件就嵌入几个，一张不漏。
-
-
 
 **Rules:**
 
@@ -1549,8 +1293,6 @@ FIGURE EMBEDDING PLAN:
 
     - 后置印证：「……这一结论在图 6 中得到印证。」
 
-
-
     要点：图号一定要出现，但别让每张图都用「图 N + 动词 + 一句结论」这一种开头。
 
   - **⛔ 严禁套话占位**：像"如图 X 所示"、"下图展示了实验结果"、"图 X 是本文的流程图"这种不含任何实质信息、换成任何一张图都成立的句子，等于没写。说不出这张图独有的内容和作用，就说明这张图对论证没用，那就不该放（"放进去要有用，不然不如不放"）。
@@ -1561,15 +1303,9 @@ FIGURE EMBEDDING PLAN:
 
   - **⛔ 严禁两个 `\begin{figure}...\end{figure}` 环境直接相邻**（`\end{figure}` 后紧跟 `\begin{figure}`、中间没有正文段落）。若确需连续展示两图，必须在它们之间写一段过渡正文，说清楚两图之间的逻辑关系（为什么先看这张再看那张）。
 
-
-
 **⛔⛔⛔ DrawIO 图嵌入规则（最容易被遗漏，必须逐条检查）：**
 
-
-
 DrawIO 图（技术路线图、求解流程图、Pipeline 图等）的 `\begin{figure}...\end{figure}` 代码块在 `latex_includes.tex` 的**末尾部分**（由 paper-figure-drawio 步骤追加）。你必须把它们嵌入到正确的章节：
-
-
 
 | DrawIO 图类型 | 嵌入位置 | 章节文件 |
 
@@ -1583,13 +1319,9 @@ DrawIO 图（技术路线图、求解流程图、Pipeline 图等）的 `\begin{f
 
 | TikZ 几何/算法图 (tikz_diagrams.pdf) | 几何示意图→对应子问题章节开头；算法流程图→模型建立小节 | 对应子问题/模型章节 |
 
-
-
 **⛔⛔ 铁律：子问题流程图必须分散到各自的问题章节，严禁全部堆在"问题分析"(2_analysis) 一章。**
 
 把 fig_flow_q1~q5 五张图全塞进问题分析章节，是最常见也最难看的错误：一个章节连插 5 张大图，LaTeX 浮动机制会把它们全推到章节开头层层堆叠，正文被挤到后面，排版严重失衡。正确做法：`fig_flow_q1` → `5_problem1.tex`、`fig_flow_q2` → `6_problem2.tex`、…、`fig_flow_q5` → `9_problem5.tex`，每章一张、紧跟该问题的引导文字之后。问题分析章节(2_analysis)**最多只放整体技术路线图 fig_roadmap 一张**，其余流程图一律不许出现在该章节。
-
-
 
 **写完所有章节后，必须运行以下检查确认 DrawIO/TikZ 图全部嵌入：**
 
@@ -1661,8 +1393,6 @@ fi
 
 **如果有任何 ❌，必须立即修复后再继续写下一章。不要等到最后才修复。**
 
-
-
 Also scan `figures/*.tex` for all `\begin{figure}` / `\begin{table}` blocks with their `\label{}`. After writing, verify all are embedded:
 
 ```bash
@@ -1674,8 +1404,6 @@ grep -oh '\\label{[^}]*}' paper/sections/*.tex paper/main.tex 2>/dev/null | sort
 comm -23 _tmp/all_fig_labels.txt _tmp/embedded_labels.txt  # should be empty
 
 ```
-
-
 
 **⛔ 图连排检查（防「两张图连在一起中间没文字」）**：检测是否有两个 figure/table 环境直接相邻、中间无正文：
 
@@ -1729,8 +1457,6 @@ echo "（无输出=未发现连排）"
 
 **如发现连排，必须在两图之间补写引导/过渡正文后再继续。**
 
-
-
 TikZ 图通过 `latex_includes.tex` 里的 `\includegraphics{tikz_diagrams.pdf}` 图块嵌入（不要用 `\input`）。按图的内容映射到章节：
 
 - 技术路线图/研究框架图/问题关系图 → 问题重述章节末尾（`1_restatement.tex`），不要放到后面的子问题章节
@@ -1739,15 +1465,9 @@ TikZ 图通过 `latex_includes.tex` 里的 `\includegraphics{tikz_diagrams.pdf}`
 
 - 模型架构图 → 对应模型章节
 
-
-
 ### Step 3.5: 文献预检索（写正文之前必须完成）
 
-
-
 **⛔ 在写任何 \cite{} 之前，必须先建立已验证的文献池。**
-
-
 
 ```bash
 
@@ -1765,23 +1485,13 @@ mkdir -p _tmp
 
 ```
 
-
-
 搜索后创建 `_tmp/_verified_refs.txt`，写正文时只引用池子里的论文。需要新引用时先搜索验证再加入池子。
-
-
 
 **兜底**：如果 `scholar_fetch.py` 搜不到或 `match_label="low"`，用 WebSearch 在 Google Scholar / Semantic Scholar 网站上搜索，手动核实标题+作者+年份后再加入池子。
 
-
-
 ### Step 4: Write each chapter
 
-
-
 **⛔ CRITICAL: ALL numerical results in the paper MUST come from `figures/*.json` or `RESULTS.md`.**
-
-
 
 **⛔ NEVER `cat figures/*_results.json`.** These result files often contain full-precision time-series arrays (tens of MB / hundreds of thousands of lines); reading them whole blows up the context — local models fail outright, and GPT-via-transit chokes on protocol translation of the oversized payload and stalls on repeated `api_retry`. **The paper text only uses scalar values (fitness / optimal solution / solve time / metrics); the giant arrays are for figures, not prose.** Before writing any result chapter, run the `summarize` script below to get a KB-level overview (scalars shown verbatim — zero precision loss — only big arrays compressed to "length + range + first 3 samples"):
 
@@ -1829,8 +1539,6 @@ PY
 
 Every scalar you need is in `RESULTS.md` or the range/sample of the summary above. If one scalar isn't fully shown, fetch just that value with `python3 -c "import json;d=json.load(open('figures/all_results.json'));print(d['key'])"` — still never read the whole file. Copy the exact numbers into the LaTeX text. Do NOT round differently, do NOT estimate, do NOT make up numbers that "look reasonable". If a number is not in the data, it cannot appear in the paper.
 
-
-
 **⛔ 数模竞赛（cumcm/huawei/mathorcup）必须严格按模板的章节顺序写：**
 
 ```
@@ -1857,15 +1565,9 @@ A_code.tex         — 附录：代码
 
 **⛔ 模型假设必须在符号说明之前。** 不要合并成一个章节，不要调换顺序。文件名必须和模板 `\input{sections/...}` 一致。
 
-
-
 **⛔ 模型假设数量控制**：4-5 条，不要超过 6 条。每条假设 1-2 句话（假设内容 + 合理性说明），不要写成长段落。假设太多说明问题没简化好。
 
-
-
 **⛔ 符号说明表格控制**：15-20 个变量以内。只列正文中实际使用的核心变量，不要把所有中间变量都列进去。
-
-
 
 **⛔ 分页规则（所有章节通用）：**
 
@@ -1877,11 +1579,7 @@ A_code.tex         — 附录：代码
 
 - **例外**：符号说明文件（compile_utils.sh 会自动转成 longtable 支持跨页）
 
-
-
 **⛔⛔ 符号说明表格格式（必须用 longtable + 禁止漂浮，否则会出现"半页空白 + 表格塞下一页"）：**
-
-
 
 ⛔ **根因警告**：**所有数学建模竞赛模板**（国赛 / 华为杯 / MathorCup / 华中杯 / 五一杯 / 美赛 / 华数杯 / 统计建模 / 长三角 / 电工杯 / 东三省 / 数维杯 / APMCM 等 13 个模板）的 `main.tex` 都启用了 `\usepackage[section]{placeins}`，作用是"每个 section 末尾自动插 `\FloatBarrier` 阻止浮动跨节"——这本来是好规范（防止图表漂到下一节），**但会让浮动表无法跨节漂移**。如果 AI 用 `\begin{table}[!ht]` / `[!h]` / `[htbp]` 写符号说明等小节的表格，且表格高度 + 引导文字超出剩余页面空间，LaTeX 会：
 
@@ -1891,11 +1589,7 @@ A_code.tex         — 附录：代码
 
 3. 评委看到的就是"4. 符号说明" + 一句话 + 大半页空白 + 翻页才看到表
 
-
-
 ⛔ **不是华为杯独有问题**：所有竞赛都有这个陷阱。只是华为杯 gmcmthesis 字号大（4 号字 ≈ 14pt + 1.5 行距）、页边距宽，更容易触发"放不下当前页"的浮动条件，所以更显眼。
-
-
 
 ✅ **正确做法（务必遵守）**：
 
@@ -1911,8 +1605,6 @@ A_code.tex         — 附录：代码
 
 - compile_utils.sh 会自动把 table+tabular 转成 longtable（兜底），但**源头写对最稳**
 
-
-
 ❌ **绝对反例**（任一出现都会引发空白页问题）：
 
 ```latex
@@ -1924,8 +1616,6 @@ A_code.tex         — 附录：代码
 \begin{table}[htbp]     % ❌ 漂浮，加 b/p 让 LaTeX 决定页位
 
 ```
-
-
 
 ✅ **正确写法**：
 
@@ -1965,8 +1655,6 @@ $x_i$ & 第$i$个变量 & --- \\
 
 ```
 
-
-
 ⛔ **写完符号说明章节后必跑自检**（在 paper/sections/ 里扫表格浮动反例）：
 
 ```bash
@@ -1987,8 +1675,6 @@ for f in paper/sections/*symbol*.tex paper/sections/*符号*.tex paper/sections/
 
 done
 
-
-
 # 2. 任何章节里的 \begin{table}[!ht] / [ht] / [htbp] 漂浮选项警告
 
 BAD_FLOAT=$(grep -rEn '\\begin\{table\}\[(!?ht?|htbp|tb|b|p)\]' paper/sections/ 2>/dev/null)
@@ -2005,15 +1691,9 @@ fi
 
 ```
 
-
-
 - 符号控制在 15-20 个以内，表格控制在半页以内
 
-
-
 **⛔ 写每个章节前，先读 MODELING_REPORT.md 和 RESULTS.md 对应部分的内容。** 不要凭记忆写——数值结果、公式推导、算法步骤都必须从这些文档中提取。
-
-
 
 **⛔ 跨章上下文 + 图数据绑定（防"两张皮"）：**
 
@@ -2021,29 +1701,17 @@ fi
 
 - **写每张图/表的分析前**，先按 `<figure_data_binding>`：从 FIGURE_MANIFEST/latex_includes 认清"这张图画的是什么量" → 去 `RESULTS.md`／`figures/all_results.json` 定位它对应的真实数值 → 分析里只用这些真值，**禁止凭图形状/位置猜数、禁止编造坐标**。
 
-
-
 Read RESULTS.md for exact numbers — ensure paper numbers match computation results.
-
-
 
 **⛔ 图文数值一致性规则：** 描述图表内容时（如"从图X可以看出，模型A的RMSE为0.023"），数值必须从 `figures/*.json` 或 `RESULTS.md` 中读取，不要凭记忆编写。写完后用 `bash _utils/writing_check.sh paper/` 检查一致性。
 
-
-
 **⛔ 长表格处理规则（>12 行的数据表格）：**
 
-
-
 正文中**禁止**直接放超过 12 行的表格（调度方案、完整数据列表、逐步迭代结果等）。处理方式：
-
-
 
 1. **正文：只放缩略版**（前 3 行 + 后 3 行 + 中间 `$\vdots$` 省略），底部注明"完整结果见附录 X"
 
 2. **附录：放完整表格**（用 longtable 环境，允许跨页）
-
-
 
 示例（正文缩略版）：
 
@@ -2089,15 +1757,9 @@ Read RESULTS.md for exact numbers — ensure paper numbers match computation res
 
 ```
 
-
-
 **判断标准：** 写表格前先数数据行数。如果 `figures/TABLE_*.tex` 或结果表格超过 **12 行**数据行，必须自动生成缩略版（前 3-5 行 + `$\vdots$` + 后 3 行，可再加一行**汇总统计**如均值/最优/总计 Makespan）+ 附录完整版（`longtable`，放 `paper/appendix/` 如 `A_code.tex` / 新建 `A_tables.tex`）。不要把 100+ 行的 longtable 直接嵌入正文章节。`compile_utils.sh` 也会自动检测并截断超长表格兜底，但最好写的时候就按本规则处理好。
 
-
-
 Follow the interleaving, embedding, and LaTeX rules from `_utils/writing_rules.md`.
-
-
 
 **⛔ 图文并茂硬规则（每个章节都必须遵守）：**
 
@@ -2119,11 +1781,7 @@ Follow the interleaving, embedding, and LaTeX rules from `_utils/writing_rules.m
 
 - **⛔ 图片宽度下限：** `width` 参数不得小于 `0.8\textwidth`。任何 `width=0.5\textwidth`、`width=0.48\textwidth`、`width=0.45\textwidth` 都是错误的，必须改为 `0.85\textwidth` 或 `0.9\textwidth`
 
-
-
 > ⛔ 长表格处理规则见上方「长表格处理规则（>12 行的数据表格）」一处（含缩略版示例 + 汇总统计行 + 附录 longtable + compile_utils.sh 兜底）。此处原来重复写了一遍「>15 行」版本，阈值与上面的 12 行矛盾（同一张表可能一处判超、一处判过，逼 AI 反复改），已删除，统一以上面的 **12 行** 阈值为准。
-
-
 
 After each chapter, check character count:
 
@@ -2139,13 +1797,9 @@ echo "当前章节: $chars 字符 (~$(echo "scale=1; $chars/900" | bc) 页)"
 
 ```
 
-
-
 <exemplar_depth>
 
 #### Writing depth reference
-
-
 
 **国赛一等奖 (25-30 pages, 3 sub-problems)**:
 
@@ -2159,15 +1813,9 @@ echo "当前章节: $chars 字符 (~$(echo "scale=1; $chars/900" | bc) 页)"
 
 - 模型评价 (2p): 3-4 strengths + 2-3 weaknesses + generalization directions. Pure text discussion, no figures or tables needed
 
-
-
 **华为杯一等奖 (40-50 pages)**: deeper derivations, more thorough analysis per sub-problem (8-10p each), 灵敏度分析 (4-5p), 模型评价 (3p, pure text, no figures) with comparison to other methods
 
-
-
 **统计建模获奖 (35-40 pages)** — chapter structure is content-driven, page allocation reference:
-
-
 
 - 绪论/前言 (4-8p): research background + literature review (grouped by 3-4 themes, 3-5 papers per theme with detailed discussion) + research objectives
 
@@ -2179,8 +1827,6 @@ echo "当前章节: $chars 字符 (~$(echo "scale=1; $chars/900" | bc) 页)"
 
 - 结论与建议 (3-5p): conclusions + recommendations + innovation points + limitations and future work
 
-
-
 Common traits of award-winning papers:
 
 - Solid exploratory analysis (cross-tabulation, group comparisons, rich visualization)
@@ -2190,8 +1836,6 @@ Common traits of award-winning papers:
 - Specific chapter titles ("基于集成学习的生育意愿影响因素分析" not "模型构建")
 
 - Include "innovation & limitations" discussion (reviewer bonus points)
-
-
 
 | Type | Pages | Characters | References |
 
@@ -2211,43 +1855,27 @@ Common traits of award-winning papers:
 
 </exemplar_depth>
 
-
-
 <figure_usage_principles>
 
 #### Figure/table usage by competition type
 
-
-
 **统计建模**: Figures first, tables second. Figure/table selection is driven by the actual analysis methods used — regression uses forest plots + regression tables, prediction uses prediction comparison plots + accuracy tables, classification uses confusion matrices + ROC, evaluation uses radar charts + ranking tables. Every analysis step should have a corresponding figure or table.
 
-
-
 **数模竞赛**: "字不如表，表不如图". Every sub-problem must have independent result display (table + figure). Comprehensive comparison figures are additional supplements. Reviewers value information density and aesthetics.
-
-
 
 Do not force figures where they are not needed (pure literature review, theoretical derivation). Claude decides figure count and placement based on content needs.
 
 </figure_usage_principles>
 
-
-
 <stats_figure_placement>
 
 #### Stats modeling paper figure placement rules
 
-
-
 Figure/table selection is driven by research content, not fixed type templates. Below are figures mapped to analysis methods:
-
-
 
 **Data description stage** (almost all papers need these):
 
 - Descriptive statistics table (required), data distribution plots / boxplots, correlation heatmap, time series trend plots
-
-
 
 **Model results stage** (select based on actual methods used):
 
@@ -2263,25 +1891,17 @@ Figure/table selection is driven by research content, not fixed type templates. 
 
 - Causal inference: baseline regression table + robustness check table + heterogeneity comparison plot
 
-
-
 **Model interpretation / diagnostics stage** (select as needed):
 
 - Feature importance / SHAP plot, residual diagnostics, sensitivity analysis plot, ablation table
-
-
 
 **Principle**: Core result figures/tables go in the body text. Appendix only for code and very long auxiliary tables.
 
 </stats_figure_placement>
 
-
-
 <chapter_writing_points>
 
 #### Chapter writing points (universal, adapt to research logic)
-
-
 
 **⛔ 写作风格铁律（所有章节都必须遵守）：**
 
@@ -2299,15 +1919,11 @@ Figure/table selection is driven by research content, not fixed type templates. 
 
 - **禁止元叙述和内部指令泄露。** 正文中不能出现"参赛者"、"参赛队伍"、"RESULTS.md"、"figures/*.json"、"CLAUDE.md"等内部文件名或工作流术语。用"本文"代替"我们团队"，论文是独立学术文档。
 
-
-
 **绪论/前言** (all papers):
 
 - Research background (why this problem matters) → Literature review / research status (what others did, what gaps remain) → Research objectives / content / contributions → Paper structure overview
 
 - Literature review organized by theme (≥15 citations), not chronologically listed
-
-
 
 **数据与预处理** (almost all papers need this):
 
@@ -2315,23 +1931,17 @@ Figure/table selection is driven by research content, not fixed type templates. 
 
 - Exploratory analysis is a key capability demonstration for reviewers — do not skip
 
-
-
 **模型/方法 chapters** (organize by actual research content):
 
 - Each model/method: theoretical basis (1-2 paragraphs) → mathematical formulas → parameter setting rationale → implementation details
 
 - Multiple models: can introduce all models first then show results (Example B style), or give each model its own chapter with results (Example A style)
 
-
-
 **结果分析 chapters** (core, should occupy 40-50% of paper):
 
 - Every result must have: numerical presentation (table/figure) → interpretation (2-3 paragraphs, not just "as shown in Table X") → comparison with expectations / other methods → reasoning
 
 - Multi-model comparison: horizontal comparison table + rationale for selecting the best model
-
-
 
 **结论与建议**:
 
@@ -2340,8 +1950,6 @@ Figure/table selection is driven by research content, not fixed type templates. 
 - "Innovation & limitations" can be inside the conclusion or a standalone chapter (Example B style)
 
 </chapter_writing_points>
-
-
 
 **Expansion strategies** when content is thin (not padding — substantive content):
 
@@ -2355,29 +1963,17 @@ Figure/table selection is driven by research content, not fixed type templates. 
 
 - Literature review only lists papers → add method summary for each and connection to this work
 
-
-
 ### Step 5: References
-
-
 
 Follow the `<references_workflow>` in `_utils/writing_rules.md`.
 
 Stats papers: ≥20 references. The stats template uses `natbib` with `[numbers, square, super]` — use `\cite{key}` in body text (auto-superscript) + `\bibliography{references}` + `\bibliographystyle{plainnat}`. **cumcm / wuyi** load `natbib[numbers]` (no super) + `\bibliographystyle{gbt7714-numerical}` + `\bibliography{references}` — body text MUST use `\upcite{key}` (not `\cite`, which gives inline `[1]`). The huazhong template uses `\begin{thebibliography}{99}...\end{thebibliography}` — manually add `\bibitem` entries (do not use `\bibliography{}`); body uses `\cite`. ⛔ `\upcite` exists ONLY in cumcm / huazhong / wuyi / dongsansheng; every other template uses `\cite`.
 
-
-
 **⛔ 使用 scholar_fetch.py 工具获取所有参考文献的 BibTeX。禁止凭记忆编造 BibTeX。**
-
-
 
 **⛔ 引用编号必须按正文出现顺序排列（1, 2, 3, 4...），不能跳着来。** 使用 `\begin{thebibliography}` 的模板：`\bibitem` 的排列顺序必须跟正文中 `\cite{}` 首次出现的顺序一致。使用 `\bibliography{references}` 的模板：BibTeX 会自动按引用顺序编号（gbt7714-numerical / plainnat 都支持）。写完所有章节后，检查引用编号是否连续递增，如果不是，调整 `\bibitem` 顺序或 `.bib` 文件中的条目顺序。
 
-
-
 **⛔⛔ 正文中引用编号必须全局递增出现（严格，不可违反）：**
-
-
 
 写正文时每个引用编号必须比之前所有已出现的编号大（即首次引用必须按 [1], [2], [3], [4]... 顺序）：
 
@@ -2387,8 +1983,6 @@ Stats papers: ≥20 references. The stats template uses `natbib` with `[numbers,
 
 - ❌ 错误：前文已出现 [5]，后文再出现新引用为 [3] — 编号回退
 
-
-
 **如何保证递增：**
 
 - 所有引用的 key 在 .bib 文件或 thebibliography 环境中的排列顺序 = 它们在正文中首次出现的顺序
@@ -2396,8 +1990,6 @@ Stats papers: ≥20 references. The stats template uses `natbib` with `[numbers,
 - 如果写作时发现某处需要一个新引用，它的编号会自动是当前已用编号的最大值+1
 
 - 写完所有章节后，逐段扫描正文，确认引用编号 [N] 严格递增（只允许重复已出现的编号）
-
-
 
 **⛔ 引用格式规则（中文竞赛论文必须上标）：**
 
@@ -2407,11 +1999,7 @@ Stats papers: ≥20 references. The stats template uses `natbib` with `[numbers,
 
 - 禁止：非上标样式 + 直接 `\cite{}` → 引用会显示为 `[1]` 而非上标 `¹`
 
-
-
 **⛔ 多引用合并规则（合并必须按编号升序）：**
-
-
 
 同一处引用多篇文献时：
 
@@ -2425,8 +2013,6 @@ Stats papers: ≥20 references. The stats template uses `natbib` with `[numbers,
 
 - ❌ 错误：`方法A\cite{a,b}` 但 a=[3]、b=[1] — 编号降序，必须改成 `\cite{b,a}`（[1,3]）
 
-
-
 **合并的判定规则（严格）：**
 
 1. 多引用里的 key 必须按其编号升序排列 → 如 [1,2,5] 对应 `\cite{key_of_1, key_of_2, key_of_5}`
@@ -2437,15 +2023,11 @@ Stats papers: ≥20 references. The stats template uses `natbib` with `[numbers,
 
 4. 写作时难以预知最终编号，可先按 key 的出现逻辑合并，编译后用 compile_check.sh 检查并调整
 
-
-
 **⛔ 引用写法规则：写正文时，citation key 必须包含描述性关键词，格式为 `作者姓_年份_主题关键词`。**
 
 例如：`\cite{wang_2023_supply_chain_resilience}` 而不是 `\cite{wang2023supply}`。
 
 不确定作者/年份时用 `TODO__` 前缀：`\cite{TODO__digital_economy_spatial_spillover}`。
-
-
 
 ```bash
 
@@ -2456,8 +2038,6 @@ grep -roh '\\cite[tp]*{[^}]*}' paper/sections/*.tex paper/main.tex 2>/dev/null \
   | grep -oP '\{[^}]+\}' | tr -d '{}' | tr ',' '\n' | sed 's/^ *//;s/ *$//' | sort -u > _tmp/_cited_keys.txt
 
 echo "引用 key 数量: $(wc -l < _tmp/_cited_keys.txt)"
-
-
 
 # Step 5b: 逐个搜索并获取 BibTeX（用描述性关键词搜索）
 
@@ -2477,8 +2057,6 @@ done < _tmp/_cited_keys.txt
 
 ```
 
-
-
 处理每个搜索结果：
 
 1. 检查 `match_label`：`"good"` → 直接使用。`"partial"` → 核实标题。`"low"` → 很可能搜错了，换关键词或用 WebSearch。
@@ -2489,47 +2067,27 @@ done < _tmp/_cited_keys.txt
 
 4. `bibtex_source=auto` 的条目加 `% [VERIFY]`。`match_label="low"` 的加 `% [LOW_MATCH]`。
 
-
-
 ### Step 5.5: De-AI polish
-
-
 
 See `<de_ai_polish>` in `_utils/writing_rules.md`.
 
-
-
 ### Step 5.6: Write abstract NOW (after all chapters are complete)
-
-
 
 **⛔ MANDATORY: NOW write the abstract.** Read RESULTS.md and all section .tex files. Extract the actual numerical results from each sub-problem. The abstract must contain ONLY numbers that appear in the body text — do NOT invent or round differently.
 
-
-
 **⛔ 统计建模必须写中英文两个摘要**：先写中文摘要（500-700字），然后将中文摘要忠实翻译为英文摘要（350-500 words），所有数值结果、方法名称、结论必须一一对应。数模竞赛（国赛/五一杯/MathorCup/华中杯等）只写中文摘要。
-
-
 
 For math modeling competitions: each sub-problem must have its specific result in the abstract (e.g., "问题一采用XX算法，最优解为YY，空间利用率达ZZ%")。
 
-
-
 Read `_utils/writing_rules.md` for abstract format rules (分段、首行缩进、长度).
 
-
-
 ### Step 6: Final verification
-
-
 
 ```bash
 
 bash _utils/writing_check.sh paper/ 2>/dev/null || bash skills/shared-scripts/writing_check.sh paper/
 
 ```
-
-
 
 **⛔ 能力声称终检（正文写完后跑，扫"有没有把没通过的能力写成成果"）：**
 
@@ -2544,8 +2102,6 @@ PCC=$?   # 此时正文已成型：会扫未通过能力名是否出现在正文
 ```
 
 > WARN（未通过能力名出现在正文）：确认不是把没做成的写成做到了；若确在"局限/未来工作"里如实提及可放行。`PCC=1`：仍有能力未通过验收，不能定稿。
-
-
 
 Also check:
 
@@ -2587,8 +2143,6 @@ echo "  （页数达标判断见下方「正文页数预检」，统一按 900 �
 
 - No template bracket placeholders remaining (`[论文标题]`, `[中文摘要内容]`, etc.)
 
-
-
 **⛔ Constraint consistency check (MUST do before finishing):**
 
 Read PROBLEM_ANALYSIS.md (or the original problem statement in user_data/) and check every numerical result in the paper against the problem's constraints:
@@ -2613,25 +2167,17 @@ Read PROBLEM_ANALYSIS.md (or the original problem statement in user_data/) and c
 
 如果发现矛盾，修改论文正文（不是修改约束）。如果是代码结果本身违反约束，说明代码有 bug，需要回到 comp-code 修复。
 
-
-
 **⛔ Page count pre-check (MUST pass before finishing — do NOT leave this to compile step):**
-
-
 
 > ⛔ **MAX_PAGES 指正文页数**（章节 1 - 结论，含图表），**不含**摘要 / 目录 / 参考文献 / **附录代码**。
 
 > 检查只统计 `paper/sections/*.tex`，附录代码归 `paper/appendix/*.tex`，单独不限页数。
-
-
 
 ```bash
 
 source .env_skill 2>/dev/null || true  # 加载 MAX_PAGES 等数值参数
 
 echo "=== 正文页数预检（只查 paper/sections/，不含附录代码）==="
-
-
 
 # 1. sections/ 不应该含代码块（lstlisting / \begin{python} / \begin{verbatim}）
 
@@ -2659,8 +2205,6 @@ if [ "$code_in_body" -gt 0 ]; then
 
 fi
 
-
-
 # 2. 正文字符统计 + 估算页数
 
 total_chars=0
@@ -2678,8 +2222,6 @@ done
 est_pages=$((total_chars / 900))
 
 echo "正文字符: $total_chars, 估算页数: ~$est_pages 页, 目标: ≥ ${MAX_PAGES:-30} 页"
-
-
 
 # 3. 附录单独统计（仅信息）
 
@@ -2701,8 +2243,6 @@ if [ -d paper/appendix ]; then
 
 fi
 
-
-
 if [ -n "$MAX_PAGES" ] && [ "$est_pages" -lt "$((MAX_PAGES * 80 / 100))" ]; then
 
     echo "⛔ CRITICAL: 正文页数严重不足 ($est_pages < 80% of $MAX_PAGES)"
@@ -2717,8 +2257,6 @@ fi
 
 If estimated pages < 80% of MAX_PAGES, you MUST expand the thinnest 2-3 chapters before finishing. Read MODELING_REPORT.md and RESULTS.md for additional content to add (more derivation, more result analysis, more parameter discussion).
 
-
-
 ⛔ **正文 vs 附录归档约束**：
 
 - `paper/sections/` — 仅放正文章节（绪论 / 方法 / 结果 / 讨论 / 结论）
@@ -2727,11 +2265,7 @@ If estimated pages < 80% of MAX_PAGES, you MUST expand the thinnest 2-3 chapters
 
 - 严禁把代码塞 sections/（会让页数预检虚高但实际正文薄）
 
-
-
 ⛔ **页数扩展约束（防幻觉）— 写公式 / 加过程图 / 加灵敏度时必须遵守**：
-
-
 
 | 扩展方向 | ✅ 允许 | ⛔ 禁止 |
 
@@ -2745,15 +2279,9 @@ If estimated pages < 80% of MAX_PAGES, you MUST expand the thinnest 2-3 chapters
 
 | **充实结果讨论** | 解读已有结果（results.json / RESULTS.md）；对比基准方法；分析误差来源 | 重复说同一件事；加"如表所示"水文；编未做的对比实验 |
 
-
-
 ⛔ **进阶扩展方向（按题型分类，所有数字必须真跑代码产出）**：
 
-
-
 **🔹 通用扩展（任何题型都适用，每个能扩 3-8 页）**：
-
-
 
 | 扩展模块 | 内容 | 必须真做的事 | 推荐图表 |
 
@@ -2773,11 +2301,7 @@ If estimated pages < 80% of MAX_PAGES, you MUST expand the thinnest 2-3 chapters
 
 | **可解释性** | SHAP / LIME / PDP / 决策树可视化 / 注意力图（NN 类） | 用 shap.Explainer / lime 真跑，保存 `figures/explain_*.json` | SHAP 摘要图（adv #7）/ ICE+PDP（adv #26）/ 注意力热图 |
 
-
-
 **🔹 工程优化类（A/B 题）专属扩展**：
-
-
 
 | 扩展模块 | 内容 | 真做要求 |
 
@@ -2791,11 +2315,7 @@ If estimated pages < 80% of MAX_PAGES, you MUST expand the thinnest 2-3 chapters
 
 | **大规模数据扩展** | 100/1000/10000 实例规模下的算法表现 | 跑不同规模 benchmark |
 
-
-
 **🔹 数据分析/ML 类（C/D 题）专属扩展**：
-
-
 
 | 扩展模块 | 内容 | 真做要求 |
 
@@ -2809,11 +2329,7 @@ If estimated pages < 80% of MAX_PAGES, you MUST expand the thinnest 2-3 chapters
 
 | **学习曲线诊断** | train / val 损失曲线，判断欠拟合 / 过拟合 | 真跑不同训练集大小 |
 
-
-
 **🔹 综合建模类（E/F 题）专属扩展**：
-
-
 
 | 扩展模块 | 内容 | 真做要求 |
 
@@ -2827,15 +2343,9 @@ If estimated pages < 80% of MAX_PAGES, you MUST expand the thinnest 2-3 chapters
 
 | **不确定性量化** | 蒙特卡洛 / Bootstrap / 贝叶斯后验 | N≥500 次重复 |
 
-
-
 ⛔ **仅当本轮确实扩展了章节，才立即重跑 facts_audit**（即时验证扩展内容没引入虚构数字）：
 
-
-
 > ⛔ **去重说明**：这份 `paper` 阶段审计与下面 Step 7 的 `facts_audit.py --stage paper` 是**同一份检查**（[13][14][15][16]）。Step 7 的是**权威终检、一定会跑**。所以这里**只在"页数不足→你本轮真的动手扩展了章节"时才补跑**——目的是扩完当场抓虚构数字，不用等到 Step 7。**如果页数已达标、本轮没扩展任何章节，跳过这里**（Step 7 会兜底，不重复跑，省时省额度）。
-
-
 
 ```bash
 
@@ -2847,17 +2357,11 @@ python3 _utils/facts_audit.py paper  # 重检 [13][14][15][16] 数字溯源 / �
 
 ```
 
-
-
 [15] 会抽 60 个 2 位以上小数浮点数核对是否能在 results.json / PROBLEM_FACTS.json 找到。
 
 **审计 FAIL 不允许结束**，必须把不能溯源的数字改回真实值或删掉。
 
-
-
 ⛔ **乱码防护（LaTeX 模式）**：
-
-
 
 - 公式定界符：`\begin{equation} ... \end{equation}` 或 `$ ... $`（不要 markdown `$$...$$`）
 
@@ -2868,8 +2372,6 @@ python3 _utils/facts_audit.py paper  # 重检 [13][14][15][16] 数字溯源 / �
 - 中文标点和英文符号之间不加空格（如 `f(x)。` 而非 `f(x) 。`）
 
 - 公式中含中文用 `\text{...}`（如 `\sum_{i \in \text{测试集}}`）
-
-
 
 **Figure embedding verification (must pass before finishing)**:
 
@@ -2914,8 +2416,6 @@ for fig_tex in figures/*.tex; do
 done
 
 echo "缺失: $missing"
-
-
 
 # ⛔ FIGURE_MANIFEST 对账: 规划了几张就必须画几张并嵌入
 
@@ -2983,8 +2483,6 @@ echo "总缺失: $missing"
 
 If any figures are missing, go back and embed them into the appropriate sections before finishing. **⛔ Do NOT proceed to Step 7 until missing = 0.** Repeat the check after each fix.
 
-
-
 **⛔ 模板完整性自检（写完所有章节后必须检查 main.tex 没有被破坏）：**
 
 ```bash
@@ -2994,8 +2492,6 @@ echo "=== main.tex 模板完整性检查 ==="
 TMPL_OK=0
 
 TMPL_FAIL=0
-
-
 
 # 通用检查（所有模板）
 
@@ -3009,8 +2505,6 @@ grep -q 'appendices\|\\\\appendix' paper/main.tex && { echo "✅ 附录"; TMPL_O
 
 grep -q 'superscript\|\\@cite\|setcitestyle.*super' paper/main.tex && { echo "✅ 上标引用"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 缺少上标引用定义"; TMPL_FAIL=$((TMPL_FAIL+1)); }
 
-
-
 # 五一杯特有检查
 
 if grep -qi 'wuyi\|五一杯' CLAUDE.md 2>/dev/null; then
@@ -3023,8 +2517,6 @@ if grep -qi 'wuyi\|五一杯' CLAUDE.md 2>/dev/null; then
 
 fi
 
-
-
 # MathorCup 特有检查
 
 if grep -qi 'mathorcup' CLAUDE.md 2>/dev/null; then
@@ -3034,8 +2526,6 @@ if grep -qi 'mathorcup' CLAUDE.md 2>/dev/null; then
     grep -q '\\bianhao\|\\tihao\|\\timu' paper/main.tex && { echo "✅ MathorCup 队伍信息"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ MathorCup 缺少队伍信息"; TMPL_FAIL=$((TMPL_FAIL+1)); }
 
 fi
-
-
 
 # 亚太赛中文 (APMCM) 特有检查 — 复用 MathorCupmodeling 文档类
 
@@ -3047,8 +2537,6 @@ if grep -qi 'apmcm_zh\|亚太.*中文\|亚太赛中文' CLAUDE.md 2>/dev/null; t
 
 fi
 
-
-
 # 华中杯特有检查
 
 if grep -qi 'huazhong\|华中杯' CLAUDE.md 2>/dev/null; then
@@ -3056,8 +2544,6 @@ if grep -qi 'huazhong\|华中杯' CLAUDE.md 2>/dev/null; then
     grep -q 'cumcmthesis' paper/main.tex && { echo "✅ 华中杯 cls"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 华中杯未使用 cumcmthesis"; TMPL_FAIL=$((TMPL_FAIL+1)); }
 
 fi
-
-
 
 echo ""
 
@@ -3067,21 +2553,20 @@ echo "模板检查: $TMPL_OK 通过, $TMPL_FAIL 失败"
 
 ```
 
-
-
 ### Step 7: Output
-
-
 
 数模竞赛: sections/ numbered by sub-problem (4_problem1.tex, 5_problem2.tex...)
 
 统计建模: sections/ by academic structure (1_introduction.tex, 2_data_method.tex...)
 
 
+## STEP_MANIFEST 产出声明
+
+本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+
+建议额外记录：论文模板版本、TeX Live 版本、引用条目数。
 
 ## Key Rules
-
-
 
 - Use templates from `templates/`, do not write main.tex from scratch
 
@@ -3111,15 +2596,9 @@ echo "模板检查: $TMPL_OK 通过, $TMPL_FAIL 失败"
 
   - 这是表格编译失败的最常见原因——40+ 处 `\\` 全部变成 `\`，编译器只报第一个错就停了
 
-
-
 ## ⛔ 数据可追溯性（写稿强制规则）
 
-
-
 > 防止「图文表面自洽但数据是历史版本」的 bug。详见 `_utils/error_prevention.md` 第九章。
-
-
 
 正文/图表/附录引用的**每一个具体数字**必须满足：
 
@@ -3130,8 +2609,6 @@ echo "模板检查: $TMPL_OK 通过, $TMPL_FAIL 失败"
 3. 工作区没有 `results_v*.json` / `results_old.json` 等历史文件残留
 
 4. 描述任何"依赖载体 / 上游变量动态变化的派生属性"（作用范围 / 时变参数 / 状态依赖容量 / 时变转化率等）时，**禁止**简化成"以静态点为中心的固定区域"或"取均值后当常数"，除非确为静态实体且已显式声明简化条件
-
-
 
 写完正文前自检：
 
@@ -3154,8 +2631,6 @@ else
     echo "✅ 审计凭证存在（旧版凭证，未含虚构数字字段）"
 
 fi
-
-
 
 # 1c. ⛔ 普适审计（所有题型必跑：参数密集型 / 简单题 / 普通学术 / 课程论文 / 人文社科）
 
@@ -3181,8 +2656,6 @@ if [ -f _utils/facts_audit.py ]; then
 
 fi
 
-
-
 # 1d. ⛔ 含多种事件源的题目必查（防"写稿脑补事件源"）
 
 #     凡是涉及"谁做了什么 N 次"的指向性陈述，必须能在 results.json 的 verb_to_sources
@@ -3195,15 +2668,11 @@ fi
 
 echo "(事件源归属审计已包含在 facts_audit --stage paper 的 [14] 项里)"
 
-
-
 # 2. 检查历史文件残留
 
 HIST=$(ls results_v*.json results_old.json *_backup.json 2>/dev/null | wc -l)
 
 [ "$HIST" -gt 0 ] && echo "⚠ 发现 $HIST 个历史 JSON 文件，可能造成版本漂移：$(ls results_v*.json results_old.json *_backup.json 2>/dev/null)" || echo "✅ 无历史 JSON 残留"
-
-
 
 # 3. 数字溯源兜底：⛔ 仅当 facts_audit.py 不可用时才跑这段简化版（30 采样）。
 
@@ -3276,6 +2745,4 @@ if miss:
 fi
 
 ```
-
-
 

@@ -13,6 +13,14 @@ def resolve_template(name: str, params: dict[str, Any], catalog: dict[str, Any])
     resolved: list[dict[str, Any]] = []
     for step in steps:
         item = dict(step)
+        # Phase 6 标准：嵌套 metadata 子对象展开到顶层（子对象优先），
+        # 同时保留 metadata 键本身（审计/溯源用）。顶层字段仍可独立存在（向后兼容）。
+        nested_meta = item.get("metadata")
+        if isinstance(nested_meta, dict):
+            merged = dict(item)
+            merged.update({k: v for k, v in nested_meta.items() if v is not None})
+            merged["metadata"] = nested_meta
+            item = merged
         if language == "zh" and item.get("skill_name") == "paper-write":
             item["skill_name"] = "paper-write-zh"
         if language == "en" and item.get("skill_name") == "paper-write-zh":

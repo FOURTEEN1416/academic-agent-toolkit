@@ -249,5 +249,11 @@ fi
 2. 方法论三原则 + 学术诚信红线全程遵守。
 3. 论点必须是**强论点**（可争辩、可论证、有原创、有方向）。
 4. 结构必须**递进**（接收张力→推进→开启），不能平行罗列。
-5. Claims-Evidence Matrix 必须存在，是后续撰写质量基准。
-6. FIGURE_MANIFEST 区块必须存在（无图写 ALL=0）。
+5. Claims-Evidence Matrix 必须存在，是后续撰写质量基准。
+6. FIGURE_MANIFEST 区块必须存在（无图写 ALL=0）。
+
+## STEP_MANIFEST 产出声明
+
+本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+
+建议额外记录：输入材料来源哈希、模板版本。

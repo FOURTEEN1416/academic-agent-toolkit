@@ -21,6 +21,7 @@ from .quality_gates import QualityGate
 from .run_logger import RunLogger
 from .template_resolver import resolve_template
 from .workflow_store import StepStatus, Workflow, WorkflowStore
+from .step_manifest import write_manifest as write_step_manifest
 
 
 @dataclass(frozen=True)
@@ -248,16 +249,32 @@ class WorkflowRunner:
                            agent=self._agent_label(workflow),
                            declared_commands=[c.get("command", "") for c in evidence.get("commands", [])])
 
+        # S1 FIX: STEP_MANIFEST 无条件强制执行
+        # 所有声明了 output_files 的步骤必须产出 STEP_MANIFEST.json
+        # 这不再是可选的 required_checks，而是步骤完成的硬闸
+        declared_outputs = step.metadata.get("output_files", [])
+        if declared_outputs:
+            # 检查是否已有 step_manifest 检查，若无则强制添加
+            required_checks = list(step.metadata.get("required_checks") or [])
+            if "step_manifest" not in required_checks:
+                required_checks.append("step_manifest")
+        else:
+            required_checks = list(step.metadata.get("required_checks") or [])
+
+        self._write_step_manifest(workflow, step, evidence, declared_outputs)
+
         gate_result = QualityGate(workspace).run_all(
             step.name,
             declared_outputs=declared_outputs,
             comp_name=workflow.name if step.name in {"comp-compile-zh", "comp-compile-en"} else "",
             requires_figures=step.name.startswith("paper-figure"),
-            required_checks=step.metadata.get("required_checks"),
+            required_checks=required_checks,
             primary_output=step.metadata.get("primary_output"),
         )
         if not gate_result["ok"]:
             message = "quality gates failed"
+            import sys as _sys
+            _sys.stderr.write(f"[DEBUG] Gate failed for {step.name}: {json.dumps(gate_result, ensure_ascii=False, indent=2, default=str)[:500]}\n")
             self.store.transition_step_with_checkpoint(
                 workflow_id, step.id, StepStatus.FAILED,
                 {"status": "failed", "error": message, "quality_gates": gate_result},
@@ -420,6 +437,31 @@ class WorkflowRunner:
             output_files=step.metadata.get("output_files", []), primary_output=step.metadata.get("primary_output", ""),
             has_checkpoint=step.metadata.get("has_checkpoint", False), checkpoint_type=step.metadata.get("checkpoint_type"),
             params=workflow.metadata.get("params", {}),
+        )
+
+    def _write_step_manifest(self, workflow: Workflow, step: Any, evidence: dict[str, Any], declared_outputs: list[str]) -> None:
+        workspace = Path(workflow.metadata["workspace"])
+        step_meta = dict(step.metadata) if step.metadata else {}
+        backend = str(step_meta.get("backend") or "workflow-runner")
+        dependencies = dict(step_meta.get("dependencies") or {})
+        if step.name == "copyright-source-materials":
+            backend = "vendored-codesucker-core 0.4.4"
+            dependencies.setdefault("codesucker-core", "0.4.4")
+        commands = evidence.get("commands", [])
+        manifest_outputs = [workspace / output for output in declared_outputs]
+        config = dict(step_meta.get("manifest_config") or {})
+        config.setdefault("workflow_id", workflow.id)
+        config.setdefault("step_name", step.name)
+        config.setdefault("params", workflow.metadata.get("params", {}))
+        write_step_manifest(
+            workspace=workspace,
+            step_name=step.name,
+            config=config,
+            inputs=[],
+            outputs=manifest_outputs,
+            backend=backend,
+            commands=commands,
+            dependencies=dependencies,
         )
 
 

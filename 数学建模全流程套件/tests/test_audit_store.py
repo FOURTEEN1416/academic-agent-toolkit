@@ -13,8 +13,10 @@ from engine.audit_store import (
     audit_log_path,
     default_audit_dir,
     detect_unreported_operations,
+    build_final_audit_report,
     generate_audit_report,
     official_logger_paths,
+    write_final_audit_report,
     write_audit_report,
 )
 
@@ -161,6 +163,59 @@ def test_generate_and_write_audit_report(tmp_path):
     assert out.exists()
     saved = json.loads(out.read_text(encoding="utf-8"))
     assert saved["stats"]["total_events"] >= 6
+
+
+def test_build_and_write_final_audit_report(tmp_path):
+    project_root = tmp_path / "project"
+    workspace = tmp_path / "ws"
+    project_root.mkdir()
+    workspace.mkdir()
+
+    paper = workspace / "paper"
+    paper.mkdir()
+    pdf = paper / "main.pdf"
+    pdf.write_bytes(b"fake pdf bytes")
+
+    evidence_dir = workspace / ".engine" / "evidence"
+    evidence_dir.mkdir(parents=True)
+    (evidence_dir / "step.json").write_text(json.dumps({
+        "evidence": {"skill_name": "comp-final-audit", "agent": "test", "commands": [{"command": "python tools/reviewer_client.py --prompt 审查", "returncode": 0, "cwd": "."}], "outputs": ["AUDIT_REPORT.json"], "inputs": []},
+    }), encoding="utf-8")
+
+    db = tmp_path / "workflow.sqlite"
+    from engine.workflow_store import WorkflowStore
+
+    with WorkflowStore(db) as store:
+        workflow = store.create_workflow("comp_cumcm", {"workspace": str(workspace), "params": {}})
+        step = store.add_steps(workflow.id, [{
+            "name": "comp-final-audit",
+            "metadata": {
+                "display_name": "最终交付审计",
+                "required_checks": ["final_audit"],
+                "output_files": ["AUDIT_REPORT.json"],
+                "primary_output": "AUDIT_REPORT.json",
+                "has_checkpoint": True,
+                "checkpoint_type": "approve",
+            },
+        }])[0]
+        store.transition_step(step.id, "running")
+        store.transition_step_with_checkpoint(
+            workflow.id,
+            step.id,
+            "completed",
+            {"status": "completed", "manifest": {"artifacts": [{"path": "paper/main.pdf", "sha256": "a" * 64}]}, "quality_gates": {"checks": {"literature": {"ok": True}, "review": {"ok": True}, "consistency": {"ok": True}, "final_audit": {"ok": True}}}},
+            event={"type": "step_completed", "quality_gates": {"checks": {"literature": {"ok": True}, "review": {"ok": True}, "consistency": {"ok": True}, "final_audit": {"ok": True}}}, "manifest": {"artifacts": [{"path": "paper/main.pdf", "sha256": "a" * 64}]}}
+        )
+
+    report = build_final_audit_report(workspace, project_root, workflow_db=db)
+    assert report["artifacts"]
+    assert report["delivery_decision"] == "ready"
+    assert report["gate_outcomes"]["final_audit"] == "pass"
+
+    out = write_final_audit_report(workspace, project_root, workflow_db=db)
+    assert out.exists()
+    saved = json.loads(out.read_text(encoding="utf-8"))
+    assert saved["workflow_id"] == report["workflow_id"]
 
 
 def test_official_logger_paths_and_events(tmp_path):

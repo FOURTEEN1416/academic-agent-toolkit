@@ -18,6 +18,7 @@ sys.path.insert(0, str(ROOT))
 from engine.opencode_bridge import StepAction, StepResult
 from engine.workflow_runner import WorkflowRunner
 from engine.workflow_store import WorkflowStore
+from engine.step_manifest import write_manifest
 
 
 def _make_skill(tmp_path, name="comp-review"):
@@ -51,7 +52,7 @@ def test_review_step_without_subagent_session_is_rejected(tmp_path):
     catalog = {"demo": {"sub_steps": [{
         "skill_name": "comp-review",
         "primary_output": "COMP_REVIEW.md",
-        "output_files": ["COMP_REVIEW.md"],
+        "output_files": ["COMP_REVIEW.md", "COMP_REVIEW_VERDICT.json"],
         "has_checkpoint": False,
         "requires_subagent": True,   # 审核步骤标记：必须由只读子智能体执行
     }]}}
@@ -83,7 +84,7 @@ def test_review_step_with_subagent_session_passes(tmp_path):
     catalog = {"demo": {"sub_steps": [{
         "skill_name": "comp-review",
         "primary_output": "COMP_REVIEW.md",
-        "output_files": ["COMP_REVIEW.md"],
+        "output_files": ["COMP_REVIEW.md", "COMP_REVIEW_VERDICT.json"],
         "has_checkpoint": False,
         "requires_subagent": True,
     }]}}
@@ -93,15 +94,21 @@ def test_review_step_with_subagent_session_passes(tmp_path):
         workflow = runner.start("demo", tmp_path / "workspace", {})
         result = runner.next_action(workflow.id)
         action = result.action
-        for output in action.output_files:
-            p = action.workspace / output
-            p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_text("x" * 2000, encoding="utf-8")
-        # M1: 审核步骤自动跑 review gate → 需要审稿文件（solo 模式）
+        # M1: 先创建所有产物文件（含内容），再写 manifest
         ws = action.workspace
         (ws / "COMP_REVIEW.md").write_text("审查报告内容占位。" * 10, encoding="utf-8")
         (ws / "COMP_REVIEW_VERDICT.json").write_text(
             '{"verdict": "PASS", "fatal_count": 0, "findings": []}', encoding="utf-8"
+        )
+        # S1 FIX: 强制创建 STEP_MANIFEST（文件已全部就绪）
+        write_manifest(
+            workspace=action.workspace,
+            step_name=action.skill_name,
+            config={},
+            outputs=[action.workspace / f for f in action.output_files],
+            backend="test-backend 1.0",
+            commands=[{"command": "python tools/reviewer_client.py --prompt 审查", "exitCode": 0}],
+            dependencies={},
         )
         step_result = StepResult(
             ok=True, artifacts=action.output_files,
@@ -139,6 +146,16 @@ def test_approve_checkpoint_is_atomic(tmp_path):
             p = action.workspace / output
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text("x" * 2000, encoding="utf-8")
+        # S1 FIX: 强制创建 STEP_MANIFEST
+        write_manifest(
+            workspace=action.workspace,
+            step_name=action.skill_name,
+            config={},
+            outputs=[action.workspace / f for f in action.output_files],
+            backend="test-backend 1.0",
+            commands=[{"command": "test", "exitCode": 0}],
+            dependencies={},
+        )
         r1 = runner.complete_step(workflow.id, StepResult(
             ok=True, artifacts=action.output_files,
             metadata={"execution_evidence": _evidence(action)},
