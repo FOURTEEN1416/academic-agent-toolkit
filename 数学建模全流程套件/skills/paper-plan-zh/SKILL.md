@@ -44,11 +44,19 @@ else
     echo "❌ PAPER_PLAN.md 缺失或过小 ($SZ bytes) — 立即用 Write 工具产出, 不要 end_turn"
     PASS=false
 fi
-[ "$PASS" != true ] && echo "⛔ 验证失败 — 必须修复后再结束本步骤"
-```
-
-## 工作流程
-
+[ "$PASS" != true ] && echo "⛔ 验证失败 — 必须修复后再结束本步骤"
+
+```
+
+
+
+## STEP_MANIFEST 产出声明
+
+本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+
+建议额外记录：输入数据/大纲来源哈希。
+
+## 工作流程
 ### Step 0: 数据探索（最高优先级）
 
 扫描 `user_data/` 中所有数据文件，用 pandas 分析：

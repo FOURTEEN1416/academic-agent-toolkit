@@ -148,3 +148,9 @@ patent-build 会 glob `专利交底书/fig_*.html`→逐张 Electron 截 PNG（�
 ## 完成自检（内部执行，不写入正文）
 
 结束前确认：`专利交底书/交底书草稿.md` 已生成；`**案件名称**：` 行为实际案件名；六章齐全且止于第六章；`专利交底书/fig_arch.html` 与 `专利交底书/fig_flow.html` 均已 Write（自包含单文件、满足硬约束、节点填本专利特有实体非空壳）；草稿正文 3.2/3.4 各含一行 `<!-- ![...](figures/fig_arch.png) -->` / `<!-- ![...](figures/fig_flow.png) -->` 占位注释；无"自检清单"章节；文末无仓库/技能脚注或免责声明；若含公式则符号表先行且跨节同形。
+
+## STEP_MANIFEST 产出声明
+
+本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+
+建议额外记录：素材来源、渲染引擎版本、截图方式。

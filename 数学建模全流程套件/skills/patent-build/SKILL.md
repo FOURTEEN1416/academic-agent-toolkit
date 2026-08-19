@@ -80,3 +80,9 @@ python "$PATENT_SCRIPT_DIR/html_figure_render.py" \
 ## 完成校验
 
 运行后检查 `专利交底书/交底书.docx` 存在且非空。读脚本 stderr：出现"✅ fig_*.html → ..."即该图截图成功、"已写入 Word: ..."即导出成功；若出现几何问题累计提示、"截图失败"或"md_to_docx 失败"，按提示修复重试或如实转达用户。完成后向用户汇报 Word 路径，并说明两张图（系统框图 / 流程图）是否成功截成图片嵌入。
+
+## STEP_MANIFEST 产出声明
+
+本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+
+建议额外记录：素材来源、渲染引擎版本、截图方式。

@@ -39,10 +39,13 @@ def test_cumcm_template_has_14_ordered_executable_stages_and_gate_bindings():
     ]
     assert len(steps) == 14
     assert all((ROOT / "skills" / step["skill_name"] / "SKILL.md").is_file() for step in steps)
-    assert steps[1]["required_checks"] == ["literature_search"]
-    assert steps[7]["required_checks"] == ["literature"]
+    assert steps[1]["required_checks"] == ["literature_search", "step_manifest", "citation_integrity"]
+    assert steps[2]["required_checks"] == ["step_manifest", "modeling_contract"]
+    assert steps[3]["required_checks"] == ["step_manifest"]
+    assert steps[4]["required_checks"] == ["figure_provenance"]
+    assert steps[7]["required_checks"] == ["literature", "step_manifest", "paper_consistency"]
     assert steps[8]["required_checks"] == ["consistency"]
-    assert steps[9]["required_checks"] == ["literature", "consistency"]
+    assert steps[9]["required_checks"] == ["literature", "consistency", "step_manifest", "compilation_log"]
     assert steps[12]["required_checks"] == ["review"]
     assert steps[13]["required_checks"] == ["literature", "review", "consistency", "final_audit"]
 

@@ -361,6 +361,12 @@ echo ""
 
 Status, PDF path, page count, compliance results, fixed errors, remaining warnings.
 
+## STEP_MANIFEST 产出声明
+
+本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+
+建议额外记录：LaTeX 引擎版本、包版本、编译警告数。编译日志门禁 compilation_log 要求保留编译日志。
+
 ## Key Rules
 
 - No latexmk — manual step-by-step compilation

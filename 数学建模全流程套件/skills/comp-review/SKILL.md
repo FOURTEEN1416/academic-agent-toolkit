@@ -70,6 +70,13 @@ EOF
 ],"fatal_count":0}
 ```
 
+
+## STEP_MANIFEST 产出声明
+
+本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+
+建议额外记录：审稿人模型、session_id、审查轮次。
+
 ## Step 4: 硬门禁（⛔ 有 fatal 不许放行）
 
 ```bash
@@ -83,3 +90,4 @@ fi
 ```
 > - `fatal`（方向反/重复计量/跨问硬矛盾）= 退出前必修，回炉重跑。
 > - `major/minor`（外推口吻、可疑假设）= 不硬拦，但必须在论文里如实标注为"情景模拟/假设"，禁确定性口吻。
+

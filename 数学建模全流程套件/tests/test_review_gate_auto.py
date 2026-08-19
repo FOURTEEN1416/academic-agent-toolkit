@@ -59,3 +59,44 @@ def test_final_review_skill_auto_runs_review_gate(tmp_path):
     _setup_workspace(tmp_path, with_review_files=False)
     result = QualityGate(tmp_path).run_all("comp-final-review")
     assert "review" in result["checks"], f"comp-final-review 应自动跑 review gate: {list(result['checks'].keys())}"
+
+
+def test_final_review_skill_auto_enforces_strict_model_match(tmp_path, monkeypatch):
+    """comp-final-review 通过 run_all 调用时，review gate 自动启用 strict_model_match。"""
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir()
+    for fname, model in (
+        ("数模审稿人.md", "model-a"),
+        ("数模视觉审查.md", "model-b"),
+        ("数模编辑.md", "model-c"),
+        ("数模专家.md", "model-d"),
+    ):
+        (agents_dir / fname).write_text(f"---\nmodel: {model}\n---\n", encoding="utf-8")
+    monkeypatch.setenv("OPENCODE_AGENTS_DIR", str(agents_dir))
+
+    import hashlib, json
+    for name in ("COMP_REVIEW.md", "VISUAL_REVIEW.md", "EDITOR_CHANGELOG.md", "FINAL_REVIEW.md"):
+        (tmp_path / name).write_text(f"# {name}\n", encoding="utf-8")
+    (tmp_path / "COMP_REVIEW_VERDICT.json").write_text('{"findings": [], "fatal_count": 0}', encoding="utf-8")
+    (tmp_path / "VISUAL_REVIEW_VERDICT.json").write_text('{"findings": [], "fatal_count": 0, "status": "pass"}', encoding="utf-8")
+    (tmp_path / "FINAL_REVIEW_VERDICT.json").write_text('{"findings": [], "fatal_count": 0}', encoding="utf-8")
+    hashes = {
+        "reviewer": hashlib.sha256((tmp_path / "COMP_REVIEW_VERDICT.json").read_bytes()).hexdigest(),
+        "visual_reviewer": hashlib.sha256((tmp_path / "VISUAL_REVIEW_VERDICT.json").read_bytes()).hexdigest(),
+        "editor": hashlib.sha256((tmp_path / "EDITOR_CHANGELOG.md").read_bytes()).hexdigest(),
+        "final_reviewer": hashlib.sha256((tmp_path / "FINAL_REVIEW_VERDICT.json").read_bytes()).hexdigest(),
+    }
+    provenance = {"schema_version": 1, "roles": {
+        "reviewer": {"session_id": "s1", "model": "wrong-model", "completed_at": "2026-08-08T00:00:00Z", "output_file": "COMP_REVIEW_VERDICT.json", "output_sha256": hashes["reviewer"]},
+        "visual_reviewer": {"session_id": "s2", "model": "model-b", "completed_at": "2026-08-08T00:00:00Z", "output_file": "VISUAL_REVIEW_VERDICT.json", "output_sha256": hashes["visual_reviewer"]},
+        "editor": {"session_id": "s3", "model": "model-c", "completed_at": "2026-08-08T00:00:00Z", "output_file": "EDITOR_CHANGELOG.md", "output_sha256": hashes["editor"]},
+        "final_reviewer": {"session_id": "s4", "model": "model-d", "completed_at": "2026-08-08T00:00:00Z", "output_file": "FINAL_REVIEW_VERDICT.json", "output_sha256": hashes["final_reviewer"]},
+    }}
+    (tmp_path / "REVIEW_EXECUTION_EVIDENCE.json").write_text(json.dumps(provenance), encoding="utf-8")
+
+    result = QualityGate(tmp_path).run_all("comp-final-review", declared_outputs=["COMP_REVIEW.md", "COMP_REVIEW_VERDICT.json", "VISUAL_REVIEW.md", "VISUAL_REVIEW_VERDICT.json", "EDITOR_CHANGELOG.md", "FINAL_REVIEW.md", "FINAL_REVIEW_VERDICT.json", "REVIEW_EXECUTION_EVIDENCE.json"], required_checks=["review"])
+
+    # comp-final-review 启用 strict_model_match，模型不匹配应阻断
+    assert result["ok"] is False
+    review_check = result["checks"]["review"]
+    assert "wrong-model" in review_check.get("reason", "")

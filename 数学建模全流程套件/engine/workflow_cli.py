@@ -114,6 +114,12 @@ def main() -> int:
     report.add_argument("--db", default="")
     report.add_argument("--out", required=True)
 
+    # 最终交付审计
+    final_audit = sub.add_parser("final-audit")
+    final_audit.add_argument("--workspace", required=True)
+    final_audit.add_argument("--db", default="")
+    final_audit.add_argument("--out", default="")
+
     # 操作审计（读取 plugin 的 operations.jsonl + SQLite + evidence）
     audit = sub.add_parser("audit")
     audit.add_argument("--workspace", required=True, help="工作区路径（含 .engine/evidence 与 workflow.sqlite）")
@@ -126,7 +132,7 @@ def main() -> int:
         print(json.dumps(RuntimePaths.discover(ROOT).capabilities(), ensure_ascii=False, indent=2))
         return 0
 
-    workspace_for_db = Path(args.workspace) if args.command in {"start", "audit"} else None
+    workspace_for_db = Path(args.workspace) if args.command in {"start", "audit", "final-audit"} else None
     if args.db:
         db = Path(args.db)
     elif workspace_for_db is not None:
@@ -215,6 +221,14 @@ def main() -> int:
             report = store.workflow_timeline(args.wf)
             Path(args.out).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
             print(f"报告已保存: {args.out}")
+            return 0
+
+        if args.command == "final-audit":
+            from .audit_store import write_final_audit_report
+            workspace = Path(args.workspace)
+            out = Path(args.out) if args.out else workspace / "AUDIT_REPORT.json"
+            target = write_final_audit_report(workspace, ROOT.parent, out, workflow_db=db)
+            print(f"最终审计报告已保存: {target}")
             return 0
 
         if args.command == "audit":

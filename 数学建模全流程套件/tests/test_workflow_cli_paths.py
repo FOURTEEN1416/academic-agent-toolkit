@@ -9,6 +9,7 @@ sys.path.insert(0, str(ROOT))
 
 from engine import workflow_cli
 from engine.audit_store import generate_audit_report
+from engine.workflow_store import WorkflowStore
 
 
 def test_workspace_default_database_is_local_to_workspace(tmp_path):
@@ -73,3 +74,39 @@ def test_audit_report_reads_explicit_workflow_database(tmp_path):
     assert report["workflow_database"] == str(database)
     assert report["workflow_events"][0]["type"] == "workflow_started"
     assert report["workflow_steps"][0]["name"] == "comp-code"
+
+
+def test_final_audit_cli_uses_workspace_default_database(tmp_path, monkeypatch):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    database = workspace / ".engine" / "workflow.sqlite"
+    database.parent.mkdir(parents=True)
+    paper = workspace / "paper"
+    paper.mkdir()
+    (paper / "main.pdf").write_bytes(b"pdf")
+
+    with WorkflowStore(database) as store:
+        workflow = store.create_workflow("comp_cumcm", {"workspace": str(workspace), "params": {}})
+        step = store.add_steps(workflow.id, [{"name": "comp-final-audit", "metadata": {}}])[0]
+        store.transition_step(step.id, "running")
+        payload = {
+            "type": "step_completed",
+            "quality_gates": {"checks": {"final_audit": {"ok": True}}},
+            "manifest": {"artifacts": [{"path": "paper/main.pdf", "sha256": "b" * 64}]},
+        }
+        store.transition_step_with_checkpoint(
+            workflow.id,
+            step.id,
+            "completed",
+            {"status": "completed", "manifest": payload["manifest"], "quality_gates": payload["quality_gates"]},
+            event=payload,
+        )
+
+    monkeypatch.setattr(sys, "argv", ["workflow_cli", "final-audit", "--workspace", str(workspace)])
+
+    rc = workflow_cli.main()
+
+    assert rc == 0
+    saved = json.loads((workspace / "AUDIT_REPORT.json").read_text(encoding="utf-8"))
+    assert saved["delivery_decision"] == "ready"
+    assert saved["gate_outcomes"]["final_audit"] == "pass"

@@ -13,6 +13,7 @@ from engine.workflow_runner import WorkflowRunner
 from engine.workflow_store import WorkflowStore
 from engine.quality_gates import QualityGate
 from engine.run_logger import RunLogger
+from engine.step_manifest import write_manifest
 
 
 def execute_action(runner, wf_id, output_text="x"):
@@ -24,7 +25,18 @@ def execute_action(runner, wf_id, output_text="x"):
     for output in action.output_files:
         path = action.workspace / output
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(output_text * 5000, encoding="utf-8")
+        # 写 16000 字节以满足所有技能的最小大小门禁（comp-paper-zh 需 ≥10000）
+        path.write_text(output_text * 16000, encoding="utf-8")
+    # S1 FIX: 强制创建 STEP_MANIFEST
+    write_manifest(
+        workspace=action.workspace,
+        step_name=action.skill_name,
+        config={},
+        outputs=[action.workspace / f for f in action.output_files],
+        backend="test-backend 1.0",
+        commands=[{"command": "test", "exitCode": 0}],
+        dependencies={},
+    )
     step_result = StepResult(
         ok=True,
         artifacts=action.output_files,
@@ -46,7 +58,7 @@ def execute_action(runner, wf_id, output_text="x"):
 def test_offline_workflow_creates_declared_artifacts(tmp_path):
     skills_root = tmp_path / "skills"
     steps = []
-    for name, output in (("comp-prob-analysis", "PROB_ANALYSIS.md"), ("comp-modeling", "MODEL.md"), ("comp-review", "review.md")):
+    for name, output in (("comp-prob-analysis", "PROB_ANALYSIS.md"), ("comp-modeling", "MODEL.md"), ("comp-paper-zh", "PAPER.md")):
         skill = skills_root / name / "SKILL.md"
         skill.parent.mkdir(parents=True, exist_ok=True)
         skill.write_text("skill", encoding="utf-8")
@@ -60,7 +72,8 @@ def test_offline_workflow_creates_declared_artifacts(tmp_path):
             r = execute_action(runner, workflow.id)
             if r.status in ("completed", "failed"):
                 break
-        validation = ArtifactManifest.validate(workspace, ["PROB_ANALYSIS.md", "MODEL.md", "review.md"])
+        assert r.status == "completed", f"工作流应完成，实际 {r.status}: {r.message}"
+        validation = ArtifactManifest.validate(workspace, ["PROB_ANALYSIS.md", "MODEL.md", "PAPER.md"])
         assert validation["ok"] is True
 
 
@@ -161,6 +174,7 @@ def test_runner_logs_real_step_ids_not_last_step(tmp_path):
             r = execute_action(runner, workflow.id)
             if r.status in ("completed", "failed"):
                 break
+        assert r.status == "completed", f"工作流应完成，实际 {r.status}: {r.message}"
         log_file = workspace / ".engine" / "logs" / f"run_{workflow.id}.json"
         entries = json.loads(log_file.read_text(encoding="utf-8"))
         # 每步的 started/completed 必须带该步自己的 step_id，且不同步骤 id 不同

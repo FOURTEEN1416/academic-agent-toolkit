@@ -41,6 +41,7 @@ class Workflow:
     metadata: dict[str, Any]
     created_at: str
     updated_at: str
+    steps: list[WorkflowStep] = field(default_factory=list)
 
 
 @dataclass(frozen=True)

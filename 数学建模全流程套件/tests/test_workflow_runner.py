@@ -23,6 +23,17 @@ def execute_action(runner, wf_id, fake_ok=True, fake_stderr="", output_text="x" 
         path = action.workspace / output
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(output_text, encoding="utf-8")
+    # S1 FIX: 强制创建 STEP_MANIFEST.json（新门禁要求）
+    from engine.step_manifest import write_manifest
+    write_manifest(
+        workspace=action.workspace,
+        step_name=action.skill_name,
+        config={},
+        outputs=[action.workspace / f for f in action.output_files],
+        backend="test-backend 1.0",
+        commands=[{"command": "test", "exitCode": 0}],
+        dependencies={},
+    )
     # 回报结果
     step_result = StepResult(
         ok=fake_ok,
@@ -108,6 +119,17 @@ def test_runner_uses_step_primary_output_for_quality_gate(tmp_path):
         workflow = runner.start("demo", workspace, {})
         action = runner.next_action(workflow.id).action
         assert action is not None
+        # S1 FIX: 创建 STEP_MANIFEST（新门禁强制要求）
+        from engine.step_manifest import write_manifest
+        write_manifest(
+            workspace=workspace,
+            step_name=action.skill_name,
+            config={},
+            outputs=[workspace / f for f in action.output_files],
+            backend="test-backend 1.0",
+            commands=[{"command": "test", "exitCode": 0}],
+            dependencies={},
+        )
         result = runner.complete_step(
             workflow.id,
             StepResult(ok=True, artifacts=action.output_files, metadata={"execution_evidence": {

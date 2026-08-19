@@ -13,9 +13,18 @@
           "source-materials/rendered"
         ],
         "primary_output": "source-materials/SOURCE_MATERIALS_REPORT.md",
-        "required_checks": ["source_materials"],
+        "required_checks": [
+          "source_materials"
+        ],
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "source_materials"
+          ],
+          "display_name": "离线源码抽取、分页与审计"
+        }
       }
     ]
   },
@@ -32,7 +41,17 @@
         ],
         "primary_output": "literature_review.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "文献调研"
+        }
       },
       {
         "skill_name": "idea-creator",
@@ -42,7 +61,17 @@
         ],
         "primary_output": "IDEA_REPORT.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "Idea 生成"
+        }
       },
       {
         "skill_name": "novelty-check",
@@ -52,7 +81,17 @@
         ],
         "primary_output": "novelty_check_report.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "新颖性验证"
+        }
       },
       {
         "skill_name": "research-review",
@@ -62,7 +101,12 @@
         ],
         "primary_output": "review_report.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "外部评审"
+        }
       },
       {
         "skill_name": "research-refine-pipeline",
@@ -73,7 +117,12 @@
         ],
         "primary_output": "refine-logs/FINAL_PROPOSAL.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "方法精炼+实验规划"
+        }
       }
     ]
   },
@@ -91,7 +140,19 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "experiment_reproduc"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "experiment_reproduc"
+          ],
+          "display_name": "实验实现+部署+出图"
+        }
       }
     ]
   },
@@ -108,7 +169,12 @@
         ],
         "primary_output": "NARRATIVE_REPORT.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "自动审稿循环"
+        }
       }
     ]
   },
@@ -124,7 +190,17 @@
         ],
         "primary_output": "PAPER_PLAN.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "论文大纲"
+        }
       },
       {
         "skill_name": "paper-analysis",
@@ -136,7 +212,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "代码实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -146,7 +232,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -156,7 +252,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "paper-write",
@@ -167,7 +273,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "citation_integrity"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "citation_integrity"
+          ],
+          "display_name": "LaTeX 写作"
+        }
       },
       {
         "skill_name": "paper-compile",
@@ -177,7 +295,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译 PDF"
+        }
       },
       {
         "skill_name": "auto-paper-improvement-loop",
@@ -188,7 +318,17 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "论文改进循环"
+        }
       }
     ]
   },
@@ -204,7 +344,17 @@
         ],
         "primary_output": "PAPER_PLAN.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "论文大纲（中文）"
+        }
       },
       {
         "skill_name": "paper-analysis",
@@ -216,7 +366,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "代码实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -226,7 +386,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -236,7 +406,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "paper-write-zh",
@@ -247,7 +427,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "citation_integrity"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "citation_integrity"
+          ],
+          "display_name": "LaTeX 写作（中文）"
+        }
       },
       {
         "skill_name": "paper-compile-zh",
@@ -257,7 +449,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译 PDF（中文）"
+        }
       },
       {
         "skill_name": "auto-paper-improvement-loop",
@@ -268,7 +472,17 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "论文改进循环"
+        }
       }
     ]
   },
@@ -284,7 +498,17 @@
         ],
         "primary_output": "PAPER_PLAN.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "论文规划"
+        }
       },
       {
         "skill_name": "paper-analysis",
@@ -295,7 +519,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "数据分析"
+        }
       },
       {
         "skill_name": "nature-figure",
@@ -305,7 +539,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "Nature 图表"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -315,7 +559,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "架构图绘制"
+        }
       },
       {
         "skill_name": "paper-write-nature",
@@ -326,7 +580,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "citation_integrity"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "citation_integrity"
+          ],
+          "display_name": "Nature 写作"
+        }
       },
       {
         "skill_name": "paper-compile",
@@ -336,7 +602,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "论文编译"
+        }
       },
       {
         "skill_name": "auto-paper-improvement-loop",
@@ -347,7 +625,17 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "改进循环"
+        }
       }
     ]
   },
@@ -364,7 +652,17 @@
         ],
         "primary_output": "literature_review.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "文献调研"
+        }
       },
       {
         "skill_name": "idea-creator",
@@ -374,7 +672,17 @@
         ],
         "primary_output": "IDEA_REPORT.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "Idea 生成"
+        }
       },
       {
         "skill_name": "novelty-check",
@@ -384,7 +692,17 @@
         ],
         "primary_output": "novelty_check_report.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "新颖性验证"
+        }
       },
       {
         "skill_name": "research-review",
@@ -394,7 +712,12 @@
         ],
         "primary_output": "review_report.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "外部评审"
+        }
       },
       {
         "skill_name": "research-refine-pipeline",
@@ -405,7 +728,12 @@
         ],
         "primary_output": "refine-logs/FINAL_PROPOSAL.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "方法精炼+实验规划"
+        }
       },
       {
         "skill_name": "experiment-bridge",
@@ -417,7 +745,19 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "experiment_reproduc"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "experiment_reproduc"
+          ],
+          "display_name": "实验实现+出图"
+        }
       },
       {
         "skill_name": "paper-plan",
@@ -427,7 +767,17 @@
         ],
         "primary_output": "PAPER_PLAN.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "论文大纲"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -437,7 +787,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "paper-write",
@@ -448,7 +808,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "citation_integrity"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "citation_integrity"
+          ],
+          "display_name": "LaTeX 写作"
+        }
       },
       {
         "skill_name": "paper-compile",
@@ -458,7 +830,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译 PDF"
+        }
       },
       {
         "skill_name": "auto-paper-improvement-loop",
@@ -469,7 +853,17 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "论文改进循环"
+        }
       }
     ]
   },
@@ -485,7 +879,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-literature",
@@ -499,8 +903,19 @@
         "has_checkpoint": false,
         "checkpoint_type": null,
         "required_checks": [
-          "literature_search"
-        ]
+          "literature_search",
+          "step_manifest",
+          "citation_integrity"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "literature_search",
+            "step_manifest",
+            "citation_integrity"
+          ],
+          "display_name": "文献调研与核验"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -510,7 +925,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -522,7 +949,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -532,7 +969,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -542,7 +989,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -554,7 +1011,17 @@
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
         "checkpoint_type": null,
-        "requires_subagent": true
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -566,8 +1033,19 @@
         "has_checkpoint": true,
         "checkpoint_type": "approve",
         "required_checks": [
-          "literature"
-        ]
+          "literature",
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "literature",
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-consistency",
@@ -580,7 +1058,14 @@
         "checkpoint_type": null,
         "required_checks": [
           "consistency"
-        ]
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "consistency"
+          ],
+          "display_name": "代码-论文一致性检查"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -593,8 +1078,20 @@
         "checkpoint_type": null,
         "required_checks": [
           "literature",
-          "consistency"
-        ]
+          "consistency",
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "literature",
+            "consistency",
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       },
       {
         "skill_name": "comp-visual-review",
@@ -606,7 +1103,17 @@
         "primary_output": "VISUAL_REVIEW.md",
         "has_checkpoint": false,
         "checkpoint_type": null,
-        "requires_subagent": true
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "数模视觉审查"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-editor",
@@ -616,7 +1123,12 @@
         ],
         "primary_output": "EDITOR_CHANGELOG.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "数模编辑修订"
+        }
       },
       {
         "skill_name": "comp-final-review",
@@ -632,7 +1144,14 @@
         "required_checks": [
           "review"
         ],
-        "requires_subagent": true
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "数模最终复审"
+        }
       },
       {
         "skill_name": "comp-final-audit",
@@ -648,7 +1167,17 @@
           "review",
           "consistency",
           "final_audit"
-        ]
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "literature",
+            "review",
+            "consistency",
+            "final_audit"
+          ],
+          "display_name": "最终交付审计"
+        }
       }
     ]
   },
@@ -664,7 +1193,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "Problem Analysis"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -674,7 +1213,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "Modeling & Solution"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -685,7 +1236,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "Programming"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -695,7 +1256,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "Figure Generation"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -705,7 +1276,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "Flow & Architecture Diagrams"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -715,7 +1296,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "Logic Adversarial Review"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-en",
@@ -725,7 +1317,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "Paper Writing (English)"
+        }
       },
       {
         "skill_name": "comp-compile-en",
@@ -735,7 +1339,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "Compile & Compliance Check"
+        }
       }
     ]
   },
@@ -751,7 +1367,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -761,7 +1387,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -772,7 +1410,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -782,7 +1430,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -792,7 +1450,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -802,7 +1470,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -812,7 +1491,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -822,7 +1513,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -838,7 +1541,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -848,7 +1561,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -859,7 +1584,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -869,7 +1604,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -879,7 +1624,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -889,7 +1644,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -899,7 +1665,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -909,7 +1687,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -925,7 +1715,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -935,7 +1735,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -946,7 +1758,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -956,7 +1778,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -966,7 +1798,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -976,7 +1818,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -986,7 +1839,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -996,7 +1861,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -1012,7 +1889,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -1022,7 +1909,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -1033,7 +1932,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -1043,7 +1952,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -1053,7 +1972,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "Flow & Architecture Diagrams"
+        }
       },
       {
         "skill_name": "comp-paper-en",
@@ -1063,7 +1992,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "Paper Writing"
+        }
       },
       {
         "skill_name": "comp-compile-en",
@@ -1073,7 +2014,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "Compile & Compliance Check"
+        }
       }
     ]
   },
@@ -1089,7 +2042,12 @@
         ],
         "primary_output": "TOPIC_PLAN.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "选题与数据规划"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -1100,7 +2058,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "数据采集与统计分析"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -1110,7 +2078,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -1120,7 +2098,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-paper-zh",
@@ -1130,7 +2118,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -1140,7 +2140,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -1156,7 +2168,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -1166,7 +2188,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -1177,7 +2211,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -1187,7 +2231,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -1197,7 +2251,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -1207,7 +2271,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -1217,7 +2292,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -1227,7 +2314,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -1243,7 +2342,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -1253,7 +2362,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -1264,7 +2385,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -1274,7 +2405,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -1284,7 +2425,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -1294,7 +2445,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -1304,7 +2466,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -1314,7 +2488,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -1330,7 +2516,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -1340,7 +2536,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -1351,7 +2559,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -1361,7 +2579,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -1371,7 +2599,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -1381,7 +2619,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -1391,7 +2640,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -1401,7 +2662,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -1417,7 +2690,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -1427,7 +2710,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -1438,7 +2733,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -1448,7 +2753,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -1458,7 +2773,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -1468,7 +2793,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -1478,7 +2814,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -1488,7 +2836,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -1504,7 +2864,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -1514,7 +2884,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -1525,7 +2907,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -1535,7 +2927,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -1545,7 +2947,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -1555,7 +2967,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -1565,7 +2988,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -1575,7 +3010,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -1591,7 +3038,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -1601,7 +3058,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -1612,7 +3081,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -1622,7 +3101,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -1632,7 +3121,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -1642,7 +3141,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -1652,7 +3162,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -1662,7 +3184,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -1678,7 +3212,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -1688,7 +3232,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -1699,7 +3255,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -1709,7 +3275,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -1719,7 +3295,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -1729,7 +3315,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -1739,7 +3336,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -1749,7 +3358,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -1765,7 +3386,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -1775,7 +3406,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -1786,7 +3429,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -1796,7 +3449,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -1806,7 +3469,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -1816,7 +3489,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -1826,7 +3510,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -1836,7 +3532,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -1852,7 +3560,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -1862,7 +3580,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -1873,7 +3603,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -1883,7 +3623,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -1893,7 +3643,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -1903,7 +3663,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -1913,7 +3684,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -1923,7 +3706,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -1939,7 +3734,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -1949,7 +3754,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -1960,7 +3777,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -1970,7 +3797,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -1980,7 +3817,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -1990,7 +3837,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -2000,7 +3858,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -2010,7 +3880,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -2026,7 +3908,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -2036,7 +3928,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -2047,7 +3951,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -2057,7 +3971,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -2067,7 +3991,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -2077,7 +4011,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -2087,7 +4032,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -2097,7 +4054,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -2113,7 +4082,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -2123,7 +4102,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -2134,7 +4125,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -2144,7 +4145,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -2154,7 +4165,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -2164,7 +4185,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -2174,7 +4206,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -2184,7 +4228,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -2200,7 +4256,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -2210,7 +4276,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -2221,7 +4299,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -2231,7 +4319,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -2241,7 +4339,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -2251,7 +4359,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -2261,7 +4380,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "竞赛论文撰写"
+        }
       },
       {
         "skill_name": "comp-compile-zh",
@@ -2271,7 +4402,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查"
+        }
       }
     ]
   },
@@ -2287,7 +4430,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "Problem Analysis"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -2297,7 +4450,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "Modeling & Solution"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -2308,7 +4473,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "Programming"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -2318,7 +4493,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "Figure Generation"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -2328,7 +4513,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "Flow & Architecture Diagrams"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -2338,7 +4533,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "Logic Adversarial Review"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-en",
@@ -2348,7 +4554,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "Paper Writing (English)"
+        }
       },
       {
         "skill_name": "comp-compile-en",
@@ -2358,7 +4576,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "Compile & Compliance Check"
+        }
       }
     ]
   },
@@ -2374,7 +4604,17 @@
         ],
         "primary_output": "PROBLEM_ANALYSIS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "Problem Analysis"
+        }
       },
       {
         "skill_name": "comp-modeling",
@@ -2384,7 +4624,19 @@
         ],
         "primary_output": "MODELING_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "Modeling & Solution"
+        }
       },
       {
         "skill_name": "comp-code",
@@ -2395,7 +4647,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "Programming"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -2405,7 +4667,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "Figure Generation"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -2415,7 +4687,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "Flow & Architecture Diagrams"
+        }
       },
       {
         "skill_name": "comp-review",
@@ -2425,7 +4707,18 @@
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "Logic Adversarial Review"
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-en",
@@ -2435,7 +4728,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency"
+          ],
+          "display_name": "Paper Writing (English)"
+        }
       },
       {
         "skill_name": "comp-compile-en",
@@ -2445,7 +4750,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "Compile & Compliance Check"
+        }
       }
     ]
   },
@@ -2462,7 +4779,17 @@
         ],
         "primary_output": "PROPOSAL.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "文献调研与开题撰写"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -2472,7 +4799,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "技术路线图绘制"
+        }
       },
       {
         "skill_name": "docx-export",
@@ -2482,7 +4819,12 @@
         ],
         "primary_output": "PROPOSAL.docx",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "格式检查与 Word 导出"
+        }
       }
     ]
   },
@@ -2499,7 +4841,19 @@
         ],
         "primary_output": "LITERATURE_REVIEW.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "citation_integrity"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "citation_integrity"
+          ],
+          "display_name": "文献检索与综述撰写"
+        }
       },
       {
         "skill_name": "docx-export",
@@ -2509,7 +4863,12 @@
         ],
         "primary_output": "LITERATURE_REVIEW.docx",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "格式检查与 Word 导出"
+        }
       }
     ]
   },
@@ -2526,7 +4885,17 @@
         ],
         "primary_output": "OUTLINE.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "大纲与图表规划"
+        }
       },
       {
         "skill_name": "paper-analysis",
@@ -2538,7 +4907,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "数据分析"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -2548,7 +4927,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -2558,7 +4947,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "架构图/流程图绘制"
+        }
       },
       {
         "skill_name": "course-paper",
@@ -2568,7 +4967,17 @@
         ],
         "primary_output": "COURSE_PAPER.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "课程论文撰写"
+        }
       },
       {
         "skill_name": "docx-export",
@@ -2578,7 +4987,12 @@
         ],
         "primary_output": "COURSE_PAPER.docx",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "格式检查与 Word 导出"
+        }
       }
     ]
   },
@@ -2596,7 +5010,17 @@
         ],
         "primary_output": "OUTLINE.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "事实提取与大纲规划"
+        }
       },
       {
         "skill_name": "paper-analysis",
@@ -2608,7 +5032,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "数据分析"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -2618,7 +5052,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "数据图表生成"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -2628,7 +5072,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "架构图/流程图绘制"
+        }
       },
       {
         "skill_name": "course-report",
@@ -2638,7 +5092,17 @@
         ],
         "primary_output": "COURSE_REPORT.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "课程报告撰写"
+        }
       },
       {
         "skill_name": "docx-export",
@@ -2648,7 +5112,12 @@
         ],
         "primary_output": "COURSE_REPORT.docx",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "格式检查与 Word 导出"
+        }
       }
     ]
   },
@@ -2665,7 +5134,17 @@
         ],
         "primary_output": "OUTLINE.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "选题与结构规划"
+        }
       },
       {
         "skill_name": "paper-analysis",
@@ -2677,7 +5156,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "数据分析（可选）"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -2687,7 +5176,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "数据图表生成（可选）"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -2697,7 +5196,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "理论框架图/示意图（可选）"
+        }
       },
       {
         "skill_name": "humanities-write",
@@ -2707,7 +5216,17 @@
         ],
         "primary_output": "HUMANITIES_PAPER.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "论文撰写"
+        }
       },
       {
         "skill_name": "docx-export",
@@ -2717,7 +5236,12 @@
         ],
         "primary_output": "HUMANITIES_PAPER.docx",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "格式检查与 Word 导出"
+        }
       }
     ]
   },
@@ -2734,7 +5258,12 @@
         ],
         "primary_output": "ASSETS_INVENTORY.md",
         "has_checkpoint": true,
-        "checkpoint_type": "assets_resolve"
+        "checkpoint_type": "assets_resolve",
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "资产清点与一致性检查"
+        }
       },
       {
         "skill_name": "paper-plan",
@@ -2744,7 +5273,17 @@
         ],
         "primary_output": "PAPER_PLAN.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "论文规划"
+        }
       },
       {
         "skill_name": "paper-analysis",
@@ -2756,7 +5295,17 @@
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "缺口补全(代码/结果)"
+        }
       },
       {
         "skill_name": "paper-figure",
@@ -2766,7 +5315,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "缺口补全(图表)"
+        }
       },
       {
         "skill_name": "paper-figure-drawio",
@@ -2776,7 +5335,17 @@
         ],
         "primary_output": "figures/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "缺口补全(架构图/路线图)"
+        }
       },
       {
         "skill_name": "paper-write",
@@ -2787,7 +5356,19 @@
         ],
         "primary_output": "paper/main.tex",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "citation_integrity"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "citation_integrity"
+          ],
+          "display_name": "论文撰写"
+        }
       },
       {
         "skill_name": "paper-compile",
@@ -2797,7 +5378,19 @@
         ],
         "primary_output": "paper/main.pdf",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译 PDF"
+        }
       }
     ]
   },
@@ -2813,7 +5406,17 @@
         ],
         "primary_output": "REQUIREMENTS.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "需求分析"
+        }
       },
       {
         "skill_name": "dev-design",
@@ -2824,7 +5427,17 @@
         ],
         "primary_output": "DESIGN.md",
         "has_checkpoint": true,
-        "checkpoint_type": "feedback"
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "系统设计"
+        }
       },
       {
         "skill_name": "dev-code",
@@ -2835,7 +5448,17 @@
         ],
         "primary_output": "code/",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编码实现"
+        }
       },
       {
         "skill_name": "dev-selfcheck",
@@ -2845,7 +5468,17 @@
         ],
         "primary_output": "TEST_REPORT.md",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "自测验证"
+        }
       }
     ]
   },
@@ -2861,7 +5494,17 @@
         ],
         "primary_output": "软件著作权申请资料/草稿/",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "起草申请资料"
+        }
       },
       {
         "skill_name": "copyright-build",
@@ -2871,7 +5514,17 @@
         ],
         "primary_output": "软件著作权申请资料/正式资料/",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "生成正式 Word/TXT"
+        }
       }
     ]
   },
@@ -2887,7 +5540,17 @@
         ],
         "primary_output": "专利交底书/交底书草稿.md",
         "has_checkpoint": true,
-        "checkpoint_type": "approve"
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "起草技术交底书"
+        }
       },
       {
         "skill_name": "patent-build",
@@ -2897,7 +5560,17 @@
         ],
         "primary_output": "专利交底书/交底书.docx",
         "has_checkpoint": false,
-        "checkpoint_type": null
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "渲染图示并导出 Word"
+        }
       }
     ]
   }

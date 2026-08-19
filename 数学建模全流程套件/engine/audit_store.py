@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 from collections import Counter
 from datetime import datetime, timezone
@@ -289,6 +290,150 @@ def generate_audit_report(workspace: Path, project_root: Path,
             "unreported_operations": unreported["verdict"],
         },
     }
+
+
+def build_final_audit_report(workspace: Path, project_root: Path,
+                             workflow_db: Path | None = None) -> dict[str, Any]:
+    """Build the manifest-backed final delivery audit report.
+
+    The final audit report is derived from persisted workflow state rather than
+    handwritten prose. It aggregates completed-step gate outcomes, selects the
+    latest delivery artifacts from the workflow timeline, and emits the machine
+    contract required by `check_final_audit_report()`.
+    """
+    workspace = Path(workspace).resolve()
+    project_root = Path(project_root).resolve()
+    if workflow_db is None:
+        workflow_db = workspace / ".engine" / "workflow.sqlite"
+
+    workflow_id = ""
+    workflow_name = ""
+    workflow_metadata: dict[str, Any] = {}
+    checkpoints: list[dict[str, Any]] = []
+    events: list[dict[str, Any]] = []
+    timeline_report: dict[str, Any] | None = None
+    try:
+        from .workflow_store import WorkflowStore
+
+        if Path(workflow_db).is_file():
+            with WorkflowStore(workflow_db) as store:
+                row = store._connection.execute(
+                    "SELECT id FROM workflows ORDER BY created_at DESC, id DESC LIMIT 1"
+                ).fetchone()
+                if row is not None:
+                    timeline_report = store.workflow_timeline(row["id"])
+    except Exception:
+        timeline_report = None
+
+    if isinstance(timeline_report, dict):
+        workflow = timeline_report.get("workflow", {})
+        if isinstance(workflow, dict):
+            workflow_id = str(workflow.get("id", ""))
+            workflow_name = str(workflow.get("name", ""))
+            workflow_metadata = workflow.get("metadata", {}) if isinstance(workflow.get("metadata", {}), dict) else {}
+        checkpoints = timeline_report.get("checkpoints", []) if isinstance(timeline_report.get("checkpoints", []), list) else []
+        events = timeline_report.get("events", []) if isinstance(timeline_report.get("events", []), list) else []
+
+    gate_outcomes: dict[str, str] = {}
+    latest_artifacts: list[dict[str, Any]] = []
+    latest_manifest: dict[str, Any] | None = None
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        payload = event.get("payload", {})
+        if not isinstance(payload, dict):
+            continue
+        quality_gates = payload.get("quality_gates", {})
+        if isinstance(quality_gates, dict):
+            checks = quality_gates.get("checks", {})
+            if isinstance(checks, dict):
+                for gate_name, gate_result in checks.items():
+                    if isinstance(gate_result, dict) and isinstance(gate_result.get("ok"), bool):
+                        outcome = "pass" if gate_result["ok"] else "fail"
+                        if gate_name not in gate_outcomes:
+                            gate_outcomes[gate_name] = outcome
+                        elif gate_outcomes[gate_name] != "pass":
+                            gate_outcomes[gate_name] = outcome
+        manifest = payload.get("manifest", {})
+        if isinstance(manifest, dict):
+            latest_manifest = manifest
+
+    if latest_manifest is None:
+        for checkpoint in checkpoints:
+            if not isinstance(checkpoint, dict):
+                continue
+            state = checkpoint.get("state", {})
+            if not isinstance(state, dict):
+                continue
+            manifest = state.get("manifest", {})
+            if isinstance(manifest, dict):
+                latest_manifest = manifest
+                break
+
+    if isinstance(latest_manifest, dict):
+        artifacts = latest_manifest.get("artifacts", [])
+        if isinstance(artifacts, list) and artifacts:
+            latest_artifacts = [artifact for artifact in artifacts if isinstance(artifact, dict)]
+
+    if not latest_artifacts:
+        evidence_dir = workspace / ".engine" / "evidence"
+        if evidence_dir.is_dir():
+            evidence_files = sorted(evidence_dir.glob("*.json"), key=lambda p: p.stat().st_mtime)
+            for evidence_file in reversed(evidence_files):
+                try:
+                    payload = json.loads(evidence_file.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError):
+                    continue
+                manifest = payload.get("manifest", {})
+                if isinstance(manifest, dict):
+                    artifacts = manifest.get("artifacts", [])
+                    if isinstance(artifacts, list) and artifacts:
+                        latest_artifacts = [artifact for artifact in artifacts if isinstance(artifact, dict)]
+                        break
+
+    if not latest_artifacts:
+        fallback_paths = [
+            workspace / "paper" / "main.pdf",
+            workspace / "paper" / "main.tex",
+            workspace / "paper" / "main.md",
+        ]
+        for path in fallback_paths:
+            if path.is_file() and path.stat().st_size > 0:
+                latest_artifacts = [{
+                    "path": path.relative_to(workspace).as_posix(),
+                    "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                }]
+                break
+
+    waivers = [
+        key for key, value in workflow_metadata.get("params", {}).items()
+        if key.startswith("skip_") and bool(value)
+    ] if isinstance(workflow_metadata.get("params", {}), dict) else []
+
+    report_artifacts = [
+        {"path": str(a["path"]), "sha256": str(a["sha256"])}
+        for a in latest_artifacts
+        if a.get("path") and re.fullmatch(r"[0-9a-fA-F]{64}", str(a.get("sha256", "")))
+    ]
+
+    report_data = {
+        "workflow_id": workflow_id or str(workflow_name or workspace.name),
+        "artifacts": report_artifacts,
+        "gate_outcomes": gate_outcomes,
+        "waivers": waivers,
+        "delivery_decision": "ready" if report_artifacts and gate_outcomes and all(v == "pass" for v in gate_outcomes.values()) else "blocked",
+    }
+    return report_data
+
+
+def write_final_audit_report(workspace: Path, project_root: Path, out: Path | None = None,
+                             workflow_db: Path | None = None) -> Path:
+    """Write the machine-backed delivery audit report to disk."""
+    report = build_final_audit_report(workspace, project_root, workflow_db=workflow_db)
+    target = out or Path(workspace) / "AUDIT_REPORT.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    return target
 
 
 def write_audit_report(workspace: Path, project_root: Path, out: Path | None = None,

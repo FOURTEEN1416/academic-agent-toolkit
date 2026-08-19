@@ -1,0 +1,50 @@
+# Task Plan: Phase 1 Infrastructure Completion
+
+## Goal
+Complete Phase 1 infrastructure from the handover, CodeSucker fusion design, and systematic upgrade plan: a general STEP_MANIFEST protocol, quality gate integration, and four stable bridge tools.
+
+## Route And Risk
+- Primary route: 开发执行 after 接管项目 baseline.
+- Task depth: 标准任务, because this touches engine infrastructure, tools, and tests but stays inside the accepted architecture.
+- Authorization boundary: implement Phase 1 from `docs/superpowers/plans/2026-08-18-systematic-audit-and-upgrade.md` lines 106-165; do not start Phase 2 template/domain upgrades yet.
+
+## Phases
+- [x] Phase 1: Read handover, fusion design, and system upgrade plan
+- [x] Phase 2: Inspect current engine/tool/test owners and working tree
+- [x] Phase 3: Complete STEP_MANIFEST protocol and generic quality gate
+- [x] Phase 4: Implement stable bridges: latex, solver, citation, visual
+- [x] Phase 5: Add/adjust pytest coverage for protocol, gates, and bridges
+- [x] Phase 6: Run full verification and record delivery status
+- [x] Phase 7: Implement 5 named gates: paper_consistency / citation_integrity / experiment_reproduc / figure_provenance / compilation_log
+- [x] Phase 8: Nested metadata merge in template_resolver (Phase 6 standard)
+- [x] Phase 9: Batch migration of 39 templates via tools/upgrade_templates.py
+- [x] Phase 10: Upgrade 40 SKILL.md with STEP_MANIFEST production declaration
+- [x] Phase 11: Provenance ledger: check_provenance.py + 9 UPSTREAM.md files
+- [x] Phase 12: Close audit-report-identified final audit gap with a machine-backed `AUDIT_REPORT.json` generator and CLI path
+- [x] Phase 13: Tighten CodeSucker source-materials gate to enforce manifest, report, rendered hashes, and page limits
+- [x] Phase 14: Remove pytest collection conflict from legacy CodeSucker demo script
+- [x] Phase 15: Convert soft review model mismatch into hard fail for comp-final-review (strict_model_match)
+- [x] Phase 16: Fix broken test setup ordering (write all files before manifest, include verdict in declared outputs)
+
+## Key Questions
+1. Does `STEP_MANIFEST.json` capture input hashes, config, output hashes, backend, commands, and dependencies robustly?
+2. Do the four bridge tools provide stable CLI/JSON contracts and manifest-backed outputs without relying on temporary patches?
+3. Does the full test suite prove Phase 1 infrastructure is integrated without breaking CodeSucker?
+
+## Decisions Made
+- Phase 1 scope is not a minimal patch. It is the full engine infrastructure slice described in the upgrade plan: manifest protocol, quality gate extension, and four stable bridge entrypoints.
+- Phase 2 domain/template upgrades are explicitly out of scope for this task and should start only after Phase 1 has tests and clean verification.
+- Bridge design choice: one shared `tools/bridge_common.py` plus one stable CLI script per concern, each writing a result JSON and a manifest-backed `STEP_MANIFEST.json`.
+- Audit report follow-up: `PHASE1_PHASE6_AUDIT_REPORT.md` is treated as a gap signal, not as the deliverable. The real upgrade target is to make final delivery audit generation executable and testable.
+
+## Errors Encountered
+- Prior user-triggered task tool attempted planner orchestration and was cancelled; no usable subagent output was produced.
+- `tests/test_quality_gates.py` initially failed during import because `engine/quality_gates.py` had an unindented `from .step_manifest` inside a `try:` block. Fixed the import structure and verified 35 tests pass.
+- New step manifest tests exposed relative explicit manifest paths resolving against process CWD instead of workspace. Fixed `validate_manifest()` to resolve relative paths under workspace and reject manifest paths outside workspace.
+- Phase 1 bridge tests confirmed the shared bridge contract, manifest output, and failure diagnostics across latex/solver/citation/visual paths.
+- Final-audit follow-up initially exposed two test-design issues: a direct pending→completed transition (state machine correctly rejected it), and a CLI test that monkeypatched `ROOT` to an empty temp project. Fixed both by following the real runner transition path and using the real suite root for catalog loading.
+- CodeSucker bridge initially failed because config provenance keys were being over-asserted against the manifest. The bridge now validates the canonical manifest fields without requiring CLI echo of bridge-only config metadata.
+- The legacy `tools/test_end_to_end.py` demo script conflicted with `tests/test_end_to_end.py` during pytest collection; it has been renamed to `tools/codesucker_end_to_end_demo.py`.
+
+## Status
+All phases from the systematic upgrade plan are delivered, plus the audit-report follow-up gap is closed and the CodeSucker source-materials gate has been tightened. Final verification: `python -m pytest -q` = 221 passed; `python tools/check_provenance.py` = 18/18 passed. CodeSucker core `npm test` = all 7 groups passed (stable).
