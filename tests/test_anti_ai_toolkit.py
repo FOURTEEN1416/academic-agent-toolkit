@@ -18,14 +18,14 @@ import re
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
-from 数学建模全流程套件.tools.anti_ai_detector import AntiAIDetector
-from 数学建模全流程套件.tools.de_ai_writer import DeAiWriter
-from 数学建模全流程套件.tools.ai_usage_declaration import (
+from 科研工具箱.tools.anti_ai_detector import AntiAIDetector
+from 科研工具箱.tools.de_ai_writer import DeAiWriter
+from 科研工具箱.tools.ai_usage_declaration import (
     build_declaration, build_detail_md, TEMPLATE_NOT_USED, TEMPLATE_USED,
 )
-from 数学建模全流程套件.tools.rewrite_quality_gate import RewriteQualityGate
+from 科研工具箱.tools.rewrite_quality_gate import RewriteQualityGate
 
-TOOLS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "数学建模全流程套件", "tools")
+TOOLS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "科研工具箱", "tools")
 BASELINE_JSON = os.path.join(TOOLS_DIR, "..", "baseline", "human_paper_baseline.json")
 
 HUMAN_SAMPLE = """针对问题一，本文建立了基于变步长搜索算法求解的单目标优化模型。本文将工作抛物面尽可能贴近理想抛物面作为目标函数，将促动器伸缩量作为决策变量。通过变步长搜索算法，求得促动器最优伸缩量。针对问题二，本文在问题一的基础上，进一步考虑了促动器的调节成本，建立了多目标优化模型。利用粒子群算法进行求解，得到促动器的调节方案。数值实验表明，本文建立的模型能够有效解决主动反射面的形状调节问题，具有一定的实用价值。"""

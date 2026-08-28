@@ -25,6 +25,12 @@ Complete Phase 1 infrastructure from the handover, CodeSucker fusion design, and
 - [x] Phase 14: Remove pytest collection conflict from legacy CodeSucker demo script
 - [x] Phase 15: Convert soft review model mismatch into hard fail for comp-final-review (strict_model_match)
 - [x] Phase 16: Fix broken test setup ordering (write all files before manifest, include verdict in declared outputs)
+- [x] Phase 17 (2026-08-28): 文档治理 — 盘点 dev-docs 真源骨架（不重建）、探针校准 225 tests、补 LOG.md、刷新 truth-index
+- [x] Phase 18 (2026-08-28): ZCode 兼容层 — 根 AGENTS.md + .zcode/config.json(docsearch MCP) + .zcode/skills 联结（gitignored）
+- [x] Phase 19 (2026-08-28): 科研绘图扩展 — fork 10 上游仓库（vendor/forks 暂存），集成 9 技能 + UPSTREAM.md 溯源 + catalog 入册 scientific_plotting_expanded
+- [x] Phase 20 (2026-08-28): 全量文档治理 — 3 审计代理通读 45+ 文档 + 手工 legacy 逐字节比对；17 份加"仅供追溯"横幅；修 COMP_REVIEW 损坏声明/INVENTORY 拼接段/CHANGELOG 许可矛盾/b4 标题诚实化/LESSONS M6/README 过期声明
+- [x] Phase 21 (2026-08-28): 命名对齐科研工具箱定位 — 数学建模全流程套件/ → 科研工具箱/（git mv），15 活跃文件 80 处引用更新，历史 dated 快照保留原文
+- [x] Phase 22 (2026-08-28): 数学建模大赛工具集/ 整包归档至 dev-docs/archive/（零丢失核查，见 dev-docs/DELETION_LOG.md）；新增 acat-doc-governance 技能 + /doc-governance 命令
 
 ## Key Questions
 1. Does `STEP_MANIFEST.json` capture input hashes, config, output hashes, backend, commands, and dependencies robustly?

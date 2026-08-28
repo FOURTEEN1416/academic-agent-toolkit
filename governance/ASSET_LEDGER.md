@@ -1,3 +1,5 @@
+> ⚠️ **状态已过期（2026-08-28 治理标注）**：本台账为 2026-08-13 快照。"none are marked 正式"等结论已被取代——capabilities/catalog.json 现为 269 条（正式 10）。刷新请重跑 tools/build_asset_ledger.py。
+
 # File-Level Asset Ledger
 
 > **Status: provisional inventory evidence, not release authorization.** Generated at 2026-08-13T11:50:30.529941+00:00.

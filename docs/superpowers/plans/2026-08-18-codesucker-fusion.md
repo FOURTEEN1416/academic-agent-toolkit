@@ -1,3 +1,5 @@
+> ⚠️ **仅供追溯（2026-08-28 治理标注）**：本文为阶段性快照，其中数字基线/定位表述已被后续事实取代，以 `dev-docs/truth-index.md` 与最新实证（pytest 225 passed、catalog 269 条/正式 10）为准。本文件不再维护。
+
 # CodeSucker Fusion Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

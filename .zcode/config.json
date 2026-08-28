@@ -1,0 +1,18 @@
+{
+  "mcp": {
+    "servers": {
+      "docsearch": {
+        "type": "local",
+        "command": "C:\\Users\\FOUR\\.config\\opencode\\mcp\\docsearch-mcp\\.venv\\Scripts\\python.exe",
+        "args": [
+          "C:\\Users\\FOUR\\.config\\opencode\\mcp\\docsearch-mcp\\server.py"
+        ],
+        "env": {
+          "DOCSEARCH_ROOTS": "D:\\Desktop\\数模竞赛",
+          "DOCSEARCH_EXCLUDE_DIRS": "技能,skills,知识库,知识库搭建,node_modules,.venv,venv,.git,archive,assets,desc,__pycache__,.next,vendor"
+        },
+        "timeout": 30000
+      }
+    }
+  }
+}
