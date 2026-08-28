@@ -4376,7 +4376,7 @@
       "description": "背景技术/技术问题/技术方案(含HTML系统框图流程图)/优点/关键保护点/实施例→Electron截图PNG→DOCX成品",
       "input_contract": "技术描述/交底要点",
       "output_contract": "专利交底书草稿.md、专利交底书.docx、fig_*.png",
-      "status": "private_extension",
+      "status": "experimental",
       "associated_skills": [
         "patent-draft",
         "patent-build",
@@ -4391,7 +4391,10 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：PATENT_DISCLOSURE.md(14.2KB) 六章交底书+fig_architecture.html；Electron 截图后端不可用如实记录（2026-08-17）",
-      "current_gap": "C3/C4 无专用基准集（2026-08-17 审核确认）；C5 未校准；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 无专用基准集（2026-08-17 审核确认）；C5 未校准；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+      ]
     },
     {
       "capability_id": "copyright_draft_build",
@@ -4400,7 +4403,7 @@
       "description": "业务理解/申请表信息/代码材料(合成可运行示例)/操作手册/模拟截图→成品脚本生成DOCX/TXT",
       "input_contract": "软件描述/功能清单",
       "output_contract": "代码材料.docx、操作手册.docx、申请表信息.txt",
-      "status": "private_extension",
+      "status": "experimental",
       "associated_skills": [
         "copyright-draft",
         "copyright-build"
@@ -4411,7 +4414,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "无",
       "current_evidence": "C2 验收：COPYRIGHT_DRAFT.md(24.9KB) 软著资料+290 行真实 Flask 代码（2026-08-17）",
-      "current_gap": "C3/C4 无专用基准集（2026-08-17 审核确认）；C5 未校准；许可证已改为CC-BY-NC-4.0禁止商用"
+      "current_gap": "C3/C4 无专用基准集（2026-08-17 审核确认）；C5 未校准；许可证已改为CC-BY-NC-4.0禁止商用",
+      "promotion_history": [
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+      ]
     },
     {
       "capability_id": "ars-grants",
@@ -4428,7 +4434,10 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
-      "status": "private_extension"
+      "status": "experimental",
+      "promotion_history": [
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+      ]
     },
     {
       "capability_id": "ars-patent",
@@ -4445,7 +4454,10 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
-      "status": "private_extension"
+      "status": "experimental",
+      "promotion_history": [
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+      ]
     },
     {
       "capability_id": "copyright-build",
@@ -4462,7 +4474,10 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
-      "status": "private_extension"
+      "status": "experimental",
+      "promotion_history": [
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+      ]
     },
     {
       "capability_id": "copyright-draft",
@@ -4479,7 +4494,10 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
-      "status": "private_extension"
+      "status": "experimental",
+      "promotion_history": [
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+      ]
     },
     {
       "capability_id": "grant-proposal",
@@ -4496,7 +4514,10 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
-      "status": "private_extension"
+      "status": "experimental",
+      "promotion_history": [
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+      ]
     },
     {
       "capability_id": "latexpap-collaborating-with-gemini",
@@ -4531,7 +4552,10 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
-      "status": "private_extension"
+      "status": "experimental",
+      "promotion_history": [
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+      ]
     },
     {
       "capability_id": "patent-draft",
@@ -4548,7 +4572,10 @@
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
       "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
-      "status": "private_extension"
+      "status": "experimental",
+      "promotion_history": [
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+      ]
     },
     {
       "capability_id": "codesucker-integration",
