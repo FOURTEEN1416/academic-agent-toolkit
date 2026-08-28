@@ -3,11 +3,11 @@
   "default_agent": "数模专家",
   "skills": {
     "paths": [
-      "./数学建模全流程套件/skills"
+      "./科研工具箱/skills"
     ]
   },
   "instructions": [
-    "数学建模全流程套件/AGENTS.md"
+    "科研工具箱/AGENTS.md"
   ],
   "subagent_depth": 1,
   "share": "disabled",

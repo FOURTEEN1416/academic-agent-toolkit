@@ -5166,6 +5166,44 @@
       "current_evidence": "测试套件10/10通过；20篇获奖论文假阳性率0%；门禁实证拦截humanize-chinese机械改写（语义漂移/杜撰话术4处error）；双检测器交叉验证一致（练习论文 18/100 vs 15.55%）",
       "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "promotion_history": []
+    },
+    {
+      "capability_id": "scientific_plotting_expanded",
+      "name": "科研绘图扩展套件（期刊级/交互式/示意图）",
+      "domain": "figures_and_document_production",
+      "description": "期刊级多面板图（误差棒/显著性标注/色盲安全/PDF-EPS-TIFF导出）、matplotlib/seaborn/plotly 三层绘图栈、确定性 JSON→SVG 架构与流程图（FigureSpec）、Graphviz 依赖图、Excalidraw 视觉论证图、Mermaid 图、信息图与科学示意图",
+      "input_contract": "数据文件（CSV/JSON/DataFrame）、图表规划、图规格 JSON",
+      "output_contract": "PDF/PNG/SVG/EPS/TIFF 图表、.excalidraw JSON、.mmd、DOT/SVG",
+      "status": "experimental",
+      "associated_skills": [
+        "scientific-visualization",
+        "matplotlib",
+        "seaborn",
+        "plotly",
+        "figure-spec",
+        "graphviz",
+        "excalidraw-diagram",
+        "infographics",
+        "scientific-schematics",
+        "nature-figure",
+        "paper-figure",
+        "mermaid-diagram"
+      ],
+      "associated_tools": [
+        "python(matplotlib/seaborn/plotly)",
+        "graphviz",
+        "node(mermaid-cli 可选)"
+      ],
+      "external_dependencies": [
+        "Python 3.10+",
+        "matplotlib/seaborn/plotly（按需安装）",
+        "infographics 需 OPENROUTER_API_KEY（可选）",
+        "scientific-schematics 需图像生成后端（可选）"
+      ],
+      "high_risk_confirmation": "覆盖 figures/ 下同名文件需确认；外部 API 技能为可选",
+      "current_evidence": "2026-08-28 集成 9 个上游技能（fork 仓库 pinned commit 见各 skills/<name>/references/UPSTREAM.md）；tools/check_provenance.py 26 条台账全过；nature-figure/paper-figure/mermaid-diagram 为既有本地增强版，未覆盖",
+      "current_gap": "9 个新技能未跑 C2-C5 验收；graphviz 与 excalidraw-diagram 上游无 LICENSE 文件，仅限本地研究使用，已 gitignore，不入公开仓库",
+      "promotion_history": []
     }
   ]
 }

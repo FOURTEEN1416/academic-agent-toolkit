@@ -59,7 +59,7 @@ def test_capability_ids_unique() -> None:
 
 def test_all_skills_mapped() -> None:
     """目录必须覆盖套件 skills 目录中的全部技能（设计规格：200+ 项技能映射）。"""
-    skills_root = Path(__file__).resolve().parents[1] / "数学建模全流程套件" / "skills"
+    skills_root = Path(__file__).resolve().parents[1] / "科研工具箱" / "skills"
     skill_dirs = {d.name for d in skills_root.iterdir() if d.is_dir() and (d / "SKILL.md").exists()}
     data = json.loads(CATALOG.read_text(encoding="utf-8"))
     catalog_ids = {item.get("capability_id") for items in data.values() for item in items}

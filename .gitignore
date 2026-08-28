@@ -85,7 +85,6 @@ workspaces/
 benchmarks/cumcm_private/
 
 # Legacy toolkit and release packages (kept locally for traceability)
-数学建模大赛工具集/
 releases/
 
 # Browser automation state and acceptance-test scratch artifacts
@@ -93,10 +92,19 @@ releases/
 acceptance_testing/
 
 # Suite-internal private reference data and anti-AI baselines derived from award papers
-数学建模全流程套件/data/
-数学建模全流程套件/baseline/
+科研工具箱/data/
+科研工具箱/baseline/
 
 # Local test and vision-call residue
-数学建模全流程套件/_test_input.md
+科研工具箱/_test_input.md
 **/.drawio_vision_calls.json
 **/.tikz_vision_calls.json
+# Upstream fork staging (local research only, not tracked)
+vendor/
+
+# ZCode compat: NTFS junction to kit skills (not trackable)
+.zcode/skills/
+
+# No-license upstream skills (local research only, must not be published)
+科研工具箱/skills/graphviz/
+科研工具箱/skills/excalidraw-diagram/
