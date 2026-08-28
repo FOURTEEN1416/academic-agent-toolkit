@@ -5202,7 +5202,7 @@
       ],
       "high_risk_confirmation": "覆盖 figures/ 下同名文件需确认；外部 API 技能为可选",
       "current_evidence": "2026-08-28 集成 9 个上游技能（fork 仓库 pinned commit 见各 skills/<name>/references/UPSTREAM.md）；tools/check_provenance.py 26 条台账全过；nature-figure/paper-figure/mermaid-diagram 为既有本地增强版，未覆盖",
-      "current_gap": "9 个新技能未跑 C2-C5 验收；graphviz 与 excalidraw-diagram 上游无 LICENSE 文件，仅限本地研究使用，已 gitignore，不入公开仓库",
+      "current_gap": "9 个新技能未跑 C2-C5 验收；graphviz 与 excalidraw-diagram 上游无 LICENSE 文件，用户 2026-08-28 授权随仓库发布（版权归上游作者，异议即移除）",
       "promotion_history": []
     }
   ]

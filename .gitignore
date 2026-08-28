@@ -104,7 +104,3 @@ vendor/
 
 # ZCode compat: NTFS junction to kit skills (not trackable)
 .zcode/skills/
-
-# No-license upstream skills (local research only, must not be published)
-科研工具箱/skills/graphviz/
-科研工具箱/skills/excalidraw-diagram/
