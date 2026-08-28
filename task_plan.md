@@ -30,6 +30,7 @@ Complete Phase 1 infrastructure from the handover, CodeSucker fusion design, and
 - [x] Phase 19 (2026-08-28): 科研绘图扩展 — fork 10 上游仓库（vendor/forks 暂存），集成 9 技能 + UPSTREAM.md 溯源 + catalog 入册 scientific_plotting_expanded
 - [x] Phase 20 (2026-08-28): 全量文档治理 — 3 审计代理通读 45+ 文档 + 手工 legacy 逐字节比对；17 份加"仅供追溯"横幅；修 COMP_REVIEW 损坏声明/INVENTORY 拼接段/CHANGELOG 许可矛盾/b4 标题诚实化/LESSONS M6/README 过期声明
 - [x] Phase 21 (2026-08-28): 命名对齐科研工具箱定位 — 数学建模全流程套件/ → 科研工具箱/（git mv），15 活跃文件 80 处引用更新，历史 dated 快照保留原文
+- [x] Phase 23 (2026-08-28): 全能力公开发布 — catalog 9 项 private_extension→experimental（用户裁定），CHANGELOG v1.1.0，本地发布包 releases/v1.1（269 能力/247 技能净化包）
 - [x] Phase 22 (2026-08-28): 数学建模大赛工具集/ 整包归档至 dev-docs/archive/（零丢失核查，见 dev-docs/DELETION_LOG.md）；新增 acat-doc-governance 技能 + /doc-governance 命令
 
 ## Key Questions
