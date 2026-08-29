@@ -9,7 +9,7 @@
 [![Release](https://img.shields.io/badge/release-v1.1.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-225_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-269-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-244-8b5cf6?style=flat-square)](科研工具箱/skills)
+[![Skills](https://img.shields.io/badge/skills-245-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
 [![Hosts](https://img.shields.io/badge/hosts-OpenCode_|_ZCode-1f2937?style=flat-square)](#快速开始)
@@ -19,7 +19,7 @@
 ---
 
 > [!TIP]
-> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（244 个技能）自主完成
+> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（245 个技能）自主完成
 > 建模 → 编码 → 绘图 → 写作 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯**。
 
 ## ✨ 为什么不是又一个提示词合集
@@ -70,6 +70,7 @@ L1 拦截式插件逐条记录每次工具调用（不可绕过）+ L2 编排留
 | 期刊规范 | `scientific-visualization` | 多面板布局 · 误差棒 · 显著性标注 · 色盲安全 · PDF/EPS/TIFF 导出 |
 | 绘图库 | `matplotlib` `seaborn` `plotly` | 底层定制 · 统计图形 · 交互式图表 |
 | 确定性图 | `figure-spec` `graphviz` `mermaid` | JSON→SVG 架构图 · 依赖图 · 流程图 |
+| 编辑级图 | `diagram-design` | 39 类品牌图（Sankey/鱼骨/Wardley/UML/ER…）· 重绘 drawio/mermaid 源 · MIT |
 | 视觉论证 | `excalidraw-diagram` `infographics` `scientific-schematics` | 手绘风论证图 · 信息图 · 科学示意图 |
 | 既有沉淀 | `nature-figure` + 62 篇获奖论文实证规范 | Nature 级排版与配色 |
 
@@ -104,7 +105,7 @@ flowchart LR
 git clone https://github.com/FOURTEEN1416/academic-agent-toolkit.git
 ```
 
-用 [OpenCode Desktop](https://opencode.ai) 打开仓库根目录即可——`opencode.json` 已配好默认角色（数模专家）、技能路径、docsearch MCP 与 4 个审稿 subagent。直接下任务：
+用 [OpenCode Desktop](https://opencode.ai) 打开项目根目录 `D:\Desktop\数模竞赛` 即可——`opencode.json` 已配好默认角色（数模专家）、技能路径、docsearch MCP 与 4 个审稿 subagent。直接下任务：
 
 > "按 CUMCM 流程做这道 2024 年 B 题，数据在 data/ 下，输出国一格式论文。"
 
@@ -116,7 +117,7 @@ cd academic-agent-toolkit
 cmd /c "mklink /J .zcode\skills 科研工具箱\skills"   # 重建技能联结（Windows）
 ```
 
-打开仓库根目录：244 个技能自动发现、docsearch MCP 自动连接、`/doc-governance` 治理命令可用。
+打开仓库根目录：245 个技能自动发现、docsearch MCP 自动连接、`/doc-governance` 治理命令可用。
 
 > [!NOTE]
 > **宿主差异**：L1 拦截式审计插件仅 OpenCode 可用；ZCode 下审计为 L2+L3 两层，其余功能完全一致。
@@ -146,7 +147,7 @@ python tools/check_provenance.py             # → 26/26 UPSTREAM 台账通过
 
 ```
 academic-agent-toolkit/
-├── 科研工具箱/     ★ 产品主体  skills(244) · engine(13) · tools(58+) · tests
+├── 科研工具箱/     ★ 产品主体  skills(245) · engine(13) · tools(58+) · tests
 ├── capabilities/      能力目录 catalog.json —— 269 条，含验收证据与缺口声明
 ├── benchmarks/        公开基准集（CC-BY-4.0）
 ├── docs/superpowers/  设计 spec 与实施计划（dated 快照）
@@ -177,6 +178,7 @@ academic-agent-toolkit/
 [foryourhealth111-pixel/Vibe-Skills](https://github.com/foryourhealth111-pixel/Vibe-Skills) ·
 [synthetic-sciences/openscience](https://github.com/synthetic-sciences/openscience) ·
 [wanshuiyin/Auto-claude-code-research-in-sleep](https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep) ·
+[cathrynlavery/diagram-design](https://github.com/cathrynlavery/diagram-design) ·
 [markdown-viewer/skills](https://github.com/markdown-viewer/skills) ·
 [coleam00/excalidraw-diagram-skill](https://github.com/coleam00/excalidraw-diagram-skill) ·
 [fanbuz/codesucker](https://github.com/fanbuz/codesucker)

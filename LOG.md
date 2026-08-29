@@ -38,3 +38,9 @@
 - **动作**：按用户裁定将项目所有能力纳入公开发布——catalog 9 项 private_extension（软著 copyright-draft/build、专利 patent-draft/build、grants 等）转 experimental 并记 promotion_history；CHANGELOG 增 v1.1.0 条目；本地组装净化发布包 releases/v1.1（269 能力/247 技能，剔除 .env/sqlite/workspaces/baseline/data/__pycache__，与公开仓库边界一致）；acceptance_testing/sync_release.py 旧路径修正。
 - **原因**：用户指示"将该项目所有能力都进行发布"。发布≠转正式：未经 C2-C5 验收的能力保持 experimental 如实状态（正式仍为 10 项），避免伪造验收证据。
 - **验证**：pytest 225 passed；发布包净化复查（无 .env/sqlite/私有目录）通过；bundle catalog 分布 {正式:10, experimental:259}。
+
+## 2026-08-29
+
+- **动作**：追加集成 cathrynlavery/diagram-design（28.3k★，MIT，39 类编辑级图表 + drawio/mermaid 源重绘）——fork 至 FOURTEEN1416/diagram-design（pinned ac490fd），技能原样入 科研工具箱/skills/diagram-design，UPSTREAM.md 溯源 + provenance 注册表（26→27），catalog scientific_plotting_expanded 能力与 README 绘图栈同步更新（244→245 技能）。
+- **原因**：用户评估后拍板融入；补强绘图栈的"编辑设计级信息图"层，与 figure-spec（确定性）/excalidraw（手绘论证）形成三风格互补。
+- **验证**：provenance 27/27；pytest 全量见当次运行结果。

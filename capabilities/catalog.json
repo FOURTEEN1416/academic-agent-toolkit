@@ -5198,7 +5198,7 @@
       "capability_id": "scientific_plotting_expanded",
       "name": "科研绘图扩展套件（期刊级/交互式/示意图）",
       "domain": "figures_and_document_production",
-      "description": "期刊级多面板图（误差棒/显著性标注/色盲安全/PDF-EPS-TIFF导出）、matplotlib/seaborn/plotly 三层绘图栈、确定性 JSON→SVG 架构与流程图（FigureSpec）、Graphviz 依赖图、Excalidraw 视觉论证图、Mermaid 图、信息图与科学示意图",
+      "description": "期刊级多面板图（误差棒/显著性标注/色盲安全/PDF-EPS-TIFF导出）、matplotlib/seaborn/plotly 三层绘图栈、确定性 JSON→SVG 架构与流程图（FigureSpec）、Graphviz 依赖图、Excalidraw 视觉论证图、Mermaid 图、信息图与科学示意图、39 类编辑级品牌图（diagram-design：Sankey/鱼骨/Wardley/UML/ER 等，支持重绘 drawio/mermaid 源）",
       "input_contract": "数据文件（CSV/JSON/DataFrame）、图表规划、图规格 JSON",
       "output_contract": "PDF/PNG/SVG/EPS/TIFF 图表、.excalidraw JSON、.mmd、DOT/SVG",
       "status": "experimental",
@@ -5214,7 +5214,8 @@
         "scientific-schematics",
         "nature-figure",
         "paper-figure",
-        "mermaid-diagram"
+        "mermaid-diagram",
+        "diagram-design"
       ],
       "associated_tools": [
         "python(matplotlib/seaborn/plotly)",
@@ -5228,7 +5229,7 @@
         "scientific-schematics 需图像生成后端（可选）"
       ],
       "high_risk_confirmation": "覆盖 figures/ 下同名文件需确认；外部 API 技能为可选",
-      "current_evidence": "2026-08-28 集成 9 个上游技能（fork 仓库 pinned commit 见各 skills/<name>/references/UPSTREAM.md）；tools/check_provenance.py 26 条台账全过；nature-figure/paper-figure/mermaid-diagram 为既有本地增强版，未覆盖",
+      "current_evidence": "2026-08-28 集成 9 个上游技能（fork 仓库 pinned commit 见各 skills/<name>/references/UPSTREAM.md）；tools/check_provenance.py 26 条台账全过；nature-figure/paper-figure/mermaid-diagram 为既有本地增强版，未覆盖；2026-08-29 追加集成 diagram-design（MIT，fork pinned ac490fd）",
       "current_gap": "9 个新技能未跑 C2-C5 验收；graphviz 与 excalidraw-diagram 上游无 LICENSE 文件，用户 2026-08-28 授权随仓库发布（版权归上游作者，异议即移除）",
       "promotion_history": []
     }
