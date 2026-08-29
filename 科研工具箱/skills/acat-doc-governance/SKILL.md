@@ -21,6 +21,13 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
    - 矛盾真值（同一事实多个版本：以最新实证为准，历史文档加"仅供追溯"横幅）。
 3. **定位铁律**：本项目是**完整科研工具箱**（全学术 Agent 工具箱），不只是数模竞赛工具。
    目录名/文档标题/自我指称一律不得窄化为"数学建模/数模"。
+4. **集成铁律（2026-08-29 增补）**：新技能"融入"≠ 复制进 `skills/` 目录。按设计哲学
+   （`dev-docs/解析/01-总纲` 三层架构 + `docs/superpowers/plans/2026-08-18-systematic-upgrade` 三条钢律
+   + CodeSucker 融合案例），完整融入至少含：①SKILL.md 适配套件规范（输入/输出契约+质量铁律）并加
+   `## STEP_MANIFEST 产出声明`；②外部能力经稳定 bridge/脚本入口；③named gates 可校验产物；
+   ④`engine/modex-core/templates.json` 注册工作流步骤（含 required_checks/metadata）；
+   ⑤`references/UPSTREAM.md` 溯源并登记 `tools/check_provenance.py`；⑥对应测试/验收证据。
+   缺任何一项即为"堆放"，治理时须标记并补齐。
 
 ## 本仓库真源锚点
 

@@ -14,6 +14,12 @@ metadata:
 
 # Infographics
 
+## STEP_MANIFEST 产出声明
+
+本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+
+建议额外记录：图像生成后端与模型名、提示词要点与迭代轮次；外部 API 调用须经高风险确认并计入成本。
+
 ## Overview
 
 Infographics are visual representations of information, data, or knowledge designed to present complex content quickly and clearly. **This skill uses Nano Banana Pro AI for infographic generation with Gemini 3.6 Flash quality review and Perplexity Sonar for research.**
