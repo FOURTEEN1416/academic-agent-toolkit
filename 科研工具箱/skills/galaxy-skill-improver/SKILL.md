@@ -112,7 +112,7 @@ Order changes by priority within each file.
 
 ```bash
 # Use backup script
-~/.claude/skills/skill-improver/scripts/backup-skill.sh <skill-path>
+~/.claude/skills/skill-improver/scripts/backup-skill.sh <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> <skill-path>
 ```
 
 **Apply changes:**
@@ -130,7 +130,7 @@ Order changes by priority within each file.
 
 ```bash
 # Use verify script
-~/.claude/skills/skill-improver/scripts/verify-update.sh <skill-path>
+~/.claude/skills/skill-improver/scripts/verify-update.sh <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> <skill-path>
 ```
 
 **Generate update-report-{skill-name}-{timestamp}.md** documenting:

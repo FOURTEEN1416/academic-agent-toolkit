@@ -1,3 +1,8 @@
+---
+name: problem-analysis
+description: "Problem Analysis Skill——接到赛题后 1-2 小时内把题目"拆透"：题型判定、关键约束、坑点、答案形态。"
+---
+
 # Problem Analysis Skill
 
 ## 用途

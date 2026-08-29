@@ -83,8 +83,8 @@ This opens a separate interactive PowerShell window. For a user-run terminal,
 this direct command is also supported:
 
 ```bash
-WIZARD="$HOME/.codex/skills/paper-spine-ui/scripts/intake_wizard.py"
-[ -f "$WIZARD" ] || WIZARD="$HOME/.claude/skills/paper-spine-ui/scripts/intake_wizard.py"
+WIZARD="$HOME/.codex/skills/paper-spine-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
+[ -f "$WIZARD" ] || WIZARD="$HOME/.claude/skills/paper-spine-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
 python "$WIZARD" --output-dir paper_rewriting_output
 ```
 
@@ -121,8 +121,8 @@ On first setup, or when the user asks to change PaperSpine interface language,
 run the wizard in global setup mode:
 
 ```bash
-WIZARD="$HOME/.codex/skills/paper-spine-ui/scripts/intake_wizard.py"
-[ -f "$WIZARD" ] || WIZARD="$HOME/.claude/skills/paper-spine-ui/scripts/intake_wizard.py"
+WIZARD="$HOME/.codex/skills/paper-spine-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
+[ -f "$WIZARD" ] || WIZARD="$HOME/.claude/skills/paper-spine-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
 python "$WIZARD" --setup-global --output-dir paper_rewriting_output
 ```
 

@@ -65,7 +65,7 @@ Review src/auth.py around login() and propose fixes.
 OUTPUT: Unified Diff Patch ONLY.
 EOF
 )"
-python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py --cd "." --model sonnet --PROMPT "$PROMPT" --output-format stream-json
+python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> --cd "." --model sonnet --PROMPT "$PROMPT" --output-format stream-json
 ```
 
 **Output:** JSON with `success`, `SESSION_ID`, `agent_messages`, and optional `error` / `all_messages`.
@@ -78,14 +78,14 @@ PROMPT="$(cat <<'EOF'
 Analyze the bug in foo(). Keep it short.
 EOF
 )"
-python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py --cd "." --PROMPT "$PROMPT" --output-format stream-json
+python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> --cd "." --PROMPT "$PROMPT" --output-format stream-json
 
 # Continue the same session
 PROMPT="$(cat <<'EOF'
 Now propose a minimal fix as Unified Diff Patch ONLY.
 EOF
 )"
-python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py --cd "." --SESSION_ID "<SESSION_ID>" --PROMPT "$PROMPT" --output-format stream-json
+python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> --cd "." --SESSION_ID "<SESSION_ID>" --PROMPT "$PROMPT" --output-format stream-json
 ```
 
 ## Prompting Patterns (Paper Mode)
@@ -100,7 +100,7 @@ Each template specifies its input sources, output artifact mappings, and constra
 
 ## Verification
 - Cross-check both collaborators: use the `check-collaborators` skill
-- Smoke-test the bridge: `python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py --help`
+- Smoke-test the bridge: `python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> --help`
 - For session testing: run one prompt with `--output-format stream-json` and confirm JSON contains `success: true` and a `SESSION_ID`.
 
 ## References

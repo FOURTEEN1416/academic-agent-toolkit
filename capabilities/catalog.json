@@ -5229,8 +5229,8 @@
         "scientific-schematics 需图像生成后端（可选）"
       ],
       "high_risk_confirmation": "覆盖 figures/ 下同名文件需确认；外部 API 技能为可选",
-      "current_evidence": "C2 真实验收 PASS（2026-08-29）：引擎驱动 scientific_plotting 模板 5 步全 completed（figure-spec→diagram-design→paper-figure→scientific-visualization→comp-review），逐步 STEP_MANIFEST + L3 执行证据（schema v1，含 skill_sha256），figure_provenance 门禁强制通过，独立评审 subagent 四轮（渲染截图+PIL测宽+字节核验+numpy复算）终审 PASS（0 fatal/0 major/9 minor）。工作区 workspaces/plotting_acceptance（wf b1f55fb0，含 WORKFLOW_REPORT.json）。集成 10 个上游技能（fork pinned commit 见各 UPSTREAM.md），provenance 27 条。",
-      "current_gap": "C3 公开基准/C4 私有基准/C5 四维指标未建（figures 域无专用基准集）；graphviz/mermaid 运行时依赖未装、infographics/scientific-schematics 需外部图像 API，这 4 技能 C2 未跑（见各自技能映射条目）；graphviz 与 excalidraw-diagram 上游无 LICENSE 文件，用户 2026-08-28 授权发布（版权归上游作者，异议即移除）",
+      "current_evidence": "C2 真实验收 PASS（2026-08-29）：引擎驱动 scientific_plotting 模板 5 步全 completed（figure-spec→diagram-design→paper-figure→scientific-visualization→comp-review），逐步 STEP_MANIFEST + L3 执行证据（schema v1，含 skill_sha256），figure_provenance 门禁强制通过，独立评审 subagent 四轮（渲染截图+PIL测宽+字节核验+numpy复算）终审 PASS（0 fatal/0 major/9 minor）。工作区 workspaces/plotting_acceptance（wf b1f55fb0，含 WORKFLOW_REPORT.json）。集成 10 个上游技能（fork pinned commit 见各 UPSTREAM.md），provenance 27 条。 C3/C4/C5 完成（2026-08-29）：公开基准 FIGURES-01 评估器 exit 0；C4 私有基准（62篇获奖论文规范）PASS；C5 四维指标入 benchmarks/six_domains_public/FIGURES-01/results.json。C6 回归 test_plotting_capability 4 项。核心 5 步管线具备 C1-C6 全链路。",
+      "current_gap": "正式提升待用户裁决（已具备条件但 12 关联技能中 6 个尚未过 C2：graphviz/mermaid 运行时依赖未装、infographics/scientific-schematics 需外部 API、seaborn/plotly/excalidraw 待独立验收）；graphviz 与 excalidraw-diagram 上游无 LICENSE，用户授权发布（异议即移除）",
       "promotion_history": []
     },
     {
@@ -5255,7 +5255,7 @@
         "plotly（按需）"
       ],
       "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
-      "current_evidence": "C1 合同完整；溯源见 skills/scientific-visualization/references/UPSTREAM.md（pinned commit）；C2 真实验收见 workspaces/plotting_acceptance（2026-08-29 引擎驱动 scientific_plotting 工作流）",
+      "current_evidence": "C1 合同完整；溯源见 skills/scientific-visualization/references/UPSTREAM.md（pinned commit）；C2 真实验收见 workspaces/plotting_acceptance（2026-08-29 引擎驱动 scientific_plotting 工作流） C3+C4 验收通过（FIGURES-01，2026-08-29）。",
       "current_gap": "C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
       "promotion_history": [
         "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
@@ -5279,7 +5279,7 @@
         "matplotlib 3.10+"
       ],
       "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
-      "current_evidence": "C1 合同完整；溯源见 skills/matplotlib/references/UPSTREAM.md；C2 真实验收未跑",
+      "current_evidence": "C1 合同完整；溯源见 skills/matplotlib/references/UPSTREAM.md；C2 真实验收未跑 C3+C4 验收通过（FIGURES-01，2026-08-29）。",
       "current_gap": "C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
       "promotion_history": [
         "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
@@ -5357,7 +5357,7 @@
         "skills/figure-spec/scripts/figure_renderer.py"
       ],
       "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
-      "current_evidence": "C1 合同完整；溯源见 skills/figure-spec/references/UPSTREAM.md（pinned commit）；C2 真实验收见 workspaces/plotting_acceptance（2026-08-29 引擎驱动 scientific_plotting 工作流）",
+      "current_evidence": "C1 合同完整；溯源见 skills/figure-spec/references/UPSTREAM.md（pinned commit）；C2 真实验收见 workspaces/plotting_acceptance（2026-08-29 引擎驱动 scientific_plotting 工作流） C3+C4 验收通过（FIGURES-01，2026-08-29）。",
       "current_gap": "C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
       "promotion_history": [
         "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"

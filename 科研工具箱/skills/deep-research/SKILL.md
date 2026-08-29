@@ -1,3 +1,8 @@
+---
+name: deep-research
+description: "深度调研（Deep Research for CUMCM）——赛题分析的顶层调研技能。比赛出题后 6 小时内快速吃透题目背景、数据来源、前沿方法、可用工具，为选题决策提供证据。"
+---
+
 # 深度调研（Deep Research for CUMCM）
 
 ## 定位

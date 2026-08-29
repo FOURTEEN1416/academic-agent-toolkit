@@ -16,7 +16,7 @@ When the manuscript depends on experiments, figures, or results produced across 
 Use the helper script when you need a clean baseline layout quickly:
 
 ```bash
-python ~/.codex/skills/paper-bootstrap/scripts/init_paper_layout.py path/to/paper
+python ~/.codex/skills/paper-bootstrap/scripts/init_paper_layout.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> path/to/paper
 # Claude Code (global install): replace ~/.codex/skills with ~/.claude/skills
 # Claude Code (project-local install): replace ~/.codex/skills with .claude/skills
 ```

@@ -1,0 +1,15 @@
+{
+  "benchmark_id": "FIGURES-01",
+  "domain": "figures_and_document_production",
+  "capability_ids": ["cap_skill_scientific_visualization", "cap_skill_figure_spec", "cap_skill_matplotlib", "scientific_plotting_expanded"],
+  "input_contract": "data/measurements.csv（3组×5次重复）",
+  "output_contract": ["figures/fig_results.png(≥300dpi)", "figures/latex_includes.tex", "figures/diagrams/*.svg", "figures/FIGURE_PROVENANCE.json"],
+  "evaluator": "evaluate.py",
+  "pass_rule": "全部检查为 true",
+  "four_dimensions": {
+    "quality": "evaluate.py 全检查通过 + 几何/字节/溯源一致性",
+    "reliability": "门禁拒绝→修复→通过闭环可追溯",
+    "efficiency": "workflow events 时间戳（start→completed）",
+    "cost": "外部 API 调用次数与费用（本基准应可为 0）"
+  }
+}

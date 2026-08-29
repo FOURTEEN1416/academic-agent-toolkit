@@ -1,3 +1,8 @@
+---
+name: visualization
+description: "Visualization Skill——把数据和模型结果画成"评委一眼能看懂"的图。**图好 = 论文档次 +1 档**。"
+---
+
 # Visualization Skill
 
 ## 用途
