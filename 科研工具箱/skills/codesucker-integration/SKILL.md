@@ -1,3 +1,8 @@
+---
+name: codesucker-integration
+description: "CodeSucker 软著源程序文档抽取器 — 集成技能——基于 [fanbuz/codesucker](https://github.com/fanbuz/codesucker) (Apache-2.0) 的 Python 移植版。"
+---
+
 # CodeSucker 软著源程序文档抽取器 — 集成技能
 
 > 基于 [fanbuz/codesucker](https://github.com/fanbuz/codesucker) (Apache-2.0) 的 Python 移植版。

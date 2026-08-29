@@ -1,0 +1,72 @@
+{
+ "benchmark_id": "FIGURES-01",
+ "capability_ids": [
+  "scientific_plotting_expanded",
+  "cap_skill_scientific_visualization",
+  "cap_skill_figure_spec",
+  "cap_skill_matplotlib"
+ ],
+ "acceptance_date": "2026-08-29",
+ "workflow": {
+  "template": "scientific_plotting",
+  "workflow_id": "2038d2e9-5f98-4dc7-b39c-6eb84ddcb290",
+  "workspace": "workspaces/figures_benchmark_c3",
+  "steps": [
+   "figure-spec",
+   "diagram-design",
+   "paper-figure",
+   "scientific-visualization",
+   "comp-review"
+  ],
+  "status": "completed"
+ },
+ "quality": {
+  "c3_public_benchmark": {
+   "evaluator": "benchmarks/six_domains_public/FIGURES-01/evaluate.py",
+   "result": "PASS (exit 0, _pass=true)",
+   "checks": [
+    "png_dpi>=300",
+    "tex_no_control_bytes",
+    "tex_has_figure_env/label",
+    "caption_n_consistent",
+    "provenance_covers_all(4/4)",
+    "svg_geometry_ok"
+   ]
+  },
+  "independent_review": {
+   "verdict": "PASS",
+   "counts": {
+    "fatal": 0,
+    "major": 0,
+    "minor": 9
+   },
+   "method": "PIL像素测宽 + 字节级检查 + CSV实算复算 + headless渲染截图 + 修复哈希比对",
+   "report": "workspaces/figures_benchmark_c3/COMP_REVIEW.md"
+  },
+  "c4_private_benchmark": {
+   "rubric": "benchmarks/cumcm_private/figures_private/C4_style_rubric.md（62篇获奖论文实证规范，本地私有）",
+   "verdict": "PASS（revision 2，0 fatal/0 major/3 minor）",
+   "verification": "评审员独立复验：题注-图实况逐项对账（violin/errorbar/n=5/SD 口径）、PNG 哈希不变、tex 字节健康",
+   "note": "私有材料不入 git"
+  }
+ },
+ "reliability": {
+  "steps_completed": "5/5",
+  "evidence_returncode": "全部为 0",
+  "review_found_defect_cycle": 1,
+  "defect": "FIGURE_PROVENANCE 溯源覆盖不全（1/4）→ 补登后复验通过",
+  "gate_rejections_in_benchmark_run": 0
+ },
+ "efficiency": {
+  "engine_step_execution_seconds": 1.7,
+  "engine_events_first": "2026-08-29T08:22:27.163543+00:00",
+  "engine_events_last": "2026-08-29T08:22:28.875883+00:00",
+  "wall_clock_including_review": "约 25 分钟（含独立评审 subagent 与往返修复）"
+ },
+ "cost": {
+  "external_api_calls": 0,
+  "external_cost": 0,
+  "compute": "本地 CPU（matplotlib/figure_renderer/self_check）",
+  "data_egress": "无"
+ }
+}

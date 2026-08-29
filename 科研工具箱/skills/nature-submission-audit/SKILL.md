@@ -14,7 +14,7 @@ The core rule is simple: never treat a clean-looking manuscript as submission-re
 Use the helper script when you want a fast local pass over figure citations:
 
 ```bash
-python ~/.codex/skills/submission-audit/scripts/check_figure_refs.py path/to/manuscript.md
+python ~/.codex/skills/submission-audit/scripts/check_figure_refs.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> path/to/manuscript.md
 # Claude Code (global install): replace ~/.codex/skills with ~/.claude/skills
 # Claude Code (project-local install): replace ~/.codex/skills with .claude/skills
 ```

@@ -1,3 +1,8 @@
+---
+name: latex-writing
+description: "国赛 LaTeX 写作（Latex Writing for CUMCM）——数学建模竞赛论文专用的 LaTeX 技能。封装 CTeX 中文模板 + 公式/表格/算法三件套 + 国赛摘要页精修。"
+---
+
 # 国赛 LaTeX 写作（Latex Writing for CUMCM）
 
 ## 定位

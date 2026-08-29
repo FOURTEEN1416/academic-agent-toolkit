@@ -1,3 +1,8 @@
+---
+name: model-building
+description: "Model Building Skill——根据子问题，选模型、写代码、跑出结果、验证合理性。"
+---
+
 # Model Building Skill
 
 ## 用途

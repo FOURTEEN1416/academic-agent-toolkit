@@ -32,7 +32,7 @@ Start with a local citation scan before any online verification.
 The helper script:
 
 ```bash
-python ~/.codex/skills/citation-verifier/scripts/scan_citations.py path/to/file_or_dir [...]
+python ~/.codex/skills/citation-verifier/scripts/scan_citations.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> path/to/file_or_dir [...]
 # Claude Code (global install): replace ~/.codex/skills with ~/.claude/skills
 # Claude Code (project-local install): replace ~/.codex/skills with .claude/skills
 ```

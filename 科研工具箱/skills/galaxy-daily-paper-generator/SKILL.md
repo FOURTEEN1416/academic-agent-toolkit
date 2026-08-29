@@ -66,7 +66,7 @@ Choose a concrete topic query. Examples:
 Use helper script:
 
 ```bash
-python skills/daily-paper-generator/scripts/arxiv_search.py \
+python skills/daily-paper-generator/scripts/arxiv_search.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> \
   --query "test-time adaptation for medical imaging" \
   --source both \
   --months 1 \

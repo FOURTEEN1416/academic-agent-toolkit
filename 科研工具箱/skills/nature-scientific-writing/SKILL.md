@@ -46,7 +46,7 @@ Before finalizing any document:
 
 **Example command when `inno-figure-gen` is installed:**
 ```bash
-uv run ~/.codex/skills/inno-figure-gen/scripts/generate_image.py \
+uv run ~/.codex/skills/inno-figure-gen/scripts/generate_image.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> \
   --prompt "Publication-style scientific schematic of your method; white background; clean labels; colorblind-friendly palette; high contrast" \
   --filename "figures/output.png" \
   --resolution 2K

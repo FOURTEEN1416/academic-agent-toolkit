@@ -103,7 +103,7 @@ The downstream writer must consume these artifacts rather than re-guessing user 
 ## Validation (recommended)
 Before routing, validate the handoff artifacts:
 ```bash
-python3 .codex/skills/paper-from-zero/validate_handoff.py --project-dir <paper_dir>
+python3 .codex/skills/paper-from-zero/validate_handoff.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> --project-dir <paper_dir>
 ```
 
 ## Strictness Rules
