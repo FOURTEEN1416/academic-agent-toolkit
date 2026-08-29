@@ -105,7 +105,7 @@ flowchart LR
 git clone https://github.com/FOURTEEN1416/academic-agent-toolkit.git
 ```
 
-用 [OpenCode Desktop](https://opencode.ai) 打开项目根目录 `D:\Desktop\数模竞赛` 即可——`opencode.json` 已配好默认角色（数模专家）、技能路径、docsearch MCP 与 4 个审稿 subagent。直接下任务：
+用 [OpenCode Desktop](https://opencode.ai) 打开项目根目录 `D:\Desktop\数模竞赛` 即可——`opencode.json` 已配好默认角色（数模专家）、技能路径、docsearch MCP 与 4 个审稿 subagent。**不依赖 `opencode` CLI**（无需 CLI 在 PATH）。直接下任务：
 
 > "按 CUMCM 流程做这道 2024 年 B 题，数据在 data/ 下，输出国一格式论文。"
 
