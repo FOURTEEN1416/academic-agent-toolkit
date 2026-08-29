@@ -1,6 +1,6 @@
 # 科研工具箱
 
-本套件为 OpenCode Desktop 提供数学建模竞赛的技能、工具、工作流状态、质量门禁和本地证据链。它不提供新的 UI，也不启动或替代 Agent runtime。
+本套件为 OpenCode Desktop / ZCode 提供 6 大能力域的科研技能、工具、工作流状态、质量门禁和本地证据链。它不提供新的 UI，也不启动或替代 Agent runtime。
 
 ## 当前入口
 
