@@ -5573,5 +5573,210 @@
         }
       }
     ]
+  },
+  "scientific_plotting": {
+    "pipeline_skill": "figure-spec",
+    "display_name": "科研绘图流水线（确定性图→编辑级图→数据图→期刊图→视觉审查）",
+    "sub_steps": [
+      {
+        "skill_name": "figure-spec",
+        "display_name": "架构图/流程图（JSON→SVG 确定性渲染）",
+        "output_files": [
+          "figures/diagrams/",
+          "figures/figure_manifest.json"
+        ],
+        "primary_output": "figures/diagrams/",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "架构图/流程图（JSON→SVG 确定性渲染）"
+        },
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "diagram-design",
+        "display_name": "编辑级示意图（39 类品牌图型）",
+        "output_files": [
+          "figures/editorial/"
+        ],
+        "primary_output": "figures/editorial/",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编辑级示意图（39 类品牌图型）"
+        },
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "数据图表（实验结果→出版级图）",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "required_checks": [
+          "step_manifest",
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "figure_provenance"
+          ],
+          "display_name": "数据图表（实验结果→出版级图）"
+        },
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "scientific-visualization",
+        "display_name": "期刊级多面板图（误差棒/显著性/色盲安全）",
+        "output_files": [
+          "figures/journal/"
+        ],
+        "primary_output": "figures/journal/",
+        "required_checks": [
+          "step_manifest",
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "figure_provenance"
+          ],
+          "display_name": "期刊级多面板图（误差棒/显著性/色盲安全）"
+        },
+        "has_checkpoint": false,
+        "checkpoint_type": null
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "绘图交付独立评审（子智能体）",
+        "output_files": [
+          "COMP_REVIEW.md",
+          "COMP_REVIEW_VERDICT.json"
+        ],
+        "primary_output": "COMP_REVIEW_VERDICT.json",
+        "required_checks": [
+          "step_manifest",
+          "review"
+        ],
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "step_manifest",
+            "review"
+          ],
+          "display_name": "绘图交付独立评审（子智能体）"
+        },
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "requires_subagent": true
+      }
+    ]
+  },
+  "scientific_figure_suite": {
+    "pipeline_skill": "scientific-visualization",
+    "display_name": "科研绘图套件流程",
+    "sub_steps": [
+      {
+        "skill_name": "scientific-visualization",
+        "display_name": "期刊级多面板数据图",
+        "output_files": [
+          "figures/"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance",
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance",
+            "step_manifest"
+          ],
+          "display_name": "期刊级多面板数据图"
+        }
+      },
+      {
+        "skill_name": "figure-spec",
+        "display_name": "确定性 JSON→SVG 架构与流程图",
+        "output_files": [
+          "figures/"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "确定性 JSON→SVG 架构与流程图"
+        }
+      },
+      {
+        "skill_name": "diagram-design",
+        "display_name": "编辑级品牌示意图（39 类）",
+        "output_files": [
+          "figures/"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "编辑级品牌示意图（39 类）"
+        }
+      },
+      {
+        "skill_name": "comp-visual-review",
+        "display_name": "图表视觉审查",
+        "output_files": [
+          "VISUAL_REVIEW.md",
+          "VISUAL_REVIEW_VERDICT.json"
+        ],
+        "primary_output": "VISUAL_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "review"
+        ],
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "图表视觉审查"
+        },
+        "requires_subagent": true
+      }
+    ]
   }
 }
