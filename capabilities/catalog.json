@@ -5229,9 +5229,261 @@
         "scientific-schematics 需图像生成后端（可选）"
       ],
       "high_risk_confirmation": "覆盖 figures/ 下同名文件需确认；外部 API 技能为可选",
-      "current_evidence": "2026-08-28 集成 9 个上游技能（fork 仓库 pinned commit 见各 skills/<name>/references/UPSTREAM.md）；tools/check_provenance.py 26 条台账全过；nature-figure/paper-figure/mermaid-diagram 为既有本地增强版，未覆盖；2026-08-29 追加集成 diagram-design（MIT，fork pinned ac490fd）",
-      "current_gap": "9 个新技能未跑 C2-C5 验收；graphviz 与 excalidraw-diagram 上游无 LICENSE 文件，用户 2026-08-28 授权随仓库发布（版权归上游作者，异议即移除）",
+      "current_evidence": "C2 真实验收 PASS（2026-08-29）：引擎驱动 scientific_plotting 模板 5 步全 completed（figure-spec→diagram-design→paper-figure→scientific-visualization→comp-review），逐步 STEP_MANIFEST + L3 执行证据（schema v1，含 skill_sha256），figure_provenance 门禁强制通过，独立评审 subagent 四轮（渲染截图+PIL测宽+字节核验+numpy复算）终审 PASS（0 fatal/0 major/9 minor）。工作区 workspaces/plotting_acceptance（wf b1f55fb0，含 WORKFLOW_REPORT.json）。集成 10 个上游技能（fork pinned commit 见各 UPSTREAM.md），provenance 27 条。",
+      "current_gap": "C3 公开基准/C4 私有基准/C5 四维指标未建（figures 域无专用基准集）；graphviz/mermaid 运行时依赖未装、infographics/scientific-schematics 需外部图像 API，这 4 技能 C2 未跑（见各自技能映射条目）；graphviz 与 excalidraw-diagram 上游无 LICENSE 文件，用户 2026-08-28 授权发布（版权归上游作者，异议即移除）",
       "promotion_history": []
+    },
+    {
+      "capability_id": "cap_skill_scientific_visualization",
+      "name": "技能映射：scientific-visualization",
+      "domain": "figures_and_document_production",
+      "description": "期刊级多面板科研图（误差棒/显著性标注/色盲安全/PDF·EPS·TIFF）",
+      "input_contract": "数据文件（CSV/JSON/DataFrame）、图表规划或论文 FIGURE_MANIFEST",
+      "output_contract": "期刊投稿级 PNG/PDF/EPS/TIFF 多面板图 + 生成脚本",
+      "status": "experimental",
+      "associated_skills": [
+        "scientific-visualization"
+      ],
+      "associated_tools": [
+        "matplotlib",
+        "seaborn",
+        "plotly（按需）"
+      ],
+      "external_dependencies": [
+        "matplotlib",
+        "seaborn",
+        "plotly（按需）"
+      ],
+      "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
+      "current_evidence": "C1 合同完整；溯源见 skills/scientific-visualization/references/UPSTREAM.md（pinned commit）；C2 真实验收见 workspaces/plotting_acceptance（2026-08-29 引擎驱动 scientific_plotting 工作流）",
+      "current_gap": "C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "promotion_history": [
+        "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
+      ]
+    },
+    {
+      "capability_id": "cap_skill_matplotlib",
+      "name": "技能映射：matplotlib",
+      "domain": "figures_and_document_production",
+      "description": "底层绘图全定制（线/散点/柱/热图/3D/子图，PNG/PDF/SVG 导出）",
+      "input_contract": "数组/DataFrame 数据 + 图型需求",
+      "output_contract": "定制化图表 PNG/PDF/SVG + 可复现脚本",
+      "status": "experimental",
+      "associated_skills": [
+        "matplotlib"
+      ],
+      "associated_tools": [
+        "matplotlib 3.10+"
+      ],
+      "external_dependencies": [
+        "matplotlib 3.10+"
+      ],
+      "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
+      "current_evidence": "C1 合同完整；溯源见 skills/matplotlib/references/UPSTREAM.md；C2 真实验收未跑",
+      "current_gap": "C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "promotion_history": [
+        "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
+      ]
+    },
+    {
+      "capability_id": "cap_skill_seaborn",
+      "name": "技能映射：seaborn",
+      "domain": "figures_and_document_production",
+      "description": "统计图形快速成图（分布/关系/分类比较/热图）",
+      "input_contract": "pandas DataFrame + 统计图形需求",
+      "output_contract": "统计图形 PNG/PDF + 调色板配置",
+      "status": "experimental",
+      "associated_skills": [
+        "seaborn"
+      ],
+      "associated_tools": [
+        "seaborn 0.13+",
+        "pandas"
+      ],
+      "external_dependencies": [
+        "seaborn 0.13+",
+        "pandas"
+      ],
+      "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
+      "current_evidence": "C1 合同完整；溯源见 skills/seaborn/references/UPSTREAM.md；C2 真实验收未跑",
+      "current_gap": "C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "promotion_history": [
+        "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
+      ]
+    },
+    {
+      "capability_id": "cap_skill_plotly",
+      "name": "技能映射：plotly",
+      "domain": "figures_and_document_production",
+      "description": "交互式图表（悬停/缩放/导出静态图，面向探索与展示）",
+      "input_contract": "DataFrame/数组数据 + 交互需求",
+      "output_contract": "交互式 HTML 图 + 可选静态导出",
+      "status": "experimental",
+      "associated_skills": [
+        "plotly"
+      ],
+      "associated_tools": [
+        "plotly",
+        "kaleido（静态导出）"
+      ],
+      "external_dependencies": [
+        "plotly",
+        "kaleido（静态导出）"
+      ],
+      "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
+      "current_evidence": "C1 合同完整；溯源见 skills/plotly/references/UPSTREAM.md；C2 真实验收未跑",
+      "current_gap": "C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "promotion_history": [
+        "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
+      ]
+    },
+    {
+      "capability_id": "cap_skill_figure_spec",
+      "name": "技能映射：figure-spec",
+      "domain": "figures_and_document_production",
+      "description": "确定性 JSON→SVG 架构/流程/管线图（FigureSpec 规范，可校验可复现）",
+      "input_contract": "FigureSpec JSON（节点/边/分组）",
+      "output_contract": "编辑就绪 SVG + 校验报告",
+      "status": "experimental",
+      "associated_skills": [
+        "figure-spec"
+      ],
+      "associated_tools": [
+        "Python 3.10+",
+        "skills/figure-spec/scripts/figure_renderer.py"
+      ],
+      "external_dependencies": [
+        "Python 3.10+",
+        "skills/figure-spec/scripts/figure_renderer.py"
+      ],
+      "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
+      "current_evidence": "C1 合同完整；溯源见 skills/figure-spec/references/UPSTREAM.md（pinned commit）；C2 真实验收见 workspaces/plotting_acceptance（2026-08-29 引擎驱动 scientific_plotting 工作流）",
+      "current_gap": "C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "promotion_history": [
+        "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
+      ]
+    },
+    {
+      "capability_id": "cap_skill_graphviz",
+      "name": "技能映射：graphviz",
+      "domain": "figures_and_document_production",
+      "description": "DOT 语言依赖图/调用图/层级图（自动布局）",
+      "input_contract": "DOT 源或结构描述",
+      "output_contract": "SVG/PNG/PDF 图",
+      "status": "experimental",
+      "associated_skills": [
+        "graphviz"
+      ],
+      "associated_tools": [
+        "Graphviz dot 二进制"
+      ],
+      "external_dependencies": [
+        "Graphviz dot 二进制"
+      ],
+      "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
+      "current_evidence": "C1 合同完整；溯源见 skills/graphviz/references/UPSTREAM.md；C2 真实验收未跑",
+      "current_gap": "graphviz 系统二进制未预装时不可用（C2 待验证安装面）；C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "promotion_history": [
+        "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
+      ]
+    },
+    {
+      "capability_id": "cap_skill_excalidraw_diagram",
+      "name": "技能映射：excalidraw-diagram",
+      "domain": "figures_and_document_production",
+      "description": "Excalidraw 视觉论证图（工作流/架构/概念）",
+      "input_contract": "概念描述或草稿",
+      "output_contract": ".excalidraw JSON（可编辑）",
+      "status": "experimental",
+      "associated_skills": [
+        "excalidraw-diagram"
+      ],
+      "associated_tools": [
+        "excalidraw 兼容查看器"
+      ],
+      "external_dependencies": [
+        "excalidraw 兼容查看器"
+      ],
+      "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
+      "current_evidence": "C1 合同完整；溯源见 skills/excalidraw-diagram/references/UPSTREAM.md；C2 真实验收未跑",
+      "current_gap": "C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "promotion_history": [
+        "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
+      ]
+    },
+    {
+      "capability_id": "cap_skill_infographics",
+      "name": "技能映射：infographics",
+      "domain": "figures_and_document_production",
+      "description": "专业信息图（10 类型/8 行业风格/色盲安全，AI 迭代精修）",
+      "input_contract": "主题 + 数据要点 + 风格偏好",
+      "output_contract": "信息图 PNG + 迭代记录",
+      "status": "experimental",
+      "associated_skills": [
+        "infographics"
+      ],
+      "associated_tools": [
+        "OPENROUTER_API_KEY（Gemini/Nano Banana Pro）"
+      ],
+      "external_dependencies": [
+        "OPENROUTER_API_KEY（Gemini/Nano Banana Pro）"
+      ],
+      "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
+      "current_evidence": "C1 合同完整；溯源见 skills/infographics/references/UPSTREAM.md；C2 真实验收未跑",
+      "current_gap": "外部图像 API，无密钥时不可用（C2 缺口：未真实执行）；C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "promotion_history": [
+        "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
+      ]
+    },
+    {
+      "capability_id": "cap_skill_scientific_schematics",
+      "name": "技能映射：scientific-schematics",
+      "domain": "figures_and_document_production",
+      "description": "科学示意图/技术路线图（图像生成后端）",
+      "input_contract": "示意图描述 + 领域约束",
+      "output_contract": "示意图 PNG + 精修建议",
+      "status": "experimental",
+      "associated_skills": [
+        "scientific-schematics"
+      ],
+      "associated_tools": [
+        "图像生成后端（generate_image 工具）"
+      ],
+      "external_dependencies": [
+        "图像生成后端（generate_image 工具）"
+      ],
+      "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
+      "current_evidence": "C1 合同完整；溯源见 skills/scientific-schematics/references/UPSTREAM.md；C2 真实验收未跑",
+      "current_gap": "依赖宿主图像生成能力（C2 缺口：未真实执行）；C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "promotion_history": [
+        "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
+      ]
+    },
+    {
+      "capability_id": "cap_skill_diagram_design",
+      "name": "技能映射：diagram-design",
+      "domain": "figures_and_document_production",
+      "description": "39 类编辑级品牌图（Sankey/鱼骨/Wardley/UML/ER 等，HTML+SVG 自包含，重绘 drawio/mermaid 源）",
+      "input_contract": "图表描述或 .drawio/.mmd 源 + 可选品牌令牌",
+      "output_contract": "自包含 HTML/SVG/PNG + self_check 通过记录",
+      "status": "experimental",
+      "associated_skills": [
+        "diagram-design"
+      ],
+      "associated_tools": [
+        "Python 3.10+（self_check.py）",
+        "无头浏览器（渲染核验，可选）"
+      ],
+      "external_dependencies": [
+        "Python 3.10+（self_check.py）",
+        "无头浏览器（渲染核验，可选）"
+      ],
+      "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
+      "current_evidence": "C1 合同完整；溯源见 skills/diagram-design/references/UPSTREAM.md（pinned commit）；C2 真实验收见 workspaces/plotting_acceptance（2026-08-29 引擎驱动 scientific_plotting 工作流）",
+      "current_gap": "C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "promotion_history": [
+        "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
+      ]
     }
   ]
 }

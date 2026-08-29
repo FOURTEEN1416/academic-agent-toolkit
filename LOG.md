@@ -50,3 +50,14 @@
 - **动作**：应用户批评返工——逐份全文读完 dev-docs + docs 全部 64 份文档（含上一轮漏盘的 `解析/` 17 份），提取设计哲学（三层架构/编排七模式/SKILL.md 契约结构/三条钢律/CodeSucker 六件套/C1-C6 验收），并据此整改：10 个绘图技能全部补 `## STEP_MANIFEST 产出声明`（40→50），templates.json 注册 `scientific_figure_suite` 工作流模板（4 步，迁移幂等），acat-doc-governance 固化铁律 4（集成六件套），解析/ 17 份补历史横幅（执行 LESSONS 挂账项），truth-index 新增"设计哲学与集成规程锚点"与整改记录，dev-docs/README.md 刷新。
 - **原因**：用户裁定：本项目不是简单 skills 仓库合集，是步步有审计、步步可追踪、可用 OpenCode/ZCode 驱动的科研工具箱；此前 2026-08-28 治理漏读 `解析/` 目录、把集成做成了"带溯源的堆放"。
 - **验证**：`upgrade_templates.py` 二次运行 changed_steps=0；未知门禁名 0；pytest/provenance 见当次运行。
+
+## 2026-08-29（第二批：绘图能力按设计哲学完成完整接入）
+
+- **背景**：用户批评此前绘图技能集成是"简单堆技能"，违背项目"步步审计、步步可追踪、引擎可驱动"的设计哲学。重读 C1-C6 验收管线定义（dev-docs/docs/superpowers/specs + plans/2026-08-13-cumcm-formal-acceptance.md）后按纪律补齐。
+- **动作**：
+  1. 引擎注册第 40 个工作流模板 scientific_plotting（figure-spec→diagram-design→paper-figure→scientific-visualization→comp-review 独立评审；SVG 步骤挂 step_manifest、PNG 步骤挂 figure_provenance，门禁按产出类型分配）；
+  2. C2 真实验收：引擎驱动 workspaces/plotting_acceptance 真实跑通 5 步（wf b1f55fb0），逐步 STEP_MANIFEST + schema v1 执行证据（含 skill_sha256 防伪），产物全部真实生成（SVG/HTML/PNG300dpi/tex/溯源 JSON）；期间 6 次门禁拒绝（伪证据/产物不齐/缺溯源）如实留档，FAILED→RUNNING 重试走状态机；
+  3. 独立评审 subagent 四轮评审（无头渲染截图 + PIL 像素测宽 + 字节检查 + numpy 复算），抓出本人引入的 5+1+1 项缺陷（含 \begin 转义 0x08、文字溢出、节点重叠回归），逐轮修复，终审 PASS（0 fatal/0 major/9 minor），COMP_REVIEW.md/VERDICT 留档；
+  4. catalog 新增 10 条逐技能 C1 合同（13 字段，共 279 条），聚合条目 evidence/gap 更新（4 技能 C2 已验、4 技能因运行时依赖未跑如实声明）；
+  5. C6 回归：新增 tests/test_plotting_capability.py 4 项（合同 13 字段/模板有效性/溯源注册/门禁分配），全量 229 passed。
+- **验证**：pytest 229 passed；check_provenance 27 台账 + vendor 全过；workflow status completed + WORKFLOW_REPORT.json。
