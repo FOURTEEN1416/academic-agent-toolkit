@@ -49,6 +49,8 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "skills" / "figure-spec" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "graphviz" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "excalidraw-diagram" / "references" / "UPSTREAM.md",
+    # 科研绘图扩展追加（2026-08-29）
+    ROOT / "skills" / "diagram-design" / "references" / "UPSTREAM.md",
 ]
 
 # 需要完整许可文件的 vendored 外部依赖目录（含 LICENSE/NOTICE/UPSTREAM.md 三件套）
