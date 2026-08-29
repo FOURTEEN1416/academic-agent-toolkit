@@ -124,13 +124,28 @@ cmd /c "mklink /J .zcode\skills 科研工具箱\skills"   # 重建技能联结�
 
 ### 环境要求
 
-`Python 3.11+` · `TeX Live / XeLaTeX`（编译类能力）· 可选：视觉 API（图表审查）、OpenRouter（infographics）
+| 级别 | 组件 | 用途 | 安装 |
+|------|------|------|------|
+| 必装 | Python 3.11+ | 全部能力 | python.org |
+| 必装 | TeX Live / XeLaTeX | 论文编译类能力 | texlive.org |
+| 推荐 | Graphviz（`dot`） | `graphviz` 技能 | `winget install --id Graphviz.Graphviz -e` |
+| 推荐 | mermaid-cli（`mmdc`） | `mermaid-diagram` 技能 | `PUPPETEER_SKIP_DOWNLOAD=true bun install -g @mermaid-js/mermaid-cli`（用系统 Edge/Chrome 需写 puppeteer 配置，见技能内说明） |
+| 可选 | **多模态 LLM 图像生成后端** | `infographics`、`scientific-schematics` 两个 AI 绘图专属技能 | `export OPENROUTER_API_KEY=sk-...` 或宿主原生 `generate_image` 后端；质量评审可用免费视觉模型（OpenCode 的 `agnes/agnes-2.5-flash` 等） |
 
-验证安装：
+> [!IMPORTANT]
+> **AI 绘图技能（infographics / scientific-schematics）必须有多模态 LLM 图像生成后端**——技能内置 Step 0 强制检测，缺后端会明确报错并给指引，不会用占位图冒充。其余绘图技能全部本地运行、零 API。
+
+**一键体检**（本机能用哪些绘图技能、缺什么、怎么装）：
 
 ```bash
-cd 科研工具箱 && python -m pytest -q        # → 225 passed
-python tools/check_provenance.py             # → 26/26 UPSTREAM 台账通过
+python 科研工具箱/tools/plotting_env_check.py
+```
+
+**验证安装**：
+
+```bash
+cd 科研工具箱 && python -m pytest -q        # → 233 passed
+python tools/check_provenance.py             # → 27/27 UPSTREAM 台账通过
 ```
 
 ## 🛡️ 质量与可信

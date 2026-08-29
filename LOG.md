@@ -69,3 +69,8 @@
 - **C5 四维指标**：results.json（质量=评估器+双评审；可靠性=5/5 步、证据 rc 全 0、1 轮缺陷闭环；效率=引擎步进 1.7s/墙钟约 25min；成本=0 外部 API）。
 - **技能库补充验证（Part B）**：新增 tools/skill_library_audit.py 常驻审计器（frontmatter/体积/编码/引用完整性/模板一致性五类机检）。首轮抓出 23 处真实缺陷：9 个技能无 frontmatter（宿主扫描器不可发现，已补齐）+ 14 处家族前缀改名的断链引用（上游脚本从未入库，已就地加 ACAT-GOVERNANCE 标注防 agent 追 phantom）。146 个 Python 脚本编译检查 0 失败。回归：tests/test_skill_library_integrity.py 4 项。全量 233 passed。
 - **诚实边界**：scientific_plotting_expanded 保持 experimental——C1-C6 已闭合但 12 关联技能中 6 个未过 C2；是否提升正式由用户裁决。
+
+## 2026-08-29（第四批：本地运行时落地 + 多模态 LLM 专属技能改造）
+
+- **动作**：安装 Graphviz 16.0.0（winget，dot.exe 未入 PATH 已在检测器做兜底定位）与 mermaid-cli（bun 全局，PUPPETEER_SKIP_DOWNLOAD + 系统 Edge 渲染，标准配置写入 ~/.mermaid-puppeteer.json）；两技能 C2 真实验收出图（workspaces/runtime_verification：dot→pipeline.svg、mmdc→benchmark.png）。新增 tools/plotting_env_check.py 环境检测器（技能可用性一览 + 安装指引）。infographics / scientific-schematics 改造为"多模态 LLM 专属技能"：SKILL.md 加 Step 0 强制后端检测（缺生成后端明确报错并给指引，禁止占位图冒充；评审可复用 OpenCode 免费视觉模型 agnes/agnes-2.5-flash），frontmatter 标 requires: multimodal-llm-image-generation。README 环境要求改表格式（必装/推荐/可选 + 一键体检命令）。
+- **验证**：plotting_env_check 输出 graphviz ✅ / mermaid ✅ / imagegen ❌（如实）；catalog 同步。

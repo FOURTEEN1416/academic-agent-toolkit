@@ -5381,8 +5381,8 @@
         "Graphviz dot 二进制"
       ],
       "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
-      "current_evidence": "C1 合同完整；溯源见 skills/graphviz/references/UPSTREAM.md；C2 真实验收未跑",
-      "current_gap": "graphviz 系统二进制未预装时不可用（C2 待验证安装面）；C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "current_evidence": "C1 合同完整；溯源见 skills/graphviz/references/UPSTREAM.md；C2 真实验收未跑 C2 真实验收（2026-08-29）：Graphviz 16.0.0 实渲染 pipeline.svg（workspaces/runtime_verification）。",
+      "current_gap": "C3/C4/C5 未跑（figures 域基准以 FIGURES-01 覆盖主干管线）",
       "promotion_history": [
         "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
       ]
@@ -5430,7 +5430,7 @@
       ],
       "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
       "current_evidence": "C1 合同完整；溯源见 skills/infographics/references/UPSTREAM.md；C2 真实验收未跑",
-      "current_gap": "外部图像 API，无密钥时不可用（C2 缺口：未真实执行）；C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "current_gap": "多模态 LLM 专属技能：图像生成后端必需（OpenRouter API 或宿主 generate_image；评审可用免费视觉模型）——SKILL.md Step 0 强制检测，缺后端明确报错；C2 待配置后端后验收",
       "promotion_history": [
         "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
       ]
@@ -5454,7 +5454,7 @@
       ],
       "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
       "current_evidence": "C1 合同完整；溯源见 skills/scientific-schematics/references/UPSTREAM.md；C2 真实验收未跑",
-      "current_gap": "依赖宿主图像生成能力（C2 缺口：未真实执行）；C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
+      "current_gap": "多模态 LLM 专属技能：同 infographics（Step 0 强制检测）；C2 待配置后端后验收",
       "promotion_history": [
         "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
       ]

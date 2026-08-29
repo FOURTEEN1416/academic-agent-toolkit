@@ -7,6 +7,20 @@ allowed-tools: [Read, Write, Edit, generate_image]
 
 # Scientific schematics
 
+
+## Step 0: 多模态 LLM 后端检测（强制，不可跳过）
+
+**本技能是"多模态 LLM 专属技能"：没有图像生成后端就无法工作。开工前必须：**
+
+1. 运行环境检测：`python tools/plotting_env_check.py`（本仓库根/科研工具箱下）；
+2. 图像**生成**必须具备图像生成模型后端（如 OpenRouter 的 `OPENROUTER_API_KEY` → Nano Banana Pro / Gemini image 系列；或宿主原生 `generate_image` 后端）；
+3. 质量**评审**可用任意多模态视觉模型（免费模型可胜任，如 OpenCode 的 `agnes/agnes-2.5-flash` 视觉审查）；
+4. **检测不通过时**：停止执行，向用户明确说明"本技能需要多模态 LLM 图像生成后端"，并给出上方检测器的 `setup_hint` 配置指引。**禁止**用占位图、假图或纯本地绘图冒充 AI 生成结果；
+5. 成本纪律：外部 API 调用须经高风险确认并计入 C5 成本指标。
+
+---
+
+
 Use this skill for technical figures whose scientific structure matters: model
 architectures, experimental workflows, study diagrams, biological pathways,
 mechanistic illustrations, and conceptual schematics.
