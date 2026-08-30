@@ -575,10 +575,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级 C2（2026-08-30 回填）：作为 P1/P2/P3/figures 四条工作流 的执行步骤真实执行 x5（工作区 workspaces/paper_submission_c2 等，wf 8f4efca4 等；STEP_MANIFEST + schema v1 执行证据留档，工作流 completed，独立评审：P1 PASS / P2 round-4 PASS / P3 round-1 PASS / figures 终审 PASS）。本条目未做独立单技能验收。",
+      "current_gap": "C3/C4 基准未建（逐技能级）；C5 未校准；管线级验收不代表单技能独立验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 管线级 C2 证据回填（真实执行记录反查自 .engine sqlite，非新验收）"
+      ]
     },
     {
       "capability_id": "comp-visual-review",
@@ -1209,10 +1211,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级 C2（2026-08-30 回填）：作为 P1 论文投稿管线 的执行步骤真实执行 x1（工作区 workspaces/paper_submission_c2，wf 8f4efca4；STEP_MANIFEST + schema v1 执行证据留档，工作流 completed，独立评审：P1 三轮评审终审 PASS）。本条目未做独立单技能验收。",
+      "current_gap": "C3/C4 基准未建（逐技能级）；C5 未校准；管线级验收不代表单技能独立验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 管线级 C2 证据回填（真实执行记录反查自 .engine sqlite，非新验收）"
+      ]
     },
     {
       "capability_id": "galaxy-nature-writing",
@@ -1569,10 +1573,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级 C2（2026-08-30 回填）：作为 P1 论文投稿管线 的执行步骤真实执行 x1（工作区 workspaces/paper_submission_c2，wf 8f4efca4；STEP_MANIFEST + schema v1 执行证据留档，工作流 completed，独立评审：P1 三轮评审终审 PASS）。本条目未做独立单技能验收。",
+      "current_gap": "C3/C4 基准未建（逐技能级）；C5 未校准；管线级验收不代表单技能独立验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 管线级 C2 证据回填（真实执行记录反查自 .engine sqlite，非新验收）"
+      ]
     },
     {
       "capability_id": "paper-analysis",
@@ -1875,10 +1881,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级 C2（2026-08-30 回填）：作为 P2 深度调研 + P3 基金申请管线 的执行步骤真实执行 x2（工作区 workspaces/deep_research_c2, grant_proposal_c2，wf 4c3b56e9, 062b95a2；STEP_MANIFEST + schema v1 执行证据留档，工作流 completed，独立评审：P2 round-4 PASS / P3 round-1 PASS）。本条目未做独立单技能验收。",
+      "current_gap": "C3/C4 基准未建（逐技能级）；C5 未校准；管线级验收不代表单技能独立验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 管线级 C2 证据回填（真实执行记录反查自 .engine sqlite，非新验收）"
+      ]
     },
     {
       "capability_id": "scholar-bib-doi-toggle",
@@ -1929,10 +1937,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch1/）：发现并修复真实缺陷——SKILL.md 契约引用的 scripts/doi2bib.sh 从未入库（ACAT-GOVERNANCE 标注，按契约重建为 doi.org content negotiation 最小实现）；修复后对已核验 DOI 10.1016/j.ijforecast.2016.02.001 真实取回 BibTeX（doi_bibtex_E2.bib），元数据与登记逐项一致（六作者/IJF 32(3):896-913/2016），同时构成 E2 绑定的新独立确证通道。",
+      "current_gap": "C3/C4 基准未建；C5 未校准；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 试点通过（真实执行留档 skill_c2_batch1）"
+      ]
     },
     {
       "capability_id": "sci-citation-management",
@@ -2341,10 +2351,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级 C2（2026-08-30 回填）：作为 P2 深度调研管线 的执行步骤真实执行 x1（工作区 workspaces/deep_research_c2，wf 4c3b56e9；STEP_MANIFEST + schema v1 执行证据留档，工作流 completed，独立评审：P2 round-4 PASS）。本条目未做独立单技能验收。",
+      "current_gap": "C3/C4 基准未建（逐技能级）；C5 未校准；管线级验收不代表单技能独立验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 管线级 C2 证据回填（真实执行记录反查自 .engine sqlite，非新验收）"
+      ]
     },
     {
       "capability_id": "ars-syllabus",
@@ -2629,10 +2641,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级 C2（2026-08-30 回填）：作为 P2 深度调研 + P3 基金申请管线 的执行步骤真实执行 x2（工作区 workspaces/deep_research_c2, grant_proposal_c2，wf 4c3b56e9, 062b95a2；STEP_MANIFEST + schema v1 执行证据留档，工作流 completed，独立评审：P2 round-4 PASS / P3 round-1 PASS）。本条目未做独立单技能验收。",
+      "current_gap": "C3/C4 基准未建（逐技能级）；C5 未校准；管线级验收不代表单技能独立验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 管线级 C2 证据回填（真实执行记录反查自 .engine sqlite，非新验收）"
+      ]
     },
     {
       "capability_id": "latexpap-empirical-paper-writer",
@@ -3209,10 +3223,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "已完成验收（2026-08-18 benchmark_v2）；无跨域基准集；许可证CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch1/）：按 SKILL.md 强制流程真实执行清洗管线（48 行构造 fixture，标注为测试数据）——概览/缺失率 4.2% 时间序列前向填充/IQR+3σ 双通道异常检测恰命中注入行/导出 clean CSV + quality_report.md，全部断言通过（data_processing_output.txt）。",
+      "current_gap": "C3/C4 基准未建；C5 未校准；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 试点通过（真实执行留档 skill_c2_batch1）"
+      ]
     },
     {
       "capability_id": "deep-research",
@@ -4127,10 +4143,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级 C2（2026-08-30 回填）：作为 P1 论文投稿管线 的执行步骤真实执行 x1（工作区 workspaces/paper_submission_c2，wf 8f4efca4；STEP_MANIFEST + schema v1 执行证据留档，工作流 completed，独立评审：P1 三轮评审终审 PASS）。本条目未做独立单技能验收。",
+      "current_gap": "C3/C4 基准未建（逐技能级）；C5 未校准；管线级验收不代表单技能独立验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 管线级 C2 证据回填（真实执行记录反查自 .engine sqlite，非新验收）"
+      ]
     },
     {
       "capability_id": "scholar-openalex",
@@ -4163,10 +4181,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级 C2（2026-08-30 回填）：作为 P1 论文投稿管线 的执行步骤真实执行 x1（工作区 workspaces/paper_submission_c2，wf 8f4efca4；STEP_MANIFEST + schema v1 执行证据留档，工作流 completed，独立评审：P1 三轮评审终审 PASS）。本条目未做独立单技能验收。",
+      "current_gap": "C3/C4 基准未建（逐技能级）；C5 未校准；管线级验收不代表单技能独立验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 管线级 C2 证据回填（真实执行记录反查自 .engine sqlite，非新验收）"
+      ]
     },
     {
       "capability_id": "scholar-verify-math",
@@ -4235,10 +4255,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch1/）：sympy 1.14.0 精确符号验证 pinball loss 三性质——tau=0.5 退化为 |u|/2（2*rho=MAE）、次梯度 tau/-（1-tau）与分位数水平对齐、非负性与零点（tau∈{0.3,0.9} 分支采样），全部精确推导零数值近似（sympy_pinball_output.txt）。",
+      "current_gap": "C3/C4 基准未建；C5 未校准；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 试点通过（真实执行留档 skill_c2_batch1）"
+      ]
     },
     {
       "capability_id": "skill-creator-official",
@@ -5056,10 +5078,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级 C2（2026-08-30 回填）：作为 figures 科研绘图管线 的执行步骤真实执行 x2（工作区 workspaces/plotting_acceptance, figures_benchmark_c3，wf b1f55fb0, 2038d2e9；STEP_MANIFEST + schema v1 执行证据留档，工作流 completed，独立评审：figures 域 C2/C3 评审通过）。本条目未做独立单技能验收。",
+      "current_gap": "C3/C4 基准未建（逐技能级）；C5 未校准；管线级验收不代表单技能独立验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 管线级 C2 证据回填（真实执行记录反查自 .engine sqlite，非新验收）"
+      ]
     },
     {
       "capability_id": "paper-figure-drawio",
