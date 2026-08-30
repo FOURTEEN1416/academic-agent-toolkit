@@ -1,5 +1,5 @@
 ---
-name: scientific-writer
+name: claude-scientific-writer
 description: "Comprehensive scientific writing toolkit with 15 modules for academic and clinical authorship. Use whenever the user drafts, revises, peer-reviews, or submits a manuscript, grant, poster, slide deck, clinical report, treatment plan, literature review, hypothesis paper, or market research report. Triggers include any mention of peer review, manuscript, response to reviewers, IMRaD, abstract, citations, BibTeX, Vancouver/APA/AMA, CONSORT, STROBE, PRISMA, TRIPOD, CARE, ICH-E3, SOAP, case report, clinical trial report, ScholarEval, NSF/NIH/DOE/DARPA grants, Nature/Science/Cell/NEJM/Lancet/NeurIPS/ICML formatting, beamerposter, tikzposter, conference poster, research slides, hypothesis generation, treatment plan, or clinical decision support."
 license: "MIT"
 ---

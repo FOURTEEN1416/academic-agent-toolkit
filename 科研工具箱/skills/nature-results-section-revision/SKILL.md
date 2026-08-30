@@ -1,5 +1,5 @@
 ---
-name: results-section-revision
+name: nature-results-section-revision
 description: Use when revising a scientific manuscript Results section whose figures, evidence, and main claims are mostly fixed, but subsection flow, paragraph openings, reader guidance, and argumentative progression still feel abrupt, repetitive, or figure-by-figure.
 ---
 

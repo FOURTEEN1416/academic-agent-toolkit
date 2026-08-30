@@ -1,5 +1,5 @@
 ---
-name: paper-self-review
+name: galaxy-paper-self-review
 description: This skill should be used when the user asks to "review paper quality", "check paper completeness", "validate paper structure", "self-review before submission", "audit claims", "check overclaiming", "verify whether results support claims", or mentions systematic paper quality checking. Provides comprehensive quality assurance checklist for academic papers.
 version: 0.1.0
 ---

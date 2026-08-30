@@ -1,5 +1,5 @@
 ---
-name: paper-spine-audit
+name: spine-paper-spine-audit
 description: Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation coverage. (internal /paperspine step)
 ---
 

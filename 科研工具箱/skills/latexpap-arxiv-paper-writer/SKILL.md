@@ -1,5 +1,5 @@
 ---
-name: arxiv-paper-writer
+name: latexpap-arxiv-paper-writer
 description: >
   Writes ML/AI review and survey papers for arXiv using the IEEEtran LaTeX
   template with verified BibTeX citations. Triggers when the deliverable is

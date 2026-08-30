@@ -1,5 +1,5 @@
 ---
-name: submission-audit
+name: nature-submission-audit
 description: Use when a manuscript is close to submission or resubmission and you need a preflight audit for claim support, figure-panel coverage, legend sync, methods references, terminology stability, and venue-facing risks.
 ---
 

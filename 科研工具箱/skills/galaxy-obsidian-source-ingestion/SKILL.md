@@ -1,5 +1,5 @@
 ---
-name: obsidian-source-ingestion
+name: galaxy-obsidian-source-ingestion
 description: Use this skill to ingest external materials into the current project-scoped Obsidian KB as source notes under Sources/Papers, Sources/Web, Sources/Docs, Sources/Data, Sources/Interviews, or Sources/Notes.
 ---
 

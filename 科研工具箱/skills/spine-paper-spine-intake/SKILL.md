@@ -1,5 +1,5 @@
 ---
-name: paper-spine-intake
+name: spine-paper-spine-intake
 description: Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine step)
 ---
 

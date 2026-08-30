@@ -1,5 +1,5 @@
 ---
-name: collaborating-with-claude
+name: latexpap-collaborating-with-claude
 description: >
   Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero.
   Primary role: claim tree compression, logical hole detection, evidence

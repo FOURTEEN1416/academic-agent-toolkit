@@ -1,5 +1,5 @@
 ---
-name: bib-doi-toggle
+name: scholar-bib-doi-toggle
 user_invocable: true
 description: Toggle DOI/URL display in the compiled bibliography of a biblatex-based LaTeX paper. Default-on for review/writing builds (clickable refs in the PDF). Invoking with no arg asks user what to do. Use when the user says "show DOIs in refs", "make refs clickable", "turn off DOI display", etc. 
 ---

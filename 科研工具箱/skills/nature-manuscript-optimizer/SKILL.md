@@ -1,5 +1,5 @@
 ---
-name: manuscript-optimizer
+name: nature-manuscript-optimizer
 description: Use when reviewing or revising an academic manuscript whose central claim, evidence chain, figures, terminology, and prose may have drifted out of sync before submission or resubmission.
 ---
 

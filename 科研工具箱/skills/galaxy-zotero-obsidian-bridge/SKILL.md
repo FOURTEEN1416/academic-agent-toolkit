@@ -1,5 +1,5 @@
 ---
-name: zotero-obsidian-bridge
+name: galaxy-zotero-obsidian-bridge
 description: Use this skill when Zotero is the literature source of truth and the project KB should receive source notes under Sources/Papers plus project-linked synthesis in Knowledge and Writing.
 version: 0.3.0
 ---

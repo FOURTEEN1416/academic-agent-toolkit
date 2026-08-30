@@ -1,5 +1,5 @@
 ---
-name: paper-spine-citation
+name: spine-paper-spine-citation
 description: Builds a citation support bank for Introduction, Discussion, and background claims. (internal /paperspine step)
 ---
 

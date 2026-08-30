@@ -1,5 +1,5 @@
 ---
-name: critique-manuscript
+name: scholar-critique-manuscript
 user_invocable: true
 description: Structured self-review of your manuscript before submission. Systematic evaluation across review criteria.
 ---

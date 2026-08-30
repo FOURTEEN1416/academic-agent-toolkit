@@ -1,5 +1,5 @@
 ---
-name: paper-workflow
+name: nature-paper-workflow
 description: Use when deciding which paper-related skill to use or how to sequence manuscript work from project setup through submission and rebuttal.
 ---
 

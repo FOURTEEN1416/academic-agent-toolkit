@@ -1,5 +1,5 @@
 ---
-name: critique-figures
+name: scholar-critique-figures
 user_invocable: true
 description: Critique academic figures for format, colorblind safety, legibility, overplotting, and category count. Use when reviewing figures before submission.
 ---

@@ -1,5 +1,5 @@
 ---
-name: nature-polishing
+name: galaxy-nature-polishing
 description: Polish, restructure, or translate academic prose into Nature-leaning English using writing-strategy principles, curated Nature/Nature Communications article patterns, and phrase-level support from Academic Phrasebank. Use whenever the user asks to polish a manuscript paragraph, abstract, introduction, results, discussion, conclusion, title, methods section, or Chinese academic draft for publication-quality English.
 version: 5.0.2
 author: Yuan1z skill rebuilt from course notes plus Academic Phrasebank

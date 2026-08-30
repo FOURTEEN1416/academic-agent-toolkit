@@ -1,5 +1,5 @@
 ---
-name: nature-data
+name: galaxy-nature-data
 description: >-
   Prepare, audit, or revise Nature-ready Data Availability statements, data repository plans,
   dataset citations, and FAIR metadata checklists for manuscripts. Use when the user asks about

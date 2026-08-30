@@ -1,5 +1,5 @@
 ---
-name: paper-from-zero
+name: latexpap-paper-from-zero
 description: >
   Route a fixed research topic into a rigorous paper-generation workflow.
   Handles active literature search, innovation framing, contribution/evidence

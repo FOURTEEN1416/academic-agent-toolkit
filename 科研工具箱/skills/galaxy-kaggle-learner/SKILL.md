@@ -1,5 +1,5 @@
 ---
-name: kaggle-learner
+name: galaxy-kaggle-learner
 description: This skill should be used when the user asks to "learn from Kaggle", "study Kaggle solutions", "analyze Kaggle competitions", or mentions Kaggle competition URLs. Provides access to extracted knowledge from winning Kaggle solutions across NLP, CV, time series, tabular, and multimodal domains.
 version: 0.1.0
 ---

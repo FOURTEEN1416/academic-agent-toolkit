@@ -1,5 +1,5 @@
 ---
-name: latex-cleanup
+name: scholar-latex-cleanup
 user_invocable: true
 description: Review LaTeX documents for common issues, style consistency, typography, cross-references, draft artifacts, and debugging code. Use after editing LaTeX documents or before submission.
 ---

@@ -74,3 +74,10 @@
 
 - **动作**：安装 Graphviz 16.0.0（winget，dot.exe 未入 PATH 已在检测器做兜底定位）与 mermaid-cli（bun 全局，PUPPETEER_SKIP_DOWNLOAD + 系统 Edge 渲染，标准配置写入 ~/.mermaid-puppeteer.json）；两技能 C2 真实验收出图（workspaces/runtime_verification：dot→pipeline.svg、mmdc→benchmark.png）。新增 tools/plotting_env_check.py 环境检测器（技能可用性一览 + 安装指引）。infographics / scientific-schematics 改造为"多模态 LLM 专属技能"：SKILL.md 加 Step 0 强制后端检测（缺生成后端明确报错并给指引，禁止占位图冒充；评审可复用 OpenCode 免费视觉模型 agnes/agnes-2.5-flash），frontmatter 标 requires: multimodal-llm-image-generation。README 环境要求改表格式（必装/推荐/可选 + 一键体检命令）。
 - **验证**：plotting_env_check 输出 graphviz ✅ / mermaid ✅ / imagegen ❌（如实）；catalog 同步。
+
+## 2026-08-30（P1/P2 管线建设 + 技能名冲突修复）
+
+- **P1 paper_submission（完成）**：模板 5 步（presubmit→audit→response→camera-ready→独立评审）。C2 三轮评审：初评抓 8 major（虚构数据集 ENWIKI、声称-实况偏差、预支结论）→ 整改 → 复评 2 major → 终审 **PASS**（0/0/2）。二轮工作流对终稿全量重放（STEP_MANIFEST 哈希与修订后文件一致），workflow completed + WORKFLOW_REPORT。
+- **P2 deep_research（进行中，诚实受阻）**：模板 4 步。步骤 0-2 完成；首轮评审外部核验发现 5 条引用 0/5 可验证（编造 arXiv 条目），**整体重建**为可核验公开来源（fpp3/GEFCom2014/conformal 专著/M5 Uncertainty/ENTSO-E）；独立评审第三轮因宿主模型速率限制 4 次未能启动（错误码 1302/quota 留档）。所有者按同款外部核验流程完成 **5/5 URL 验证**并留档（registry owner_verification）。工作流停在 comp-review 待独立复核，不伪造通过。
+- **技能名冲突修复（用户报告"17 个冲突"）**：全发现面实扫 = 11 组冲突 23 技能（仓库内 4 组 + 用户级遮蔽 7 组）。根因：家族前缀技能改名目录未改 frontmatter name。修复：113 个 frontmatter name 归一为目录名（审计器新增 name_mismatch/name_duplicate 两类机检 + 回归测试）。归一后跨作用域冲突 11→2 组，剩余均为用户级技能包自身（ecc-deep-research 设计内覆盖、microsoft-foundry 双安装），仓库侧清零。
+- **验证**：pytest 238 passed（+1 冲突回归）；skill audit OK；provenance 27+vendor 全过。

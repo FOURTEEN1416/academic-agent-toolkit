@@ -1,5 +1,5 @@
 ---
-name: defuddle
+name: galaxy-defuddle
 description: HTML-to-Markdown 网页正文提取工具。从任意 URL/HTML 中提取主内容，去除导航/广告/侧栏，返回干净 Markdown。
 source: https://github.com/kepano/defuddle
 author: kepano (Obsidian 作者)

@@ -1,5 +1,5 @@
 ---
-name: paper-spine-latex
+name: spine-paper-spine-latex
 description: Handles LaTeX project assembly, figure placement, citations, labels, and compile-safe cleanup. (internal /paperspine step)
 ---
 

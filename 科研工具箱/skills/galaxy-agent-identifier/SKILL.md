@@ -1,5 +1,5 @@
 ---
-name: agent-identifier
+name: galaxy-agent-identifier
 description: Use when creating or configuring Claude Code agents and their frontmatter.
 version: 0.1.0
 ---

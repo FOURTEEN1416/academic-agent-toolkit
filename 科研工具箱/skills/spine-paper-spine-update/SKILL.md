@@ -1,5 +1,5 @@
 ---
-name: paper-spine-update
+name: spine-paper-spine-update
 description: Checks and updates PaperSpine from GitHub while preserving global config; use for upgrades, latest-version checks, or local reinstall.
 ---
 

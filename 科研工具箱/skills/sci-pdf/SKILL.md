@@ -1,5 +1,5 @@
 ---
-name: pdf
+name: sci-pdf
 description: "【中文触发】合并/拆分/加密/解密/OCR/水印/旋转/裁剪/填表单/提取表格和图片。当用户说：处理PDF、合并PDF、拆分PDF、PDF加密、PDF OCR、提取PDF表格、填PDF表单、PDF加水印、PDF转图片时使用。\n【边界】读取PDF文档内容（含嵌入图片的文字识别）请用 tools/doc_reader.py，本技能仅做底层PDF操作。\n【English】Use this skill whenever the user wants to do anything with PDF files. This includes reading or extracting text/tables from PDFs, combining or merging multiple PDFs into one, splitting PDFs apart, rotating pages, adding watermarks, creating new PDFs, filling PDF forms, encrypting/decrypting PDFs, extracting images, and OCR on scanned PDFs to make them searchable. If the user mentions a .pdf file or asks to produce one, use this skill."
 license: Proprietary. LICENSE.txt has complete terms
 metadata:

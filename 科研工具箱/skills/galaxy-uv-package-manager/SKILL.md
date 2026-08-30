@@ -1,5 +1,5 @@
 ---
-name: uv-package-manager
+name: galaxy-uv-package-manager
 description: Master the uv package manager for fast Python dependency management, virtual environments, and modern Python project workflows. Use when setting up Python projects, managing dependencies, or optimizing Python development workflows with uv.
 version: 0.1.0
 ---

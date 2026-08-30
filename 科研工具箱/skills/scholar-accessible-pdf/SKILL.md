@@ -1,5 +1,5 @@
 ---
-name: accessible-pdf
+name: scholar-accessible-pdf
 user_invocable: true
 description: Make a LaTeX document produce accessible tagged PDFs (PDF/UA-1, PDF/A-2b). Creates a non-destructive copy and Makefile target. Use when the user needs accessible or tagged PDFs.
 ---

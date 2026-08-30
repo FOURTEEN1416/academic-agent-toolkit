@@ -1,5 +1,5 @@
 ---
-name: collaborating-with-gemini
+name: latexpap-collaborating-with-gemini
 description: >
   Use the Gemini CLI as a breadth-exploration co-pilot for paper-from-zero.
   Primary role: candidate direction expansion, adjacent work scanning,

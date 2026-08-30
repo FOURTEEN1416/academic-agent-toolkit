@@ -1,5 +1,5 @@
 ---
-name: daily-paper-generator
+name: galaxy-daily-paper-generator
 description: Use when the user asks to generate daily paper digests on a general topic. This skill supports both arXiv and bioRxiv (or either one), then produces structured Chinese/English summaries for selected papers.
 version: 0.5.1
 ---

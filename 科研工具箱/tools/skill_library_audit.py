@@ -26,7 +26,8 @@ MOJIBAKE_MARKS = ("锟斤拷", "烫烫烫", "\ufffd\ufffd")
 
 def audit() -> dict:
     report = {"skills_total": 0, "failures": {}, "summary": {}}
-    fails = {k: [] for k in ("frontmatter", "too_small", "encoding", "broken_ref")}
+    fails = {k: [] for k in ("frontmatter", "too_small", "encoding", "broken_ref", "name_mismatch", "name_duplicate")}
+    seen_names = {}
     skill_dirs = sorted(d for d in (ROOT / "skills").iterdir() if d.is_dir() and (d / "SKILL.md").is_file())
     report["skills_total"] = len(skill_dirs)
 
@@ -47,6 +48,10 @@ def audit() -> dict:
         if not m or "name:" not in m.group(1) or "description" not in m.group(1):
             fails["frontmatter"].append(name)
             continue
+        fm_name = re.search(r'^name:\s*(.+)$', m.group(1), re.M).group(1).strip().strip('"').strip("'")
+        if fm_name != name:
+            fails["name_mismatch"].append(f"{name}: frontmatter name={fm_name!r}")
+        seen_names.setdefault(fm_name, []).append(name)
         body_refs = set(REF.findall(text))
         for ref in body_refs:
             if (ROOT / ref).exists():
@@ -69,6 +74,9 @@ def audit() -> dict:
             if sk and not (ROOT / "skills" / sk / "SKILL.md").is_file():
                 missing.append(f"{tname}: {sk}")
     report["templates_total"] = len(tpl)
+    for fm_name, owners in seen_names.items():
+        if len(owners) > 1:
+            fails["name_duplicate"].append(f"{fm_name}: {owners}")
     report["failures"] = {k: v for k, v in fails.items() if v}
     report["failures"]["template_missing_skill"] = missing
     report["summary"] = {
