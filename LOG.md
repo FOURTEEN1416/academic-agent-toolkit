@@ -120,3 +120,13 @@
   - P3 R1-F03：申请书 Y1 计划显式点名"温度注入方式（嵌入/拼接/注意力）文献对比"（实质落实而非措辞回避）。
 - **逻辑验证**：JSON 5/5 valid + P2/P3 全部 16 项校验脚本重跑通过。STEP_MANIFEST 哈希晚于已验收版本（不重放——用户裁定），已在台账修正记录与 catalog gap 中如实声明。
 - **v1.2.0 发版**：CHANGELOG 顶部新增 v1.2.0 段（三大主题：绘图域 C1-C6 全闭环 / 三管线 C2 闭环 / 基础设施与治理）；README 徽章+版本历史更新；tag v1.2.0 + GitHub release。
+
+## 2026-08-30（逐技能 C2 覆盖推进：管线证据回填 + 首批 3 技能试点）
+
+- **管线级证据回填（零风险诚实同步）**：反查 5 个已闭环工作区 .engine sqlite 的真实执行记录，9 个单技能条目回填管线级 C2 证据（comp-review x5 / idea-discovery x2 / research-lit x2 / scholar-presubmit-checks / nature-submission-audit / galaxy-nature-response / scholar-latex-cleanup / ars-research-summarizer / paper-figure），回填文案明确标注"管线级执行，非独立单技能验收"；无证据条目 231→222。
+- **首批单技能 C2 试点（workspaces/skill_c2_batch1/）**：
+  1. scholar-doi-bibtex：**发现真实缺陷**——SKILL.md 契约引用的 scripts/doi2bib.sh 从未入库；按契约重建（doi.org content negotiation，ACAT-GOVERNANCE 标注非上游原样）；修复后对已核验 E2 DOI 真实取回 BibTeX，元数据逐项一致（兼作 E2 绑定新确证通道）；
+  2. sci-sympy：pinball loss 三性质精确符号验证（tau=0.5→|u|/2、次梯度分位数对齐、非负性），sympy 1.14.0 本地执行；
+  3. data-processing：SKILL.md 强制流程全链真实执行（构造 fixture 诚实标注），IQR+3σ 双通道异常检测恰命中注入行。
+- **网络受限如实记录**：scholar-arxiv-metadata 因本网络对 export.arxiv.org 不可达（curl SSL error / WebFetch ECONNRESET）未纳入试点，保持无证据状态。
+- 基线：242 tests 不变；catalog 281 条（有证据 53 / 无证据 228）。
