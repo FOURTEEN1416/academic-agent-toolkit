@@ -144,8 +144,8 @@ python 科研工具箱/tools/plotting_env_check.py
 **验证安装**：
 
 ```bash
-cd 科研工具箱 && python -m pytest -q        # → 233 passed
-python tools/check_provenance.py             # → 27/27 UPSTREAM 台账通过
+cd 科研工具箱 && python -m pytest -q        # → 242 passed
+python tools/check_provenance.py             # → 28/28 UPSTREAM+vendor 台账通过
 ```
 
 ## 🛡️ 质量与可信
