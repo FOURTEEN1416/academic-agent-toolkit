@@ -96,3 +96,16 @@
 - **round-4 独立评审 PASS**（0 fatal/0 major/2 minor 记录精度级）：R3 五条修复全部独立复核确认；E1-E5 外部核验全过；2 条 minor（R4-F01 台账辅助记录文件名失实、R4-F02 coverage 年份序列归属）登记待修不阻塞。round-3 评审件归档 review_history/round3/。
 - **C2 闭环**：comp-review 步骤完成（evidence 含真实 subagent_session + provenance 检查 rc=0），workflow 4c3b56e9 completed，WORKFLOW_REPORT.json 生成；catalog deep_research_pipeline 证据更新为 C2 完成 + 2 minor 登记待修。
 - **验证**：pytest 238 passed；check_provenance 28/28；catalog JSON valid。
+
+## 2026-08-30（P3 收官：grant_proposal 管线建成 + C2 闭环）
+
+- **模板注册**：engine/modex-core/templates.json 第 44 个模板 `grant_proposal`（4 步：idea-discovery→research-lit→grant-proposal→comp-review 独立评审；证据登记步骤挂 step_manifest，评审步骤 requires_subagent + review 门禁）。
+- **C2 真实验收（workspaces/grant_proposal_c2，wf 062b95a2）**：
+  1. 选题承接 deep_research_c2 round-4 调研结论（"可进入研究提案阶段"的方向 1），资助类型 NSFC 青年——管线衔接即真实科研工作流；
+  2. 证据层**原样沿用**上游 round-4 已核验证据集 E1-E5（零新增引用，registry 注明继承来源与上游核验台账路径）；申请人信息全部显式占位【待申请人填实】，禁止编造 PI 履历——基金申请书最高危的编造面；
+  3. 核心产物 GRANT_PROPOSAL.md：NSFC 青年 8 节 + 预算概算，future-work 口径（不预支实验结论）、创新性以"本证据集范围内未见"封顶、预算含"以当年度指南为准"口径；
+  4. 步骤 0-2 共 13 条校验命令（UTF-8 校验脚本 + ASCII 调用）：结构完整性/无绝对化断言/占位符/future-work/引用子集 ⊆ registry/used_in 章节精确比对/E2 Crossref 绑定/上游台账存在性。
+- **round-1 独立评审 PASS**（0 fatal/0 major/3 minor 措辞级）：评审员独立 curl Crossref 复核 E2 绑定 + 重跑全部校验脚本 + used_in 独立扫描 10/10 MATCH；3 条 minor（R1-F01 两处常识陈述建议补推断标注、R1-F02/F03 coverage_notes 转化措辞偏差）登记待修不阻塞。
+- **收官**：comp-review 申报完成（evidence 含真实 subagent_session + provenance rc=0）→ workflow completed + WORKFLOW_REPORT.json → catalog 更新（literature_research/grant_proposal 聚合条目管线级 C2 证据 + intellectual_property_materials/grant-proposal 逐技能 C2 证据；ars-grants NIH 专属保持 experimental）。
+- **C6 回归**：新增 tests/test_p3_grant_proposal.py 4 项（模板契约/catalog 合同/管线技能存在/防编造门禁配置），全量 **242 passed**；provenance 全过；skill audit OK（44 模板，template_missing_skill=0）。
+- **P1/P2/P3 三条管线全部 C2 闭环**。P2 遗留 2 minor + P3 遗留 3 minor 均已登记 catalog 待修。
