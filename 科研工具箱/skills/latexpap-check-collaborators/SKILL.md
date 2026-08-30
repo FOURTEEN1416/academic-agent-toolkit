@@ -1,5 +1,5 @@
 ---
-name: check-collaborators
+name: latexpap-check-collaborators
 description: >
   Verify that Gemini CLI and Claude Code CLI are installed, authenticated,
   and API-reachable before starting collaboration workflows.

@@ -1,5 +1,5 @@
 ---
-name: architecture-design
+name: galaxy-architecture-design
 description: Use only when creating new registrable ML components that require Factory or Registry patterns.
 version: 1.2.0
 ---

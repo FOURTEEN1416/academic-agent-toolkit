@@ -1,5 +1,5 @@
 ---
-name: scientific-writing
+name: nature-scientific-writing
 description: Use when writing or revising scientific manuscripts, abstracts, figures, or references for journal submission and you need full-paragraph prose, scientific structure, citation-style guidance, or reporting-guideline support.
 ---
 

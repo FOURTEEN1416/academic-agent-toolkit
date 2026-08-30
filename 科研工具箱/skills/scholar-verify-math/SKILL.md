@@ -1,5 +1,5 @@
 ---
-name: verify-math
+name: scholar-verify-math
 description: Verify mathematical derivations step-by-step using SymPy
 version: 1.0.0
 ---

@@ -1,5 +1,5 @@
 ---
-name: skill-development
+name: galaxy-skill-development
 description: This skill should be used when the user asks to create a new skill, repair an existing skill, improve trigger descriptions, reorganize skill structure, or make a Claude skill more reusable and internally consistent.
 version: 0.2.0
 ---

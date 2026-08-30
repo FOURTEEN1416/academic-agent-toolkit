@@ -2043,6 +2043,38 @@
       "current_gap": "未跑基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental",
       "promotion_history": []
+    },
+    {
+      "capability_id": "paper_submission_closed_loop",
+      "name": "论文投稿与返修闭环",
+      "domain": "academic_papers",
+      "description": "投稿前检查→投稿件审计（声明支撑/图片引用/数据可用性）→审稿意见逐条回复→Camera-Ready 清理→独立评审；引擎模板 paper_submission 5 步",
+      "input_contract": "稿件（md/tex）+ 可选的审稿意见文本",
+      "output_contract": [
+        "PRESUBMIT_CHECKS.md",
+        "SUBMISSION_AUDIT(_VERDICT)",
+        "RESPONSE_TO_REVIEWERS.md",
+        "CAMERA_READY.md",
+        "COMP_REVIEW(_VERDICT)"
+      ],
+      "status": "experimental",
+      "associated_skills": [
+        "scholar-presubmit-checks",
+        "nature-submission-audit",
+        "galaxy-nature-response",
+        "scholar-latex-cleanup",
+        "comp-review"
+      ],
+      "associated_tools": [
+        "engine.workflow_cli"
+      ],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无外部 API；覆盖工作区文件需确认",
+      "current_evidence": "C2 真实验收 PASS（2026-08-30，三轮独立评审）：引擎模板 paper_submission 5 步 completed（presubmit-checks→submission-audit→response→camera-ready→comp-review），工作区 workspaces/paper_submission_c2（两轮工作流：首轮产出+三轮评审整改，二轮对终稿文件全量重放，STEP_MANIFEST 哈希与终稿一致）。独立评审 3 轮（初评 8 major→复评 2→终审 PASS 0 fatal/0 major/2 minor），评审用外部事实核查抓出虚构数据集（ENWIKI）与声称-实况偏差，全部整改并留档；residual_open_items 7 项如实跟踪（显著性表/消融/图1/数据卡为真实待办）。",
+      "current_gap": "C3/C4/C5 未建；残留 2 minor（结论节声明覆盖、引文同步）与 5 项真实待办在评审 residual_open_items 跟踪",
+      "promotion_history": [
+        "2026-08-29: 新建（P1 缺口补齐）"
+      ]
     }
   ],
   "literature_research": [
@@ -2830,6 +2862,39 @@
       "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental",
       "promotion_history": []
+    },
+    {
+      "capability_id": "deep_research_pipeline",
+      "name": "深度调研管线",
+      "domain": "literature_research",
+      "description": "选题发现与新颖性评估→文献检索与证据登记（防编造，evidence 结构化）→多源汇总与矛盾标注→独立评审；引擎模板 deep_research 4 步",
+      "input_contract": "研究主题/问题陈述",
+      "output_contract": [
+        "IDEA_DISCOVERY.md",
+        "NOVELTY_CHECK.json",
+        "LIT_EVIDENCE.json + search_evidence/",
+        "RESEARCH_SUMMARY.md",
+        "COMP_REVIEW(_VERDICT)"
+      ],
+      "status": "experimental",
+      "associated_skills": [
+        "idea-discovery",
+        "research-lit",
+        "ars-research-summarizer",
+        "comp-review"
+      ],
+      "associated_tools": [
+        "engine.workflow_cli"
+      ],
+      "external_dependencies": [
+        "文献检索可用本地 fixture 或开放 API（arxiv，免费）"
+      ],
+      "high_risk_confirmation": "联网检索需确认；引用必须可回溯",
+      "current_evidence": "C2 进行中（2026-08-30）：模板 4 步中 0-2 步完成（idea-discovery/research-lit/research-summarizer，逐步 STEP_MANIFEST+schema v1 证据）。首轮独立评审外部核验驳回 5 条编造引用（0/5 可验证）→ 证据层整体重建为可核验公开来源，所有者 2026-08-30 完成 5/5 URL 外部核验（registry owner_verification 块）。",
+      "current_gap": "独立评审第三轮因宿主模型速率限制 4 次未启动（1302/quota 留档）——工作流停在 comp-review 待复核，不伪造通过；C3/C4/C5 未建",
+      "promotion_history": [
+        "2026-08-29: 新建（P2 缺口补齐）"
+      ]
     }
   ],
   "course_research_materials": [

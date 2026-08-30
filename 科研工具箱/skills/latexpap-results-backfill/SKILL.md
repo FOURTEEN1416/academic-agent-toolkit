@@ -1,5 +1,5 @@
 ---
-name: results-backfill
+name: latexpap-results-backfill
 description: >
   Back-fill verified experiment results into an existing empirical paper draft.
   Resolves placeholders, upgrades hypotheses to factual claims, generates

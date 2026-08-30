@@ -1,5 +1,5 @@
 ---
-name: latex-conference-template-organizer
+name: galaxy-latex-conference-template-organizer
 description: Organize messy conference LaTeX template .zip files into clean Overleaf-ready structure. Use when the user asks to "organize LaTeX template", "clean up .zip template", or "prepare Overleaf submission template".
 version: 0.1.0
 ---

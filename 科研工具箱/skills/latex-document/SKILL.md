@@ -1,5 +1,5 @@
 ---
-name: latex-document-skill
+name: latex-document
 description: >
   【中文触发】创建/编译/转换任何 LaTeX 文档：简历、报告、幻灯片(Beamer)、海报、小抄、公式卡、支票本、信函、发票、书籍、论文、填表表单、格式转换(HTML/Markdown/DOCX↔LaTeX)、PDF→LaTeX 转换(含手写笔记OCR)、latexdiff 版本对比、mail merge、Mermaid/Graphviz/PlantUML 图表、AI插图、BibTeX 参考文献。
   当用户说：做简历、做海报、做幻灯片、做小抄、编译LaTeX、LaTeX格式转换、PDF转LaTeX、公式卡、邮件合并、版本对比时使用。

@@ -1,5 +1,5 @@
 ---
-name: skill-quality-reviewer
+name: galaxy-skill-quality-reviewer
 description: This skill should be used when the user asks to "analyze skill quality", "evaluate this skill", "review skill quality", "check my skill", or "generate quality report". Evaluates local skills across description quality, content organization, writing style, and structural integrity.
 version: 0.1.0
 ---

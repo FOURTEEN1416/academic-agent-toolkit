@@ -1,5 +1,5 @@
 ---
-name: expression-skill
+name: galaxy-expression-skill
 description: This skill should be used when the user asks for efficient communication, task reports, file-operation summaries, research discussion, study-note synthesis, planning, writing feedback, or responses that need conclusion-first structure, concrete evidence, risk disclosure, and useful next steps.
 ---
 

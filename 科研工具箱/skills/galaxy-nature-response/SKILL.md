@@ -1,5 +1,5 @@
 ---
-name: nature-response
+name: galaxy-nature-response
 description: >-
   Draft, audit, or revise point-by-point reviewer response letters for Nature-family
   manuscript revisions. Use when the user provides reviewer comments, editor decision

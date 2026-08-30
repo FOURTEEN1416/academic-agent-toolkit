@@ -27,3 +27,10 @@ def test_no_unacknowledged_broken_refs():
 def test_templates_reference_existing_skills():
     rep = audit()
     assert not rep["failures"].get("template_missing_skill"), rep["failures"]["template_missing_skill"]
+
+
+def test_no_name_mismatch_or_duplicates():
+    """frontmatter name 必须等于目录名，且全库无重名（防宿主发现遮蔽）。"""
+    rep = audit()
+    assert not rep["failures"].get("name_mismatch"), rep["failures"]["name_mismatch"][:5]
+    assert not rep["failures"].get("name_duplicate"), rep["failures"]["name_duplicate"]

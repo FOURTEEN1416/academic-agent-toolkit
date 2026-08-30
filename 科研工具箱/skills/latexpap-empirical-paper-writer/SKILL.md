@@ -1,5 +1,5 @@
 ---
-name: empirical-paper-writer
+name: latexpap-empirical-paper-writer
 description: >
   Draft IEEE-style empirical ML/AI papers from a structured research contract.
   Builds experiment plans, section skeletons, placeholder-safe results, and a

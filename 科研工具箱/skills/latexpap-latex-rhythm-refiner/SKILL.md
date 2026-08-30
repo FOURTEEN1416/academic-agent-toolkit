@@ -1,5 +1,5 @@
 ---
-name: latex-rhythm-refiner
+name: latexpap-latex-rhythm-refiner
 description: >
   Post-process LaTeX project prose to improve readability through varied
   sentence and paragraph lengths. Removes filler phrases and unnecessary

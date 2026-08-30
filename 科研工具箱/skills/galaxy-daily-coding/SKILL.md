@@ -1,5 +1,5 @@
 ---
-name: daily-coding
+name: galaxy-daily-coding
 description: Use for everyday coding tasks that involve writing or modifying source code.
 version: 1.0.0
 tags: [Coding, Daily, Checklist]

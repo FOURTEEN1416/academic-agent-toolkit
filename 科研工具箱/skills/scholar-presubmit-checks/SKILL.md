@@ -1,5 +1,5 @@
 ---
-name: presubmit-checks
+name: scholar-presubmit-checks
 user_invocable: true
 description: Pre-submission checklist for LaTeX papers. Runs several checks in parallel — references, LaTeX cleanup, build, and front matter — then presents a unified report. Use before submitting or sharing a paper draft.
 ---

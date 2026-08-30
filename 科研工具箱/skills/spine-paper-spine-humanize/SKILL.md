@@ -1,5 +1,5 @@
 ---
-name: paper-spine-humanize
+name: spine-paper-spine-humanize
 description: Reduces AI detection rates via tiered stylistic constraints mapped to real AIGC detection dimensions. Produces a teaching humanize_matrix.md. (internal /paperspine step)
 ---
 
