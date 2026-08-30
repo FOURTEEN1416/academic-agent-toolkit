@@ -109,3 +109,14 @@
 - **收官**：comp-review 申报完成（evidence 含真实 subagent_session + provenance rc=0）→ workflow completed + WORKFLOW_REPORT.json → catalog 更新（literature_research/grant_proposal 聚合条目管线级 C2 证据 + intellectual_property_materials/grant-proposal 逐技能 C2 证据；ars-grants NIH 专属保持 experimental）。
 - **C6 回归**：新增 tests/test_p3_grant_proposal.py 4 项（模板契约/catalog 合同/管线技能存在/防编造门禁配置），全量 **242 passed**；provenance 全过；skill audit OK（44 模板，template_missing_skill=0）。
 - **P1/P2/P3 三条管线全部 C2 闭环**。P2 遗留 2 minor + P3 遗留 3 minor 均已登记 catalog 待修。
+
+## 2026-08-30（minor 收尾 + v1.2.0 发版）
+
+- **5 条 minor 修复（用户裁定：只修复 + 主窗口逻辑验证，不重放全链路）**：
+  - P2 R4-F01：E1_direct_check.html 归位 owner_verification_round2/；台账"distribution.html 章节页"误判修正（该页实为 404，原记录 grep 到的是 404 页通用标题）→ 改为实测 200 的真实章节页 5.5/5.9，修正记录留档台账 README；
+  - P2 R4-F02：coverage_notes 年份序列"2016/2016/2022/2022"修正为按条目归属（E1=2020/E2=2016/E3=2022/E4=2022），核心断言（均 ≤2022 → 时间维零覆盖）不变；
+  - P3 R1-F01：申请书 §1.1 负荷自相关常识陈述 + §1.2(2)"方法文献已有讨论"均补推断标注（无键回溯断言显式化为推断口径）；
+  - P3 R1-F02：coverage_notes 缺口 1 转化对象改准（比较对象=三类修复变体，分位数回归仅 §4.2 基线）；
+  - P3 R1-F03：申请书 Y1 计划显式点名"温度注入方式（嵌入/拼接/注意力）文献对比"（实质落实而非措辞回避）。
+- **逻辑验证**：JSON 5/5 valid + P2/P3 全部 16 项校验脚本重跑通过。STEP_MANIFEST 哈希晚于已验收版本（不重放——用户裁定），已在台账修正记录与 catalog gap 中如实声明。
+- **v1.2.0 发版**：CHANGELOG 顶部新增 v1.2.0 段（三大主题：绘图域 C1-C6 全闭环 / 三管线 C2 闭环 / 基础设施与治理）；README 徽章+版本历史更新；tag v1.2.0 + GitHub release。
