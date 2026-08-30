@@ -1,3 +1,54 @@
+# v1.2.0 发布说明（CHANGELOG）
+
+> 发布日期：2026-08-30
+> 宿主：OpenCode Desktop + ZCode（双宿主）
+> 变更基线：v1.1.0..HEAD（13 commits）
+
+## 范围（三大主题）
+
+### 1. 科研绘图能力域：C1-C6 全闭环（首个全验收域）
+
+- **设计哲学式集成**（非技能堆放）：引擎模板 `scientific_plotting`（5 步含独立评审门禁）+ 逐技能 C1 合同（13 字段）+ C2 引擎驱动真实验收（SVG/PNG300dpi/溯源 JSON 全真实产物，6 次门禁拒绝留档）
+- **C3 公开基准** `benchmarks/six_domains_public/FIGURES-01`（evaluate.py 8 类机检）；**C4 私有基准**（62 篇获奖论文实证样式规范）；**C5 四维指标**（质量/可靠/效率/成本，0 外部 API）
+- **本地运行时就绪**：Graphviz 16 + mermaid-cli（Edge 渲染）实渲染验收；`tools/plotting_env_check.py` 一键体检
+- **多模态 LLM 专属技能改造**：infographics/scientific-schematics 加 Step 0 生成后端强制检测，禁止占位图冒充
+- **技能库常驻审计器** `tools/skill_library_audit.py`（frontmatter/体积/编码/断链/模板一致性五类机检）+ diagram-design（28.3k★ MIT fork）集成
+
+### 2. 三条学术管线建成并全部 C2 闭环（独立评审 PASS）
+
+| 管线 | 引擎模板 | 独立评审 | 亮点 |
+|------|---------|---------|------|
+| P1 论文投稿与返修 `paper_submission` | 5 步 | 三轮评审终审 PASS（0/0/2） | 初评抓出 8 major（虚构数据集等）全部整改 |
+| P2 深度调研 `deep_research` | 4 步 | 四轮评审 round-4 PASS（0/0/2） | 首轮 5 条编造引用全驳→证据层重建；round-3 E2 PII 经 Crossref 全量比对证伪→权威绑定替换；核验台账重建为 curl 原始输出可复现留档 |
+| P3 基金申请 `grant_proposal` | 4 步（第 44 个模板） | round-1 一次过 PASS（0/0/3） | NSFC 青年草稿；证据层继承 P2 已核验集合零新增引用；PI 信息全部显式占位禁止编造；future-work 口径 |
+
+- 防编造体系实测有效：引用必须可点开核验、used_in 章节级回链、推断显式标注、"首次/最优"断言禁用、subagent_session 审核独立视角门禁
+
+### 3. 基础设施与治理
+
+- **技能名冲突修复**：113 个 frontmatter name ≠ 目录名归一（宿主扫描遮蔽根因），跨作用域冲突 11→2（余为用户级设计内）
+- 5 条 minor（P2×2 + P3×3）措辞级修复并经 16 项逻辑校验（2026-08-30，按用户裁定不重放工作流，修正记录留档）
+- README 全面重写（徽章墙/mermaid 架构图/提示框/折叠面板/双宿主快速开始）
+
+## 验收基线
+
+- pytest **242 passed**（figures 域 4 项 + 冲突回归 1 项 + P1/P2 管线 4 项 + P3 管线 4 项新增）
+- provenance 台账 28/28；skill audit OK（245 技能 / 44 模板 / template_missing_skill=0）
+- catalog **281 条能力**（正式 10 / experimental 271；发布≠转正式，未验收能力保持 experimental）
+
+## 已知限制
+
+- P1/P2/P3 的 C3/C4 基准未建（figures 是目前唯一 C1-C6 全闭环域）；5 条 minor 修复未重放工作流（用户裁定，差异措辞级）
+- 逐技能 C2 覆盖率有限，未验收能力保持 experimental
+- ars-grants（NIH 专属）依赖外部 MCP，保持 experimental
+
+## 许可
+
+- 核心（套件/配置）：CC-BY-NC-4.0（含禁 AI 训练条款）
+- 公开基准集：CC-BY-4.0
+
+---
+
 # v1.0.0 发布说明（CHANGELOG）
 
 > 发布日期：2026-08-17

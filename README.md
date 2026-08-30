@@ -6,7 +6,7 @@
 
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
-[![Release](https://img.shields.io/badge/release-v1.1.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
+[![Release](https://img.shields.io/badge/release-v1.2.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-225_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-269-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-245-8b5cf6?style=flat-square)](科研工具箱/skills)
@@ -175,6 +175,8 @@ academic-agent-toolkit/
 <summary><b>🔖 版本与许可证</b></summary>
 
 <br>
+
+**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests / 281 能力。
 
 **v1.1.0（2026-08-28）** —— 全能力公开发布（含软著/专利/基金流水线）· 科研绘图 9 技能扩展 · ZCode 兼容层 · 全库文档治理（45+ 文档审计）。完整记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
