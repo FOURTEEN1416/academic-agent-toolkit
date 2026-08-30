@@ -81,3 +81,18 @@
 - **P2 deep_research（进行中，诚实受阻）**：模板 4 步。步骤 0-2 完成；首轮评审外部核验发现 5 条引用 0/5 可验证（编造 arXiv 条目），**整体重建**为可核验公开来源（fpp3/GEFCom2014/conformal 专著/M5 Uncertainty/ENTSO-E）；独立评审第三轮因宿主模型速率限制 4 次未能启动（错误码 1302/quota 留档）。所有者按同款外部核验流程完成 **5/5 URL 验证**并留档（registry owner_verification）。工作流停在 comp-review 待独立复核，不伪造通过。
 - **技能名冲突修复（用户报告"17 个冲突"）**：全发现面实扫 = 11 组冲突 23 技能（仓库内 4 组 + 用户级遮蔽 7 组）。根因：家族前缀技能改名目录未改 frontmatter name。修复：113 个 frontmatter name 归一为目录名（审计器新增 name_mismatch/name_duplicate 两类机检 + 回归测试）。归一后跨作用域冲突 11→2 组，剩余均为用户级技能包自身（ecc-deep-research 设计内覆盖、microsoft-foundry 双安装），仓库侧清零。
 - **验证**：pytest 238 passed（+1 冲突回归）；skill audit OK；provenance 27+vendor 全过。
+
+## 2026-08-30（P2 收官：round-3 评审修复 + round-4 独立评审 PASS + C2 闭环）
+
+- **round-3 评审落地**：宿主配额恢复后 round-3 独立评审实际完成（REJECT，1 fatal/1 major/3 minor）：E2 内嵌 PII S0169207015000155 经 Crossref IJF 全量 3694 条比对+Semantic Scholar 反查+多引擎零足迹+号段缺口四重通道证伪；owner 自报台账 E2 失实 PASS（张冠李戴）。
+- **按 findings 逐条修复**：
+  1. R3-F01（fatal）：E2 换为 Crossref 权威绑定确证的 S0169207016000133（DOI 10.1016/j.ijforecast.2016.02.001，"Probabilistic energy forecasting: GEFCom2014 and beyond"，Hong/Pinson/Fan/Zareipour/Troccoli/Hyndman，IJF 32(3):896-913），主控 curl 独立复核成立；
+  2. R3-F02（major）：核验台账重建为可复现 round-2 版（search_evidence/owner_verification_round2/，curl 原始输出逐条留档，失败通道 403/400/not found 如实记录），round-1 台账作废并留修正记录；
+  3. R3-F03：used_in 按全文逐章节正则重扫精确化（校验器强制"不低估不高估"）；
+  4. R3-F04：2023-2026 方法演进时间维缺口登记于 coverage_notes + RESEARCH_SUMMARY §2/§3；
+  5. R3-F05：IDEA_DISCOVERY §4 两处常识断言补"（推断，…）"标注。
+- **工程教训**：subprocess shell=True 经 cmd.exe 传递全角字符会被转码破坏（SyntaxError: unmatched ')'）——校验断言一律改为 UTF-8 脚本文件 + 纯 ASCII 命令调用（.engine/check_round3.py）。
+- **round-3 重放**：旧工作流诚实关闭（closure_note），新一轮 4c3b56e9 对终稿重新申报步骤 0-2（10 条验证命令含全部修复断言）。
+- **round-4 独立评审 PASS**（0 fatal/0 major/2 minor 记录精度级）：R3 五条修复全部独立复核确认；E1-E5 外部核验全过；2 条 minor（R4-F01 台账辅助记录文件名失实、R4-F02 coverage 年份序列归属）登记待修不阻塞。round-3 评审件归档 review_history/round3/。
+- **C2 闭环**：comp-review 步骤完成（evidence 含真实 subagent_session + provenance 检查 rc=0），workflow 4c3b56e9 completed，WORKFLOW_REPORT.json 生成；catalog deep_research_pipeline 证据更新为 C2 完成 + 2 minor 登记待修。
+- **验证**：pytest 238 passed；check_provenance 28/28；catalog JSON valid。

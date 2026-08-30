@@ -2890,10 +2890,11 @@
         "文献检索可用本地 fixture 或开放 API（arxiv，免费）"
       ],
       "high_risk_confirmation": "联网检索需确认；引用必须可回溯",
-      "current_evidence": "C2 进行中（2026-08-30）：模板 4 步中 0-2 步完成（idea-discovery/research-lit/research-summarizer，逐步 STEP_MANIFEST+schema v1 证据）。首轮独立评审外部核验驳回 5 条编造引用（0/5 可验证）→ 证据层整体重建为可核验公开来源，所有者 2026-08-30 完成 5/5 URL 外部核验（registry owner_verification 块）。",
-      "current_gap": "独立评审第三轮因宿主模型速率限制 4 次未启动（1302/quota 留档）——工作流停在 comp-review 待复核，不伪造通过；C3/C4/C5 未建",
+      "current_evidence": "C2 完成（2026-08-30）：工作流 4c3b56e9 completed（4/4 步，逐步 STEP_MANIFEST + schema v1 执行证据 + 审核门禁 subagent_session 真实子智能体会话）。审计史：首轮独立评审驳回 5 条编造引用（0/5 可验证）→ 证据层整体重建为可核验公开来源；round-3 独立评审 REJECT（1 fatal：E2 内嵌 PII S0169207015000155 经 Crossref 全量比对不可解析）→ 按 findings 修复：E2 换为 Crossref 权威绑定确证的 S0169207016000133（DOI 10.1016/j.ijforecast.2016.02.001，GEFCom2014 编辑论文）、owner 核验台账重建为可复现 round-2 版（curl 原始输出留档 search_evidence/owner_verification_round2/，失败通道如实记录）、used_in 按章节重扫精确化、2023-2026 时间维缺口登记、常识断言补推断标注；round-4 独立评审 PASS（0 fatal / 0 major / 2 minor 记录精度级，R3 五条修复全部独立复核确认；round-3 评审件归档 review_history/round3/）。",
+      "current_gap": "2 条 minor（R4-F01 台账辅助记录文件名失实、R4-F02 coverage 年份序列归属）已登记待修，不阻塞 C2；C3/C4/C5 未建",
       "promotion_history": [
-        "2026-08-29: 新建（P2 缺口补齐）"
+        "2026-08-29: 新建（P2 缺口补齐）",
+        "2026-08-30: C2 闭环（round-4 独立评审 PASS，工作流 completed）"
       ]
     }
   ],
