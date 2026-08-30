@@ -5982,5 +5982,97 @@
         "requires_subagent": true
       }
     ]
+  },
+  "grant_proposal": {
+    "pipeline_skill": "grant-proposal",
+    "display_name": "基金申请书全流程（选题发现→证据登记→申请书撰写→独立评审）",
+    "sub_steps": [
+      {
+        "skill_name": "idea-discovery",
+        "display_name": "选题发现与可行性评估",
+        "output_files": [
+          "IDEA_DISCOVERY.md",
+          "NOVELTY_CHECK.json"
+        ],
+        "primary_output": "IDEA_DISCOVERY.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "选题发现与可行性评估"
+        }
+      },
+      {
+        "skill_name": "research-lit",
+        "display_name": "文献检索与证据登记（防编造）",
+        "output_files": [
+          "LIT_EVIDENCE.json",
+          "search_evidence/"
+        ],
+        "primary_output": "LIT_EVIDENCE.json",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "文献检索与证据登记（防编造）"
+        }
+      },
+      {
+        "skill_name": "grant-proposal",
+        "display_name": "基金申请书撰写（NSFC/NSF/KAKENHI/ERC 等格式）",
+        "output_files": [
+          "GRANT_PROPOSAL.md"
+        ],
+        "primary_output": "GRANT_PROPOSAL.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "基金申请书撰写（NSFC/NSF/KAKENHI/ERC 等格式）"
+        }
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "申请书独立评审（子智能体）",
+        "output_files": [
+          "COMP_REVIEW.md",
+          "COMP_REVIEW_VERDICT.json"
+        ],
+        "primary_output": "COMP_REVIEW_VERDICT.json",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "review"
+        ],
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "step_manifest",
+            "review"
+          ],
+          "display_name": "申请书独立评审（子智能体）"
+        },
+        "requires_subagent": true
+      }
+    ]
   }
 }

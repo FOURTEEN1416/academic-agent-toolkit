@@ -2196,13 +2196,16 @@
       "capability_id": "grant_proposal",
       "name": "基金申请书（NSFC/NSF/ERC等）",
       "domain": "literature_research",
-      "description": "多国基金格式、选题背景/研究现状/研究内容/技术路线/进度安排/参考文献",
+      "description": "多国基金格式（NSFC 含青年/面上/优青等、NSF、KAKENHI、ERC、DFG 等）申请书全流程：选题发现→证据登记（防编造，引用 ⊆ 已核验集合）→申请书撰写（future-work 口径）→独立评审；引擎模板 grant_proposal 4 步（2026-08-30 注册，第 44 个模板）",
       "input_contract": "研究想法、初步数据、团队信息、目标基金类型",
       "output_contract": "申请书.docx/LaTeX、预算表",
       "status": "experimental",
       "associated_skills": [
         "grant-proposal",
-        "grants"
+        "ars-grants",
+        "idea-discovery",
+        "research-lit",
+        "comp-review"
       ],
       "associated_tools": [
         "tools/scholar_fetch.py"
@@ -2211,9 +2214,11 @@
         "外部检索（可选）"
       ],
       "high_risk_confirmation": "无",
-      "current_evidence": "C2 验收：GRANT_OUTLINE.md(7.2KB) NSFC 面上草稿，7 条真实检索文献",
-      "current_gap": "C3/C4 基准未跑（本域无专用基准集）；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
-      "promotion_history": []
+      "current_evidence": "C2 完成（2026-08-30，管线级）：工作流 062b95a2 completed（4/4 步，逐步 STEP_MANIFEST + schema v1 执行证据 + 审核门禁 subagent_session 真实子智能体会话）。产物：NSFC 青年申请书结构化草稿 GRANT_PROPOSAL.md（8 节 + 预算概算），证据层原样沿用 deep_research_c2 round-4 已核验证据集 E1-E5（零新增引用），申请人信息全部显式占位禁止编造，future-work 口径（不预支实验结论）。round-1 独立评审 PASS（0 fatal/0 major/3 minor 措辞级：R1-F01 两处常识陈述建议补推断标注、R1-F02/F03 coverage_notes 转化措辞偏差）；评审员独立 curl Crossref 复核 E2 绑定通过。历史证据（大纲级）：GRANT_OUTLINE.md NSFC 面上草稿 7 条检索文献。",
+      "current_gap": "3 条 minor（R1-F01 推断标注、R1-F02/F03 转化措辞）已登记待修，不阻塞 C2；C3/C4/C5 基准未建（本域无专用基准集）；C5 未校准",
+      "promotion_history": [
+        "2026-08-30: P3 管线 C2 闭环（grant_proposal 模板注册 + round-1 独立评审 PASS，工作流 completed）"
+      ]
     },
     {
       "capability_id": "ars-agent-harness",
@@ -4578,11 +4583,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
+      "current_evidence": "C2 通过（2026-08-30，作为 grant_proposal 管线核心执行步骤）：workspaces/grant_proposal_c2 工作流 062b95a2 step 2 真实执行（STEP_MANIFEST + 6 条校验命令：NSFC 8 节结构/无绝对化断言/PI 占位/future-work 口径/引用子集约束/时间维局限披露），产出 GRANT_PROPOSAL.md；round-1 独立评审 PASS（0/0/3）。",
+      "current_gap": "C3/C4/C5 未建；NIH 专属的 ars-grants 技能未验收（重 MCP 依赖，保持 experimental）",
       "status": "experimental",
       "promotion_history": [
-        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
+        "2026-08-30: C2 通过（P3 管线级验收，round-1 独立评审 PASS）"
       ]
     },
     {
