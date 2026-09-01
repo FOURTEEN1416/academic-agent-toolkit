@@ -6,6 +6,14 @@ version: 0.1.0
 
 # Hook Development for Claude Code Plugins
 
+
+## 宿主兼容性（2026-08-30 转化：Claude Code 专属 → 三宿主对照）
+
+| 概念 | Claude Code | ZCode | OpenCode Desktop | 本仓库真实资产 |
+|------|------------|-------|------------------|--------------|
+| Hooks | `.claude/settings.json` hooks 事件 | 暂无等价物（AGENTS.md 宿主矩阵声明） | `.opencode/plugins/*.ts`（L1 拦截式审计插件） | `.opencode/plugins/audit-trail.ts`（真实 L1 审计插件） |
+
+> 本仓库为 OpenCode Desktop 主宿主 + ZCode 兼容层（见根 AGENTS.md 宿主矩阵）。上表资产均已实存验证（见 workspaces/skill_c2_batch21/HOST_CONVERSION.json）。
 ## Overview
 
 Hooks are event-driven automation scripts that execute in response to Claude Code events. Use hooks to validate operations, enforce policies, add context, and integrate external tools into workflows.

@@ -6,6 +6,14 @@ version: 0.1.0
 
 # Plugin Structure for Claude Code
 
+
+## 宿主兼容性（2026-08-30 转化：Claude Code 专属 → 三宿主对照）
+
+| 概念 | Claude Code | ZCode | OpenCode Desktop | 本仓库真实资产 |
+|------|------------|-------|------------------|--------------|
+| 插件结构 | `.claude-plugin/plugin.json` + 组件自动发现 | `.zcode/config.json` + `.zcode/skills`（NTFS 联结） | `opencode.json` + `.opencode/`（skills paths + plugins） | 根 `opencode.json`（skills.paths 指向 科研工具箱/skills） |
+
+> 本仓库为 OpenCode Desktop 主宿主 + ZCode 兼容层（见根 AGENTS.md 宿主矩阵）。上表资产均已实存验证（见 workspaces/skill_c2_batch21/HOST_CONVERSION.json）。
 ## Overview
 
 Claude Code plugins follow a standardized directory structure with automatic component discovery. Understanding this structure enables creating well-organized, maintainable plugins that integrate seamlessly with Claude Code.
