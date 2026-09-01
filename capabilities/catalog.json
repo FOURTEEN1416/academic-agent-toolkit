@@ -1961,10 +1961,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch2/sci-citation-management/）：Crossref 权威记录（E2 完整留档）→ GB/T 7714-2015 期刊格式真实转换，四要素机检全过（作者+等/[J]标识/年卷期页/标点），GBT7714_OUTPUT.md + gbt7714_E2.txt。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次4（真实执行留档 skill_c2_batch2）"
+      ]
     },
     {
       "capability_id": "sci-paper-lookup",
@@ -2721,10 +2723,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch2/novelty-check/）：真实单通道检索（Crossref 5 条留档）+ 诚实初判——'证据集内未见精确同题命中'口径（不输出首次/空白断言，如实标注单通道不足以支撑空白结论），NOVELTY_NOTE.md。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次4（真实执行留档 skill_c2_batch2）"
+      ]
     },
     {
       "capability_id": "paper-search",
@@ -3181,10 +3185,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "已完成验收（2026-08-18 benchmark_v2）；无跨域基准集；许可证CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch2/citation-check/）：GB/T 口径逐条机检——真实转换产物 4/4 PASS，两条构造缺陷对照（缺[J]标识/缺卷期页）均被正确标记（测试输入已标注），结论由实际结果生成。CITATION_QUALITY_REPORT.md。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次4（真实执行留档 skill_c2_batch2）"
+      ]
     },
     {
       "capability_id": "course-report",
