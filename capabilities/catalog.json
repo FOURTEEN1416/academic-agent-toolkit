@@ -1431,10 +1431,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch13/nature-citation-verifier/）：GRANT_PROPOSAL 参考文献 5 条实时核验（3 DOI Crossref + 2 URL 直访）5/5 VERIFIED；CITE_VERIFY.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
+      ]
     },
     {
       "capability_id": "nature-figure-planner",
@@ -1449,10 +1451,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch13/nature-figure-planner/）：三图规划（2 PLAN 数据未获取如实+1 指向真实已产出图）；FIGURE_PLAN.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
+      ]
     },
     {
       "capability_id": "nature-manuscript-optimizer",
@@ -1467,10 +1471,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch13/nature-manuscript-optimizer/）：对真实 Nature 摘要优化诊断（3 句/均长 19 词/1 处超 30 词+被动语态计数），只诊断不预改；OPT_DIAG.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
+      ]
     },
     {
       "capability_id": "nature-paper-bootstrap",
@@ -1485,10 +1491,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch13/nature-paper-bootstrap/）：Nature 工程骨架真实产出（main+sections 拆分+Methods 在尾+Results 留空不预支）；BOOTSTRAP.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
+      ]
     },
     {
       "capability_id": "nature-paper-workflow",
@@ -1503,10 +1511,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch13/nature-paper-workflow/）：五阶段端到端状态映射（全部指向真实产物；experiments done=False 如实）；WORKFLOW_STATE.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
+      ]
     },
     {
       "capability_id": "nature-portfolio-playbook",
@@ -1521,10 +1531,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch13/nature-portfolio-playbook/）：三轨研究组合（方法/基准/基金）全部映射真实资产+协同声明；PORTFOLIO.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
+      ]
     },
     {
       "capability_id": "nature-rebuttal-response",
@@ -1539,10 +1551,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch13/nature-rebuttal-response/）：对 round-3 真实历史评审件 5 条 findings 逐条回应，全部 addressed（round-4 PASS 真实闭环案例）；REBUTTAL.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
+      ]
     },
     {
       "capability_id": "nature-results-section-revision",
@@ -1557,10 +1571,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch13/nature-results-section-revision/）：结果段数字先行改写——空洞句替换为 ablation 真实数字（0.986/0.0/0.7511/0.9935/0.9766），数据口径标注；REVISED_RESULTS.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
+      ]
     },
     {
       "capability_id": "nature-scientific-writing",
@@ -1575,10 +1591,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch13/nature-scientific-writing/）：写作纪律机检（句长/重连接词开头/因果密度/结果先行）对真实改写段全过；SW_DISCIPLINE.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
+      ]
     },
     {
       "capability_id": "nature-submission-audit",
@@ -4083,10 +4101,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch13/nature-data-availability/）：availability section 文本+分库存放计划（不预支 DOI）+2 条缺失 flags 如实；DATA_AVAILABILITY.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
+      ]
     },
     {
       "capability_id": "problem-analysis",
