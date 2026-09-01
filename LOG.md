@@ -210,3 +210,13 @@
 - **comp-modeling**：基准真实数据 Welch t 组间比较（t=-8.07, d=-5.70）留档可复现。
 - **ars-litreview**：launching-pad 真实执行（OpenAlex 单记录 API 本次返回：E2 被引 1037 / E4 被引 106）。
 - 基线：242 tests 不变；无证据 170→166；累计 9 回填 + 48 试点 + 24 blocked。
+
+## 2026-08-30（逐技能 C2 批次13：spine 六分支全链，无证据 166→160）
+
+- **spine-build**：materials→六节 blueprint（v1 虚构材料路径被存在性机检拦截修正——材料映射必须实存）。
+- **spine-research**：三阶段（本地索引 3 份真实材料→动机选项合并，全部带证据依据）。
+- **spine-citation**：verified bank 五条 + Crossref 实时抽验。
+- **spine-latex**：装配真实编译（中文+translation_zh 抽样+文献表闭环）。
+- **spine-humanize**：tier 改写矩阵（T2 引用批次2真实数字），残留 0 命中。
+- **spine-translate**：translation_zh 完整包（行对行 5 对+正文长句），非摘要非部分集。
+- 基线：242 tests 不变；无证据 166→160；累计 9 回填 + 54 试点 + 24 blocked。
