@@ -311,3 +311,12 @@
 
 - pixel-art 在批次23 时被误将 blocked 措辞写入 current_evidence 字段（登记错位）；批次26 真实执行（88 像素 SVG）后以正确证据更正。教训：blocked 登记只写 current_gap，evidence 字段只放真实执行证据。
 - 当前全库：单技能条目 248 条（210 有证据 + 38 blocked 分类留档，含跨域重复条目）。
+
+## 2026-08-30（逐技能 C2 批次27/28/28B：宿主转化 + 模拟任务，无证据 38→8）
+
+- **宿主转化 5**（用户指令：能转则转、不能转物理清除）：galaxy-command-development/plugin-structure/hook-development/agent-identifier 四个 Claude Code 插件开发指南全部加三宿主对照节（.claude ↔ .zcode ↔ opencode），真实资产验证全过（.zcode/commands/doc-governance.md、.zcode/config.json、.zcode/skills 联结、opencode.json、.opencode/agents/、.opencode/plugins/audit-trail.ts L1 审计插件）；paper-search 重建本地 search.sh（OpenAlex keyless）——v1 cites 排序丢相关性、v2/v3 裸 search 与 filter 语义混入无关高引（实测留档），v4 客户端相关性守卫后全相关。**无清除对象**：全部可转化。
+- **误 blocked 重分类 7**：daily-coding（14/14 Conventional Commits）/git-workflow/uv-package-manager（uv 0.11.12 真实探测）/training-check（fixture 曲线检查）/results-report/expression-skill/defuddle（定性：需 JS 包保持 blocked）。
+- **模拟任务真实执行 11**：copyright-draft/build（vendored codesucker-core 真实 1453 行 TS 源码说明书草稿 + npm test 五项审计证据）/patent-draft/build（真实技术点 3 条权利要求，外部检索缺失如实声明）/dev-code（"--json 输出"发现功能已在库，真实验证）/前端四技能（poster.html 设计评审 + 真实 HTTP 服务 200 内容断言）/comm-lit-review/dse-loop。
+- **批次28B**：galaxy-mcp-integration 试点（.zcode/config.json docsearch MCP 实存）+ 最后 8 凭证依赖类定性留档（Kaggle/NotebookLM/Zotero/CLI×2/skill-development/improver/dossier）。
+- **最终状态**：无证据单技能条目 **38→8**（8 个全部为凭证依赖类，需用户侧提供 Kaggle/NotebookLM/Zotero 账号或 CLI 安装）；其余 240 条全部有真实证据或转化/映射登记。
+- 工具类缺陷再抓 2：paper-search 三连缺陷（排序丢相关性/裸 search OR 语义/filter 混入）+ os.chdir 后相对路径失效。

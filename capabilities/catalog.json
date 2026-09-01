@@ -1205,10 +1205,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：日常编码流（需宿主会话集成）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch22/galaxy-daily-coding.json）：日常编码 QA 清单对照真实 git 史——近 14 条提交 14 条符合 Conventional Commits；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -1224,10 +1226,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：表达力训练（宿主会话）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch22/galaxy-expression-skill.json）：表达三原则契约映射（14 批次报告实际在用）。；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -1425,7 +1429,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Zotero-Obsidian 桥（需两者账号）——本环境无法真实执行核心动作，不伪造验收",
+      "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：需 Zotero 与 Obsidian 双账号/库——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
       "current_gap_class": "blocked-by-dependency"
@@ -2440,7 +2444,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：实体调研（SEC/ProPublica API）——目标域与学术域不匹配——本环境无法真实执行核心动作，不伪造验收",
+      "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：实体调研域（SEC/ProPublica）与学术域不匹配，API 未配置——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
       "current_gap_class": "blocked-by-dependency"
@@ -2638,10 +2642,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：通讯域综述——无真实通讯域任务——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch22/comm-lit-review.json）：通讯域模拟综述（逻辑梳理+OpenAlex 真实通道验证，检索执行由 batch15/21 覆盖）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-scope"
     },
     {
@@ -2798,10 +2804,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：结果报告（宿主会话）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch22/galaxy-results-report.json）：实验报告骨架（真实消融数字三段）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -2937,10 +2945,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：宿主插件脚本 search.sh 不存在（Claude Code 插件形态）；等价能力由 scholar-openalex/sci-paper-lookup 真实验收覆盖——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "宿主转化完成（2026-08-30，scripts/search.sh v4）：重建本地可执行检索脚本（OpenAlex keyless）——v1 cites 排序丢相关性、v2/v3 裸 search 与 filter 语义混入无关高引（实测留档），v4 客户端相关性守卫后三条全部相关；真实检索测试通过；",
+      "current_gap": "宿主转化完成（三宿主对照节+真实资产验证）；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -3325,7 +3335,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：需 NotebookLM API——本环境无法真实执行核心动作，不伪造验收",
+      "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：需 NotebookLM API/账号——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
       "current_gap_class": "blocked-by-dependency"
@@ -3503,10 +3513,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：功能开发——本窗口为验收非新功能（引擎代码已由 batch19 code-review 覆盖）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch22/dev-code/DEVCODE.json）：需求\"--json CI 输出\"——发现功能已在库（审计器双模式 main guard），真实执行验证而非重复开发；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-scope"
     },
     {
@@ -3522,10 +3534,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：后端开发——同上——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "blocked-by-scope（2026-08-30 维持）：无真实后端开发任务；",
+      "current_gap": "保持 blocked（见 current_evidence 定性）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-scope"
     },
     {
@@ -3541,10 +3555,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：前端开发——同上——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "blocked-by-scope（2026-08-30 维持）：无真实前端开发任务；",
+      "current_gap": "保持 blocked（见 current_evidence 定性）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-scope"
     },
     {
@@ -3560,10 +3576,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：前端/产品设计——无真实设计任务——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "blocked-by-scope（2026-08-30 维持）：无真实产品设计任务；",
+      "current_gap": "保持 blocked（见 current_evidence 定性）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-scope"
     },
     {
@@ -3679,10 +3697,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Claude Code agent 标识体系（宿主专属）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "宿主转化完成（2026-08-30，同上）：Claude Code agents ↔ OpenCode agents/ 目录 ↔ ZCode 系统 subagent 对照，全部实存验证；",
+      "current_gap": "宿主转化完成（三宿主对照节+真实资产验证）；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -3758,10 +3778,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Claude Code slash-command 开发（宿主专属）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "宿主转化完成（2026-08-30，workspaces/skill_c2_batch21/HOST_CONVERSION.json）：SKILL.md 增三宿主对照节（.claude/commands ↔ .zcode/commands ↔ OpenCode），真实资产验证 .zcode/commands/doc-governance.md 实存；",
+      "current_gap": "宿主转化完成（三宿主对照节+真实资产验证）；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -3817,10 +3839,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：git 工作流（宿主会话集成）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch22/galaxy-git-workflow.json）：Conventional Commits 规范对真实 git 史 14/14 验证；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -3836,10 +3860,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：hook 开发（宿主专属）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "宿主转化完成（2026-08-30，同上）：Claude Code hooks ↔ OpenCode L1 拦截式审计插件对照——.opencode/plugins/audit-trail.ts 真实在库且内容抽验为审计/hook 性质；",
+      "current_gap": "宿主转化完成（三宿主对照节+真实资产验证）；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -3856,7 +3882,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Kaggle 竞赛（需账号/任务）——本环境无法真实执行核心动作，不伪造验收",
+      "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：需 Kaggle 账号/API 凭证（用户未提供）——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
       "current_gap_class": "blocked-by-dependency"
@@ -3894,10 +3920,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：MCP 服务集成（需 MCP 服务端）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch19/galaxy-mcp-integration.json）：MCP 集成契约对本仓库真实执行——.zcode/config.json 含 docsearch MCP 服务配置（实存验证），OpenCode 侧 MCP 同配置；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次28B（真实试点 skill_c2_batch19）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -3955,10 +3983,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：插件结构开发（宿主专属）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "宿主转化完成（2026-08-30，同上）：三宿主插件结构对照（.claude-plugin ↔ .zcode/config.json+skills 联结 ↔ opencode.json+plugins），全部实存验证；",
+      "current_gap": "宿主转化完成（三宿主对照节+真实资产验证）；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -4015,7 +4045,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：技能开发（宿主会话）——本环境无法真实执行核心动作，不伪造验收",
+      "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：宿主会话技能开发流（需目标宿主会话）——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
       "current_gap_class": "blocked-by-dependency"
@@ -4034,7 +4064,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：技能改进（宿主会话）——本环境无法真实执行核心动作，不伪造验收",
+      "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：技能改进流（需宿主会话）——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
       "current_gap_class": "blocked-by-dependency"
@@ -4052,10 +4082,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：uv 包管理（宿主会话）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch22/galaxy-uv-package-manager.json）：uv 0.11.12 真实探测 + pip list 对真实 venv 执行；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -4091,10 +4123,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：web 设计评审（无真实 web 任务）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch22/galaxy-web-design-reviewer.json）：web 设计评审（自包含/配色变量化建议）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-scope"
     },
     {
@@ -4110,10 +4144,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：webapp 测试（无真实 webapp）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch22/galaxy-webapp-testing.json）：真实 HTTP 服务测试——本地起服 + GET 200 + 内容断言（中文标题匹配）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -4210,7 +4246,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：claude CLI 不在 PATH（请求模板已照契约产出）——本环境无法真实执行核心动作，不伪造验收",
+      "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：claude CLI 不在 PATH（请求模板已产出）——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
       "current_gap_class": "blocked-by-dependency"
@@ -4922,11 +4958,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：软著材料构建——同上——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 模拟任务通过（2026-08-30，workspaces/skill_c2_batch22/copyright-build/）：材料齐套检查——源程序 docx 真实产出证据（npm test 五项审计 pass）、说明书草稿就绪、申请表需申请人信息；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
       "promotion_history": [
-        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
       "current_gap_class": "blocked-by-scope"
     },
@@ -4943,11 +4980,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：软著说明书草稿——无真实申报任务输入（域 spec 在 docs/superpowers）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 模拟任务通过（2026-08-30，workspaces/skill_c2_batch22/copyright-draft/COPYRIGHT_DRAFT.json）：对 vendored codesucker-core（真实 1453 行 TS 源码）产软著说明书草稿，模拟任务显式标注、正式申报需申请人信息；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
       "promotion_history": [
-        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
       "current_gap_class": "blocked-by-scope"
     },
@@ -4986,7 +5024,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：gemini CLI 不在 PATH（同上）——本环境无法真实执行核心动作，不伪造验收",
+      "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：gemini CLI 不在 PATH（同上）——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
       "current_gap_class": "blocked-by-dependency"
@@ -5004,11 +5042,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：专利材料构建——同上——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 模拟任务通过（2026-08-30，workspaces/skill_c2_batch22/patent-build/）：材料齐套（权利要求书/说明书/摘要草稿）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
       "promotion_history": [
-        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
       "current_gap_class": "blocked-by-scope"
     },
@@ -5025,11 +5064,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：专利草稿——无真实专利任务输入（patent_disclosure 模板在库）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 模拟任务通过（2026-08-30，workspaces/skill_c2_batch22/patent-draft/PATENT_DRAFT.json）：对本项目真实技术点（STEP_MANIFEST+M5 门禁+溯源 gate）产 3 条权利要求草稿，外部检索缺失如实声明；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
       "promotion_history": [
-        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
       "current_gap_class": "blocked-by-scope"
     },
@@ -5074,9 +5114,12 @@
         "Node.js 22.12+（本地 vendored 依赖）"
       ],
       "high_risk_confirmation": "无（源码离线处理）",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：软著源材料抽取工具（codesucker-core v0.4.4 vendored 在库，npm test 7 组通过）——无真实软著申报任务输入——本环境无法真实执行核心动作，不伪造验收",
-      "current_gap_class": "blocked-by-scope"
+      "current_evidence": "C2 试点通过（2026-08-30 更正）：codesucker-core npm test 真实执行全过（docx 27KB 产出+五项审计+6 测试组）——源材料抽取链真实验证；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
+      "current_gap_class": "blocked-by-scope",
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ]
     }
   ],
   "figures_and_document_production": [
@@ -5325,10 +5368,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：网页正文抽取（需目标网页会话）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "blocked-by-dependency（2026-08-30 契约定性）：HTML→Markdown 抽取需 defuddle JS 包+目标网页会话——本环境未安装该包，保持如实 blocked；",
+      "current_gap": "保持 blocked（见 current_evidence 定性）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -5344,10 +5389,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：前端设计（无真实前端任务）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch22/galaxy-frontend-design.json）：对真实产出海报 HTML 设计评审（语义结构/网格/中文渲染/安全四检+改进建议）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-scope"
     },
     {
@@ -5383,10 +5430,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：UI/UX 设计（无真实前端任务）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch22/galaxy-ui-ux-pro-max.json）：UX 评审（层级/4 列语义/打印媒体查询建议）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
+      ],
       "current_gap_class": "blocked-by-scope"
     },
     {
