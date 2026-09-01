@@ -291,3 +291,11 @@
 - copyright/patent 五个如实 blocked-by-scope（无真实申报任务）+ source-materials 工具在库确认。
 - format-profile（真实提取）/proof-writer（sympy 支撑）/humanities 三件/research 六件/auto 循环四件/rebuttal/editor/team：真实映射登记。
 - 基线：无证据 93→61；累计 9 回填 + 121 试点 + 28 blocked。
+
+## 2026-08-30（逐技能 C2 批次23/24/25 收尾：全库分类完成——245 技能 100% 有验收状态）
+
+- **批次23**（27 登记）：dev 系自检/需求/报告真实执行；dev-code 系 4 个 blocked-by-scope；ars-dossier/notebooklm blocked-by-dependency；杂项映射（experiment 族/feishu/pixel/training/skill-creator 等）。
+- **批次24**（28 登记）：thesis-proposal/sci-scientific-writing/claude-scientific-writer 试点映射；**galaxy 外部依赖型 22 个统一分类**（宿主专属/Obsidian vault/Kaggle/MCP 等）。
+- **批次25**（38 条 blocked 统一分类收尾）：blocked-by-dependency 25 个 + blocked-by-scope 13 个，全部写入 current_gap_class + 分类留档 JSON（skill_c2_batch19/）。
+- **最终状态**：281 能力条目中，单技能条目 245 个全部有验收状态——有证据（管线级/试点级）207 个，诚实 blocked 38 个（25 dependency + 13 scope），0 个未知状态。全库 100% 分类完成，无一伪造。
+- 基线回归：pytest 242 passed / provenance 全过 / catalog JSON valid。
