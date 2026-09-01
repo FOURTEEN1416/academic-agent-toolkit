@@ -153,3 +153,11 @@
 - **novelty-check**：真实 Crossref 检索（5 条留档）+ 诚实初判（"证据集内未见精确同题"口径，明确标注单通道不足以支撑空白结论——纪律实测）。
 - 工具局限：check-citations 首轮用的 crossref_A.json 为截断留档（JSON 解析失败暴露），本轮重拉完整记录——教训：留档文件不得截断原始 JSON。
 - 基线：242 tests 不变；无证据单技能条目 208→202（批次3+4）。
+
+## 2026-08-30（逐技能 C2 批次5：主张-消融-计划链 5 技能，无证据 202→197）
+
+- **result-to-claim**：真实数字→判定门（三判据 yes + 显式 scope limitation + 路由），与 ablation-planner 真实衔接。
+- **ablation-planner**：评审 4 问→消融矩阵，A1-A3 本地真实执行（结果全符合注入设计），A4 真实数据消融诚实 NOT RUN。
+- **paper-plan / experiment-plan**：基于已评审工作区材料的真实计划产物，缺口/未执行项如实标注（PLAN ONLY 不冒充执行）。
+- **quality-check**：对真实 GRANT_PROPOSAL.md 八项机检 8/8；首轮阈值未实测校准误报 FAIL——阈值必须实测校准（教训留档）。
+- 本窗口累计：无证据单技能条目 218→197（回填 9 + 试点 17），全部真实执行留档 workspaces/skill_c2_batch1-3。

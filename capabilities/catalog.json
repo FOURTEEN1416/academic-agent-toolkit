@@ -1649,10 +1649,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch3/paper-plan/）：基于 deep_research_c2 round-4 PASS 材料的真实写作计划——6 行骨架-素材映射（缺口如实标'待补/未执行'）、写作顺序依赖、禁令沿用；机检过（无绝对化断言）。PAPER_PLAN.md。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次5（真实执行留档 skill_c2_batch3）"
+      ]
     },
     {
       "capability_id": "paper-plan-zh",
@@ -1847,10 +1849,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch3/quality-check/）：对真实已评审 GRANT_PROPOSAL.md 八项机检 8/8 PASS（字数/八节结构/参考文献/链接/占位符/推断标注/无绝对化/future-work）；首轮阈值未经实测校准产生误报 FAIL，按实测校准修正（教训留档）。QUALITY_REPORT.md。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次5（真实执行留档 skill_c2_batch3）"
+      ]
     },
     {
       "capability_id": "rebuttal",
@@ -2523,10 +2527,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch3/experiment-plan/）：研究内容 2 的因子设计（4 变体×3 覆盖水平×双数据源，指标全部已核验协议口径）+ 消融衔接；状态如实标注 PLAN ONLY（实验未执行）；EXPERIMENT_PLAN.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次5（真实执行留档 skill_c2_batch3）"
+      ]
     },
     {
       "capability_id": "galaxy-ml-paper-writing",
@@ -3055,10 +3061,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch3/ablation-planner/）：评审员视角 4 问→消融矩阵，A1-A3 真实执行（去温度 ΔR²=0.986 / 复杂度阶梯 0.751→0.986→0.995 / 噪声敏感性单调 0.9935→0.99→0.9766），A4（真实数据）诚实标记 NOT RUN 待外部数据；ABLATION_PLAN.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次5（真实执行留档 skill_c2_batch3）"
+      ]
     },
     {
       "capability_id": "analyze-results",
@@ -4053,10 +4061,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch3/result-to-claim/）：真实实验数字→主张判定门——三项判据全过判 yes，claim_scope_limitation 显式（仅限 fixture 内插值域不外推）+ 路由到 ablation-planner；CLAIM_GATE.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次5（真实执行留档 skill_c2_batch3）"
+      ]
     },
     {
       "capability_id": "run-experiment",
