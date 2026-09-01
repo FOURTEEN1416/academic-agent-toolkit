@@ -239,3 +239,11 @@
 - **paper-write-nature**：Nature 摘要（Here we 句式/无预支结果）。**paper-illustration**：概念→线稿→矢量 SVG。
 - **2 个诚实 blocked**：scholar-arxiv-metadata（arXiv API 本网络不可达复核留档）、paper-search（宿主插件脚本不存在，等价能力已被 openalex/lookup 覆盖）。
 - 基线：242 tests 不变；无证据 156→145；累计 9 回填 + 65 试点 + 26 blocked。
+
+## 2026-08-30（逐技能 C2 批次17：nature 家族 10 技能，无证据 145→135）
+
+- **nature-citation-verifier**：5 条参考文献实时核验（3 Crossref + 2 直访）全 VERIFIED。
+- **nature-rebuttal-response**：对 round-3 真实历史评审 5 条逐条回应——真实闭环案例（round-4 PASS 确认）。
+- **nature-results-section-revision + nature-scientific-writing**：空洞结果句→真实 ablation 数字改写，写作纪律机检全过。
+- **nature-data-availability / nature-manuscript-optimizer / nature-paper-bootstrap / nature-figure-planner / nature-paper-workflow / nature-portfolio-playbook**：各契约产物真实产出，未执行项如实 PLAN/done=False。
+- 基线：242 tests 不变；无证据 145→135；累计 9 回填 + 64 试点 + 26 blocked。
