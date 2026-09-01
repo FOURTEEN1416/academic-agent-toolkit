@@ -917,10 +917,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级验收覆盖（ars-academic-pipeline 与三管线产物同构映射）；2026-08-30 登记。",
+      "current_gap": "管线级验收覆盖；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "ars-academic-paper-reviewer",
@@ -935,10 +937,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch17/ars-academic-paper-reviewer.json）：四视角迷你评审（methodology/domain/cross-discipline/devils-advocate）全部锚定真实申请书材料。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "ars-academic-pipeline",
@@ -953,10 +957,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级验收覆盖（idea→lit→summarizer→review 四步与 deep_research 管线同构，wf 4c3b56e9 round-4 PASS）；2026-08-30 登记。",
+      "current_gap": "管线级验收覆盖；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "ars-adversarial-reviewer",
@@ -971,10 +977,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch17/ars-adversarial-reviewer.json）：最强反驳（5 条证据集不足以论证缺位）+预回应指向 §1.3 证据边界声明。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "ars-code-reviewer",
@@ -989,10 +997,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch17/ars-code-reviewer.json）：对真实 skill_library_audit.py 评审（六类机检真实存在确认）。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "ars-experiment-designer",
@@ -1007,10 +1017,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch17/ars-experiment-designer.json）：对 A4 deferred 出设计补全，prereq 如实标注。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "ars-pr-review-expert",
@@ -2343,10 +2355,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "引擎编排能力真实评审覆盖（workflow_runner 490 行 + 三管线 completed）；2026-08-30 登记。",
+      "current_gap": "管线级验收覆盖；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "ars-deep-research",
@@ -2361,10 +2375,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级验收覆盖（deep_research_c2 四轮评审 round-4 PASS，wf 4c3b56e9）；2026-08-30 登记。",
+      "current_gap": "管线级验收覆盖；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "ars-dossier",
@@ -2417,10 +2433,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch17/ars-pulse.json）：领域脉搏——OpenAlex 实时 API（E2 被引 1037 本次返回）。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "ars-research",
@@ -2435,10 +2453,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级验收覆盖（deep_research_c2 round-4 PASS 四步同契约映射）；2026-08-30 登记。",
+      "current_gap": "管线级验收覆盖；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "ars-research-summarizer",
@@ -2473,10 +2493,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch17/ars-syllabus.json）：12 周课程大纲（三段映射已核验证据），考核用真实消融数字作示例。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "arxiv",
@@ -3207,10 +3229,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch17/ars-ai-security.json）：AI 风险自检三项真实机制在位（引用可核验/PI 占位/AI 痕迹机检）。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "ars-notebooklm",
@@ -4721,11 +4745,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
+      "current_evidence": "blocked-by-dependency（2026-08-30 如实登记）：NIH 专属 RePORTER/Consensus MCP 本环境不可达；NSFC 需求已由 grant_proposal_c2 覆盖。",
+      "current_gap": "管线级验收覆盖；C3/C4 未建",
       "status": "experimental",
       "promotion_history": [
-        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
       ]
     },
     {
@@ -4741,11 +4766,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "C1/C2/C3/C4/C5/C6 均未完成；无可用证据；许可证已改为CC-BY-NC-4.0禁止商用（2026-08-17 审核确认）",
+      "current_evidence": "blocked-by-scope（2026-08-30 如实登记）：无真实专利任务输入；专利域已有 patent_disclosure 模板；保持 experimental。",
+      "current_gap": "管线级验收覆盖；C3/C4 未建",
       "status": "experimental",
       "promotion_history": [
-        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
       ]
     },
     {
@@ -5058,10 +5084,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch17/ars-challenge.json）：挑战命题=真实数据复现覆盖失效画像（A4），验收口径+prereq 如实。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ]
     },
     {
       "capability_id": "docx-export",
