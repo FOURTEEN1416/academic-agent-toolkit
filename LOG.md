@@ -130,3 +130,11 @@
   3. data-processing：SKILL.md 强制流程全链真实执行（构造 fixture 诚实标注），IQR+3σ 双通道异常检测恰命中注入行。
 - **网络受限如实记录**：scholar-arxiv-metadata 因本网络对 export.arxiv.org 不可达（curl SSL error / WebFetch ECONNRESET）未纳入试点，保持无证据状态。
 - 基线：242 tests 不变；catalog 281 条（有证据 53 / 无证据 228）。
+
+## 2026-08-30（逐技能 C2 批次2：10 技能真实验收，无证据 218→208）
+
+- **批次2A（本地计算 5 技能）**：共享 48h 构造 fixture（温度-负荷幂律响应，诚实标注测试数据）——sci-exploratory-data-analysis（EDA_REPORT：结构/质量/分桶单调性）、sci-statistical-analysis（Pearson/Spearman/Welch t/Cohen's d/线性 vs 二次 R² 识别非线性，APA 口径）、visualization（中文双面板 300dpi PNG）、sci-networkx（证据-主题有向图 PageRank 双向+连通性；**过程修正一处硬编码标签失实**，教训留档"报告文字必须从计算结果生成"）、analyze-results（R²/RMSE≈注入 σ/Shapiro 残差正态）。
+- **批次2B（编译链 3 技能）**：latex-document（中文 ctex xelatex 两轮 → main.pdf 35KB + PyMuPNG 预览）、paper-compile（英文 pdflatex → main.pdf 88KB，log 0 Error，pinball loss 分段公式真实排版）、mermaid-diagram（.mmd 语法验证 + mmdc Edge 渲染 SVG 19KB）。产物引用仅用已核验 E1/E2。
+- **批次2C（网络 2 技能）**：scholar-openalex（单记录端点真实通过：E2 权威记录 W2296521892 被引 1033 与登记一致；search 端点 429 限流两次按纪律如实记录——环境局限非技能缺陷）、sci-paper-lookup（按选库决策选 Crossref 真实检索，返回 2026 SSRN conformal 负荷论文）。
+- **工具局限如实记录**：urllib 对 OpenAlex 429（TLS 指纹），curl 通道正常；arXiv 端点本网络不可达（沿用批次1 结论）。
+- 基线：242 tests 不变；无证据单技能条目 218→208。
