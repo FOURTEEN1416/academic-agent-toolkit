@@ -229,3 +229,13 @@
 - **spine-update**（v2）：上游 commits API 实时比对（HEAD b52a33b ≠ 本地 pin ac490fd，如实报告 up_to_date=false）；v1 releases API 404 教训：先探上游发布形态。升级与否留用户裁决。
 - **spine-paper-* 家族 12/12 全部覆盖**（orchestrator+11 分支）。
 - 基线：242 tests 不变；无证据 160→156；累计 9 回填 + 58 试点 + 24 blocked。
+
+## 2026-08-30（逐技能 C2 批次15/16：9 试点 + 2 诚实 blocked，无证据 156→145）
+
+- **sci-pdf**：PyMuPDF 抽取/合并/元数据真实操作。**scholar-critique-figures**：四维审查真抓 coverage_fig.png 宽度不达印刷阈值（PASS_WITH_ISSUES 如实）。
+- **paper-writing / paper-writing-ucsb**：编排映射到真实闭环产物 + claims-evidence 矩阵（推断显式降档）。
+- **sci-latex-posters**（v2）：A2 海报真实编译——**v1 抓到 \[Npt] 断行参数字面渲染缺陷**（PDF 文本层 6pt]/4pt]），v2 修复；baposter/beamerposter 环境缺失如实记录。
+- **scholar-accessible-pdf**：DocumentMetadata 注入 + LuaLaTeX tagged 编译通过。**scholar-arxiv-prep**：clean→编译→tarball 五机检。
+- **paper-write-nature**：Nature 摘要（Here we 句式/无预支结果）。**paper-illustration**：概念→线稿→矢量 SVG。
+- **2 个诚实 blocked**：scholar-arxiv-metadata（arXiv API 本网络不可达复核留档）、paper-search（宿主插件脚本不存在，等价能力已被 openalex/lookup 覆盖）。
+- 基线：242 tests 不变；无证据 156→145；累计 9 回填 + 65 试点 + 26 blocked。
