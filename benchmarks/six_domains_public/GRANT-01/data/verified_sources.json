@@ -1,0 +1,10 @@
+{
+ "note": "GRANT-01 公开 fixture 证据集：全部为可点开核验的公开来源（与 deep_research_c2 round-4 PASS 集合一致）",
+ "entries": [
+  {"key": "E1", "title": "Hyndman & Athanasopoulos, Forecasting: Principles and Practice (3rd ed.)", "verifiable_url": "https://otexts.com/fpp3/"},
+  {"key": "E2", "title": "Hong et al., GEFCom2014, IJF 32(3):896-913, 2016", "verifiable_url": "https://www.sciencedirect.com/science/article/pii/S0169207016000133", "doi": "10.1016/j.ijforecast.2016.02.001"},
+  {"key": "E3", "title": "Vovk et al., Algorithmic Learning in a Random World, Springer 2022", "verifiable_url": "https://link.springer.com/book/10.1007/978-3-031-06649-8"},
+  {"key": "E4", "title": "Makridakis et al., M5 uncertainty, IJF 38(4), 2022", "verifiable_url": "https://www.sciencedirect.com/science/article/pii/S0169207021001722"},
+  {"key": "E5", "title": "ENTSO-E Transparency Platform", "verifiable_url": "https://transparency.entsoe.eu/"}
+ ]
+}
