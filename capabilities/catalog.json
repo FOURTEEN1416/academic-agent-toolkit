@@ -1045,10 +1045,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "映射登记（batch19 galaxy-code-review-excellence 真实评审同契约）；",
+      "current_evidence": "映射登记（batch19 真实代码评审同契约）；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次24（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "auto-paper-improvement-loop",
@@ -1083,10 +1085,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "映射登记（batch12 abstract + batch13 writing 纪律同族真实产出）；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次24（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "comp-compile-en",
@@ -1202,9 +1206,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：日常编码流（需宿主会话集成）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-expression-skill",
@@ -1220,9 +1225,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：表达力训练（宿主会话）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-nature-data",
@@ -1318,9 +1324,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Obsidian 文献流（需 vault）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-paper-self-review",
@@ -1416,9 +1423,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Zotero-Obsidian 桥（需两者账号）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "humanities-plan",
@@ -2133,10 +2141,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "试点级覆盖（batch13 nature-scientific-writing 写作纪律机检同契约）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次24（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "spine-paper-spine-rewrite",
@@ -2171,10 +2181,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces\\skill_c2_batch19/thesis-proposal.json）：对真实主题（覆盖校准）产学位论文提案骨架（问题/假设/方法/计划，全部锚定已核验材料）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次24（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "anti-ai-detection",
@@ -2426,9 +2438,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "blocked-by-dependency（2026-08-30 如实登记）：实体调研域（SEC/ProPublica）与学术域不匹配；",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：实体调研（SEC/ProPublica API）——目标域与学术域不匹配——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "ars-litreview",
@@ -2624,9 +2637,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：无真实通讯域任务；",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：通讯域综述——无真实通讯域任务——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-scope"
     },
     {
       "capability_id": "experiment-agent",
@@ -2722,9 +2736,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Obsidian 项目库（需 vault）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-planning-with-files",
@@ -2780,9 +2795,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：结果报告（宿主会话）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "idea-creator",
@@ -2918,9 +2934,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "宿主插件依赖如实 blocked（2026-08-30 探测留档）：契约要求 ~/.claude 插件脚本 search.sh（Claude Code 插件形态分发），ZCode 宿主未安装；等价能力已由 scholar-openalex/sci-paper-lookup 真实验收覆盖；SEARCH_STATUS.json。",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：宿主插件脚本 search.sh 不存在（Claude Code 插件形态）；等价能力由 scholar-openalex/sci-paper-lookup 真实验收覆盖——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "research-pipeline",
@@ -3304,9 +3321,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "blocked-by-dependency（2026-08-30 如实登记）：需 NotebookLM API；",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：需 NotebookLM API——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "ars-statistical-analyst",
@@ -3341,10 +3359,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch19/assets-inventory.json）：资产盘点真实数字（245 skills/44 templates/242 tests/281 capabilities，本窗口实测）；",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces\\skill_c2_batch19/assets-inventory.json）：真实资产数字盘点（245/44/242/281）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次24（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "check-citations",
@@ -3480,9 +3500,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：本窗口为验收非新功能；引擎代码已由 batch19 code-review 覆盖；",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：功能开发——本窗口为验收非新功能（引擎代码已由 batch19 code-review 覆盖）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-scope"
     },
     {
       "capability_id": "dev-code-backend",
@@ -3498,9 +3519,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：同上；",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：后端开发——同上——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-scope"
     },
     {
       "capability_id": "dev-code-frontend",
@@ -3516,9 +3538,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：同上；",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：前端开发——同上——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-scope"
     },
     {
       "capability_id": "dev-design",
@@ -3534,9 +3557,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：无真实前端设计任务；",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：前端/产品设计——无真实设计任务——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-scope"
     },
     {
       "capability_id": "dev-report",
@@ -3652,9 +3676,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Claude Code agent 标识体系（宿主专属）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-architecture-design",
@@ -3730,9 +3755,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Claude Code slash-command 开发（宿主专属）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-daily-paper-generator",
@@ -3788,9 +3814,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：git 工作流（宿主会话集成）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-hook-development",
@@ -3806,9 +3833,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：hook 开发（宿主专属）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-kaggle-learner",
@@ -3824,9 +3852,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Kaggle 竞赛（需账号/任务）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-latex-conference-template-organizer",
@@ -3862,9 +3891,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：MCP 服务集成（需 MCP 服务端）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-obsidian-kb-artifacts",
@@ -3880,9 +3910,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Obsidian 知识库（需 vault）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-obsidian-source-ingestion",
@@ -3898,9 +3929,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Obsidian 源采集（需 vault）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-plugin-structure",
@@ -3916,9 +3948,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：插件结构开发（宿主专属）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-post-acceptance",
@@ -3974,9 +4007,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：技能开发（宿主会话）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-skill-improver",
@@ -3992,9 +4026,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：技能改进（宿主会话）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-uv-package-manager",
@@ -4010,9 +4045,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：uv 包管理（宿主会话）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-verification-loop",
@@ -4048,9 +4084,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：web 设计评审（无真实 web 任务）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-scope"
     },
     {
       "capability_id": "galaxy-webapp-testing",
@@ -4066,9 +4103,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：webapp 测试（无真实 webapp）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "idea-discovery-robot",
@@ -4164,9 +4202,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "claude CLI 不在本机 PATH（2026-08-30 探测留档）——协作请求模板照契约产出（payload 指向真实产物+不造数边界），实际 CLI 调用如实 blocked；COLLAB_CLAUDE.json。",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：claude CLI 不在 PATH（请求模板已照契约产出）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "latexpap-latex-rhythm-refiner",
@@ -4876,11 +4915,12 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：同上；",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：软著材料构建——同上——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
       "promotion_history": [
         "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
-      ]
+      ],
+      "current_gap_class": "blocked-by-scope"
     },
     {
       "capability_id": "copyright-draft",
@@ -4896,11 +4936,12 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：无真实软著申报任务输入；域内 spec 在 docs/superpowers；",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：软著说明书草稿——无真实申报任务输入（域 spec 在 docs/superpowers）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
       "promotion_history": [
         "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
-      ]
+      ],
+      "current_gap_class": "blocked-by-scope"
     },
     {
       "capability_id": "grant-proposal",
@@ -4937,9 +4978,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "gemini CLI 不在本机 PATH（2026-08-30 探测留档）——breadth-exploration 请求模板照契约产出，实际调用如实 blocked；COLLAB_GEMINI.json。",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：gemini CLI 不在 PATH（同上）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "patent-build",
@@ -4955,11 +4997,12 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：同上。",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：专利材料构建——同上——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
       "promotion_history": [
         "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
-      ]
+      ],
+      "current_gap_class": "blocked-by-scope"
     },
     {
       "capability_id": "patent-draft",
@@ -4975,11 +5018,12 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：patent_disclosure 模板在库，无真实任务输入；",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：专利草稿——无真实专利任务输入（patent_disclosure 模板在库）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
       "promotion_history": [
         "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）"
-      ]
+      ],
+      "current_gap_class": "blocked-by-scope"
     },
     {
       "capability_id": "codesucker-integration",
@@ -5023,7 +5067,8 @@
       ],
       "high_risk_confirmation": "无（源码离线处理）",
       "current_evidence": [],
-      "current_gap": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch18/copyright-source-materials.json）：codesucker-core v0.4.4 vendored 在库（npm test 7 组通过记录）；"
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：软著源材料抽取工具（codesucker-core v0.4.4 vendored 在库，npm test 7 组通过）——无真实软著申报任务输入——本环境无法真实执行核心动作，不伪造验收",
+      "current_gap_class": "blocked-by-scope"
     }
   ],
   "figures_and_document_production": [
@@ -5273,9 +5318,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：网页正文抽取（需目标网页会话）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency"
     },
     {
       "capability_id": "galaxy-frontend-design",
@@ -5291,9 +5337,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：前端设计（无真实前端任务）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-scope"
     },
     {
       "capability_id": "galaxy-publication-chart-skill",
@@ -5329,9 +5376,10 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-scope）：UI/UX 设计（无真实前端任务）——本环境无法真实执行核心动作，不伪造验收",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-scope"
     },
     {
       "capability_id": "latex-document",
