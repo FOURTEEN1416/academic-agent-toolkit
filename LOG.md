@@ -195,3 +195,10 @@
 - **paper-figure-html**：flex/grid 技术路线图，无绝对坐标静态机检 4/4。
 - **spine-paper-spine-audit**（v2）：真实 P3 工作区五项审计全过；v1 误判合规元声明为实质断言（教训：机检须剔除 §10 类元声明）。
 - 基线：242 tests 不变；无证据 177→173；累计 9 回填 + 41 试点 + 24 blocked。
+
+## 2026-08-30（逐技能 C2 批次11：英文写作/docx 模式/DrawIO 3 技能，无证据 173→170）
+
+- **paper-write**：ICLR 风格英文引言（claims-evidence/无绝对化/推断前提显式/引用子集/匿名口径五机检）。
+- **paper-write-docx**：docx 模式契约（仅 main.md，禁 tex/bib）真实执行。
+- **paper-figure-drawio**：DrawIO XML 生成 + 结构机检（4 节点 3 边、无重叠）。
+- 基线：242 tests 不变；无证据 173→170；累计 9 回填 + 44 试点 + 24 blocked。
