@@ -220,3 +220,12 @@
 - **spine-humanize**：tier 改写矩阵（T2 引用批次2真实数字），残留 0 命中。
 - **spine-translate**：translation_zh 完整包（行对行 5 对+正文长句），非摘要非部分集。
 - 基线：242 tests 不变；无证据 166→160；累计 9 回填 + 54 试点 + 24 blocked。
+
+## 2026-08-30（逐技能 C2 批次14：spine 收尾四分支，无证据 160→156；spine 家族 12/12 全覆盖）
+
+- **spine-rewrite**：真实已有稿实质修订（协议细节+边界句），修订留痕且引用集不扩。
+- **spine-intake**：paper_spine_config.json 五要素真实产出（目标为候选占位，不编造投稿）。
+- **spine-ui**：config 完整性守门真实检测（5 字段齐→免交互直接路由）。
+- **spine-update**（v2）：上游 commits API 实时比对（HEAD b52a33b ≠ 本地 pin ac490fd，如实报告 up_to_date=false）；v1 releases API 404 教训：先探上游发布形态。升级与否留用户裁决。
+- **spine-paper-* 家族 12/12 全部覆盖**（orchestrator+11 分支）。
+- 基线：242 tests 不变；无证据 160→156；累计 9 回填 + 58 试点 + 24 blocked。

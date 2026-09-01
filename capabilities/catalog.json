@@ -2057,10 +2057,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch11/spine-rewrite/）：对真实已有稿（批次8 main.md）做实质修订——摘要补协议细节（pinball/80-90-95%）+ 推断前提补检索缺口边界句，修订留痕；引用集未扩大机检过；REWRITE_DIFF.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次14（真实执行留档 skill_c2_batch11）"
+      ]
     },
     {
       "capability_id": "thesis-proposal",
@@ -4461,10 +4463,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch11/spine-intake/）：intake 契约——产出完整 paper_spine_config.json（target/output_language/translation/humanize_tier/manuscript_status 五要素），目标名为候选占位不编造投稿事实；paper_spine_config.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次14（真实执行留档 skill_c2_batch11）"
+      ]
     },
     {
       "capability_id": "spine-paper-spine-translate",
@@ -4499,10 +4503,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch11/spine-ui/）：UI 分支守门契约——config 完整性真实检测（5 必需字段齐全→路由 rewrite/build 而非交互补全），UI_GATE.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次14（真实执行留档 skill_c2_batch11）"
+      ]
     },
     {
       "capability_id": "spine-paper-spine-update",
@@ -4517,10 +4523,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch11/spine-update/，v2）：版本检查契约真实执行——上游 commits API 实时返回（HEAD b52a33b vs 本地 pin ac490fd，up_to_date=false 如实报告，升级留用户裁决）；v1 误用 releases API 404（上游无 release/tag），教训：先探上游发布形态。UPDATE_CHECK.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次14（真实执行留档 skill_c2_batch11）"
+      ]
     },
     {
       "capability_id": "training-check",
