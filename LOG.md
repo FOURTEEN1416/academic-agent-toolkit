@@ -247,3 +247,12 @@
 - **nature-results-section-revision + nature-scientific-writing**：空洞结果句→真实 ablation 数字改写，写作纪律机检全过。
 - **nature-data-availability / nature-manuscript-optimizer / nature-paper-bootstrap / nature-figure-planner / nature-paper-workflow / nature-portfolio-playbook**：各契约产物真实产出，未执行项如实 PLAN/done=False。
 - 基线：242 tests 不变；无证据 145→135；累计 9 回填 + 64 试点 + 26 blocked。
+
+## 2026-08-30（逐技能 C2 批次18：comp 系 9 技能，无证据 135→126）
+
+- **comp-compile-en/zh**：双语竞赛论文真实编译（bookmarks 包缺失即修 / xelatex 两轮）。
+- **comp-code**：FIGURES-01 真实数据完整求解链（分组统计→300dpi 图→台账一致性）。
+- **comp-literature**：证据集 GB/T 7714 批量转换。
+- **comp-editor / comp-final-audit / comp-visual-review**：编辑留痕/五项全检 READY/视觉机检（v1 照片型阈值误报条形图——按图类型定标准教训留档）。
+- **comp-pipeline / comp-final-review**：五阶段真实闭环 + final-review 门 APPROVED。
+- 基线：242 tests 不变；无证据 135→126；累计 9 回填 + 73 试点 + 26 blocked。
