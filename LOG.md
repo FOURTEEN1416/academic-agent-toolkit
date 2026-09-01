@@ -202,3 +202,11 @@
 - **paper-write-docx**：docx 模式契约（仅 main.md，禁 tex/bib）真实执行。
 - **paper-figure-drawio**：DrawIO XML 生成 + 结构机检（4 节点 3 边、无重叠）。
 - 基线：242 tests 不变；无证据 173→170；累计 9 回填 + 44 试点 + 24 blocked。
+
+## 2026-08-30（逐技能 C2 批次12：数据科学/赛题分析/建模/文献地图 4 技能，无证据 170→166）
+
+- **ars-senior-data-scientist**：功效解析式经 2000 次蒙特卡洛独立验证（n=1035/组，实测功效 0.814）。
+- **comp-prob-analysis**（v3）：对真实公开基准 FIGURES-01 结构化分析；v2 数据形态预设错误（虚构温度-负荷 vs 实际 group/run/value）重写——赛题分析必须先读真实数据结构。
+- **comp-modeling**：基准真实数据 Welch t 组间比较（t=-8.07, d=-5.70）留档可复现。
+- **ars-litreview**：launching-pad 真实执行（OpenAlex 单记录 API 本次返回：E2 被引 1037 / E4 被引 106）。
+- 基线：242 tests 不变；无证据 170→166；累计 9 回填 + 48 试点 + 24 blocked。
