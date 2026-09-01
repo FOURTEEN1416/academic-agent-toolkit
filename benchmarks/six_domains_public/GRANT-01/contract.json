@@ -1,0 +1,14 @@
+{
+  "benchmark": "GRANT-01",
+  "domain": "academic_papers",
+  "checks": [
+    {"id": "sections", "desc": "八节结构齐备（立项依据/研究内容/研究目标/研究方案/可行性分析/特色与创新/年度计划或预期成果/研究基础）"},
+    {"id": "citations_subset", "desc": "正文 E 键 ⊆ data/verified_sources.json 登记集合"},
+    {"id": "no_absolute_claims", "desc": "实质断言无绝对化（合规元声明豁免）"},
+    {"id": "future_work", "desc": "不预支实验结论（声明存在）"},
+    {"id": "pi_placeholders", "desc": "研究基础节占位符 >= 3"},
+    {"id": "evidence_registry", "desc": "工作区含证据登记文件且全部 https 可核验"},
+    {"id": "time_dimension", "desc": "证据时间边界局限如实呈现"},
+    {"id": "chinese", "desc": "正文为中文"}
+  ]
+}

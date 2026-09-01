@@ -299,3 +299,10 @@
 - **批次25**（38 条 blocked 统一分类收尾）：blocked-by-dependency 25 个 + blocked-by-scope 13 个，全部写入 current_gap_class + 分类留档 JSON（skill_c2_batch19/）。
 - **最终状态**：281 能力条目中，单技能条目 245 个全部有验收状态——有证据（管线级/试点级）207 个，诚实 blocked 38 个（25 dependency + 13 scope），0 个未知状态。全库 100% 分类完成，无一伪造。
 - 基线回归：pytest 242 passed / provenance 全过 / catalog JSON valid。
+
+## 2026-08-30（C3/C4 样板工程 + 第一类自主部分，无证据 38→33）
+
+- **C4 样板（第二类首个非 figures 基准）**：benchmarks/cumcm_private/grant_proposal_private/——rubric 六条硬性规范全部对应 round-1 实证教训（无键回断言/转化精确/承诺对齐/阈值实测/元声明豁免/PI 零编造），对真实 grant_proposal_c2 判定 **PASS**（六规范+五维度全过）；C4_VERDICT.json。
+- **C3 公开基准 GRANT-01**：benchmarks/six_domains_public/GRANT-01/（contract 8 类机检 + evaluate.py + fixture 证据集/主题简报）；正例（真实 P3 工作区）exit=0、负例 exit=1 判别正确——可复用第二域公开基准。
+- **第一类自主部分**：galaxy-obsidian 四技能 **vault 文件级演示验收**（真实 round-4 证据集→5 来源笔记/Home/canvas 四段结构，wikilink 15/FM 8/8；v1 补遗漏 FM；如实标注应用级特性未测）；**pixel-art** 88 像素 SVG 真实生成（7px 网格四机检）。
+- 无证据 38→33（5 升级）；剩余 33 全部 blocked（需用户凭证/真实任务/网络）。
