@@ -1121,10 +1121,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch4/galaxy-citation-verification/，v2）：canonical 优先序核验 E1-E4 四条 4/4 VERIFIED；v1 断言关键词教训留档。CITATION_VERIFY.md。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
+      ]
     },
     {
       "capability_id": "galaxy-daily-coding",
@@ -1140,7 +1142,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -1158,7 +1160,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -1175,10 +1177,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch4/galaxy-nature-data/）：数据可用性声明包四件套（不预支 DOI/引用全已核验/缺失 flags 如实），DATA_PACKAGE.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
+      ]
     },
     {
       "capability_id": "galaxy-nature-polishing",
@@ -1193,10 +1197,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch4/galaxy-nature-polishing/）：诊断三缺陷→改写后五项机检过（数字落地/对象明确/代价披露/数据口径/无空洞话术），POLISH_REPORT.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
+      ]
     },
     {
       "capability_id": "galaxy-nature-response",
@@ -1231,10 +1237,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch4/galaxy-nature-writing/）：argument-first 契约——先提取论证骨架（round-4 PASS 材料）再落笔摘要草稿，五项机检全过。ABSTRACT_DRAFT.md + ARGUMENT_SKELETON.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
+      ]
     },
     {
       "capability_id": "galaxy-obsidian-literature-workflow",
@@ -1250,7 +1258,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -1267,10 +1275,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch4/galaxy-paper-self-review/）：五维自审契约对真实已评审 GRANT_PROPOSAL.md 全过，SELF_REVIEW.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
+      ]
     },
     {
       "capability_id": "galaxy-review-response",
@@ -1304,7 +1314,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -1321,10 +1331,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch4/galaxy-writing-anti-ai/）：AI 痕迹机检——构造 AI 风格文本 10 处命中→具体化改写后 0 处，REWRITE_REPORT.md。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
+      ]
     },
     {
       "capability_id": "galaxy-zotero-obsidian-bridge",
@@ -1340,7 +1352,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -1593,10 +1605,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch4/paper-analysis/）：对 P1 真实终稿结构化分析（10 headings），PAPER_ANALYSIS.json；执行链验证非新评审。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
+      ]
     },
     {
       "capability_id": "paper-compile",
@@ -2566,7 +2580,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -2601,10 +2615,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch4/galaxy-research-ideation/）：模糊想法→可追溯研究契约七要素，全部回溯已评审材料，RESEARCH_CONTRACT.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
+      ]
     },
     {
       "capability_id": "galaxy-results-report",
@@ -2620,7 +2636,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3137,10 +3153,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch4/ars-statistical-analyst/）：假设检查先行——Shapiro 拒绝正态后检验选择真实切至 Spearman 通道，ADVISORY.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
+      ]
     },
     {
       "capability_id": "assets-inventory",
@@ -3450,7 +3468,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3522,7 +3540,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3576,7 +3594,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3594,7 +3612,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3612,7 +3630,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3648,7 +3666,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3666,7 +3684,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3684,7 +3702,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3702,7 +3720,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3737,10 +3755,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过带 finding（2026-08-30，workspaces/skill_c2_batch4/galaxy-results-analysis/）：evidence-first 复核抓出 RA-F01（消融产物随机流状态未存档致逐位不可复现，minor，结论稳健），修复纪律留档。STRICT_ANALYSIS.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
+      ]
     },
     {
       "capability_id": "galaxy-skill-development",
@@ -3756,7 +3776,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3774,7 +3794,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3792,7 +3812,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3809,10 +3829,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch4/galaxy-verification-loop/）：按 SKILL.md 分阶段验证契约对本仓库真跑五门全过（pytest 242 / provenance / skill audit / catalog 契约 / git 干净），VERIFICATION_REPORT.json 逐门留档。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
+      ]
     },
     {
       "capability_id": "galaxy-web-design-reviewer",
@@ -3828,7 +3850,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3846,7 +3868,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -4991,7 +5013,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -5009,7 +5031,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
@@ -5026,10 +5048,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch4/galaxy-publication-chart-skill/）：出版级图表 300dpi PNG+PDF 双格式真实导出 + 出版风格机检，CHART_REPORT.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
+      ]
     },
     {
       "capability_id": "galaxy-ui-ux-pro-max",
@@ -5045,7 +5069,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
       "status": "experimental",
       "promotion_history": []
     },
