@@ -306,3 +306,8 @@
 - **C3 公开基准 GRANT-01**：benchmarks/six_domains_public/GRANT-01/（contract 8 类机检 + evaluate.py + fixture 证据集/主题简报）；正例（真实 P3 工作区）exit=0、负例 exit=1 判别正确——可复用第二域公开基准。
 - **第一类自主部分**：galaxy-obsidian 四技能 **vault 文件级演示验收**（真实 round-4 证据集→5 来源笔记/Home/canvas 四段结构，wikilink 15/FM 8/8；v1 补遗漏 FM；如实标注应用级特性未测）；**pixel-art** 88 像素 SVG 真实生成（7px 网格四机检）。
 - 无证据 38→33（5 升级）；剩余 33 全部 blocked（需用户凭证/真实任务/网络）。
+
+## 2026-08-30（批次26 收尾：pixel-art 证据字段更正）
+
+- pixel-art 在批次23 时被误将 blocked 措辞写入 current_evidence 字段（登记错位）；批次26 真实执行（88 像素 SVG）后以正确证据更正。教训：blocked 登记只写 current_gap，evidence 字段只放真实执行证据。
+- 当前全库：单技能条目 248 条（210 有证据 + 38 blocked 分类留档，含跨域重复条目）。
