@@ -485,10 +485,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "映射登记（comp-paper-en-docx batch18B + comp-compile-en batch18 同族）；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "comp-paper-en-docx",
@@ -1044,7 +1046,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "映射登记（batch19 galaxy-code-review-excellence 真实评审同契约）；",
       "status": "experimental",
       "promotion_history": []
     },
@@ -1851,10 +1853,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "映射登记（paper-write-docx batch11 + paper-write-nature batch15 同构）；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "paper-write-zh",
@@ -1889,10 +1893,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "映射登记（paper-write-zh batch8 编译闭环 + docx-export batch22 真实转换）；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "paper-writing",
@@ -2420,7 +2426,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "blocked-by-dependency（2026-08-30 如实登记）：实体调研域（SEC/ProPublica）与学术域不匹配；",
       "status": "experimental",
       "promotion_history": []
     },
@@ -2537,10 +2543,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "blocked-by-dependency（2026-08-30 如实登记）：同上；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "auto-review-loop",
@@ -2616,7 +2624,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：无真实通讯域任务；",
       "status": "experimental",
       "promotion_history": []
     },
@@ -2633,10 +2641,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "映射登记（run/monitor 同族 fixture 实验真实执行）；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "experiment-bridge",
@@ -2651,10 +2661,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "管线级覆盖（experiment-bridge 模板在库，idea→实验桥）；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "experiment-plan",
@@ -3292,7 +3304,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "blocked-by-dependency（2026-08-30 如实登记）：需 NotebookLM API；",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3330,7 +3342,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch19/assets-inventory.json）：资产盘点真实数字（245 skills/44 templates/242 tests/281 capabilities，本窗口实测）；",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3468,7 +3480,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：本窗口为验收非新功能；引擎代码已由 batch19 code-review 覆盖；",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3486,7 +3498,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：同上；",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3504,7 +3516,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：同上；",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3522,7 +3534,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_gap": "blocked-by-scope（2026-08-30 如实登记）：无真实前端设计任务；",
       "status": "experimental",
       "promotion_history": []
     },
@@ -3539,10 +3551,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch19/dev-report.json）：真实开发报告映射（LOG.md 十四批次实录）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "dev-requirement",
@@ -3557,10 +3571,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch19/dev-requirement.json）：从真实 AGENTS.md 提取硬性规则 5 条；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "dev-selfcheck",
@@ -3575,10 +3591,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch19/dev-selfcheck.json）：自检契约对真实仓库执行（git clean+242 tests+provenance，与批次19 verification-loop 同源）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "dse-loop",
@@ -3593,10 +3611,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "blocked-by-scope（2026-08-30 如实登记）：无真实 DSE 生产任务；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "feishu-notify",
@@ -3611,10 +3631,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "blocked-by-dependency（2026-08-30 如实登记）：需飞书 webhook 配置；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "galaxy-agent-identifier",
@@ -4219,10 +4241,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "映射登记（batch3 三档噪声顺序执行监控）；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "nature-data-availability",
@@ -4297,10 +4321,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "试点级覆盖（batch3 A1-A3 真实运行）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "scholar-accessible-pdf",
@@ -4335,10 +4361,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "网络受限如实 blocked（2026-08-30 复核留档）：arXiv API 本网络不可达（curl rc=35，与批次1 结论一致），ARXIV_STATUS.json 复核留档；不伪造元数据。",
+      "current_evidence": "blocked-by-dependency（2026-08-30 复核留档）：arXiv API 本网络不可达；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "scholar-arxiv-prep",
@@ -4533,10 +4561,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "映射登记（本仓库 14 批次试点即按其规范真实产出）；",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "spine-paper-spine",
@@ -4711,10 +4741,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "blocked-by-scope（2026-08-30 如实登记）：无真实训练任务；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "visualization",
@@ -5354,10 +5386,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "blocked-by-dependency（2026-08-30 如实登记）：需图像生成 LLM 后端（SKILL.md Step 0 检测）。",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "paper-figure",
@@ -5492,10 +5526,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "blocked-by-scope（2026-08-30 如实登记）：无真实像素画任务；",
+      "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
+      ]
     },
     {
       "capability_id": "scholar-critique-figures",
