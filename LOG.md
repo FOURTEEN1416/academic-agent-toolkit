@@ -179,3 +179,11 @@
 - **paper-poster / paper-slides**：从 P1 真实终稿提取转换——4 列 bullet 海报（非全文搬运机检）、渐进叙事 deck（含诚实页"实验未执行"）。
 - 收尾即清 latex 中间产物（批次8 内联执行）。
 - 基线：242 tests 不变；无证据 185→181（累计 9 回填 + 33 试点 + 24 blocked）。
+
+## 2026-08-30（逐技能 C2 批次9：数学/稿件/一致性/综述 4 技能，无证据 181→177）
+
+- **scholar-verify-math**：SymPy 精确核验 pinball loss 4 个数学性质，全部 PASS。
+- **scholar-critique-manuscript**：对本项目自有 P1 终稿五维自审 PASS_WITH_SCOPE_NOTE，明确正式投稿前需扩展浓缩稿方法/实验细节。
+- **comp-consistency**：P1 终稿—评审台账主张一致性机检通过。
+- **sci-literature-review**：仅用 round-4 已核验 E1-E5 产主题小综述，未冒充完整系统综述。
+- 基线：242 tests 不变；无证据单技能条目 181→177；累计 9 回填 + 37 试点。
