@@ -187,3 +187,11 @@
 - **comp-consistency**：P1 终稿—评审台账主张一致性机检通过。
 - **sci-literature-review**：仅用 round-4 已核验 E1-E5 产主题小综述，未冒充完整系统综述。
 - 基线：242 tests 不变；无证据单技能条目 181→177；累计 9 回填 + 37 试点。
+
+## 2026-08-30（逐技能 C2 批次10：编译/大纲/HTML图/spine审计 4 技能，无证据 177→173）
+
+- **paper-compile-zh**：XeLaTeX 中文论文两轮真实编译（首查 section_intro 缺失即修，PDF 引用闭环）。
+- **paper-plan-zh**：6 节中文大纲，证据映射+缺口如实标注（不预支结果）。
+- **paper-figure-html**：flex/grid 技术路线图，无绝对坐标静态机检 4/4。
+- **spine-paper-spine-audit**（v2）：真实 P3 工作区五项审计全过；v1 误判合规元声明为实质断言（教训：机检须剔除 §10 类元声明）。
+- 基线：242 tests 不变；无证据 177→173；累计 9 回填 + 41 试点 + 24 blocked。
