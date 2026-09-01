@@ -2917,10 +2917,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch10/spine-build/）：materials folder→六节 blueprint 真实构建（四类材料文件全部实存核验、诚实节 NOT RUN 保留）；BUILD_BLUEPRINT.json。v1 用虚构路径被存在性机检拦截修正（教训：材料映射必须实存）。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次13（真实执行留档 skill_c2_batch10）"
+      ]
     },
     {
       "capability_id": "spine-paper-spine-research",
@@ -2935,10 +2937,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch10/spine-research/）：三阶段研究契约——本地索引 3 份真实材料（deep_research/grant_proposal/FIGURES-01）+ 动机选项合并（全部带证据依据）；外部检索 lane 依赖如实标注；RESEARCH_OPTIONS.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次13（真实执行留档 skill_c2_batch10）"
+      ]
     },
     {
       "capability_id": "deep_research_pipeline",
@@ -4417,10 +4421,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch10/spine-citation/）：verified citation bank 五条（全部来自已核验集合）+ Crossref 实时抽验通过；CITATION_BANK.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次13（真实执行留档 skill_c2_batch10）"
+      ]
     },
     {
       "capability_id": "spine-paper-spine-humanize",
@@ -4435,10 +4441,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch10/spine-humanize/）：tier 化改写矩阵（T1 模板腔/T2 空洞强化→批次2真实数字/T3 前景话术→可核验事实），残留机检 0 命中，教学矩阵契约逐变更留痕；HUMANIZE_MATRIX.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次13（真实执行留档 skill_c2_batch10）"
+      ]
     },
     {
       "capability_id": "spine-paper-spine-intake",
@@ -4471,10 +4479,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch10/spine-translate/）：translation_zh 完整包契约——行对行真实翻译 5 对结构性标题+正文长句（非摘要非部分集），source 为批次8真实英文稿；TRANSLATE_REPORT.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次13（真实执行留档 skill_c2_batch10）"
+      ]
     },
     {
       "capability_id": "spine-paper-spine-ui",
@@ -5364,10 +5374,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch10/spine-latex/）：LaTeX 装配真实编译（中文+translation_zh 抽样节+文献表闭环，xelatex×3+bibtex）；编译安全检查通过；main_zh.pdf。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次13（真实执行留档 skill_c2_batch10）"
+      ]
     },
     {
       "capability_id": "anti_ai_detection",
