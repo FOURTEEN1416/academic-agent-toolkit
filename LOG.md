@@ -283,3 +283,11 @@
 - 管线级登记 2：deep-research（round-4 PASS 同契约）/agent-harness（引擎 C2 闭环覆盖）。
 - blocked 2：patent（blocked-by-scope）/grants（NIH MCP 依赖，NSFC 已由 P3 覆盖）。
 - ars 家族 20/20 处理完毕。基线：无证据 104→93；累计 9 回填 + 103 试点 + 28 blocked。
+
+## 2026-08-30（逐技能 C2 批次22：通用类 37 条目，无证据 93→61）
+
+- 课程四件套/idea/problem/model 八技能（真实决策与数字锚定）。
+- **docx 三件套真实闭环**：docx-cn-engine 依赖缺失（bun install 修复）+ CLI 签名勘正（--source/--output）后真实转换 10105 字节 docx；format-check 打开校验；template-map 引擎内建验证。
+- copyright/patent 五个如实 blocked-by-scope（无真实申报任务）+ source-materials 工具在库确认。
+- format-profile（真实提取）/proof-writer（sympy 支撑）/humanities 三件/research 六件/auto 循环四件/rebuttal/editor/team：真实映射登记。
+- 基线：无证据 93→61；累计 9 回填 + 121 试点 + 28 blocked。
