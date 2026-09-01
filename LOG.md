@@ -276,3 +276,10 @@
 - 执行 6：paper-from-zero（骨架+编译+诚实页）/rhythm-refiner（43 词断裂诊断→改写）/results-backfill（占位符→真实消融数字全消）/check-collaborators（CLI 健康检查：codex 在位）/empirical-paper-writer（数字全溯源+威胁声明）/arxiv-paper-writer（IEEEtran 在位+编译）。
 - blocked 2：collaborating-with-claude/gemini（CLI 不在 PATH；请求模板照契约产出+不造数边界——check-collaborators 探测留档）。
 - latexpap 家族 8/8 全覆盖。基线：242 tests 不变；无证据 112→104；累计 9 回填 + 95 试点 + 28 blocked。
+
+## 2026-08-30（逐技能 C2 批次21：ars 家族 11 技能，无证据 104→93）
+
+- 试点 9：academic-paper-reviewer（四视角锚定真实材料）/adversarial-reviewer（最强反驳+预回应）/code-reviewer（真实脚本）/pulse（OpenAlex 实时被引 1037）/experiment-designer（A4 设计补全）/ai-security（三防机制）/challenge（A4 挑战命题）/syllabus（12 周大纲用真实数字）/research（管线级映射）。
+- 管线级登记 2：deep-research（round-4 PASS 同契约）/agent-harness（引擎 C2 闭环覆盖）。
+- blocked 2：patent（blocked-by-scope）/grants（NIH MCP 依赖，NSFC 已由 P3 覆盖）。
+- ars 家族 20/20 处理完毕。基线：无证据 104→93；累计 9 回填 + 103 试点 + 28 blocked。
