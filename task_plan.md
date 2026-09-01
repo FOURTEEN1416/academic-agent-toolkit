@@ -56,4 +56,9 @@ Complete Phase 1 infrastructure from the handover, CodeSucker fusion design, and
 - **复核清理（2026-08-19）**：删除 `tools/` 下 10 个 git 跟踪的历史 debug 脚本（debug_cumcm/debug_fig/debug_full/debug_gate/debug_manifest/debug_manifest2/debug_model/debug_model3/debug_size/debug_step1）。确认 `tools/run_cumcm_e2e.py` 与 `tools/test_workflow.py` 为已跟踪的手动验证脚本、不被 pytest 收集，保留。
 
 ## Status
-All phases from the systematic upgrade plan are delivered, plus the audit-report follow-up gap is closed and the CodeSucker source-materials gate has been tightened. Final verification after re-audit and fixes: `python -m pytest -q` = 225 passed; `python tools/check_provenance.py` = 18/18 passed; CodeSucker core `npm test` = all 7 groups passed; CodeSucker 相关 18 项 pytest 全通过。
+All phases delivered（历史记录见下方 Errors/Decisions）。2026-08-30 当前验证基线：
+- `python -m pytest -q` = **242 passed**（三管线/逐技能/绘图域回归含内）
+- `python tools/check_provenance.py` = **28/28**（27 台账 + vendor）
+- `tools/skill_library_audit.py` = OK（245 skills / 44 templates / template_missing_skill=0）
+- 逐技能 C2：245 单技能条目 100% 验收状态分类（207 真实证据 + 38 诚实 blocked），留档 workspaces/skill_c2_batch1-19
+- v1.2.0 已发布（GitHub Release）；全库已同步 GitHub（HEAD 见 git log）

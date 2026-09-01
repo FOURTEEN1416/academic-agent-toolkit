@@ -7,7 +7,7 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v1.2.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-225_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
+[![Tests](https://img.shields.io/badge/tests-242_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-269-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-245-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
@@ -74,7 +74,7 @@ L1 拦截式插件逐条记录每次工具调用（不可绕过）+ L2 编排留
 | 视觉论证 | `excalidraw-diagram` `infographics` `scientific-schematics` | 手绘风论证图 · 信息图 · 科学示意图 |
 | 既有沉淀 | `nature-figure` + 62 篇获奖论文实证规范 | Nature 级排版与配色 |
 
-全部集成带 **pinned-commit 溯源**（`UPSTREAM.md` 台账 26 条，`tools/check_provenance.py` 一键校验）。
+全部集成带 **pinned-commit 溯源**（`UPSTREAM.md` 台账 27 条 + vendor，`tools/check_provenance.py` 一键校验 28/28）。
 
 </details>
 
@@ -154,16 +154,17 @@ python tools/check_provenance.py             # → 28/28 UPSTREAM+vendor 台账�
 |------|--------|
 | 🚧 **Named Gates** | `paper_consistency` · `citation_integrity` · `experiment_reproduc` · `figure_provenance` · `compilation_log` |
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
-| 📜 **Provenance 台账** | 26 条 `UPSTREAM.md`（pinned commit + license），外部集成的每一行代码都能回答"从哪来" |
+| 📜 **Provenance 台账** | 27 条 `UPSTREAM.md` + vendor（pinned commit + license），28/28 校验通过，外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | 公开基准（CC-BY-4.0）公开评测 · 私有基准（真实竞赛题面）内部压测 |
-| ✅ **测试基线** | 225 项 pytest：状态机 / 门禁 / 桥接 / 审计 / 配置契约全覆盖 |
+| ✅ **测试基线** | 242 项 pytest：状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 三管线 / 逐技能回归全覆盖 |
+| 🧬 **逐技能 C2 覆盖** | 245 技能 100% 验收状态分类：207 项真实执行证据（管线级/试点级，留档可查）+ 38 项诚实 blocked（依赖/范围受限，零伪造） |
 
 ## 📁 仓库地图
 
 ```
 academic-agent-toolkit/
 ├── 科研工具箱/     ★ 产品主体  skills(245) · engine(13) · tools(58+) · tests
-├── capabilities/      能力目录 catalog.json —— 269 条，含验收证据与缺口声明
+├── capabilities/      能力目录 catalog.json —— 281 条，含验收证据与缺口声明
 ├── benchmarks/        公开基准集（CC-BY-4.0）
 ├── docs/superpowers/  设计 spec 与实施计划（dated 快照）
 ├── governance/        资产台账
