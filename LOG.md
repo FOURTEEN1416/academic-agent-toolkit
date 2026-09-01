@@ -171,3 +171,11 @@
 - **galaxy 外部依赖型 24 个诚实 blocked 登记**（Obsidian/Zotero/Kaggle/MCP/宿主插件等契约，本环境无法真实执行核心动作——保持无证据不伪造）。
 - 断言教训本批 3 例：E2 缩写关键词、Shapiro 假定方向想反（数据右偏实际拒绝正态——假设检查驱动分支才真实生效）、headings 计数——试点机检断言必须按实况校准。
 - 基线：242 tests 不变；无证据单技能条目 197→185（12 试点），其中 24 个为诚实 blocked。
+
+## 2026-08-30（逐技能 C2 批次8：spine 编排 + 中文写作 + 终稿转换链 4 技能，无证据 185→181）
+
+- **spine-paper-spine（编排器）**：路由契约真实测试 5/5（update/build/humanize/citation/intake）+ 分支技能存在性；v1 路由表漏 intake/humanize 关键词当场修正。
+- **paper-write-zh**：真实章节撰写+编译闭环（xelatex×2+bibtex，PDF 引用/文献表落页），引用 ⊆ 已核验 E1-E5。
+- **paper-poster / paper-slides**：从 P1 真实终稿提取转换——4 列 bullet 海报（非全文搬运机检）、渐进叙事 deck（含诚实页"实验未执行"）。
+- 收尾即清 latex 中间产物（批次8 内联执行）。
+- 基线：242 tests 不变；无证据 185→181（累计 9 回填 + 33 试点 + 24 blocked）。
