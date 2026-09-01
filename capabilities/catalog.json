@@ -1323,10 +1323,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Obsidian 文献流（需 vault）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 演示级验收（2026-08-30，同 vault）：Sources→Knowledge→Writing→Maps/literature.canvas 四段结构真实产出（canvas JSON 合法）；同上演示级口径。",
+      "current_gap": "C3/C4 基准未建；演示级 vault 文件契约（Obsidian 应用级特性未测）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次26（vault 演示/pixel 试点，留档 skill_c2_batch20）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -2735,10 +2737,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Obsidian 项目库（需 vault）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 演示级验收（2026-08-30，同 vault）：Home+MOC 主结构真实产出；同上演示级口径。",
+      "current_gap": "C3/C4 基准未建；演示级 vault 文件契约（Obsidian 应用级特性未测）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次26（vault 演示/pixel 试点，留档 skill_c2_batch20）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -3909,10 +3913,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Obsidian 知识库（需 vault）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 演示级验收（2026-08-30，同 vault）：wikilink 15 处/frontmatter 8/8/canvas 合法机检过（v1 补齐遗漏 FM 后过）；同上演示级口径。",
+      "current_gap": "C3/C4 基准未建；演示级 vault 文件契约（Obsidian 应用级特性未测）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次26（vault 演示/pixel 试点，留档 skill_c2_batch20）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
@@ -3928,10 +3934,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部/范围受限型如实 blocked（2026-08-30 统一分类，blocked-by-dependency）：Obsidian 源采集（需 vault）——本环境无法真实执行核心动作，不伪造验收",
+      "current_evidence": "C2 演示级验收（2026-08-30，workspaces/obsidian_vault_demo，vault 文件级契约）：5 条真实已核验来源→Sources/Papers/ 笔记（frontmatter+wikilink）；vault=纯 markdown 目录，Obsidian 应用级特性未测——如实标注演示级；OBSIDIAN_DEMO.json。",
+      "current_gap": "C3/C4 基准未建；演示级 vault 文件契约（Obsidian 应用级特性未测）",
       "status": "experimental",
-      "promotion_history": [],
+      "promotion_history": [
+        "2026-08-30: C2 批次26（vault 演示/pixel 试点，留档 skill_c2_batch20）"
+      ],
       "current_gap_class": "blocked-by-dependency"
     },
     {
