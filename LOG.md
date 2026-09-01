@@ -161,3 +161,13 @@
 - **paper-plan / experiment-plan**：基于已评审工作区材料的真实计划产物，缺口/未执行项如实标注（PLAN ONLY 不冒充执行）。
 - **quality-check**：对真实 GRANT_PROPOSAL.md 八项机检 8/8；首轮阈值未实测校准误报 FAIL——阈值必须实测校准（教训留档）。
 - 本窗口累计：无证据单技能条目 218→197（回填 9 + 试点 17），全部真实执行留档 workspaces/skill_c2_batch1-3。
+
+## 2026-08-30（工作区治理 + 逐技能 C2 批次6/7：12 试点 + 24 blocked 分类，无证据 197→185）
+
+- **工作区治理（用户指示）**：清理 workspaces/skill_c2_batch1-3 内 latex 中间产物 37 个（aux/log/blg/bcf/run.xml/out/编译轮次 log；保留全部 tex/pdf/bib/bbl/png/svg/mmd 证据本体）；删除空壳工作区 test-paper-zh-docx/（仅含零记录 .engine sqlite，5 表全 0 行）；dev-docs/DELETION_LOG.md 留痕。git 工作区本就干净（workspaces/ gitignored）。
+- **批次6a（galaxy 核心 4）**：galaxy-verification-loop（五门真跑全过：pytest 242/provenance/skill audit/catalog 契约/git 干净）、galaxy-paper-self-review（五维自审对真实申请书全过）、galaxy-nature-writing（argument-first 摘要，五机检）、galaxy-citation-verification（canonical 序核验 E1-E4 4/4 VERIFIED；v1 断言关键词教训留档）。
+- **批次6b（galaxy 再 6）**：writing-anti-ai（AI 痕迹 10→0 机检实测）、nature-polishing（三缺陷诊断+五机检）、research-ideation（七要素研究契约全回溯）、results-analysis（**evidence-first 复核真抓到 RA-F01：消融产物随机流状态未存档致逐位不可复现，minor，结论稳健**——该技能的核心价值实测）、nature-data（不预支 DOI/缺失 flags 如实）、publication-chart（300dpi PNG+PDF 双格式）。
+- **批次7**：ars-statistical-analyst（假设检查先行——Shapiro 拒正态后检验真实切至 Spearman 通道）、paper-analysis（P1 真实终稿 10 headings 结构分析）。
+- **galaxy 外部依赖型 24 个诚实 blocked 登记**（Obsidian/Zotero/Kaggle/MCP/宿主插件等契约，本环境无法真实执行核心动作——保持无证据不伪造）。
+- 断言教训本批 3 例：E2 缩写关键词、Shapiro 假定方向想反（数据右偏实际拒绝正态——假设检查驱动分支才真实生效）、headings 计数——试点机检断言必须按实况校准。
+- 基线：242 tests 不变；无证据单技能条目 197→185（12 试点），其中 24 个为诚实 blocked。
