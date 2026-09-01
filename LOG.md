@@ -256,3 +256,8 @@
 - **comp-editor / comp-final-audit / comp-visual-review**：编辑留痕/五项全检 READY/视觉机检（v1 照片型阈值误报条形图——按图类型定标准教训留档）。
 - **comp-pipeline / comp-final-review**：五阶段真实闭环 + final-review 门 APPROVED。
 - 基线：242 tests 不变；无证据 135→126；累计 9 回填 + 73 试点 + 26 blocked。
+
+## 2026-08-30（批次18B：comp-paper 三件套 3 技能，无证据 126→123；comp 家族 13/13 全覆盖）
+
+- comp-paper-zh：中文骨架（结果留空不预支）；comp-paper-en-docx（v1 误产 tex 已清，docx 模式禁 tex）；comp-paper-zh-docx。
+- comp 家族 13/13 全覆盖。累计 9 回填 + 76 试点 + 26 blocked；无证据 126→123（含 comp-paper-en-docx 重登记校正 1）。
