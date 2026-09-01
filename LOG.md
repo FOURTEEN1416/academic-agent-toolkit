@@ -270,3 +270,9 @@
 - **doc-coauthoring**（v2）：Discussion 边界句协作幂等。**skill-quality-reviewer**：真实 SKILL.md 4/4。
 - **post-acceptance**：四项清单含前置条件。**daily-paper-generator**：OpenAlex 当日真实拉取。**template-organizer**（v2）：模板资产实存盘点。**ml-paper-writing**：三节契约真实数字。
 - 基线：242 tests 不变；无证据 123→112；累计 9 回填 + 87 试点 + 26 blocked。
+
+## 2026-08-30（逐技能 C2 批次20：latexpap 家族 8 技能，无证据 112→104）
+
+- 执行 6：paper-from-zero（骨架+编译+诚实页）/rhythm-refiner（43 词断裂诊断→改写）/results-backfill（占位符→真实消融数字全消）/check-collaborators（CLI 健康检查：codex 在位）/empirical-paper-writer（数字全溯源+威胁声明）/arxiv-paper-writer（IEEEtran 在位+编译）。
+- blocked 2：collaborating-with-claude/gemini（CLI 不在 PATH；请求模板照契约产出+不造数边界——check-collaborators 探测留档）。
+- latexpap 家族 8/8 全覆盖。基线：242 tests 不变；无证据 112→104；累计 9 回填 + 95 试点 + 28 blocked。
