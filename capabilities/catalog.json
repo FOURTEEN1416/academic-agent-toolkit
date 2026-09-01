@@ -325,10 +325,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch14/comp-code/）：真实基准数据完整求解链——分组统计→300dpi 误差棒图→结果台账（B>A 主张与观测值一致）；CODE_LEDGER.json + fig_results.png。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次18（真实执行留档 skill_c2_batch14）"
+      ]
     },
     {
       "capability_id": "comp-compile-zh",
@@ -343,10 +345,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch14/comp-compile-zh/）：中文竞赛论文 xelatex 两轮真实编译，引言节机检过；COMPILE_ZH.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次18（真实执行留档 skill_c2_batch14）"
+      ]
     },
     {
       "capability_id": "comp-consistency",
@@ -381,10 +385,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch14/comp-editor/）：编辑契约——读真实 P1 verdict（PASS）执行格式级清理，实质内容未变机检；EDITOR_LOG.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次18（真实执行留档 skill_c2_batch14）"
+      ]
     },
     {
       "capability_id": "comp-final-audit",
@@ -399,10 +405,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch14/comp-final-audit/）：提交前全检五项（产物齐全/工作流 completed/评审 PASS/无实质绝对化/引用子集）全过 READY；FINAL_AUDIT.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次18（真实执行留档 skill_c2_batch14）"
+      ]
     },
     {
       "capability_id": "comp-final-review",
@@ -417,10 +425,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch14/comp-final-review/）：final-review 门——复核 final-audit/visual-review/editor 三产物后 APPROVED；FINAL_REVIEW.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次18（真实执行留档 skill_c2_batch14）"
+      ]
     },
     {
       "capability_id": "comp-literature",
@@ -435,10 +445,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch14/comp-literature/）：P2 证据集 5 条 GB/T 7714 批量转换（类型标识齐全/与登记集合一致）；GBT_LIST.md。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次18（真实执行留档 skill_c2_batch14）"
+      ]
     },
     {
       "capability_id": "comp-modeling",
@@ -545,10 +557,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch14/comp-pipeline/）：竞赛五阶段编排（prob-analysis→modeling→code→paper→review）全部映射真实产物闭环；PIPELINE_STATE.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次18（真实执行留档 skill_c2_batch14）"
+      ]
     },
     {
       "capability_id": "comp-prob-analysis",
@@ -603,10 +617,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch14/comp-visual-review/，v2）：真实图视觉机检（300dpi/尺寸/内容占比 0.404/主色数 5）；v1 用照片型阈值误报条形图（教训：视觉审查按图类型定标准）；VISUAL_REVIEW.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次18（真实执行留档 skill_c2_batch14）"
+      ]
     },
     {
       "capability_id": "model-innovation",
@@ -1057,10 +1073,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch14/comp-compile-en/，v2）：英文竞赛论文 pdflatex 真实编译（bookmarks 包缺失即删修复）；节结构+匿名口径机检过；COMPILE_EN.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次18（真实执行留档 skill_c2_batch14）"
+      ]
     },
     {
       "capability_id": "course-paper",
