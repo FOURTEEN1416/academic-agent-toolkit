@@ -1327,10 +1327,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch15/galaxy-review-response/）：对 round-3 真实评审 5 条逐条回应（每条修复+证据指针），round-4 PASS 佐证闭环；RESPONSES.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
+      ]
     },
     {
       "capability_id": "galaxy-skill-quality-reviewer",
@@ -1345,10 +1347,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "外部依赖型（SKILL.md 契约涉及 Obsidian/Zotero/Kaggle/MCP/宿主插件等外部服务），本环境无法真实执行核心动作——按诚实纪律保持无证据不伪造试点；2026-08-30 分类留档",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch15/galaxy-skill-quality-reviewer/）：对真实 comp-review SKILL.md 四维质量评审 4/4（frontmatter/description/结构/充实度）；SKILL_REVIEW.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
+      ]
     },
     {
       "capability_id": "galaxy-writing-anti-ai",
@@ -2633,10 +2637,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch15/galaxy-ml-paper-writing/）：ML 三节契约（claims 带真实数字+limitations NOT RUN 如实+ethics 公开数据声明）；ML_SECTIONS.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
+      ]
     },
     {
       "capability_id": "galaxy-obsidian-project-kb-core",
@@ -2669,10 +2675,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch15/galaxy-planning-with-files/，v2）：文件化规划契约——TASK_PLAN.md 落盘（里程碑状态标记+证据指针 batch1..15 全实存）；v1 is_file/is_dir 误用修正；PLAN_META.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
+      ]
     },
     {
       "capability_id": "galaxy-research-ideation",
@@ -3563,10 +3571,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch15/galaxy-architecture-design/）：对本项目真实三层架构产 C4 视图——mermaid 真渲染 SVG（宿主/引擎/执行三分层节点确认）；ARCH_DESIGN.json + architecture.mmd/svg。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
+      ]
     },
     {
       "capability_id": "galaxy-bug-detective",
@@ -3581,10 +3591,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch15/galaxy-bug-detective/，v3）：真实 bug 复案——P2 全角转码案例：探针 2 词法层混入全角括号复现 SyntaxError、修复通道（UTF-8 脚本文件）同断言通过；探针 1 未破坏如实记录通道差异；BUG_CASE.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
+      ]
     },
     {
       "capability_id": "galaxy-code-review-excellence",
@@ -3599,10 +3611,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch15/galaxy-code-review-excellence/）：对真实核心 workflow_runner.py（490 行）结构化评审——确认 M5 防伪门禁与哈希校验在位、维护性发现（平均 245 行/函数）3 条留档；REVIEW.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
+      ]
     },
     {
       "capability_id": "galaxy-command-development",
@@ -3635,10 +3649,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch15/galaxy-daily-paper-generator/）：每日速览契约——OpenAlex record API 当日真实拉取（E2 被引 1037/E4 106），限流期降级策略如实标注；DAILY_DIGEST.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
+      ]
     },
     {
       "capability_id": "galaxy-doc-coauthoring",
@@ -3653,10 +3669,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch15/galaxy-doc-coauthoring/，v2）：协作契约——对真实骨架 Discussion 节补边界句草稿（幂等重跑），其余节未动机检过；COAUTHOR_LOG.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
+      ]
     },
     {
       "capability_id": "galaxy-git-workflow",
@@ -3725,10 +3743,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch15/galaxy-latex-conference-template-organizer/，v2）：模板资产真实盘点（comp-compile-zh/en、latex-document references + paper-write templates 5 项全部实存）；v1 盘错位置教训留档；TEMPLATE_INVENTORY.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
+      ]
     },
     {
       "capability_id": "galaxy-mcp-integration",
@@ -3815,10 +3835,12 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
-      "current_evidence": [],
-      "current_gap": "尚未完成来源核证、许可与基准验收；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch15/galaxy-post-acceptance/）：接收后清单四项（Zenodo 不预支 DOI/camera-ready/poster-slides/基金挂钩）全部含前置条件+真实能力指针；POST_ACCEPTANCE.json。",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
-      "promotion_history": []
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
+      ]
     },
     {
       "capability_id": "galaxy-results-analysis",

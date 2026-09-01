@@ -261,3 +261,12 @@
 
 - comp-paper-zh：中文骨架（结果留空不预支）；comp-paper-en-docx（v1 误产 tex 已清，docx 模式禁 tex）；comp-paper-zh-docx。
 - comp 家族 13/13 全覆盖。累计 9 回填 + 76 试点 + 26 blocked；无证据 126→123（含 comp-paper-en-docx 重登记校正 1）。
+
+## 2026-08-30（逐技能 C2 批次19：galaxy 本地 11 技能，无证据 123→112）
+
+- **galaxy-architecture-design**：真实三层架构 mermaid 渲染 SVG。**code-review-excellence**：workflow_runner.py 真实评审（防伪门禁确认）。
+- **bug-detective**（v3）：全角转码 bug 复案——词法混入探针复现 SyntaxError，修复通道验证；通道差异如实记录。
+- **review-response**：round-3 五条逐条回应（修复+证据指针）。**planning-with-files**（v2）：TASK_PLAN 落盘。
+- **doc-coauthoring**（v2）：Discussion 边界句协作幂等。**skill-quality-reviewer**：真实 SKILL.md 4/4。
+- **post-acceptance**：四项清单含前置条件。**daily-paper-generator**：OpenAlex 当日真实拉取。**template-organizer**（v2）：模板资产实存盘点。**ml-paper-writing**：三节契约真实数字。
+- 基线：242 tests 不变；无证据 123→112；累计 9 回填 + 87 试点 + 26 blocked。
