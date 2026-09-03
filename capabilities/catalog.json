@@ -716,13 +716,13 @@
       "promotion_history": []
     },
     {
-      "capability_id": "contest_route_selection",
+      "capability_id": "math-modeling-contest-route-selection",
       "name": "竞赛选题与路线选择（Contest Route Selection）",
       "domain": "math_modeling_competition",
       "description": "CUMCM/MCM 选题与建模路线两层比较：模型选择锦标赛（baseline/被拒方案/决定性测试/翻盘条件）、Refutation ledger、撞车逃逸机制、binding constraints 清单、角色化逐问链、评分脚本（标准库零依赖）。防 AI 同质化选题（13 条判据+7 问工程门禁）。上游 y3519712124-ui/math-modeling-contest-route-selection (MIT, pinned 2026-09-03)",
       "input_contract": "题面文本 或 选题评分 JSON（schema 分键强制）",
       "output_contract": "A/B/C 选题 12 段 / 单题 9 段 / 深度规划 +4 项；Method Route Card 17 字段；score_topics.py 排名表",
-      "status": "已融入（provenance 登记完成）",
+      "status": "experimental",
       "associated_skills": [
         "comp-prob-analysis",
         "comp-modeling"
@@ -734,7 +734,9 @@
       "high_risk_confirmation": false,
       "current_evidence": "脚本冒烟通过（warning 机制正常工作）",
       "current_gap": "MCM/ICM 无专门流程（上游即如此）；上游单次成型无社区迭代",
-      "promotion_history": "2026-09-03 融入"
+      "promotion_history": [
+        "2026-09-03: 融入（y3519712124-ui 上游 MIT, pinned）"
+      ]
     }
   ],
   "academic_papers": [
@@ -2268,7 +2270,7 @@
       ]
     },
     {
-      "capability_id": "anti_defensive_writing",
+      "capability_id": "anti-defensive-writing",
       "name": "防御性写作清理（Anti-Defensive Writing）",
       "domain": "academic_papers",
       "description": "消除学术文本中不必要的免责声明、对冲词、道歉式框架与过度解释，同时保留必要的方法学/伦理/法律限定；含六类防御句分类法与五项必要条件保留门禁。上游 Kiterlin/anti-defensive-writing (MIT, pinned 2026-09-03)",
@@ -2279,7 +2281,27 @@
         "STEP_MANIFEST 产出声明"
       ],
       "upstream": "Kiterlin/anti-defensive-writing (MIT, 2026-09-03)",
-      "acceptance_status": "真实执行（论文 Round 3 应用留痕）"
+      "status": "experimental",
+      "promotion_history": [
+        "2026-09-03: 融入（Kiterlin 上游 MIT, pinned）"
+      ]
+    },
+    {
+      "capability_id": "acat-doc-governance",
+      "name": "acat-doc-governance",
+      "domain": "academic_papers",
+      "description": "\"academic-agent-toolkit 仓库专属文档治理规程。做文档盘点、真源刷新、污染源清理、归档、命名治理时使用。内置用户铁律：治理任务必须全文读完所有相关文档（禁止只看文件名）、过期与可疑信息必须清理、不重建≠不读。\" argument-hint: [盘点|清理|归档|全量治理] allowed-tools: Bash(*), Read, Wr",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "acat-doc-governance"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
     }
   ],
   "literature_research": [
@@ -6069,6 +6091,176 @@
       "promotion_history": [
         "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
       ]
+    },
+    {
+      "capability_id": "diagram-design",
+      "name": "diagram-design",
+      "domain": "figures_and_document_production",
+      "description": "Create branded architecture, IT current-state, flowchart, sequence, state machine, ER/data model, timeline, swimlane, quadrant, radar/spider, polar chart (polar/radial lollipop), l",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "diagram-design"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
+    },
+    {
+      "capability_id": "excalidraw-diagram",
+      "name": "excalidraw-diagram",
+      "domain": "figures_and_document_production",
+      "description": "Create Excalidraw diagram JSON files that make visual arguments. Use when the user wants to visualize workflows, architectures, or concepts.",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "excalidraw-diagram"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
+    },
+    {
+      "capability_id": "figure-spec",
+      "name": "figure-spec",
+      "domain": "figures_and_document_production",
+      "description": "\"Generate deterministic publication-quality architecture, workflow, and pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Use when user says \\\"架构图\\\", \\\"workflo",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "figure-spec"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
+    },
+    {
+      "capability_id": "graphviz",
+      "name": "graphviz",
+      "domain": "figures_and_document_production",
+      "description": "Create directed/undirected graphs using DOT language with automatic layout. Best for dependency trees, call graphs, package hierarchies, and module relationships requiring fine-gra",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "graphviz"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
+    },
+    {
+      "capability_id": "infographics",
+      "name": "infographics",
+      "domain": "figures_and_document_production",
+      "description": "\"Create professional infographics using Nano Banana Pro AI with smart iterative refinement. Uses Gemini 3.6 Flash for quality review. Integrates research-lookup and web search for ",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "infographics"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
+    },
+    {
+      "capability_id": "matplotlib",
+      "name": "matplotlib",
+      "domain": "figures_and_document_production",
+      "description": "Low-level plotting library for full customization. Use when you need fine-grained control over every plot element, creating novel plot types, or integrating with specific scientifi",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "matplotlib"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
+    },
+    {
+      "capability_id": "plotly",
+      "name": "plotly",
+      "domain": "figures_and_document_production",
+      "description": "Interactive visualization library. Use when you need hover info, zoom, pan, or web-embeddable charts. Best for dashboards, exploratory analysis, and presentations. For static publi",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "plotly"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
+    },
+    {
+      "capability_id": "scientific-schematics",
+      "name": "scientific-schematics",
+      "domain": "figures_and_document_production",
+      "description": "Create or refine publication-quality technical diagrams, scientific workflows, architectures, and biological schematics with the native image-generation capability.",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "scientific-schematics"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
+    },
+    {
+      "capability_id": "scientific-visualization",
+      "name": "scientific-visualization",
+      "domain": "figures_and_document_production",
+      "description": "\"Create publication figures with matplotlib/seaborn/plotly. Multi-panel layouts, error bars, significance markers, colorblind-safe, export PDF/EPS/TIFF, for journal-ready scientifi",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "scientific-visualization"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
+    },
+    {
+      "capability_id": "seaborn",
+      "name": "seaborn",
+      "domain": "figures_and_document_production",
+      "description": "Statistical visualization with pandas integration. Use for quick exploration of distributions, relationships, and categorical comparisons with attractive defaults. Best for box plo",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "seaborn"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
     }
   ]
 }
