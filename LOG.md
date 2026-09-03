@@ -323,3 +323,4 @@
 
 ## 2026-09-03 技能融入
 - **anti-defensive-writing**（Kiterlin/anti-defensive-writing, MIT, pinned 2026-09-03）：防御性写作清理技能融入 academic_papers 域。适配=输入/输出契约三件套+STEP_MANIFEST 声明；首用于 PR 论文 Round 3 对抗审稿。capabilities/catalog.json 已登记。
+- **math-modeling-contest-route-selection**（y3519712124-ui, MIT, pinned 2026-09-03）：竞赛选题与路线选择技能融入 math_modeling_competition 域。目录展平+契约适配+STEP_MANIFEST；score_topics.py 冒烟通过；catalog 已登记。

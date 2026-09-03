@@ -714,6 +714,27 @@
       "current_gap": "数据未实际获取；C5 未校准；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "status": "experimental",
       "promotion_history": []
+    },
+    {
+      "capability_id": "contest_route_selection",
+      "name": "竞赛选题与路线选择（Contest Route Selection）",
+      "domain": "math_modeling_competition",
+      "description": "CUMCM/MCM 选题与建模路线两层比较：模型选择锦标赛（baseline/被拒方案/决定性测试/翻盘条件）、Refutation ledger、撞车逃逸机制、binding constraints 清单、角色化逐问链、评分脚本（标准库零依赖）。防 AI 同质化选题（13 条判据+7 问工程门禁）。上游 y3519712124-ui/math-modeling-contest-route-selection (MIT, pinned 2026-09-03)",
+      "input_contract": "题面文本 或 选题评分 JSON（schema 分键强制）",
+      "output_contract": "A/B/C 选题 12 段 / 单题 9 段 / 深度规划 +4 项；Method Route Card 17 字段；score_topics.py 排名表",
+      "status": "已融入（provenance 登记完成）",
+      "associated_skills": [
+        "comp-prob-analysis",
+        "comp-modeling"
+      ],
+      "associated_tools": [
+        "skills/math-modeling-contest-route-selection/scripts/score_topics.py"
+      ],
+      "external_dependencies": "无（Python 标准库）",
+      "high_risk_confirmation": false,
+      "current_evidence": "脚本冒烟通过（warning 机制正常工作）",
+      "current_gap": "MCM/ICM 无专门流程（上游即如此）；上游单次成型无社区迭代",
+      "promotion_history": "2026-09-03 融入"
     }
   ],
   "academic_papers": [
