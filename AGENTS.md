@@ -43,3 +43,14 @@
 3. 改代码后跑 `python -m pytest -q`（科研工具箱/ 下）+ `python tools/check_provenance.py`。
 4. `dev-docs/` 是内部真源根，默认私有；`vendor/` 是上游 fork 暂存区，不入 git。
 5. 文档治理任务遵守 `acat-doc-governance` 技能铁律：全文读完、污染必清、不窄化定位。
+
+## 测试口径（2026-09-03 定稿，pytest.ini 为准）
+
+| 运行位置 | 收集范围 | 基线 | 用途 |
+|----------|---------|------|------|
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **285 passed** | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **242 passed** | 技能验收基线（硬规则 3 口径） |
+
+- `releases/` 是 dated 发布快照（archive 态仅供追溯），**永不进测试收集**——其内部旧测试依赖旧目录结构，扫描必炸（2026-09-03 曾致 333 collection errors）。
+- `科研工具箱/tools/` 下的 `test_*.py` 是裸脚本式自检（硬编码 cwd 相对路径），不属于 pytest 套件，从仓库根收集排除。
+- `capabilities/catalog.json` 改动后必跑根级 tests：schema 有硬校验（capability_id 用短横线命名=技能映射条目；下划线命名=聚合能力须带 4 个合同扩展字段；status 仅限 experimental/private_extension/正式；全部 skills 目录必须有映射）。
