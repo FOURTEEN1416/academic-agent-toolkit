@@ -2245,6 +2245,20 @@
       "promotion_history": [
         "2026-08-29: 新建（P1 缺口补齐）"
       ]
+    },
+    {
+      "capability_id": "anti_defensive_writing",
+      "name": "防御性写作清理（Anti-Defensive Writing）",
+      "domain": "academic_papers",
+      "description": "消除学术文本中不必要的免责声明、对冲词、道歉式框架与过度解释，同时保留必要的方法学/伦理/法律限定；含六类防御句分类法与五项必要条件保留门禁。上游 Kiterlin/anti-defensive-writing (MIT, pinned 2026-09-03)",
+      "input_contract": "待清理文本（md/tex）+ 章节位置与主张编号上下文",
+      "output_contract": "改写后文本 + 六类防御句分类清单 + 保留限定理由表（三件套缺一不可）",
+      "quality_gates": [
+        "Preserve Necessary Precision 五项必要条件逐条核对",
+        "STEP_MANIFEST 产出声明"
+      ],
+      "upstream": "Kiterlin/anti-defensive-writing (MIT, 2026-09-03)",
+      "acceptance_status": "真实执行（论文 Round 3 应用留痕）"
     }
   ],
   "literature_research": [

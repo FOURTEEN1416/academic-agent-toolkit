@@ -320,3 +320,6 @@
 - **批次28B**：galaxy-mcp-integration 试点（.zcode/config.json docsearch MCP 实存）+ 最后 8 凭证依赖类定性留档（Kaggle/NotebookLM/Zotero/CLI×2/skill-development/improver/dossier）。
 - **最终状态**：无证据单技能条目 **38→8**（8 个全部为凭证依赖类，需用户侧提供 Kaggle/NotebookLM/Zotero 账号或 CLI 安装）；其余 240 条全部有真实证据或转化/映射登记。
 - 工具类缺陷再抓 2：paper-search 三连缺陷（排序丢相关性/裸 search OR 语义/filter 混入）+ os.chdir 后相对路径失效。
+
+## 2026-09-03 技能融入
+- **anti-defensive-writing**（Kiterlin/anti-defensive-writing, MIT, pinned 2026-09-03）：防御性写作清理技能融入 academic_papers 域。适配=输入/输出契约三件套+STEP_MANIFEST 声明；首用于 PR 论文 Round 3 对抗审稿。capabilities/catalog.json 已登记。
