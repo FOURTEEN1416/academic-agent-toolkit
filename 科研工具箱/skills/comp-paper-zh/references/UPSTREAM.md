@@ -10,3 +10,7 @@
 ## Upgrade rule
 
 每届赛前核对官网最新规则公告，发现页数/格式变更时更新 `comp_rules.json` 与 `AGENTS.md` 路由说明，并刷新本文件。
+## 模板资产来源（2026-09-09 赛前排查补录）
+
+- `_templates/cumcm/`（cumcmthesis.cls + cumcm2026.sty）：来自 https://github.com/latexstudio/CUMCMThesis（fork FOURTEEN1416/CUMCMThesis，pinned 38d1f216bec3c9ffffb7dd09bf6b6c54f486b130，2026-09-09 拉取，已适配 2026 年国赛格式）。经 XeLaTeX 实测编译通过（含中文、表格、thebibliography）。
+- 其余赛事模板（stats/apmcm_zh/mathorcup/huazhong/huawei/wuyi/changsanjiao/huashubei/diangongbei/dongsansheng/shuweibei）尚未入库：SKILL.md 模板分支已加落地断言，缺失时显式报错并给出补救路径，不再静默跳过。

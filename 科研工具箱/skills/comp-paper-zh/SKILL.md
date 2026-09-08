@@ -469,6 +469,20 @@ else
 
 fi
 
+# ⛔ 模板落地断言（2026-09-09 赛前加固）：模板缺失时上面的 cp 带 2>/dev/null 会静默跳过，
+#   直到编译阶段才炸。此处硬性断言 cls/sty 已就位，否则立即失败并给出补救路径。
+if ls paper/*.cls paper/*.sty > /dev/null 2>&1; then
+    echo "✅ 模板文件已就位: $(ls paper/*.cls paper/*.sty 2>/dev/null | tr '
+' ' ')"
+else
+    echo "❌ 模板缺失：$TMPL_BASE/ 下没有本题竞赛模板（paper/ 无 .cls/.sty）"
+    echo "   补救路径："
+    echo "   ① 国赛 cumcm：内置模板在 skills/comp-paper-zh/_templates/cumcm/，执行"
+    echo "      cp skills/comp-paper-zh/_templates/cumcm/*.cls skills/comp-paper-zh/_templates/cumcm/*.sty paper/"
+    echo "   ② 其他赛事：从赛事官方渠道获取模板文件夹放入 $TMPL_BASE/<赛事名>/ 后重跑"
+    exit 1
+fi
+
 # Rename to main.tex if needed
 
 [ -f paper/main.tex ] && echo "Template copied: $(wc -l < paper/main.tex) lines" || echo "ERROR: template not found!"

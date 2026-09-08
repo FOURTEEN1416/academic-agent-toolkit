@@ -19,19 +19,39 @@ for _py in "$MH_PYTHON" python python3 py; do
 done
 [ -z "$PYTHON" ] && PYTHON="python3"   # 兜底（保持原行为）
 
+# grep -c 计数消毒：无匹配时 grep -c 已输出 0 但退出码 1，`|| echo 0` 会产生两行 "0"，
+# 后续 [ "$x" -gt 0 ] 报 integer expression expected 且检查静默失效。统一走本函数。
+gcount() { # gcount <pattern> <file> -> 单个整数
+    local v
+    v=$(grep -c -- "$1" "$2" 2>/dev/null)
+    v=$(printf '%s' "$v" | tr -d '[:space:]')
+    echo "${v:-0}"
+}
+
 echo "=== Post-compile checks ($PAPER_DIR) ==="
 
 # 1. PDF existence and size
 if [ -f "$PAPER_DIR/main.pdf" ]; then
     pdf_size=$(wc -c < "$PAPER_DIR/main.pdf")
-    echo "  OK: main.pdf exists ($pdf_size bytes)"
-    [ "$pdf_size" -lt 100000 ] && echo "  FAIL: PDF is small (<100KB), compilation likely failed" && EXIT_CODE=1
+    # 编译是否成功以 main.log 的 "Output written on" 为准；体积仅对多页文档做 WARN，
+    # 单页样张（测试/样例）天然小于 100KB，不再误报 "compilation likely failed"。
+    if grep -q 'Output written on .*\.pdf' "$PAPER_DIR/main.log" 2>/dev/null; then
+        pdf_pages=$(grep -oE 'Output written on .*\(([0-9]+) page' "$PAPER_DIR/main.log" 2>/dev/null | grep -oE '[0-9]+' | head -1)
+        echo "  OK: main.pdf exists (${pdf_pages:-?} pages, $pdf_size bytes)"
+        if [ "$pdf_size" -lt 100000 ] && [ "${pdf_pages:-1}" -gt 3 ]; then
+            echo "  WARN: $pdf_pages pages but PDF <100KB — check content completeness"
+        fi
+    elif [ "$pdf_size" -lt 100000 ]; then
+        echo "  FAIL: PDF <100KB and main.log has no successful compile record — compilation likely failed" && EXIT_CODE=1
+    else
+        echo "  OK: main.pdf exists ($pdf_size bytes)"
+    fi
 else
     echo "  FAIL: main.pdf not found" && EXIT_CODE=1
 fi
 
 # 2. Undefined references
-undef_refs=$(grep -c '\[?\]' "$PAPER_DIR/main.log" 2>/dev/null || echo 0)
+undef_refs=$(gcount '\[?\]' "$PAPER_DIR/main.log")
 echo "  Undefined references: $undef_refs"
 [ "$undef_refs" -gt 0 ] && echo "  FAIL: $undef_refs undefined references — PDF shows [?]" && EXIT_CODE=1
 
@@ -40,15 +60,15 @@ echo "--- LaTeX errors ---"
 LATEX_ERRORS=0
 if [ -f "$PAPER_DIR/main.log" ]; then
     # Bad math environment delimiter
-    bad_math=$(grep -c 'Bad math environment delimiter\|Missing \$ inserted\|Display math should end\|begin{document} ended by' "$PAPER_DIR/main.log" 2>/dev/null || echo 0)
+    bad_math=$(gcount 'Bad math environment delimiter\|Missing \$ inserted\|Display math should end\|begin{document} ended by' "$PAPER_DIR/main.log")
     [ "$bad_math" -gt 0 ] && echo "  CRITICAL: $bad_math math environment errors — fix \$...\$ delimiters in .tex files" && LATEX_ERRORS=$((LATEX_ERRORS + bad_math))
 
     # Not allowed in LR mode (usually math in wrong context)
-    lr_mode=$(grep -c 'Not allowed in LR mode\|Not in outer par mode' "$PAPER_DIR/main.log" 2>/dev/null || echo 0)
+    lr_mode=$(gcount 'Not allowed in LR mode\|Not in outer par mode' "$PAPER_DIR/main.log")
     [ "$lr_mode" -gt 0 ] && echo "  CRITICAL: $lr_mode LR mode errors — check math/float placement" && LATEX_ERRORS=$((LATEX_ERRORS + lr_mode))
 
     # Undefined control sequence (missing package or typo)
-    undef_cs=$(grep -c 'Undefined control sequence' "$PAPER_DIR/main.log" 2>/dev/null || echo 0)
+    undef_cs=$(gcount 'Undefined control sequence' "$PAPER_DIR/main.log")
     [ "$undef_cs" -gt 0 ] && echo "  WARN: $undef_cs undefined control sequences"
 
     # Missing package
@@ -56,7 +76,7 @@ if [ -f "$PAPER_DIR/main.log" ]; then
     [ -n "$missing_pkg" ] && echo "  CRITICAL: missing packages:" && echo "$missing_pkg" | sed 's/^/    /' && LATEX_ERRORS=$((LATEX_ERRORS + 1))
 
     # Font not found
-    font_err=$(grep -c 'Font.*not found\|cannot find font' "$PAPER_DIR/main.log" 2>/dev/null || echo 0)
+    font_err=$(gcount 'Font.*not found\|cannot find font' "$PAPER_DIR/main.log")
     [ "$font_err" -gt 0 ] && echo "  WARN: $font_err font errors (check fc-list)"
 
     # Extract specific error locations for Claude to fix
@@ -74,11 +94,11 @@ if [ -f "$PAPER_DIR/main.log" ]; then
 fi
 
 # 3. Overfull hbox
-overfull=$(grep -c 'Overfull.*hbox' "$PAPER_DIR/main.log" 2>/dev/null || echo 0)
+overfull=$(gcount 'Overfull.*hbox' "$PAPER_DIR/main.log")
 echo "  Overfull hbox: $overfull"
 
 # 3.5 Overfull vbox (table/figure overflow — content cut off at page bottom)
-overfull_v=$(grep -c 'Overfull.*vbox' "$PAPER_DIR/main.log" 2>/dev/null || echo 0)
+overfull_v=$(gcount 'Overfull.*vbox' "$PAPER_DIR/main.log")
 if [ "$overfull_v" -gt 0 ]; then
     echo "  FAIL: $overfull_v overfull vbox — tables/figures cut off at page bottom"
     echo "  Fix: use longtable for tall tables, or split into smaller tables"
@@ -237,16 +257,16 @@ if [ -f "$PAPER_DIR/main.tex" ]; then
     #     \bibitem 即可，绝不能要求 references.bib 或 main.bbl（那会恒 FAIL → 计入门禁则死循环）。
     #   · 外部 \bibliography{...} + bibtex 流程：才要求 references.bib 存在 + main.bbl 非空。
     if grep -q '\\begin{thebibliography}' "$PAPER_DIR/main.tex" 2>/dev/null; then
-        inline_items=$(grep -c '\\bibitem' "$PAPER_DIR/main.tex" 2>/dev/null || echo 0)
+        inline_items=$(gcount '\\bibitem' "$PAPER_DIR/main.tex")
         [ "$inline_items" -gt 0 ] && echo "  OK: inline thebibliography ($inline_items entries)" || { echo "  FAIL: inline thebibliography 为空（无 \\bibitem）"; EXIT_CODE=1; }
     else
         if [ -f "$PAPER_DIR/references.bib" ]; then
-            bib_entries=$(grep -c '^@' "$PAPER_DIR/references.bib" 2>/dev/null || echo 0)
+            bib_entries=$(gcount '^@' "$PAPER_DIR/references.bib")
             echo "  OK: references.bib ($bib_entries entries)"
         else
             echo "  FAIL: references.bib not found" && EXIT_CODE=1
         fi
-        bbl_entries=$(grep -c '\\bibitem' "$PAPER_DIR/main.bbl" 2>/dev/null || echo 0)
+        bbl_entries=$(gcount '\\bibitem' "$PAPER_DIR/main.bbl")
         echo "  Bibliography entries in PDF: $bbl_entries"
         [ "$bbl_entries" -eq 0 ] && echo "  FAIL: bibliography is empty in compiled PDF" && EXIT_CODE=1
     fi
@@ -432,7 +452,7 @@ for f in "$PAPER_DIR"/sections/*.tex; do
     [ -f "$f" ] || continue
     bn=$(basename "$f")
     # Check for subfigure usage (forbidden in competition papers)
-    sf_count=$(grep -c '\\begin{subfigure}' "$f" 2>/dev/null || echo 0)
+    sf_count=$(gcount '\\begin{subfigure}' "$f")
     if [ "$sf_count" -gt 0 ]; then
         echo "  FAIL: $bn uses subfigure ($sf_count times) — competition papers must use independent figure environments, not subfigure"
         subfig_abuse=$((subfig_abuse + sf_count))

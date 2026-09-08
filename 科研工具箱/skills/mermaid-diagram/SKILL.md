@@ -114,6 +114,10 @@ flowchart TD
 ```bash
 # Check if mermaid-cli is available
 if command -v mmdc &> /dev/null; then
+    # Windows 本机口径（2026-09-09 赛前验证）：新版 puppeteer 要求的 chrome-headless-shell
+    # 版本可能不在本地缓存，必须带 -p 指定 Edge 配置（配置已就位于
+    # ~/.mmdc/puppeteer-config.json 与本仓库 skills/_utils/puppeteer-config.json）：
+    #   mmdc -i in.mmd -o out.png -b transparent -p "$HOME/.mmdc/puppeteer-config.json"
     # Render to PNG to verify syntax is correct
     mmdc -i figures/<diagram-name>.mmd -o figures/<diagram-name>.png -b transparent
     echo "✅ Syntax valid — PNG rendered to figures/<diagram-name>.png"
