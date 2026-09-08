@@ -273,8 +273,6 @@ class WorkflowRunner:
         )
         if not gate_result["ok"]:
             message = "quality gates failed"
-            import sys as _sys
-            _sys.stderr.write(f"[DEBUG] Gate failed for {step.name}: {json.dumps(gate_result, ensure_ascii=False, indent=2, default=str)[:500]}\n")
             self.store.transition_step_with_checkpoint(
                 workflow_id, step.id, StepStatus.FAILED,
                 {"status": "failed", "error": message, "quality_gates": gate_result},

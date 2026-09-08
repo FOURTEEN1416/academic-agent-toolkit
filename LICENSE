@@ -1,14 +1,14 @@
 # 许可证（License）
 
-本仓库及发布包（releases/v1.1）由两部分构成，适用不同许可证：
+本仓库及历史发布包（releases/v1、releases/v1.1 为 dated 快照）由两部分构成，适用不同许可证：
 
 ## 1. 核心代码与技能（CC-BY-NC-4.0）
 
-数学建模全流程套件（skills/、engine/、tools/、tests/）与根目录配置（opencode.json、README.md）采用
+科研工具箱（skills/、engine/、tools/、tests/）与根目录配置（opencode.json、README.md）采用
 [Creative Commons Attribution-NonCommercial 4.0 International (CC-BY-NC-4.0)](https://creativecommons.org/licenses/by-nc/4.0/)：
 
 - ✅ 可自由共享、改编、再利用（含商用场景除外）
-- ✅ 须注明出处（"数模竞赛 Agent 工具箱"）及许可证声明
+- ✅ 须注明出处（"数模竞赛 Agent 工具箱 / Academic Agent Toolkit"）及许可证声明
 - ❌ **禁止商业使用**——不得将本软件或其衍生作品用于商业销售、SaaS 服务、付费订阅或任何以盈利为目的的场景
 - ❌ **禁止用于训练 AI 模型**——不得将本软件内容用于训练、微调或评估任何 AI/ML 模型
 
@@ -29,10 +29,9 @@ benchmarks/cumcm_public/（P01-P03 合成样例题、交付合同、评分量表
 - 可自由共享与改编，但须注明出处（"数模竞赛 Agent 工具箱公开基准集"）。
 - 样例均为合成题面，不含任何真实竞赛题目、真实参赛数据或未授权材料。
 
-## 3. 明确排除（不在本发布包）
+## 3. 明确排除（不随公开仓库分发）
 
-- 私有扩展能力（capabilities/catalog.json 中 `private_extension` 条目）——保留私有范围。
-- 真实竞赛题面与演练产物（workspaces/cumcm-2026-practice、cumcm_private_pilot 等）——不随包分发。
+- 真实竞赛题面与演练产物（workspaces/、赛前试炼任务/、参考论文/）——本地私有。
 - 内部开发真相文档（dev-docs/）——不随包分发。
 
 ## 4. 第三方组件

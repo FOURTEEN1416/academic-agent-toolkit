@@ -8,8 +8,8 @@
 
 [![Release](https://img.shields.io/badge/release-v1.2.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-242_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
-[![Capabilities](https://img.shields.io/badge/capabilities-269-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-245-8b5cf6?style=flat-square)](科研工具箱/skills)
+[![Capabilities](https://img.shields.io/badge/capabilities-294-0ea5e9?style=flat-square)](capabilities/catalog.json)
+[![Skills](https://img.shields.io/badge/skills-247-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
 [![Hosts](https://img.shields.io/badge/hosts-OpenCode_|_ZCode-1f2937?style=flat-square)](#快速开始)
@@ -19,7 +19,7 @@
 ---
 
 > [!TIP]
-> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（245 个技能）自主完成
+> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（247 个技能）自主完成
 > 建模 → 编码 → 绘图 → 写作 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯**。
 
 ## ✨ 为什么不是又一个提示词合集
@@ -49,15 +49,15 @@ L1 拦截式插件逐条记录每次工具调用（不可绕过）+ L2 编排留
 </td></tr>
 </table>
 
-## 🗺️ 六大能力域 · 269 项能力
+## 🗺️ 六大能力域 · 294 项能力
 
 | | 能力域 | 条目 | 代表能力 |
 |--|--------|-----:|----------|
 | 🎓 | **课程与研究材料** | 83 | 课程论文 · 实验报告 · 教学大纲 |
-| 📝 | **学术论文** | 71 | 写作 · 评审 · 润色 · 投稿准备（含 Nature 工作流） |
-| 🔬 | **文献与研究** | 41 | 文献检索 · 综述 · 深度研究 · 实验设计 |
-| 🏆 | **数模竞赛** | 32 | CUMCM 14 步端到端流水线（10 项正式验收能力） |
-| 📊 | **图表与文档生产** | 30 | 期刊级科研绘图 · 信息图 · Excalidraw · LaTeX 全家桶 |
+| 📝 | **学术论文** | 74 | 写作 · 评审 · 润色 · 投稿准备（含 Nature 工作流） |
+| 🔬 | **文献与研究** | 42 | 文献检索 · 综述 · 深度研究 · 实验设计 |
+| 🏆 | **数模竞赛** | 33 | CUMCM 14 步端到端流水线（10 项正式验收能力） |
+| 📊 | **图表与文档生产** | 50 | 期刊级科研绘图 · 信息图 · Excalidraw · LaTeX 全家桶 |
 | ©️ | **知识产权材料** | 12 | 软著申请（草稿→成品）· 专利交底书 · 基金申请书 |
 
 <details>
@@ -117,7 +117,7 @@ cd academic-agent-toolkit
 cmd /c "mklink /J .zcode\skills 科研工具箱\skills"   # 重建技能联结（Windows）
 ```
 
-打开仓库根目录：245 个技能自动发现、docsearch MCP 自动连接、`/doc-governance` 治理命令可用。
+打开仓库根目录：247 个技能自动发现、docsearch MCP 自动连接、`/doc-governance` 治理命令可用。
 
 > [!NOTE]
 > **宿主差异**：L1 拦截式审计插件仅 OpenCode 可用；ZCode 下审计为 L2+L3 两层，其余功能完全一致。
@@ -157,14 +157,14 @@ python tools/check_provenance.py             # → 28/28 UPSTREAM+vendor 台账�
 | 📜 **Provenance 台账** | 27 条 `UPSTREAM.md` + vendor（pinned commit + license），28/28 校验通过，外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | 公开基准（CC-BY-4.0）公开评测 · 私有基准（真实竞赛题面）内部压测 |
 | ✅ **测试基线** | 242 项 pytest：状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 三管线 / 逐技能回归全覆盖 |
-| 🧬 **逐技能 C2 覆盖** | 245 技能 100% 验收状态分类：207 项真实执行证据（管线级/试点级，留档可查）+ 38 项诚实 blocked（依赖/范围受限，零伪造） |
+| 🧬 **逐技能 C2 覆盖** | 247 技能 100% 验收状态分类：207 项真实执行证据（管线级/试点级，留档可查）+ 38 项诚实 blocked（依赖/范围受限，零伪造） |
 
 ## 📁 仓库地图
 
 ```
 academic-agent-toolkit/
-├── 科研工具箱/     ★ 产品主体  skills(245) · engine(13) · tools(58+) · tests
-├── capabilities/      能力目录 catalog.json —— 281 条，含验收证据与缺口声明
+├── 科研工具箱/     ★ 产品主体  skills(247) · engine(13) · tools(58+) · tests
+├── capabilities/      能力目录 catalog.json —— 294 条，含验收证据与缺口声明
 ├── benchmarks/        公开基准集（CC-BY-4.0）
 ├── docs/superpowers/  设计 spec 与实施计划（dated 快照）
 ├── governance/        资产台账
@@ -177,7 +177,7 @@ academic-agent-toolkit/
 
 <br>
 
-**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests / 281 能力。
+**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests。发布后持续演进：catalog 现为 294 条 / 247 技能（正式 10）。
 
 **v1.1.0（2026-08-28）** —— 全能力公开发布（含软著/专利/基金流水线）· 科研绘图 9 技能扩展 · ZCode 兼容层 · 全库文档治理（45+ 文档审计）。完整记录见 [CHANGELOG.md](./CHANGELOG.md)。
 

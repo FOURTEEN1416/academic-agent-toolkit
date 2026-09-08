@@ -101,7 +101,7 @@ if __name__ == "__main__":
                 summaries.append({
                     "file": f.name,
                     "events": len(data),
-                    "events_by_type": {e.get("event"): data.count(e) for e in data} if False else _count_by(data, "event"),
+                    "events_by_type": _count_by(data, "event"),
                 })
         Path(args.out).write_text(json.dumps(summaries, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"已生成报告: {args.out} ({len(summaries)} 个运行)")

@@ -1,6 +1,6 @@
 # Funding
 
-This project is an open-source academic Agent toolkit for mathematical modeling competitions and research.
+This project is a complete academic Agent toolkit covering six capability domains (math-modeling competitions, academic papers, literature research, course materials, intellectual property, and figures & document production).
 
 ## Support the Project
 
@@ -30,6 +30,6 @@ This project is built with:
 
 ## License
 
-- Core: MIT License
-- Benchmarks: CC-BY-4.0
+- Core (suite & configuration): CC-BY-NC-4.0
+- Public benchmarks: CC-BY-4.0
 - See [LICENSE](./LICENSE) for details

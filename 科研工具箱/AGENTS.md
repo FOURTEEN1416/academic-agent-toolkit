@@ -49,7 +49,7 @@ python -m engine.workflow_cli audit --workspace <工作区>   # 生成 OPERATION
 套件/
 ├── AGENTS.md              ← 你在这里（Agent 入口路由）
 ├── skills/                ← 技能库（由 opencode.json 的 skills.paths 自动扫描，每个技能一个 SKILL.md）
-├── tools/                 ← 工具链（32 个可执行脚本）
+├── tools/                 ← 工具链（60 个 .py 脚本 + 16 个 .pyc 加密分发件）
 ├── engine/                ← 状态库 + 编排 + 质量门禁 + 审计（不执行）
 ├── data/                  ← 参考数据（模型库/题型规律/历史题目）
 ├── .env                   ← 本地 API 配置（gitignored，不入库不入发布包）
@@ -101,8 +101,8 @@ python -m engine.workflow_cli audit --workspace <工作区>   # 生成 OPERATION
 | "写开题报告" | `skills/thesis-proposal/` |
 | "写基金申请书" | `skills/grant-proposal/` |
 | "写专利/软著" | `skills/patent-draft/` 或 `copyright-draft/` |
-| "一句话生成项目" | `skills/grad_project/` |
-| "已有资产写论文" | `skills/paper_from_assets/` |
+| "一句话生成项目（毕业设计/软件）" | 管线模板 `grad_project`：dev-requirement → dev-design → dev-code → dev-selfcheck → dev-report |
+| "已有资产写论文" | 管线模板 `paper_from_assets`：assets-inventory → paper-plan → paper-analysis → paper-figure(-drawio) → paper-write → paper-compile |
 | "合并/拆分/加密/OCR/填表单 PDF" | `skills/sci-pdf/` | 通用 PDF 工具；读取题面/论文内容用 `doc_reader.py` |
 | "做简历/海报/幻灯片/小抄/格式转换" | `skills/latex-document/` | 通用 LaTeX 文档；竞赛论文写作用 `comp-paper-zh`、编译用 `comp-compile-zh` |
 
@@ -142,21 +142,6 @@ python -m engine.workflow_cli audit --workspace <工作区>   # 生成 OPERATION
 | MCP `github_search_repositories` / `github_search_code` | GitHub 开源方案检索（有成熟方案不重复造轮子） | github_search_repositories(query=...) |
 | 内置 `webfetch` / `websearch` | 网页抓取与网络搜索 | webfetch(url=...) |
 
-### 其他工具
-
-| 工具 | 用途 | 调用方式 |
-|------|------|---------|
-| `tools/gpt_image.py` | 科研插图生成 | `python tools/gpt_image.py --prompt "..." --output fig.png` |
-| `tools/reviewer_client.py` | 外部 LLM 审查 | `python tools/reviewer_client.py --prompt "..."` |
-| `tools/tikz_vision_check.py` | TikZ 图自检 | `python tools/tikz_vision_check.py fig.png` |
-| `tools/derive_reference_from_docx.py` | 格式派生 | `python tools/derive_reference_from_docx.py ref.docx` |
-| `tools/arxiv_fetch.pyc` | arXiv 论文获取 | `python tools/arxiv_fetch.pyc "query"` |
-| `tools/drawio_vision_check.pyc` | draw.io 图检查 | `python tools/drawio_vision_check.pyc fig.png` |
-| `tools/paper_data_check.pyc` | 论文数据一致性 | `python tools/paper_data_check.pyc workspace/` |
-| `tools/docx_precheck.pyc` | DOCX 格式预查 | `python tools/docx_precheck.pyc paper.docx` |
-| `tools/fix_bare_latex_in_md.pyc` | 修复裸 LaTeX | `python tools/fix_bare_latex_in_md.pyc paper.md` |
-| `tools/docx_export.pyc` | DOCX 导出 | `python tools/docx_export.pyc paper.md paper.docx` |
-
 ### 文档读取（防漏读嵌入图片，必须使用）
 
 **任何 docx/pdf 文档读取任务，必须用 `tools/doc_reader.py`**——纯文本提取会漏读嵌入图片/截图（提交要求、格式规范、题目附图常以图片形式存在）：
@@ -181,6 +166,7 @@ python tools/doc_reader.py 题目.pdf --no-vision                # 仅列出图�
 | `tools/paper_data_check.pyc` | 论文数据一致性 | `python tools/paper_data_check.pyc workspace/` |
 | `tools/docx_precheck.pyc` | DOCX 格式预查 | `python tools/docx_precheck.pyc paper.docx` |
 | `tools/fix_bare_latex_in_md.pyc` | 修复裸 LaTeX | `python tools/fix_bare_latex_in_md.pyc paper.md` |
+| `tools/docx_export.pyc` | DOCX 导出 | `python tools/docx_export.pyc paper.md paper.docx` |
 
 ## 六、质量门禁（P4 核心）
 

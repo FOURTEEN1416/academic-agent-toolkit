@@ -749,9 +749,9 @@
       "output_contract": "投稿级PDF/DOCX、完整性报告、审稿回复",
       "status": "experimental",
       "associated_skills": [
-        "academic-pipeline",
-        "academic-paper",
-        "academic-paper-reviewer",
+        "ars-academic-pipeline",
+        "ars-academic-paper",
+        "ars-academic-paper-reviewer",
         "deep-research",
         "literature-review",
         "paper-plan",
@@ -759,7 +759,7 @@
         "paper-write",
         "paper-compile",
         "auto-review-loop",
-        "citation-verification",
+        "galaxy-citation-verification",
         "check-citations"
       ],
       "associated_tools": [
@@ -788,15 +788,15 @@
       "associated_skills": [
         "paper-write-nature",
         "paper-write-nature-docx",
-        "nature-writing",
-        "nature-polishing",
-        "nature-response",
+        "galaxy-nature-writing",
+        "galaxy-nature-polishing",
+        "galaxy-nature-response",
         "nature-figure",
         "nature-submission-audit",
-        "manuscript-optimizer",
-        "figure-planner",
-        "results-section-revision",
-        "paper-bootstrap"
+        "nature-manuscript-optimizer",
+        "nature-figure-planner",
+        "nature-results-section-revision",
+        "nature-paper-bootstrap"
       ],
       "associated_tools": [
         "latexmk/xelatex",
@@ -824,9 +824,9 @@
         "auto-review-loop-llm",
         "auto-review-loop-minimax",
         "research-review",
-        "adversarial-reviewer",
-        "academic-paper-reviewer",
-        "code-reviewer"
+        "ars-adversarial-reviewer",
+        "ars-academic-paper-reviewer",
+        "ars-code-reviewer"
       ],
       "associated_tools": [
         "tools/reviewer_client.py",
@@ -854,7 +854,7 @@
         "paper-figure-html",
         "paper-illustration",
         "nature-figure",
-        "publication-chart-skill",
+        "galaxy-publication-chart-skill",
         "mermaid-diagram",
         "pixel-art"
       ],
@@ -915,13 +915,13 @@
       "status": "experimental",
       "associated_skills": [
         "check-citations",
-        "citation-management",
-        "citation-verifier",
+        "sci-citation-management",
+        "nature-citation-verifier",
         "scholar-doi-bibtex",
         "scholar-check-refs",
-        "citation-verification",
-        "openalex",
-        "paper-lookup"
+        "galaxy-citation-verification",
+        "scholar-openalex",
+        "sci-paper-lookup"
       ],
       "associated_tools": [
         "tools/citation_checker.py",
@@ -1109,7 +1109,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在 OpenCode 会话中确认",
       "current_evidence": "映射登记（batch12 abstract + batch13 writing 纪律同族真实产出）；",
-      "current_gap": "管线级/映射登记；C3/C4 未建",
+      "current_gap": "管线级/映射登记；C3/C4 未建；2026-09-09 已补齐 modules/ 15 模块资产(上游 K-Dense-AI v2.9.1 fork@0c72606，见技能 UPSTREAM.md)，SKILL.md 为孤本路由器按 modules/ 前缀解析",
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次24（真实执行/映射留档 skill_c2_batch19）"
@@ -2316,13 +2316,13 @@
       "associated_skills": [
         "literature-review",
         "research-lit",
-        "litreview",
-        "paper-lookup",
+        "ars-litreview",
+        "sci-paper-lookup",
         "arxiv",
-        "arxiv-metadata",
-        "openalex",
-        "citation-management",
-        "daily-paper-generator"
+        "scholar-arxiv-metadata",
+        "scholar-openalex",
+        "sci-citation-management",
+        "galaxy-daily-paper-generator"
       ],
       "associated_tools": [
         "tools/scholar_fetch.py",
@@ -2347,10 +2347,10 @@
       "status": "experimental",
       "associated_skills": [
         "deep-research",
-        "research",
-        "dossier",
-        "pulse",
-        "web-design-reviewer"
+        "ars-research",
+        "ars-dossier",
+        "ars-pulse",
+        "galaxy-web-design-reviewer"
       ],
       "associated_tools": [
         "firecrawl_search",
@@ -2378,7 +2378,7 @@
         "novelty-check",
         "idea-creator",
         "research-refine",
-        "patent"
+        "ars-patent"
       ],
       "associated_tools": [
         "tools/arxiv_miner.py",
@@ -4921,7 +4921,7 @@
       "associated_skills": [
         "patent-draft",
         "patent-build",
-        "patent"
+        "ars-patent"
       ],
       "associated_tools": [
         "tools/html_figure_render.py",
@@ -5190,10 +5190,10 @@
       "status": "experimental",
       "associated_skills": [
         "latex-document",
-        "latex-posters",
-        "latex-conference-template-organizer",
-        "latex-cleanup",
-        "accessible-pdf"
+        "sci-latex-posters",
+        "galaxy-latex-conference-template-organizer",
+        "scholar-latex-cleanup",
+        "scholar-accessible-pdf"
       ],
       "associated_tools": [
         "latexmk",
@@ -5217,8 +5217,7 @@
       "output_contract": "处理后PDF、提取内容",
       "status": "experimental",
       "associated_skills": [
-        "sci-pdf",
-        "pdf"
+        "sci-pdf"
       ],
       "associated_tools": [
         "tools/sci-pdf/*.py",
@@ -5243,14 +5242,14 @@
       "associated_skills": [
         "paper-figure",
         "nature-figure",
-        "publication-chart-skill",
-        "critique-figures",
-        "data-fig-vision-check"
+        "galaxy-publication-chart-skill",
+        "scholar-critique-figures"
       ],
       "associated_tools": [
         "tools/gpt_image.py",
         "tools/tikz_vision_check.py",
-        "tools/data_fig_vision_check.pyc"
+        "tools/data_fig_vision_check.pyc",
+        "tools/data_fig_vision_check.py"
       ],
       "external_dependencies": [
         "matplotlib",
@@ -5272,8 +5271,8 @@
       "associated_skills": [
         "paper-poster",
         "paper-slides",
-        "latex-posters",
-        "post-acceptance"
+        "sci-latex-posters",
+        "galaxy-post-acceptance"
       ],
       "associated_tools": [
         "latexmk",
@@ -5298,7 +5297,6 @@
       "status": "experimental",
       "associated_skills": [
         "sci-pdf",
-        "pdf",
         "docx-export"
       ],
       "associated_tools": [

@@ -8,9 +8,9 @@
 ## 三层架构
 
 ```
-skills/       ← 技能层（225 个技能，每个一个 SKILL.md）
-tools/        ← 工具层（32 个可执行脚本，调外部能力）
-engine/       ← 质量门禁 + 竞赛规则 + API 配置加载
+skills/       ← 技能层（247 个技能，每个一个 SKILL.md）
+tools/        ← 工具层（60 个 .py 脚本 + 16 个 .pyc 加密分发件）
+engine/       ← 编排模板（44 个）+ 状态库 + 质量门禁 + 竞赛规则 + 审计
 ```
 
 ## 快速开始
@@ -27,13 +27,16 @@ python engine/quality_gates.py caps
 
 ## 工作流模板
 
-| 模板 | 流水线 | 阶段数 |
-|------|--------|--------|
-| comp_full | 问题分析→建模→求解→论文→审查 | 8 阶段 |
-| paper_full | 选题→文献→实验→写作→图表→编译→审查 | 8 阶段 |
-| paper_writing | 规划→撰写→编译 | 3 阶段 |
-| literature_review | 文献综述 | 1 阶段 |
-| course_paper | 课程规划→课程报告 | 2 阶段 |
+全部 44 个模板定义在 `engine/modex-core/templates.json`。常用：
+
+| 模板 | 流水线 | 说明 |
+|------|--------|------|
+| `comp_cumcm`（及 comp_mcm/comp_huawei 等 22 个竞赛变体） | 分析→建模→求解→论文→审查 | 竞赛端到端 |
+| `paper_submission` | 规划→撰写→评审→返修 | 论文投稿管线 |
+| `paper_writing` / `paper_writing_zh` | 规划→撰写→编译 | 论文写作 |
+| `literature_review` | 文献综述 | 单阶段 |
+| `course_paper` | 课程规划→课程报告 | 2 阶段 |
+| `grad_project` | 需求→设计→编码→自测→报告 | 毕业设计/软件项目 |
 
 ## 技能发现
 
@@ -41,7 +44,7 @@ python engine/quality_gates.py caps
 
 | 用户意图 | 加载技能 |
 |---------|---------|
-| 拿到题目不知道怎么做 | `comp-prob-analysis` → 自动接 `comp_full` |
+| 拿到题目不知道怎么做 | `comp-prob-analysis` → 自动接 `comp_cumcm` 管线 |
 | 需要建立数学模型 | `comp-modeling` |
 | 需要写代码求解 | `comp-code` |
 | 需要写论文 | `comp-paper-zh` 或 `comp-paper-en` |
