@@ -324,3 +324,48 @@
 ## 2026-09-03 技能融入
 - **anti-defensive-writing**（Kiterlin/anti-defensive-writing, MIT, pinned 2026-09-03）：防御性写作清理技能融入 academic_papers 域。适配=输入/输出契约三件套+STEP_MANIFEST 声明；首用于 PR 论文 Round 3 对抗审稿。capabilities/catalog.json 已登记。
 - **math-modeling-contest-route-selection**（y3519712124-ui, MIT, pinned 2026-09-03）：竞赛选题与路线选择技能融入 math_modeling_competition 域。目录展平+契约适配+STEP_MANIFEST；score_topics.py 冒烟通过；catalog 已登记。
+
+## 2026-09-03 测试口径定稿（关联提交 185eec3/9392e88 补记）
+- 仓库根 pytest 333 collection errors 根因修复：releases/ dated 快照与 tools/ 裸脚本 test_*.py 排除出收集范围（pytest.ini norecursedirs），双口径基线定型——仓库根 285 passed / 工具箱 242 passed；catalog 合规修正：anti-defensive-writing 与 math-modeling-contest-route-selection 转技能映射条目（短横线 id），补齐 11 条绘图域欠账映射。条目补记于本日审计时补写（原两次提交未记 LOG）。
+
+## 2026-09-09 全库审计与修复（摸底+排查+图谱+全文档通读）
+- **通读覆盖**：247 个 SKILL.md 全文逐份；skills references 全量（shared-scripts 22 份+_utils 同副本 sha256 一致、route-selection 12、ars 25、comp-code 防错、copyright-draft 6、nature-figure 6、dev-code、paper 系、绘图/科研库 seaborn/matplotlib/plotly/sci-visualization/scientific-schematics/infographics/excalidraw/graphviz、diagram-design 55 份）；真源链/engine 13 py+44 模板/tools 60 py/tests 根 3+工具箱 42/benchmarks 两层/governance/ASSET_LEDGER/.opencode 4 子智能体/.zcode 命令/opencode.json/参考论文 4 份分析报告/赛前试炼交付文档/workspaces 结构/releases v1+v1.1 快照 diff 核验（comp-paper-zh 与活体一致、catalog 快照冻结属预期）。
+- **垃圾清理**：删 科研工具箱/nul（0 字节）+ tools/QUALITY_REPORT.md/QUALITY_REPORT2.md/tmp_docx（3 份内容相同的 docx_precheck 失败报告，源文件已不存在）。
+- **catalog 修复**：34 条 capability 的 associated_skills 家族前缀丢失（42 处替换，如 arxiv-metadata→scholar-arxiv-metadata；含 1 处 typo galaxy-post-acceptment→acceptance 复修）；data-fig-vision-check 移 associated_tools。
+- **代码卫生**：workflow_runner.py 删 [DEBUG] stderr 残留；run_logger.py 删 `if False else` 死代码。
+- **文档修复**：CHANGELOG.md 行99 截断拼接"现锁## [v1.1.0]"与行112 悬空"定"字；FUNDING.md MIT 矛盾改 CC-BY-NC-4.0+定位扩展全学术；README 徽章/仓库地图/域分布表 245→247、269/281→294、域条目 74/42/33/50；LICENSE 旧目录名"数学建模全流程套件"→科研工具箱、releases 表述、排除节改私有范围口径；truth-index 基线刷为 294/247/44/28-28/双口径测试；工具箱 AGENTS.md 删重复"其他工具"表、路由 grad_project/paper_from_assets 改为管线模板真实 sub_steps（原 skills/ 路径不存在）、工具数 32→60 py+16 pyc；skills/CLAUDE.md 225→247、32→60+16、模板表 comp_full/paper_full 改真实模板名；acat-doc-governance 基线 225→242/285 双口径。
+- **防线加固**：tests/test_minimum_catalog.py 新增 test_associated_skills_point_to_real_skill_dirs 反向校验（防悬空引用复发），根级收集 285→286。
+- **横幅补齐**：dev-docs notes.md/task_plan.md/VISUAL_REVIEW_REPORT.md/code_appendix_full_report.md/code_appendix_report.md 补"仅供追溯"横幅。
+- **回归证据**：仓库根 286 passed；工具箱 242 passed；provenance 28/28；skill audit OK（247 技能/44 模板/template_missing_skill=0）。
+- **图谱**：dev-docs/CODE_MAP.md 建立（架构分层+引擎/工具/测试/文档全图+文档覆盖清单）。遗留：m3（resume_candidates 重复候选）仍在但无害；ASSET_LEDGER.md 为 2026-08-13 快照已带过期横幅，刷新需重跑 build_asset_ledger.py（未跑，留待下次发布前）。
+
+## 2026-09-09（补遗：diagram-design type-* 与 vendored 库 API 手册全文补齐）
+- 首轮审计中仅做结构抽样的文档已全部补齐为逐行全文通读：diagram-design 40 份 type-*.md 图型规范（swimlane/timeline/state/nested/flowchart/tree/er/layers/venn/pyramid/wardley/dependency/org-chart/deployment/gantt/story-map/db-schema/kanban/journey/uml-class/treemap/fishbone/radar/quadrant/bar/scatter/sequence/polar/line/loop/medallion/data-flow/dp-security-matrix/dp-integration/high-level/it-state/process 全部）；seaborn function_reference(772)/objects_interface(963)/examples(824)；matplotlib api_reference(409)/plot_types(469)/common_issues(562)/styling_guide(600)；plotly plotly-express(213)/graph-objects(302)/export-interactivity(453)/layouts-styling(457)/chart-types(488)；scientific-visualization matplotlib_examples(620)。CODE_MAP.md 第 8 节已更新为 100% 全文覆盖。纯文档补读，无代码/数据改动，测试基线不变（根 286/工具箱 242/provenance 28/28）。
+
+## 2026-09-09（补遗 2：claude-scientific-writer 资产补齐 + 全库内部断链防线 A18）
+- **用户指出的遗漏（A18 触发）**：claude-scientific-writer 自 initial public release（7529779）起仅含 SKILL.md 孤本，正文引用的 references/ assets/ scripts/ 全部缺失（342 处引用断链），首轮审计漏报。根因：skill_library_audit 的 REF 正则只查 skills/|tools|engine/ 开头的跨技能引用，不查技能内部相对引用。
+- **溯源结论**：该 SKILL.md 是某 Claude.ai 用户定制打包版的孤本路由器（含该用户土尔其语/英语双语约定等个人偏好），其合并版 references/<module>.md 平铺结构在上游 K-Dense-AI/claude-scientific-writer 全部 243 个提交历史中均不存在，资产孤本不可得。
+- **修复**：①按先 fork 后集成惯例 fork 上游（FOURTEEN1416/claude-scientific-writer）并克隆 v2.9.1 线 main @ 0c72606；②上游 skills/ 下 15 个对应模块目录（343 文件/约 4.0MB 纯文本）原样拷入本技能 modules/<module>/；③SKILL.md 头部加适配说明块（引用一律按 modules/ 前缀解析+API 依赖口径）；④建 references/UPSTREAM.md 溯源台账（Upstream/Pinned commit/License 三必填字段）并注册进 check_provenance.py UPSTREAM_REGISTRY（28→29）；⑤catalog 该条目 current_gap 补记。
+- **防线升级（防复发）**：skill_library_audit.py 新增技能内部引用完整性检查（references|scripts|assets 三标准前缀，前置边界防 subscripts/superscripts 词中伪引用）；豁免三级=ACAT-GOVERNANCE 内联标记/UPSTREAM.md 台账/asset_gap_register.json 棘轮登记册；通配符与 {var} 动态占位符自动豁免。全库现状：512 条内部断链（89 技能，集成时只收 SKILL.md 未收上游资产的存量）固化为棘轮登记册 tools/asset_gap_register.json（2026-09-09 基线），新增断链必 FAIL；547 条断链全部透明豁免（512 棘轮+35 台账）。
+- **配套**：tests/test_skill_library_integrity.py 新增 test_no_new_unregistered_broken_inner_refs 棘轮守卫；acat-doc-governance SKILL.md 行 29 流程描述措辞精确化（"建上游溯源台账（UPSTREAM.md，置于技能 references/ 下）"，消除机检误匹配）；512 条处置方案（分层：核心技能补资产/长尾批量声明/维持棘轮）登记于 dev-docs/AUDIT_2026-09-09.md A18 待用户拍板。
+- **回归证据**：仓库根 287 passed（+1 棘轮守卫）；工具箱 243 passed（+1）；provenance 29/29；skill audit 无 FAIL（247 技能/44 模板）。
+
+## 2026-09-09（补遗 3：A18 专项治理执行——资产拉取+适应性改造+防线硬化）
+- **用户裁决**：执行方案甲专项治理；同时指出拉取的 skills 不应直接复制、需做适应性改造。
+- **claude-scientific-writer 适应性改造**：新增 modules/ADAPTATION.md（未随包 11 个兄弟模块的替代映射表：pdf/pptx→宿主 document-skills、parallel-cli/research-lookup→web_search 口径、scientific-schematics/infographics→本仓库同名技能；API 依赖门 §2 显性化 45 处 parallel-cli/16 处 OPENROUTER_API_KEY 降级口径）；15 个模块 SKILL.md 头部注入 ACAT-ADAPTED 横幅（正文零改动保持 pinned 可对照）；主 SKILL.md 适配块与 UPSTREAM.md 同步更新。审计标记体系定稿：ACAT-ADAPTED=适应性改造 / ACAT-GOVERNANCE=断链声明。
+- **专项治理七批拉取**（累计 399 文件、销账 219 条）：①sci-* 9 技能←K-Dense scientific-agent-skills@36d8f13（130 文件）；②nature-* 2 技能←Yuan1z0825/nature-skills + scientific-agent-skills + claude-scientific-writer .claude 副本混合（含 SKILL.md 引用名对齐上游真实文件名的引用修正：repository-routing→repository-and-identifiers）；③ars-academic-paper/-reviewer/-pipeline 3 技能←franklee16/academic-research-skills（67 文件）；④skill-creator-official←claude-code-templates 聚合 fork；⑤latex-document 35 条全清←ndpvt-web/latex-document-skill@fb5a159（92 文件，WebSearch 溯源）；⑥latexpap-* 8 技能←yunshenwuchuxun/latex-paper-skills（.codex/skills 单技能目录+共享资产，44/44 全覆盖）；⑦spine-* 11 技能←WUBING2023/PaperSpine（dist/claude 单技能分发，本仓库 11 技能为拆分重组编排，32/33）。溯源手段：GitHub code search（PaperSpine/latex-paper-skills）+ WebSearch（latex-document）+ frontmatter 作者字段。
+- **每技能收口四件套**：references/UPSTREAM.md 溯源台账（Upstream/Pinned commit/License 三必填，已注册 provenance 29→63 项）+ SKILL.md 头部 ACAT-ADAPTED 横幅 + 登记册销账 + fork-first 全程遵守（新增 fork：latex-document-skill、PaperSpine、latex-paper-skills、skills-1(anthropics)）。
+- **上游不可得批量声明（批次 3）**：galaxy-* 35 技能（GitHub 全网无命中，未公开发布）+ comp-code（checks 六份自检协议为集成期规划未创作，补写属内容创作待专项立项）等共 56 个技能生成 ASSET-GAP.md 缺口声明（清单制：列明缺失资产+原因+处置路径）。
+- **防线硬化（两轮验证）**：audit 豁免语义重构——①内联标记（就地精确）→②登记册棘轮（权威存量）→③ASSET-GAP.md 清单制（解析声明文件内 `- \`ref\`` 清单，仅豁免清单内条目）；UPSTREAM.md 台账退出机检（纯溯源文档），claude-scientific-writer 35 条 modules/ 映射口径引用入册永续豁免。注入式防线验证：向 galaxy-bug-detective（有 ASSET-GAP）与 sci-networkx（有台账）各注入假断链→首版被文件级声明兜底豁免（防线打穿）→重构后精确 FAIL→还原 OK。登记册终态 325 条/63 技能。
+- **回归证据**：仓库根 287 passed；工具箱 243 passed；provenance 63/63；skill audit OK。工作区改动 208 项未提交（待用户确认）。
+
+## 2026-09-09（补遗 4：赛前全链路实测排查——国赛开赛前最后体检）
+- **排查方式升级**：本轮以"实测跑通"为准（此前以读代测），对竞赛主链路（comp-* 家族）逐环节冒烟。
+- **环境层全绿**：MiKTeX 全家桶（pdflatex/xelatex/latexmk/bibtex/biber）；Python 竞赛库 11 项（numpy/scipy/sympy/pandas/matplotlib/seaborn/sklearn/statsmodels/networkx/pulp，gurobipy 商业授权缺失可接受，pulp+CBC 兜底）；Graphviz dot（PATH 缺失走全路径，口径与记忆一致）；matplotlib 中文出版图（SimHei）渲染正常。
+- **comp-code checks 七份自检协议补写**（此前登记为"集成期规划未创作"的功能残缺，本轮补齐）：_index.md 总索引 + consistency（建模-代码契约）+ sanity_check（数值/背景/Bug 排查+S/G 区段）+ optimization（约束闭环+基线同审+求解分层+结构性验证）+ prediction（泄漏/基线/时序 CV/区间校准）+ evaluation（权重可复现/CR/灵敏度/序保持）+ physical（量纲/守恒/收敛/SAT）。协议定位为编排层：判定标准指向 _utils/error_prevention.md 对应章节（单一真源），产出 _tmp/problem_N_check.md（✅/⚠️/❌）+ AUDIT_OK 凭证。comp-code 断链 8 条全销，登记册 325→317 条/62 技能。
+- **compile_check.sh 两个真实 bug 修复（实测暴露）**：①`$(grep -c X f || echo 0)` 毒化——grep -c 无匹配时已输出 0 但退出码 1，`|| echo 0` 拼出两行 "0\n0"，后续全部 [ -gt ] 整数判断报 integer expression expected 且**检查静默失效**（11 处同病）；修法=新增 gcount() 消毒函数统一替换，_utils 与 shared-scripts 双副本同步。②PDF 体积阈值对单页样张误报 "compilation likely failed"——改为以 main.log 的 Output written 判编译成功、页数联合判断，体积仅对 >3 页文档 WARN。修复后 compile_check 退出码语义验证正确（有 FAIL→1、全过→0）。
+- **LaTeX 全链实测**：xelatex 中文（ctexart）+ booktabs + 插图 + bibtex 全流程通过（含一次真踩 `\ \midrule` 连写 Misplaced \noalign 坑，属测试文件自身问题，已作为 checks 素材）；**国赛模板 cumcmthesis.cls 实测编译通过**（withoutpreface+bwprint 选项，2 页 PDF）。
+- **国赛模板链路断裂修复（本轮最严重发现）**：comp-paper-zh 模板逻辑期望 `_templates/<赛事>/`（tex+cls+fonts 整文件夹），但 11 类赛事模板全部缺失且 cp 带 2>/dev/null 静默跳过——比赛时会拖到编译阶段才炸。修复：①按先 fork 后集成惯例拉取 latexstudio/CUMCMThesis（fork FOURTEEN1416 @ 38d1f21，已适配 2026 格式），cumcmthesis.cls+cumcm2026.sty 入库 `skills/comp-paper-zh/_templates/cumcm/`；②SKILL.md 模板分支尾部加**模板落地断言**（cls/sty 未就位立即 exit 1 并给出国赛内置模板补救路径），其余 10 类赛事模板缺失由静默变显式。
+- **mmdc 修复（赛前实测暴露）**：新版 puppeteer 要求 chrome-headless-shell 152，本地缓存仅 148-150 → Edge 固定路径方案（按既有记忆口径）：puppeteer-config.json 就位于 ~/.mmdc/ 与 skills/_utils/ + shared-scripts/ 双副本；mmdc 出图实测通过；mermaid-diagram SKILL.md 已回写 `-p` 参数 Windows 口径。
+- **已知环境注意事项（写入赛前报告）**：管理员（elevated）终端下 MiKTeX 的 kpsewhich 拒绝执行（security risk 保护），xelatex/latexmk 实测不受影响；建议竞赛期间使用普通权限终端。
+- **回归证据**：仓库根 287 passed；工具箱 243 passed；provenance 63/63；skill audit OK；compile_check 冒烟全绿。工作区改动未提交（累计待用户确认）。
