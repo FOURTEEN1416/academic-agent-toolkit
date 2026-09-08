@@ -13,6 +13,8 @@ metadata:
     - academic-pipeline
 ---
 
+
+<!--ACAT-ADAPTED: 资产补齐自 franklee16/academic-research-skills@5debcd2efb68（academic-paper），正文未改；上游 research-lookup 类 API 依赖以宿主 web_search/web_fetch 替代。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Academic Paper — Academic Paper Writing Agent Team
 
 A general-purpose academic paper writing tool — 12-agent pipeline covering all disciplines, with higher education domain as the default reference.

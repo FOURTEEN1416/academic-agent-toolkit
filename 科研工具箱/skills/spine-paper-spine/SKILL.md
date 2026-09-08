@@ -3,6 +3,8 @@ name: spine-paper-spine
 description: Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end, then output LaTeX/PDF/Word. The main PaperSpine entry point that orchestrates every step.
 ---
 
+
+<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（dist/claude 分发，单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # PaperSpine Orchestrator
 
 Use this skill as the suite entrypoint. It is the main orchestrator: it routes

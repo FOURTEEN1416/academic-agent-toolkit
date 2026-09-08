@@ -8,6 +8,8 @@ metadata:
   short-description: Research-to-paper router for review and empirical papers
 ---
 
+
+<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（paper-from-zero + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Paper-From-Zero
 
 Use this skill when the user already has a **topic/domain** and wants a

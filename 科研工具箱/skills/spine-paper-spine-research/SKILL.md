@@ -3,6 +3,8 @@ name: spine-paper-spine-research
 description: Researches target requirements, downloads reference materials, learns strong examples, and prepares motivation options. (internal /paperspine step)
 ---
 
+
+<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（dist/claude 分发，单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # PaperSpine Research
 
 Use this skill before motivation confirmation and before any scene-specific

@@ -3,6 +3,8 @@ name: spine-paper-spine-audit
 description: Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation coverage. (internal /paperspine step)
 ---
 
+
+<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（dist/claude 分发，单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # PaperSpine Audit
 
 Use this skill before calling a PaperSpine rewrite or build complete.

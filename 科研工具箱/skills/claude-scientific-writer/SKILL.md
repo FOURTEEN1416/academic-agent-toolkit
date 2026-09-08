@@ -6,6 +6,10 @@ license: "MIT"
 
 # Scientific Writer
 
+> **[ACAT 适配说明 · 2026-09-09 资产补齐审计]** 本 SKILL.md 是一份上游 Claude.ai 定制打包版的孤本路由器：正文引用的 `references/<module>.md`（合并单文件）与 `assets/<module>/`、`scripts/<module>/` 平铺结构在该打包版中从未随仓库公开发行。本仓库已改以 `modules/<module>/` 目录交付同一批内容（每模块自带 SKILL.md + references/ + assets/ + scripts/），来源为上游 [K-Dense-AI/claude-scientific-writer](https://github.com/K-Dense-AI/claude-scientific-writer) v2.9.1（MIT，fork FOURTEEN1416 @ 0c72606，2026-09-09 拉取），详见本目录 UPSTREAM.md。
+> **资产查找口径**：下文 Module map 与工作流中的 `references/<module>.md`、`assets/<module>/...`、`scripts/<module>/...` 一律按 `modules/<module>/` 前缀解析（该模块的 references/ 下可能是多个主题文件而非单个合并文件，按主题就近选取）；`scripts/` 下依赖外部 API 的脚本（ANTHROPIC_API_KEY / Parallel CLI / OPENROUTER_API_KEY）在本仓库无 API 环境，不可直接运行，遵循下方 Global Rule 1 的占位符替代口径。
+> **适应性改造（2026-09-09）**：模块正文中引用的未随包兄弟模块（pdf/pptx/research-lookup/parallel-web/generate-image/scientific-schematics 等）按 `modules/ADAPTATION.md` 的映射表替代（宿主 document-skills、web_search/web_fetch、本仓库 scientific-schematics/infographics 技能等）；API 依赖门与降级口径同见该文件 §2。
+
 A consolidated scientific writing toolkit covering 15 modules: from manuscript drafting through peer review, citation management, clinical documentation, grant proposals, posters, slides, and beyond. Each module is self-contained as a reference file under `references/`. Read only the module(s) you need for the current task.
 
 ## How to use this skill

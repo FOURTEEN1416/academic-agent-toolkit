@@ -9,6 +9,8 @@ metadata:
   short-description: Depth co-pilot (Claude) for paper-from-zero
 ---
 
+
+<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（collaborating-with-claude + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Collaborating with Claude Code (Codex)
 
 Use Claude Code CLI as a **depth-analysis** collaborator for paper-from-zero,

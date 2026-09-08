@@ -3,6 +3,8 @@ name: nature-scientific-writing
 description: Use when writing or revising scientific manuscripts, abstracts, figures, or references for journal submission and you need full-paragraph prose, scientific structure, citation-style guidance, or reporting-guideline support.
 ---
 
+
+<!--ACAT-ADAPTED: 混合上游资产补齐（scientific-agent-skills + claude-scientific-writer .claude 副本），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Scientific Writing
 
 ## Overview
@@ -29,7 +31,7 @@ This skill should be used when:
 - Ensuring proper use of field-specific terminology and nomenclature
 - Addressing reviewer comments and revising manuscripts
 
-For title, abstract, cover-letter, or top-level logic decisions, read `references/editor-first-impression.md`.
+For title, abstract, cover-letter, or top-level logic decisions, read `references/editor-first-impression.md` <!--ACAT-GOVERNANCE: 上游全体系无此资产，不可得（2026-09-09 审计标记）-->.
 
 ## Visual Enhancement with Scientific Figures
 

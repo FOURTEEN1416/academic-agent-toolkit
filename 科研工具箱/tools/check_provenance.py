@@ -51,6 +51,47 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "skills" / "excalidraw-diagram" / "references" / "UPSTREAM.md",
     # 科研绘图扩展追加（2026-08-29）
     ROOT / "skills" / "diagram-design" / "references" / "UPSTREAM.md",
+    # claude-scientific-writer 资产补齐（2026-09-09）
+    ROOT / "skills" / "claude-scientific-writer" / "references" / "UPSTREAM.md",
+    # 专项治理批次 2：latexpap-*/spine-* 资产补齐（2026-09-09）
+    ROOT / "skills" / "latexpap-arxiv-paper-writer" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "latexpap-check-collaborators" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "latexpap-collaborating-with-claude" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "latexpap-collaborating-with-gemini" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "latexpap-empirical-paper-writer" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "latexpap-latex-rhythm-refiner" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "latexpap-paper-from-zero" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "latexpap-results-backfill" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "spine-paper-spine" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "spine-paper-spine-audit" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "spine-paper-spine-build" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "spine-paper-spine-citation" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "spine-paper-spine-humanize" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "spine-paper-spine-intake" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "spine-paper-spine-latex" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "spine-paper-spine-research" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "spine-paper-spine-rewrite" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "spine-paper-spine-translate" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "spine-paper-spine-ui" / "references" / "UPSTREAM.md",
+    # 专项治理批次 2：latex-document 资产补齐（2026-09-09）
+    ROOT / "skills" / "latex-document" / "references" / "UPSTREAM.md",
+    # 专项治理批次 1c：ars-* 资产补齐（2026-09-09）
+    ROOT / "skills" / "ars-academic-paper" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "ars-academic-paper-reviewer" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "ars-academic-pipeline" / "references" / "UPSTREAM.md",
+    # 专项治理批次 1b：nature-* 资产补齐（2026-09-09）
+    ROOT / "skills" / "nature-data-availability" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "nature-scientific-writing" / "references" / "UPSTREAM.md",
+    # 专项治理批次 1a：sci-* 资产补齐（2026-09-09）
+    ROOT / "skills" / "sci-citation-management" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "sci-exploratory-data-analysis" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "sci-latex-posters" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "sci-literature-review" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "sci-networkx" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "sci-paper-lookup" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "sci-scientific-writing" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "sci-statistical-analysis" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "sci-sympy" / "references" / "UPSTREAM.md",
 ]
 
 # 需要完整许可文件的 vendored 外部依赖目录（含 LICENSE/NOTICE/UPSTREAM.md 三件套）

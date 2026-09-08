@@ -14,6 +14,8 @@ metadata:
     - academic-paper-reviewer
 ---
 
+
+<!--ACAT-ADAPTED: 资产补齐自 franklee16/academic-research-skills@5debcd2efb68（academic-pipeline），正文未改；上游 research-lookup 类 API 依赖以宿主 web_search/web_fetch 替代。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Academic Pipeline v3.11.1 — Full Academic Research Workflow Orchestrator
 
 A lightweight orchestrator that manages the complete academic pipeline from research exploration to final manuscript. It does not perform substantive work — it only detects stages, recommends modes, dispatches skills, manages transitions, and tracks state.

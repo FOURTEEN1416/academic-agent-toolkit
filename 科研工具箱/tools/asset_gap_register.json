@@ -1,0 +1,463 @@
+{
+ "_meta": {
+  "purpose": "skill_library_audit 棘轮登记册：SKILL.md 内部引用断链的 2026-09-09 基线",
+  "rule": "登记册内条目=已知存量(不FAIL)；新断链=FAIL。处置一批删一批条目即可收紧防线",
+  "baseline_count": 317,
+  "baseline_skills": 62,
+  "created": "2026-09-09",
+  "cause": "大量技能集成时只收 SKILL.md 未收上游资产；处置方案见 dev-docs/AUDIT_2026-09-09.md A18",
+  "disposal_log": [
+   "2026-09-09 批次1a sci-*: 销账 65 条（fork 资产补齐后引用已真实存在）",
+   "2026-09-09 批次1b nature-*: 销账 6 条",
+   "2026-09-09 批次1c ars-*: 销账 39 条",
+   "2026-09-09 批次2: skill-creator-official 销账 2 条（claude-code-templates 聚合 fork）",
+   "2026-09-09 批次2: latex-document 销账 35 条",
+   "2026-09-09 批次2: latexpap-*/spine-* 销账 75 条",
+   "2026-09-09: claude-scientific-writer 35 条 modules/ 映射口径引用入册（非残缺，孤本路由器口径，永续豁免）",
+   "2026-09-09 赛前排查: comp-code 8 条销账（checks 七份自检协议补写完成）"
+  ]
+ },
+ "gaps": {
+  "ars-agent-harness": [
+   "assets/harnesses",
+   "assets/harnesses/",
+   "assets/harnesses/engineering.json",
+   "references/agentic_loop_canon.md",
+   "references/domain_harness_design.md",
+   "references/verification_discipline.md",
+   "scripts/goal_compiler.py",
+   "scripts/harness_manifest_builder.py",
+   "scripts/loop_controller.py"
+  ],
+  "ars-ai-security": [
+   "references/atlas-coverage.md",
+   "scripts/ai_threat_scanner.py"
+  ],
+  "ars-code-reviewer": [
+   "assets/sample_java_smells.java",
+   "scripts/code_quality_checker.py",
+   "scripts/pr_analyzer.py",
+   "scripts/review_report_generator.py"
+  ],
+  "ars-dossier": [
+   "references/conversation_hook_quality.md",
+   "references/hypothesis_testing_discipline.md",
+   "references/subject_type_source_matrix.md",
+   "scripts/citation_tracker.py",
+   "scripts/disconfirming_evidence_balance.py",
+   "scripts/source_tier_classifier.py"
+  ],
+  "ars-experiment-designer": [
+   "references/experiment-playbook.md",
+   "references/statistics-reference.md",
+   "scripts/sample_size_calculator.py"
+  ],
+  "ars-grants": [
+   "references/docx_9_sections.md",
+   "references/nih_mechanism_matching.md",
+   "references/reporter_post_patterns.md",
+   "scripts/citation_tracker.py",
+   "scripts/fiscal_year_calculator.py",
+   "scripts/mechanism_matcher.py"
+  ],
+  "ars-litreview": [
+   "references/docx_8_sections.md",
+   "references/framework_selection.md",
+   "references/search_budget_allocation.md",
+   "scripts/citation_tracker.py",
+   "scripts/cross_search_aggregator.py",
+   "scripts/framework_recommender.py",
+   "scripts/free_search.py"
+  ],
+  "ars-notebooklm": [
+   "references/async_action_discipline.md",
+   "references/browser_automation_canon.md",
+   "references/studio_output_custom_prompts.md",
+   "scripts/action_router.py",
+   "scripts/async_action_classifier.py",
+   "scripts/custom_prompt_template_generator.py"
+  ],
+  "ars-patent": [
+   "references/cpc_classification_canon.md",
+   "references/legal_disclaimer_discipline.md",
+   "references/sub_use_case_routing.md",
+   "scripts/citation_tracker.py",
+   "scripts/family_resolver.py",
+   "scripts/sub_use_case_router.py"
+  ],
+  "ars-pulse": [
+   "references/cross_platform_synthesis.md",
+   "references/parallel_execution_discipline.md",
+   "references/research_pack_conventions.md",
+   "scripts/citation_tracker.py",
+   "scripts/time_window_calculator.py",
+   "scripts/topic_slug_generator.py"
+  ],
+  "ars-research": [
+   "references/deterministic_classification_canon.md",
+   "references/fallback_workflow_canon.md",
+   "references/hybrid_router_architecture.md",
+   "scripts/classifier.py",
+   "scripts/fallback_decomposer.py",
+   "scripts/routing_transparency_logger.py"
+  ],
+  "ars-research-summarizer": [
+   "references/citation-formats.md",
+   "references/summary-templates.md",
+   "scripts/extract_citations.py",
+   "scripts/format_summary.py"
+  ],
+  "ars-senior-data-scientist": [
+   "references/experiment_design_frameworks.md",
+   "references/feature_engineering_patterns.md",
+   "references/statistical_methods_advanced.md",
+   "scripts/experiment_designer.py",
+   "scripts/feature_engineering_pipeline.py",
+   "scripts/model_evaluation_suite.py"
+  ],
+  "ars-statistical-analyst": [
+   "references/statistical-testing-concepts.md",
+   "scripts/confidence_interval.py",
+   "scripts/hypothesis_tester.py",
+   "scripts/sample_size_calculator.py"
+  ],
+  "ars-syllabus": [
+   "references/applied_domain_weaving.md",
+   "references/audience_calibration.md",
+   "references/bundled_script_pattern.md",
+   "scripts/citation_tracker.py",
+   "scripts/discussion_question_validator.py",
+   "scripts/generate_reading_list.js",
+   "scripts/topic_grouper.py"
+  ],
+  "check-citations": [
+   "scripts/citation_checker.py"
+  ],
+  "dev-code-frontend": [
+   "references/daisyui_ref.md",
+   "references/styles/"
+  ],
+  "experiment-agent": [
+   "references/ars_integration_guide.md",
+   "references/irb_ethics_checklist.md",
+   "references/reproducibility_protocol.md",
+   "references/stall_detection_protocol.md",
+   "references/statistical_interpretation_guide.md",
+   "references/study_state_protocol.md"
+  ],
+  "galaxy-agent-identifier": [
+   "references/agent-creation-system-prompt.md",
+   "references/system-prompt-design.md",
+   "references/triggering-examples.md",
+   "scripts/validate-agent.sh"
+  ],
+  "galaxy-architecture-design": [
+   "references/auto_import.md",
+   "references/code_style.md",
+   "references/factory_pattern.md",
+   "references/registry_pattern.md",
+   "references/structure.md"
+  ],
+  "galaxy-bug-detective": [
+   "references/common-patterns.md",
+   "references/debugging-tools.md",
+   "references/javascript-errors.md",
+   "references/python-errors.md",
+   "references/shell-errors.md"
+  ],
+  "galaxy-command-development": [
+   "references/frontmatter-reference.md",
+   "references/plugin-features-reference.md"
+  ],
+  "galaxy-daily-paper-generator": [
+   "references/keywords.md",
+   "references/quality-criteria.md",
+   "references/writing-style.md",
+   "scripts/arxiv_search.py"
+  ],
+  "galaxy-doc-coauthoring": [
+   "references/DOC-TYPES.md",
+   "references/READER-TEST.md",
+   "references/RUNTIME-MATRIX.md"
+  ],
+  "galaxy-expression-skill": [
+   "references/communication-sop.md",
+   "references/user-preferences.md"
+  ],
+  "galaxy-git-workflow": [
+   "references/advanced-usage.md",
+   "references/branching-strategies.md",
+   "references/collaboration.md",
+   "references/commit-conventions.md",
+   "references/conflict-resolution.md",
+   "references/gitignore-guide.md",
+   "references/merge-strategies.md"
+  ],
+  "galaxy-hook-development": [
+   "references/advanced.md",
+   "references/migration.md",
+   "references/patterns.md",
+   "scripts/test-hook.sh",
+   "scripts/validate-hook-schema.sh"
+  ],
+  "galaxy-kaggle-learner": [
+   "references/knowledge/",
+   "references/knowledge/cv/",
+   "references/knowledge/multimodal/",
+   "references/knowledge/nlp/",
+   "references/knowledge/tabular/",
+   "references/knowledge/time-series/"
+  ],
+  "galaxy-mcp-integration": [
+   "references/authentication.md",
+   "references/server-types.md",
+   "references/tool-usage.md"
+  ],
+  "galaxy-ml-paper-writing": [
+   "references/OPERATING-MODES.md",
+   "references/checklists.md",
+   "references/citation-workflow.md",
+   "references/knowledge/README.md",
+   "references/knowledge/paper-miner-writing-memory.md",
+   "references/literature-research/arxiv-search-guide.md",
+   "references/literature-research/paper-quality-criteria.md",
+   "references/reviewer-guidelines.md",
+   "references/sources.md",
+   "references/writing-guide.md"
+  ],
+  "galaxy-nature-data": [
+   "references/chinese-author-alignment.md",
+   "references/fair-metadata-checklist.md",
+   "references/policy-principles.md",
+   "references/repository-and-identifiers.md",
+   "references/source-basis.md",
+   "references/statement-patterns.md"
+  ],
+  "galaxy-nature-polishing": [
+   "references/phrasebank-playbook.md",
+   "references/published-article-patterns.md",
+   "references/section-moves.md",
+   "references/style-guardrails.md",
+   "references/writing-strategy.md"
+  ],
+  "galaxy-nature-response": [
+   "references/action-mapping.md",
+   "references/chinese-author-alignment.md",
+   "references/comment-taxonomy.md",
+   "references/difficult-cases.md",
+   "references/intake-and-routing.md",
+   "references/qa-checklist.md",
+   "references/response-structure.md",
+   "references/source-basis.md",
+   "references/tone-and-stance.md"
+  ],
+  "galaxy-nature-writing": [
+   "references/abstract.md",
+   "references/article-architecture.md",
+   "references/chinese-author-workflow.md",
+   "references/conclusion.md",
+   "references/examples/index.md",
+   "references/experiments.md",
+   "references/introduction.md",
+   "references/method.md",
+   "references/paper-review.md",
+   "references/paragraph-flow.md",
+   "references/related-work.md"
+  ],
+  "galaxy-obsidian-kb-artifacts": [
+   "references/BASES.md",
+   "references/CANVAS.md",
+   "references/CLI.md",
+   "references/LINK-REPAIR.md",
+   "references/OBSIDIAN-MARKDOWN.md",
+   "references/REGISTRY-TABLES.md"
+  ],
+  "galaxy-obsidian-literature-workflow": [
+   "references/CLAIM-EXTRACTION.md",
+   "references/LITERATURE-CANVAS.md",
+   "references/LITERATURE-OVERVIEW.md",
+   "references/METHOD-TAXONOMY.md",
+   "references/PAPER-NOTE-SCHEMA.md",
+   "references/RESEARCH-GAPS.md"
+  ],
+  "galaxy-obsidian-project-kb-core": [
+   "references/BINDING-LAYER.md",
+   "references/DAILY-PROMOTION.md",
+   "references/DIRECTORY-SCHEMA.md",
+   "references/HUB-PLAN-INDEX.md",
+   "references/LIFECYCLE.md",
+   "references/LINT.md",
+   "references/REGISTRY.md"
+  ],
+  "galaxy-obsidian-source-ingestion": [
+   "references/DATA-SOURCE-NOTES.md",
+   "references/INTERVIEW-SOURCE-NOTES.md",
+   "references/PAPER-SOURCE-NOTES.md",
+   "references/SOURCE-TYPES.md",
+   "references/WEB-SOURCE-NOTES.md"
+  ],
+  "galaxy-paper-self-review": [
+   "references/FINAL-VERDICT.md",
+   "references/SECTION-CHECKLIST.md"
+  ],
+  "galaxy-post-acceptance": [
+   "references/deliverable-checklists.md",
+   "references/design-guidelines.md"
+  ],
+  "galaxy-publication-chart-skill": [
+   "references/chart-selection.md",
+   "references/composite-assembly.md",
+   "references/execution-and-verification.md",
+   "references/pubfig-recipes.md",
+   "references/publication-qa-checklist.md",
+   "references/pubtab-recipes.md",
+   "references/source-guides/pubfig-api-map.md",
+   "references/source-guides/pubfig-architecture.md",
+   "references/source-guides/pubfig-export-flow.md",
+   "references/source-guides/pubtab-architecture.md",
+   "references/source-guides/pubtab-backend-and-preview.md",
+   "references/source-guides/pubtab-cli-api-flow.md",
+   "references/workflow.md",
+   "scripts/ensure_publication_tooling.py"
+  ],
+  "galaxy-research-ideation": [
+   "references/5w1h-framework.md",
+   "references/gap-analysis-guide.md",
+   "references/literature-search-strategies.md",
+   "references/method-selection-guide.md",
+   "references/research-contract.md",
+   "references/research-planning.md",
+   "references/research-question-formulation.md",
+   "references/zotero-integration-guide.md"
+  ],
+  "galaxy-results-analysis": [
+   "references/analysis-depth.md",
+   "references/common-pitfalls.md",
+   "references/figure-interpretation.md",
+   "references/statistical-methods.md",
+   "references/statistical-reporting.md",
+   "references/visualization-best-practices.md"
+  ],
+  "galaxy-results-report": [
+   "references/EVIDENCE-PROPAGATION.md",
+   "references/decision-oriented-analysis.md",
+   "references/figure-interpretation.md",
+   "references/report-naming.md",
+   "references/report-structure.md",
+   "references/statistical-completeness.md"
+  ],
+  "galaxy-review-response": [
+   "references/rebuttal-templates.md",
+   "references/response-strategies.md",
+   "references/review-classification.md",
+   "references/tone-guidelines.md"
+  ],
+  "galaxy-skill-development": [
+   "references/checklist.md",
+   "references/integrity-checks.md",
+   "references/skill-creator-original.md"
+  ],
+  "galaxy-skill-improver": [
+   "references/error-handling.md",
+   "references/file.md",
+   "references/guide.md",
+   "references/merge-strategies.md",
+   "references/plan-format.md",
+   "references/supported-updates.md",
+   "scripts/backup-skill.sh",
+   "scripts/verify-update.sh"
+  ],
+  "galaxy-skill-quality-reviewer": [
+   "references/examples-bad.md",
+   "references/examples-good.md",
+   "references/scoring-criteria.md",
+   "scripts/extract-yaml.sh",
+   "scripts/skill-audit.py"
+  ],
+  "galaxy-ui-ux-pro-max": [
+   "references/USAGE.md",
+   "scripts/search.py"
+  ],
+  "galaxy-verification-loop": [
+   "references/REPORT-TEMPLATE.md",
+   "references/STACK-DETECTION.md"
+  ],
+  "galaxy-web-design-reviewer": [
+   "references/framework-fixes.md"
+  ],
+  "galaxy-webapp-testing": [
+   "scripts/with_server.py"
+  ],
+  "galaxy-writing-anti-ai": [
+   "references/patterns-chinese.md",
+   "references/patterns-english.md",
+   "references/phrases-to-cut.md",
+   "references/wikipedia-source.md"
+  ],
+  "latexpap-arxiv-paper-writer": [
+   "assets/template/"
+  ],
+  "nature-data-availability": [
+   "references/repository-routing.md",
+   "references/source-data-checks.md"
+  ],
+  "nature-scientific-writing": [
+   "references/editor-first-impression.md"
+  ],
+  "paper-writing-ucsb": [
+   "references/appendices"
+  ],
+  "scholar-presubmit-checks": [
+   "references/citations"
+  ],
+  "sci-citation-management": [
+   "scripts/generate_schematic.py"
+  ],
+  "sci-scientific-writing": [
+   "assets/scientific_report.sty",
+   "assets/scientific_report_template.tex",
+   "scripts/generate_image.py",
+   "scripts/generate_schematic.py"
+  ],
+  "spine-paper-spine-build": [
+   "references/build-from-materials.md"
+  ],
+  "claude-scientific-writer": [
+   "assets/citation-management/bibtex_template.bib",
+   "assets/clinical-decision-support/",
+   "assets/clinical-reports/case_report_template.md",
+   "assets/clinical-reports/hipaa_compliance_checklist.md",
+   "assets/hypothesis-generation/",
+   "assets/latex-posters/",
+   "assets/literature-review/review_template.md",
+   "assets/market-research-reports/",
+   "assets/research-grants/",
+   "assets/scientific-slides/",
+   "assets/scientific-writing/scientific_report.sty",
+   "assets/scripts",
+   "assets/treatment-plans/",
+   "assets/venue-templates/",
+   "references/citation-management.md",
+   "references/clinical-decision-support.md",
+   "references/clinical-reports.md",
+   "references/hypothesis-generation.md",
+   "references/latex-posters.md",
+   "references/literature-review.md",
+   "references/market-research-reports.md",
+   "references/peer-review.md",
+   "references/research-grants.md",
+   "references/scholar-evaluation.md",
+   "references/scientific-critical-thinking.md",
+   "references/scientific-slides.md",
+   "references/scientific-writing.md",
+   "references/treatment-plans.md",
+   "references/venue-templates.md",
+   "scripts/clinical-reports/check_deidentification.py",
+   "scripts/generate_image.py",
+   "scripts/generate_schematic.py",
+   "scripts/latex-posters/review_poster.sh",
+   "scripts/research_lookup.py",
+   "scripts/scholar-evaluation/calculate_scores.py"
+  ]
+ }
+}

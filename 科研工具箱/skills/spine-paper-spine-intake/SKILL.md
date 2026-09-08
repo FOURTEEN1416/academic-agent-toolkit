@@ -3,6 +3,8 @@ name: spine-paper-spine-intake
 description: Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine step)
 ---
 
+
+<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（dist/claude 分发，单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # PaperSpine Intake
 
 Use this skill before substantive PaperSpine work when the workflow is not yet

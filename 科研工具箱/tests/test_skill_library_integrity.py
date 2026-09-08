@@ -24,6 +24,13 @@ def test_no_unacknowledged_broken_refs():
     assert not rep["failures"].get("broken_ref"), rep["failures"]["broken_ref"]
 
 
+def test_no_new_unregistered_broken_inner_refs():
+    """技能内部引用断链棘轮：asset_gap_register.json 登记的 2026-09-09 存量豁免，
+    新增断链（SKILL.md 引用了既不存在也无声明的内部文件）必须 FAIL。"""
+    rep = audit()
+    assert not rep["failures"].get("broken_inner_ref"), rep["failures"]["broken_inner_ref"][:10]
+
+
 def test_templates_reference_existing_skills():
     rep = audit()
     assert not rep["failures"].get("template_missing_skill"), rep["failures"]["template_missing_skill"]

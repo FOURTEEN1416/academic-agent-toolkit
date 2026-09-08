@@ -8,6 +8,8 @@ metadata:
   short-description: Experimental paper executor with evidence-first safeguards
 ---
 
+
+<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（empirical-paper-writer + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Empirical Paper Writer
 
 Use this skill for **novel experimental research papers** after the topic and

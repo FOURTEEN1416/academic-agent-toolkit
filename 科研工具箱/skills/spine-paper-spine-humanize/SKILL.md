@@ -3,6 +3,8 @@ name: spine-paper-spine-humanize
 description: Reduces AI detection rates via tiered stylistic constraints mapped to real AIGC detection dimensions. Produces a teaching humanize_matrix.md. (internal /paperspine step)
 ---
 
+
+<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（dist/claude 分发，单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # PaperSpine Humanize
 
 **Self-contained skill** — can be used standalone on any academic text, or as

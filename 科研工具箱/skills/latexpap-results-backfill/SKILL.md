@@ -8,6 +8,8 @@ metadata:
   short-description: Post-experiment paper completion from verified results
 ---
 
+
+<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（results-backfill + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Results Back-fill
 
 Use this skill **after** `empirical-paper-writer` has produced a draft with

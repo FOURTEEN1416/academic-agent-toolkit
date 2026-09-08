@@ -7,6 +7,8 @@ description: >
   【English】Universal LaTeX skill: create, compile (pdflatex/xelatex/lualatex auto-detect, latexmk, auto-installs TeX Live) and convert any document to PDF with PNG previews — resumes, CVs, reports, invoices, papers, theses, slides, posters, letters, exams, books, cheat sheets, fillable PDF forms, mail merge from CSV/JSON, latexdiff, charts/tables/images, bibliographies, CJK, Pandoc conversion, PDF-to-LaTeX incl. OCR. PDF utilities: encrypt, merge, compress, split, extract text, fill forms, watermark, metadata. Use when the user asks to create, compile, or convert any LaTeX/.tex/PDF document.
 ---
 
+
+<!--ACAT-ADAPTED: 资产补齐自 ndpvt-web/latex-document-skill@fb5a15960937，正文未改；SKILL.md 中文触发词为本仓库适配层。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # LaTeX Document Skill
 
 Create any LaTeX document, compile to PDF, and generate PNG previews. Convert PDFs of any type to LaTeX.

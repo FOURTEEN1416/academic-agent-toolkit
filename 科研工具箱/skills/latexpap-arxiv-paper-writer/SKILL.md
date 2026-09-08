@@ -7,6 +7,8 @@ description: >
   citation validation or repair.
 ---
 
+
+<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（arxiv-paper-writer + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # ML/AI Review Paper Workflow (IEEEtran template)
 
 ## Prerequisites

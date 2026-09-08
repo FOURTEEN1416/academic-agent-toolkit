@@ -3,6 +3,8 @@ name: nature-data-availability
 description: Use when drafting, auditing, or revising Data Availability statements, repository plans, accession-number placement, source-data coverage, or restricted-data wording for journal submission or resubmission.
 ---
 
+
+<!--ACAT-ADAPTED: 资产补齐自 nature-skills fork（nature-data 模块）。SKILL.md 引用名已对齐上游真实文件名；上游无资产项已加 ACAT-GOVERNANCE 标记。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Data Availability
 
 ## Overview
@@ -64,9 +66,9 @@ Open these only when needed:
 
 - `references/statement-patterns.md`
   Use when drafting or repairing the actual statement text.
-- `references/repository-routing.md`
+- `references/repository-and-identifiers.md`
   Use when deciding where each dataset should live and what identifier type is needed.
-- `references/source-data-checks.md`
+- `references/source-data-checks.md` <!--ACAT-GOVERNANCE: 上游无此资产，集成期规划文件，不可得（2026-09-09 审计标记）-->
   Use when checking whether figures, tables, and supplements expose enough underlying data.
 
 ## Output Standard

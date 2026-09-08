@@ -26,7 +26,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
    + CodeSucker 融合案例），完整融入至少含：①SKILL.md 适配套件规范（输入/输出契约+质量铁律）并加
    `## STEP_MANIFEST 产出声明`；②外部能力经稳定 bridge/脚本入口；③named gates 可校验产物；
    ④`engine/modex-core/templates.json` 注册工作流步骤（含 required_checks/metadata）；
-   ⑤`references/UPSTREAM.md` 溯源并登记 `tools/check_provenance.py`；⑥对应测试/验收证据。
+   ⑤ 建上游溯源台账（UPSTREAM.md，置于技能 references/ 下）并登记 `tools/check_provenance.py`；⑥对应测试/验收证据。
    缺任何一项即为"堆放"，治理时须标记并补齐。
 
 ## 本仓库真源锚点
@@ -55,7 +55,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 ## 常用命令
 
 ```bash
-python -m pytest -q                      # 套件根运行，当前基线 225 passed
-python tools/check_provenance.py          # 溯源台账校验
+python -m pytest -q                      # 套件内运行，当前基线 242 passed（仓库根口径为 285 passed，见根 AGENTS.md 测试口径表）
+python tools/check_provenance.py          # 溯源台账校验（28/28）
 git log --oneline -5                      # 与文档声明的提交状态核对
 ```

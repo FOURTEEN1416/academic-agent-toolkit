@@ -7,6 +7,8 @@ metadata:
   skill-author: K-Dense Inc.
 ---
 
+
+<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以宿主 web_search/web_fetch 替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Exploratory Data Analysis
 
 ## Overview

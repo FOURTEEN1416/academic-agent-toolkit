@@ -6,6 +6,8 @@ description: >
   transitions while preserving all citations and semantic meaning.
 ---
 
+
+<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（latex-rhythm-refiner + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # LaTeX Rhythm Refiner
 
 ## When to Use

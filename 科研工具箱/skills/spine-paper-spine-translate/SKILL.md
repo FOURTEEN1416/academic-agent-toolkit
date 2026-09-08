@@ -3,6 +3,8 @@ name: spine-paper-spine-translate
 description: Produces the complete translation_zh/ package with row-by-row translation of all required artifacts and full-paper translation. (internal /paperspine step)
 ---
 
+
+<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（dist/claude 分发，单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # PaperSpine Translate
 
 Use this branch when `output_language` is `en` and `translation_package` is
