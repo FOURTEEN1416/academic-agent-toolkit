@@ -660,13 +660,20 @@ class QualityGate:
                 provenance_ok = False
                 provenance_reason = str(exc)
         ok = fatal_count == 0 and provenance_ok
-        if provenance_warnings:
+        # 2026-09-09 独立审计修复：旧逻辑 warnings 非空时先占用 reason，
+        # provenance 失败的真正原因（provenance_reason）被遮蔽 → ok=false 却显示"警告"文案，误导修复。
+        if not ok:
+            if not provenance_ok:
+                reason = f"审稿执行证据无效: {provenance_reason}"
+            else:
+                reason = f"审稿闭环有 {fatal_count} 个 fatal ({mode} 模式)"
+            if provenance_warnings:
+                reason += f"（另有 {len(provenance_warnings)} 条模型配置警告）"
+        elif provenance_warnings:
             reason = (f"审稿闭环无 fatal ({mode} 模式)，但存在模型配置不一致警告: "
                       + "; ".join(provenance_warnings))
         else:
-            reason = f"审稿闭环无 fatal ({mode} 模式)" if ok else (
-                f"审稿执行证据无效: {provenance_reason}" if not provenance_ok else f"审稿闭环有 {fatal_count} 个 fatal ({mode} 模式)"
-            )
+            reason = f"审稿闭环无 fatal ({mode} 模式)"
         return {"ok": ok, "fatal_count": fatal_count, "mode": mode,
                 "reason": reason, "warnings": provenance_warnings}
 

@@ -167,6 +167,37 @@ def test_runner_pauses_at_checkpoint_and_resumes(tmp_path):
         assert r2.status == "completed", f"expected completed, got {r2.status}"
 
 
+def test_runner_blocks_next_action_at_pending_checkpoint(tmp_path):
+    """2026-09-09 独立审计 P1-2 回归：waiting_checkpoint 后未 approve 时，
+    next_action 必须返回 blocked 且不得放行后续步骤动作；approve 后才恢复推进。"""
+    catalog = {"demo": {"sub_steps": [
+        {"skill_name": "comp-prob-analysis", "primary_output": "PROB_ANALYSIS.md",
+         "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": True, "checkpoint_type": "approve"},
+        {"skill_name": "comp-modeling", "primary_output": "MODEL.md",
+         "output_files": ["MODEL.md"], "has_checkpoint": False},
+    ]}}
+    for name in ("comp-prob-analysis", "comp-modeling"):
+        p = tmp_path / "skills" / name / "SKILL.md"
+        p.parent.mkdir(parents=True)
+        p.write_text("skill", encoding="utf-8")
+    workspace = tmp_path / "workspace"
+    with WorkflowStore(tmp_path / "workflow.sqlite") as store:
+        runner = WorkflowRunner(store, catalog, tmp_path / "skills")
+        workflow = runner.start("demo", workspace, {})
+        r1 = execute_action(runner, workflow.id)
+        assert r1.status == "waiting_checkpoint", f"step1: {r1.status} {r1.message}"
+        # ⛔ 核心断言：未 approve 时 next 被 checkpoint 挡住，不得吐出后续步骤动作
+        r2 = runner.next_action(workflow.id)
+        assert r2.status == "blocked", f"expected blocked, got {r2.status} {r2.message}"
+        assert r2.action is None, "checkpoint 未批准时不得返回下一步动作"
+        # 批准后恢复推进：第 2 步可正常开始
+        checkpoint = store.resume_candidates()[0].checkpoint
+        runner.approve_checkpoint(checkpoint.id, {"approved": True})
+        r3 = runner.next_action(workflow.id)
+        assert r3.status == "advanced", f"after approve: {r3.status} {r3.message}"
+        assert r3.action.skill_name == "comp-modeling"
+
+
 def test_runner_fails_on_step_error(tmp_path):
     catalog = {"demo": {"sub_steps": [{"skill_name": "comp-prob-analysis", "primary_output": "PROB_ANALYSIS.md", "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": False}]}}
     skills = tmp_path / "skills" / "comp-prob-analysis" / "SKILL.md"

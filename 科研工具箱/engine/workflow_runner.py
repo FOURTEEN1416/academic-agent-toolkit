@@ -108,6 +108,15 @@ class WorkflowRunner:
         if failed:
             return RunResult(workflow_id, "failed", message=f"步骤 {failed} 已失败，先修复再继续")
 
+        # ⛔ checkpoint 硬闸：存在 blocked 步骤 = 等待用户 approve，禁止 next 越过
+        #（2026-09-09 独立审计 P1-2：此前 next 可在未 approve 时启动下一步，检查点形同虚设）
+        blocked = self._first_blocked_step(workflow_id)
+        if blocked is not None:
+            return RunResult(
+                workflow_id, "blocked", blocked.id,
+                message=f"步骤 {blocked.name} 的检查点等待用户批准（workflow_cli approve），不得跳过",
+            )
+
         step = self._next_pending_step(workflow_id)
         if step is None:
             # 检查是否有失败的步骤
@@ -426,6 +435,16 @@ class WorkflowRunner:
             (workflow_id,),
         ).fetchone()
         return row[0] if row else None
+
+    def _first_blocked_step(self, workflow_id: str):
+        """checkpoint 等待批准的步骤（blocked）。2026-09-09 审计 P1-2：blocked 必须是推进硬闸。"""
+        row = self.store._connection.execute(
+            "SELECT * FROM workflow_steps WHERE workflow_id = ? AND status = 'blocked' ORDER BY position LIMIT 1",
+            (workflow_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return self.store._step_from_row(row)
 
     def _action_for_step(self, workflow: Workflow, step: Any) -> StepAction:
         return StepAction(

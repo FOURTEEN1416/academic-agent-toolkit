@@ -51,9 +51,13 @@ else
 fi
 
 # 2. Undefined references
-undef_refs=$(gcount '\[?\]' "$PAPER_DIR/main.log")
+# ⛔ 2026-09-09 独立审计 P1-1 修复：旧判据 '\[?\]' 匹配的是 PDF 渲染串而非 .log 内容，
+#   恒为 0（中断文档实测计数 0 = 检查形同虚设）。改按 .log 真实 warning 形态计数。
+undef_refs=$(gcount 'LaTeX Warning: \(Citation\|Reference\).*undefined' "$PAPER_DIR/main.log")
+undef_too=$(gcount 'There were undefined references' "$PAPER_DIR/main.log")
+[ "$undef_too" -gt 0 ] && undef_refs=$((undef_refs + 1))
 echo "  Undefined references: $undef_refs"
-[ "$undef_refs" -gt 0 ] && echo "  FAIL: $undef_refs undefined references — PDF shows [?]" && EXIT_CODE=1
+[ "$undef_refs" -gt 0 ] && echo "  FAIL: $undef_refs undefined reference warnings in log — fix \\label/\\bibitem keys or add compile passes" && EXIT_CODE=1
 
 # 2.5 LaTeX compilation errors (CRITICAL — must fix before accepting)
 echo "--- LaTeX errors ---"
@@ -74,6 +78,18 @@ if [ -f "$PAPER_DIR/main.log" ]; then
     # Missing package
     missing_pkg=$(grep -oP 'File .* not found\.|LaTeX Error: File .* not found' "$PAPER_DIR/main.log" 2>/dev/null | head -5)
     [ -n "$missing_pkg" ] && echo "  CRITICAL: missing packages:" && echo "$missing_pkg" | sed 's/^/    /' && LATEX_ERRORS=$((LATEX_ERRORS + 1))
+
+    # ⛔ 2026-09-09 独立审计 P0-1/P1-1 修复：通用硬错误检测。
+    #   旧错误白名单只列 4 种数学模式，覆盖不到表格结构类错误
+    #   （Misplaced \noalign / Extra alignment tab / Missing } inserted / Emergency stop 等），
+    #   实测"编译中断但仍写出 1 页 PDF"的文档能骗过本门禁 exit 0。
+    #   '.log 中任何以 '! ' 开头的行 = LaTeX 硬错误'，一律 CRITICAL。
+    bang_err=$(gcount '^! ' "$PAPER_DIR/main.log")
+    if [ "$bang_err" -gt 0 ]; then
+        echo "  CRITICAL: $bang_err LaTeX hard errors ('^!' lines) — compile aborted/truncated, MUST FIX"
+        grep -m6 '^! ' "$PAPER_DIR/main.log" | sed 's/^/    /'
+        LATEX_ERRORS=$((LATEX_ERRORS + bang_err))
+    fi
 
     # Font not found
     font_err=$(gcount 'Font.*not found\|cannot find font' "$PAPER_DIR/main.log")
