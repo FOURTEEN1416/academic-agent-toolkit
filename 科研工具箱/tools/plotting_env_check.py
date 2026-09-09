@@ -85,8 +85,8 @@ def check() -> dict:
         "env_detected": imagegen,
         "any": any(imagegen.values()),
         "enables": ["infographics", "scientific-schematics"],
-        "note": "生成类 AI 绘图必须有多模态 LLM 图像生成后端（如 OpenRouter 上的 Nano Banana Pro；"
-                "质量评审可复用免费视觉模型，如 OpenCode 的 agnes/agnes-2.5-flash）",
+        "note": "生成类 AI 绘图必须有多模态 LLM 图像生成后端（如 OpenRouter 上的图像生成模型；"
+                "质量评审可用任意具备视觉能力的模型——仓库不预设，比赛时经 env 配置）",
         "setup_hint": "export OPENROUTER_API_KEY=sk-...（或配置宿主原生 generate_image 后端）",
     }
 

@@ -9,7 +9,7 @@ The designated visual-review subagent inspects final PNGs and PDF pages.
 
 ## ⛔ 多模态视觉模型铁律（必须遵守）
 
-本角色配置了多模态视觉模型（`agnes-2.5-flash`，支持 image_url 输入）。**必须实际调用视觉工具对每张图进行多模态审查**，禁止只用 PIL/PyMuPDF 等确定性检查后直接判 pass。
+本角色须配置**具备视觉能力的多模态模型**（支持 image_url 输入；仓库不预设具体型号——比赛时在 `engine/modex-core/contest_models.json` 或宿主 agent 配置中填写，示例：任一具备视觉能力的 GLM 系列模型）。**必须实际调用视觉工具对每张图进行多模态审查**，禁止只用 PIL/PyMuPDF 等确定性检查后直接判 pass。
 
 1. 先运行确定性图像检查（PIL 解码/尺寸/DPI、PyMuPDF 页数与嵌入图）。
 2. **每张 PNG 必须调用 `tools/data_fig_vision_check.py`（数据图）或 `tools/tikz_vision_check.py`（TikZ/流程/架构图）或 `tools/drawio_vision_check.py`（draw.io 图）**，用配置的视觉模型检查：坐标轴名称与单位、刻度可读性、图例、颜色区分、截断、重叠、误导性比例、题注对应、文字溢出、配色对比度。

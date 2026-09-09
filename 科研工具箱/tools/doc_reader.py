@@ -5,7 +5,7 @@
 嵌入图片/截图形式存在，仅提取文本会漏读。本工具读取文档时自动：
   1. 提取全部文本（段落/表格）
   2. 提取全部嵌入图片
-  3. 用配置的多模态视觉模型（agnes-2.5-flash）识别每张图片内容
+  3. 用配置的多模态视觉模型（仓库不预设，比赛时经 env 注入具视觉能力的模型）识别每张图片内容
   4. 输出「文本 + 图片内容」合并报告，确保不遗漏
 
 用法：
@@ -41,14 +41,17 @@ def load_project_env() -> None:
         pass
 
 
-# ============ 视觉 API 调用（agnes-2.5-flash，多模态） ============
+# ============ 视觉 API 调用（多模态模型经 env 配置，仓库不预设具体型号） ============
 
 def _call_vision(image_bytes: bytes, mime: str, prompt: str) -> str:
     api_key = os.environ.get("EDITOR_AI_API_KEY") or os.environ.get("OPENAI_API_KEY")
     base_url = os.environ.get("EDITOR_AI_BASE_URL") or os.environ.get("OPENAI_BASE_URL")
-    model = os.environ.get("EDITOR_AI_MODEL_ID") or os.environ.get("REVIEWER_MODEL_ID", "agnes-2.5-flash")
+    model = os.environ.get("EDITOR_AI_MODEL_ID") or os.environ.get("REVIEWER_MODEL_ID", "")
     if not api_key or not base_url:
         raise RuntimeError("未配置视觉 API（需要 EDITOR_AI_API_KEY / EDITOR_AI_BASE_URL）")
+    if not model:
+        raise RuntimeError("未配置视觉模型 ID（EDITOR_AI_MODEL_ID / REVIEWER_MODEL_ID）——"
+                           "仓库不预设模型，比赛时配置任一具备视觉能力的模型")
 
     b64 = base64.b64encode(image_bytes).decode("ascii")
     payload = json.dumps({

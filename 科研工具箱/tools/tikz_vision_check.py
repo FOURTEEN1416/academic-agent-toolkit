@@ -111,7 +111,7 @@ def _call_vision(api_base: str, api_key: str, model: str,
     path = chat_completions_path(api_base)
 
     payload = json.dumps({
-        "model": model or "gpt-4o",
+        "model": model,
         "messages": [{
             "role": "user",
             "content": [
@@ -305,18 +305,22 @@ def main():
     img_b64, mime = loaded
 
     load_project_env()
-    # 按优先级尝试 API 配置
+    # 按优先级尝试 API 配置（仓库不预设模型：model ID 必须 env 显式配置，比赛时注入）
     configs = [
         (os.environ.get("EDITOR_AI_API_KEY", ""),
          os.environ.get("EDITOR_AI_BASE_URL", ""),
-         os.environ.get("EDITOR_AI_MODEL_ID", "gpt-4o")),
+         os.environ.get("EDITOR_AI_MODEL_ID", "")),
         (os.environ.get("OPENAI_API_KEY", ""),
          os.environ.get("OPENAI_BASE_URL", ""),
-         os.environ.get("REVIEWER_MODEL_ID", "gpt-4o")),
+         os.environ.get("REVIEWER_MODEL_ID", "")),
     ]
 
     for api_key, api_base, model in configs:
         if not api_key or not api_base:
+            continue
+        if not model:
+            print(f"配置缺模型 ID（{api_base}）：需 EDITOR_AI_MODEL_ID / REVIEWER_MODEL_ID，跳过该后端",
+                  file=sys.stderr)
             continue
         try:
             result = _call_vision(api_base, api_key, model, img_b64, mime)
@@ -329,7 +333,8 @@ def main():
             print(f"Vision API error: {e}", file=sys.stderr)
             continue
 
-    print("NO_VISION_API: No vision-capable LLM configured (need EDITOR_AI_API_KEY or OPENAI_API_KEY)")
+    print("NO_VISION_API: No vision-capable LLM configured (need EDITOR_AI_API_KEY/BASE_URL/MODEL_ID "
+          "or OPENAI_* triplet — 仓库不预设模型，比赛时配置任一具视觉能力的模型)")
     sys.exit(2)
 
 

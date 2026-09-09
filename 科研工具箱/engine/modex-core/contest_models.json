@@ -1,0 +1,10 @@
+{
+  "_comment": "竞赛时模型配置槽（用户裁定 2026-09-09：仓库不预设任何具体模型）。比赛时按当时可用且具备对应能力的模型填写——如 visual_reviewer 填一个具备视觉能力的模型（示例：GLM 视觉系列）。填写后 quality_gates 的 strict 模型比对即以本文件为准；留空的角色自动回退到宿主配置（OpenCode 的 .opencode/agents/），两处皆空的角色 strict 比对降级为跳过（warn 不阻断）。",
+  "configured_at": "",
+  "roles": {
+    "reviewer": "",
+    "visual_reviewer": "",
+    "editor": "",
+    "final_reviewer": ""
+  }
+}

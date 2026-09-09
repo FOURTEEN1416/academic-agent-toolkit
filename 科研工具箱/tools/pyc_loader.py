@@ -135,10 +135,11 @@ def _load_opencode_vision_config() -> dict:
             auth = json.loads(auth_file.read_text(encoding='utf-8'))
         except Exception:
             continue
-        # 结构示例: {"agnes": {"type": "api", "key": "sk-..."}}
-        for key_name in (result.get('_vision_provider'), 'agnes', 'sensenova', 'newapi'):
-            if not key_name:
-                continue
+        # 结构示例: {"<provider名>": {"type": "api", "key": "sk-..."}}
+        # 不预设任何厂商名：优先动态发现的 vision provider，其余按 auth 条目全量遍历
+        _vp = result.get('_vision_provider')
+        candidates = ([_vp] if _vp else []) + [k for k in auth.keys() if k != _vp]
+        for key_name in candidates:
             entry = auth.get(key_name) or {}
             if isinstance(entry, dict):
                 api_key = entry.get('key') or entry.get('apiKey') or ''

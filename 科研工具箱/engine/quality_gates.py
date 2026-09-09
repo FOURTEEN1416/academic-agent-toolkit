@@ -31,9 +31,12 @@ RULES_FILE = PROJECT_ROOT / "engine" / "modex-core" / "comp_rules.json"
 GATES_FILE = PROJECT_ROOT / "engine" / "modex-core" / "quality_gates.json"
 
 # =====================================================
-# 审稿角色 → agent 配置文件映射（软校验用）
-# 与共享根 .opencode/agents/*.md 的模型配置保持一致；
-# 本系统模型策略与整个 OpenCode 桌面端 agent 配置同源。
+# 审稿角色 → 配置模型 解析（软校验用）
+# 宿主中立（2026-09-09 用户裁定：不预设任何视觉/LLM 模型，比赛时再配置）：
+#   1. ACAT_CONTEST_MODELS 环境变量指向的 JSON（最高，测试/临时注入用）
+#   2. engine/modex-core/contest_models.json（仓库内竞赛配置槽，比赛时填写）
+#   3. .opencode/agents/*.md 的 model: 行（OpenCode 宿主侧配置，按角色回退）
+# 三处皆空 → 该角色无配置模型，strict 比对降级为跳过（warn 不阻断）。
 # =====================================================
 ROLE_AGENT_FILES = {
     "reviewer": "数模审稿人.md",
@@ -41,6 +44,8 @@ ROLE_AGENT_FILES = {
     "editor": "数模编辑.md",
     "final_reviewer": "数模专家.md",
 }
+
+CONTEST_MODELS_FILE = RULES_FILE.parent / "contest_models.json"
 
 # OpenCode 配置目录（共享根 .opencode/agents/），可被环境变量覆盖（测试用）
 OPENCODE_AGENTS_DIR = os.environ.get(
@@ -59,17 +64,47 @@ def _parse_agent_model(agent_file: Path) -> str | None:
     return match.group(1).strip() if match else None
 
 
-def load_configured_role_models() -> dict[str, str]:
-    """读取 .opencode/agents/ 中四个审稿角色的当前配置模型。
+def _load_contest_models() -> dict[str, str]:
+    """读取竞赛配置槽（仓库中立，宿主无关）。ACAT_CONTEST_MODELS 可指向替代文件。"""
+    path = Path(os.environ.get("ACAT_CONTEST_MODELS", str(CONTEST_MODELS_FILE)))
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    roles = data.get("roles", {}) if isinstance(data, dict) else {}
+    return {r: str(roles.get(r, "") or "").strip() for r in ROLE_AGENT_FILES}
 
-    返回 {角色: 配置的 model}；agent 文件缺失或无法解析时该角色为空字符串。
+
+def load_configured_role_models() -> dict[str, str]:
+    """四审稿角色的当前配置模型——宿主中立三级解析（见 ROLE_AGENT_FILES 上方注释）。
+
+    竞赛配置槽（contest_models.json / ACAT_CONTEST_MODELS）优先；其中为空的角色
+    回退到 OpenCode 宿主配置 .opencode/agents/。返回 {角色: 模型}，无配置为空串。
     """
+    contest = _load_contest_models()
     agents_dir = Path(os.environ.get("OPENCODE_AGENTS_DIR", OPENCODE_AGENTS_DIR))
     result: dict[str, str] = {}
-    for role, filename in ROLE_AGENT_FILES.items():
-        model = _parse_agent_model(agents_dir / filename)
-        result[role] = model or ""
+    for role in ROLE_AGENT_FILES:
+        model = contest.get(role, "")
+        if not model:
+            model = _parse_agent_model(agents_dir / ROLE_AGENT_FILES[role]) or ""
+        result[role] = model
     return result
+
+
+def model_config_provenance() -> dict[str, str]:
+    """报告每个角色配置模型的来源（contest/agents/none），供审计与体检输出。"""
+    contest = _load_contest_models()
+    agents_dir = Path(os.environ.get("OPENCODE_AGENTS_DIR", OPENCODE_AGENTS_DIR))
+    out: dict[str, str] = {}
+    for role, filename in ROLE_AGENT_FILES.items():
+        if contest.get(role):
+            out[role] = "contest_models"
+        elif _parse_agent_model(agents_dir / filename):
+            out[role] = "opencode_agents"
+        else:
+            out[role] = "none"
+    return out
 
 
 _REVIEW_EVIDENCE_ROLES = {"reviewer", "visual_reviewer", "editor", "final_reviewer"}
@@ -632,7 +667,7 @@ class QualityGate:
                 if set(roles) != required_roles:
                     raise ValueError("角色集合不完整")
                 sessions = []
-                # 软校验：证据声明的模型 vs .opencode/agents 当前配置（整个 OpenCode 桌面端同源）
+                # 软校验：证据声明的模型 vs 配置模型（竞赛配置槽优先，宿主 agents 回退）
                 configured_models = load_configured_role_models()
                 for role_name, role in roles.items():
                     if not all(role.get(field) for field in ("session_id", "model", "output_sha256", "completed_at", "output_file")):
@@ -654,6 +689,12 @@ class QualityGate:
                         if strict_model_match:
                             raise ValueError(msg)
                         provenance_warnings.append(msg)
+                    elif not configured and claimed:
+                        # 仓库不预设模型（2026-09-09 裁定）：未配置时 strict 无从比对，
+                        # 显式 warn 留痕——比赛时填 contest_models.json 后此闸自动恢复硬拦截。
+                        provenance_warnings.append(
+                            f"{role_name}: 无配置模型（contest_models.json 未填写且宿主无 agent 配置），"
+                            f"模型比对跳过，证据声明为 {claimed!r}")
                 if len(set(sessions)) != len(sessions):
                     raise ValueError("审稿角色 session_id 不独立")
             except (json.JSONDecodeError, ValueError) as exc:
