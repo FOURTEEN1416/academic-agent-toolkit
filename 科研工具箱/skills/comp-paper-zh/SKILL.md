@@ -56,11 +56,13 @@ cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rul
 
 ### 数模竞赛 (cumcm/huawei/mathorcup/huazhong/etc.)
 
-Template: `templates/cumcm/main.tex` (国赛/华为杯), `templates/mathorcup/main.tex` (MathorCup), `templates/apmcm_zh/main.tex` (亚太赛中文 APMCM), `templates/huazhong/main.tex` (华中杯), `templates/wuyi/main.tex` (五一杯)
+Template: `_templates/cumcm/`（国赛，2026-09-09 已入库实测编译通过：`cumcmthesis.cls` + `cumcm2026.sty` + 骨架 `main.tex`；华为杯同用 cumcmthesis）
 
-**⛔ MathorCup 与 亚太赛中文(APMCM) 都使用 `MathorCupmodeling.cls` 文档类**（模板文件夹已包含 cls）。使用 `\bianhao{}`、`\tihao{}`、`\timu{}` 设置队伍信息，`\keyword{}` 设置关键词。摘要用 `\begin{abstract}...\end{abstract}` 环境。参考文献用 `\begin{thebibliography}` 环境。
+⛔ **其余赛事模板（mathorcup / apmcm_zh / huazhong / wuyi / changsanjiao / huashubei / diangongbei / dongsansheng / shuweibei / stats 等）尚未入库**：须先从赛事官方渠道把模板放入 `_templates/<赛事名>/` 再走流程；未放入时下方模板分支的落地断言会**显式报错 exit 1 并给出补救路径**（2026-09-09 审计修正：旧文档声称这些模板已存在，不属实）。
 
-**⛔ 华中杯必须使用 `cumcmthesis` 文档类**（模板文件夹 `huazhong/` 已包含 cls + 字体）。华中杯模板使用 `\begin{abstract}...\keywords{}\end{abstract}` 环境写摘要（不是手动排版），参考文献用 `\begin{thebibliography}` 环境（不是 `\bibliography{}`）。
+**⛔ MathorCup 与 亚太赛中文(APMCM) 都使用 `MathorCupmodeling.cls` 文档类**（该 cls 未入库，须从赛事官方渠道获取放入 `_templates/<赛事>/`）。使用 `\bianhao{}`、`\tihao{}`、`\timu{}` 设置队伍信息，`\keyword{}` 设置关键词。摘要用 `\begin{abstract}...\end{abstract}` 环境。参考文献用 `\begin{thebibliography}` 环境。
+
+**⛔ 华中杯必须使用 `cumcmthesis` 文档类**（与国赛同源：本仓库 `_templates/cumcm/` 已入库 cls+sty+骨架，可直接 `cp _templates/cumcm/* paper/` 复用；中文渲染由 ctex 走系统字体，无需随模板捆绑字体）。华中杯模板使用 `\begin{abstract}...\keywords{}\end{abstract}` 环境写摘要（不是手动排版），参考文献用 `\begin{thebibliography}` 环境（不是 `\bibliography{}`）。
 
 ```
 
@@ -403,9 +405,11 @@ elif echo "$ARGUMENTS" | grep -qi "mathorcup\|MathorCup\|mathor" || grep -qi "ma
 
 elif echo "$ARGUMENTS" | grep -qi "huazhong\|华中杯" || grep -qi "huazhong\|华中杯" CLAUDE.md 2>/dev/null; then
 
-    echo "Using huazhong template"
+    echo "Using huazhong template (= cumcmthesis, 复用已入库的 _templates/cumcm/)"
 
-    cp "$TMPL_BASE/huazhong/"* paper/ 2>/dev/null
+    # 华中杯与国赛同文档类（2026-09-09 审计修正：旧版 cp _templates/huazhong/* 指向不存在的目录，靠断言兜底报错）
+
+    cp "$TMPL_BASE/cumcm/"* paper/ 2>/dev/null
 
 elif echo "$ARGUMENTS" | grep -qi "huawei\|华为杯" || \
 

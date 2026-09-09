@@ -55,14 +55,19 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 \RequirePackage{array}
 %% 长表格
 \RequirePackage{longtable}
-%% booktabs 提供了\toprule 等命令.
-\RequirePackage{booktabs,tabularx}
+%% tabularx 供封面编号页使用（见 \mcm@tokens 定义处）
+\RequirePackage{tabularx}
 %% multirow 支持在表格中跨行
 \RequirePackage{multirow}
 %% 调整间隔, 让表格更好看些
 \RequirePackage{bigstrut}
 %% 在跨行表格中输入定界符
 \RequirePackage{bigdelim}
+%% booktabs 提供了\toprule 等命令.
+%% ⛔ 必须在 bigstrut/bigdelim/multirow 之后加载（2026-09-09 独立审计修复）：
+%%   bigstrut 接管 \\ 后, \midrule 的 \noalign 会报 ! Misplaced \noalign,
+%%   正文三线表编译中断。booktabs 手册亦要求最后加载。
+\RequirePackage{booktabs}
 % 保护脆落命令
 \RequirePackage{cprotect}
 % 设置代码环境

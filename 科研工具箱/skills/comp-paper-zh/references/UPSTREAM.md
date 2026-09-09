@@ -13,4 +13,5 @@
 ## 模板资产来源（2026-09-09 赛前排查补录）
 
 - `_templates/cumcm/`（cumcmthesis.cls + cumcm2026.sty）：来自 https://github.com/latexstudio/CUMCMThesis（fork FOURTEEN1416/CUMCMThesis，pinned 38d1f216bec3c9ffffb7dd09bf6b6c54f486b130，2026-09-09 拉取，已适配 2026 年国赛格式）。经 XeLaTeX 实测编译通过（含中文、表格、thebibliography）。
+- **本地补丁（2026-09-09 独立审计修复 P0-1，重拉/升级上游时必须重放）**：cls 包加载顺序调整——`booktabs` 从与 `tabularx` 合载拆出，移到 `multirow/bigstrut/bigdelim` 之后单独加载。原因：上游把 booktabs 放在 bigstrut 之前，bigstrut 接管 `\\` 后 `\midrule` 报 `! Misplaced \noalign`，正文三线表必然编译中断。已在 `_templates/cumcm/main.tex` 补入经编译验证的论文骨架（booktabs 三线表实测通过）。
 - 其余赛事模板（stats/apmcm_zh/mathorcup/huazhong/huawei/wuyi/changsanjiao/huashubei/diangongbei/dongsansheng/shuweibei）尚未入库：SKILL.md 模板分支已加落地断言，缺失时显式报错并给出补救路径，不再静默跳过。

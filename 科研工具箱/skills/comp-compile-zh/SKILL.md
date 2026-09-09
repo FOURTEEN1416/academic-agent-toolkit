@@ -738,11 +738,15 @@ echo "--- Template integrity ---"
 
 TMPL=""
 
-for t in _templates/apmcm_zh/main.tex _templates/stats_main.tex _templates/cumcm_main.tex _templates/mcm_main.tex _templates/bachelor_main.tex _templates/master_main.tex _templates/journal_main.tex; do
-
+# 2026-09-09 审计修复：旧版硬编码 _templates/<某赛事>/main.tex 列表，这些路径在工作区恒不存在 → TMPL 恒空 → 整段模板 preamble 完整性检查静默空转。
+# 改为工作区动态探测：真源是 comp-paper-zh 落进 paper/ 的同名原始模板（若用户/流程保存过）与仓库 _templates/*/main.tex。
+for t in paper/_original_main.tex _templates/*/main.tex _templates/*_main.tex; do
     [ -f "$t" ] && TMPL="$t" && break
-
 done
+
+if [ -z "$TMPL" ]; then
+    echo "ℹ 未找到可对比的原始模板 main.tex（paper/_original_main.tex 或 _templates/*/main.tex），跳过 preamble 对比——如需此保护，写作前将官方原模板存一份为 paper/_original_main.tex"
+fi
 
 if [ -n "$TMPL" ] && [ -f paper/main.tex ]; then
 
