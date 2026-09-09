@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -102,6 +103,31 @@ VENDOR_DIRS: list[Path] = [
 REQUIRED_FIELDS = ("Upstream:", "Pinned commit:", "License:")
 REQUIRED_VENDOR_FILES = ("LICENSE", "NOTICE", "UPSTREAM.md")
 
+# 2026-09-09 独立审计 P3-2 收紧：Pinned commit 字段语义校验（旧版只查字段存在，
+# "Pinned commit: 随便写点什么" 也能过）。规则：
+#   · Upstream 含 github.com → Pinned commit 必须是 7-40 位十六进制哈希（可带反引号）
+#   · 非 URL 源（官方规则/本地维护）→ 接受 哈希 / ISO 日期 / official-* 发布标识 /
+#     "无外部*" / "不可固定" 显式声明
+_PINNED_HASH_RE = re.compile(r"^\s*`?([0-9a-fA-F]{7,40})\b")
+_PINNED_NONURL_RE = re.compile(
+    r"^\s*`?(?:([0-9a-fA-F]{7,40})\b|\S*\d{4}-\d{2}-\d{2}|official-\S+|无外部|不可固定)"
+)
+
+
+def _check_pinned_semantics(text: str) -> str | None:
+    """返回 None=合规；否则返回违规说明。"""
+    mu = re.search(r"Upstream:\s*(.+)", text)
+    mc = re.search(r"Pinned commit:\s*(.+)", text)
+    if not mc:
+        return "缺 Pinned commit 值"
+    pin = mc.group(1)
+    is_url = bool(mu and "github.com" in mu.group(1).lower())
+    if is_url:
+        return None if _PINNED_HASH_RE.match(pin) else "URL 源的 Pinned commit 必须是 7-40 位十六进制哈希"
+    return None if _PINNED_NONURL_RE.match(pin) else (
+        "非 URL 源的 Pinned commit 须为哈希/ISO 日期/official-* 发布标识/无外部*/不可固定"
+    )
+
 
 def _display(path: Path) -> str:
     try:
@@ -115,6 +141,9 @@ def check_upstream(path: Path) -> dict:
         return {"path": _display(path), "ok": False, "missing": ["file"]}
     text = path.read_text(encoding="utf-8", errors="ignore")
     missing = [field.rstrip(":") for field in REQUIRED_FIELDS if field not in text]
+    pinned_issue = _check_pinned_semantics(text)
+    if pinned_issue:
+        missing.append(pinned_issue)
     has_license_note = ("license" in text.lower())
     return {
         "path": _display(path),

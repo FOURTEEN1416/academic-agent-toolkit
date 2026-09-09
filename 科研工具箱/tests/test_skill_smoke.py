@@ -80,6 +80,40 @@ def test_shared_scripts_accessible():
     assert len(all_files) >= 50, f"共享脚本不足 ({len(all_files)} < 50)"
 
 
+def test_dual_copy_consistency():
+    """_utils 与 shared-scripts 双副本机制的机器防线（2026-09-09 独立审计 P2-1）。
+
+    两目录是同一套共享脚本的双分发口径（技能按 cwd 任选其一引用），历史上靠人工
+    同步，曾出现 claim_code_check.py 漂移（_utils 版缺 --workspace 参数）无人发现。
+    本测试要求：两边文件集合一致（忽略 __pycache__），且同名文件 sha256 一致。
+    """
+    import hashlib
+
+    utils = ROOT / "skills" / "_utils"
+    shared = ROOT / "skills" / "shared-scripts"
+
+    def snapshot(base):
+        out = {}
+        for p in sorted(base.rglob("*")):
+            if not p.is_file() or "__pycache__" in p.parts:
+                continue
+            out[p.relative_to(base).as_posix()] = hashlib.sha256(p.read_bytes()).hexdigest()
+        return out
+
+    a, b = snapshot(utils), snapshot(shared)
+    only_a = sorted(set(a) - set(b))
+    only_b = sorted(set(b) - set(a))
+    drift = sorted(k for k in set(a) & set(b) if a[k] != b[k])
+    problems = []
+    if only_a:
+        problems.append(f"仅 _utils: {only_a}")
+    if only_b:
+        problems.append(f"仅 shared-scripts: {only_b}")
+    if drift:
+        problems.append(f"内容漂移: {drift}")
+    assert not problems, "双副本不一致（同步两目录后重跑）:\n  " + "\n  ".join(problems)
+
+
 def test_template_references_exist():
     """引擎模板中引用的技能都存在"""
     import json

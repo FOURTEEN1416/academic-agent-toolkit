@@ -59,3 +59,25 @@ def test_provenance_vendor_requires_license_notice_upstream(tmp_path):
     assert report["ok"] is False
     assert "NOTICE" in report["missing"]
     assert "UPSTREAM.md" in report["missing"]
+
+
+def test_pinned_commit_semantics_positive_and_negative(tmp_path):
+    """2026-09-09 审计 P3-2 收紧回归：URL 源必须哈希；非 URL 源接受哈希/日期/official-*/无外部*。"""
+    module = load_provenance()
+    check = module._check_pinned_semantics
+    # 正路
+    assert check("- Upstream: https://github.com/foo/bar\n- Pinned commit: 5debcd2efb686dce0205ba9094b6413dae5f89c0") is None
+    assert check("- Upstream: https://github.com/foo/bar\n- Pinned commit: `b065a1825f4e32dca4c4b7fd8bccf3e020a77c5`") is None  # 反引号包裹
+    assert check("- Upstream: 官方规则\n- Pinned commit: official-rules-2026-08-18") is None
+    assert check("- Upstream: 官方规范\n- Pinned commit: official-release-neurips2025-icml2025") is None
+    assert check("- Upstream: 本地\n- Pinned commit: 无外部 git 源（官方材料要求文档）") is None
+    assert check("- Upstream: 组委会\n- Pinned commit: 不可固定（每届规则随赛题公告发布）") is None
+    # 反路：URL 源写散文/日期 → 必须拦
+    bad = check("- Upstream: https://github.com/foo/bar\n- Pinned commit: latest-main-branch")
+    assert bad is not None, "URL 源的非哈希 Pinned commit 必须被拦"
+    bad2 = check("- Upstream: https://github.com/foo/bar\n- Pinned commit: 2026-08-18")
+    assert bad2 is not None, "URL 源的日期不能替代哈希"
+    # 反路：非 URL 源写任意散文 → 必须拦
+    assert check("- Upstream: 官方\n- Pinned commit: 随便写的") is not None
+    # 反路：缺 Pinned commit 值
+    assert check("- Upstream: https://github.com/foo/bar\n- Pinned commit:") is not None
