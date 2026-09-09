@@ -369,3 +369,10 @@
 - **mmdc 修复（赛前实测暴露）**：新版 puppeteer 要求 chrome-headless-shell 152，本地缓存仅 148-150 → Edge 固定路径方案（按既有记忆口径）：puppeteer-config.json 就位于 ~/.mmdc/ 与 skills/_utils/ + shared-scripts/ 双副本；mmdc 出图实测通过；mermaid-diagram SKILL.md 已回写 `-p` 参数 Windows 口径。
 - **已知环境注意事项（写入赛前报告）**：管理员（elevated）终端下 MiKTeX 的 kpsewhich 拒绝执行（security risk 保护），xelatex/latexmk 实测不受影响；建议竞赛期间使用普通权限终端。
 - **回归证据**：仓库根 287 passed；工具箱 243 passed；provenance 63/63；skill audit OK；compile_check 冒烟全绿。工作区改动未提交（累计待用户确认）。
+
+## 2026-09-09（补遗 5：赛时运行时工具链实测——审计闸/写作流脚本/引擎编排层）
+- **comp-code 审计工具链冒烟全通**：capability_check.py（无清单优雅跳过）+ 6 个 Python 审计工具（capability_audit/claim_code_check/facts_audit/leakage_audit/data_ingest_check/delivery_audit 语法与行为）+ count_subproblems.sh。**claim_code_check 正反四路实测**：内置安全网正向（LpVariable 命中→pass）/反向（linprog 冒充整数规划→HARD FAIL 精确指认）；通用合同正向（M1|must|forbid 管道格式→pass）/反向（must 缺失+forbid 命中双 FAIL）。capability_check 按契约拦截缺 falsifiable_check 的 machine 项。
+- **compile_utils.sh / writing_check.sh 冒烟**：编译前清理/封面 cline 自动修复/图片路径规整与图文交织/引用核验/占位符/AI 痕迹等检查项全通（exit 0）。
+- **engine 编排层端到端实测（7 轮迭代走通）**：start(comp_cumcm)→next(路由 comp-prob-analysis 含 checkpoint 语义)→complete 证据链。证据 schema 逐层拦截实测：缺字段→schema_version 类型（须整数 1 非字符串）→commands 须对象数组→returncode 须整数 0→outputs 须与 artifacts 一致→防描述性命令→skill_sha256 须匹配→quality gate min_size（comp-prob-analysis=1500B）→全过后 checkpoint 等待→推进 comp-literature。失败步骤锁定不推进（防跳闸语义正确）。
+- **AGENTS.md 补 workflow_cli complete 合规证据样例**（赛时照抄即用，避免 agent 赛时多轮被拒）。
+- **回归**：audit OK；工具链实测全部通过；工作区清理（保留 paper/cumcm_smoke 编译样例）。

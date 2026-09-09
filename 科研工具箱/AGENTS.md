@@ -247,6 +247,25 @@ python -m engine.workflow_cli caps
 
 # 创建持久化工作流；状态库默认保存到 .engine/workflow.sqlite
 python -m engine.workflow_cli start --template comp_cumcm --workspace workspaces\cumcm-demo --params '{"language":"zh"}'
+
+# 取下一步（返回 skill_name/skill_path/产出文件/checkpoint 语义）
+python -m engine.workflow_cli next --wf <workflow_id>
+
+# 完成步骤：execution_evidence 有严格 schema（2026-09-09 赛前实测固化的合规样例，
+# 字段缺一/类型错/sha 不符/描述性命令/体积不足都会被逐层拒绝，步骤置 failed 需重开流程）：
+#   schema_version 必须是整数 1；commands 必须是非空对象数组且 returncode 为整数 0；
+#   outputs 必须与 --artifacts 完全一致；skill_sha256 必须等于该步 SKILL.md 的 SHA-256；
+#   产出文件须过 quality gate（如 comp-prob-analysis 的 PROBLEM_ANALYSIS.md ≥1500 字节）。
+python -m engine.workflow_cli complete --wf <workflow_id> --ok true --artifacts "PROBLEM_ANALYSIS.md" --evidence '{
+  "schema_version": 1,
+  "agent": "opencode-desktop",
+  "step_id": "<next 返回的 step_id>",
+  "skill_name": "comp-prob-analysis",
+  "skill_sha256": "<python -c \"import hashlib;print(hashlib.sha256(open(r'"'"'skills/comp-prob-analysis/SKILL.md'"'"','"'"'rb'"'"').read()).hexdigest())\">",
+  "commands": [{"command": "python scripts/build_analysis.py", "returncode": 0, "cwd": "."}],
+  "inputs": [],
+  "outputs": ["PROBLEM_ANALYSIS.md"]
+}'
 ```
 
 上述 `workflow_cli` 命令不是 OpenCode Desktop 的启动命令，也不是数模智能体的运行前提。实际执行者始终是 OpenCode Desktop 中加载的“数模专家”；系统不依赖系统 PATH 中存在 `opencode` CLI。桌面端配置、agent 或技能变更后，关闭并重新启动 OpenCode Desktop，再在桌面会话中验证 agent 和技能发现。
