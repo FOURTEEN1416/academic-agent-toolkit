@@ -1,5 +1,23 @@
 # v1.2.0 发布说明（CHANGELOG）
 
+## v1.2.1（2026-09-09）—— 独立审计全量修复
+
+无上下文独立审计（`dev-docs/INDEPENDENT_AUDIT_REPORT_2026-09-09.md`）发现项全量修复：
+
+- **P0 国赛三线表编译中断**：`cumcmthesis.cls` 包序修复（booktabs 移至 bigstrut/bigdelim 之后），SKILL 教授的 `\toprule/\midrule` 与 longtable `\endfirsthead` 格式实测编译通过；补入编译验证的 `_templates/cumcm/main.tex` 骨架；UPSTREAM.md 登记本地补丁。
+- **P1 编译门禁盲区**：`compile_check.sh` 新增 `^! ` LaTeX 硬错误检测与真实 undefined-reference 判据（旧 `\[?\]` 恒 0）；"修前放行的断表工程"现 exit 1 拦截。
+- **P1 引擎检查点非硬闸**：`workflow_runner.next_action` 新增 blocked-checkpoint 拦截（未 approve 不得推进），回归测试正反两路。
+- **P1 模板死声称**：comp-paper-zh 5 套模板声称改为现状如实口径；华中杯分支复用 cumcm 模板；comp-compile-zh 8 条死路径模板对比循环改动态探测+显式跳过。
+- **P1 机检前缀盲区**：`skill_library_audit` 内部引用检测扩展 `_utils/`、`shared-scripts/` 前缀；全库暴露 17 处真断链全部修复或内联声明（含 dev-selfcheck/paper-figure 系列；`.pyc` 直调教学全部纠正为 `.py` 真源 + 防回归测试）。
+- **P2 双副本漂移**：`claim_code_check.py` 同步；新增 `test_dual_copy_consistency`（hash 级机器防线，注入破坏反验）。
+- **P2 mermaid -p 缺失**：可执行命令模板补 `-p` 配置探测；实测裸跑失败→带配置成功。
+- **P3 graphviz/环境**：Windows dot 检索指引入技能；provenance 收紧（URL 源强制 7-40 位哈希 Pinned commit，正反测试）；`quality_gates.check_review_evidence` reason 优先级 bug 修复（真因不再被警告文案遮蔽）。
+- **验证**：工具箱 247 / 仓库根 291 全绿；两机检 exit 0；CUMCM 14 步全链驱动 0-11 步通过（含 blocked 硬闸 4 次 approve、step9 真实编译、终审由 sensenova/deepseek-v4-flash 真实执行 fatal=0）；step12 strict 门禁在 ZCode 宿主**正确拒绝**（mimo-v2.5-free 配置通道当前环境 503/404 不可达，不可伪造模型证据）；step13 final-audit 独立验证全绿。
+
+> 历史条目保持原样（dated 快照仅供追溯）：以下 v1.2.0 一节中的 242/28/245 为发布时数字，现值见上节与 README 徽章。
+
+---
+
 > 发布日期：2026-08-30
 > 宿主：OpenCode Desktop + ZCode（双宿主）
 > 变更基线：v1.1.0..HEAD（13 commits）

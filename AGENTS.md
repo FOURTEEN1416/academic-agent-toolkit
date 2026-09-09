@@ -27,7 +27,7 @@
 | 路径 | 性质 |
 |------|------|
 | `科研工具箱/` | 产品主体：skills(247)/engine/tools/tests/data |
-| `capabilities/catalog.json` | 能力目录（269 条） |
+| `capabilities/catalog.json` | 能力目录（294 条，2026-09-09 审计同步） |
 | `docs/superpowers/` | 设计 spec 与实施计划（dated 快照，仅供追溯） |
 | `dev-docs/` | 内部真源根（gitignored 私有）：truth-index 入口索引、archive/ 归档区 |
 | `LOG.md` / `task_plan.md` | 操作日志 / 当前任务与验证基线 |
@@ -48,8 +48,8 @@
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **285 passed** | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **242 passed** | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **291 passed** | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **247 passed** | 技能验收基线（硬规则 3 口径） |
 
 - `releases/` 是 dated 发布快照（archive 态仅供追溯），**永不进测试收集**——其内部旧测试依赖旧目录结构，扫描必炸（2026-09-03 曾致 333 collection errors）。
 - `科研工具箱/tools/` 下的 `test_*.py` 是裸脚本式自检（硬编码 cwd 相对路径），不属于 pytest 套件，从仓库根收集排除。

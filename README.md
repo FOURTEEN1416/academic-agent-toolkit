@@ -7,7 +7,7 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v1.2.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-242_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
+[![Tests](https://img.shields.io/badge/tests-247_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-294-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-247-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
@@ -74,7 +74,7 @@ L1 拦截式插件逐条记录每次工具调用（不可绕过）+ L2 编排留
 | 视觉论证 | `excalidraw-diagram` `infographics` `scientific-schematics` | 手绘风论证图 · 信息图 · 科学示意图 |
 | 既有沉淀 | `nature-figure` + 62 篇获奖论文实证规范 | Nature 级排版与配色 |
 
-全部集成带 **pinned-commit 溯源**（`UPSTREAM.md` 台账 27 条 + vendor，`tools/check_provenance.py` 一键校验 28/28）。
+全部集成带 **pinned-commit 溯源**（`UPSTREAM.md` 台账 62 条 + vendor，`tools/check_provenance.py` 一键校验 63/63）。
 
 </details>
 
@@ -144,7 +144,7 @@ python 科研工具箱/tools/plotting_env_check.py
 **验证安装**：
 
 ```bash
-cd 科研工具箱 && python -m pytest -q        # → 242 passed
+cd 科研工具箱 && python -m pytest -q        # → 247 passed
 python tools/check_provenance.py             # → 28/28 UPSTREAM+vendor 台账通过
 ```
 
@@ -154,9 +154,9 @@ python tools/check_provenance.py             # → 28/28 UPSTREAM+vendor 台账�
 |------|--------|
 | 🚧 **Named Gates** | `paper_consistency` · `citation_integrity` · `experiment_reproduc` · `figure_provenance` · `compilation_log` |
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
-| 📜 **Provenance 台账** | 27 条 `UPSTREAM.md` + vendor（pinned commit + license），28/28 校验通过，外部集成的每一行代码都能回答"从哪来" |
+| 📜 **Provenance 台账** | 62 条 `UPSTREAM.md` + vendor（pinned commit + license），63/63 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | 公开基准（CC-BY-4.0）公开评测 · 私有基准（真实竞赛题面）内部压测 |
-| ✅ **测试基线** | 242 项 pytest：状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 三管线 / 逐技能回归全覆盖 |
+| ✅ **测试基线** | 工具箱 247 项 pytest（仓库根 291）：状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 三管线 / 逐技能回归全覆盖 |
 | 🧬 **逐技能 C2 覆盖** | 247 技能 100% 验收状态分类：207 项真实执行证据（管线级/试点级，留档可查）+ 38 项诚实 blocked（依赖/范围受限，零伪造） |
 
 ## 📁 仓库地图
@@ -177,7 +177,7 @@ academic-agent-toolkit/
 
 <br>
 
-**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests。发布后持续演进：catalog 现为 294 条 / 247 技能（正式 10）。
+**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests。发布后持续演进：catalog 现为 294 条 / 247 技能（正式 10）；2026-09-09 独立审计修复后测试基线 247（工具箱）/ 291（仓库根），见 v1.2.1。
 
 **v1.1.0（2026-08-28）** —— 全能力公开发布（含软著/专利/基金流水线）· 科研绘图 9 技能扩展 · ZCode 兼容层 · 全库文档治理（45+ 文档审计）。完整记录见 [CHANGELOG.md](./CHANGELOG.md)。
 

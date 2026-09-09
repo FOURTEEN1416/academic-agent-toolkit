@@ -19,6 +19,17 @@ metadata:
 
 建议额外记录：DOT 源文件与 graphviz 版本（dot -V）。图表溯源门禁 figure_provenance 要求图有来源证据。
 
+### 本机渲染指引（Windows，2026-09-09 审计 P3-1 补）
+
+`dot` 常不在 PATH（Graphviz 安装器默认不勾选 Add to PATH）。渲染 PNG/SVG 前先探测：
+
+```bash
+DOT=$(command -v dot || echo "/c/Program Files/Graphviz/bin/dot.exe")
+"$DOT" -V && "$DOT" -Tpng diagram.dot -o diagram.png
+```
+
+若两处都没有 → Graphviz 未安装，按 README 环境表 `winget install --id Graphviz.Graphviz -e` 安装（或勾选加入 PATH）。⛔ DOT 语法坑：节点属性与边语句须分开（`A[label] -> B` 非法；写 `A [label="x"]; A -> B;`）。
+
 ## Critical Syntax Rules
 
 ### Rule 1: Cluster Naming

@@ -113,17 +113,21 @@ flowchart TD
 
 ```bash
 # Check if mermaid-cli is available
+# ⛔ 2026-09-09 审计修复 P2-2：旧版注释要求带 -p 但可执行命令没带——裸 mmdc 在本机
+#   必失败（puppeteer 缺 chrome-headless-shell 缓存）。-p 配置探测顺序：用户级 → 仓库级。
+PUPPETEER_CFG=""
+for _cfg in "$HOME/.mmdc/puppeteer-config.json" skills/_utils/puppeteer-config.json ../skills/_utils/puppeteer-config.json; do
+    [ -f "$_cfg" ] && { PUPPETEER_CFG="$_cfg"; break; }
+done
+PP_ARGS=""
+[ -n "$PUPPETEER_CFG" ] && PP_ARGS="-p \"$PUPPETEER_CFG\""
 if command -v mmdc &> /dev/null; then
-    # Windows 本机口径（2026-09-09 赛前验证）：新版 puppeteer 要求的 chrome-headless-shell
-    # 版本可能不在本地缓存，必须带 -p 指定 Edge 配置（配置已就位于
-    # ~/.mmdc/puppeteer-config.json 与本仓库 skills/_utils/puppeteer-config.json）：
-    #   mmdc -i in.mmd -o out.png -b transparent -p "$HOME/.mmdc/puppeteer-config.json"
-    # Render to PNG to verify syntax is correct
-    mmdc -i figures/<diagram-name>.mmd -o figures/<diagram-name>.png -b transparent
+    # Render to PNG to verify syntax is correct（-p 指定 Edge 配置，见上方探测）
+    eval mmdc -i figures/\<diagram-name\>.mmd -o figures/\<diagram-name\>.png -b transparent "$PP_ARGS"
     echo "✅ Syntax valid — PNG rendered to figures/<diagram-name>.png"
 else
-    # Try npx as fallback
-    npx -y @mermaid-js/mermaid-cli@latest -i figures/<diagram-name>.mmd -o figures/<diagram-name>.png -b transparent
+    # Try npx as fallback（同样带 -p）
+    eval npx -y @mermaid-js/mermaid-cli@latest -i figures/\<diagram-name\>.mmd -o figures/\<diagram-name\>.png -b transparent "$PP_ARGS"
     echo "✅ Syntax valid — PNG rendered to figures/<diagram-name>.png"
 fi
 ```

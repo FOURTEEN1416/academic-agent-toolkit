@@ -376,3 +376,10 @@
 - **engine 编排层端到端实测（7 轮迭代走通）**：start(comp_cumcm)→next(路由 comp-prob-analysis 含 checkpoint 语义)→complete 证据链。证据 schema 逐层拦截实测：缺字段→schema_version 类型（须整数 1 非字符串）→commands 须对象数组→returncode 须整数 0→outputs 须与 artifacts 一致→防描述性命令→skill_sha256 须匹配→quality gate min_size（comp-prob-analysis=1500B）→全过后 checkpoint 等待→推进 comp-literature。失败步骤锁定不推进（防跳闸语义正确）。
 - **AGENTS.md 补 workflow_cli complete 合规证据样例**（赛时照抄即用，避免 agent 赛时多轮被拒）。
 - **回归**：audit OK；工具链实测全部通过；工作区清理（保留 paper/cumcm_smoke 编译样例）。
+
+## 2026-09-09（独立审计 → 全量修复）
+
+- **动作**：按无上下文独立审计报告（`dev-docs/INDEPENDENT_AUDIT_REPORT_2026-09-09.md`，P0×1/P1×4/P2×3/P3×3 + 新发现 .pyc 调用面断裂）执行全量修复：①`cumcmthesis.cls` 包序（booktabs 移到 bigstrut/bigdelim 后）修复三线表编译中断 P0，补 `_templates/cumcm/main.tex` 编译验证骨架并登记 UPSTREAM 本地补丁；②`compile_check.sh` 增 `^! ` 硬错误检测+真实 undefined 判据（旧 `\[?\]` 恒 0）；③`workflow_runner.next_action` 增 blocked-checkpoint 硬闸（未 approve 不得推进）；④机检 INNER_REF 扩展 `_utils/shared-scripts` 前缀并修复全库暴露的 17 处真断链（`.pyc` 直调教学全部改为 `.py` 真源 + 防回归测试）；⑤comp-paper-zh/comp-compile-zh 模板死声称修正（5 套 main.tex/huazhong 字体不实声称改现状口径，8 条死路径对比循环改动态探测）；⑥双副本 claim_code_check 同步 + `test_dual_copy_consistency` hash 级防线；⑦mermaid 命令模板补 `-p` 探测、graphviz Windows dot 指引、provenance URL 源强制哈希（正反测试）、`check_review_evidence` reason 遮蔽 bug 修复；⑧README/AGENTS 数字定稿（247/291/294/63）。
+- **原因**：用户在审计报告交付后裁定：所有问题全部修复，未验证事项全部补齐，不推诿不遗漏。
+- **结果**：修复过程再暴露并处理两个审计未见问题——16 个 `.pyc` 实为 3.11 字节码（本机 3.12 直跑必炸，AGENTS"加密分发件"措辞不实）；review 门禁 strict 在 ZCode 宿主正确拒绝不可达配置模型 mimo-v2.5-free（非绕过）。未验证项 ①②③④⑤⑦ 全部补齐：LLM 真实调用 OK（reviewer/gpt_image 生图/doc_reader/真实 sensenova 终审 fatal=0）、drawio CLI 导出 98KB PNG、L1 插件在位、releases 结构完整、62 篇论文报告符实。
+- **验证**：工具箱 `pytest -q` **247 passed**、根 **291 passed**（含 4 项新防线测试）；`skill_library_audit`/`check_provenance` 双 exit 0（63/63）；booktabs 三线表+longtable 教学格式编译全绿；compile_check 正路 exit 0/断表盲工程 exit 1（修前 0）；引擎 blocked 硬闸 CLI 实测（CUMCM 14 步驱动：0-11 全过含 4 次 approve + step9 真实编译 rc=0 + step13 final-audit 独立验证全绿）；A5/双副本/`.pyc`/provenance 四条新防线均做注入破坏反验。
