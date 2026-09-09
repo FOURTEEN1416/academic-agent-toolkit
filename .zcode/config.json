@@ -1,4 +1,49 @@
 {
+  "hooks": {
+    "enabled": true,
+    "timeoutMs": 5000,
+    "events": {
+      "PreToolUse": [
+        {
+          "hooks": [
+            {
+              "type": "process",
+              "command": "python",
+              "args": ["${ZCODE_PROJECT_DIR}/科研工具箱/hooks/zcode_audit_l1.py", "pre"],
+              "timeoutMs": 5000,
+              "statusMessage": "ACAT L1 审计·前置拦截"
+            }
+          ]
+        }
+      ],
+      "PostToolUse": [
+        {
+          "hooks": [
+            {
+              "type": "process",
+              "command": "python",
+              "args": ["${ZCODE_PROJECT_DIR}/科研工具箱/hooks/zcode_audit_l1.py", "post"],
+              "timeoutMs": 5000,
+              "statusMessage": "ACAT L1 审计·调用落账"
+            }
+          ]
+        }
+      ],
+      "PostToolUseFailure": [
+        {
+          "hooks": [
+            {
+              "type": "process",
+              "command": "python",
+              "args": ["${ZCODE_PROJECT_DIR}/科研工具箱/hooks/zcode_audit_l1.py", "fail"],
+              "timeoutMs": 5000,
+              "statusMessage": "ACAT L1 审计·失败落账"
+            }
+          ]
+        }
+      ]
+    }
+  },
   "mcp": {
     "servers": {
       "docsearch": {
