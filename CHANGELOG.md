@@ -1,5 +1,13 @@
 # v1.2.0 发布说明（CHANGELOG）
 
+## v1.2.2（2026-09-09）—— ZCode 赛时主控 + 模型去预设（用户裁定）
+
+- **模型不预设（全链落地）**：新增 `engine/modex-core/contest_models.json` 配置槽（出厂四角色全空）；`quality_gates.load_configured_role_models` 改宿主中立三级解析（ACAT_CONTEST_MODELS > 配置槽 > OpenCode agents，逐角色回退）并新增 `model_config_provenance()`；strict 门禁在两处皆空时降级 warn（显式留痕不静默）。工具层去预设：`doc_reader`（原默认 agnes-2.5-flash）、`tikz_vision_check`（原默认 gpt-4o）改为未配置即明确报错；`pyc_loader` auth 查找不再硬编码厂商名（动态发现 provider 优先+全量遍历）；`comp-visual-review`/`infographics`/`scientific-schematics` SKILL 与 README/AGENTS 措辞改为"比赛时配置，仓库不预设"（例：任一具备视觉能力的模型）。
+- **ZCode 升格赛时主控宿主**：L1 拦截式审计 hook 等价实现 `科研工具箱/hooks/zcode_audit_l1.py`（PreToolUse/PostToolUse/PostToolUseFailure → 与 OpenCode 插件同格式的 `operations.jsonl`；`git add .` 级治理拦截 exit 2；异常静默绝不打断会话）；`.zcode/config.json` 注册 hooks（enabled + 三事件，随仓库分发）。审计降级句（"ZCode 仅 L2+L3"）全库清除，宿主矩阵/三层审计表/独立性契约测试同步演化。
+- **赛前自检入库**：`tools/contest_dryrun/`（14 步全链驱动 + 终审真实模型探针，2026-09-09 审计驱动通用化入库：路径参数化、fig 自生成、终审端点 env 三级解析不预设厂商）。
+- **残留修复**：README `28/28` 过期数字 → 63/63。
+- **测试**：新增 `tests/test_zcode_host_compat.py` 12 项（三级解析/strict 联动/hook 五态/注册契约）；基线 工具箱 **259** / 仓库根 **303**。
+
 ## v1.2.1（2026-09-09）—— 独立审计全量修复
 
 无上下文独立审计（`dev-docs/INDEPENDENT_AUDIT_REPORT_2026-09-09.md`）发现项全量修复：

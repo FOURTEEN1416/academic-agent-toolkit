@@ -1,22 +1,25 @@
 # 科研工具箱 — 全学术 Agent 系统（原：数学建模全流程套件）
 
 > 这是一套**完整科研工具箱**（全学术 Agent 工具箱，6 大能力域：数模竞赛、学术论文、文献与研究、
-> 课程与研究材料、知识产权材料、图表与文档生产），为 **OpenCode 桌面版**适配，ZCode 兼容层可用。
+> 课程与研究材料、知识产权材料、图表与文档生产），双宿主：**OpenCode 桌面版**（正式宿主）与
+> **ZCode**（2026-09-09 起升级为赛时主控宿主，L1 审计经 hook 机制提供等价实现）。
 > 数模竞赛（CUMCM）是验证场景之一，不是产品边界。
-> **OpenCode Desktop 是唯一主控**：当前 agent（你）直接读取技能、调用工具、执行全部工作。
+> **主控 = 当前宿主的 Agent**：OpenCode Desktop 或 ZCode 中承担主控的 agent（你）直接读取技能、
+> 调用工具、执行全部工作。同一时刻只有一个宿主主控，不并行双控。
 > 引擎（engine/）只负责状态记忆、编排、质量门禁和审计，绝不代执行。
 > 本系统完全独立，不依赖任何其他商业软件。
 >
-> **宿主兼容（2026-08-20 起）**：ZCode 通过仓库根 `AGENTS.md` + `.zcode/` 兼容层接入同一套
-> 技能库与引擎（见根 AGENTS.md 宿主支持矩阵）。ZCode 下 L1 拦截式审计插件暂无等价物，
-> 审计依赖 L2 编排式 + L3 申报式两层；其余规则（引擎只编排、complete_step 回报、门禁）
-> 在两个宿主下完全一致。
+> **宿主兼容（2026-08-20 起 · 2026-09-09 ZCode 升级主控）**：ZCode 通过仓库根 `AGENTS.md` +
+> `.zcode/`（技能联结 + `hooks` 审计拦截）接入同一套技能库与引擎（见根 AGENTS.md 宿主支持矩阵）。
+> ZCode L1 拦截式审计由 `hooks/zcode_audit_l1.py` 实现（PreToolUse/PostToolUse 写
+> `operations.jsonl`，与 OpenCode 插件同格式，并含 `git add .` 级拦截示例）；
+> 其余规则（引擎只编排、complete_step 回报、门禁）在两个宿主下完全一致。
 
 ---
 
 ## 定位（重要）
 
-**执行者 = OpenCode 桌面版中运行的 agent（你）。**
+**执行者 = 当前宿主（OpenCode Desktop / ZCode）中承担主控的 Agent（你）。**
 引擎不是执行者，只是"记忆和编排"：
 - `workflow_store` — 记录谁做了什么、做到哪、卡在哪（SQLite）
 - `workflow_runner` — 告诉你下一步做什么（next_action）
@@ -31,7 +34,7 @@
 
 | 层 | 机制 | 记录内容 | 写入位置 | 可否绕过 |
 |---|------|---------|---------|---------|
-| **L1 拦截式** | OpenCode plugin（`.opencode/plugins/audit-trail.ts` + 官方 `opencode-logger`） | 每次工具调用（bash 命令全文/编辑路径/skill 名/task 描述）、文件编辑、会话、权限请求 | 共享根 `.engine/audit/operations.jsonl` + `log.jsonl` | ❌ 不可绕过（运行时钩子，agent 无法跳过） |
+| **L1 拦截式** | OpenCode plugin（`.opencode/plugins/audit-trail.ts` + 官方 `opencode-logger`）；ZCode 等价：`hooks/zcode_audit_l1.py`（经 `.zcode/config.json` 注册 PreToolUse/PostToolUse/Failure） | 每次工具调用（bash 命令全文/编辑路径/skill 名/task 描述）、文件编辑、会话、权限请求 | 共享根 `.engine/audit/operations.jsonl`（ZCode 同文件）+ OpenCode 另有 `log.jsonl` | ❌ 不可绕过（宿主钩子层，agent 无法跳过） |
 | **L2 编排式** | `WorkflowRunner` 引擎侧写入 | workflow 启动/步骤完成（含声明命令）/checkpoint 批准 | 同一 `.engine/audit/operations.jsonl` | ⚠️ 仅当走 runner 流程时 |
 | **L3 申报式** | `complete_step()` 的 execution_evidence | skill 哈希、声明命令、输入输出产物、产物 manifest | 工作区 `.engine/evidence/*.json` | ⚠️ 依赖 agent 主动申报 |
 
@@ -268,6 +271,6 @@ python -m engine.workflow_cli complete --wf <workflow_id> --ok true --artifacts 
 }'
 ```
 
-上述 `workflow_cli` 命令不是 OpenCode Desktop 的启动命令，也不是数模智能体的运行前提。实际执行者始终是 OpenCode Desktop 中加载的“数模专家”；系统不依赖系统 PATH 中存在 `opencode` CLI。桌面端配置、agent 或技能变更后，关闭并重新启动 OpenCode Desktop，再在桌面会话中验证 agent 和技能发现。
+上述 `workflow_cli` 命令不是任何宿主的启动命令，也不是数模智能体的运行前提。实际执行者始终是**当前宿主**（OpenCode Desktop 或 ZCode）中承担主控的 Agent；系统不依赖系统 PATH 中存在 `opencode` CLI。OpenCode 桌面端配置、agent 或技能变更后，关闭并重新启动桌面端再验证；ZCode 下变更后重开会话即可（技能经 `.zcode/skills` 联结自动发现，hook 配置改动需重启会话）。
 
-每个工作流的步骤、检查点和运行事件写入 SQLite。Desktop Agent 取得真实产物和执行证据后，才调用 `complete_step()` 推进步骤。Agnes/商汤配置仅由具体工具脚本使用，不参与流程调度。
+每个工作流的步骤、检查点和运行事件写入 SQLite。主控 Agent 取得真实产物和执行证据后，才调用 `complete_step()` 推进步骤。**模型配置仓库不预设**（2026-09-09 裁定）：审稿/视觉模型比赛时填入 `engine/modex-core/contest_models.json` 配置槽（或宿主 agent 配置），仅供具体工具脚本与 strict 门禁比对使用，不参与流程调度。

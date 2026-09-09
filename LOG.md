@@ -383,3 +383,10 @@
 - **原因**：用户在审计报告交付后裁定：所有问题全部修复，未验证事项全部补齐，不推诿不遗漏。
 - **结果**：修复过程再暴露并处理两个审计未见问题——16 个 `.pyc` 实为 3.11 字节码（本机 3.12 直跑必炸，AGENTS"加密分发件"措辞不实）；review 门禁 strict 在 ZCode 宿主正确拒绝不可达配置模型 mimo-v2.5-free（非绕过）。未验证项 ①②③④⑤⑦ 全部补齐：LLM 真实调用 OK（reviewer/gpt_image 生图/doc_reader/真实 sensenova 终审 fatal=0）、drawio CLI 导出 98KB PNG、L1 插件在位、releases 结构完整、62 篇论文报告符实。
 - **验证**：工具箱 `pytest -q` **247 passed**、根 **291 passed**（含 4 项新防线测试）；`skill_library_audit`/`check_provenance` 双 exit 0（63/63）；booktabs 三线表+longtable 教学格式编译全绿；compile_check 正路 exit 0/断表盲工程 exit 1（修前 0）；引擎 blocked 硬闸 CLI 实测（CUMCM 14 步驱动：0-11 全过含 4 次 approve + step9 真实编译 rc=0 + step13 final-audit 独立验证全绿）；A5/双副本/`.pyc`/provenance 四条新防线均做注入破坏反验。
+
+## 2026-09-09（v1.2.2 · ZCode 赛时主控 + 模型去预设）
+
+- **动作**：按用户裁定执行三项——①中断遗漏检查：复跑全套基线（247/291→确认无回退）+ 审计报告发现×commit 核销，捕获残留 README:148 `28/28` 过期数字与审计驱动脚本未入库两处；②模型去预设：新增 `engine/modex-core/contest_models.json` 配置槽（出厂全空）、`load_configured_role_models` 三级宿主中立解析+`model_config_provenance`、strict 未配置显式 warn、`doc_reader`/`tikz_vision_check`/`pyc_loader` 去厂商默认值、comp-visual-review/infographics/scientific-schematics SKILL 与 README/工具箱 AGENTS 措辞同步；③ZCode 主控兼容：`hooks/zcode_audit_l1.py`（PreToolUse/PostToolUse/Failure → operations.jsonl 同格式 + `git add .` 治理拦截）经 `.zcode/config.json` hooks 注册（enabled+三事件，入 git 随仓分发），宿主矩阵/三层审计表/独立性契约测试演化，审计降级句全库清除；④`tools/contest_dryrun/` 审计驱动通用化入库（--ws/--wf/--fig 参数化，冒烟揪出 figures 目录缺失与 datetime.date 误用两个真 bug 并修复验证）。
+- **原因**：比赛将以 ZCode 为主控；模型（含视觉）比赛时再配置（示例 GLM 视觉系列），仓库任何预设都是风险源。
+- **结果**：ZCode 下 L1 审计自本日起不再是降级项；OpenCode 生产行为不变（配置槽空→agents 回退复证一致）；hook 配置改动需重启会话生效（当前会话仅脚本级实测+12 项测试，宿主触发待新会话复验）。
+- **验证**：新增 `test_zcode_host_compat.py` 12 项（三级解析/strict 联动含正反/hook 五态含 deny 留痕/注册契约）全绿；hook 六态 CLI 实测 + `AuditStore.stats` 真读兼容；`chain_driver.py` 全新工作区实跑 step0-3（checkpoint 硬闸×2 approve、真实 pulp 求解、matplotlib 生图、review 步按设计等待）；终局基线 工具箱 **259** / 根 **303**，provenance 63/63、skill_library_audit OK exit 0。

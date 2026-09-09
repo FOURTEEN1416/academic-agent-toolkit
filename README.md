@@ -6,8 +6,8 @@
 
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
-[![Release](https://img.shields.io/badge/release-v1.2.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-247_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
+[![Release](https://img.shields.io/badge/release-v1.2.2-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-259_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-294-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-247-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
@@ -44,7 +44,7 @@
 </td><td width="50%" valign="top">
 
 #### 🔍 三层审计
-L1 拦截式插件逐条记录每次工具调用（不可绕过）+ L2 编排留痕 + L3 执行申报，交叉比对让"伪造审核产物"无处遁形。
+L1 拦截式审计逐条记录每次工具调用（OpenCode 插件 / ZCode hook，不可绕过）+ L2 编排留痕 + L3 执行申报，交叉比对让"伪造审核产物"无处遁形。
 
 </td></tr>
 </table>
@@ -109,7 +109,7 @@ git clone https://github.com/FOURTEEN1416/academic-agent-toolkit.git
 
 > "按 CUMCM 流程做这道 2024 年 B 题，数据在 data/ 下，输出国一格式论文。"
 
-### ZCode —— 兼容层
+### ZCode —— 赛时主控宿主
 
 ```bash
 git clone https://github.com/FOURTEEN1416/academic-agent-toolkit.git
@@ -117,10 +117,10 @@ cd academic-agent-toolkit
 cmd /c "mklink /J .zcode\skills 科研工具箱\skills"   # 重建技能联结（Windows）
 ```
 
-打开仓库根目录：247 个技能自动发现、docsearch MCP 自动连接、`/doc-governance` 治理命令可用。
+打开仓库根目录：247 个技能自动发现、docsearch MCP 自动连接、`/doc-governance` 治理命令可用、**L1 审计 hook 自动生效**（`.zcode/config.json` 已注册，PreToolUse/PostToolUse 逐条落账）。赛前一键自检：`python 科研工具箱/tools/contest_dryrun/chain_driver.py`。
 
 > [!NOTE]
-> **宿主差异**：L1 拦截式审计插件仅 OpenCode 可用；ZCode 下审计为 L2+L3 两层，其余功能完全一致。
+> **宿主差异**：OpenCode 与 ZCode 均具备 L1 拦截式审计（插件 / hook，写入同一 `operations.jsonl`，审计报告与防绕过交叉比对两宿主通用）；审稿角色在 OpenCode 为具名 subagent、在 ZCode 由通用子智能体承担，模型证据一律对齐比赛时配置（`engine/modex-core/contest_models.json` 配置槽，仓库不预设）。
 
 ### 环境要求
 
@@ -130,7 +130,7 @@ cmd /c "mklink /J .zcode\skills 科研工具箱\skills"   # 重建技能联结�
 | 必装 | TeX Live / XeLaTeX | 论文编译类能力 | texlive.org |
 | 推荐 | Graphviz（`dot`） | `graphviz` 技能 | `winget install --id Graphviz.Graphviz -e` |
 | 推荐 | mermaid-cli（`mmdc`） | `mermaid-diagram` 技能 | `PUPPETEER_SKIP_DOWNLOAD=true bun install -g @mermaid-js/mermaid-cli`（用系统 Edge/Chrome 需写 puppeteer 配置，见技能内说明） |
-| 可选 | **多模态 LLM 图像生成后端** | `infographics`、`scientific-schematics` 两个 AI 绘图专属技能 | `export OPENROUTER_API_KEY=sk-...` 或宿主原生 `generate_image` 后端；质量评审可用免费视觉模型（OpenCode 的 `agnes/agnes-2.5-flash` 等） |
+| 可选 | **多模态 LLM 图像生成后端** | `infographics`、`scientific-schematics` 两个 AI 绘图专属技能 | `export OPENROUTER_API_KEY=sk-...` 或宿主原生 `generate_image` 后端；质量评审可用任意具备视觉能力的模型（**仓库不预设具体型号，比赛时配置**，配置槽见 `engine/modex-core/contest_models.json`） |
 
 > [!IMPORTANT]
 > **AI 绘图技能（infographics / scientific-schematics）必须有多模态 LLM 图像生成后端**——技能内置 Step 0 强制检测，缺后端会明确报错并给指引，不会用占位图冒充。其余绘图技能全部本地运行、零 API。
@@ -144,8 +144,8 @@ python 科研工具箱/tools/plotting_env_check.py
 **验证安装**：
 
 ```bash
-cd 科研工具箱 && python -m pytest -q        # → 247 passed
-python tools/check_provenance.py             # → 28/28 UPSTREAM+vendor 台账通过
+cd 科研工具箱 && python -m pytest -q        # → 259 passed
+python tools/check_provenance.py             # → 63/63 UPSTREAM+vendor 台账通过
 ```
 
 ## 🛡️ 质量与可信
@@ -156,7 +156,7 @@ python tools/check_provenance.py             # → 28/28 UPSTREAM+vendor 台账�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | 62 条 `UPSTREAM.md` + vendor（pinned commit + license），63/63 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | 公开基准（CC-BY-4.0）公开评测 · 私有基准（真实竞赛题面）内部压测 |
-| ✅ **测试基线** | 工具箱 247 项 pytest（仓库根 291）：状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 三管线 / 逐技能回归全覆盖 |
+| ✅ **测试基线** | 工具箱 259 项 pytest（仓库根 303）：状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 宿主兼容 / 三管线 / 逐技能回归全覆盖 |
 | 🧬 **逐技能 C2 覆盖** | 247 技能 100% 验收状态分类：207 项真实执行证据（管线级/试点级，留档可查）+ 38 项诚实 blocked（依赖/范围受限，零伪造） |
 
 ## 📁 仓库地图
@@ -177,7 +177,7 @@ academic-agent-toolkit/
 
 <br>
 
-**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests。发布后持续演进：catalog 现为 294 条 / 247 技能（正式 10）；2026-09-09 独立审计修复后测试基线 247（工具箱）/ 291（仓库根），见 v1.2.1。
+**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests。发布后持续演进：catalog 现为 294 条 / 247 技能（正式 10）；2026-09-09 独立审计修复（v1.2.1）后基线 247/291；同日 v1.2.2 **ZCode 升格赛时主控**（L1 审计 hook 等价实现）+ **模型去预设**（contest_models.json 比赛配置槽），基线升至 259/303，见 CHANGELOG。
 
 **v1.1.0（2026-08-28）** —— 全能力公开发布（含软著/专利/基金流水线）· 科研绘图 9 技能扩展 · ZCode 兼容层 · 全库文档治理（45+ 文档审计）。完整记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
