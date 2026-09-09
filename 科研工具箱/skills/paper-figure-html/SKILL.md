@@ -45,7 +45,7 @@ echo "模板目录 TPL_DIR=$TPL_DIR"
 
 # 出图工具（screenshot_capture.py，后端复制进 _utils/）
 CAPTURE=""
-for f in _utils/screenshot_capture.py tools/screenshot_capture.py; do
+for f in tools/screenshot_capture.py tools/screenshot_capture.py; do
   [ -f "$f" ] && { CAPTURE="$f"; break; }
 done
 echo "出图工具 CAPTURE=$CAPTURE"
@@ -59,7 +59,7 @@ echo "质检脚本 HTMLCHECK=$HTMLCHECK"
 
 # 视觉自检脚本（复用 drawio_vision_check.py，与画图引擎无关；不存在则跳过视觉自检）
 VISION=""
-for f in _utils/drawio_vision_check.py tools/drawio_vision_check.py; do
+for f in tools/drawio_vision_check.py; do
   [ -f "$f" ] && { VISION="$f"; break; }
 done
 echo "视觉自检 VISION=${VISION:-（不可用，将跳过视觉自检）}"
@@ -84,7 +84,7 @@ echo "TikZ 自检 TIKZ_CHECK=${TIKZ_CHECK:-（不可用，将跳过结构自检�
 #    （后端注入的发布包 tools/ 路径，_utils 复制失败时兜底）→ tools/（开发态相对路径）。
 #    少了 $MH_TOOLS_DIR 时：一旦 _utils/ 未建/复制失败，html 侧会误判脚本缺失而跳过自检。
 TIKZ_VISION=""
-for f in _utils/tikz_vision_check.py "${MH_TOOLS_DIR}/tikz_vision_check.py" tools/tikz_vision_check.py; do
+for f in tools/tikz_vision_check.py "${MH_TOOLS_DIR}/tikz_vision_check.py" tools/tikz_vision_check.py; do
   [ -n "$f" ] && [ -f "$f" ] && { TIKZ_VISION="$f"; break; }
 done
 echo "TikZ 视觉自检 TIKZ_VISION=${TIKZ_VISION:-（不可用，将跳过）}"

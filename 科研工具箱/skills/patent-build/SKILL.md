@@ -30,7 +30,7 @@ metadata:
 
 ```bash
 CAPTURE=""
-for f in "$PATENT_SCRIPT_DIR/../screenshot_capture.py" _utils/screenshot_capture.py tools/screenshot_capture.py; do
+for f in "$PATENT_SCRIPT_DIR/../screenshot_capture.py" tools/screenshot_capture.py tools/screenshot_capture.py; do
   [ -f "$f" ] && { CAPTURE="$f"; break; }
 done
 echo "截图后端 CAPTURE=${CAPTURE:-（未找到，将跳过自检，出图时降级）}"

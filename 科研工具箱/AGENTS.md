@@ -49,7 +49,7 @@ python -m engine.workflow_cli audit --workspace <工作区>   # 生成 OPERATION
 套件/
 ├── AGENTS.md              ← 你在这里（Agent 入口路由）
 ├── skills/                ← 技能库（由 opencode.json 的 skills.paths 自动扫描，每个技能一个 SKILL.md）
-├── tools/                 ← 工具链（60 个 .py 脚本 + 16 个 .pyc 加密分发件）
+├── tools/                 ← 工具链（60 个 .py 脚本 + 16 个 .pyc 字节码分发件（3.11 编译版本锁定，调用一律用同名 .py 真源））
 ├── engine/                ← 状态库 + 编排 + 质量门禁 + 审计（不执行）
 ├── data/                  ← 参考数据（模型库/题型规律/历史题目）
 ├── .env                   ← 本地 API 配置（gitignored，不入库不入发布包）
@@ -161,12 +161,12 @@ python tools/doc_reader.py 题目.pdf --no-vision                # 仅列出图�
 | `tools/reviewer_client.py` | 外部 LLM 审查 | `python tools/reviewer_client.py --prompt "..."` |
 | `tools/tikz_vision_check.py` | TikZ 图自检 | `python tools/tikz_vision_check.py fig.png` |
 | `tools/derive_reference_from_docx.py` | 格式派生 | `python tools/derive_reference_from_docx.py ref.docx` |
-| `tools/arxiv_fetch.pyc` | arXiv 论文获取 | `python tools/arxiv_fetch.pyc "query"` |
-| `tools/drawio_vision_check.pyc` | draw.io 图检查 | `python tools/drawio_vision_check.pyc fig.png` |
-| `tools/paper_data_check.pyc` | 论文数据一致性 | `python tools/paper_data_check.pyc workspace/` |
-| `tools/docx_precheck.pyc` | DOCX 格式预查 | `python tools/docx_precheck.pyc paper.docx` |
-| `tools/fix_bare_latex_in_md.pyc` | 修复裸 LaTeX | `python tools/fix_bare_latex_in_md.pyc paper.md` |
-| `tools/docx_export.pyc` | DOCX 导出 | `python tools/docx_export.pyc paper.md paper.docx` |
+| `tools/arxiv_fetch.py` | arXiv 论文获取 | `python tools/arxiv_fetch.py "query"` |
+| `tools/drawio_vision_check.py` | draw.io 图检查 | `python tools/drawio_vision_check.py fig.png` |
+| `tools/paper_data_check.py` | 论文数据一致性 | `python tools/paper_data_check.py workspace/` |
+| `tools/docx_precheck.py` | DOCX 格式预查 | `python tools/docx_precheck.py paper.docx` |
+| `tools/fix_bare_latex_in_md.py` | 修复裸 LaTeX | `python tools/fix_bare_latex_in_md.py paper.md` |
+| `tools/docx_export.py` | DOCX 导出 | `python tools/docx_export.py paper.md paper.docx` |
 
 ## 六、质量门禁（P4 核心）
 
@@ -216,8 +216,8 @@ python tools/doc_reader.py 题目.pdf --no-vision                # 仅列出图�
 系统支持用 Vision LLM 分析图片（检查图表质量、识别内容）：
 
 方式 1：`tools/tikz_vision_check.py`（TikZ 图专用）
-方式 2：`tools/drawio_vision_check.pyc`（draw.io 图专用）
-方式 3：`tools/data_fig_vision_check.pyc`（数据图专用）
+方式 2：`tools/drawio_vision_check.py`（draw.io 图专用）
+方式 3：`tools/data_fig_vision_check.py`（数据图专用）
 
 ## 九、入口提示词
 

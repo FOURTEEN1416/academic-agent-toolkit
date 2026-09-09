@@ -18,14 +18,14 @@ allowed-tools: [Read, Write, Bash(python:*)]
 ### Phase 1: 格式检查
 先运行 DOCX 预检查（如果可用）：
 ```bash
-python tools/docx_precheck.pyc <input.md>
+python tools/docx_precheck.py <input.md>
 ```
 检查：标题层级、图表引用、公式格式、引用格式。
 
 ### Phase 2: 导出 DOCX
 调用 docx 导出引擎：
 ```bash
-python tools/docx_export.pyc <input.md> <output.docx> --profile competition_zh
+python tools/docx_export.py <input.md> <output.docx> --profile competition_zh
 ```
 
 可用的样式配置（`tools/docx_style_profiles/`）：
@@ -37,7 +37,7 @@ python tools/docx_export.pyc <input.md> <output.docx> --profile competition_zh
 
 ### Phase 3: 验证
 1. 确认 .docx 已生成且非空
-2. 用 `tools/docx_precheck.pyc` 复核格式
+2. 用 `tools/docx_precheck.py` 复核格式
 
 ## 输出契约
 - `<output>.docx`（Word 文档）

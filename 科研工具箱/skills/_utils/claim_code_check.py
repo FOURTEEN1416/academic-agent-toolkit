@@ -141,7 +141,12 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--modeling", default="MODELING_REPORT.md")
     ap.add_argument("--codedir", default="code")
+    ap.add_argument("--workspace", default=None, help="工作区根目录（若指定则先 cd 到该目录）")
     args = ap.parse_args()
+
+    if args.workspace:
+        import os
+        os.chdir(args.workspace)
 
     modeling = Path(args.modeling)
     codedir = Path(args.codedir)

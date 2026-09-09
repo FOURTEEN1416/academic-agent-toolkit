@@ -416,9 +416,8 @@ PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; i
 
 REVIEW_PY="${HUMANITIES_REVIEW_SCRIPT:-}"
 
-[ -f "$REVIEW_PY" ] || REVIEW_PY="_utils/humanities_review.py"
-
 [ -f "$REVIEW_PY" ] || REVIEW_PY="tools/humanities_review.py"
+
 
 if [ -f "$REVIEW_PY" ]; then
 

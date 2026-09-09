@@ -510,7 +510,7 @@ for drawio_src in "${DRAWIO_VISION_SRCS[@]}"; do
     grep -q "^${bn} PASS" _tmp/drawio_vision_passed.txt 2>/dev/null && { echo "⏭ $bn 已通过视觉自检，跳过"; continue; }
     for VROUND in 1 2 3; do
         echo "=== DrawIO 视觉自检: $bn (round $VROUND) ==="
-        VOUT=$($PYTHON _utils/drawio_vision_check.py "$pdf" 2>&1)
+        VOUT=$($PYTHON tools/drawio_vision_check.py "$pdf" 2>&1)
         VEXIT=$?
         echo "$VOUT"
         if [ "$VEXIT" -eq 0 ]; then
@@ -788,7 +788,7 @@ imgs[0].save('_tmp/${bn}_vcheck.png', 'PNG')
         # 工具原始目录 $MH_TOOLS_DIR（后端注入，指向发布包 tools/）。⛔ 不依赖单一位置，
         # 免得"复制到 _utils/ 没触发"就静默跳过视觉自检（真实翻车：图裸奔到成品）。
         VCHECK=""
-        for _cand in "_utils/tikz_vision_check.py" "${MH_TOOLS_DIR}/tikz_vision_check.py" "tools/tikz_vision_check.py"; do
+        for _cand in "tools/tikz_vision_check.py" "${MH_TOOLS_DIR}/tikz_vision_check.py" "tools/tikz_vision_check.py"; do
             [ -n "$_cand" ] && [ -f "$_cand" ] && { VCHECK="$_cand"; break; }
         done
         if [ -z "$VCHECK" ]; then

@@ -84,3 +84,24 @@ def test_runtime_discovery_combines_suite_and_path_commands(tmp_path, monkeypatc
 
     assert discovered.commands["xelatex"] == suite_xelatex
     assert discovered.commands["node"] == path_node
+
+
+def test_pyc_not_taught_as_invocation_entry(tmp_path):
+    """2026-09-09 独立审计（未验证②转化）：.pyc 是 3.11 编译的字节码分发件，
+    版本锁定（本机 3.12 直跑报 Bad magic number）。文档/技能一律不得教学
+    `python tools/*.pyc` 直调——真源是同名 .py。本测试防该口径回潮。"""
+    import re
+    bad = []
+    targets = [ROOT / "AGENTS.md", ROOT / "skills" / "CLAUDE.md"]
+    targets += list((ROOT / "skills").glob("*/SKILL.md"))
+    for f in targets:
+        if not f.is_file():
+            continue
+        text = f.read_text(encoding="utf-8", errors="ignore")
+        for m in re.finditer(r"python3?\s+[\w/\.-]*?([\w-]+)\.pyc", text):
+            bad.append(f"{f.relative_to(ROOT)}: python …{m.group(0)[:60]}")
+    assert not bad, "文档教学了 .pyc 直调（应改为同名 .py 真源）:\n  " + "\n  ".join(bad)
+    # 每个 .pyc 必须有同名 .py 真源
+    orphans = [p.name for p in (ROOT / "tools").glob("*.pyc")
+               if not p.with_suffix(".py").is_file() and "__pycache__" not in p.parts]
+    assert not orphans, f"存在无 .py 真源的孤儿 .pyc: {orphans}"

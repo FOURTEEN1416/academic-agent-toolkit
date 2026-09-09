@@ -874,7 +874,7 @@ GPT Image 2 can generate high-quality scene diagrams, technical roadmaps, flowch
 
 
 
-API Key 已通过配置文件 `_utils/_gpt_image_config.json` 注入（用户在设置页面配置，后端自动写入）。
+API Key 已通过配置文件 `_utils/_gpt_image_config.json` 注入（ACAT-GOVERNANCE：该文件为 OpenCode 后端**运行时写入**的工作区配置，非仓库资产，故不在库内；检索逻辑见 `tools/gpt_image.py` 的 cfg_path 循环。用户在设置页面配置，后端自动写入）。
 
 **直接调用即可。成功就用，失败 3 次后 DrawIO 兜底。不需要检测 Python 或检查环境变量。**
 
@@ -888,6 +888,7 @@ PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; i
 
 GPT_IMG=1
 
+# ACAT-GOVERNANCE：下方 _utils/_gpt_image_config.json 为后端运行时写入的工作区文件，非仓库资产
 echo "GPT_IMAGE: ready (Python=$PYTHON, config=_utils/_gpt_image_config.json)"
 
 ```
@@ -958,7 +959,7 @@ grep -A 30 'GPT Image' PROBLEM_ANALYSIS.md 2>/dev/null
 
 1. 检查规划中有几张 GPTIMG 图
 
-2. 对每张图：调用 `python3 _utils/gpt_image.py`（工具内置 3 次重试）
+2. 对每张图：调用 `python3 tools/gpt_image.py`（工具内置 3 次重试）
 
 3. 如果 3 次重试全部失败 → 记录到 `_gptimg_failed.txt` → 由 paper-figure-drawio 步骤自行选择最合适的替代方案（DrawIO 或 TikZ，根据图的内容自主判断）
 
@@ -1064,7 +1065,7 @@ GPTIMG_FAILED=""
 
 # Example (Claude generates the actual calls based on the plan):
 
-$PYTHON _utils/gpt_image.py \
+$PYTHON tools/gpt_image.py \
 
   --prompt "Generate a structured technical roadmap..." \
 
@@ -1696,7 +1697,7 @@ else
 
   DFV=""
 
-  for _p in "_utils/data_fig_vision_check.py" "$MH_TOOLS_DIR/data_fig_vision_check.py" "tools/data_fig_vision_check.py"; do
+  for _p in "tools/data_fig_vision_check.py" "$MH_TOOLS_DIR/data_fig_vision_check.py" "tools/data_fig_vision_check.py"; do
 
     [ -n "$_p" ] && [ -f "$_p" ] && { DFV="$_p"; break; }
 

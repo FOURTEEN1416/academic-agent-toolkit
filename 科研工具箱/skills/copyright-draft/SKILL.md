@@ -187,13 +187,13 @@ echo "🎨 UI种子 HUE=$HUE° SCHEME=$SCHEME NAV=$NAV RAD=$RAD DENS=$DENS（本
 先探测截图能力：
 
 ```bash
-python3 _utils/screenshot_capture.py --check
+python3 tools/screenshot_capture.py --check
 ```
 
 - 探测成功（exit 0）：逐个把 HTML 截成 PNG：
 
   ```bash
-  python3 _utils/screenshot_capture.py --file 软件著作权申请资料/截图/mock/dashboard.html --out 软件著作权申请资料/截图/dashboard.png
+  python3 tools/screenshot_capture.py --file 软件著作权申请资料/截图/mock/dashboard.html --out 软件著作权申请资料/截图/dashboard.png
   ```
 
   全部截完后写 `软件著作权申请资料/截图/截图清单.json`：

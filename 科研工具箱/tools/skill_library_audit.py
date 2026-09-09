@@ -23,11 +23,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 FRONT = re.compile(r"\A---\s*\n(.*?)\n---", re.S)
 REF = re.compile(r"(?:skills|tools|engine)/[A-Za-z0-9_\-./\u4e00-\u9fff]+\.(?:py|md|json|sh|tex|drawio|mjs|ttf|geojson)")
-# 技能内部相对引用（references/ scripts/ assets/ 三个 skills 生态标准目录开头）；
+# 技能内部相对引用（references/ scripts/ assets/ 三个 skills 生态标准目录开头，
+# 外加 _utils/ 与 shared-scripts/ 两个 skills 级共享脚本目录——2026-09-09 独立审计
+# P1-4 扩展：此前 _utils/ 前缀引用不在机检范围，dev-selfcheck 等真实断链漏网）；
 # (?<![\w./-]) 防止从 "subscripts/superscripts" 这类正文单词中截出 "scripts/superscripts" 伪引用。
 # docs/ templates/ knowledge/ 等歧义前缀（可能相对仓库根）不在机检范围，靠人工审计兜底。
 INNER_REF = re.compile(
-    r"(?<![\w./\-])((?:references|scripts|assets)"
+    r"(?<![\w./\-])((?:references|scripts|assets|_utils|shared-scripts)"
     r"/[A-Za-z0-9_][A-Za-z0-9_{}*./\-]*)"
 )
 MOJIBAKE_MARKS = ("锟斤拷", "烫烫烫", "\ufffd\ufffd")
@@ -102,7 +104,10 @@ def audit() -> dict:
             if ref in seen_inner:
                 continue
             seen_inner.add(ref)
-            if (d / ref).exists() or (d / ref.split("/")[0]).is_dir() and "*" in ref:
+            # 解析顺序：①技能目录内相对路径；②skills/ 级共享目录（_utils/、shared-scripts/
+            # 从技能正文引用时实际指向 skills/_utils/…，2026-09-09 审计 P1-4）；③通配符目录。
+            if (d / ref).exists() or (ROOT / "skills" / ref).exists() \
+                    or (d / ref.split("/")[0]).is_dir() and "*" in ref:
                 continue
             if _dynamic_placeholder(ref):
                 continue

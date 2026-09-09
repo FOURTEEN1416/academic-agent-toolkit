@@ -100,7 +100,7 @@ cd ../..
 ```bash
 echo "=== 界面截图(可选, 失败不阻塞自测) ==="
 # 1) 探测截图能力(Electron capturePage), 不可用整段跳过
-if ! python _utils/screenshot_capture.py --check >/dev/null 2>&1; then
+if ! python tools/screenshot_capture.py --check >/dev/null 2>&1; then
   echo "⚠ 截图能力不可用(非桌面环境?), 跳过界面截图, 报告相应处用占位符"
 else
   mkdir -p figures
@@ -113,7 +113,7 @@ else
       bn=$(basename "$html" .html)
       out=$([ "$bn" = index ] && echo figures/shot_home.png || echo "figures/shot_${bn}.png")
       [ -f "$out" ] && continue   # 去重(index.html 会被通配再匹配一次)
-      timeout 60 python _utils/screenshot_capture.py --file "$html" --out "$out" --width 1280 --height 800 >/dev/null 2>&1
+      timeout 60 python tools/screenshot_capture.py --file "$html" --out "$out" --width 1280 --height 800 >/dev/null 2>&1
       [ -f "$out" ] && { echo "✅ $out"; SHOT_N=$((SHOT_N+1)); }
       [ "$SHOT_N" -ge 6 ] && break
     done
@@ -136,7 +136,7 @@ else
       sleep 2
       CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "http://127.0.0.1:$SPORT/" 2>/dev/null)
       if [ "$CODE" = "200" ]; then
-        timeout 60 python _utils/screenshot_capture.py --url "http://127.0.0.1:$SPORT/" --out figures/shot_home.png --width 1280 --height 800 --wait-ms 1500 >/dev/null 2>&1
+        timeout 60 python tools/screenshot_capture.py --url "http://127.0.0.1:$SPORT/" --out figures/shot_home.png --width 1280 --height 800 --wait-ms 1500 >/dev/null 2>&1
         [ -f figures/shot_home.png ] && { echo "✅ figures/shot_home.png"; SHOT_N=$((SHOT_N+1)); }
       else
         echo "⚠ 静态服务探活失败(HTTP=$CODE), 跳过截图"
