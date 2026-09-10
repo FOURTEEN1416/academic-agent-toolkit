@@ -544,3 +544,10 @@
 - **发现的暗点与补强（三处）**：①**图形闸全部押在第 10 步"按需选跑"**——出图当下不跑，问题拖到编译才暴露。前移：paper-figure Quality floor 增"出图当下即跑 fig_include_size/figure_text_budget/figure_narrative_check"；paper-figure-drawio 增"出图即检 tikz_structure_check/tikz_palette_check"（五个闸脚本 _utils+shared-scripts 双副本实存验证）。②**S5 推荐漏 paper-figure-html**（modex-3 批次 2 增补 7 节的高密度图表技能，此前仅 drawio 一处顺带提及）——已入 templates.json S5 companion+地图表。③**comp-visual-review 检查清单缺打印安全两显式项**——增"黑白打印可分辨（线型/hatch 冗余编码）"+"色盲模拟（红绿色弱）可区分"。
 - **批判式不吸收记录**：方法武器库"图表→200 字分析 prompt"gem 不再单独吸收——comp-paper-zh 既有图解读铁律（三要素+机检）是其超集；quality_gates.json 引擎注册表为空系设计使然（21 件闸走技能纪律路由+figure_check.sh/run_all 机闸，引擎化留赛后评估）。
 - **验证**：双口径 264+6skip/308+6skip 全绿、provenance PASS、五闸脚本双副本实存。
+
+## 2026-09-11 续5（用户令"外部盲审终审"——开题前盲审提示词包交付）
+
+- **交付 `CUMCM2026Problems/A题/开题前终审盲审提示词.md`**（gitignored 本地区，同独立审核提示词.md 先例）：8 位敌意审计员（A1 数学物理正确性盲审/A2 引擎红队绕过实测/A3 测试有效性变异抽考/A4 文档-实况一致性/A5 赛时流程红队演习/A6 防投毒合规/A7 绘图链路/A8 时间预算）+ P0 总协议（一手证据优先/文档声称视为待验口径/测试全绿不算健康/finding 带 file:line/VERDICT JSON）+ 汇总裁决表与放行标准（A1/A2/A5 pass 且无未处置 fatal 方可开题）。
+- **反自嗨设计**：①不给盲审者主控会话任何结论（A1 要求独立从 PDF 渲染目视重判 D 公式分子/分母、自行重解特征方程，而非确认我方修正）；②A3 变异抽考直接回答"测试没测什么"（点名 C1 闸有无测试）；③A5 红队只按文档执行，缺口如实记"文档缺口"；④利益冲突自查写入文件头——提示词由被审计方起草，建议用户先给无关第三方过目增删再用。
+- **通道适配**：A1/A2/A3/A5/A7 需仓库访问权=ZCode 独立新窗口；A4/A6 部分文本核对可投喂 Agnes 外部通道（reviewer_client 文文本通道，禁回显密钥值）。
+- 本区不入 git；用户按提示词逐窗执行后回收 VERDICT 填裁决表。
