@@ -93,6 +93,13 @@ python -m engine.workflow_cli audit --workspace <工作区>   # 生成 OPERATION
 | "写中文 LaTeX 论文" | `skills/paper-write-zh/` |
 | "写 Nature 论文" | `skills/paper-write-nature/` |
 | "画论文图表" | `skills/paper-figure/` 或 `paper-figure-drawio/` |
+| "不知道用什么图/这数据怎么画" | `skills/scipilot-figure-skill/`（论证驱动选图+EDA+错误拦截） |
+| "CNS/Nature/Cell 级投稿图" | `skills/academic-figure-skill/`（期刊规格+图集+四轮 QA） |
+| "照着这张图复现" | `skills/plot-from-image/`（字体/取色/比例测量→复现代码） |
+| "用 XX 论文那种风格画" | `skills/plot-from-data/`（8 种顶会风格模板） |
+| "重建这张 Visio 图" | `skills/visio-image-rebuilder/`（vsdx 原生形状重建） |
+| "论文方法框架图多方案" | `skills/paper-framework-figure-studio-pro/`（候选草案共设计） |
+| "找参考图再动手" | `skills/agent-figure-gallery/`（图库检索+偏好选择） |
 | "编译论文 PDF" | `skills/paper-compile/` 或 `paper-compile-zh/` |
 | "自动审稿" | `skills/auto-review-loop/` |
 

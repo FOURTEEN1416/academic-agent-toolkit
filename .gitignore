@@ -109,3 +109,9 @@ vendor/
 
 # Modex v3 技能包原包（本地对照源，已定向吸收，赛后评估入库方式）
 modex-3-skills/
+
+# 无 License 上游技能（本地完整复刻可用，不入公开仓——侵权红线隔离）
+科研工具箱/skills/plot-from-data/
+科研工具箱/skills/plot-from-image/
+科研工具箱/skills/visio-image-rebuilder/
+科研工具箱/skills/paper-framework-figure-studio-pro/

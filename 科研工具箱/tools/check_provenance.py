@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parent.parent
 # UPSTREAM.md 台账注册表（Phase 5.1 清单，可扩展）
 UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "tools" / "codesucker-core" / "UPSTREAM.md",
+    ROOT / "tools" / "pubfig" / "UPSTREAM.md",
     ROOT / "tools" / "docx-cn-engine" / "UPSTREAM.md",
     ROOT / "tools" / "docx_style_profiles" / "UPSTREAM.md",
     ROOT / "tools" / "humanize_chinese" / "UPSTREAM.md",

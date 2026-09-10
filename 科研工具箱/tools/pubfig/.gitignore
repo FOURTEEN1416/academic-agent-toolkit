@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# OS / editor
+.DS_Store
+.idea/
+
+# Generated figures and temp assets
+output_figures/
+output_figures_mpl/
+temp/
+temp_*/
+examples/figma_panels_demo_output/
+examples/figma_panels_3344_demo_output/
+examples/__pycache__/
+
+# Local tooling
+.claude/
+# Local planning
+plan/

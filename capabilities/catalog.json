@@ -6259,6 +6259,125 @@
       "high_risk_confirmation": "无",
       "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
       "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
+    },
+    {
+      "capability_id": "scipilot-figure-skill",
+      "name": "scipilot-figure-skill",
+      "domain": "figures_and_document_production",
+      "description": "SciPilot 科研数据可视化顾问：论证目标驱动选图（决策三轴）+EDA 数据剖析+经典错误主动拦截+出版级成图+视觉自检闭环；matplotlib/seaborn/SciencePlots，Nature/Science/IEEE/中文核心规格。来源 Haojae/scipilot-figure-skill（MIT）",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "scipilot-figure-skill"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；Haojae/scipilot-figure-skill 适配复刻（2026-09-11 批次），域级验收状态沿用",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行"
+    },
+    {
+      "capability_id": "academic-figure-skill",
+      "name": "academic-figure-skill",
+      "domain": "figures_and_document_production",
+      "description": "CNS 投稿级科研图表全流程：一图一信息/克制配色/89-183mm 印刷设计/矢量优先，8 步闭环+四轮 QA，含图表合同/图解构/多面板布局/修回案例 16 份 references+图集 assets。来源 TingxiYu/academic-figure-skill（Apache-2.0）",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "academic-figure-skill"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；TingxiYu/academic-figure-skill 适配复刻（2026-09-11 批次），域级验收状态沿用",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行"
+    },
+    {
+      "capability_id": "visio-image-rebuilder",
+      "name": "visio-image-rebuilder",
+      "domain": "figures_and_document_production",
+      "description": "参考图像/.vsdx 重建为可编辑 Visio 原生形状图（禁整图嵌入），导出 vsdx/PNG/SVG/PDF/PPTX；中文技术标书流程图宋体 12pt 默认风格与 PowerShell CJK 转义规范。来源 ayuanyuan666-cpu/visio-image-rebuilder（无 License，本地复刻 gitignore 隔离）",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "visio-image-rebuilder"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；ayuanyuan666-cpu/visio-image-rebuilder 适配复刻（2026-09-11 批次），域级验收状态沿用",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行"
+    },
+    {
+      "capability_id": "plot-from-data",
+      "name": "plot-from-data",
+      "domain": "figures_and_document_production",
+      "description": "按预置顶会论文风格目录出图：8 种风格模板（配对增益柱/hatch 消融柱/置信带曲线/断轴散点/双雷达等）选风格+代入数据，dpi=300 PNG。来源 Trae1ounG/paper-plot-skills（无 License，本地复刻 gitignore 隔离）",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "plot-from-data"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；Trae1ounG/paper-plot-skills 适配复刻（2026-09-11 批次），域级验收状态沿用",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行"
+    },
+    {
+      "capability_id": "plot-from-image",
+      "name": "plot-from-image",
+      "domain": "figures_and_document_production",
+      "description": "对照论文图复现：上传图→字体检测/取色/比例测量→映射 8 预置风格或新建风格，产出 matplotlib 复现代码。来源 Trae1ounG/paper-plot-skills（无 License，本地复刻 gitignore 隔离）",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "plot-from-image"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；Trae1ounG/paper-plot-skills 适配复刻（2026-09-11 批次），域级验收状态沿用",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行"
+    },
+    {
+      "capability_id": "paper-framework-figure-studio-pro",
+      "name": "paper-framework-figure-studio-pro",
+      "domain": "figures_and_document_production",
+      "description": "论文框架图（method overview/architecture/pipeline/agent workflow）多轮共设计工作室 v3.2.15f：多样化候选草案+分型图集+契约规范下的随机之美。来源 c-narcissus/paper-framework-figure-studio-pro（无 License，本地复刻 gitignore 隔离）",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "paper-framework-figure-studio-pro"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；c-narcissus/paper-framework-figure-studio-pro 适配复刻（2026-09-11 批次），域级验收状态沿用",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行"
+    },
+    {
+      "capability_id": "agent-figure-gallery",
+      "name": "agent-figure-gallery",
+      "domain": "figures_and_document_production",
+      "description": "科研图参考图库轻量控制器：query 检索→候选展示→人工偏好选择→导出参考包→引导绘图 agent 从人选示例到代码。来源 Dsadd4/AgentFigureGallery（MIT；完整 KB 需外部 agentfiguregallery 包）",
+      "input_contract": "技能 SKILL.md 定义的输入契约",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "status": "experimental",
+      "associated_skills": [
+        "agent-figure-gallery"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md 存在）；Dsadd4/AgentFigureGallery 适配复刻（2026-09-11 批次），域级验收状态沿用",
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行"
     }
   ]
 }
