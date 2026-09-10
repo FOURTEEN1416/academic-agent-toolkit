@@ -93,6 +93,8 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "skills" / "sci-scientific-writing" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "sci-statistical-analysis" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "sci-sympy" / "references" / "UPSTREAM.md",
+    # figures4papers 收编：语义调色板+构图五模式（2026-09-09，CC BY-NC-4.0）
+    ROOT / "skills" / "paper-figure" / "references" / "UPSTREAM.md",
 ]
 
 # 需要完整许可文件的 vendored 外部依赖目录（含 LICENSE/NOTICE/UPSTREAM.md 三件套）
