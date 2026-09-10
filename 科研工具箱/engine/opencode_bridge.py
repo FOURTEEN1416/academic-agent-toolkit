@@ -29,6 +29,7 @@ class StepAction:
     primary_output: str
     has_checkpoint: bool
     checkpoint_type: str | None
+    companion_skills: list[str] = field(default_factory=list)
     params: dict[str, Any] = field(default_factory=dict)
 
     def execution_instructions(self) -> str:
@@ -40,6 +41,8 @@ class StepAction:
             f"  产出文件: {', '.join(self.output_files) if self.output_files else '(按技能说明)'}",
             f"  主产出: {self.primary_output or '(无)'}",
         ]
+        if self.companion_skills:
+            lines.append(f"  推荐辅助技能(按需加载1-3个,全库地图见 CONTEST_SKILL_MAP.md): {', '.join(self.companion_skills)}")
         if self.has_checkpoint:
             lines.append(f"  ⚠️ 完成后需暂停等待用户{'批准' if self.checkpoint_type == 'approve' else '反馈'}")
         return "\n".join(lines)

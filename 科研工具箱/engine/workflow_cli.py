@@ -184,6 +184,7 @@ def main() -> int:
                     "primary_output": result.action.primary_output,
                     "has_checkpoint": result.action.has_checkpoint,
                     "checkpoint_type": result.action.checkpoint_type,
+                    "companion_skills": result.action.companion_skills,
                     "instructions": result.action.execution_instructions(),
                 }
             print(json.dumps(output, ensure_ascii=False, indent=2))

@@ -888,7 +888,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "companion_skills": [
+            "problem-analysis"
+          ]
         }
       },
       {
@@ -914,7 +917,15 @@
             "step_manifest",
             "citation_integrity"
           ],
-          "display_name": "文献调研与核验"
+          "display_name": "文献调研与核验",
+          "companion_skills": [
+            "citation-check",
+            "check-citations",
+            "research-lit",
+            "literature-review",
+            "paper-search",
+            "sci-paper-lookup"
+          ]
         }
       },
       {
@@ -936,7 +947,15 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "companion_skills": [
+            "model-building",
+            "model-innovation",
+            "math-modeling-contest-route-selection",
+            "sci-sympy",
+            "proof-writer",
+            "scholar-verify-math"
+          ]
         }
       },
       {
@@ -958,7 +977,15 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "companion_skills": [
+            "data-processing",
+            "sci-exploratory-data-analysis",
+            "sci-statistical-analysis",
+            "sci-networkx",
+            "dse-loop",
+            "analyze-results"
+          ]
         }
       },
       {
@@ -978,7 +1005,15 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "companion_skills": [
+            "scipilot-figure-skill",
+            "agent-figure-gallery",
+            "academic-figure-skill",
+            "plot-from-data",
+            "plot-from-image",
+            "scientific-visualization"
+          ]
         }
       },
       {
@@ -998,7 +1033,15 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "companion_skills": [
+            "paper-framework-figure-studio-pro",
+            "visio-image-rebuilder",
+            "diagram-design",
+            "scientific-schematics",
+            "graphviz",
+            "mermaid-diagram"
+          ]
         }
       },
       {
@@ -1017,7 +1060,12 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "companion_skills": [
+            "auto-review-loop",
+            "auto-review-loop-llm",
+            "auto-review-loop-minimax"
+          ]
         },
         "required_checks": [
           "review"
@@ -1044,7 +1092,15 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "companion_skills": [
+            "anti-defensive-writing",
+            "anti-ai-detection",
+            "latex-writing",
+            "result-to-claim",
+            "paper-plan-zh",
+            "format-profile"
+          ]
         }
       },
       {
@@ -1064,7 +1120,10 @@
           "required_checks": [
             "consistency"
           ],
-          "display_name": "代码-论文一致性检查"
+          "display_name": "代码-论文一致性检查",
+          "companion_skills": [
+            "analyze-results"
+          ]
         }
       },
       {
@@ -1090,7 +1149,13 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "companion_skills": [
+            "docx-export",
+            "docx-format-check",
+            "docx-template-map",
+            "latex-document"
+          ]
         }
       },
       {
@@ -1109,7 +1174,11 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "数模视觉审查"
+          "display_name": "数模视觉审查",
+          "companion_skills": [
+            "scholar-critique-figures",
+            "figure-spec"
+          ]
         },
         "required_checks": [
           "review"
@@ -1127,7 +1196,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "数模编辑修订"
+          "display_name": "数模编辑修订",
+          "companion_skills": [
+            "anti-defensive-writing"
+          ]
         }
       },
       {
@@ -1150,7 +1222,10 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "数模最终复审"
+          "display_name": "数模最终复审",
+          "companion_skills": [
+            "scholar-critique-manuscript"
+          ]
         }
       },
       {
@@ -1176,7 +1251,11 @@
             "consistency",
             "final_audit"
           ],
-          "display_name": "最终交付审计"
+          "display_name": "最终交付审计",
+          "companion_skills": [
+            "citation-check",
+            "quality-check"
+          ]
         }
       }
     ]

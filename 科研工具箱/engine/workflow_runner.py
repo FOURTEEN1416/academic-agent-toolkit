@@ -145,6 +145,7 @@ class WorkflowRunner:
             primary_output=step.metadata.get("primary_output", ""),
             has_checkpoint=step.metadata.get("has_checkpoint", False),
             checkpoint_type=step.metadata.get("checkpoint_type"),
+            companion_skills=step.metadata.get("companion_skills", []),
             params=workflow.metadata.get("params", {}),
         )
         return RunResult(workflow_id, "advanced", step.id, action=action)
