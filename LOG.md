@@ -474,3 +474,22 @@
 - **资料武装**：①bzdshumo 论文自查表 287 项抓取落盘 `参考论文/bzd_论文自查表_287项.md`（含 AI 支撑材料合规段，与官方 2026 AI 规定呼应；站点附带论文模板/往届优秀论文网盘链接）；②fork WuXinbo-bo/Math-model-skills（88星 MIT，pin efbcfbe）→ vendor/forks/Math-model-skills（HTTPS 通道克隆两次失败——代理并发 reset 已知坑，改 ssh://ssh.github.com:443 成功）；用户裁决**赛中轻吸收**：高价值合同文档（cumcm-official-notes/championship-review-method/model-quality-contracts/paper-layout/）当对照规范直接引用，赛后按六件套流程正式收编；③合规红线声明：当届赛中论文/代码资料一律不碰（学术不端实锤），往届/模板类可用。
 - **调研落盘（A 题）**：`CUMCM2026Problems/A题/research_physics.md`（约5500字：Bi≈1.1-4.2 证 PDE 必要、α/D≈24 证两阶段物理根源、Bi_m≈2.3 证 Robin 边界、C_∞=干基EMC 非空气湿度、Ea≈32kJ/mol 证 D 公式可信、Landau 变换+12 篇验证文献）；`research_antiai.md`（约3800字：官方《AI工具使用规定2026试行》双件套申报+竞赛期间禁平台浏览讨论赛题+双重查重25%红线+A题面陷阱 Top3：单位混排/开尔文/模板机械格式）。数值方法深度调研 agent 在跑（research_numerics.md 待落盘）。
 - **提交状态**：本条改动=.gitignore+LOG.md+参考论文/bzd_论文自查表_287项.md（untracked）+vendor/forks/Math-model-skills（vendor/ 已 gitignore）+CUMCM2026Problems/（已 ignore），待用户确认后逐文件点名提交。
+
+## 2026-09-10 深夜续（方法武器库全量通读盘点 + AAAI18 清除）
+
+- **AAAI18 清除（用户令"清除出去"）**：`方法武器库/AAAI18/` 整目录删除（91MB，删前逐文件过目：11 文件全为 st-gcn 骨架动作识别预训练权重 .pt + 1 个 Caffe prototxt + 386 字节分段包合并说明 ReadMe，实读确认为 st-gcn 官方百度云分段包说明、无任何其他资料混入）；rm -rf 后残留检查干净。该资料与 A 题药材烘干无关（早间已裁定止损），本次用户令执行终局删除。
+- **全量通读盘点（首轮抽样被用户质询"真的读完了吗"后整改）**：方法武器库剩余 20 文件全部读毕——7 简洁版 docx 全文、8 详细说明 pdf 全 69 页、AI 详情 docx 259 段全文、主模板 docx 结构+官方格式规范、签名 pdf 同源验证（86 页与 docx 同文本）、zip 内 631 行完善模板.tex 全文+ref.bib+工作总结.txt+流程图 png 实看。**重要修正：BZD《完善工作总结.txt》是夸大宣传材料**——宣称 1374 行（实物 631）、140+ 自查项（实物约 52）、TikZ 流程图（实为 \includegraphics 一张"上海水果价格预测"具体项目示例 png，套用必须替换）、模板使用说明.md（不存在）。教训入库：转述性总结必须对照实物，宣传数字不作依据。
+- **盘点结论（真值）**：高价值资产 4 类，对 skills/engine 零引用待吸收——①官方 AI 申报全规格（AI详情docx：四项内容+A-01/E-01 编号+采纳/修改/核验表+18 条生成要求+材料完整性检查表；现有 tools/ai_usage_declaration.py 仅覆盖论文内声明段，官方支撑材料 PDF 生成线空白，operations.jsonl 可为真实交互记录证据源）＝最紧迫；②逐章提示词库（每章成稿模板+AI 提示词+自查清单；gems：代码→正文转化 prompt/图表→200 字分析 prompt/框架图节点输出/模型针对性判定"删背景仍通用=抄原理"/真联动标准/5 类检验方式表/灵敏度 6 步法/物理机理假设示例——A 题直接可用）；③完善模板.tex 631 行（仓库骨架 7 倍增量，作 main_enriched.tex 吸收须删水果 png 引用+试编译）；④官方格式规范三层区分（"仅四部分有规定"澄清/"至少 5 篇""五号宋体"非官方/附录复现检查 10 项/截图匿名细则）。无价值：zip 内 cls v2.6（repo v2.9 领先）、字体/bst 标准件、ref.bib 示例。中价值：主模板 docx（Word 路线基座）。自查维度以 287 项表为超集不重复吸收。结论回流记忆 method-arsenal-inventory.md；吸收动作待用户点头后按"适应性改造"铁律执行。
+
+## 2026-09-10 深夜续2（方法武器库无关文件清理）
+
+- **清理（用户令"先将无关信息和文件清理出去"）**：方法武器库 128MB/31 文件 → **3.5MB/19 文件**，仅剩吸收源资产。删除三件：①`数学建模竞赛论文latex模板-BZD数模社 (1).zip`（37MB；内部 10 件中 8 件无价值——cls v2.6 被 repo v2.9 领先/字体×4 标准件且 repo 走系统字体/gbt7714.bst TeX Live 标准件/ref.bib 示例/水果价格 png 他人项目图/完善工作总结.txt 已证伪宣传，唯一高价值件已先行提取）；②`2026年数学建模竞赛模板-BZD数模社(证书签名).pdf`（86 页已验证与 docx 同文本，冗余）；③`%TEMP%\arsenal_extract\`（调研临时提取目录）。
+- **保留（19 件全为吸收源）**：`论文模板/数模完善模板.tex`（自 zip 提取，630 行头尾验证完整；注意其第 172 行仍引用已删除的水果 png，吸收改造时须处理）、主模板 docx（合集+官方格式规范）、各板块详细说明文档 14 件。
+
+## 2026-09-10 深夜续3（modex-3-skills 同源升级两批次入库）
+
+- **来源与裁定**：用户将 Modex v3 技能包（90 技能/172MB）放入仓库根，指示"对照/吸收，对已有 skills 补充升级，补全不足"。全量摸底（90 技能逐个 diff+shared-scripts 清单比对+关键文件精读）→ 评估报告落盘 `dev-docs/modex3_upskill_assessment.md`：31 相同/47 本仓超集/3 元目录不动，7 技能+33 独有共享文件为吸收对象。本仓 error_prevention.md（2319 行）确认为演进超集非缺口；8 个共同依赖同名函数有实现差异 → 依赖一律保留本仓版不覆盖。
+- **批次1（e31ac30，27 文件 +6587 行）**：mechanism_accuracy_addendum.md（16.1-16.15 机理/优化补充：PDE 网格收敛/首达时刻/可辨识性——A 题直接对口）+ AI 申报自动化线（ai_disclosure_rules+build_ai_disclosure.py 1592 行+paper_source_scope）+ ai_tell_check.py（AI 痕迹闸，实测"口径"225 次命中）+ 人工风格层（human_paper_style_check+规范）——全部 _utils+shared-scripts 双副本；comp-code checks 六份增补附录（modex-3 独有检查器代码块收录，本仓 validate_capability/AUDIT_OK 契约保留）；comp-modeling/comp-prob-analysis/comp-paper-zh/checks_index 四处路由；shared-scripts/UPSTREAM.md 新建+provenance registry 64→65；test_dual_copy_consistency 加台账豁免。
+- **批次2（8849a96，55 文件 +11742 行）**：质量闸全家桶 21 件（tikz_structure/palette、fig_include_size、figure_pdf_quality、pdf_page_density、abstract_emphasis、latex_typography、normalize_cjk_quotes、writing/compile_source_check、compute_checkpoint 等）+ 合同规范 5 份（modeling_paper_contract/abstract_writing_contract/quality_gate_contract/cumcm_2026_format/tikz_style_families）双副本；paper-figure-html 增补 7 节（物理可读性/零灰墨色/文字选材/CSS 实测坑/B 配色配方）+ nature-figure 增补 Mandatory style contract；comp-compile-zh 加质量闸索引路由。依赖闭包验证 21 件 import 全通；真实材料冒烟 4 件通过。
+- **验证**：工具箱 264+6skip / 仓库根 308+6skip 全绿；skill_library_audit OK；provenance 65/65。
+- **不动项**：153MB 模板字体（11 赛事，git 体积不可承受且赛时只用 cumcm——赛后评估入库方式）；paper-figure-drawio 189 行/experiment-bridge 36 行微增量（留批次3 余量）；modex-3-skills/ 原包入 .gitignore 保留本地。
