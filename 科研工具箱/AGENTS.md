@@ -34,7 +34,7 @@
 
 | 层 | 机制 | 记录内容 | 写入位置 | 可否绕过 |
 |---|------|---------|---------|---------|
-| **L1 拦截式** | OpenCode plugin（`.opencode/plugins/audit-trail.ts` + 官方 `opencode-logger`）；ZCode 等价：`hooks/zcode_audit_l1.py`（经 `.zcode/config.json` 注册 PreToolUse/PostToolUse/Failure） | 每次工具调用（bash 命令全文/编辑路径/skill 名/task 描述）、文件编辑、会话、权限请求 | 共享根 `.engine/audit/operations.jsonl`（ZCode 同文件）+ OpenCode 另有 `log.jsonl` | ❌ 不可绕过（宿主钩子层，agent 无法跳过） |
+| **L1 拦截式** | OpenCode plugin（`.opencode/plugins/audit-trail.ts` + 官方 `opencode-logger`）；ZCode 等价：`hooks/zcode_audit_l1.py`（经 `.zcode/config.json` 注册 PreToolUse/PostToolUse/Failure；**fail-open 铁律：hook 自身故障一律 stderr 警告+exit 0 放行，exit 2 唯一来源是规则拦截且必留痕**——2026-09-09 锁死事故后固化，exit 2 与 python 找不到脚本的退出码撞车是事故根因） | 每次工具调用（bash 命令全文/编辑路径/skill 名/task 描述）、文件编辑、会话、权限请求 | 共享根 `.engine/audit/operations.jsonl`（ZCode 同文件）+ OpenCode 另有 `log.jsonl` | ❌ 不可绕过（宿主钩子层，agent 无法跳过） |
 | **L2 编排式** | `WorkflowRunner` 引擎侧写入 | workflow 启动/步骤完成（含声明命令）/checkpoint 批准 | 同一 `.engine/audit/operations.jsonl` | ⚠️ 仅当走 runner 流程时 |
 | **L3 申报式** | `complete_step()` 的 execution_evidence | skill 哈希、声明命令、输入输出产物、产物 manifest | 工作区 `.engine/evidence/*.json` | ⚠️ 依赖 agent 主动申报 |
 
@@ -271,6 +271,6 @@ python -m engine.workflow_cli complete --wf <workflow_id> --ok true --artifacts 
 }'
 ```
 
-上述 `workflow_cli` 命令不是任何宿主的启动命令，也不是数模智能体的运行前提。实际执行者始终是**当前宿主**（OpenCode Desktop 或 ZCode）中承担主控的 Agent；系统不依赖系统 PATH 中存在 `opencode` CLI。OpenCode 桌面端配置、agent 或技能变更后，关闭并重新启动桌面端再验证；ZCode 下变更后重开会话即可（技能经 `.zcode/skills` 联结自动发现，hook 配置改动需重启会话）。
+上述 `workflow_cli` 命令不是任何宿主的启动命令，也不是数模智能体的运行前提。实际执行者始终是**当前宿主**（OpenCode Desktop 或 ZCode）中承担主控的 Agent；系统不依赖系统 PATH 中存在 `opencode` CLI。OpenCode 桌面端配置、agent 或技能变更后，关闭并重新启动桌面端再验证；ZCode 下变更后重开会话即可（技能经 `.zcode/skills` 联结自动发现，hook 配置改动需重启会话）。**换机部署仅一步**：重建 `.zcode/skills` 联结即可——hook 命令是 `python -c` 内联引导器（先探测项目根 env 变量，再从 cwd 逐级上溯定位 `科研工具箱/hooks/zcode_audit_l1.py`；定位/执行失败一律 stderr 警告+exit 0 放行，exit 2 唯一来源=治理规则命中），随仓分发免改路径。历史教训（2026-09-09/09-10 三次全工具锁死定案）：相对路径与 `${ZCODE_PROJECT_DIR}` 变量式写法在 cwd 漂移下都会让 python 在脚本运行前以退出码 2（=deny）死去——**勿回退到任何路径/变量式 hook 写法**（契约测试 test_zcode_config_uses_inline_bootstrap 把守）。
 
 每个工作流的步骤、检查点和运行事件写入 SQLite。主控 Agent 取得真实产物和执行证据后，才调用 `complete_step()` 推进步骤。**模型配置仓库不预设**（2026-09-09 裁定）：审稿/视觉模型比赛时填入 `engine/modex-core/contest_models.json` 配置槽（或宿主 agent 配置），仅供具体工具脚本与 strict 门禁比对使用，不参与流程调度。

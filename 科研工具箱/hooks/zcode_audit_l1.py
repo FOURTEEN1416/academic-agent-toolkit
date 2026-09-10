@@ -18,7 +18,15 @@
   - `git add .` / `git add -A` / `git add --all` → 拒绝（用户治理铁律：逐文件点名）。
   - 其余一律放行（本钩子默认只记录不干预；扩展拦截规则在 _DENY_RULES 增加）。
 
-设计铁律：脚本自身任何异常都必须静默退出 0——审计钩子绝不能弄挂主控会话。
+设计铁律（fail-open，2026-09-09 锁死事故后加固）：宿主 hook 语义为
+"exit 0 = 放行 / exit 2 = deny / 其他非零 = 报错"。而 Windows 上 python 找不到
+脚本文件时的退出码**恰好也是 2**——hook 进程层面的"自身起不来"会被宿主误读成
+"规则拦截"，导致全部工具调用被硬断（2026-09-09 会话锁死事故根因）。因此：
+  1. 脚本自身任何异常（含 main() 崩溃）→ stderr 写警告 + exit 0 放行，
+     严格区分"hook 故障"（fail-open，绝不拦）与"规则拦截"（唯一 exit 2 出口，
+     仅 _DENY_RULES 命中且必须留痕 permission/deny 事件）；
+  2. "python 找不到脚本"场景脚本无法自救，由 .zcode/config.json 的
+     ${ZCODE_PROJECT_DIR} 绝对展开堵死（脚本路径不依赖 shell cwd，见 config 契约测试）。
 
 用法（由 .zcode/config.json hooks 注册，也可手动喂 stdin 测试）：
   echo '<hook json>' | python zcode_audit_l1.py pre|post|fail
@@ -163,8 +171,24 @@ def _write(entry: dict) -> None:
         pass
 
 
-if __name__ == "__main__":
+def _cli() -> int:
+    """fail-open 入口：main() 崩溃 → 警告 + 0（放行），绝不让审计钩子弄挂主控会话。
+
+    exit 2 只有唯一来源：_DENY_RULES 命中后的主动 deny。SystemExit 直接透传
+    （保住 main() 的 2 / 0 语义），BaseException 兜底覆盖 KeyboardInterrupt 等极端情况。
+    """
     try:
-        sys.exit(main())
-    except Exception:
-        sys.exit(0)
+        return main()
+    except SystemExit:
+        raise
+    except BaseException as exc:  # noqa: BLE001 — 审计钩子自身故障绝不拦截主控
+        try:
+            print(f"[zcode_audit_l1] hook 内部故障，fail-open 放行（勿当作规则拦截）: {exc!r}",
+                  file=sys.stderr)
+        except Exception:
+            pass
+        return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_cli())

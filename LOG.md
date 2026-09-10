@@ -390,3 +390,48 @@
 - **原因**：比赛将以 ZCode 为主控；模型（含视觉）比赛时再配置（示例 GLM 视觉系列），仓库任何预设都是风险源。
 - **结果**：ZCode 下 L1 审计自本日起不再是降级项；OpenCode 生产行为不变（配置槽空→agents 回退复证一致）；hook 配置改动需重启会话生效（当前会话仅脚本级实测+12 项测试，宿主触发待新会话复验）。
 - **验证**：新增 `test_zcode_host_compat.py` 12 项（三级解析/strict 联动含正反/hook 五态含 deny 留痕/注册契约）全绿；hook 六态 CLI 实测 + `AuditStore.stats` 真读兼容；`chain_driver.py` 全新工作区实跑 step0-3（checkpoint 硬闸×2 approve、真实 pulp 求解、matplotlib 生图、review 步按设计等待）；终局基线 工具箱 **259** / 根 **303**，provenance 63/63、skill_library_audit OK exit 0。
+
+## 2026-09-09（补遗 6：hook 锁死事故修复 fail-open + figures4papers 收编）
+
+- **锁死事故根因定案与修复**：上会话 shell 持久 cwd 漂到 `科研工具箱/skills/` 后全会话硬断，根因是**宿主 hook 语义（exit 2=deny）与 Windows python 找不到脚本的退出码（恰为 2）撞车**——hook 进程层故障被误读成规则拦截。修复三件：①`hooks/zcode_audit_l1.py` 新增 `_cli()` fail-open 入口（main() 崩溃→stderr 警告+exit 0，exit 2 唯一出口=规则拦截且必留痕 permission/deny 事件），头部注释固化设计铁律；②`.zcode/config.json` 按 `zcode-guide:diagnosing-hooks` 官方 schema 净化——删 hook 级 `enabled` 字段（process 白名单仅 command/args/timeoutMs/statusMessage，混入即整 hook 被宿主静默丢弃），保留 `${ZCODE_PROJECT_DIR}` 绝对展开+无 matcher（官方语义=匹配全部）；③契约测试扩 12→20 项：恶意输入 fuzz×4、内部崩溃注入（断言 stderr 含 fail-open）、**仓库外 cwd 放行实测**（锁死场景复现）、config 字段白名单、脚本路径项目根锚定。
+- **验证**：契约测试 20/20；锁死现场还原实测 5 场景全对（仓库外 cwd 放行/git add . 拦截 rc=2+理由/锁死 cwd 放行/崩溃 fail-open/审计落账 2 tool_call+1 permission）。宿主层 hook 触发按惯例待仓库内新会话复验。
+- **figures4papers 收编（先 Fork 后集成）**：fork ChenLiu-1996/figures4papers → FOURTEEN1416/figures4papers，pinned `3c181f8`（2026-09-06），License 核实为 **CC BY-NC-4.0**（LICENSE 原文；API NOASSERTION 不准）。落地 `skills/paper-figure/references/`：`semantic-palette.md`（颜色→数据角色语义映射+顶刊 PALETTE+消融 alpha 梯度）+ `composition-patterns.md`（构图五模式），UPSTREAM.md 登记并注册 `check_provenance.py`（63→64），SKILL.md Tools and Style 段挂引用防孤儿文件。对比 grep 结论：hatch 全库零覆盖系独有增量；图例面板/灰度现有仅检查规则层，收编件补"怎么构图"知识层，与 figure_style_guide 互补。
+- **原因**：用户裁定锁死修复第一优先防复发 + 续执行上会话批准的收割清单。
+- **网络路径留痕**：git clone 直连 GitHub 超时、本地代理 127.0.0.1:3128 已死，改走 `gh api repos/<owner>/<repo>/tarball/<sha>` 取源成功（后续同类操作复用）。
+- **回归**：工具箱 pytest **267 passed**（基线 259+新增 8 防线）、仓库根 **311 passed**（基线 303+8）、check_provenance **64/64** exit 0。改动均未提交，累计待用户确认。
+
+## 2026-09-10（三图裁定 + hook 二次锁死解锁收尾 · junction 用后即拆）
+
+- **解锁路径定案**：sess_a4bf7993 二次触发 hook 锁死（Bash cd 漂入 `vendor/forks/figures4papers`，旧配置相对路径在该 cwd 下解析失败→python 退出码 2=deny→全通道阻断；盘上 config 已修但该会话宿主进程未重载，软重启无效）。本会话新起后工具通道全部恢复；开局曾按上会话交接建临时 junction `vendor/forks/figures4papers/科研工具箱 → 科研工具箱`（变通方案 B），确认 config 三处 args 均为 `${ZCODE_PROJECT_DIR}` 绝对展开+hook 脚本 `_cli()` fail-open 在位后 `rmdir` 拆除，dir 复核无残留。P1 教训重申：**全程绝对路径，绝不 cd 出仓库根**（该会话此教训已固化至工作区记忆 zcode-hook-exit2-lockup-lesson）。
+- **上游核对**：本地 pin `3c181f8` == 上游 ChenLiu-1996/figures4papers main HEAD（compare API：identical，0 ahead/0 behind），fork 推送时间与上游一致——**无需更新**。
+- **三图裁定**（用户质疑"三图连排有很大问题，为什么要？"）：逐字通读上游 scientific-figure-making 四份文档（SKILL.md 38 行+common-patterns 74+design-theory 138+tutorials 135，共 385 行）+14 种模式 grep——**上游无"三图连排"硬性规定**。唯一 "1×3" 在 tutorials.md:55（Tutorial 2），第三格是图例专用面板（:79-81 `set_axis_off()`），同句给 "or 2×2" 替代，系"2 数据面板+1 图例面板"示例布局被二手转述成规则。上游真实规则三条均有适用前提：超宽横排=仅多指标对比（common-patterns.md:7-13；(45,12) 级极端画布在国赛 170-180mm 版面必跌破 7-9pt 字号下限，不采纳其极端尺寸）；图例独立面板=仅当图例压数据（:17-25）；同行一致性=约束已连排面板（design-theory.md:64）。**裁定：不采纳"固定三图连排"；`skills/paper-figure/references/composition-patterns.md` 构图五模式维持不变**（超宽面板/独立图例面板本在列），适用前提记入工作区记忆，不改任何文件。
+- **销旧账确认**：上会话 3 个待补验 grep（hatch/图例面板/灰度先例）已在补遗 6 记录结论，本轮复核 `.engine/audit/operations.jsonl` 留痕（sess_86a453b5 grep 命令实跑）确认已执行，无需重做。
+- **记忆回流**：工作区新增 3 条（three-panel-row-ruling / okabe-ito-data-palette / contest-concept-figure-colors）+ MEMORY.md 索引同步 + 收编记忆互链 + Mem0 shared 回流（首次调用 30s 超时，重试）。
+- **验证**：junction 拆除后 `dir` 复核；上游 compare API 返回 identical；裁定证据全部带 文件:行号；本条 LOG 即落账凭证。改动仍均未提交，累计待用户确认。
+
+## 2026-09-10（补遗：三图连排独立复核 + 收尾会话补账）
+
+- **背景**：研究型会话（sess_a4bf7993 之后的延续）曾因 hook P1 再次锁死（其时修复未重载）；真重启后 hook 正常注入（SessionStart/UserPromptSubmit 均跑通），本轮以绝对路径完成剩余核对。
+- **上游逐字复核（独立第三遍，验证前会话结论）**：`vendor/forks/figures4papers/scientific-figure-making/` 四文件全文通读（SKILL.md 38 行 / common-patterns 74 / design-theory 138 / tutorials 135）+ 14 种连排表述 grep，**确认上游无"一行三图"硬规定**——唯一 "1×3" 在 tutorials.md:55（Tutorial 2 的图例专用面板，:79-81 `set_axis_off()`，同句给 "or 2×2" 替代）；超宽横排仅适用于多指标对比（common-patterns.md:7-13）；同行一致性规则在 design-theory.md:64。裁定与 09-10 主记录一致：**不采纳固定三图连排，composition-patterns.md 构图五模式维持不变**；潜在修法（超宽面板加"印刷宽度下每面板 ≥45mm"前置条件）仍待用户给方向，本轮未改任何技能文件。
+- **旧账销清复核**：上会话 3 个待补验 grep（hatch/图例面板/灰度先例）本会话重跑确认：hatch 已在 paper-figure 三件（SKILL.md / semantic-palette / composition-patterns）；bbox_to_anchor 图例外挪先例 figure_style_guide.md:347；灰度要求 SKILL.md:71。
+- **记忆修正**：①figure-style-external-inputs.md（前会话已建但漏索引）补进 MEMORY.md；②figures4papers-evaluation.md 三图段由"核对未完成"改定稿口径（含文件:行号证据）；③MEMORY.md 中 pre-competition-pipeline-facts 行已是"✅P1 已修复"现状（前会话已更新，本轮无需再动）。
+- **验证**：本轮 cwd 始终在仓库根（pwd 复核），零 cd 操作；grep/Read 全程绝对路径；hook 正常注入未拦截；本条 LOG 即落账凭证。改动均未提交，累计待用户确认。
+
+## 2026-09-10（外部配色/三图裁定按用户方向落地 + hook 锁死新变体实证）
+
+- **动作（用户裁定"按照推荐方向推进"）**：①`paper-figure/references/composition-patterns.md` 模式一补"印刷宽度前置条件"（⛔ 段：仅当最终印刷宽度÷面板数 ≥45mm 才 1×N 连排，否则 2×2/1×2 堆叠；注明与 SKILL.md "每 panel ≥0.45\textwidth" 守卫同源）；②`semantic-palette.md` 增 §五交叉校验调色板（5.1 Okabe-Ito 数据图实践组合全色值表+配套原则；5.2 国赛概念图写死配色并划死"仅限概念图禁用于数据图"边界；两套均标注"非上游内容/未经赛事实证/冲突时以本库 elegant 板为准"）；③`paper-figure/SKILL.md` 增"外部规范红线"段（概念图/数据图分家、AI 生图禁假坐标轴假精度数字、生成后逐字自检+九段线红线、打印安全三件套、图表门禁提醒归 paper-write 侧）；④`UPSTREAM.md` Local adaptation 补第⑤条登记全部增补及其非上游来源。
+- **AI 申报生成器**：按推荐只做立项评估不入库（机会与红线已存工作区记忆 figure-style-external-inputs.md）。
+- **验证**：工具箱 pytest **267 passed**；仓库根 **311 passed**；check_provenance **64/64 exit 0**；skill_library_audit OK（316 条）。
+- **⚠️hook 锁死新变体（重要实证，推翻"P1 已修复"的覆盖口径）**：本轮 `cd 科研工具箱 && pytest` 成功执行后持久 cwd 停在仓库子目录，下一条起 hook 路径**双重拼接**（`科研工具箱/科研工具箱/hooks/zcode_audit_l1.py`）→ 全工具再次硬阻断不可自愈（cd 回根也被拦）。结论：`${ZCODE_PROJECT_DIR}` 修复只防"漂出仓库"（前会话 cd /tmp 实测正常），**漂进仓库子目录时照样锁死**——路径解析跟随 cwd 拼接。修复方向（待办）：zcode_audit_l1.py 定位逻辑改为"沿 cwd 向上找项目根锚定"或 config 用绝对路径硬编码兜底。本轮经临时 junction `科研工具箱/科研工具箱 → 科研工具箱` 解锁（用户会话外执行），验证后待拆除。
+- **纪律重申（升级版）**：Bash 命令**一律禁止 cd**（含"进子目录跑完再回来"的写法），需要子目录上下文时用 `python -m pytest 科研工具箱/` 式根目录相对路径或绝对路径直跑。
+- **记忆回流**：figures4papers-evaluation（三图裁定定稿）、figure-style-external-inputs（索引补录）、MEMORY.md 索引同步、pre-competition-pipeline-facts（P1 覆盖口径修正）——本条 LOG 与记忆互为凭证。改动均未提交，累计待用户确认。
+
+## 2026-09-10（hook 根治方案实施：python -c 内联引导器 · 进程级三场景实测通过）
+
+- **动作（用户批准设计，本会话 sess_86a453b5 延续实施）**：①`.zcode/config.json` 三事件 args 改为 `python -c <内联引导器> <mode>`——引导器定位顺序=`ZCODE_PROJECT_DIR`/`CLAUDE_PROJECT_DIR` env → 从 cwd 逐级上溯找 `科研工具箱/hooks/zcode_audit_l1.py`，找到后 `runpy.run_path` 执行（SystemExit 透传，deny=exit 2 保真）；定位失败/执行异常一律 stderr 警告 + exit 0 放行；config 保持随仓可移植（引导器禁盘符硬编码，契约测试把守）。②契约测试改版：废弃 `${ZCODE_PROJECT_DIR}` 路径锚定断言（已被三次锁死证伪），新增 `test_zcode_config_uses_inline_bootstrap`（-c/runpy/env 探测/cwd 上溯/fail-open/禁绝对路径六断言）+ 三条行为回归（伪仓库子目录 cwd 定位并落账 / 子目录 cwd 下 `git add -A` deny exit2 透传+留痕 / 仓库外 cwd fail-open 警告），compat 套件 23 全绿。
+- **根因定案补全（两会话证据合并）**：宿主支持 `${VAR}` 展开语法但 `ZCODE_PROJECT_DIR` 不在 hook 进程环境→**静默展开为空**→arg 退化纯相对路径按 shell cwd 拼接（漂出仓库=找不到脚本；漂进仓库子目录=双重拼接，同一机制两变体）；且宿主 cwd 自动重置**只对项目外路径生效**（cd /tmp 触发重置、cd vendor/forks 不触发）——故变量式与"重置兜底"双双无效，只有把定位搬进 python 内部才根治。
+- **中途纠偏**：实施曾先行落盘"config 绝对路径"方案，与已批准的可移植设计冲突，已被本引导器取代（未入库即纠正；绝对路径作为本会话过渡态短暂存在，无遗留）。
+- **清理**：并行会话遗留临时自指 junction `科研工具箱/科研工具箱` 已 `rmdir` 拆除（复核无残留，目标本体完好）。
+- **验证**：进程级三场景冒烟全对——①`cwd=科研工具箱`+正常载荷 rc=0 且 operations.jsonl 落账 tool_call；②同 cwd+`git add .` rc=2+治理理由 stderr+permission/deny 留痕；③系统临时目录+无 env rc=0+"定位失败"fail-open 警告。全量基线：工具箱 **270 passed**（259+前会话 8 防线+本轮 3 回归）、仓库根 **314 passed**、check_provenance 64/64 exit 0。**宿主层（真 hook 触发）待重启会话复验**，协议：cd 进仓库子目录后任意工具调用须正常 + git add . 拦截 + 落账实时。
+- **内容更正**：`composition-patterns.md:56` "hatch 全库零覆盖系独有增量"表述有误（`matplotlib/SKILL.md:301` 与 `references/plot_types.md:115` 均有 hatch 覆盖，前会话查重漏检）→ 改为"决策打包"口径（技法非独有，价值在何时用/怎么组合/与门禁衔接）。
+- **遗留待用户处理**：`科研工具箱/tools/QUALITY_REPORT.md` 为无关项目（AI 陪伴应用 docx）的陈旧质检产物（源文件已不存在），未入库，建议删除或移出仓库（等方向）；figures4papers 研究收尾三项（上游精读补全/五模式先例补验/第 3 项收割落地）待重启后继续。
