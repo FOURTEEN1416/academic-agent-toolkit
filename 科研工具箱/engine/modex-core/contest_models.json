@@ -1,10 +1,10 @@
 {
-  "_comment": "竞赛时模型配置槽（用户裁定 2026-09-09：仓库不预设任何具体模型）。比赛时按当时可用且具备对应能力的模型填写——如 visual_reviewer 填一个具备视觉能力的模型（示例：GLM 视觉系列）。填写后 quality_gates 的 strict 模型比对即以本文件为准；留空的角色自动回退到宿主配置（OpenCode 的 .opencode/agents/），两处皆空的角色 strict 比对降级为跳过（warn 不阻断）。",
-  "configured_at": "",
+  "_comment": "竞赛时模型配置槽（用户裁定 2026-09-09：仓库不预设任何具体模型）。比赛时按当时可用且具备对应能力的模型填写。2026-09-10 用户裁定：审稿四角色用 glm-5.3-flash——ZCode 赛时主控下，审稿/视觉/编辑/终审角色由宿主子智能体承担（宿主模型 glm-5.3-flash），证据声明的 model 字符串与本文件一致即过 strict 比对。注意：.env 的 REVIEWER_MODEL_ID/EDITOR_AI_MODEL_ID（当前 agnes-2.5-flash）是 reviewer_client.py 外部 API 备用通道（Agnes 端点无 GLM，已验证 13 个模型全为 agnes-*），与子智能体通道互不影响；后续调整审稿模型时同步改本文件（与证据声明保持一致）。",
+  "configured_at": "2026-09-10",
   "roles": {
-    "reviewer": "",
-    "visual_reviewer": "",
-    "editor": "",
-    "final_reviewer": ""
+    "reviewer": "glm-5.3-flash",
+    "visual_reviewer": "glm-5.3-flash",
+    "editor": "glm-5.3-flash",
+    "final_reviewer": "glm-5.3-flash"
   }
 }
