@@ -63,7 +63,7 @@ exit 2 且**已排除相对路径问题**——先用绝对路径重试一次）
 
    ```markdown
    # 视觉人工复核记录（视觉 API 不可用降级）
-   approved_by: <用户姓名>          ← 必填非空，必须是用户本人，禁止填 agent
+   approved_by: <操作者真实姓名>     ← 必填非空，必须是人类操作者本人署名，禁止填 agent/AI/模型名
 
    ## 逐项检查
    - [x] 图1 fig_q1：坐标轴名称与单位可读
@@ -73,12 +73,22 @@ exit 2 且**已排除相对路径问题**——先用绝对路径重试一次）
    - [x] 图3 tikz_arch：无文字截断/重叠
    ```
 
-   `approved_by` 非空 + `- [x]` 逐项记录 **≥5 条**（每张图每个检查维度一行），质量闸才认。
+   `approved_by` 合规 + `- [x]` 逐项记录 **≥5 条**（每张图每个检查维度一行），质量闸才认。
 4. **verdict 写 `status=manual_review`**（不是 unavailable、更不是 pass），保留未验证项说明于 `VISUAL_REVIEW.md`。
 5. **重跑 complete**：review 闸校验人工复核文件合规后放行，并在结果中注记 manual_review。
 
-⛔ 红线：没有人工复核文件就写 `manual_review`、`approved_by` 填 agent、或逐项记录凑数不足 5 条——
-全部被 review 闸硬拦；伪造用户签名视同伪造审核证据。
+⛔ 红线（引擎强制实现，非纸面条款）：以下任一情形都被 review 闸硬拦——
+1. 没有人工复核文件就写 `manual_review`；
+2. `approved_by` 非空但**命中 agent 自指词**：`agent`、`ai`、`bot`、`llm`、`auto`、
+   `机器人`、`智能体`、`自动`，以及模型/厂商名 `glm`、`agnes`、`gpt`、`chatgpt`、`openai`、
+   `anthropic`、`claude`、`gemini`、`deepseek`、`sensenova`、`sense`、`qwen`、`kimi`、
+   `doubao`、`ernie`、`hunyuan`、`llama`、`mistral`、`copilot`、`zhipu`、`opencode`、`zcode`
+   （英文词按 ASCII 字母边界匹配，不区分大小写；中文词按子串匹配。命中的典型写法：
+   `approved_by: agent`、`approved_by: AI审稿机器人`、`approved_by: GLM-4`——全部硬拦）；
+3. 逐项记录凑数不足 5 条。
+
+正确写法只有一个：`approved_by: <操作者真实姓名>`（人类本人署名，如 `默默`、`operator-1`；
+不含上述任何自指词）。伪造用户签名视同伪造审核证据。
 
 ## 输入
 

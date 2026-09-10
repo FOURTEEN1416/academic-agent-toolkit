@@ -184,13 +184,47 @@ def record_role_call_actual(workspace: Path | str, role: str, base_url: str, mod
 VISUAL_MANUAL_CHECK_FILE = "VISUAL_REVIEW_MANUAL_CHECK.md"
 _MANUAL_CHECK_MIN_ITEMS = 5
 
+# A7R-F1 防伪造红线：approved_by 必须是人类操作者署名。
+# 命中下列任一 agent 自指词即判定"agent 伪造用户签名"，硬拦。
+# 英文词：ASCII 字母边界匹配（避免子串误伤，如 said/rain 不因含 "ai" 被拦，
+# ragent/Baier 不因含 "agent"/"ai" 被拦；CJK 相邻不算边界内字母，"AI审稿"照样命中）；
+# 中文词：子串匹配（中文无词边界概念）。名单与 SKILL.md 降级预案小节保持一致。
+_MANUAL_CHECK_AGENT_WORDS_EN = (
+    # agent/AI 自指词
+    "agent", "ai", "bot", "llm", "auto",
+    # 常见模型/厂商名（含国内外主流模型族；命中任一即视为模型自署）
+    "glm", "agnes", "gpt", "chatgpt", "openai", "anthropic", "claude",
+    "gemini", "deepseek", "sensenova", "sense", "qwen", "kimi", "doubao",
+    "ernie", "hunyuan", "llama", "mistral", "copilot", "zhipu",
+    "opencode", "zcode",
+)
+_MANUAL_CHECK_AGENT_WORDS_CJK = ("机器人", "智能体", "自动")
+
+
+def _agent_self_reference_hit(approved_by: str) -> str:
+    """approved_by 命中 agent 自指词时返回命中的词，未命中返回空串。"""
+    lowered = approved_by.lower()
+    for word in _MANUAL_CHECK_AGENT_WORDS_EN:
+        # ASCII 字母边界：两侧不得紧邻英文字母（数字相邻视为独立 token，可命中
+        # "gpt4"/"qwen2.5" 这类无连字符模型写法）
+        pattern = r"(?<![a-z])" + re.escape(word) + r"(?![a-z])"
+        if re.search(pattern, lowered):
+            return word
+    for word in _MANUAL_CHECK_AGENT_WORDS_CJK:
+        if word in approved_by:
+            return word
+    return ""
+
 
 def validate_visual_manual_check(path: Path) -> dict:
     """校验人工复核记录（VISUAL_REVIEW_VERDICT.status=manual_review 的放行条件）。
 
     合法条件（全部满足才放行）：
       1. 文件存在；
-      2. 含非空 `approved_by:` 行（批准人必须是用户本人，禁止填 agent）；
+      2. 含非空 `approved_by:` 行，且**不含 agent 自指词**（agent/ai/bot/llm/auto/
+         机器人/智能体/自动 及模型名 glm/agnes/gpt/deepseek/sense/claude 等——
+         英文词按 ASCII 字母边界匹配、中文词按子串匹配）。命中即硬拦：
+         人工复核必须由人类操作者本人署名，agent/AI/机器人/模型名署名视同伪造审核证据；
       3. 含 ≥5 条 `- [x]` 逐项检查记录（对应视觉检查单逐项人工目检后勾选）。
     """
     if not path.is_file():
@@ -208,12 +242,20 @@ def validate_visual_manual_check(path: Path) -> dict:
         return {"ok": False,
                 "reason": (f"{VISUAL_MANUAL_CHECK_FILE} 缺少非空 approved_by 行"
                            "（批准人必须为用户本人，禁止填 agent）。正确格式: approved_by: 用户姓名")}
+    approved_by = approved.group(1).strip()
+    hit = _agent_self_reference_hit(approved_by)
+    if hit:
+        return {"ok": False,
+                "reason": (f"{VISUAL_MANUAL_CHECK_FILE} 的 approved_by 命中 agent 自指词「{hit}」"
+                           "——人工复核必须由人类操作者本人署名，agent/AI/机器人/模型名署名一律硬拦"
+                           "（视同伪造审核证据）。正确写法: approved_by: 操作者真实姓名（如 默默），"
+                           "不要带 agent/AI/bot/llm/auto/机器人/模型名等字样")}
     items = re.findall(r"(?m)^\s*[-*]\s*\[[xX]\]", text)
     if len(items) < _MANUAL_CHECK_MIN_ITEMS:
         return {"ok": False,
                 "reason": (f"{VISUAL_MANUAL_CHECK_FILE} 逐项检查记录不足: 仅 {len(items)} 条 `- [x]`，"
                            f"需 ≥{_MANUAL_CHECK_MIN_ITEMS} 条（按视觉检查单逐项人工目检后勾选）")}
-    return {"ok": True, "approved_by": approved.group(1).strip(), "items": len(items)}
+    return {"ok": True, "approved_by": approved_by, "items": len(items)}
 
 
 # 加载 .env 配置
@@ -914,6 +956,14 @@ class QualityGate:
                     "reason": ("防绕过检测未通过：存在工作区归属的未申报操作（bash/编辑）且已接入交付判定。"
                                "请在对应步骤 evidence 中申报真实命令与产物，或消除绕过操作；"
                                "详见 AUDIT_REPORT.json 的 operation_audit_detail")}
+        # A2R 修复：waiver 不放行——skip_review 等 skip_ 豁免只留痕，交付一律 blocked。
+        if report["gate_outcomes"].get("waiver_review") == "fail":
+            return {"ok": False, "failed_gates": ["waiver_review"],
+                    "reason": ("最终审计存在 skip_ 豁免参数（waivers 非空，详见 AUDIT_REPORT.json 的 "
+                               "waiver_detail.hit_params）。豁免只留痕不放行：skip_review=true 会在启动时"
+                               "静默删除审核步骤，审核防线从未运行过，交付一律 blocked。"
+                               "解除方式：以不含 skip_ 参数的方式重新执行完整工作流"
+                               "（审核类步骤必须真实完成，不可豁免）。")}
         failed_gates = [name for name, outcome in report["gate_outcomes"].items() if outcome != "pass"]
         if failed_gates:
             return {"ok": False, "failed_gates": failed_gates,

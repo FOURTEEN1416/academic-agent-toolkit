@@ -24,6 +24,11 @@ from .workflow_store import StepStatus, Workflow, WorkflowStore
 from .step_manifest import write_manifest as write_step_manifest
 
 
+def _norm_skill_token(name: str) -> str:
+    """技能名归一化口径（与 used 痕迹校验一致）：去首尾空白、小写、'-' 与 '_' 等价。"""
+    return str(name).strip().lower().replace("-", "_")
+
+
 @dataclass(frozen=True)
 class RunResult:
     """引擎返回给 agent 的响应。"""
@@ -276,6 +281,22 @@ class WorkflowRunner:
                 return _companion_reject(f"申报了本步未推荐的技能 {unknown}（本步推荐清单: {recommended}）")
             if missing:
                 return _companion_reject(f"推荐技能未逐一申报使用或跳过: {missing}")
+            # ⛔ C1 申报自洽（A2 minor 审计修复）：used 与 skipped 不得重叠——同一技能
+            # "既声称用了又声称跳过"是自相矛盾申报，留痕必须口径唯一。归一化与痕迹
+            # 校验同口径（不区分大小写、'-' 与 '_' 等价），大小写/连字符变体的重叠同样拦截。
+            used_norm = {_norm_skill_token(u) for u in used}
+            skipped_norm = {_norm_skill_token(s["skill"]) for s in skipped}
+            overlap_norm = used_norm & skipped_norm
+            if overlap_norm:
+                overlap_display = sorted(
+                    {u for u in used if _norm_skill_token(u) in overlap_norm}
+                    | {str(s["skill"]) for s in skipped
+                       if _norm_skill_token(s["skill"]) in overlap_norm}
+                )
+                return _companion_reject(
+                    f"同一技能同时申报了 used 与 skipped: {overlap_display}（自相矛盾申报）。"
+                    "每个技能只能二选一：真实使用 → 申报 used（须留使用痕迹）；"
+                    "确未使用 → 申报 skipped 并写明非空理由")
             # ⛔ C1 痕迹绑定（A5 ⑫/A2 major 修复：used 伪报零校验直接过闸）：
             # 覆盖校验通过后，每个 used 技能必须有真实使用痕迹——技能名
             # （不区分大小写，'-' 与 '_' 等价）出现在任一 evidence.commands 命令串
@@ -287,7 +308,7 @@ class WorkflowRunner:
                 + [str(p) for p in evidence.get("inputs", []) or []]
             ).lower().replace("-", "_")
             for used_skill in used:
-                trace_key = used_skill.strip().lower().replace("-", "_")
+                trace_key = _norm_skill_token(used_skill)
                 if trace_key and trace_key not in trace_blob:
                     return _companion_reject(
                         f"used 申报的技能 {used_skill} 在命令与产物/输入路径中零使用痕迹"

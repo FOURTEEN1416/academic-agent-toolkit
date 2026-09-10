@@ -426,13 +426,35 @@ def build_final_audit_report(workspace: Path, project_root: Path,
 
         if Path(workflow_db).is_file():
             with WorkflowStore(workflow_db) as store:
-                row = store._connection.execute(
+                # A2R-fatal 修复（傀儡工作流致盲）：此前只核查"最新一个"工作流，
+                # "直改旧工作流 + 再 start 一个干净工作流"这一带内动作即可让核查
+                # 完全致盲。现在遍历数据库中全部 workflows，逐一做状态-事件一致性
+                # 核查并聚合 violations——被篡改的非最新工作流同样必须被抓。
+                workflow_rows = store._connection.execute(
+                    "SELECT id FROM workflows ORDER BY created_at ASC, id ASC"
+                ).fetchall()
+                all_violations: list[str] = []
+                checked_steps_total = 0
+                for row in workflow_rows:
+                    per_workflow = _check_state_event_consistency(store, row["id"])
+                    checked_steps_total += int(per_workflow.get("checked_steps", 0) or 0)
+                    all_violations.extend(
+                        f"工作流 {row['id']}: {violation}"
+                        for violation in per_workflow.get("violations", []))
+                # 一致性结论先于时间线赋值：即使 timeline 渲染失败，
+                # 已发现的 violations 也不丢（fail-closed）。
+                state_consistency = {
+                    "checked_workflows": len(workflow_rows),
+                    "checked_steps": checked_steps_total,
+                    "violations": all_violations,
+                    "ok": not all_violations,
+                }
+                # 时间线信息（工作流元数据/事件流）仍取最新工作流，展示口径不变。
+                latest = store._connection.execute(
                     "SELECT id FROM workflows ORDER BY created_at DESC, id DESC LIMIT 1"
                 ).fetchone()
-                if row is not None:
-                    timeline_report = store.workflow_timeline(row["id"])
-                    # A2 补丁1：状态-事件一致性核查（completed 必须有事件、检查点解除必须有批准）
-                    state_consistency = _check_state_event_consistency(store, row["id"])
+                if latest is not None:
+                    timeline_report = store.workflow_timeline(latest["id"])
     except Exception:
         timeline_report = None
 
@@ -539,6 +561,13 @@ def build_final_audit_report(workspace: Path, project_root: Path,
     gate_outcomes["state_event_consistency"] = "pass" if consistency_ok else "fail"
     gate_outcomes["operation_audit"] = "pass" if operation_audit_ok else "fail"
 
+    # A2R-fatal 修复（skip_review 致盲）：waiver 从"只记录不阻断"改为硬闸——
+    # 任何 skip_ 豁免参数（最严重形态：skip_review=true 在 start 时静默删除全部
+    # 审核步骤，审核防线从未运行过）都强制 delivery_decision=blocked。
+    # waivers 字段本身保留作留痕，waiver_detail 注记原因与解除方式。
+    waiver_blocked = bool(waivers)
+    gate_outcomes["waiver_review"] = "fail" if waiver_blocked else "pass"
+
     delivery_ready = bool(report_artifacts) and bool(gate_outcomes) and all(
         v == "pass" for v in gate_outcomes.values()
     )
@@ -547,6 +576,14 @@ def build_final_audit_report(workspace: Path, project_root: Path,
         "artifacts": report_artifacts,
         "gate_outcomes": gate_outcomes,
         "waivers": waivers,
+        "waiver_detail": {
+            "blocking_rule": ("skip_ 豁免只留痕、不放行：存在任何 skip_ 豁免参数"
+                              "（含 skip_review=true 关闭审核防线）即强制 delivery_decision=blocked。"
+                              "解除方式：以不含 skip_ 参数的工作流重新执行被豁免的步骤；"
+                              "审核类步骤（comp-review/comp-visual-review/comp-editor/"
+                              "comp-final-review）必须真实完成，不允许豁免。"),
+            "hit_params": waivers,
+        },
         "delivery_decision": "ready" if delivery_ready else "blocked",
         "state_event_consistency_detail": state_consistency,
         "operation_audit_detail": {
