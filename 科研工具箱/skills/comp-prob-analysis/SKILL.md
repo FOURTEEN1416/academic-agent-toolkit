@@ -300,6 +300,8 @@ done
 
 只有在没有 `_extracted.txt` 时才尝试提取：PDF 用 pdftotext 或 PyPDF2，Word 用 python-docx。
 
+**⛔ 公式区二维结构防线（2026-09-11 实证增设）**：文本提取会**拍平分式/上下标**——A 题附录 D 公式原文 `e^{-0.45/C}` 曾被排版层误导为 `e^{-0.45C}`（方向反转，D 误算 19 倍）。凡附录参数公式，必须把该区域渲染成图片**目视核对**分子/分母/上下标后再录入，例如：`python -c "import fitz;doc=fitz.open('题面.pdf');p=doc[N];pix=p.get_pixmap(matrix=fitz.Matrix(6,6),clip=fitz.Rect(x0,y0,x1,y1));pix.save('公式区.png')"`（clip 取公式所在行坐标，N 为页号）。
+
 **⛔ 题目资料区检查（赛前预置弹药，2026-09-11 接入）**：检查仓库根（含 `科研工具箱/` 的目录）下 `CUMCM2026Problems/<题号>/` 是否有本题预置调研材料，有则**必须先读**再继续 Step 1：`PROBLEM_ANALYSIS.md`（预演分析）、`DATA_PROFILE.json`/`DATA_FACTS.json`（数据档案）、`research_physics.md`/`research_numerics.md`/`research_antiai.md`（调研底稿）、`作战手册.md`（赛时操作全集）按需全部 Read。**置信度纪律（防投毒）**：材料与题面原文冲突时一律以题面原典为准；材料中的公式、点数、数值区间须对照原始附件复核后方可引用（2026-09-11 曾在预置材料中抓到附录 D 公式方向系统性误写并被 PDF 目视实锤修正——预置材料是底稿不是真源）。另可查 `data/historical_papers.md` 题型规律辅助题型判断。
 
 ### Step 1: 赛题全文解读

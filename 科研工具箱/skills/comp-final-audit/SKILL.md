@@ -6,3 +6,5 @@ description: Use when a mathematical modeling competition workflow needs a final
 # Competition Final Audit
 
 Read the persisted workflow report, manifests, gate results, review verdicts, and final PDF. Write `AUDIT_REPORT.json` with this machine-readable contract: `workflow_id` (string), non-empty `artifacts` (`path` plus 64-character `sha256`), `gate_outcomes` (each required gate exactly `pass`), `waivers` (array), and `delivery_decision` (`ready` only when all required gates pass). Never mark delivery ready when a required gate is missing, a waiver is undocumented, or fatal findings remain.
+
+Delivery conformance (2026-09-11 wiring): check the final PDF against `_utils/cumcm_2026_format.md` (official CUMCM 2026 format-spec digest, verified against the official source): margins ≥2.5cm; electronic version starts at the abstract page (no commitment/ID pages); page numbers from the abstract page, footer center; no TOC; body ≤30 pages; appendix lists support files and full runnable source; no identity information anywhere; single PDF ≤20MB; support archive ≤20MB. Record any violation as a fatal finding.

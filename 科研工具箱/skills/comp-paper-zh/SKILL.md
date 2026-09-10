@@ -2588,6 +2588,7 @@ echo "模板检查: $TMPL_OK 通过, $TMPL_FAIL 失败"
 
 - ⛔ **AI 申报双件套自动生成（2026-09-10 同源吸收，合规硬要求）**：竞赛要求正文参考文献前放“AI 工具使用声明”+ 独立支撑材料《AI工具使用详情.pdf》。生成/核验必须用确定性脚本 `_utils/build_ai_disclosure.py`（双副本同 shared-scripts/，规范见 `_utils/ai_disclosure_rules.md`）：工具/型号/日期/用途只来自用户确认的清单（`.mh/ai_disclosure.json`），禁止语言模型自由编写详情；正文声明位置在参考文献之前；交付前必跑 `--check-only` 反查闸。未使用 AI 时用脚本生成“未使用”声明并清理旧详情文件。
 - ⛔ **AI 痕迹自检（交稿前必跑）**：`python _utils/ai_tell_check.py paper/`（双副本同 shared-scripts/）——工程/质检语汇（口径/闭环等）从提示词流进正文是实测最高频 AI 痕迹（10 工作区 442 次命中）；exit 1 时必修。人工风格对照 `_utils/human_competition_paper_style.md`，风格检查 `python _utils/human_paper_style_check.py paper/`。
+- **防过度/辩护性写作（修订轮主动推荐，2026-09-11 接线）**：修订或压缩页数时调 `anti-defensive-writing` 技能，删不必要的 hedge/免责声明/道歉式框架/过度解释——保留必要的范围、误差与方法学限定，删的是"可能在一定程度上"式空转措辞；深度检测可加跑 `anti-ai-detection` 技能（8 维度 AI 特征分析+改写建议）。与 ai_tell_check 互补：一个删 AI 痕迹语汇、一个删防御性冗余。
 
 - Use templates from `templates/`, do not write main.tex from scratch
 

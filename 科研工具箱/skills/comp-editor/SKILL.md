@@ -16,6 +16,7 @@ Read `COMP_REVIEW_VERDICT.json`, `VISUAL_REVIEW_VERDICT.json`, the associated ma
 3. Do not alter data, model outputs, equations, or headline metrics without a new computation, updated result ledger, and fresh execution evidence from the responsible step.
 4. Preserve unresolved fatal findings in the changelog and route them back to modeling, code, or paper writing instead of hiding them through wording changes.
 5. Re-run the narrow validation relevant to every changed file, then return the workspace to the final reviewer.
+6. When rewording prose, apply the `anti-defensive-writing` skill's removal taxonomy: strip unnecessary hedges, disclaimers, apology-like framing, and over-explanations while preserving methodological limits, accuracy qualifiers, and required AI-use statements.
 
 ## Outputs
 
