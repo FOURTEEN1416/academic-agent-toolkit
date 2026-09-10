@@ -74,7 +74,7 @@ Generate figures and tables from data: **$ARGUMENTS**
 
 **Color palette and recipes**: read `_utils/figure_style_guide.md` (color schemes) and `_utils/figure_recipes_*.md` (code examples).
 
-**Semantic roles & composition patterns**（多系列对比图/多指标面板出图前必读）: `references/semantic-palette.md`（颜色→数据角色语义映射：本队方法=蓝、基线=红、改进=绿、高亮≤1处；含顶刊高对比 PALETTE 备选与消融 alpha 梯度；§五为外部交叉校验色板：Okabe-Ito 数据图组合 + 国赛概念图配色）+ `references/composition-patterns.md`（构图五模式：超宽面板/独立图例面板/分类柱隐藏刻度/动态y轴/边线+hatch 打印安全——多方法对比图规划阶段先选模式再写代码；**模式一有印刷宽度前置条件：仅当最终版面下每格 ≥45mm 才连排，否则改堆叠**）。来源 figures4papers @ `3c181f8`（CC BY-NC-4.0，见 references/UPSTREAM.md）。
+**Semantic roles & composition patterns**（多系列对比图/多指标面板出图前必读）: `references/semantic-palette.md`（颜色→数据角色语义映射：本队方法=蓝 `#0072B2`、基线=橙 `#E69F00`、改进=蓝绿 `#009E73`、红/红粉禁作数据系列色、高亮≤1处——2026-09-11 仲裁锚点，详见 semantic-palette.md §〇仲裁链；含顶刊高对比 PALETTE 备选与消融 alpha 梯度；§五为外部交叉校验色板：Okabe-Ito 数据图组合 + 国赛概念图配色）+ `references/composition-patterns.md`（构图五模式：超宽面板/独立图例面板/分类柱隐藏刻度/动态y轴/边线+hatch 打印安全——多方法对比图规划阶段先选模式再写代码；**模式一有印刷宽度前置条件：仅当最终版面下每格 ≥45mm 才连排，否则改堆叠**）。来源 figures4papers @ `3c181f8`（CC BY-NC-4.0，见 references/UPSTREAM.md）。
 
 **Plot-choice gates（选图论证与避坑，规划每张数据图前必读）**: `references/pitfalls-and-intent.md`（决策三轴：变量结构×**论证意图**×样本量分级——FIGURE_MANIFEST 每张图的"选择理由"写轴 2 论证意图；十八坑拦截清单 P1-P18：均值柱/双Y轴/饼图/Y轴截断/rainbow/缺字乱码/图例遮盖等，出图后逐条自查，P16-P18 渲染类必须程序自检+vision 复核双兜底）。来源 SciPilot @ `43098dd`（MIT，见 references/UPSTREAM.md）。
 
@@ -262,8 +262,10 @@ if [ "$MODE" = "pdf" ] && [ ! -f figures/latex_includes.tex ]; then
 
 fi
 
-[ "$PASS" != true ] && echo "
+# ── 图表密度阈值检查（62 篇样本分型 + FIGURE_MANIFEST 对账）：独立 python heredoc，
+# 每次输出验证时真实执行；本段为诊断输出（分型建议与对账差异提示），不计入 FAIL 判定
 
+python - <<'PY'
 # ── 新增：图表密度阈值检查 ──
 print()
 print("=== Figure Density Threshold Check ===")
@@ -322,7 +324,9 @@ if plan_file:
         print(f"⚠ 超过预期: Manifest {manifest_count} 张，实际仅 {total_figs} 张")
 
 print("=== Figure Density Threshold Check END ===")
-⛔ Output verification FAILED — must complete before ending"
+PY
+
+[ "$PASS" != true ] && echo "⛔ Output verification FAILED — must complete before ending"
 
 ```
 

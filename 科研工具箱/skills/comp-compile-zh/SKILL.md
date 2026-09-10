@@ -632,11 +632,14 @@ If pages < 80% of MAX_PAGES, attempt to expand the thinnest 1-2 chapters:
 
 echo "=== 图宽合规自检（禁凑页压图）==="
 
-# 只看 includegraphics 的 width 系数；<0.80 视为被凑页压小（真正并排双栏请写 0.48 并用 subfigure/minipage，本检测会提示、人工确认即可）
+# 只看 includegraphics 的 width 系数；<0.70 视为被凑页压小。合规域 0.70~0.98 内一律不误报：
+# 正则兼容一位/两位小数（fig_include_size.py 以 %g 写出 0.7/0.8/0.9 一位小数形态，其密度感知
+# 推荐域 0.80~0.98；drawio 窄图 0.7 同域）——0.7/0.8/0.9/0.85/0.98 等全部放行，仅抓 <0.70 的压图值
+# （真正并排双栏请写 0.48 并用 subfigure/minipage，本检测会提示、人工确认即可）
 
-BAD_W=$(grep -rhoE 'includegraphics\[[^]]*width=0\.[0-9]+' paper/sections/*.tex paper/main.tex 2>/dev/null | grep -oE 'width=0\.[0-9]+' | grep -vE 'width=0\.(8[0-9]|9[0-9])' | wc -l)
+BAD_W=$(grep -rhoE 'includegraphics\[[^]]*width=0\.[0-9]+' paper/sections/*.tex paper/main.tex 2>/dev/null | grep -oE 'width=0\.[0-9]+' | grep -vE 'width=0\.(7|8|9)[0-9]*' | wc -l)
 
-[ "$BAD_W" -eq 0 ] && echo "OK 无过小图宽" || echo "FAIL 有 $BAD_W 处图宽<0.80（疑似凑页压图，除真正并排双栏外必须改回 0.85）"
+[ "$BAD_W" -eq 0 ] && echo "OK 无过小图宽" || echo "FAIL 有 $BAD_W 处图宽<0.70（疑似凑页压图，除真正并排双栏外必须改回 0.85）"
 
 echo "=== 图高合规自检（禁压小图高凑页）==="
 

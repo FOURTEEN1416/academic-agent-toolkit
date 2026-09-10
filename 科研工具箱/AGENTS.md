@@ -268,6 +268,9 @@ python -m engine.workflow_cli next --wf <workflow_id>
 #   产出文件须过 quality gate（如 comp-prob-analysis 的 PROBLEM_ANALYSIS.md ≥1500 字节）；
 #   companion_skills 申报（2026-09-11 C1 闸）：步骤带 companion_skills 时必填，used/skipped
 #   恰好覆盖推荐清单（skipped 须给非空理由）——强制申报不强制使用，缺申报=步骤失败。
+#   used 技能须在命令/产物路径中有真实使用痕迹：下方示例第 1 步推荐清单即
+#   ["problem-analysis"]（以 next 返回的 StepAction 为准），其 used 靠 outputs 的
+#   PROBLEM_ANALYSIS.md 命中痕迹闸，照抄可通过。
 python -m engine.workflow_cli complete --wf <workflow_id> --ok true --artifacts "PROBLEM_ANALYSIS.md" --evidence '{
   "schema_version": 1,
   "agent": "opencode-desktop",
@@ -276,7 +279,8 @@ python -m engine.workflow_cli complete --wf <workflow_id> --ok true --artifacts 
   "skill_sha256": "<python -c \"import hashlib;print(hashlib.sha256(open(r'"'"'skills/comp-prob-analysis/SKILL.md'"'"','"'"'rb'"'"').read()).hexdigest())\">",
   "commands": [{"command": "python scripts/build_analysis.py", "returncode": 0, "cwd": "."}],
   "inputs": [],
-  "outputs": ["PROBLEM_ANALYSIS.md"]
+  "outputs": ["PROBLEM_ANALYSIS.md"],
+  "companion_skills": {"used": ["problem-analysis"], "skipped": []}
 }'
 ```
 
