@@ -52,12 +52,14 @@
 4. `dev-docs/` 是内部真源根，默认私有；`vendor/` 是上游 fork 暂存区，不入 git。
 5. 文档治理任务遵守 `acat-doc-governance` 技能铁律：全文读完、污染必清、不窄化定位。
 
-## 测试口径（2026-09-03 定稿，pytest.ini 为准）
+## 测试口径（2026-09-10 实测同步，pytest.ini 为准）
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **303 passed** | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **259 passed** | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **308 passed + 6 skipped** | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **264 passed + 6 skipped** | 技能验收基线（硬规则 3 口径） |
+
+- 6 个 skip 为设计内：hooks 清除态（`2a86b6c` 定稿）下 D 段注册契约测试按三级解析走"皆无→skip"，非回归（2026-09-10 实测）。
 
 - `releases/` 是 dated 发布快照（archive 态仅供追溯），**永不进测试收集**——其内部旧测试依赖旧目录结构，扫描必炸（2026-09-03 曾致 333 collection errors）。
 - `科研工具箱/tools/` 下的 `test_*.py` 是裸脚本式自检（硬编码 cwd 相对路径），不属于 pytest 套件，从仓库根收集排除。
