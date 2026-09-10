@@ -253,7 +253,7 @@ def main():
             if row is None:
                 print("  BLOCKED 但找不到 checkpoint:", json.dumps(d, ensure_ascii=False)[:200])
                 return
-            a, _ = cli("approve", "--checkpoint", row[0])
+            a, _ = cli("approve", "--checkpoint", row[0], "--by", "chain-dryrun-driver")
             print(f"  APPROVE({row[0][:8]}):", a.get("status"))
             continue
         if st == "completed":

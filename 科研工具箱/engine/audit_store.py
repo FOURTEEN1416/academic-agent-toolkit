@@ -223,6 +223,114 @@ def detect_unreported_operations(workspace: Path, project_root: Path) -> dict[st
 
 
 # =====================================================
+# A2 补丁1：状态-事件一致性核查
+# 编排状态（workflow_steps.status）必须能被事件链解释：
+#   - 每个 status=completed 的步骤必须存在对应 step_completed 事件；
+#   - 每个检查点步骤（has_checkpoint）的完成必须有 checkpoint_approved 事件
+#     （blocked 解除必须经用户批准，不允许静默放行）。
+# 直改 SQLite 伪造 completed 的事件链缺失，在此被检测并接入交付判定。
+# =====================================================
+
+def _check_state_event_consistency(store, workflow_id: str) -> dict[str, Any]:
+    """核查最新工作流的状态-事件一致性（事件经 checkpoints.step_id 映射到步骤）。
+
+    "blocked 解除"的判定：步骤存在 state.status=waiting_checkpoint 的检查点
+    （即真正进入过检查点等待态，complete_step 的 BLOCKED 分支写入），
+    其后续完成必须有 checkpoint_approved 事件。
+    """
+    violations: list[str] = []
+    try:
+        steps = store._connection.execute(
+            "SELECT id, name, position, status, metadata FROM workflow_steps "
+            "WHERE workflow_id = ? ORDER BY position", (workflow_id,)
+        ).fetchall()
+        checkpoints = store._connection.execute(
+            "SELECT step_id, state FROM checkpoints WHERE workflow_id = ?",
+            (workflow_id,)
+        ).fetchall()
+        event_rows = store._connection.execute(
+            "SELECT c.step_id AS step_id, e.event_type AS event_type FROM events e "
+            "JOIN checkpoints c ON e.checkpoint_id = c.id "
+            "WHERE e.workflow_id = ? AND c.workflow_id = ?", (workflow_id, workflow_id)
+        ).fetchall()
+    except Exception as exc:  # 查询失败按 fail-closed 处理
+        return {"checked_steps": 0, "violations": [f"一致性核查查询失败: {exc}"], "ok": False}
+
+    def _entered_blocked(step_id: str) -> bool:
+        for cp in checkpoints:
+            if cp["step_id"] != step_id:
+                continue
+            try:
+                state = json.loads(cp["state"]) if cp["state"] else {}
+            except json.JSONDecodeError:
+                state = {}
+            if isinstance(state, dict) and state.get("status") == "waiting_checkpoint":
+                return True
+        return False
+
+    events_by_step: dict[str, set[str]] = {}
+    for row in event_rows:
+        events_by_step.setdefault(row["step_id"], set()).add(row["event_type"])
+    for step in steps:
+        try:
+            metadata = json.loads(step["metadata"]) if step["metadata"] else {}
+        except json.JSONDecodeError:
+            metadata = {}
+        if not isinstance(metadata, dict):
+            metadata = {}
+        event_types = events_by_step.get(step["id"], set())
+        label = f"步骤[{step['position']}]{step['name']}"
+        if step["status"] == "completed":
+            if "step_completed" not in event_types:
+                violations.append(
+                    f"{label}: status=completed 但无对应 step_completed 事件"
+                    "（疑似绕过引擎直改数据库；合法路径是 workflow_cli complete）")
+            if metadata.get("has_checkpoint") and _entered_blocked(step["id"]) \
+                    and "checkpoint_approved" not in event_types:
+                violations.append(
+                    f"{label}: 检查点等待（blocked）未经批准即完成、缺少 checkpoint_approved 事件"
+                    "（blocked 解除必须经用户批准；合法路径是 workflow_cli approve）")
+    return {"checked_steps": len(steps), "violations": violations, "ok": not violations}
+
+
+# =====================================================
+# A2 补丁2：防绕过检测接入交付判定的工作区归属过滤
+# =====================================================
+
+def _workspace_scoped_unreported(workspace: Path, unreported: dict[str, Any]) -> dict[str, list[str]]:
+    """把防绕过检测结果过滤为"工作区归属"的未申报操作。
+
+    审计日志（共享根 .engine/audit/operations.jsonl）按项目根聚合了**所有会话**的
+    事件：仓库级开发噪声（其他会话的 bash/编辑，如 toolbox 开发、pytest）不属于
+    本工作区的交付证据链，若全量拦截，交付判定会永久 blocked（制造 A7-F1 同款
+    "永远过不了的闸"）。归属判定规则：
+      - 编辑：filePath 为绝对路径且位于工作区内（相对路径视为工作区文件）；
+      - bash：命令字符串引用了工作区绝对路径（审计条目无 cwd 字段，属已知精度
+        边界，报告中如实披露；跨会话攻击者直改工作区文件通常引用其绝对路径）。
+    """
+    root = str(Path(workspace).resolve())
+
+    def _in_workspace(path: str) -> bool:
+        if not path:
+            return False
+        candidate = Path(path)
+        if not candidate.is_absolute():
+            return True
+        try:
+            candidate.resolve().relative_to(root)
+            return True
+        except (ValueError, OSError):
+            return False
+
+    return {
+        "unreported_bash": [c for c in unreported.get("unreported_bash", []) if root in str(c)],
+        "unreported_edit_targets": [
+            p for p in unreported.get("unreported_edit_targets", []) if _in_workspace(p)
+        ],
+    }
+
+
+# =====================================================
 # 审计报告生成
 # =====================================================
 
@@ -312,6 +420,7 @@ def build_final_audit_report(workspace: Path, project_root: Path,
     checkpoints: list[dict[str, Any]] = []
     events: list[dict[str, Any]] = []
     timeline_report: dict[str, Any] | None = None
+    state_consistency: dict[str, Any] = {"checked_steps": 0, "violations": [], "ok": True}
     try:
         from .workflow_store import WorkflowStore
 
@@ -322,6 +431,8 @@ def build_final_audit_report(workspace: Path, project_root: Path,
                 ).fetchone()
                 if row is not None:
                     timeline_report = store.workflow_timeline(row["id"])
+                    # A2 补丁1：状态-事件一致性核查（completed 必须有事件、检查点解除必须有批准）
+                    state_consistency = _check_state_event_consistency(store, row["id"])
     except Exception:
         timeline_report = None
 
@@ -416,12 +527,36 @@ def build_final_audit_report(workspace: Path, project_root: Path,
         if a.get("path") and re.fullmatch(r"[0-9a-fA-F]{64}", str(a.get("sha256", "")))
     ]
 
+    # A2 补丁2：防绕过检测结果接入交付判定——工作区归属的未申报操作直接 blocked。
+    unreported = detect_unreported_operations(workspace, project_root)
+    blocking_unreported = _workspace_scoped_unreported(workspace, unreported)
+    operation_audit_ok = (
+        not blocking_unreported["unreported_bash"]
+        and not blocking_unreported["unreported_edit_targets"]
+    )
+    consistency_ok = bool(state_consistency.get("ok", True))
+
+    gate_outcomes["state_event_consistency"] = "pass" if consistency_ok else "fail"
+    gate_outcomes["operation_audit"] = "pass" if operation_audit_ok else "fail"
+
+    delivery_ready = bool(report_artifacts) and bool(gate_outcomes) and all(
+        v == "pass" for v in gate_outcomes.values()
+    )
     report_data = {
         "workflow_id": workflow_id or str(workflow_name or workspace.name),
         "artifacts": report_artifacts,
         "gate_outcomes": gate_outcomes,
         "waivers": waivers,
-        "delivery_decision": "ready" if report_artifacts and gate_outcomes and all(v == "pass" for v in gate_outcomes.values()) else "blocked",
+        "delivery_decision": "ready" if delivery_ready else "blocked",
+        "state_event_consistency_detail": state_consistency,
+        "operation_audit_detail": {
+            "verdict": unreported["verdict"],
+            "declared_command_count": unreported["declared_command_count"],
+            "actual_bash_count": unreported["actual_bash_count"],
+            "blocking_rule": ("仅工作区归属的未申报操作触发 blocked；"
+                              "bash 归属按命令引用工作区路径判定（审计条目无 cwd 字段，已知精度边界）"),
+            **blocking_unreported,
+        },
     }
     return report_data
 

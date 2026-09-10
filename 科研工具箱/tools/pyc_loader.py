@@ -189,12 +189,46 @@ def load_code_from_pyc(pyc_path: pathlib.Path):
     return code
 
 
+def absolutize_caller_paths(argv, caller_cwd=None):
+    """把"调用方 cwd 下真实存在的相对路径参数"转换为绝对路径，其余原样保留。
+
+    背景（A7-F2）：run_pyc_native 以 tools/ 为子进程 cwd（payload 依赖 tools/ 下的
+    数据文件，cwd 必须保留），而调用方按文档使用相对路径传图片参数
+    （comp-visual-review Step4.5、paper-figure Step4.5、paper-figure-drawio Step5.7
+    均是 `figures/xxx.png` 形态）——旧逻辑下参数一律按 tools/ 解析，
+    必报 File not found → exit 2，被管线语义误判为"视觉 API 不可用"而静默跳过。
+
+    转换规则（保持原报错语义）：
+      - 选项（`-` 开头）、绝对路径、盘符锚定路径 → 原样保留；
+      - 相对路径且在调用方 cwd 下真实存在 → 转绝对路径；
+      - 相对路径但不存在 → 原样保留（工具按自己的 cwd 报 File not found，与旧版一致）。
+    """
+    cwd = pathlib.Path(caller_cwd) if caller_cwd is not None else pathlib.Path.cwd()
+    result = []
+    for arg in (argv or []):
+        if not isinstance(arg, str) or not arg or arg.startswith("-"):
+            result.append(arg)
+            continue
+        candidate = pathlib.Path(arg)
+        if candidate.is_absolute() or (len(arg) >= 2 and arg[1] == ":"):
+            result.append(arg)
+            continue
+        resolved = cwd / candidate
+        if resolved.exists():
+            result.append(str(resolved))
+        else:
+            result.append(arg)
+    return result
+
+
 def run_pyc_native(pyc_path: pathlib.Path, argv: list = None):
     """用 Python 3.11 venv 原生运行 .pyc（推荐路径）。"""
     py = find_py311_venv()
     if not py:
         return False
-    cmd = [py, str(pyc_path)] + (argv or [])
+    # A7-F2：调用方 cwd 下真实存在的相对路径参数先转绝对路径，
+    # 再以 tools/ 为子进程 cwd 启动（payload 数据文件依赖保留）。
+    cmd = [py, str(pyc_path)] + absolutize_caller_paths(argv)
     env = build_vision_env()
     try:
         r = subprocess.run(cmd, cwd=str(pyc_path.parent), env=env)

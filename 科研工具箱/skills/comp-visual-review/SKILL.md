@@ -40,13 +40,45 @@ python tools/tikz_vision_check.py figures/tikz_arch.pdf --review       # TikZ �
 ```json
 {"findings":[{"id":"V1","severity":"fatal|major|minor","where":"文件/页/图","evidence":"...","fix":"..."}],
  "fatal_count":0,
- "status":"pass|fail|unavailable"}
+ "status":"pass|fail|manual_review|unavailable"}
 ```
 
 - `status=pass`：仅当所有确定性检查通过 **且** 视觉模型 API 调用成功且未发现 fatal/major 问题。
 - `status=fail`：发现 fatal/major 视觉问题。
-- `status=unavailable`：视觉模型 API 不可用（未配置 key/调用失败/超时）。**此时禁止判 pass**——在报告中明确列出未验证项，`VISUAL_REVIEW.md` 中标注"视觉复核未验证"，不得伪造通过。
+- `status=manual_review`：视觉模型 API 不可用时的**受控人工降级**（见下方降级预案），必须伴随合规的 `VISUAL_REVIEW_MANUAL_CHECK.md`，否则质量闸硬拦。
+- `status=unavailable`：视觉模型 API 不可用且**未完成人工复核**。**此时禁止判 pass**——在报告中明确列出未验证项，`VISUAL_REVIEW.md` 中标注"视觉复核未验证"，不得伪造通过。注意：`unavailable` 且无人工复核记录时，review 闸一律不放行（静默降级被拦截是设计行为）。
 - `fatal_count` 必须为整数；任何 fatal 都阻止后续 final-review 放行。
+
+## ⛔ 视觉 API 不可用降级预案（A7-M5：禁止静默跳过，也禁止第 11 步永久卡死）
+
+视觉探针失败（`data_fig_vision_check.py` / `tikz_vision_check.py` / `drawio_vision_check.py`
+exit 2 且**已排除相对路径问题**——先用绝对路径重试一次）时，按以下顺序处置：
+
+1. **先确认是真不可用**：用绝对路径重试（`python tools/data_fig_vision_check.py <工作区>/figures/fig_q1.png --review`）；
+   仍失败（无 key / 调用失败 / 超时）才进入降级。
+2. **人工按检查单逐项目检**：用户本人对每张图逐项核对视觉检查单
+   （坐标轴名称与单位、刻度可读性、图例、颜色区分与色盲可辨、黑白打印可辨、截断、重叠、
+   误导性比例、题注对应、文字溢出、对比度）。
+3. **写 `VISUAL_REVIEW_MANUAL_CHECK.md`**（格式硬性要求，缺一即被闸拦截）：
+
+   ```markdown
+   # 视觉人工复核记录（视觉 API 不可用降级）
+   approved_by: <用户姓名>          ← 必填非空，必须是用户本人，禁止填 agent
+
+   ## 逐项检查
+   - [x] 图1 fig_q1：坐标轴名称与单位可读
+   - [x] 图1 fig_q1：图例完整、不遮挡曲线
+   - [x] 图2 fig_q2：色盲（红绿色弱）模拟下系列可区分
+   - [x] 图2 fig_q2：黑白打印仅靠色相区分的系列有线型冗余
+   - [x] 图3 tikz_arch：无文字截断/重叠
+   ```
+
+   `approved_by` 非空 + `- [x]` 逐项记录 **≥5 条**（每张图每个检查维度一行），质量闸才认。
+4. **verdict 写 `status=manual_review`**（不是 unavailable、更不是 pass），保留未验证项说明于 `VISUAL_REVIEW.md`。
+5. **重跑 complete**：review 闸校验人工复核文件合规后放行，并在结果中注记 manual_review。
+
+⛔ 红线：没有人工复核文件就写 `manual_review`、`approved_by` 填 agent、或逐项记录凑数不足 5 条——
+全部被 review 闸硬拦；伪造用户签名视同伪造审核证据。
 
 ## 输入
 
@@ -61,4 +93,6 @@ python tools/tikz_vision_check.py figures/tikz_arch.pdf --review       # TikZ �
 2. 逐图调用多模态视觉工具，记录每张图的 API 输出。
 3. 汇总 findings，按严重性分级，写 `VISUAL_REVIEW.md`。
 4. 生成 `VISUAL_REVIEW_VERDICT.json`（含 `status` 字段）。
-5. 若 API 不可用：status=`unavailable`，并把未验证项全部列出，绝不含糊通过。
+5. 若 API 不可用：按"视觉 API 不可用降级预案"走人工复核（status=`manual_review` +
+   `VISUAL_REVIEW_MANUAL_CHECK.md`）；无法完成人工复核时 status=`unavailable`，
+   并把未验证项全部列出，绝不含糊通过。

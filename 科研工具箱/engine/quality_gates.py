@@ -4,6 +4,7 @@ quality_gates.py — 质量门禁系统 + 多角色 Agent + 视觉能力 + 编�
 """
 from __future__ import annotations
 import os, sys, json, re, subprocess, hashlib
+from datetime import datetime, timezone
 import fitz as _fitz
 from pathlib import Path
 
@@ -139,6 +140,81 @@ def build_review_execution_evidence(workspace: Path | str, roles: dict, complete
             "completed_at": completed_at,
         }
     return {"roles": evidence_roles}
+
+
+# =====================================================
+# 审稿角色实际调用通道留痕（A6-F4 修复）
+# RoleAgent 每次成功调用 LLM 后，把"角色→实际使用的 base_url/model"写进工作区
+# sidecar（.engine/role_calls_actual.json）；check_review_evidence 的执行证据校验
+# 据此交叉核对——fallback 备用通道产生的审稿输出，无法再伪装成主通道模型申报。
+# =====================================================
+ROLE_CALLS_SIDECAR = ".engine/role_calls_actual.json"
+
+
+def record_role_call_actual(workspace: Path | str, role: str, base_url: str, model: str) -> None:
+    """记录角色实际使用的调用通道（写工作区 sidecar；IO 失败不阻断主流程）。"""
+    try:
+        root = Path(workspace).resolve()
+        sidecar = root / ROLE_CALLS_SIDECAR
+        data: dict = {}
+        if sidecar.is_file():
+            try:
+                loaded = json.loads(sidecar.read_text(encoding="utf-8"))
+                if isinstance(loaded, dict):
+                    data = loaded
+            except json.JSONDecodeError:
+                data = {}
+        roles = data.get("roles") if isinstance(data.get("roles"), dict) else {}
+        roles[role] = {
+            "base_url": str(base_url),
+            "model": str(model),
+            "called_at": datetime.now(timezone.utc).isoformat(),
+        }
+        data["roles"] = roles
+        data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        sidecar.parent.mkdir(parents=True, exist_ok=True)
+        sidecar.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    except OSError:
+        pass
+
+
+# =====================================================
+# 视觉人工复核记录校验（A7-M5 修复：视觉 API 不可用的受控降级路径）
+# =====================================================
+VISUAL_MANUAL_CHECK_FILE = "VISUAL_REVIEW_MANUAL_CHECK.md"
+_MANUAL_CHECK_MIN_ITEMS = 5
+
+
+def validate_visual_manual_check(path: Path) -> dict:
+    """校验人工复核记录（VISUAL_REVIEW_VERDICT.status=manual_review 的放行条件）。
+
+    合法条件（全部满足才放行）：
+      1. 文件存在；
+      2. 含非空 `approved_by:` 行（批准人必须是用户本人，禁止填 agent）；
+      3. 含 ≥5 条 `- [x]` 逐项检查记录（对应视觉检查单逐项人工目检后勾选）。
+    """
+    if not path.is_file():
+        return {"ok": False,
+                "reason": (f"status=manual_review 需要 {VISUAL_MANUAL_CHECK_FILE} 人工复核记录。"
+                           "正确格式（Markdown）:\n"
+                           "  approved_by: 用户姓名\n"
+                           "  ## 逐项检查\n"
+                           "  - [x] 坐标轴名称与单位可读\n"
+                           "  - [x] 图例完整且不遮挡曲线\n"
+                           "  （……逐项检查记录至少 5 条，对应 SKILL 视觉检查单）")}
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    approved = re.search(r"(?im)^[ \t]*approved_by[ \t]*:[ \t]*(\S.+)$", text)
+    if not approved or not approved.group(1).strip():
+        return {"ok": False,
+                "reason": (f"{VISUAL_MANUAL_CHECK_FILE} 缺少非空 approved_by 行"
+                           "（批准人必须为用户本人，禁止填 agent）。正确格式: approved_by: 用户姓名")}
+    items = re.findall(r"(?m)^\s*[-*]\s*\[[xX]\]", text)
+    if len(items) < _MANUAL_CHECK_MIN_ITEMS:
+        return {"ok": False,
+                "reason": (f"{VISUAL_MANUAL_CHECK_FILE} 逐项检查记录不足: 仅 {len(items)} 条 `- [x]`，"
+                           f"需 ≥{_MANUAL_CHECK_MIN_ITEMS} 条（按视觉检查单逐项人工目检后勾选）")}
+    return {"ok": True, "approved_by": approved.group(1).strip(), "items": len(items)}
+
 
 # 加载 .env 配置
 try:
@@ -580,9 +656,19 @@ class QualityGate:
         """Require reviewer, visual reviewer, editor, and fatal-free final verdicts.
 
         mode:
-          "full"  — require all 7 files (multi-role review)
+          "full"  — require all 7 files + REVIEW_EXECUTION_EVIDENCE.json (multi-role closed)
           "solo"  — require COMP_REVIEW.md + COMP_REVIEW_VERDICT.json only (single-person)
-          "auto"  — if all 7 exist, check full; if only solo files exist, check solo; else FAIL
+          "visual" — require the visual pair (VISUAL_REVIEW.md/VERDICT)；COMP 对存在任一成员时
+                     也必须完整并校验。不要求 editor/final 产物（属第 12/13 步，尚未发生）。
+                     供 comp-visual-review 步骤（第 11 步）使用。
+          "auto"  — 按工作区时序解析（A7-F1 死锁修复）:
+                     * 全部 7 件齐 → full
+                     * 任一 full 专属产物（EDITOR_CHANGELOG.md / FINAL_REVIEW.md /
+                       FINAL_REVIEW_VERDICT.json / REVIEW_EXECUTION_EVIDENCE.json）存在 → full
+                       （多角色审稿已启动，不允许静默降级）
+                     * 视觉对完整 → visual（第 11 步完成时序：后续步骤产物尚未生成是正常的）
+                     * 视觉对残缺 → full（"审稿只做了一半"不得降级，保持 M1 防线）
+                     * 否则 → solo
 
         strict_model_match:
           False — evidence model != configured model is a warning only (default)
@@ -593,30 +679,48 @@ class QualityGate:
         provenance_name = "REVIEW_EXECUTION_EVIDENCE.json"
         solo_reports = ["COMP_REVIEW.md"]
         solo_verdicts = ["COMP_REVIEW_VERDICT.json"]
+        visual_report, visual_verdict = "VISUAL_REVIEW.md", "VISUAL_REVIEW_VERDICT.json"
+        # full 模式专属产物：只有第 12/13 步（编辑/终审）才会生成。它们的存在才能证明
+        # 多角色审稿已真正启动——AUTO→FULL 的升级只由这些文件触发（A7-F1 根因修复：
+        # 旧逻辑把 VISUAL_REVIEW.md 也当多角色证据，导致第 11 步永远缺第 12/13 步产物）。
+        full_exclusive_files = [
+            "EDITOR_CHANGELOG.md", "FINAL_REVIEW.md", "FINAL_REVIEW_VERDICT.json",
+            provenance_name,
+        ]
 
         if mode == "auto":
-            all_exist = all((self.workspace / f).is_file() for f in all_reports + all_verdicts)
+            ws = self.workspace
+            all_exist = all((ws / f).is_file() for f in all_reports + all_verdicts)
+            visual_pair_complete = (ws / visual_report).is_file() and (ws / visual_verdict).is_file()
+            visual_pair_partial = (ws / visual_report).is_file() or (ws / visual_verdict).is_file()
             if all_exist:
                 mode = "full"
-            else:
+            elif any((ws / f).is_file() for f in full_exclusive_files):
+                # full 专属产物已出现：多角色审稿已启动，缺件就是缺件，按 full 硬校验。
+                mode = "full"
+            elif visual_pair_complete:
+                mode = "visual"
+            elif visual_pair_partial:
                 # 有任何多角色文件存在（部分完成的多角色审稿）时不允许静默降级，
                 # 否则会掩盖"审稿只做了一半"的缺失。
-                # ⛔ FIX: 只检查真正的多角色文件（visual/editor/final/execution_evidence），
-                # 不能把 solo 文件（COMP_REVIEW.md / COMP_REVIEW_VERDICT.json）误判为多角色证据——
-                # 否则 solo 模式永远切 full、永远缺文件。
-                multi_role_files = [
-                    "VISUAL_REVIEW.md", "EDITOR_CHANGELOG.md", "FINAL_REVIEW.md",
-                    "VISUAL_REVIEW_VERDICT.json", "FINAL_REVIEW_VERDICT.json",
-                    "REVIEW_EXECUTION_EVIDENCE.json",
-                ]
-                any_multi_role = any((self.workspace / f).is_file() for f in multi_role_files)
-                if any_multi_role:
-                    mode = "full"
-                else:
-                    mode = "solo"
+                mode = "full"
+            else:
+                mode = "solo"
 
         if mode == "full":
             reports, verdicts = all_reports, all_verdicts
+        elif mode == "visual":
+            if any((self.workspace / f).is_file() for f in full_exclusive_files):
+                # 视觉步骤完成时 editor/final 产物不应存在；出现即视为时序异常，
+                # 按 full 硬校验（缺件会带完整缺失清单返回，不静默放过）。
+                reports, verdicts = all_reports, all_verdicts
+            else:
+                reports, verdicts = [visual_report], [visual_verdict]
+                # COMP 对已启动（任一成员存在）时必须完整并一并校验，防"前序审稿做一半"被跳过。
+                comp_any = (self.workspace / "COMP_REVIEW.md").is_file() or (self.workspace / "COMP_REVIEW_VERDICT.json").is_file()
+                if comp_any:
+                    reports = solo_reports + reports
+                    verdicts = solo_verdicts + verdicts
         else:
             reports, verdicts = solo_reports, solo_verdicts
 
@@ -637,6 +741,7 @@ class QualityGate:
             return {"ok": False, "missing": missing, "fatal_count": fatal_count, "mode": mode,
                     "reason": f"缺少审稿证据 ({mode} 模式): {', '.join(missing)}"}
         fatal_count = 0
+        manual_review_notes: list[str] = []
         for name in verdicts:
             try:
                 verdict = json.loads((self.workspace / name).read_text(encoding="utf-8"))
@@ -646,20 +751,44 @@ class QualityGate:
             if not has_findings or not isinstance(verdict.get("fatal_count"), int):
                 return {"ok": False, "reason": f"审稿裁定字段不完整: {name}"}
             fatal_count += verdict["fatal_count"]
-            # 视觉审查裁定必须携带 status（pass|fail|unavailable）：
+            # 视觉审查裁定必须携带 status（pass|fail|manual_review|unavailable）：
             # 视觉 API 不可用而伪装成 pass 是典型造假路径，这里硬性拦截。
-            if name == "VISUAL_REVIEW_VERDICT.json":
+            if name == visual_verdict:
                 status = verdict.get("status")
-                if status not in ("pass", "fail", "unavailable"):
-                    return {"ok": False,
-                            "reason": f"视觉审查裁定缺少有效 status 字段（需 pass|fail|unavailable）: {name}"}
-                if status != "pass":
-                    return {"ok": False,
-                            "reason": f"视觉审查未通过（status={status}），终审不得放行: {name}"}
+                if status not in ("pass", "fail", "unavailable", "manual_review"):
+                    return {"ok": False, "fatal_count": fatal_count, "mode": mode,
+                            "reason": (f"视觉审查裁定缺少有效 status 字段"
+                                       f"（需 pass|fail|manual_review|unavailable）: {name}。"
+                                       "正确示例: {\"findings\": [], \"fatal_count\": 0, \"status\": \"pass\"}")}
+                if status == "manual_review":
+                    # A7-M5 受控降级：视觉 API 不可用 → 人工按检查单逐项目检，
+                    # 记录 VISUAL_REVIEW_MANUAL_CHECK.md（approved_by 非空 + ≥5 条逐项记录）才放行。
+                    manual_result = validate_visual_manual_check(self.workspace / VISUAL_MANUAL_CHECK_FILE)
+                    if not manual_result["ok"]:
+                        return {"ok": False, "fatal_count": fatal_count, "mode": mode,
+                                "reason": f"视觉人工复核记录无效: {manual_result['reason']}"}
+                    manual_review_notes.append(
+                        f"视觉为 manual_review（人工复核放行，approved_by={manual_result['approved_by']}，"
+                        f"{manual_result['items']} 条逐项记录）")
+                elif status != "pass":
+                    return {"ok": False, "fatal_count": fatal_count, "mode": mode,
+                            "reason": f"视觉审查未通过（status={status}），终审不得放行: {name}。"
+                                      "视觉 API 不可用时的合法降级路径见 comp-visual-review SKILL.md"
+                                      "（人工复核 → manual_review + VISUAL_REVIEW_MANUAL_CHECK.md）"}
         provenance_ok = True
         provenance_reason = ""
         provenance_warnings: list[str] = []
         if mode == "full" and not missing:
+            # A6-F4：引擎侧实际调用通道留痕（RoleAgent 写入，存在时交叉核对）
+            sidecar_roles: dict = {}
+            sidecar_path = self.workspace / ROLE_CALLS_SIDECAR
+            if sidecar_path.is_file():
+                try:
+                    loaded = json.loads(sidecar_path.read_text(encoding="utf-8"))
+                    if isinstance(loaded, dict) and isinstance(loaded.get("roles"), dict):
+                        sidecar_roles = loaded["roles"]
+                except (OSError, json.JSONDecodeError):
+                    sidecar_roles = {}
             try:
                 provenance = json.loads((self.workspace / provenance_name).read_text(encoding="utf-8"))
                 roles = provenance.get("roles", {})
@@ -695,6 +824,17 @@ class QualityGate:
                         provenance_warnings.append(
                             f"{role_name}: 无配置模型（contest_models.json 未填写且宿主无 agent 配置），"
                             f"模型比对跳过，证据声明为 {claimed!r}")
+                    # A6-F4 硬校验：引擎记录的实际调用模型 vs 证据声明模型。
+                    # fallback 备用通道产生的输出若被申报成主通道模型，在这里被拦
+                    # （与配置串无关——记录值就是事实，不符即证据失实，一律硬拦）。
+                    actual_record = sidecar_roles.get(role_name) if isinstance(sidecar_roles, dict) else None
+                    if isinstance(actual_record, dict) and str(actual_record.get("model", "")).strip():
+                        actual_model = str(actual_record["model"]).strip()
+                        if claimed and actual_model != claimed:
+                            raise ValueError(
+                                f"{role_name}: 引擎记录的实际调用模型 {actual_model!r} ≠ 证据声明模型 {claimed!r}"
+                                f"（来源 {ROLE_CALLS_SIDECAR}）——审稿输出疑似由未申报通道产生，证据不可信；"
+                                f"请让证据 model 字段如实填写实际通道，或以实际通道重跑审稿")
                 if len(set(sessions)) != len(sessions):
                     raise ValueError("审稿角色 session_id 不独立")
             except (json.JSONDecodeError, ValueError) as exc:
@@ -715,6 +855,8 @@ class QualityGate:
                       + "; ".join(provenance_warnings))
         else:
             reason = f"审稿闭环无 fatal ({mode} 模式)"
+        if ok and manual_review_notes:
+            reason += "；" + "; ".join(manual_review_notes)
         return {"ok": ok, "fatal_count": fatal_count, "mode": mode,
                 "reason": reason, "warnings": provenance_warnings}
 
@@ -755,6 +897,23 @@ class QualityGate:
                 return {"ok": False, "reason": "最终审计报告 artifact 字段或 SHA-256 无效"}
         if not isinstance(report["gate_outcomes"], dict) or not isinstance(report["waivers"], list):
             return {"ok": False, "reason": "最终审计报告 gate_outcomes/waivers 类型无效"}
+        if not report["gate_outcomes"]:
+            return {"ok": False,
+                    "reason": ("最终审计报告 gate_outcomes 为空——最终审计未实际运行任何门禁。"
+                               "请用 engine.audit_store.build_final_audit_report 生成报告，禁止手写")}
+        # A2 补丁1：状态-事件一致性 named check（编排状态必须能被事件链解释）
+        if report["gate_outcomes"].get("state_event_consistency") == "fail":
+            return {"ok": False, "failed_gates": ["state_event_consistency"],
+                    "reason": ("状态-事件一致性核查未通过：存在无 step_completed 事件的 completed 步骤，"
+                               "或无 checkpoint_approved 事件的检查点步骤完成"
+                               "（疑似绕过引擎直改 workflow.sqlite），"
+                               "详见 AUDIT_REPORT.json 的 state_event_consistency_detail")}
+        # A2 补丁2：防绕过检测 named check（检测结果已接入交付判定）
+        if report["gate_outcomes"].get("operation_audit") == "fail":
+            return {"ok": False, "failed_gates": ["operation_audit"],
+                    "reason": ("防绕过检测未通过：存在工作区归属的未申报操作（bash/编辑）且已接入交付判定。"
+                               "请在对应步骤 evidence 中申报真实命令与产物，或消除绕过操作；"
+                               "详见 AUDIT_REPORT.json 的 operation_audit_detail")}
         failed_gates = [name for name, outcome in report["gate_outcomes"].items() if outcome != "pass"]
         if failed_gates:
             return {"ok": False, "failed_gates": failed_gates,
@@ -1132,7 +1291,13 @@ class QualityGate:
                 if name == "review":
                     # comp-final-review 启用严格模型比对（软约定→硬阻断）
                     strict = skill_name == "comp-final-review"
-                    results[name] = self.check_review_evidence(mode="auto", strict_model_match=strict)
+                    # A7-F1 死锁修复：按步骤语义选择模式——
+                    #   comp-visual-review（第 11 步）只校验视觉对，不能强制 full
+                    #   （EDITOR/FINAL 产物属第 12/13 步，顺序上尚不存在）；
+                    #   comp-final-review 必须 full（本步就是补齐终审产物的一步）；
+                    #   其余（comp-review / 模板显式声明）保持 auto 时序解析。
+                    review_mode = {"comp-visual-review": "visual", "comp-final-review": "full"}.get(skill_name, "auto")
+                    results[name] = self.check_review_evidence(mode=review_mode, strict_model_match=strict)
                 else:
                     results[name] = named_checks[name]()
         all_ok = all(r["ok"] for r in results.values())
@@ -1162,24 +1327,31 @@ class RoleAgent:
         },
     }
 
-    def __init__(self, api_key: str = "", base_url: str = "", model: str = ""):
+    def __init__(self, api_key: str = "", base_url: str = "", model: str = "",
+                 workspace: Path | str = ""):
         self.api_key = api_key or env_get("OPENAI_API_KEY") or env_get("SENSENOVA_API_KEY")
         self.base_url = base_url or env_get("OPENAI_BASE_URL") or env_get("SENSENOVA_BASE_URL")
         self.model = model or env_get("REVIEWER_MODEL_ID") or env_get("SENSENOVA_MODEL") or "deepseek-v4-flash"
+        # A6-F4：传入 workspace（或设 ACAT_WORKSPACE 环境变量）后，每次调用会把
+        # "角色→实际使用的 base_url/model"写进工作区 sidecar，供 strict 闸交叉核对。
+        resolved_ws = str(workspace or "").strip() or str(env_get("ACAT_WORKSPACE", "") or "").strip()
+        self._workspace = Path(resolved_ws).resolve() if resolved_ws else None
 
     def call(self, role: str, prompt: str, system: str = "") -> str:
         """调用 LLM 执行角色任务"""
         if role not in self.ROLES:
             raise ValueError(f"未知角色: {role}")
         sys_prompt = system or self.ROLES[role]["system"]
-        return self._call_llm(sys_prompt, prompt)
+        return self._call_llm(sys_prompt, prompt, role=role)
 
-    def _call_llm(self, system: str, prompt: str) -> str:
+    def _call_llm(self, system: str, prompt: str, role: str = "") -> str:
         """调用 OpenAI 兼容 API（支持推理模型）。
 
         韧性设计（解决"全局配额只够一次审核、复核失败"）：
         1. 429/5xx 指数退避重试（3 次）
         2. 主 provider 失败后按 .env 配置顺序 fallback 到备用 provider
+        3. 成功后把实际使用的 base_url/model 写入工作区 sidecar（A6-F4，
+           需构造时传入 workspace 或设 ACAT_WORKSPACE；未配置工作区则不落盘）
         """
         if not self.api_key:
             # 回退：用 reviewer_client.py（其 call_api 自带重试）
@@ -1246,7 +1418,11 @@ class RoleAgent:
                     content = msg.get("content") or ""
                     if not content.strip():
                         content = msg.get("reasoning") or msg.get("reasoning_content") or ""
+                    if role and self._workspace is not None:
+                        record_role_call_actual(self._workspace, role, base_url, model)
                     return content
+                if role and self._workspace is not None:
+                    record_role_call_actual(self._workspace, role, base_url, model)
                 return str(result)[:500]
             except Exception as exc:
                 last_error = exc
@@ -1361,6 +1537,9 @@ def main():
     role.add_argument("role", choices=["executor", "reviewer", "editor"])
     role.add_argument("prompt", help="提示词")
     role.add_argument("--system", default="", help="系统提示")
+    role.add_argument("--workspace", default="",
+                      help="工作区路径（提供后把实际调用 base_url/model 写入 "
+                           ".engine/role_calls_actual.json，供 final-review strict 闸交叉核对）")
 
     # P6: 视觉
     vision = sub.add_parser("vision", help="图片分析")
@@ -1381,7 +1560,7 @@ def main():
         return 0 if result["ok"] else 1
 
     if args.cmd == "role":
-        agent = RoleAgent()
+        agent = RoleAgent(workspace=getattr(args, "workspace", ""))
         result = agent.call(args.role, args.prompt, args.system)
         print(result)
         return 0

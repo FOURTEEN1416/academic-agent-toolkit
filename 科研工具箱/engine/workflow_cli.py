@@ -4,6 +4,8 @@ Agent 使用方式：
   python -m engine.workflow_cli caps              # 检测运行时能力
   python -m engine.workflow_cli start --template comp_cumcm --workspace ./ws  # 创建工作流
   python -m engine.workflow_cli next --wf <id>     # 获取下一步动作（agent 用）
+  python -m engine.workflow_cli retry --wf <id> --by <操作者>  # 失败步骤带内恢复（FAILED→RUNNING，落 step_retry 事件）
+  python -m engine.workflow_cli approve --checkpoint <UUID> --by <批准人>  # 批准检查点（--by 必填，记录批准人）
   python -m engine.workflow_cli report --wf <id>   # 生成审计报告
 """
 from __future__ import annotations
@@ -75,6 +77,27 @@ def resolve_checkpoint_db(checkpoint_id: str) -> Path:
     return matches[0]
 
 
+def _action_payload(action) -> dict:
+    """StepAction 的 CLI JSON 序列化（next/retry 共用，保持输出风格一致）。"""
+    return {
+        "step_id": action.step_id,
+        "position": action.position,
+        # 手册口径步号（1 起始）：消除 next 输出 position=0 与手册 1-14 的错位困惑
+        # （A5 摩擦日志 ②；仅 CLI 输出层字段，不改 StepAction schema）
+        "step_number_manual": action.position + 1,
+        "skill_name": action.skill_name,
+        "display_name": action.display_name,
+        "workspace": str(action.workspace),
+        "skill_path": str(action.skill_path),
+        "output_files": action.output_files,
+        "primary_output": action.primary_output,
+        "has_checkpoint": action.has_checkpoint,
+        "checkpoint_type": action.checkpoint_type,
+        "companion_skills": action.companion_skills,
+        "instructions": action.execution_instructions(),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="OpenCode 桌面版驱动的工作流引擎")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -103,9 +126,17 @@ def main() -> int:
     complete.add_argument("--evidence", default="{}", help="Desktop execution evidence as a JSON object")
     complete.add_argument("--db", default="")
 
+    # 重试失败步骤（A2 审计修复：FAILED 后此前无带内恢复路径，恢复被迫手改 SQLite）
+    retry = sub.add_parser("retry")
+    retry.add_argument("--wf", required=True, help="工作流 ID")
+    retry.add_argument("--by", default="", help="操作者标识（落入 step_retry 审计事件）")
+    retry.add_argument("--db", default="")
+
     # 批准检查点
     approve = sub.add_parser("approve")
     approve.add_argument("--checkpoint", required=True)
+    approve.add_argument("--by", default="",
+                         help="批准人标识（必填非空，写入批准事件防 agent 自批准无痕）")
     approve.add_argument("--db", default="")
 
     # 审计报告
@@ -137,7 +168,7 @@ def main() -> int:
         db = Path(args.db)
     elif workspace_for_db is not None:
         db = default_workflow_db(workspace_for_db)
-    elif args.command in {"next", "complete", "report"}:
+    elif args.command in {"next", "complete", "retry", "report"}:
         try:
             db = resolve_workflow_db(args.wf)
         except KeyError as exc:
@@ -173,20 +204,10 @@ def main() -> int:
                 "message": result.message,
             }
             if result.action:
-                output["action"] = {
-                    "step_id": result.action.step_id,
-                    "position": result.action.position,
-                    "skill_name": result.action.skill_name,
-                    "display_name": result.action.display_name,
-                    "workspace": str(result.action.workspace),
-                    "skill_path": str(result.action.skill_path),
-                    "output_files": result.action.output_files,
-                    "primary_output": result.action.primary_output,
-                    "has_checkpoint": result.action.has_checkpoint,
-                    "checkpoint_type": result.action.checkpoint_type,
-                    "companion_skills": result.action.companion_skills,
-                    "instructions": result.action.execution_instructions(),
-                }
+                output["action"] = _action_payload(result.action)
+            if result.checkpoint_id:
+                # A5 ⑦ 修复：blocked 时直接给出待批 checkpoint UUID
+                output["checkpoint_id"] = result.checkpoint_id
             print(json.dumps(output, ensure_ascii=False, indent=2))
             return 0 if result.status in ("advanced", "completed") else 1
 
@@ -203,11 +224,34 @@ def main() -> int:
                 "step_id": result.step_id,
                 "message": result.message,
             }
+            if result.checkpoint_id:
+                # A5 ⑦ 修复：waiting_checkpoint 时直接给出待批 checkpoint UUID
+                output["checkpoint_id"] = result.checkpoint_id
             print(json.dumps(output, ensure_ascii=False, indent=2))
             return 0 if result.status in ("advanced", "completed", "waiting_checkpoint") else 1
 
+        if args.command == "retry":
+            result = runner.retry_last_failed(args.wf, by=str(args.by or "").strip())
+            output = {
+                "status": result.status,
+                "step_id": result.step_id,
+                "message": result.message,
+            }
+            if result.action:
+                output["action"] = _action_payload(result.action)
+            print(json.dumps(output, ensure_ascii=False, indent=2))
+            return 0 if result.status in ("advanced", "completed") else 1
+
         if args.command == "approve":
-            result = runner.approve_checkpoint(args.checkpoint, {"approved": True})
+            by = str(getattr(args, "by", "") or "").strip()
+            if not by:
+                parser.error(
+                    "approve 缺少必填的 --by <批准人标识>：批准事件必须记录谁批准了检查点"
+                    "（防 agent 自批准且无痕）。正确用法: "
+                    "python -m engine.workflow_cli approve --checkpoint <UUID> "
+                    "[--db <workflow.sqlite 路径>] --by <批准人>"
+                )
+            result = runner.approve_checkpoint(args.checkpoint, {"approved": True, "approved_by": by})
             output = {"status": result.status, "message": result.message}
             if result.action:
                 output["action"] = {

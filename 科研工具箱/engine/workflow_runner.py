@@ -32,6 +32,8 @@ class RunResult:
     step_id: str | None = None
     message: str = ""
     action: StepAction | None = None
+    # A5 ⑦ 修复：checkpoint UUID 直接随结果输出（此前只能从 report JSON/SQLite 捞）
+    checkpoint_id: str | None = None
 
 
 class WorkflowRunner:
@@ -114,7 +116,9 @@ class WorkflowRunner:
         if blocked is not None:
             return RunResult(
                 workflow_id, "blocked", blocked.id,
-                message=f"步骤 {blocked.name} 的检查点等待用户批准（workflow_cli approve），不得跳过",
+                message=(f"步骤 {blocked.name} 的检查点等待用户批准"
+                         f"（workflow_cli approve --checkpoint <UUID> --by <批准人>），不得跳过"),
+                checkpoint_id=self._latest_checkpoint_id(blocked.id),
             )
 
         step = self._next_pending_step(workflow_id)
@@ -239,9 +243,11 @@ class WorkflowRunner:
         recommended = list(step.metadata.get("companion_skills") or [])
         if recommended:
             def _companion_reject(detail: str) -> RunResult:
+                # 注意：只有第一段是 f-string；后两段是普通字符串，花括号无需转义
+                # （2026-09-11 小修：此前 {{...}} 转义残留导致教学格式渲染成双花括号）
                 message = (f"invalid execution evidence: 辅助技能申报不合规——{detail}。"
-                           '正确格式: "companion_skills": {{"used": ["技能名"], '
-                           '"skipped": [{"skill": "技能名", "reason": "为何跳过"}]}}，'
+                           '正确格式: "companion_skills": {"used": ["技能名"], '
+                           '"skipped": [{"skill": "技能名", "reason": "为何跳过"}]}，'
                            "used 与 skipped 须恰好覆盖本步推荐清单。")
                 self.store.transition_step_with_checkpoint(
                     workflow_id, step.id, StepStatus.FAILED,
@@ -270,6 +276,24 @@ class WorkflowRunner:
                 return _companion_reject(f"申报了本步未推荐的技能 {unknown}（本步推荐清单: {recommended}）")
             if missing:
                 return _companion_reject(f"推荐技能未逐一申报使用或跳过: {missing}")
+            # ⛔ C1 痕迹绑定（A5 ⑫/A2 major 修复：used 伪报零校验直接过闸）：
+            # 覆盖校验通过后，每个 used 技能必须有真实使用痕迹——技能名
+            # （不区分大小写，'-' 与 '_' 等价）出现在任一 evidence.commands 命令串
+            # 或任一 declared outputs/inputs 路径中才算有痕；无痕 = 步骤失败，
+            # 并教学两条出路（如实补记 consult 命令，或改报 skipped+理由）。
+            trace_blob = " ".join(
+                [str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)]
+                + [str(p) for p in evidence.get("outputs", []) or []]
+                + [str(p) for p in evidence.get("inputs", []) or []]
+            ).lower().replace("-", "_")
+            for used_skill in used:
+                trace_key = used_skill.strip().lower().replace("-", "_")
+                if trace_key and trace_key not in trace_blob:
+                    return _companion_reject(
+                        f"used 申报的技能 {used_skill} 在命令与产物/输入路径中零使用痕迹"
+                        "（伪报 used 直接过闸已被禁止）。两条出路："
+                        "① 把 consult 该技能的真实命令（如读取其 SKILL.md 的命令）如实记入 "
+                        "evidence.commands；② 若确未使用，改申报为 skipped 并写明理由")
 
         workspace = Path(workflow.metadata["workspace"])
         declared_outputs = list(step.metadata.get("output_files", []))
@@ -336,7 +360,7 @@ class WorkflowRunner:
         has_checkpoint = step.metadata.get("has_checkpoint", False)
         if has_checkpoint:
             checkpoint_type = step.metadata.get("checkpoint_type", "approve")
-            self.store.transition_step_with_checkpoint(
+            _step_after, checkpoint = self.store.transition_step_with_checkpoint(
                 workflow_id, step.id, StepStatus.BLOCKED,
                 {"status": "waiting_checkpoint", "type": checkpoint_type},
                 artifacts=_manifest_artifacts(manifest),
@@ -344,13 +368,18 @@ class WorkflowRunner:
             )
             self._log(workflow_id, step.id, step.name, "checkpoint",
                       f"步骤 {step.name} 完成，等待用户确认", agent=self._agent_label(workflow))
+            # A5 ⑦ 修复：checkpoint UUID 直接随 complete 结果输出，agent 不用再捞 report/SQLite
             # 返回下一个动作（如果有），但标记为 waiting_checkpoint
             next_action = self._next_pending_step(workflow_id)
             if next_action:
                 return RunResult(workflow_id, "waiting_checkpoint", step.id,
-                                 message=f"步骤 {step.name} 完成，等待用户确认")
+                                 message=f"步骤 {step.name} 完成，等待用户确认"
+                                         f"（checkpoint_id: {checkpoint.id}，批准: workflow_cli approve --checkpoint {checkpoint.id} --by <批准人>）",
+                                 checkpoint_id=checkpoint.id)
             return RunResult(workflow_id, "waiting_checkpoint", step.id,
-                             message="所有步骤完成，等待最后检查点确认")
+                             message=f"所有步骤完成，等待最后检查点确认"
+                                     f"（checkpoint_id: {checkpoint.id}，批准: workflow_cli approve --checkpoint {checkpoint.id} --by <批准人>）",
+                             checkpoint_id=checkpoint.id)
 
         self.store.transition_step_with_checkpoint(
             workflow_id, step.id, StepStatus.COMPLETED,
@@ -418,6 +447,47 @@ class WorkflowRunner:
                              "所有步骤完成")
 
         return self.next_action(candidate.workflow_id)
+
+    def retry_last_failed(self, workflow_id: str, by: str = "") -> RunResult:
+        """FAILED 步骤的带内恢复路径（A2 minor 审计修复）。
+
+        FAILED→RUNNING 在 _TRANSITIONS 中合法但此前引擎不可达（CLI 无 retry 命令），
+        恢复被迫手改 SQLite（未审计通道）。本方法经引擎走合法转移，落 step_retry
+        审计事件（含 step_id、by），把恢复行为纳入审计链。
+        """
+        workflow = self._workflow(workflow_id)
+        row = self.store._connection.execute(
+            "SELECT * FROM workflow_steps WHERE workflow_id = ? AND status = 'failed' "
+            "ORDER BY updated_at DESC, position DESC LIMIT 1",
+            (workflow_id,),
+        ).fetchone()
+        if row is None:
+            return RunResult(workflow_id, "failed",
+                             message="没有 FAILED 步骤可重试（retry 仅用于失败步骤的带内恢复；"
+                                     "正常推进请用 next）")
+        failed_step = self.store._step_from_row(row)
+        step, _checkpoint = self.store.transition_step_with_checkpoint(
+            workflow_id, failed_step.id, StepStatus.RUNNING,
+            {"status": "retrying", "by": by},
+            event={"type": "step_retry", "step_id": failed_step.id,
+                   "skill_name": failed_step.name, "by": by},
+        )
+        self._log(workflow_id, step.id, step.name, "retry",
+                  f"步骤 {step.name} 重试（FAILED→RUNNING 带内恢复）",
+                  agent=by or self._agent_label(workflow))
+        self._audit_record(type="engine_event", event="step_retry", workflow_id=workflow_id,
+                           step_id=step.id, skill_name=step.name, by=by)
+        return RunResult(workflow_id, "advanced", step.id,
+                         message=f"步骤 {step.name} 已复位为 RUNNING，重新执行后 complete",
+                         action=self._action_for_step(workflow, step))
+
+    def _latest_checkpoint_id(self, step_id: str) -> str | None:
+        """返回步骤最近一次 checkpoint 的 ID（供 next blocked 输出，A5 ⑦ 修复）。"""
+        row = self.store._connection.execute(
+            "SELECT id FROM checkpoints WHERE step_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+            (step_id,),
+        ).fetchone()
+        return row[0] if row else None
 
     def _has_pending_steps(self, workflow_id: str) -> bool:
         """检查工作流是否还有待执行的 pending 步骤。"""

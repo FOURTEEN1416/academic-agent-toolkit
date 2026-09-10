@@ -26,6 +26,34 @@ _COMMAND_EXECUTABLE_RE = (
 )
 _SHELL_TOKEN_RE = re.compile(r"^\s*[A-Za-z0-9_./\\-]+(?:\.[Ee][Xx][Ee])?(\s+.*)?$")
 
+# Windows 盘符（C:\、C:/）——冒号是路径语法不是描述性分隔符（A5 误杀②修复：
+# `C:/Program Files/draw.io/draw.io.EXE -x ...` 曾被 ':' 规则误杀）
+_WINDOWS_DRIVE_RE = re.compile(r"\b[A-Za-z]:[\\/]")
+
+
+def _strip_quoted_spans(text: str) -> str:
+    """命令含成对引号时把引号内内容替换为空格，返回"外壳"。
+
+    引号内内容（grep 模式、-c 代码、带空格路径）是被操作的对象，
+    不算命令作者的自述——描述性判断只看引号外的外壳。
+    引号不成对（奇数个）视为字面量，返回原文。
+    （A5 误杀①修复：`grep -q '<!-- END FIGURE_MANIFEST -->' file` 曾被
+    引号内 "-->" 箭头规则误杀，而这是 comp-prob-analysis 完成铁律强制命令）
+    """
+    shell = text
+    for quote in ("'", '"'):
+        if shell.count(quote) >= 2 and shell.count(quote) % 2 == 0:
+            kept = []
+            inside = False
+            for ch in shell:
+                if ch == quote:
+                    inside = not inside
+                    kept.append(" ")
+                else:
+                    kept.append(" " if inside else ch)
+            shell = "".join(kept)
+    return shell
+
 
 def _looks_like_descriptive_command(command: str) -> bool:
     """启发式判断命令是否为描述性文本（伪命令）。
@@ -37,20 +65,25 @@ def _looks_like_descriptive_command(command: str) -> bool:
        （inspection/check/review/generation/verification 等名词短语）。
     保守起见：仅当同时满足「首词可执行」与「命令不含 shell 元字符/重定向/管道」
     之外的描述性特征时才判伪——宁可放行不可误伤。
+    引号内内容（成对 '…' 或 "…"）不算命令作者的自述，箭头/描述性规则只看外壳。
     """
     text = command.strip()
     if not text:
         return True
-    # 描述性箭头（-> / →）优先检测——"main.docx -> main.pdf" 是流程描述，
-    # 且其中的 ">" 会与 shell 重定向元字符混淆，必须先于 shell 检查处理。
-    if "->" in text or "→" in text:
+    # 引号外壳：引号内内容是被操作对象，描述性判断只对引号外外壳生效
+    shell = _strip_quoted_spans(text)
+    # 描述性箭头（-> / →）优先检测且只看外壳——"main.docx -> main.pdf"（无引号）
+    # 是流程描述；引号内 "-->"（如 grep 模式）不是作者自述。
+    # 其中的 ">" 会与 shell 重定向元字符混淆，必须先于 shell 检查处理。
+    if "->" in shell or "→" in shell:
         return True
-    # 允许常见的 shell 结构（管道/重定向/逻辑符/子 shell）——这些是真实命令
+    # 允许常见的 shell 结构（管道/重定向/逻辑符/子 shell）——外壳上出现才是
+    # 命令作者写的真实命令结构（引号内的 | > < 是字面量）
     shell_constructs = ("|", ">", "<", "&&", "||", ";", "$(", "`")
-    if any(c in text for c in shell_constructs):
+    if any(c in shell for c in shell_constructs):
         return False
-    # 描述性句子特征：以句号/中文句号结尾
-    if text.endswith((".", "。", "！", "？")):
+    # 描述性句子特征：外壳以句号/中文句号结尾（引号内句号不算）
+    if shell.rstrip().endswith((".", "。", "！", "？")):
         return True
     # 解析首词与剩余部分
     parts = text.split(None, 1)
@@ -91,8 +124,10 @@ def _looks_like_descriptive_command(command: str) -> bool:
         if any(lowered.startswith(w) or f" {w} " in f" {lowered} " for w in natural_language_words):
             return True
         return False
-    # 首词不是已知可执行程序：含括号说明/冒号等描述性特征 → 伪命令
-    if "(" in text or ")" in text or ":" in text:
+    # 首词不是已知可执行程序：含括号说明/冒号等描述性特征 → 伪命令；
+    # 冒号规则排除 Windows 盘符冒号（C:\、C:/ 开头段）——那是路径语法
+    colon_scan = _WINDOWS_DRIVE_RE.sub(" ", shell)
+    if "(" in colon_scan or ")" in colon_scan or ":" in colon_scan:
         return True
     # 首词带路径/扩展名（如 C:\...\xelatex.EXE、./tools/x.py）→ 真实命令
     if "/" in first_token or "\\" in first_token or "." in first_token:
