@@ -265,7 +265,9 @@ python -m engine.workflow_cli next --wf <workflow_id>
 # 字段缺一/类型错/sha 不符/描述性命令/体积不足都会被逐层拒绝，步骤置 failed 需重开流程）：
 #   schema_version 必须是整数 1；commands 必须是非空对象数组且 returncode 为整数 0；
 #   outputs 必须与 --artifacts 完全一致；skill_sha256 必须等于该步 SKILL.md 的 SHA-256；
-#   产出文件须过 quality gate（如 comp-prob-analysis 的 PROBLEM_ANALYSIS.md ≥1500 字节）。
+#   产出文件须过 quality gate（如 comp-prob-analysis 的 PROBLEM_ANALYSIS.md ≥1500 字节）；
+#   companion_skills 申报（2026-09-11 C1 闸）：步骤带 companion_skills 时必填，used/skipped
+#   恰好覆盖推荐清单（skipped 须给非空理由）——强制申报不强制使用，缺申报=步骤失败。
 python -m engine.workflow_cli complete --wf <workflow_id> --ok true --artifacts "PROBLEM_ANALYSIS.md" --evidence '{
   "schema_version": 1,
   "agent": "opencode-desktop",

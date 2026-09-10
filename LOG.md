@@ -528,3 +528,12 @@
 - **每步推荐清单**（StepAction 同步）：S1 problem-analysis｜S2 citation-check/check-citations/research-lit/literature-review/paper-search/sci-paper-lookup｜S3 model-building/model-innovation/route-selection/sci-sympy/proof-writer/scholar-verify-math｜S4 data-processing/EDA/统计检验/sci-networkx/dse-loop/analyze-results｜S5 scipilot/gallery/academic-figure/plot-from-data/plot-from-image/scientific-visualization｜S6 studio-pro/visio/diagram-design/schematics/graphviz/mermaid｜S7 auto-review-loop 三变体｜S8 anti-defensive-writing/anti-ai-detection/latex-writing/result-to-claim/paper-plan-zh/format-profile｜S9 analyze-results｜S10 docx 三件+latex-document｜S11 scholar-critique-figures/figure-spec｜S12 anti-defensive-writing｜S13 scholar-critique-manuscript｜S14 citation-check/quality-check。赛后情境：slides/poster/team-coordination/feishu-notify/rebuttal。
 - **入口接线**：comp-start 第 4 步+主控 AGENTS.md 三层发现机制①均更新（companion_skills+CONTEST_SKILL_MAP）；发现机制升格为"主通道强制发现+主动推荐"。
 - **验证**：双口径 264+6skip/308+6skip 全绿、provenance PASS、冒烟工作区已清。
+
+## 2026-09-11 续3（用户质询"只推荐不强制会便宜行事"——C1 强制申报闸落地）
+
+- **裁定：强制申报 ≠ 强制使用**。推荐清单里每个辅助技能，complete 时 evidence 必须逐一申报 used 或 skipped+非空理由；缺申报/覆盖不全/申报了未推荐的技能/格式错 = 步骤失败（错误信息自带正确格式教学）。不强制"使用"是因为 14 步×6 推荐全加载会撑爆赛时上下文——要堵的是"看了不用还无声跳过"。
+- **引擎落码（workflow_runner complete_step，M5/P1 同款硬条件模式，编号 C1）**：读 step.metadata.companion_skills → 校验 evidence.companion_skills 申报表（used 字符串数组/skipped [{skill,reason}] /并集恰覆盖推荐清单/不得申报未推荐技能）→ 违规走 transition_step_with_checkpoint FAILED。
+- **双构造点教训（当晚抓到真 bug）**：引擎有两处 StepAction 构造——next_action（已带字段）与 `_action_for_step`（断点续跑/approve 后重建动作，行 491，初版漏改）。chain_driver 实跑暴露：step0 过、step1 报缺申报。修复后 14 步全链 dry-run 0-5 步连过、第 6 步按设计停在子智能体等待点，C1 闸在 checkpoint 批准前后两个路径均生效。
+- **双向冒烟**：缺申报 → 拒（含格式教学文案）；合规申报（used 空+skipped 带理由）→ 放行进入 checkpoint 等待。chain_driver `evidence_for` 已同步补申报（dry-run 逐个 skipped"链路验证级不加载辅助技能"）。
+- **审计/门禁补充面**：①L3 证据文件（.engine/evidence/*.json）自动落申报内容→事后可查；②第 14 步 comp-final-audit 增 companion-ledger 条款：逐步核对申报完整性，缺口=fatal（因为 runner 已前置硬拦，若终审仍见缺口即证据被篡改）；③五处文档同步（作战手册 evidence 样例/主控 AGENTS.md §十/comp-start 第 5 步/CONTEST_SKILL_MAP 使用规则/comp-final-audit）。
+- **验证**：双口径 264+6skip/308+6skip 全绿、provenance PASS、chain_driver 14 步链 0-5 实测贯通、冒烟区已清。

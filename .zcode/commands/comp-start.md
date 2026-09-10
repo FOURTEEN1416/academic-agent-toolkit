@@ -23,7 +23,7 @@ $ARGUMENTS 为题号（如 `A`）或完整工作区名（如 `cumcm2026A`）。
 
 3. **取第一步**：`python -m engine.workflow_cli next --wf <WF_ID> --db <workspace>/.engine/workflow.sqlite`（或按返回的 index 解析），得到 StepAction（skill_name / skill_path / output_files / checkpoint）。
 4. **按技能执行**：Read StepAction.skill_path 指向的 SKILL.md，严格按其工作流与完成铁律执行；产物写入 StepAction.workspace。**StepAction.companion_skills 是本步推荐的辅助技能**（引擎主动给出）——按需加载 1-3 个，全库 254 技能分类账见 `科研工具箱/CONTEST_SKILL_MAP.md`；辅助技能结论照常留痕。
-5. **回报推进**：`complete --wf <WF_ID> --ok true --artifacts "..." --evidence '{...}'`（evidence 7 必填字段，schema 见 `科研工具箱/AGENTS.md` §十；审核类步骤 evidence 必须含真实 subagent 会话记录，禁止主智能体伪造 verdict）。
+5. **回报推进**：`complete --wf <WF_ID> --ok true --artifacts "..." --evidence '{...}'`（evidence 7 必填字段 + **companion_skills 强制申报**（C1 闸：used/skipped 恰好覆盖本步推荐清单，skipped 须给非空理由，缺申报=步骤失败），schema 见 `科研工具箱/AGENTS.md` §十；审核类步骤 evidence 必须含真实 subagent 会话记录，禁止主智能体伪造 verdict）。
 6. **checkpoint 步骤**：展示决策面板，等用户批准后再推进（`approve`）。
 
 ## 配套入口

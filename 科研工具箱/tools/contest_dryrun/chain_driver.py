@@ -209,6 +209,12 @@ def evidence_for(action, step_name):
     ev = {"schema_version": 1, "agent": "chain-dryrun-driver", "step_id": action["step_id"],
           "skill_name": step_name, "skill_sha256": skill_sha, "commands": cmds,
           "inputs": [], "outputs": action.get("output_files", [])}
+    reco = action.get("companion_skills") or []
+    if reco:
+        # C1 申报纪律（2026-09-11）：dry-run 是链路验证级，不加载辅助技能——逐个申报 skipped+理由
+        ev["companion_skills"] = {"used": [],
+                                  "skipped": [{"skill": s, "reason": "链路验证级 dry-run 不加载辅助技能"}
+                                              for s in reco]}
     if step_name == "comp-code":
         r = subprocess.run([sys.executable, "code/main.py"], cwd=WS, capture_output=True, timeout=120)
         ev["commands"] = [{"command": "python code/main.py", "returncode": r.returncode, "cwd": "."}]

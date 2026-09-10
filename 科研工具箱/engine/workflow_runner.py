@@ -231,6 +231,46 @@ class WorkflowRunner:
                 )
                 return RunResult(workflow_id, "failed", step.id, message)
 
+        # ⛔ C1: 辅助技能强制申报（2026-09-11 用户质询"只推荐不强制会便宜行事"）
+        # 步骤定义了 companion_skills 时，执行证据必须含 companion_skills 申报：
+        #   {"used": [技能名...], "skipped": [{"skill": 名, "reason": 非空理由}...]}
+        # used ∪ skipped 必须恰好覆盖本步推荐清单（申报 ≠ 强制使用，但"不用"必须留痕给理由）；
+        # 缺申报/覆盖不全/申报了未推荐的技能/格式错 = 步骤失败（错误信息含正确格式教学）。
+        recommended = list(step.metadata.get("companion_skills") or [])
+        if recommended:
+            def _companion_reject(detail: str) -> RunResult:
+                message = (f"invalid execution evidence: 辅助技能申报不合规——{detail}。"
+                           '正确格式: "companion_skills": {{"used": ["技能名"], '
+                           '"skipped": [{"skill": "技能名", "reason": "为何跳过"}]}}，'
+                           "used 与 skipped 须恰好覆盖本步推荐清单。")
+                self.store.transition_step_with_checkpoint(
+                    workflow_id, step.id, StepStatus.FAILED,
+                    {"status": "failed", "error": message},
+                    artifacts=[{"name": a, "path": a} for a in result.artifacts],
+                    event={"type": "step_failed", "stderr": message},
+                )
+                return RunResult(workflow_id, "failed", step.id, message)
+
+            raw_decl = result.metadata.get("execution_evidence", {}).get("companion_skills")
+            if not isinstance(raw_decl, dict):
+                return _companion_reject(f"本步推荐了辅助技能 {recommended} 但证据缺少 companion_skills 申报")
+            used = raw_decl.get("used", [])
+            skipped = raw_decl.get("skipped", [])
+            if not isinstance(used, list) or not all(isinstance(s, str) and s.strip() for s in used):
+                return _companion_reject("used 必须是非空技能名字符串数组")
+            if not isinstance(skipped, list) or not all(
+                isinstance(s, dict) and str(s.get("skill", "")).strip() and str(s.get("reason", "")).strip()
+                for s in skipped
+            ):
+                return _companion_reject('skipped 必须是 [{"skill": 技能名, "reason": 非空理由}] 数组')
+            declared = set(used) | {str(s["skill"]) for s in skipped}
+            unknown = sorted(declared - set(recommended))
+            missing = sorted(set(recommended) - declared)
+            if unknown:
+                return _companion_reject(f"申报了本步未推荐的技能 {unknown}（本步推荐清单: {recommended}）")
+            if missing:
+                return _companion_reject(f"推荐技能未逐一申报使用或跳过: {missing}")
+
         workspace = Path(workflow.metadata["workspace"])
         declared_outputs = list(step.metadata.get("output_files", []))
         claimed = set(result.artifacts)
@@ -454,6 +494,7 @@ class WorkflowRunner:
             workspace=Path(workflow.metadata["workspace"]), skill_path=self.skills_root / step.name / "SKILL.md",
             output_files=step.metadata.get("output_files", []), primary_output=step.metadata.get("primary_output", ""),
             has_checkpoint=step.metadata.get("has_checkpoint", False), checkpoint_type=step.metadata.get("checkpoint_type"),
+            companion_skills=step.metadata.get("companion_skills", []),
             params=workflow.metadata.get("params", {}),
         )
 
