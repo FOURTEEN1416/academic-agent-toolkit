@@ -140,3 +140,21 @@ def test_double_brace_escape_residue_fixed(tmp_path):
     assert result.status == "failed"
     assert '{{' not in result.message
     assert '{"used": ["技能名"]' in result.message
+
+
+def test_missing_declaration_key_rejected_as_failed(tmp_path):
+    """A3R fatal 处方：evidence 完全不含 companion_skills 键（raw 非 dict）→
+    必须优雅拒绝（教学消息）并落库 FAILED，而不是未捕获异常卡死 RUNNING——
+    套件必须能区分'拒绝+教学'与'崩溃卡死'（变异该分支须翻红）。"""
+    store, runner, wf = _setup(tmp_path)
+    result = _complete(
+        runner, wf,
+        commands=[{"command": "python code/gen_report.py", "returncode": 0, "cwd": "."}],
+        companion=None,
+    )
+    assert result.status == "failed"
+    assert "缺少 companion_skills 申报" in result.message
+    row = store._connection.execute(
+        "SELECT status FROM workflow_steps WHERE workflow_id = ?", (wf,)
+    ).fetchone()
+    assert row[0] == "failed"
