@@ -180,7 +180,7 @@ def test_tools_importable():
         "tools.reviewer_client", "tools.gpt_image",
         "tools.citation_checker", "tools.score",
         "tools.scholar_fetch", "tools.timeline_96h",
-        "tools.skill_test", "tools.watchdog",
+        "tools.skill_library_audit", "tools.watchdog",
     ]
     failed = []
     for mod_name in tools:
