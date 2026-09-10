@@ -1405,6 +1405,8 @@ Competition name, status, PDF path, total pages, body pages, compliance pass/fai
 
 ## Key Rules
 
+- ⛔ **写稿/图表质量闸全家桶（2026-09-10 同源吸收，按需选跑，双副本同 shared-scripts/）**：编译侧 `latex_typography_check.py`（排版精细检查）/`normalize_cjk_quotes.py`（中文引号规范）；图表侧 `tikz_structure_check.py <file>` + `tikz_palette_check.py`（TikZ 结构/配色）/`fig_include_size.py` + `fig_size_consistency_check.py`（插图尺寸与一致性）/`figure_pdf_quality_check.py` + `pdf_page_density_check.py` + `pdf_snapshot_report.py`（PDF 成品质量/页密度/快照）/`figure_text_budget.py` + `figure_narrative_check.py`（图内文字预算与叙事）/`fig_bucket_doc_sync_check.py`（图桶-文档同步）；写作侧 `abstract_emphasis_check.py`（摘要重点）/`symbol_layout_check.py` + `assumption_layout_check.py`（符号表/假设排版）/`writing_source_check.py` + `compile_source_check.py`（写稿/编译源一致性）/`paper_source_scope.py`（正文范围）。计算侧 `compute_checkpoint.py`/`run_compute.py`/`modeling_tex_policy.py`/`recipe_audit.py` 归 comp-code 侧按需。合同规范：`modeling_paper_contract.md`（建模-论文合同）/`abstract_writing_contract.md`（摘要合同）/`quality_gate_contract.md`（验证证据复用）/`cumcm_2026_format.md`（2026 国赛格式）/`tikz_style_families.md`（TikZ 风格族）。
+
 - No latexmk — manual step-by-step compilation
 
 - Do not delete .bbl file after compilation (bibliography data)

@@ -417,3 +417,88 @@ fi
 | [references/nature-2026-observations.md](references/nature-2026-observations.md) | Real Nature page archetypes from 2026 issues |
 | [references/tutorials.md](references/tutorials.md) | End-to-end walkthroughs: bars, trends, heatmaps |
 | `_utils/plot_utils.py` | Shared plotting infrastructure |
+
+
+---
+
+## modex-3 增补节（2026-09-10 同源对照吸收）
+
+> 来源：Modex v3 nature-figure。本节为本仓原版未覆盖的强制样式布局合同，与本仓上方规范并行生效。
+
+## Mandatory style and layout contract
+
+Call `setup_style(palette='nature')` before creating figures; call `set_paper_placement` immediately after creation. This project's final-print minimum is **8 pt**, default target **8.25 pt**. These are Chinese-paper product defaults, not a claim that all Nature journals require this exact size.
+
+Plan the actual insertion width, not a fixed 5.5-inch minimum or an oversized source canvas. Reserve separate GridSpec rows/columns for shared legends, colorbars and dense numeric labels. Increase height or split related panels when necessary; never shrink essential labels below the final-print minimum. Keep only short names and necessary values inside plots; explanations belong in the caption/body according to the project format.
+
+Use the shared font tiers. Small local overrides are allowed only if final print size remains valid. Keep Chinese fallback fonts; do not overwrite them with an Arial-only list.
+
+### 推荐：把样板抽进 `figures/_figcommon.py`（一次写好，21 个脚本共用）
+
+图多了以后每个 `gen_fig_*.py` 顶部都要 `sys.path` + `setup_style` + 配色字典 +
+存图收尾，抄 20 遍必然抄歪（漏一处 `setup_style` 就是一张默认蓝的图）。
+**建议在 `figures/` 下建一个公用模块**，各脚本 `from _figcommon import *`：
+
+```python
+# figures/_figcommon.py — Nature 风格公用设施
+import os, sys, json
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+import matplotlib
+matplotlib.use('Agg')
+from _utils.plot_utils import setup_style, save_fig, nature_palette, nature_markers
+setup_style(palette='nature')          # ← 全局只调一次（含版式随机）
+import matplotlib.pyplot as plt
+import numpy as np
+
+FIG_DIR = os.path.join(ROOT, 'figures')
+OUT_DIR = os.path.join(ROOT, 'output')
+# ⛔ 取色调函数，不要抄 hex 字面量 —— 抄了就绕过去指纹微调（见 Nature Color Palette 一节）
+C = nature_palette()        # 15 键语义字典（blue_main / red_strong / green_3 / …）
+M = nature_markers()        # marker 顺序（按工作区轮转）
+
+def load(name):
+    """读工作区 JSON（figures/ 或 output/）。⛔ 找不到就 raise，不许兜底成空值 ——
+    数据缺失必须当场崩，静默返回 {} 会让图上印出 0 而没人发现。"""
+    for d in (FIG_DIR, OUT_DIR):
+        p = os.path.join(d, name)
+        if os.path.isfile(p):
+            return json.load(open(p, encoding='utf-8'))
+    raise FileNotFoundError(name)
+
+def finish(fig, path):
+    """统一收尾：存 PDF（save_fig 自动 close）。"""
+    save_fig(fig, path)
+```
+
+⛔ **只放在 `figures/` 目录下、只放"样板"**（样式初始化、配色、读数据、存图）。
+`figure_check.sh` 会展开**同目录**的本地 import 来做存在性检查，所以
+`setup_style` / `save_fig` 写在这里**不会**被误判成"缺失"。放到别处（如 `_utils/`）
+则不在展开范围内，闸会报 CRITICAL。
+
+⛔⛔ **文件名不能以 `gen_fig` 开头** —— 必须叫 `_figcommon.py`（或任何不以 `gen_fig`
+起头的名字）。原因：闸和"出图数量对账"都用 `figures/gen_fig*.py` 这个 glob 找出图
+脚本，若样板模块叫 `gen_fig_common.py`，它会被当成一张图的脚本：脚本数比 PDF 数多
+一个，"所有脚本都产出了 PDF"这条检查**恒定失败**且无法修复。前导下划线还有个额外
+好处 —— 一眼看出它是内部模块不是出图脚本。
+
+⛔ **展开只做一层、只认同目录**：`_figcommon.py` 自己再 `from _base import *`
+的第二层不会被展开（那层里的 `setup_style` 闸看不见 → 报 CRITICAL）。
+样板就一层，别套娃。
+
+⛔ `load()` 里那句 `raise FileNotFoundError` 必须留着。若改成
+`return {}` 或 `.get(name, {})`，键写错时不会报错，图会照画、数值全是 0 或空 —— 而
+`figure_check.sh` 只查语法与文字规范、查不出"数值是不是真算出来的"，这种错会一路
+流进论文。**数据缺失当场崩，比静默出错好得多。**
+
+### Integration with plot_utils.py
+
+Use the prepared shared runtime, including its save-time checks:
+
+```python
+from _utils.plot_utils import setup_style, save_fig, set_paper_placement
+setup_style(palette='nature')
+```
+
+If the runtime is missing, report the dependency failure; do not replace it with inline rcParams or catch a quality failure and retry via an unguarded exporter.
