@@ -30,7 +30,7 @@
 | 2 文献 | citation-check, check-citations, research-lit, literature-review, paper-search, sci-paper-lookup | GB/T 7714 引用检查；三源反幻觉核验；检索与综述方法 |
 | 3 建模 | model-building, model-innovation, math-modeling-contest-route-selection, sci-sympy, proof-writer, scholar-verify-math | 多视角选型+国一撞方法查重；符号推导验证；证明严谨性 |
 | 4 编程 | data-processing, sci-exploratory-data-analysis, sci-statistical-analysis, sci-networkx, dse-loop, analyze-results | 数据清洗/EDA/统计检验/图论模型/参数扫描/结果分析 |
-| 5 图表 | scipilot-figure-skill, agent-figure-gallery, academic-figure-skill, plot-from-data, plot-from-image, scientific-visualization | 选图三轴顾问/图库选参考/CNS 级精修/风格模板/复现成图 |
+| 5 图表 | scipilot-figure-skill, agent-figure-gallery, academic-figure-skill, plot-from-data, plot-from-image, scientific-visualization, paper-figure-html | 选图三轴顾问/图库选参考/CNS 级精修/风格模板/复现成图/HTML 高密度图表 |
 | 6 架构图 | paper-framework-figure-studio-pro, visio-image-rebuilder, diagram-design, scientific-schematics, graphviz, mermaid-diagram | 高规格框架图/Visio 重建/结构图 |
 | 7 逻辑复核 | auto-review-loop, auto-review-loop-llm, auto-review-loop-minimax | 备选自动审稿循环引擎（主通道仍是 contest_models 配置） |
 | 8 论文 | anti-defensive-writing, anti-ai-detection, latex-writing, result-to-claim, paper-plan-zh, format-profile | 防过度写作/AI 痕迹检测/LaTeX 规范/结果→结论表述 |

@@ -537,3 +537,10 @@
 - **双向冒烟**：缺申报 → 拒（含格式教学文案）；合规申报（used 空+skipped 带理由）→ 放行进入 checkpoint 等待。chain_driver `evidence_for` 已同步补申报（dry-run 逐个 skipped"链路验证级不加载辅助技能"）。
 - **审计/门禁补充面**：①L3 证据文件（.engine/evidence/*.json）自动落申报内容→事后可查；②第 14 步 comp-final-audit 增 companion-ledger 条款：逐步核对申报完整性，缺口=fatal（因为 runner 已前置硬拦，若终审仍见缺口即证据被篡改）；③五处文档同步（作战手册 evidence 样例/主控 AGENTS.md §十/comp-start 第 5 步/CONTEST_SKILL_MAP 使用规则/comp-final-audit）。
 - **验证**：双口径 264+6skip/308+6skip 全绿、provenance PASS、chain_driver 14 步链 0-5 实测贯通、冒烟区已清。
+
+## 2026-09-11 续4（用户令"强化科研绘图——图是论文大加分项"：绘图资产×14 步接线审计与补强）
+
+- **绘图资产接线全面审计（用户问"最新资料/skills/模板是否进 14 步，还是仓库是仓库武器是武器"）**：逐项核验——✅已接入：paper-figure 自带 97 recipes+elegant 色板+semantic-palette（figures4papers 语义色板/构图五模式/三图连排 45mm 前置）+十八坑拦截+figure_check.sh 硬闸+62 篇配色规则（白底/≤6 色/避红绿）+图表密度阈值；S5/S6 companion 推荐含 scipilot/gallery/academic-figure（70M 图集随技能可达）/plot-from-data/plot-from-image/studio-pro/visio；comp-paper-zh 图解读铁律（三要素缺一不可+图后 ≥80 字机检+禁句式套路化+图注 ≤20 字）；comp-visual-review 多模态铁律+三件 vision 工具+--review 防伪证；comp-compile-zh:1408 质量闸全家桶索引（图形侧 12+ 闸）。
+- **发现的暗点与补强（三处）**：①**图形闸全部押在第 10 步"按需选跑"**——出图当下不跑，问题拖到编译才暴露。前移：paper-figure Quality floor 增"出图当下即跑 fig_include_size/figure_text_budget/figure_narrative_check"；paper-figure-drawio 增"出图即检 tikz_structure_check/tikz_palette_check"（五个闸脚本 _utils+shared-scripts 双副本实存验证）。②**S5 推荐漏 paper-figure-html**（modex-3 批次 2 增补 7 节的高密度图表技能，此前仅 drawio 一处顺带提及）——已入 templates.json S5 companion+地图表。③**comp-visual-review 检查清单缺打印安全两显式项**——增"黑白打印可分辨（线型/hatch 冗余编码）"+"色盲模拟（红绿色弱）可区分"。
+- **批判式不吸收记录**：方法武器库"图表→200 字分析 prompt"gem 不再单独吸收——comp-paper-zh 既有图解读铁律（三要素+机检）是其超集；quality_gates.json 引擎注册表为空系设计使然（21 件闸走技能纪律路由+figure_check.sh/run_all 机闸，引擎化留赛后评估）。
+- **验证**：双口径 264+6skip/308+6skip 全绿、provenance PASS、五闸脚本双副本实存。

@@ -13,6 +13,8 @@ This is a **lightweight sub-step** split from paper-figure. It ONLY handles non-
 
 > 高规格路由（2026-09-11 接线）：需要人工在多候选间裁决的框架图/架构图 → `paper-framework-figure-studio-pro`（S0-S5 候选生成+人审终局）；需可编辑 Visio 交付物 → `visio-image-rebuilder`。
 
+> 出图即检（2026-09-11 前移）：本步产出的每个 TikZ/drawio 成品**当场**跑 `tikz_structure_check.py <file>` + `tikz_palette_check.py`（双副本同 shared-scripts/）——结构/配色问题在第 6 步就地修，不要拖到第 10 步编译才暴露。
+
 ## ⚡ 快速模式检测（开头先跑）
 
 ```bash

@@ -1012,7 +1012,8 @@
             "academic-figure-skill",
             "plot-from-data",
             "plot-from-image",
-            "scientific-visualization"
+            "scientific-visualization",
+            "paper-figure-html"
           ]
         }
       },

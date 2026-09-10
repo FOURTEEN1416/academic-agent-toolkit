@@ -68,7 +68,7 @@ Generate figures and tables from data: **$ARGUMENTS**
 
 
 
-**Quality floor**: 300 DPI PDF, no in-figure title (`plt.title`), font ≥9pt, grayscale-distinguishable, **`figure_check.sh` exit code 0** (CRITICAL only — INFO/WARNING don't block).
+**Quality floor**: 300 DPI PDF, no in-figure title (`plt.title`), font ≥9pt, grayscale-distinguishable, **`figure_check.sh` exit code 0** (CRITICAL only — INFO/WARNING don't block). **出图当下即跑图形质量闸（2026-09-11 前移，别拖到第 10 步编译才暴露）**：`fig_include_size.py`（插图尺寸）+ `figure_text_budget.py`（图内文字预算）+ `figure_narrative_check.py`（图-叙事同步，图后解读不足即报）——双副本同 shared-scripts/，本轮跑不完的至少在收尾清单点名。
 
 
 

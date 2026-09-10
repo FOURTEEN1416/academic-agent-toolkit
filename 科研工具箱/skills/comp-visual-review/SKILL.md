@@ -12,7 +12,7 @@ The designated visual-review subagent inspects final PNGs and PDF pages.
 本角色须配置**具备视觉能力的多模态模型**（支持 image_url 输入；仓库不预设具体型号——比赛时在 `engine/modex-core/contest_models.json` 或宿主 agent 配置中填写，示例：任一具备视觉能力的 GLM 系列模型）。**必须实际调用视觉工具对每张图进行多模态审查**，禁止只用 PIL/PyMuPDF 等确定性检查后直接判 pass。
 
 1. 先运行确定性图像检查（PIL 解码/尺寸/DPI、PyMuPDF 页数与嵌入图）。
-2. **每张 PNG 必须调用 `tools/data_fig_vision_check.py`（数据图）或 `tools/tikz_vision_check.py`（TikZ/流程/架构图）或 `tools/drawio_vision_check.py`（draw.io 图）**，用配置的视觉模型检查：坐标轴名称与单位、刻度可读性、图例、颜色区分、截断、重叠、误导性比例、题注对应、文字溢出、配色对比度。
+2. **每张 PNG 必须调用 `tools/data_fig_vision_check.py`（数据图）或 `tools/tikz_vision_check.py`（TikZ/流程/架构图）或 `tools/drawio_vision_check.py`（draw.io 图）**，用配置的视觉模型检查：坐标轴名称与单位、刻度可读性、图例、颜色区分、截断、重叠、误导性比例、题注对应、文字溢出、配色对比度、**黑白打印下仍可分辨（仅靠色相区分的系列必须有线型/hatch 冗余编码——打印安全三件套）**、**色盲模拟（红绿色弱）下各系列可区分**。
 3. 记录每次视觉 API 调用的输出（PASS / ISSUE N: ...）作为 `VISUAL_REVIEW.md` 的证据。
 4. 检查 PDF 页面布局与图题对应关系（确定性检查辅助）。
 
