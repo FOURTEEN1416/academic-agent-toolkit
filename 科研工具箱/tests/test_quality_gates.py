@@ -460,7 +460,13 @@ def test_full_review_gate_accepts_matching_output_hashes(tmp_path):
 
 
 def test_full_review_gate_warns_but_does_not_block_model_mismatch(tmp_path, monkeypatch):
-    """软校验：证据模型与 agent 配置不一致 → 警告但不阻断（模型策略由 .opencode/agents 决定）。"""
+    """软校验：证据模型与 agent 配置不一致 → 警告但不阻断（模型策略由 .opencode/agents 决定）。
+    2026-09-10：比赛配置槽已填 glm-5.3-flash（真实 contest_models.json），本测试测的是
+    宿主 agents 回退路径的软校验，故用 ACAT_CONTEST_MODELS 指向空配置隔离真实槽。"""
+    empty_slot = tmp_path / "empty_contest_models.json"
+    empty_slot.write_text(json.dumps({"configured_at": "", "roles": {r: "" for r in (
+        "reviewer", "visual_reviewer", "editor", "final_reviewer")}}), encoding="utf-8")
+    monkeypatch.setenv("ACAT_CONTEST_MODELS", str(empty_slot))
     # 指向一个可控的假 agents 目录
     agents_dir = tmp_path / "agents"
     agents_dir.mkdir()

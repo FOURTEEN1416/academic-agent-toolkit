@@ -34,11 +34,23 @@ ROLES = ["reviewer", "visual_reviewer", "editor", "final_reviewer"]
 # ---------------- A. 三级解析 ----------------
 
 def test_contest_slot_ships_with_zero_preset_models():
-    """出厂仓库的配置槽必须全空——'不预设模型'是用户裁定，任何预填都是回归。"""
+    """配置槽状态契约（2026-09-10 演化）：出厂态必须零预设；比赛配置态（configured_at
+    非空或任一角色已填）则验证配置形态合法——roles 四键齐全且值为非空字符串。
+    '不预设模型'守的是出厂仓库，不禁止比赛时配置（填写正是该槽的设计用途）。"""
     data = json.loads((SUITE_ROOT / "engine" / "modex-core" / "contest_models.json")
                       .read_text(encoding="utf-8"))
-    for role in ROLES:
-        assert not data["roles"].get(role), f"配置槽不得预设 {role} 模型（比赛时再配置）"
+    roles = data.get("roles", {})
+    configured = bool(data.get("configured_at")) or any(roles.get(r) for r in ROLES)
+    if not configured:
+        for role in ROLES:
+            assert not roles.get(role), f"出厂态配置槽不得预设 {role} 模型（比赛时再配置）"
+    else:
+        assert set(roles.keys()) >= set(ROLES), "配置态必须覆盖全部四个角色键"
+        for role in ROLES:
+            value = roles.get(role)
+            assert isinstance(value, str) and value.strip(), f"{role} 已配置态下必须是非空字符串"
+        assert "glm-5.3-flash" in (roles.get("reviewer"),), \
+            "当前用户裁定（2026-09-10）：审稿四角色 glm-5.3-flash"
 
 
 def test_contest_slot_wins_over_agents_dir(tmp_path, monkeypatch):
