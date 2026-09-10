@@ -493,3 +493,10 @@
 - **批次2（8849a96，55 文件 +11742 行）**：质量闸全家桶 21 件（tikz_structure/palette、fig_include_size、figure_pdf_quality、pdf_page_density、abstract_emphasis、latex_typography、normalize_cjk_quotes、writing/compile_source_check、compute_checkpoint 等）+ 合同规范 5 份（modeling_paper_contract/abstract_writing_contract/quality_gate_contract/cumcm_2026_format/tikz_style_families）双副本；paper-figure-html 增补 7 节（物理可读性/零灰墨色/文字选材/CSS 实测坑/B 配色配方）+ nature-figure 增补 Mandatory style contract；comp-compile-zh 加质量闸索引路由。依赖闭包验证 21 件 import 全通；真实材料冒烟 4 件通过。
 - **验证**：工具箱 264+6skip / 仓库根 308+6skip 全绿；skill_library_audit OK；provenance 65/65。
 - **不动项**：153MB 模板字体（11 赛事，git 体积不可承受且赛时只用 cumcm——赛后评估入库方式）；paper-figure-drawio 189 行/experiment-bridge 36 行微增量（留批次3 余量）；modex-3-skills/ 原包入 .gitignore 保留本地。
+
+## 2026-09-11 赛前终检（解题前最后一道闸，全过）
+
+- **全仓再排查**：git 跟踪面 2320 文件零垃圾（0字节/垃圾后缀/未跟踪全 0）；七新复刻技能区零垃圾；清无主残留两件（科研工具箱/.drawio_vision_calls.json 34B 运行计数、_test_input.md 69B 测试输入——零代码引用）+探针临时区+__pycache__ 重生 114。
+- **终检十项全过**（详 dev-docs/precheck-final-2026-09-11.md）：①引擎链前 6 步+3 硬闸（chain_driver，step6 按设计等子智能体）②编译链双证（骨架 rc=0 零错误 3 页+Write 版探针 rc=0 零错误 2 页含三线表）③真实模型终审探针 FATAL=0/pass/session=572028a1（deepseek-v4-flash 端点活性）④双口径 264+6skip/308+6skip ⑤机检 OK+provenance 66 ⑥环境四件套在位 ⑦A 题材料 16 项齐整 ⑧审稿四角色 agnes/agnes-2.5-flash ⑨hooks 清除态确认（重注册预案 64dbd56）⑩垃圾清零。
+- **过程发现**：编译探针首测 100 错非模板回归——heredoc/printf 写 tex 的 `\` 折叠已知坑第三次现身（骨架与 Write 版双证编译链完好）；"写 tex 用 Write 工具"铁律再次确认。
+- **解题启动就绪**：/comp-start A 入口+作战手册+锚点（时长 ~67h/T 开尔文/R=0.02m）。
