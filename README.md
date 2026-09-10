@@ -7,7 +7,7 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v1.2.2-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-270_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
+[![Tests](https://img.shields.io/badge/tests-337_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-301-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-254-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
@@ -144,7 +144,7 @@ python 科研工具箱/tools/plotting_env_check.py
 **验证安装**：
 
 ```bash
-cd 科研工具箱 && python -m pytest -q        # → 270 passed
+cd 科研工具箱 && python -m pytest -q        # → 337 passed
 python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账通过
 ```
 
@@ -156,7 +156,7 @@ python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）66/66 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | 公开基准（CC-BY-4.0）公开评测 · 私有基准（真实竞赛题面）内部压测 |
-| ✅ **测试基线** | 工具箱 270 项 pytest（仓库根 314）：状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 宿主兼容 / 三管线 / 逐技能回归全覆盖 |
+| ✅ **测试基线** | 工具箱 337 项 pytest（仓库根 381）：状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 宿主兼容 / 三管线 / 逐技能回归全覆盖 |
 | 🧬 **逐技能 C2 覆盖** | 254 技能 100% 登记 catalog 映射（schema 硬校验）；301 条能力逐条申报 current_evidence/current_gap 双字段——真实执行证据（管线级/试点级/基准实证，留档可查）为主，外部依赖项诚实标注 blocked-by-dependency（21 项），零伪造 |
 
 ## 📁 仓库地图
@@ -177,7 +177,7 @@ academic-agent-toolkit/
 
 <br>
 
-**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests。发布后持续演进：catalog 现为 301 条 / 254 技能（正式 10）；2026-09-09 独立审计修复（v1.2.1）后基线 247/291；同日 v1.2.2 **ZCode 升格赛时主控**（L1 审计 hook 等价实现）+ **模型去预设**（contest_models.json 比赛配置槽），彼时基线 259/303；2026-09-11 L1 hook 重启用后基线 270/314，见 CHANGELOG。
+**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests。发布后持续演进：catalog 现为 301 条 / 254 技能（正式 10）；2026-09-09 独立审计修复（v1.2.1）后基线 247/291；同日 v1.2.2 **ZCode 升格赛时主控**（L1 审计 hook 等价实现）+ **模型去预设**（contest_models.json 比赛配置槽），彼时基线 259/303；2026-09-11 L1 hook 重启用后基线 270/314、同日盲审回炉后 337/381，见 CHANGELOG。
 
 **v1.1.0（2026-08-28）** —— 全能力公开发布（含软著/专利/基金流水线）· 科研绘图 9 技能扩展 · ZCode 兼容层 · 全库文档治理（45+ 文档审计）。完整记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
