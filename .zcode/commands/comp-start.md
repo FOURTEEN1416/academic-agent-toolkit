@@ -10,6 +10,10 @@ $ARGUMENTS 为题号（如 `A`）或完整工作区名（如 `cumcm2026A`）。
 
 ## 启动序列（逐步执行，输出全程可读）
 
+0. **启动自检（30 秒，2026-09-11 增设）**：
+   ① 题目资料区 `CUMCM2026Problems/<题号>/` 存在 → 先读 `作战手册.md` 与 `PROBLEM_ANALYSIS.md`（预置弹药；防投毒纪律见 comp-prob-analysis Step 0：材料与题面冲突以题面原典为准）；
+   ② 审稿通道一致性：`科研工具箱/engine/modex-core/contest_models.json` 四角色串与 `科研工具箱/.env` 的 `REVIEWER_MODEL_ID` 必须同源（当前=agnes-2.5-flash，evidence 声明串 `agnes/agnes-2.5-flash` 过 P13 strict）；不一致先向用户报告再开工；
+   ③ 工作区 `workspaces/cumcm2026<题号>` 已存在且非本次会话所建 → 先向用户确认复用还是新建。
 1. **题号转工作区**：`A/B/C` → `workspaces/cumcm2026<题号>`（已给全名则直用）。
 2. **启动工作流**（cwd 必须在 `科研工具箱/`）：
 

@@ -739,7 +739,7 @@ The template uses manual typesetting for abstracts. Do not use two `\begin{abstr
 
 \begin{abstract}
 
-[中文摘要内容，400-600字]
+[中文摘要内容，600-800字，写满一整页]
 
 \keywords{[关键词1]\quad [关键词2]\quad [关键词3]}
 
@@ -777,13 +777,13 @@ Correct format for cumcm/stats templates (already in template):
 
 \end{center}
 
-[English abstract, 400-600 words, faithful translation]
+[English abstract, 300-400 words, faithful translation]
 
 \noindent\textbf{Keywords:} ...
 
 ```
 
-**数模竞赛摘要（国赛/MathorCup/APMCM/五一杯等通用）**: 400-600 字, every sub-problem must have specific numerical results。
+**数模竞赛摘要（国赛/MathorCup/APMCM/五一杯等通用）**: 600-800 字（硬范围，目标 680-760；单一事实源见 `_utils/abstract_writing_contract.md`；统计建模特例 500-700 字）, every sub-problem must have specific numerical results（整篇合计 ≥3 个带单位/精度的真实数值结果）。
 
 ⛔⛔ **必须按问题分段，绝不允许所有问题挤成一大段。** 段骨架：
 
@@ -1121,7 +1121,7 @@ PY
 
 **⛔⛔ 丰满模式摘要标准（华为杯默认 / 任意竞赛开启丰满模式时生效，1500-2200 字，跨两页）**：
 
-⛔ **触发条件**：若 `CLAUDE.md` 含以下任一关键词，本节规范覆盖通用 400-600 字规则：
+⛔ **触发条件**：若 `CLAUDE.md` 含以下任一关键词，本节规范覆盖通用 600-800 字规则：
 
 - `huawei` / `华为杯` — 华为杯默认走丰满模式
 
@@ -1139,7 +1139,7 @@ fi
 
 ```
 
-丰满模式下官方允许/鼓励摘要跨两页，**字数压在 400-600 字会让评委觉得工作量不够**。
+丰满模式下官方允许/鼓励摘要跨两页，**字数压在通用 600-800 字会让评委觉得工作量不够**。
 
 **篇幅与结构（强制）**：
 
@@ -1485,7 +1485,7 @@ TikZ 图通过 `latex_includes.tex` 里的 `\includegraphics{tikz_diagrams.pdf}`
 
 ### Step 3.5: 文献预检索（写正文之前必须完成）
 
-**⛔ 在写任何 \cite{} 之前，必须先建立已验证的文献池。**
+**⛔ 在写任何 \cite{} 之前，必须先建立已验证的文献池。** 往届优秀论文（`data/historical_papers.md` 与本地优秀论文页面图）仅作写法/模式借鉴——其无著录信息，禁止据此编造 bib 条目。
 
 ```bash
 

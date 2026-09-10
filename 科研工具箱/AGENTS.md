@@ -52,7 +52,7 @@ python -m engine.workflow_cli audit --workspace <工作区>   # 生成 OPERATION
 套件/
 ├── AGENTS.md              ← 你在这里（Agent 入口路由）
 ├── skills/                ← 技能库（由 opencode.json 的 skills.paths 自动扫描，每个技能一个 SKILL.md）
-├── tools/                 ← 工具链（60 个 .py 脚本 + 16 个 .pyc 字节码分发件（3.11 编译版本锁定，调用一律用同名 .py 真源））
+├── tools/                 ← 工具链（58 个 .py 脚本 + 16 个 .pyc 字节码分发件（3.11 编译版本锁定，调用一律用同名 .py 真源））
 ├── engine/                ← 状态库 + 编排 + 质量门禁 + 审计（不执行）
 ├── data/                  ← 参考数据（模型库/题型规律/历史题目）
 ├── .env                   ← 本地 API 配置（gitignored，不入库不入发布包）

@@ -9,17 +9,19 @@
 | 宿主 | 配置文件 | 状态 |
 |------|----------|------|
 | OpenCode Desktop | `opencode.json` + 根级 `.opencode/`（插件 + subagent） | 正式宿主（L1 拦截式审计插件在此层生效） |
-| ZCode | `.zcode/config.json` + `.zcode/skills/` + `.zcode/commands/` | **赛时主控宿主**（2026-09-09 起）：L1 审计经 hook 机制等价实现（`科研工具箱/hooks/zcode_audit_l1.py`，PreToolUse/PostToolUse 写同一 `operations.jsonl`）；技能/引擎/门禁与 OpenCode 全一致 |
+| ZCode | `.zcode/config.json` + `.zcode/skills/` + `.zcode/commands/` | **赛时主控宿主**（2026-09-09 起）：L1 审计具备 hook 等价实现（`科研工具箱/hooks/zcode_audit_l1.py`，PreToolUse/PostToolUse 写同一 `operations.jsonl`）——**当前处于清除态未启用**（2026-09-10 三度终裁，审计靠 L2+L3 兜底，重注册预案见下）；技能/引擎/门禁与 OpenCode 全一致 |
 
 ## ZCode 主控层说明
 
 - `.zcode/skills` 是指向 `科研工具箱/skills` 的 NTFS 目录联结（不跟踪入 git）。
   重建命令（仓库根，管理员非必需）：
   `cmd /c mklink /J .zcode\skills 科研工具箱\skills`
-- `.zcode/config.json` 提供 docsearch MCP（与 OpenCode 同一 server，workspace 级自动连接）
-  与 **hooks 块**（L1 审计：配置式 hooks 默认关闭，须 `hooks.enabled: true` 才生效——本仓已开；
-  hook 配置改动需重启会话生效）。
-- **L1 hook 能力**（OpenCode 插件不具备的宿主机制，反向利用）：宿主层触发、agent 不可绕过；
+- `.zcode/config.json` 提供 docsearch MCP（与 OpenCode 同一 server，workspace 级自动连接）。
+  **hooks 注册位当前为清除态**（2026-09-10 三度终裁冻结：config 仅含 `mcp` 键、无 hooks 块，
+  L1 拦截暂不启用；审计靠 L2 编排式 + L3 申报式兜底，防绕过检测赛时手动跑
+  `python -m engine.workflow_cli audit --workspace <工作区>`）。重注册预案：从 git `64dbd56`
+  恢复 hooks 形态（`python -c` 内联引导器版）+ 重启会话 + 三条复验；hook 配置改动需重启会话生效。
+- **L1 hook 能力**（OpenCode 插件不具备的宿主机制，反向利用；脚本在库、当前未注册启用）：宿主层触发、agent 不可绕过；
   PreToolUse 可按治理铁律拦截（如 `git add .` 强制逐文件点名）；落账格式与插件一致，
   L3 交叉比对（`workflow_cli audit` / `detect_unreported_operations`）零改动可用。
 - `.zcode/commands/doc-governance.md` 提供 `/doc-governance` 文档治理命令；
@@ -34,8 +36,8 @@
 
 | 路径 | 性质 |
 |------|------|
-| `科研工具箱/` | 产品主体：skills(247)/engine/tools/tests/hooks(赛时 L1 审计)/data |
-| `capabilities/catalog.json` | 能力目录（294 条，2026-09-09 审计同步） |
+| `科研工具箱/` | 产品主体：skills(256 个技能目录)/engine/tools/tests/hooks(L1 脚本在库、清除态)/data |
+| `capabilities/catalog.json` | 能力目录（301 条，2026-09-11 审计同步） |
 | `docs/superpowers/` | 设计 spec 与实施计划（dated 快照，仅供追溯） |
 | `dev-docs/` | 内部真源根（gitignored 私有）：truth-index 入口索引、archive/ 归档区 |
 | `LOG.md` / `task_plan.md` | 操作日志 / 当前任务与验证基线 |

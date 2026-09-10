@@ -440,9 +440,9 @@ Every page should be filled. Half-empty pages are a basic formatting failure in 
 ## Abstract Requirements
 
 ### Chinese papers (thesis/competition)
-- Chinese abstract: 500-700 characters. Aim to fill most of one page but leave 3-4 lines margin at the bottom — overflowing onto a second page looks worse than being slightly short
+- Chinese abstract: 600-800 characters for competition papers (hard range, target 680-760; stats contests exception 500-700 — authoritative source `_utils/abstract_writing_contract.md`). Thesis abstracts follow each venue's own norms. Aim to fill most of one page but leave 3-4 lines margin at the bottom — overflowing onto a second page looks worse than being slightly short
 - Content chain: 研究背景与意义 → 现有方法的不足 → 本文提出的方法 → 数据来源与处理 → 关键发现（must have specific numbers like 精度、R²、p值） → 应用价值
-- English abstract: 350-500 words, faithful translation of Chinese abstract. Same principle — fit on one page with a small margin, do not overflow
+- English abstract: 300-400 words, faithful translation of Chinese abstract (stats contests exception 350-500). Same principle — fit on one page with a small margin, do not overflow
 - Use manual typesetting for abstracts (not `\begin{abstract}` twice — ctexart shows "摘要" as title for both)
 - The abstract is the soul of the paper — reviewers read it first. It must be thorough, never just 2-3 paragraphs
 
@@ -501,7 +501,7 @@ Every page should be filled. Half-empty pages are a basic formatting failure in 
   ```
 
 ### Competition papers (数模竞赛)
-- Chinese abstract: 400-600 characters, every sub-problem must have specific numerical results
+- Chinese abstract: 600-800 characters (hard range, target 680-760; stats contests exception 500-700 — see `_utils/abstract_writing_contract.md`; whole abstract ≥3 concrete numerical results), every sub-problem must have specific numerical results
 - Summary Sheet (MCM/ICM): 300-400 words, self-contained with specific numbers, one full page
 
 ### English papers (ML venues)

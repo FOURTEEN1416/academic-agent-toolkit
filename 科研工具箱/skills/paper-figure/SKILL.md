@@ -64,7 +64,7 @@ Generate figures and tables from data: **$ARGUMENTS**
 
 
 
-**Competition paper color constraint**: use white background (`#FFFFFF`) with light-gray grid (`#D3D3D3`), and limit data series colors to ≤6 low-saturation pastel colors (e.g. `#7AAEC8` dusty-blue, `#E8945A` warm-orange, `#7BC8A4` mint, `#9B8EC4` lavender, `#F4A261` warm-cream). Never use pure red `#FF0000` / pure green `#008000` as data series colors — all winning papers avoid red-green combinations for colorblind safety.⛔⛔ **The real rule**: figures must NOT look like "ran with matplotlib defaults". `setup_style()` swaps in the `elegant` palette (`#7AAEC8` dusty-blue / `#E8945A` warm-orange / `#7BC8A4` mint / `#9B8EC4` lavender) which is calibrated for academic publication. You may augment with creative coordinated hex (e.g. `#FFB347` warm highlight, `#A8DADC` accent) — what's forbidden is the *specific* combination that says "I never customized".
+**Competition paper color constraint**: use white background (`#FFFFFF`) with light-gray grid (runtime baseline `COLORS['grid']='#E0E0E0'` in `plot_utils.py`; 62 篇获奖论文样本主流 `#dadada` 同级), and limit data series colors to ≤6 low-saturation pastel colors (e.g. `#7AAEC8` dusty-blue, `#E8945A` warm-orange, `#7BC8A4` mint, `#9B8EC4` lavender, `#F4A261` warm-cream). Never use pure red `#FF0000` / pure green `#008000` as data series colors — all winning papers avoid red-green combinations for colorblind safety.⛔⛔ **The real rule**: figures must NOT look like "ran with matplotlib defaults". `setup_style()` swaps in the `elegant` palette (`#7AAEC8` dusty-blue / `#E8945A` warm-orange / `#7BC8A4` mint / `#9B8EC4` lavender) which is calibrated for academic publication. You may augment with creative coordinated hex (e.g. `#FFB347` warm highlight, `#A8DADC` accent) — what's forbidden is the *specific* combination that says "I never customized".
 
 
 
@@ -77,6 +77,8 @@ Generate figures and tables from data: **$ARGUMENTS**
 **Semantic roles & composition patterns**（多系列对比图/多指标面板出图前必读）: `references/semantic-palette.md`（颜色→数据角色语义映射：本队方法=蓝、基线=红、改进=绿、高亮≤1处；含顶刊高对比 PALETTE 备选与消融 alpha 梯度；§五为外部交叉校验色板：Okabe-Ito 数据图组合 + 国赛概念图配色）+ `references/composition-patterns.md`（构图五模式：超宽面板/独立图例面板/分类柱隐藏刻度/动态y轴/边线+hatch 打印安全——多方法对比图规划阶段先选模式再写代码；**模式一有印刷宽度前置条件：仅当最终版面下每格 ≥45mm 才连排，否则改堆叠**）。来源 figures4papers @ `3c181f8`（CC BY-NC-4.0，见 references/UPSTREAM.md）。
 
 **Plot-choice gates（选图论证与避坑，规划每张数据图前必读）**: `references/pitfalls-and-intent.md`（决策三轴：变量结构×**论证意图**×样本量分级——FIGURE_MANIFEST 每张图的"选择理由"写轴 2 论证意图；十八坑拦截清单 P1-P18：均值柱/双Y轴/饼图/Y轴截断/rainbow/缺字乱码/图例遮盖等，出图后逐条自查，P16-P18 渲染类必须程序自检+vision 复核双兜底）。来源 SciPilot @ `43098dd`（MIT，见 references/UPSTREAM.md）。
+
+**升级/备选技能路由（主链内主动发现，2026-09-11 接线）**：需要交互式逐图选型论证（数据剖析→三轴推荐图型→主动拦截经典错误→期刊级成图）时调 `scipilot-figure-skill`；想先看真实范例再定图型时用 `agent-figure-gallery`（图库检索+人工偏好选参考+导出参考包）。
 
 **⛔ 外部规范红线（2026-09-10 收编自竞赛实战口径，与上述规范并行生效）**：
 - **概念图/数据图分家**：AI 生图（Step 1.5）只允许概念类图——场景示意/海报主视觉/图标/技术路线氛围图；任何带坐标轴的图必须是 `gen_fig_*.py` 从真实数据出图。AI 生图内**禁止出现伪造的坐标轴、刻度或"83.27%"式假精度数字**。
@@ -1225,6 +1227,8 @@ done
 
 - 失败的图记录到 GPTIMG_FAILED，DrawIO 子阶段会自动兜底
 
+**框架图/机制图高规格路由（2026-09-11 接线）**：需要"人工在多候选间裁决"的高规格框架图/架构图/机制图（非本步自动出图档位）时，把该图标记移交 `paper-framework-figure-studio-pro`（S0-S5 候选生成+人审终局）；需交付可编辑 Visio 源文件时用 `visio-image-rebuilder`（图片→.vsdx 原生图形重建）。
+
 
 
 ### Step 2: Figure type decisions
@@ -1246,6 +1250,8 @@ Browse the recipe library (97 total across 5 files) and the `<figure_selection_g
 5. Read the full code example from the matched recipe file
 
 6. Select the color palette based on paper domain
+
+7. 若 97 种 recipe 覆盖不了需求（CNS 级精修、特殊数据结构）：升级调 `academic-figure-skill`（期刊规格+图集+四轮 QA）或 `plot-from-data`（8 种预置学术风格直接填数据出图）；手头有想对标/复现的成图时走 `plot-from-image`（读图提取字体/配色/比例→生成复现代码）。
 
 
 

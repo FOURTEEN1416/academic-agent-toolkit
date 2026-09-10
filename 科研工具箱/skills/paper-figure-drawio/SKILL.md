@@ -11,6 +11,8 @@ Generate DrawIO architecture diagrams and TikZ figures for: **$ARGUMENTS**
 
 This is a **lightweight sub-step** split from paper-figure. It ONLY handles non-data diagrams (DrawIO + TikZ). Data figures (matplotlib/seaborn) were already generated in the previous paper-figure step.
 
+> 高规格路由（2026-09-11 接线）：需要人工在多候选间裁决的框架图/架构图 → `paper-framework-figure-studio-pro`（S0-S5 候选生成+人审终局）；需可编辑 Visio 交付物 → `visio-image-rebuilder`。
+
 ## ⚡ 快速模式检测（开头先跑）
 
 ```bash

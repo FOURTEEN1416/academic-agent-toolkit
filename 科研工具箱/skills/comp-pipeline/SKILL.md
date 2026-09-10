@@ -28,6 +28,8 @@ allowed-tools: [Read, Write, Edit, Bash(python:*), WebFetch, WebSearch]
 ⑧ comp-review         [📌] → review_report.md → 修改 → 重审
 ```
 
+> 图表环节主动路由（2026-09-11 接线）：④ 数据图由 paper-figure 三轴选图规范把关；需要选图顾问/图库选型时调 `scipilot-figure-skill` / `agent-figure-gallery`；高规格框架图（人工多候选裁决）走 `paper-framework-figure-studio-pro`。
+
 ## 编排规则
 
 1. **阶段产物**：每个阶段产出写入 `workspaces/{id}/` 目录
@@ -38,7 +40,7 @@ allowed-tools: [Read, Write, Edit, Bash(python:*), WebFetch, WebSearch]
    - `output_format=docx` → 追加 DOCX 导出
    - `skip_literature` → 跳过文献调研
    - `skip_review` → 跳过审查
-5. **防编造**：所有引用文献必须过 `tools/scholar_fetch.py` 三查验证
+5. **防编造**：所有引用文献必须过 `tools/scholar_fetch.py` 三查验证；往届优秀论文（`data/historical_papers.md`）仅作写法/模式借鉴，不入参考文献
 
 ## 决策面板模板（检查点）
 
