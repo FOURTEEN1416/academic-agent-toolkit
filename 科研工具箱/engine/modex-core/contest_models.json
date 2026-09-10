@@ -1,10 +1,10 @@
 {
-  "_comment": "竞赛时模型配置槽（用户裁定 2026-09-09：仓库不预设任何具体模型）。比赛时按当时可用且具备对应能力的模型填写。2026-09-10 用户裁定：审稿四角色用 glm-5.3-flash——ZCode 赛时主控下，审稿/视觉/编辑/终审角色由宿主子智能体承担（宿主模型 glm-5.3-flash），证据声明的 model 字符串与本文件一致即过 strict 比对。注意：.env 的 REVIEWER_MODEL_ID/EDITOR_AI_MODEL_ID（当前 agnes-2.5-flash）是 reviewer_client.py 外部 API 备用通道（Agnes 端点无 GLM，已验证 13 个模型全为 agnes-*），与子智能体通道互不影响；后续调整审稿模型时同步改本文件（与证据声明保持一致）。",
+  "_comment": "竞赛时模型配置槽（2026-09-09 用户裁定：仓库不预设，比赛时配置）。2026-09-10 用户裁定（第二次，覆盖早前 glm-5.3-flash 方案）：审稿四角色= agnes/agnes-2.5-flash——独立审稿必须走外部通道：①Agnes API（tools/reviewer_client.py，.env REVIEWER_MODEL_ID=agnes-2.5-flash，证据声明串=agnes/agnes-2.5-flash 与本文件一致过 strict）；②用户本人开新窗口人工独立审核（独立提示词由主控提供）。ZCode 会话内的 Agent 工具子智能体仅用于轻量复核，不冒充独立审稿证据。后续调整模型时同步本文件与证据声明。",
   "configured_at": "2026-09-10",
   "roles": {
-    "reviewer": "glm-5.3-flash",
-    "visual_reviewer": "glm-5.3-flash",
-    "editor": "glm-5.3-flash",
-    "final_reviewer": "glm-5.3-flash"
+    "reviewer": "agnes/agnes-2.5-flash",
+    "visual_reviewer": "agnes/agnes-2.5-flash",
+    "editor": "agnes/agnes-2.5-flash",
+    "final_reviewer": "agnes/agnes-2.5-flash"
   }
 }

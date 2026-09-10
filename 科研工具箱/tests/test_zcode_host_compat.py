@@ -49,8 +49,12 @@ def test_contest_slot_ships_with_zero_preset_models():
         for role in ROLES:
             value = roles.get(role)
             assert isinstance(value, str) and value.strip(), f"{role} 已配置态下必须是非空字符串"
-        assert "glm-5.3-flash" in (roles.get("reviewer"),), \
-            "当前用户裁定（2026-09-10）：审稿四角色 glm-5.3-flash"
+        # 2026-09-10 用户裁定（第二次）：独立审稿走 Agnes 外部通道，四角色 agnes/agnes-2.5-flash；
+        # 具体模型名随用户调整而变，此处只验声明格式（provider/model 或裸 model）。
+        import re as _re
+        for role in ROLES:
+            assert _re.fullmatch(r"[A-Za-z0-9_.\-]+(/[A-Za-z0-9_.\-]+)?", roles[role]), \
+                f"{role} 模型声明格式非法: {roles[role]}"
 
 
 def test_contest_slot_wins_over_agents_dir(tmp_path, monkeypatch):
