@@ -435,3 +435,27 @@
 - **验证**：进程级三场景冒烟全对——①`cwd=科研工具箱`+正常载荷 rc=0 且 operations.jsonl 落账 tool_call；②同 cwd+`git add .` rc=2+治理理由 stderr+permission/deny 留痕；③系统临时目录+无 env rc=0+"定位失败"fail-open 警告。全量基线：工具箱 **270 passed**（259+前会话 8 防线+本轮 3 回归）、仓库根 **314 passed**、check_provenance 64/64 exit 0。**宿主层（真 hook 触发）待重启会话复验**，协议：cd 进仓库子目录后任意工具调用须正常 + git add . 拦截 + 落账实时。
 - **内容更正**：`composition-patterns.md:56` "hatch 全库零覆盖系独有增量"表述有误（`matplotlib/SKILL.md:301` 与 `references/plot_types.md:115` 均有 hatch 覆盖，前会话查重漏检）→ 改为"决策打包"口径（技法非独有，价值在何时用/怎么组合/与门禁衔接）。
 - **遗留待用户处理**：`科研工具箱/tools/QUALITY_REPORT.md` 为无关项目（AI 陪伴应用 docx）的陈旧质检产物（源文件已不存在），未入库，建议删除或移出仓库（等方向）；figures4papers 研究收尾三项（上游精读补全/五模式先例补验/第 3 项收割落地）待重启后继续。
+
+## 2026-09-10（脚本定位层根治 · 复核补账：config 恢复注册 + docstring 铁律改写 + 全量复验）
+
+- **背景**：上一条"根治方案实施"（sess_86a453b5）落定引导器形态后，`.zcode/config.json` 工作区又出现一笔未提交改动——整段删除 hooks 注册仅剩 mcp（对应同日"清除项目 hook 注册待复验"的临时裁定）。本条按任务书完成收尾复核：恢复注册、补齐脚本内文档、全量复验。
+- **动作**：①`git checkout HEAD -- .zcode/config.json` 恢复三事件 `-c` 引导器注册（内容与 `64dbd56` 定稿一致，`python -m json.tool` 校验合法）；②`zcode_audit_l1.py` docstring 设计铁律段改写：原第 2 条仍写"${ZCODE_PROJECT_DIR} 绝对展开堵死"——该口径已被 09-10 双重拼接事故证伪，替换为"引导器层 fail-open"完整原理（-c 进程永启、定位搬进 python、env→cwd 逐级上溯双通道、任何失败 stderr+exit 0、exit 2 唯一来源 _DENY_RULES）+ 双 cwd 故障史逐案注记；`_audit_dir` env 优先 + `__file__` 回退现状确认未破坏。
+- **验证（全部本会话实跑）**：工具箱 pytest **270 passed**（267 基线+3 引导器回归）、仓库根 **314 passed**（311+3）、compat 契约套件 23 全绿（含 -c 六断言与三场景回归）；`check_provenance.py` **64/64 exit 0**；`skill_library_audit.py` **OK**。手动正反验证 14 项全对：三 mode（pre/post/fail）经引导器落账各 1 条 tool_call/tool_result；`cwd=科研工具箱` 子目录无 env 上溯定位成功落账（双重拼接事故场景不锁死）；`git add .` 经引导器 **rc=2** + stderr 治理理由 + permission/deny 留痕（拦截未被架空）；系统 tmpdir 无仓库 **rc=0** + stderr"定位失败"警告（fail-open）。全程零 shell cd（子目录上下文以进程内 chdir 一次性驱动，持久 cwd 未动）。
+- **junction 复核**：`dir 科研工具箱` 无 `科研工具箱/科研工具箱` 自指 junction——上条会话已 `rmdir` 拆除，本会话二次确认，**无需再拆**，任务书该项待办销账。
+- **⚠️宿主层最终验证待新会话（本会话改动未生效于宿主进程）**：重启会话后协议三条——①cd 进 `科研工具箱/` 后跑任意工具应正常不锁死；②`git add .` 应被拦截 exit 2；③`.engine/audit/operations.jsonl` 应实时新增落账行。三条全过即 P1 根治闭环，记忆档同步销项。
+- **提交状态**：改动=config（恢复，与 HEAD 一致故实际零 diff）+ `zcode_audit_l1.py` docstring + 本条 LOG，均未提交待用户确认。
+
+## 2026-09-10（终态裁定：hooks 保持清除态 · 引导器契约冻结于 git 定稿版）
+
+- **裁定（用户，紧接上条）**："保持清除状态"——推翻本会话早前的恢复注册动作：`.zcode/config.json` 工作区回退为**仅 mcp、hooks 块删除**（`json.tool` 校验合法）。引导器根治定稿**冻结在 git `64dbd56`**，脚本本体 `zcode_audit_l1.py`（含本会话 docstring 铁律改写）与全部契约测试保留在库，随时可按定稿形态重新注册启用。
+- **测试连带演化**（避免"清除态=测试红"的假回归）：D 段注册契约新增 `_hook_contract_cfg()` 配置源解析——工作区含 hooks 块则活契约直校（注册错了必红）；清除态则回退 `git show HEAD:.zcode/config.json` 校定稿形态；两处皆无则 skip。行为类回归（子目录定位/deny 透传/fail-open）随 `_bootstrap_code()` 一并吃到定稿源，未删任何断言。
+- **复验（清除态下全部重跑）**：compat 契约 **23 passed**；工具箱 **270 passed**、仓库根 **314 passed**；从 git HEAD 提取定稿引导器冒烟三场景全对（子目录 cwd 定位落账 rc=0 / `git add .` rc=2+deny 留痕 / tmpdir fail-open+警告）。
+- **宿主影响**：当前及新会话均**无 L1 hook**（清除态生效）——审计回到 L2+L3 交叉比对兜底；禁 cd 纪律在重注册前不再由 hook 强制，但"绝对路径操作仓库"好习惯维持。若赛前决定启用 L1：恢复 HEAD 版 hooks 块（或 git revert 本笔清除改动）→ 重启会话 → 按上条三条复验协议走一遍。
+- **提交状态**：`M .zcode/config.json`（清除态，相对 HEAD 删 hooks 块）+ `M LOG.md` + `M 科研工具箱/hooks/zcode_audit_l1.py`（docstring）+ `M 科研工具箱/tests/test_zcode_host_compat.py`（契约源演化），均未提交待用户确认。
+
+## 2026-09-10（清除执行收尾：清除态入库 + 陈旧产物 QUALITY_REPORT 删除）
+
+- **执行（用户指令"进行清除"）**：①用户确认清除态四件套（config 清除/脚本 docstring 铁律改写/契约测试演化/前两条 LOG 补记）入库；②`科研工具箱/tools/QUALITY_REPORT.md` 删除——删除前全文读完（11 行，无关项目"AI 陪伴应用 docx"的陈旧质检产物，源文件不存在且不可再生，属误落仓库的临时工具输出）；该文件为 untracked 态，直接 rm 无 git rm 需要。
+- **提交前复验（本会话实跑）**：工具箱 **270 passed**、仓库根 **314 passed**（清除态下契约测试经 `git show HEAD` 回退校验定稿形态，全部自洽）。
+- **锁死问题闭环声明**：三层解决——技术根治（引导器定稿冒烟三场景全对，冻结于 `64dbd56`）+ 运行时清除（当前无 L1 hook，锁死机制不存在）+ 活体复证（新会话 cd 进 `vendor/forks/figures4papers` 历史事故现场并返回，畅通无阻）。重注册路径：恢复 `64dbd56` 形态 → 重启会话 → 三条复验协议（子目录工具正常/git add . 拦截/落账实时）。
+- **figures4papers 研究收尾三项**（上游精读补全/五模式先例补验/第 3 项收割写法范式→acat-doc-governance）待后续会话，fork 本地克隆在 `vendor/forks/figures4papers`（pinned `3c181f8`）随时可续。

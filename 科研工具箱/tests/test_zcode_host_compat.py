@@ -277,8 +277,29 @@ _VALID_EVENTS = {"SessionStart", "UserPromptSubmit", "PreToolUse", "PermissionRe
                  "PostToolUse", "PostToolUseFailure", "Stop"}
 
 
-def test_zcode_config_registers_l1_hooks():
+def _hook_contract_cfg() -> dict:
+    """hook 契约的配置源解析（2026-09-10 用户裁定：hooks 保持清除态）。
+
+    工作区 config 若含 hooks 块（已注册）→ 直接按契约校验（活契约，注册错了必红）；
+    若为"清除态"（仅剩 mcp，用户裁定的合法运行时状态）→ 回退 git HEAD 定稿版
+    校验引导器契约（注册形态冻结在历史中，将来重注册照此契约）；两处皆无
+    注册版 → skip（清除已入历史，契约无从校验，但本文件行为测试仍守着脚本本体）。
+    """
     cfg = json.loads((REPO_ROOT / ".zcode" / "config.json").read_text(encoding="utf-8"))
+    if "hooks" in cfg:
+        return cfg
+    r = subprocess.run(["git", "-C", str(REPO_ROOT), "show", "HEAD:.zcode/config.json"],
+                       capture_output=True, text=True, encoding="utf-8", timeout=30)
+    if r.returncode != 0:
+        pytest.skip(f"git show 读取定稿配置失败: {r.stderr[:120]}")
+    cfg = json.loads(r.stdout)
+    if "hooks" not in cfg:
+        pytest.skip("hooks 已按用户裁定清除且 git 历史无注册版（重注册须按本段契约）")
+    return cfg
+
+
+def test_zcode_config_registers_l1_hooks():
+    cfg = _hook_contract_cfg()
     hooks = cfg["hooks"]
     assert hooks["enabled"] is True, "配置文件 hooks 默认关闭——必须显式 enabled"
     for event in _HOOK_MODES:
@@ -293,7 +314,7 @@ def test_zcode_config_hook_fields_official_whitelist():
     混入白名单外字段（如 hook 级 enabled）→ 宿主把整个 hook 静默丢弃（pitfall 7），
     L1 审计将无痕失效——2026-09-09 加固时修掉的回归。
     """
-    cfg = json.loads((REPO_ROOT / ".zcode" / "config.json").read_text(encoding="utf-8"))
+    cfg = _hook_contract_cfg()
     for event, entries in cfg["hooks"]["events"].items():
         assert event in _VALID_EVENTS, f"非法事件名 {event}（仅七事件受支持）"
         for e in entries:
@@ -312,7 +333,7 @@ def test_zcode_config_uses_inline_bootstrap():
     执行。引导器把"脚本定位"搬进 python：env 项目根 → cwd 逐级上溯；定位/
     执行失败 fail-open 放行；config 保持随仓可移植，禁止回退路径/变量式写法。
     """
-    cfg = json.loads((REPO_ROOT / ".zcode" / "config.json").read_text(encoding="utf-8"))
+    cfg = _hook_contract_cfg()
     for event in _HOOK_MODES:
         found = [h for e in cfg["hooks"]["events"][event] for h in e["hooks"]
                  if h.get("type") == "process"]
@@ -333,7 +354,7 @@ def test_zcode_config_uses_inline_bootstrap():
 
 
 def _bootstrap_code() -> str:
-    cfg = json.loads((REPO_ROOT / ".zcode" / "config.json").read_text(encoding="utf-8"))
+    cfg = _hook_contract_cfg()
     return cfg["hooks"]["events"]["PreToolUse"][0]["hooks"][0]["args"][1]
 
 

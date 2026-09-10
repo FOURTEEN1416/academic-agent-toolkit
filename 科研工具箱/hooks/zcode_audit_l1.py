@@ -25,8 +25,23 @@
   1. 脚本自身任何异常（含 main() 崩溃）→ stderr 写警告 + exit 0 放行，
      严格区分"hook 故障"（fail-open，绝不拦）与"规则拦截"（唯一 exit 2 出口，
      仅 _DENY_RULES 命中且必须留痕 permission/deny 事件）；
-  2. "python 找不到脚本"场景脚本无法自救，由 .zcode/config.json 的
-     ${ZCODE_PROJECT_DIR} 绝对展开堵死（脚本路径不依赖 shell cwd，见 config 契约测试）。
+  2. 引导器层 fail-open（2026-09-10 定稿根治）："python 找不到/起不了脚本"发生
+     在本脚本**之外**，脚本内 fail-open 物理上没机会执行，故宿主注册不得用
+     「python <脚本路径> <mode>」，改为「python -c <内联引导器> <mode>」——
+     `-c` 进程永远能启动，"脚本定位"被搬进 python 内部，由引导器自身
+     try/except 兜底 fail-open，整类 exit-2 误判物理消失。定位顺序：
+       a. env ZCODE_PROJECT_DIR/CLAUDE_PROJECT_DIR → <root>/科研工具箱/hooks/本文件；
+       b. os.getcwd() 逐级上溯到盘根，第一个含上述相对路径的目录。
+     双 cwd 故障史（a/b 各自对应的复现场景）：
+       - 漂出仓库（2026-09-09）：config 写相对路径 + shell 持久 cwd 漂出仓库根
+         → python "can't open file" 退出码恰为 2 → 宿主误判 deny → 全会话锁死；
+       - 漂进仓库子目录（2026-09-10）：${ZCODE_PROJECT_DIR} 变量式写法在 cd 进
+         科研工具箱/ 后展开成双重拼接 科研工具箱/科研工具箱/hooks/... → 同样
+         起不来 exit 2 再锁死——变量展开在子目录 cwd 下不可靠，已弃用。
+     引导器任何一步失败（找不到/加载失败/执行异常）→ stderr 一行警告 + exit 0
+     放行；exit 2 唯一合法来源仍是 _DENY_RULES。引导器实现在 .zcode/config.json
+     （保持随仓可移植，禁写死盘符），契约见 tests/test_zcode_host_compat.py D 段
+     （双 cwd 定位 / 无仓库 fail-open / deny 经 runpy 透传保真）。
 
 用法（由 .zcode/config.json hooks 注册，也可手动喂 stdin 测试）：
   echo '<hook json>' | python zcode_audit_l1.py pre|post|fail
