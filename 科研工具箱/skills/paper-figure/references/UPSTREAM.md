@@ -10,3 +10,16 @@
 ## Upgrade rule
 
 上游更新时先在 fork 上同步，复查 references 两份文件是否需要重收编；任何取用固定新 pinned commit 并更新本文件。
+
+## 2026-09-11 追加：绘图 skills 批次（SciPilot / academic-figure-skill）
+
+- 来源一：https://github.com/Haojae/scipilot-figure-skill （本地 fork：FOURTEEN1416/scipilot-figure-skill）
+- Pinned commit: 43098ddb9e6a6d142218540c114f9ed38922fc42（2026-06-15 上游 HEAD）
+- Checklist date: 2026-09-11
+- License: **MIT**
+- Local use: `pitfalls-and-intent.md`（选图论证三轴+十八坑拦截清单，适应性改写自 chart_selection.md + viz_pitfalls.md）
+- 来源二：https://github.com/TingxiYu/academic-figure-skill （本地 fork：FOURTEEN1416/academic-figure-skill）
+- Pinned commit: 1df9940dd01ac939f072b12fe28d6353b79b90f9（2026-07-12 上游 HEAD）
+- License: **Apache-2.0**（含 NOTICE 义务，保留于 vendor/forks/academic-figure-skill）
+- Local use: composition-patterns.md 增补（期刊栏宽 89/183mm 锚点 + 多面板反冗余三原则：三层递进/Hero Panel/叙事排序）
+- 两源评估总账：`dev-docs/figure-skills-batch-assessment.md`（含无 License 三库仅本地对照的裁定）

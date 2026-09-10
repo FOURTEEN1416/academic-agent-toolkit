@@ -76,6 +76,8 @@ Generate figures and tables from data: **$ARGUMENTS**
 
 **Semantic roles & composition patterns**（多系列对比图/多指标面板出图前必读）: `references/semantic-palette.md`（颜色→数据角色语义映射：本队方法=蓝、基线=红、改进=绿、高亮≤1处；含顶刊高对比 PALETTE 备选与消融 alpha 梯度；§五为外部交叉校验色板：Okabe-Ito 数据图组合 + 国赛概念图配色）+ `references/composition-patterns.md`（构图五模式：超宽面板/独立图例面板/分类柱隐藏刻度/动态y轴/边线+hatch 打印安全——多方法对比图规划阶段先选模式再写代码；**模式一有印刷宽度前置条件：仅当最终版面下每格 ≥45mm 才连排，否则改堆叠**）。来源 figures4papers @ `3c181f8`（CC BY-NC-4.0，见 references/UPSTREAM.md）。
 
+**Plot-choice gates（选图论证与避坑，规划每张数据图前必读）**: `references/pitfalls-and-intent.md`（决策三轴：变量结构×**论证意图**×样本量分级——FIGURE_MANIFEST 每张图的"选择理由"写轴 2 论证意图；十八坑拦截清单 P1-P18：均值柱/双Y轴/饼图/Y轴截断/rainbow/缺字乱码/图例遮盖等，出图后逐条自查，P16-P18 渲染类必须程序自检+vision 复核双兜底）。来源 SciPilot @ `43098dd`（MIT，见 references/UPSTREAM.md）。
+
 **⛔ 外部规范红线（2026-09-10 收编自竞赛实战口径，与上述规范并行生效）**：
 - **概念图/数据图分家**：AI 生图（Step 1.5）只允许概念类图——场景示意/海报主视觉/图标/技术路线氛围图；任何带坐标轴的图必须是 `gen_fig_*.py` 从真实数据出图。AI 生图内**禁止出现伪造的坐标轴、刻度或"83.27%"式假精度数字**。
 - **AI 生图生成后自检**：图内文字与提示词**逐字一致**（漏字/改写/中英混杂即重出）；每条箭头起点/终点/虚实/标签逐一核对；涉及中国地图的内容九段线为红线——地图类走 geo 脚本出图，AI 只允许"补南海 inset"式受控编辑且出图后人工核国境。
