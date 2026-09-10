@@ -92,10 +92,15 @@ def test_dual_copy_consistency():
     utils = ROOT / "skills" / "_utils"
     shared = ROOT / "skills" / "shared-scripts"
 
+    # 台账/声明类文件只登记分发口径，不参与双副本集合约束（2026-09-10 扩）
+    DUAL_COPY_EXEMPT = {"UPSTREAM.md"}
+
     def snapshot(base):
         out = {}
         for p in sorted(base.rglob("*")):
             if not p.is_file() or "__pycache__" in p.parts:
+                continue
+            if p.name in DUAL_COPY_EXEMPT:
                 continue
             out[p.relative_to(base).as_posix()] = hashlib.sha256(p.read_bytes()).hexdigest()
         return out

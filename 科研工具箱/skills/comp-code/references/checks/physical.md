@@ -37,3 +37,190 @@
 ## 输出
 
 `_tmp/problem_N_check.md` 逐条 ✅/⚠️/❌；❌ 修复后重跑本问全部脚本。
+
+
+---
+
+## modex-3 增补块（2026-09-10 同源对照吸收）
+
+> 来源：Modex v3 技能包 comp-code/references/checks/physical.md（溯源见 skills/shared-scripts/UPSTREAM.md）。
+> 以下为本仓原版未覆盖的检查条目与可执行代码模板；条目与本仓上方重叠时，以本仓上方（含 validate_capability / AUDIT_OK 契约衔接）为准。
+
+## 红旗信号
+
+| 现象 | 可能原因 |
+|------|---------|
+| 状态变量单调增长不收敛 | 开环积分漂移 / 缺反馈 |
+| ODE 求解结果发散 | 步长太大 / 缺阻尼 / 模型不稳定 |
+| 碰撞检测从不触发 | SAT 写错 / 用了中心距代替轮廓距 |
+| 间隙值出现负数 | 接触约束未加 / 已经穿模 |
+| 能量/动量不守恒（孤立系统） | 数值积分误差累积 / 模型缺项 |
+
+## 几何参数引用规则（最高优先级）
+
+代码中涉及碰撞检测、约束校验、目标函数计算时：
+
+**必须使用 MODELING_REPORT.md 中定义的完整物理参数**（如板凳全长220cm、矩形宽30cm、车身长4.5m）, 
+**禁止直接复用上游步骤为其他目的计算的中间量**（如孔中心距165cm、把手坐标间距、质心偏移量）作为物理实体的几何代理。
+
+**典型错误示例**：
+- 板凳碰撞检测用"孔中心距165cm"代替"板凳全长220cm" → 错误（少算了两端各27.5cm）
+- 矩形放置约束用"中心坐标差"代替"边缘到边缘距离" → 错误（忽略了物体宽度）
+- 车辆避障用"质心距离"代替"车身外轮廓最近点距离" → 错误（可能已经碰撞）
+
+**正确做法**：
+
+```python
+# ⛔ 物理参数定义（来源：MODELING_REPORT.md 第X节）
+BENCH_TOTAL_LENGTH = 2.20  # 板凳全长 220cm（题目原文）
+BENCH_WIDTH = 0.30          # 板凳宽度 30cm（题目原文）
+
+def check_collision(bench_a, bench_b):
+    """检测两个板凳是否碰撞。
+
+    物理参数来源：MODELING_REPORT.md 符号说明表
+    - 板凳全长: BENCH_TOTAL_LENGTH = 2.20m
+    - 板凳宽度: BENCH_WIDTH = 0.30m
+    使用完整外轮廓（矩形四角）判断, 非中心点距离。
+    """
+    # 使用完整矩形碰撞检测（SAT 分离轴定理）
+    ...
+```
+
+## SAT 碰撞检测自检
+
+如果用了 SAT（分离轴定理）：
+
+```python
+# 验证 SAT 实现是否正确
+def sat_collide(rect_a, rect_b, *, touching_is_collision=True, atol=0.0):
+    """凸四边形按边界顺序给点；接触定义与绝对长度容差必须来自本题。"""
+    import math
+    if not math.isfinite(atol) or atol < 0:
+        raise ValueError("invalid collision tolerance")
+    axes = []
+    for poly in (rect_a, rect_b):
+        if len(poly) != 4 or any(len(p) != 2 or not all(math.isfinite(x) for x in p) for p in poly):
+            raise ValueError("expected four finite 2D vertices")
+        turns = []
+        for i in range(len(poly)):
+            edge = (poly[(i+1)%len(poly)][0]-poly[i][0], poly[(i+1)%len(poly)][1]-poly[i][1])
+            nxt = (poly[(i+2)%4][0]-poly[(i+1)%4][0], poly[(i+2)%4][1]-poly[(i+1)%4][1])
+            turns.append(edge[0]*nxt[1] - edge[1]*nxt[0])
+            normal = (-edge[1], edge[0])  # 法向量
+            length = math.hypot(*normal)
+            if length == 0:
+                raise ValueError("zero length edge")
+            axes.append((normal[0]/length, normal[1]/length))
+        if not (all(x > 0 for x in turns) or all(x < 0 for x in turns)):
+            raise ValueError("unordered, non-convex or degenerate polygon")
+
+    for axis in axes:
+        proj_a = [p[0]*axis[0] + p[1]*axis[1] for p in rect_a]
+        proj_b = [p[0]*axis[0] + p[1]*axis[1] for p in rect_b]
+        overlap = min(max(proj_a), max(proj_b)) - max(min(proj_a), min(proj_b))
+        separated = overlap < -atol if touching_is_collision else overlap <= atol
+        if separated:
+            return False  # 找到分离轴, 不碰撞
+    return True  # 所有轴都重叠, 碰撞
+```
+
+⛔ **SAT 自检 unit test**：
+
+```python
+# 首次实现/修改碰撞器后运行；不为每个算例重复读规则。
+# 1) 不重叠
+assert sat_collide(
+    [(0,0),(1,0),(1,1),(0,1)],
+    [(2,0),(3,0),(3,1),(2,1)]
+) == False
+# 2) 部分重叠
+assert sat_collide(
+    [(0,0),(2,0),(2,1),(0,1)],
+    [(1,0.5),(3,0.5),(3,1.5),(1,1.5)]
+) == True
+# 3) 旋转后恰好接触：(1,1) 在双方边界上，默认算碰撞
+assert sat_collide(
+    [(0,0),(1,0),(1,1),(0,1)],
+    [(1.5,0.5),(2.5,1.5),(1.5,2.5),(0.5,1.5)]  # 45° 菱形
+) == True
+assert sat_collide(
+    [(0,0),(1,0),(1,1),(0,1)],
+    [(1.5,0.5),(2.5,1.5),(1.5,2.5),(0.5,1.5)],
+    touching_is_collision=False,
+) == False
+print("✅ SAT 自检通过")
+```
+
+## ODE / 动力学
+
+### 数值积分参数
+
+采用建模报告已经论证的精度设置，例如 `rtol=1e-8`；绝对容差按各状态的单位与尺度设定，
+不能从例子统一复制 `atol=1e-10`。更换积分器或步长需同精度对比证据，不能只为快而降精度。
+
+### 漂移检测
+
+```python
+# 长时间积分必做 — 检查是否漂移
+import numpy as np
+def check_drift(t, state, expected_bound):
+    """state 形状为 (时间点,) 或 (时间点, 状态数)，solve_ivp.y 先转置。"""
+    t, state, bound = np.asarray(t), np.asarray(state), np.asarray(expected_bound)
+    if t.ndim != 1 or state.ndim not in (1, 2) or len(state) != len(t) or not len(t):
+        raise ValueError("invalid time/state dimensions")
+    if not all(np.all(np.isfinite(x)) for x in (t, state, bound)) or np.any(bound < 0):
+        raise ValueError("nonfinite state/time or invalid bound")
+    violation = np.abs(state) > bound
+    if violation.shape != state.shape:
+        raise ValueError("bound must broadcast to state shape")
+    bad_time = violation if state.ndim == 1 else violation.any(axis=1)
+    if np.any(bad_time):
+        i = np.flatnonzero(bad_time)[0]
+        print(f"⚠ 状态在 t={t[i]:.3f}s 时超出预期边界 {expected_bound}")
+        return False
+    return True
+```
+
+### 守恒量验证
+
+只对模型确实守恒的系统检查对应量；受迫/耗散系统核能量收支而非强制能量不变。
+容差来自离散误差与物理尺度，不统一用 1%。检查完整轨迹，不能只比首尾而漏掉中间漂移：
+
+```python
+def check_conserved_energy(energies, *, atol, rtol, reference_scale):
+    import numpy as np
+    e = np.asarray(energies, dtype=float)
+    settings = np.asarray([atol, rtol, reference_scale], dtype=float)
+    if e.ndim != 1 or not len(e) or not np.isfinite(e).all():
+        raise ValueError("invalid energy series")
+    if not np.isfinite(settings).all() or (settings < 0).any():
+        raise ValueError("invalid energy tolerances")
+    error = float(np.max(np.abs(e - e[0])))
+    limit = atol + rtol * max(abs(float(e[0])), reference_scale)
+    return error <= limit, error, limit  # E0=0 时也不会除零
+```
+
+## 接触约束 / 饱和限幅
+
+只有本题确有接触/饱和条件时才加入；通过事件定位、约束积分或有依据的接触模型处理。
+不要通用地裁剪位移、把速度归零来“修复”穿透，这可能掩盖错误并破坏能量与动量。
+冲击前后变化必须符合本题恢复系数/耗散模型；自由运动 ODE 不凭空加接触条件。
+
+## 必产数据
+
+下例是字段示意，只记录本题实际使用与实际计算的项；没有接触或能量模型时不填假数。
+
+```json
+{
+  "model": "ODE / RK4 / solve_ivp",
+  "rtol": 1e-8,
+  "atol": 1e-10,
+  "duration_s": 100,
+  "drift_pct": 0.5,
+  "energy_conservation_pct": 0.3,
+  "constraints_active": ["gap_lower_bound", "velocity_saturation"],
+  "max_gap": 0.058,
+  "max_velocity": 3.2
+}
+```

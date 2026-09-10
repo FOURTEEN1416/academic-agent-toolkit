@@ -27,6 +27,7 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "tools" / "docx-cn-engine" / "UPSTREAM.md",
     ROOT / "tools" / "docx_style_profiles" / "UPSTREAM.md",
     ROOT / "tools" / "humanize_chinese" / "UPSTREAM.md",
+    ROOT / "skills" / "shared-scripts" / "UPSTREAM.md",
     ROOT / "skills" / "paper-write" / "templates" / "UPSTREAM.md",
     ROOT / "skills" / "paper-write" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "paper-write-zh" / "references" / "UPSTREAM.md",
