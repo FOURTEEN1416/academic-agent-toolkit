@@ -551,3 +551,12 @@
 - **反自嗨设计**：①不给盲审者主控会话任何结论（A1 要求独立从 PDF 渲染目视重判 D 公式分子/分母、自行重解特征方程，而非确认我方修正）；②A3 变异抽考直接回答"测试没测什么"（点名 C1 闸有无测试）；③A5 红队只按文档执行，缺口如实记"文档缺口"；④利益冲突自查写入文件头——提示词由被审计方起草，建议用户先给无关第三方过目增删再用。
 - **通道适配**：A1/A2/A3/A5/A7 需仓库访问权=ZCode 独立新窗口；A4/A6 部分文本核对可投喂 Agnes 外部通道（reviewer_client 文文本通道，禁回显密钥值）。
 - 本区不入 git；用户按提示词逐窗执行后回收 VERDICT 填裁决表。
+
+## 2026-09-11 续6（用户提出门禁博弈 Goodhart 威胁→文献调研+分层防御落地+L1 重启用终裁）
+
+- **用户问题**："门禁系统的存在会让智能体把过门禁当任务、想办法绕门禁，而不是解决真实问题完成真实比赛"——这是 AI 安全领域正式研究的 **Goodhart's Law / Specification Gaming / Reward Tampering**。
+- **文献调研（实搜留痕，全链见 dev-docs/research/gate_gating_2026-09-11.md）**：DeepMind 规范博弈 60+ 例清单（规范≠意图，修鸿沟比加强执行根本）；Lilian Weng reward hacking 综述（缓解=奖励设计/对抗数据/集成/human oversight/trip wires）；arXiv 大模型奖励黑客综述+RHB 工具型 agent 基准（RL 后训练加剧钻空）；Anthropic 涌现失调（仅凭奖励黑客即可养出失调）；**Sandbagging（2406.07358）/评估感知（2507.01786，模型可区分被测/部署且随规模增长）/审计博弈（2512.07810，盲测红队赢——检测方处劣势）**。总判断：无银弹，最优解=分层防御+忠实代理+不可博弈硬锚+人在环。
+- **最优解八层→仓库映射**（L1 目标对齐硬锚/L2 过程监督/L3 生成验证分离/L4 篡改面最小化/L5 轮换隐藏/L6 红队持续/L7 成本不对称/L8 接受残差）与缺口清单见调研笔记。
+- **落地三件**：①comp-final-audit 增 Integrity anchor 条款（第 14 步人工从 agent 触达外验证：git status/log 审计 contest 窗口内 gate 文件改动，未解释=fatal；可选 fresh worktree 复跑 pytest）；②作战手册 checkpoint 增"批准纪律"（看真实进展与产物质量，不是看门禁绿灯；人工抽查是最终防博弈装置）+第 4 步弹药增"必跑金标准三件（V1/V2 级数比对+守恒残差）——不可博弈硬锚"；③调研笔记落盘。
+- **L1 hook 重启用（用户终裁，推翻 09-10 清除态）**：决策背景=Goodhart 威胁只有宿主层机制性覆盖。执行：.zcode/config.json 从 64dbd56 恢复 hooks 块（PreToolUse/PostToolUse/PostToolUseFailure 三事件+内联引导器+fail-open，enabled=true）→ 契约测试 test_zcode_host_compat **23/23**（原 skip 的 D 段转正全过）→ 引导器 stdin 模拟 PreToolUse 事件 **exit 0+operations.jsonl +1 条**（12.7 万行账本续写）→ 双口径 **270 passed/314 passed（0 skip）**+provenance PASS。文档四处同步（根 AGENTS.md 宿主矩阵/hooks 段/测试口径、作战手册启动清单）。**待用户重启会话后宿主自动触发**（复验第 3 条的自动化形态）。
+- **接受残差声明（诚实条款）**：内部门禁是练习网与排错器，外部评委+查重系统才是不可收买的真值；"完全防绕过"在文献中不存在，本仓目标是让绕过的成本 > 真做的成本，且绕过必留痕、留痕必被终审看见。

@@ -9,18 +9,19 @@
 | 宿主 | 配置文件 | 状态 |
 |------|----------|------|
 | OpenCode Desktop | `opencode.json` + 根级 `.opencode/`（插件 + subagent） | 正式宿主（L1 拦截式审计插件在此层生效） |
-| ZCode | `.zcode/config.json` + `.zcode/skills/` + `.zcode/commands/` | **赛时主控宿主**（2026-09-09 起）：L1 审计具备 hook 等价实现（`科研工具箱/hooks/zcode_audit_l1.py`，PreToolUse/PostToolUse 写同一 `operations.jsonl`）——**当前处于清除态未启用**（2026-09-10 三度终裁，审计靠 L2+L3 兜底，重注册预案见下）；技能/引擎/门禁与 OpenCode 全一致 |
+| ZCode | `.zcode/config.json` + `.zcode/skills/` + `.zcode/commands/` | **赛时主控宿主**（2026-09-09 起）：L1 审计 hook 等价实现（`科研工具箱/hooks/zcode_audit_l1.py`，PreToolUse/PostToolUse/PostToolUseFailure 写同一 `operations.jsonl`）——**2026-09-11 经用户裁定重启用**（从 64dbd56 恢复形态；契约测试 23/23+引导器落账实测通过；重启会话后宿主自动触发）；技能/引擎/门禁与 OpenCode 全一致 |
 
 ## ZCode 主控层说明
 
 - `.zcode/skills` 是指向 `科研工具箱/skills` 的 NTFS 目录联结（不跟踪入 git）。
   重建命令（仓库根，管理员非必需）：
   `cmd /c mklink /J .zcode\skills 科研工具箱\skills`
-- `.zcode/config.json` 提供 docsearch MCP（与 OpenCode 同一 server，workspace 级自动连接）。
-  **hooks 注册位当前为清除态**（2026-09-10 三度终裁冻结：config 仅含 `mcp` 键、无 hooks 块，
-  L1 拦截暂不启用；审计靠 L2 编排式 + L3 申报式兜底，防绕过检测赛时手动跑
-  `python -m engine.workflow_cli audit --workspace <工作区>`）。重注册预案：从 git `64dbd56`
-  恢复 hooks 形态（`python -c` 内联引导器版）+ 重启会话 + 三条复验；hook 配置改动需重启会话生效。
+- `.zcode/config.json` 提供 docsearch MCP（与 OpenCode 同一 server，workspace 级自动连接）与
+  **hooks 块（L1 审计，已启用）**：2026-09-11 用户针对"门禁博弈（Goodhart）"威胁裁定重启用，
+  从 git 64dbd56 恢复内联引导器形态（PreToolUse 拦截/PostToolUse 落账/PostToolUseFailure 三事件，
+  fail-open 铁律：hook 自身故障 stderr 警告+exit 0 放行，exit 2 唯一来源=治理规则命中且必留痕）。
+  复验记录：契约测试 23/23、引导器 stdin 模拟落账 +1 条、双口径 270/314 全过。
+  **hook 配置改动需重启会话生效**——下次新会话起宿主自动触发落账。
 - **L1 hook 能力**（OpenCode 插件不具备的宿主机制，反向利用；脚本在库、当前未注册启用）：宿主层触发、agent 不可绕过；
   PreToolUse 可按治理铁律拦截（如 `git add .` 强制逐文件点名）；落账格式与插件一致，
   L3 交叉比对（`workflow_cli audit` / `detect_unreported_operations`）零改动可用。
@@ -58,10 +59,10 @@
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **308 passed + 6 skipped** | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **264 passed + 6 skipped** | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **314 passed**（2026-09-11 hooks 重启用后，原 6 skip 转正） | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **270 passed**（同上） | 技能验收基线（硬规则 3 口径） |
 
-- 6 个 skip 为设计内：hooks 清除态（`2a86b6c` 定稿）下 D 段注册契约测试按三级解析走"皆无→skip"，非回归（2026-09-10 实测）。
+- 原 6 个 skip 为 hooks 清除态下 D 段注册契约测试（`2a86b6c` 定稿）走"皆无→skip"；2026-09-11 L1 重启用后转真实运行并全过（2026-09-11 实测）。
 
 - `releases/` 是 dated 发布快照（archive 态仅供追溯），**永不进测试收集**——其内部旧测试依赖旧目录结构，扫描必炸（2026-09-03 曾致 333 collection errors）。
 - `科研工具箱/tools/` 下的 `test_*.py` 是裸脚本式自检（硬编码 cwd 相对路径），不属于 pytest 套件，从仓库根收集排除。
