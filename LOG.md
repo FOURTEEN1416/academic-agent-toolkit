@@ -459,3 +459,9 @@
 - **提交前复验（本会话实跑）**：工具箱 **270 passed**、仓库根 **314 passed**（清除态下契约测试经 `git show HEAD` 回退校验定稿形态，全部自洽）。
 - **锁死问题闭环声明**：三层解决——技术根治（引导器定稿冒烟三场景全对，冻结于 `64dbd56`）+ 运行时清除（当前无 L1 hook，锁死机制不存在）+ 活体复证（新会话 cd 进 `vendor/forks/figures4papers` 历史事故现场并返回，畅通无阻）。重注册路径：恢复 `64dbd56` 形态 → 重启会话 → 三条复验协议（子目录工具正常/git add . 拦截/落账实时）。
 - **figures4papers 研究收尾三项**（上游精读补全/五模式先例补验/第 3 项收割写法范式→acat-doc-governance）待后续会话，fork 本地克隆在 `vendor/forks/figures4papers`（pinned `3c181f8`）随时可续。
+
+## 2026-09-10（figures4papers 收割收官：第 3 项写法范式落地 acat-doc-governance）
+
+- **动作**：①新建 `skills/acat-doc-governance/references/skill-writing-paradigm.md`（37 行）——上游 SKILL.md 写法范式归纳为治理四维度：**超薄主入口**（≤60 行经验参照/100 行硬红线，超线先下沉不先删内容）/**渐进披露**（显式"按需打开禁止预载"+每份下沉件一行 Open when 路由）/**双向适用边界**（When to load / When not to load 成对，只写"何时用"不写"何时不用"的标记补齐）/**单主题切分**（一份 reference 管一题，30~150 行量级，重叠即合并候选）；附治理用法（结构问题归 P3，不阻塞 P0/P1 内容处置）与整改模板。②主文件挂钩：加 5 行范式路由段 + description 补"技能/长文档结构评估"定位。③自清污染：主文件常用命令段陈旧基线 242/285、28/28 更正为 **270/314、64/64**（治理技能自身数字过期，正好撞自家铁律 2"过期声明必须处置"枪口）。④吃自己的狗粮：范式本体下沉 references（37 行），主文件仅 68 行——范式样例即本次改造本身，可引为治理对照样本。
+- **来源**：figures4papers `scientific-figure-making/SKILL.md` @ `3c181f8`（CC BY-NC-4.0；溯源已在 paper-figure/references/UPSTREAM.md 登记，台账 64 条，本件引用不新增登记）。
+- **验证**：主文件 68 行/参考件 37 行；工具箱 pytest **264 passed + 6 skipped**——6 skip 为**设计内**：清除态入库（`2a86b6c`）后 HEAD config 亦无 hooks 块，D 段注册契约按 `_hook_contract_cfg()` 三级解析走"皆无→skip"，非回归（compat 单套 17+6 复核一致，行为回归未删）；provenance **64 OK**。**至此 figures4papers 三项收割全部落地**（语义调色板/构图五模式/写法范式），评估任务闭环。

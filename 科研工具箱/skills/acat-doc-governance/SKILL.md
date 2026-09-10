@@ -1,6 +1,6 @@
 ---
 name: acat-doc-governance
-description: "academic-agent-toolkit 仓库专属文档治理规程。做文档盘点、真源刷新、污染源清理、归档、命名治理时使用。内置用户铁律：治理任务必须全文读完所有相关文档（禁止只看文件名）、过期与可疑信息必须清理、不重建≠不读。"
+description: "academic-agent-toolkit 仓库专属文档治理规程。做文档盘点、真源刷新、污染源清理、归档、命名治理、技能/长文档结构评估时使用。内置用户铁律：治理任务必须全文读完所有相关文档（禁止只看文件名）、过期与可疑信息必须清理、不重建≠不读。"
 argument-hint: [盘点|清理|归档|全量治理]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 ---
@@ -52,10 +52,17 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
    P0 修真源冲突 / P1 加横幅标 derived / P2 归档搬运 / P3 命名统一；
    4. 处置动作逐条记 LOG.md + DELETION_LOG.md；5. 验证（pytest + 探针）后才能声明完成。
 
+## 技能/长文档写法范式（结构评估）
+
+评估技能主文件/长文档**结构**（超载、无边界、知识堆主文件）时读
+[references/skill-writing-paradigm.md](references/skill-writing-paradigm.md)
+——超薄主入口/渐进披露/双向边界/单主题切分四范式+整改模板；结构问题归 P3。
+来源 figures4papers @ `3c181f8`（CC BY-NC-4.0，见 paper-figure/references/UPSTREAM.md）。
+
 ## 常用命令
 
 ```bash
-python -m pytest -q                      # 套件内运行，当前基线 242 passed（仓库根口径为 285 passed，见根 AGENTS.md 测试口径表）
-python tools/check_provenance.py          # 溯源台账校验（28/28）
+python -m pytest -q                      # 套件内运行，当前基线 270 passed（仓库根口径为 314 passed，见根 AGENTS.md 测试口径表）
+python tools/check_provenance.py          # 溯源台账校验（64/64）
 git log --oneline -5                      # 与文档声明的提交状态核对
 ```
