@@ -22,14 +22,14 @@
   fail-open 铁律：hook 自身故障 stderr 警告+exit 0 放行，exit 2 唯一来源=治理规则命中且必留痕）。
   复验记录：契约测试 23/23、引导器 stdin 模拟落账 +1 条、双口径 270/314 全过。
   **hook 配置改动需重启会话生效**——下次新会话起宿主自动触发落账。
-- **L1 hook 能力**（OpenCode 插件不具备的宿主机制，反向利用；脚本在库、当前未注册启用）：宿主层触发、agent 不可绕过；
+- **L1 hook 能力**（OpenCode 插件不具备的宿主机制，反向利用；脚本在库、2026-09-11 起已注册启用，预案与历史见 LOG 续6）：宿主层触发、agent 不可绕过；
   PreToolUse 可按治理铁律拦截（如 `git add .` 强制逐文件点名）；落账格式与插件一致，
   L3 交叉比对（`workflow_cli audit` / `detect_unreported_operations`）零改动可用。
 - `.zcode/commands/doc-governance.md` 提供 `/doc-governance` 文档治理命令；
   治理规程本体在技能 `acat-doc-governance`（含用户铁律：治理必须全文读完所有文档、污染源必清理）。
 - ZCode 下审稿角色（数模审稿人/数模视觉审查等）以通用子智能体（Agent 工具）承担；
-  审核证据的模型名必须与 `科研工具箱/engine/modex-core/contest_models.json`（比赛时配置，
-  仓库出厂零预设）或 OpenCode 宿主 agent 配置一致，strict 门禁据此硬拦。
+  审核证据的模型名必须与 `科研工具箱/engine/modex-core/contest_models.json`（已按 2026-09-10
+  用户裁定配置 agnes/agnes-2.5-flash，换模型须同步本文件与证据声明）或 OpenCode 宿主 agent 配置一致，strict 门禁据此硬拦。
 - 赛前自检：`python 科研工具箱/tools/contest_dryrun/chain_driver.py`（14 步全链 + 硬闸 + 真编译，
   链路验证级，详见该目录 README）。
 
@@ -37,7 +37,7 @@
 
 | 路径 | 性质 |
 |------|------|
-| `科研工具箱/` | 产品主体：skills(256 个技能目录)/engine/tools/tests/hooks(L1 脚本在库、清除态)/data |
+| `科研工具箱/` | 产品主体：skills(254 个技能；256 目录含 _utils/shared-scripts 两个非技能目录)/engine/tools/tests/hooks(L1 已启用)/data |
 | `capabilities/catalog.json` | 能力目录（301 条，2026-09-11 审计同步） |
 | `docs/superpowers/` | 设计 spec 与实施计划（dated 快照，仅供追溯） |
 | `dev-docs/` | 内部真源根（gitignored 私有）：truth-index 入口索引、archive/ 归档区 |
@@ -55,7 +55,7 @@
 4. `dev-docs/` 是内部真源根，默认私有；`vendor/` 是上游 fork 暂存区，不入 git。
 5. 文档治理任务遵守 `acat-doc-governance` 技能铁律：全文读完、污染必清、不窄化定位。
 
-## 测试口径（2026-09-10 实测同步，pytest.ini 为准）
+## 测试口径（2026-09-11 实测同步，pytest.ini 为准）
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|

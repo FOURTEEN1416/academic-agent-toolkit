@@ -560,3 +560,25 @@
 - **落地三件**：①comp-final-audit 增 Integrity anchor 条款（第 14 步人工从 agent 触达外验证：git status/log 审计 contest 窗口内 gate 文件改动，未解释=fatal；可选 fresh worktree 复跑 pytest）；②作战手册 checkpoint 增"批准纪律"（看真实进展与产物质量，不是看门禁绿灯；人工抽查是最终防博弈装置）+第 4 步弹药增"必跑金标准三件（V1/V2 级数比对+守恒残差）——不可博弈硬锚"；③调研笔记落盘。
 - **L1 hook 重启用（用户终裁，推翻 09-10 清除态）**：决策背景=Goodhart 威胁只有宿主层机制性覆盖。执行：.zcode/config.json 从 64dbd56 恢复 hooks 块（PreToolUse/PostToolUse/PostToolUseFailure 三事件+内联引导器+fail-open，enabled=true）→ 契约测试 test_zcode_host_compat **23/23**（原 skip 的 D 段转正全过）→ 引导器 stdin 模拟 PreToolUse 事件 **exit 0+operations.jsonl +1 条**（12.7 万行账本续写）→ 双口径 **270 passed/314 passed（0 skip）**+provenance PASS。文档四处同步（根 AGENTS.md 宿主矩阵/hooks 段/测试口径、作战手册启动清单）。**待用户重启会话后宿主自动触发**（复验第 3 条的自动化形态）。
 - **接受残差声明（诚实条款）**：内部门禁是练习网与排错器，外部评委+查重系统才是不可收买的真值；"完全防绕过"在文献中不存在，本仓目标是让绕过的成本 > 真做的成本，且绕过必留痕、留痕必被终审看见。
+
+## 2026-09-11 续7（用户令"多智能体并行执行盲审"——8 审计员全部收回，判定不放行开题）
+
+- **执行方式**：8 个并行独立子智能体充当 A1–A8（各只拿提示词正文+P0 协议+执行环境，零结论共享）；A1/A5 首轮账户限流（1302）重派；A3 变异抽考走独立 git worktree（主仓零变异，收尾 remove 自证）；A8 以 A5 实测 FRICTION_LOG 为输入。窗口内用户并行提交 6f36071（L1 重启用），A2/A6 对两种 hook 状态均实测。
+- **裁决**：A1 pass（0F/1M）/ A2 **fail**（2F/4M）/ A3 **fail**（1F/3M）/ A4 **fail**（1F/2M）/ A5 pass（0F/5M）/ A6 pass（0F/1M）/ A7 **fail**（2F/7M）/ A8 pass（0F/3M）→ **放行标准不满足，不放行开题**，共 6 fatal 待回炉。
+- **6 fatal**：①quality_gates review 闸 auto→full 强制第 12/13 步产物先在——**第 11 步死锁，14 步管线无法合法走完**（A7 端到端复现，API 正常也必现）；②pyc_loader 强制 cwd=tools/ 致三视觉闸对文档化相对路径调用必失败（exit 2=管线语义跳过，质检静默空转）；③sqlite 无完整性保护，直改 DB 架空防线（L1 在位时可检测为 warning 但不接交付判定）；④subagent_session 零校验+verdict 文件可写，独立审稿可伪造（实测伪 session 走到工作流 completed）；⑤**C1 闸零测试**，变异整闸拆除 308 测试全绿；⑥CONTEST_SKILL_MAP.md:70"254 全覆盖零漏网"统计行不实（84/254 未归类，正文表格与引擎三方一致则成立）。
+- **A5 演习**：33min 真走通前 6 步（真 PDE 求解器+金标准拦 3 真 bug）；5 major 赛时摩擦——FAILED 无 retry 永久卡死、伪命令启发式误杀真命令（S1 强制 `grep '<!-- END FIGURE_MANIFEST -->'` 与 Windows 绝对路径必被拒）、checkpoint UUID 无处获取、C1 used 零痕迹校验、STEP_MANIFEST 三方口径矛盾。
+- **A1 数学物理全对**：e^(-a/C) 渲染图实锤+30 项派生数值独立重算全命中（含 β·J1=Bi·J0 独立解 1.822083 vs 材料 1.8222 末位偏差）；1 major=research_numerics:78"D 变幅≤5 倍"实为~17 倍（与 physics:79 自相矛盾）。
+- **A8 时间预算**：窗口实为 74h（提示词 72h 有误），剩余 63.2h；现实档 37h 可行但要求尽快开工且 S4≤12h，悲观 91h 击穿 44%；手册零降级预案（grep 实证）+14 步无提交物流环节；赛程工作区 cumcm2026A 尚未建立（已耗 10.8h）。
+- **A6 合规 pass**：AI 申报双路径+反查闸 12 项对抗全过、附件哈希匹配、模板匿名干净；1 major=审稿模型自申报制（SENSENOVA fallback 致声明≠实际且 strict 闸测不出）；禁搜当届题解纯纪律零技术隔离、查重红线无工具化。
+- **提示词缺陷自报 8 条**已汇总（StepAction 预设框架/基线未声明环境前提/A5 考题内在矛盾/72h≠74h 等）——对应使用协议 4 利益冲突审查的第三方裁量输入。
+- **交付**：`CUMCM2026Problems/A题/盲审执行结果_20260911.md`（裁决表+6 fatal 清单+P0/P1/P2 回炉清单+审计员摘要+提示词缺陷）；提示词文件汇总裁决表已填；各审计员完整 JSON/实验现场在 `%TEMP%/audits/{A1..A8}/`。
+- **待用户裁定**：P0 回炉四项（S11 死锁/视觉闸 cwd/C1 测试/A5 前三摩擦点）不修则赛时第一天必踩；修后按协议换新窗口重跑同提示词复审计。本条 LOG 与两份 gitignored 区文档均未提交，待用户过目。
+
+## 2026-09-11 续8（用户裁决"P0/P1/P2 全做+复跑四项+提交"——四工程师并行回炉交付）
+
+- **裁决记录**：P0 四项全做、P1 五件全做、P2 文书全做、修复后复跑 A2/A3/A4/A7 同提示词再提交。执行按文件属主互斥拆 4 个并行修复工程师（E1 引擎闸/E2 引擎运行器/D A题区文档/M 仓库级文档），零共写冲突。
+- **E1（quality_gates.py/audit_store.py/pyc_loader.py/comp-visual-review SKILL，+33 测试）**：①S11 死锁修复——auto→full 升级只由第 12/13 步专属产物触发，视觉对完整走新 visual 模式，端到端回归测试复现 A7 ws_e2e2 场景过闸；②pyc_loader 相对路径参数转绝对（payload cwd 保留）；③RoleAgent 实际模型写工作区 sidecar（.engine/role_calls_actual.json，opt-in），strict/闸侧交叉核对不符即拦；④VISUAL_REVIEW_VERDICT 增 manual_review 合法态（须 VISUAL_REVIEW_MANUAL_CHECK.md+approved_by+≥5 条记录），unavailable 仍硬拦；⑤final-audit 增步骤↔事件一致性 named check（直改 DB 置 completed 必被抓）；⑥detect_unreported 内联接入 delivery_decision（非 ok→blocked），带工作区归属过滤（bash 按命令串/编辑按 filePath，已知精度边界：条目无 cwd 字段）。工程裁定三条留痕于交付报告。
+- **E2（workflow_runner/cli/execution_protocol/chain_driver，+34 测试）**：①新增 `retry` 子命令（FAILED→RUNNING 走引擎留 step_retry 事件+操作审计）；②伪命令启发式修复——成对引号内内容不算作者自述（`grep '<!-- END FIGURE_MANIFEST -->'` 放行）+盘符冒号排除（`C:/Program Files/...` 放行），6 类描述性文本仍拒（11/11 矩阵）；③next/complete blocked 时输出 checkpoint_id；④`approve` 新增必填 `--by`（缺→exit 2 教学），approved_by 入事件与 checkpoint；⑤C1 used 痕迹绑定——技能名（大小写/-_等价）须现于 commands 或 inputs/outputs 路径，无痕拒并教学两条出路；⑥C1 拒绝消息 `{{}}` 转义残留修复+next 输出手册口径步号。全库 grep approve 调用方已同步（chain_driver；SKILL.md 零命中）。
+- **D（A题区 gitignored 本地）**：A1 数值 7 处修正（D 变幅 17 倍/β1 1.8221/R-L/974h 区间/Robin ρ_d 口径注/result2 A 列/D 值域适用范围）；作战手册新增 §七 时间预算与降级预案（74h 基准+三预案+提交物流 SOP+checkpoint SLA+排障 SOP+风险 Top5）；evidence 统一 8 字段（实读 _REQUIRED_FIELDS 核对）+两条硬拒成文；comp-start.md approve/retry/--db 口径与 E2 契约逐字一致。
+- **M（CONTEST_SKILL_MAP/README/根 AGENTS/配色三文件）**：SKILL_MAP 忠实重算=**五类 254=239+15 零漏网**（主链 20/推荐 55/情境 19/外域 145/未接入库 15 新增成节；A4 的"84 漏网"系仅具名匹配口径，按 MAP 自身前缀域定义重算真实漏网 15）+对账日期与重跑义务；README 全套数字刷真值（270/314/301/254/66/66，契约测试三锚串未触碰 6 passed）；根 AGENTS.md hooks 已启用+已配置 agnes 口径（contest_models.json 实查被跟踪）+254/256 注；semantic-palette 增 §〇 优先级仲裁链（色弱安全>语义映射>elegant 兜底），基线红粉→橙/改进绿→蓝绿换锚；figure_style_guide 双副本同改（红绿组合约束+demo 范本历史示例注）。
+- **统一验证（主控亲跑）**：工具箱 `337 passed`（0 skipped，基线 270+67 新增）、根级 `381 passed`（0 skipped）、provenance 66 OK PASS。接口契约三方一致（E2 实现=D 文档=chain_driver 调用）。

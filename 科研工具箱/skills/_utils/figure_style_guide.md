@@ -246,6 +246,8 @@ setup_style(palette='colorblind')
 | 无障碍要求 | colorblind |
 | SCI 顶刊投稿 / 低饱和高级感 | journal |
 
+**⛔ 红绿组合约束（62 篇获奖论文口径，最高约束，2026-09-11 增）**：soft 默认板的珊瑚粉 `#ED7D7D`（槽 2）与薄荷绿 `#7BC8A4`（槽 3）相邻，elegant 板的红粉 `#E0A0A0`（槽 5）与薄荷绿（槽 3）同板——同一张图两色共现（soft/journal ≥3 系列、elegant ≥5 系列时）即构成被禁红绿对比：改用 `setup_style(palette='colorblind')`，或对其中一系叠加线型/hatch 冗余并拉开明度差。数据图的语义角色锚点色（基线/改进/本队方法）以 `paper-figure/references/semantic-palette.md` §〇 仲裁链为准：本队=蓝 `#0072B2`、改进=蓝绿 `#009E73`、基线=橙 `#E69F00`（红/红粉不再作数据系列语义色）。
+
 **⛔ 已移除的土色配色**：jama（深灰绿+土灰）、lancet（深海蓝+暗红）、aaas（深紫+纯红+近黑）、morandi（灰调脏色）已从可选列表中移除。如果旧代码中使用了这些配色名称，`setup_style()` 会自动 fallback 到 Soft。
 
 **渐变色（热力图/填充）**：用 `cmap='coolwarm'`（红蓝对比，柔和版）或 `cmap='YlOrRd'`（暖色渐变），不要用 `jet` 或 `RdBu_r`（太深沉）。
@@ -430,6 +432,8 @@ TikZ 画出来丑的根本原因：没有颜色分层、没有分阶段色块、
 - 竞赛专用版（多问题双行+星号标注）：见 `demo_roadmap_competition.tex`
 
 **竞赛论文必须参考 `demo_roadmap_competition.tex`**：每个问题可有 2 行主节点+子节点，子节点 4 个一排，用 `$^{\bigstar}$` 标注最优方法。
+
+> ⚠️ **2026-09-11 注**：该 demo 为**历史示例**——实测对它跑 tikz 三闸（tikz_check.sh / tikz_structure_check.py / tikz_palette_check.py）会触发警告/失败（未用 `rgb,255` 内联配色、浅色文字、绝对坐标过密等）。赛时以其**结构思路**（分阶段色块/双行主节点/星标最优）为准、以三闸**通过**为准；配色与坐标写法不逐字照抄，以各闸现行判定规则为准。
 
 **使用规则：复制下面的完整代码，只改节点文字和数量。**
 

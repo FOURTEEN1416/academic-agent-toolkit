@@ -7,9 +7,9 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v1.2.2-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-259_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
-[![Capabilities](https://img.shields.io/badge/capabilities-294-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-247-8b5cf6?style=flat-square)](科研工具箱/skills)
+[![Tests](https://img.shields.io/badge/tests-270_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
+[![Capabilities](https://img.shields.io/badge/capabilities-301-0ea5e9?style=flat-square)](capabilities/catalog.json)
+[![Skills](https://img.shields.io/badge/skills-254-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
 [![Hosts](https://img.shields.io/badge/hosts-OpenCode_|_ZCode-1f2937?style=flat-square)](#快速开始)
@@ -19,7 +19,7 @@
 ---
 
 > [!TIP]
-> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（247 个技能）自主完成
+> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（254 个技能）自主完成
 > 建模 → 编码 → 绘图 → 写作 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯**。
 
 ## ✨ 为什么不是又一个提示词合集
@@ -49,7 +49,7 @@ L1 拦截式审计逐条记录每次工具调用（OpenCode 插件 / ZCode hook�
 </td></tr>
 </table>
 
-## 🗺️ 六大能力域 · 294 项能力
+## 🗺️ 六大能力域 · 301 项能力
 
 | | 能力域 | 条目 | 代表能力 |
 |--|--------|-----:|----------|
@@ -57,7 +57,7 @@ L1 拦截式审计逐条记录每次工具调用（OpenCode 插件 / ZCode hook�
 | 📝 | **学术论文** | 74 | 写作 · 评审 · 润色 · 投稿准备（含 Nature 工作流） |
 | 🔬 | **文献与研究** | 42 | 文献检索 · 综述 · 深度研究 · 实验设计 |
 | 🏆 | **数模竞赛** | 33 | CUMCM 14 步端到端流水线（10 项正式验收能力） |
-| 📊 | **图表与文档生产** | 50 | 期刊级科研绘图 · 信息图 · Excalidraw · LaTeX 全家桶 |
+| 📊 | **图表与文档生产** | 57 | 期刊级科研绘图 · 信息图 · Excalidraw · LaTeX 全家桶 |
 | ©️ | **知识产权材料** | 12 | 软著申请（草稿→成品）· 专利交底书 · 基金申请书 |
 
 <details>
@@ -74,7 +74,7 @@ L1 拦截式审计逐条记录每次工具调用（OpenCode 插件 / ZCode hook�
 | 视觉论证 | `excalidraw-diagram` `infographics` `scientific-schematics` | 手绘风论证图 · 信息图 · 科学示意图 |
 | 既有沉淀 | `nature-figure` + 62 篇获奖论文实证规范 | Nature 级排版与配色 |
 
-全部集成带 **pinned-commit 溯源**（`UPSTREAM.md` 台账 62 条 + vendor，`tools/check_provenance.py` 一键校验 63/63）。
+全部集成带 **pinned-commit 溯源**（`UPSTREAM.md` 台账 + vendor，`tools/check_provenance.py` 一键校验 66/66）。
 
 </details>
 
@@ -117,10 +117,10 @@ cd academic-agent-toolkit
 cmd /c "mklink /J .zcode\skills 科研工具箱\skills"   # 重建技能联结（Windows）
 ```
 
-打开仓库根目录：247 个技能自动发现、docsearch MCP 自动连接、`/doc-governance` 治理命令可用、**L1 审计 hook 自动生效**（`.zcode/config.json` 已注册，PreToolUse/PostToolUse 逐条落账）。赛前一键自检：`python 科研工具箱/tools/contest_dryrun/chain_driver.py`。
+打开仓库根目录：254 个技能自动发现、docsearch MCP 自动连接、`/doc-governance` 治理命令可用、**L1 审计 hook 自动生效**（`.zcode/config.json` 已注册，PreToolUse/PostToolUse 逐条落账）。赛前一键自检：`python 科研工具箱/tools/contest_dryrun/chain_driver.py`。
 
 > [!NOTE]
-> **宿主差异**：OpenCode 与 ZCode 均具备 L1 拦截式审计（插件 / hook，写入同一 `operations.jsonl`，审计报告与防绕过交叉比对两宿主通用）；审稿角色在 OpenCode 为具名 subagent、在 ZCode 由通用子智能体承担，模型证据一律对齐比赛时配置（`engine/modex-core/contest_models.json` 配置槽，仓库不预设）。
+> **宿主差异**：OpenCode 与 ZCode 均具备 L1 拦截式审计（插件 / hook，写入同一 `operations.jsonl`，审计报告与防绕过交叉比对两宿主通用）；审稿角色在 OpenCode 为具名 subagent、在 ZCode 由通用子智能体承担，模型证据一律对齐比赛时配置（`engine/modex-core/contest_models.json`，已按 2026-09-10 用户裁定配置 agnes/agnes-2.5-flash，换模型须同步该文件与证据声明）。
 
 ### 环境要求
 
@@ -130,7 +130,7 @@ cmd /c "mklink /J .zcode\skills 科研工具箱\skills"   # 重建技能联结�
 | 必装 | TeX Live / XeLaTeX | 论文编译类能力 | texlive.org |
 | 推荐 | Graphviz（`dot`） | `graphviz` 技能 | `winget install --id Graphviz.Graphviz -e` |
 | 推荐 | mermaid-cli（`mmdc`） | `mermaid-diagram` 技能 | `PUPPETEER_SKIP_DOWNLOAD=true bun install -g @mermaid-js/mermaid-cli`（用系统 Edge/Chrome 需写 puppeteer 配置，见技能内说明） |
-| 可选 | **多模态 LLM 图像生成后端** | `infographics`、`scientific-schematics` 两个 AI 绘图专属技能 | `export OPENROUTER_API_KEY=sk-...` 或宿主原生 `generate_image` 后端；质量评审可用任意具备视觉能力的模型（**仓库不预设具体型号，比赛时配置**，配置槽见 `engine/modex-core/contest_models.json`） |
+| 可选 | **多模态 LLM 图像生成后端** | `infographics`、`scientific-schematics` 两个 AI 绘图专属技能 | `export OPENROUTER_API_KEY=sk-...` 或宿主原生 `generate_image` 后端；质量评审模型已按 2026-09-10 用户裁定配置（`engine/modex-core/contest_models.json`，四角色 agnes/agnes-2.5-flash） |
 
 > [!IMPORTANT]
 > **AI 绘图技能（infographics / scientific-schematics）必须有多模态 LLM 图像生成后端**——技能内置 Step 0 强制检测，缺后端会明确报错并给指引，不会用占位图冒充。其余绘图技能全部本地运行、零 API。
@@ -144,8 +144,8 @@ python 科研工具箱/tools/plotting_env_check.py
 **验证安装**：
 
 ```bash
-cd 科研工具箱 && python -m pytest -q        # → 259 passed
-python tools/check_provenance.py             # → 63/63 UPSTREAM+vendor 台账通过
+cd 科研工具箱 && python -m pytest -q        # → 270 passed
+python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账通过
 ```
 
 ## 🛡️ 质量与可信
@@ -154,17 +154,17 @@ python tools/check_provenance.py             # → 63/63 UPSTREAM+vendor 台账�
 |------|--------|
 | 🚧 **Named Gates** | `paper_consistency` · `citation_integrity` · `experiment_reproduc` · `figure_provenance` · `compilation_log` |
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
-| 📜 **Provenance 台账** | 62 条 `UPSTREAM.md` + vendor（pinned commit + license），63/63 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
+| 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）66/66 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | 公开基准（CC-BY-4.0）公开评测 · 私有基准（真实竞赛题面）内部压测 |
-| ✅ **测试基线** | 工具箱 259 项 pytest（仓库根 303）：状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 宿主兼容 / 三管线 / 逐技能回归全覆盖 |
-| 🧬 **逐技能 C2 覆盖** | 247 技能 100% 验收状态分类：207 项真实执行证据（管线级/试点级，留档可查）+ 38 项诚实 blocked（依赖/范围受限，零伪造） |
+| ✅ **测试基线** | 工具箱 270 项 pytest（仓库根 314）：状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 宿主兼容 / 三管线 / 逐技能回归全覆盖 |
+| 🧬 **逐技能 C2 覆盖** | 254 技能 100% 登记 catalog 映射（schema 硬校验）；301 条能力逐条申报 current_evidence/current_gap 双字段——真实执行证据（管线级/试点级/基准实证，留档可查）为主，外部依赖项诚实标注 blocked-by-dependency（21 项），零伪造 |
 
 ## 📁 仓库地图
 
 ```
 academic-agent-toolkit/
-├── 科研工具箱/     ★ 产品主体  skills(247) · engine(13) · tools(58+) · tests
-├── capabilities/      能力目录 catalog.json —— 294 条，含验收证据与缺口声明
+├── 科研工具箱/     ★ 产品主体  skills(254) · engine(13) · tools(58+) · tests
+├── capabilities/      能力目录 catalog.json —— 301 条，含验收证据与缺口声明
 ├── benchmarks/        公开基准集（CC-BY-4.0）
 ├── docs/superpowers/  设计 spec 与实施计划（dated 快照）
 ├── governance/        资产台账
@@ -177,7 +177,7 @@ academic-agent-toolkit/
 
 <br>
 
-**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests。发布后持续演进：catalog 现为 294 条 / 247 技能（正式 10）；2026-09-09 独立审计修复（v1.2.1）后基线 247/291；同日 v1.2.2 **ZCode 升格赛时主控**（L1 审计 hook 等价实现）+ **模型去预设**（contest_models.json 比赛配置槽），基线升至 259/303，见 CHANGELOG。
+**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests。发布后持续演进：catalog 现为 301 条 / 254 技能（正式 10）；2026-09-09 独立审计修复（v1.2.1）后基线 247/291；同日 v1.2.2 **ZCode 升格赛时主控**（L1 审计 hook 等价实现）+ **模型去预设**（contest_models.json 比赛配置槽），彼时基线 259/303；2026-09-11 L1 hook 重启用后基线 270/314，见 CHANGELOG。
 
 **v1.1.0（2026-08-28）** —— 全能力公开发布（含软著/专利/基金流水线）· 科研绘图 9 技能扩展 · ZCode 兼容层 · 全库文档治理（45+ 文档审计）。完整记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
