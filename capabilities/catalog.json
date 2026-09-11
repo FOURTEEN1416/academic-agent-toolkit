@@ -6378,6 +6378,28 @@
       "high_risk_confirmation": "无",
       "current_evidence": "技能目录在位（SKILL.md 存在）；Dsadd4/AgentFigureGallery 适配复刻（2026-09-11 批次），域级验收状态沿用",
       "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行"
+    },
+    {
+      "capability_id": "eco-community-plots",
+      "name": "群落生态学多元统计可视化（PCoA/RDA/Mantel/Procrustes）",
+      "domain": "figures_and_document_production",
+      "description": "6 个印刷级 R 模板：PCoA+边缘箱线+PERMANOVA/RDA 双标图+envfit/Mantel 相关热图/Procrustes 叠加/回归组合面板/富集物种 z-score 比较，毫米制 PDF 导出。来源 Changchao-Li/plastisphere_microalgae（无 License，本地 vendored gitignore 隔离）",
+      "input_contract": "丰度表/分组表/环境因子表 CSV（契约见技能 SKILL.md Input Contract）",
+      "output_contract": "印刷级矢量 PDF（毫米制尺寸）+ 统计检验结果原文（R²/P 值）",
+      "status": "experimental",
+      "associated_skills": [
+        "eco-community-plots"
+      ],
+      "associated_tools": [
+        "Rscript"
+      ],
+      "external_dependencies": [
+        "R (vegan/ape/ggplot2/linkET/ggprism/ggpmisc/ggsci/rstatix/patchwork/multcomp)"
+      ],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md+6 个上游 R 脚本 vendored，pinned 843e5b6）；Changchao-Li/plastisphere_microalgae fork 集成（2026-09-11 批次），域级验收状态沿用",
+      "current_gap": "单技能映射级登记；本地 R 环境未实测运行（无 License 仅存档学习）；独立 C2-C4 验收未执行",
+      "promotion_history": []
     }
   ]
 }
