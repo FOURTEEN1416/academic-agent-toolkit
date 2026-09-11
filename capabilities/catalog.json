@@ -6400,6 +6400,24 @@
       "current_evidence": "技能目录在位（SKILL.md+6 个上游 R 脚本 vendored，pinned 843e5b6）；Changchao-Li/plastisphere_microalgae fork 集成（2026-09-11 批次），域级验收状态沿用",
       "current_gap": "单技能映射级登记；本地 R 环境未实测运行（无 License 仅存档学习）；独立 C2-C4 验收未执行",
       "promotion_history": []
+    },
+    {
+      "capability_id": "figure-aesthetics-craft",
+      "name": "图形质感技法（渐变规范/边色继承/Agent 绘图纪律/顶刊构图参照）",
+      "domain": "figures_and_document_production",
+      "description": "公众号审美批次四组技法：渐变色合法语义（数值/装饰两场景+clip=off 要点）、层级网络边色继承末端节点免图例（ggraph 角度公式+防裁剪三件套）、Agent 绘图五纪律+逐图提示词模板、19 类顶刊构图参照集（图集本地不入 git）",
+      "input_contract": "绘图任务描述/已有图表代码；agent 绘图时提供代码+数据+参数边界",
+      "output_contract": "按技法规范产出的图表+逐图提示词模板套用记录",
+      "status": "experimental",
+      "associated_skills": [
+        "figure-aesthetics-craft"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md+agent-figure-prompts.md+source-batch.md）；技法提炼自 2026-09-11 公众号批次 6 篇（图集 103 张本地化于 D:\\Desktop\\参考图，不入 git）",
+      "current_gap": "单技能映射级登记；技法为文本规范未经独立 C2-C4 验收；图集缺失时仅视觉参照降级",
+      "promotion_history": []
     }
   ]
 }
