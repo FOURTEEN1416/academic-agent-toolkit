@@ -37,7 +37,10 @@ except Exception:
 # ----- 通用工具 -----
 
 # 数字 regex：数字后允许跟字母（单位 km/s/min/kn 等），但禁止跟点或数字（避免抓章节号 1.2.3）
-NUM_RE = re.compile(r'(?<![\w.])([-+]?\d+\.\d+|\d+)(?![\.\d])')
+# lookbehind 只排除 ASCII 字母数字前缀（防变量名 x2 / f1 误抓）；\w 在 Unicode 模式下
+# 会把中文当前缀，导致题面"密度为820"、"温度为28"、"为2.55"这类最典型句式全部漏抓
+# （2026-09-11 CUMCM2026-A 赛时实锤：OCR 集合仅 43 个数，14 个真实题面参数被误判虚构）
+NUM_RE = re.compile(r'(?<![A-Za-z0-9_.])([-+]?\d+\.\d+|\d+)(?![\.\d])')
 
 # 数字白名单：常用辅助常数，不参与"虚构"判定
 WHITELIST = {0, 1, 2, 3, 4, 5, 10, 100, 1000, 60, 24, 0.5, 1.5, -1}
@@ -52,9 +55,17 @@ def compute_source_hash(file_path) -> str:
 
 
 def extract_numbers_from_text(text: str) -> set:
-    """从纯文本抽数字集合。"""
+    """从纯文本抽数字集合。
+
+    U+2212（数学负号 −）先归一化为 ASCII '-'：题面/文献排版普遍用 − 表负指数
+    （如 "e−0.89"、"10−7"），不归一化则负数形式永远进不了 OCR 集合，
+    导致 modeling 阶段公式指数被误判"凭印象"（2026-09-11 CUMCM2026-A 赛时实锤）。
+    """
     nums = set()
-    for m in NUM_RE.finditer(text):
+    # U+2212 → " -"（前置空格）：隔离字母边界，否则 "e−0.89" 归一化成 "e-0.89" 后
+    # 仍被 NUM_RE 的字母 lookbehind 拒掉（防变量名 x2 的规则误伤数学负指数）。
+    normalized = text.replace("\u2212", " -")
+    for m in NUM_RE.finditer(normalized):
         try:
             nums.add(round(float(m.group(1)), 4))
         except ValueError:
@@ -356,19 +367,46 @@ def audit_subproblem_isolation(facts: dict, code_dir='code') -> list:
 
 
 def audit_modeling_report(facts: dict, report_path='MODELING_REPORT.md') -> list:
-    """Step 2 末尾审计：MODELING_REPORT.md 里的数字必须能在 facts 里找到，rules 都被引用。"""
+    """Step 2 末尾审计：MODELING_REPORT.md 里的数字必须能在事实源里找到，rules 都被引用。
+
+    事实源三合并（2026-09-11 CUMCM2026-A 赛时扩展，治"合法数字被误判凭印象"）：
+    ① PROBLEM_FACTS.json 数值字段（题面参数权威源）；
+    ② user_data/*_extracted.txt OCR 原文数字（题面原典，负号 U+2212 已归一化）；
+    ③ DATA_FACTS.json 数值字段（数据事实台账，附件端点/亲算派生值的合法登记处）。
+    """
     fails = []
     p = Path(report_path)
     if not p.exists():
         return ['⚠ MODELING_REPORT.md 不存在，跳过 modeling 审计']
     text = p.read_text(encoding='utf-8')
 
-    # ① 数字溯源
+    # ① 数字溯源（三源合并）
     fact_nums = extract_numbers_from_facts(facts)
+    for ocr_file in sorted(Path('user_data').glob('*_extracted.txt')):
+        try:
+            fact_nums |= extract_numbers_from_text(ocr_file.read_text(encoding='utf-8'))
+        except OSError:
+            continue
+    datafacts_path = Path('DATA_FACTS.json')
+    if datafacts_path.is_file():
+        try:
+            fact_nums |= extract_numbers_from_facts(json.loads(datafacts_path.read_text(encoding='utf-8')))
+        except (ValueError, OSError):
+            pass
+    # 代码块（```...```）是给下游机器的合同签名（METHOD_CLAIMS_MACHINE/伪代码），
+    # 不是正文叙述的数字主张——DEC_RE 扫描前剥离，与 LaTeX 公式包围检查器同哲学。
+    text_scan = re.sub(r'```.*?```', '', text, flags=re.DOTALL)
+    # Markdown 标题行（# 开头）的编号（如 "### 6.10"）是章节号不是数值——置为等长空格。
+    _lines = text_scan.split('\n')
+    for _i, _ln in enumerate(_lines):
+        if _ln.lstrip().startswith('#'):
+            _lines[_i] = ' ' * len(_ln)
+    text_scan = '\n'.join(_lines)
     # 仅抓有 2 位以上小数的浮点（避免误抓章节号 / 列表序号）
-    DEC_RE = re.compile(r'(?<![\w.])([-+]?\d+\.\d{2,})(?![\.\d])')
+    # lookbehind 额外排除 §：§6.1/§16.11 是章节引用不是数值（2026-09-11 赛时实锤）
+    DEC_RE = re.compile(r'(?<![\w.§])([-+]?\d+\.\d{2,})(?![\.\d])')
     miss = []
-    for m in DEC_RE.finditer(text):
+    for m in DEC_RE.finditer(text_scan):
         try:
             v = round(float(m.group(1)), 4)
             if v not in fact_nums and v not in WHITELIST:
