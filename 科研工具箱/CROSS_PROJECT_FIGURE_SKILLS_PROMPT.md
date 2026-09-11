@@ -1,6 +1,7 @@
 # 跨项目科研绘图技能借用提示词（Cross-Project Figure Skills Prompt）
 
 > **用法**：把下方"提示词正文"整段复制，注入其它项目的 agent（作为系统规则附件或任务前导即可）。
+> **ZCode 注册**：本提示词已注册为用户级 ZCode 技能 `acat-figure-skills`（`C:\Users\FOUR\.zcode\skills\acat-figure-skills\SKILL.md`），ZCode 下其它项目直接触发该技能即可，无需手动注入。
 > **真源**：技能清单以 `科研工具箱/CONTEST_SKILL_MAP.md`（全库分类账）与 `capabilities/catalog.json`（能力目录）为准，本文件为 2026-09-11 快照（28 个绘图技能）。
 
 ---
