@@ -6,6 +6,8 @@ Agent 使用方式：
   python -m engine.workflow_cli next --wf <id>     # 获取下一步动作（agent 用）
   python -m engine.workflow_cli retry --wf <id> --by <操作者>  # 失败步骤带内恢复（FAILED→RUNNING，落 step_retry 事件）
   python -m engine.workflow_cli approve --checkpoint <UUID> --by <批准人>  # 批准检查点（--by 必填，记录批准人）
+  python -m engine.workflow_cli stall --wf <id> [--hours 12]  # D1 断链告警：扫描 RUNNING 超时/等批悬置步骤
+  python -m engine.workflow_cli backfill --wf <id> --step <skill_name> --artifact <相对路径> [--command <真实命令>] [--by <补录人>]  # D1 手工补录
   python -m engine.workflow_cli report --wf <id>   # 生成审计报告
 """
 from __future__ import annotations
@@ -96,6 +98,8 @@ def _action_payload(action) -> dict:
         "companion_skills": action.companion_skills,
         # C2 资产机制（2026-09-12）：每步非技能资产清单随 next/retry 输出下发
         "assets": action.assets,
+        # D3 门禁前移（2026-09-13）：true 时 agent 须在回报 complete 前跑 quick_gates 轻检
+        "quick_gates": action.quick_gates,
         "instructions": action.execution_instructions(),
     }
 
@@ -134,6 +138,25 @@ def main() -> int:
     retry.add_argument("--by", default="", help="操作者标识（落入 step_retry 审计事件）")
     retry.add_argument("--db", default="")
 
+    # D1 断链告警：扫描停滞步骤（RUNNING 超时未回报 / checkpoint 等批悬置）
+    stall = sub.add_parser("stall")
+    stall.add_argument("--wf", required=True, help="工作流 ID")
+    stall.add_argument("--hours", type=float, default=12.0,
+                       help="停滞阈值（小时，默认 12；命中输出 alert=true 且退出码 1）")
+    stall.add_argument("--db", default="")
+
+    # D1 手工补录：绕开 runner 完成的步骤把产物哈希/真实命令补进审计链
+    backfill = sub.add_parser("backfill")
+    backfill.add_argument("--wf", required=True, help="工作流 ID")
+    backfill.add_argument("--step", required=True, help="步骤 skill_name（如 comp-code）")
+    backfill.add_argument("--artifact", action="append", default=[],
+                          help="产物相对路径（相对工作区根，可多次）")
+    backfill.add_argument("--command", action="append", dest="backfill_commands", default=[],
+                          help="手工执行的真实命令（可多次，进 STEP_MANIFEST.commands）")
+    backfill.add_argument("--note", default="", help="补录说明（进事件 payload）")
+    backfill.add_argument("--by", default="", help="补录人标识（建议必填，落 step_backfilled 事件）")
+    backfill.add_argument("--db", default="")
+
     # 批准检查点
     approve = sub.add_parser("approve")
     approve.add_argument("--checkpoint", required=True)
@@ -170,7 +193,7 @@ def main() -> int:
         db = Path(args.db)
     elif workspace_for_db is not None:
         db = default_workflow_db(workspace_for_db)
-    elif args.command in {"next", "complete", "retry", "report"}:
+    elif args.command in {"next", "complete", "retry", "report", "stall", "backfill"}:
         try:
             db = resolve_workflow_db(args.wf)
         except KeyError as exc:
@@ -241,6 +264,26 @@ def main() -> int:
             }
             if result.action:
                 output["action"] = _action_payload(result.action)
+            print(json.dumps(output, ensure_ascii=False, indent=2))
+            return 0 if result.status in ("advanced", "completed") else 1
+
+        if args.command == "stall":
+            report = runner.detect_stalled(args.wf, stall_hours=float(args.hours))
+            print(json.dumps(report, ensure_ascii=False, indent=2))
+            # 告警即非零退出，便于脚本/钩子感知断链
+            return 1 if report["alert"] else 0
+
+        if args.command == "backfill":
+            result = runner.backfill_step(
+                args.wf, str(args.step).strip(),
+                artifacts=[a.strip() for a in args.artifact if a.strip()],
+                commands=[c for c in args.backfill_commands if c.strip()],
+                note=str(args.note or ""), by=str(args.by or "").strip())
+            output = {
+                "status": result.status,
+                "step_id": result.step_id,
+                "message": result.message,
+            }
             print(json.dumps(output, ensure_ascii=False, indent=2))
             return 0 if result.status in ("advanced", "completed") else 1
 

@@ -938,6 +938,18 @@
             "citation_integrity"
           ],
           "display_name": "文献调研与核验",
+          "output_specs": {
+            "LITERATURE.md": {
+              "min_bytes": 3000,
+              "require_any": [
+                "核验",
+                "检索",
+                "bibkey",
+                "引用"
+              ],
+              "rationale": "D7 产物规格下限：文献台账必须含核验状态/检索证据/引用位置等实质内容，拦目录级薄产物"
+            }
+          },
           "companion_skills": [
             "citation-check"
           ],
@@ -1012,6 +1024,18 @@
             "step_manifest"
           ],
           "display_name": "编程实现",
+          "output_specs": {
+            "RESULTS.md": {
+              "min_bytes": 3000,
+              "require_any": [
+                "result",
+                "输出",
+                "表",
+                "t_end"
+              ],
+              "rationale": "D7 产物规格下限：结果汇总必须含运行输出/关键数值快照等实质内容，拦目录级薄产物"
+            }
+          },
           "companion_skills": [
             "sci-statistical-analysis"
           ]
@@ -1049,7 +1073,8 @@
               "path": "参考图",
               "note": "本地构图/配色参照（gitignored）"
             }
-          ]
+          ],
+          "quick_gates": true
         }
       },
       {
@@ -1147,7 +1172,8 @@
               "path": "CUMCM论文模板/论文模板/各板块详细说明文档",
               "note": "摘要/模型/求解逐板块写法"
             }
-          ]
+          ],
+          "quick_gates": true
         }
       },
       {

@@ -58,6 +58,8 @@ cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rul
 
 Template: `_templates/cumcm/`（国赛，2026-09-09 已入库实测编译通过：`cumcmthesis.cls` + `cumcm2026.sty` + 骨架 `main.tex`；华为杯同用 cumcmthesis）
 
+⛔ **sty 定制纪律（D5 双源分叉修复，2026-09-13）**：需要改样式时**禁止整份复制 `cumcm2026.sty` 后私改**（双源分叉：diff 说不清改了什么，合规无法对账）。正确做法：复制同目录 `cumcm2026_local.example.sty` 为 `cumcm2026_local.sty`——`\input` 真源 + 只在 PATCH 区追加差异 + BASELINE 行登记基线版本；`cumcm2026.sty` 头部有 `TEMPLATE_VERSION` 基线标记。
+
 ⛔ **其余赛事模板（mathorcup / apmcm_zh / huazhong / wuyi / changsanjiao / huashubei / diangongbei / dongsansheng / shuweibei / stats 等）尚未入库**：须先从赛事官方渠道把模板放入 `_templates/<赛事名>/` 再走流程；未放入时下方模板分支的落地断言会**显式报错 exit 1 并给出补救路径**（2026-09-09 审计修正：旧文档声称这些模板已存在，不属实）。
 
 **⛔ MathorCup 与 亚太赛中文(APMCM) 都使用 `MathorCupmodeling.cls` 文档类**（该 cls 未入库，须从赛事官方渠道获取放入 `_templates/<赛事>/`）。使用 `\bianhao{}`、`\tihao{}`、`\timu{}` 设置队伍信息，`\keyword{}` 设置关键词。摘要用 `\begin{abstract}...\end{abstract}` 环境。参考文献用 `\begin{thebibliography}` 环境。

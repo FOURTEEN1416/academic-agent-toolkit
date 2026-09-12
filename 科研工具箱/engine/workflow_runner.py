@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -156,6 +157,7 @@ class WorkflowRunner:
             checkpoint_type=step.metadata.get("checkpoint_type"),
             companion_skills=step.metadata.get("companion_skills", []),
             assets=step.metadata.get("assets", []),
+            quick_gates=bool(step.metadata.get("quick_gates", False)),
             params=workflow.metadata.get("params", {}),
         )
         return RunResult(workflow_id, "advanced", step.id, action=action)
@@ -404,6 +406,57 @@ class WorkflowRunner:
             )
             return RunResult(workflow_id, "failed", step.id, message)
 
+        # ⛔ D7: 中间产物最低内容规格（2026-09-13 原仓库缺陷修复建议 D7 落地）
+        # 背景：Step 2/4 曾产出 5.7KB/2.9KB "目录级" LITERATURE.md/RESULTS.md——
+        # 产物存在（manifest 过闸）但信息密度近零，"走完了"的形式合规掩盖
+        # "走透了"的实质缺位。步骤 metadata.output_specs =
+        # {文件名: {min_bytes, require_any, rationale}} 时逐项校验：
+        #   - min_bytes：产物字节数下限（拦纯目录清单）；
+        #   - require_any：实质内容特征词（任一命中即过，UTF-8 忽略错误解码）；
+        #   - rationale：失败信息引用，教学为何被拦。
+        # 未声明 output_specs 的步骤零影响（向后兼容）；规格是下限不是完备审查。
+        specs = {k: v for k, v in (step.metadata.get("output_specs") or {}).items()
+                 if isinstance(v, dict)}
+        if specs:
+            spec_failures = []
+            for spec_name, spec in specs.items():
+                rel = next((o for o in declared_outputs
+                            if Path(o).name == spec_name or o == spec_name), None)
+                if rel is None:
+                    continue  # 该文件不在本步声明产物清单中，规格不激活
+                spec_path = workspace / rel
+                if not spec_path.exists():
+                    spec_failures.append(f"{spec_name}: 文件不存在")
+                    continue
+                size = spec_path.stat().st_size
+                min_bytes = int(spec.get("min_bytes", 0))
+                if min_bytes and size < min_bytes:
+                    spec_failures.append(
+                        f"{spec_name}: {size}B < 最低规格 {min_bytes}B"
+                        f"（{spec.get('rationale', '产物规格下限')}）")
+                    continue
+                require_any = [str(kw) for kw in (spec.get("require_any") or []) if str(kw).strip()]
+                if require_any:
+                    try:
+                        text = spec_path.read_text(encoding="utf-8", errors="ignore").lower()
+                    except OSError:
+                        text = ""
+                    if not any(kw.lower() in text for kw in require_any):
+                        spec_failures.append(
+                            f"{spec_name}: 未含任何实质内容特征词 {require_any}"
+                            f"（{spec.get('rationale', '产物规格下限')}）")
+            if spec_failures:
+                message = ("declared outputs content spec failed (D7 产物规格下限): "
+                           + "; ".join(spec_failures)
+                           + "。请补足实质内容（台账/证据/数值快照）后重报，而非仅罗列目录。")
+                self.store.transition_step_with_checkpoint(
+                    workflow_id, step.id, StepStatus.FAILED,
+                    {"status": "failed", "error": message},
+                    artifacts=[{"name": a, "path": a} for a in result.artifacts],
+                    event={"type": "step_failed", "stderr": message},
+                )
+                return RunResult(workflow_id, "failed", step.id, message)
+
         action = self._action_for_step(workflow, step)
         evidence_path = write_execution_evidence(workspace, action, evidence, _manifest_payload(manifest))
         self._audit_record(type="engine_event", event="step_completed", workflow_id=workflow_id,
@@ -569,6 +622,160 @@ class WorkflowRunner:
                          message=f"步骤 {step.name} 已复位为 RUNNING，重新执行后 complete",
                          action=self._action_for_step(workflow, step))
 
+    # ── D1 断链告警与手工补录（2026-09-13 原仓库缺陷修复建议 D1 落地） ─────
+    # 背景：engine_step.log（2026-09-12）显示 14 步 runner 推进到 step 3 等待
+    # checkpoint 批准后即停，step 4–14 全部绕开 runner 手工完成，引擎无任何
+    # "断链"告警，STEP_MANIFEST/事件库对 4–14 步零记录——评审若要求"每步
+    # 可复盘"则溯源断档。本段补两条带内通道：stall 停滞告警 + backfill 补录。
+
+    def detect_stalled(self, workflow_id: str, stall_hours: float = 12.0) -> dict[str, Any]:
+        """扫描长期无进展的步骤并告警（D1 断链检测）。
+
+        覆盖两类断链：
+        - running_stalled：步骤 RUNNING 后超 ``stall_hours`` 小时未回报
+          complete（agent 执行中断/会话丢失）；
+        - checkpoint_pending：步骤 BLOCKED 等待用户批准超 ``stall_hours``
+          （批准悬置，工作流名存实亡）。
+
+        命中任一即写入运行日志（stall_alert）与引擎侧操作审计事件
+        （step_stall_alert）；检测本身失败不阻断主流程。返回结构::
+
+            {"workflow_id", "stall_hours", "alert": bool,
+             "stalled": [{step_id, skill_name, position, status,
+                          stalled_hours, kind}, ...]}
+        """
+        now = datetime.now(timezone.utc)
+        rows = self.store._connection.execute(
+            "SELECT id, name, position, status, updated_at FROM workflow_steps "
+            "WHERE workflow_id = ? AND status IN ('running','blocked')",
+            (workflow_id,),
+        ).fetchall()
+        stalled: list[dict[str, Any]] = []
+        for row in rows:
+            try:
+                updated = datetime.fromisoformat(str(row["updated_at"]))
+            except (TypeError, ValueError):
+                continue
+            hours = (now - updated).total_seconds() / 3600.0
+            if hours < float(stall_hours):
+                continue
+            stalled.append({
+                "step_id": row["id"],
+                "skill_name": row["name"],
+                "position": row["position"],
+                "status": row["status"],
+                "stalled_hours": round(hours, 2),
+                "kind": "running_stalled" if row["status"] == "running" else "checkpoint_pending",
+            })
+        report: dict[str, Any] = {
+            "workflow_id": workflow_id,
+            "stall_hours": float(stall_hours),
+            "alert": bool(stalled),
+            "stalled": stalled,
+        }
+        if stalled:
+            self._log(workflow_id, None, None, "stall_alert",
+                      f"检测到 {len(stalled)} 个停滞步骤（>{stall_hours} 小时无进展）",
+                      stalled=stalled)
+            self._audit_record(type="engine_event", event="step_stall_alert",
+                               workflow_id=workflow_id, stall_hours=float(stall_hours),
+                               stalled=stalled)
+        return report
+
+    def backfill_step(self, workflow_id: str, skill_name: str, artifacts: list[str],
+                      commands: list[str] | None = None, note: str = "",
+                      by: str = "") -> RunResult:
+        """手工补录绕开 runner 完成的步骤（D1 溯源链闭合）。
+
+        把手工步骤的真实产物哈希与命令补进事件库与 STEP_MANIFEST，走带内
+        转移（PENDING/BLOCKED→RUNNING→COMPLETED），不新增状态机边、不绕过
+        审计。事件类型记 ``step_backfilled``（区别于 step_completed，复审时
+        可区分"在环执行"与"人工补录"）。产物不存在即拒绝（backfill 只补
+        真实存在的产物，防伪造溯源）。
+        """
+        workflow = self._workflow(workflow_id)
+        row = self.store._connection.execute(
+            "SELECT * FROM workflow_steps WHERE workflow_id = ? AND name = ? "
+            "ORDER BY position LIMIT 1",
+            (workflow_id, skill_name),
+        ).fetchone()
+        if row is None:
+            return RunResult(workflow_id, "failed",
+                             message=f"未知步骤: {skill_name}（--step 须为模板中的 skill_name）")
+        step = self.store._step_from_row(row)
+        if step.status == StepStatus.COMPLETED:
+            return RunResult(workflow_id, "failed", step.id,
+                             f"步骤 {skill_name} 已 COMPLETED，无需补录")
+        workspace = Path(workflow.metadata["workspace"])
+        missing = [a for a in artifacts if not (workspace / a).exists()]
+        if missing:
+            return RunResult(workflow_id, "failed", step.id,
+                             "补录产物在工作区不存在: " + ", ".join(missing)
+                             + "（backfill 只补录真实存在的产物；相对路径基于工作区根）")
+        if not artifacts:
+            return RunResult(workflow_id, "failed", step.id,
+                             "补录至少需要 --artifact 一个产物（防空补录洗白断链）")
+
+        # 带内转移 1：→ RUNNING（PENDING/BLOCKED 合法；已在 RUNNING 则不动）
+        if step.status != StepStatus.RUNNING:
+            self.store.transition_step(step.id, StepStatus.RUNNING)
+        # 产物哈希（复用 ArtifactManifest，与 complete_step 同一产物账本口径）
+        manifest = ArtifactManifest.validate(workspace, artifacts)
+        if not manifest.get("ok"):
+            return RunResult(workflow_id, "failed", step.id,
+                             "产物校验失败: " + "; ".join(
+                                 [f"missing: {', '.join(manifest['missing'])}" if manifest.get("missing") else "",
+                                  f"invalid: {', '.join(manifest['invalid'])}" if manifest.get("invalid") else "",
+                                 ]).strip("; "))
+        config = {
+            "workflow_id": workflow.id,
+            "step_name": step.name,
+            "backfill": True,
+            "by": by,
+            "note": note,
+            "params": workflow.metadata.get("params", {}),
+        }
+        manifest_path = write_step_manifest(
+            workspace=workspace,
+            step_name=step.name,
+            config=config,
+            inputs=[],
+            outputs=[workspace / a for a in artifacts],
+            backend="manual-backfill",
+            commands=[{"command": c, "exitCode": 0} for c in (commands or [])],
+            dependencies={},
+        )
+        # 带内转移 2：RUNNING → COMPLETED，产物哈希进 artifacts 表 + 事件 payload
+        self.store.transition_step_with_checkpoint(
+            workflow_id, step.id, StepStatus.COMPLETED,
+            {"status": "backfilled", "by": by, "note": note,
+             "manifest": _manifest_payload(manifest)},
+            artifacts=[{"name": Path(a).name, "path": a,
+                        "metadata": {"sha256": art.sha256, "size": art.size}}
+                       for a, art in zip(artifacts, manifest["artifacts"])],
+            event={"type": "step_backfilled", "skill_name": step.name, "by": by,
+                   "note": note, "artifacts": list(artifacts),
+                   "commands": list(commands or []),
+                   "manifest_path": str(manifest_path)},
+        )
+        self._log(workflow_id, step.id, step.name, "backfill",
+                  f"步骤 {step.name} 手工补录（by={by or '未署名'}，产物 {len(artifacts)} 项）",
+                  agent=by or self._agent_label(workflow))
+        self._audit_record(type="engine_event", event="step_backfilled",
+                           workflow_id=workflow_id, step_id=step.id,
+                           skill_name=step.name, by=by, artifacts=list(artifacts))
+
+        # 补录后若无 pending/blocked/failed 步骤，正常收尾工作流
+        if (not self._has_pending_steps(workflow_id)
+                and self._first_blocked_step(workflow_id) is None
+                and self._has_failed_steps(workflow_id) is None):
+            self.store.complete_workflow(workflow_id)
+            self._log(workflow_id, None, None, "completed",
+                      "所有步骤完成（含手工补录）", agent=self._agent_label(workflow))
+        return RunResult(workflow_id, "advanced", step.id,
+                         message=f"步骤 {step.name} 补录完成（step_backfilled 事件已落账，"
+                                 f"STEP_MANIFEST 已更新）")
+
     def _latest_checkpoint_id(self, step_id: str) -> str | None:
         """返回步骤最近一次 checkpoint 的 ID（供 next blocked 输出，A5 ⑦ 修复）。"""
         row = self.store._connection.execute(
@@ -654,6 +861,7 @@ class WorkflowRunner:
             has_checkpoint=step.metadata.get("has_checkpoint", False), checkpoint_type=step.metadata.get("checkpoint_type"),
             companion_skills=step.metadata.get("companion_skills", []),
             assets=step.metadata.get("assets", []),
+            quick_gates=bool(step.metadata.get("quick_gates", False)),
             params=workflow.metadata.get("params", {}),
         )
 
