@@ -94,6 +94,8 @@ def _action_payload(action) -> dict:
         "has_checkpoint": action.has_checkpoint,
         "checkpoint_type": action.checkpoint_type,
         "companion_skills": action.companion_skills,
+        # C2 资产机制（2026-09-12）：每步非技能资产清单随 next/retry 输出下发
+        "assets": action.assets,
         "instructions": action.execution_instructions(),
     }
 

@@ -297,10 +297,16 @@ def test_cli_complete_waiting_checkpoint_output_contains_checkpoint_id(cli_env, 
         "skill_sha256": skill_sha,
         "commands": [{"command": "python code/gen_report.py", "returncode": 0, "cwd": "."}],
         "inputs": [], "outputs": [output_file],
-        # 真实模板第 1 步推荐辅助技能 problem-analysis：链路验证级如实申报 skipped
+        # 真实模板第 1 步（2026-09-12 修剪后推荐清单为空）：链路验证级按 next 输出动态如实申报。
+        # 清单为空时 C1 闸不激活，字段可省略；此处仍随 action 输出以保持契约演练覆盖。
         "companion_skills": {"used": [],
-                             "skipped": [{"skill": "problem-analysis",
-                                          "reason": "链路验证级测试不加载辅助技能"}]},
+                             "skipped": [{"skill": s, "reason": "链路验证级测试不加载辅助技能"}
+                                         for s in action.get("companion_skills", [])]},
+        # 真实模板第 1 步 assets（2026-09-12 C2 资产机制）：链路验证级如实申报全 skipped。
+        # 清单从 next 输出的 action.assets 动态取——模板资产清单演进时本测试自维护。
+        "assets": {"used": [],
+                   "skipped": [{"name": a["name"], "reason": "链路验证级测试不消费资产"}
+                               for a in action.get("assets", [])]},
     }
     rc, done = _run_cli(monkeypatch, capsys, "complete", "--wf", wf, "--ok", "true",
                         "--artifacts", output_file,

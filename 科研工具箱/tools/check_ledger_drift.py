@@ -21,10 +21,11 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 MAIN_LEDGER = REPO / ".engine" / "audit" / "operations.jsonl"
-# 已知漂移点（相对仓库根；随新症状追加）
+# 已知漂移点（相对仓库根；随新症状追加）。
+# 2026-09-12 泛化：skills/** 递归覆盖新增症状点 skills/.engine 与
+# skills/paper-figure/.engine（09-11 历史 20 行未被旧三点清单扫到）
 DRIFT_GLOBS = [
-    "科研工具箱/skills/_utils/.engine/audit/operations.jsonl",
-    "科研工具箱/skills/shared-scripts/.engine/audit/operations.jsonl",
+    "科研工具箱/skills/**/.engine/audit/operations.jsonl",
     "科研工具箱/.engine/audit/operations.jsonl",
     ".engine/audit/operations_*.jsonl",
 ]

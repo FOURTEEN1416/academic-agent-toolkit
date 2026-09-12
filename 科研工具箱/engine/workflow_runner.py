@@ -155,6 +155,7 @@ class WorkflowRunner:
             has_checkpoint=step.metadata.get("has_checkpoint", False),
             checkpoint_type=step.metadata.get("checkpoint_type"),
             companion_skills=step.metadata.get("companion_skills", []),
+            assets=step.metadata.get("assets", []),
             params=workflow.metadata.get("params", {}),
         )
         return RunResult(workflow_id, "advanced", step.id, action=action)
@@ -315,6 +316,72 @@ class WorkflowRunner:
                         "（伪报 used 直接过闸已被禁止）。两条出路："
                         "① 把 consult 该技能的真实命令（如读取其 SKILL.md 的命令）如实记入 "
                         "evidence.commands；② 若确未使用，改申报为 skipped 并写明理由")
+
+        # ⛔ C2: 步骤资产强制申报（2026-09-12 资产利用率审计落地）
+        # 现状：C1 只覆盖"技能"，数据/参考论文/工具脚本/参考图集等非技能资产在
+        # StepAction 零暴露——引擎只给技能，仓库其余资产处于"流程不可见"状态。
+        # 步骤定义了 assets（{"name","path","note"} 列表，path 为仓库根相对）时，
+        # 执行证据必须含 assets 申报，语义与 C1 同构：
+        #   {"used": [资产名...], "skipped": [{"name": 资产名, "reason": 非空理由}...]}
+        # used ∪ skipped 恰好覆盖清单；申报 ≠ 强制使用，但"不用"必须留痕给理由；
+        # used 资产须有真实痕迹（资产名或仓库根相对路径出现在命令/产物/输入路径中）。
+        required_assets = [a for a in (step.metadata.get("assets") or []) if isinstance(a, dict) and str(a.get("name", "")).strip()]
+        if required_assets:
+            def _asset_reject(detail: str) -> RunResult:
+                message = (f"invalid execution evidence: 步骤资产申报不合规——{detail}。"
+                           '正确格式: "assets": {"used": ["资产名"], '
+                           '"skipped": [{"name": "资产名", "reason": "为何跳过"}]}，'
+                           "used 与 skipped 须恰好覆盖 StepAction.assets 清单。")
+                self.store.transition_step_with_checkpoint(
+                    workflow_id, step.id, StepStatus.FAILED,
+                    {"status": "failed", "error": message},
+                    artifacts=[{"name": a, "path": a} for a in result.artifacts],
+                    event={"type": "step_failed", "stderr": message},
+                )
+                return RunResult(workflow_id, "failed", step.id, message)
+
+            raw_assets_decl = result.metadata.get("execution_evidence", {}).get("assets")
+            asset_names = [str(a["name"]).strip() for a in required_assets]
+            if not isinstance(raw_assets_decl, dict):
+                return _asset_reject(f"本步给出了资产清单 {asset_names} 但证据缺少 assets 申报")
+            assets_used = raw_assets_decl.get("used", [])
+            assets_skipped = raw_assets_decl.get("skipped", [])
+            if not isinstance(assets_used, list) or not all(isinstance(s, str) and s.strip() for s in assets_used):
+                return _asset_reject("used 必须是非空资产名字符串数组")
+            if not isinstance(assets_skipped, list) or not all(
+                isinstance(s, dict) and str(s.get("name", "")).strip() and str(s.get("reason", "")).strip()
+                for s in assets_skipped
+            ):
+                return _asset_reject('skipped 必须是 [{"name": 资产名, "reason": 非空理由}] 数组')
+            assets_declared = set(assets_used) | {str(s["name"]) for s in assets_skipped}
+            assets_unknown = sorted(assets_declared - set(asset_names))
+            assets_missing = sorted(set(asset_names) - assets_declared)
+            if assets_unknown:
+                return _asset_reject(f"申报了本步未给出的资产 {assets_unknown}（本步资产清单: {asset_names}）")
+            if assets_missing:
+                return _asset_reject(f"资产未逐一申报使用或跳过: {assets_missing}")
+            if set(assets_used) & {str(s["name"]) for s in assets_skipped}:
+                return _asset_reject("同一资产同时申报了 used 与 skipped（自相矛盾申报）。"
+                                     "真实使用 → used（须留使用痕迹）；确未使用 → skipped+理由")
+            # used 痕迹绑定：资产名或路径（归一化大小写与路径分隔符）出现在
+            # commands/outputs/inputs 任一串中即有痕。路径按仓库根相对形态匹配，
+            # 绝对路径命令天然包含该子串。
+            asset_trace_blob = " ".join(
+                [str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)]
+                + [str(p) for p in evidence.get("outputs", []) or []]
+                + [str(p) for p in evidence.get("inputs", []) or []]
+            ).lower().replace("\\", "/")
+            for asset in required_assets:
+                if str(asset["name"]).strip() not in assets_used:
+                    continue
+                asset_path_norm = str(asset.get("path", "")).strip().lower().replace("\\", "/")
+                name_hit = str(asset["name"]).strip() in asset_trace_blob
+                path_hit = bool(asset_path_norm) and asset_path_norm in asset_trace_blob
+                if not name_hit and not path_hit:
+                    return _asset_reject(
+                        f"used 申报的资产 {asset['name']} 在命令与产物/输入路径中零使用痕迹。"
+                        "两条出路：① 把读取/执行该资产的真实命令如实记入 evidence.commands"
+                        "（含资产路径或资产名）；② 若确未使用，改申报为 skipped 并写明理由")
 
         workspace = Path(workflow.metadata["workspace"])
         declared_outputs = list(step.metadata.get("output_files", []))
@@ -586,6 +653,7 @@ class WorkflowRunner:
             output_files=step.metadata.get("output_files", []), primary_output=step.metadata.get("primary_output", ""),
             has_checkpoint=step.metadata.get("has_checkpoint", False), checkpoint_type=step.metadata.get("checkpoint_type"),
             companion_skills=step.metadata.get("companion_skills", []),
+            assets=step.metadata.get("assets", []),
             params=workflow.metadata.get("params", {}),
         )
 

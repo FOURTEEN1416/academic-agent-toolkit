@@ -37,8 +37,8 @@
 
 | 路径 | 性质 |
 |------|------|
-| `科研工具箱/` | 产品主体：skills(254 个技能；256 目录含 _utils/shared-scripts 两个非技能目录)/engine/tools/tests/hooks(L1 已启用)/data |
-| `capabilities/catalog.json` | 能力目录（301 条，2026-09-11 审计同步） |
+| `科研工具箱/` | 产品主体：skills(256 个技能；258 目录含 _utils/shared-scripts 两个非技能目录)/engine/tools/tests/hooks(L1 已启用)/data |
+| `capabilities/catalog.json` | 能力目录（303 条，2026-09-12 审计同步） |
 | `docs/superpowers/` | 设计 spec 与实施计划（dated 快照，仅供追溯） |
 | `dev-docs/` | 内部真源根（gitignored 私有）：truth-index 入口索引、archive/ 归档区 |
 | `LOG.md` / `task_plan.md` | 操作日志 / 当前任务与验证基线 |
@@ -55,12 +55,12 @@
 4. `dev-docs/` 是内部真源根，默认私有；`vendor/` 是上游 fork 暂存区，不入 git。
 5. 文档治理任务遵守 `acat-doc-governance` 技能铁律：全文读完、污染必清、不窄化定位。
 
-## 测试口径（2026-09-11 实测同步，pytest.ini 为准）
+## 测试口径（2026-09-12 实测同步，pytest.ini 为准）
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **423 passed**（2026-09-11 hooks 重启用 0 skip；同日盲审两轮回炉 +109） | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **379 passed**（同上） | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **452 全量**（2026-09-12 资产机制+修剪批次后：428 基线 +24 新增；实测 426 passed + 1 deselected[test_dual_copy_consistency 并行窗在途编辑] + test_cumcm_benchmark 25 项因 benchmarks/ 被并行窗口删除暂不可收集，算术闭合） | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **408 全量**（384 +24 同批次；实测 407 passed + 1 deselected 同上） | 技能验收基线（硬规则 3 口径） |
 
 - 原 6 个 skip 为 hooks 清除态下 D 段注册契约测试（`2a86b6c` 定稿）走"皆无→skip"；2026-09-11 L1 重启用后转真实运行并全过（2026-09-11 实测）。
 

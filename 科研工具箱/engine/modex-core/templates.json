@@ -889,8 +889,28 @@
             "step_manifest"
           ],
           "display_name": "赛题分析",
-          "companion_skills": [
-            "problem-analysis"
+          "companion_skills": [],
+          "assets": [
+            {
+              "name": "历年真题索引",
+              "path": "科研工具箱/data/historical_problems.json",
+              "note": "历史题目与题型规律速查"
+            },
+            {
+              "name": "题型案例模式库",
+              "path": "科研工具箱/data/case_patterns.md",
+              "note": "常见题型套路与坑点"
+            },
+            {
+              "name": "风险预警清单",
+              "path": "科研工具箱/data/risk_alerts.md",
+              "note": "选题与建模常见风险提示"
+            },
+            {
+              "name": "获奖论文使用指南",
+              "path": "参考论文/参考论文使用指南.md",
+              "note": "获奖论文资产入口地图"
+            }
           ]
         }
       },
@@ -919,12 +939,24 @@
           ],
           "display_name": "文献调研与核验",
           "companion_skills": [
-            "citation-check",
-            "check-citations",
-            "research-lit",
-            "literature-review",
-            "paper-search",
-            "sci-paper-lookup"
+            "citation-check"
+          ],
+          "assets": [
+            {
+              "name": "引用核验器",
+              "path": "科研工具箱/tools/citation_checker.py",
+              "note": "引用条目机检（与三源核验互补）"
+            },
+            {
+              "name": "真题优论检索器",
+              "path": "科研工具箱/tools/case_fetcher.py",
+              "note": "国赛真题/优秀论文搜索"
+            },
+            {
+              "name": "检索链接清单",
+              "path": "科研工具箱/data/search_links.md",
+              "note": "预整理权威检索入口"
+            }
           ]
         }
       },
@@ -949,12 +981,14 @@
           ],
           "display_name": "建模求解",
           "companion_skills": [
-            "model-building",
-            "model-innovation",
-            "math-modeling-contest-route-selection",
-            "sci-sympy",
-            "proof-writer",
-            "scholar-verify-math"
+            "sci-sympy"
+          ],
+          "assets": [
+            {
+              "name": "参考模型库",
+              "path": "科研工具箱/data/reference_models.json",
+              "note": "经典模型速查（选型对照用）"
+            }
           ]
         }
       },
@@ -979,12 +1013,7 @@
           ],
           "display_name": "编程实现",
           "companion_skills": [
-            "data-processing",
-            "sci-exploratory-data-analysis",
-            "sci-statistical-analysis",
-            "sci-networkx",
-            "dse-loop",
-            "analyze-results"
+            "sci-statistical-analysis"
           ]
         }
       },
@@ -1007,13 +1036,19 @@
           ],
           "display_name": "图表生成",
           "companion_skills": [
-            "scipilot-figure-skill",
-            "agent-figure-gallery",
-            "academic-figure-skill",
-            "plot-from-data",
-            "plot-from-image",
-            "scientific-visualization",
-            "paper-figure-html"
+            "figure-aesthetics-craft"
+          ],
+          "assets": [
+            {
+              "name": "获奖论文图表配色分析",
+              "path": "参考论文/图表配色分析报告.md",
+              "note": "获奖论文图表配色/构图统计"
+            },
+            {
+              "name": "参考图集",
+              "path": "参考图",
+              "note": "本地构图/配色参照（gitignored）"
+            }
           ]
         }
       },
@@ -1035,13 +1070,13 @@
             "figure_provenance"
           ],
           "display_name": "流程与架构图绘制",
-          "companion_skills": [
-            "paper-framework-figure-studio-pro",
-            "visio-image-rebuilder",
-            "diagram-design",
-            "scientific-schematics",
-            "graphviz",
-            "mermaid-diagram"
+          "companion_skills": [],
+          "assets": [
+            {
+              "name": "参考图集",
+              "path": "参考图",
+              "note": "机理图/架构图构图参照"
+            }
           ]
         }
       },
@@ -1062,11 +1097,7 @@
             "review"
           ],
           "display_name": "逻辑对抗复核",
-          "companion_skills": [
-            "auto-review-loop",
-            "auto-review-loop-llm",
-            "auto-review-loop-minimax"
-          ]
+          "companion_skills": []
         },
         "required_checks": [
           "review"
@@ -1094,13 +1125,28 @@
             "paper_consistency"
           ],
           "display_name": "竞赛论文撰写",
-          "companion_skills": [
-            "anti-defensive-writing",
-            "anti-ai-detection",
-            "latex-writing",
-            "result-to-claim",
-            "paper-plan-zh",
-            "format-profile"
+          "companion_skills": [],
+          "assets": [
+            {
+              "name": "摘要深度分析报告",
+              "path": "参考论文/摘要深度分析报告.md",
+              "note": "获奖论文摘要写法统计"
+            },
+            {
+              "name": "论文风格分析报告",
+              "path": "参考论文/论文风格分析报告.md",
+              "note": "获奖论文行文风格统计"
+            },
+            {
+              "name": "完善模板骨架",
+              "path": "CUMCM论文模板/论文模板/数模完善模板.tex",
+              "note": "章节骨架参照，禁止照抄文字"
+            },
+            {
+              "name": "各板块写作说明",
+              "path": "CUMCM论文模板/论文模板/各板块详细说明文档",
+              "note": "摘要/模型/求解逐板块写法"
+            }
           ]
         }
       },
@@ -1124,6 +1170,13 @@
           "display_name": "代码-论文一致性检查",
           "companion_skills": [
             "analyze-results"
+          ],
+          "assets": [
+            {
+              "name": "论文数据一致性检查器",
+              "path": "科研工具箱/tools/paper_data_check.py",
+              "note": "论文数值与结果台账交叉核对"
+            }
           ]
         }
       },
@@ -1151,11 +1204,23 @@
             "compilation_log"
           ],
           "display_name": "编译与合规检查",
-          "companion_skills": [
-            "docx-export",
-            "docx-format-check",
-            "docx-template-map",
-            "latex-document"
+          "companion_skills": [],
+          "assets": [
+            {
+              "name": "DOCX 格式预查",
+              "path": "科研工具箱/tools/docx_precheck.py",
+              "note": "需交付 Word 版时预检"
+            },
+            {
+              "name": "DOCX 导出器",
+              "path": "科研工具箱/tools/docx_export.py",
+              "note": "Markdown 转 DOCX"
+            },
+            {
+              "name": "裸 LaTeX 修复器",
+              "path": "科研工具箱/tools/fix_bare_latex_in_md.py",
+              "note": "编译排查辅助"
+            }
           ]
         }
       },
@@ -1179,6 +1244,13 @@
           "companion_skills": [
             "scholar-critique-figures",
             "figure-spec"
+          ],
+          "assets": [
+            {
+              "name": "获奖论文图表配色分析",
+              "path": "参考论文/图表配色分析报告.md",
+              "note": "视觉审查配色对照基准"
+            }
           ]
         },
         "required_checks": [
@@ -1256,6 +1328,23 @@
           "companion_skills": [
             "citation-check",
             "quality-check"
+          ],
+          "assets": [
+            {
+              "name": "引用终检器",
+              "path": "科研工具箱/tools/citation_checker.py",
+              "note": "交付前引用条目终检"
+            },
+            {
+              "name": "287 项论文自查表",
+              "path": "参考论文/bzd_论文自查表_287项.md",
+              "note": "论文全面自查清单"
+            },
+            {
+              "name": "规则与合规区",
+              "path": "CUMCM2026Problems/规则与合规",
+              "note": "申报/查重红线原始依据"
+            }
           ]
         }
       }
