@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "name": "paper-figure-palette v6",
+    "origin": "用户指定 8 色「夏日海滩」（科研配色提取与调色结果.json 第 2 组）",
+    "policy": "H° 一律不动；仅调 L*（提亮）与 C*（提彩）。深色一律 deepen（LCH 固定色相），禁用 darken（RGB 向黑缩放）。",
+    "validated": "CUMCM 2026A 全 21 图重生成；灰度单调 / 色盲(CVD) / 对比度复核通过",
+    "date": "2026-09-12"
+  },
+  "warm_family": {
+    "semantic": "温度 / 热 / 主体 A（等价 ColorBrewer YlOrRd 范式）",
+    "colors": [
+      {"key": "T4",    "hex": "#FEE6A9", "L": 92.0, "C": 32.8, "H": 90.8, "role": "族内最浅：底色渐变、第一梯队填充"},
+      {"key": "T3",    "hex": "#FED3A1", "L": 87.0, "C": 31.3, "H": 74.1, "role": "浅端填充、第二梯队"},
+      {"key": "T2",    "hex": "#FEBDAA", "L": 82.0, "C": 28.1, "H": 42.5, "role": "次色（蜜桃）：卡片渐变底"},
+      {"key": "TMAIN", "hex": "#FEB8B5", "L": 81.0, "C": 27.4, "H": 24.0, "role": "族锚：主曲线、主面板"},
+      {"key": "TACC",  "hex": "#FDA574", "L": 75.5, "C": 47.4, "H": 54.6, "role": "全图唯一高亮（C* 最高）：强调、荧光描边"}
+    ]
+  },
+  "cool_family": {
+    "semantic": "水分 / 冷 / 主体 B（等价 ColorBrewer GnBu 范式）",
+    "colors": [
+      {"key": "M4",    "hex": "#9FE698", "L": 85.0, "C": 48.0, "H": 139.6, "role": "族内最浅：浅端填充"},
+      {"key": "M3",    "hex": "mix_lab(M4,M2,0.5)", "L": 81.7, "role": "族内补位（LAB 插值生成）"},
+      {"key": "MMAIN", "hex": "#6FCDFD", "L": 78.5, "C": 35.2, "H": 245.9, "role": "族锚：水分主曲线"},
+      {"key": "M1",    "hex": "#2BC3F1", "L": 73.5, "C": 40.4, "H": 235.9, "role": "族内最深；与 TACC 相距 181.3° ≈ 互补对"}
+    ]
+  },
+  "neutrals": [
+    {"key": "INK",  "hex": "#2B2B2E", "contrast_white": 15.0, "role": "全部文字"},
+    {"key": "CRIT", "hex": "#57575A", "contrast_white": 7.0,  "role": "判据线 / 阈值线 / 零线"},
+    {"key": "NEU",  "hex": "#B6B6B2", "contrast_white": 1.9,  "role": "参考线、次要数据、次要描边"},
+    {"key": "GRID", "hex": "#EBE8E3", "contrast_white": 1.15, "role": "网格线"},
+    {"key": "SOFT", "hex": "#FBF7F1", "role": "交替行底色（暖调米白）"}
+  ],
+  "ink_map": {
+    "#FEB8B5": {"ink": "#C74C53", "contrast": 4.60},
+    "#FEBDAA": {"ink": "#BE4E30", "contrast": 4.86},
+    "#FDA574": {"ink": "#A35B31", "contrast": 5.13},
+    "#FED3A1": {"ink": "#896330", "contrast": 5.42},
+    "#FEE6A9": {"ink": "#76652F", "contrast": 5.72},
+    "#9FE698": {"ink": "#438040", "contrast": 4.77},
+    "#2BC3F1": {"ink": "#3B7287", "contrast": 5.32},
+    "#6FCDFD": {"ink": "#307697", "contrast": 5.03}
+  },
+  "ramps": {
+    "TEMP":  {"deep_end": "#A3490D", "deep_L": 42.0, "deep_ratio": 0.92,
+              "stops": ["#FFFFFF", "lighten(T4,.58)", "#FEE6A9", "#FED3A1", "#FEBDAA", "#FEB8B5", "#FDA574", "#A3490D"]},
+    "MOIST": {"deep_end": "#19667F", "deep_L": 40.0, "deep_ratio": 0.92,
+              "stops": ["#FFFFFF", "lighten(M4,.58)", "#9FE698", "mix_lab(M4,M2,.5)", "#6FCDFD", "#2BC3F1", "#19667F"]}
+  },
+  "params": {
+    "INK_RATIO": 0.65,
+    "glow_layers": [[6.5, 0.10], [3.6, 0.16], [1.9, 0.26]],
+    "grad_bands": [44, 40],
+    "linestyles": ["-", "--", "-.", ":", [4, 1, 1, 1]],
+    "rcParams_key": {"font.size": 9.4, "axes.labelsize": 9.6, "axes.titlesize": 9.8,
+                     "xtick.labelsize": 9.1, "legend.fontsize": 8.9, "savefig.dpi": 400}
+  },
+  "checks": {
+    "degray_ratio_warm": ">= 0.94（浅端角色 M4 允许放宽）",
+    "ink_contrast": ">= 4.5:1（白底）；文字 INK >= 12:1",
+    "gray_monotonic": "色带累积回升 max(L - running_min) <= 0.5 L*",
+    "cvd_min_pair_dist_LAB": ">= 25（叠加线型冗余后可分）"
+  }
+}

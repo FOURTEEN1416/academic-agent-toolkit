@@ -1,6 +1,6 @@
 # CUMCM 竞赛技能全库地图（CONTEST_SKILL_MAP）
 
-> **定位**：全库 256 个技能 × comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
+> **定位**：全库 257 个技能 × comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
 > `companion_skills` 字段（2026-09-11 起）每步主动给出本步推荐；本文件是全量真源，
 > 含"情境可用"、"外域不接入"与"未接入库"的完整分类账——**任何一个技能都不允许处于"无人知晓"状态**。
 > 维护纪律：新增技能入库时必须归入下列五类之一并同步本文件与引擎
@@ -54,9 +54,13 @@
 
 **赛后/场外情境推荐**（不在 14 步内）：`paper-slides`/`paper-poster`/`sci-latex-posters`（答辩幻灯与海报）、`team-coordination`（三人分工时）、`feishu-notify`（进度通知）、`rebuttal`（答辩质询应答结构）。
 
-## 三、情境可用（60 个，按需加载）
+## 三、情境可用（64 个，按需加载）
 
-`claude-scientific-writer`（通用科学写作）、`paper-plan`/`paper-analysis`/`assets-inventory`（科研链资产管线，有既有材料时）、`paper-write-zh`/`paper-write-zh-docx`（Markdown 路线写文）、`paper-writing`/`paper-writing-ucsb`（科研写作方法论参考）、`training-check`（产出训练自检）、`editor-agent`/`experiment-agent`（代理执行模式）、`sci-citation-management`（引用管理方法论）、`scholar-accessible-pdf`/`scholar-latex-cleanup`/`scholar-presubmit-checks`（PDF 可及性/LaTeX 清理/预提交检查——投稿向但方法通用）、`novelty-check`（新颖性论证参考）、`idea-creator`（创意法参考）、`auto-paper-improvement-loop`（改进循环，第 12 步后可选）、`sci-scientific-writing`（科学写作规范）。
+`claude-scientific-writer`（通用科学写作）、`paper-plan`/`paper-analysis`/`assets-inventory`（科研链资产管线，有既有材料时）、`paper-write-zh`/`paper-write-zh-docx`（Markdown 路线写文）、`paper-writing`/`paper-writing-ucsb`（科研写作方法论参考）、`training-check`（产出训练自检）、`editor-agent`/`experiment-agent`（代理执行模式）、`sci-citation-management`（引用管理方法论）、`scholar-accessible-pdf`/`scholar-latex-cleanup`/`scholar-presubmit-checks`（PDF 可及性/LaTeX 清理/预提交检查——投稿向但方法通用）、`novelty-check`（新颖性论证参考）、`idea-creator`（创意法参考）、`auto-paper-improvement-loop`（改进循环，第 12 步后可选）、`sci-scientific-writing`（科学写作规范）、
+`palette-health-check`（配色「去灰提彩」体检——把"发灰/发闷/太深"翻译成可机检的 C*/C*max 去灰指标、`deepen` 替代 `darken`、色带入带序单调性复核；S5 出图后或 S11 视觉审查时按需加载，脚本在 `skills/palette-health-check/bin/`，2026-09-12 入库）。
+`comp-cumcm-disclosure`（CUMCM AI 工具使用申报双件套入口与门禁——生成/校验《AI工具使用详情.pdf》与正文 AI 使用声明、声明↔详情口径一致双硬闸；配套确定性脚本 `skills/_utils/build_ai_disclosure.py` 与唯一真源 `ai_disclosure_rules.md`，S14 终审前后按需加载，2026-09-12 入库）、
+`comp-cumcm-package`（提交打包沙演与合规终审——支撑材料语料/身份扫描（文件名/目录名/PDF 文档属性）/论文与包各 ≤20MB/MD5/`--zip` 沙演防呆闸，人工项见其 `references/submission_checklist.md`，S14 后上传前使用，2026-09-12 入库）、
+`paper-figure-palette`（科技论文图表配色体系——CUMCM 2026A v6「夏日海滩」8 色板：冷暖双族+中性+墨色映射、顺序色带/热图 colormap、五条配色铁律、机器体检；与 `palette-health-check` 配套，绘图/视觉审查按需加载，2026-09-13 入库）。
 
 **§二修剪移入（2026-09-12，41 个）**——被步骤推荐清单移出的结构性冗余/低频技能，
 功能多已被主技能合同、内建脚本（data_check/constraint_audit/facts_audit/ai_tell_check）或
@@ -98,12 +102,12 @@
 - **文献/研究辅助**（5）：`arxiv`、`comm-lit-review`、`deep-research`、`sci-literature-review`、`sci-pdf`
 - **其他单点**（4）：`ablation-planner`（消融实验规划）、`paper-compile-zh`（中文编译变体，主链用 comp-compile-zh）、`paper-illustration`（论文插图）、`problem-selection`（赛题选择）
 
-## 六、统计（2026-09-12 机对账实测，check_asset_utilization.py；修剪后同日复核）
+## 六、统计（2026-09-13 机对账复核，check_asset_utilization.py）
 
-主链家族 20 + 每步推荐 16（§二 10 unique + 赛后段 6）+ 情境 60（19 + 修剪移入 41）+ 外域 145 +
-未接入库 15 = **256**（与 skills/ 下含 SKILL.md 的目录数逐一相符：零幽灵名、零漏网）。
+主链家族 20 + 每步推荐 16（§二 10 unique + 赛后段 6）+ 情境 64（19 + 修剪移入 41 + 新增 4）+ 外域 145 +
+未接入库 15 = **260**（与 skills/ 下含 SKILL.md 的目录数逐一相符：零幽灵名、零漏网）。
 修剪只改变"哪一步主动推荐"（54→11 槽位），不改变任何技能的可知性——全部 41 个移入 §三在册。
-对账口径：技能 = skills/ 下含 SKILL.md 的目录（258 目录减 `_utils`/`shared-scripts` 两个非技能目录）；
+对账口径：技能 = skills/ 下含 SKILL.md 的目录（262 目录减 `_utils`/`shared-scripts` 两个非技能目录）；
 主链 = §一具名，推荐 = §二表格 + 赛后段具名，情境 = §三具名，外域 = §四具名 + 六个前缀域
 （`ars-*`/`nature-*`/`spine-paper-*`/`latexpap-*`/`galaxy-*`/`dev-*` 按前缀展开）+ 斜杠缩写展开
 （如 `copyright-build/draft/source-materials`），未接入库 = §五具名。

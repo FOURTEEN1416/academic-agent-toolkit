@@ -737,6 +737,42 @@
       "promotion_history": [
         "2026-09-03: 融入（y3519712124-ui 上游 MIT, pinned）"
       ]
+    },
+    {
+      "capability_id": "comp-cumcm-disclosure",
+      "name": "CUMCM AI 工具使用申报双件套入口与门禁",
+      "domain": "math_modeling_competition",
+      "description": "CUMCM 2026 AI 工具使用申报双件套入口：生成/校验《AI工具使用详情.pdf》与论文正文 AI 使用声明、确认声明措辞与详情用途口径一致。不重写生成器，把既有确定性脚本 skills/_utils/build_ai_disclosure.py（唯一真源 ai_disclosure_rules.md）暴露为可发现契约，固化两道硬闸：详情不得由语言模型自由编写；正文与详情口径一致。触发词：AI 申报、AI工具使用详情、AI 使用声明、build_ai_disclosure、--check-only",
+      "input_contract": "论文正文（tex/pdf）、申报四节内容素材（工具名/用途/范围/成果）、工作区路径",
+      "output_contract": "《AI工具使用详情.pdf》+ 正文 AI 使用声明段 + 口径一致性校验报告（--check-only）",
+      "status": "experimental",
+      "associated_skills": [
+        "comp-cumcm-disclosure"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md）；配套确定性脚本 skills/_utils/build_ai_disclosure.py 与唯一真源 skills/_utils/ai_disclosure_rules.md 已入库（脚本本身在途微调）",
+      "current_gap": "单技能映射级登记；申报内容素材质量依赖人工输入，未经独立 C2-C4 验收",
+      "promotion_history": []
+    },
+    {
+      "capability_id": "comp-cumcm-package",
+      "name": "CUMCM 提交打包沙演与合规终审",
+      "domain": "math_modeling_competition",
+      "description": "CUMCM 提交阶段打包沙演防呆闸（S14 comp-final-audit 之后、上传之前）：支撑材料语料收集、身份信息扫描（文件名/目录名/PDF 文档属性）、论文与包体积各 ≤20MB、MD5 计算、提交 checklist 输出；--zip 沙演验证语料清单（不生成正式 .rar，WinRAR 手工压）。触发词：提交打包、支撑材料打包、20MB、MD5、身份扫描、打包沙演、pack_submission",
+      "input_contract": "workspaces/<ws>（paper/main.pdf、支撑材料语料：源程序+result*.xlsx+figures/*.json+AI工具使用详情.pdf）",
+      "output_contract": "机检报告（stdout/--json，体积/首页摘要/身份三项硬检查 exit 0/1）+ 论文与沙演包 MD5 + 语料清单 + 可选 _submit/支撑材料_沙演.zip",
+      "status": "experimental",
+      "associated_skills": [
+        "comp-cumcm-package"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md + scripts/pack_submission.py）；references/submission_checklist.md 已补齐（2026-09-13 修复 broken_inner_ref 棘轮）",
+      "current_gap": "单技能映射级登记；PyMuPDF 缺失时页数/首页/元数据检查自动跳过；正式 RAR 仍需 WinRAR 手工压缩",
+      "promotion_history": []
     }
   ],
   "academic_papers": [
@@ -6417,6 +6453,42 @@
       "high_risk_confirmation": "无",
       "current_evidence": "技能目录在位（SKILL.md+agent-figure-prompts.md+source-batch.md）；技法提炼自 2026-09-11 公众号批次 6 篇（图集 103 张本地化于 D:\\Desktop\\参考图，不入 git）",
       "current_gap": "单技能映射级登记；技法为文本规范未经独立 C2-C4 验收；图集缺失时仅视觉参照降级",
+      "promotion_history": []
+    },
+    {
+      "capability_id": "paper-figure-palette",
+      "name": "科技论文图表配色体系（夏日海滩 8 色板）",
+      "domain": "figures_and_document_production",
+      "description": "科技论文/报告图表配色体系（源自 CUMCM 2026A 论文 v6 定稿「夏日海滩」8 色板，经 LCH 去灰提彩与灰度/色盲复核）：8 色冷暖双族+4 色中性系统+墨色映射、五条配色铁律、顺序色带/热图 colormap、渐变填充、荧光描边、Word/PPT/Excel 移植、机器体检（对比度/去灰比/灰度单调/色盲区分）。触发词：配色、色板、palette、上色、协调、色带、colormap、墨色",
+      "input_contract": "图表清单/绘图代码（matplotlib/TikZ）或旧图重上色需求；可选论文主题与风格约束",
+      "output_contract": "配色方案+可复用色板常量/样式代码+机检报告（对比度/去灰比/灰度单调/色盲区分）",
+      "status": "experimental",
+      "associated_skills": [
+        "paper-figure-palette"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md+README+assets/references/scripts）；色板源自 2026A v6 定稿并经灰度与色盲复核",
+      "current_gap": "单技能映射级登记；palette-health-check 为其配套体检件；新论文工程迁移需重跑机检",
+      "promotion_history": []
+    },
+    {
+      "capability_id": "palette-health-check",
+      "name": "配色去灰提彩体检（C*/Cmax 可机检）",
+      "domain": "figures_and_document_production",
+      "description": "论文/报告配色「去灰提彩」可验证体检：把\"发灰/发闷/太重/不够鲜艳\"翻译成可机检的 C*/Cmax 去灰指标、deepen（固定色相压明度、彩度取色域上限）替代 darken、色盲/灰度/入带序单调性复核、三道既有图件闸之外的色彩健康闸接法。触发词：配色发灰、颜色太深、不够鲜艳、色板优化、deepen、C*/Cmax",
+      "input_contract": "目标图件（png/pdf）或其绘图代码与色板定义",
+      "output_contract": "色彩健康报告（去灰指标/色盲/灰度/入带序单调）+ deepen 色板修正配方",
+      "status": "experimental",
+      "associated_skills": [
+        "palette-health-check"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md+bin 脚本+data+references+review）；已入 CONTEST_SKILL_MAP §三（2026-09-12）",
+      "current_gap": "单技能映射级登记；阈值口径以 skill 内 data 为准，未经独立 C2-C4 验收",
       "promotion_history": []
     }
   ]

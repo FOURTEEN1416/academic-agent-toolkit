@@ -77,6 +77,8 @@ def strip_nonspeech(text: str, *, keep_math: bool = True) -> str:
     text = re.sub(r"<!--.*?-->", _blank, text, flags=re.S)
     text = re.sub(r"(?m)(?<!\\)%[^\n]*", _blank, text)
     text = re.sub(r"`[^`\n]*`", _blank, text)
+    # \includegraphics 的文件路径参数是排版指令而非叙述文字（防"交付文件名"误报）
+    text = re.sub(r"\\includegraphics\*?(?:\[[^]]*\])?\{[^}]*\}", _blank, text)
     if not keep_math:
         text = re.sub(r"\$\$.*?\$\$|\\\[.*?\\\]|\\begin\{(?:equation\*?|align\*?|aligned|gather\*?)\}.*?"
                       r"\\end\{(?:equation\*?|align\*?|aligned|gather\*?)\}", _blank, text, flags=re.S)

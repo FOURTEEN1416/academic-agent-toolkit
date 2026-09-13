@@ -862,3 +862,15 @@
 **环境坑（新增）**：pytest 收尾对 pytest-of-FOUR 旧临时目录的 GC（2604 文件）触发 SAFE_DELETE 钩子拦截，进程收尾被吞导致 -rf 摘要整体丢失（三跑"失败名未捕获"的根因）。解法：① `--collect-only -q` 有序清单 × 进度点位置换算失败测试名（0 基：17/304/311/454）；② `--basetemp` 指向全新空目录避开 GC，摘要完整落盘。
 
 provenance 66/66 全 OK（exit 0）。提交：白名单 17 路径单笔提交（6 M + 10 ?? + LOG.md），并行窗在途改动（contest_models.json、quality_gates.py、CONTEST_SKILL_MAP.md、4 技能目录、figure-aesthetics-craft、benchmarks 删除等）保持原状不碰。
+
+## 续33 · 2026-09-13 09:5x · 残留 4 失败彻底收口：全量 457 passed / 0 failed
+
+用户拍板"4 failed 执行修复，彻底一点"。四项修复（均为并行窗技能落地的收尾欠账，非引擎问题）：
+1. **地图登记**：CONTEST_SKILL_MAP.md §三收编 `comp-cumcm-disclosure`（AI 申报双件套入口门禁）/`comp-cumcm-package`（打包沙演与合规终审）/`paper-figure-palette`（夏日海滩 8 色板），61→64；§六统计 257→**260**（实测 skills/ 含 SKILL.md 目录 260 + `_utils`/`shared-scripts` 无 SKILL.md 共 262 目录，口径核实一致）。
+2. **根级 catalog**：capabilities/catalog.json 补 4 条目（comp-cumcm-* 入 math_modeling_competition，两 palette 入 figures_and_document_production；7 必填字段+associated_skills 反向校验全过），303→307。
+3. **断链修复**：comp-cumcm-package 补 `references/submission_checklist.md`（融合自检清单第五/六部分人工项固化：论文电子版/支撑材料/MD5 上传三段+云南赛区时间节点；机检项标【机检】与 pack_submission.py 对齐）——broken_inner_ref 棘轮清零。
+4. **双副本同步**：`human_paper_style_check.py` shared-scripts 侧在途新版（09-12 13:59，includegraphics 排版指令防误报）→ `_utils`（sha256 ffcec598… 一致，SYNTAX_OK）。
+
+4 个技能目录（~509KB / 22 文件，无缓存无大文件）随本次提交入库保证提交树自洽（地图/catalog 引用实存）。
+验证：目标 12 测试绿 → **全量 457 passed / 0 failed（71.9s，--basetemp 取证）** → provenance 66/66 OK。
+提交：白名单 10 路径单独提交；注：CONTEST_SKILL_MAP.md 与 shared-scripts/human_paper_style_check.py 两文件含并行窗在途编辑（palette-health-check 登记、includegraphics 规则）一并收口，message 已注明；其余在途（contest_models.json、quality_gates.py、figure-aesthetics-craft 批次、benchmarks 删除等）仍保持原状。
