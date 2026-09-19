@@ -156,7 +156,7 @@ python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）66/66 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | ⚠️ **2026-09-19 起停用**：公开层曾为 CC-BY-4.0 合成题面基准（P01-P03 + 六域 7 项），已废弃入库，内容归档于 `dev-docs/archive/legacy-benchmarks-tests-20260919/`；私有层（真实竞赛题面）从未入库，**已随磁盘删除永久丢失** |
-| ✅ **测试基线** | 仓库根 **460 passed / 0 failed**（2026-09-19 实测 85.3s，junit 取证）；工具箱内 441、根级门禁 19。状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 宿主兼容 / 三管线 / 逐技能回归全覆盖。CI 已接入（`.github/workflows/ci.yml`：pytest + provenance） |
+| ✅ **测试基线** | 仓库根 **460 passed / 0 failed**（本机，2026-09-19 实测 85.3s，junit 取证）；公开 clone / CI **457 收集 = 455 passed + 2 skipped**（0 failed）。工具箱内 441、根级门禁 19。状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 宿主兼容 / 三管线 / 逐技能回归全覆盖。CI 已接入（`.github/workflows/ci.yml`：pytest + provenance 66/66，首次运行全绿） |
 | 🧬 **逐技能 C2 覆盖** | 260 技能 100% 登记 catalog 映射（schema 硬校验）；307 条能力中 305 条申报 current_evidence/current_gap 双字段，2 条技能映射条目按 schema 契约豁免扩展字段（2026-09-19 实测）——真实执行证据（管线级/试点级/基准实证〔基准集已于 2026-09-19 废弃，证据留档〕）为主，外部依赖项诚实标注 blocked-by-dependency（21 项），零伪造 |
 
 ## 📁 仓库地图

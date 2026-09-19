@@ -30,15 +30,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
       - name: Set up Node 20
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "20"
 
@@ -57,9 +57,10 @@ jobs:
         run: npm ci
 
       - name: Repository-root test suite
-        # 期望：460 passed / 0 failed / 0 skipped（2026-09-19 本地实测 85.3s，junit 取证）
-        # 注：依赖 gitignored 本地私有资产的 3 项测试已改为"缺件即 skip"（见各测试文件
-        # 内的 skip 理由），故 CI 上为 3 skipped 而非 failed。
+        # CI 侧实测（2026-09-19 run 35410978808）：457 收集 = 455 passed + 2 skipped，0 failed，29.4s。
+        # 与本地 460 的口径差异：公开 clone 比本机完整仓少 3 项（并行窗尚未提交的新测试），
+        # 另有 2 项按语义 skip（test_asset_utilization 的"真仓机检"在缺 gitignored 私有
+        # 资产时 skip，理由随 -rs 输出）。
         run: python -m pytest -q -rs
 
       - name: Provenance ledger
