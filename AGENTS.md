@@ -60,10 +60,10 @@
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **460 passed / 0 failed**（2026-09-19 实测 85.3s，junit 取证，0 error / 0 skipped）。修复过程留痕：首测为 459 + 1 failed，唯一失败项 `科研工具箱/tests/test_quick_gates.py::test_page_check_bad_pdf_errors_without_raising` 根因是 `.venv311` 缺 `pypdf`（缺库时 `_page_check` 返回 SKIP，而测试断言 ERROR）——**非代码缺陷**，补包后转全绿；CI 已固化 `pypdf` 依赖 | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests（441 = 460 − 根级门禁 19） | **441 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **463 passed / 0 failed**（本机完整仓，2026-09-19 实测 54.8s，junit 取证）。修复留痕：首测 459+1 failed 的唯一失败项 `test_quick_gates.py::test_page_check_bad_pdf_errors_without_raising` 根因是 `.venv311` 缺 `pypdf`（缺库时 `_page_check` 返回 SKIP 而测试断言 ERROR）——**非代码缺陷**，补包后全绿；CI 已固化该依赖 | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests（444 = 463 − 根级门禁 19） | **444 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
 | 根 `tests/` 单跑 | catalog schema 硬校验 + 反 AI 工具集检查 | **19 passed**（0.30s） | `capabilities/catalog.json` 改动后必跑 |
-| **公开 clone / CI** | 同上（已提交内容，不含 gitignored 私有资产） | **457 收集 = 455 passed + 2 skipped**（0 failed；run 35410978808，29.4s）。差 3 项为并行窗未提交的新测试，2 skipped 为"真仓机检"缺私有资产时按语义 skip | CI 门禁（`.github/workflows/ci.yml`：pytest + provenance 66/66） |
+| **公开 clone / CI** | 同上（已提交内容，不含 gitignored 私有资产） | **460 收集 = 458 passed + 2 skipped**（0 failed；run 35412014784，32.9s）。差 3 项为并行窗未提交的新测试，2 skipped 为"真仓机检"缺私有资产时按语义 skip | CI 门禁（`.github/workflows/ci.yml`：pytest + provenance 66/66） |
 
 - ⚠️ **2026-09-19 口径更替**：本表原记"仓库根 452 全量 / 工具箱 408 全量"（2026-09-12 快照）**已失效**——公开基准集 `benchmarks/` 经用户裁定废弃入库（77 文件零丢失归档 `dev-docs/archive/legacy-benchmarks-tests-20260919/`），其唯一依赖测试 `tests/test_cumcm_benchmark.py` 同步移除。经依赖核查，`tests/test_minimum_catalog.py`（仅依赖 `capabilities/catalog.json`）与 `tests/test_anti_ai_toolkit.py`（仅依赖 `科研工具箱/tools`）为**独立门禁，已保留入库**，故 `testpaths` 保留 `tests`。旧口径中"test_cumcm_benchmark 25 项暂不可收集"的算术不再适用。
 
