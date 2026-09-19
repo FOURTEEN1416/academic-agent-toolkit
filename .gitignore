@@ -63,6 +63,10 @@ dev-docs/
 .engine/
 **/.engine/
 
+# WorkBuddy 项目工作数据（AI 工作记忆，含本机绝对路径与个人身份线索；本仓为 PUBLIC，
+# 故排除。2026-09-19 建立时首次出现 .workbuddy/memory/）
+.workbuddy/
+
 # Database
 *.db
 *.sqlite
