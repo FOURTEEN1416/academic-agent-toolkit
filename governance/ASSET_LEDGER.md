@@ -1,4 +1,8 @@
-> ⚠️ **状态已过期（2026-08-28 治理标注）**：本台账为 2026-08-13 快照。"none are marked 正式"等结论已被取代——capabilities/catalog.json 现为 269 条（正式 10）。刷新请重跑 tools/build_asset_ledger.py。
+> ⛔ **已废止（2026-09-19 治理收口）**：本台账为 **2026-08-13 快照**，其 `Root` 仍写旧路径 `D:\Desktop\数模竞赛`，分类结论（"none are marked 正式"等）已被后续治理取代。**现行权威台账 = [`capabilities/catalog.json`](../capabilities/catalog.json)（307 条，2026-09-19 实测）**。
+>
+> **决策留痕（2026-09-19，不重跑、不删除）**：① 重跑需扫全仓 6.3 万文件，而产出已被 catalog 取代，成本远超收益；② `dev-docs/` 下 10 处历史报告仍引用本文件作为"当时资产构成"的证据，删除会断链。故就地标废，仅供追溯，**不得作为发布授权依据**。
+>
+> 历史标注（原文保留）：⚠️ **状态已过期（2026-08-28 治理标注）**：本台账为 2026-08-13 快照。"none are marked 正式"等结论已被取代——capabilities/catalog.json 现为 269 条（正式 10）。刷新请重跑 tools/build_asset_ledger.py。
 
 # File-Level Asset Ledger
 

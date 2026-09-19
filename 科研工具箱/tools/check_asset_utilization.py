@@ -206,6 +206,16 @@ def _print_report(result: dict) -> None:
     if dead:
         print(f"\n    死推荐（荐而从未用）{len(dead)} 个：" +
               ", ".join(d["skill"] for d in dead))
+        # 统计纪律（2026-09-19 治理收口）：死推荐的含义随样本量而变，禁止无条件据其修剪。
+        _ws = totals.get("workflows_with_evidence", 0)
+        if _ws < 3:
+            print(f"    ⚠️ 样本不足：当前仅 {_ws} 个工作区的申报账本。**样本 < 3 时不得据此修剪"
+                  "推荐清单**——单一样本中的\"从未用\"极可能是\"场景不匹配\"（如专利/基金域技能在"
+                  "数模工作区自然不会用），而非推荐冗余。请先按场景分类再裁（见 CONTEST_SKILL_MAP"
+                  " §二/§三），或待积累 ≥3 个真实工作区后复核。")
+        else:
+            print(f"    ℹ️ 样本 {_ws} 个工作区；修剪前仍须按场景分类剔除\"场景不匹配\"项，"
+                  "不可仅按 used=0 直接删（见 CONTEST_SKILL_MAP §二/§三）。")
     assets = result["utilization"]["assets"]
     if assets:
         print(f"\n    资产申报：{sum(a['offered'] for a in assets.values())} 次提供 / "

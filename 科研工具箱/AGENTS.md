@@ -38,6 +38,8 @@
 | **L2 编排式** | `WorkflowRunner` 引擎侧写入 | workflow 启动/步骤完成（含声明命令）/checkpoint 批准 | 同一 `.engine/audit/operations.jsonl` | ⚠️ 仅当走 runner 流程时 |
 | **L3 申报式** | `complete_step()` 的 execution_evidence | skill 哈希、声明命令、输入输出产物、产物 manifest | 工作区 `.engine/evidence/*.json` | ⚠️ 依赖 agent 主动申报 |
 
+> ⚠️ **审计日志卫生规则（2026-09-19 治理收口）**：`operations.jsonl` **不得**记录"该文件自身被写入"的 file watcher 事件——此类自指记录会形成回声式增殖。实测证据：该文件 353,968 行中 **349,146 行（98.6%）**即此类噪声，真实操作记录仅 4,822 行（`tool_call`/`tool_result`/`engine_event`/`file_edit` 等）。历史噪声已于 2026-09-19 清理（199.5 MB → 6.8 MB，原文件 gzip 留档 `.engine/audit/_archive_noise_filtered_20260919/`）。噪声集中在 2026-08-18 / 08-19 / 09-11 三次爆发，09-12 起为 0。**若宿主再次产生此类事件**，应在写入侧过滤（判据：`properties.file` 指向审计日志自身），否则审计可用性与遍历性能都会被噪声拖垮。
+
 **防绕过检测**：`engine/audit_store.detect_unreported_operations()` 交叉比对
 L1 实际执行的操作 vs L3 申报的命令/产物，发现"实际发生了但未申报"的操作即标记
 `warning` 并写入 `OPERATION_AUDIT_REPORT.json`。该文件是操作审计，不得覆盖竞赛交付步骤生成的 `AUDIT_REPORT.json`。生成命令：
