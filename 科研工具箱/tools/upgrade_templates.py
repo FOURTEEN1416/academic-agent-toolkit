@@ -98,6 +98,8 @@ def upgrade(templates_path: Path) -> dict:
             existing = list(step.get("required_checks") or [])
             desired = SKILL_CHECKS.get(skill, [])
             if skill in REVIEW_SUBAGENT_SKILLS:
+                if step.get("requires_subagent") is not True:
+                    changed_steps += 1          # 该变更原先不计入（被"无条件写回"掩盖）
                 step["requires_subagent"] = True
                 if "review" not in desired:
                     desired = desired + ["review"]
@@ -113,20 +115,32 @@ def upgrade(templates_path: Path) -> dict:
             meta = step.get("metadata")
             if not isinstance(meta, dict):
                 meta = {}
+                changed_steps += 1              # 首次新增 metadata 块（原不计入）
+            if meta.get("requires_subagent") != bool(step.get("requires_subagent", False)):
+                changed_steps += 1
             meta["requires_subagent"] = bool(step.get("requires_subagent", False))
+            if meta.get("required_checks") != step.get("required_checks", []):
+                changed_steps += 1
             meta["required_checks"] = step.get("required_checks", [])
             if not meta.get("display_name"):
                 meta["display_name"] = step.get("display_name", skill)
+                changed_steps += 1
             step["metadata"] = meta
             # 校验未知门禁
             for check in step.get("required_checks", []):
                 if check not in registered:
                     unknown.append(f"{template_name}/{step.get('display_name', skill)}: {check}")
 
-    templates_path.write_text(
-        json.dumps(catalog, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    # 写入（2026-09-19 修复两处，均由 CI 首次实测暴露）：
+    #  1) **幂等**：仅当内容真的变化时才回写。此前无条件写回，使"满足规范的文件"
+    #     也被重写（test_template_upgrade_idempotent 的字节级断言因此失败）。
+    #  2) **行尾确定**：显式 newline="\n"。write_text 默认 newline=None 会把 \n 转成
+    #     os.linesep，Windows 下产出 CRLF，与本仓 .gitattributes(eol=lf) 及
+    #     "逐字节自证"契约冲突。比较时用 read_text 的 universal newline，
+    #     使行尾形态不参与"是否需要回写"的判定（行尾统一交给 .gitattributes）。
+    after_text = json.dumps(catalog, ensure_ascii=False, indent=2) + "\n"
+    if after_text != templates_path.read_text(encoding="utf-8"):
+        templates_path.write_text(after_text, encoding="utf-8", newline="\n")
     return {
         "templates": len(catalog),
         "changed_steps": changed_steps,
