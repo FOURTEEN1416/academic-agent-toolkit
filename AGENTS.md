@@ -37,12 +37,13 @@
 
 | 路径 | 性质 |
 |------|------|
-| `科研工具箱/` | 产品主体：skills(256 个技能；258 目录含 _utils/shared-scripts 两个非技能目录)/engine/tools/tests/hooks(L1 已启用)/data |
-| `capabilities/catalog.json` | 能力目录（303 条，2026-09-12 审计同步） |
+| `科研工具箱/` | 产品主体：skills(260 个技能；262 目录含 _utils/shared-scripts 两个非技能目录；2026-09-19 实测)/engine/tools/tests/hooks(L1 已启用)/data |
+| `capabilities/catalog.json` | 能力目录（307 条，2026-09-19 实测；六域分布 35/74/42/83/12/61） |
 | `docs/superpowers/` | 设计 spec 与实施计划（dated 快照，仅供追溯） |
 | `dev-docs/` | 内部真源根（gitignored 私有）：truth-index 入口索引、archive/ 归档区 |
 | `LOG.md` / `task_plan.md` | 操作日志 / 当前任务与验证基线 |
-| `benchmarks/`、`releases/`、`governance/`、`tests/` | 基准集 / 发布包 / 资产台账 / 根级测试 |
+| `releases/`、`governance/`、`tests/` | 发布包快照 / 资产台账 / 根级门禁测试（19 项） |
+| `benchmarks/` | ⚠️ **2026-09-19 起废弃入库**（公开基准集，内容零丢失归档 `dev-docs/archive/legacy-benchmarks-tests-20260919/`）；私有层 `benchmarks/cumcm_private/` 从未入库，**已永久丢失** |
 | `参考论文/` | 62 篇获奖论文统计分析资产（本地，不入 git） |
 | `赛前试炼任务/`、`extracted_images/`、`logs/`、`workspaces/` | 本地敏感练习材料与运行产物（均不入 git） |
 | `vendor/forks/` | 上游 fork 暂存区（不入 git） |
@@ -55,12 +56,15 @@
 4. `dev-docs/` 是内部真源根，默认私有；`vendor/` 是上游 fork 暂存区，不入 git。
 5. 文档治理任务遵守 `acat-doc-governance` 技能铁律：全文读完、污染必清、不窄化定位。
 
-## 测试口径（2026-09-12 实测同步，pytest.ini 为准）
+## 测试口径（2026-09-19 实测，pytest.ini 为唯一真源）
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **452 全量**（2026-09-12 资产机制+修剪批次后：428 基线 +24 新增；实测 426 passed + 1 deselected[test_dual_copy_consistency 并行窗在途编辑] + test_cumcm_benchmark 25 项因 benchmarks/ 被并行窗口删除暂不可收集，算术闭合） | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **408 全量**（384 +24 同批次；实测 407 passed + 1 deselected 同上） | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **460 passed / 0 failed**（2026-09-19 实测 85.3s，junit 取证，0 error / 0 skipped）。修复过程留痕：首测为 459 + 1 failed，唯一失败项 `科研工具箱/tests/test_quick_gates.py::test_page_check_bad_pdf_errors_without_raising` 根因是 `.venv311` 缺 `pypdf`（缺库时 `_page_check` 返回 SKIP，而测试断言 ERROR）——**非代码缺陷**，补包后转全绿；CI 已固化 `pypdf` 依赖 | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests（441 = 460 − 根级门禁 19） | **441 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
+| 根 `tests/` 单跑 | catalog schema 硬校验 + 反 AI 工具集检查 | **19 passed**（0.30s） | `capabilities/catalog.json` 改动后必跑 |
+
+- ⚠️ **2026-09-19 口径更替**：本表原记"仓库根 452 全量 / 工具箱 408 全量"（2026-09-12 快照）**已失效**——公开基准集 `benchmarks/` 经用户裁定废弃入库（77 文件零丢失归档 `dev-docs/archive/legacy-benchmarks-tests-20260919/`），其唯一依赖测试 `tests/test_cumcm_benchmark.py` 同步移除。经依赖核查，`tests/test_minimum_catalog.py`（仅依赖 `capabilities/catalog.json`）与 `tests/test_anti_ai_toolkit.py`（仅依赖 `科研工具箱/tools`）为**独立门禁，已保留入库**，故 `testpaths` 保留 `tests`。旧口径中"test_cumcm_benchmark 25 项暂不可收集"的算术不再适用。
 
 - 原 6 个 skip 为 hooks 清除态下 D 段注册契约测试（`2a86b6c` 定稿）走"皆无→skip"；2026-09-11 L1 重启用后转真实运行并全过（2026-09-11 实测）。
 

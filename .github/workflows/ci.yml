@@ -1,0 +1,48 @@
+name: CI
+
+# 最小可用集（2026-09-19 建立）：跑通即代表仓库基线未破。
+# 口径唯一真源 = pytest.ini 注释 + dev-docs/truth-index.md §当前基线。
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# 同一分支的旧运行自动取消，避免排队
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: pytest + provenance
+    # 与开发环境一致（Windows + Python 3.11）：本仓库含中文路径与 NTFS 联结，
+    # 在 Linux runner 上行为不可预测，故不用 ubuntu-latest。
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install test dependencies
+        # 单一真源 = requirements-dev.txt（2026-09-19 建立；此前本仓无任何依赖声明，
+        # 缺 pypdf 即致 1 项测试失败——_page_check 缺库时返回 SKIP 而测试断言 ERROR）
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Repository-root test suite
+        # 期望：460 passed / 0 failed（2026-09-19 本地实测 85.3s，junit 取证，0 skip）
+        run: python -m pytest -q
+
+      - name: Provenance ledger
+        # 期望：66/66 通过（UPSTREAM.md 台账 + vendor pinned commit）
+        run: python 科研工具箱/tools/check_provenance.py

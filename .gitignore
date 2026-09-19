@@ -81,9 +81,16 @@ CUMCM2026Problems/
 extracted_images/
 screenshots/
 
-# Real practice/validation workspaces and private benchmarks
+# Real practice/validation workspaces
 workspaces/
-benchmarks/cumcm_private/
+
+# ⚠️ 2026-09-19 用户裁定：公开基准集废弃入库（benchmarks/cumcm_public + six_domains_public）。
+#   内容零丢失——77 文件/271KB 已归档至 dev-docs/archive/legacy-benchmarks-tests-20260919/（含恢复命令）。
+#   随之废弃的唯一依赖测试：tests/test_cumcm_benchmark.py（另两个根级门禁测试已保留入库）。
+benchmarks/
+
+# ⚠️ 永久丢失留痕：benchmarks/cumcm_private/（私有基准）从未入库，仅存于磁盘；
+#   2026-09-19 扫描确认该目录已随 benchmarks/ 整体从磁盘消失，git 历史中无任何对象可恢复。
 
 # Legacy toolkit and release packages (kept locally for traceability)
 releases/
@@ -118,3 +125,6 @@ modex-3-skills/
 
 # No-license upstream skill batch (2026-09-11): eco-community-plots
 科研工具箱/skills/eco-community-plots/
+
+# Third-party aesthetics/reference galleries and personal material (2026-09-12 intake from Desktop, local only)
+参考图/

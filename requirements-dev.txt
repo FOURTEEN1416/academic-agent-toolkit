@@ -1,0 +1,20 @@
+# 开发与 CI 依赖声明（2026-09-19 建立，本仓首份依赖清单）
+#
+# 背景：本仓此前**无任何依赖声明文件**（无 requirements.txt / pyproject.toml / setup.py），
+# 导致文档声明的测试基线在换机后不可复现。2026-09-19 实测即因 `.venv311` 缺 `pypdf`
+# 直接致 1 项测试失败（`quick_gates._page_check` 缺库时返回 SKIP，测试断言 ERROR）——
+# 该失败曾被误读为代码缺陷。
+#
+# 用法：python -m pip install -r requirements-dev.txt
+# CI：`.github/workflows/ci.yml` 直接消费本文件，使"声明"与"执行"保持单一真源。
+#
+# 依赖来源：由 `科研工具箱/tests/**` 与 `tests/**` 的 import 静态提取 + 2026-09-19
+# 干净环境实测（460 passed / 0 failed）确认充分性。
+
+pytest>=8,<10        # 测试运行器（本机实测 9.1.1）
+pypdf>=5             # skills/_utils/quick_gates.py 页数门禁的 PDF 解析（缺库 → SKIP）
+PyMuPDF>=1.24        # import fitz：PDF 页数/图像检查
+python-docx>=1.1     # import docx：DOCX 产出校验
+Pillow>=10           # import PIL：图像检查
+PyYAML>=6            # import yaml：配置契约测试
+numpy>=1.26          # 数值断言

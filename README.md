@@ -7,11 +7,11 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v1.2.2-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-379_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
-[![Capabilities](https://img.shields.io/badge/capabilities-301-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-254-8b5cf6?style=flat-square)](科研工具箱/skills)
+[![Tests](https://img.shields.io/badge/tests-460_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
+[![Capabilities](https://img.shields.io/badge/capabilities-307-0ea5e9?style=flat-square)](capabilities/catalog.json)
+[![Skills](https://img.shields.io/badge/skills-260-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
+[![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始)
 [![Hosts](https://img.shields.io/badge/hosts-OpenCode_|_ZCode-1f2937?style=flat-square)](#快速开始)
 
 </div>
@@ -19,7 +19,7 @@
 ---
 
 > [!TIP]
-> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（254 个技能）自主完成
+> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（260 个技能）自主完成
 > 建模 → 编码 → 绘图 → 写作 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯**。
 
 ## ✨ 为什么不是又一个提示词合集
@@ -49,7 +49,7 @@ L1 拦截式审计逐条记录每次工具调用（OpenCode 插件 / ZCode hook�
 </td></tr>
 </table>
 
-## 🗺️ 六大能力域 · 301 项能力
+## 🗺️ 六大能力域 · 307 项能力
 
 | | 能力域 | 条目 | 代表能力 |
 |--|--------|-----:|----------|
@@ -117,7 +117,7 @@ cd academic-agent-toolkit
 cmd /c "mklink /J .zcode\skills 科研工具箱\skills"   # 重建技能联结（Windows）
 ```
 
-打开仓库根目录：254 个技能自动发现、docsearch MCP 自动连接、`/doc-governance` 治理命令可用、**L1 审计 hook 自动生效**（`.zcode/config.json` 已注册，PreToolUse/PostToolUse 逐条落账）。赛前一键自检：`python 科研工具箱/tools/contest_dryrun/chain_driver.py`。
+打开仓库根目录：260 个技能自动发现、docsearch MCP 自动连接、`/doc-governance` 治理命令可用、**L1 审计 hook 自动生效**（`.zcode/config.json` 已注册，PreToolUse/PostToolUse 逐条落账）。赛前一键自检：`python 科研工具箱/tools/contest_dryrun/chain_driver.py`。
 
 > [!NOTE]
 > **宿主差异**：OpenCode 与 ZCode 均具备 L1 拦截式审计（插件 / hook，写入同一 `operations.jsonl`，审计报告与防绕过交叉比对两宿主通用）；审稿角色在 OpenCode 为具名 subagent、在 ZCode 由通用子智能体承担，模型证据一律对齐比赛时配置（`engine/modex-core/contest_models.json`，已按 2026-09-10 用户裁定配置 agnes/agnes-2.5-flash，换模型须同步该文件与证据声明）。
@@ -144,7 +144,7 @@ python 科研工具箱/tools/plotting_env_check.py
 **验证安装**：
 
 ```bash
-cd 科研工具箱 && python -m pytest -q        # → 379 passed
+cd 科研工具箱 && python -m pytest -q        # → 441 passed
 python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账通过
 ```
 
@@ -155,17 +155,18 @@ python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账�
 | 🚧 **Named Gates** | `paper_consistency` · `citation_integrity` · `experiment_reproduc` · `figure_provenance` · `compilation_log` |
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）66/66 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
-| 🎯 **双层基准集** | 公开基准（CC-BY-4.0）公开评测 · 私有基准（真实竞赛题面）内部压测 |
-| ✅ **测试基线** | 工具箱 379 项 pytest（仓库根 423）：状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 宿主兼容 / 三管线 / 逐技能回归全覆盖 |
-| 🧬 **逐技能 C2 覆盖** | 254 技能 100% 登记 catalog 映射（schema 硬校验）；301 条能力中 299 条申报 current_evidence/current_gap 双字段，2 条技能映射条目按 schema 契约豁免扩展字段——真实执行证据（管线级/试点级/基准实证，留档可查）为主，外部依赖项诚实标注 blocked-by-dependency（21 项），零伪造 |
+| 🎯 **双层基准集** | ⚠️ **2026-09-19 起停用**：公开层曾为 CC-BY-4.0 合成题面基准（P01-P03 + 六域 7 项），已废弃入库，内容归档于 `dev-docs/archive/legacy-benchmarks-tests-20260919/`；私有层（真实竞赛题面）从未入库，**已随磁盘删除永久丢失** |
+| ✅ **测试基线** | 仓库根 **460 passed / 0 failed**（2026-09-19 实测 85.3s，junit 取证）；工具箱内 441、根级门禁 19。状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 宿主兼容 / 三管线 / 逐技能回归全覆盖。CI 已接入（`.github/workflows/ci.yml`：pytest + provenance） |
+| 🧬 **逐技能 C2 覆盖** | 260 技能 100% 登记 catalog 映射（schema 硬校验）；307 条能力中 305 条申报 current_evidence/current_gap 双字段，2 条技能映射条目按 schema 契约豁免扩展字段（2026-09-19 实测）——真实执行证据（管线级/试点级/基准实证〔基准集已于 2026-09-19 废弃，证据留档〕）为主，外部依赖项诚实标注 blocked-by-dependency（21 项），零伪造 |
 
 ## 📁 仓库地图
 
 ```
 academic-agent-toolkit/
-├── 科研工具箱/     ★ 产品主体  skills(254) · engine(13) · tools(58+) · tests
-├── capabilities/      能力目录 catalog.json —— 301 条，含验收证据与缺口声明
-├── benchmarks/        公开基准集（CC-BY-4.0）
+├── 科研工具箱/     ★ 产品主体  skills(260) · engine(13) · tools(58+) · tests
+├── capabilities/      能力目录 catalog.json —— 307 条，含验收证据与缺口声明
+├── tests/             根级门禁测试（catalog schema 硬校验 / 反 AI 工具集，19 项）
+├── benchmarks/        ⚠️ 2026-09-19 起废弃入库（内容归档于 dev-docs/archive/）
 ├── docs/superpowers/  设计 spec 与实施计划（dated 快照）
 ├── governance/        资产台账
 ├── AGENTS.md          Agent 入口：宿主矩阵 + 硬性规则
@@ -177,7 +178,8 @@ academic-agent-toolkit/
 
 <br>
 
-**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests。发布后持续演进：catalog 现为 301 条 / 254 技能（正式 10）；2026-09-09 独立审计修复（v1.2.1）后基线 247/291；同日 v1.2.2 **ZCode 升格赛时主控**（L1 审计 hook 等价实现）+ **模型去预设**（contest_models.json 比赛配置槽），彼时基线 259/303；2026-09-11 L1 hook 重启用后基线 270/314、同日盲审两轮回炉后 379/423，见 CHANGELOG。
+**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests。发布后持续演进：catalog 现为 303 条 / 256 技能（正式 10）；2026-09-09 独立审计修复（v1.2.1）后基线 247/291；同日 v1.2.2 **ZCode 升格赛时主控**（L1 审计 hook 等价实现）+ **模型去预设**（contest_models.json 比赛配置槽），彼时基线 259/303；2026-09-11 L1 hook 重启用后基线 270/314、同日盲审两轮回炉后 379/423；2026-09-12 赛时审计刷新 **384/428**，见 CHANGELOG。
+⚠️ 上列数字均为**对应时点的历史快照**（原文保留不改）；当前唯一有效口径见 `pytest.ini` 注释与 `dev-docs/truth-index.md` §当前基线（2026-09-19 实测：仓库根收集 **460** = 工具箱内 441 + 根级门禁 19）。
 
 **v1.1.0（2026-08-28）** —— 全能力公开发布（含软著/专利/基金流水线）· 科研绘图 9 技能扩展 · ZCode 兼容层 · 全库文档治理（45+ 文档审计）。完整记录见 [CHANGELOG.md](./CHANGELOG.md)。
 

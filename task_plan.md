@@ -32,6 +32,7 @@ Complete Phase 1 infrastructure from the handover, CodeSucker fusion design, and
 - [x] Phase 21 (2026-08-28): 命名对齐科研工具箱定位 — 数学建模全流程套件/ → 科研工具箱/（git mv），15 活跃文件 80 处引用更新，历史 dated 快照保留原文
 - [x] Phase 23 (2026-08-28): 全能力公开发布 — catalog 9 项 private_extension→experimental（用户裁定），CHANGELOG v1.1.0，本地发布包 releases/v1.1（269 能力/247 技能净化包）
 - [x] Phase 22 (2026-08-28): 数学建模大赛工具集/ 整包归档至 dev-docs/archive/（零丢失核查，见 dev-docs/DELETION_LOG.md）；新增 acat-doc-governance 技能 + /doc-governance 命令
+- [x] Phase 24 (2026-09-19): 仓库治理收口（用户裁定）——①公开基准集 `benchmarks/` 废弃入库：77 文件/112 KB **零丢失**归档 `dev-docs/archive/legacy-benchmarks-tests-20260919/`（含 README 损失清单 + manifest.tsv 逐文件 sha256）；②依赖核查后**收窄废弃范围**——仅移除 `tests/test_cumcm_benchmark.py`，`test_minimum_catalog.py`/`test_anti_ai_toolkit.py` 两个独立门禁保留入库（故 pytest.ini 保留 `tests`）；③`.zcode/skills` NTFS 联结重建（旧联结指向已失效的 `D:\Desktop\数模竞赛` → ZCode 技能链断裂，现已恢复 260 技能可见）；④基线口径全仓统一为 2026-09-19 实测值（460 收集）；⑤新增 CI 最小集
 
 ## Key Questions
 1. Does `STEP_MANIFEST.json` capture input hashes, config, output hashes, backend, commands, and dependencies robustly?
@@ -56,6 +57,12 @@ Complete Phase 1 infrastructure from the handover, CodeSucker fusion design, and
 - **复核清理（2026-08-19）**：删除 `tools/` 下 10 个 git 跟踪的历史 debug 脚本（debug_cumcm/debug_fig/debug_full/debug_gate/debug_manifest/debug_manifest2/debug_model/debug_model3/debug_size/debug_step1）。确认 `tools/run_cumcm_e2e.py` 与 `tools/test_workflow.py` 为已跟踪的手动验证脚本、不被 pytest 收集，保留。
 
 ## Status
+
+> ⚠️ **本节为 2026-08-30 时点快照**（保留作历史）。当前唯一有效基线（2026-09-19 实测）：
+> 根级 `pytest -q` = **460 passed / 0 failed**（85.3s，junit 取证，0 error/0 skipped）/
+> 工具箱内 = **441 passed** / 根级门禁 19 passed、provenance **66/66**、
+> catalog **307 条** / 260 技能——见 `dev-docs/truth-index.md` §当前基线 与根 `AGENTS.md` §测试口径。
+
 All phases delivered（历史记录见下方 Errors/Decisions）。2026-08-30 当前验证基线：
 - `python -m pytest -q` = **242 passed**（三管线/逐技能/绘图域回归含内）
 - `python tools/check_provenance.py` = **28/28**（27 台账 + vendor）
