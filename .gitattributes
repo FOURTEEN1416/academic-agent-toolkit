@@ -1,0 +1,74 @@
+# 行尾与二进制属性（2026-09-19 建立）
+#
+# 背景：本机 `core.autocrlf=true`（全局），而本仓**大量依赖逐字节哈希自证**——
+# skill_sha256（complete_step evidence 必须等于 SKILL.md 的 SHA-256）、
+# STEP_MANIFEST 输入输出哈希、双副本 sha256 同步、收编/清属性的 md5 校验、
+# 渲染产物哈希钉子。行尾一旦被转成 CRLF，这些比对会以"哈希不符"的形式失败，
+# 且难以归因（2026-09-19 前 git 反复输出
+# "LF will be replaced by CRLF the next time Git touches it" 即为该风险预警）。
+#
+# 策略：文本统一 LF（与仓库存储一致），二进制显式排除任何转换。
+
+# 文本：入库 LF、检出 LF —— 消除行尾漂移对哈希的影响
+* text=auto eol=lf
+
+# 二进制：禁止行尾转换与 diff
+# 注：`*.pyc` 是 16 个受控分发件（tools/*.py 仅为加载器），其字节被 pyc_loader
+# 直接读取、且与 3.11 magic number 绑定，绝不可被改写。
+*.pyc binary
+*.pyo binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.bmp binary
+*.ico binary
+*.tif binary
+*.tiff binary
+*.webp binary
+*.pdf binary
+*.docx binary
+*.doc binary
+*.xlsx binary
+*.xls binary
+*.pptx binary
+*.ppt binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.zip binary
+*.rar binary
+*.7z binary
+*.gz binary
+*.tar binary
+*.sqlite binary
+*.sqlite3 binary
+*.db binary
+*.so binary
+*.dll binary
+*.exe binary
+*.vsdx binary
+*.drawio binary
+
+# 归档与快照类文本：保持 LF，避免 diff 噪声
+*.md text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.txt text eol=lf
+*.tex text eol=lf
+*.bib text eol=lf
+*.csv text eol=lf
+*.tsv text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.sh text eol=lf
+*.ps1 text eol=lf

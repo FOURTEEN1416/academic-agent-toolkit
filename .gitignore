@@ -94,6 +94,14 @@ CUMCM2026Problems/
 extracted_images/
 screenshots/
 
+# ⚠️ 2026-09-19 加入（原为游离未跟踪项）：内含第三方出品模板
+# (`2026年数学建模竞赛模板-BZD数模社.docx` 等 11 文件/1.5MB)，无再分发授权，
+# 与 CUMCM2026Problems/ 同类隔离。本地可正常使用；公开 clone 不含此目录，
+# 故 engine/modex-core/templates.json 指向此处的资产指针在公开形态下失联
+# ——已由 tests/test_asset_utilization.py 的"缺件即 skip"语义覆盖，
+# 若将来获得再分发授权，移除此行即可恢复入库。
+CUMCM论文模板/
+
 # Real practice/validation workspaces
 workspaces/
 
