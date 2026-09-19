@@ -20,7 +20,13 @@ jobs:
     # 与开发环境一致（Windows + Python 3.11）：本仓库含中文路径与 NTFS 联结，
     # 在 Linux runner 上行为不可预测，故不用 ubuntu-latest。
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+
+    # 2026-09-19 首次 CI 实测发现：Windows runner 的 stdout 默认编码为 cp1252，
+    # 子进程 print 中文会抛 UnicodeEncodeError（7 项测试因此失败）。强制 UTF-8。
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
 
     steps:
       - name: Checkout
@@ -30,7 +36,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: pip
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
       - name: Install test dependencies
         # 单一真源 = requirements-dev.txt（2026-09-19 建立；此前本仓无任何依赖声明，
@@ -39,9 +49,18 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-dev.txt
 
+      - name: Install vendored CodeSucker backend
+        # 14 项测试（source_materials_gate / codesucker_bridge / codesucker_materials /
+        # copyright_codesucker_integration）依赖该 vendored TS loader；本机 node_modules
+        # 常驻故从未暴露，CI 须显式安装（2026-09-19 首次 CI 实测发现）。
+        working-directory: 科研工具箱/tools/codesucker-core
+        run: npm ci
+
       - name: Repository-root test suite
-        # 期望：460 passed / 0 failed（2026-09-19 本地实测 85.3s，junit 取证，0 skip）
-        run: python -m pytest -q
+        # 期望：460 passed / 0 failed / 0 skipped（2026-09-19 本地实测 85.3s，junit 取证）
+        # 注：依赖 gitignored 本地私有资产的 3 项测试已改为"缺件即 skip"（见各测试文件
+        # 内的 skip 理由），故 CI 上为 3 skipped 而非 failed。
+        run: python -m pytest -q -rs
 
       - name: Provenance ledger
         # 期望：66/66 通过（UPSTREAM.md 台账 + vendor pinned commit）

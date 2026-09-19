@@ -69,7 +69,15 @@ def test_all_skills_mapped() -> None:
 
 def test_associated_skills_point_to_real_skill_dirs() -> None:
     """反向校验：所有条目 associated_skills 引用的技能名必须对应真实技能目录。
-    （2026-09-09 审计：曾出现 34 处家族前缀丢失的悬空引用，如 arxiv-metadata→scholar-arxiv-metadata。）"""
+    （2026-09-09 审计：曾出现 34 处家族前缀丢失的悬空引用，如 arxiv-metadata→scholar-arxiv-metadata。）
+
+    例外（2026-09-19 首次 CI 实测新增）：公开 clone 不交付的 5 个无 License 上游技能
+    经根 .gitignore 隔离，catalog 条目在册但实体不随公开仓分发，故其引用不算悬空。
+    """
+    local_only = {
+        "plot-from-data", "plot-from-image", "visio-image-rebuilder",
+        "paper-framework-figure-studio-pro", "eco-community-plots",
+    }
     skills_root = Path(__file__).resolve().parents[1] / "科研工具箱" / "skills"
     skill_dirs = {d.name for d in skills_root.iterdir() if d.is_dir() and (d / "SKILL.md").exists()}
     data = json.loads(CATALOG.read_text(encoding="utf-8"))
@@ -77,7 +85,7 @@ def test_associated_skills_point_to_real_skill_dirs() -> None:
     for items in data.values():
         for item in items:
             for ref in (item.get("associated_skills") or []):
-                if ref not in skill_dirs:
+                if ref not in skill_dirs and ref not in local_only:
                     dangling.append(f"{item.get('capability_id')} -> {ref}")
     assert not dangling, f"associated_skills 引用了不存在的技能目录: {sorted(dangling)}"
 

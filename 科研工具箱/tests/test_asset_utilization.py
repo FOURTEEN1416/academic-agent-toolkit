@@ -10,11 +10,40 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools"))
 
 import check_asset_utilization as cau
+
+
+# 公开 clone 不交付的两类本地资产（均被根 .gitignore 隔离）：
+#   1) 无 License 上游技能（侵权红线隔离，5 个）
+#   2) 赛时/参考类私有资料区（参考论文 / 参考图 / CUMCM论文模板 / CUMCM2026Problems）
+# 下两条"真仓机检"以**完整本地仓**为前提，在公开 clone（含 CI）上必须 skip 而非 fail
+# ——2026-09-19 首次 CI 实测发现（本地 node/资产常驻故从未暴露）。
+LOCAL_ONLY_SKILLS = (
+    "plot-from-data", "plot-from-image", "visio-image-rebuilder",
+    "paper-framework-figure-studio-pro", "eco-community-plots",
+)
+LOCAL_ASSET_ROOTS = ("参考论文", "参考图", "CUMCM论文模板", "CUMCM2026Problems")
+
+
+def _skip_reason_without_local_assets():
+    """返回非完整本地仓的缺件说明；完整仓返回 None。"""
+    missing_skills = [n for n in LOCAL_ONLY_SKILLS
+                      if not (ROOT / "skills" / n / "SKILL.md").exists()]
+    missing_assets = [n for n in LOCAL_ASSET_ROOTS if not (ROOT.parent / n).exists()]
+    if not missing_skills and not missing_assets:
+        return None
+    parts = []
+    if missing_skills:
+        parts.append(f"{len(missing_skills)} 个 gitignored 无 License 技能 {missing_skills}")
+    if missing_assets:
+        parts.append(f"{len(missing_assets)} 个 gitignored 私有资料区 {missing_assets}")
+    return "非完整本地仓（公开 clone / CI）缺 " + "；缺 ".join(parts)
 
 
 # ---------- 斜杠缩写展开 ----------
@@ -57,6 +86,9 @@ def test_load_map_coverage_reports_missing(tmp_path):
 
 def test_real_map_covers_all_skills_zero_missing():
     """真仓零漏网机检（CONTEST_SKILL_MAP §六 口径的固化版）：256 实存 / 0 漏网。"""
+    reason = _skip_reason_without_local_assets()
+    if reason:
+        pytest.skip(reason)
     skills = cau.iter_skill_dirs(ROOT / "skills")
     cov = cau.load_map_coverage(ROOT / "CONTEST_SKILL_MAP.md", skills)
     assert cov["missing"] == [], f"漏网技能: {cov['missing']}"
@@ -114,6 +146,9 @@ def test_dead_recommendations_ordering():
 # ---------- 模板资产在位（真仓假接线防线） ----------
 
 def test_real_templates_assets_all_exist():
+    reason = _skip_reason_without_local_assets()
+    if reason:
+        pytest.skip(reason)
     tpl = cau.check_template_assets(ROOT / "engine" / "modex-core" / "templates.json", ROOT.parents[0])
     assert tpl.get("error") is None
     assert tpl["checked"] >= 23
