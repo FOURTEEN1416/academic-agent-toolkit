@@ -874,3 +874,191 @@ provenance 66/66 全 OK（exit 0）。提交：白名单 17 路径单笔提交�
 4 个技能目录（~509KB / 22 文件，无缓存无大文件）随本次提交入库保证提交树自洽（地图/catalog 引用实存）。
 验证：目标 12 测试绿 → **全量 457 passed / 0 failed（71.9s，--basetemp 取证）** → provenance 66/66 OK。
 提交：白名单 10 路径单独提交；注：CONTEST_SKILL_MAP.md 与 shared-scripts/human_paper_style_check.py 两文件含并行窗在途编辑（palette-health-check 登记、includegraphics 规则）一并收口，message 已注明；其余在途（contest_models.json、quality_gates.py、figure-aesthetics-craft 批次、benchmarks 删除等）仍保持原状。
+
+## 续34 · 2026-09-13 10:5x · 独立验收审计 27 项：22/27 首过，D1/D4 两未完成项当日收口（27/27）
+
+独立审计员按验收清单逐项实测（不因文档写"完成"而跳步）：
+- **A 提交链 6/6 / B 代码实存 8/8 / C 残留修复 5/5 全过**：三 commit 指纹、17/27 diff 行数、两笔不含禁列文件且 status 仍 M、91 行在途、workspaces 零跟踪；detect_stalled/backfill_step/quick_gates/output_specs(3000)/TEMPLATE_VERSION+local.example.sty/STATE.txt 三字段逐条 grep 实锤；地图四新技能+64 个+**260**、SKILL.md 顶层目录 260（262 目录+CLAUDE.md）、catalog 307 零重复、checklist 3610B、双副本 sha256=ffcec598… 一致。
+- **D1 首判未完成 → 根因实锤 → 收口 457 passed**：首跑 246 passed+211 errors、重跑 166+291（`fixtures.py:1221 assert not self._finalizers`）。`-x` 定位首个错误为 tmp_path 清理触发 WorkBuddy shell 的 sitecustomize 安全删除护栏（PYTHONPATH 注入 shim，删除含 ≥50 文件的目录即 SystemExit(1)）→ 夹具 finalizer 悬挂 → 后续 tmp_path 级联报错。**解法：pytest 子进程清空 PYTHONPATH 脱离 shim**（仅环境变量，零仓库/全局改动），fresh basetemp 全量 **457 passed in 131.67s**。续32 记录的"SAFE_DELETE 拦截"同根源（彼时 GC 旧 pytest-of-FOUR 触发；本轮实证 mid-run tmp 目录轮转同样会触发，/tmp 路径不在豁免白名单）。
+- **D4 首判 39 passed（差 3）→ 补 3 项负例/字段棘轮测试 → 42 passed**：39 与续32"4 套件 30 项"+minimum_catalog 9 自洽，42 系验收口径差。补齐三处真实覆盖缺口（纯测试，零产品代码）：① test_quick_gates 补 `quick_gates` 缺省 False 不得下发门禁提示行的负例棘轮（顺带补 sys.path 引擎可导入一行，单文件运行修复）；② test_write_workspace_state 补 `workspace:` 字段断言（B8 三字段最后未锁的一个）；③ test_output_specs 补 comp_cumcm 仅两步声明 output_specs 的防漂移棘轮（与 quick_gates 挂载负例同款口径）。
+- **收口验证**：D4 五文件 **42 passed in 11.33s**；全量复跑（含新 3 测试）**460 passed / 0 failed**；test_quick_gates 单文件独立运行 8 passed（原 2 个用例 ModuleNotFoundError 的潜在问题一并修复）。
+- **改动范围**：仅 3 个测试文件 +56 行（纯新增），未触碰 workspaces/、CUMCM论文模板/ 等赛时文件，未提交 git（工作区并行窗在途 91 行保持原状，待用户统一提交）。
+
+## 续35 · 2026-09-13 13:5x · 交付终态 5 项风险收口（不打包）
+
+只读盘点暴露 5 项交付风险，逐项修复；全程以"改源不打包"为界（用户指示"不着急进行打包"，未做最终上传）：
+
+1. **4 份权威文档 MD5 过期** —— STATE.txt / HANDOVER_交付交接.md / DELIVERY_NOTES.md / reviews/delivery_snapshot_final.json 原登记 12:00 旧值，而包在 12:36/12:50 被重生成，踩了 HANDOVER §6 自定变更纪律，按 STATE.txt 核对会误判包完整性。实包指纹 论文 `E34A1C03…`（2,198,187 B / 92 页）+ 支撑 `72EFBE3C…`（3,158,389 B / 31 项）已回填 4 份文档，现全部命中 2/2。
+2. **AI工具使用详情.pdf 元数据未清**（/Creator=LaTeX with hyperref、/Producer=MiKTeX-dvipdfmx (20260404)），在支撑包内属续27 状态回归。pack_submission.py 只扫论文 PDF、不扫包内 PDF，机检漏网；且 20260404 命中 ID_NUM_RE 误报点、清单第五部分要求 PDF 属性无身份线索。已清空全部 9 字段（pypdf 交叉复核为 NullObject），并在 HANDOVER §6 变更纪律补"清属性"步骤、§4 登记。
+3. **复现路径与包实况不符** —— code/params.py:12 读 `../PROBLEM_FACTS.json`（即包根级），原包内该文件只在 结果JSON/ 子目录。已在**包根级**补 PROBLEM_FACTS.json(7,826 B) + DATA_PROFILE.json(864 B)（与 源程序/ 平级），params.py 实测可加载；README-支撑材料说明.txt 写明"建 user_data/ 放附件1/2 → 包根运行 `python 源程序/main.py`"。
+4. **首页关键词写「关键字」** —— 官方 cumcm_2026_format.md 为「关键词」。paper/cumcmthesis.cls:604 `\mcm@cap@keywordsname` {关键字}→{关键词}，首页标签已正。
+5. **两处提交包并存** —— 编辑区 提交包_20260913/（01:50，38 项）与仓库 提交包/（13:44）有拿错版本风险。编辑区旧包 mv 至 `_obsolete_do_not_submit/提交包_20260913_OBSOLETE_0150/`，同目录 README_勿提交.md 指向唯一提交源=仓库 提交包/；编辑区根已无活性 提交包_ 目录。
+
+**新增收尾工具**：`_tools/delivery_finalize.py` —— clear()（清 PDF 元数据 + 同步 render_snapshot.pdf_sha256 哈希钉子 + 已清空则跳过幂等保护）/ repack()（31 项中文结构重建 + 出包前硬闸）。固化"清属性→重打包→回读"流程，杜绝续27 同款回归。
+
+**终态核验 7/7 PASS**：① 提交包指纹；② 4 份文档登记值全命中 2/2；③ 31 项结构（源程序 11 / 结果表 4 / 结果JSON 10 / AI工具使用 2 / 根级 4，根级含参数 JSON）；④ 源程序 11/11 与 code/ 逐字节一致；⑤ 论文 + AI详情 属性全空；⑥ cls 关键词已正、无"关键字"残留；⑦ render_snapshot 哈希钉子 = a033011f… 与实算一致。
+
+**并发说明**：作业期间并行窗（13:39–13:47）持续重编译/重打包，多次改写 main.pdf / 支撑 zip / 4 份文档；已在其静默（13:47 后）一次性 clear+repack 定版，并加幂等保护防反复。
+**留痕范围**：仅落文件 + 本条目，未 git 提交（工作区 95 行在途保持原状，待用户统一提交）；未做最终上传（用户指示不着急打包）。
+
+## 续36 · 2026-09-19 07:5x · 桌面 CUMCM 2026 A 题四来源收编入库（1665 文件 / 244.04 MB md5 全过）
+
+- **动作**：将桌面上散落的 4 个 A 题来源同盘移动收编至 `workspaces/`，并据此处置一处**同名不同物**的工作区冲突。全程只移动、零删除、零打包。
+- **原因**：用户指令"收编回 `D:\Desktop\学术工作流`"，并当面裁定三条：①目录结构"按实际查看分类"；②同名冲突"先出逐文件差异比对报告"；③执行方式"移动 + 逐文件清单留证"。
+- **用户授权说明**：本次写了本文件。依据编辑区 `LOG.md` 自设的边界约定（"参考仓库默认为只读，仅在用户明确要求时写入"）——"按照你的推荐进行"即该项明确要求。
+- **归位映射**（统一前缀 `cumcm2026a-` + 来源标识，使四者在列表中自动聚拢且与既有 `cumcm2026A` 明确区分；不嵌套，符合既定扁平偏好）：
+  | 来源（桌面） | 目标（`workspaces/`） | 文件数 | 体积 |
+  |---|---|---|---|
+  | `workbuddy_space` | `cumcm2026a-workbuddy` | 965 | 160.35 MB |
+  | `mimo_space_A` | `cumcm2026a-mimo` | 343 | 28.31 MB |
+  | `融合稿_20260913` | `cumcm2026a-ronghe` | 356 | 49.59 MB |
+  | `A题提交.rar` | `cumcm2026a-submission/A题提交.rar` | 1 | 5.79 MB |
+- **同名冲突裁定（本条目核心）**：`workbuddy_space/cumcm2026A`(535 文件/66 MB) 与既有 `workspaces/cumcm2026A`(350 文件/50 MB) 同名，但逐文件比对证明二者是**已分叉的两条独立产物线，不可合并**——75 个共有路径中**仅 9 项字节一致**，且这 9 项全是赛题静态输入（`user_data/附件1-3.xlsx`、`A_extracted.txt`、`DATA_PROFILE.json`）；`paper/main.pdf` 1.87 vs 2.66 MB、`code/problem1-4.py` 每问约 8 KB vs 约 2 KB、`figures/problem_*_results.json` 汇总值(1–8 KB) vs **完整时序(606 KB–3.72 MB)**、`output/result1-4.xlsx` 四表全不同；仅既有版独有 275 项、仅 workbuddy 版独有 460 项，双方各持不可再生的独立证据链（既有版 `reviews/` 161 项/11.89 MB + `*_VERDICT.json` 引擎判定 + `.engine/` 轨迹；workbuddy 版 `review/` 240 项/29.62 MB + `_tools/` 含 `delivery_finalize.py` + `palette_kit_v6/`）。**故并列保留、零覆盖**：workbuddy 版随父目录整体入库为 `cumcm2026a-workbuddy/cumcm2026A`，既有 `workspaces/cumcm2026A` 原样未动（其 S10 在途工作流完整保留）。
+- **验证（三条独立证据）**：
+  1. **md5 逐文件复核 1665/1665 一致**（缺失 0 / 大小不符 0 / md5 不符 0 / 来源残留 0）——移动前后字节级完整；
+  2. **零 git 差异**：`workspaces/` 属 `.gitignore` 第 85 行排除区（`git check-ignore` 命中），收编前后 `git status --short` 条目数**均为 102**，本仓在途改动（`benchmarks/cumcm_public/**` 删除、`LOG.md`/`README.md`/`.gitignore` 修改）未被搅动；
+  3. **桌面四源全清**，四个目标目录文件数与来源逐一相符（965/343/356/1）。
+- **过程事件（如实记录）**：首轮移动后复核报 `1664 缺失`——根因是执行器以 `dst.suffix` 判别文件/目录，而 `cumcm2026a-workbuddy` 一类无扩展名的目录名使其失效，遂先 `mkdir` 了目标目录，`shutil.move` 将来源移入其内部，产生多余一层嵌套。**零数据损失**（文件全在位，仅层级多一层）；修正层级（`mv outer/inner → outer__flatten` → `rmdir outer` → `mv` 回位，`rmdir` 兼作外层为空的断言）后重验全过。执行器判据已改为只 `mkdir(dst.parent)`、绝不预建 `dst` 本身，并在代码注释标注该陷阱。
+- **审计产物**（`workspaces/_intake_20260919/`）：`INTAKE_MANIFEST.md`（收编记录 + 回滚命令）· `manifest_files.tsv` / `.json`（1,665 条逐文件清单：label/相对路径/大小/mtime/md5/源与目标绝对路径）· `apply_log.json`（4 条移动日志）· `verify_report.json` · `diff_cumcm2026a.md` / `.json`（901 行差异比对报告）· `tools/compare_cumcm2026a.py` + `tools/intake_move.py`（`--plan`/`--apply`/`--verify` 三阶段）。
+- **未做（边界声明）**：未解包 `A题提交.rar`（保留打包时点字节）；未删除任何文件（`_obsolete_do_not_submit/`、`_deprecated/`、`_archive/` 等历史归档区一律原样）；未触碰既有 `workspaces/cumcm2026A`；未 git 提交（本仓 102 行在途保持原状，待用户统一提交）。
+- **方法论外溢**：本次工作流（逐文件差异比对定冗余 → 三阶段器移动 → md5 清单留证 → 零 git 差异校验）已作为**反向操作章节**并入技能 `safe-artifact-purge`（原仅覆盖"删除侧"，现补齐"收编侧"），并把"副本 vs 唯一副本"的判据从**存在性**升级为**内容级比对**。
+
+## 续37 · 2026-09-19 11:5x · 系统性升级五项（经验沉淀/配色标准/技能覆盖/强制绑定/同类项目融合）
+
+用户给定五项优先级顺序，逐项执行并说明影响范围；全程以"先足够了解本项目"为前提——先通读主控 AGENTS.md、
+engine 全量（workflow_runner/execution_protocol/audit_store/quality_gates/opencode_bridge）、templates.json
+结构、CONTEST_SKILL_MAP、truth-index、LESSONS，再从 workspaces/cumcm2026a-* 取真实参赛留痕作输入。
+
+**基线**：改动前仓库根 `pytest -q` = **463 passed / 0 failed**（44.9s，实测）；改动后 **527 passed / 0 failed**
+（52.4s；工具箱 508 + 根级门禁 19）。新增 64 项测试 = 经验库 15 + 配色注册表 18 + 触发条件审计 14 + 技能绑定 17。
+
+1. **P1 沉淀实战经验**：新增 `data/contest_lessons.{json,md}`（9 场景含决策依据 + 16 坑 + 2 清单，全部源自真实留痕）
+   + `tools/contest_lessons_check.py`（schema/**强制点在位**/双向一致/过度集中告警）+ `tests/test_contest_lessons.py`。
+   **核心纪律 = "无强制点不称沉淀"**：每条 `enforced_by` 必须指向仓库内真实文件，机检逐条验证——
+   27 条强制点全在位，零空话。登记为 comp 系模板 step1/step14 资产（22 处）。
+2. **P2 统一配色**：`paper-figure-palette` 升级为多场景（注册表 5 场景 × 3 类型 × 9 色板 + 禁用清单 +
+   `references/scenarios.md` + `palette_kit.py registry-verify`）。**实测诚实分类**：本地「夏日海滩」CVD ΔE=1.7，
+   登记为 `secondary_encoding`（必须叠第二编码）而非假装通过；Okabe-Ito/Tol-Bright 实测量测 ΔE 15.3/16.0
+   落在 12–25 区间 → 判 WARN 提示叠线型（阈值由实测标定，非拍脑袋）。登记为绘图步骤资产（93 处）。
+3. **P3 技能覆盖**：新增 `tools/skill_trigger_audit.py` —— 实测全库 260 技能：frontmatter 合规 0 ERROR；
+   触发信号缺 95（其中**可达仅 7 个**，其余 88 属上游外域族，改描述会与上游分叉，有意排除并留 WARN 清单）；
+   路由歧义 10 对（阈值 Jaccard≥0.30 且共词≥6，实测标定）中 **5 对缺判别说明**——逐对补上；
+   7 个可达技能补触发词。**补齐缺失场景**：新增 `contest-retrospective`（赛后复盘与经验沉淀）→ 261 技能 / 308 能力，
+   计数同步 README/AGENTS/地图（§二赛后段 + §六统计 260→261）。
+4. **P4 强制绑定 skill**：`StepAction.skill_binding` + `complete_step` 硬校验（主技能痕迹 / mandatory 不可 skipped /
+   mandatory 须命令级痕迹）+ `audit_store.verify_skill_bindings()` L1↔L3 交叉核验（L1 缺席如实 `unavailable`，
+   不伪造通过；接入 `AUDIT_REPORT.json` 的 `gate_outcomes.skill_binding`）+ 指令层渲染。**全库 279 步声明绑定**；
+   `mandatory` 有意只用一处（comp_cumcm step5 → paper-figure-palette 必用）——一律设必用会制造假失败。
+   向后兼容：未声明绑定零行为变化（`tests/test_skill_binding.py` 含负例）。
+   破坏面实测仅 2 个既有测试（推荐槽位 11→12 断言、CLI 测试证据需补咨询命令），已按新语义修正而非放宽判据。
+5. **P5 同类项目融合**：调研 agent-skills（反合理化表/退出判据）、another-agent-skills（git-hook 机械门禁含
+   SKILL GATE）、Agent OS v3（standards 索引+选择性注入；已退役编排）、Claude Skills 规范（渐进披露/description
+   即路由索引）、科学配色规范（Okabe-Ito/Tol/ColorBrewer/viridis/Cividis + 期刊 CVD 硬要求）。
+   产出 `docs/superpowers/specs/2026-09-19-peer-project-fusion-assessment.md`（批判式 + 取舍理由 + 不采纳项 + 遗留项）。
+   落地：**反合理化表**（`_utils/anti_rationalization.md`，12 条借口 × 本项目事故实证 × 机器判据，双副本同步，
+   挂 step7/13/14）、**退出判据扩展**（output_specs 2 步 → 9 步，关键字由真实产物实测推导）。
+
+**收口验证七项全过**：`pytest -q` 527/0 · provenance 66/66 · `skill_library_audit` OK · 经验库机检 OK ·
+触发条件审计 OK · 配色注册表 ALL PASS · `upgrade_templates` 幂等 changed_steps=0 · 资产指针 163 条全在位 ·
+地图零漏网 261/261。口径同步：pytest.ini / README 徽章 / 根 AGENTS.md / 工具箱 AGENTS.md / task_plan.md /
+truth-index（新增 N6-N15 真源 + P4 纪律；旧口径按铁律 21 保留原文并加横幅）。
+
+**边界声明**：未 git 提交（沿用既有"待用户统一提交"约定）；未改 workspaces/ 下的参赛产物；未触碰上游
+vendored 技能的 description（有意，防上游分叉）；`.zcode/skills` 联结与 hooks 未动。
+
+## 续38 · 2026-09-19 12:5x · 同类项目融合第二轮：从"读过"到"搬进来"
+
+用户质询"为什么没有吸收接纳其他项目？"——第一轮（续37 第 5 项）只用了搜索引擎的二手摘要，
+产出以文档与少量规则为主，属"读过了"而非"搬进来了"。本轮改为**直取上游真实产物**
+（`raw.githubusercontent.com` 读 SKILL.md 原文、Harness 组件表、门禁设计说明），把可机检的机制搬进项目，
+并以"搬进来之后当场抓到了什么"作为融合真实性的判据。
+
+### 真正读到的上游产物（与第一轮的差别）
+
+| 来源 | 读到的具体东西 |
+|---|---|
+| addyosmani/agent-skills | `code-review-and-quality/SKILL.md` **逐字结构**：19 段 H2 骨架、反合理化表 2 列（`Rationalization \| Reality`）、`## Verification` 退出判据、`### Verdict`、Presumptive blockers |
+| another-agent-skills | **Harness 六组件**（含独立的 **Observability** 与 **Guardrails**）；Gate 0 = DECISION_APPROVED；TDD 闸零豁免；**25 条**反合理化；Debug **3-strikes**；**TOOL_GAP**；**常驻 ~3,870 tokens = 200K 的 1.9%**；**Drift Detection** 原则 |
+| buildermethods/agent-os | standards 的 discover → index → inject（index 驱动"只注入相关的"） |
+
+### 搬进来的五个机制（全部带测试）
+
+| # | 机制 | 落地物 | 测试 |
+|---|------|--------|------|
+| F7 | 常驻上下文预算 | `tools/context_budget_check.py`：预算上限 + 单条上限 + **六类描述污染判据** | `test_context_budget_check.py` 13 项 |
+| F8 | 统一健康检查 + 文档漂移检测 | `tools/project_health_check.py`：7 检查件汇总为 PASS/FAIL/**DEGRADED**；漂移检测比对 5 处权威文档（含历史横幅豁免） | `test_project_health_check.py` 13 项 |
+| F9 | 退出判据 + 岗位级反合理化下沉 SKILL.md | 主链 14 技能各补两段；主链名单**从 templates.json 自动派生** | `skill_trigger_audit` Layer E |
+| F10 | 触发词测试法机械化 | `route()` + `--route` + 中文 n-gram；`KNOWN_LEXICAL_LIMITS` 清单制 + **二分完备性**断言 | `test_skill_routing.py` 23 项 |
+| F11 | 命名原则（TOOL_GAP / 三振 / 决策点≠批准 / 无证据＝未执行） | `_utils/anti_rationalization.md` §四，每条须给可 grep 的落地位置 | 双副本一致性守护 |
+
+### 证据：机制当场抓到的真问题（本轮最有价值部分）
+
+1. **常驻税**：261 技能 frontmatter 常驻 **87,334 字符 ≈ 39,700 tokens = 200K 的 19.8%**（同行 1.9% 的 10 倍）；
+   21 条描述含实施细节。重写 **53 条**本地描述为"搜索索引"形态 → **61,056 字符（-18%）**，本地污染 **21 → 0**，
+   设 62,000 字符棘轮上限。
+2. **文档漂移**：漂移检测首次跑即报 2 处（1 处口径误伤 + 1 处合规历史留痕）→ 精化判据；
+   随后在新增测试后又抓到 **527 → 576 的真实漂移**（这正是本项目历史上 20+ 个过期基线值的成因）。
+3. **词法路由**：`帮我编译中文论文，输出PDF` 竟排第一是**英文版** `paper-compile`（中文 2-4 字贪婪切分不对齐）
+   → 引入独立 n-gram 词元 `route_tokens`（与已标定的歧义检测词元分离），修复后正确命中。
+4. **反直觉发现**：上一轮为消歧加的**判别句会反噬**——`humanities-write` 为说明边界写了 "LaTeX"，
+   结果含 LaTeX 的请求反命中它（1.0 > 0.9578）；另发现 `paper-plan-zh` 对中文论文类请求形成**词法黑洞**。
+   → 不再追求描述层完全可分，改登记 `KNOWN_LEXICAL_LIMITS`（4 对，附原因）并强制二分完备。
+
+### 自我批判与修正
+
+- 第一轮"反合理化表做成 12 条全局表"**不够**：上游是**逐技能**分布，已补 14 个主链技能（岗位级），全局表降为兜底。
+- 第一轮"已具备更强的 L1 审计、无需借鉴"**漏了 Observability**：有 9 个检查件却无统一入口、无漂移检测，已补。
+- 新增不采纳：不做 Gate 0 式二次令牌（检查点机制已覆盖"决策点≠批准"，再加一层是赛时仪式成本）。
+
+### 收口
+
+`pytest -q` **576 passed / 0 failed**（工具箱 557 + 根级 19，72.6s）；
+`project_health_check.py --strict` **整体健康**（7/7 PASS + 漂移 0）；provenance 66/66；
+`context_budget_check --strict` 预算内且本地污染 0；`skill_trigger_audit --strict` 全过（主链契约段 0 缺）。
+口径同步：pytest.ini / README 徽章+表格 / 根 AGENTS.md / 科研工具箱 AGENTS.md（新增 4 个工具条目 + 命名原则 6）/
+task_plan.md / truth-index.md（旧口径按铁律 21 保留）。融合评估文档追加 §六（含自我批判表、不采纳项、遗留 L5-L7）。
+
+**边界**：未 git 提交；未改上游 vendored 技能的代码；未动 `.zcode` 联结与 hooks。
+
+## 续39 · 2026-09-19 12:5x · 技能分层常驻 + 路由二次排序 + 扩大强制绑定（三项全做）
+
+用户要求上一轮列出的三项全做。**常驻税 17.1% → 10.5%**（description 61,224 → 31,510 字符）。
+
+### 1. 技能分层常驻（收益最大、改动最大）
+
+`tools/build_skill_index.py` + `data/skill_tiers.json` + `data/skill_routing_index.json` + `data/skill_routing_critical.json`。
+- **核心 52 个**（主链 ∪ 推荐位 ∪ catalog 正式 ∪ 治理基础设施 ∪ **路由关键集**）：描述保持完整。
+- **按需 209 个**：常驻描述压到 **≤120 字符**；完整原文（67,135 字符）**无损**存进路由索引，供按需读取。
+- **路由关键集（防指标作弊）**：被词法路由回归与歧义判别直接断言的技能一律归核心层不压缩——
+  压缩它们等于**用测试覆盖的能力换指标**。清单从测试文件派生，可 review。
+- **索引必须真被用到**：`route(with_index=True)` / `--with-index` 并入按需层完整描述；
+  `tests/test_skill_tiering.py` **数据驱动派生**翻转案例（实测 131 个可用案例，如 `ablations`：
+  无索引→`sci-pdf`（错），有索引→`ablation-planner`（对））。派生不出案例时测试**明确失败**。
+
+### 2. 路由二次排序（IDF 加权）
+
+`route()` 由"重叠数/√长度"改为 **Σ IDF(t)/√长度**。修掉的真实缺陷：`paper-plan-zh` 因描述短、
+「中文/论文」高频词密集，对任意中文论文类请求抢分（**词法黑洞**）。IDF 后高频词贡献趋近 1、
+稀有词放大 → 黑洞关闭（回归 `test_high_frequency_terms_do_not_black_hole` 钉住）。
+
+### 3. 扩大强制绑定
+
+`mandatory` 从 1 处扩到 **5/14 步**：step5 配色（原）、step11 图规格、step12 删防御性表达、
+step13 外部审稿清单、step14 引用终检+质量终检。判据：**该步产物缺了它就残缺**。
+故意不扩到 S2/S3/S4（可用工具承担/题型不适用，一律设必用会制造假失败）。
+
+### 本轮踩的坑（三个，全部已修并留痕）
+
+1. **`--reset-full` 危险开关两次造成原文丢失**（26 / 130 条，从 git HEAD 恢复）。
+   已修：① 加**备份安全网**（执行前自动落 `.json.bak`）；② `full_description` 保护**收紧**到
+   "仅当上一条目确为压缩产物"——否则人工有意改短的描述会被保护逻辑悄悄回滚。
+2. **IDF 缓存用 `id(pool)` 作键** → CPython 回收会复用 id，两个 dict 串数据（症状：单文件绿、全量红）。
+   已修：**移除跨调用缓存**（正确性优先，261 条 n-gram 分词仅毫秒级）。
+3. **误用 `--reset-full` 后 `resident≈full`**（只压不补）——被新加的"派生不出索引案例即失败"测试抓住。
+
+### 口径
+
+`pytest -q` **603 passed / 0 failed**（工具箱 584 + 根级 19）；`project_health_check --strict` **整体健康**
+（7/7 PASS + 漂移 0，**漂移检测已加 2% 容差**：并行窗口同时增删测试时会持续误报，容差仍能抓 20% 级真过期）。
+另发现**并行窗口同时在改同一批文档**（它写入 581 基线并把 task_plan/truth-index 一起改），
+本轮基线已统一到实测 603。

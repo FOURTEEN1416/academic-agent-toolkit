@@ -202,3 +202,22 @@ def test_clean_report_has_named_checks_and_ready(tmp_path):
     write_final_audit_report(workspace, project_root, workflow_db=db)
     gate = QualityGate(workspace).check_final_audit_report()
     assert gate["ok"] is True, gate["reason"]
+
+
+def test_unreadable_workflow_db_fail_closed_state_consistency(tmp_path):
+    """MED fix: SQLite 打不开/损坏时 state_consistency.ok 必须为 False，交付 blocked。"""
+    workspace, project_root, db, ids = _make_workflow(
+        tmp_path, [("step-a", {"output_files": []})])
+    workflow_id, step_id = ids[0], ids[1]
+    _complete_with_event(db, workflow_id, step_id)
+
+    # 损坏数据库：写入非法内容 → WorkflowStore 查询必抛异常
+    Path(db).write_bytes(b"NOT-A-SQLITE-FILE")
+
+    report = build_final_audit_report(workspace, project_root, workflow_db=db)
+    detail = report["state_event_consistency_detail"]
+    assert detail["ok"] is False, detail
+    assert report["gate_outcomes"]["state_event_consistency"] == "fail"
+    assert report["delivery_decision"] == "blocked"
+    joined = json.dumps(detail, ensure_ascii=False)
+    assert "unreadable" in joined or "DB" in joined or "未核验" in joined

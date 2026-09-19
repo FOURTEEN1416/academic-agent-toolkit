@@ -1,10 +1,6 @@
 ---
 name: latexpap-arxiv-paper-writer
-description: >
-  Writes ML/AI review and survey papers for arXiv using the IEEEtran LaTeX
-  template with verified BibTeX citations. Triggers when the deliverable is
-  a review paper, literature survey, or when an existing LaTeX project needs
-  citation validation or repair.
+description: "> Writes ML/AI review and survey papers for arXiv using the IEEEtran LaTeX template with verified BibTeX citations."
 ---
 
 

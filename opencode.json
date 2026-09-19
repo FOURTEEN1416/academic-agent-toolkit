@@ -14,15 +14,16 @@
   "plugin": [
     "opencode-logger"
   ],
+  "_security_note_paths": "PUBLIC repo: do not commit host-absolute paths (C:\\Users\\... / D:\\Desktop\\...). MCP command/DOCSEARCH_ROOTS below are portable placeholders. Operators MUST set a local untracked override (e.g. edit this file locally without committing, or use host-level MCP config) with absolute paths to the installed docsearch-mcp and DOCSEARCH_ROOTS pointing at this checkout.",
   "mcp": {
     "docsearch": {
       "type": "local",
       "command": [
-        "C:\\Users\\FOUR\\.config\\opencode\\mcp\\docsearch-mcp\\.venv\\Scripts\\python.exe",
-        "C:\\Users\\FOUR\\.config\\opencode\\mcp\\docsearch-mcp\\server.py"
+        "python",
+        "${DOCSEARCH_MCP_SERVER:-.opencode/mcp/docsearch-mcp/server.py}"
       ],
       "environment": {
-        "DOCSEARCH_ROOTS": "D:\\Desktop\\数模竞赛",
+        "DOCSEARCH_ROOTS": "${DOCSEARCH_ROOTS:-.}",
         "DOCSEARCH_EXCLUDE_DIRS": "技能,skills,知识库,知识库搭建,node_modules,.venv,venv,.git,archive,assets,desc,__pycache__,.next"
       },
       "timeout": 30000

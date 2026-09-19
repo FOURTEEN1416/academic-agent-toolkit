@@ -1,6 +1,6 @@
 ---
 name: seaborn
-description: Statistical visualization with pandas integration. Use for quick exploration of distributions, relationships, and categorical comparisons with attractive defaults. Best for box plots, violin plots, pair plots, heatmaps. Built on matplotlib. For interactive plots use plotly; for publication styling use scientific-visualization.
+description: "Statistical visualization with pandas integration. Use for quick exploration of distributions, relationships, and"
 license: BSD-3-Clause license
 allowed-tools: Read Write Edit Bash
 compatibility: Requires Python 3.8+ and seaborn 0.13.2-compatible dependencies. Install with uv pip install seaborn==0.13.2; use seaborn[stats]==0.13.2 when advanced regression or clustering examples need scipy/statsmodels.

@@ -23,7 +23,10 @@
           "required_checks": [
             "source_materials"
           ],
-          "display_name": "离线源码抽取、分页与审计"
+          "display_name": "离线源码抽取、分页与审计",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -50,7 +53,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "文献调研"
+          "display_name": "文献调研",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -70,7 +76,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "Idea 生成"
+          "display_name": "Idea 生成",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -90,7 +99,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "新颖性验证"
+          "display_name": "新颖性验证",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -105,7 +117,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "外部评审"
+          "display_name": "外部评审",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -121,7 +136,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "方法精炼+实验规划"
+          "display_name": "方法精炼+实验规划",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -151,7 +169,10 @@
             "step_manifest",
             "experiment_reproduc"
           ],
-          "display_name": "实验实现+部署+出图"
+          "display_name": "实验实现+部署+出图",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -173,7 +194,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "自动审稿循环"
+          "display_name": "自动审稿循环",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -199,7 +223,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "论文大纲"
+          "display_name": "论文大纲",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -221,7 +248,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "代码实现"
+          "display_name": "代码实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -241,7 +271,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -261,7 +306,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -284,7 +339,10 @@
             "step_manifest",
             "citation_integrity"
           ],
-          "display_name": "LaTeX 写作"
+          "display_name": "LaTeX 写作",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -306,7 +364,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译 PDF"
+          "display_name": "编译 PDF",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -327,7 +388,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "论文改进循环"
+          "display_name": "论文改进循环",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -353,7 +417,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "论文大纲（中文）"
+          "display_name": "论文大纲（中文）",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -375,7 +442,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "代码实现"
+          "display_name": "代码实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -395,7 +465,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -415,7 +500,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -438,7 +533,10 @@
             "step_manifest",
             "citation_integrity"
           ],
-          "display_name": "LaTeX 写作（中文）"
+          "display_name": "LaTeX 写作（中文）",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -460,7 +558,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译 PDF（中文）"
+          "display_name": "编译 PDF（中文）",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -481,7 +582,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "论文改进循环"
+          "display_name": "论文改进循环",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -507,7 +611,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "论文规划"
+          "display_name": "论文规划",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -528,7 +635,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "数据分析"
+          "display_name": "数据分析",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -548,7 +658,10 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "Nature 图表"
+          "display_name": "Nature 图表",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -568,7 +681,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "架构图绘制"
+          "display_name": "架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -591,7 +714,10 @@
             "step_manifest",
             "citation_integrity"
           ],
-          "display_name": "Nature 写作"
+          "display_name": "Nature 写作",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -613,7 +739,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "论文编译"
+          "display_name": "论文编译",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -634,7 +763,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "改进循环"
+          "display_name": "改进循环",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -661,7 +793,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "文献调研"
+          "display_name": "文献调研",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -681,7 +816,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "Idea 生成"
+          "display_name": "Idea 生成",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -701,7 +839,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "新颖性验证"
+          "display_name": "新颖性验证",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -716,7 +857,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "外部评审"
+          "display_name": "外部评审",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -732,7 +876,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "方法精炼+实验规划"
+          "display_name": "方法精炼+实验规划",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -756,7 +903,10 @@
             "step_manifest",
             "experiment_reproduc"
           ],
-          "display_name": "实验实现+出图"
+          "display_name": "实验实现+出图",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -776,7 +926,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "论文大纲"
+          "display_name": "论文大纲",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -796,7 +949,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -819,7 +982,10 @@
             "step_manifest",
             "citation_integrity"
           ],
-          "display_name": "LaTeX 写作"
+          "display_name": "LaTeX 写作",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -841,7 +1007,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译 PDF"
+          "display_name": "编译 PDF",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -862,7 +1031,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "论文改进循环"
+          "display_name": "论文改进循环",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -910,8 +1082,28 @@
               "name": "获奖论文使用指南",
               "path": "参考论文/参考论文使用指南.md",
               "note": "获奖论文资产入口地图"
+            },
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
             }
-          ]
+          ],
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "PROBLEM_ANALYSIS.md": {
+              "min_bytes": 4000,
+              "require_any": [
+                "假设",
+                "模型",
+                "求解",
+                "问题"
+              ],
+              "rationale": "P5 退出判据：赛题分析必须落到假设/模型/求解三件事，拦'题目复述'式薄产物"
+            }
+          }
         }
       },
       {
@@ -969,7 +1161,10 @@
               "path": "科研工具箱/data/search_links.md",
               "note": "预整理权威检索入口"
             }
-          ]
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1001,7 +1196,22 @@
               "path": "科研工具箱/data/reference_models.json",
               "note": "经典模型速查（选型对照用）"
             }
-          ]
+          ],
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "MODELING_REPORT.md": {
+              "min_bytes": 5000,
+              "require_any": [
+                "假设",
+                "模型",
+                "求解",
+                "结论"
+              ],
+              "rationale": "P5 退出判据：建模报告必须含假设推导/模型表述/求解结果/结论，拦只有框架的产物"
+            }
+          }
         }
       },
       {
@@ -1038,7 +1248,10 @@
           },
           "companion_skills": [
             "sci-statistical-analysis"
-          ]
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1060,7 +1273,8 @@
           ],
           "display_name": "图表生成",
           "companion_skills": [
-            "figure-aesthetics-craft"
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
           ],
           "assets": [
             {
@@ -1072,9 +1286,25 @@
               "name": "参考图集",
               "path": "参考图",
               "note": "本地构图/配色参照（gitignored）"
+            },
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
             }
           ],
-          "quick_gates": true
+          "quick_gates": true,
+          "skill_binding": {
+            "main_required": true,
+            "mandatory": [
+              "paper-figure-palette"
+            ]
+          }
         }
       },
       {
@@ -1101,8 +1331,16 @@
               "name": "参考图集",
               "path": "参考图",
               "note": "机理图/架构图构图参照"
+            },
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
             }
-          ]
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1122,7 +1360,29 @@
             "review"
           ],
           "display_name": "逻辑对抗复核",
-          "companion_skills": []
+          "companion_skills": [],
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "COMP_REVIEW.md": {
+              "min_bytes": 1500,
+              "require_any": [
+                "major",
+                "minor",
+                "fatal",
+                "结论"
+              ],
+              "rationale": "P5 退出判据：逻辑复核必须留下分级问题清单，拦'总体没问题'式空审"
+            }
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -1173,7 +1433,10 @@
               "note": "摘要/模型/求解逐板块写法"
             }
           ],
-          "quick_gates": true
+          "quick_gates": true,
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1203,7 +1466,21 @@
               "path": "科研工具箱/tools/paper_data_check.py",
               "note": "论文数值与结果台账交叉核对"
             }
-          ]
+          ],
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "CONSISTENCY_REPORT.json": {
+              "min_bytes": 1200,
+              "require_any": [
+                "match",
+                "ok",
+                "checked"
+              ],
+              "rationale": "P5 退出判据：一致性报告必须含逐项对账结论，拦只有壳 JSON 的产物"
+            }
+          }
         }
       },
       {
@@ -1247,7 +1524,10 @@
               "path": "科研工具箱/tools/fix_bare_latex_in_md.py",
               "note": "编译排查辅助"
             }
-          ]
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1276,8 +1556,30 @@
               "name": "获奖论文图表配色分析",
               "path": "参考论文/图表配色分析报告.md",
               "note": "视觉审查配色对照基准"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "视觉审查时的配色合规判据来源",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
             }
-          ]
+          ],
+          "skill_binding": {
+            "main_required": true,
+            "mandatory": [
+              "figure-spec"
+            ]
+          },
+          "output_specs": {
+            "VISUAL_REVIEW.md": {
+              "min_bytes": 1500,
+              "require_any": [
+                "major",
+                "minor",
+                "pass"
+              ],
+              "rationale": "P5 退出判据：视觉审查必须留下分级发现与判定，拦空审"
+            }
+          }
         },
         "required_checks": [
           "review"
@@ -1298,7 +1600,24 @@
           "display_name": "数模编辑修订",
           "companion_skills": [
             "anti-defensive-writing"
-          ]
+          ],
+          "skill_binding": {
+            "main_required": true,
+            "mandatory": [
+              "anti-defensive-writing"
+            ]
+          },
+          "output_specs": {
+            "EDITOR_CHANGELOG.md": {
+              "min_bytes": 800,
+              "require_any": [
+                "major",
+                "minor",
+                "改"
+              ],
+              "rationale": "P5 退出判据：编辑变更必须可逐条追溯（改了什么/依据哪条意见）"
+            }
+          }
         }
       },
       {
@@ -1324,6 +1643,19 @@
           "display_name": "数模最终复审",
           "companion_skills": [
             "scholar-critique-manuscript"
+          ],
+          "skill_binding": {
+            "main_required": true,
+            "mandatory": [
+              "scholar-critique-manuscript"
+            ]
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
           ]
         }
       },
@@ -1370,8 +1702,36 @@
               "name": "规则与合规区",
               "path": "CUMCM2026Problems/规则与合规",
               "note": "申报/查重红线原始依据"
+            },
+            {
+              "name": "实战经验库·交付硬闸清单",
+              "note": "上传前 8 项硬闸与赛后复盘五步（P0/P1 坑位对照）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            },
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
             }
-          ]
+          ],
+          "skill_binding": {
+            "main_required": true,
+            "mandatory": [
+              "citation-check",
+              "quality-check"
+            ]
+          },
+          "output_specs": {
+            "AUDIT_REPORT.json": {
+              "min_bytes": 1200,
+              "require_any": [
+                "pass",
+                "delivery_decision",
+                "gate_outcomes"
+              ],
+              "rationale": "P5 退出判据：交付审计必须是门禁逐项结论，拦手写散文式'审计'"
+            }
+          }
         }
       }
     ]
@@ -1397,7 +1757,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "Problem Analysis"
+          "display_name": "Problem Analysis",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1419,7 +1789,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "Modeling & Solution"
+          "display_name": "Modeling & Solution",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1440,7 +1813,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "Programming"
+          "display_name": "Programming",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1460,7 +1836,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "Figure Generation"
+          "display_name": "Figure Generation",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1480,7 +1871,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "Flow & Architecture Diagrams"
+          "display_name": "Flow & Architecture Diagrams",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1498,7 +1899,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "Logic Adversarial Review"
+          "display_name": "Logic Adversarial Review",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -1523,7 +1934,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "Paper Writing (English)"
+          "display_name": "Paper Writing (English)",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1545,7 +1959,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "Compile & Compliance Check"
+          "display_name": "Compile & Compliance Check",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -1571,7 +1988,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1593,7 +2020,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1614,7 +2044,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1634,7 +2067,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1654,7 +2102,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1672,7 +2130,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -1697,7 +2165,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1719,7 +2190,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -1745,7 +2219,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1767,7 +2251,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1788,7 +2275,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1808,7 +2298,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1828,7 +2333,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1846,7 +2361,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -1871,7 +2396,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1893,7 +2421,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -1919,7 +2450,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1941,7 +2482,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1962,7 +2506,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -1982,7 +2529,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2002,7 +2564,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2020,7 +2592,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -2045,7 +2627,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2067,7 +2652,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -2093,7 +2681,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2115,7 +2713,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2136,7 +2737,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2156,7 +2760,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2176,7 +2795,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "Flow & Architecture Diagrams"
+          "display_name": "Flow & Architecture Diagrams",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2198,7 +2827,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "Paper Writing"
+          "display_name": "Paper Writing",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2220,7 +2852,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "Compile & Compliance Check"
+          "display_name": "Compile & Compliance Check",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -2241,7 +2876,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "选题与数据规划"
+          "display_name": "选题与数据规划",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2262,7 +2900,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "数据采集与统计分析"
+          "display_name": "数据采集与统计分析",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2282,7 +2923,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2302,7 +2958,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2324,7 +2990,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "论文撰写"
+          "display_name": "论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2346,7 +3015,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -2372,7 +3044,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2394,7 +3076,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2415,7 +3100,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2435,7 +3123,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2455,7 +3158,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2473,7 +3186,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -2498,7 +3221,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2520,7 +3246,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -2546,7 +3275,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2568,7 +3307,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2589,7 +3331,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2609,7 +3354,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2629,7 +3389,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2647,7 +3417,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -2672,7 +3452,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2694,7 +3477,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -2720,7 +3506,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2742,7 +3538,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2763,7 +3562,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2783,7 +3585,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2803,7 +3620,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2821,7 +3648,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -2846,7 +3683,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2868,7 +3708,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -2894,7 +3737,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2916,7 +3769,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2937,7 +3793,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2957,7 +3816,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2977,7 +3851,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -2995,7 +3879,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -3020,7 +3914,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3042,7 +3939,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -3068,7 +3968,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3090,7 +4000,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3111,7 +4024,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3131,7 +4047,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3151,7 +4082,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3169,7 +4110,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -3194,7 +4145,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3216,7 +4170,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -3242,7 +4199,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3264,7 +4231,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3285,7 +4255,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3305,7 +4278,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3325,7 +4313,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3343,7 +4341,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -3368,7 +4376,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3390,7 +4401,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -3416,7 +4430,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3438,7 +4462,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3459,7 +4486,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3479,7 +4509,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3499,7 +4544,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3517,7 +4572,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -3542,7 +4607,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3564,7 +4632,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -3590,7 +4661,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3612,7 +4693,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3633,7 +4717,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3653,7 +4740,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3673,7 +4775,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3691,7 +4803,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -3716,7 +4838,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3738,7 +4863,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -3764,7 +4892,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3786,7 +4924,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3807,7 +4948,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3827,7 +4971,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3847,7 +5006,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3865,7 +5034,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -3890,7 +5069,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3912,7 +5094,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -3938,7 +5123,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3960,7 +5155,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -3981,7 +5179,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4001,7 +5202,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4021,7 +5237,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4039,7 +5265,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -4064,7 +5300,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4086,7 +5325,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -4112,7 +5354,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4134,7 +5386,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4155,7 +5410,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4175,7 +5433,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4195,7 +5468,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4213,7 +5496,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -4238,7 +5531,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4260,7 +5556,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -4286,7 +5585,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4308,7 +5617,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4329,7 +5641,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4349,7 +5664,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4369,7 +5699,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4387,7 +5727,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -4412,7 +5762,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4434,7 +5787,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -4460,7 +5816,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "赛题分析"
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4482,7 +5848,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "建模求解"
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4503,7 +5872,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编程实现"
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4523,7 +5895,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4543,7 +5930,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "流程与架构图绘制"
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4561,7 +5958,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "逻辑对抗复核"
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -4586,7 +5993,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "竞赛论文撰写"
+          "display_name": "竞赛论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4608,7 +6018,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译与合规检查"
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -4634,7 +6047,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "Problem Analysis"
+          "display_name": "Problem Analysis",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4656,7 +6079,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "Modeling & Solution"
+          "display_name": "Modeling & Solution",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4677,7 +6103,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "Programming"
+          "display_name": "Programming",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4697,7 +6126,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "Figure Generation"
+          "display_name": "Figure Generation",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4717,7 +6161,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "Flow & Architecture Diagrams"
+          "display_name": "Flow & Architecture Diagrams",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4735,7 +6189,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "Logic Adversarial Review"
+          "display_name": "Logic Adversarial Review",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -4760,7 +6224,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "Paper Writing (English)"
+          "display_name": "Paper Writing (English)",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4782,7 +6249,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "Compile & Compliance Check"
+          "display_name": "Compile & Compliance Check",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -4808,7 +6278,17 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "Problem Analysis"
+          "display_name": "Problem Analysis",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4830,7 +6310,10 @@
             "step_manifest",
             "modeling_contract"
           ],
-          "display_name": "Modeling & Solution"
+          "display_name": "Modeling & Solution",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4851,7 +6334,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "Programming"
+          "display_name": "Programming",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4871,7 +6357,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "Figure Generation"
+          "display_name": "Figure Generation",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4891,7 +6392,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "Flow & Architecture Diagrams"
+          "display_name": "Flow & Architecture Diagrams",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4909,7 +6420,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "Logic Adversarial Review"
+          "display_name": "Logic Adversarial Review",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "required_checks": [
           "review"
@@ -4934,7 +6455,10 @@
             "step_manifest",
             "paper_consistency"
           ],
-          "display_name": "Paper Writing (English)"
+          "display_name": "Paper Writing (English)",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -4956,7 +6480,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "Compile & Compliance Check"
+          "display_name": "Compile & Compliance Check",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -4983,7 +6510,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "文献调研与开题撰写"
+          "display_name": "文献调研与开题撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5003,7 +6533,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "技术路线图绘制"
+          "display_name": "技术路线图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5018,7 +6558,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "格式检查与 Word 导出"
+          "display_name": "格式检查与 Word 导出",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -5047,7 +6590,10 @@
             "step_manifest",
             "citation_integrity"
           ],
-          "display_name": "文献检索与综述撰写"
+          "display_name": "文献检索与综述撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5062,7 +6608,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "格式检查与 Word 导出"
+          "display_name": "格式检查与 Word 导出",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -5089,7 +6638,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "大纲与图表规划"
+          "display_name": "大纲与图表规划",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5111,7 +6663,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "数据分析"
+          "display_name": "数据分析",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5131,7 +6686,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "图表生成"
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5151,7 +6721,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "架构图/流程图绘制"
+          "display_name": "架构图/流程图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5171,7 +6751,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "课程论文撰写"
+          "display_name": "课程论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5186,7 +6769,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "格式检查与 Word 导出"
+          "display_name": "格式检查与 Word 导出",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -5214,7 +6800,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "事实提取与大纲规划"
+          "display_name": "事实提取与大纲规划",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5236,7 +6825,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "数据分析"
+          "display_name": "数据分析",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5256,7 +6848,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "数据图表生成"
+          "display_name": "数据图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5276,7 +6883,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "架构图/流程图绘制"
+          "display_name": "架构图/流程图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5296,7 +6913,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "课程报告撰写"
+          "display_name": "课程报告撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5311,7 +6931,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "格式检查与 Word 导出"
+          "display_name": "格式检查与 Word 导出",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -5338,7 +6961,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "选题与结构规划"
+          "display_name": "选题与结构规划",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5360,7 +6986,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "数据分析（可选）"
+          "display_name": "数据分析（可选）",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5380,7 +7009,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "数据图表生成（可选）"
+          "display_name": "数据图表生成（可选）",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5400,7 +7044,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "理论框架图/示意图（可选）"
+          "display_name": "理论框架图/示意图（可选）",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5420,7 +7074,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "论文撰写"
+          "display_name": "论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5435,7 +7092,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "格式检查与 Word 导出"
+          "display_name": "格式检查与 Word 导出",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -5457,7 +7117,10 @@
         "metadata": {
           "requires_subagent": false,
           "required_checks": [],
-          "display_name": "资产清点与一致性检查"
+          "display_name": "资产清点与一致性检查",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5477,7 +7140,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "论文规划"
+          "display_name": "论文规划",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5499,7 +7165,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "缺口补全(代码/结果)"
+          "display_name": "缺口补全(代码/结果)",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5519,7 +7188,22 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "缺口补全(图表)"
+          "display_name": "缺口补全(图表)",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5539,7 +7223,17 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "缺口补全(架构图/路线图)"
+          "display_name": "缺口补全(架构图/路线图)",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5562,7 +7256,10 @@
             "step_manifest",
             "citation_integrity"
           ],
-          "display_name": "论文撰写"
+          "display_name": "论文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5584,7 +7281,10 @@
             "step_manifest",
             "compilation_log"
           ],
-          "display_name": "编译 PDF"
+          "display_name": "编译 PDF",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -5610,7 +7310,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "需求分析"
+          "display_name": "需求分析",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5631,7 +7334,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "系统设计"
+          "display_name": "系统设计",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5652,7 +7358,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编码实现"
+          "display_name": "编码实现",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5672,7 +7381,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "自测验证"
+          "display_name": "自测验证",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -5698,7 +7410,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "起草申请资料"
+          "display_name": "起草申请资料",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5718,7 +7433,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "生成正式 Word/TXT"
+          "display_name": "生成正式 Word/TXT",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -5744,7 +7462,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "起草技术交底书"
+          "display_name": "起草技术交底书",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5764,7 +7485,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "渲染图示并导出 Word"
+          "display_name": "渲染图示并导出 Word",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       }
     ]
@@ -5789,7 +7513,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "架构图/流程图（JSON→SVG 确定性渲染）"
+          "display_name": "架构图/流程图（JSON→SVG 确定性渲染）",
+          "skill_binding": {
+            "main_required": true
+          }
         },
         "has_checkpoint": false,
         "checkpoint_type": null
@@ -5809,7 +7536,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "编辑级示意图（39 类品牌图型）"
+          "display_name": "编辑级示意图（39 类品牌图型）",
+          "skill_binding": {
+            "main_required": true
+          }
         },
         "has_checkpoint": false,
         "checkpoint_type": null
@@ -5831,7 +7561,22 @@
             "step_manifest",
             "figure_provenance"
           ],
-          "display_name": "数据图表（实验结果→出版级图）"
+          "display_name": "数据图表（实验结果→出版级图）",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         },
         "has_checkpoint": false,
         "checkpoint_type": null
@@ -5853,7 +7598,17 @@
             "step_manifest",
             "figure_provenance"
           ],
-          "display_name": "期刊级多面板图（误差棒/显著性/色盲安全）"
+          "display_name": "期刊级多面板图（误差棒/显著性/色盲安全）",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "期刊级图件选色真源（CVD/灰度合规）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         },
         "has_checkpoint": false,
         "checkpoint_type": null
@@ -5876,7 +7631,17 @@
             "step_manifest",
             "review"
           ],
-          "display_name": "绘图交付独立评审（子智能体）"
+          "display_name": "绘图交付独立评审（子智能体）",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "has_checkpoint": false,
         "checkpoint_type": null,
@@ -5907,7 +7672,17 @@
             "figure_provenance",
             "step_manifest"
           ],
-          "display_name": "期刊级多面板数据图"
+          "display_name": "期刊级多面板数据图",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "期刊级图件选色真源（CVD/灰度合规）",
+              "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5927,7 +7702,10 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "确定性 JSON→SVG 架构与流程图"
+          "display_name": "确定性 JSON→SVG 架构与流程图",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5947,7 +7725,10 @@
           "required_checks": [
             "figure_provenance"
           ],
-          "display_name": "编辑级品牌示意图（39 类）"
+          "display_name": "编辑级品牌示意图（39 类）",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -5968,7 +7749,17 @@
           "required_checks": [
             "review"
           ],
-          "display_name": "图表视觉审查"
+          "display_name": "图表视觉审查",
+          "assets": [
+            {
+              "name": "配色场景与使用规范",
+              "note": "视觉审查时的配色合规判据来源",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          }
         },
         "requires_subagent": true
       }
@@ -5995,7 +7786,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "投稿前检查（引用/格式/声明完整性）"
+          "display_name": "投稿前检查（引用/格式/声明完整性）",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -6016,7 +7810,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "投稿件审计（声明支撑/图片引用/数据可用性）"
+          "display_name": "投稿件审计（声明支撑/图片引用/数据可用性）",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -6036,7 +7833,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "审稿意见回复（逐条 point-by-point）"
+          "display_name": "审稿意见回复（逐条 point-by-point）",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -6057,7 +7857,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "Camera-Ready 清理（注释/调试残留/引用整理）"
+          "display_name": "Camera-Ready 清理（注释/调试残留/引用整理）",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -6080,7 +7883,17 @@
             "step_manifest",
             "review"
           ],
-          "display_name": "投稿材料独立评审（子智能体）"
+          "display_name": "投稿材料独立评审（子智能体）",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "requires_subagent": true
       }
@@ -6108,7 +7921,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "选题发现与可行性评估"
+          "display_name": "选题发现与可行性评估",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -6129,7 +7945,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "文献检索与证据登记（防编造）"
+          "display_name": "文献检索与证据登记（防编造）",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -6149,7 +7968,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "多源证据汇总与矛盾标注"
+          "display_name": "多源证据汇总与矛盾标注",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -6172,7 +7994,17 @@
             "step_manifest",
             "review"
           ],
-          "display_name": "调研报告独立评审（子智能体）"
+          "display_name": "调研报告独立评审（子智能体）",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "requires_subagent": true
       }
@@ -6200,7 +8032,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "选题发现与可行性评估"
+          "display_name": "选题发现与可行性评估",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -6221,7 +8056,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "文献检索与证据登记（防编造）"
+          "display_name": "文献检索与证据登记（防编造）",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -6241,7 +8079,10 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "基金申请书撰写（NSFC/NSF/KAKENHI/ERC 等格式）"
+          "display_name": "基金申请书撰写（NSFC/NSF/KAKENHI/ERC 等格式）",
+          "skill_binding": {
+            "main_required": true
+          }
         }
       },
       {
@@ -6264,7 +8105,17 @@
             "step_manifest",
             "review"
           ],
-          "display_name": "申请书独立评审（子智能体）"
+          "display_name": "申请书独立评审（子智能体）",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
         },
         "requires_subagent": true
       }

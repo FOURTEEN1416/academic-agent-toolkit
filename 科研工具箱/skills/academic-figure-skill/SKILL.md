@@ -1,6 +1,6 @@
 ---
 name: academic-figure-skill
-description: Academic-grade scientific figure creation for Nature/Cell/Science journals. Use when the user asks to create, polish, review, or export scientific figures for manuscript submission. DO NOT trigger for: interactive dashboards (Plotly/Bokeh/Altair), exploratory data analysis without publication intent, math function plots, pie/3D charts, PowerPoint slides, or Illustrator/Figma-first design. SKIP requests about statistical testing, data cleaning, literature review, or code debugging — these are not figure-making tasks.
+description: "Academic-grade scientific figure creation for Nature/Cell/Science journals. Use when the user asks to create, polish,"
 ---
 
 # Academic Figure Skill Hub

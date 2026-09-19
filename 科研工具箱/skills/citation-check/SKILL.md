@@ -1,6 +1,6 @@
 ---
 name: citation-check
-description: "引用检查（Citation Check for CUMCM）——国赛论文参考文献质量检查工具。覆盖：格式一致性、GB/T 7714 规范性、引用完整性、来源可信度评估。"
+description: "引用检查（Citation Check for CUMCM）——国赛论文参考文献质量检查工具。覆盖：格式一致性、GB/T 7714 规范性、引用完整性、来源可信度评估。触发词：引用检查、参考文献格式、GB/T 7714 规范、citation check；在 comp-literature / comp-final-audit 步骤与交付前引用终检时使用。"
 ---
 
 # 引用检查（Citation Check for CUMCM）

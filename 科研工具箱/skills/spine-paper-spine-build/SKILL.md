@@ -1,6 +1,6 @@
 ---
 name: spine-paper-spine-build
-description: Builds a paper or report from materials using the shared PaperSpine research, motivation, and rationale workflow. (internal /paperspine step)
+description: "Builds a paper or report from materials using the shared PaperSpine research, motivation, and rationale workflow."
 ---
 
 

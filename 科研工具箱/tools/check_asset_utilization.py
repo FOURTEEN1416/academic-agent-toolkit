@@ -229,11 +229,29 @@ def _print_report(result: dict) -> None:
     if cov["missing"]:
         print("    漏网（必须归入 CONTEST_SKILL_MAP 五类之一）: " + ", ".join(cov["missing"]))
     tpl = result["template_assets"]
-    print(f"[3] 模板资产指针：校验 {tpl.get('checked', 0)} 条 / 失联 {len(tpl.get('missing', []))}")
-    for m in tpl.get("missing", []):
-        print(f"    失联: {m['template']}/{m['step']} — {m['asset']} → {m['path']}")
+    _miss = tpl.get("missing", [])
+    _undelivered = [m for m in _miss if is_local_only_asset(m.get("path", ""))]
+    _fake = [m for m in _miss if not is_local_only_asset(m.get("path", ""))]
+    print(f"[3] 模板资产指针：校验 {tpl.get('checked', 0)} 条 / 失联 {len(_miss)}"
+          f"（未交付私有资产 {len(_undelivered)} / 真假接线 {len(_fake)}）")
+    for m in _fake:
+        print(f"    ❌ 假接线: {m['template']}/{m['step']} — {m['asset']} → {m['path']}")
+    for m in _undelivered:
+        print(f"    ○ 未交付（公开 clone 不含该私有资料区，不拦截）: {m['path']}")
     if tpl.get("error"):
         print(f"    ⚠️ {tpl['error']}")
+
+
+# 公开 clone / CI 不交付的本地私有资料区（被根 .gitignore 隔离）。
+# 资产指针落在这些前缀下时，缺失属"未交付"而非"假接线"——strict 不据此拦截。
+# 与 tests/test_asset_utilization.py 的 LOCAL_ASSET_ROOTS 同源，此处为工具侧单一真源。
+LOCAL_ONLY_ASSET_ROOTS = ("参考论文", "参考图", "CUMCM论文模板", "CUMCM2026Problems")
+
+
+def is_local_only_asset(path: str) -> bool:
+    """该资产路径是否落在不随公开仓交付的私有资料区下。"""
+    p = str(path or "").replace("\\", "/").lstrip("./")
+    return any(p == r or p.startswith(r + "/") for r in LOCAL_ONLY_ASSET_ROOTS)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -266,7 +284,12 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
         _print_report(result)
-    if args.strict and (cov["missing"] or tpl.get("missing")):
+    # 2026-09-19：资产指针落在 gitignored 私有资料区时，缺失属"公开 clone 未交付"
+    # 而非"假接线"——否则公开仓/CI 上 project_health_check 的 asset_utilization
+    # 组件会误报 FAIL（实测公开 clone 唯一 FAIL 组件即此）。
+    fake_wiring = [m for m in (tpl.get("missing") or [])
+                   if not is_local_only_asset(m.get("path", ""))]
+    if args.strict and (cov["missing"] or fake_wiring):
         return 1
     return 0
 

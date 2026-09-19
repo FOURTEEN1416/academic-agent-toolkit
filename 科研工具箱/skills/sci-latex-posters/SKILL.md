@@ -1,6 +1,6 @@
 ---
 name: sci-latex-posters
-description: "Create professional research posters in LaTeX using beamerposter, tikzposter, or baposter. Support for conference presentations, academic posters, and scientific communication. Includes layout design, color schemes, multi-column formats, figure integration, and poster-specific best practices for visual communication."
+description: "Create professional research posters in LaTeX using beamerposter, tikzposter, or baposter. Support for conference presentations, academic posters, and scientific communication. Includes layout design, color schemes, multi-column formats, figure integration, and poster-specific best practices for visual communication. Use when 用户说\\"做学术海报\\"\\"会议海报\\"\\"LaTeX 海报\\"或要求把论文改成一页海报时。从已成稿论文走流水线生成海报改用 paper-poster。"
 allowed-tools: Read Write Edit Bash
 metadata:
   version: "1.0"

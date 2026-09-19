@@ -1,6 +1,6 @@
 ---
 name: research-refine-pipeline
-description: 'Run an end-to-end workflow that chains `research-refine` and `experiment-plan`. Use when the user wants a one-shot pipeline from vague research direction to focused final proposal plus detailed experiment roadmap, or asks to "串起来", build a pipeline, do it end-to-end, or generate both the method and experiment plan together.'
+description: "'Run an end-to-end workflow that chains `research-refine` and `experiment-plan`. Use when the user wants a one-shot"
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent
 ---
 

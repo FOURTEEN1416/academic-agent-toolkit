@@ -1,6 +1,6 @@
 ---
 name: docx-template-map
-description: "分析用户上传的 .docx/.dotx 模板，识别占位段位置，生成 _template_map.json，并通过「试填→自检→修复」循环验证映射正确性。Use when user says \"分析 word 模板\", \"识别模板占位\", \"docx-template-map\"."
+description: "分析上传的 .docx/.dotx 模板，识别占位段位置并生成映射文件，再以试填、自检、修复三步循环验证映射正确。触发词：分析 word 模板、识别模板占位、docx-template-map、模板占位映射。"
 argument-hint: [template-path]
 allowed-tools: Bash(*), Read, Write, Edit
 ---

@@ -1,25 +1,49 @@
 ---
 name: paper-figure-palette
-description: "科技论文/报告图表配色体系（源自 CUMCM 2026A 论文 v6 定稿「夏日海滩」8 色板，经 LCH 去灰提彩与灰度/色盲复核）。当用户要求论文图表上色、让整体配色协调好看、matplotlib 或 TikZ 图上色、做顺序色带/热图 colormap、渐变填充、荧光描边、墨色线条，或抱怨配色发灰、发闷、不协调、太乱、不像顶刊，或需要把论文配色移植到 Word/PPT/Excel 时使用。提供 8 色冷暖双族色板、4 色中性系统、墨色映射、五条配色铁律、质感配方与机器体检（对比度/去灰比/灰度单调/色盲区分）。触发词：配色、色板、palette、上色、协调、色带、colormap、墨色、图表美化、figure color。"
+description: "统一配色体系（多场景）：先按数据类型选分类/顺序/发散色板，再按场景（中文竞赛论文 / 英文期刊投稿 / 学位论文与课程报告 / 答辩幻灯与海报 / Word-PPT-Excel 内嵌）落地，含 9 套色板色值真源、10 条使用规范、5 项禁用清单。触发词：配色、色板、palette、上色、协调、色带、colormap、墨色、图表美化、figure color、色盲友好、colorblind、CVD、灰度打印、无障碍、Okabe-Ito、Paul Tol、viridis、cividis、RdBu、期刊投稿图配色、黑白打印可读、配色移到 Word/PPT/Excel、jet 色带能不能用。合规（灰度/色盲可分）与美观冲突时以合规为准。"
 agent_created: true
 ---
 
-# 论文图表配色体系（paper-figure-palette v6）
+# 统一论文图表配色体系（多场景 · paper-figure-palette）
 
-一套已通过印刷实践检验的配色体系：**8 色分冷暖两族 + 4 色中性 + 同色系墨色**，
-核心思想是"8 色只作大面积填充与色带，线条/文字交给深色墨色系统"，
-配合灰度单调与色盲安全复核，保证彩色、灰度打印、色觉障碍三种介质下均可读。
+一套**先定类型、再定场景**的配色体系。核心是两句话：
+
+1. **类型优先于色值**：先判断数据是分类 / 单向连续 / 有零点（发散），再选具体色板——类型选错，
+   任何美化都救不回来。
+2. **三层分工**：色板承担填充与色带；线条、描边、图例文字交给同色相**墨色**系统。
+   本地 8 色对白底对比度仅 1.3–2.1:1，**严禁直接作文字色或细线色**。
 
 ## 0. 真源与工具（动手前先定位）
 
 | 资源 | 路径 | 用途 |
 |---|---|---|
-| 色板真源 | `assets/palette_v6.json` | 8 色 LCH 量测、墨色映射、色带端点 |
-| 工具脚本 | `scripts/palette_kit.py` | `preview` 出色卡 / `check` 体检 / `hex` 列色值 |
+| **场景与规范真源（先读这个）** | `references/scenarios.md` | 三步选色法、5 场景 × 色板映射、10 条规范、禁用清单 |
+| **色板注册表（机器真源）** | `assets/palette_registry.json` | 9 套色板的色值/类型/CVD 契约/场景映射 |
+| 本地色板真源 | `assets/palette_v6.json` | 8 色 LCH 量测、墨色映射、色带端点 |
+| 工具脚本 | `scripts/palette_kit.py` | `registry-verify` 注册表体检 / `check` 本地体检 / `hex` 列色值 / `preview` 出色卡 |
 | 原理详解 | `references/color-system.md` | 为什么这样设计（LCH、两族、单调性） |
 | 移植配方 | `references/recipes.md` | matplotlib / TikZ / Word / PPT / Excel 完整代码 |
 
-## 1. 色板速查（8 + 4 + 2）
+```bash
+cd <本技能>/scripts
+python palette_kit.py registry-verify   # 多场景注册表体检（色值/单调性/CVD 契约/场景交叉一致）
+python palette_kit.py check             # 本地 8 色板体检（对比度/去灰比/灰度单调/色盲最近对）
+```
+
+## 0.5 五场景速选（完整规范见 `references/scenarios.md`）
+
+| 场景 | 分类色 | 顺序色带 | 发散 | CVD 政策 |
+|------|--------|----------|------|----------|
+| 中文竞赛论文 | `summer-beach-v6` | 夏日海滩 温度/水分色带 | `rdbu` | 允许第二编码（**必须**叠线型/标记/直接标签） |
+| 英文期刊投稿 | `okabe-ito` | `viridis`（无障碍换 `cividis`） | `rdbu` | **要求直用可分** |
+| 学位论文/课程报告 | `tol-bright` | `cividis` | `pu-or` | **要求直用可分** |
+| 答辩幻灯/海报 | `tol-bright` | `viridis` | `rdbu` | 要求直用可分 |
+| Word/PPT/Excel 内嵌 | `summer-beach-v6` | 夏日海滩温度色带 | `rdbu` | 允许第二编码 |
+
+**禁用零容忍**：`jet`/`rainbow`/`turbo`、`RdGn`/`RdYlGn`（红-绿）、`hsv`；
+期刊品牌色板（ggsci npg/jama/lancet/nejm）是**风格合规**工具、不是无障碍工具，用它必须自行复核。
+
+## 1. 本地 8 色板速查（8 + 4 + 2）
 
 **暖族（温度/热/主体 A）**——按色相推进排布，L* 基本单调：
 
@@ -36,7 +60,7 @@ agent_created: true
 | 键 | Hex | L* | 角色 |
 |---|---|---|---|
 | M4 | `#9FE698` | 85.0 | 族内最浅：浅端填充 |
-| M3 | `mix_lab(M4,M2,0.5)` | ≈81.7 | 族内补位（LAB 插值生成，非手选） |
+| M3 | `mix_lab(M4,M2,0.5)` = `#90D9CB` | ≈81.7 | 族内补位（LAB 插值生成，非手选） |
 | MMAIN | `#6FCDFD` | 78.5 | **族锚**：水分主曲线 |
 | M1 | `#2BC3F1` | 73.5 | 族内最深：深端曲线；与 TACC 构成 181° 互补对 |
 
@@ -72,15 +96,20 @@ agent_created: true
 
 ## 3. 新图上色工作流
 
+0. **选场景**：按 `references/scenarios.md` §二 判定本次属于哪个场景（竞赛/期刊/学位/幻灯/Office），
+   拿到该场景的分类色板 + 顺序色带 + 发散色板；不确定时先跑 `palette_kit.py registry-verify`
+   确认注册表自身健康（含禁用清单与场景交叉一致）。
 1. **定性**：图里有哪些语义角色？主量/次量 → 两族锚色；强调 → TACC；
    判据/阈值 → CRIT；参考线 → NEU；文字 → INK。
 2. **取色**：从 `scripts/palette_kit.py` 导入常量（`from palette_kit import *`），
-   或查 §1 速查表；深色一律 `deepen(hex)`。
+   或查 §1 速查表；深色一律 `deepen(hex)`。**跨场景时色值按注册表取，不自行调色**。
 3. **色带**：热图/曲面用 `CMAP_TEMP` / `CMAP_MOIST`（LAB 感知均匀插值，
-   近白起点 + 族内浅→深 + 设计深端）；**禁止 rainbow/jet**。
+   近白起点 + 族内浅→深 + 设计深端）；期刊/学位场景用 `viridis`/`cividis`；
+   **禁止 rainbow/jet**。
 4. **排版**：按 `references/recipes.md` 的 rcParams 与 TikZ 样式块设置字号/网格/图例。
 5. **体检**：`python scripts/palette_kit.py check` 全过；新配色修改后重跑。
 6. **灰度/色盲抽查**：check 输出含灰度 L* 序与色盲最近色对距离，异常即调。
+   命中 ΔE 介于 12–25 的 WARN 时，**必须叠加第二编码并在图注/交付说明留痕**。
 
 ## 4. 配色诊断（用户说"不好看"时）
 

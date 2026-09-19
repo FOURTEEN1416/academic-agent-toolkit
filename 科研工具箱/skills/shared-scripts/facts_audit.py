@@ -512,6 +512,14 @@ def audit_paper_numbers_traceability(facts: dict, paper_path=None,
 
     # 把 facts 数值字段也作为合法值
     facts_set = extract_numbers_from_facts(facts)
+    # paper 段同 modeling 段的 DATA_FACTS 合并：派生值/互证参照按契约只入 DATA_FACTS
+    # （PROBLEM_FACTS 数值字段须题面 OCR 溯源），漏合并会把正文真实数字误判为凭印象。
+    datafacts_path = Path('DATA_FACTS.json')
+    if datafacts_path.is_file():
+        try:
+            facts_set |= extract_numbers_from_facts(json.loads(datafacts_path.read_text(encoding='utf-8')))
+        except (ValueError, OSError):
+            pass
     facts_nums_str = ''
     for v in facts_set:
         facts_nums_str += f' {v} '
@@ -959,7 +967,17 @@ def run_audit(stage='full') -> int:
     # 模块 5-8: code stage 才跑（需要 facts）
     if facts and stage in ('code', 'full'):
         print('\n[5] 代码端审计（裸数字 vs facts）')
-        fails = audit_code_against_facts(facts)
+        # 合并 DATA_FACTS.json 数值字段（§审计三源设计：DATA_FACTS=数据事实台账/亲算派生
+        # 值的合法登记处——与 modeling 阶段同源；缺文件则仅用 PROBLEM_FACTS）
+        facts_all = dict(facts)
+        try:
+            from pathlib import Path as _P
+            _df = _P('DATA_FACTS.json')
+            if _df.exists():
+                facts_all.update(json.loads(_df.read_text(encoding='utf-8')))
+        except Exception:
+            pass
+        fails = audit_code_against_facts(facts_all)
         for f in fails[:10]:
             print(f'  {f}')
         if len(fails) > 10:

@@ -1,6 +1,6 @@
 ---
 name: auto-review-loop
-description: Autonomous multi-round research review loop. Repeatedly reviews via external reviewer script, implements fixes, and re-reviews until positive assessment or max rounds reached. Use when user says "auto review loop", "review until it passes", or wants autonomous iterative improvement.
+description: "Autonomous multi-round research review loop. Repeatedly reviews via external reviewer script, implements fixes, and。区别于 auto-review-loop-llm 与 auto-review-loop-minimax：本技能用本仓自带审稿脚本，不接外部 LLM API。"
 argument-hint: [topic-or-scope]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent, Skill
 ---

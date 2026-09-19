@@ -1,6 +1,6 @@
 ---
 name: paper-writing-ucsb
-description: "Research paper writing assistant that enforces Arpit Gupta's editorial principles, voice profile, and writing workflow. MANDATORY TRIGGERS: Use this skill whenever the user mentions writing a paper, drafting a section, revising a section, editing a paper, reviewing a draft, rewriting an introduction, writing an evaluation, polishing prose, compressing text, or any task involving .tex files, Overleaf, conference submissions, or paper deadlines. Also trigger when the user mentions any paper by name (NetBurst, NetForge, BQT+, TurboTest, etc.) in a writing context. This skill should activate for ANY research writing task — sections, abstracts, rebuttals, camera-ready edits, cover letters, or response to reviewers."
+description: "按 UCSB 学术写作规范写论文：段落中心句先行、证据与论断配对、章节功能定位、读者预期管理。触发词：UCSB 写作规范、段落结构、中心句、学术论证、论文段落改写法、topic sentence、evidence-claim pairing。"
 ---
 
 # Paper Writing Skill

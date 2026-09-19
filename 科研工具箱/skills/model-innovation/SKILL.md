@@ -1,14 +1,7 @@
 ---
 name: model-innovation
 version: 1.0.0
-description: >
-  模型创新辅助专家。提供 3 个核心能力：
-  1. arxiv + duckduckgo 实时检索前沿方法
-  2. 查重（避免和历年国一撞方法）
-  3. 魔改/组合/自创模型的 prompt 模板
-
-  【国一价值】25% 权重——创新是国一核心
-  【数据局限】无历年国一论文库 → 用 arxiv 替代
+description: "> 模型创新辅助专家。提供 3 个核心能力： 1. arxiv + duckduckgo 实时检索前沿方法 2. 查重（避免和历年国一撞方法） 3. 魔改/组合/自创模型的 prompt 模板 【国一价值】25% 权重——创新是国一核心"
 tools:
   - fetch
   - sequential-thinking

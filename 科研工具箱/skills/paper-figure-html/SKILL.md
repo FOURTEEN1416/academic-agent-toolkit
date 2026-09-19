@@ -1,6 +1,6 @@
 ---
 name: paper-figure-html
-description: "用 HTML+CSS 画流程图/技术路线图/系统架构图/流水线/框架矩阵图，再用 Electron printToPDF 转成矢量 PDF 供论文 \\includegraphics 引用。paper-figure-drawio 的 HTML 平替（默认）。当用户说\"画HTML图\"、\"技术路线图\"、\"流程图\"或需要论文非数据类示意图时使用。"
+description: "用 HTML+CSS 画流程图/技术路线图/系统架构图/流水线/框架矩阵图，再用 Electron printToPDF 转成矢量 PDF 供论文 \\includegraphics 引用。"
 argument-hint: [figure-plan-or-data-path]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 ---

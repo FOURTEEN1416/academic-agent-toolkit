@@ -169,8 +169,10 @@ def test_check_template_assets_detects_missing(tmp_path):
 # ---------- companion 修剪定案钉死 + 地图↔引擎同步 ----------
 
 def test_comp_cumcm_companion_lists_compact():
-    """2026-09-12 修剪定案的机器化存证：14 步推荐槽位 54→11，
-    仅保留合同互补位（CR/NA/Dup/ST 分类见 LOG 续20/21 与地图 §二修剪注）。"""
+    """推荐槽位紧缩度存证：2026-09-12 修剪定案 54→11，仅保留合同互补位
+    （CR/NA/Dup/ST 分类见 LOG 续20/21 与地图 §二修剪注）；
+    2026-09-19 P4 技能绑定落地时为 step5 补入必用位 `paper-figure-palette`
+    （配色统一注册表，色值不得自创）→ 11→12。"""
     data = json.loads((ROOT / "engine" / "modex-core" / "templates.json").read_text(encoding="utf-8"))
     steps = {s["skill_name"]: s for s in data["comp_cumcm"]["sub_steps"]}
     expected = {
@@ -178,7 +180,7 @@ def test_comp_cumcm_companion_lists_compact():
         "comp-literature": ["citation-check"],
         "comp-modeling": ["sci-sympy"],
         "comp-code": ["sci-statistical-analysis"],
-        "paper-figure": ["figure-aesthetics-craft"],
+        "paper-figure": ["figure-aesthetics-craft", "paper-figure-palette"],
         "paper-figure-drawio": [],
         "comp-review": [],
         "comp-paper-zh": [],
@@ -191,7 +193,7 @@ def test_comp_cumcm_companion_lists_compact():
     }
     for skill, comp in expected.items():
         assert steps[skill]["metadata"]["companion_skills"] == comp, skill
-    assert sum(len(c) for c in expected.values()) == 11
+    assert sum(len(c) for c in expected.values()) == 12
 
 
 def test_map_section2_matches_engine_companions():
@@ -223,11 +225,21 @@ def test_map_section2_matches_engine_companions():
 
 
 def test_comp_cumcm_steps_carry_expected_assets():
-    """14 步中至少 10 步带非空 assets（S4/S7/S12/S13 有意不设），且每条含 name/path/note。"""
+    """14 步中 12 步带非空 assets（S4/S12 有意不设），且每条含 name/path/note。
+
+    计数演进：原始 10 步（S4/S7/S12/S13 不设）→ 2026-09-19 P5 为 S7（逻辑复核）与
+    S13（终审）挂上「反合理化表」（跳过步骤的常见借口与反驳），故 10→12。
+    这是**有意增补**：S7/S13 正是"自审 vs 独立审"最容易合理化的两个位置。
+    """
     data = json.loads((ROOT / "engine" / "modex-core" / "templates.json").read_text(encoding="utf-8"))
     steps = data["comp_cumcm"]["sub_steps"]
+    by_skill = {s["skill_name"]: s for s in steps}
     with_assets = [s for s in steps if s.get("metadata", {}).get("assets")]
-    assert len(with_assets) == 10
+    assert len(with_assets) == 12
     for s in with_assets:
         for asset in s["metadata"]["assets"]:
             assert asset.get("name") and asset.get("path"), s["skill_name"]
+    # 反合理化表必须挂在"最容易被合理化"的三步上（复核 / 终审 / 交付审计）
+    for skill in ("comp-review", "comp-final-review", "comp-final-audit"):
+        names = {a["name"] for a in by_skill[skill]["metadata"]["assets"]}
+        assert "反合理化表" in names, skill

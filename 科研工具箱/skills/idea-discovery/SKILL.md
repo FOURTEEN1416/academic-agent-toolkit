@@ -1,6 +1,6 @@
 ---
 name: idea-discovery
-description: "Workflow 1: Full idea discovery pipeline. Orchestrates research-lit → idea-creator → novelty-check → research-review to go from a broad research direction to validated, pilot-tested ideas. Use when user says \"找idea全流程\", \"idea discovery pipeline\", \"从零开始找方向\", or wants the complete idea exploration workflow."
+description: "找研究方向全流程编排：文献检索、创意生成、新颖性核查、评审四步，把宽泛方向变成经试点验证的选题。触发词：找idea全流程、idea discovery pipeline、从零开始找方向。"
 argument-hint: [research-direction]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent, Skill
 ---

@@ -289,13 +289,26 @@ def test_cli_complete_waiting_checkpoint_output_contains_checkpoint_id(cli_env, 
     output_file = action["output_files"][0]
     path = ws / output_file
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("# 赛题分析\n\n" + "内容充实。" * 1000, encoding="utf-8")
+    # P5 退出判据（2026-09-19）：step1 的 PROBLEM_ANALYSIS.md 现声明 output_specs
+    # （min_bytes 4000 + require_any 假设/模型/求解/问题）——测试正文须含实质特征词，
+    # 否则会被"目录级薄产物"拦截。这里按真实产物的形态写。
+    body = (
+        "# 赛题分析\n\n## 一、问题重述与拆解\n本题共 4 个子问题，需分别给出**假设**、"
+        "**模型**与**求解**路径。\n\n## 二、模型假设\n1. 假设物料各向同性且热物性随含水率变化。\n"
+        "2. 假设干燥介质温度在腔体内均匀。\n\n## 三、建模与求解思路\n问题1建立一维传热**模型**，"
+        "问题2引入对流边界，问题3把边界条件改为连续事件的**求解**，问题4做参数灵敏度分析。\n"
+    )
+    path.write_text(body * 12, encoding="utf-8")
     skill_sha = hashlib.sha256(Path(action["skill_path"]).read_bytes()).hexdigest()
     evidence = {
         "schema_version": 1, "agent": "OpenCode Desktop",
         "step_id": action["step_id"], "skill_name": action["skill_name"],
         "skill_sha256": skill_sha,
-        "commands": [{"command": "python code/gen_report.py", "returncode": 0, "cwd": "."}],
+        # P4 技能绑定（2026-09-19）：真实模板步骤默认声明 main_required=true，
+        # 主技能契约必须留真实读取痕迹——咨询命令随本测试显式给出（这正是新闸要的形态：
+        # 不是"应该读了"，而是 evidence 里有一条读技能的命）。
+        "commands": [{"command": "python code/gen_report.py", "returncode": 0, "cwd": "."},
+                     {"command": f"cat {action['skill_path']}", "returncode": 0, "cwd": "."}],
         "inputs": [], "outputs": [output_file],
         # 真实模板第 1 步（2026-09-12 修剪后推荐清单为空）：链路验证级按 next 输出动态如实申报。
         # 清单为空时 C1 闸不激活，字段可省略；此处仍随 action 输出以保持契约演练覆盖。

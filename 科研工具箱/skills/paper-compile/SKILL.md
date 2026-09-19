@@ -1,6 +1,6 @@
 ---
 name: paper-compile
-description: "Compile English LaTeX paper to PDF using pdflatex. Use when user says \"compile paper\", \"build PDF\", or wants to compile an English academic paper."
+description: "Compile English LaTeX paper to PDF using pdflatex. Use when user says \”compile paper\”, \”build PDF\”, or wants to"
 argument-hint: [paper-directory]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 ---

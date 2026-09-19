@@ -1,6 +1,6 @@
 ---
 name: result-to-claim
-description: Use when experiments complete to judge what claims the results support, what they don't, and what evidence is still missing. Codex MCP evaluates results against intended claims and routes to next action (pivot, supplement, or confirm). Use after experiments finish — before writing the paper or running ablations.
+description: "Use when experiments complete to judge what claims the results support, what they don't, and what evidence is still"
 argument-hint: [experiment-description-or-wandb-run]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, mcp__codex__codex, mcp__codex__codex-reply
 ---

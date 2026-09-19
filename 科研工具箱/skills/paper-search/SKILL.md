@@ -1,6 +1,6 @@
 ---
 name: paper-search
-description: Search for academic papers by keyword, or look up a specific paper by DOI or OpenAlex ID. Powered by OpenAlex (250M+ works, free, no API key).
+description: "Search for academic papers by keyword, or look up a specific paper by DOI or OpenAlex ID. Powered by OpenAlex (250M+"
 ---
 
 Search for academic papers and get details including title, authors, citation count, DOI, abstract, and open access links.

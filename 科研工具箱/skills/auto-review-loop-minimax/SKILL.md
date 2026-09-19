@@ -1,6 +1,6 @@
 ---
 name: auto-review-loop-minimax
-description: Autonomous multi-round research review loop using MiniMax API. Use when you want to use MiniMax directly for external review. Trigger with "auto review loop minimax" or "minimax review".
+description: "Autonomous multi-round research review loop using MiniMax API. Use when you want to use MiniMax directly for external review. Trigger with \”auto review loop minimax\” or \”minimax review\”.。区别于 auto-review-loop-llm：本技能只走 MiniMax 官方 API，其它 OpenAI 兼容端点改用 auto-review-loop-llm。"
 argument-hint: [topic-or-scope]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent, Skill
 ---

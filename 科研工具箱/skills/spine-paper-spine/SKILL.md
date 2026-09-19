@@ -1,6 +1,6 @@
 ---
 name: spine-paper-spine
-description: Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end, then output LaTeX/PDF/Word. The main PaperSpine entry point that orchestrates every step.
+description: "Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end, then output"
 ---
 
 

@@ -153,3 +153,32 @@ def test_real_template_comp_cumcm_output_specs_in_place():
     assert int(code["min_bytes"]) > 0
     assert code["require_any"]
     assert code.get("rationale")
+
+
+def test_real_template_output_specs_scoped_to_declared_steps():
+    """comp_cumcm 模板的 output_specs 声明面（防漂移棘轮）。
+
+    D7（2026-09-13）最初只挂文献台账与结果汇总两处；2026-09-19 P5 同类项目融合
+    依"退出判据（exit criteria）优于散文"把规格扩到全部**中间与交付类产出**
+    （赛题分析/建模/逻辑复核/一致性/视觉审查/编辑/交付审计）——关键字全部由真实
+    产物（workspaces/cumcm2026A/*）实测推导，非拍脑袋。
+
+    棘轮口径：仍是"扩散须显式改本测试"。若后续模板编辑误将规格再扩散（例如给
+    paper-figure 也配 min_bytes），本测试立即报警。
+    """
+    templates = json.loads(
+        (ROOT / "engine" / "modex-core" / "templates.json").read_text(encoding="utf-8"))
+    steps = templates["comp_cumcm"]["sub_steps"]
+
+    def declares(step):
+        return bool(step.get("output_specs")
+                    or step.get("metadata", {}).get("output_specs"))
+
+    declared = {s["skill_name"] for s in steps if declares(s)}
+    assert declared == {
+        # D7 原始两处
+        "comp-literature", "comp-code",
+        # P5 退出判据扩展（2026-09-19）
+        "comp-prob-analysis", "comp-modeling", "comp-review", "comp-consistency",
+        "comp-visual-review", "comp-editor", "comp-final-audit",
+    }

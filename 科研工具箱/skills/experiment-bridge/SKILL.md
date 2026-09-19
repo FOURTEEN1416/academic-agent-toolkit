@@ -1,6 +1,6 @@
 ---
 name: experiment-bridge
-description: "Implement experiments, run code, collect results, and generate publication-quality figures. Accepts an experiment plan, a research idea, or uploaded data. Use when user says \"实现实验\", \"implement experiments\", \"bridge\", \"从计划到跑实验\", \"跑实验出图\", \"run experiments\", \"deploy the plan\", or has an experiment plan or idea ready to execute."
+description: "Implement experiments, run code, collect results, and generate publication-quality figures. Accepts an experiment plan,"
 argument-hint: [experiment-plan-path-or-topic]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, Skill
 ---

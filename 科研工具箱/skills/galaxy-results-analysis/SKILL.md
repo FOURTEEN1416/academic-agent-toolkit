@@ -1,6 +1,6 @@
 ---
 name: galaxy-results-analysis
-description: This skill should be used when the user asks to "analyze experimental results", "run strict statistical analysis", "compare model performance", "generate scientific figures", "check significance", "do ablation analysis", or mentions interpreting experiment data with rigorous statistics and visualization. It focuses on strict analysis bundles, not Results-section prose.
+description: "This skill should be used when the user asks to ”analyze experimental results”, ”run strict statistical analysis”,"
 tags: [Research, Analysis, Statistics, Visualization, Scientific Reporting]
 version: 0.2.0
 ---

@@ -4,7 +4,7 @@
 
 ## 当前入口
 
-从共享根 `D:\Desktop\数模竞赛` 启动 OpenCode Desktop。根 `opencode.json` 配置默认角色、技能路径和本套件的 `AGENTS.md` 指令。
+从共享根（**git clone 后的仓库根**，本检出目录名 `学术工作流`；公开仓以本地 clone 路径为准）启动 OpenCode Desktop。根 `opencode.json` 配置默认角色、技能路径和本套件的 `AGENTS.md` 指令。docsearch MCP 在 tracked 配置中使用可移植占位符——本机绝对路径须放在**未提交的本地覆盖**中。
 
 在 Agent 会话中，先按 `AGENTS.md` 的路由加载对应技能。工作流引擎只记录状态与验证证据：
 

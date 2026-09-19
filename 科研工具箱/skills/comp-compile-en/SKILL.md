@@ -2,8 +2,7 @@
 
 name: comp-compile-en
 
-description: "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says \"compile MCM paper\", \"编译美赛论文\"."
-
+description: "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says \”compile MCM paper\”,。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。"
 argument-hint: [paper-directory]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob

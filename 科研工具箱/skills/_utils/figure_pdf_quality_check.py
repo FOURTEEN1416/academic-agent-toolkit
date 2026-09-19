@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import re
 import shutil
@@ -485,6 +486,43 @@ def _selection_key(value: str | Path) -> str:
     return raw
 
 
+def _load_overrides(fig_dir: Path, override_arg: str | None) -> dict:
+    """Load per-figure threshold exemptions (D4: kill 'wolf-crying' FAIL noise).
+
+    Resolves a ``gates_override.json`` from, in order: the explicit ``--override``
+    argument, ``<fig_dir>/../gates_override.json``, or ``<fig_dir>/gates_override.json``.
+    Expected shape (all keys optional)::
+
+        {
+          "figure_pdf_quality": {
+            "fig_validation_summary.pdf": {"threshold": 6.5, "rationale": "对齐图1视觉字号，官方无规定"},
+            "palette_preview.pdf":     {"threshold": 7.5, "rationale": "不入论文的诊断图板"}
+          }
+        }
+
+    ``label`` matching is casefolded and compared against the figure path relative
+    to ``fig_dir`` (e.g. ``fig_validation_summary.pdf``). A hit lowers the failure
+    threshold for that figure only; other checks (font embedding, contrast, overlap,
+    boundary, whitespace) are unaffected. Malformed or missing files degrade to no
+    overrides and never crash the gate.
+    """
+    candidates: list[Path] = []
+    if override_arg:
+        candidates.append(Path(override_arg))
+    candidates.append(fig_dir.parent / "gates_override.json")
+    candidates.append(fig_dir / "gates_override.json")
+    for cand in candidates:
+        try:
+            if cand.is_file():
+                data = json.load(open(cand, encoding="utf-8"))
+                block = data.get("figure_pdf_quality") if isinstance(data, dict) else None
+                if isinstance(block, dict):
+                    return {str(k).casefold(): v for k, v in block.items()}
+        except (OSError, ValueError):
+            continue
+    return {}
+
+
 def _preview_color_notes(pdf: Path) -> list[str]:
     """Spot obvious PDF/PNG color loss, not an aesthetic or color-count gate.
 
@@ -532,9 +570,11 @@ def check_directory(
     paper_dir: Path | None = None,
     only: list[str] | None = None,
     referenced_only: bool = False,
+    overrides: dict | None = None,
 ) -> tuple[list[str], list[str]]:
     failures: list[str] = []
     warnings: list[str] = []
+    overrides = overrides or {}
     includes = _include_widths(paper_dir)
     textwidth_in, textheight_in = _paper_text_area_inches(paper_dir)
     paths = sorted(fig_dir.rglob("*.pdf"))
@@ -615,6 +655,20 @@ def check_directory(
             continue
         final_p10 = p10 * min(display_widths) * 72.0 / width_pt
         if final_p10 + 1e-6 < MIN_FINAL_FONT_PT:
+            ov = overrides.get(label.casefold())
+            if isinstance(ov, dict):
+                thr = ov.get("threshold")
+                try:
+                    thr = float(thr) if thr is not None else None
+                except (TypeError, ValueError):
+                    thr = None
+                if thr is not None and final_p10 + 1e-6 >= thr:
+                    rationale = ov.get("rationale", "已登记豁免")
+                    warnings.append(
+                        f"{label}：10% 分位文字 {final_p10:.1f} pt 低于默认 {MIN_FINAL_FONT_PT:.0f} pt，"
+                        f"已按 gates_override 豁免（阈值 {thr:g} pt；{rationale}）"
+                    )
+                    continue
             failures.append(
                 f"{label}：按论文实际插入尺寸估算，10% 分位文字仅 {final_p10:.1f} pt；"
                 f"最低要求 {MIN_FINAL_FONT_PT:.0f} pt，请收窄原生画布、增大字号或重排信息"
@@ -631,11 +685,16 @@ def main(argv: list[str] | None = None) -> int:
         "--only", action="append", default=[],
         help="只检查指定 PDF（可重复；接受文件名、相对 figures 路径或不带 .pdf 的 stem）",
     )
+    parser.add_argument(
+        "--override", type=str, default=None,
+        help="阈值豁免文件路径（默认自动探测 <fig_dir>/../gates_override.json 或 <fig_dir>/gates_override.json）",
+    )
     args = parser.parse_args(argv)
     if not args.fig_dir.is_dir():
         print("  (未找到 figures 目录，跳过图 PDF 终检)")
         return 0
-    failures, warnings = check_directory(args.fig_dir, args.paper, only=args.only, referenced_only=args.referenced_only)
+    overrides = _load_overrides(args.fig_dir, args.override)
+    failures, warnings = check_directory(args.fig_dir, args.paper, only=args.only, referenced_only=args.referenced_only, overrides=overrides)
     for item in warnings[:12]:
         print("  WARN: " + item)
     if failures:

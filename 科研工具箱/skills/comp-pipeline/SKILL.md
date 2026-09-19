@@ -1,6 +1,6 @@
 ---
 name: comp-pipeline
-description: "数学建模竞赛全流程编排器：问题分析→文献→建模→求解→结果→论文→编译→审查。Use when 用户要完成一个完整的数模竞赛题目。"
+description: "数学建模竞赛全流程编排器：串起问题分析、文献、建模、求解、结果、论文、编译、审查八个阶段。触发词：数模全流程、完整做一道竞赛题、comp-pipeline、从读题到交付。"
 allowed-tools: [Read, Write, Edit, Bash(python:*), WebFetch, WebSearch]
 ---
 

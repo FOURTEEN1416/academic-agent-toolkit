@@ -1,7 +1,7 @@
 ---
 name: scholar-doi-bibtex
 user_invocable: true
-description: Fetch BibTeX citation from DOI and add to .bib file. Use when user provides a DOI and needs BibTeX entry added to their bibliography, especially when working on academic papers.
+description: "Fetch BibTeX citation from DOI and add to .bib file. Use when user provides a DOI and needs BibTeX entry added to their"
 ---
 
 # DOI to BibTeX

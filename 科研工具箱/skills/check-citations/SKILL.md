@@ -1,6 +1,6 @@
 ---
 name: check-citations
-description: Verify academic citations against CrossRef, Semantic Scholar, and OpenAlex. Detects AI-hallucinated references, chimeric citations, and suspicious patterns.
+description: "Verify academic citations against CrossRef, Semantic Scholar, and OpenAlex. Detects AI-hallucinated references, chimeric"
 version: 1.0.0
 metadata:
   openclaw:

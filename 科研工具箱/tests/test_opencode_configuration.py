@@ -85,6 +85,30 @@ def test_agents_documentation_matches_project_configuration():
 
 def test_root_readme_names_shared_desktop_project_root():
     text = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
-    assert r"D:\Desktop\数模竞赛" in text
+    # PUBLIC-repo path hygiene: README must not pin host-absolute / stale project roots.
+    assert r"D:\Desktop\数模竞赛" not in text
+    assert r"C:\Users\FOUR" not in text
+    # Portable guidance: clone 后的仓库根 / 本检出名
+    assert "git clone" in text
+    assert "学术工作流" in text or "项目根" in text
     assert "OpenCode Desktop" in text
     assert "不依赖 `opencode` CLI" in text
+    assert "DOCSEARCH" in text or "占位符" in text or "路径卫生" in text
+
+
+def test_tracked_host_configs_have_no_personal_absolute_paths():
+    """opencode.json / .zcode/config.json 不得含本机用户名或过期项目绝对路径。"""
+    for rel in ("opencode.json", ".zcode/config.json"):
+        raw = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
+        assert r"C:\Users\FOUR" not in raw, f"{rel} 含本机用户目录绝对路径"
+        assert r"D:\Desktop\数模竞赛" not in raw, f"{rel} 含过期项目根路径"
+        # L1 hook bootstrap must stay path-agnostic inline python -c
+        if rel.endswith("zcode/config.json"):
+            cfg = json.loads(raw)
+            hooks = cfg.get("hooks", {}).get("events", {})
+            for event, entries in hooks.items():
+                for e in entries:
+                    for h in e.get("hooks", []):
+                        code = "".join(h.get("args", []))
+                        assert r"C:\Users" not in code
+                        assert "fail-open" in code or "sys.exit(0)" in code

@@ -1,6 +1,6 @@
 ---
 name: paper-figure-drawio
-description: "Generate DrawIO architecture diagrams and TikZ figures for papers. Use when user says \"画DrawIO\", \"技术路线图\", \"流程图\", or needs non-data diagrams for a paper. This is a lightweight sub-step split from paper-figure to avoid context accumulation."
+description: "论文的非数据类图形绘制（DrawIO 架构图与技术路线图、TikZ 图）。触发词：画DrawIO、技术路线图、流程图、架构图排版。"
 argument-hint: [figure-plan-or-data-path]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 ---
@@ -1048,3 +1048,23 @@ ALL COMPLETE — paper-figure-drawio step finished successfully
 - ⛔ All nodes must have `html=1` (including edge labels)
 - ⛔ No in-figure title — titles managed by LaTeX `\caption{}`
 - ⛔ 3 rounds DrawIO fail → fallback to TikZ; 3 rounds TikZ fail → fallback to DrawIO
+
+## 退出判据（Verification）
+
+本步完成前逐项自检（不达标即视为未完成）：
+
+- [ ] 架构图与正文所述模块/流程一致
+- [ ] 图形为矢量可编辑（非截图）
+- [ ] 配色取自统一注册表
+- [ ] 图注与正文引用一致
+
+## 常见合理化（Common Rationalizations）
+
+| 合理化 | 现实 |
+|---|---|
+| "截图贴进去也算图" | 位图放大即糊且无法校订；矢量与可编辑性是硬要求。 |
+| "架构图不用太严谨" | 架构图与正文不一致会被判为表述不符。 |
+| "配色随手取" | 见配色注册表：色值不得自创，否则跨图语义漂移。 |
+
+> 本段与 `skills/_utils/anti_rationalization.md`（全局版）配套：本表是本步专属，
+> 全局版覆盖跨步骤通用借口。新增借口时优先落到本表（更贴岗位），能泛化再上升。

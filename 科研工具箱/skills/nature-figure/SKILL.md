@@ -1,6 +1,6 @@
 ---
 name: nature-figure
-description: "Generate publication-ready matplotlib figures matching Nature journal standards. Use when user says 'Nature figure', 'Nature style plot', or needs high-impact journal figures with Nature typography, color systems, and SVG/PDF export."
+description: "Generate publication-ready matplotlib figures matching Nature journal standards. Use when user says 'Nature figure',"
 argument-hint: [figure-plan-or-data-path]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, mcp__codex__codex, mcp__codex__codex-reply
 ---

@@ -1,6 +1,6 @@
 ---
 name: scientific-schematics
-description: Create or refine publication-quality technical diagrams, scientific workflows, architectures, and biological schematics with the native image-generation capability.
+description: "Create or refine publication-quality technical diagrams, scientific workflows, architectures, and biological schematics"
 category: visualization
 allowed-tools: [Read, Write, Edit, generate_image]
 ---

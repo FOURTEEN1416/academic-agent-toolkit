@@ -1,6 +1,6 @@
 ---
 name: galaxy-webapp-testing
-description: Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.
+description: "Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend"
 license: Complete terms in LICENSE.txt
 version: 0.1.0
 ---

@@ -3,14 +3,17 @@
 """paper-figure-palette v6 工具箱 —— 色板常量 / LCH 数学 / 体检 / 色卡预览。
 
 用法（任选一个子命令）：
-    python palette_kit.py hex               # 打印全部色值（供复制）
-    python palette_kit.py check             # 体检：对比度/去灰比/灰度单调/色盲最近对
-    python palette_kit.py preview [out.png] # 生成色卡总览图（默认 assets/palette_preview.png）
+    python palette_kit.py hex                    # 打印全部色值（供复制）
+    python palette_kit.py check                  # 体检：对比度/去灰比/灰度单调/色盲最近对
+    python palette_kit.py registry-verify        # 多场景注册表体检（assets/palette_registry.json）
+    python palette_kit.py preview [out.png]      # 生成色卡总览图（默认 assets/palette_preview.png）
 
 本脚本独立实现色彩数学（与生成侧脚本互不 import）——共用实现只能验自洽，
 验不了正确。仅依赖 numpy 与 matplotlib。
 """
+import json
 import os
+import re
 import sys
 
 import numpy as np
@@ -370,6 +373,225 @@ def preview(out_png=None):
     print("preview ->", out_png)
 
 
+# ================================================================ 多场景注册表体检
+REGISTRY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                             "assets", "palette_registry.json")
+_HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
+
+# 兜底阈值：注册表 meta.checks 缺失时使用（与真源同值）
+_DEFAULT_CHECKS = {"cvd_min_deltaE": 25.0, "cvd_fail_deltaE": 12.0,
+                   "sequential_max_backstep": 0.5, "ink_contrast_min": 4.5,
+                   "text_contrast_min": 12.0}
+
+
+def _backstep(colors):
+    """累积回升口径的明度单调性（与 assets/palette_v6.json checks 段同口径）。"""
+    lums = [_gray(h) for h in colors]
+    run, back = lums[0], 0.0
+    for v in lums[1:]:
+        run = min(run, v)
+        back = max(back, v - run)
+    return back
+
+
+def _monotonic_backstep(colors):
+    """顺序色带：任一方向有向单调即通过，取两向较小值。"""
+    return min(_backstep(colors), _backstep(list(reversed(colors))))
+
+
+def _cvd_min_deltaE(colors):
+    """三型色盲模拟下的最近色对 LAB 距离（越小越难分）。"""
+    worst = None
+    for kind in ("protanopia", "deuteranopia", "tritanopia"):
+        sims = [_rgb2hex(_cvd_sim(h, kind)) for h in colors]
+        for i in range(len(sims)):
+            for j in range(i + 1, len(sims)):
+                d = _lab_dist(sims[i], sims[j])
+                if worst is None or d < worst[0]:
+                    worst = (d, kind, colors[i], colors[j])
+    return worst
+
+
+def _norm_token(text):
+    """禁用清单匹配用归一化：小写 + 去分隔符。"""
+    return re.sub(r"[^a-z0-9]", "", str(text).lower())
+
+
+def _tokens(text):
+    """按 - _ / 空格 切词（用于避免 "budget" 命中 "jet" 这类子串误报）。"""
+    return {t for t in re.split(r"[-_/\s]+", str(text).lower()) if t}
+
+
+def _hits_forbidden(name, forbidden_set):
+    """名称是否命中禁用清单：归一化全等，或任一词元等于禁用键。
+
+    刻意不做子串包含判断——否则 "budget" 会因含 "jet" 被误杀。
+    """
+    norm = _norm_token(name)
+    if norm in forbidden_set:
+        return True
+    return bool(_tokens(name) & forbidden_set)
+
+
+def registry_verify(path=None):
+    """多场景色板注册表体检；返回是否全过（FAIL 即 False）。
+
+    检查项（前四类为硬 FAIL，第五类为 WARN）：
+      1. 结构：schema_version / scenarios / palettes / forbidden / rules 齐备；
+      2. 色值：全部为 6 位 hex，且同一色板内不得重复；
+      3. 类型契约：sequential 必须单调（任一方向）；diverging 必须中点最明/最暗且两臂单调；
+      4. CVD 契约：cvd_mode=direct 的色板最近色对 ΔE 不得低于 cvd_fail_deltaE；
+         cvd_mode=secondary_encoding 的色板必须声明 requires_secondary_encoding=true；
+      5. 场景交叉一致：场景引用的色板必须存在、不得引用禁用色板；
+         cvd_policy=direct_required 的场景不得映射 secondary_encoding 色板。
+    另输出 WARN 级提示（ΔE 介于 fail 与 min 之间、grayscale_required 场景用了填充型色板）。
+    """
+    import json
+    p = path or REGISTRY_PATH
+    if not os.path.isfile(p):
+        print("✗ 注册表缺失:", p)
+        return False
+    reg = json.load(open(p, encoding="utf-8"))
+    fails, warns = [], []
+    checks = dict(_DEFAULT_CHECKS)
+    checks.update((reg.get("meta") or {}).get("checks") or {})
+    min_de = float(checks["cvd_min_deltaE"])
+    fail_de = float(checks["cvd_fail_deltaE"])
+    max_back = float(checks["sequential_max_backstep"])
+
+    print("== 0) 结构 ==")
+    if reg.get("schema_version") != 1:
+        fails.append("schema_version 必须为 1")
+    for key in ("scenarios", "palettes", "forbidden", "rules"):
+        if not reg.get(key):
+            fails.append(f"缺少非空段 {key}")
+    palettes = reg.get("palettes") or {}
+    scenarios = reg.get("scenarios") or {}
+    print("  场景 %d / 色板 %d / 禁用 %d / 规则 %d"
+          % (len(scenarios), len(palettes), len(reg.get("forbidden") or []), len(reg.get("rules") or [])))
+
+    print("== 1) 色值合法性与去重 ==")
+    invalid_palettes = set()
+    for name, pal in palettes.items():
+        colors = pal.get("colors") or pal.get("stops") or []
+        bad = [c for c in colors if not _HEX_RE.match(str(c))]
+        dup = sorted({c for c in colors if colors.count(c) > 1})
+        if bad:
+            fails.append(f"{name}: 非法 hex {bad}")
+            invalid_palettes.add(name)
+        if dup:
+            fails.append(f"{name}: 色值重复 {dup}")
+        print("  %-24s %2d 色  %s" % (name, len(colors), "OK" if not bad and not dup else "FAIL"))
+
+    # 色值非法的色板跳过后续色彩数学（避免在坏输入上算违背直觉的结果或直接抛栈）
+    def _usable(key):
+        return key not in invalid_palettes and (palettes[key].get("colors") or palettes[key].get("stops"))
+
+    print("== 2) 顺序/发散色带单调性 ==")
+    for name, pal in palettes.items():
+        kind = pal.get("kind")
+        colors = pal.get("stops") or []
+        if not _usable(name):
+            print("  %-24s 跳过（色值非法）" % name)
+            continue
+        if kind == "sequential":
+            b = _monotonic_backstep(colors)
+            flag = "PASS" if b <= max_back else "FAIL"
+            if flag == "FAIL":
+                fails.append(f"{name}: 顺序色带明度回升 {b:.2f} > {max_back}（非单调，灰度下会出假带）")
+            print("  %-24s backstep=%.2f  %s" % (name, b, flag))
+        elif kind == "diverging":
+            mid = len(colors) // 2
+            left, right = colors[:mid + 1], colors[mid:]
+            bl = _monotonic_backstep(left)
+            br = _monotonic_backstep(right)
+            lums = [_gray(c) for c in colors]
+            extreme = lums[mid] >= max(lums) - 1e-6 or lums[mid] <= min(lums) + 1e-6
+            flag = "PASS" if (bl <= max_back and br <= max_back and extreme) else "FAIL"
+            if flag == "FAIL":
+                fails.append(f"{name}: 发散色带中点非明度极值或两臂不单调"
+                             f"（left={bl:.2f} right={br:.2f} center_extreme={extreme}）")
+            print("  %-24s left=%.2f right=%.2f center_extreme=%s  %s"
+                  % (name, bl, br, extreme, flag))
+
+    print("== 3) CVD 契约（阈值 fail<%.0f / warn<%.0f）==" % (fail_de, min_de))
+    for name, pal in palettes.items():
+        if pal.get("kind") != "categorical":
+            continue
+        colors = pal.get("colors") or []
+        mode = pal.get("cvd_mode")
+        if not _usable(name):
+            print("  %-24s 跳过（色值非法）" % name)
+            continue
+        d = _cvd_min_deltaE(colors)
+        shown = "%.1f" % d[0]
+        if mode == "direct":
+            if d[0] < fail_de:
+                fails.append(f"{name}: 声明可直用（direct）但最近色对 ΔE={d[0]:.1f} < {fail_de}"
+                             f"（{d[1]}: {d[2]}/{d[3]}）——应降级为 secondary_encoding 或换色板")
+                flag = "FAIL"
+            elif d[0] < min_de:
+                warns.append(f"{name}: 最近色对 ΔE={d[0]:.1f} < {min_de}（{d[1]}: {d[2]}/{d[3]}），"
+                             "建议叠加线型/标记作第二编码")
+                flag = "WARN"
+            else:
+                flag = "PASS"
+        elif mode == "secondary_encoding":
+            if not pal.get("requires_secondary_encoding"):
+                fails.append(f"{name}: cvd_mode=secondary_encoding 必须声明 requires_secondary_encoding=true")
+                flag = "FAIL"
+            else:
+                flag = "PASS（填充型：靠墨色描边+线型+直接标签区分）"
+        else:
+            fails.append(f"{name}: cvd_mode 缺失或非法（direct / secondary_encoding）")
+            flag = "FAIL"
+        print("  %-24s minΔE=%5s（%s / %s·%s）  %s"
+              % (name, shown, mode, d[1][:5], "%s-%s" % (d[2], d[3]), flag))
+
+    print("== 4) 场景交叉一致 ==")
+    forbidden_set = set()
+    for item in reg.get("forbidden") or []:
+        forbidden_set.add(_norm_token(item.get("id", "")))
+        forbidden_set.update(_norm_token(a) for a in (item.get("aliases") or []))
+    forbidden_set.discard("")
+    for sc in scenarios:
+        if not isinstance(sc, dict):
+            continue
+        sid = sc.get("id", "<无 id>")
+        refs = [v for k, v in sc.items() if k in ("categorical", "categorical_alt", "sequential",
+                                                  "sequential_alt", "diverging") and v]
+        missing = [r for r in refs if r not in palettes]
+        if missing:
+            fails.append(f"场景 {sid}: 引用了不存在的色板 {missing}")
+        hit = [r for r in refs if _hits_forbidden(r, forbidden_set)]
+        if hit:
+            fails.append(f"场景 {sid}: 引用了禁用色板 {hit}")
+        cat = palettes.get(sc.get("categorical") or "", {})
+        if sc.get("cvd_policy") == "direct_required" and cat.get("cvd_mode") != "direct":
+            fails.append(f"场景 {sid}: cvd_policy=direct_required 却映射 {cat.get('cvd_mode')} 色板"
+                         f"（{sc.get('categorical')}）——合规声明与实际能力不符")
+        if sc.get("grayscale_required") and cat.get("cvd_mode") == "secondary_encoding":
+            warns.append(f"场景 {sid}: 要求灰度可分但用的是填充型色板（{sc.get('categorical')}）——"
+                         "类别必须叠加线型/标记，否则黑白打印后不可分")
+        print("  %-20s 引用 %d 个色板  %s" % (sid, len(refs), "OK" if not missing and not hit else "FAIL"))
+
+    # 禁用色板不得作为任何色板键存在（换了名字也一样禁）
+    for name in palettes:
+        if _hits_forbidden(name, forbidden_set):
+            fails.append(f"色板 {name} 命中禁用清单")
+
+    if warns:
+        print("\n== WARN（不阻断，但需在交付说明中留痕）==")
+        for w in warns:
+            print("  ⚠️ " + w)
+    if fails:
+        print("\n== FAIL ==")
+        for f in fails:
+            print("  ✗ " + f)
+    print("\n总体：", "ALL PASS" if not fails else "存在 FAIL（不得作为交付配色依据）")
+    return not fails
+
+
 # ================================================================ CLI
 def main(argv):
     if not argv or argv[0] == "hex":
@@ -388,6 +610,9 @@ def main(argv):
     if argv[0] == "preview":
         preview(argv[1] if len(argv) > 1 else None)
         return 0
+    if argv[0] == "registry-verify":
+        # 布尔不能直接作退出码（sys.exit(True) == 1），显式映射为 0/1
+        return 0 if registry_verify() else 1
     print(__doc__)
     return 2
 

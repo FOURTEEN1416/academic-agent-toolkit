@@ -36,7 +36,30 @@ class StepAction:
     # D3 门禁前移（2026-09-13）：本步完成后必须先跑 quick_gates 轻检（页数/图字号/泄漏），
     # 由模板步骤 metadata.quick_gates=true 声明，设计挂 step 5（出图后）与 step 8（成文后）。
     quick_gates: bool = False
+    # P4 技能强制绑定（2026-09-19）：本步显式绑定技能的声明，由模板步骤 metadata.skill_binding
+    # 给出。结构 {"main": 技能名, "main_required": bool, "mandatory": [技能名...]}；缺省为 {}，
+    # 即退回"仅按 C1/M5 既有机制"的行为（向后兼容）。
+    skill_binding: dict[str, Any] = field(default_factory=dict)
     params: dict[str, Any] = field(default_factory=dict)
+
+    def binding_requirements(self) -> list[str]:
+        """把绑定声明渲染成人类可读的强制要求行（供指令与错误信息复用）。"""
+        binding = self.skill_binding or {}
+        if not isinstance(binding, dict) or not binding:
+            return []
+        lines = []
+        main = str(binding.get("main") or self.skill_name)
+        if binding.get("main_required", True):
+            lines.append(
+                f"主技能 {main} 的契约必须被真实读取——执行证据的命令/输入中须出现 "
+                f"skills/{main}/SKILL.md（或该技能名）；只填 skill_sha256 不算")
+        for skill in binding.get("mandatory") or []:
+            name = str(skill).strip()
+            if name:
+                lines.append(
+                    f"绑定技能 {name} 为**必用**：不得申报 skipped，须申报 used 并留真实 "
+                    f"consult 命令痕迹（如读取 skills/{name}/SKILL.md 或执行其 scripts/）")
+        return lines
 
     def execution_instructions(self) -> str:
         """转成给 agent 的文字指令（可直接用于 prompt）。"""
@@ -47,6 +70,8 @@ class StepAction:
             f"  产出文件: {', '.join(self.output_files) if self.output_files else '(按技能说明)'}",
             f"  主产出: {self.primary_output or '(无)'}",
         ]
+        for requirement in self.binding_requirements():
+            lines.append(f"  ⛔ 技能绑定（强制，complete 时校验）: {requirement}")
         if self.companion_skills:
             lines.append(f"  推荐辅助技能(按需加载1-3个,全库地图见 CONTEST_SKILL_MAP.md): {', '.join(self.companion_skills)}")
         if self.assets:

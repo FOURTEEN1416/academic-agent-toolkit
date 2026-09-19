@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 UTILS = ROOT / "skills" / "_utils"
 sys.path.insert(0, str(UTILS))
+sys.path.insert(0, str(ROOT))  # 使本文件可单文件运行（engine 模块可导入）
 
 import quick_gates  # noqa: E402
 
@@ -95,6 +96,24 @@ def test_step_action_quick_gates_instruction_line():
     text = action.execution_instructions()
     assert "quick_gates.py" in text
     assert "回报 complete 前必跑" in text
+
+
+def test_step_action_without_quick_gates_has_no_gate_line():
+    """quick_gates 缺省 False（未挂 flag 的步骤）→ 指令不得含轻检提示行。
+
+    负例棘轮：D3 门禁只对显式声明 quick_gates=true 的步骤生效
+    （comp_cumcm 仅 paper-figure / comp-paper-zh）；若实现误将门禁
+    注入所有步骤，等价于全流程强制轻检，回归此测试立即报警。
+    """
+    from engine.opencode_bridge import StepAction
+    action = StepAction(
+        workflow_id="w", step_id="s", position=2, skill_name="comp-modeling",
+        display_name="建模实现", workspace=Path("D:/ws"), skill_path=Path("D:/ws/skill.md"),
+        output_files=["MODEL.md"], primary_output="MODEL.md",
+        has_checkpoint=False, checkpoint_type=None)
+    text = action.execution_instructions()
+    assert "quick_gates.py" not in text
+    assert "回报 complete 前必跑" not in text
 
 
 def test_real_template_flags_quick_gates_steps(tmp_path):

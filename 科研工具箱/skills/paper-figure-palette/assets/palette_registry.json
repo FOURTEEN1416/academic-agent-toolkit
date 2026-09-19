@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "meta": {
+    "title": "统一配色方案注册表（多场景）",
+    "updated": "2026-09-19",
+    "human_readable": "skills/paper-figure-palette/references/scenarios.md",
+    "local_palette_source": "skills/paper-figure-palette/assets/palette_v6.json",
+    "checker": "python 科研工具箱/skills/paper-figure-palette/scripts/palette_kit.py registry-verify",
+    "principles": [
+      "先按数据类型选色板类型（分类/顺序/发散），再选具体色板；类型选错任何美化都救不回来。",
+      "三层分工：色板承担填充与色带，线条/描边/图例文字交给墨色系统（本地色板强制）。",
+      "禁令优先于偏好：禁用的色板（jet/rainbow/RdGn/RdYlGn）任何场景都不许用。",
+      "合规与美观冲突时以合规为准：灰度可读、色盲可分是硬要求，风格是软要求。"
+    ],
+    "checks": {
+      "cvd_min_deltaE": 25.0,
+      "cvd_fail_deltaE": 12.0,
+      "sequential_max_backstep": 0.5,
+      "ink_contrast_min": 4.5,
+      "text_contrast_min": 12.0,
+      "note": "阈值取自本地色板真源 checks 段与 WCAG；CVD 用 Machado 线性近似的粗粒度模拟（protanopia/deuteranopia/tritanopia），非临床级。"
+    }
+  },
+  "scenarios": [
+    {
+      "id": "cn-competition",
+      "name": "中文竞赛论文（国赛/省赛/校赛，含 CUMCM）",
+      "use_when": "面向中文竞赛评审的论文图表；可能被黑白打印或复印",
+      "categorical": "summer-beach-v6",
+      "sequential": "summer-beach-ramp",
+      "sequential_alt": "summer-beach-moist-ramp",
+      "diverging": "rdbu",
+      "grayscale_required": true,
+      "cvd_policy": "secondary_encoding_allowed",
+      "notes": "本地 v6 色板为填充型：类别区分必须叠加线型/标记/直接标签（第二编码），不得仅凭颜色。色带与主色已通过灰度单调复核。"
+    },
+    {
+      "id": "journal-submission",
+      "name": "英文期刊投稿（Elsevier / IEEE / Springer / Nature 系）",
+      "use_when": "投稿图件、审稿返修图、supplementary figures",
+      "categorical": "okabe-ito",
+      "categorical_alt": "tol-bright",
+      "sequential": "viridis",
+      "sequential_alt": "cividis",
+      "diverging": "rdbu",
+      "grayscale_required": true,
+      "cvd_policy": "direct_required",
+      "notes": "多数期刊明示要求色盲友好；Nature/Cell/PLOS/eLife 为硬性要求。期刊品牌色板（ggsci 系）仅可用于风格合规，不得用于无障碍要求场景。"
+    },
+    {
+      "id": "thesis-report",
+      "name": "学位论文 / 课程报告 / 教学材料",
+      "use_when": "校内评审、教学讲义、实验报告；常以黑白打印提交",
+      "categorical": "tol-bright",
+      "sequential": "cividis",
+      "diverging": "pu-or",
+      "grayscale_required": true,
+      "cvd_policy": "direct_required",
+      "notes": "优先灰度可分；Cividis 是 viridis 家族中唯一为 CVD 优化的顺序色板。"
+    },
+    {
+      "id": "slide-poster",
+      "name": "答辩幻灯 / 会议海报",
+      "use_when": "投影展示或大幅面印刷；观看距离远、色彩饱和度高",
+      "categorical": "tol-bright",
+      "sequential": "viridis",
+      "diverging": "rdbu",
+      "grayscale_required": false,
+      "cvd_policy": "direct_required",
+      "notes": "投影会压暗中间调，避免以浅色作唯一区分；类别数控制在 5 以内。"
+    },
+    {
+      "id": "office-embed",
+      "name": "Word / PPT / Excel 内嵌图表",
+      "use_when": "论文附录、商业报告、表格内嵌图；由 matplotlib 导出后置入 Office",
+      "categorical": "summer-beach-v6",
+      "sequential": "summer-beach-ramp",
+      "diverging": "rdbu",
+      "grayscale_required": false,
+      "cvd_policy": "secondary_encoding_allowed",
+      "notes": "Office 会二次压缩与重采样，浅色填充易丢层次；导出用 400 dpi PNG 或矢量 PDF，勿用截图。"
+    }
+  ],
+  "palettes": {
+    "summer-beach-v6": {
+      "kind": "categorical",
+      "role": "fill_only",
+      "cvd_mode": "secondary_encoding",
+      "requires_secondary_encoding": true,
+      "source": "skills/paper-figure-palette/assets/palette_v6.json",
+      "colors": ["#FEE6A9", "#FED3A1", "#FEBDAA", "#FEB8B5", "#FDA574", "#9FE698", "#90D9CB", "#6FCDFD", "#2BC3F1"],
+      "color_roles": ["T4 最浅底色", "T3 浅端填充", "T2 蜜桃次色", "TMAIN 暖族锚", "TACC 唯一高亮", "M4 冷族最浅", "M3 族内补位（LAB 插值）", "MMAIN 冷族锚", "M1 冷族最深"],
+      "derived_members": ["#90D9CB"],
+      "ink_map": {
+        "#FEE6A9": "#76652F", "#FED3A1": "#896330", "#FEBDAA": "#BE4E30", "#FEB8B5": "#C74C53",
+        "#FDA574": "#A35B31", "#9FE698": "#438040", "#6FCDFD": "#307697", "#2BC3F1": "#3B7287"
+      },
+      "measured": {"cvd_min_deltaE": 1.7, "fill_white_contrast_range": [1.23, 2.08]},
+      "notes": "浅色填充系（白底对比 1.2-2.1:1，属'填充用'量级）；类别区分靠墨色描边 + 线型 + 直接标签。九色中 M3 由 LAB 插值生成，非手选。"
+    },
+    "summer-beach-ramp": {
+      "kind": "sequential",
+      "role": "ramp",
+      "monotonic": true,
+      "source": "skills/paper-figure-palette/assets/palette_v6.json",
+      "semantic": "温度场 / 单变量由低到高",
+      "stops": ["#FFFFFF", "#FFF4DB", "#FEE6A9", "#FED3A1", "#FEBDAA", "#FEB8B5", "#FDA574", "#A3490D"],
+      "notes": "深端 #A3490D 为 L*42 / C 占上限 0.92 的 deepen 结果（禁 darken）。"
+    },
+    "summer-beach-moist-ramp": {
+      "kind": "sequential",
+      "role": "ramp",
+      "monotonic": true,
+      "source": "skills/paper-figure-palette/assets/palette_v6.json",
+      "semantic": "水分场 / 含水量由低到高",
+      "stops": ["#FFFFFF", "#D7F4D4", "#9FE698", "#90D9CB", "#6FCDFD", "#2BC3F1", "#19667F"],
+      "notes": "深端 #19667F 为 L*40 / C 占上限 0.92。与温度色带同族对照使用，勿混用。"
+    },
+    "okabe-ito": {
+      "kind": "categorical",
+      "role": "line_ok",
+      "cvd_mode": "direct",
+      "provenance": "Okabe & Ito, Color Universal Design（Wong 2011 整理版）",
+      "colors": ["#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000"],
+      "color_roles": ["橙", "天蓝", "蓝绿", "黄", "蓝", "朱红", "紫红", "黑"],
+      "measured": {"cvd_min_deltaE": 15.3, "worst_pair": "#009E73 / #CC79A7 (deuteranopia)"},
+      "notes": "分类色默认首选（2-8 类）。黄色 #F0E442 白底对比仅 1.32:1——作填充或叠加深色描边，勿作细线或文字。8 类已是图例上限，超出改分面或加第二编码。"
+    },
+    "tol-bright": {
+      "kind": "categorical",
+      "role": "line_ok",
+      "cvd_mode": "direct",
+      "provenance": "Paul Tol, Bright qualitative scheme",
+      "colors": ["#4477AA", "#EE6677", "#228833", "#CCBB44", "#66CCEE", "#AA3377", "#BBBBBB"],
+      "color_roles": ["蓝", "红", "绿", "黄", "青", "紫", "灰"],
+      "measured": {"cvd_min_deltaE": 16.0, "worst_pair": "#4477AA / #228833 (tritanopia)"},
+      "notes": "多线折线图首选（3-7 条）。比默认色环柔和而不失分离度；同样建议叠加直接标签。"
+    },
+    "viridis": {
+      "kind": "sequential",
+      "role": "ramp",
+      "monotonic": true,
+      "provenance": "matplotlib 默认感知均匀色带",
+      "stops": ["#440154", "#414487", "#2A788E", "#22A884", "#7AD151", "#FDE725"],
+      "notes": "单向连续量首选（热力图/密度/强度）。数据有意义的零点时改用发散色板。"
+    },
+    "cividis": {
+      "kind": "sequential",
+      "role": "ramp",
+      "monotonic": true,
+      "provenance": "viridis 家族的 CVD 优化分支",
+      "stops": ["#00224E", "#123570", "#3B496C", "#575D6D", "#707173", "#8A8678", "#A59C74", "#C3B369", "#E1CC55", "#FEE838"],
+      "notes": "无障碍优先时替代 viridis；观感偏灰，展示型场景仍可用 viridis。"
+    },
+    "rdbu": {
+      "kind": "diverging",
+      "role": "ramp",
+      "monotonic": false,
+      "center_extreme": true,
+      "provenance": "ColorBrewer RdBu（红-白-蓝，色盲友好）",
+      "stops": ["#2166AC", "#4393C3", "#92C5DE", "#D1E5F0", "#F7F7F7", "#FDDBC7", "#F4A582", "#D6604D", "#B2182B"],
+      "notes": "残差/相关系数/相对零点的偏差首选。低端=蓝、高端=红（可按语义反转，但必须全文一致）。"
+    },
+    "pu-or": {
+      "kind": "diverging",
+      "role": "ramp",
+      "monotonic": false,
+      "center_extreme": true,
+      "provenance": "ColorBrewer PuOr（紫-白-橙，色盲友好）",
+      "stops": ["#542788", "#8073AC", "#B2ABD2", "#D8DAEB", "#F7F7F7", "#FEE0B6", "#FDB863", "#E08214", "#B35806"],
+      "notes": "当红/蓝在本领域有文化或语义偏向时用它替代 RdBu。"
+    }
+  },
+  "forbidden": [
+    {"id": "jet", "aliases": ["rainbow", "turbo"], "reason": "非感知均匀：等量数据变化产生不等量颜色变化，且亮度非单调，灰度打印后出现假环带。用 viridis/cividis 替代。"},
+    {"id": "rdgn", "aliases": ["rd-yl-gn"], "reason": "红-绿发散：红绿色盲（约占男性 6%+2%）无法区分两端，信息直接丢失。用 RdBu / PuOr 替代。"},
+    {"id": "rdylgn", "aliases": ["red-yellow-green"], "reason": "同 RdGn，且中段黄与两端在灰度下接近。用 RdBu / BrBG 替代。"},
+    {"id": "hsv", "aliases": ["spectral-cycle"], "reason": "色相环形循环无单调明度，类别与数值都会读错。"},
+    {"id": "brand-only-journal-palettes", "aliases": ["ggsci-npg", "ggsci-jama", "ggsci-lancet", "ggsci-nejm"], "reason": "期刊品牌色板是**风格合规**工具，非无障碍工具：其 CVD 分离度未经保证。仅可在期刊明确要求品牌风格时使用，且需自行复核灰度与色盲。"}
+  ],
+  "rules": [
+    {"id": "R1", "text": "先定数据类型再选色板：分类→categorical，单向连续→sequential，有意义的零点→diverging。"},
+    {"id": "R2", "text": "三层分工：色板只承担填充/色带，线条/描边/图例文字用同色相墨色（本地色板强制，见 ink_map）。"},
+    {"id": "R3", "text": "类别不超过色板容量：categorical 上限 7-8 类，超出改分面或增加第二编码（形状/线型/填充纹理）。"},
+    {"id": "R4", "text": "第二编码冗余：任何分类图都应叠加线型或标记，使灰度与色盲下仍可读。"},
+    {"id": "R5", "text": "顺序色带必须明度单调（任一方向）；发散色带必须中点最亮或最暗且两臂单调。"},
+    {"id": "R6", "text": "禁用色板零容忍：jet/rainbow/RdGn/RdYlGn 任何场景不得使用（含'只是给自己看的草稿'——草稿会进正文）。"},
+    {"id": "R7", "text": "同一论文内色板语义一致：同一颜色在全文只表达同一含义，跨图不得复用为不同类别。"},
+    {"id": "R8", "text": "深色一律 deepen（固定色相压明度、彩度取色域上限），禁用 darken（RGB 向黑缩放会同时砍彩度）。"},
+    {"id": "R9", "text": "导出即定稿：色带与图例字号在导出分辨率下复核（不要用屏幕截图替代矢量/高 dpi 导出）。"},
+    {"id": "R10", "text": "移植到 Office 时按 scenarios[].id=office-embed 的说明执行，且不得改色值。 "}
+  ]
+}

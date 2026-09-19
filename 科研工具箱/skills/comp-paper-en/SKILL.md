@@ -2,8 +2,7 @@
 
 name: comp-paper-en
 
-description: "Mathematical modeling competition paper writing in English (MCM/ICM/APMCM). Generate complete LaTeX paper following COMAP format. Use when user says \"write MCM paper\", \"美赛论文\", \"English competition paper\"."
-
+description: "Mathematical modeling competition paper writing in English (MCM/ICM/APMCM). Generate complete LaTeX paper following。区别于 comp-compile-en：本技能只写正文并产出 LaTeX 源，不负责编译。"
 argument-hint: [competition-type]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch

@@ -1,7 +1,7 @@
 ---
 name: scholar-check-refs
 user_invocable: true
-description: Verify citation references in a LaTeX paper. Checks that all cited papers exist in academic databases, flags suspicious entries, and suggests missing DOIs/URLs. Use when the user wants to check references, verify citations, or before submission.
+description: "Verify citation references in a LaTeX paper. Checks that all cited papers exist in academic databases, flags suspicious"
 ---
 
 # check-refs — Citation Reference Check

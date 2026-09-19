@@ -1,9 +1,6 @@
 ---
 name: patent-build
-description: >
-  读取 patent-draft 产出的 专利交底书/交底书草稿.md 与自主设计的 fig_*.html，调用
-  html_figure_render.py 用 Electron 把系统框图/流程图截成 PNG（含几何自检自修复），
-  再导出 专利交底书/交底书.docx。是"一句话生成专利交底书"工作流的第二步（成品阶段）。
+description: "> 读取 patent-draft 产出的 专利交底书/交底书草稿.md 与自主设计的 fig_*.html，调用 html_figure_render.py 用 Electron 把系统框图/流程图截成 PNG（含几何自检自修复），"
 user-invocable: false
 allowed-tools: >
   Bash, Read, Write, Edit, Glob, Grep

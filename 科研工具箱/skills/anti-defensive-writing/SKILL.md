@@ -1,6 +1,6 @@
 ---
 name: anti-defensive-writing
-description: Reduce defensive writing in drafts and revisions by removing unnecessary caveats, disclaimers, hedges, apology-like framing, negative self-limiting statements, and over-explanations while preserving necessary scope, accuracy, safety, legal, ethical, and methodological limits. Use when drafting or revising academic writing, papers, essays, abstracts, introductions, contribution statements, discussions, conclusions, technical explanations, grant writing, product writing, policy writing, professional reports, or any text the user wants to be clearer, stronger, more direct, more concise, more confident, less verbose, less caveated, less apologetic, or less defensive.
+description: "删减防御性写作：去掉不必要的免责声明、模糊限定、道歉式表述、自我贬低与过度解释，同时保留必要的范围/准确性/安全/法律/伦理/方法学限定。触发词：更简洁、更有力、更直接、更自信、少限定、少免责、别啰嗦、不要过度解释、改掉 hedge、去防御性。适用于论文/摘要/引言/贡献声明/讨论/结论/基金/报告/政策文本。"
 ---
 <!-- ==================== 本仓适配块（Academic Agent Toolkit, 2026-09-03） ==================== -->
 <!-- 上游: Kiterlin/anti-defensive-writing (MIT, pinned @ 2026-09-03); 以下正文为上游原文，仅头部/尾部适配 -->

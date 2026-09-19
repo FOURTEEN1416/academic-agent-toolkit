@@ -1,6 +1,6 @@
 ---
 name: humanities-write-latex
-description: "人文社科论文撰写（LaTeX/PDF 版）。基于 OUTLINE.md（含 Claims-Evidence Matrix）撰写完整正文：文本细读 + 理论分析 + 历史语境 + 递进论证，用 $SCHOLAR_SCRIPT 真实检索文献（禁编造），产出 paper/main.tex（ctexart）+ paper/references.bib，交 paper-compile-zh 编译 PDF。严格遵守反 AI 痕迹与引用闭环自检。Use when continuing a humanities/social-science paper workflow in LaTeX/PDF mode."
+description: "人文社科论文撰写（LaTeX/PDF 版）。基于 OUTLINE.md（含 Claims-Evidence Matrix）撰写完整正文：文本细读 + 理论分析 + 历史语境 + 递进论证，用 $SCHOLAR_SCRIPT 真实检索文献（禁编造），产出 paper/main.tex（ctexart）+ paper/references.bib，交 paper-compile-zh 编译 PDF。严格遵守反 AI 痕迹与引用闭环自检。Use when continuing a humanities/social-science paper workflow in LaTeX/PDF mode.。区别于 humanities-write（仅 Markdown 产出）：本技能只交 paper/main.tex 与 references.bib 并交 paper-compile-zh 编译。"
 argument-hint: [paper-topic]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent
 ---

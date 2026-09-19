@@ -25,6 +25,23 @@ def test_state_txt_created_with_all_fields(tmp_path):
     assert "updated_at:" in text
 
 
+def test_state_txt_records_workspace_field(tmp_path):
+    """workspace: 字段必须记录工作区绝对路径（B8 三字段之一，取稿防拿错）。
+
+    STATE.txt 的价值在于"从仓库路径取稿前先核对归属"——若 workspace
+    行缺失或路径错位，标记机制对同名工程失效。锁 agent/updated_at 之外的
+    第三个验收字段。
+    """
+    ws = tmp_path / "工程目录A"
+    ws.mkdir()
+    path = write_state(ws, agent="窗口A")
+    text = path.read_text(encoding="utf-8")
+    lines = {l.split(":", 1)[0]: l.split(":", 1)[1].strip()
+             for l in text.splitlines() if ": " in l and not l.startswith("#")}
+    assert lines["workspace"] == str(ws.resolve()), text
+    assert Path(lines["workspace"]).is_dir()
+
+
 def test_state_txt_update_refreshes_not_duplicates(tmp_path):
     """重复调用 = 更新覆盖（不产生第二个状态文件/历史残留）。"""
     ws = tmp_path / "ws"

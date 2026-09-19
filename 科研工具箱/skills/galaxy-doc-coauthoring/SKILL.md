@@ -1,6 +1,6 @@
 ---
 name: galaxy-doc-coauthoring
-description: This skill should be used when the user asks to co-author documentation, draft a proposal, write a technical spec, create a decision doc or RFC, or structure a substantial document through iterative collaboration and reader testing.
+description: "This skill should be used when the user asks to co-author documentation, draft a proposal, write a technical spec,"
 version: 0.1.0
 ---
 

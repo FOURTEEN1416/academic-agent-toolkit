@@ -1,12 +1,6 @@
 ---
 name: comp-cumcm-disclosure
-description: >-
-  CUMCM 2026 AI 工具使用申报双件套的入口与门禁。当需要生成/校验《AI工具使用详情.pdf》与论文正文
-  AI 使用声明、或需要确认"声明措辞与详情用途一致"时使用。本技能不重写生成器，而是把既有确定性脚本
-  skills/_utils/build_ai_disclosure.py（+ 唯一真源 skills/_utils/ai_disclosure_rules.md）暴露为可发现的
-  技能契约，并固化两道硬闸：⛔不得由语言模型自由编写详情、⛔正文与详情必须口径一致。
-  触发词：AI 申报、AI工具使用详情、AI 使用声明、disclosure、人工智能工具使用规定、申报四节、
-  build_ai_disclosure、--check-only。
+description: "CUMCM AI 工具使用申报双件套的入口与检查：生成/校验《AI工具使用详情》PDF 与论文正文 AI 使用声明，并核对声明措辞与详情用途口径一致。触发词：AI 申报、AI工具使用详情、AI 使用声明、disclosure、人工智能工具使用规定、申报四节。两条硬约束：详情不得由语言模型自由编写，正文与详情必须口径一致。"
 ---
 
 # CUMCM AI 工具使用申报（comp-cumcm-disclosure）

@@ -1,11 +1,6 @@
 ---
 name: comp-cumcm-package
-description: >-
-  CUMCM 提交阶段打包沙演与合规终审入口。在 S14 comp-final-audit 之后、真正上传之前使用：
-  收集支撑材料语料、扫描身份信息（文件名/目录名/PDF 文档属性）、校验论文与包体积各 ≤20MB、
-  计算 MD5、输出提交 checklist。把"融合自检清单 第五/六部分"从人工记忆变成可执行检查。
-  触发词：提交打包、支撑材料打包、RAR、20MB、MD5、上传、身份扫描、元数据清理、
-  打包沙演、pack_submission、提交前终审。
+description: ">- CUMCM 提交阶段打包沙演与合规终审入口。"
 ---
 
 # CUMCM 提交打包沙演（comp-cumcm-package）

@@ -54,7 +54,7 @@ python -m engine.workflow_cli audit --workspace <工作区>   # 生成 OPERATION
 套件/
 ├── AGENTS.md              ← 你在这里（Agent 入口路由）
 ├── skills/                ← 技能库（由 opencode.json 的 skills.paths 自动扫描，每个技能一个 SKILL.md）
-├── tools/                 ← 工具链（61 个 .py 脚本 + 16 个 .pyc 字节码分发件（3.11 编译版本锁定，调用一律用同名 .py 真源）；2026-09-19 实测口径）
+├── tools/                 ← 工具链（65 个 .py 脚本 + 16 个 .pyc 字节码分发件（3.11 编译版本锁定，调用一律用同名 .py 真源）；2026-09-19 实测：tools/ 顶层 glob *.py=65、*.pyc=16）
 ├── engine/                ← 状态库 + 编排 + 质量门禁 + 审计（不执行）
 ├── data/                  ← 参考数据（模型库/题型规律/历史题目）
 ├── .env                   ← 本地 API 配置（gitignored，不入库不入发布包）
@@ -68,6 +68,7 @@ python -m engine.workflow_cli audit --workspace <工作区>   # 生成 OPERATION
 3. **工具即手脚**：`tools/*.py|pyc` 是独立可执行脚本，被技能通过 Bash 调用
 4. **门禁即质量**：每步产出后检查质量（页数/伴随文件/大小），不达标则重做
 5. **Agent 定角色**：executor（执行）/ reviewer（审查）/ editor（润色）
+6. **命名的工程原则**（可直接引用，全部有落地机制）：**TOOL_GAP**（工具够不到世界就报"状态未知"，绝不伪造通过）/ **三振升级**（同一思路失败 3 次必须换路或上报）/ **决策点≠批准** / **无证据＝未执行** / **反合理化优先落到岗位级**——见 `skills/_utils/anti_rationalization.md` §四
 
 ## 三、入口路由规则（P3 核心）
 
@@ -129,13 +130,26 @@ python -m engine.workflow_cli audit --workspace <工作区>   # 生成 OPERATION
 4. 产出文件到 `StepAction.workspace` 指定的工作区
 5. 检查点（SKILL.md 标记 has_checkpoint）→ 暂停等用户确认
 6. 产出后按质量铁律自检
+7. 若发现绑定技能（StepAction.skill_binding）→ 先读取其 SKILL.md 并把命令记入 evidence
 ```
+
+**动手前扫一眼反合理化表**：`skills/_utils/anti_rationalization.md` —— 12 条"跳过步骤的常见借口"
+及其反驳（每条带本项目真实事故实证与机器判据）。写审核结论前、宣布"完成"前命中任一行，
+按表内"正确动作"列执行。该表已作为资产挂在 step7（逻辑复核）与 step14（交付审计）上。
 
 ## OpenCode 项目配置
 
-共享项目根 `D:\Desktop\数模竞赛\opencode.json` 使用 `数模专家` 作为默认 primary agent，显式扫描 `./科研工具箱/skills`，并自动加载本文件作为项目指令。四个 agent 定义位于共享项目根 `.opencode/agents/`。`subagent_depth` 固定为 1：数模专家可以派发数模审稿人、数模视觉审查或数模编辑，但子智能体不能继续派发新的子智能体。`share` 固定为 `disabled`，竞赛题目、数据和产物不会被自动共享。
+共享项目根为 **git clone 后的仓库根**（本检出目录名 `学术工作流`；公开仓以你本地 clone 路径为准，勿写本机绝对路径）。根 `opencode.json` 使用 `数模专家` 作为默认 primary agent，显式扫描 `./科研工具箱/skills`，并自动加载本文件作为项目指令。四个 agent 定义位于共享项目根 `.opencode/agents/`。`subagent_depth` 固定为 1：数模专家可以派发数模审稿人、数模视觉审查或数模编辑，但子智能体不能继续派发新的子智能体。`share` 固定为 `disabled`，竞赛题目、数据和产物不会被自动共享。
+
+**MCP 路径覆盖（PUBLIC 仓）**：tracked `opencode.json` / `.zcode/config.json` 的 docsearch MCP 使用可移植占位符（`${DOCSEARCH_MCP_SERVER}` / `${DOCSEARCH_ROOTS}`）。若 MCP 装在宿主用户目录，操作员须在**本地未提交配置**中写入本机绝对路径；勿把 `C:\Users\...` 或过期项目根写回 tracked 文件。
 
 修改共享根 `opencode.json`、共享根 `.opencode/agents/` 或套件 `skills/` 后，必须完全退出并重启 OpenCode Desktop；运行中的会话不会热加载这些配置。
+
+## 安全注意（pyc / 密钥 / 路径）
+
+- `tools/*.pyc` 为受控分发件，公开仓**不可源码审查**；审查优先读同名 `.py`。勿在未确认消费者前删除 pyc。
+- `tools/pyc_loader.py` 仅将**已识别 vision provider** 的 API key 注入 `.pyc` 子进程 env（非完整 auth.json）；属本地密钥注入面，禁止写入日志/manifest。
+- `.env` 保持 gitignored、不入库不入发布包。
 
 ## 五、工具链调用规范
 
@@ -180,6 +194,11 @@ python tools/doc_reader.py 题目.pdf --no-vision                # 仅列出图�
 | `tools/fix_bare_latex_in_md.py` | 修复裸 LaTeX | `python tools/fix_bare_latex_in_md.py paper.md` |
 | `tools/docx_export.py` | DOCX 导出 | `python tools/docx_export.py paper.md paper.docx` |
 | `tools/check_asset_utilization.py` | 资产利用率审计（申报账本/技能地图对账/模板资产在位三合一） | `python tools/check_asset_utilization.py [--json] [--strict]` |
+| `tools/contest_lessons_check.py` | 实战经验库机检（schema/**强制点在位**/JSON↔MD 双向一致/强制点过度集中告警） | `python tools/contest_lessons_check.py --strict` |
+| `tools/skill_trigger_audit.py` | 技能触发条件与能力边界（frontmatter/触发信号/**路由歧义**/主链契约段/目录与地图对账）+ `--route` 词法路由诊断 | `python tools/skill_trigger_audit.py --strict` |
+| `tools/context_budget_check.py` | **常驻上下文预算**（技能 frontmatter 是每会话常驻的：预算上限 + 单条上限 + 六类描述污染判据） | `python tools/context_budget_check.py --strict` |
+| `tools/build_skill_index.py` | **技能分层常驻**：派生 core/ondemand 分层、生成路由索引（按需层完整描述无损保存）、双向同步描述 | `python tools/build_skill_index.py [--check\|--emit\|--compact]` |
+| `tools/project_health_check.py` | **统一健康检查 + 文档漂移检测**（汇总 7 个检查件为 PASS/FAIL/DEGRADED；比对实测测试数与 5 处权威文档基线） | `python tools/project_health_check.py --strict` |
 
 ## 六、质量门禁（P4 核心）
 
@@ -289,6 +308,17 @@ python -m engine.workflow_cli complete --wf <workflow_id> --ok true --artifacts 
 
 上述 `workflow_cli` 命令不是任何宿主的启动命令，也不是数模智能体的运行前提。实际执行者始终是**当前宿主**（OpenCode Desktop 或 ZCode）中承担主控的 Agent；系统不依赖系统 PATH 中存在 `opencode` CLI。OpenCode 桌面端配置、agent 或技能变更后，关闭并重新启动桌面端再验证；ZCode 下变更后重开会话即可（技能经 `.zcode/skills` 联结自动发现，hook 配置改动需重启会话）。**换机部署仅一步**：重建 `.zcode/skills` 联结即可——hook 命令是 `python -c` 内联引导器（先探测项目根 env 变量，再从 cwd 逐级上溯定位 `科研工具箱/hooks/zcode_audit_l1.py`；定位/执行失败一律 stderr 警告+exit 0 放行，exit 2 唯一来源=治理规则命中），随仓分发免改路径。历史教训（2026-09-09/09-10 三次全工具锁死定案）：相对路径与 `${ZCODE_PROJECT_DIR}` 变量式写法在 cwd 漂移下都会让 python 在脚本运行前以退出码 2（=deny）死去——**勿回退到任何路径/变量式 hook 写法**（契约测试 test_zcode_config_uses_inline_bootstrap 把守）。
 
-**竞赛解题入口铁律（2026-09-11 定稿，产品灵魂条款）**：CUMCM 等竞赛的解题任务**一律经工作流引擎启动**（`workflow_cli start --template comp_cumcm` → 按 `next` 返回的 StepAction 逐步执行）后再使用技能——工作流承载步骤状态、检查点批准、质量门禁与三层审计留痕，绕开引擎直接做题会丢失全部审计链（ZCode 入口：`/comp-start <题号>` 斜杠命令，见 `.zcode/commands/comp-start.md`）。技能的三层发现机制：①引擎 StepAction 显式给出 skill_path（主通道，强制发现）**并随步给出 `companion_skills` 本步推荐辅助技能**（2026-09-11 起，全库 260 技能分类账见 `CONTEST_SKILL_MAP.md`（2026-09-19 实测：262 技能目录 − `_utils` − `shared-scripts` = 260 含 SKILL.md）——按需加载 1-3 个，禁止"无人知晓"的闲置技能）；②主控 AGENTS.md 路由表（本文件，宿主自动注入会话）；③技能 frontmatter description 触发词（ZCode 技能清单）。非竞赛任务（文献/写作/绘图等）可自由按路由表加载技能，不受此铁律约束。**非技能资产同步暴露（2026-09-12 C2 资产机制）**：StepAction 另带 `assets` 字段按步给出数据/参考论文/工具脚本/参考图集指针（仓库根相对路径，见 `engine/modex-core/templates.json` 各步 metadata）——用前留痕、完成时随 evidence 申报 `assets` used/skipped（与 companion_skills 同构，运行中旧工作流不受影响）；利用率账本/地图对账/资产在位三合一审计：`python tools/check_asset_utilization.py`。
+**技能强制绑定（P4，2026-09-19 落地）——"步骤不会强制调用 skills"的机制层修复**：每个步骤在模板里显式声明 `metadata.skill_binding`（全库 279 个步骤均已声明）：
+
+| 字段 | 语义 | 缺失后果 |
+|------|------|---------|
+| `main_required`（默认 true） | 本步**主技能契约必须留真实读取痕迹**——证据的命令/输入中须出现 `skills/<main>/SKILL.md`（或技能名）。只填 `skill_sha256` 不算 | 步骤 FAILED（"skill_sha256 只能证明文件被读取过，不能证明契约被遵守"） |
+| `main` | 覆盖默认主技能（默认 = `step.skill_name`） | — |
+| `mandatory` | 本步**必用**的辅助技能：不得申报 `skipped`，须申报 `used` 且**必须有命令级痕迹**（只出现在产物/输入路径里不算） | 步骤 FAILED |
+
+三层保障：**①执行层**——`complete_step` 硬校验（`engine/workflow_runner.py`），未声明 `skill_binding` 的步骤零影响（向后兼容）；**②审计层**——`engine/audit_store.verify_skill_bindings()` 把声明与 **L1 实际调用记录**（`skill` 工具调用 / 对 SKILL.md 的 `read`）对账，L1 缺席时**如实降级为 `unavailable`**（不判通过），结论进入 `AUDIT_REPORT.json` 的 `gate_outcomes.skill_binding` 与 `skill_binding_detail`；**③指令层**——`StepAction.execution_instructions()` 把绑定要求直接渲染给 agent。
+`mandatory` **有意只用一处**（comp_cumcm step5 → `paper-figure-palette`）：把辅助技能一律设为必用会制造假失败（例如无数值推导的题目无法合法使用 `sci-sympy`），其余推荐位维持"申报即可跳过、跳过须给理由"的 C1 闸。测试护航：`tests/test_skill_binding.py`（17 项，含向后兼容与 unavailable 降级）。
+
+**竞赛解题入口铁律（2026-09-11 定稿，产品灵魂条款）**：CUMCM 等竞赛的解题任务**一律经工作流引擎启动**（`workflow_cli start --template comp_cumcm` → 按 `next` 返回的 StepAction 逐步执行）后再使用技能——工作流承载步骤状态、检查点批准、质量门禁与三层审计留痕，绕开引擎直接做题会丢失全部审计链（ZCode 入口：`/comp-start <题号>` 斜杠命令，见 `.zcode/commands/comp-start.md`）。技能的三层发现机制：①引擎 StepAction 显式给出 skill_path（主通道，强制发现）**并随步给出 `companion_skills` 本步推荐辅助技能**（2026-09-11 起，全库 261 技能分类账见 `CONTEST_SKILL_MAP.md`（2026-09-19 实测：**263** 技能目录 − `_utils` − `shared-scripts` = 261 含 SKILL.md；当日新增 `contest-retrospective`）——按需加载 1-3 个，禁止"无人知晓"的闲置技能）；②主控 AGENTS.md 路由表（本文件，宿主自动注入会话）；③技能 frontmatter description 触发词（ZCode 技能清单）。非竞赛任务（文献/写作/绘图等）可自由按路由表加载技能，不受此铁律约束。**非技能资产同步暴露（2026-09-12 C2 资产机制）**：StepAction 另带 `assets` 字段按步给出数据/参考论文/工具脚本/参考图集指针（仓库根相对路径，见 `engine/modex-core/templates.json` 各步 metadata）——用前留痕、完成时随 evidence 申报 `assets` used/skipped（与 companion_skills 同构，运行中旧工作流不受影响）；利用率账本/地图对账/资产在位三合一审计：`python tools/check_asset_utilization.py`。
 
 每个工作流的步骤、检查点和运行事件写入 SQLite。主控 Agent 取得真实产物和执行证据后，才调用 `complete_step()` 推进步骤。**模型配置仓库不预设**（2026-09-09 裁定）：审稿/视觉模型比赛时填入 `engine/modex-core/contest_models.json` 配置槽（或宿主 agent 配置），仅供具体工具脚本与 strict 门禁比对使用，不参与流程调度。

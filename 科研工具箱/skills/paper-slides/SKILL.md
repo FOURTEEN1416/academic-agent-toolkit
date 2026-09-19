@@ -1,6 +1,6 @@
 ---
 name: paper-slides
-description: "Generate conference presentation slides (beamer LaTeX → PDF + editable PPTX) from a compiled paper, with speaker notes and full talk script. Use when user says \"做PPT\", \"做幻灯片\", \"make slides\", \"conference talk\", \"presentation slides\", \"生成slides\", \"写演讲稿\", or wants beamer slides for a conference talk."
+description: "从已成稿论文生成会议演讲幻灯（Beamer LaTeX 编译为 PDF，另出可编辑 PPTX），含演讲备注与完整演讲稿。触发词：做PPT、做幻灯片、make slides、conference talk、presentation slides、生成slides、写演讲稿。只做幻灯（Beamer 逐页 + 演讲稿）；要做单页海报改用 paper-poster。"
 argument-hint: [paper-directory-or-talk-length]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 ---

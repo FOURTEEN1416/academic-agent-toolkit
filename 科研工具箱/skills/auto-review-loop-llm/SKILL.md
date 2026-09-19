@@ -1,6 +1,6 @@
 ---
 name: auto-review-loop-llm
-description: Autonomous research review loop using any OpenAI-compatible LLM API. Configure reviewer via MH Agent settings page or environment variables. Trigger with "auto review loop llm" or "llm review".
+description: "Autonomous research review loop using any OpenAI-compatible LLM API. Configure reviewer via MH Agent settings page or environment variables. Trigger with \”auto review loop llm\” or \”llm review\”.。只走通用 OpenAI 兼容端点；明确要用 MiniMax 官方 API 时改用 auto-review-loop-minimax。"
 argument-hint: [topic-or-scope]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent, Skill
 ---

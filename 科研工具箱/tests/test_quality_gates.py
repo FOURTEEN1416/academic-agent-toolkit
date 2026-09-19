@@ -93,23 +93,24 @@ def test_cumcm_page_gate_rejects_more_than_thirty_body_pages(tmp_path):
             patch("engine.quality_gates._fitz.open", return_value=Document(page_texts)):
         result = QualityGate(tmp_path).check_paper_pages("comp_cumcm")
 
-    assert result["ok"] is True
-    assert result["body_pages"] == 30
-    assert result["total_pages"] == len(page_texts)
+    assert result["ok"] is False
+    assert result["body_pages"] == 31
 
 
-def test_cumcm_page_gate_rejects_more_than_thirty_body_pages(tmp_path):
+def test_cumcm_body_pages_fail_closed_when_no_abstract_keyword(tmp_path):
+    """HIGH fix: 无「摘要/Abstract/引言」时不得 ok=True 静默放行正文页数门禁。"""
     paper = tmp_path / "paper"
     paper.mkdir()
     (paper / "main.pdf").write_bytes(b"%PDF-1.7")
-    page_texts = ["摘要"] + [f"正文 {index}" for index in range(31)] + ["附录"]
+    # 英文/无关键词论文：全文无 body-start 标记
+    page_texts = ["Title page", "Model setup", "Results", "Conclusion"] * 2
 
     class Page:
-        def __init__(self, texts, index):
-            self._text = texts[index] if index < len(texts) else ""
+        def __init__(self, text):
+            self.text = text
 
         def get_text(self):
-            return self._text
+            return self.text
 
     class Document:
         page_count = len(page_texts)
@@ -118,7 +119,7 @@ def test_cumcm_page_gate_rejects_more_than_thirty_body_pages(tmp_path):
             self._texts = texts
 
         def __getitem__(self, index):
-            return Page(self._texts, index)
+            return Page(self._texts[index])
 
         def close(self):
             pass
@@ -128,7 +129,78 @@ def test_cumcm_page_gate_rejects_more_than_thirty_body_pages(tmp_path):
         result = QualityGate(tmp_path).check_paper_pages("comp_cumcm")
 
     assert result["ok"] is False
-    assert result["body_pages"] == 31
+    assert result["reason"] == "body_pages_unknown_no_abstract"
+    assert result.get("body_pages") in (0, None) or result["body_pages"] == 0
+    assert "Abstract" in result.get("detail", "") or "摘要" in result.get("detail", "")
+
+
+def test_cumcm_body_pages_uses_english_abstract_as_alternative_start(tmp_path):
+    """英文 Abstract 可作为正文起始替代路径，并给出真实 body 计数。"""
+    paper = tmp_path / "paper"
+    paper.mkdir()
+    (paper / "main.pdf").write_bytes(b"%PDF-1.7")
+    page_texts = ["Abstract"] + [f"Body {i}" for i in range(5)] + ["Appendix"]
+
+    class Page:
+        def __init__(self, text):
+            self.text = text
+
+        def get_text(self):
+            return self.text
+
+    class Document:
+        page_count = len(page_texts)
+
+        def __init__(self, texts):
+            self._texts = texts
+
+        def __getitem__(self, index):
+            return Page(self._texts[index])
+
+        def close(self):
+            pass
+
+    with patch("engine.quality_gates.subprocess.run", side_effect=FileNotFoundError), \
+            patch("engine.quality_gates._fitz.open", return_value=Document(page_texts)):
+        result = QualityGate(tmp_path).check_paper_pages("comp_cumcm")
+
+    assert result["ok"] is True
+    assert result["body_pages"] == 5
+    assert result.get("start_marker") == "Abstract"
+
+
+def test_cumcm_body_pages_fail_closed_when_zero_body_after_marker(tmp_path):
+    """有起始关键词但 body_count==0 → 仍 fail-closed（不得宣称通过）。"""
+    paper = tmp_path / "paper"
+    paper.mkdir()
+    (paper / "main.pdf").write_bytes(b"%PDF-1.7")
+    page_texts = ["摘要", "附录"]
+
+    class Page:
+        def __init__(self, text):
+            self.text = text
+
+        def get_text(self):
+            return self.text
+
+    class Document:
+        page_count = len(page_texts)
+
+        def __init__(self, texts):
+            self._texts = texts
+
+        def __getitem__(self, index):
+            return Page(self._texts[index])
+
+        def close(self):
+            pass
+
+    with patch("engine.quality_gates.subprocess.run", side_effect=FileNotFoundError), \
+            patch("engine.quality_gates._fitz.open", return_value=Document(page_texts)):
+        result = QualityGate(tmp_path).check_paper_pages("comp_cumcm")
+
+    assert result["ok"] is False
+    assert result["reason"] == "body_pages_unknown_no_abstract"
 
 
 def test_literature_gate_requires_search_evidence_bib_and_citations(tmp_path):

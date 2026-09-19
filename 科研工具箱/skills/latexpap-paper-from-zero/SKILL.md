@@ -1,9 +1,6 @@
 ---
 name: latexpap-paper-from-zero
-description: >
-  Route a fixed research topic into a rigorous paper-generation workflow.
-  Handles active literature search, innovation framing, contribution/evidence
-  planning, and routes to either the review writer or empirical writer skill.
+description: "> Route a fixed research topic into a rigorous paper-generation workflow. Handles active literature search, innovation"
 metadata:
   short-description: Research-to-paper router for review and empirical papers
 ---

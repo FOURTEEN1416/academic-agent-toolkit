@@ -1,6 +1,6 @@
 ---
 name: nature-data-availability
-description: Use when drafting, auditing, or revising Data Availability statements, repository plans, accession-number placement, source-data coverage, or restricted-data wording for journal submission or resubmission.
+description: "Use when drafting, auditing, or revising Data Availability statements, repository plans, accession-number placement,"
 ---
 
 

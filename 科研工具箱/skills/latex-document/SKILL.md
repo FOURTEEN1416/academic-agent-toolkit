@@ -1,10 +1,6 @@
 ---
 name: latex-document
-description: >
-  【中文触发】创建/编译/转换任何 LaTeX 文档：简历、报告、幻灯片(Beamer)、海报、小抄、公式卡、信函、发票、书籍、论文、填表表单、格式转换(Markdown/DOCX/HTML↔LaTeX)、PDF→LaTeX(含手写OCR)、latexdiff 版本对比、mail merge、图表(Mermaid/Graphviz/PlantUML/pgfplots/TikZ)、BibTeX 参考文献。
-  当用户说：做简历/海报/幻灯片/小抄、编译LaTeX、LaTeX格式转换、PDF转LaTeX、公式卡、邮件合并、版本对比时使用。
-  【边界】竞赛论文写作用 comp-paper-zh/comp-paper-en，竞赛编译用 comp-compile-zh/comp-compile-en；本技能负责竞赛之外的通用 LaTeX 文档。
-  【English】Universal LaTeX skill: create, compile (pdflatex/xelatex/lualatex auto-detect, latexmk, auto-installs TeX Live) and convert any document to PDF with PNG previews — resumes, CVs, reports, invoices, papers, theses, slides, posters, letters, exams, books, cheat sheets, fillable PDF forms, mail merge from CSV/JSON, latexdiff, charts/tables/images, bibliographies, CJK, Pandoc conversion, PDF-to-LaTeX incl. OCR. PDF utilities: encrypt, merge, compress, split, extract text, fill forms, watermark, metadata. Use when the user asks to create, compile, or convert any LaTeX/.tex/PDF document.
+description: "> 【中文触发】创建/编译/转换任何 LaTeX 文档：简历、报告、幻灯片(Beamer)、海报、小抄、公式卡、信函、发票、书籍、论文、填表表单、格式转换(Markdown/DOCX/HTML↔LaTeX)"
 ---
 
 

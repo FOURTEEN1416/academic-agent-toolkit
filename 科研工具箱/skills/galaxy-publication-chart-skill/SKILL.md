@@ -1,6 +1,6 @@
 ---
 name: galaxy-publication-chart-skill
-description: This skill should be used when the user asks for a publication-quality scientific figure or table, wants help choosing the right chart for results, needs a paper-ready pubfig or pubtab workflow, wants a figure + companion table for a results section, wants an Excel sheet turned into publication-ready LaTeX, or wants an existing scientific figure/table reviewed and upgraded.
+description: "This skill should be used when the user asks for a publication-quality scientific figure or table, wants help choosing"
 version: 0.2.0
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: galaxy-obsidian-kb-artifacts
-description: Use this skill for Obsidian-native formatting and derived artifacts such as Markdown formatting, wikilinks, registry tables, canvas files, optional Bases, CLI operations, and link repair. This skill does not decide knowledge routing.
+description: "Use this skill for Obsidian-native formatting and derived artifacts such as Markdown formatting, wikilinks, registry"
 ---
 
 # Obsidian KB Artifacts

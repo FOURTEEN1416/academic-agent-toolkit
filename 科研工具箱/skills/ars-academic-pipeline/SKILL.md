@@ -1,6 +1,6 @@
 ---
 name: ars-academic-pipeline
-description: "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise -> re-review -> re-revise -> final integrity check -> finalize. Coordinates deep-research, academic-paper, and academic-paper-reviewer into a seamless 10-stage workflow with mandatory integrity verification, two-stage peer review, and reproducible quality gates. Triggers on: academic pipeline, research to paper, full paper workflow, paper pipeline, end-to-end paper, research-to-publication, complete paper workflow."
+description: "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise ->"
 metadata:
   version: "3.11.1"
   last_updated: "2026-06-06"

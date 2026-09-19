@@ -1,6 +1,6 @@
 ---
 name: nature-portfolio-playbook
-description: Use when choosing among Nature, Nature Methods, or Nature Biotechnology, or when preparing a Nature Portfolio life-science manuscript for venue fit, article-type framing, and policy-aware pre-submission checks.
+description: "Use when choosing among Nature, Nature Methods, or Nature Biotechnology, or when preparing a Nature Portfolio"
 ---
 
 # Nature Portfolio Playbook

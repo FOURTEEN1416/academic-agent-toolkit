@@ -1,6 +1,6 @@
 ---
 name: thesis-proposal
-description: "开题报告撰写。生成完整的学位论文开题报告，包含选题背景、研究现状、研究内容、技术路线、进度安排和参考文献。Use when user says \"开题报告\", \"thesis proposal\", \"开题\"."
+description: "开题报告撰写。生成完整的学位论文开题报告，包含选题背景、研究现状、研究内容、技术路线、进度安排和参考文献。Use when user says \”开题报告\”, \”thesis proposal\”, \”开题\”."
 argument-hint: [research-topic]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent
 ---

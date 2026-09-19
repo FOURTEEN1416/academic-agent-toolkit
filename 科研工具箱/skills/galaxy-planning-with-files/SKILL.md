@@ -1,6 +1,6 @@
 ---
 name: galaxy-planning-with-files
-description: Use this by default for non-trivial multi-step work that needs persistent planning, progress tracking, or durable notes on disk. Trigger when a task will likely span multiple tool calls, research steps, verification loops, or enough context that the plan should not live only in transient chat memory.
+description: "Use this by default for non-trivial multi-step work that needs persistent planning, progress tracking, or durable notes"
 version: 0.1.0
 ---
 

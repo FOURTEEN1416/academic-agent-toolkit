@@ -1,6 +1,6 @@
 ---
 name: research-pipeline
-description: "Full research pipeline: Workflow 1 (idea discovery) → implementation → Workflow 2 (auto review loop). Goes from a broad research direction all the way to a submission-ready paper. Use when user says \"全流程\", \"full pipeline\", \"从找idea到投稿\", \"end-to-end research\", or wants the complete autonomous research lifecycle."
+description: "研究全流程编排：从宽泛研究方向走到可投稿论文（串联找 idea 与审稿循环两个阶段）。触发词：全流程、full pipeline、从找idea到投稿、end-to-end research。"
 argument-hint: [research-direction]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent, Skill
 ---

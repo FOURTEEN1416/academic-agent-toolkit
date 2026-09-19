@@ -127,29 +127,30 @@ def _load_opencode_vision_config() -> dict:
             # apiKey 通常在 auth.json
             result['_vision_provider'] = vision_provider_key
 
-    # 2. 读取 auth.json 中的 apiKey（按 provider 查找）
-    for auth_file in auth_candidates:
-        if not auth_file.exists():
-            continue
-        try:
-            auth = json.loads(auth_file.read_text(encoding='utf-8'))
-        except Exception:
-            continue
-        # 结构示例: {"<provider名>": {"type": "api", "key": "sk-..."}}
-        # 不预设任何厂商名：优先动态发现的 vision provider，其余按 auth 条目全量遍历
-        _vp = result.get('_vision_provider')
-        candidates = ([_vp] if _vp else []) + [k for k in auth.keys() if k != _vp]
-        for key_name in candidates:
-            entry = auth.get(key_name) or {}
+    # 2. 仅注入「已识别的 vision provider」的 apiKey（SECURITY FIX：
+    #    不再遍历 auth.json 全量条目、不再把任意 provider 密钥塞进 .pyc 子进程 env）。
+    #    供应链说明：tracked tools/*.pyc 字节码不可读；pyc_loader 只把视觉链路
+    #    真正需要的 EDITOR_AI_* / OPENAI_* 两个 env 注入子进程，不导出完整 auth.json。
+    #    操作员若无需视觉工具链，勿在宿主 auth.json 中保留无关密钥。
+    _vp = result.get('_vision_provider')
+    if _vp:
+        for auth_file in auth_candidates:
+            if not auth_file.exists():
+                continue
+            try:
+                auth = json.loads(auth_file.read_text(encoding='utf-8'))
+            except Exception:
+                continue
+            # 结构示例: {"<provider名>": {"type": "api", "key": "sk-..."}}
+            entry = auth.get(_vp) or {}
+            api_key = ''
             if isinstance(entry, dict):
                 api_key = entry.get('key') or entry.get('apiKey') or ''
-                if api_key:
-                    result['EDITOR_AI_API_KEY'] = api_key
-                    result['OPENAI_API_KEY'] = api_key
-                    break
             elif isinstance(entry, str) and entry.startswith('sk-'):
-                result['EDITOR_AI_API_KEY'] = entry
-                result['OPENAI_API_KEY'] = entry
+                api_key = entry
+            if api_key:
+                result['EDITOR_AI_API_KEY'] = api_key
+                result['OPENAI_API_KEY'] = api_key
                 break
 
     result.pop('_vision_provider', None)

@@ -375,17 +375,21 @@ def _workspace_context(paper_source: Path) -> dict[str, Any]:
     table_count += markdown_tables
     figure_refs = len(re.findall(r"\\includegraphics(?:\[[^\]]*\])?\{|!\[[^\]]*\]\(", combined))
     reference_count = len(re.findall(r"\\bibitem(?:\[[^\]]*\])?\{", combined))
+    # ⛔ 同一文献表常以 \\bibitem 内联 + references.bib 双份落盘（cumcm 常见）。
+    # 相加会把 10 条印成 20 条进申报材料——取两源较大者，避免申报数字一眼假。
+    bib_file_count = 0
     for bib in sorted(source.parent.rglob("*.bib"))[:20]:
-        reference_count += len(re.findall(r"(?m)^\s*@\w+\s*\{", _read_limited(bib)))
+        bib_file_count += len(re.findall(r"(?m)^\s*@\w+\s*\{", _read_limited(bib)))
+    reference_count = max(reference_count, bib_file_count)
     if source.suffix.lower() in {".md", ".markdown"}:
         references = re.search(
             r"(?ims)^#{2,3}\s*(?:参考文献|references)\s*$\n(.*?)(?=^#{2,3}\s|\Z)",
             combined,
         )
         if references:
-            reference_count += len(re.findall(
+            reference_count = max(reference_count, len(re.findall(
                 r"(?m)^\s*(?:\[?\d+\]?[.)、]?|[-*])\s+\S+", references.group(1)
-            ))
+            )))
 
     ignored_dirs = {".git", ".mh", "_utils", "node_modules", "paper", "venv", ".venv"}
     code_extensions = {".py": "Python", ".m": "MATLAB", ".r": "R", ".jl": "Julia", ".ipynb": "Jupyter"}

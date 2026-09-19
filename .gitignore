@@ -121,7 +121,18 @@ releases/
 acceptance_testing/
 
 # Suite-internal private reference data and anti-AI baselines derived from award papers
-科研工具箱/data/
+# ⚠️ 2026-09-19 修正：原为整目录 `科研工具箱/data/`。整目录规则有静默陷阱——
+#    已 tracked 的老文件**免疫 ignore**（照常入库），但新增的交付件会**无声消失**
+#    （git status 里根本不出现），导致本地全绿、公开 clone 缺件、对应测试全红。
+#    故改为"忽略目录内容 + 显式放行交付件"。
+#    ⚠️ negation 对被忽略的**目录**无效，必须写 `data/*` 而非 `data/`，否则 ! 规则全部失效。
+#    （data/ 下 8 个历史文件已于 2026-08-28 入库，靠 tracked 免疫延续，不在此列）
+科研工具箱/data/*
+!科研工具箱/data/skill_tiers.json
+!科研工具箱/data/skill_routing_index.json
+!科研工具箱/data/skill_routing_critical.json
+!科研工具箱/data/contest_lessons.json
+!科研工具箱/data/contest_lessons.md
 科研工具箱/baseline/
 
 # Local test and vision-call residue

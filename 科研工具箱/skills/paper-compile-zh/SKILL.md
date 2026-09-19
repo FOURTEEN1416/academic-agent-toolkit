@@ -1,6 +1,6 @@
 ---
 name: paper-compile-zh
-description: "Compile Chinese LaTeX paper to PDF using XeLaTeX. Use when user says \"编译中文论文\", \"compile Chinese paper\", \"中文PDF\", or wants to compile a Chinese academic paper."
+description: "用 XeLaTeX 把中文 LaTeX 论文编译为 PDF。触发词：编译中文论文、compile Chinese paper、中文PDF。只负责编译既有 .tex，不做内容创作；要从零写正文改用 paper-write-zh。"
 argument-hint: [paper-directory]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 ---

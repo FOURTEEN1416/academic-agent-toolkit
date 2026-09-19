@@ -1,14 +1,15 @@
 {
+  "_security_note_paths": "PUBLIC repo: MCP paths below are portable placeholders (no C:\\Users\\FOUR / stale D:\\Desktop\\数模竞赛). Operators set local untracked overrides for absolute host paths to docsearch-mcp. L1 hooks intentionally use inline python -c bootstrap (fail-open); do NOT revert hooks to path/variable form.",
   "mcp": {
     "servers": {
       "docsearch": {
         "type": "local",
-        "command": "C:\\Users\\FOUR\\.config\\opencode\\mcp\\docsearch-mcp\\.venv\\Scripts\\python.exe",
+        "command": "python",
         "args": [
-          "C:\\Users\\FOUR\\.config\\opencode\\mcp\\docsearch-mcp\\server.py"
+          "${DOCSEARCH_MCP_SERVER:-.opencode/mcp/docsearch-mcp/server.py}"
         ],
         "env": {
-          "DOCSEARCH_ROOTS": "D:\\Desktop\\数模竞赛",
+          "DOCSEARCH_ROOTS": "${DOCSEARCH_ROOTS:-.}",
           "DOCSEARCH_EXCLUDE_DIRS": "技能,skills,知识库,知识库搭建,node_modules,.venv,venv,.git,archive,assets,desc,__pycache__,.next,vendor"
         },
         "timeout": 30000

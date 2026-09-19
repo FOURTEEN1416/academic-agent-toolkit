@@ -773,6 +773,21 @@
       "current_evidence": "技能目录在位（SKILL.md + scripts/pack_submission.py）；references/submission_checklist.md 已补齐（2026-09-13 修复 broken_inner_ref 棘轮）",
       "current_gap": "单技能映射级登记；PyMuPDF 缺失时页数/首页/元数据检查自动跳过；正式 RAR 仍需 WinRAR 手工压缩",
       "promotion_history": []
+    },
+    {
+      "capability_id": "contest-retrospective",
+      "name": "赛后复盘与经验沉淀",
+      "domain": "math_modeling_competition",
+      "description": "把一次真实参赛/项目 run 的事故与决策固化为可复用资产：留痕取证 → 场景/坑/清单三分类 → 每条归因仓库内真实强制点 → 双写经验库真源 → 机检闭环 + 结论回灌 SKILL.md",
+      "input_contract": "待复盘工作区（含 .engine 留痕与交付文档）+ 既有经验库 data/contest_lessons.{json,md}",
+      "output_contract": "更新后的 data/contest_lessons.json + contest_lessons.md + 取证清单 + 变更加回灌清单",
+      "status": "experimental",
+      "associated_skills": [
+        "contest-retrospective"
+      ],
+      "associated_tools": [
+        "科研工具箱/tools/contest_lessons_check.py"
+      ]
     }
   ],
   "academic_papers": [

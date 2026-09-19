@@ -1,7 +1,7 @@
 ---
 name: scholar-critique-manuscript
 user_invocable: true
-description: Structured self-review of your manuscript before submission. Systematic evaluation across review criteria.
+description: Structured self-review of your manuscript before submission. Systematic evaluation across review criteria. Use when 用户要求投稿前自审、论文批判性复核、模拟审稿意见或按审稿清单逐条对照时。
 ---
 
 # critique-manuscript

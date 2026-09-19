@@ -1,6 +1,6 @@
 ---
 name: auto-paper-improvement-loop
-description: "Autonomously improve a generated paper via external reviewer model review → implement fixes → recompile, for 2 rounds. Use when user says \"改论文\", \"improve paper\", \"论文润色循环\", \"auto improve\", or wants to iteratively polish a generated paper."
+description: "论文自动改进循环（2 轮）：先由外部审稿模型评审，再按要求改稿，最后重编译验证。触发词：改论文、improve paper、论文润色循环、auto improve、迭代打磨论文。"
 argument-hint: [paper-directory]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, mcp__codex__codex, mcp__codex__codex-reply
 ---

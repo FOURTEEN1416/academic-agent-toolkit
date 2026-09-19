@@ -1,6 +1,6 @@
 ---
 name: anti-ai-detection
-description: "反AI特征检测 (Anti-AI Detection) v2.2——检测中文学术文本的AI生成特征，提供8维度+8统计特征分析、AI味改写建议、改写质量门禁、2026国赛AI使用声明生成。"
+description: "中文学术文本 AI 特征检测：八维度加八项统计特征分析、AI 味改写建议、改写质量检查，并生成国赛 AI 使用声明。触发词：反AI检测、AI味、去AI化、AI 生成特征、AI 使用声明。"
 ---
 
 # 反AI特征检测 (Anti-AI Detection) v2.2

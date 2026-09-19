@@ -1,6 +1,6 @@
 ---
 name: agent-figure-gallery
-description: Query visual scientific figure references, show candidates for human preference selection, export selected reference bundles, and guide plotting agents from human-selected visual examples to code action.
+description: "Query visual scientific figure references, show candidates for human preference selection, export selected reference"
 ---
 
 # Agent Figure Gallery

@@ -1,9 +1,6 @@
 ---
 name: latexpap-empirical-paper-writer
-description: >
-  Draft IEEE-style empirical ML/AI papers from a structured research contract.
-  Builds experiment plans, section skeletons, placeholder-safe results, and a
-  near-submission draft without fabricating evidence.
+description: "> Draft IEEE-style empirical ML/AI papers from a structured research contract. Builds experiment plans, section"
 metadata:
   short-description: Experimental paper executor with evidence-first safeguards
 ---

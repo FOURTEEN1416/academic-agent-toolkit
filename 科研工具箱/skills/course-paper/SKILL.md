@@ -2,8 +2,7 @@
 
 name: course-paper
 
-description: "课程论文撰写。基于已生成的大纲（OUTLINE.md）、数据分析（RESULTS.md）、图表（figures/）撰写完整正文并嵌入图片，严格遵守 Claims-Evidence Matrix 与图表/引用闭环自检。Use when continuing a course paper workflow."
-
+description: "课程论文撰写。基于已生成的大纲（OUTLINE.md）、数据分析（RESULTS.md）、图表（figures/）撰写完整正文并嵌入图片，严格遵守 Claims-Evidence Matrix 与图表/引用闭环自检。"
 argument-hint: [paper-topic]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent

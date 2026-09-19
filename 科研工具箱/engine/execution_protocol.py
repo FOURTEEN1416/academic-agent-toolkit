@@ -226,6 +226,9 @@ def write_execution_evidence(
         "workflow_id": action.workflow_id,
         "step_id": action.step_id,
         "skill_name": action.skill_name,
+        # P4：把本步的技能绑定随证据落盘，使审计层（audit_store.verify_skill_bindings）
+        # 无需回查模板/SQLite 即可对账"声明绑定 vs L1 实际操作"。
+        "skill_binding": dict(getattr(action, "skill_binding", None) or {}),
     }, "evidence": evidence, "manifest": manifest}
     path.write_text(json.dumps(payload, ensure_ascii=True, indent=2, sort_keys=True), encoding="utf-8")
     return path.relative_to(root).as_posix()

@@ -510,6 +510,12 @@ class QualityGate:
                 size = sum(path.stat().st_size for path in output_path.rglob("*") if path.is_file())
             else:
                 size = output_path.stat().st_size
+                # 模块化论文（main.tex + sections/*.tex）：正文体量在分章文件里，
+                # 仅计主文件会把合格论文误判为过薄（阈值不变，只修正计量面）。
+                if output_path.suffix == ".tex":
+                    sections_dir = output_path.parent / "sections"
+                    if sections_dir.is_dir():
+                        size += sum(p.stat().st_size for p in sections_dir.glob("*.tex") if p.is_file())
             ok = size >= min_size
             return {"ok": ok, "size": size, "min": min_size,
                     "reason": f"产出 {primary_output} = {size}B {'✅' if ok else f'❌ 需≥{min_size}B'}"}
@@ -598,9 +604,23 @@ class QualityGate:
     def _check_body_pages(pdf: Path, max_body: int) -> dict:
         """Count body pages in a PDF by text keyword detection.
 
-        First page = summary (摘要). Body = pages between summary and 附录.
-        Appendix (附录 and later) is unlimited.
+        First page = summary (摘要 / Abstract / 引言). Body = pages between the
+        body-start marker and 附录/Appendix. Appendix (and later) is unlimited.
+
+        Fail-closed (FIX academic-agent-toolkit HIGH): when no body-start
+        keyword is found, body_count stays 0 and the old implementation
+        silently returned ok=True — a missing-摘要 English paper would bypass
+        the body page cap. Now:
+          - no start keyword → ok=False, reason=body_pages_unknown_no_abstract
+          - start keyword found but body_count==0 → ok=False (unverified body
+            extent; do not claim a page-cap pass)
+          - alternative start markers (Abstract/ABSTRACT/引言/Introduction)
+            are accepted so bilingual/English papers still get a real count
         """
+        # Alternative body-start markers (English / 引言) — allowed only as a
+        # real page-count path, never as a silent zero-count pass.
+        start_keywords = ("摘要", "Abstract", "ABSTRACT", "引言", "Introduction")
+        end_keywords = ("附录", "Appendix", "APPENDIX")
         try:
             doc = _fitz.open(str(pdf))
         except ImportError:
@@ -609,20 +629,59 @@ class QualityGate:
             pages = doc.page_count
             body_start = False
             body_count = 0
+            start_marker = None
             for i in range(pages):
                 text = doc[i].get_text().strip()
                 if not body_start:
-                    if "摘要" in text:
-                        body_start = True
+                    for kw in start_keywords:
+                        if kw in text:
+                            body_start = True
+                            start_marker = kw
+                            break
                     continue
-                if "附录" in text:
+                if any(kw in text for kw in end_keywords):
                     break
                 body_count += 1
         finally:
             doc.close()
+
+        if not body_start:
+            return {
+                "ok": False,
+                "body_pages": 0,
+                "total_pages": pages,
+                "max_body": max_body,
+                "reason": "body_pages_unknown_no_abstract",
+                "detail": (
+                    "PDF 全文未检出「摘要/Abstract/引言」正文起始关键词，"
+                    "正文页范围不可界定；门禁 fail-closed（勿静默放行）。"
+                    "请提供含英文 Abstract 的版本，或人工复核正文页数后"
+                    "在 execution_evidence 中标注。"
+                ),
+            }
+        if body_count == 0:
+            return {
+                "ok": False,
+                "body_pages": 0,
+                "total_pages": pages,
+                "max_body": max_body,
+                "start_marker": start_marker,
+                "reason": "body_pages_unknown_no_abstract",
+                "detail": (
+                    f"检出正文起始关键词「{start_marker}」但其后未统计到正文页"
+                    f"（total_pages={pages}）；正文页数未核验，门禁 fail-closed。"
+                    "请人工复核或提供可解析的正文结构（摘要→附录）。"
+                ),
+            }
         ok = body_count <= max_body
-        return {"ok": ok, "body_pages": body_count, "total_pages": pages, "max_body": max_body,
-                "reason": f"正文 {body_count} 页（上限 {max_body} 页）{'✅' if ok else '❌'}"}
+        return {
+            "ok": ok,
+            "body_pages": body_count,
+            "total_pages": pages,
+            "max_body": max_body,
+            "start_marker": start_marker,
+            "reason": f"正文 {body_count} 页（上限 {max_body} 页）{'✅' if ok else '❌'}",
+        }
 
     def _check_literature_search(self) -> dict:
         """文献检索证据门禁（不要求论文已写完成的引用闭环）。"""
@@ -671,7 +730,13 @@ class QualityGate:
         docx = self.workspace / "paper" / "main.docx"
         if tex.exists():
             content = tex.read_text(encoding="utf-8", errors="ignore")
-            citations = re.findall(r"\\(?:cite|citep|citet)\{[^}]+\}", content)
+            # 模块化论文：引用命令写在 sections/*.tex 分章文件里，拼接后统一识别
+            sections_dir = tex.parent / "sections"
+            if sections_dir.is_dir():
+                for sec in sorted(sections_dir.glob("*.tex")):
+                    content += "\n" + sec.read_text(encoding="utf-8", errors="ignore")
+            # \upcite 为 cumcmthesis 等模板的上标引用包装（展开为 \cite），计入合法引用
+            citations = re.findall(r"\\(?:cite|citep|citet|upcite)\{[^}]+\}", content)
         elif pdf.exists():
             try:
                 doc = _fitz.open(str(pdf))

@@ -222,6 +222,96 @@ def detect_unreported_operations(workspace: Path, project_root: Path) -> dict[st
     }
 
 
+def verify_skill_bindings(workspace: Path, project_root: Path) -> dict[str, Any]:
+    """技能绑定交叉核验（P4「可验证的强制执行机制」，2026-09-19）。
+
+    为什么需要第二道：`complete_step` 的 skill_binding 闸校验的是 **agent 自己申报的**
+    evidence（L3），本质仍是"自述合规"。本函数把同一份声明拿去和 **L1 实际调用记录**
+    对账——L1 由宿主 hook / 插件写入，agent 无法跳过：
+
+      - 声明读取主技能 / 必用技能 ⟷ L1 中是否存在该技能的 `skill` 工具调用，
+        或对该技能 `SKILL.md` 的 `read` 操作。
+
+    三类结论（诚实降级，不伪造通过）：
+      - ``unavailable``：L1 审计日志不存在或为空（宿主未启用 L1）——如实标注，不判通过；
+      - ``warning``：存在"声明了绑定但 L1 无对应实际操作"的步骤；
+      - ``ok``：全部绑定在 L1 中可核。
+
+    返回::
+
+        {"verdict", "steps_checked", "unavailable_reason",
+         "unverified": [{"step_id", "skill_name", "declared", "missing"}...]}
+    """
+    ev_dir = workspace / ".engine" / "evidence"
+    declared: list[dict[str, Any]] = []
+    if ev_dir.is_dir():
+        for f in sorted(ev_dir.glob("*.json")):
+            try:
+                data = json.loads(f.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            action = data.get("action") or {}
+            binding = action.get("skill_binding") or {}
+            if not isinstance(binding, dict) or not binding:
+                continue
+            wanted = []
+            if binding.get("main_required", True):
+                wanted.append(str(binding.get("main") or action.get("skill_name") or "").strip())
+            wanted += [str(s).strip() for s in (binding.get("mandatory") or [])]
+            wanted = [w for w in wanted if w]
+            if wanted:
+                declared.append({"step_id": action.get("step_id", f.stem),
+                                 "skill_name": action.get("skill_name", ""), "wanted": wanted})
+
+    if not declared:
+        return {"verdict": "ok", "steps_checked": 0, "unverified": [],
+                "unavailable_reason": "无步骤声明技能绑定，无需核验"}
+
+    store = AuditStore(project_root)
+    events = store.events()
+    if not events:
+        return {"verdict": "unavailable", "steps_checked": len(declared), "unverified": [],
+                "unavailable_reason": "L1 审计日志不存在或为空（宿主未启用 L1 拦截式审计）；"
+                                      "绑定声明无法与实际行动对账，如实标记 unavailable 而非判通过"}
+
+    # L1 实际痕迹：skill 工具调用的技能名 + read 操作读过的文件路径
+    invoked_skills: set[str] = set()
+    read_paths: list[str] = []
+    for event in events:
+        if event.get("type") not in ("tool_call", "tool_result"):
+            continue
+        tool = str(event.get("tool", ""))
+        detail = event.get("detail") or {}
+        if tool == "skill":
+            name = str(detail.get("skillName") or "").strip()
+            if name:
+                invoked_skills.add(name.lower().replace("_", "-"))
+        elif tool == "read":
+            path = str(detail.get("filePath") or "").strip()
+            if path:
+                read_paths.append(path.lower().replace("\\", "/"))
+
+    def _evidenced(skill: str) -> bool:
+        key = skill.lower().replace("_", "-")
+        if key in invoked_skills:
+            return True
+        needle = f"skills/{key}/skill.md"
+        return any(needle in p for p in read_paths)
+
+    unverified = []
+    for item in declared:
+        missing = [s for s in item["wanted"] if not _evidenced(s)]
+        if missing:
+            unverified.append({"step_id": item["step_id"], "skill_name": item["skill_name"],
+                               "declared": item["wanted"], "missing": missing})
+    return {
+        "verdict": "warning" if unverified else "ok",
+        "steps_checked": len(declared),
+        "unverified": unverified,
+        "unavailable_reason": "",
+    }
+
+
 # =====================================================
 # A2 补丁1：状态-事件一致性核查
 # 编排状态（workflow_steps.status）必须能被事件链解释：
@@ -378,6 +468,7 @@ def generate_audit_report(workspace: Path, project_root: Path,
                 evidence_files.append({"file": f.name, "skill": "?", "agent": "?", "command_count": 0})
 
     unreported = detect_unreported_operations(workspace, project_root)
+    skill_bindings = verify_skill_bindings(workspace, project_root)
 
     return {
         "generated_at": _now(),
@@ -392,10 +483,13 @@ def generate_audit_report(workspace: Path, project_root: Path,
         "workflow_steps": workflow_steps,
         "evidence_files": evidence_files,
         "unreported_operations": unreported,
+        # P4：技能绑定声明 vs L1 实际操作的对账（自述合规 → 可核合规）
+        "skill_bindings": skill_bindings,
         "overall": {
             "audit_trail_present": stats["total_events"] > 0 or len(official_events) > 0,
             "evidence_present": len(evidence_files) > 0,
             "unreported_operations": unreported["verdict"],
+            "skill_bindings": skill_bindings["verdict"],
         },
     }
 
@@ -455,8 +549,20 @@ def build_final_audit_report(workspace: Path, project_root: Path,
                 ).fetchone()
                 if latest is not None:
                     timeline_report = store.workflow_timeline(latest["id"])
-    except Exception:
+    except Exception as exc:
         timeline_report = None
+        # FIX (MED): DB unreadable must NOT leave state_consistency.ok=True.
+        # Delivery-ready is blocked via gate_outcomes.state_event_consistency.
+        state_consistency = {
+            "checked_workflows": 0,
+            "checked_steps": 0,
+            "violations": [f"workflow database unreadable/unqueryable: {exc}"],
+            "ok": False,
+            "reason": (
+                "DB 不可读=未核验（fail-closed：SQLite 打不开或查询失败时"
+                "不得将状态-事件一致性标为通过）"
+            ),
+        }
 
     if isinstance(timeline_report, dict):
         workflow = timeline_report.get("workflow", {})
@@ -558,6 +664,15 @@ def build_final_audit_report(workspace: Path, project_root: Path,
     )
     consistency_ok = bool(state_consistency.get("ok", True))
 
+    # P4：技能绑定对账接入交付判定。判定映射与理由：
+    #   ok          → pass（声明绑定全部在 L1 可核）
+    #   warning     → fail（声明了绑定但 L1 无对应操作 = 自述与事实不符）
+    #   unavailable → pass + 降级留痕（L1 缺席是宿主治理决策、agent 无法绕过；
+    #                 若判 fail 则所有未启用 L1 的宿主都无法交付，属误伤）
+    skill_bindings = verify_skill_bindings(workspace, project_root)
+    binding_verdict = str(skill_bindings.get("verdict", "ok"))
+    gate_outcomes["skill_binding"] = "fail" if binding_verdict == "warning" else "pass"
+
     gate_outcomes["state_event_consistency"] = "pass" if consistency_ok else "fail"
     gate_outcomes["operation_audit"] = "pass" if operation_audit_ok else "fail"
 
@@ -586,6 +701,16 @@ def build_final_audit_report(workspace: Path, project_root: Path,
         },
         "delivery_decision": "ready" if delivery_ready else "blocked",
         "state_event_consistency_detail": state_consistency,
+        "skill_binding_detail": {
+            "verdict": binding_verdict,
+            "steps_checked": skill_bindings.get("steps_checked", 0),
+            "unverified": skill_bindings.get("unverified", []),
+            "unavailable_reason": skill_bindings.get("unavailable_reason", ""),
+            "blocking_rule": ("warning（声明绑定但 L1 无对应操作）→ 交付 blocked；"
+                              "unavailable（宿主未启用 L1）→ 不阻断但降级留痕，"
+                              "理由：L1 由宿主 hook/插件提供、agent 无法绕过，"
+                              "判 fail 会误伤所有未启用 L1 的宿主"),
+        },
         "operation_audit_detail": {
             "verdict": unreported["verdict"],
             "declared_command_count": unreported["declared_command_count"],

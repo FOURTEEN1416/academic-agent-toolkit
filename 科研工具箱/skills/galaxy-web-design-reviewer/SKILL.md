@@ -1,6 +1,6 @@
 ---
 name: galaxy-web-design-reviewer
-description: 'This skill enables visual inspection of websites running locally or remotely to identify and fix design issues. Triggers on requests like "review website design", "check the UI", "fix the layout", "find design problems". Detects issues with responsive design, accessibility, visual consistency, and layout breakage, then performs fixes at the source code level.'
+description: "'This skill enables visual inspection of websites running locally or remotely to identify and fix design issues."
 version: 0.1.0
 ---
 

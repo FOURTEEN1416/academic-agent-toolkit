@@ -1,6 +1,6 @@
 ---
 name: galaxy-obsidian-literature-workflow
-description: Use this skill for project-scoped literature review built on Sources/Papers, with synthesis landing in Knowledge, writing handoff in Writing, and the default literature canvas under Maps/literature.canvas.
+description: "Use this skill for project-scoped literature review built on Sources/Papers, with synthesis landing in Knowledge,"
 version: 1.0.0
 ---
 

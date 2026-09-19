@@ -1,6 +1,6 @@
 ---
 name: nature-figure-planner
-description: Use when designing, restructuring, or auditing manuscript figures and you need to define one main claim per figure, assign panel roles, align legends with the text, or decide what belongs in main figures versus supplement.
+description: "Use when designing, restructuring, or auditing manuscript figures and you need to define one main claim per figure,"
 ---
 
 # Figure Planner

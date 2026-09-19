@@ -1,6 +1,6 @@
 ---
 name: copyright-source-materials
-description: "从真实本地项目离线抽取、清洗、分页、审计并导出软著源程序材料。Use when user asks to prepare software copyright source-code materials from an existing project."
+description: "从真实本地项目离线抽取、清洗、分页、审计并导出软著源程序材料。"
 allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: paper-writing
-description: "Workflow 3: Full paper writing pipeline. Orchestrates paper-plan → paper-figure → paper-write → paper-compile → auto-paper-improvement-loop to go from a narrative report to a polished, submission-ready PDF. Use when user says \"写论文全流程\", \"write paper pipeline\", \"从报告到PDF\", \"paper writing\", or wants the complete paper generation workflow."
+description: "论文写作全流程编排：串起 paper-plan、paper-figure、paper-write、paper-compile、auto-paper-improvement-loop 五步，从叙述式报告走到可投稿 PDF。"
 argument-hint: [narrative-report-path-or-topic]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, Skill, mcp__codex__codex, mcp__codex__codex-reply
 ---

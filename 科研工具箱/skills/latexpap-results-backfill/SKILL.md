@@ -1,9 +1,6 @@
 ---
 name: latexpap-results-backfill
-description: >
-  Back-fill verified experiment results into an existing empirical paper draft.
-  Resolves placeholders, upgrades hypotheses to factual claims, generates
-  figures/tables, drafts abstract, and runs rhythm refinement + QA.
+description: "> Back-fill verified experiment results into an existing empirical paper draft. Resolves placeholders, upgrades"
 metadata:
   short-description: Post-experiment paper completion from verified results
 ---

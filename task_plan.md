@@ -58,8 +58,8 @@ Complete Phase 1 infrastructure from the handover, CodeSucker fusion design, and
 
 ## Status
 
-> ⚠️ **本节为 2026-08-30 时点快照**（保留作历史）。当前唯一有效基线（2026-09-19 实测）：
-> 根级 `pytest -q` = **460 passed / 0 failed**（85.3s，junit 取证，0 error/0 skipped）/
+> ⚠️ **本节为 2026-08-30 时点快照**（保留作历史）。当前唯一有效基线（2026-09-19 两轮升级后复测）：
+> 根级 `pytest -q` = **576 passed / 0 failed**（72.6s）/
 > 工具箱内 = **441 passed** / 根级门禁 19 passed、provenance **66/66**、
 > catalog **307 条** / 260 技能——见 `dev-docs/truth-index.md` §当前基线 与根 `AGENTS.md` §测试口径。
 

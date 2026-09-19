@@ -2,8 +2,7 @@
 
 name: humanities-write
 
-description: "人文社科论文撰写。基于 OUTLINE.md（含 Claims-Evidence Matrix）撰写完整正文：文本细读 + 理论分析 + 历史语境 + 递进论证，用 $SCHOLAR_SCRIPT 真实检索文献（禁编造），产出 HUMANITIES_PAPER.md。严格遵守反 AI 痕迹与引用闭环自检。Use when continuing a humanities/social-science paper workflow."
-
+description: "人文社科论文撰写。基于 OUTLINE.md（含 Claims-Evidence Matrix）撰写完整正文：文本细读 + 理论分析 + 历史语境 + 递进论证，用 $SCHOLAR_SCRIPT 真实检索文献（禁编造），产出 HUMANITIES_PAPER.md。严格遵守反 AI 痕迹与引用闭环自检。Use when continuing a humanities/social-science paper workflow.。只产出 Markdown（HUMANITIES_PAPER.md）；需 LaTeX/PDF 交付时改用 humanities-write-latex。"
 argument-hint: [paper-topic]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent

@@ -1,6 +1,6 @@
 ---
 name: nature-paper-bootstrap
-description: Use when starting a new manuscript project or cleaning up an existing paper directory and you need a standard structure, active source files, project memory, and venue defaults before deeper writing begins.
+description: "Use when starting a new manuscript project or cleaning up an existing paper directory and you need a standard structure,"
 ---
 
 # Paper Bootstrap

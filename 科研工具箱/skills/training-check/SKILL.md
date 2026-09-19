@@ -1,6 +1,6 @@
 ---
 name: training-check
-description: Periodically check WandB metrics during training to catch problems early (NaN, loss divergence, idle GPUs). Avoids wasting GPU hours on broken runs. Use when training is running and you want automated health checks.
+description: "Periodically check WandB metrics during training to catch problems early (NaN, loss divergence, idle GPUs). Avoids"
 argument-hint: [wandb-run-path]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, mcp__codex__codex, mcp__codex__codex-reply
 ---

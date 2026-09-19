@@ -1,9 +1,6 @@
 ---
 name: copyright-build
-description: >
-  读取 copyright-draft 产出的草稿与门禁 JSON，调用成品脚本 build_docx_from_md.py
-  生成正式的软件著作权申请资料 Word（代码材料、操作手册）和 TXT（申请表信息）。
-  是"一句话生成软著申请资料"工作流的第二步（成品阶段）。
+description: "软著申请资料成品阶段：读取草稿与检查结果，生成正式的 Word 材料（源代码、操作手册）与申请表信息文本。触发词：软著成品、生成软著材料、软著 Word、操作手册。"
 user-invocable: false
 allowed-tools: >
   Bash, Read, Write, Edit, Glob, Grep

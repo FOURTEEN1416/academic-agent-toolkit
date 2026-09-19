@@ -1,6 +1,6 @@
 ---
 name: galaxy-obsidian-project-kb-core
-description: Use this as the main Claude Scholar skill for a vault-first, project-scoped Obsidian research knowledge base rooted at Research/{project-slug}/. It owns bootstrap, routing, daily logging, hub/plan/index maintenance, registry updates, lifecycle actions, and lint orchestration.
+description: "Use this as the main Claude Scholar skill for a vault-first, project-scoped Obsidian research knowledge base rooted at"
 ---
 
 # Obsidian Project KB Core

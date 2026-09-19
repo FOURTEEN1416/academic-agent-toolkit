@@ -1,6 +1,6 @@
 ---
 name: nature-citation-verifier
-description: Use when checking manuscript citations, bibliography hygiene, DOI or PMID completeness, placeholder references, or BibTeX consistency before submission or revision.
+description: "Use when checking manuscript citations, bibliography hygiene, DOI or PMID completeness, placeholder references, or"
 ---
 
 # Citation Verifier

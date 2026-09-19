@@ -471,8 +471,11 @@ def _pdf_layout_with_pdftotext(pdf_path: Path) -> list[PdfPageLayout] | None:
         )
         if result.returncode != 0:
             continue
+        raw = result.stdout.decode("utf-8", errors="replace")
+        # MiKTeX pdftotext may emit XML 1.0-invalid control chars from math glyphs.
+        raw = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", "", raw)
         try:
-            root = ET.fromstring(result.stdout.decode("utf-8", errors="replace"))
+            root = ET.fromstring(raw)
         except ET.ParseError:
             continue
         pages: list[PdfPageLayout] = []

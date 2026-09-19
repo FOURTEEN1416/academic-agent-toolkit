@@ -158,6 +158,7 @@ class WorkflowRunner:
             companion_skills=step.metadata.get("companion_skills", []),
             assets=step.metadata.get("assets", []),
             quick_gates=bool(step.metadata.get("quick_gates", False)),
+            skill_binding=dict(step.metadata.get("skill_binding") or {}),
             params=workflow.metadata.get("params", {}),
         )
         return RunResult(workflow_id, "advanced", step.id, action=action)
@@ -318,6 +319,73 @@ class WorkflowRunner:
                         "（伪报 used 直接过闸已被禁止）。两条出路："
                         "① 把 consult 该技能的真实命令（如读取其 SKILL.md 的命令）如实记入 "
                         "evidence.commands；② 若确未使用，改申报为 skipped 并写明理由")
+
+        # ⛔ P4: 技能强制绑定（2026-09-19 "步骤不会强制调用 skills" 的机制层修复）
+        # 现状缺口：主技能只以 skill_sha256 形式出现在证据里——算一个哈希就能过，
+        # 无法区分"读了技能契约"与"只填了哈希"；关键步骤的必用辅助技能也可能被
+        # 一条 skipped 理由绕过。本闸让每个声明了 skill_binding 的步骤满足三件事：
+        #   ① 主技能咨询痕迹：主技能名或 skills/<main>/SKILL.md 出现在 commands/inputs；
+        #   ② mandatory 技能不得 skipped，必须 used 且留命令级痕迹；
+        #   ③ 每条 mandatory 至少有一条命令指向该技能目录（不能只在产物路径里蹭名）。
+        # 未声明 skill_binding 的步骤零影响（向后兼容）——绑定是"显式声明才生效"。
+        binding = step.metadata.get("skill_binding") or {}
+        if isinstance(binding, dict) and binding:
+            def _binding_reject(detail: str) -> RunResult:
+                requirements = "; ".join(self._action_for_step(workflow, step).binding_requirements())
+                message = (f"invalid execution evidence: 技能绑定不合规——{detail}。"
+                           f"本步绑定要求：{requirements or '见模板 metadata.skill_binding'}。"
+                           "绑定技能的意义是「契约被真实读取」而非填字段："
+                           "请在执行时真的读取对应 SKILL.md 并记入 evidence.commands。")
+                self.store.transition_step_with_checkpoint(
+                    workflow_id, step.id, StepStatus.FAILED,
+                    {"status": "failed", "error": message},
+                    artifacts=[{"name": a, "path": a} for a in result.artifacts],
+                    event={"type": "step_failed", "stderr": message},
+                )
+                return RunResult(workflow_id, "failed", step.id, message)
+
+            main_skill = str(binding.get("main") or step.name).strip()
+            trace_parts = (
+                [str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)]
+                + [str(p) for p in evidence.get("outputs", []) or []]
+                + [str(p) for p in evidence.get("inputs", []) or []]
+            )
+            trace_blob = " ".join(trace_parts).lower().replace("-", "_")
+            command_blob = " ".join(
+                str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)
+            ).lower().replace("-", "_")
+
+            if binding.get("main_required", True):
+                main_key = _norm_skill_token(main_skill)
+                if main_key and main_key not in trace_blob:
+                    return _binding_reject(
+                        f"未见主技能 {main_skill} 的咨询痕迹（命令/输入中缺 "
+                        f"skills/{main_skill}/SKILL.md 或技能名）——skill_sha256 只能证明文件被读取过，"
+                        "不能证明契约被遵守")
+
+            mandatory = [str(s).strip() for s in (binding.get("mandatory") or []) if str(s).strip()]
+            if mandatory:
+                raw_decl = result.metadata.get("execution_evidence", {}).get("companion_skills") or {}
+                used_norm = {_norm_skill_token(u) for u in (raw_decl.get("used") or [])}
+                skipped_norm = {_norm_skill_token(str(s.get("skill", ""))) for s in (raw_decl.get("skipped") or [])
+                                if isinstance(s, dict)}
+                for skill in mandatory:
+                    key = _norm_skill_token(skill)
+                    if key in skipped_norm:
+                        return _binding_reject(
+                            f"绑定技能 {skill} 被申报为 skipped，但该技能在本步是必用项（不可跳过）")
+                    if key not in used_norm:
+                        return _binding_reject(f"绑定技能 {skill} 未申报 used（必用技能必须申报使用）")
+                    if key not in trace_blob:
+                        return _binding_reject(f"绑定技能 {skill} 在命令与产物/输入路径中零使用痕迹")
+                    if key not in command_blob:
+                        return _binding_reject(
+                            f"绑定技能 {skill} 只出现在产物/输入路径，未出现在任何命令中——"
+                            f"请把读取其契约的真实命令（如读取 skills/{skill}/SKILL.md）记入 commands")
+            self._audit_record(type="engine_event", event="skill_binding_ok", workflow_id=workflow_id,
+                               step_id=step.id, skill_name=step.name,
+                               main=main_skill if binding.get("main_required", True) else None,
+                               mandatory=mandatory)
 
         # ⛔ C2: 步骤资产强制申报（2026-09-12 资产利用率审计落地）
         # 现状：C1 只覆盖"技能"，数据/参考论文/工具脚本/参考图集等非技能资产在
@@ -862,6 +930,7 @@ class WorkflowRunner:
             companion_skills=step.metadata.get("companion_skills", []),
             assets=step.metadata.get("assets", []),
             quick_gates=bool(step.metadata.get("quick_gates", False)),
+            skill_binding=dict(step.metadata.get("skill_binding") or {}),
             params=workflow.metadata.get("params", {}),
         )
 
