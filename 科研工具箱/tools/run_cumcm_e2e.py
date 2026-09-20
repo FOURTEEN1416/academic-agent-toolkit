@@ -335,7 +335,7 @@ def main():
                 print(f"  -> {r.status}: {r.message[:100]}")
                 
                 if r.status == "failed":
-                    print(f"步骤失败")
+                    print("步骤失败")
                     break
             else:
                 print(f"未知状态: {result.status}")

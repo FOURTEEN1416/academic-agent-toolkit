@@ -77,6 +77,11 @@ class RunLogger:
         }
 
 
+def _count_by(entries: list[dict], key: str) -> dict:
+    from collections import Counter
+    return dict(Counter(e.get(key, "") for e in entries))
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -107,8 +112,3 @@ if __name__ == "__main__":
         print(f"已生成报告: {args.out} ({len(summaries)} 个运行)")
     else:
         parser.print_help()
-
-
-def _count_by(entries: list[dict], key: str) -> dict:
-    from collections import Counter
-    return dict(Counter(e.get(key, "") for e in entries))

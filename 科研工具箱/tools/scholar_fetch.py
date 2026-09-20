@@ -920,11 +920,11 @@ def _generate_bibtex_from_metadata(paper: dict) -> str:
             f"  author = {{{_escape_bibtex(author_str)}}},",
             f"  year = {{{year}}},",
             f"  eprint = {{{arxiv_id}}},",
-            f"  archiveprefix = {{arXiv}},",
+            "  archiveprefix = {arXiv},",
         ]
         if doi:
             lines.append(f"  doi = {{{doi}}},")
-        lines.append(f"  note = {{[AUTO-GENERATED] Verify before submission}}")
+        lines.append("  note = {[AUTO-GENERATED] Verify before submission}")
         lines.append("}")
     elif venue:
         # 有 venue，判断是会议还是期刊
@@ -952,7 +952,7 @@ def _generate_bibtex_from_metadata(paper: dict) -> str:
             ]
         if doi:
             lines.append(f"  doi = {{{doi}}},")
-        lines.append(f"  note = {{[AUTO-GENERATED] Verify before submission}}")
+        lines.append("  note = {[AUTO-GENERATED] Verify before submission}")
         lines.append("}")
     else:
         # 最简格式
@@ -964,7 +964,7 @@ def _generate_bibtex_from_metadata(paper: dict) -> str:
         ]
         if doi:
             lines.append(f"  doi = {{{doi}}},")
-        lines.append(f"  note = {{[AUTO-GENERATED] Verify before submission}}")
+        lines.append("  note = {[AUTO-GENERATED] Verify before submission}")
         lines.append("}")
     
     return "\n".join(lines)
@@ -1128,7 +1128,7 @@ def fetch_bibtex(query: str, max_results: int = 10) -> list[dict]:
             bibtex = dblp_bibtex(dblp_id)
             if bibtex:
                 bib_source = "dblp"
-                _log(f"  ✓ Got BibTeX from DBLP")
+                _log("  ✓ Got BibTeX from DBLP")
             time.sleep(_RATE_DELAY)
         
         # 尝试 1b: DBLP 搜索（如果没有 dblp_id）
@@ -1143,7 +1143,7 @@ def fetch_bibtex(query: str, max_results: int = 10) -> list[dict]:
             if dblp_bib:
                 bibtex = dblp_bib
                 bib_source = "dblp"
-                _log(f"  ✓ Got BibTeX from DBLP search")
+                _log("  ✓ Got BibTeX from DBLP search")
             time.sleep(_RATE_DELAY)
         
         # 尝试 2: CrossRef DOI
@@ -1152,12 +1152,12 @@ def fetch_bibtex(query: str, max_results: int = 10) -> list[dict]:
             bibtex = crossref_bibtex_by_doi(paper["doi"])
             if bibtex:
                 bib_source = "crossref"
-                _log(f"  ✓ Got BibTeX from CrossRef")
+                _log("  ✓ Got BibTeX from CrossRef")
             time.sleep(_RATE_DELAY)
         
         # 尝试 3: 自动生成
         if not bibtex:
-            _log(f"  Generating BibTeX from metadata")
+            _log("  Generating BibTeX from metadata")
             bibtex = _generate_bibtex_from_metadata(paper)
             bib_source = "auto"
         

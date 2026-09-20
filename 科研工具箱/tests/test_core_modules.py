@@ -1,6 +1,4 @@
 """补充核心模块测试：template_resolver / opencode_bridge / artifact_manifest 独立覆盖。"""
-import hashlib
-import json
 import sys
 from pathlib import Path
 
@@ -9,7 +7,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from engine.artifact_manifest import Artifact, ArtifactManifest
+from engine.artifact_manifest import ArtifactManifest
 from engine.opencode_bridge import StepAction, StepResult
 from engine.template_resolver import resolve_template
 

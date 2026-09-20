@@ -42,7 +42,7 @@ def test_core_skills_exist():
             missing.append(f"{name}/ (dir)")
         elif not skill_file.is_file():
             missing.append(f"{name}/SKILL.md")
-    assert not missing, f"Missing core skills:\n" + "\n".join(f"  - {m}" for m in missing)
+    assert not missing, "Missing core skills:\n" + "\n".join(f"  - {m}" for m in missing)
 
 
 def test_core_skills_have_content():
@@ -133,7 +133,7 @@ def test_template_references_exist():
             skill_name = step.get("skill_name", "")
             if skill_name and not (skills_root / skill_name).is_dir():
                 missing.append(f"模板 {name} 引用 {skill_name}")
-    assert not missing, f"模板引用了不存在的技能:\n" + "\n".join(f"  - {m}" for m in missing)
+    assert not missing, "模板引用了不存在的技能:\n" + "\n".join(f"  - {m}" for m in missing)
 
 
 def test_engine_modules_importable():
@@ -151,7 +151,7 @@ def test_engine_modules_importable():
             importlib.import_module(mod_name)
         except Exception as e:
             failed.append(f"{mod_name}: {e}")
-    assert not failed, f"模块导入失败:\n" + "\n".join(f"  - {m}" for m in failed)
+    assert not failed, "模块导入失败:\n" + "\n".join(f"  - {m}" for m in failed)
 
 
 def test_comp_rules_loaded():
@@ -188,4 +188,4 @@ def test_tools_importable():
             importlib.import_module(mod_name)
         except Exception as e:
             failed.append(f"{mod_name}: {e}")
-    assert not failed, f"工具导入失败:\n" + "\n".join(f"  - {m}" for m in failed)
+    assert not failed, "工具导入失败:\n" + "\n".join(f"  - {m}" for m in failed)

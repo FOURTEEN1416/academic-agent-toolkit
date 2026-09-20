@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """项目健康检查（吸收同类项目的 Observability + Drift Detection 组件，2026-09-19）。
 
-**为什么需要**：本项目的检查件已有 9 个（provenance / 技能库完整性 / 资产利用率 /
-经验库 / 触发条件 / 常驻预算 / 配色注册表 / 模板幂等 / 地图对账），但**散在各处**：
+**为什么需要**：本项目的检查件已有 12 个（provenance / 技能库完整性 / 资产利用率 /
+经验库 / 触发条件 / 常驻预算 / 配色注册表 / 模板幂等 / 地图对账 / 密钥扫描 /
+lint 棘轮 / 重复资产守护），但**散在各处**：
 没人知道"现在整体健康吗"，只能逐个手跑。同类项目的 Harness 把 Observability 作为独立
 组件（`project-metrics` / `HEALTH-CHECK.md`），并单列一条 **Drift Detection** 原则：
 "定期检查文档与现实是否一致——统计数字、版本、功能、命令、链接"。
@@ -10,7 +11,7 @@
 我们正反复吃这个亏：README 徽章、pytest.ini 注释、AGENTS 测试口径表、truth-index 基线
 **四处数字常年互相落后**（本仓库历史上出现过 20+ 个过期基线值）。本工具把这件事机检化：
 
-  1. **组件汇总**：子进程复用既有 9 个检查件（不重造轮子，与 `quick_gates` 同一哲学），
+  1. **组件汇总**：子进程复用既有 10 个检查件（不重造轮子，与 `quick_gates` 同一哲学），
      每个给 PASS / WARN / FAIL / DEGRADED 四态；DEGRADED 表示"检查件自己跑不起来"
      （环境缺件等）——**如实标注，绝不折算成 PASS**（TOOL_GAP 原则）。
   2. **漂移检测**：实测 pytest 收集数 vs 权威文档中既有的基线数字，逐处比对并列出
@@ -38,6 +39,7 @@ REPO_ROOT = TOOLBOX_ROOT.parent
 PY = sys.executable
 
 # 复用的既有检查件：(名称, 命令参数, 是否严格要求)
+# 2026-09-20 起新增 3 件（密钥扫描 / lint 棘轮 / 重复资产守护），7 → 10。
 CHECKS: tuple[tuple[str, list[str], bool], ...] = (
     ("provenance", ["tools/check_provenance.py"], True),
     ("skill_library", ["tools/skill_library_audit.py"], True),
@@ -47,6 +49,9 @@ CHECKS: tuple[tuple[str, list[str], bool], ...] = (
     ("context_budget", ["tools/context_budget_check.py", "--strict"], True),
     ("palette_registry",
      ["skills/paper-figure-palette/scripts/palette_kit.py", "registry-verify"], True),
+    ("secret_scan", ["tools/secret_scan.py", "--strict"], True),
+    ("lint_ratchet", ["tools/lint_ratchet.py"], True),
+    ("duplicate_assets", ["tools/check_duplicate_assets.py", "--strict"], True),
 )
 
 # 漂移检测：权威文档中记录"当前基线"的位置。

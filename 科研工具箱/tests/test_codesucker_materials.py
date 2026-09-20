@@ -1,6 +1,5 @@
 import json
 import hashlib
-from pathlib import Path
 
 from tools.codesucker_bridge import run_source_materials
 from tools.codesucker_materials import write_code_pages

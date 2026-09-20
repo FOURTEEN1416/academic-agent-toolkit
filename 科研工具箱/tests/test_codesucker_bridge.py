@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 
 from engine.quality_gates import QualityGate
 from tools.codesucker_bridge import run_source_materials

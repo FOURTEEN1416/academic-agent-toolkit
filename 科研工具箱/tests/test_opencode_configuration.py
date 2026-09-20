@@ -20,7 +20,8 @@ def parse_agent_frontmatter(path: Path) -> dict:
     return frontmatter
 
 
-def test_shared_project_opencode_configuration_selects_modeling_agent_and_skills():
+def test_shared_project_opencode_configuration_is_optional_adapter():
+    """OpenCode 配置仍在位，但语义是可选适配器：必须指向技能库与主控文档。"""
     config = json.loads((PROJECT_ROOT / "opencode.json").read_text(encoding="utf-8"))
 
     assert config["$schema"] == "https://opencode.ai/config.json"
@@ -31,6 +32,20 @@ def test_shared_project_opencode_configuration_selects_modeling_agent_and_skills
     assert config["share"] == "disabled"
     assert (PROJECT_ROOT / config["skills"]["paths"][0]).is_dir()
     assert (PROJECT_ROOT / config["instructions"][0]).is_file()
+
+    adapter_meta = PROJECT_ROOT / "agents" / "adapters" / "opencode" / "adapter.json"
+    assert adapter_meta.is_file()
+    meta = json.loads(adapter_meta.read_text(encoding="utf-8"))
+    assert meta["required_for_drive"] is False
+    assert meta["status"] == "optional"
+
+
+def test_generic_adapter_always_present():
+    generic = PROJECT_ROOT / "agents" / "adapters" / "generic" / "adapter.json"
+    assert generic.is_file()
+    meta = json.loads(generic.read_text(encoding="utf-8"))
+    assert meta["adapter_id"] == "generic"
+    assert meta["kind"] == "protocol"
 
 
 def test_shared_project_root_is_the_only_agent_source():
@@ -73,27 +88,30 @@ def test_modeling_agent_contracts():
     assert visual["permission"]["edit"] == "deny"
 
 
-def test_agents_documentation_matches_project_configuration():
+def test_agents_documentation_is_host_agnostic_protocol():
     text = (SUITE_ROOT / "AGENTS.md").read_text(encoding="utf-8")
 
     assert "StepAction.workspace" in text
-    assert "skills.paths" in text
-    assert "数模专家" in text
-    assert "不依赖系统 PATH 中存在 `opencode` CLI" in text
-    assert "OpenCode Desktop" in text
+    assert "skills/" in text
+    assert "宿主无关" in text
+    assert "workflow_cli" in text
+    assert "当前驱动本项目的 Agent" in text
+    # 旧宿主仍被记录，但是可选
+    assert "OpenCode" in text
+    assert "可选" in text
+    assert "boot" in text and "probe" in text
 
 
-def test_root_readme_names_shared_desktop_project_root():
+def test_root_readme_names_host_agnostic_entry():
     text = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
-    # PUBLIC-repo path hygiene: README must not pin host-absolute / stale project roots.
+    # PUBLIC-repo path hygiene
     assert r"D:\Desktop\数模竞赛" not in text
     assert r"C:\Users\FOUR" not in text
-    # Portable guidance: clone 后的仓库根 / 本检出名
     assert "git clone" in text
-    assert "学术工作流" in text or "项目根" in text
-    assert "OpenCode Desktop" in text
-    assert "不依赖 `opencode` CLI" in text
-    assert "DOCSEARCH" in text or "占位符" in text or "路径卫生" in text
+    assert "学术工作流" in text or "项目根" in text or "Academic Agent Toolkit" in text
+    assert "宿主" in text or "Agent" in text
+    assert "workflow_cli" in text or "boot" in text or "驱动" in text
+    assert "DOCSEARCH" in text or "占位符" in text or "路径卫生" in text or "适配" in text
 
 
 def test_tracked_host_configs_have_no_personal_absolute_paths():
@@ -102,7 +120,6 @@ def test_tracked_host_configs_have_no_personal_absolute_paths():
         raw = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
         assert r"C:\Users\FOUR" not in raw, f"{rel} 含本机用户目录绝对路径"
         assert r"D:\Desktop\数模竞赛" not in raw, f"{rel} 含过期项目根路径"
-        # L1 hook bootstrap must stay path-agnostic inline python -c
         if rel.endswith("zcode/config.json"):
             cfg = json.loads(raw)
             hooks = cfg.get("hooks", {}).get("events", {})

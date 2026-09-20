@@ -12,14 +12,10 @@ import os
 import re
 import sys
 import json
-import math
-import hashlib
 import argparse
-import datetime
 from pathlib import Path
-from dataclasses import dataclass, field, asdict
-from typing import List, Optional, Dict, Tuple
-from collections import Counter
+from dataclasses import dataclass, field
+from typing import List
 
 # ============================================================
 # Data Types
@@ -518,17 +514,17 @@ def process(config: ProjectConfig, output_dir: str = '.') -> ProcessResult:
     sel = select(cleaned, config.lines_per_page, config.max_pages)
     print(f"  Total: {sel.total_lines} lines, Selected: {sel.picked_lines}, Pages: {len(sel.pages)}, Truncated: {sel.truncated}")
     
-    print(f"[4/5] Rendering document...")
+    print("[4/5] Rendering document...")
     out_path = os.path.join(output_dir, f"{config.title.replace(' ', '_')}_source_code.docx")
     try:
         render_docx(sel, config, out_path)
         print(f"  DOCX: {out_path}")
-    except Exception as e:
+    except Exception:
         out_path = os.path.join(output_dir, f"{config.title.replace(' ', '_')}_source_code.txt")
         render_txt(sel, config, out_path)
         print(f"  TXT (fallback): {out_path}")
     
-    print(f"[5/5] Running audit...")
+    print("[5/5] Running audit...")
     items = audit(cleaned, sel, config)
     fails = sum(1 for i in items if i.status == 'fail')
     warns = sum(1 for i in items if i.status == 'warn')

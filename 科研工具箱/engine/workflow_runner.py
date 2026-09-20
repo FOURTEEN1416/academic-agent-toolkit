@@ -5,7 +5,7 @@
   - complete_step() → agent 做完后回报结果
   - approve_checkpoint() → 用户确认后继续
 
-Agent（当前 OpenCode 桌面版 agent）按 StepAction 执行，然后调用 complete_step()。
+Agent（当前驱动本项目的 Agent）按 StepAction 执行，然后调用 complete_step()。
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .opencode_bridge import StepAction, StepResult
+from .agent_bridge import StepAction, StepResult
 from .artifact_manifest import ArtifactManifest
 from .execution_protocol import validate_execution_evidence, write_execution_evidence
 from .quality_gates import QualityGate
@@ -872,9 +872,11 @@ class WorkflowRunner:
         )
 
     def _agent_label(self, workflow: Workflow) -> str:
-        """返回当前步骤的执行 agent 标签（默认 OpenCode Desktop 数模专家）。"""
+        """返回当前步骤的执行 agent 标签（宿主中立默认值；驱动方可经 params.agent 覆盖）。"""
+        from .agent_protocol import default_agent_label
+
         params = workflow.metadata.get("params", {})
-        return str(params.get("agent", "") or "OpenCode Desktop 数模专家")
+        return default_agent_label(str(params.get("agent", "") or ""))
 
     def _log(self, workflow_id: str, step_id: str | None, step_name: str | None,
              event: str, message: str = "", **metadata) -> None:

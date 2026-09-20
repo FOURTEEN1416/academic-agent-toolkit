@@ -11,6 +11,7 @@
     "ablation-planner": "ondemand",
     "academic-figure-skill": "ondemand",
     "acat-doc-governance": "core",
+    "agent-bootstrap": "core",
     "agent-figure-gallery": "ondemand",
     "analyze-results": "core",
     "anti-ai-detection": "ondemand",
@@ -266,6 +267,7 @@
     "spine-paper-spine-update": "ondemand",
     "team-coordination": "ondemand",
     "thesis-proposal": "ondemand",
+    "tool-forge": "core",
     "training-check": "ondemand",
     "visio-image-rebuilder": "ondemand",
     "visualization": "ondemand"
@@ -274,6 +276,7 @@
     "ablation-planner": "非主链、非常驻调用面",
     "academic-figure-skill": "非主链、非常驻调用面",
     "acat-doc-governance": "治理/基础设施（每会话可能调用）",
+    "agent-bootstrap": "治理/基础设施（每会话可能调用）",
     "agent-figure-gallery": "非主链、非常驻调用面",
     "analyze-results": "主链步骤的推荐/必用位",
     "anti-ai-detection": "非主链、非常驻调用面",
@@ -529,6 +532,7 @@
     "spine-paper-spine-update": "非主链、非常驻调用面",
     "team-coordination": "非主链、非常驻调用面",
     "thesis-proposal": "非主链、非常驻调用面",
+    "tool-forge": "治理/基础设施（每会话可能调用）",
     "training-check": "非主链、非常驻调用面",
     "visio-image-rebuilder": "非主链、非常驻调用面",
     "visualization": "非主链、非常驻调用面"

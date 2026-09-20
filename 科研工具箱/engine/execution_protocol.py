@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from .opencode_bridge import StepAction, StepResult
+from .agent_bridge import StepAction, StepResult
 
 
 SCHEMA_VERSION = 1

@@ -1,5 +1,30 @@
 # v1.2.0 发布说明（CHANGELOG）
 
+## 未发布（2026-09-20）—— 宿主无关 · 自适应 Agent 泛化 + 仓库收尾整理
+
+设计：`docs/superpowers/specs/2026-09-20-host-agnostic-adaptive-agent.md`。
+目标：不依赖特定宿主；任意能读文件、跑 Python CLI 的智能体皆可驱动，并可通过能力探测 + 工具铸造自适应补能力。
+
+- **引擎深度重构**：新增 `engine/agent_bridge.py`（canonical，`opencode_bridge.py` 降为兼容 shim）；默认 agent 标签 → `acat-agent`（evidence.agent 为自由字符串）；`quality_gates` 模型解析链泛化（contest_models → `agents/adapters/*/models.json` → 可选宿主目录；显式 env 覆盖时不扫默认宿主）。
+- **驱动协议 + 自适应铸造**：`engine/agent_protocol.py` / `capability_probe.py` / `tool_forge.py`；CLI 新增 `boot` / `probe` / `forge`（三者惰性加载重型依赖，最小环境可跑）。
+- **旧宿主降为可选适配器**：`agents/adapters/{generic,opencode,zcode,claude-code,mimocode}`；无适配器时协议与 L2/L3 完整可用，L1 如实 `unavailable`。
+- **文档与技能**：根/工具箱 AGENTS.md、README、skills/CLAUDE.md 宿主中立化；新增技能 `agent-bootstrap`、`tool-forge`（catalog `agent_runtime` 域 + CONTEST_SKILL_MAP §四 + skill index）。
+- **收尾整理**：清项目内 `__pycache__`/`.pytest_cache`/`workflow-index.json` 运行态（保留 `.engine` 审计与 SQLite、`tools/*.pyc` 分发件）；galaxy-* 与 acat-doc-governance 过期宿主措辞同步。
+- **测试**：仓库根 `pytest -q` **639 passed / 0 failed**（= 工具箱 **620** + 根级门禁 **19**）；health check / provenance 66/66 / secret_scan 全绿。
+
+## 未发布（2026-09-20）—— 基线基础设施加固：lint 棘轮 / 密钥扫描 / 重复资产守护 / 工具冒烟 / CI 加固
+
+前三轮升级补完技能层机制后，本轮补工程基座盲区（608 个 .py 此前零 lint、零安全扫描、8 工具零测试）。
+调研溯源与批判式取舍：`docs/superpowers/specs/2026-09-20-baseline-infrastructure-hardening.md`。
+
+- **ruff 引入 + 4 真实缺陷修复**：首次 lint 即抓到 `engine/run_logger.py` F821（`__main__` 块调用尚未定义函数，CLI 必炸 NameError）、`academic_cn.py` F601（字典键重复静默覆盖）、W605 无效转义、F811 重复导入；另 80 项安全 autofix + 4 项手工修，全量 pytest 验证零回归。
+- **`tools/secret_scan.py` 密钥与路径卫生门禁**（吸收 gitleaks 高精度正则 + CI 纵深思路，自建保持自包含）：tracked 面 9 类凭证模式 + 硬性规则 6 机检化（配置绝对路径 FAIL / 文档家目录 WARN / 历史横幅豁免）；豁免台账逐行 sha256 锚定且必须有理由。**首跑即抓到存量违例**（tracked 文档写 `C:\Users\...` 本机绝对路径，已修为可移植写法）。新增 `SECURITY.md`。
+- **`tools/lint_ratchet.py` lint 棘轮**（吸收 NVIDIA tensorrt-llm baseline-gated 模式，改 per-rule 聚合）：基线锁存 8×F841 只降不升，新增违规即拦、存量下降提示收紧；ruff==0.16.8 锁死保证计数可比。
+- **`tools/check_duplicate_assets.py` 重复资产注册表守护**：tracked ≥4KB 字节级重复组必须登记台账并给理由——**152 组 / 23.0MB 重复显性化**（双份 10.56MB 字体、技能族共享脚本等），未登记新组即拦；有意不去重（技能自包含原则）。
+- **`tests/test_tool_smoke.py` 工具冒烟闸**（140 工具全量编译 + 11 工具 CLI 契约 + data_init 防覆盖回归）：**探测当场抓到 `data_init.py` 破坏性行为**——`--help` 即执行主逻辑并把 `data/README.md` 覆盖回 8 月旧模板（34 行现行文档被毁，已恢复）；修复为默认只写缺失文件 + `--force`/`--data-dir`/`--dry-run`。
+- **CI 加固**：`permissions: contents: read` 最小权限、pip 缓存、新增 secret-scan / lint-ratchet / duplicate-assets 三道门禁步。
+- **健康检查组件 7 → 10**；测试基线 603 → **628 passed / 0 failed**（工具箱 609 + 根级 19）。遗留 L8-L12（GitHub 原生 secret scanning 待仓库设置开启、死代码工具处决待裁定、quality_gates 拆分、mypy、governance 台账范围契约）。
+
 ## 未发布（2026-09-19）—— 系统性升级：经验沉淀 / 配色标准 / 技能覆盖 / 强制绑定 / 同类项目融合
 
 按用户给定的五项优先级顺序执行，全部改动遵循既有结构与代码风格，逐项过回归。

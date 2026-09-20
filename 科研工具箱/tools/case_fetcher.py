@@ -16,7 +16,6 @@ case_fetcher.py — 国赛案例库抓取器
 """
 
 import json
-import sys
 from pathlib import Path
 from datetime import datetime
 

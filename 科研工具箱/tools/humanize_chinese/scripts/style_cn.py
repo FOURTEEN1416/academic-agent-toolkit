@@ -541,7 +541,7 @@ def list_styles():
     print('可用的文本风格：\n')
     for style_id, config in STYLES.items():
         print(f'  {style_id:15s} {config["name"]:10s}  {config["description"]}')
-    print(f'\n使用: python style_cn.py input.txt --style <风格> [-o output.txt]')
+    print('\n使用: python style_cn.py input.txt --style <风格> [-o output.txt]')
 
 # ─── Main ───
 

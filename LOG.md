@@ -3,6 +3,17 @@
 > 规则：粗粒度记录（按任务/里程碑），每条含日期 + 动作 + 原因 + 结果/验证证据。
 > 分工：为什么这样设计 → 本文件；决策拍板 → 对应 spec/dev-docs 真源；当前状态 → task_plan.md / dev-docs/CURRENT_STATE.md。
 
+## 2026-09-20（收尾 · 文档同步 + 中间产物清理）
+
+- **用户裁定**：继续在主工作区整理；清理=安全缓存 + 运行态（保留 `.engine` 审计/SQLite 与 `tools/*.pyc` 分发件）。
+- **动作**：①清项目内 `__pycache__`/`.pytest_cache`/`workflow-index.json`（不含 `.venv311`）；②CHANGELOG/LOG 增补宿主无关改造；③`opencode.json`/`.zcode/config.json` 标 optional 适配器；④galaxy-* / skills/CLAUDE.md / acat-doc-governance / CROSS_PROJECT 过期宿主措辞与绝对路径清理；⑤README 徽章 skills 263 / capabilities 310。
+- **验证**：清理后复跑仓库根 pytest 与 health check（见本轮后续输出）。
+
+## 2026-09-20（宿主无关 · 自适应 Agent 泛化）
+
+- **动作**：引擎去宿主绑定（agent_bridge/shim、agent 标签 acat-agent、quality_gates 模型链泛化）；新增 agent_protocol/capability_probe/tool_forge + CLI boot/probe/forge；agents/adapters 可选适配器；文档与技能 agent-bootstrap/tool-forge；spec 见 `docs/superpowers/specs/2026-09-20-host-agnostic-adaptive-agent.md`。
+- **结果**：仓库根 pytest **639 passed / 0 failed**（620+19）；health/provenance/secret_scan 全绿。
+
 ## 2026-08-28
 
 - **动作**：科研绘图能力扩展——fork 10 个上游仓库到 FOURTEEN1416（academic-research-skills / scientific-agent-skills / nature-skills / claude-code-templates / Auto-claude-code-research-in-sleep / AutoResearchClaw / excalidraw-diagram-skill / openscience / skills(markdown-viewer) / Vibe-Skills），克隆至 `vendor/forks/`（已 gitignore）。
@@ -1062,3 +1073,94 @@ step13 外部审稿清单、step14 引用终检+质量终检。判据：**该步
 （7/7 PASS + 漂移 0，**漂移检测已加 2% 容差**：并行窗口同时增删测试时会持续误报，容差仍能抓 20% 级真过期）。
 另发现**并行窗口同时在改同一批文档**（它写入 581 基线并把 task_plan/truth-index 一起改），
 本轮基线已统一到实测 603。
+
+## 续40 · 2026-09-20 0x:xx · 系统性升级第四轮：基座盲区（lint 棘轮/密钥扫描/重复资产守护/工具冒烟/CI 加固）
+
+前三轮（续37-39）落地技能层机制后，本轮按用户"整仓每一处系统性升级+批判式吸收"指令补**工程基座盲区**。
+调研来源与取舍全记录：`docs/superpowers/specs/2026-09-20-baseline-infrastructure-hardening.md`。
+
+**基线**：改动前仓库根 `pytest -q` = **603 passed / 0 failed**（实测）；改动后 **628 passed / 0 failed**
+（工具箱 609 + 根级门禁 19，加法自洽）。新增 25 项测试 = 密钥扫描 8 + lint 棘轮 7 + 重复资产 6 + 工具冒烟 4。
+
+### 落地八项（全部带测试/验证）
+
+1. **U0 lint 盲区消除 + 4 真实缺陷修复**：首次引入 ruff（规则集 F,E9,W605，只抓"几乎必然是缺陷"类）
+   即抓到 **F821**（`engine/run_logger.py` `__main__` 块调用尚未定义的 `_count_by`——CLI report 子命令必炸
+   NameError）、**F601**（`academic_cn.py` 字典键'毫无疑问'重复、后者静默覆盖前者）、W605、F811；
+   另 80 项安全 autofix + 4 项手工修（unused-import/f-string 等，diff 手术式 48 文件 +44/−87）。
+   全量 pytest 603 全绿验证零回归。
+2. **U1 密钥与路径卫生门禁** `tools/secret_scan.py`（吸收 gitleaks"高精度正则+CI 纵深"思路，自建不引二进制）：
+   tracked 文本面（git ls-files -z 修复中文路径 quotepath 陷阱，2175 文件）扫 9 类高置信凭证模式 +
+   硬性规则 6 机检化（配置绝对路径 FAIL / 文档家目录 WARN，历史横幅豁免）。**首跑即抓到存量违例**：
+   `CROSS_PROJECT_FIGURE_SKILLS_PROMPT.md` 写 `C:\Users\FOUR\...`（已修为 `~/.zcode` 可移植写法）。
+   豁免台账 3 条（vendored 哑钥匙 fixture ×1 + 路径卫生测试检测针 ×2，逐条 sha256 锚定+理由）。
+   两个扫描器自 bug 修复留痕：JSON 内嵌 Python 的 `exc:\n` 撞盘符正则（加前导断言）；规则文档引用的
+   `C:\Users\...` 示例段误报（段须含字母数字）。
+3. **U2 lint 棘轮** `tools/lint_ratchet.py`（吸收 NVIDIA tensorrt-llm baseline-gated 模式，改造为 per-rule
+   聚合）：基线 `data/lint_baseline.json` 锁存 8×F841（只降不升；减少提示收紧；版本锁 ruff==0.16.8 入
+   requirements-dev）。**棘轮当场抓住本批新测试文件的未使用导入**（狗粮验证）。
+4. **U3 重复资产注册表守护** `tools/check_duplicate_assets.py`：tracked ≥4KB 字节级重复组必须登记
+   `data/duplicate_assets_registry.json` 并给理由——实测 **152 组 / 23.0MB 重复全登记**（双副本设计 84 /
+   claude-scientific-writer 族 44 / 字体与图集资产 24），0 TODO；未登记新组即拦（棘轮），已消解组提示移除。
+   有意不去重（技能自包含原则），只显性化+防增量。
+5. **U5 工具冒烟闸** `tests/test_tool_smoke.py`：140 工具全量 py_compile + 11 工具 --help 契约。
+   **探测当场抓到破坏性工具**：`data_init.py --help` 不识别参数直接执行主逻辑，把已演进的 `data/README.md`
+   覆盖回 8 月旧模板（34 行现行文档被毁，git checkout 恢复）——修复为**默认只写缺失文件** + --force +
+   --data-dir（可测化）+ --dry-run，回归测试钉死。`case_fetcher --help` 亦会重生成 historical_problems.json
+   （仅时间戳变化，未修，登记为裸跑型不进 --help 冒烟名单）。
+6. **U4 CI 加固**：`permissions: contents: read` 最小权限 + pip 缓存 + 三道新门禁步
+   （secret-scan --strict / lint_ratchet / check_duplicate_assets --strict）。
+7. **U7 SECURITY.md**（公开仓标准件：密钥边界/报告渠道/TOOL_GAP 声明）+ 调研溯源 spec 文档。
+8. **健康检查组件 7 → 10**（secret_scan / lint_ratchet / duplicate_assets 并入 project_health_check）。
+
+### 有意不做（批判式不采纳，详见 spec §四）
+
+pre-commit 框架（第三套门禁真源）/ pip-audit+dependabot（依赖面 7 个，噪声>收益）/ 自动去重 23MB
+（破坏技能自包含）/ 删 5 个疑似死代码工具（删除铁律需用户过目；且 check_ledger_drift 被 grep 判"零引用"
+实为活跃运维工具——引用计数不足以定死罪）/ pytest-cov（本轮已补最大盲区）/ per-file lint 粒度（演进仓
+维护成本高，聚合棘轮语义等价）。
+
+### 遗留（spec §五）
+
+L8 GitHub 原生 secret scanning 需仓库设置操作；L9 死代码工具处决裁定；L10 quality_gates.py 1694 行拆分；
+L11 mypy；**L12 governance 资产台账刷新**——两次实测重生成（仓库根 77,039 条吞入 vendor 3.1万/.venv311
+9千/.zcode 联结 6千；工具箱子树 9,299 条）均与 HEAD 口径（11,252 条、含 8 月改名前路径、疑"仅本地未跟踪
+资产"语义）不一致，无消费者/测试锚定范围契约，按 TOOL_GAP 不猜测，governance/ 保持 HEAD 干净态待裁定。
+
+### 收口验证（全部实测）
+
+`pytest -q` **628 passed / 0 failed**（108.7s）· `secret_scan --strict` 0 FAIL（豁免 3）· `lint_ratchet`
+棘轮内（8/8）· `check_duplicate_assets --strict` 棘轮内（152 组全登记）· provenance 66/66 ·
+`project_health_check --strict` 整体健康（10/10 PASS + 漂移 0，口径同步后）。
+口径同步 7 处：pytest.ini / README 徽章+表格 / 根 AGENTS 测试口径表+硬性规则6 / 工具箱 AGENTS（工具数 65→68
++ 工具表 +3 行 + 健康检查 7→10）/ truth-index 新增当前基线段（旧 603 按铁律 21 保留）。
+
+**边界声明**：未 git 提交（沿用"待用户统一提交"约定）；未删任何文件（死代码 5 件登记 L9 待裁定）；
+未动 workspaces/ 参赛产物与 vendored 技能；`.zcode` 联结与 hooks 未动；governance/ 台账未改（L12）。
+
+## 续41 · 2026-09-20 · 遗留项 L8-L12 用户裁决落地（"按推荐执行"）
+
+用户对基线加固轮五项遗留裁决：**L8 开 / L9 不删 / L10 推迟 / L11 暂缓 / L12 归档移出**。落地留痕：
+
+1. **L9 死代码复核（推翻普查初判）**：4 件（analyze_latex_template / derive_profile / markdown_utils /
+   generate_format_reference）均有同名 .pyc 分发件=真源契约；codesucker_end_to_end_demo 为 08-19
+   有意改名留痕。**零删除**，spec 改记"已复核非死代码"。grep 引用计数定死罪再次被证伪。
+2. **L10/L11 闭环**：不立项，spec 改记"触碰时顺手拆"约定（quality_gates/scholar_fetch）与
+   mypy 触发条件（engine 打包时）。
+3. **L12 执行（核心动作）**：
+   - 归档前全读 ASSET_LEDGER.md 发现 **2026-09-19 治理收口已有"不重跑、不删除"标废横幅**
+     （昨轮 L12 建议未读此横幅，只凭 summary 判断）。诚实处理：经分析本裁决为其**延伸非推翻**——
+     09-19 否决的是"重跑"（本轮两次实测口径不一致反向证实）与"硬删丢历史"（归档=零丢失）；
+     且消费者全在 gitignored 私有区而 4.63MB 挂在公开面。按"用户最新裁决优先"执行并如实留痕。
+   - 零丢失归档 `dev-docs/archive/asset-ledger-20260813/`：3 文件（ASSET_LEDGER.md 2,789B /
+     summary 912B / jsonl 4,621,956B）sha256 manifest.tsv + 逐字节 filecmp 比对全过 + 归档区
+     README（含沿革与引用修复说明）。
+   - `git rm` 三文件，governance/ 目录移除；README 仓库地图 + 根 AGENTS.md 地图表同步
+     （governance/ 行改为移除说明 + SECURITY.md 行补入）。
+   - 活文档 4 处引用改指归档路径（CURRENT_STATE×2 / CODE_MAP×1 / PUBLIC_PRIVATE_ASSET_INVENTORY×1）；
+     dated 快照 6 处（08-13 设计 spec+plan / readthrough / truth-index 历史段）按铁律 21 保留原文。
+4. **L8**：AI 不可代开 web 设置，SECURITY.md 提示已在，等用户在 GitHub Settings → Code security
+   勾选 Secret scanning + Push protection（若 push protection 误拦测试哑钥匙可走 bypass）。
+
+**边界**：本轮仅删 3 个 tracked 文件（零丢失归档在案）+ 文档引用修复；未动台账工具与测试；
+未 git 提交（待用户统一提交）。spec §五已全部改写为闭环态（含 09-19 横幅矛盾的诚实记录）。

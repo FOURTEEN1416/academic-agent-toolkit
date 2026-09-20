@@ -89,7 +89,7 @@ def main() -> int:
                 except OSError:
                     break
                 parent = parent.parent
-            print(f"    → 错位文件已移除")
+            print("    → 错位文件已移除")
 
     if not args.fix:
         print("[ledger-drift] 未加 --fix，仅报告。修复：python tools/check_ledger_drift.py --fix")

@@ -8,7 +8,6 @@
 """
 
 import re
-import os
 import sys
 import json
 from pathlib import Path
@@ -215,7 +214,7 @@ def write_markdown(baseline: dict, papers: list):
     lines.append(f"| 短句占比 | {f['short_sent_pct']['min']}-{f['short_sent_pct']['max']}% | <55% 疑AI |")
     lines.append(f"| 被动语态 | {f['passive_pct']['min']}-{f['passive_pct']['max']}% | >4% 疑AI |")
     lines.append(f"| 连接词密度 | {f['connector_density_per_1000']['min']}-{f['connector_density_per_1000']['max']}‰ | >15‰ 疑AI |")
-    lines.append(f"| 段落CV | 人类 0.5-1.0 | <0.3 疑AI |")
+    lines.append("| 段落CV | 人类 0.5-1.0 | <0.3 疑AI |")
     lines.append(f"| 长句占比 | {f['long_sent_pct']['min']}-{f['long_sent_pct']['max']}% | — |")
     lines.append("")
     lines.append("## 五、附录：单篇论文特征明细")

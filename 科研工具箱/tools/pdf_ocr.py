@@ -10,7 +10,6 @@ pdf_ocr.py — PDF 拆图 + OCR 兜底工具
 """
 
 import sys
-import os
 from pathlib import Path
 
 

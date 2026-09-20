@@ -29,7 +29,6 @@ import sys
 import urllib.request
 from io import BytesIO
 from pathlib import Path
-from typing import Optional
 from urllib.parse import urlparse
 
 # ============================================================

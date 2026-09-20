@@ -13,7 +13,7 @@ version: 0.2.0
 |------|------------|-------|------------------|--------------|
 | Slash 命令 | `.claude/commands/*.md` | `.zcode/commands/*.md` | commands 目录（agent 内置） | `.zcode/commands/doc-governance.md`（真实在库） |
 
-> 本仓库为 OpenCode Desktop 主宿主 + ZCode 兼容层（见根 AGENTS.md 宿主矩阵）。上表资产均已实存验证（见 workspaces/skill_c2_batch21/HOST_CONVERSION.json）。
+> 本仓库为**宿主无关**驱动协议（任意 Agent 可驱动）；OpenCode / ZCode / Claude Code 均为可选适配器（见根 `AGENTS.md` 与 `agents/adapters/`）。上表资产均已实存验证（见 workspaces/skill_c2_batch21/HOST_CONVERSION.json）。
 ## Overview
 
 Slash commands are frequently-used prompts defined as Markdown files that Claude executes during interactive sessions. Understanding command structure, frontmatter options, and dynamic features enables creating powerful, reusable workflows.

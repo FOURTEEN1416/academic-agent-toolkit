@@ -27,7 +27,6 @@ python tools/ai_usage_declaration.py --used --usage "资料查询和语言润色
 import argparse
 import json
 import os
-import sys
 from datetime import datetime
 
 

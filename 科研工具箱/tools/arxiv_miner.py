@@ -11,7 +11,6 @@ arxiv_miner.py - arxiv + duckduckgo 实时检索
 import argparse
 import json
 import sys
-import urllib.parse
 from typing import List, Dict
 from pathlib import Path
 

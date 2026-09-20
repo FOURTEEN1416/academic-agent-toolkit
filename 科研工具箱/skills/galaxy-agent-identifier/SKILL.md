@@ -13,7 +13,7 @@ version: 0.1.0
 |------|------------|-------|------------------|--------------|
 | Agent/子代理 | `.claude/agents/*.md` | 内置 subagent（general-purpose 等系统级） | `.opencode/agents/`（agent 定义目录） | `.opencode/agents/`（真实在库） |
 
-> 本仓库为 OpenCode Desktop 主宿主 + ZCode 兼容层（见根 AGENTS.md 宿主矩阵）。上表资产均已实存验证（见 workspaces/skill_c2_batch21/HOST_CONVERSION.json）。
+> 本仓库为**宿主无关**驱动协议（任意 Agent 可驱动）；OpenCode / ZCode / Claude Code 均为可选适配器（见根 `AGENTS.md` 与 `agents/adapters/`）。上表资产均已实存验证（见 workspaces/skill_c2_batch21/HOST_CONVERSION.json）。
 ## Overview
 
 Agents are autonomous subprocesses that handle complex, multi-step tasks independently. Understanding agent structure, triggering conditions, and system prompt design enables creating powerful autonomous capabilities.

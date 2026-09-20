@@ -6506,5 +6506,37 @@
       "current_gap": "单技能映射级登记；阈值口径以 skill 内 data 为准，未经独立 C2-C4 验收",
       "promotion_history": []
     }
+  ],
+  "agent_runtime": [
+    {
+      "capability_id": "agent-bootstrap",
+      "name": "宿主无关 Agent 自举协议",
+      "domain": "agent_runtime",
+      "description": "任意智能体自举驱动本科研工具箱：读协议、probe 能力、选择路由或启动工作流，不依赖 OpenCode/ZCode。触发词：启动项目、如何驱动、bootstrap、自举、宿主无关接入",
+      "input_contract": "仓库路径 + 用户需求文本",
+      "output_contract": "驱动路径（工作流 ID 或技能名）+ probe 摘要 + 后续动作",
+      "status": "experimental",
+      "associated_skills": ["agent-bootstrap"],
+      "associated_tools": ["engine/workflow_cli.py", "engine/agent_protocol.py", "engine/capability_probe.py"],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "2026-09-20 宿主无关改造：agent_protocol boot 契约 + capability_probe + 文档入口泛化",
+      "current_gap": "多宿主实测（Claude Code/Cursor 等）待操作员在真实会话验收"
+    },
+    {
+      "capability_id": "tool-forge",
+      "name": "自适应工具铸造协议",
+      "domain": "agent_runtime",
+      "description": "自适应工具铸造：探测 TOOL_GAP 后为当前 Agent 铸造工具与技能骨架并登记能力目录。触发词：缺工具、TOOL_GAP、造一个工具、自适应构建、forge、工具铸造",
+      "input_contract": "probe 结果或缺口描述 + 名称与 purpose",
+      "output_contract": "tools/<name>.py 与 skills/<name>/SKILL.md 骨架 + catalog 登记提示",
+      "status": "experimental",
+      "associated_skills": ["tool-forge"],
+      "associated_tools": ["engine/tool_forge.py", "engine/workflow_cli.py"],
+      "external_dependencies": [],
+      "high_risk_confirmation": "铸造默认不覆盖已有文件；环境类 gap 不伪造安装",
+      "current_evidence": "2026-09-20 落地 tool_forge CLI（--tool/--skill/--adapter/--gap）与骨架模板",
+      "current_gap": "铸造产物的真实领域实现与跨 Agent 实战样本待补充"
+    }
   ]
 }

@@ -548,7 +548,6 @@ if not ACADEMIC_REPLACEMENTS:
         '必然会': ['很可能会', '大概率会'],
         '必然': ['大概率', '在多数情况下'],
         '一定会': ['很可能会', '大概率将'],
-        '毫无疑问': ['应当承认', '较为确定的是'],
         '无疑': ['在很大程度上', '应当说'],
         '毋庸置疑': ['较为明确的是', '可以说'],
         '确定无疑': ['在现有证据下可以认为', '目前的结论倾向于'],
@@ -1078,7 +1077,7 @@ def format_comparison(before_issues, before_metrics, before_score,
     if diff > 0:
         lines.append(f'\n✅ 降低了 {diff} 分')
     elif diff == 0:
-        lines.append(f'\n⚠️  分数未变化')
+        lines.append('\n⚠️  分数未变化')
     else:
         lines.append(f'\n❌ 分数上升了 {abs(diff)} 分')
 

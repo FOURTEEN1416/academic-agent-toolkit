@@ -1039,7 +1039,7 @@ def main():
             finally:
                 os.unlink(tmp_path)
         else:
-            print(f'警告: 未找到风格转换脚本', file=sys.stderr)
+            print('警告: 未找到风格转换脚本', file=sys.stderr)
     
     # Output
     if args.output:

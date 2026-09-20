@@ -18,7 +18,6 @@ AI味改写建议工具 v1.0
 """
 
 import re
-import sys
 import json
 from dataclasses import dataclass, field, asdict
 

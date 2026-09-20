@@ -688,7 +688,6 @@ def test_literature_gate_counts_only_body_citations_in_pdf(tmp_path):
 
     # 用 fitz 生成真实 PDF：正文含 [1]，参考文献区含 [1]-[9]
     # （fitz 默认字体不支持中文，参考文献标题用英文 References）
-    import fitz
     doc = fitz.open()
     page = doc.new_page()
     page.insert_text((72, 72), "Body cites [1] here.")
@@ -741,7 +740,6 @@ def test_reviewer_client_retries_on_rate_limit(tmp_path, monkeypatch):
     if str(tools_dir) not in _sys.path:
         _sys.path.insert(0, str(tools_dir))
     import reviewer_client
-    import http.client as _hc
     import json as _json
 
     class FakeResponse:

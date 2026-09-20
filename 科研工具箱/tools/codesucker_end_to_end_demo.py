@@ -2,7 +2,6 @@
 """端到端演示：验证 CodeSucker 融合流程。"""
 import sys
 import tempfile
-import json
 from pathlib import Path
 
 sys.path.insert(0, '.')

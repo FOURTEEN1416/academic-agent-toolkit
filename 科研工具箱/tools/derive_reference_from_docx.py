@@ -28,7 +28,6 @@ from typing import Any, Optional
 
 try:
     from docx import Document
-    from docx.shared import Cm, Pt
 except ImportError:
     print("ERROR: 需要 python-docx，请先 pip install python-docx", file=sys.stderr)
     sys.exit(1)

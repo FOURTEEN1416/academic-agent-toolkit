@@ -9,9 +9,7 @@ novelty_checker.py - 查重（避免和历年国一撞方法）
 
 import argparse
 import json
-import re
 import sys
-from pathlib import Path
 
 
 # 历年国一常见方法（基于近 5 年公开数据 + 公开获奖论文统计）
@@ -151,7 +149,7 @@ def main():
     print(f"[新颖度] {result['novelty_score']:.2f} / 1.00")
     print(f"[是否常见] {'是' if result['is_common'] else '否'}")
     print(f"\n[建议]\n  {result['suggestion']}\n")
-    print(f"[创新方向建议]")
+    print("[创新方向建议]")
     for i, s in enumerate(result["innovation_suggestions"], 1):
         print(f"  {i}. {s}")
 

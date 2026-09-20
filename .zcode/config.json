@@ -1,4 +1,6 @@
 {
+  "_adapter_status": "optional",
+  "_adapter_note": "ZCode 可选适配器（2026-09-20 宿主无关改造）。驱动协议不依赖本文件；hooks 仅在 ZCode 宿主下提供 L1 增强。",
   "_security_note_paths": "PUBLIC repo: MCP paths below are portable placeholders (no C:\\Users\\FOUR / stale D:\\Desktop\\数模竞赛). Operators set local untracked overrides for absolute host paths to docsearch-mcp. L1 hooks intentionally use inline python -c bootstrap (fail-open); do NOT revert hooks to path/variable form.",
   "mcp": {
     "servers": {

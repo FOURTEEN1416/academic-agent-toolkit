@@ -7,8 +7,8 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 
 # ACAT 文档治理规程（项目专属）
 
-本仓库（academic-agent-toolkit，`D:\Desktop\数模竞赛`）的文档治理铁律与操作规程。
-用户裁定（2026-08-28）已固化如下，任何宿主（OpenCode / ZCode）下的治理任务都必须遵守。
+本仓库（Academic Agent Toolkit，**git clone 后的仓库根**；本检出目录名 `学术工作流`）的文档治理铁律与操作规程。
+用户裁定（2026-08-28）已固化；**2026-09-20 起宿主无关**：任意驱动 Agent 下的治理任务都必须遵守。
 
 ## 用户铁律（违反即返工）
 

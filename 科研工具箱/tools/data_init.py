@@ -283,25 +283,36 @@ CASE_PATTERNS = """# 题型规律 + 常见国一方法库
 
 
 def main():
+    """初始化 data/ 资产。
+
+    2026-09-20 安全化改造（事故实证：本工具曾把已演进的 data/README.md 覆盖回
+    8 月旧模板，毁掉 34 行现行文档）：默认**只写缺失文件、绝不覆盖已存在文件**；
+    确要重置须显式 --force。
+    """
+    import argparse
+
     project_root = Path(__file__).resolve().parent.parent
-    data_dir = project_root / "data"
-    data_dir.mkdir(parents=True, exist_ok=True)
+    parser = argparse.ArgumentParser(
+        description="初始化 data/ 目录（默认只写缺失文件，不覆盖已存在文件）")
+    parser.add_argument("--data-dir", default=str(project_root / "data"),
+                        help="目标数据目录（默认：<套件>/data；测试用）")
+    parser.add_argument("--force", action="store_true",
+                        help="覆盖已存在的文件（危险：会清掉手工维护的内容）")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="只打印将执行的动作，不写任何文件")
+    args = parser.parse_args()
 
-    # 1. 写 reference_models.json
-    json_path = data_dir / "reference_models.json"
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(REFERENCE_MODELS, f, ensure_ascii=False, indent=2)
-    print(f"[OK] 写入: {json_path} ({len(REFERENCE_MODELS)} 题型)")
-
-    # 2. 写 case_patterns.md
-    md_path = data_dir / "case_patterns.md"
-    with open(md_path, "w", encoding="utf-8") as f:
-        f.write(CASE_PATTERNS)
-    print(f"[OK] 写入: {md_path} ({len(CASE_PATTERNS)} 字符)")
-
-    # 3. 写 README.md
-    readme_path = data_dir / "README.md"
-    readme_content = f"""# data/ 目录
+    data_dir = Path(args.data_dir)
+    targets = [
+        ("reference_models.json", lambda p: p.write_text(
+            json.dumps(REFERENCE_MODELS, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8"), f"{len(REFERENCE_MODELS)} 题型"),
+        ("case_patterns.md", lambda p: p.write_text(CASE_PATTERNS, encoding="utf-8"),
+         f"{len(CASE_PATTERNS)} 字符"),
+    ]
+    # data/README.md 已由人工演进维护（含 contest_lessons 等 7 项资产文档），
+    # 模板版仅含 2 项——绝不允许工具覆盖，只写缺失
+    readme_content = """# data/ 目录
 
 存放国赛相关数据资产。
 
@@ -311,13 +322,24 @@ def main():
 
 ## 维护说明
 - 比赛结束后，可补充 `historical_papers.json`（历年真题 + 优秀论文链接）
-- 重跑 `python tools/data_init.py` 即可重置
 """
-    with open(readme_path, "w", encoding="utf-8") as f:
-        f.write(readme_content)
-    print(f"[OK] 写入: {readme_path}")
+    targets.append(("README.md", lambda p: p.write_text(readme_content, encoding="utf-8"),
+                    "目录说明"))
 
-    print(f"\n[DONE] data/ 初始化完成，目录: {data_dir}")
+    if not args.dry_run:
+        data_dir.mkdir(parents=True, exist_ok=True)
+    for name, write, note in targets:
+        path = data_dir / name
+        if path.exists() and not args.force:
+            print(f"[SKIP] 已存在不覆盖: {path}（重置须 --force）")
+            continue
+        if args.dry_run:
+            print(f"[DRY-RUN] 将写入: {path} ({note})")
+            continue
+        write(path)
+        print(f"[OK] 写入: {path} ({note})")
+
+    print(f"\n[DONE] data/ 初始化{'（dry-run）' if args.dry_run else '完成'}，目录: {data_dir}")
 
 
 if __name__ == "__main__":

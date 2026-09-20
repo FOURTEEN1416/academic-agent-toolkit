@@ -1,0 +1,1392 @@
+{
+  "threshold_bytes": 4096,
+  "excluded_prefixes": [
+    "releases/"
+  ],
+  "excluded_suffixes": [
+    ".pyc"
+  ],
+  "groups": [
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/NotoSansSC-Regular.ttf",
+        "科研工具箱/skills/shared-scripts/NotoSansSC-Regular.ttf"
+      ],
+      "size": 10560380,
+      "wasted_bytes": 10560380,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/academic-figure-skill/assets/figure-atlas/MantelCorrelation.png",
+        "科研工具箱/skills/academic-figure-skill/assets/figures/MantelCorrelation/plot_MantelCorrelation3.png"
+      ],
+      "size": 3125675,
+      "wasted_bytes": 3125675,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/academic-figure-skill/assets/figure-atlas/Correlationmatrix.png",
+        "科研工具箱/skills/academic-figure-skill/assets/figures/CorrelationMatrix/plot_CorrelationHeatmap_v1.png"
+      ],
+      "size": 2097874,
+      "wasted_bytes": 2097874,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/academic-figure-skill/assets/figure-atlas/GroupCorrelationmatrix.png",
+        "科研工具箱/skills/academic-figure-skill/assets/figures/GroupedCorrelationMatrix/plot_GroupCorrelationHeatmap_1.png"
+      ],
+      "size": 1506041,
+      "wasted_bytes": 1506041,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/academic-figure-skill/assets/figure-atlas/3Dheatmap.png",
+        "科研工具箱/skills/academic-figure-skill/assets/figures/3DHeatmap/plot_3Dheatmap_4.png"
+      ],
+      "size": 650181,
+      "wasted_bytes": 650181,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/china_provinces.geojson",
+        "科研工具箱/skills/shared-scripts/china_provinces.geojson"
+      ],
+      "size": 582522,
+      "wasted_bytes": 582522,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/academic-figure-skill/assets/figure-atlas/PCA.png",
+        "科研工具箱/skills/academic-figure-skill/assets/figures/PCA/plot_PCA_1.png"
+      ],
+      "size": 414551,
+      "wasted_bytes": 414551,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/academic-figure-skill/assets/figure-atlas/GroupedBarChart.png",
+        "科研工具箱/skills/academic-figure-skill/assets/figures/GroupedBarChart/plot_GroupedBarChartv1_1.png"
+      ],
+      "size": 330825,
+      "wasted_bytes": 330825,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/academic-figure-skill/assets/figures/MarginalDensity/plot_VariableCorrelation_1.png",
+        "科研工具箱/skills/academic-figure-skill/assets/figures/MarginalDensity/plot_VariableCorrelation_2.png"
+      ],
+      "size": 260225,
+      "wasted_bytes": 260225,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/academic-figure-skill/assets/figure-atlas/StackedBarScatter.png",
+        "科研工具箱/skills/academic-figure-skill/assets/figures/StackedBarScatter/plot_StackedBarScatter_2.png"
+      ],
+      "size": 238433,
+      "wasted_bytes": 238433,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/academic-figure-skill/assets/figure-atlas/CorrelationDensity.png",
+        "科研工具箱/skills/academic-figure-skill/assets/figures/KernelDensity/plot_CorrelationDensity3_detail.png"
+      ],
+      "size": 188318,
+      "wasted_bytes": 188318,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/academic-figure-skill/assets/figure-atlas/RidgePlot.png",
+        "科研工具箱/skills/academic-figure-skill/assets/figures/RidgePlot/plot_RidgePlot1_1.png"
+      ],
+      "size": 157779,
+      "wasted_bytes": 157779,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/figure_recipes_advanced.md",
+        "科研工具箱/skills/shared-scripts/figure_recipes_advanced.md"
+      ],
+      "size": 135018,
+      "wasted_bytes": 135018,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/error_prevention.md",
+        "科研工具箱/skills/shared-scripts/error_prevention.md"
+      ],
+      "size": 130796,
+      "wasted_bytes": 130796,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/citation-management/scripts/generate_schematic_ai.py",
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/scripts/generate_schematic_ai.py",
+        "科研工具箱/skills/claude-scientific-writer/modules/literature-review/scripts/generate_schematic_ai.py",
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-slides/scripts/generate_schematic_ai.py"
+      ],
+      "size": 34354,
+      "wasted_bytes": 103062,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/spine-paper-spine-audit/scripts/integrity_audit.py",
+        "科研工具箱/skills/spine-paper-spine-build/scripts/integrity_audit.py",
+        "科研工具箱/skills/spine-paper-spine-rewrite/scripts/integrity_audit.py",
+        "科研工具箱/skills/spine-paper-spine/scripts/integrity_audit.py"
+      ],
+      "size": 33814,
+      "wasted_bytes": 101442,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/build_ai_disclosure.py",
+        "科研工具箱/skills/shared-scripts/build_ai_disclosure.py"
+      ],
+      "size": 83128,
+      "wasted_bytes": 83128,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/spine-paper-spine-audit/scripts/word_guard.py",
+        "科研工具箱/skills/spine-paper-spine-build/scripts/word_guard.py",
+        "科研工具箱/skills/spine-paper-spine-latex/scripts/word_guard.py"
+      ],
+      "size": 40891,
+      "wasted_bytes": 81782,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/compile_utils.sh",
+        "科研工具箱/skills/shared-scripts/compile_utils.sh"
+      ],
+      "size": 75483,
+      "wasted_bytes": 75483,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/plot_utils.py",
+        "科研工具箱/skills/shared-scripts/plot_utils.py"
+      ],
+      "size": 70470,
+      "wasted_bytes": 70470,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/figure_recipes_competition.md",
+        "科研工具箱/skills/shared-scripts/figure_recipes_competition.md"
+      ],
+      "size": 70418,
+      "wasted_bytes": 70418,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/figure_recipes_empirical.md",
+        "科研工具箱/skills/shared-scripts/figure_recipes_empirical.md"
+      ],
+      "size": 70397,
+      "wasted_bytes": 70397,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/spine-paper-spine-audit/scripts/structured_review.py",
+        "科研工具箱/skills/spine-paper-spine-build/scripts/structured_review.py",
+        "科研工具箱/skills/spine-paper-spine-rewrite/scripts/structured_review.py"
+      ],
+      "size": 35050,
+      "wasted_bytes": 70100,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/writing_rules.md",
+        "科研工具箱/skills/shared-scripts/writing_rules.md"
+      ],
+      "size": 58955,
+      "wasted_bytes": 58955,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/figure_style_guide.md",
+        "科研工具箱/skills/shared-scripts/figure_style_guide.md"
+      ],
+      "size": 53057,
+      "wasted_bytes": 53057,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/facts_audit.py",
+        "科研工具箱/skills/shared-scripts/facts_audit.py"
+      ],
+      "size": 46145,
+      "wasted_bytes": 46145,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/figure_text_budget.py",
+        "科研工具箱/skills/shared-scripts/figure_text_budget.py"
+      ],
+      "size": 44782,
+      "wasted_bytes": 44782,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/figure_recipes_academic.md",
+        "科研工具箱/skills/shared-scripts/figure_recipes_academic.md"
+      ],
+      "size": 41837,
+      "wasted_bytes": 41837,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/figure_exemplars.md",
+        "科研工具箱/skills/shared-scripts/figure_exemplars.md"
+      ],
+      "size": 41127,
+      "wasted_bytes": 41127,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/figure_recipes_basic.md",
+        "科研工具箱/skills/shared-scripts/figure_recipes_basic.md"
+      ],
+      "size": 41073,
+      "wasted_bytes": 41073,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/sci-latex-posters/scripts/generate_schematic_ai.py",
+        "科研工具箱/skills/sci-literature-review/scripts/generate_schematic_ai.py"
+      ],
+      "size": 39484,
+      "wasted_bytes": 39484,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/tikz_rules.md",
+        "科研工具箱/skills/shared-scripts/tikz_rules.md"
+      ],
+      "size": 34025,
+      "wasted_bytes": 34025,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/abstract_emphasis_check.py",
+        "科研工具箱/skills/shared-scripts/abstract_emphasis_check.py"
+      ],
+      "size": 32879,
+      "wasted_bytes": 32879,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/figure_pdf_quality_check.py",
+        "科研工具箱/skills/shared-scripts/figure_pdf_quality_check.py"
+      ],
+      "size": 32107,
+      "wasted_bytes": 32107,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/html_pdf_check.py",
+        "科研工具箱/skills/paper-figure-html/templates/html_pdf_check.py",
+        "科研工具箱/skills/paper-figure-html/tools/html_pdf_check.py",
+        "科研工具箱/skills/shared-scripts/html_pdf_check.py"
+      ],
+      "size": 10532,
+      "wasted_bytes": 31596,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/compile_check.sh",
+        "科研工具箱/skills/shared-scripts/compile_check.sh"
+      ],
+      "size": 31469,
+      "wasted_bytes": 31469,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/spine-paper-spine-audit/scripts/citation_quality_audit.py",
+        "科研工具箱/skills/spine-paper-spine-citation/scripts/citation_quality_audit.py"
+      ],
+      "size": 30582,
+      "wasted_bytes": 30582,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/spine-paper-spine-translate/scripts/translate_guard.py",
+        "科研工具箱/skills/spine-paper-spine/scripts/translate_guard.py"
+      ],
+      "size": 30325,
+      "wasted_bytes": 30325,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/writing_check.sh",
+        "科研工具箱/skills/shared-scripts/writing_check.sh"
+      ],
+      "size": 28181,
+      "wasted_bytes": 28181,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/humanities-terminology-bilingual.md",
+        "科研工具箱/skills/shared-scripts/humanities-terminology-bilingual.md"
+      ],
+      "size": 28062,
+      "wasted_bytes": 28062,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/ars-academic-paper-reviewer/scripts/check_pipeline_integrity.py",
+        "科研工具箱/skills/ars-academic-paper/scripts/check_pipeline_integrity.py",
+        "科研工具箱/skills/ars-academic-pipeline/scripts/check_pipeline_integrity.py"
+      ],
+      "size": 13812,
+      "wasted_bytes": 27624,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/drawio_rules.md",
+        "科研工具箱/skills/shared-scripts/drawio_rules.md"
+      ],
+      "size": 25899,
+      "wasted_bytes": 25899,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/example_roadmap_hex_cool.drawio",
+        "科研工具箱/skills/shared-scripts/example_roadmap_hex_cool.drawio"
+      ],
+      "size": 25413,
+      "wasted_bytes": 25413,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/references/ai_graphics_for_posters.md",
+        "科研工具箱/skills/sci-latex-posters/references/ai_graphics_for_posters.md"
+      ],
+      "size": 25014,
+      "wasted_bytes": 25014,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/logic_audit.py",
+        "科研工具箱/skills/shared-scripts/logic_audit.py"
+      ],
+      "size": 23830,
+      "wasted_bytes": 23830,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/references/poster_design_principles.md",
+        "科研工具箱/skills/sci-latex-posters/references/poster_design_principles.md"
+      ],
+      "size": 23722,
+      "wasted_bytes": 23722,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/references/poster_layout_design.md",
+        "科研工具箱/skills/sci-latex-posters/references/poster_layout_design.md"
+      ],
+      "size": 23227,
+      "wasted_bytes": 23227,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/citation-management/scripts/generate_schematic.py",
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/scripts/generate_schematic.py",
+        "科研工具箱/skills/claude-scientific-writer/modules/literature-review/scripts/generate_schematic.py",
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-slides/scripts/generate_schematic.py"
+      ],
+      "size": 7655,
+      "wasted_bytes": 22965,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/mechanism_accuracy_addendum.md",
+        "科研工具箱/skills/shared-scripts/mechanism_accuracy_addendum.md"
+      ],
+      "size": 22389,
+      "wasted_bytes": 22389,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/example_roadmap_hex.drawio",
+        "科研工具箱/skills/shared-scripts/example_roadmap_hex.drawio"
+      ],
+      "size": 21205,
+      "wasted_bytes": 21205,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/references/poster_content_guide.md",
+        "科研工具箱/skills/sci-latex-posters/references/poster_content_guide.md"
+      ],
+      "size": 21109,
+      "wasted_bytes": 21109,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/humanities-theory-frameworks.md",
+        "科研工具箱/skills/shared-scripts/humanities-theory-frameworks.md"
+      ],
+      "size": 21055,
+      "wasted_bytes": 21055,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/drawio_check.py",
+        "科研工具箱/skills/shared-scripts/drawio_check.py"
+      ],
+      "size": 20967,
+      "wasted_bytes": 20967,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/citation-management/references/bibtex_formatting.md",
+        "科研工具箱/skills/sci-citation-management/references/bibtex_formatting.md"
+      ],
+      "size": 20194,
+      "wasted_bytes": 20194,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/citation-management/references/metadata_extraction.md",
+        "科研工具箱/skills/sci-citation-management/references/metadata_extraction.md"
+      ],
+      "size": 20052,
+      "wasted_bytes": 20052,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/humanities-writing-templates.md",
+        "科研工具箱/skills/shared-scripts/humanities-writing-templates.md"
+      ],
+      "size": 19248,
+      "wasted_bytes": 19248,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/modeling_paper_contract.md",
+        "科研工具箱/skills/shared-scripts/modeling_paper_contract.md"
+      ],
+      "size": 19139,
+      "wasted_bytes": 19139,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/references/latex_poster_packages.md",
+        "科研工具箱/skills/sci-latex-posters/references/latex_poster_packages.md"
+      ],
+      "size": 18581,
+      "wasted_bytes": 18581,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/citation-management/references/pubmed_search.md",
+        "科研工具箱/skills/sci-citation-management/references/pubmed_search.md"
+      ],
+      "size": 18574,
+      "wasted_bytes": 18574,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/tikz_examples_extra.tex",
+        "科研工具箱/skills/shared-scripts/tikz_examples_extra.tex"
+      ],
+      "size": 18343,
+      "wasted_bytes": 18343,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/example_roadmap_stats_warm.drawio",
+        "科研工具箱/skills/shared-scripts/example_roadmap_stats_warm.drawio"
+      ],
+      "size": 17592,
+      "wasted_bytes": 17592,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/human_paper_style_check.py",
+        "科研工具箱/skills/shared-scripts/human_paper_style_check.py"
+      ],
+      "size": 17328,
+      "wasted_bytes": 17328,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/table_slim.py",
+        "科研工具箱/skills/shared-scripts/table_slim.py"
+      ],
+      "size": 16848,
+      "wasted_bytes": 16848,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/assets/reporting_guidelines.json",
+        "科研工具箱/skills/sci-scientific-writing/assets/reporting_guidelines.json"
+      ],
+      "size": 16538,
+      "wasted_bytes": 16538,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/spine-paper-spine-audit/scripts/latex_guard.py",
+        "科研工具箱/skills/spine-paper-spine-latex/scripts/latex_guard.py"
+      ],
+      "size": 16514,
+      "wasted_bytes": 16514,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/tikz_check.sh",
+        "科研工具箱/skills/shared-scripts/tikz_check.sh"
+      ],
+      "size": 16471,
+      "wasted_bytes": 16471,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/literature-review/references/database_strategies.md",
+        "科研工具箱/skills/sci-literature-review/references/database_strategies.md"
+      ],
+      "size": 15946,
+      "wasted_bytes": 15946,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/scripts/validate_manifest.py",
+        "科研工具箱/skills/sci-scientific-writing/scripts/validate_manifest.py"
+      ],
+      "size": 14974,
+      "wasted_bytes": 14974,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/bib_authenticity_check.py",
+        "科研工具箱/skills/shared-scripts/bib_authenticity_check.py"
+      ],
+      "size": 14972,
+      "wasted_bytes": 14972,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/scripts/check_consistency.py",
+        "科研工具箱/skills/sci-scientific-writing/scripts/check_consistency.py"
+      ],
+      "size": 14617,
+      "wasted_bytes": 14617,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/references/compilation_and_quality_control.md",
+        "科研工具箱/skills/sci-latex-posters/references/compilation_and_quality_control.md"
+      ],
+      "size": 14355,
+      "wasted_bytes": 14355,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/fig_include_size.py",
+        "科研工具箱/skills/shared-scripts/fig_include_size.py"
+      ],
+      "size": 14336,
+      "wasted_bytes": 14336,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/figure_check.sh",
+        "科研工具箱/skills/shared-scripts/figure_check.sh"
+      ],
+      "size": 13749,
+      "wasted_bytes": 13749,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/figure_check.py",
+        "科研工具箱/skills/shared-scripts/figure_check.py"
+      ],
+      "size": 13610,
+      "wasted_bytes": 13610,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/literature-review/assets/review_template.md",
+        "科研工具箱/skills/sci-literature-review/assets/review_template.md"
+      ],
+      "size": 13394,
+      "wasted_bytes": 13394,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/stats_utils.py",
+        "科研工具箱/skills/shared-scripts/stats_utils.py"
+      ],
+      "size": 13059,
+      "wasted_bytes": 13059,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/references/README.md",
+        "科研工具箱/skills/sci-latex-posters/references/README.md"
+      ],
+      "size": 12955,
+      "wasted_bytes": 12955,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/ai_tell_check.py",
+        "科研工具箱/skills/shared-scripts/ai_tell_check.py"
+      ],
+      "size": 12740,
+      "wasted_bytes": 12740,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/modeling_tex_policy.py",
+        "科研工具箱/skills/shared-scripts/modeling_tex_policy.py"
+      ],
+      "size": 12672,
+      "wasted_bytes": 12672,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/capability_check.py",
+        "科研工具箱/skills/shared-scripts/capability_check.py"
+      ],
+      "size": 12331,
+      "wasted_bytes": 12331,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/scripts/validate_authorship.py",
+        "科研工具箱/skills/sci-scientific-writing/scripts/validate_authorship.py"
+      ],
+      "size": 11820,
+      "wasted_bytes": 11820,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/plotly/LICENSE",
+        "科研工具箱/skills/scientific-schematics/LICENSE"
+      ],
+      "size": 11564,
+      "wasted_bytes": 11564,
+      "reason": "同源开源许可证法定文本（逐字一致属合规要求）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/assets/poster_quality_checklist.md",
+        "科研工具箱/skills/sci-latex-posters/assets/poster_quality_checklist.md"
+      ],
+      "size": 11530,
+      "wasted_bytes": 11530,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/claim_code_check.py",
+        "科研工具箱/skills/shared-scripts/claim_code_check.py"
+      ],
+      "size": 11391,
+      "wasted_bytes": 11391,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/citation-management/assets/citation_checklist.md",
+        "科研工具箱/skills/sci-citation-management/assets/citation_checklist.md"
+      ],
+      "size": 10734,
+      "wasted_bytes": 10734,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/references/source_ledger.md",
+        "科研工具箱/skills/sci-scientific-writing/references/source_ledger.md"
+      ],
+      "size": 10443,
+      "wasted_bytes": 10443,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/leakage_audit.py",
+        "科研工具箱/skills/shared-scripts/leakage_audit.py"
+      ],
+      "size": 10341,
+      "wasted_bytes": 10341,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/literature-review/references/core_workflow.md",
+        "科研工具箱/skills/sci-literature-review/references/core_workflow.md"
+      ],
+      "size": 10183,
+      "wasted_bytes": 10183,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/references/reporting_guidelines.md",
+        "科研工具箱/skills/nature-scientific-writing/references/reporting_guidelines.md",
+        "科研工具箱/skills/sci-scientific-writing/references/reporting_guidelines.md"
+      ],
+      "size": 4892,
+      "wasted_bytes": 9784,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/citation-management/assets/bibtex_template.bib",
+        "科研工具箱/skills/sci-citation-management/assets/bibtex_template.bib"
+      ],
+      "size": 9465,
+      "wasted_bytes": 9465,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/data_ingest_check.py",
+        "科研工具箱/skills/shared-scripts/data_ingest_check.py"
+      ],
+      "size": 9360,
+      "wasted_bytes": 9360,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/literature-review/scripts/search_databases.py",
+        "科研工具箱/skills/sci-literature-review/scripts/search_databases.py"
+      ],
+      "size": 9339,
+      "wasted_bytes": 9339,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/ai_disclosure_rules.md",
+        "科研工具箱/skills/shared-scripts/ai_disclosure_rules.md"
+      ],
+      "size": 9276,
+      "wasted_bytes": 9276,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/references/imrad_structure.md",
+        "科研工具箱/skills/nature-scientific-writing/references/imrad_structure.md",
+        "科研工具箱/skills/sci-scientific-writing/references/imrad_structure.md"
+      ],
+      "size": 4626,
+      "wasted_bytes": 9252,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/fig_bucket_doc_sync_check.py",
+        "科研工具箱/skills/shared-scripts/fig_bucket_doc_sync_check.py"
+      ],
+      "size": 9177,
+      "wasted_bytes": 9177,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/scripts/audit_claims.py",
+        "科研工具箱/skills/sci-scientific-writing/scripts/audit_claims.py"
+      ],
+      "size": 9075,
+      "wasted_bytes": 9075,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/human_competition_paper_style.md",
+        "科研工具箱/skills/shared-scripts/human_competition_paper_style.md"
+      ],
+      "size": 9010,
+      "wasted_bytes": 9010,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/demo_all_templates.tex",
+        "科研工具箱/skills/shared-scripts/demo_all_templates.tex"
+      ],
+      "size": 8840,
+      "wasted_bytes": 8840,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/spine-paper-spine-build/references/writing-rationale-matrix.md",
+        "科研工具箱/skills/spine-paper-spine-rewrite/references/writing-rationale-matrix.md"
+      ],
+      "size": 8610,
+      "wasted_bytes": 8610,
+      "reason": "共享模板/参考文档随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/abstract_writing_contract.md",
+        "科研工具箱/skills/shared-scripts/abstract_writing_contract.md"
+      ],
+      "size": 8415,
+      "wasted_bytes": 8415,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/pdf_page_density_check.py",
+        "科研工具箱/skills/shared-scripts/pdf_page_density_check.py"
+      ],
+      "size": 8336,
+      "wasted_bytes": 8336,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/paper-figure-html/templates/tpl_flow.html",
+        "科研工具箱/skills/patent-draft/templates/tpl_flow.html"
+      ],
+      "size": 8293,
+      "wasted_bytes": 8293,
+      "reason": "共享模板/参考文档随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/scripts/review_poster.sh",
+        "科研工具箱/skills/sci-latex-posters/scripts/review_poster.sh"
+      ],
+      "size": 8153,
+      "wasted_bytes": 8153,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/anti_rationalization.md",
+        "科研工具箱/skills/shared-scripts/anti_rationalization.md"
+      ],
+      "size": 8151,
+      "wasted_bytes": 8151,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/assets/tikzposter_template.tex",
+        "科研工具箱/skills/sci-latex-posters/assets/tikzposter_template.tex"
+      ],
+      "size": 8138,
+      "wasted_bytes": 8138,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/recipe_audit.py",
+        "科研工具箱/skills/shared-scripts/recipe_audit.py"
+      ],
+      "size": 8019,
+      "wasted_bytes": 8019,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/scripts/_common.py",
+        "科研工具箱/skills/sci-scientific-writing/scripts/_common.py"
+      ],
+      "size": 7910,
+      "wasted_bytes": 7910,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/assets/beamerposter_template.tex",
+        "科研工具箱/skills/sci-latex-posters/assets/beamerposter_template.tex"
+      ],
+      "size": 7896,
+      "wasted_bytes": 7896,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/capability_audit.py",
+        "科研工具箱/skills/shared-scripts/capability_audit.py"
+      ],
+      "size": 7859,
+      "wasted_bytes": 7859,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/delivery_audit.py",
+        "科研工具箱/skills/shared-scripts/delivery_audit.py"
+      ],
+      "size": 7813,
+      "wasted_bytes": 7813,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/example_flow.drawio",
+        "科研工具箱/skills/shared-scripts/example_flow.drawio"
+      ],
+      "size": 7811,
+      "wasted_bytes": 7811,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/sci-latex-posters/scripts/generate_schematic.py",
+        "科研工具箱/skills/sci-literature-review/scripts/generate_schematic.py"
+      ],
+      "size": 7798,
+      "wasted_bytes": 7798,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/scripts/select_reporting_guidelines.py",
+        "科研工具箱/skills/sci-scientific-writing/scripts/select_reporting_guidelines.py"
+      ],
+      "size": 7794,
+      "wasted_bytes": 7794,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/cross_problem_check.py",
+        "科研工具箱/skills/shared-scripts/cross_problem_check.py"
+      ],
+      "size": 7762,
+      "wasted_bytes": 7762,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/assets/baposter_template.tex",
+        "科研工具箱/skills/sci-latex-posters/assets/baposter_template.tex"
+      ],
+      "size": 7689,
+      "wasted_bytes": 7689,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/quick_gates.py",
+        "科研工具箱/skills/shared-scripts/quick_gates.py"
+      ],
+      "size": 7680,
+      "wasted_bytes": 7680,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/latex-posters/references/latex_poster_reference.md",
+        "科研工具箱/skills/sci-latex-posters/references/latex_poster_reference.md"
+      ],
+      "size": 7625,
+      "wasted_bytes": 7625,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/scripts/check_references.py",
+        "科研工具箱/skills/sci-scientific-writing/scripts/check_references.py"
+      ],
+      "size": 7294,
+      "wasted_bytes": 7294,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/literature-review/scripts/verify_citations.py",
+        "科研工具箱/skills/sci-literature-review/scripts/verify_citations.py"
+      ],
+      "size": 7272,
+      "wasted_bytes": 7272,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/paper_source_scope.py",
+        "科研工具箱/skills/shared-scripts/paper_source_scope.py"
+      ],
+      "size": 7044,
+      "wasted_bytes": 7044,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/tikz_structure_check.py",
+        "科研工具箱/skills/shared-scripts/tikz_structure_check.py"
+      ],
+      "size": 7006,
+      "wasted_bytes": 7006,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/humanities-formatting-guide.md",
+        "科研工具箱/skills/shared-scripts/humanities-formatting-guide.md"
+      ],
+      "size": 6961,
+      "wasted_bytes": 6961,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/pdf_snapshot_report.py",
+        "科研工具箱/skills/shared-scripts/pdf_snapshot_report.py"
+      ],
+      "size": 6550,
+      "wasted_bytes": 6550,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/citation-management/scripts/doi_to_bibtex.py",
+        "科研工具箱/skills/sci-citation-management/scripts/doi_to_bibtex.py"
+      ],
+      "size": 6503,
+      "wasted_bytes": 6503,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/assumption_layout_check.py",
+        "科研工具箱/skills/shared-scripts/assumption_layout_check.py"
+      ],
+      "size": 6346,
+      "wasted_bytes": 6346,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/literature-review/references/citation_styles.md",
+        "科研工具箱/skills/sci-literature-review/references/citation_styles.md"
+      ],
+      "size": 6278,
+      "wasted_bytes": 6278,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/scripts/lint_manuscript.py",
+        "科研工具箱/skills/sci-scientific-writing/scripts/lint_manuscript.py"
+      ],
+      "size": 6052,
+      "wasted_bytes": 6052,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/data_profile.py",
+        "科研工具箱/skills/shared-scripts/data_profile.py"
+      ],
+      "size": 5955,
+      "wasted_bytes": 5955,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/demo_roadmap_research_premium.tex",
+        "科研工具箱/skills/shared-scripts/demo_roadmap_research_premium.tex"
+      ],
+      "size": 5894,
+      "wasted_bytes": 5894,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/literature-review/references/search_and_citation.md",
+        "科研工具箱/skills/sci-literature-review/references/search_and_citation.md"
+      ],
+      "size": 5855,
+      "wasted_bytes": 5855,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/fig_size_consistency_check.py",
+        "科研工具箱/skills/shared-scripts/fig_size_consistency_check.py"
+      ],
+      "size": 5762,
+      "wasted_bytes": 5762,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/academic-figure-skill/assets/figures/CorrelationMatrix/plot_CorrelationHeatmap_v2.R",
+        "科研工具箱/skills/academic-figure-skill/assets/figures/CorrelationMatrix/plot_CorrelationHeatmap_v3.R"
+      ],
+      "size": 5725,
+      "wasted_bytes": 5725,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/latex_typography_check.py",
+        "科研工具箱/skills/shared-scripts/latex_typography_check.py"
+      ],
+      "size": 5689,
+      "wasted_bytes": 5689,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/paper-figure-html/templates/tpl_arch.html",
+        "科研工具箱/skills/patent-draft/templates/tpl_arch.html"
+      ],
+      "size": 5653,
+      "wasted_bytes": 5653,
+      "reason": "共享模板/参考文档随技能自包含分发"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/literature-review/scripts/generate_pdf.py",
+        "科研工具箱/skills/sci-literature-review/scripts/generate_pdf.py"
+      ],
+      "size": 5586,
+      "wasted_bytes": 5586,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/paper_claim_check.py",
+        "科研工具箱/skills/shared-scripts/paper_claim_check.py"
+      ],
+      "size": 5536,
+      "wasted_bytes": 5536,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/tikz_style_families.md",
+        "科研工具箱/skills/shared-scripts/tikz_style_families.md"
+      ],
+      "size": 5270,
+      "wasted_bytes": 5270,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/humanities-platform-guide.md",
+        "科研工具箱/skills/shared-scripts/humanities-platform-guide.md"
+      ],
+      "size": 5263,
+      "wasted_bytes": 5263,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/demo_roadmap_research_pipeline.tex",
+        "科研工具箱/skills/shared-scripts/demo_roadmap_research_pipeline.tex"
+      ],
+      "size": 5063,
+      "wasted_bytes": 5063,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/compile_source_check.py",
+        "科研工具箱/skills/shared-scripts/compile_source_check.py"
+      ],
+      "size": 5008,
+      "wasted_bytes": 5008,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/example_roadmap_stats.drawio",
+        "科研工具箱/skills/shared-scripts/example_roadmap_stats.drawio"
+      ],
+      "size": 4973,
+      "wasted_bytes": 4973,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/normalize_cjk_quotes.py",
+        "科研工具箱/skills/shared-scripts/normalize_cjk_quotes.py"
+      ],
+      "size": 4903,
+      "wasted_bytes": 4903,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/humanities-literature-analysis.md",
+        "科研工具箱/skills/shared-scripts/humanities-literature-analysis.md"
+      ],
+      "size": 4824,
+      "wasted_bytes": 4824,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/quality_gate_contract.md",
+        "科研工具箱/skills/shared-scripts/quality_gate_contract.md"
+      ],
+      "size": 4730,
+      "wasted_bytes": 4730,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/references/authorship_ai_confidentiality.md",
+        "科研工具箱/skills/sci-scientific-writing/references/authorship_ai_confidentiality.md"
+      ],
+      "size": 4607,
+      "wasted_bytes": 4607,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/symbol_layout_check.py",
+        "科研工具箱/skills/shared-scripts/symbol_layout_check.py"
+      ],
+      "size": 4493,
+      "wasted_bytes": 4493,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/scripts/scaffold_manuscript.py",
+        "科研工具箱/skills/sci-scientific-writing/scripts/scaffold_manuscript.py"
+      ],
+      "size": 4471,
+      "wasted_bytes": 4471,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/figure_narrative_check.py",
+        "科研工具箱/skills/shared-scripts/figure_narrative_check.py"
+      ],
+      "size": 4470,
+      "wasted_bytes": 4470,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/compute_checkpoint.py",
+        "科研工具箱/skills/shared-scripts/compute_checkpoint.py"
+      ],
+      "size": 4409,
+      "wasted_bytes": 4409,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/demo_roadmap_competition.tex",
+        "科研工具箱/skills/shared-scripts/demo_roadmap_competition.tex"
+      ],
+      "size": 4374,
+      "wasted_bytes": 4374,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/_utils/demo_roadmap_template4.tex",
+        "科研工具箱/skills/shared-scripts/demo_roadmap_template4.tex"
+      ],
+      "size": 4325,
+      "wasted_bytes": 4325,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "科研工具箱/skills/claude-scientific-writer/modules/scientific-writing/references/research_integrity_open_science.md",
+        "科研工具箱/skills/sci-scientific-writing/references/research_integrity_open_science.md"
+      ],
+      "size": 4246,
+      "wasted_bytes": 4246,
+      "reason": "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    }
+  ]
+}

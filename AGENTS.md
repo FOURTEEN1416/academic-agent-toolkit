@@ -1,75 +1,84 @@
-# Academic Agent Toolkit — 仓库入口（宿主中立）
+# Academic Agent Toolkit — 仓库入口（宿主无关）
 
 > 本仓库是一个**完整科研工具箱**（全学术 Agent 工具箱，6 大能力域），数模竞赛只是其一。
 > **主控文档（单一真源）：[科研工具箱/AGENTS.md](科研工具箱/AGENTS.md)** —— 开工前必须先读它。
-> 它定义架构、三层审计、入口路由、质量门禁与工作流引擎的使用方式。
+> **驱动协议**：任意能读文件、能执行 Python CLI 的智能体均可驱动本项目，不依赖特定宿主。
+> 机器可读契约：`cd 科研工具箱 && python -m engine.workflow_cli boot`
 
-## 宿主支持矩阵
+## 驱动协议（任何 Agent）
 
-| 宿主 | 配置文件 | 状态 |
+1. 读本文件与 `科研工具箱/AGENTS.md`
+2. `cd 科研工具箱 && python -m engine.workflow_cli boot` 取得契约
+3. `python -m engine.workflow_cli probe` 探测能力与 TOOL_GAP
+4. 缺工具时 `python -m engine.workflow_cli forge --tool/--skill ...`
+5. 多步流程：`start` → `next` → 按 StepAction 执行 → `complete`（evidence.agent 自报你的工具名）
+6. 单技能任务：按 `科研工具箱/AGENTS.md` §三 路由表直接读 SKILL.md
+
+**主控 = 当前驱动本项目的 Agent。** 同一时刻只有一个主控；引擎（engine/）只编排不执行；
+不存在「调用另一个 agent runtime」的逻辑。
+
+**硬规则**：无证据＝未执行 · TOOL_GAP 不伪造通过 · 三振升级 · complete_step 必须附真实 evidence。
+
+自举技能：`科研工具箱/skills/agent-bootstrap/` · 铸造技能：`科研工具箱/skills/tool-forge/`
+
+## 可选宿主适配器（非驱动前提）
+
+| 适配器 | 配置文件 | 状态 |
 |------|----------|------|
-| OpenCode Desktop | `opencode.json` + 根级 `.opencode/`（插件 + subagent） | 正式宿主（L1 拦截式审计插件在此层生效） |
-| ZCode | `.zcode/config.json` + `.zcode/skills/` + `.zcode/commands/` | **赛时主控宿主**（2026-09-09 起）：L1 审计 hook 等价实现（`科研工具箱/hooks/zcode_audit_l1.py`，PreToolUse/PostToolUse/PostToolUseFailure 写同一 `operations.jsonl`）——**2026-09-11 经用户裁定重启用**（从 64dbd56 恢复形态；契约测试 23/23+引导器落账实测通过；重启会话后宿主自动触发）；技能/引擎/门禁与 OpenCode 全一致 |
+| generic（协议层） | 无；`agents/adapters/generic/` | **默认可用**：AGENTS.md + skills/ + workflow_cli |
+| OpenCode Desktop | `opencode.json` + 根级 `.opencode/`（插件 + subagent） | 可选适配器（L1 插件在此层生效） |
+| ZCode | `.zcode/config.json` + `.zcode/skills/` + `.zcode/commands/` | 可选适配器（L1 hook 等价实现） |
+| Claude Code / Cursor / MiMo 等 | 见 `agents/adapters/` | 可选；无配置也可直接按协议驱动 |
 
-## ZCode 主控层说明
+适配器元数据：`agents/adapters/*/adapter.json`。L1 拦截式审计在无宿主 hook 时记为
+`unavailable`（不阻断）；L2（引擎）/L3（evidence）始终可用。
+
+## OpenCode 可选适配说明（保留兼容）
+
+- `.opencode/skills` 不需要；OpenCode 经 `opencode.json` 的 `skills.paths` 扫描 `./科研工具箱/skills`
+- `opencode.json` 使用 `数模专家` 作为默认 primary agent（仅 OpenCode 用户）
+- MCP 路径用占位符；本机绝对路径放在**未提交**本地覆盖中
+- hook/配置变更后需重启对应宿主会话才生效
+
+## ZCode 可选适配说明（保留兼容）
 
 - `.zcode/skills` 是指向 `科研工具箱/skills` 的 NTFS 目录联结（不跟踪入 git）。
-  重建命令（仓库根，管理员非必需）：
-  `cmd /c mklink /J .zcode\skills 科研工具箱\skills`
-- `.zcode/config.json` 提供 docsearch MCP（与 OpenCode 同一 server，workspace 级自动连接）与
-  **hooks 块（L1 审计，已启用）**：2026-09-11 用户针对"门禁博弈（Goodhart）"威胁裁定重启用，
-  从 git 64dbd56 恢复内联引导器形态（PreToolUse 拦截/PostToolUse 落账/PostToolUseFailure 三事件，
-  fail-open 铁律：hook 自身故障 stderr 警告+exit 0 放行，exit 2 唯一来源=治理规则命中且必留痕）。
-  复验记录：契约测试 23/23、引导器 stdin 模拟落账 +1 条、双口径 270/314 全过（同日盲审两轮回炉后基线升至 379/423，见 LOG 续8/续9）。
-  **hook 配置改动需重启会话生效**——下次新会话起宿主自动触发落账。
-- **L1 hook 能力**（OpenCode 插件不具备的宿主机制，反向利用；脚本在库、2026-09-11 起已注册启用，预案与历史见 LOG 续6）：宿主层触发、agent 不可绕过；
-  PreToolUse 可按治理铁律拦截（如 `git add .` 强制逐文件点名）；落账格式与插件一致，
-  L3 交叉比对（`workflow_cli audit` / `detect_unreported_operations`）零改动可用。
-- `.zcode/commands/doc-governance.md` 提供 `/doc-governance` 文档治理命令；
-  治理规程本体在技能 `acat-doc-governance`（含用户铁律：治理必须全文读完所有文档、污染源必清理）。
-- ZCode 下审稿角色（数模审稿人/数模视觉审查等）以通用子智能体（Agent 工具）承担；
-  审核证据的模型名必须与 `科研工具箱/engine/modex-core/contest_models.json`（已按 2026-09-10
-  用户裁定配置 agnes/agnes-2.5-flash，换模型须同步本文件与证据声明）或 OpenCode 宿主 agent 配置一致，strict 门禁据此硬拦。
-- 赛前自检：`python 科研工具箱/tools/contest_dryrun/chain_driver.py`（14 步全链 + 硬闸 + 真编译，
-  链路验证级，详见该目录 README）。
+  重建：`cmd /c mklink /J .zcode\skills 科研工具箱\skills`
+- L1 hooks：`科研工具箱/hooks/zcode_audit_l1.py`（fail-open；配置改动需重启会话）
+- 审稿模型名须与 `engine/modex-core/contest_models.json` 或适配器 `models.json` 一致
 
 ## 仓库地图（治理入口）
 
 | 路径 | 性质 |
 |------|------|
-| `科研工具箱/` | 产品主体：skills(261 个技能；**263** 目录含 _utils/shared-scripts 两个非技能目录；2026-09-19 实测)/engine/tools/tests/hooks(L1 已启用)/data |
-| `capabilities/catalog.json` | 能力目录（308 条，2026-09-19 实测；六域分布 36/74/42/83/12/61） |
-| `docs/superpowers/` | 设计 spec 与实施计划（dated 快照，仅供追溯） |
-| `dev-docs/` | 内部真源根（gitignored 私有）：truth-index 入口索引、archive/ 归档区 |
-| `LOG.md` / `task_plan.md` | 操作日志 / 当前任务与验证基线 |
-| `releases/`、`governance/`、`tests/` | 发布包快照 / 资产台账 / 根级门禁测试（19 项） |
-| `benchmarks/` | ⚠️ **2026-09-19 起废弃入库**（公开基准集，内容零丢失归档 `dev-docs/archive/legacy-benchmarks-tests-20260919/`）；私有层 `benchmarks/cumcm_private/` 从未入库，**已永久丢失** |
-| `参考论文/` | 62 篇获奖论文统计分析资产（本地，不入 git） |
-| `赛前试炼任务/`、`extracted_images/`、`logs/`、`workspaces/` | 本地敏感练习材料与运行产物（均不入 git） |
-| `vendor/forks/` | 上游 fork 暂存区（不入 git） |
+| `科研工具箱/` | 产品主体：skills/engine/tools/tests/hooks/data |
+| `capabilities/catalog.json` | 能力目录（技能须全部映射；根级 tests 硬校验） |
+| `agents/adapters/` | 可选宿主适配器元数据（协议不依赖） |
+| `docs/superpowers/` | 设计 spec 与实施计划（dated 快照） |
+| `dev-docs/` | 内部真源根（gitignored 私有） |
+| `LOG.md` / `task_plan.md` | 操作日志 / 任务与验证基线 |
+| `releases/`、`tests/`、`SECURITY.md` | 发布快照 / 根级门禁测试 / 安全策略 |
+| `参考论文/`、`赛前试炼任务/`、`workspaces/` 等 | 本地材料与产物（不入 git） |
 
-## 硬性规则（继承自主控文档，冲突时以主控文档为准）
+## 硬性规则（冲突时以主控文档为准）
 
-1. 引擎（engine/）只编排不执行；执行者是当前 agent。
+1. 引擎（engine/）只编排不执行；执行者是当前驱动 Agent。
 2. 完成步骤必须回报 `complete_step` 并附 execution_evidence，禁止伪造审核产物。
-3. 改代码后跑 `python -m pytest -q`（科研工具箱/ 下）+ `python tools/check_provenance.py`。
-4. `dev-docs/` 是内部真源根，默认私有；`vendor/` 是上游 fork 暂存区，不入 git。
-5. 文档治理任务遵守 `acat-doc-governance` 技能铁律：全文读完、污染必清、不窄化定位。
-6. **路径/密钥卫生（PUBLIC 仓）**：tracked 配置（`opencode.json`/`.zcode/config.json`）与文档不得写入本机绝对路径（`C:\Users\...`、过期项目根）；MCP 用占位符 + 本地未提交覆盖。`科研工具箱/.env` 永不入库。`tools/*.pyc` 为不可源码审查的分发件（审查读同名 `.py`；`pyc_loader` 仅注入 vision provider 所需 env，属本地密钥注入面）。
+3. 改代码后跑 `python -m pytest -q`（仓库根）+ `python 科研工具箱/tools/check_provenance.py`。
+4. `dev-docs/` 是内部真源根，默认私有；`vendor/` 不入 git。
+5. 文档治理遵守 `acat-doc-governance`：全文读完、污染必清。
+6. **路径/密钥卫生**：tracked 配置不得写本机绝对路径；`.env` 永不入库；
+   `python 科研工具箱/tools/secret_scan.py --strict` 机检。
 
-## 测试口径（2026-09-19 实测，pytest.ini 为唯一真源）
+## 测试口径（2026-09-20 宿主无关改造轮实测，pytest.ini 为唯一真源）
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/`（pytest.ini 限定） | **603 passed / 0 failed**（本机，2026-09-19 审查修复后复测；= 工具箱 584 + 根级门禁 19）。历史留痕：首测 459+1 failed 的唯一失败项 `test_quick_gates.py::test_page_check_bad_pdf_errors_without_raising` 根因是 `.venv311` 缺 `pypdf`（缺库时 `_page_check` 返回 SKIP 而测试断言 ERROR）——**非代码缺陷**，补包后全绿；CI 已固化该依赖 | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests（584 = 603 − 根级门禁 19） | **584 passed / 0 failed**（1 failed 为 health-check 漂移检测在文档数字未同步时触发；文档同步后应全绿） | 技能验收基线（硬规则 3 口径） |
-| 根 `tests/` 单跑 | catalog schema 硬校验 + 反 AI 工具集检查 | **19 passed**（0.30s） | `capabilities/catalog.json` 改动后必跑 |
-| **公开 clone / CI** | 同上（已提交内容，不含 gitignored 私有资产） | **603 收集 = 600 passed + 3 skipped**（0 failed，39.6s；**CI 实测 run 35425878920**，2026-09-19 升级后；推送前的本地等效复验结果与之一致）。3 skipped 为"真仓机检"在缺 gitignored 私有资产/未交付技能时按语义 skip。历史值 460 收集 = 458 passed + 2 skipped（run 35412014784） | CI 门禁（`.github/workflows/ci.yml`：pytest + provenance 66/66） |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **639 passed / 0 failed**（= 工具箱 **620** + 根级门禁 **19**） | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **620 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
+| 根 `tests/` 单跑 | catalog schema + 反 AI 工具集 | **19 passed** | catalog 改动后必跑 |
+| **公开 clone / CI** | 已提交内容 | 以 CI 实测为准（历史：600+3 skipped @ run 35425878920） | 门禁 |
 
-- ⚠️ **2026-09-19 口径更替**：本表原记"仓库根 452 全量 / 工具箱 408 全量"（2026-09-12 快照）**已失效**——公开基准集 `benchmarks/` 经用户裁定废弃入库（77 文件零丢失归档 `dev-docs/archive/legacy-benchmarks-tests-20260919/`），其唯一依赖测试 `tests/test_cumcm_benchmark.py` 同步移除。经依赖核查，`tests/test_minimum_catalog.py`（仅依赖 `capabilities/catalog.json`）与 `tests/test_anti_ai_toolkit.py`（仅依赖 `科研工具箱/tools`）为**独立门禁，已保留入库**，故 `testpaths` 保留 `tests`。旧口径中"test_cumcm_benchmark 25 项暂不可收集"的算术不再适用。
-
-- 原 6 个 skip 为 hooks 清除态下 D 段注册契约测试（`2a86b6c` 定稿）走"皆无→skip"；2026-09-11 L1 重启用后转真实运行并全过（2026-09-11 实测）。
-
-- `releases/` 是 dated 发布快照（archive 态仅供追溯），**永不进测试收集**——其内部旧测试依赖旧目录结构，扫描必炸（2026-09-03 曾致 333 collection errors）。
-- `科研工具箱/tools/` 下的 `test_*.py` 是裸脚本式自检（硬编码 cwd 相对路径），不属于 pytest 套件，从仓库根收集排除。
-- `capabilities/catalog.json` 改动后必跑根级 tests：schema 有硬校验（capability_id 用短横线命名=技能映射条目；下划线命名=聚合能力须带 4 个合同扩展字段；status 仅限 experimental/private_extension/正式；全部 skills 目录必须有映射）。
+- 历史基线 628/603/460 为保留作历史的时点快照，见 `pytest.ini` 与 `dev-docs/truth-index.md`。
+- `releases/` 永不进测试收集。
+- 新增技能必须：SKILL.md + catalog 映射 + CONTEST_SKILL_MAP 归类 + `build_skill_index.py --emit`。

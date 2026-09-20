@@ -11,7 +11,6 @@ model_recommender.py - 按题型推荐 3-5 个模型
 import argparse
 import json
 import sys
-from pathlib import Path
 
 
 # 预置模型库（6 大题型 × 4-5 模型）

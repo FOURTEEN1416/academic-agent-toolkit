@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """核心审计：CodeSucker 融合设计完整性"""
-import json
 import sys
 import tempfile
 from pathlib import Path
@@ -104,7 +103,7 @@ def main() -> int:
     if missing:
         print(f"  ❌ 缺少 UPSTREAM.md 的目录: {missing}")
     else:
-        print(f"  ✅ 所有关键目录都有 UPSTREAM.md")
+        print("  ✅ 所有关键目录都有 UPSTREAM.md")
 
     print("\n" + "=" * 60)
     print("核心审计完成")

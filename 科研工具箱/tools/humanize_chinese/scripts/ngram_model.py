@@ -13,7 +13,7 @@ Key insight: AI-generated Chinese text tends to have:
 import json
 import os
 import re
-from math import log2, exp
+from math import log2
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 FREQ_FILE = os.path.join(SCRIPT_DIR, 'ngram_freq_cn.json')

@@ -1,6 +1,4 @@
 import json
-import shutil
-from pathlib import Path
 
 from tools.codesucker_bridge import run_source_materials
 

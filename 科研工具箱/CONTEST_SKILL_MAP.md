@@ -91,7 +91,7 @@
 | 科研选题与实验（10） | idea-discovery, idea-discovery-robot, research-pipeline, research-refine, research-refine-pipeline, research-review, experiment-plan, experiment-bridge, monitor-experiment, run-experiment | 长周期科研管线，赛时 3 天用不上 |
 | 英文/期刊写作变体（5） | paper-write, paper-write-docx, paper-write-nature, paper-write-nature-docx, paper-compile | 国赛中文链已有 comp-paper-zh/comp-compile-zh |
 | scholar 期刊投稿系（6） | scholar-arxiv-metadata, scholar-arxiv-prep, scholar-bib-doi-toggle, scholar-check-refs, scholar-doi-bibtex, scholar-openalex | arXiv/DOI 投稿工具 |
-| 基础设施（3 + shared-scripts 目录） | skill-creator-official, acat-doc-governance, codesucker-integration, shared-scripts(目录，非技能) | 仓库治理/技能开发/软著，非解题用 |
+| 基础设施（5 + shared-scripts 目录） | skill-creator-official, acat-doc-governance, codesucker-integration, agent-bootstrap, tool-forge, shared-scripts(目录，非技能) | 仓库治理/技能开发/宿主无关自举与工具铸造/软著，非解题用 |
 | 其他（1） | pixel-art | 像素画风，与学术图规范冲突 |
 
 ## 五、未接入库（15 个，2026-09-11 对账新增）

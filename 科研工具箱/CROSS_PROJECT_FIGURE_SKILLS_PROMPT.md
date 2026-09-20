@@ -1,22 +1,22 @@
 # 跨项目科研绘图技能借用提示词（Cross-Project Figure Skills Prompt）
 
 > **用法**：把下方"提示词正文"整段复制，注入其它项目的 agent（作为系统规则附件或任务前导即可）。
-> **ZCode 注册**：本提示词已注册为用户级 ZCode 技能 `acat-figure-skills`（`C:\Users\FOUR\.zcode\skills\acat-figure-skills\SKILL.md`），ZCode 下其它项目直接触发该技能即可，无需手动注入。
-> **真源**：技能清单以 `科研工具箱/CONTEST_SKILL_MAP.md`（全库分类账）与 `capabilities/catalog.json`（能力目录）为准，本文件为 2026-09-11 快照（28 个绘图技能）。
+> **宿主无关（2026-09-20）**：任意 Agent 可直接 Read 本仓技能路径；若使用 ZCode，也可注册用户级技能（`~/.zcode/skills/acat-figure-skills/SKILL.md`）。路径以**本机 clone 后的仓库根**为准（本检出名 `学术工作流`），禁止写死过期项目根。
+> **真源**：技能清单以 `科研工具箱/CONTEST_SKILL_MAP.md` 与 `capabilities/catalog.json` 为准，本文件为绘图技能借用提示词快照。
 
 ---
 
 ## 提示词正文（整段复制以下内容注入）
 
-你现在可以**只读借用**一套科研绘图技能库，位置在 `D:\Desktop\数模竞赛\科研工具箱\skills\`（一套完整的科研 Agent 工具箱，下称"技能库"）。请严格遵守文末隔离纪律。
+你现在可以**只读借用**一套科研绘图技能库，位置在 **本机 Academic Agent Toolkit 仓库根下的** `<REPO_ROOT>/科研工具箱/skills/`（下称"技能库"；`<REPO_ROOT>` 请替换为实际 clone 路径）。请严格遵守文末隔离纪律。
 
 ### 一、使用方法（五步）
 
 1. **选技能**：按你的需求从下方清单选 1-2 个（宁缺勿滥，防上下文噪音）。选型困难时按"选型决策树"走。
-2. **读手册**：用绝对路径 Read 所选技能的 `SKILL.md`（路径前缀统一为 `D:\Desktop\数模竞赛\科研工具箱\skills\`）。重量级技能（如 paper-figure）的 `references/` 子目录是其配套规范，按 SKILL.md 指引继续读。
-3. **执行出图**：按 SKILL.md 的模板/工作流出图。**所有产物（图、脚本、数据、临时文件）只落你当前项目自己的工作区**，相对路径一律以你的工作区为根。
+2. **读手册**：Read 所选技能的 `SKILL.md`（路径前缀 `<REPO_ROOT>/科研工具箱/skills/`）。重量级技能的 `references/` 按 SKILL.md 指引继续读。
+3. **执行出图**：按 SKILL.md 的模板/工作流出图。**所有产物只落你当前项目自己的工作区**。
 4. **自检**：出图后按 SKILL.md 的质检段落 + 下方"出图红线"逐条自检。
-5. **留痕**：如你的项目有引用规范，报告中注明模板来源（"数模竞赛·科研工具箱/<技能名>"）。
+5. **留痕**：报告中注明模板来源（"Academic Agent Toolkit·科研工具箱/<技能名>"）。
 
 ### 二、技能清单（28 个 · 6 类）
 
@@ -96,7 +96,7 @@
 
 ### 五、隔离纪律（硬性，逐条遵守）
 
-1. **产物落点**：一切产物只落**你当前项目的工作区**；禁止向 `D:\Desktop\数模竞赛` 下任何路径写入、创建、修改或删除文件——包括技能库内、其 `workspaces/`、`dev-docs/`、`LOG.md` 等一切位置。
+1. **产物落点**：一切产物只落**你当前项目的工作区**；禁止向 Academic Agent Toolkit 仓库根（`<REPO_ROOT>`）下任何路径写入、创建、修改或删除文件——包括技能库内、其 `workspaces/`、`dev-docs/`、`LOG.md` 等一切位置。
 2. **只读借用**：技能库文件一律只读；不要把工作目录 cd 到该仓库，用绝对路径引用即可。
 3. **门禁不外溢**：技能文档中出现的 STEP_MANIFEST、operations.jsonl、complete_step、C1 申报闸等，属于该仓库自身的引擎质量门禁——外部项目**不触发也不伪造**它们；过程留痕（如有）落你自己的项目。
 4. **License 红线**：标 ⚠ 的 5 个技能（plot-from-data、plot-from-image、visio-image-rebuilder、paper-framework-figure-studio-pro、eco-community-plots）上游未声明 License，只可本地只读使用，**禁止复制进其它仓库再分发**；其余技能未经许可同样不得整体搬运。
@@ -105,6 +105,6 @@
 
 ### 六、真源与同步
 
-- 技能清单与全库分类账：`D:\Desktop\数模竞赛\科研工具箱\CONTEST_SKILL_MAP.md`
-- 能力目录（机检 schema）：`D:\Desktop\数模竞赛\capabilities\catalog.json`
+- 技能清单与全库分类账：`<REPO_ROOT>/科研工具箱/CONTEST_SKILL_MAP.md`
+- 能力目录（机检 schema）：`<REPO_ROOT>/capabilities/catalog.json`
 - 本文件为 2026-09-11 快照；清单变动以上述真源为准。

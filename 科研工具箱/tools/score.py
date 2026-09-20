@@ -16,7 +16,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 
 # 6 大题型关键词映射
@@ -255,7 +255,7 @@ def main():
     }
     Path(args.output).write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\n[OK] 完整结果已保存到 {args.output}")
-    print(f"\n[TOP3 推荐]")
+    print("\n[TOP3 推荐]")
     for r in results[:3]:
         print(f"  #{r['rank']} 题 {r['problem_id']}（{r['title']}）- {r['recommendation']} - {r['total']:.2f} 分")
 

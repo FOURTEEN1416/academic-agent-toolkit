@@ -14,9 +14,14 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# 最小权限（2026-09-20 加固，GitHub Actions 安全基线）：本工作流只读仓内容，
+# 无需写包/写 PR 等令牌面——默认令牌权限过大是供应链攻击的标准跳板。
+permissions:
+  contents: read
+
 jobs:
   test:
-    name: pytest + provenance
+    name: pytest + provenance + gates
     # 与开发环境一致（Windows + Python 3.11）：本仓库含中文路径与 NTFS 联结，
     # 在 Linux runner 上行为不可预测，故不用 ubuntu-latest。
     runs-on: windows-latest
@@ -36,6 +41,7 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: "3.11"
+          cache: pip   # 2026-09-20：缓存 pip 依赖，缩短安装步
 
       - name: Set up Node 20
         uses: actions/setup-node@v7
@@ -66,3 +72,18 @@ jobs:
       - name: Provenance ledger
         # 期望：66/66 通过（UPSTREAM.md 台账 + vendor pinned commit）
         run: python 科研工具箱/tools/check_provenance.py
+
+      - name: Secret & path hygiene scan
+        # 2026-09-20 建立：tracked 面密钥/配置绝对路径扫描（吸收 gitleaks 的
+        # "CI 纵深防御"思路，自建实现保持自包含）。豁免台账 3 条见
+        # 科研工具箱/data/secret_scan_allowlist.json。
+        run: python 科研工具箱/tools/secret_scan.py --strict
+
+      - name: Lint ratchet
+        # 2026-09-20 建立：ruff 基线棘轮（新增违规即拦；基线只降不升）。
+        # ruff 版本由 requirements-dev.txt 锁死（==0.16.8），保证计数可比。
+        run: python 科研工具箱/tools/lint_ratchet.py
+
+      - name: Duplicate assets registry
+        # 2026-09-20 建立：重复资产台账棘轮（未登记的字节级重复组即拦）。
+        run: python 科研工具箱/tools/check_duplicate_assets.py --strict

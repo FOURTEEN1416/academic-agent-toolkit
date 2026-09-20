@@ -13,10 +13,10 @@
     ]
   },
   "counts": {
-    "core": 52,
+    "core": 54,
     "ondemand": 209,
-    "resident_chars": 31581,
-    "full_chars": 67206
+    "resident_chars": 31754,
+    "full_chars": 67379
   },
   "skills": {
     "ablation-planner": {
@@ -42,6 +42,14 @@
       "full_description": "academic-agent-toolkit 仓库专属文档治理规程。做文档盘点、真源刷新、污染源清理、归档、命名治理、技能/长文档结构评估时使用。内置用户铁律：治理任务必须全文读完所有相关文档（禁止只看文件名）、过期与可疑信息必须清理、不重建≠不读。",
       "description_compacted": false,
       "path": "科研工具箱/skills/acat-doc-governance/SKILL.md"
+    },
+    "agent-bootstrap": {
+      "tier": "core",
+      "reason": "治理/基础设施（每会话可能调用）",
+      "resident_description": "任意智能体自举驱动本科研工具箱：读协议、探测能力、选择路由或启动工作流。触发词：启动项目、如何驱动、bootstrap、自举、宿主无关接入、agent 开始工作。",
+      "full_description": "任意智能体自举驱动本科研工具箱：读协议、探测能力、选择路由或启动工作流。触发词：启动项目、如何驱动、bootstrap、自举、宿主无关接入、agent 开始工作。",
+      "description_compacted": false,
+      "path": "科研工具箱/skills/agent-bootstrap/SKILL.md"
     },
     "agent-figure-gallery": {
       "tier": "ondemand",
@@ -2082,6 +2090,14 @@
       "full_description": "开题报告撰写。生成完整的学位论文开题报告，包含选题背景、研究现状、研究内容、技术路线、进度安排和参考文献。Use when user says \\”开题报告\\”, \\”thesis proposal\\”, \\”开题\\”.",
       "description_compacted": false,
       "path": "科研工具箱/skills/thesis-proposal/SKILL.md"
+    },
+    "tool-forge": {
+      "tier": "core",
+      "reason": "治理/基础设施（每会话可能调用）",
+      "resident_description": "自适应工具铸造：探测 TOOL_GAP 后为当前 Agent 铸造工具与技能骨架并登记能力目录。触发词：缺工具、TOOL_GAP、造一个工具、自适应构建、forge、工具铸造、补技能。",
+      "full_description": "自适应工具铸造：探测 TOOL_GAP 后为当前 Agent 铸造工具与技能骨架并登记能力目录。触发词：缺工具、TOOL_GAP、造一个工具、自适应构建、forge、工具铸造、补技能。",
+      "description_compacted": false,
+      "path": "科研工具箱/skills/tool-forge/SKILL.md"
     },
     "training-check": {
       "tier": "ondemand",

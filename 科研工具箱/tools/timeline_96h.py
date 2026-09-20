@@ -11,10 +11,7 @@ timeline_96h.py - 4 天 96 小时倒计时 + 阶段门禁提醒
 
 import argparse
 import json
-import sys
-import time
 from datetime import datetime, timedelta
-from pathlib import Path
 
 
 # 国赛硬编码

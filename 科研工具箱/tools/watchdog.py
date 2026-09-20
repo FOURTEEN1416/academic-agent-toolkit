@@ -88,7 +88,7 @@ def register_task(base_dir, task_json):
 def unregister_task(base_dir, name):
     paths = get_paths(base_dir)
     if not paths["tasks"].exists():
-        print(f"no tasks file found")
+        print("no tasks file found")
         return
     try:
         tasks = json.loads(paths["tasks"].read_text())

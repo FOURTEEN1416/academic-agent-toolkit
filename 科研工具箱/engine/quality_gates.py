@@ -33,11 +33,13 @@ GATES_FILE = PROJECT_ROOT / "engine" / "modex-core" / "quality_gates.json"
 
 # =====================================================
 # 审稿角色 → 配置模型 解析（软校验用）
-# 宿主中立（2026-09-09 用户裁定：不预设任何视觉/LLM 模型，比赛时再配置）：
+# 宿主中立（2026-09-09 用户裁定：不预设任何视觉/LLM 模型，比赛时再配置；
+# 2026-09-20 泛化改造：可选宿主适配器不再是硬回退）：
 #   1. ACAT_CONTEST_MODELS 环境变量指向的 JSON（最高，测试/临时注入用）
 #   2. engine/modex-core/contest_models.json（仓库内竞赛配置槽，比赛时填写）
-#   3. .opencode/agents/*.md 的 model: 行（OpenCode 宿主侧配置，按角色回退）
-# 三处皆空 → 该角色无配置模型，strict 比对降级为跳过（warn 不阻断）。
+#   3. agents/adapters/*/models.json（任意宿主/通道可声明角色模型）
+#   4. 可选宿主 agent 目录中的 *.md model: 行（.opencode/.claude/agents/roles 等）
+# 皆空 → 该角色无配置模型，strict 比对降级为跳过（warn 不阻断）。
 # =====================================================
 ROLE_AGENT_FILES = {
     "reviewer": "数模审稿人.md",
@@ -48,11 +50,76 @@ ROLE_AGENT_FILES = {
 
 CONTEST_MODELS_FILE = RULES_FILE.parent / "contest_models.json"
 
-# OpenCode 配置目录（共享根 .opencode/agents/），可被环境变量覆盖（测试用）
+# 可选宿主适配器的 agent 定义目录（均非驱动前提）。
+# OPENCODE_AGENTS_DIR 保留兼容旧测试/部署；ACAT_ADAPTER_AGENTS_DIRS 可追加自定义目录（os.pathsep 分隔）。
 OPENCODE_AGENTS_DIR = os.environ.get(
     "OPENCODE_AGENTS_DIR",
     str(PROJECT_ROOT.parent / ".opencode" / "agents"),
 )
+
+
+def _optional_adapter_agents_dirs() -> list[Path]:
+    """收集可选适配器的 agent 定义目录。
+
+    - 显式设置 `ACAT_ADAPTER_AGENTS_DIRS` 或 `OPENCODE_AGENTS_DIR` 时：只用显式列表
+      （测试/部署可完全屏蔽仓库内可选宿主目录，避免“配置了却仍读到默认宿主”的污染）。
+    - 未显式设置时：自动发现常见可选宿主目录（仍非驱动前提）。
+    """
+    dirs: list[Path] = []
+    env_extra = os.environ.get("ACAT_ADAPTER_AGENTS_DIRS", "").strip()
+    explicit_opencode = os.environ.get("OPENCODE_AGENTS_DIR", "").strip()
+
+    if env_extra:
+        for part in env_extra.split(os.pathsep):
+            part = part.strip()
+            if part:
+                dirs.append(Path(part))
+
+    if explicit_opencode:
+        dirs.append(Path(explicit_opencode))
+        return _unique_paths(dirs)
+
+    dirs.append(Path(OPENCODE_AGENTS_DIR))
+    repo = PROJECT_ROOT.parent
+    for candidate in (
+        repo / ".opencode" / "agents",
+        repo / ".claude" / "agents",
+        repo / "agents" / "roles",
+    ):
+        dirs.append(candidate)
+    return _unique_paths(dirs)
+
+
+def _unique_paths(dirs: list[Path]) -> list[Path]:
+    seen: set[str] = set()
+    unique: list[Path] = []
+    for d in dirs:
+        key = str(d)
+        if key not in seen:
+            seen.add(key)
+            unique.append(d)
+    return unique
+
+
+def _adapter_models_json() -> dict[str, str]:
+    """读取 agents/adapters/*/models.json 中的 roles 字段。"""
+    adapters_dir = PROJECT_ROOT.parent / "agents" / "adapters"
+    merged: dict[str, str] = {}
+    if not adapters_dir.is_dir():
+        return merged
+    for path in sorted(adapters_dir.glob("*/models.json")):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        roles = data.get("roles") if isinstance(data, dict) else {}
+        if not isinstance(roles, dict):
+            continue
+        for role in ROLE_AGENT_FILES:
+            value = str(roles.get(role, "") or "").strip()
+            if value and not merged.get(role):
+                merged[role] = value
+    return merged
 
 
 def _parse_agent_model(agent_file: Path) -> str | None:
@@ -77,34 +144,44 @@ def _load_contest_models() -> dict[str, str]:
 
 
 def load_configured_role_models() -> dict[str, str]:
-    """四审稿角色的当前配置模型——宿主中立三级解析（见 ROLE_AGENT_FILES 上方注释）。
+    """四审稿角色的当前配置模型——宿主中立多级解析（见 ROLE_AGENT_FILES 上方注释）。
 
-    竞赛配置槽（contest_models.json / ACAT_CONTEST_MODELS）优先；其中为空的角色
-    回退到 OpenCode 宿主配置 .opencode/agents/。返回 {角色: 模型}，无配置为空串。
+    竞赛配置槽优先；其后 adapters/*/models.json；最后可选宿主 agent 目录。
+    返回 {角色: 模型}，无配置为空串。
     """
     contest = _load_contest_models()
-    agents_dir = Path(os.environ.get("OPENCODE_AGENTS_DIR", OPENCODE_AGENTS_DIR))
+    adapters = _adapter_models_json()
     result: dict[str, str] = {}
     for role in ROLE_AGENT_FILES:
-        model = contest.get(role, "")
+        model = contest.get(role, "") or adapters.get(role, "")
         if not model:
-            model = _parse_agent_model(agents_dir / ROLE_AGENT_FILES[role]) or ""
+            for agents_dir in _optional_adapter_agents_dirs():
+                parsed = _parse_agent_model(agents_dir / ROLE_AGENT_FILES[role])
+                if parsed:
+                    model = parsed
+                    break
         result[role] = model
     return result
 
 
 def model_config_provenance() -> dict[str, str]:
-    """报告每个角色配置模型的来源（contest/agents/none），供审计与体检输出。"""
+    """报告每个角色配置模型的来源（contest/adapters/host_adapter/none），供审计与体检输出。"""
     contest = _load_contest_models()
-    agents_dir = Path(os.environ.get("OPENCODE_AGENTS_DIR", OPENCODE_AGENTS_DIR))
+    adapters = _adapter_models_json()
     out: dict[str, str] = {}
     for role, filename in ROLE_AGENT_FILES.items():
         if contest.get(role):
             out[role] = "contest_models"
-        elif _parse_agent_model(agents_dir / filename):
-            out[role] = "opencode_agents"
-        else:
-            out[role] = "none"
+            continue
+        if adapters.get(role):
+            out[role] = "adapters"
+            continue
+        source = "none"
+        for agents_dir in _optional_adapter_agents_dirs():
+            if _parse_agent_model(agents_dir / filename):
+                source = "host_adapter"
+                break
+        out[role] = source
     return out
 
 
@@ -341,17 +418,17 @@ def detect_capabilities() -> dict:
                 break
     # 3. Python 绘图库
     try:
-        import matplotlib
+        import matplotlib  # noqa: F401 — 可用性探测，非使用
         caps["matplotlib"] = True
     except ImportError:
         pass
     try:
-        import seaborn
+        import seaborn  # noqa: F401 — 可用性探测，非使用
         caps["seaborn"] = True
     except ImportError:
         pass
     try:
-        from PIL import Image
+        from PIL import Image  # noqa: F401 — 可用性探测，非使用
         caps["pillow"] = True
     except ImportError:
         pass
@@ -1168,7 +1245,7 @@ class QualityGate:
         invalid_dois: list[str] = []
         missing_doi_warned = 0
         for etype, key in entries:
-            start = content.find(f"@", content.find(key))
+            start = content.find("@", content.find(key))
             block_start = max(0, content.find("{" + key, 0))
             block = content[block_start:block_start + 4000]
             has_title = "title" in block
@@ -1574,7 +1651,7 @@ class VisionAgent:
         mime = "image/png" if image_path.endswith(".png") else "image/jpeg"
         parsed = self.base_url.replace("https://", "").replace("http://", "").rstrip("/")
         scheme = "https" if "https://" in self.base_url else "http"
-        conn_method = getattr(http.client, f"HTTPSConnection" if scheme == "https" else "HTTPConnection")
+        conn_method = getattr(http.client, "HTTPSConnection" if scheme == "https" else "HTTPConnection")
         conn = conn_method(parsed)
         payload = _json.dumps({
             "model": self.model,

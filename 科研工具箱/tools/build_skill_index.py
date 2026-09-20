@@ -56,7 +56,7 @@ MIN_USEFUL = 24             # 首句短于此值视为不足以承载路由，�
 
 # 治理/基础设施：虽不在主链，但每个会话都可能被调用，属核心层
 INFRA_CORE = ("acat-doc-governance", "skill-creator-official", "contest-retrospective",
-              "codesucker-integration")
+              "codesucker-integration", "agent-bootstrap", "tool-forge")
 
 SPLIT_RE = re.compile(r"(?<=[。！？])|(?<=\.\s)|(?<=\.(?=[A-Z]))")
 

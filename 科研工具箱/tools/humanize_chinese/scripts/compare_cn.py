@@ -69,7 +69,7 @@ def format_comparison(before, after):
     if diff > 0:
         lines.append(f'\n✅ 降低了 {diff} 分')
     elif diff == 0:
-        lines.append(f'\n⚠️  分数未变化')
+        lines.append('\n⚠️  分数未变化')
     else:
         lines.append(f'\n❌ 分数上升了 {abs(diff)} 分')
     

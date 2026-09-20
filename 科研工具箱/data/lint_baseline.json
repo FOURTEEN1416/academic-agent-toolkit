@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "ruff_version": "0.16.8",
+  "select": "F,E9,W605",
+  "scope": [
+    "engine",
+    "tools",
+    "hooks",
+    "tests",
+    "D:\\Desktop\\学术工作流\\tests"
+  ],
+  "total": 8,
+  "by_rule": {
+    "F841": 8
+  },
+  "updated": "2026-09-20",
+  "note": "棘轮基线：total/by_rule 只降不升；收紧请走独立清理 + --update"
+}

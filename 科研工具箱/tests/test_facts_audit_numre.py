@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""facts_audit NUM_RE 回归测试。
+r"""facts_audit NUM_RE 回归测试。
 
 2026-09-11 CUMCM2026-A 赛时实锤：原 lookbehind (?<![\w.]) 在 Python Unicode 模式下
 把中文当前缀，题面"密度为820"、"温度为28"、"为2.55"句式的数字全部漏抓，导致

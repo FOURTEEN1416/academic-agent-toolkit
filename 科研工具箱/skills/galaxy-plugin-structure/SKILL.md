@@ -13,7 +13,7 @@ version: 0.1.0
 |------|------------|-------|------------------|--------------|
 | 插件结构 | `.claude-plugin/plugin.json` + 组件自动发现 | `.zcode/config.json` + `.zcode/skills`（NTFS 联结） | `opencode.json` + `.opencode/`（skills paths + plugins） | 根 `opencode.json`（skills.paths 指向 科研工具箱/skills） |
 
-> 本仓库为 OpenCode Desktop 主宿主 + ZCode 兼容层（见根 AGENTS.md 宿主矩阵）。上表资产均已实存验证（见 workspaces/skill_c2_batch21/HOST_CONVERSION.json）。
+> 本仓库为**宿主无关**驱动协议（任意 Agent 可驱动）；OpenCode / ZCode / Claude Code 均为可选适配器（见根 `AGENTS.md` 与 `agents/adapters/`）。上表资产均已实存验证（见 workspaces/skill_c2_batch21/HOST_CONVERSION.json）。
 ## Overview
 
 Claude Code plugins follow a standardized directory structure with automatic component discovery. Understanding this structure enables creating well-organized, maintainable plugins that integrate seamlessly with Claude Code.

@@ -7,12 +7,12 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v1.2.2-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-603_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
-[![Capabilities](https://img.shields.io/badge/capabilities-308-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-261-8b5cf6?style=flat-square)](科研工具箱/skills)
+[![Tests](https://img.shields.io/badge/tests-639_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
+[![Capabilities](https://img.shields.io/badge/capabilities-310-0ea5e9?style=flat-square)](capabilities/catalog.json)
+[![Skills](https://img.shields.io/badge/skills-263-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始)
-[![Hosts](https://img.shields.io/badge/hosts-OpenCode_|_ZCode-1f2937?style=flat-square)](#快速开始)
+[![Hosts](https://img.shields.io/badge/hosts-Any_Agent-1f2937?style=flat-square)](#快速开始)
 
 </div>
 
@@ -44,23 +44,24 @@
 </td><td width="50%" valign="top">
 
 #### 🔍 三层审计
-L1 拦截式审计逐条记录每次工具调用（OpenCode 插件 / ZCode hook，不可绕过）+ L2 编排留痕 + L3 执行申报，交叉比对让"伪造审核产物"无处遁形。
+L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）就位时逐条记录工具调用；无宿主 hook 时 L1 如实降级为 unavailable。L2 编排留痕 + L3 执行申报始终可用，交叉比对让"伪造审核产物"无处遁形。
 
 </td></tr>
 </table>
 
-## 🗺️ 六大能力域 · 308 项能力
+## 🗺️ 六大能力域 + Agent 运行时 · 310 项能力
 
 | | 能力域 | 条目 | 代表能力 |
 |--|--------|-----:|----------|
 | 🎓 | **课程与研究材料** | 83 | 课程论文 · 实验报告 · 教学大纲 |
 | 📝 | **学术论文** | 74 | 写作 · 评审 · 润色 · 投稿准备（含 Nature 工作流） |
 | 🔬 | **文献与研究** | 42 | 文献检索 · 综述 · 深度研究 · 实验设计 |
-| 🏆 | **数模竞赛** | 36 | CUMCM 14 步端到端流水线（10 项正式验收能力） |
-| 📊 | **图表与文档生产** | 61 | 期刊级科研绘图 · 信息图 · Excalidraw · LaTeX 全家桶 |
-| ©️ | **知识产权材料** | 12 | 软著申请（草稿→成品）· 专利交底书 · 基金申请书 |
+| 🏆 | **数模竞赛** | 36 | CUMCM 14 步端到端流水线 |
+| 📊 | **图表与文档生产** | 61 | 期刊级科研绘图 · 信息图 · LaTeX |
+| ©️ | **知识产权材料** | 12 | 软著 · 专利 · 基金申请书 |
+| 🧩 | **Agent 运行时** | 2 | 宿主无关自举 · 自适应工具铸造 |
 
-> 域表条目与 `capabilities/catalog.json` 按域实测一致：36/74/42/83/12/61 = **308**（与徽章一致）。
+> 域表与 `capabilities/catalog.json` 对齐：36/74/42/83/12/61/2 = **310**（与徽章一致）。
 
 <details>
 <summary><b>📊 科研绘图栈（v1.1 新扩展，9 个上游技能）</b></summary>
@@ -99,35 +100,40 @@ flowchart LR
     E -->|"审计证据链"| D[(".engine/<br/>evidence · operations.jsonl")]
 ```
 
-## 🚀 快速开始
+## 🚀 快速开始（宿主无关）
 
-### OpenCode Desktop —— 正式宿主
+**任何能读文件、能执行 Python CLI 的 Agent 都可以驱动本项目**——Claude Code / Cursor / Gemini CLI / MiMo Desktop / OpenCode / ZCode / 自写脚本。
 
 ```bash
 git clone https://github.com/FOURTEEN1416/academic-agent-toolkit.git
+cd academic-agent-toolkit/科研工具箱
+python -m engine.workflow_cli boot
+python -m engine.workflow_cli probe
 ```
 
-用 [OpenCode Desktop](https://opencode.ai) 打开 **git clone 后的本仓库根目录**（本检出名为 `学术工作流`；公开仓请使用你本地 clone 路径）即可——`opencode.json` 已配好默认角色（数模专家）、技能路径与 4 个审稿 subagent。**不依赖 `opencode` CLI**（无需 CLI 在 PATH）。
+1. 读仓库根 `AGENTS.md` 与 `科研工具箱/AGENTS.md`
+2. `boot` 取得驱动契约；`probe` 查看能力与 TOOL_GAP
+3. 缺工具时 `python -m engine.workflow_cli forge --tool <name> --purpose "..."`
+4. 竞赛/长流程：`start --template comp_cumcm` → `next` → 执行 → `complete`
+5. 单技能：按路由表读 `skills/<name>/SKILL.md`
+
+自举：`科研工具箱/skills/agent-bootstrap/` · 铸造：`科研工具箱/skills/tool-forge/`
+适配器元数据：`agents/adapters/`（OpenCode/ZCode 为可选，非前提）
 
 > [!IMPORTANT]
-> **路径卫生（PUBLIC 仓）**：tracked `opencode.json` / `.zcode/config.json` 的 MCP `command` 与 `DOCSEARCH_ROOTS` 使用**可移植占位符**（`${DOCSEARCH_MCP_SERVER}` / `${DOCSEARCH_ROOTS}`，默认相对仓库根）。docsearch MCP 装在宿主用户目录时，**操作员须在本地设置未提交的覆盖**（直接改本机 config 或宿主级 MCP 配置），填入本机绝对路径；勿将 `C:\Users\...`、过期项目根路径写回 tracked 文件。
+> **路径卫生（PUBLIC 仓）**：tracked `opencode.json` / `.zcode/config.json` 的 MCP `command` 与 `DOCSEARCH_ROOTS` 使用**可移植占位符**（`${DOCSEARCH_MCP_SERVER}` / `${DOCSEARCH_ROOTS}`）。docsearch MCP 装在宿主用户目录时，**操作员须在本地设置未提交的覆盖**；勿将 `C:\Users\...`、过期项目根路径写回 tracked 文件。
 
-直接下任务：
+直接下任务（任意 Agent）：
 
 > "按 CUMCM 流程做这道 2024 年 B 题，数据在 data/ 下，输出国一格式论文。"
 
-### ZCode —— 赛时主控宿主
+### 可选宿主适配器
 
-```bash
-git clone https://github.com/FOURTEEN1416/academic-agent-toolkit.git
-cd academic-agent-toolkit
-cmd /c "mklink /J .zcode\skills 科研工具箱\skills"   # 重建技能联结（Windows）
-```
-
-打开仓库根目录：261 个技能自动发现、docsearch MCP 自动连接、`/doc-governance` 治理命令可用、**L1 审计 hook 自动生效**（`.zcode/config.json` 已注册，PreToolUse/PostToolUse 逐条落账）。赛前一键自检：`python 科研工具箱/tools/contest_dryrun/chain_driver.py`。
-
-> [!NOTE]
-> **宿主差异**：OpenCode 与 ZCode 均具备 L1 拦截式审计（插件 / hook，写入同一 `operations.jsonl`，审计报告与防绕过交叉比对两宿主通用）；审稿角色在 OpenCode 为具名 subagent、在 ZCode 由通用子智能体承担，模型证据一律对齐比赛时配置（`engine/modex-core/contest_models.json`，已按 2026-09-10 用户裁定配置 agnes/agnes-2.5-flash，换模型须同步该文件与证据声明）。
+| 适配器 | 用途 |
+|--------|------|
+| **OpenCode Desktop** | 打开仓库根即可用 `opencode.json`（默认角色数模专家 + skills 扫描 + subagent）。**不依赖 `opencode` CLI** |
+| **ZCode** | `cmd /c "mklink /J .zcode\skills 科研工具箱\skills"` 后打开仓库根；L1 hook 自动生效 |
+| **其他** | 无需专用配置，按上文协议驱动；需要增强时在 `agents/adapters/` 登记 |
 
 ### 环境要求
 
@@ -163,20 +169,21 @@ python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）66/66 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | ⚠️ **2026-09-19 起停用**：公开层曾为 CC-BY-4.0 合成题面基准（P01-P03 + 六域 7 项），已废弃入库，内容归档于 `dev-docs/archive/legacy-benchmarks-tests-20260919/`；私有层（真实竞赛题面）从未入库，**已随磁盘删除永久丢失** |
-| ✅ **测试基线** | 仓库根 **603 passed / 0 failed**（本机，2026-09-19 审查修复后复测；= 工具箱 **584** + 根级门禁 **19**）。唯一真源=`pytest.ini` 注释；公开 clone 口径（2026-09-19 升级后 **CI 实测 run 35425878920**）**603 收集 = 600 passed + 3 skipped / 0 failed**，历史值 460 = 458 + 2 skipped（run 35412014784）。状态机 / 门禁 / 桥接 / 审计 / 配置契约 / 宿主兼容 / 三管线 / 逐技能回归 / **双副本镜像一致性**全覆盖。CI 已接入（`.github/workflows/ci.yml`：pytest + provenance 66/66） |
-| 🧬 **逐技能 C2 覆盖** | 261 技能 100% 登记 catalog 映射（schema 硬校验）；308 条能力中 306 条申报 current_evidence/current_gap 双字段，2 条技能映射条目按 schema 契约豁免扩展字段（2026-09-19 实测）——真实执行证据（管线级/试点级/基准实证〔基准集已于 2026-09-19 废弃，证据留档〕）为主，外部依赖项诚实标注 blocked-by-dependency（21 项），零伪造 |
+| ✅ **测试基线** | 仓库根 **639 passed / 0 failed**（本机，2026-09-20 宿主无关改造轮实测；= 工具箱 **620** + 根级门禁 **19**）。唯一真源=`pytest.ini` 注释；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计。历史基线 628/603/460 见 pytest.ini 与 truth-index（保留作历史） |
+| 🧬 **逐技能 C2 覆盖** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
+| 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + `agents/adapters/`（旧宿主降为可选适配器）+ TOOL_GAP→工具铸造（2026-09-20） |
 
 ## 📁 仓库地图
 
 ```
 academic-agent-toolkit/
-├── 科研工具箱/     ★ 产品主体  skills(261) · engine(13) · tools(65 .py + 16 .pyc) · tests
-├── capabilities/      能力目录 catalog.json —— 308 条，含验收证据与缺口声明
-├── tests/             根级门禁测试（catalog schema 硬校验 / 反 AI 工具集，19 项）
-├── benchmarks/        ⚠️ 2026-09-19 起废弃入库（内容归档于 dev-docs/archive/）
+├── 科研工具箱/     ★ 产品主体  skills · engine · tools · tests
+├── agents/adapters/  可选宿主适配器元数据（协议不依赖）
+├── capabilities/      能力目录 catalog.json
+├── tests/             根级门禁测试（catalog schema / 反 AI）
 ├── docs/superpowers/  设计 spec 与实施计划（dated 快照）
-├── governance/        资产台账
-├── AGENTS.md          Agent 入口：宿主矩阵 + 硬性规则
+├── SECURITY.md        安全策略
+├── AGENTS.md          Agent 入口：宿主无关驱动协议 + 适配器矩阵
 └── LOG.md             操作日志
 ```
 
@@ -185,8 +192,7 @@ academic-agent-toolkit/
 
 <br>
 
-**v1.2.0（2026-08-30）** —— 三条学术管线（论文投稿/深度调研/基金申请）C2 闭环 · 科研绘图域 C1-C6 全闭环 · 44 模板 / 242 tests。发布后持续演进：catalog 现为 303 条 / 256 技能（正式 10）；2026-09-09 独立审计修复（v1.2.1）后基线 247/291；同日 v1.2.2 **ZCode 升格赛时主控**（L1 审计 hook 等价实现）+ **模型去预设**（contest_models.json 比赛配置槽），彼时基线 259/303；2026-09-11 L1 hook 重启用后基线 270/314、同日盲审两轮回炉后 379/423；2026-09-12 赛时审计刷新 **384/428**，见 CHANGELOG。
-⚠️ 上列数字均为**对应时点的历史快照**（原文保留不改）；当前唯一有效口径见 `pytest.ini` 注释与 `dev-docs/truth-index.md` §当前基线（2026-09-19 实测：仓库根收集 **460** = 工具箱内 441 + 根级门禁 19）。
+**v1.2.0（2026-08-30）** —— 三条学术管线 C2 闭环 · 科研绘图域闭环。发布后持续演进：2026-09-09 独立审计修复与 ZCode 可选适配（L1 hook）；2026-09-19/20 基线加固与**宿主无关协议**（boot/probe/forge + adapters）。上列数字均为历史快照（原文保留）；当前唯一有效口径见 `pytest.ini` 与 `dev-docs/truth-index.md`（2026-09-20 改造轮：**639** = 620 + 19）。
 
 **v1.1.0（2026-08-28）** —— 全能力公开发布（含软著/专利/基金流水线）· 科研绘图 9 技能扩展 · ZCode 兼容层 · 全库文档治理（45+ 文档审计）。完整记录见 [CHANGELOG.md](./CHANGELOG.md)。
 

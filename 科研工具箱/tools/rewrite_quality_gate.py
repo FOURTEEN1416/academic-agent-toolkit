@@ -20,7 +20,6 @@ python tools/rewrite_quality_gate.py <原文件> <改写后文件> --json
 import re
 import json
 import sys
-import os
 from dataclasses import dataclass, field, asdict
 from typing import List
 

@@ -133,6 +133,11 @@ acceptance_testing/
 !科研工具箱/data/skill_routing_critical.json
 !科研工具箱/data/contest_lessons.json
 !科研工具箱/data/contest_lessons.md
+# 2026-09-20 基线加固轮三件门禁台账（lint 棘轮基线 / 密钥豁免 / 重复资产登记）
+# ——CI 三道门禁步与对应测试直接消费，缺件即红
+!科研工具箱/data/lint_baseline.json
+!科研工具箱/data/secret_scan_allowlist.json
+!科研工具箱/data/duplicate_assets_registry.json
 科研工具箱/baseline/
 
 # Local test and vision-call residue

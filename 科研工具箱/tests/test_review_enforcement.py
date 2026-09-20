@@ -8,14 +8,13 @@
       修复：批准记录 + 步骤完成合并为一次原子事务。
 """
 import hashlib
-import json
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from engine.opencode_bridge import StepAction, StepResult
+from engine.opencode_bridge import StepResult
 from engine.workflow_runner import WorkflowRunner
 from engine.workflow_store import WorkflowStore
 from engine.step_manifest import write_manifest

@@ -1,0 +1,13 @@
+{
+  "adapter_id": "mimocode",
+  "status": "optional",
+  "kind": "host_config",
+  "required_for_drive": false,
+  "config_paths": [
+    ".mimocode/",
+    "AGENTS.md"
+  ],
+  "l1_audit": "optional (host-dependent)",
+  "skill_discovery": "AGENTS.md 协议 + 科研工具箱/skills；或项目 .mimocode/skills",
+  "notes": "MiMo Desktop / MiMoCode 可选适配。读 AGENTS.md + workflow_cli 即可完整驱动。"
+}

@@ -6,8 +6,6 @@
 与 paper-write（14% 位置）等合理插入点保持一致。幂等：已处于合理位置的跳过。
 """
 import pathlib
-import re
-import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKILLS_DIR = ROOT / "skills"

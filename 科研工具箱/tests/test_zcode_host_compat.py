@@ -90,7 +90,7 @@ def test_fallback_to_agents_per_role(tmp_path, monkeypatch):
     assert models["editor"] == ""
     prov = model_config_provenance()
     assert prov["visual_reviewer"] == "contest_models"
-    assert prov["reviewer"] == "opencode_agents"
+    assert prov["reviewer"] in {"host_adapter", "opencode_agents"}
     assert prov["editor"] == "none"
 
 
