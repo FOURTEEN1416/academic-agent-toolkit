@@ -1,7 +1,7 @@
 name: CI
 
 # 最小可用集（2026-09-19 建立）：跑通即代表仓库基线未破。
-# 口径唯一真源 = pytest.ini 注释 + dev-docs/truth-index.md §当前基线。
+# 口径唯一真源 = pytest.ini 注释；dev-docs/truth-index.md 为内部副本，不入库。
 on:
   push:
     branches: [main]
