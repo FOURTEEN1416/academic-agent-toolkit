@@ -848,7 +848,7 @@
 
 - **任务**：把 CUMCM2026A 论文 v6 配色方案提取成文档 + skill（用户令：颗粒度细，含如何搭配/使用/协调好看）。
 - **skill 入库**：`科研工具箱/skills/paper-figure-palette/`——SKILL.md（色板速查 8+4+2 + 五条铁律 + 上色工作流 + 诊断口诀）；references/color-system.md（设计原理：冷暖两族/互补对 181.3°/LCH 去灰/墨色系统/灰度色盲）；references/recipes.md（matplotlib rcParams、TikZ 毛玻璃、Word/PPT/Excel 移植、glow/矢量渐变配方、12 类图型→配色映射、60 秒自检清单）；scripts/palette_kit.py（check 体检/preview 色卡/hex 色值，独立实现色彩数学，仅依赖 numpy+matplotlib）；assets/palette_v6.json（真源）+ palette_preview.png（色卡）；README.md（入库溯源，与 palette-health-check 分工：彼=体检修复方法论，此=定稿色板+使用规则+移植配方，互补）。
-- **来源与分发**：从 WorkBuddy 用户级技能 C:/Users/FOUR/.workbuddy/skills/paper-figure-palette/ 原样复制；出处工程 D:/Desktop/workbuddy_space/cumcm2026A（21 图实测）；完整文档 docs/配色方案与使用指南_v6.md（九章）留存于该工程；分发包 D:/Desktop/workbuddy_space/paper-figure-palette.zip（package_skill 校验通过）。
+- **来源与分发**：从 WorkBuddy 用户级技能 <home>/.workbuddy/skills/paper-figure-palette/ 原样复制；出处工程 <workbuddy_space>/cumcm2026A（21 图实测）；完整文档 docs/配色方案与使用指南_v6.md（九章）留存于该工程；分发包 <workbuddy_space>/paper-figure-palette.zip（package_skill 校验通过）。
 - **色板要点**：暖 5 色 T4 #FEE6A9 / T3 #FED3A1 / T2 #FEBDAA / TMAIN #FEB8B5（锚）/ TACC #FDA574（全图唯一高亮）＋冷 3 色 M4 #9FE698 / MMAIN #6FCDFD（锚）/ M1 #2BC3F1＋中性 INK #2B2B2E / CRIT #57575A / NEU #B6B6B2 / GRID #EBE8E3 / SOFT #FBF7F1；色带深端 #A3490D / #19667F；墨色 INK_MAP 8 对（对白底 4.6~5.7:1）；INK_RATIO=0.65；互补对 TACC↔M1 相距 181.3°。
 - **体检**：palette_kit.py check 五组判据全 PASS——去灰比暖族 0.94~0.98、墨色对比度 4.58~5.78:1、族内灰度回升 0.00、对立对 ΔE=88.0、色盲最近对 WARN（同族色 TMAIN/T2 ΔE=1.7，系体系已知边界，线型冗余兜底）。
 - **留痕范围**：工作区存在大量在途改动（LOG.md 续27–30 等未提交、benchmarks 大批 D），本次仅落文件 + 本条目，不做 git 提交以免混提污染历史；待用户统一提交时一并入册。

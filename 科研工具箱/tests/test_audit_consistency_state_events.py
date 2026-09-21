@@ -1,6 +1,6 @@
 """A2 补丁 1/2 回归测试：状态-事件一致性硬校验 + 防绕过检测接入交付判定。
 
-敌意审计 A2 实测（复现工作区 C:/Users/FOUR/AppData/Local/Temp/audits/A2/ws1/）：
+敌意审计 A2 实测（复现工作区 <home>/AppData/Local/Temp/audits/A2/ws1/）：
 直改 sqlite 把步骤置 completed 后引擎完全接受、final-audit 照样 ready；
 L1 在位检测到未申报操作也仅 warning、不接入交付判定。
 修复：build_final_audit_report 内联运行一致性核查与防绕过检测，违规 →

@@ -4,11 +4,11 @@
 |---|---|
 | 入库日期 | 2026-09-13 |
 | 版本 | v6（与 CUMCM 2026A 论文定稿色板同源） |
-| 来源 | 从 WorkBuddy 用户级技能 `C:/Users/FOUR/.workbuddy/skills/paper-figure-palette/` 原样复制入库 |
-| 出处工程 | `D:/Desktop/workbuddy_space/cumcm2026A`（论文 21 张插图的实测配色体系） |
+| 来源 | 从 WorkBuddy 用户级技能 `<home>/.workbuddy/skills/paper-figure-palette/` 原样复制入库 |
+| 出处工程 | `<workbuddy_space>/cumcm2026A`（论文 21 张插图的实测配色体系） |
 | 设计源头 | 用户指定 8 色「夏日海滩」（参考图/科研配色提取与调色结果.json 第 2 组），经 LCH 去灰提彩（v5→v6） |
 | 设计器 | 工程内 `_tools/design_palette_v6.py`；体检方法论前身 `palette_kit_v6/`（已入库为技能 `palette-health-check`） |
-| 完整文档 | `D:/Desktop/workbuddy_space/cumcm2026A/docs/配色方案与使用指南_v6.md`（九章版） |
+| 完整文档 | `<workbuddy_space>/cumcm2026A/docs/配色方案与使用指南_v6.md`（九章版） |
 | 验证状态 | `palette_kit.py check` 五组判据全 PASS；CUMCM 2026A 全 21 图印刷实测；灰度/色盲（CVD）复核通过 |
 
 ## 与 palette-health-check 的关系

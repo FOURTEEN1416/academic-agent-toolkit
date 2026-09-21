@@ -1,6 +1,6 @@
 """A7-F1 回归测试：第 11 步（comp-visual-review）review 闸死锁修复。
 
-敌意审计 A7 实测（复现工作区 C:/Users/FOUR/AppData/Local/Temp/audits/A7/ws_e2e2/）：
+敌意审计 A7 实测（复现工作区 <home>/AppData/Local/Temp/audits/A7/ws_e2e2/）：
 comp-visual-review 在 VISUAL_REVIEW_VERDICT{status:pass} + 合规 evidence 下仍被
 complete_step 拒绝——旧 check_review_evidence(auto) 见到 VISUAL_REVIEW.md 即切 full，
 强制要求 EDITOR_CHANGELOG.md / FINAL_REVIEW.md / FINAL_REVIEW_VERDICT.json /
