@@ -1989,11 +1989,105 @@
             "step_manifest"
           ],
           "display_name": "赛题分析",
+          "companion_skills": [],
           "assets": [
+            {
+              "name": "历年真题索引",
+              "path": "科研工具箱/data/historical_problems.json",
+              "note": "历史题目与题型规律速查"
+            },
+            {
+              "name": "题型案例模式库",
+              "path": "科研工具箱/data/case_patterns.md",
+              "note": "常见题型套路与坑点"
+            },
+            {
+              "name": "风险预警清单",
+              "path": "科研工具箱/data/risk_alerts.md",
+              "note": "选题与建模常见风险提示"
+            },
+            {
+              "name": "获奖论文使用指南",
+              "path": "参考论文/参考论文使用指南.md",
+              "note": "获奖论文资产入口地图"
+            },
             {
               "name": "实战经验库·赛前通读",
               "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
               "path": "科研工具箱/data/contest_lessons.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "PROBLEM_ANALYSIS.md": {
+              "min_bytes": 4000,
+              "require_any": [
+                "假设",
+                "模型",
+                "求解",
+                "问题"
+              ],
+              "rationale": "P5 退出判据：赛题分析必须落到假设/模型/求解三件事，拦'题目复述'式薄产物"
+            }
+          }
+        }
+      },
+      {
+        "skill_name": "comp-literature",
+        "display_name": "文献调研与核验",
+        "output_files": [
+          "LITERATURE.md",
+          "literature/search_evidence.json",
+          "paper/references.bib"
+        ],
+        "primary_output": "LITERATURE.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "literature_search",
+          "step_manifest",
+          "citation_integrity"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "literature_search",
+            "step_manifest",
+            "citation_integrity"
+          ],
+          "display_name": "文献调研与核验",
+          "output_specs": {
+            "LITERATURE.md": {
+              "min_bytes": 3000,
+              "require_any": [
+                "核验",
+                "检索",
+                "bibkey",
+                "引用"
+              ],
+              "rationale": "D7 产物规格下限：文献台账必须含核验状态/检索证据/引用位置等实质内容，拦目录级薄产物"
+            }
+          },
+          "companion_skills": [
+            "citation-check"
+          ],
+          "assets": [
+            {
+              "name": "引用核验器",
+              "path": "科研工具箱/tools/citation_checker.py",
+              "note": "引用条目机检（与三源核验互补）"
+            },
+            {
+              "name": "真题优论检索器",
+              "path": "科研工具箱/tools/case_fetcher.py",
+              "note": "研赛真题/优秀论文搜索"
+            },
+            {
+              "name": "检索链接清单",
+              "path": "科研工具箱/data/search_links.md",
+              "note": "预整理权威检索入口"
             }
           ],
           "skill_binding": {
@@ -2021,8 +2115,30 @@
             "modeling_contract"
           ],
           "display_name": "建模求解",
+          "companion_skills": [
+            "sci-sympy"
+          ],
+          "assets": [
+            {
+              "name": "参考模型库",
+              "path": "科研工具箱/data/reference_models.json",
+              "note": "经典模型速查（选型对照用）"
+            }
+          ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_specs": {
+            "MODELING_REPORT.md": {
+              "min_bytes": 5000,
+              "require_any": [
+                "假设",
+                "模型",
+                "求解",
+                "结论"
+              ],
+              "rationale": "P5 退出判据：建模报告必须含假设推导/模型表述/求解结果/结论，拦只有框架的产物"
+            }
           }
         }
       },
@@ -2031,7 +2147,8 @@
         "display_name": "编程实现",
         "output_files": [
           "code/main.py",
-          "RESULTS.md"
+          "RESULTS.md",
+          "figures/all_results.json"
         ],
         "primary_output": "RESULTS.md",
         "has_checkpoint": true,
@@ -2045,6 +2162,21 @@
             "step_manifest"
           ],
           "display_name": "编程实现",
+          "output_specs": {
+            "RESULTS.md": {
+              "min_bytes": 3000,
+              "require_any": [
+                "result",
+                "输出",
+                "表",
+                "t_end"
+              ],
+              "rationale": "D7 产物规格下限：结果汇总必须含运行输出/关键数值快照等实质内容，拦目录级薄产物"
+            }
+          },
+          "companion_skills": [
+            "sci-statistical-analysis"
+          ],
           "skill_binding": {
             "main_required": true
           }
@@ -2068,7 +2200,21 @@
             "figure_provenance"
           ],
           "display_name": "图表生成",
+          "companion_skills": [
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ],
           "assets": [
+            {
+              "name": "获奖论文图表配色分析",
+              "path": "参考论文/图表配色分析报告.md",
+              "note": "获奖论文图表配色/构图统计"
+            },
+            {
+              "name": "参考图集",
+              "path": "参考图",
+              "note": "本地构图/配色参照（gitignored）"
+            },
             {
               "name": "统一配色注册表",
               "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
@@ -2078,11 +2224,21 @@
               "name": "配色场景与使用规范",
               "note": "三步选色法/10 条规范/禁用清单（人读真源）",
               "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            },
+            {
+              "name": "华为杯图表配比基准",
+              "path": "科研工具箱/skills/_utils/figure_exemplars.md",
+              "note": "A/B/C/D/E/F 分题型图表硬下限（30-46 张）与数据图/过程图配比（comp_rules 引用真源）"
             }
           ],
+          "quick_gates": true,
           "skill_binding": {
-            "main_required": true
-          }
+            "main_required": true,
+            "mandatory": [
+              "paper-figure-palette"
+            ]
+          },
+          "quick_gates_max_pages": 50
         }
       },
       {
@@ -2103,11 +2259,22 @@
             "figure_provenance"
           ],
           "display_name": "流程与架构图绘制",
+          "companion_skills": [],
           "assets": [
+            {
+              "name": "参考图集",
+              "path": "参考图",
+              "note": "机理图/架构图构图参照"
+            },
             {
               "name": "统一配色注册表",
               "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
               "path": "科研工具箱/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "华为杯图表配比基准",
+              "path": "科研工具箱/skills/_utils/figure_exemplars.md",
+              "note": "过程图类型清单（建模流程/推导路径/求解器分支等，华为杯鼓励过程图表化）"
             }
           ],
           "skill_binding": {
@@ -2119,7 +2286,8 @@
         "skill_name": "comp-review",
         "display_name": "逻辑对抗复核",
         "output_files": [
-          "COMP_REVIEW.md"
+          "COMP_REVIEW.md",
+          "COMP_REVIEW_VERDICT.json"
         ],
         "primary_output": "COMP_REVIEW.md",
         "has_checkpoint": false,
@@ -2131,8 +2299,21 @@
             "review"
           ],
           "display_name": "逻辑对抗复核",
+          "companion_skills": [],
           "skill_binding": {
             "main_required": true
+          },
+          "output_specs": {
+            "COMP_REVIEW.md": {
+              "min_bytes": 1500,
+              "require_any": [
+                "major",
+                "minor",
+                "fatal",
+                "结论"
+              ],
+              "rationale": "P5 退出判据：逻辑复核必须留下分级问题清单，拦'总体没问题'式空审"
+            }
           },
           "assets": [
             {
@@ -2156,18 +2337,89 @@
         "has_checkpoint": true,
         "checkpoint_type": "approve",
         "required_checks": [
+          "literature",
           "step_manifest",
           "paper_consistency"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
+            "literature",
             "step_manifest",
             "paper_consistency"
           ],
           "display_name": "竞赛论文撰写",
+          "companion_skills": [],
+          "assets": [
+            {
+              "name": "摘要深度分析报告",
+              "path": "参考论文/摘要深度分析报告.md",
+              "note": "获奖论文摘要写法统计"
+            },
+            {
+              "name": "论文风格分析报告",
+              "path": "参考论文/论文风格分析报告.md",
+              "note": "获奖论文行文风格统计"
+            },
+            {
+              "name": "华为杯模板骨架",
+              "path": "科研工具箱/skills/comp-paper-zh/_templates/huawei/main.tex",
+              "note": "gmcmthesis 骨架（cls/logo 同目录）；标题照抄赛题官方原标题，禁 \\\\ 换行"
+            },
+            {
+              "name": "各板块写作说明",
+              "path": "CUMCM论文模板/论文模板/各板块详细说明文档",
+              "note": "摘要/模型/求解逐板块写法"
+            }
+          ],
+          "quick_gates": true,
           "skill_binding": {
             "main_required": true
+          },
+          "quick_gates_max_pages": 50
+        }
+      },
+      {
+        "skill_name": "comp-consistency",
+        "display_name": "代码-论文一致性检查",
+        "output_files": [
+          "CONSISTENCY_REPORT.json"
+        ],
+        "primary_output": "CONSISTENCY_REPORT.json",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "consistency"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "consistency"
+          ],
+          "display_name": "代码-论文一致性检查",
+          "companion_skills": [
+            "analyze-results"
+          ],
+          "assets": [
+            {
+              "name": "论文数据一致性检查器",
+              "path": "科研工具箱/tools/paper_data_check.py",
+              "note": "论文数值与结果台账交叉核对"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "CONSISTENCY_REPORT.json": {
+              "min_bytes": 1200,
+              "require_any": [
+                "match",
+                "ok",
+                "checked"
+              ],
+              "rationale": "P5 退出判据：一致性报告必须含逐项对账结论，拦只有壳 JSON 的产物"
+            }
           }
         }
       },
@@ -2181,18 +2433,239 @@
         "has_checkpoint": false,
         "checkpoint_type": null,
         "required_checks": [
+          "literature",
+          "consistency",
           "step_manifest",
           "compilation_log"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
+            "literature",
+            "consistency",
             "step_manifest",
             "compilation_log"
           ],
           "display_name": "编译与合规检查",
+          "companion_skills": [],
+          "assets": [
+            {
+              "name": "DOCX 格式预查",
+              "path": "科研工具箱/tools/docx_precheck.py",
+              "note": "需交付 Word 版时预检"
+            },
+            {
+              "name": "DOCX 导出器",
+              "path": "科研工具箱/tools/docx_export.py",
+              "note": "Markdown 转 DOCX"
+            },
+            {
+              "name": "裸 LaTeX 修复器",
+              "path": "科研工具箱/tools/fix_bare_latex_in_md.py",
+              "note": "编译排查辅助"
+            }
+          ],
           "skill_binding": {
             "main_required": true
+          }
+        }
+      },
+      {
+        "skill_name": "comp-visual-review",
+        "display_name": "数模视觉审查",
+        "output_files": [
+          "VISUAL_REVIEW.md",
+          "VISUAL_REVIEW_VERDICT.json"
+        ],
+        "primary_output": "VISUAL_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "数模视觉审查",
+          "companion_skills": [
+            "scholar-critique-figures",
+            "figure-spec"
+          ],
+          "assets": [
+            {
+              "name": "获奖论文图表配色分析",
+              "path": "参考论文/图表配色分析报告.md",
+              "note": "视觉审查配色对照基准"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "视觉审查时的配色合规判据来源",
+              "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true,
+            "mandatory": [
+              "figure-spec"
+            ]
+          },
+          "output_specs": {
+            "VISUAL_REVIEW.md": {
+              "min_bytes": 1500,
+              "require_any": [
+                "major",
+                "minor",
+                "pass"
+              ],
+              "rationale": "P5 退出判据：视觉审查必须留下分级发现与判定，拦空审"
+            }
+          }
+        },
+        "required_checks": [
+          "review"
+        ]
+      },
+      {
+        "skill_name": "comp-editor",
+        "display_name": "数模编辑修订",
+        "output_files": [
+          "EDITOR_CHANGELOG.md"
+        ],
+        "primary_output": "EDITOR_CHANGELOG.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [],
+          "display_name": "数模编辑修订",
+          "companion_skills": [
+            "anti-defensive-writing"
+          ],
+          "skill_binding": {
+            "main_required": true,
+            "mandatory": [
+              "anti-defensive-writing"
+            ]
+          },
+          "output_specs": {
+            "EDITOR_CHANGELOG.md": {
+              "min_bytes": 800,
+              "require_any": [
+                "major",
+                "minor",
+                "改"
+              ],
+              "rationale": "P5 退出判据：编辑变更必须可逐条追溯（改了什么/依据哪条意见）"
+            }
+          }
+        }
+      },
+      {
+        "skill_name": "comp-final-review",
+        "display_name": "数模最终复审",
+        "output_files": [
+          "FINAL_REVIEW.md",
+          "FINAL_REVIEW_VERDICT.json",
+          "REVIEW_EXECUTION_EVIDENCE.json"
+        ],
+        "primary_output": "FINAL_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "review"
+        ],
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "数模最终复审",
+          "companion_skills": [
+            "scholar-critique-manuscript"
+          ],
+          "skill_binding": {
+            "main_required": true,
+            "mandatory": [
+              "scholar-critique-manuscript"
+            ]
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ]
+        }
+      },
+      {
+        "skill_name": "comp-final-audit",
+        "display_name": "最终交付审计",
+        "output_files": [
+          "AUDIT_REPORT.json"
+        ],
+        "primary_output": "AUDIT_REPORT.json",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "literature",
+          "review",
+          "consistency",
+          "final_audit"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "literature",
+            "review",
+            "consistency",
+            "final_audit"
+          ],
+          "display_name": "最终交付审计",
+          "companion_skills": [
+            "citation-check",
+            "quality-check"
+          ],
+          "assets": [
+            {
+              "name": "引用终检器",
+              "path": "科研工具箱/tools/citation_checker.py",
+              "note": "交付前引用条目终检"
+            },
+            {
+              "name": "287 项论文自查表",
+              "path": "参考论文/bzd_论文自查表_287项.md",
+              "note": "论文全面自查清单"
+            },
+            {
+              "name": "实战经验库·交付硬闸清单",
+              "note": "上传前 8 项硬闸与赛后复盘五步（P0/P1 坑位对照）",
+              "path": "科研工具箱/data/contest_lessons.md"
+            },
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true,
+            "mandatory": [
+              "citation-check",
+              "quality-check"
+            ]
+          },
+          "output_specs": {
+            "AUDIT_REPORT.json": {
+              "min_bytes": 1200,
+              "require_any": [
+                "pass",
+                "delivery_decision",
+                "gate_outcomes"
+              ],
+              "rationale": "P5 退出判据：交付审计必须是门禁逐项结论，拦手写散文式'审计'"
+            }
           }
         }
       }

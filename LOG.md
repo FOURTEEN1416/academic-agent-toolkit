@@ -1092,7 +1092,7 @@ step13 外部审稿清单、step14 引用终检+质量终检。判据：**该步
 2. **U1 密钥与路径卫生门禁** `tools/secret_scan.py`（吸收 gitleaks"高精度正则+CI 纵深"思路，自建不引二进制）：
    tracked 文本面（git ls-files -z 修复中文路径 quotepath 陷阱，2175 文件）扫 9 类高置信凭证模式 +
    硬性规则 6 机检化（配置绝对路径 FAIL / 文档家目录 WARN，历史横幅豁免）。**首跑即抓到存量违例**：
-   `CROSS_PROJECT_FIGURE_SKILLS_PROMPT.md` 写 `C:\Users\FOUR\...`（已修为 `~/.zcode` 可移植写法）。
+   `CROSS_PROJECT_FIGURE_SKILLS_PROMPT.md` 写了家目录绝对路径（已修为 `~/.zcode` 可移植写法）。
    豁免台账 3 条（vendored 哑钥匙 fixture ×1 + 路径卫生测试检测针 ×2，逐条 sha256 锚定+理由）。
    两个扫描器自 bug 修复留痕：JSON 内嵌 Python 的 `exc:\n` 撞盘符正则（加前导断言）；规则文档引用的
    `C:\Users\...` 示例段误报（段须含字母数字）。
@@ -1164,3 +1164,50 @@ L11 mypy；**L12 governance 资产台账刷新**——两次实测重生成（�
 
 **边界**：本轮仅删 3 个 tracked 文件（零丢失归档在案）+ 文档引用修复；未动台账工具与测试；
 未 git 提交（待用户统一提交）。spec §五已全部改写为闭环态（含 09-19 横幅矛盾的诚实记录）。
+
+## 续42 · 2026-09-22 · 华为杯管线补齐：8 步裸流程 → 14 步与国赛同构
+
+用户方向："强化本仓华为杯的产出能力——国赛 14 步、华为杯只有 8 步，缺什么补什么。"缺口诊断与落地：
+
+1. **缺口诊断**（engine/modex-core/templates.json 对比）：
+   - 缺 6 步：S2 文献调研与核验 / S9 代码-论文一致性 / S11 视觉审查 / S12 编辑修订 / S13 最终复审 / S14 交付审计；
+   - 既有 8 步元数据缩水：companion_skills 大多为空（国赛 12 槽位）、output_specs 全空（国赛 8 步有 P5/D7 退出判据）、
+     资产 5 条 vs 国赛 23 条、S4 编程缺 figures/all_results.json 产出（撞 DEFAULT_REQUIRED_COMPANIONS）、
+     S7 复核缺 COMP_REVIEW_VERDICT.json、S8 论文缺 literature 检查；
+   - 华为杯规则最严（comp_rules.json 正文 40-60 页/图表 30-46 张/灵敏度 4-5 页）却零门禁挂载；
+   - ③ 断链实锤：comp-paper-zh 华为杯分支 `cp _templates/huawei/*` 因目录不存在静默空转（2>/dev/null 吞错），
+     gmcmthesis.cls 只存在于 gitignored 的 modex-3-skills 旧目录；quick_gates 快检硬编码默认 30 页（CUMCM 口径），
+     华为杯 50 页正文会被误判 FAIL；CONTEST_SKILL_MAP 无华为杯章节；catalog 无华为杯管线条目。
+2. **落地七件**：
+   - templates.json `comp_huawei` 8→14 步：骨架对齐国赛（同 skill 链/companion 12 槽位/output_specs 8 处），
+     华为杯特化：S5/S6 挂「华为杯图表配比基准」（_utils/figure_exemplars.md，A/B 40-46 / C/D 33-39 / E/F 35-41 硬下限）、
+     S8 资产换华为杯模板骨架、S14 去国赛专属「规则与合规区」指针、S5/S8 quick_gates=true+max_pages=50；
+   - engine 参数化：StepAction 增 `quick_gates_max_pages`（agent_bridge 渲染 `--max-pages N`，缺省 None=脚本默认 30 兼容 CUMCM），
+     workflow_runner 两处构造点透传 metadata；
+   - gmcmthesis 模板入库 `_templates/huawei/`（cls+骨架+封面 logo/title 共 550KB；4 个中文字体 41MB 不入库，
+     取法见 README.md），断链修复；
+   - CONTEST_SKILL_MAP.md 新增 §七「华为杯管线对照」特化差异表（§二 解析区未动，14 行机检不受扰）；
+   - capabilities/catalog.json 新增 `comp_huawei_full_pipeline` 聚合条目（experimental，evidence/gap 如实填写）；
+   - comp-paper-zh SKILL.md 修正"华为杯同用 cumcmthesis"过时说明 → 指向已入库 gmcmthesis；
+   - 新增 `科研工具箱/tests/test_huawei_pipeline.py` 10 项棘轮：14 步对齐/companion 同款/规格同款/资产不薄于国赛/
+     页上限 50/资产在位/模板在位/--max-pages 渲染/catalog 条目/地图 §七。
+3. **验证**：新测试 10/10 过；引擎+模板相关 64 过；check_asset_utilization --strict 零漏网 263/263、
+   模板资产 192 条失联 0；全量 pytest 见本节末尾补记。
+4. **边界**：未跑华为杯端到端验收工作流（对齐 CUMCM b3592a3b 口径，catalog current_gap 如实登记）；
+   研赛真题未入 historical_problems.json；apmcm_zh/mathorcup/wuyi 模板分支同款断链未修（低频，登记 gap）；
+   保留工作区既有未提交改动（批次三 catalog 双向校验两文件）；未 git 提交（待用户统一提交）。
+   **续42 末尾补记（全量验证与顺手修复）**：
+   - 全量回归最终 **651 passed / 0 failed**（工具箱 630 + 根级 21；pytest.ini/根 AGENTS.md/README
+     三处基线数字已按同步纪律更新）。
+   - **既有红修复**（stash 对照法实证 3 项失败在 HEAD 基线原样存在，与本轮改动无关后顺手修）：
+     ① LOG.md 续41 行1095 `C:\Users\FOUR\...` 家目录路径 WARN → 忠实改写为"家目录绝对路径"（原文件
+     本就已修为 ~/.zcode，改写不损史实）；② secret_scan 自检 fixture（test_secret_scan.py）12 条哑钥匙
+     09-20 建器当天漏登豁免台账 → 按 --emit-allowlist 流程补登 12 条（reason 注明编造值自检用途），
+     台账 3→15 条，secret_scan --strict exit 0。
+   - **多窗口并发事故与恢复**：本轮会话期间工作区中批次三的两处未提交改动
+     （tests/test_minimum_catalog.py 双向校验 + catalog.json 三处 associated_skills 补登）被并行窗
+     （wt/batch3 已提交同内容）清扫掉。处置：test 文件自 wt/batch3 逐字节恢复（diff 0）；catalog 三处
+     按会话开始留存的 diff 精确复原（4 处关键字 grep 验证在位）。两个文件的批次三内容在 wt/batch3
+     分支均有提交版，主仓未收编状态与其 memory 记录一致，无内容损失。
+   - 溯源机检 check_provenance.py 全 OK；check_asset_utilization --strict 263/263 零漏网、模板资产
+     192 条失联 0。

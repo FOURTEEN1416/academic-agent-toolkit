@@ -56,7 +56,8 @@ cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rul
 
 ### 数模竞赛 (cumcm/huawei/mathorcup/huazhong/etc.)
 
-Template: `_templates/cumcm/`（国赛，2026-09-09 已入库实测编译通过：`cumcmthesis.cls` + `cumcm2026.sty` + 骨架 `main.tex`；华为杯同用 cumcmthesis）
+Template: `_templates/cumcm/`（国赛，2026-09-09 已入库实测编译通过：`cumcmthesis.cls` + `cumcm2026.sty` + 骨架 `main.tex`）
+华为杯：`_templates/huawei/`（2026-09-22 入库：`gmcmthesis.cls` + 骨架 `main.tex` + 封面 `logo.pdf`/`title.pdf`；字体 SimSun/SimHei/KaiTi/LiSu 不随库分发，取法见其 README.md。此前华为杯分支 `cp _templates/huawei/*` 因目录缺失静默空转，靠落地断言兜底报错——现已修复断链）
 
 ⛔ **sty 定制纪律（D5 双源分叉修复，2026-09-13）**：需要改样式时**禁止整份复制 `cumcm2026.sty` 后私改**（双源分叉：diff 说不清改了什么，合规无法对账）。正确做法：复制同目录 `cumcm2026_local.example.sty` 为 `cumcm2026_local.sty`——`\input` 真源 + 只在 PATCH 区追加差异 + BASELINE 行登记基线版本；`cumcm2026.sty` 头部有 `TEMPLATE_VERSION` 基线标记。
 

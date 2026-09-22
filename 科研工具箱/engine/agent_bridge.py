@@ -37,6 +37,10 @@ class StepAction:
     # D3 门禁前移（2026-09-13）：本步完成后必须先跑 quick_gates 轻检（页数/图字号/泄漏），
     # 由模板步骤 metadata.quick_gates=true 声明，设计挂 step 5（出图后）与 step 8（成文后）。
     quick_gates: bool = False
+    # quick_gates 页数上限覆盖（2026-09-22）：缺省 None = 脚本自带 30（CUMCM 口径）；
+    # 华为杯等正文上限不同的赛事由 metadata.quick_gates_max_pages 声明（如 50），
+    # 渲染成 --max-pages N，避免 50 页正文被 30 页默认值误判 FAIL。
+    quick_gates_max_pages: int | None = None
     # P4 技能强制绑定（2026-09-19）：本步显式绑定技能的声明，由模板步骤 metadata.skill_binding
     # 给出。结构 {"main": 技能名, "main_required": bool, "mandatory": [技能名...]}；缺省为 {}，
     # 即退回"仅按 C1/M5 既有机制"的行为（向后兼容）。
@@ -82,9 +86,12 @@ class StepAction:
             )
             lines.append(f"  本步资产(路径为仓库根相对;用则留痕,完成申报 used/skipped): {rendered}")
         if self.quick_gates:
+            max_pages_flag = (f" --max-pages {self.quick_gates_max_pages}"
+                              if self.quick_gates_max_pages else "")
             lines.append(
                 "  ⛔ D3 门禁前移轻检（本步完成后、回报 complete 前必跑）: "
                 f"python skills/_utils/quick_gates.py --workspace {self.workspace}"
+                f"{max_pages_flag}"
                 "（FAIL 先处理再回报——页数/字号问题越早暴露修复越便宜）")
         if self.has_checkpoint:
             lines.append(f"  ⚠️ 完成后需暂停等待用户{'批准' if self.checkpoint_type == 'approve' else '反馈'}")

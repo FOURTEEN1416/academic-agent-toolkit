@@ -70,13 +70,13 @@
 6. **路径/密钥卫生**：tracked 配置不得写本机绝对路径；`.env` 永不入库；
    `python 科研工具箱/tools/secret_scan.py --strict` 机检。
 
-## 测试口径（2026-09-20 宿主无关改造轮实测，pytest.ini 为唯一真源）
+## 测试口径（2026-09-22 华为杯管线补齐轮实测，pytest.ini 为唯一真源）
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **639 passed / 0 failed**（= 工具箱 **620** + 根级门禁 **19**） | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **620 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
-| 根 `tests/` 单跑 | catalog schema + 反 AI 工具集 | **19 passed** | catalog 改动后必跑 |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **651 passed / 0 failed**（= 工具箱 **630** + 根级门禁 **21**） | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **630 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
+| 根 `tests/` 单跑 | catalog schema + 反 AI 工具集 | **21 passed** | catalog 改动后必跑 |
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准（历史：600+3 skipped @ run 35425878920） | 门禁 |
 
 - 历史基线 628/603/460 为保留作历史的时点快照，见 `pytest.ini` 与 `dev-docs/truth-index.md`。

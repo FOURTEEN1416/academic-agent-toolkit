@@ -223,6 +223,44 @@
       "current_gap": "C5已校准(4/5)；英文模板需自写（套件无 mcmthesis.cls）；C5 多智能体评审校准（2026-08-17，ses_ff067c13/ses_ff067b50）已确认达标"
     },
     {
+      "capability_id": "comp_huawei_full_pipeline",
+      "name": "华为杯研究生数模完整流程",
+      "domain": "math_modeling_competition",
+      "description": "14 步端到端工作流（2026-09-22 与国赛同构升级）：题目分析→文献→建模→代码→两类图表→逻辑审查→写作→一致性→编译→视觉审查→编辑→终审→交付审计；华为杯特化：正文 50 页口径（D3 快检 --max-pages 50）、图表 30-46 张硬下限、gmcmthesis 模板（_templates/huawei/ 已入库）、附录 70-100 页正式产出",
+      "input_contract": "题面文本、数据文件、参考资料",
+      "output_contract": "PDF论文（正文 40-60 页）、代码、结果账本、一致性报告、审稿证据、最终审计报告",
+      "status": "experimental",
+      "associated_skills": [
+        "comp-pipeline",
+        "comp-prob-analysis",
+        "comp-modeling",
+        "comp-code",
+        "comp-paper-zh",
+        "comp-review",
+        "comp-compile-zh",
+        "comp-literature",
+        "comp-consistency",
+        "comp-visual-review",
+        "comp-final-audit",
+        "comp-final-review",
+        "comp-editor"
+      ],
+      "associated_tools": [
+        "tools/scholar_fetch.py",
+        "tools/case_fetcher.py",
+        "tools/citation_checker.py",
+        "tools/paper_data_check.py",
+        "engine/workflow_cli.py"
+      ],
+      "external_dependencies": [
+        "LaTeX 编译（XeLaTeX + gmcmthesis）",
+        "Windows 中文字体（SimSun/SimHei/KaiTi/LiSu，见 _templates/huawei/README.md）"
+      ],
+      "high_risk_confirmation": "完整流程含外部 API 调用与文件覆盖；检查点审批不能跳过",
+      "current_evidence": "管线升级落地（2026-09-22）：engine comp_huawei 8→14 步对齐国赛骨架（companion/资产/产出规格同款+华为杯图表配比基准挂载 S5/S6）；gmcmthesis 模板修复断链入库（此前 SKILL.md 引用 _templates/huawei/ 为空操作）；quick_gates 页上限参数化；CONTEST_SKILL_MAP §七 特化差异表",
+      "current_gap": "未跑端到端验收工作流（对照 CUMCM b3592a3b 14 步全 completed 口径）；研赛历年真题/获奖论文未入 data/historical_problems.json；comp-paper-zh 其余赛事模板分支（apmcm_zh/mathorcup/wuyi）仍断链未入库"
+    },
+    {
       "capability_id": "comp_stats_topic",
       "name": "统计建模大赛选题与数据规划",
       "domain": "math_modeling_competition",
@@ -725,7 +763,8 @@
       "status": "experimental",
       "associated_skills": [
         "comp-prob-analysis",
-        "comp-modeling"
+        "comp-modeling",
+        "math-modeling-contest-route-selection"
       ],
       "associated_tools": [
         "skills/math-modeling-contest-route-selection/scripts/score_topics.py"
@@ -2335,6 +2374,9 @@
       "status": "experimental",
       "promotion_history": [
         "2026-09-03: 融入（Kiterlin 上游 MIT, pinned）"
+      ],
+      "associated_skills": [
+        "anti-defensive-writing"
       ]
     },
     {
@@ -5197,7 +5239,8 @@
         "copyright-source-materials",
         "copyright-draft",
         "copyright-build",
-        "assets-inventory"
+        "assets-inventory",
+        "codesucker-integration"
       ],
       "source": "https://github.com/fanbuz/codesucker",
       "license": "Apache-2.0",

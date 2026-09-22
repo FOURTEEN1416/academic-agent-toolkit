@@ -120,3 +120,25 @@
 **零漏网对账已固化为机检**（词边界+斜杠展开+前缀 fnmatch）：
 `python tools/check_asset_utilization.py --strict` + `tests/test_asset_utilization.py::test_real_map_covers_all_skills_zero_missing`
 ——任何改动本文件的维护者必须跑过机检后方可保留本节统计行。
+
+## 七、华为杯管线对照（comp_huawei，2026-09-22 接线）
+
+> 华为杯研究生数模此前只有 8 步裸流程（缺文献/一致性/视觉审查/编辑/终审/交付审计六步，
+> 资产与产出规格也大多为空）。2026-09-22 起引擎 `comp_huawei` 升级为与国赛同构的 14 步，
+> **每步 companion_skills 与 §二 完全同款（12 槽位）**，由
+> `tests/test_huawei_pipeline.py::test_huawei_companions_match_cumcm` 机检锁定；
+> 本节不再重复 14 行表格，只记华为杯特化差异。
+
+| 维度 | 国赛 comp_cumcm | 华为杯 comp_huawei |
+|------|----------------|-------------------|
+| 正文页数口径 | ≤30 页 | 50 页上限，目标 40-60（一等奖 55-65）；D3 快检 `--max-pages 50`（metadata.quick_gates_max_pages） |
+| 图表量 | ~24 张 | 30-46 张硬下限（A/B 40-46 / C/D 33-39 / E/F 35-41），真源 `_utils/figure_exemplars.md`（S5/S6 资产挂载） |
+| 深度要求 | 常规 | 每子问题 ≥8-10 页 + 8-15 个编号公式，推导过程必展示 |
+| 灵敏度/推广 | 常规 | 4-5 页（≥3 页 + 3 图） |
+| 附录 | 不限 | 70-100 页正式产出（代码/关键数据/补充推导），不计正文 |
+| 模板 | cumcmthesis（`_templates/cumcm/`） | gmcmthesis（`_templates/huawei/`，2026-09-22 入库：cls+骨架+封面 logo/title）；标题照抄赛题官方原文 |
+| 摘要 | 仅中文摘要 | 仅中文摘要（无英文） |
+| 赛事规则真源 | comp_rules.json `comp_cumcm` | comp_rules.json `comp_huawei`（引擎 L2 页门禁按 COMP_PAGES=50 自动感知） |
+
+步骤骨架、技能绑定（skill_binding）、产出规格（output_specs）与资产挂载同 §一/§二 口径，
+差异仅上表；赛时驱动方式不变：`start --template comp_huawei` → `next` 逐步执行。

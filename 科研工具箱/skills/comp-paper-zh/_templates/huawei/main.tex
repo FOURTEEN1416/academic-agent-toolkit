@@ -1,0 +1,76 @@
+% 华为杯全国研究生数学建模竞赛模板
+% 基于 gmcmthesis 文档类
+\documentclass[bwprint]{gmcmthesis}
+
+% === 额外宏包（cls 未内置的）===
+\usepackage[framemethod=TikZ]{mdframed}
+\usepackage[section]{placeins}
+\usepackage{needspace}
+\usepackage{subfig}
+\usepackage{float}
+\usepackage{algorithm2e}
+
+% === TikZ ===
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+\usepackage{longtable}
+
+% === 引用上标格式 ===
+\setcitestyle{super,square,comma}
+
+% ⛔ 摘要后空白页修复：已迁移到 gmcmthesis.cls（abstract 结尾用 \clearpage
+%    替代 \newpage\null，避免内容接近页底时挤出含 \null 的空白页）。
+%    此处不需要再 \renewenvironment{abstract}。
+
+% === 竞赛信息 ===
+\title{[论文标题]}
+\baominghao{[参赛队号]}
+\schoolname{[学校名称]}
+\membera{[成员A]}
+\memberb{[成员B]}
+\memberc{[成员C]}
+
+\begin{document}
+
+\maketitle
+
+% === 摘要 ===
+\begin{abstract}
+
+[中文摘要内容：600--800字，写满且收在一页；每个子问题独立一段，包含具名方法和真实数值结果，并用 \textbf{} 各突出1--3处关键方法/结果。丰满模式也不得扩成第二页]
+
+\keywords{[关键词1]\quad [关键词2]\quad [关键词3]}
+\end{abstract}
+
+\pagestyle{plain}
+
+% === 摘要与正文之间的换页（竞赛模板不出目录）===
+% ⛔ 用 \clearpage 而非 \newpage：cls 修复后 abstract 已用 \clearpage 换页，
+%    这里再用 \clearpage 检测到已在新页开头会自动跳过，不会产生空白页。
+\clearpage
+% ⛔ 不要在这里加回 \tableofcontents：竞赛论文统一不出目录页。
+%   旁边的 \newpage/\clearpage 是摘要与正文之间的换页，删了正文会挤上来。
+\clearpage
+
+% === 正文 ===
+\input{sections/1_restatement}
+\input{sections/2_analysis}
+\input{sections/3_assumptions}
+\input{sections/4_symbols}
+\input{sections/5_problem1}
+\input{sections/6_problem2}
+\input{sections/7_problem3}
+\input{sections/8_sensitivity}
+\input{sections/9_evaluation}
+
+% === 参考文献 ===
+\begin{thebibliography}{99}
+% \bibitem[1]{ref1} 作者. 标题[J]. 期刊, 年份.
+\end{thebibliography}
+
+% === 附录 ===
+\begin{appendices}
+\input{sections/A_code}
+\end{appendices}
+
+\end{document}

@@ -158,6 +158,7 @@ class WorkflowRunner:
             companion_skills=step.metadata.get("companion_skills", []),
             assets=step.metadata.get("assets", []),
             quick_gates=bool(step.metadata.get("quick_gates", False)),
+            quick_gates_max_pages=step.metadata.get("quick_gates_max_pages"),
             skill_binding=dict(step.metadata.get("skill_binding") or {}),
             params=workflow.metadata.get("params", {}),
         )
@@ -932,6 +933,7 @@ class WorkflowRunner:
             companion_skills=step.metadata.get("companion_skills", []),
             assets=step.metadata.get("assets", []),
             quick_gates=bool(step.metadata.get("quick_gates", False)),
+            quick_gates_max_pages=step.metadata.get("quick_gates_max_pages"),
             skill_binding=dict(step.metadata.get("skill_binding") or {}),
             params=workflow.metadata.get("params", {}),
         )
