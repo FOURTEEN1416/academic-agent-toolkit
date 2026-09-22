@@ -14,9 +14,12 @@ gitignore 单层防护，无任何机检。根 AGENTS.md 硬性规则 6（tracke
 **两个检查类**：
   1. secret（FAIL）：tracked 文本文件中的高置信凭证模式（OpenAI/Anthropic/
      GitHub/AWS/Google/Slack/私钥/JWT/泛化赋值）+ 占位符豁免。
-  2. path（分档）：硬性规则 6 的机检化——
+  2. path（FAIL）：硬性规则 6 的机检化——
      - tracked **配置文件**中出现任何 Windows 盘符绝对路径 → FAIL（配置必须可移植）；
-     - 其余 tracked 文本文件中的 `C:\\Users\\...` → WARN（历史叙述经横幅豁免）。
+     - tracked 文本文件中的家目录形态（`X:[\\/]Users\\<name>` 与
+       `X:[\\/]Desktop\\<user>`，正反斜杠均可）→ **FAIL**（2026-09-22 B1-5 由
+       WARN 升档：个人路径泄漏不是风格问题；历史叙述行经横幅豁免，
+       个别误伤走 data/secret_scan_allowlist.json 逐条台账）。
 
 **边界（TOOL_GAP 如实声明）**：仅扫 tracked 文本文件（`git ls-files`），不扫
 二进制（.pyc 内嵌字符串、图片隐写不可检）、不扫 git 历史（已泄露须换钥匙+
@@ -87,9 +90,10 @@ CONFIG_SUFFIXES = {".json", ".yml", ".yaml", ".ini", ".toml", ".cfg", ".txt"}
 CONFIG_DIR_MARKERS = (".github", ".opencode", ".zcode")
 CONFIG_NAME_EXACT = {"opencode.json", "pytest.ini", "requirements-dev.txt"}
 
-# 家目录路径：段内必须含字母数字（规则文档里引用的 "C:\Users\..." 示例段为纯点，
-# 不算真实路径泄漏——真实泄漏必然带具体用户名段）
-HOME_PATH = re.compile(r"[A-Za-z]:\\Users\\(?=[A-Za-z0-9_.\-]*[A-Za-z0-9])"
+# 家目录路径（B1-5 扩展）：Users/<name> 与 Desktop/<user> 两族，正反斜杠均可；
+# 段内必须含字母数字（规则文档引用的 "C:\Users\..." 示例段为纯点、
+# 中文项目目录如 "D:\Desktop\学术工作流" 均不命中——真实泄漏必然带具体用户段）
+HOME_PATH = re.compile(r"[A-Za-z]:[\\/](?:Users|Desktop)[\\/](?=[A-Za-z0-9_.\-]*[A-Za-z0-9])"
                        r"[A-Za-z0-9_.\-]+")
 # 盘符绝对路径（配置可移植性检查）：断言盘符前是单词边界——否则 JSON 内嵌
 # Python 源码的 "exc:\n"、"root:\n"（冒号+字面反斜杠n）会全部误命中
@@ -197,8 +201,9 @@ def run() -> dict:
                 f["suppressed"] = True
             findings.append(f)
     active = [f for f in findings if not f.get("suppressed")]
-    blocked = [f for f in active if f["kind"] in ("secret", "config-abs-path")]
-    warned = [f for f in active if f["kind"] == "home-path"]
+    # B1-5 升档：home-path 由 WARN 升 FAIL——个人路径泄漏一律拦截（豁免走台账）
+    blocked = [f for f in active if f["kind"] in ("secret", "config-abs-path", "home-path")]
+    warned = [f for f in active if f["kind"] not in ("secret", "config-abs-path", "home-path")]
     return {"scanned": scanned, "skipped_binary_or_unreadable": skipped,
             "allowlisted": len(findings) - len(active),
             "blocked": blocked, "warned": warned, "ok": not blocked}
@@ -232,10 +237,9 @@ def main(argv: list[str] | None = None) -> int:
             for f in res["blocked"]:
                 print(f"    [{f['pattern']}] {f['file']}:{f['line']} {f['evidence']}")
         else:
-            print("\n✅ 无 FAIL 级发现（密钥 / 配置绝对路径）")
+            print("\n✅ 无 FAIL 级发现（密钥 / 配置绝对路径 / 文档家目录路径）")
         if res["warned"]:
-            print(f"\n⚠️ WARN 级 {len(res['warned'])} 项（文档中的 C:\\Users 路径，"
-                  f"历史横幅已豁免，新增须处理）：")
+            print(f"\n⚠️ WARN 级 {len(res['warned'])} 项：")
             for f in res["warned"][:10]:
                 print(f"    {f['file']}:{f['line']} {f['evidence']}")
     return 1 if (args.strict and not res["ok"]) else 0

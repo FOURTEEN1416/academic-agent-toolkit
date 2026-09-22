@@ -37,14 +37,41 @@ REPO_ROOT = TOOLBOX_ROOT.parent
 BASELINE_PATH = TOOLBOX_ROOT / "data" / "lint_baseline.json"
 
 # 检查范围：引擎 + 工具 + hooks + 两级测试（与 pytest 收集面同构的代码面）
+# scope 条目语法（B1-6 相对化）：裸名 = 相对 TOOLBOX_ROOT；"repo:" 前缀 = 相对
+# 仓库根。禁写本机绝对路径（tracked 基线必须可移植，secret_scan 同款纪律）。
 SCOPE: tuple[str, ...] = (
     "engine", "tools", "hooks", "tests",          # 相对 TOOLBOX_ROOT
-    str(REPO_ROOT / "tests"),                     # 仓库根门禁测试
+    "repo:tests",                                 # 仓库根门禁测试
 )
+SCOPE_REPO_PREFIX = "repo:"
+
 SELECT = "F,E9,W605"
 
 # 基线 schema 版本：未来语义变化时递增，旧基线拒绝加载
 BASELINE_SCHEMA = 1
+
+
+def resolve_scope(entry: str) -> Path:
+    """scope 条目 → 实际路径（裸名相对工具箱根，repo: 前缀相对仓库根）。"""
+    if entry.startswith(SCOPE_REPO_PREFIX):
+        return REPO_ROOT / entry[len(SCOPE_REPO_PREFIX):]
+    return TOOLBOX_ROOT / entry
+
+
+def normalize_scope_entry(entry: str) -> str:
+    """把 scope 条目规范化为可移植形态：绝对路径尝试转 repo:/裸名，转不动则原样保留
+    （--update 写基线时调用，防止本机绝对路径再混入 tracked 基线）。"""
+    p = Path(entry)
+    if not p.is_absolute():
+        return entry
+    try:
+        return SCOPE_REPO_PREFIX + p.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        pass
+    try:
+        return p.resolve().relative_to(TOOLBOX_ROOT).as_posix()
+    except ValueError:
+        return entry
 
 
 def _run_ruff() -> list[dict]:
@@ -54,7 +81,8 @@ def _run_ruff() -> list[dict]:
     --no-cache：避免 .ruff_cache 噪声（虽已 gitignore，检查件不该写缓存）。
     """
     cmd = [sys.executable, "-m", "ruff", "check", "--isolated", "--no-cache",
-           "--select", SELECT, "--output-format", "json", *[str(p) for p in SCOPE]]
+           "--select", SELECT, "--output-format", "json",
+           *[str(resolve_scope(p)) for p in SCOPE]]
     try:
         proc = subprocess.run(cmd, cwd=str(TOOLBOX_ROOT), capture_output=True,
                               text=True, encoding="utf-8", errors="replace", timeout=300)
@@ -155,11 +183,12 @@ def main(argv: list[str] | None = None) -> int:
             "schema": BASELINE_SCHEMA,
             "ruff_version": version,
             "select": SELECT,
-            "scope": list(SCOPE),
+            "scope": [normalize_scope_entry(s) for s in SCOPE],
             "total": len(findings),
             "by_rule": by_rule,
             "updated": date.today().isoformat(),
-            "note": "棘轮基线：total/by_rule 只降不升；收紧请走独立清理 + --update",
+            "note": "棘轮基线：total/by_rule 只降不升；收紧请走独立清理 + --update；"
+                    "scope 禁写本机绝对路径（repo: 前缀 = 仓库根相对）",
         }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"[lint-ratchet] 基线已更新: total={len(findings)} by_rule={by_rule} "
               f"(ruff {version}) → {BASELINE_PATH.name}")

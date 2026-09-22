@@ -16,12 +16,23 @@ case_fetcher.py — 国赛案例库抓取器
 """
 
 import json
+from collections import Counter
 from pathlib import Path
-from datetime import datetime
 
+
+# 数据版本日期（固定值，非运行时间戳——避免每次导出 JSON 都漂移）
+DATA_VERSION = "2026-09-22"
 
 # 历年真题（公开来源整理）
 HISTORICAL_PROBLEMS = {
+    "2025": {
+        "A": "烟幕干扰弹的投放策略",
+        "B": "碳化硅外延层厚度的确定",
+        "C": "NIPT的时点选择与胎儿的异常判定",
+        "D": "矿井突水水流漫延模型与逃生方案",
+        "E": "AI辅助智能体测",
+        "type_hint": {"A": "优化", "B": "统计", "C": "统计", "D": "机理", "E": "统计"},
+    },
     "2024": {
         "A": "造船分段制造问题",
         "B": "城市轨道交通问题",
@@ -68,25 +79,29 @@ def fetch_official_announcement(year: str) -> dict:
     }
 
 
+def _type_distribution() -> Counter:
+    """从 HISTORICAL_PROBLEMS 的 type_hint 现算题型分布（单一真源，杜绝硬编码漂移）"""
+    return Counter(
+        hint for year in HISTORICAL_PROBLEMS.values()
+        for hint in year["type_hint"].values()
+    )
+
+
 def export_historical_json(output_path: Path) -> None:
     """导出历史真题为 JSON（被 model-innovation 引用）"""
+    dist = _type_distribution()
     data = {
-        "generated_at": datetime.now().isoformat(),
+        "generated_at": DATA_VERSION,
         "source": "全国大学生数学建模竞赛官网 + 数学中国 + 公开教学资料",
         "problems": HISTORICAL_PROBLEMS,
         "statistics": {
             "total_years": len(HISTORICAL_PROBLEMS),
-            "total_problems": len(HISTORICAL_PROBLEMS) * 3,
-            "type_distribution": {
-                "机理": 4,
-                "优化": 7,
-                "预测": 4,
-                "统计": 2,
-                "评价": 2,
-                "图论": 1,
-            },
+            "total_problems": sum(dist.values()),
+            "type_distribution": dict(sorted(dist.items())),
         },
-        "note": "完整论文 PDF 需到数学中国/CSDN/知乎下载，本工具集不提供",
+        "note": "完整论文 PDF 需到数学中国/CSDN/知乎下载，本工具集不提供。"
+                "2025 年题名来源：mcm.edu.cn 官网赛题页及院校赛后报道（A-E 全五题）；"
+                "type_hint 为编辑性提示（官方从不发布题型分类），非官方口径。",
     }
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -147,9 +162,12 @@ def main():
     print("  统计")
     print("=" * 50)
     for year, problems in HISTORICAL_PROBLEMS.items():
-        print(f"  {year}: A={problems['A']} / B={problems['B']} / C={problems['C']}")
+        titles = {q: t for q, t in problems.items() if q != "type_hint"}
+        print(f"  {year}: " + " / ".join(f"{q}={t}" for q, t in titles.items()))
     print()
-    print("  共 {} 年 / {} 道题".format(len(HISTORICAL_PROBLEMS), len(HISTORICAL_PROBLEMS) * 3))
+    dist = _type_distribution()
+    print("  共 {} 年 / {} 道题".format(len(HISTORICAL_PROBLEMS), sum(dist.values())))
+    print("  题型分布: " + ", ".join(f"{k}={v}" for k, v in sorted(dist.items())))
     print()
     print("[DONE] 案例库生成完成")
     print()

@@ -29,13 +29,12 @@ def test_engine_modules_do_not_require_opencode_runtime():
     forbidden_substrings = ("opencode CLI", "subprocess.*opencode", "exec_opencode")
     for path in (PROJECT_ROOT / "engine").rglob("*.py"):
         text = path.read_text(encoding="utf-8")
-        assert "Popen" not in text or "opencode" not in text.lower() or True
+        assert "Popen" not in text or "opencode" not in text.lower(), path
         # 仅禁止“调用另一个 opencode”的委派语义出现在实现中作为真源依赖
         if path.name == "opencode_bridge.py":
             assert "re-export" in text or "agent_bridge" in text
-        for needle in ("spawn_opencode", "run_opencode_process"):
+        for needle in forbidden_substrings + ("spawn_opencode", "run_opencode_process"):
             assert needle not in text, path
-    assert forbidden_substrings  # keep list referenced
 
 
 def test_agent_bridge_is_canonical():

@@ -2,7 +2,7 @@
 """科研绘图环境检测器（plotting env doctor）。
 
 一次性回答："这台机器上，哪些绘图技能现在就能用？缺什么？怎么装？"
-用法：python tools/plotting_env_check.py [--json]
+用法：python tools/plotting_env_check.py [--json] [--strict]
 
 检测项：
   - graphviz（dot 二进制）：PATH 或默认安装位置
@@ -10,9 +10,14 @@
   - 多模态 LLM 图像生成后端：OPENROUTER_API_KEY 等环境变量（不打印值）
   - 套件 .env 中的视觉/图像后端线索（只报存在性）
 对应技能可用性结论 + 一行安装指引。
+
+退出码：默认恒 0（兼容既有"体检报告"型调用方，缺失项只报告不拦截）；
+       --strict 下环境不全（graphviz / mermaid-cli / 图像后端任一缺失）→ exit 1
+       （CI/收编门禁用）。
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import shutil
@@ -102,9 +107,17 @@ def check() -> dict:
     return r
 
 
-if __name__ == "__main__":
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="科研绘图环境检测器（plotting env doctor）",
+        epilog="退出码：默认恒 0（只报告不拦截）；--strict 下环境不全 → 1")
+    parser.add_argument("--json", action="store_true", help="JSON 输出")
+    parser.add_argument("--strict", action="store_true",
+                        help="环境不全 → exit 1（CI/门禁用；默认恒 exit 0 兼容既有调用方）")
+    args = parser.parse_args(argv)
+
     rep = check()
-    if "--json" in sys.argv:
+    if args.json:
         print(json.dumps(rep, ensure_ascii=False, indent=1))
     else:
         print("== 科研绘图环境检测 ==")
@@ -123,4 +136,8 @@ if __name__ == "__main__":
         for s, v in rep["skill_availability"].items():
             print(f"  {s}: {v}")
         print("总体：", "全部可用" if rep["ok"] else "存在缺失项（见上）")
-    sys.exit(0)
+    return 0 if (rep["ok"] or not args.strict) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

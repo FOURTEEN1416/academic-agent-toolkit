@@ -21,12 +21,20 @@ v2.0 升级（2026-08-17）：
 
 作者：数模全流程套件
 日期：2026-08-17
+
+退出码契约（CLI）：
+  0 = 检测完成，综合 AI 概率低于阈值（risk_level ∈ {low, medium}）
+  1 = 检测完成，综合 AI 概率达到阈值（overall ≥ 0.40，risk_level ∈ {high, critical}）
+  2 = 用法错误（argparse 惯例：缺参/未知参数）
+基线校准：默认自动加载 baseline/human_paper_baseline.json；--no-baseline 显式禁用
+（此时统计特征层使用内置默认区间）。
 """
 
 import re
 import math
 import json
 import os
+import sys
 import zlib
 from collections import Counter
 from typing import Dict, List, Tuple, Optional
@@ -161,7 +169,8 @@ class AntiAIDetector:
     def __init__(self, text: str, language: str = "zh", baseline: Optional[dict] = None):
         self.text = text
         self.language = language
-        self.baseline = baseline or self._load_baseline()
+        # baseline=None → 自动加载 BASELINE_PATH；baseline={} → 显式禁用基线校准
+        self.baseline = self._load_baseline() if baseline is None else baseline
         self.sentences = self._split_sentences()
         self.paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
 
@@ -720,17 +729,21 @@ class AntiAIDetector:
         return feats
 
 
-def main():
+def main(argv: Optional[List[str]] = None) -> int:
     import argparse
 
-    parser = argparse.ArgumentParser(description="反AI特征检测工具 v2.0（基线校准版）")
+    parser = argparse.ArgumentParser(
+        description="反AI特征检测工具 v2.0（基线校准版）",
+        epilog="退出码：0 = 低/中风险；1 = AI 概率超阈值（risk_level ∈ {high, critical}）；"
+               "2 = 用法错误（argparse 惯例）")
     parser.add_argument("input", help="输入文件路径或文本")
     parser.add_argument("--lang", default="zh", choices=["zh", "en"], help="语言 (default: zh)")
     parser.add_argument("--json", action="store_true", help="输出JSON格式")
     parser.add_argument("--output", help="输出文件路径")
-    parser.add_argument("--no-baseline", action="store_true", help="不使用基线校准")
+    parser.add_argument("--no-baseline", action="store_true",
+                        help="不使用基线校准（统计特征层使用内置默认区间）")
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if os.path.isfile(args.input):
         with open(args.input, "r", encoding="utf-8") as f:
@@ -738,7 +751,8 @@ def main():
     else:
         text = args.input
 
-    baseline = None if args.no_baseline else None  # 默认自动加载
+    # --no-baseline → 显式空基线（禁用校准）；None → AntiAIDetector 自动加载基线文件
+    baseline = {} if args.no_baseline else None
     detector = AntiAIDetector(text, args.lang, baseline=baseline)
     result = detector.detect()
 
@@ -754,8 +768,9 @@ def main():
     else:
         print(out)
 
-    return result
+    # 退出码契约：与 detect() 的风险分档严格一致（score≥0.40 ⇔ high/critical）
+    return 1 if result.risk_level in ("high", "critical") else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

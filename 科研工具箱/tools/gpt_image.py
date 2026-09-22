@@ -8,11 +8,11 @@
 
 环境变量:
   GPT_IMAGE_API_KEY  — API Key（必须）
-  GPT_IMAGE_BASE_URL — API 地址（默认 https://www.mhcoding.xyz/）
+  GPT_IMAGE_BASE_URL — API 地址（必须；本工具不内置任何第三方端点，缺失即报错退出）
 
 退出码:
   0 = 成功（--check 模式：API Key 已配置；生成模式：图片已保存）
-  1 = 失败（未配置 key / API 错误 / 网络错误）
+  1 = 失败（未配置 key 或 BASE_URL / API 错误 / 网络错误）
 
 输出 PNG 后自动转 PDF（LaTeX 需要 PDF 格式）。
 """
@@ -244,7 +244,7 @@ def main():
         pass
 
     api_key = os.environ.get("GPT_IMAGE_API_KEY", "").strip()
-    api_base = os.environ.get("GPT_IMAGE_BASE_URL", "https://www.mhcoding.xyz/").strip()
+    api_base = os.environ.get("GPT_IMAGE_BASE_URL", "").strip()
     model = os.environ.get("GPT_IMAGE_MODEL", "").strip()
 
     # Fallback: 从工作区配置文件读取（后端会写入这个文件，绕过环境变量传递问题）
@@ -261,6 +261,13 @@ def main():
                         break
                 except Exception:
                     pass
+
+    # 端点校验（B1-7）：不内置第三方端点，未配置即明确报错退出
+    if not api_base:
+        print("错误: 未设置 GPT_IMAGE_BASE_URL 环境变量。本工具不内置任何第三方端点，"
+              "请先配置图像生成 API 的 Base URL（写入项目 .env 或导出环境变量）。",
+              file=sys.stderr)
+        sys.exit(1)
 
     # --check 模式
     if args.check:
