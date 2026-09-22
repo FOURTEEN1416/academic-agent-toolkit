@@ -16,8 +16,9 @@ modex-3-skills 模板目录入库，修复 SKILL.md 华为杯分支 `cp _templat
   `\lstset`（并激活 `dkgreen`/`mauve` 颜色定义，上游为注释态会引用未定义颜色）；
   ⑤`listings,color` → `listings,xcolor`。
 - 未吸收、留待裁定（上游 2024 改动 vs 本地既有补丁冲突）：摘要标题 `zihao 3→-2`、
-  关键词 `-4 黑体→-3 隶书`、题注去 `bf`、跨平台字体自适应块（含 `C:/bootfont.bin`
-  探测路径，触宿主红线）、定理环境块恢复、末尾 `\pagestyle{plain}` 注释化。
+  关键词 `-4 黑体→-3 隶书`、题注去 `bf`、定理环境块恢复、末尾 `\pagestyle{plain}` 注释化。
+- 已裁定不吸收（2026-09-22）：上游"跨平台字体自适应块"（含 `C:/bootfont.bin` 硬探测路径）——
+  本机绝对路径/平台硬绑违仓库路径卫生红线，跨平台字体源已由 `_fonts-local/` 供给，该块不再重审。
 
 ## 2024 年（第 21 届）格式变化两条情报（源：上游 README.md / example.tex）
 

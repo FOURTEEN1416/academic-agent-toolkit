@@ -14,3 +14,18 @@
 ## Upgrade rule
 
 Modex 后续版本更新时，对照本批次文件逐个 diff，仍按"本仓契约保留 + 增量收录"方式吸收；吸收后更新本文件日期并复跑双副本一致性测试。
+
+## 2026-09-22 P1 扫尾批次（compile_check.sh / writing_check.sh 双向取长）
+
+- `compile_check.sh`：库内版为基线，吸收上游独有块——`CHECKS_UNAVAILABLE` 退出码 3 机检块、
+  `run_python_check` 包装、`paper_source_scope.py`/`compile_source_check.py` 依赖存在性校验与
+  活跃源清单（`ACTIVE_TEX`→`TEX_SRC`，解析为空回退库内 glob 口径）、`MH_PYTHON` 软探测
+  （带宿主中立回退 python/python3/py）。库内独有 `gcount()` 计数消毒与 `PYTHON="python3"`
+  兜底全部保留。
+- `writing_check.sh`：整替为上游 42 行编排器（委派 `writing_source_check.py`、
+  `figure_narrative_check.py`、`modeling_tex_policy.py`、`assumption_layout_check.py`、
+  `symbol_layout_check.py`、`abstract_emphasis_check.py`、`human_paper_style_check.py`、
+  `ai_tell_check.py` 共 8 个检查器；`--supplemental` 仅跑 `writing_source_check.py`）。
+  8 个 py 在 `_utils/` 与 `shared-scripts/` 实测全部在位（除 `abstract_emphasis_check.py`
+  为本仓本地版外均与上游逐字节一致），无悬空委派。
+- 双副本 sha256 已对齐；两脚本 `bash -n` 通过并在样例 paper/ 上冒烟实测。

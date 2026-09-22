@@ -5,12 +5,14 @@
 
 PAPER_DIR="${1:-paper}"
 EXIT_CODE=0
+CHECKS_UNAVAILABLE=0   # 机检工具故障标记：最终 exit 3，与内容失败 exit 1 区分（2026-09-22 自上游吸收）
 
 # ⛔ 检测可用 Python（Windows 上 python3 常是 Microsoft Store stub：不执行代码、退出码非0）。
 #   历史 bug：本脚本裸用 python3 跑内嵌检查，stub 环境下检查没真跑却因退出码非0 触发 EXIT_CODE=1，
 #   且 2>/dev/null 吞掉 stub 提示 → AI 看到 "(see above)" 后空无一物 → 死循环。与 compile_utils.sh 对齐。
+#   MH_PYTHON 仅作首选候选（宿主软探测），未设置或不可用时回退 python/python3/py，宿主中立。
 PYTHON=""
-for _py in python python3 py; do
+for _py in "${MH_PYTHON}" python python3 py; do
     [ -z "$_py" ] && continue
     if command -v "$_py" >/dev/null 2>&1 && "$_py" -c "import sys" >/dev/null 2>&1; then
         PYTHON="$_py"
@@ -28,6 +30,51 @@ gcount() { # gcount <pattern> <file> -> 单个整数
     v=$(printf '%s' "$v" | tr -d '[:space:]')
     echo "${v:-0}"
 }
+
+# 上游吸收（2026-09-22）：外部检查器统一包装。status=1 是内容 FAIL（正常判据），
+# 其余非 0（含 Traceback / CHECK_UNAVAILABLE）视为工具故障 → CHECKS_UNAVAILABLE。
+run_python_check() {
+    local output status
+    output=$("$PYTHON" "$@" 2>&1)
+    status=$?
+    printf '%s\n' "$output"
+    if [ "$status" -ne 0 ] && { [ "$status" -ne 1 ] || [[ "$output" == *"[CHECK_UNAVAILABLE]"* ]] || [[ "$output" == *"Traceback (most recent call last)"* ]]; }; then
+        CHECKS_UNAVAILABLE=1
+        echo "[CHECK_UNAVAILABLE] Checker did not complete; restore the tool before changing content"
+    fi
+    return "$status"
+}
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# The host may set MSYS_NO_PATHCONV/MSYS2_ARG_CONV_EXCL. Pass native-compatible
+# paths explicitly instead of relying on Git Bash's implicit argument rewriting.
+if command -v cygpath >/dev/null 2>&1; then
+    SCRIPT_DIR="$(cygpath -m "$SCRIPT_DIR")"
+    PAPER_DIR="$(cygpath -m "$PAPER_DIR")"
+fi
+
+# Validate structure, not byte count; never rewrite a valid small vector PDF.
+# 依赖 paper_source_scope.py / compile_source_check.py（本目录实测在位，缺位即 TOOL_GAP，不伪造）。
+if [ ! -f "$SCRIPT_DIR/paper_source_scope.py" ] || [ ! -f "$SCRIPT_DIR/compile_source_check.py" ]; then
+    echo "[CHECK_UNAVAILABLE] missing active-source/compile checker dependency"
+    exit 3
+fi
+SOURCE_LIST=$(run_python_check "$SCRIPT_DIR/paper_source_scope.py" "$PAPER_DIR") || { printf '%s\n' "$SOURCE_LIST"; echo "[CHECK_UNAVAILABLE] source resolution failed"; exit 3; }
+SOURCE_LIST="${SOURCE_LIST//$'\r'/}"
+mapfile -t ACTIVE_TEX <<< "$SOURCE_LIST"
+[ -z "${ACTIVE_TEX[0]:-}" ] && ACTIVE_TEX=()
+run_python_check "$SCRIPT_DIR/compile_source_check.py" "$PAPER_DIR"
+SOURCE_STATUS=$?
+[ "$SOURCE_STATUS" -eq 3 ] && exit 3
+[ "$SOURCE_STATUS" -ne 0 ] && EXIT_CODE=1
+export PYTHONPATH="$SCRIPT_DIR${PYTHONPATH:+:$PYTHONPATH}"
+
+# 活跃源清单供后续内联检查复用；解析为空时回退旧 glob 口径（宿主中立兜底，不悬空）。
+if [ "${#ACTIVE_TEX[@]}" -gt 0 ]; then
+    TEX_SRC=("${ACTIVE_TEX[@]}")
+else
+    TEX_SRC=("$PAPER_DIR"/sections/*.tex "$PAPER_DIR"/main.tex)
+fi
 
 echo "=== Post-compile checks ($PAPER_DIR) ==="
 
@@ -124,7 +171,7 @@ fi
 
 # 3.6 Tall table detection (tables with many rows that might overflow)
 echo "--- Tall table check ---"
-for f in "$PAPER_DIR"/sections/*.tex "$PAPER_DIR"/main.tex; do
+for f in "${TEX_SRC[@]}"; do
     [ -f "$f" ] || continue
     bn=$(basename "$f")
     echo "$bn" | grep -qi 'appendix\|附录\|A_code' && continue
@@ -294,7 +341,7 @@ fi
 #    正文统一用 \upcite{}，其 cite 前是字母 p 不是反斜杠，纯 '\cite{' 模式匹配不到 → 全上标
 #    引用的论文会被误判 "no citations" 假阳性。退出码计入门禁时这会逼 AI 死循环。
 #    用 \\(up|cite)*cite{ 的宽松口径：匹配 \cite{ / \upcite{ / \citep{ / \citet{ 等。
-cite_count=$(grep -rohE '\\[a-z]*cite[a-z]*\{' "$PAPER_DIR"/sections/*.tex "$PAPER_DIR"/main.tex 2>/dev/null | wc -l)
+cite_count=$(grep -rohE '\\[a-z]*cite[a-z]*\{' "${TEX_SRC[@]}" 2>/dev/null | wc -l)
 echo "  Citations in body: $cite_count"
 [ "$cite_count" -eq 0 ] && echo "  FAIL: no citations in body text" && EXIT_CODE=1
 
@@ -307,8 +354,8 @@ if grep -q '\\bibliographystyle{gbt7714\|plainnat.*super\|natbib.*super' "$PAPER
     echo "  OK: 使用上标引用样式 (gbt7714-numerical / natbib super)"
 elif grep -q '\\bibliographystyle{plainnat}\|\\bibliographystyle{plain}\|\\bibliographystyle{unsrt}' "$PAPER_DIR/main.tex" 2>/dev/null; then
     # 非上标样式 - 检查是否手动用 \upcite 或 \textsuperscript
-    upcite_count=$(grep -roh '\\upcite{\|\\textsuperscript{\\cite' "$PAPER_DIR"/sections/*.tex "$PAPER_DIR"/main.tex 2>/dev/null | wc -l)
-    plain_cite_count=$(grep -roh '[^t]\\cite{' "$PAPER_DIR"/sections/*.tex "$PAPER_DIR"/main.tex 2>/dev/null | wc -l)
+    upcite_count=$(grep -roh '\\upcite{\|\\textsuperscript{\\cite' "${TEX_SRC[@]}" 2>/dev/null | wc -l)
+    plain_cite_count=$(grep -roh '[^t]\\cite{' "${TEX_SRC[@]}" 2>/dev/null | wc -l)
     if [ "$upcite_count" -eq 0 ] && [ "$plain_cite_count" -gt 0 ]; then
         echo "  FAIL: $plain_cite_count citations not using superscript format"
         echo "  Fix: 改用 \\bibliographystyle{gbt7714-numerical} 或把 \\cite{x} 改为 \\upcite{x} / \\textsuperscript{\\cite{x}}"
@@ -385,7 +432,7 @@ else:
 
 # 7.5.3 连续单引用合并检查（如 \cite{a}\cite{b} 应合并为 \cite{a,b}）
 echo "--- Consecutive citation merging ---"
-for f in "$PAPER_DIR"/sections/*.tex; do
+for f in "${TEX_SRC[@]}"; do
     [ -f "$f" ] || continue
     bn=$(basename "$f")
     # 检查 \cite{x}\cite{y} 或 \cite{x} \cite{y} 这种相邻引用
@@ -401,14 +448,14 @@ unused=0
 for pdf in figures/*.pdf; do
     [ -f "$pdf" ] || continue
     bn=$(basename "$pdf")
-    grep -rq "$bn" "$PAPER_DIR"/sections/*.tex "$PAPER_DIR"/main.tex 2>/dev/null || { echo "  WARN: $bn not referenced"; unused=$((unused + 1)); }
+    grep -rq "$bn" "${TEX_SRC[@]}" 2>/dev/null || { echo "  WARN: $bn not referenced"; unused=$((unused + 1)); }
 done
 [ "$unused" -eq 0 ] && echo "  OK: all figures referenced"
 
 # 8.5 Missing figure files (referenced but not found)
 echo "--- Missing figure files ---"
 missing=0
-for f in "$PAPER_DIR"/sections/*.tex "$PAPER_DIR"/main.tex; do
+for f in "${TEX_SRC[@]}"; do
     [ -f "$f" ] || continue
     bn=$(basename "$f")
     grep -oP '\\includegraphics\[[^\]]*\]\{([^}]+)\}' "$f" 2>/dev/null | grep -oP '\{[^}]+\}' | tr -d '{}' | while read -r figpath; do
@@ -427,7 +474,7 @@ done
 
 # 8.6 Empty figure/table environments
 echo "--- Empty figure/table environments ---"
-for f in "$PAPER_DIR"/sections/*.tex "$PAPER_DIR"/main.tex; do
+for f in "${TEX_SRC[@]}"; do
     [ -f "$f" ] || continue
     bn=$(basename "$f")
     "$PYTHON" -c "
@@ -452,7 +499,7 @@ done
 # 9. Figure stacking (same check as writing_check.sh)
 echo "--- Figure stacking ---"
 total_stacking=0
-for f in "$PAPER_DIR"/sections/*.tex; do
+for f in "${TEX_SRC[@]}"; do
     [ -f "$f" ] || continue
     bn=$(basename "$f")
     count=$(awk '/\\end\{(figure|table)\}/{a=1;t=0;next} a&&/\\begin\{(figure|table)\}/{if(t<3){c++}a=0;next} a&&/[a-zA-Z\x80-\xff]{3,}/{t++} a&&t>=3{a=0} END{print c+0}' "$f")
@@ -465,7 +512,7 @@ done
 echo "--- Subfigure / small figure check ---"
 subfig_abuse=0
 small_width=0
-for f in "$PAPER_DIR"/sections/*.tex; do
+for f in "${TEX_SRC[@]}"; do
     [ -f "$f" ] || continue
     bn=$(basename "$f")
     # Check for subfigure usage (forbidden in competition papers)
@@ -521,7 +568,7 @@ fi
 
 # 12. Symbol table / assumptions needspace check
 echo "--- Symbol/assumptions page break ---"
-for f in "$PAPER_DIR"/sections/*.tex; do
+for f in "${TEX_SRC[@]}"; do
     [ -f "$f" ] || continue
     bn=$(basename "$f")
     is_target=false
@@ -557,4 +604,5 @@ for f in "$PAPER_DIR"/sections/*.tex; do
 done
 
 echo "=== All checks done (exit code: $EXIT_CODE) ==="
+[ "$CHECKS_UNAVAILABLE" -ne 0 ] && exit 3
 exit $EXIT_CODE
