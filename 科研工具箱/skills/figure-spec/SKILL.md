@@ -2,7 +2,7 @@
 name: figure-spec
 description: "Generate deterministic publication-quality architecture, workflow, and pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Use when user says \"架构图\", \"workflow 图\", \"pipeline 图\", \"确定性矢量图\", \"figure spec\", \"draw architecture\", or needs precise, editable, publication-ready vector diagrams. Preferred over AI illustration for formal architecture/workflow figures."
 argument-hint: "[description-of-diagram]"
-allowed-tools: Bash(*), Read, Write, Edit, mcp__codex__codex
+allowed-tools: Bash(*), Read, Write, Edit
 ---
 
 # FigureSpec: Deterministic JSON → SVG Figure Generation
@@ -52,7 +52,7 @@ manual copies keep working via the shared-runtime chain below.
 Resolve `$FIGURE_RENDERER` with the hybrid chain (layer 0 prefers the
 self-contained location for the owning SKILL; layers 1-4 are the
 shared-runtime chain documented in
-[`shared-references/integration-contract.md`](../shared-references/integration-contract.md) §2,
+[`references/integration-contract.md`](references/integration-contract.md) §2,
 Policy A — skill-local gate):
 
 ```bash
@@ -171,12 +171,14 @@ Open the SVG/PDF and check:
 
 If issues found, edit the JSON spec (never the generated SVG) and re-render.
 
-### Step 5: Iterate with Codex Review (Optional, for High-Stakes Figures)
+### Step 5: Iterate with Cross-Model Review (Optional, for High-Stakes Figures)
 
-For paper architecture figures, invoke cross-model review:
+For paper architecture figures, invoke cross-model review through
+whatever reviewer path the host provides (a host-side reviewer agent,
+an MCP-style review tool, or `tools/reviewer_client.py`), passing:
 
 ```
-mcp__codex__codex:
+reviewer call (host-neutral):
   model: gpt-5.6-sol
   config: {"model_reasoning_effort": "xhigh"}
   prompt: |
@@ -265,4 +267,6 @@ Three-stage horizontal cascade with inputs feeding in from top, outputs exiting 
 
 ## Review Tracing
 
-After each `mcp__codex__codex` or `mcp__codex__codex-reply` reviewer call, save the trace following `shared-references/review-tracing.md` (Policy C — forensic; never silently skip). Use `save_trace.sh` (resolved per the chain in `shared-references/integration-contract.md` §2) or write files directly to `.aris/traces/<skill>/<date>_run<NN>/`. Respect the `--- trace:` parameter (default: `full`).
+After each cross-model reviewer call (any host reviewer path — see Step 5), save the trace following `references/review-tracing.md` (Policy C — forensic; never silently skip). Use `save_trace.sh` (resolved per the chain in `references/integration-contract.md` §2) or write files directly to `.aris/traces/<skill>/<date>_run<NN>/`. Respect the `--- trace:` parameter (default: `full`).
+
+<!-- modex-3 同源吸收 P3（2026-09-22）：收编 upstream integration-contract.md / review-tracing.md 至本技能 references/（原指针悬空）；宿主专有 reviewer 调用引用（Codex MCP 工具名）改为宿主中性表述。 -->

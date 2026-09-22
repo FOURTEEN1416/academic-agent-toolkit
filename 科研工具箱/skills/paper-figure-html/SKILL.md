@@ -685,24 +685,33 @@ fi
 
 为每张 PDF **追加**（`>>`，不覆盖）一个 figure 块到 `figures/latex_includes.tex`。⛔ 前一步 paper-figure 已写入数据图的 include，本步只追加本 skill 的图，不破坏已有内容。
 
-**尺寸规则**（width 决定实际大小，height 只是防溢出上限；`keepaspectratio` 下取更小约束，height 只会压小不会放大）：
+**⛔⛔ 尺寸不再手填：追加完所有 include 块后，必须跑 `fig_include_size.py`**（modex-3 同源吸收 P3（2026-09-22），本段精确取代旧「按图类型手填 width/height 表」——旧表已废弃，手填必然与脚本终值打架）。数据图按真实长宽比分档；流程图/架构图/路线图还会读取 PDF 内有效字号、文字量和文本块数，自动决定简单图是否需要铺满、密图是否需要放大。`--strict` 会阻止"通栏后仍看不清"或竖长逻辑图继续进入论文：
 
-| 图类型 | width | height（防溢出上限） |
-|---|---|---|
-| 技术路线图 | `\textwidth` | `0.7\textheight` |
-| Pipeline | `\textwidth` | `0.55\textheight` |
-| 架构图 | `0.9\textwidth` | `0.65\textheight` |
-| 求解流程图 | `0.82\textwidth` | `0.55\textheight` |
-| 框架矩阵 | `0.9\textwidth` | `0.55\textheight` |
+```bash
+$PYTHON _utils/fig_include_size.py --figdir figures --latex figures/latex_includes.tex --strict 2>&1 | tail -30
+# 横向/近方逻辑框图(fig_arch/roadmap/flow/pipeline/framework 且 r≤1.05)
+# → 按 p10 有效字号 + 文字/文本块密度自适应到 0.80~0.98\textwidth，并保证估算字号≥8pt；
+# 其它图按高/宽分档: ≤0.8→0.90 / ≤1.2→0.80 / ≤1.6→0.60 / >1.6→0.46；height 一律≤0.8\textheight
+# strict 失败: 不要手改更大 width；回到 HTML 缩短节点、阶段内横排，或把一张密图拆成两张
+```
+
+> 这是确定性兜底：同一张 PDF 每次会得到同一宽度；不是让模型凭感觉猜。**脚本退出 0 后，latex_includes.tex 里的尺寸才是最终值**，下游 comp-paper 直接复制引用。退出 1 代表物理上已经没有放大空间，必须回源调整结构。
+
+随后按刚写入的真实插入尺寸执行 PDF 终检；这一步不调用模型、不消耗额度：
+
+```bash
+$PYTHON _utils/figure_pdf_quality_check.py figures --paper paper
+```
+
+字体未嵌入、最终 10% 分位字号低于 8pt 或高置信文字压盖均必须回源修复并重出 PDF。
 
 ⛔ 所有图必须有 `keepaspectratio`。⛔ caption 必须与论文语言一致，由你按图意写。
 
 **⛔⛔ caption 长度铁律（问题「流程图名字太长」的根因）**：caption 只写**图的类别/主题**，≤ 20 个汉字（英文 ≤ 12 词），例如「求解流程图」「问题一求解流程」「整体技术路线图」「系统架构图」。**禁止把整段方法描述、模型名称罗列、步骤枚举塞进 caption**（如「基于XGBoost与模拟退火的滤后水浊度预测多站点再平衡求解总体流程与验证框架」这种一长串是错的）。详细说明写进正文，不写进标题。
 
-**⛔⛔ 尺寸铁律（问题「流程图占太大」的根因，必读）**：竖向长条流程图按 width 缩放后自然高度常超过一页，`keepaspectratio` 下 height 上限会反过来成为实际尺寸 → 图被撑满整页。**因此上表 height 上限已一律压到 ≤ 0.7\textheight**，禁止再回调到 0.8/0.85。更根本的解法在**图本身的布局**：
-- ⛔ **流程图优先横向（从左到右）或网格布局，不要画成纯竖向长条**。3~5 步的流程用横向流水线（见 Step 4 `tpl_flow` 横排范式）；步骤多时用「分组横排 + 少量换行」而非一路竖下来。
+**⛔⛔ 尺寸铁律（同时防「简单图过大」「密图太小」「竖图占满页」；modex-3 同源吸收 P3（2026-09-22），本段取代旧「流程图优先横向」单向口径）**：不要手改脚本算出的宽度。简单图可能只需 `0.80~0.86`，一般图约 `0.88~0.94`，密图才接近 `0.96~0.98`；竖长或通栏后仍不足 7pt 时必须回源重排。`height=0.8\textheight` 只是防溢出上限。更根本的解法在**图本身的布局**：
+- ⛔ **别画成纯竖向长条**，但**也别横向铺开**——两个方向都有硬上限（0.1 节）：横过头字被缩糊（`宽/字号 ≤56`），竖过头占满整页（`高/宽 ≤1.05`）。**正解是「阶段竖排 + 每阶段内部横排 2~3 个节点」**，这样高度按阶段数走、宽度按每阶段节点数走，两个方向都可控。⛔ 一个阶段内的节点**一律横排**：竖排会让高度随节点数累加，实测 5 阶段 × 2 节点竖摞 = 比例 1.4+、占页 83%，必违规。
 - ⛔ 竖向布局仅在逻辑上确有强上下依赖（如迭代循环）时才用，且尽量把并列分支横向摊开，压低总高度。
-- 目标：出的 PDF 宽高比接近 4:3 ~ 16:9，**不要接近或超过 1:1.5 的瘦高比**（瘦高图一放进论文就占满页）。
 
 ```latex
 % === 技术路线图 ===
@@ -869,7 +878,13 @@ for pdf in figures/fig_*.pdf figures/tikz_*.pdf; do
 done
 
 echo ""
-[ "$GATE_FAIL" -eq 0 ] && echo "✅ ALL PASSED" || echo "❌ $GATE_FAIL FAILURES — 逐个修复后重跑本门禁"
+if [ "$GATE_FAIL" -ne 0 ]; then
+  echo "❌ $GATE_FAIL FAILURES — 逐个修复后重跑本门禁"
+elif [ -s _tmp/vision_skipped.txt ]; then
+  echo "⚠ DETERMINISTIC CHECKS PASSED · VISION NOT COMPLETED（不得记录为 ALL PASSED）"
+else
+  echo "✅ ALL PASSED"
+fi
 ```
 
 **⛔ 若 GATE_FAIL > 0**：逐个修复每个 ❌（重生成 HTML→重出 PDF→重检，或重编 TikZ，或追加 latex_includes），重跑门禁，直到 GATE_FAIL=0。若某张 HTML 图 html_pdf_check 反复多页，最后手段是拆图或大幅精简内容；若某张 TikZ 3 轮编不出，大幅精简后仍不行才留 TODO（环境限制不计 FAIL）。

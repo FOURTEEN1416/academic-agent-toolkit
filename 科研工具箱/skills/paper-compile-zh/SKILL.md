@@ -115,6 +115,22 @@ fi
 
 **⛔ 如果模板检查失败，必须从模板目录重新复制 main.tex 并只替换占位符，不要继续编译。**
 
+### Step 3.6: 中文引号规范化（编译前，防直引号）<!-- modex-3 同源吸收 P3（2026-09-22） -->
+
+AI 写正文时常把中文引号打成 ASCII 直引号 `"词"`，在竞赛模板（`\setmainfont{Times New Roman}`）下会渲染成西文直立引号（两个一样的竖引号），而非中文全角弯引号“词”。编译前统一规范化（只转紧贴中文的直引号，自动跳过代码/数学/`\url`，幂等）：
+
+```bash
+NORMQ=""
+for f in _utils/normalize_cjk_quotes.py skills/shared-scripts/normalize_cjk_quotes.py; do
+  [ -f "$f" ] && { NORMQ="$f"; break; }
+done
+if [ -n "$NORMQ" ]; then
+  python "$NORMQ" paper/sections/*.tex paper/main.tex 2>/dev/null || echo "引号规范化跳过（脚本不可用，不阻塞）"
+else
+  echo "未找到 normalize_cjk_quotes.py，跳过引号规范化（不阻塞编译）"
+fi
+```
+
 ### Step 4: Compile (manual steps, no latexmk)
 
 ```bash

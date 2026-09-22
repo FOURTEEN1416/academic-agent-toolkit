@@ -113,6 +113,12 @@ Appendix A: Code
 
 
 
+**Adaptive structure (upstream refinement, incremental):** the sequence above lists semantic slots,
+not mandatory chapter names. Do not generate a Table of Contents. Follow
+`_utils/modeling_paper_contract.md` and keep each core model connected to its results and validation;
+model chapters are named after what they actually contain (see Step 2.9).
+<!-- modex-3 同源吸收 P3（2026-09-22）-->
+
 ## ⛔⛔⛔ Output Contract (highest priority)
 
 
@@ -594,6 +600,38 @@ Table 2 shows that our method... [≥ 2 paragraphs of analysis]
 ```
 
 
+
+### Step 2.9: Optimization-model writing refinement (upstream, incremental)
+
+**⛔ Section titles must name the model, not the slot**: "Model Formulation" tells a judge nothing —
+use "A 0-1 Integer Programming Model for Service-Station Siting", "Two-Stage Solution and Feasibility
+Checks", "Exact Solution via Branch-and-Cut". Titles carry information; chapter numbers stay free.
+
+**⛔ Optimization models** (applies when the model contains $\min$/$\max$ or the problem asks for
+something optimal; statistical models — index systems / DEA / PCA / regression / forecasting — keep
+the "theory → formulas → parameters" order): decision variables, objective, constraints and domains
+must stay clearly distinguishable. State five things per decision variable (symbol, meaning, type,
+index range, **why that type**); give the objective its own display quoted from the problem statement
+and matched to the objective-traceability table in `MODELING_REPORT.md`; introduce constraints with
+`s.t.`, number each one and give every one its real-world meaning; state the problem class (LP/ILP/
+MILP/NLP/multi-objective/DP), the size computed from index ranges, and why this solver. Linearization
+tricks (big-M, piecewise, abs-value, max→constraints) must be explained, with $M$ derived from a data
+upper bound — never 99999. Checklist for constraint gaps: coverage / budget / per-site capacity /
+fixed total / at-most-or-at-least-k / mutual exclusion / big-M linking / time windows / flow balance /
+degree and subtour elimination.
+
+**⛔ Solution sections**: what belongs there is **why the solution is credible**, not how the
+algorithm works — name each algorithm, one clause, cite it; no pseudocode or complexity analysis to
+pad (parameters go to an appendix table). Evidence: agreement across independently-motivated methods
+(with relative spread), bound or baseline comparison, constraint-by-constraint verification,
+constraint tightness and slack. A relaxation bound is **not** a feasible solution and its gap is not
+"room for improvement". Hard ratio: credibility words ≥ algorithm words.
+
+**⛔ Innovations are required, findable somewhere** (own subsection, folded into Strengths, or in the
+conclusion): 2-4 items, each "conventional approach → what this paper does → what difference it
+makes", at the modeling level. If a claim would hold for any other problem ("we used ML", "we ran
+sensitivity analysis"), cut it — two substantive items beat five hollow ones.
+<!-- modex-3 同源吸收 P3（2026-09-22）：docx 模板骨架内注释未逐条改写，本节为等价口径的正文增量；模板示例细节见 comp-paper-en 同源章节。 -->
 
 ### Step 3: Writing discipline
 
@@ -1081,7 +1119,27 @@ PY
 
 
 
+### Step 5.7: AI tool usage statement (only when the user enabled it)
+
+```bash
+AI_DISC=off
+grep -q 'AI_DISCLOSURE=used' AGENTS.md 2>/dev/null && AI_DISC=used
+grep -q 'AI_DISCLOSURE=none' AGENTS.md 2>/dev/null && AI_DISC=none
+echo "AI_DISC=$AI_DISC"
+```
+
+- `AI_DISC=off` (default) → **skip entirely**; produce no disclosure content.
+- `AI_DISC=used` / `none` → read and **strictly follow** `_utils/ai_disclosure_rules.md`. This is a **docx** project: read only the user-confirmed `.mh/ai_disclosure.json`, call `_utils/build_ai_disclosure.py` to insert the short statement before references, and generate the standalone supporting file `AI工具使用详情.pdf` in the workspace root:
+  ```bash
+  cat _utils/ai_disclosure_rules.md 2>/dev/null || cat skills/shared-scripts/ai_disclosure_rules.md
+  ```
+  The official CUMCM statement and standalone detail PDF remain in Chinese even when the paper body is English. Never randomize or infer tools, dates, purposes, or interaction records. Do not put details in the Word appendix or list AI tools as academic references. Invalid records or a failed PDF check must fail this step.
+<!-- modex-3 同源吸收 P3（2026-09-22）：开关锚点已宿主中性化（改读 AGENTS.md 的 AI_DISCLOSURE 标记，去宿主前缀）。 -->
+
 ### Step 6: Final verification
+
+**Data closeout (upstream, incremental):** if `PAPER_DATA_CHECKLIST.md` exists, read it before finishing and reconcile every reported result, comparison, error, and optimum against the real JSON/TABLE sources. Fix `paper/main.md` only; never change result data to make prose agree. After the reconciliation is complete, append `<!-- DATA_CHECK_PASSED -->` to `paper/main.md` (an invisible HTML comment in the Word export). The engine still verifies this independently. Do not defer this audit to another model session or rerun checks that already passed.
+<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 
 

@@ -110,6 +110,7 @@ Stats tables: `stats_utils.py` provides `regression_table`, `descriptive_table`,
 3. **先声明论文落地尺寸**：新建 figure 后调用 `set_paper_placement(fig, width_fraction=...)`。不确定宽度时省略 `width_fraction`，由 PDF/Word 中更保守的布局分档反算字号。不得用超大画布画小字后整体缩小；信息过密时优先增加高度、缩短标签或拆图。保存钩子会按最终插入尺寸恢复最小印刷字号，修复后仍冲突则直接失败。
 4. **带数值的热力图必须用矢量单元格**：调用 `draw_vector_heatmap` / `vector_heatmap`；不用 `imshow` 或 `sns.heatmap` 生成带字栅格。`annot='auto'` 会在密集时取消单元格数值，字色按真实背景对比度自适应；精确数值放表格。
 5. **坐标和网格保持克制**：连续数据用 `dynamic_limits(...)` 根据有限数据留白，柱图才默认 `include_zero=True`，对数轴不得包含非正值。用 `declutter_axes(...)` 隐去上/右边框，只保留辅助读数所需的低对比网格；热力图不叠加坐标网格。
+6. **多 panel 默认在创建 Figure 时启用 `layout='constrained'`**，并用 GridSpec 给 colorbar、公共 legend、长说明各自分配专用行/列；colorbar 必须使用独立 `cax=`，公共 legend 不得用负数 `bbox_to_anchor` 悬挂在坐标轴外。启用 constrained/compressed layout 后禁止再调用 `tight_layout` 或 `subplots_adjust`。确需完全手工 GridSpec 时由调用方承担全部边距。**inset 也必须提前预留区域**：仅当主图存在持续空白区时可用 inset；否则用 GridSpec 拆成独立 panel（modex-3 同源吸收 P3（2026-09-22））。
 
 用户选定的色系仍是最高优先级；上述合同只管布局、可读性与表达逻辑，不随机替换用户颜色。
 
@@ -573,10 +574,15 @@ fi
 ```bash
 
 # Step 4 末尾：检查图标签单位 / 图例与 facts 实体名匹配 / 图脚本数据来源
-
-[ -f PROBLEM_FACTS.json ] && python3 _utils/facts_audit.py --stage figure 2>&1 | tee -a AUDIT_REPORT.md
-
-FIG_RC=$?
+# ⛔ 先判文件存在再跑：不能写成 `[ -f ... ] && python|tee` 后取 $?——（modex-3 同源吸收 P3（2026-09-22））
+#   ①有 `| tee` 时 $? 取的是 tee 的码(恒0)，会吞掉 facts_audit 的 FAIL；
+#   ②文件不存在时 `&&` 短路，$? 会取到 `[ -f ]` 的 1 → 误判"审计失败"。
+if [ -f PROBLEM_FACTS.json ]; then
+    python3 _utils/facts_audit.py --stage figure 2>&1 | tee -a AUDIT_REPORT.md
+    FIG_RC=${PIPESTATUS[0]}   # 取管道首命令(facts_audit)的真实退出码
+else
+    FIG_RC=0                  # 无 PROBLEM_FACTS.json(非参数密集题) → 跳过图脚本审计,不误判失败
+fi
 
 if [ $FIG_RC -eq 1 ]; then
 
@@ -1263,19 +1269,19 @@ Browse the recipe library (97 total across 5 files) and the `<figure_selection_g
 
 2. Browse ALL available recipe types — don't default to the same few charts every time
 
-3. Pick the type that best fits the data AND looks visually distinct from other figures in this paper
+3. Pick the type that best communicates the data and supports the intended comparison（modex-3 同源吸收 P3（2026-09-22）：本条与第 4/6 条精确取代旧「看起来与其他图不同 / 同型不超两次 / 按领域选色板」口径——可比实验允许复用同一图型，禁的是无依据的千篇一律，不是禁止同型。）
 
-4. Ensure visual variety: do not use the same chart type more than 2 times in one paper. Mix basic, advanced, competition, and empirical recipes
+4. Comparable experiments may reuse the same chart type and visual encoding. Vary structure only when the scientific relation differs；结构确需变化时优先混用 basic/advanced/competition/empirical 配方族，避免无依据的雷同
 
-5. Read the full code example from the matched recipe file
+5. Read the full code example from the matched recipe file.
 
-6. Select the color palette based on paper domain
+6. Preserve the user-selected project palette; otherwise use the workspace-stable default palette.
 
 7. 若 97 种 recipe 覆盖不了需求（CNS 级精修、特殊数据结构）：升级调 `academic-figure-skill`（期刊规格+图集+四轮 QA）或 `plot-from-data`（8 种预置学术风格直接填数据出图）；手头有想对标/复现的成图时走 `plot-from-image`（读图提取字体/配色/比例→生成复现代码）。
 
 
 
-**⛔ Do NOT always default to grouped bar / lollipop / line chart.** The recipe library has 97 chart types — use the variety. For any data shape, there are usually 3-5 suitable types. Pick the one that's most visually interesting AND hasn't been used yet in this paper.
+**⛔ Do NOT always default to grouped bar / lollipop / line chart.** The recipe library has 97 chart types — use the variety. For any data shape, there are usually 3-5 suitable types. Pick the one that best communicates the data — laziness (always the same few charts) is the failure mode, not reuse per se（modex-3 同源吸收 P3（2026-09-22））.
 
 
 
@@ -1413,11 +1419,36 @@ python3 _utils/get_recipe.py competition 2
 
 
 
+**⛔ 建议先一次性预取全部规划配方（modex-3 同源吸收 P3（2026-09-22））：**
+
+```bash
+# ACAT-GOVERNANCE: _utils/RECIPES_FOR_THIS_PAPER.md 为下方命令运行时就地产物，非仓库资产（2026-09-22 P3 吸收注记）
+# 从规划里自动抓出所有配方号，一次全取到 _utils/RECIPES_FOR_THIS_PAPER.md
+PLAN=""; for pf in PROBLEM_ANALYSIS.md TOPIC_PLAN.md PAPER_PLAN.md; do
+    [ -f "$pf" ] && PLAN="$PLAN $pf"
+done
+PYTHON=""; for _c in python python3 "py -3"; do
+    [ -z "$_c" ] && continue; command -v "$_c" >/dev/null 2>&1 && PYTHON="$_c" && break
+done
+grep -ohE '\((basic|advanced|empirical|competition|academic)[[:space:]]*#[[:space:]]*[0-9]+\)' $PLAN 2>/dev/null \
+  | tr -d '()' | sed 's/#[[:space:]]*/ /' | tr -s ' ' | sort -u \
+  | while read -r cat num; do
+        echo "########## $cat #$num ##########"
+        "$PYTHON" _utils/get_recipe.py "$cat" "$num" 2>/dev/null \
+            || "$PYTHON" skills/shared-scripts/get_recipe.py "$cat" "$num" 2>/dev/null
+        echo
+    done > _utils/RECIPES_FOR_THIS_PAPER.md
+echo "已预取 $(grep -c '^##########' _utils/RECIPES_FOR_THIS_PAPER.md 2>/dev/null || echo 0) 个配方 → _utils/RECIPES_FOR_THIS_PAPER.md"
+wc -c _utils/RECIPES_FOR_THIS_PAPER.md 2>/dev/null
+```
+
+单独补取某个配方（预取漏了或临时改图型时）：`python3 _utils/get_recipe.py competition 14`（等高线图）、`python3 _utils/get_recipe.py advanced 1`（棒棒糖图）。
+
 **⛔ For EVERY figure script you write, the workflow is:**
 
 1. Read the plan entry: `fig_xxx — 图表类型 (category #N)`
 
-2. Extract recipe: `python3 _utils/get_recipe.py category N`
+2. **翻 `_utils/RECIPES_FOR_THIS_PAPER.md` 找到 `category #N` 那一段**（已预取好；漏了才单独 `get_recipe.py`）
 
 3. Copy the recipe code as starting point
 
@@ -1425,13 +1456,18 @@ python3 _utils/get_recipe.py competition 2
 
 5. Save as `figures/gen_fig_xxx.py`
 
+⛔⛔ **规划写了什么图型，就必须画出那个图型**——这是对规划的硬合同。规划写"等高线/响应面"
+就必须出现 `contourf`/`contour`，写"棒棒糖"就必须是 `hlines`+`scatter` 或 `barh`，写"热力图"
+就必须有对应的矩阵色彩编码（`draw_vector_heatmap` / `imshow` / `pcolormesh` 均可）。**凭印象退化成 plot/bar/scatter 是最常见的质量塌方**，
+Step 4 自检会逐图对账并报出不一致。图型确实不适合本题数据时，**先改规划再改图**，不要闷头画别的。
+
 
 
 **Skip this = ugly figures with wrong colors and no styling. The quality gate WILL reject them.**
 
 
 
-If you skip this step and generate a figure with matplotlib default blue, no gradient fills, or no annotations, the figure will be rejected in Step 4 self-check.
+If you skip this step and generate a figure with an unsuitable chart type, default styling, unreadable labels or unverified layout, the figure will be rejected in Step 4 self-check. A clean figure with no free annotation is fully acceptable when axes and legend identify the data and the paper body explains the finding.
 
 
 
@@ -1474,6 +1510,51 @@ setup_style()  # defaults to Soft palette; alternatives: tableau/npg/nejm/scienc
 # NEVER use cmap='RdYlGn' — use 'coolwarm' or 'YlOrRd' instead. Do NOT use 'RdBu_r' (too dark)
 
 # No plt.title() — captions go in LaTeX only
+# ⛔⛔ 图内标注只准「数值」或「短锚点标签」【进退出码，会被拦】：ax.text / ax.annotate。（modex-3 同源吸收 P3（2026-09-22））
+#    ✅ 纯数值   8188.06 / 45% / 1007 张 / n=30 / $q^*$=0.47 / panel 标号 a b c
+#    ✅ 短锚点标签（给线/点/区域起名，学术图常规做法）：
+#       最优解 / 预算绑定区 / ROI 下限 3.0 / 肘部拐点 $k$=8 / Youden: J=0.42, θ*=0.31
+#       判据：只承担点名/线名/阈值/必要数值，不承担解释。含中文逗号、分号、冒号、
+#             句号、问叹号，或括号中藏完整中文解释，直接判为正文句并拦截；
+#             cn(...)、panel(...) 等包装函数同样检查，不能绕过。
+#    ❌ 结论/因果  全区间贴死下限 → ROI 始终绑定 / 因此最优解取 8 个点 / 加预算无用
+#    ❌ 导读       题给 $B$=500000 元 → 在图右
+#    ❌ 成段说明   面额 5→50 涨 10 倍\n人均增量 GMV 仅涨 2.3 倍\n…\n（全池均值口径）
+#    ❌ 多标签堆叠 最优解 · 收敛区间 · 预算上限 3271 元   ← 单个都放行，堆一起就是文字块
+#    分界线：给东西【起名】放行，【下判断】拦掉。阐述与口径写进图前后正文，caption 只留短图名。
+#    ⓘ 为什么留放行档：阈值线不说明是什么线、最优点不标是最优点，图就没法读了。
+#      实测 17 个工作区 523 处里 335 处（64%）是这类合法标签，一律拦掉会逼 AI 删成残图。
+#    figure_check.sh 用 AST 扫描，换 API 绕不过去（fig.text / annotate 一样被扫）。
+#    ⛔ 改判据前先跑 `python _utils/figure_text_budget.py --selftest`（56 项）。
+#    ⓘ 第二档【限长】：set_xlabel/set_ylabel/set_title/suptitle/legend(title=)/label=/
+#      set_xticklabels 允许有文字，但 ≤36 显示宽(≈18 汉字) 且不许有句号分号。
+#      ⛔ 图例不能省 —— 少了它读者分不清哪条线是哪条；但也别拿轴标签塞口径说明：
+#        ❌ set_xlabel('相对改进百分比 (%，右为更优；误差棒为两端 95% CI 的保守组合)')
+#        ✅ set_xlabel('相对改进（%）')   口径写进正文
+#      36 是量出来的：真实工作区 set_xlabel n=491 P95=36、label= n=476 P95=24。
+#    ⛔ 换 API 绕不过去：plt.text/plt.figtext/AnchoredText/bar_label(labels=)、
+#      以及"先赋值给变量再传""列表+循环取值"都在扫描范围内（13 条规避路径已堵）。
+#    想说明"这条线是什么"→ 写进图例 label=，图上只留数值：
+#      ax.axhline(3.0, ls='--', label='ROI 阈值 3.0')  # 已有图例，无需在线上重复塞字
+#    ⛔ fig.text 只用于 panel 编号 —— 实测 25 个工作区 fig.text 中位宽 69（≈35 汉字）、
+#      64% 成句，画在画布底部正好压 x 轴标签（实测 44 处）。
+#    必要柱顶数值可用 ax.bar_label(bars, fmt='%.2f', padding=2) 生成初始位置；它不检查相邻标签。
+#    smart_labels / adjustText 也只是候选避让，不能保证不压线、误差棒或相邻 panel。
+#    在坐标范围、布局和最终字号确定后核对真实边界；无净空就改用独立值列、增高或拆图。
+#    ⛔ 渲染后的文字框不得压住散点/星号/箭头，也不得骑在柱边界上。柱内标签只有在
+#      完整落入柱体且满足对比度时才允许；一半在柱内、一半在柱外必须改为柱外值列或重排。
+#    ⛔ 类别轴标签归属于原始行，自动避让不得越过相邻类别的中线。放不下时按顺序：
+#      删除正文可解释的次要标注 → 缩成数值/短代号 → 固定数值列 → 增加画布高度；禁止把标签
+#      推到上一行或下一行，也禁止用低于印刷线的字号换空间。
+#    ⛔ 填充色与文字色必须分工：PALETTE/PALETTE_LIGHT 用于线、柱、区域；
+#      普通数字和注释默认用 COLORS['text']。不得因为标签属于某条浅色系列，就把该
+#      系列的粉彩色直接给文字；真要保留类别色，先保证它在实际背景上达到 4.5:1。
+#      深色块内可用白字，但必须以文字中心所在的真实块为背景判断，不能只按整张图白底判断。
+#    ⛔ 别只指望引擎兜底：保存钩子会处理明显的文字/曲线穿越与低对比度，但密集场景
+#      仍必须从源头减字、留白并用专用区域；自动避让不得成为把说明段落塞进图内的理由。
+#    ★ 砍字不掉分：94 张真实竞赛图核对结论是"差距在多 panel/判据线/不确定性/图型丰富度，
+#      不在图内文字多少"。要信息量就加 panel、加判据线、加置信带，不要加字。
+#    详见 figure_style_guide「图内文字最小化」三层闸 + 替代路径对照表。
 
 # 默认 LaTeX 模式：save_fig(fig, 'figures/fig_xxx.pdf')
 
@@ -1484,6 +1565,46 @@ setup_style()  # defaults to Soft palette; alternatives: tableau/npg/nejm/scienc
 </script_template>
 
 
+
+**⛔ 多图工作区建议抽公共引导模块 `figures/_figbase.py`（modex-3 同源吸收 P3（2026-09-22））**——各 `gen_fig_*.py` 统一 `from _figbase import ...`；模块名必须下划线开头（见 Step 10 计数检查的假失败说明）：
+
+```python
+# figures/_figbase.py — 各 gen_fig_*.py 统一 from _figbase import ...
+"""数据图公共引导：路径注入 + JSON 载入 + 口径函数。数据一律来自真实产物，不硬编码。"""
+import json, os, sys
+import numpy as np
+HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
+if ROOT not in sys.path: sys.path.insert(0, ROOT)
+from _utils.plot_utils import setup_style, save_fig, PALETTE, COLORS, _lighten, smart_labels
+setup_style()
+
+def load(name):
+    """按 figures/ → output/ 顺序找结果 JSON。"""
+    for base in (HERE, os.path.join(ROOT, 'output')):
+        p = os.path.join(base, name)
+        if os.path.exists(p):
+            with open(p, encoding='utf-8') as f: return json.load(f)
+    raise FileNotFoundError(name)
+
+# ⛔ 对数轴零值地板：真值为 0 时用它占位并单独标注，禁止静默丢点（log 轴会把 0 悄悄扔掉）。
+#    ⛔ 地板必须【按各图真实数据下界现算】，不要写死一个极小常量！写死 1e-18 会把对数轴
+#    撑到 6+ 个数量级 → 图左边(或下边)一大片纯空白，曲线在那段只是一条平线（实测翻车过）。
+def log_floor(vals, eps=1e-6):
+    """贴着真实最小值下方半个数量级取地板；<eps 的（含 1e-15 量级浮点残差）视为 0。"""
+    import numpy as np
+    real = np.asarray(vals, float)
+    real = real[real > eps]
+    if real.size == 0:
+        return eps
+    return 10 ** (np.floor(np.log10(real.min())) - 0.5)
+
+# ⛔ 中文字体缺字兜底：雅黑缺 ⛔✔⚠ 及组合附加符（ν̈ ν̇），PDF 里会渲染成空白方框。
+#    凡是来自 JSON 的中文/符号标签，一律过一遍 cn()。
+_GLYPH_FIX = (('⇒', '→'), ('≫', r'$\gg$'), ('⛔', '【校核】'), ('✔', '√'), ('⚠', '【注】'))
+def cn(s):
+    for bad, good in _GLYPH_FIX: s = s.replace(bad, good)
+    return s
+```
 
 **⛔ 地图类图表（中国省级热力图）环境说明：**
 
@@ -1523,9 +1644,18 @@ setup_style()  # defaults to Soft palette; alternatives: tableau/npg/nejm/scienc
 
 ```bash
 
-bash _utils/figure_check.sh 2>/dev/null || bash skills/shared-scripts/figure_check.sh
-
-RC=$?
+# checker-selection:start（modex-3 同源吸收 P3（2026-09-22）：只按文件存在性选择一次，不用旧副本覆盖失败结果）
+if [ -f _utils/figure_check.sh ]; then
+    bash _utils/figure_check.sh
+elif [ -f skills/shared-scripts/figure_check.sh ]; then
+    bash skills/shared-scripts/figure_check.sh
+else
+    echo "❌ Figure checker missing — restore the current runtime tools" >&2
+    false
+fi
+FIGURE_CHECK_RC=$?
+# checker-selection:end
+RC=$FIGURE_CHECK_RC
 
 if [ "$RC" -ne 0 ]; then
 
@@ -2126,6 +2256,15 @@ Save to `figures/latex_includes.tex`. Figures use `[H]` float specifier (pinned 
 
 - English papers (MCM/ICM/APMCM): `\caption{Model Performance Comparison}` — English caption
 
+```latex
+% ✅ 图注只命名；正文另写各 panel 的证据与结论（modex-3 同源吸收 P3（2026-09-22））
+\caption{相对论钟速率沿轨道相位的变化}
+% ❌ 不把结果段、数据源和计算口径塞进 caption
+\caption{相对论钟速率沿轨道相位的变化。(a) 速度项……数据源……}
+```
+
+⛔ 图内被搬走的结论必须进入论文图前后的正文解读；如果正文尚未撰写，在图表规划/清单中记录应解释的关键证据，不能删除信息。
+
 
 
 **⛔ Axis labels in gen_fig_*.py must also match paper language:**
@@ -2417,12 +2556,25 @@ GATE_FAIL=0
 
 
 # 1. All gen_fig scripts produced PDFs
-
 SCRIPTS=$(ls figures/gen_fig*.py 2>/dev/null | wc -l)
-
 PDFS=$(ls figures/fig_*.pdf 2>/dev/null | wc -l)
-
-[ "$PDFS" -ge "$SCRIPTS" ] && echo "✅ All scripts produced PDFs ($PDFS/$SCRIPTS)" || { echo "❌ $((SCRIPTS-PDFS)) scripts failed to produce PDFs"; GATE_FAIL=$((GATE_FAIL+1)); }
+if [ "$PDFS" -ge "$SCRIPTS" ]; then
+    echo "✅ All scripts produced PDFs ($PDFS/$SCRIPTS)"
+else
+    echo "❌ $((SCRIPTS-PDFS)) scripts failed to produce PDFs"
+    # ⛔ 先排除一个假失败（modex-3 同源吸收 P3（2026-09-22））：共用引导模块若被命名成
+    #   gen_fig*.py，会被这个 glob 当成一份出图脚本 → 脚本数永远比 PDF 多一个，本检查
+    #   【无法通过】。引导模块必须以下划线开头（`_figbase.py` / `_figcommon.py`），见前文。
+    for _m in $(ls figures/gen_fig*.py 2>/dev/null); do
+        if ! grep -qE 'save_fig\(|savefig\(' "$_m" 2>/dev/null; then
+            echo "   ⚠ $_m 里没有 save_fig/savefig 调用 — 它像是共用模块而不是出图脚本"
+            echo "     若确实是模块：改名成 figures/_figbase.py（下划线开头才不被当脚本）"
+        elif ! grep -qE '^[a-zA-Z]' "$_m" 2>/dev/null; then
+            echo "   ⚠ $_m 全是缩进/定义，无顶层执行语句 — 同上，疑似模块"
+        fi
+    done
+    GATE_FAIL=$((GATE_FAIL+1))
+fi
 
 
 
@@ -2474,12 +2626,19 @@ fi
 
 
 
-# 4. Figure check script passes
-
-bash _utils/figure_check.sh 2>/dev/null || bash skills/shared-scripts/figure_check.sh 2>/dev/null
-
-FC_EXIT=$?
-
+# 4. Figure check script passes — 只按文件存在性选择一次，不用旧副本覆盖失败结果（modex-3 同源吸收 P3（2026-09-22））
+# checker-selection:start
+if [ -f _utils/figure_check.sh ]; then
+    bash _utils/figure_check.sh
+elif [ -f skills/shared-scripts/figure_check.sh ]; then
+    bash skills/shared-scripts/figure_check.sh
+else
+    echo "❌ Figure checker missing — restore the current runtime tools" >&2
+    false
+fi
+FIGURE_CHECK_RC=$?
+# checker-selection:end
+FC_EXIT=$FIGURE_CHECK_RC
 [ "$FC_EXIT" -eq 0 ] && echo "✅ Figure check passed" || { echo "❌ Figure check failed (exit=$FC_EXIT) — fix color/style issues"; GATE_FAIL=$((GATE_FAIL+1)); }
 
 

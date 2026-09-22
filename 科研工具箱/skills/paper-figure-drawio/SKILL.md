@@ -277,19 +277,19 @@ XMLEOF
 
 按规划清单逐条生成，每张图一个 `.drawio` 文件：
 
-**⛔ 配色与风格自由发挥原则：**
-- 根据论文主题自主选择柔和高级的配色方案，不要每次都用默认学术蓝
-- 不同子问题的流程图用不同配色，形成视觉区分
-- 推荐风格：低饱和度渐变色（莫兰迪色系）、柔和的暖色/冷色搭配
-- 技术路线图：鼓励在三栏结构基础上自由发挥阶段配色、子框样式、箭头形态
-- 求解流程图：鼓励使用多种节点形状（六边形=数据处理、平行四边形=输入输出、圆柱=数据源、菱形=判断），不要全用圆角矩形
-- 布局可以灵活：纵向、横向、L 形拐弯、泳道分区都可以，根据内容选最合适的
-- **核心约束不变**：三栏结构（技术路线图）、判断分支+并行+循环（流程图）、双行节点、html=1、无 shadow
+**⛔ 先定信息拓扑，再定版式和配色：**<!-- modex-3 同源吸收 P3（2026-09-22）：上游拓扑优先设计观精确取代旧「配色自由发挥+强制三件套」口径 -->
+1. 先把本图压缩成“节点 + 有方向的关系”：哪些步骤串行、哪些子问题并行、哪里真实存在判断、循环、共享内核或跨角色交接。
+2. 按拓扑从 `drawio_rules.md` 的版式族中选择：阶段带、分支汇合、泳道、分层架构、控制回路、树/径向、矩阵或横向 pipeline。**不允许先抽模板再硬塞内容。**
+3. 工作区路径与图文件名只用于在“同样适合的候选”中稳定选择方向、卡片形态和低饱和配色；重跑必须复现，同一项目的多张图不得使用完全相同的版式签名。
+4. 把每张图的 `layout_family / orientation / palette_family / semantic_shapes` 记录到 `figures/diagram_design_ledger.json`。已有 ledger 时避开已用组合，除非真实拓扑只能使用同一族。
+5. 判断、并行、循环、泳道和数据库形状都必须有真实语义才出现。**禁止为了通过检查器伪造判断分支、反馈环或五颜六色的步骤。**
+
+风格约束只保留可读性和语义一致性：低饱和、可灰度辨认；标题可加粗，正文常规字重；同一形状在一张图内只表达一种含义；普通公式、长说明、求解结果与结论性陈述移到正文或结果图表，不把图做成文字墙。输出节点只能写“输出什么量”，不得写该量最终等于多少，也不得写“验证通过、显著优于、结论成立”等研究结论。算法容差、步长和迭代上限属于过程设定，可以保留。
 
 | 图类型 | 文件名示例 | 内容要点 |
 |--------|-----------|---------|
-| 技术路线图 | `fig_roadmap.drawio` | ⛔ 随机选模板 A 或 B（见 drawio_rules.md），保持三栏结构。节点居中分布 |
-| 子问题求解流程图 | `fig_flow_q1.drawio` | ⛔ 必须包含：(1) 判断分支（菱形+是/否）(2) 并行分叉 (3) 循环反馈箭头 (4) 节点双行。**不要画右侧工具/方法注释栏**（技术路线图才需要） |
+| 技术路线图 | `fig_roadmap.drawio` | 表达整篇论文真实依赖：线性阶段、公共内核→子问题分支→汇合、双循环或泳道均可；不得固定三栏 |
+| 子问题求解流程图 | `fig_flow_q1.drawio` | 只画该问题真实存在的输入、变换、判断、迭代和输出；没有判断/循环时允许简洁线性或分层流程 |
 | 数据处理 Pipeline | `fig_pipeline.drawio` | 横向多阶段、每阶段工具/方法标注 |
 | 概念框架图 | `fig_framework.drawio` | 理论模块分层展示，层间大箭头 |
 | 指标体系层次图 | `fig_index_hierarchy.drawio` | 目标层→准则层→指标层的树形结构 |
@@ -297,7 +297,14 @@ XMLEOF
 | 甘特图/调度方案图 | `fig_gantt.drawio` | 横轴时间+纵轴任务/资源 |
 | 网络拓扑/路径图 | `fig_network.drawio` | 节点+边的网络结构 |
 
-⛔ 以下图类型**不要用 DrawIO**，用 TikZ 生成：模型架构图、变量关系图、算法流程图（带公式）、几何示意图。
+⛔ 以下图类型通常不用 DrawIO：需要精密坐标/角度的几何图、含大量 LaTeX 公式的推导图、超过 15 个节点且连边复杂的网络图。简单分层模型架构可以用 DrawIO；跨层密集连线或公式主导时改用 TikZ。
+
+**XML 示例只学习语法，不继承构图：**
+- `example_roadmap_hex.drawio`：仅学习已通过结构检查的 mxCell、容器、HTML 换行和导出语法。
+- `example_flow.drawio`：学习标准形状、source/target、waypoint 和判断标签。
+- 禁止复制任一示例的节点数量、三栏坐标、颜色序列或阶段名称作为新图骨架。示例不是产品模板。
+
+生成前输出一份简短 `DESIGN BRIEF`，至少列出：真实拓扑、所选版式族、选择理由、方向、配色族、可能拥挤点、与本项目已有图的差异。若“选择理由”只写随机或好看，视为未完成设计。
 
 **⛔ 完整 XML 示例**：生成前先**随机选**一个模板参考其 XML 结构。当前有 4 个模板可选：
 - `example_roadmap_stats.drawio`（B：粉色冷色，简版四阶段）
@@ -471,14 +478,33 @@ done
 
 **不允许看到 CRITICAL 后跳过不修。**
 
+**其余架构 / pipeline / framework / hierarchy 图也必须过通用 XML、字号和重叠检查**<!-- modex-3 同源吸收 P3（2026-09-22） -->：
+```bash
+# 解析可用 Python：在候选里挑一个能真正执行的（宿主中性探测）。
+PYTHON=""
+for _cand in python python3 "py -3"; do
+    if $_cand -c "import sys" >/dev/null 2>&1; then PYTHON="$_cand"; break; fi
+done
+[ -z "$PYTHON" ] && PYTHON=python
+for diagram in figures/*.drawio; do
+    [ -f "$diagram" ] || continue
+    case "$(basename "$diagram")" in fig_roadmap.drawio|fig_flow_*.drawio) continue ;; esac
+    echo "=== 通用 DrawIO 自检: $(basename "$diagram") ==="
+    $PYTHON _utils/drawio_check.py "$diagram" generic
+    if [ $? -ne 0 ]; then
+        echo "⛔ 通用检查不合格 — 必须按 DESIGN BRIEF 修复并重新导出，不能用模板覆盖真实拓扑"
+    fi
+done
+```
+
 ### Step 5.7: DrawIO 视觉自检（vision LLM，自动修复，⛔ 不阻塞）
 
 **结构自检（drawio_check.py）只看 XML 结构，看不出导出 PDF 后的真实视觉效果。这一步用 vision LLM 真正"看图"，检查文字溢出/节点重叠/连线穿越/布局松散/配色等结构检查发现不了的问题。最多 3 轮修复。**
 
 ⛔ **执行原则（避免边缘问题）：**
 - **只对 DrawIO 产物跑**：遍历 `figures/*.drawio`，对每个取同名 `.pdf` 跑视觉自检；**不要对数据图 `gen_fig_*` 的 PDF 跑**（那是 matplotlib 图，不归这步管）。
-- **vision 不可用就跳过，绝不阻塞**：脚本退出码 `2` = API 未配置/PDF 无法转图/调用失败 → 直接跳过该图，继续后续流程。退出码 `0` = 通过，`1` = 有视觉问题需修复。
-- **这是加分项不是硬门槛**：3 轮仍未解决也继续往下走，不要卡在这里死循环。
+- **vision 不可用不阻塞**：脚本退出码 `2` = API 未配置/PDF 无法转图/调用失败 → 记录为未审并继续；免费结构/几何检查仍必须通过。退出码 `0` = 通过，`1` = 有视觉问题需修复。（modex-3 同源吸收 P3（2026-09-22）：本两条精确取代旧「3 轮未解决也继续、这是加分项不是硬门槛」口径。）
+- **vision 已明确发现的问题必须闭环**：退出码 `1` 时最多修 3 轮；仍未解决写入 `_tmp/drawio_vision_unresolved.txt`，由最终质量门判失败，不能把已知遮挡当成合格。
 
 ```bash
 # 解析可用 Python：优先用后端注入的 $MH_PYTHON（已排除 Windows 商店占位符 python3），
@@ -505,13 +531,15 @@ if [ "$FAST_MODE" = "1" ]; then
     DRAWIO_VISION_SRCS=()
 fi
 mkdir -p _tmp
+rm -f _tmp/drawio_vision_unresolved.txt   # modex-3 同源吸收 P3（2026-09-22）：未解决项闭环
 for drawio_src in "${DRAWIO_VISION_SRCS[@]}"; do
     [ -f "$drawio_src" ] || continue
     bn=$(basename "$drawio_src" .drawio)
     pdf="figures/${bn}.pdf"
     [ -f "$pdf" ] || continue   # 没导出 PDF 的跳过（Step4 会处理导出）
-    # ⛔ 已判过 PASS 的不再调 vision（部分重跑/续跑时省额度；图一旦重画会重新入账重检）
-    grep -q "^${bn} PASS" _tmp/drawio_vision_passed.txt 2>/dev/null && { echo "⏭ $bn 已通过视觉自检，跳过"; continue; }
+    # ⛔ PASS 必须绑定当前 PDF 哈希；源图重画/重导后旧 PASS 自动失效（防"改坏图吃旧缓存"）。
+    PDF_HASH=$($PYTHON -c "import hashlib; print(hashlib.sha256(open(r'$pdf','rb').read()).hexdigest()[:16])")
+    grep -q "^${bn} ${PDF_HASH} PASS$" _tmp/drawio_vision_passed.txt 2>/dev/null && { echo "⏭ $bn 当前版本已通过视觉自检，跳过"; continue; }
     for VROUND in 1 2 3; do
         echo "=== DrawIO 视觉自检: $bn (round $VROUND) ==="
         VOUT=$($PYTHON tools/drawio_vision_check.py "$pdf" 2>&1)
@@ -519,7 +547,10 @@ for drawio_src in "${DRAWIO_VISION_SRCS[@]}"; do
         echo "$VOUT"
         if [ "$VEXIT" -eq 0 ]; then
             echo "✅ $bn 视觉检查通过"
-            echo "$bn PASS" >> _tmp/drawio_vision_passed.txt
+            PDF_HASH=$($PYTHON -c "import hashlib; print(hashlib.sha256(open(r'$pdf','rb').read()).hexdigest()[:16])")
+            grep -v "^${bn} " _tmp/drawio_vision_passed.txt 2>/dev/null > _tmp/drawio_vision_passed.next || true
+            mv _tmp/drawio_vision_passed.next _tmp/drawio_vision_passed.txt
+            echo "$bn $PDF_HASH PASS" >> _tmp/drawio_vision_passed.txt
             break
         elif [ "$VEXIT" -eq 2 ]; then
             echo "⚠ vision 不可用/无法判定，跳过 $bn 的视觉自检（不阻塞）"
@@ -530,7 +561,9 @@ for drawio_src in "${DRAWIO_VISION_SRCS[@]}"; do
             echo "⛔ $bn 发现视觉问题，需读 XML 修复后重新导出..."
             echo ">>> Vision 反馈见上方 ISSUE 列表"
         else
-            echo "⚠ $bn 3 轮视觉自检仍有问题，继续（不阻塞流程）"
+            echo "🟥 $bn 3 轮视觉自检仍有问题，记录到最终质量门"
+            PDF_HASH=$($PYTHON -c "import hashlib; print(hashlib.sha256(open(r'$pdf','rb').read()).hexdigest()[:16])")
+            echo "$bn $PDF_HASH" >> _tmp/drawio_vision_unresolved.txt
         fi
     done
 done
@@ -948,6 +981,45 @@ else
     echo "❌ No DrawIO diagrams generated"; GATE_FAIL=$((GATE_FAIL+1))
 fi
 
+# ⛔ 版式账本硬门（modex-3 同源吸收 P3（2026-09-22））：ledger 缺失/非法 → 阻断
+PYTHON=""
+for _cand in python python3 "py -3"; do
+    if $_cand -c "import sys" >/dev/null 2>&1; then PYTHON="$_cand"; break; fi
+done
+[ -z "$PYTHON" ] && PYTHON=python
+if [ "$DRAWIO_COUNT" -gt 0 ]; then
+    if [ ! -s figures/diagram_design_ledger.json ]; then
+        echo "❌ 缺少 figures/diagram_design_ledger.json — 无法追溯版式选择或避免同质化"
+        GATE_FAIL=$((GATE_FAIL+1))
+    elif ! $PYTHON -c "import json; d=json.load(open('figures/diagram_design_ledger.json',encoding='utf-8')); assert isinstance(d.get('diagrams'),list) and d['diagrams']" >/dev/null 2>&1; then
+        echo "❌ diagram_design_ledger.json 不是有效的 {'diagrams': [...]} 结构"
+        GATE_FAIL=$((GATE_FAIL+1))
+    else
+        echo "✅ diagram_design_ledger.json 可读取"
+    fi
+fi
+
+# 每张 .drawio 无条件过结构检查（roadmap/flow/generic 分型）
+for df in figures/*.drawio; do
+    [ -f "$df" ] || continue
+    bn=$(basename "$df")
+    case "$bn" in
+        fig_roadmap.drawio) dtype=roadmap ;;
+        fig_flow_*.drawio) dtype=flow ;;
+        *) dtype=generic ;;
+    esac
+    $PYTHON _utils/drawio_check.py "$df" "$dtype"
+    [ $? -ne 0 ] && GATE_FAIL=$((GATE_FAIL+1))
+done
+
+# DrawIO 视觉未解决项：结构检查无法替代真实渲染检查。
+if [ -s _tmp/drawio_vision_unresolved.txt ]; then
+    _n_drawio_unres=$(wc -l < _tmp/drawio_vision_unresolved.txt 2>/dev/null); _n_drawio_unres=${_n_drawio_unres:-0}
+    echo "❌ DrawIO 视觉审查未通过 $_n_drawio_unres 张（3轮仍有遮挡/溢出/路由问题）："
+    sed 's/^/     - /' _tmp/drawio_vision_unresolved.txt
+    GATE_FAIL=$((GATE_FAIL+_n_drawio_unres))
+fi
+
 # TikZ (if planned)
 if grep -qi 'tikz\|TikZ\|模型架构\|变量关系' PROBLEM_ANALYSIS.md 2>/dev/null; then
     if ls figures/tikz_*.tex 2>/dev/null > /dev/null || [ -f figures/tikz_diagrams.tex ]; then
@@ -990,6 +1062,11 @@ if grep -qi 'tikz\|TikZ\|模型架构\|变量关系' PROBLEM_ANALYSIS.md 2>/dev/
         echo "❌ TikZ planned but no .tex files"; GATE_FAIL=$((GATE_FAIL+1))
     fi
 fi
+
+# 最终矢量 PDF：字体嵌入、真实插入后字号和高置信文字压盖（modex-3 同源吸收 P3（2026-09-22））
+"$PYTHON" _utils/figure_pdf_quality_check.py figures --paper paper
+FPDF_RC=$?
+[ "$FPDF_RC" -eq 0 ] || { echo "❌ 图 PDF 终检失败（exit=$FPDF_RC）"; GATE_FAIL=$((GATE_FAIL+1)); }
 
 # latex_includes.tex updated with DrawIO/TikZ entries
 if [ -s figures/latex_includes.tex ]; then

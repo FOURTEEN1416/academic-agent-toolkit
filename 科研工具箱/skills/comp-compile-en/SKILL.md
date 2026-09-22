@@ -27,6 +27,15 @@ Compile and validate: **$ARGUMENTS**
 
 ## Workflow
 
+## Phase ownership (authoritative final gate)
+
+The preceding `comp-paper-en` step only writes the complete manuscript source. This step owns the
+single authoritative closeout on one stable source snapshot: data reconciliation, source fixes,
+formal compilation, Summary Sheet physical-page/layout checks, TOC, fonts and overflow, figure
+references and sizing, modeling completeness, and the final PDF snapshot report. Batch all source
+fixes before compiling; never compile separately for each small finding.
+<!-- modex-3 同源吸收 P3（2026-09-22）-->
+
 ### Step 1: Verify environment
 
 Check pdflatex and bibtex are installed.
@@ -52,6 +61,9 @@ fi
 ```
 
 The script auto-handles: special chars, table fixes, path correction, hidelinks, wide table resizebox, light-color text fixes, TikZ library injection.
+
+**Pre-compile data reconciliation (upstream closeout)**: before compiling, if `PAPER_DATA_CHECKLIST.md` exists, reconcile every result, comparison, error, and optimum in the Summary Sheet/body/conclusion against the real JSON/TABLE sources. Fix only the manuscript; never alter result data to fit the prose. Once reconciled, append `% DATA_CHECK_PASSED` to a `.tex` source actually included by `main.tex`, then record the current data-and-source fingerprint with `paper_data_check.py --mode pdf --workspace . --record-review` (under `_utils/` or `skills/shared-scripts/`, if provided) after the real review. If unavailable, retain an unverified status rather than inventing a receipt; then compile this exact source snapshot.
+<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 Also check ref/label matching and embed missing figures:
 
@@ -373,6 +385,8 @@ All three must be OK; any FAIL must be fixed (restore width to 0.85, drop small 
 
 ### Step 7: ⛔ FINAL QUALITY GATE (must ALL pass before finishing)
 
+Read `_utils/quality_gate_contract.md`. Select the available checker once; a failed check is not a reason to fall back to a second copy of the same checker.
+
 ```bash
 
 echo "=== Running check scripts ==="
@@ -533,6 +547,41 @@ echo ""
 
 **⛔ If GATE_FAIL > 0, fix every ❌, recompile, re-run gate. Do NOT finish with any ❌.**
 
+**Supplemental gate (upstream: bibliography authenticity, claims, content-failure vs unavailable tally):**
+
+```bash
+CHECK_DIR=_utils
+[ -f "$CHECK_DIR/compile_check.sh" ] || CHECK_DIR=skills/shared-scripts
+GATE_FAIL=0
+GATE_UNAVAILABLE=0
+bash "$CHECK_DIR/compile_check.sh" paper/
+CC_EXIT=$?
+# Supplemental checks: bibliography authenticity and caption/style advisories.
+# Compiled typography, abstract, model structure and narrative were already checked.
+bash "$CHECK_DIR/writing_check.sh" paper/ --supplemental
+WC_EXIT=$?
+for status in "$CC_EXIT" "$WC_EXIT"; do
+    if [ "$status" -eq 1 ]; then GATE_FAIL=$((GATE_FAIL+1))
+    elif [ "$status" -ne 0 ]; then GATE_UNAVAILABLE=$((GATE_UNAVAILABLE+1)); fi
+done
+if [ -f "$CHECK_DIR/facts_audit.py" ]; then
+    python "$CHECK_DIR/facts_audit.py" --stage paper
+    FACTS_EXIT=$?
+    [ "$FACTS_EXIT" -eq 1 ] && GATE_FAIL=$((GATE_FAIL+1))
+    [ "$FACTS_EXIT" -gt 2 ] && GATE_UNAVAILABLE=$((GATE_UNAVAILABLE+1))
+fi
+if [ -f "$CHECK_DIR/paper_claim_check.py" ]; then
+    FAST_MODE=0
+    grep -q 'FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
+    python "$CHECK_DIR/paper_claim_check.py" --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper/sections --fast "$FAST_MODE"
+    CLAIM_EXIT=$?
+    [ "$CLAIM_EXIT" -eq 1 ] && GATE_FAIL=$((GATE_FAIL+1))
+    [ "$CLAIM_EXIT" -gt 2 ] && GATE_UNAVAILABLE=$((GATE_UNAVAILABLE+1))
+fi
+echo "Content failures: $GATE_FAIL; unavailable checks: $GATE_UNAVAILABLE"
+```
+<!-- modex-3 同源吸收 P3（2026-09-22）：上游 `--supplemental` 语义与 GATE_UNAVAILABLE 双轨计数；宿主标记已中性化（AGENTS.md 锚点、`python` 解释器）。 -->
+
 **Upstream evidence-before-repair rules (modex-3 same-source absorption, 2026-09-22; same doctrine as `_utils/quality_gate_contract.md`):**
 
 - Repair only concrete failures, in a batch, then compile once and recheck the changed final snapshot. Never suppress a true failure to make a step pass.
@@ -545,6 +594,16 @@ echo ""
 ### Step 8: Output report
 
 Status, PDF path, page count, compliance pass/fail.
+
+Generate the report only after the final successful compile and all checks, and bind it to the exact final PDF bytes:
+
+```bash
+python _utils/pdf_snapshot_report.py sync paper/main.pdf --report COMPILE_REPORT.md
+python _utils/pdf_snapshot_report.py check paper/main.pdf --report COMPILE_REPORT.md
+```
+
+Never copy a page count from an earlier round. Any later change to `paper/main.pdf` invalidates the report and requires a fresh snapshot.
+<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 
 ## STEP_MANIFEST 产出声明

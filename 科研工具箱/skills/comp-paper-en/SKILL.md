@@ -51,6 +51,20 @@ cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rul
 
 ## MCM/ICM Paper Structure
 
+Competition papers do **not** generate a Table of Contents in this product. Build an adaptive
+section sequence from the problem dependency chain: summary → concise problem framing → necessary
+assumptions/notation → content-named model chapters → model-specific or cross-model validation →
+conclusions/evaluation → references → appendix. These are semantic slots, not mandatory chapter names.
+
+**⛔ The template section files are a safe starter skeleton, not a mandatory chapter order.**
+Rename/add `paper/sections/*.tex` around the actual models and update `paper/main.tex` `\input{}` lines
+accordingly. Keep the document class, contest cover/summary, anonymity and page settings unchanged;
+do not leave an empty section referenced by `main.tex`.
+
+**⛔⛔ HARD RULE: each sub-problem flow chart must stay beside the model it explains — never pile all of them into one overview section.**
+Filenames do not matter. Each flow chart needs nearby model-specific lead-in and interpretation, and one file must not stack several large flow charts without substantive text between them.
+<!-- modex-3 同源吸收 P3（2026-09-22）-->
+
 ```
 
 Summary Sheet (1 page — most important page in the entire paper)
@@ -481,6 +495,185 @@ echo "Current chapter: $chars chars"
 
 **Model Evaluation**: Strengths 3-5 points + Weaknesses 2-3 points (honest) — do not write token weaknesses like "limited by time"
 
+#### ⛔⛔ Optimization / programming models: state decision variables, objective, and constraints in separate blocks
+
+**When this applies**: the model contains `\min` / `\max`, or the problem asks for something optimal
+(minimum cost, maximum coverage, siting, assignment, scheduling, routing, blending). **Does not apply**
+to statistical modeling (index systems / DEA / PCA / regression / forecasting) — those follow the
+"theoretical basis → formulas → parameters" order above.
+
+> The three elements of an optimization problem are **decision variables, objective function, and
+> constraints**. Strong papers usually expose them in that recognition order; the hard requirement is
+> that each element is clearly distinguishable. Melting them into one blob of formulas is the fastest
+> way for a judge to conclude you never worked out what you were deciding.
+
+**Decision variables → objective → constraints → domains is the preferred reading order, not a mandatory set of subsections.** Complex models need separate blocks; a small model may use one paragraph and one aligned display.
+
+**⛔ Subsection titles inside a sub-problem chapter must name the model.** Optimization chapters
+slide into placeholder titles that tell a judge nothing while skimming:
+
+| ❌ Placeholder | ✅ Informative |
+|---|---|
+| Model Formulation | A 0-1 Integer Programming Model for Service-Station Siting |
+| Model Solution | Branch-and-Cut Solution and the Optimal Siting Plan |
+| Sensitivity Analysis (as a subsection inside a sub-problem) | Effect of the Budget Cap on the Number of Stations Opened |
+
+⛔ The table only says that titles must carry information; it does not prescribe chapter numbers.
+Restatement, sensitivity, and evaluation are available semantic roles, not mandatory verbatim chapter
+names. Keep them separate only when the content and dependency chain justify a separate chapter.
+
+**① Decision variables** — state five things: **symbol, meaning, type, index range, and why that type**.
+Binary variables must be written as a piecewise definition spelling out what each value means in the
+real problem; never just `$y_j \in \{0,1\}$`:
+
+```latex
+Let $x_{ij}$ indicate whether demand point $i$ is assigned to station $j$. Assignment either holds
+or it does not — there is no partial assignment — so $x_{ij}$ is binary:
+\begin{equation}
+x_{ij}=\begin{cases}
+1, & \text{demand point } i \text{ is served by station } j,\\
+0, & \text{otherwise},
+\end{cases}\qquad i=1,\dots,m;\ j=1,\dots,n
+\end{equation}
+```
+
+⛔ **Never skip the type justification**: why integer (people/vehicles are indivisible), why binary
+(open or not, no middle state), why continuous (an arbitrarily divisible flow or ratio). Writing
+"$x_j$ is an integer" with no reason reads as not having thought it through.
+
+**② Objective function** — its own display equation, immediately followed by one sentence on where
+the objective comes from (quote the problem statement; keep it consistent with the objective-traceability
+table in `MODELING_REPORT.md`):
+
+```latex
+The problem requires "minimizing total construction and operating cost while covering every demand
+point", so total cost is minimized:
+\begin{equation}
+\min\ Z=\sum_{j=1}^{n} f_j y_j+\sum_{i=1}^{m}\sum_{j=1}^{n} c_{ij} d_i x_{ij}
+\end{equation}
+where the first term is the fixed construction cost of the stations and the second is transport cost.
+```
+
+For multi-objective models, state how the objectives are combined (weighting / lexicographic / Pareto),
+how the weights were set, and how units were normalized.
+
+**③ Constraints** — introduce with `s.t.`, list them vertically, **number each one, and give every
+constraint its real-world meaning**:
+
+```latex
+\begin{equation}
+\begin{aligned}
+\text{s.t.}\quad
+& \sum_{j=1}^{n} x_{ij}=1, && i=1,\dots,m\\
+& \sum_{i=1}^{m} d_i x_{ij}\le Q_j y_j, && j=1,\dots,n\\
+& x_{ij}\le y_j, && \forall i,j
+\end{aligned}
+\end{equation}
+```
+
+Then explain: the first line forces every demand point to be served by exactly one station
+(the problem forbids split deliveries); the second caps the demand assigned to station $j$ at its
+capacity $Q_j$; the third prevents assigning demand to a station that was never opened.
+
+⛔ Formulas with no accompanying meaning leave the judge unable to tell whether you missed a
+constraint — this is the single most common deduction.
+
+**Constraint-type checklist (for finding gaps, not a requirement to have all of them)**: demand
+coverage / budget or resource cap / per-site capacity / fixed total / at-most-or-at-least-k /
+mutual exclusion / logical linking (big-M) / time windows / flow balance / degree constraints and
+subtour elimination.
+
+⛔ **Linearization tricks must be explained.** For big-M, piecewise linearization, absolute-value
+conversion, or turning a `max` into constraints, say what the nonlinear form was and why the
+rewrite is equivalent. Example: $x_j\le My_j$ forces $y_j=1$ whenever $x_j>0$, which turns the
+fixed cost $f_jy_j$ — incurred only when the station opens — into a linear term. Justify the
+magnitude of $M$ (derive it from a data upper bound; do not write 99999).
+
+**④ Variable domains + model classification** — list non-negativity / integrality / bounds on their
+own line, then add a paragraph stating the problem class (LP / ILP / MILP / NLP / multi-objective /
+dynamic programming), **the size** (number of variables and constraints, computed from the index
+ranges), and **why this solution method** (exact solver vs. heuristic; if heuristic, why an exact
+solve is not viable — NP-hardness, size blow-up).
+
+**⛔ Anti-pattern** (the judge cannot tell what you are deciding):
+
+```latex
+We build the optimization model $\min\sum c_{ij}x_{ij}+\sum f_jy_j$ subject to
+$\sum_j x_{ij}=1$, $\sum_i d_ix_{ij}\le Q_j$, $x_{ij},y_j\in\{0,1\}$, and solve it with Gurobi.
+```
+
+Problems: none of $x_{ij}$, $y_j$, $c_{ij}$, $f_j$, $Q_j$ is defined; no reason given for binary;
+neither constraint is tied to a sentence in the problem statement; no model class or size;
+"solve it with Gurobi" never says why an exact solve is possible.
+
+**⛔ Consistency with upstream**: the three elements must match `MODELING_REPORT.md` — the objective
+must appear in its objective/constraint traceability table, and the number of constraints must not
+fall below the key constraints registered during modeling. Do not invent a constraint that modeling
+never had, and do not quietly drop one that it did.
+<!-- modex-3 同源吸收 P3（2026-09-22）-->
+
+#### ⛔⛔ Solution section: argue why the solution is credible, do not recount how the algorithm works
+
+A modeling-contest paper is judged on the **model** and the **solution**, not on algorithm exposition.
+Judges care whether the model is right and whether the solution can be trusted — not whether you can
+explain how a genetic algorithm works. **Keep algorithm description short: name, one clause on its
+role, citation.**
+
+| Write this (the bulk of the section) | Not this (textbook material, one clause at most) |
+|---|---|
+| Why this solution method (size / NP-hardness / whether an exact solve is viable) | How GA selection, crossover, and mutation operate |
+| Evidence the solution is credible: cross-validation across methods, comparison against a bound, constraint checks | Derivation of the Metropolis criterion in SA |
+| Key implementation choices and their rationale (decomposition, linearization, seeding) | Line-by-line pseudocode, $O(n^2)$ derivations |
+| How tight the constraints are at the solution (which is near-active, how much slack) | History and literature of the algorithm family |
+
+**What must come across — how you arrange it, and whether it needs a section of its own, is
+determined by the problem:**
+
+- why this solution method (size, NP-hardness, whether an exact solve is viable)
+- key implementation choices and their basis (decomposition, linearization, multi-start seeding)
+- **evidence the solution is credible**: whether independently-motivated methods agree (and the
+  relative spread), comparison against a bound or a no-action baseline, constraint-by-constraint
+  verification, which constraint is nearest to active and how much slack remains
+
+⛔ **Do not impose a fixed section name or a fixed number of points.** Some problems need a single
+paragraph (small model, stock solver returns the answer); others warrant a section of their own.
+The only test is whether a reader ends up convinced the solution is right. An empty section
+heading is worse than no heading.
+
+⛔ The one hard ratio: **words spent on "why the solution is credible" must not fall below words
+spent on "how the algorithm works".** The former is what judges read; the latter is textbook material.
+
+⛔ **Do not add pseudocode or complexity analysis to pad length** — that is a CS-paper convention.
+In a modeling paper they belong in the appendix: put algorithm parameters (initial temperature,
+cooling rate, iteration count, solver time limit, random seed) in an appendix table, and keep one
+sentence in the body: "the full pipeline runs under a fixed random seed and is reproducible;
+parameters are listed in Appendix X."
+
+⛔ **Honesty boundary**: an analytic or relaxation bound **is not a feasible solution**. The gap
+between it and the optimum only confirms the optimum is not anomalously low — it **must not** be
+presented as remaining room for improvement.
+
+⛔ **Expand toward modeling depth and result credibility, never toward algorithm exposition.**
+When a section is thin, add: justification of each assumption, refinement of definitions, comparison
+against baselines and expectations, sensitivity and robustness, constraint-tightness analysis, and
+the operational meaning of the conclusions. Test: if the body spends more words on "how the algorithm
+works" than on "why the solution is credible", the emphasis is inverted.
+
+**⛔⛔ The Innovations subsection is required, not optional.** Real runs routinely ship only strengths
+and weaknesses, leaving judges to hunt for what was actually new. Write 2-4 items, each as
+"conventional approach → what this paper does → what difference it makes", kept at the **modeling**
+level (not the tooling level).
+
+- ✅ Real: redefining the satisfaction rate against a stock-out floor, avoiding the degenerate case
+  where the naive definition makes every station fully satisfied; injecting the Sub-problem 1 score
+  into the Sub-problem 2 objective so the two sub-problems are genuinely coupled rather than adjacent
+- ❌ Filler: implemented in Python; compared three algorithms; clean figures; "the model accounts for
+  many factors"
+- ⛔ Test: if the claim would hold for any other problem ("we used machine learning", "we ran a
+  sensitivity analysis"), it is not an innovation for this problem — cut it. Two substantive items
+  beat five hollow ones.
+<!-- modex-3 同源吸收 P3（2026-09-22）-->
+
 ### Step 4: Build bibliography
 
 Follow the `<references_workflow>` in `_utils/writing_rules.md`.
@@ -647,7 +840,66 @@ PY
 
 ⛔ **Loop rule: if the check exits 1, go back to `paper/sections/0_summary.tex`, insert a blank line before each "For Problem X" so it becomes its own paragraph, then rerun the check until it prints "✓ Summary Sheet is split per problem" before moving on.**
 
+**What goes in each paragraph — hard criteria below. This is what separates an award-level summary
+from a generic one.**
+
+| Sentence | Content | Optional? |
+|---|---|---|
+| 1st | The problem's background, in one sentence — do not elaborate | Required |
+| **2nd** | **What this paper did** — what process was analyzed, which factors were jointly considered, what model was built | **Most important; never omit** |
+| 3rd | Real-world significance / where the model is applied | Optional |
+
+⛔ The 2nd sentence is the face of the whole summary — a judge reads it to decide whether the team
+actually thought the problem through. It must convey the **analysis and the scope considered**, not
+just a model name. Pattern: `This paper studies …, analyzes the … process, jointly considers …,
+builds a … model, and applies it to …`
+
+**[Middle paragraphs] one per sub-problem, each carrying all three elements:**
+
+1. **Which problem** — open by naming the sub-problem this paragraph handles
+2. **What method** — the governing law/principle relied on, how the data was processed, how it was
+   discretized, how it was solved. Chain it with *first … then … finally …* so the judge sees the path
+3. **What result** — specific numbers, plus what analysis was run on them (error, verification, comparison)
+
+⛔ **Name the methods down to the level of theorems and conditions** — not "a model was built".
+What should appear: the governing laws (Fourier's law, conservation of energy, Newton's law of
+cooling), the boundary-condition types (Dirichlet / Robin, coupling conditions), the discretization
+and solver (implicit backward difference, Thomas algorithm, enumeration to fix a coefficient), and
+parameter values (initial temperature 37 °C). These specifics are the evidence that the work was
+actually done; "built a model and solved it" is something any team can write.
+⛔ **Point at the output file when there is one** (`see problem1.xlsx`) — that is how a judge
+confirms you actually computed it.
+
+⛔ **Be economical** — carrying all three elements is not licence to ramble. A model paragraph covers
+the problem, the full method chain, and the result with its error analysis in roughly 150 words;
+deleting any clause loses information. That is the standard.
+
+**[Final paragraph] optional, but write it whenever there is sensitivity analysis, verification,
+or a generalization worth stating** — say what the model is sensitive to, what it is not, and why
+that matters. ❌ Filler: "The model has good practical value and generalizability."
+<!-- modex-3 同源吸收 P3（2026-09-22）-->
+
+### Step 4.7: AI tool usage statement (only when the user enabled it)
+
+```bash
+AI_DISC=off
+grep -q 'AI_DISCLOSURE=used' AGENTS.md 2>/dev/null && AI_DISC=used
+grep -q 'AI_DISCLOSURE=none' AGENTS.md 2>/dev/null && AI_DISC=none
+echo "AI_DISC=$AI_DISC"
+```
+
+- `AI_DISC=off` (default) → **skip this step entirely**; produce no disclosure content (byte-identical to current output).
+- `AI_DISC=used` / `none` → read and **strictly follow** `_utils/ai_disclosure_rules.md`. This is a **LaTeX** project: read only the user-confirmed `.mh/ai_disclosure.json`, call `_utils/build_ai_disclosure.py` to insert the short statement before references, and generate the standalone supporting file `AI工具使用详情.pdf` in the workspace root:
+  ```bash
+  cat _utils/ai_disclosure_rules.md 2>/dev/null || cat skills/shared-scripts/ai_disclosure_rules.md
+  ```
+  ⛔ The official CUMCM statement and standalone detail PDF remain in Chinese even when the paper body is English. Never randomize or infer tools, dates, purposes, or interaction records. Do not put details in the paper appendix or list AI tools as academic references. Invalid records or a failed PDF check must fail this step.
+<!-- modex-3 同源吸收 P3（2026-09-22）：开关锚点已宿主中性化（改读 AGENTS.md 的 AI_DISCLOSURE 标记，去宿主前缀）。 -->
+
 ### Step 5: Final verification
+
+**Upstream closeout & handoff (incremental; local checks below remain the item source):** while writing, read numerical claims from the real JSON/TABLE sources and never change result data to make prose agree; the `% DATA_CHECK_PASSED` marker and the authoritative data audit are generated once by the following `comp-compile-en` step on the final source snapshot (it also owns rendered layout, fonts, physical pages, figure-size consistency and stale-result checks — see its Phase ownership section). This step may run its source-level gates, but do not launch a second compiler audit loop for temporary drafts: batch source fixes, then let one compile+recheck close them out. Never expand merely to approach `MAX_PAGES`, and never compress merely to fall below it; add or remove material only for a real modeling, evidence, clarity, or final-submission need explicitly requested by the user. Figure inventory, inter-figure prose, template structure and rendered visual results must not drive repeated compiles here; while writing, each selected figure must still appear inside its actual formulation, solution, or results narrative rather than in a gallery.
+<!-- modex-3 同源吸收 P3（2026-09-22）：与本地 Step 5 全量自检并存，冲突处以"最终编译步统一收口"口径优先解释重复审计部分。 -->
 
 ```bash
 

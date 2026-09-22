@@ -439,11 +439,43 @@ latex_inc=$([ -s figures/latex_includes.tex ] && echo "YES" || echo "NO")
 echo "PDF figures: $pdf_count, Tables: $table_count, latex_includes: $latex_inc"
 [ "$pdf_count" -gt 0 ] && echo "✅ Figures generated" || { echo "❌ No PDF figures"; GATE_FAIL=$((GATE_FAIL+1)); }
 [ "$latex_inc" = "YES" ] && echo "✅ latex_includes.tex" || { echo "❌ latex_includes.tex missing"; GATE_FAIL=$((GATE_FAIL+1)); }
+
+# ⛔⛔ Figure QUALITY gate (not just existence) — MANDATORY, exit code 0 required.
+#   Everything above only checks that files EXIST. This one checks they are GOOD:
+#   missing setup_style / matplotlib default blue / in-figure explanatory text /
+#   axis labels stuffed with caveats / oversized figsize.
+#
+#   ⛔ Why this block exists: this skill emits `figures/gen_fig_*.py` with the same
+#   convention as paper-figure, but for a long time never invoked figure_check.sh.
+#   The identical hole in nature-figure produced a real incident (2026-08): 30
+#   in-figure prose blocks shipped, longest one 118 display-width across 4 lines.
+#   Existence checks cannot catch that class of defect.
+bash _utils/figure_check.sh 2>/dev/null || bash skills/shared-scripts/figure_check.sh
+FC_RC=$?
+if [ "$FC_RC" -ne 0 ]; then
+    echo "❌ figure_check.sh exit=$FC_RC — $FC_RC CRITICAL violations must be fixed"
+    GATE_FAIL=$((GATE_FAIL+1))
+else
+    echo "✅ figure_check.sh passed"
+fi
+
 echo ""
 [ "$GATE_FAIL" -eq 0 ] && echo "✅ ALL PASSED" || echo "❌ $GATE_FAIL FAILURES — fix before proceeding"
 ```
+<!-- modex-3 同源吸收 P3（2026-09-22）：上方 bash 块内 QUALITY 闸为上游增量。 -->
 
 **⛔ If GATE_FAIL > 0, fix and re-run. Do NOT proceed to paper writing with missing data.**
+
+⛔⛔ **Archiving the report ≠ passing.** Fix the files/lines the report names, then
+**re-run** until exit code is 0. In the 2026-08 incident the AI ran the check, saved
+the output to `_tmp/`, and moved on without fixing anything.
+
+**In-figure text rule** (this is what `figure_check.sh` enforces most often):
+annotations may carry **numbers** or **short anchor labels** (naming a line/point/
+region — `optimal point`, `ROI floor 3.0`, `elbow k=8`), but **never explanations,
+caveats, or conclusions** — those belong in the LaTeX caption and body text.
+Full two-tier spec: `_utils/figure_recipes_competition.md` (top section).
+<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 ### Phase 6: Handoff
 
