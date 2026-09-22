@@ -1693,6 +1693,7 @@
             "citation-check",
             "quality-check"
           ],
+          "compliance_profile": "comp_cumcm",
           "assets": [
             {
               "name": "引用终检器",
@@ -1718,6 +1719,11 @@
               "name": "反合理化表",
               "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
               "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            },
+            {
+              "name": "交付合规口径·国赛(机器真源)",
+              "path": "科研工具箱/engine/modex-core/comp_rules.json",
+              "note": "S14 合规判据取 comp_cumcm.compliance：电子版前 3 页不得含承诺书/编号页（摘要为首篇）、正文 ≤30 页——机检 python skills/_utils/quick_gates.py --workspace <工作区> --compliance-profile comp_cumcm"
             }
           ],
           "skill_binding": {
@@ -2633,6 +2639,7 @@
             "citation-check",
             "quality-check"
           ],
+          "compliance_profile": "comp_huawei",
           "assets": [
             {
               "name": "引用终检器",
@@ -2653,6 +2660,11 @@
               "name": "反合理化表",
               "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
               "path": "科研工具箱/skills/_utils/anti_rationalization.md"
+            },
+            {
+              "name": "交付合规口径·华为杯(机器真源)",
+              "path": "科研工具箱/engine/modex-core/comp_rules.json",
+              "note": "S14 合规判据取 comp_huawei.compliance：参赛承诺书封面页必须存在（gmcmthesis 首页，勿按国赛『电子版无承诺书』口径误杀）、正文 ≤50 页（勿沿用国赛 30 页）——机检 python skills/_utils/quick_gates.py --workspace <工作区> --compliance-profile comp_huawei"
             }
           ],
           "skill_binding": {

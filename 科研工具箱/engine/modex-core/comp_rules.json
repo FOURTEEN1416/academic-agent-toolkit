@@ -8,6 +8,13 @@
     "appendix_unlimited": true,
     "official_rule_url": "https://www.mcm.edu.cn/html_cn/node/4cd596519c9eb9fbd866398f6df0caa3.html",
     "template_cls": "cumcmthesis",
+    "compliance": {
+      "pledge_page": "forbidden_in_electronic",
+      "pledge_markers": ["承诺书", "保证书", "编号专用页"],
+      "preface_scan_pages": 3,
+      "max_body_pages": 30,
+      "source": "skills/_utils/cumcm_2026_format.md:10-16（纸质第1页承诺书；电子版不含承诺书和编号页，摘要为第1页）；正文 ≤30 页见本条目 max_pages"
+    },
     "rules": [
       "电子版第 1 页保证书、第 2 页评阅编号、第 3 页题目摘要，**第 4 页开始正文**（不含目录）；**正文不超过 30 页**，正文之后附录页数不限（2026 年修订稿）",
       "必须有摘要项（约 1 页），含关键词",
@@ -38,6 +45,14 @@
     "body_start_pdf_page": 2,
     "appendix_unlimited": true,
     "template_cls": "gmcmthesis",
+  "compliance": {
+    "pledge_page": "required",
+    "pledge_markers": ["承诺书"],
+    "preface_scan_pages": 3,
+    "max_body_pages": 50,
+    "figure_total_range": [30, 46],
+    "source": "tools/docx_style_profiles/covers/huawei.json（参赛承诺书封面页）+ skills/comp-paper-zh/_templates/huawei/gmcmthesis.cls:8 承诺书节 + 本条目 max_pages=50；图表 30-46 见 skills/_utils/figure_exemplars.md"
+  },
     "rules": [
       "使用 gmcmthesis 文档类，XeLaTeX 编译",
       "⛔ **MAX_PAGES 指正文页数**（章节 1 - 结论，含图表）— 不含 摘要 / 目录 / 参考文献 / **附录代码**。附录代码单独计 70-100 页（华为杯允许，是正式产出但不算正文）。实测出现过 AI 把附录代码算进正文目标，导致正文只写 36 页就以为达标了 → 必须区分",

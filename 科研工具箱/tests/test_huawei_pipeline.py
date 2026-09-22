@@ -142,3 +142,107 @@ def test_huawei_section_in_skill_map():
     assert section, "缺 §七 华为杯管线对照"
     for token in ("--max-pages 50", "30-46", "gmcmthesis"):
         assert token in section, f"§七 缺 {token}"
+
+
+# ── G1：S14 合规口径 compliance_profile 分支（2026-09-23）──────────────────
+#
+# before：S14（comp-final-audit）与国赛共用同一技能，其合规判据只有国赛口径
+# （SKILL.md:10『no commitment/ID pages…body ≤30 pages』；quick_gates 默认 30），
+# 与华为杯硬规则（gmcmthesis 首页=参赛承诺书、正文 ≤50 页）直接冲突。
+# after：口径按竞赛族落在 comp_rules.json 的 compliance 块，S14 挂
+# metadata.compliance_profile + 机器真源资产指针，quick_gates 数据驱动消费。
+
+COMP_RULES = json.loads(
+    (ROOT / "engine" / "modex-core" / "comp_rules.json").read_text(encoding="utf-8"))
+
+
+def _s14(fam):
+    return TEMPLATES[fam]["sub_steps"][13]
+
+
+def test_g1_s14_declares_compliance_profile():
+    """两族 S14 各自声明 compliance_profile，指向 comp_rules.json 顶层键。"""
+    assert _s14("comp_huawei")["metadata"].get("compliance_profile") == "comp_huawei"
+    assert _s14("comp_cumcm")["metadata"].get("compliance_profile") == "comp_cumcm"
+    for fam in ("comp_huawei", "comp_cumcm"):
+        assert fam in COMP_RULES, f"{fam} 在 comp_rules.json 无条目"
+        assert COMP_RULES[fam].get("compliance"), f"{fam} 缺 compliance 块"
+
+
+def test_g1_huawei_compliance_pledge_and_page_budget():
+    """华为杯口径实测钉住：承诺书页必须存在 + 正文 50 页（与 max_pages/quick_gates 一致）。"""
+    hc = COMP_RULES["comp_huawei"]["compliance"]
+    assert hc["pledge_page"] == "required", "华为杯承诺书页必须存在（gmcmthesis 首页）"
+    assert "承诺书" in hc["pledge_markers"]
+    assert hc["max_body_pages"] == 50
+    assert hc["max_body_pages"] == COMP_RULES["comp_huawei"]["max_pages"], "两处页口径必须一致"
+    for s in _hw_steps():
+        md = s["metadata"]
+        if md.get("quick_gates"):
+            assert md["quick_gates_max_pages"] == hc["max_body_pages"]
+
+
+def test_g1_cumcm_compliance_not_regressed():
+    """国赛链不受扰：电子版前 3 页禁承诺书/编号页 + 正文 30 页口径原样。"""
+    cc = COMP_RULES["comp_cumcm"]["compliance"]
+    assert cc["pledge_page"] == "forbidden_in_electronic"
+    assert cc["max_body_pages"] == 30 == COMP_RULES["comp_cumcm"]["max_pages"]
+    assert "编号专用页" in cc["pledge_markers"]
+
+
+def test_g1_s14_assets_point_to_machine_rules_and_no_cumcm_only_pointers():
+    """S14 挂 comp_rules.json 机器真源指针；华为杯侧不引用国赛专属常量/路径。"""
+    for fam in ("comp_huawei", "comp_cumcm"):
+        paths = {a["path"] for a in _s14(fam)["metadata"]["assets"]}
+        assert "科研工具箱/engine/modex-core/comp_rules.json" in paths, f"{fam} S14 缺合规真源指针"
+    hw_blob = json.dumps(_s14("comp_huawei"), ensure_ascii=False)
+    for token in ("cumcm_2026_format", "CUMCM2026Problems", "≤30", "30 页硬上限"):
+        assert token not in hw_blob.replace("勿沿用国赛 30 页", ""), \
+            f"华为杯 S14 仍引用 CUMCM 专属口径: {token}"
+
+
+def test_g1_quick_gates_profile_functions():
+    """quick_gates 数据驱动：profile 解析 / 页上限优先级 / 两族承诺书判定互不误杀。"""
+    sys.path.insert(0, str(ROOT / "skills" / "_utils"))
+    import quick_gates as qg
+
+    hw = qg._load_compliance_profile("comp_huawei")
+    cm = qg._load_compliance_profile("comp_cumcm")
+    assert hw and hw["pledge_page"] == "required"
+    assert cm and cm["pledge_page"] == "forbidden_in_electronic"
+    assert qg._load_compliance_profile("comp_nobody") is None
+    # 优先级：显式 --max-pages > profile > 兜底 30
+    assert qg._resolve_max_pages(None, hw) == 50
+    assert qg._resolve_max_pages(None, cm) == 30
+    assert qg._resolve_max_pages(60, hw) == 60
+    assert qg._resolve_max_pages(None, None) == 30
+    # 承诺书判定：同一份"首页含承诺书"的 PDF，华为杯 PASS、国赛 FAIL（方向相反）
+    pages = ["华为杯研究生数学建模竞赛 参赛承诺书 …", "封面", "摘要"]
+    assert qg._pledge_verdict(pages, hw)[0] == "PASS"
+    assert qg._pledge_verdict(pages, cm)[0] == "FAIL"
+    pages2 = ["摘要", "问题重述", "正文"]
+    assert qg._pledge_verdict(pages2, hw)[0] == "FAIL"  # 缺承诺书是华为杯红线
+    assert qg._pledge_verdict(pages2, cm)[0] == "PASS"
+
+
+def test_g1_quick_gates_cli_profile_end_to_end(tmp_path):
+    """CLI 端到端：--compliance-profile 生效（页上限 50 + pledge 检查项在册）；
+    默认无 profile 行为与旧版一致（3 类检查、30 页兜底）——双副本各跑一遍。"""
+    import subprocess
+    for copy in (ROOT / "skills" / "_utils", ROOT / "skills" / "shared-scripts"):
+        script = copy / "quick_gates.py"
+        proc = subprocess.run(
+            [sys.executable, str(script), "--workspace", str(tmp_path),
+             "--compliance-profile", "comp_huawei", "--skip", "figures", "--skip", "leakage"],
+            capture_output=True, text=True, timeout=300)
+        assert proc.returncode == 0, proc.stdout + proc.stderr
+        rep = json.loads(proc.stdout)
+        assert rep["compliance_profile"] == "comp_huawei"
+        assert rep["max_pages_effective"] == 50
+        assert {c["name"] for c in rep["checks"]} == {"page_count", "pledge_page"}
+        bare = subprocess.run(
+            [sys.executable, str(script), "--workspace", str(tmp_path)],
+            capture_output=True, text=True, timeout=300)
+        rep0 = json.loads(bare.stdout)
+        assert {c["name"] for c in rep0["checks"]} == {"page_count", "figure_font", "leakage"}
+        assert rep0["max_pages_effective"] == 30 and rep0["compliance_profile"] is None
