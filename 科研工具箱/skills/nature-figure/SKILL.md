@@ -338,9 +338,9 @@ Nature 的图**信息密度靠图形承载，不靠图内文字**。正刊图里
 
 ### Step 3.5: 数据图视觉质检（可选，默认关 · 仅当用户在高级选项开启时才跑）
 
-⛔ **这一步默认不执行**。只有工作区 AGENTS.md 含 `MH_DATA_FIG_VISION=1` 标记（用户在前端「高级选项」开启了「数据图视觉质检」）时才跑。它会对每张数据图调 vision 模型看图，检查坐标轴标签截断 / 图例压数据 / 刻度重叠等**肉眼硬伤**（Step 3 的静态检查抓不到这些渲染层问题）。**会消耗额度**（每张图每轮都调一次 vision），所以默认关。
+⛔ **这一步默认不执行**。只有工作区 AGENTS.md 含 `MH_DATA_FIG_VISION=1` 标记（用户在前端「高级选项」开启了「数据图视觉质检」）时才跑。它会对每张数据图由宿主独立窗口的视觉模型看图，检查坐标轴标签截断 / 图例压数据 / 刻度重叠等**肉眼硬伤**（Step 3 的静态检查抓不到这些渲染层问题）。**每张图每轮都占一次独立窗口审核轮次**，所以默认关。
 
-先跑下面这段**检测脚本**，它会对每张数据图调 vision 并把结果记进独立账本 `_tmp/datafig_vision_*.txt`：
+先跑下面这段**检测脚本**，它会对每张数据图生成独立窗口审核任务卡/收集审核结论，并记进独立账本 `_tmp/datafig_vision_*.txt`：
 
 ```bash
 # ⛔ 门 1：默认关。AGENTS.md 无 MH_DATA_FIG_VISION=1 标记就整段跳过（一个字不打，静默）
@@ -413,7 +413,7 @@ convert_from_path('$pdf', dpi=200, first_page=1, last_page=1)[0].save('_tmp/${bn
       if [ "$DVEXIT" -eq 0 ]; then
         echo "✅ $bn 视觉通过"; echo "$bn PASS" >> _tmp/datafig_vision_passed.txt
       elif [ "$DVEXIT" -eq 2 ]; then
-        echo "⚠ vision 不可用，跳过 $bn（不阻断）"; echo "$bn (Vision API 不可用/调用失败)" >> _tmp/datafig_vision_skipped.txt
+        echo "⚠ 独立窗口证据未就绪，跳过 $bn（不阻断）"; echo "$bn (独立窗口证据未就绪/未回写 verdict)" >> _tmp/datafig_vision_skipped.txt
       else
         # DVEXIT=1：有硬伤 → 记 pending，交给上面散文里的修复循环（AI 改脚本重跑后重跑本检测块复核）
         echo "⛔ $bn 有视觉硬伤（见上），按修复循环改 gen_fig 脚本重跑"

@@ -3,7 +3,7 @@
 敌意审计 A7 实测：run_pyc_native 以 tools/ 为子进程 cwd（payload 数据文件依赖），
 调用方按文档用相对路径传图片参数（comp-visual-review Step4.5、paper-figure Step4.5、
 paper-figure-drawio Step5.7 均为 `figures/xxx.png` 形态）→ File not found → exit 2，
-被管线语义误判为"视觉 API 不可用"而静默跳过。修复：调用方 cwd 下真实存在的
+被管线语义误判为"视觉审核通道不可用"而静默跳过。修复：调用方 cwd 下真实存在的
 相对路径参数先转绝对路径再启动子进程；不存在的参数原样保留（保持原报错语义）。
 """
 import importlib.util

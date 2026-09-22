@@ -30,7 +30,7 @@
         "engine/workflow_cli.py"
       ],
       "external_dependencies": [
-        "Agnes/商汤视觉 API（可选）",
+        "宿主独立窗口视觉审核（host-vision/independent-window，无需 API key）",
         "LaTeX 编译（XeLaTeX）"
       ],
       "high_risk_confirmation": "完整流程含外部 API 调用与文件覆盖，需在当前宿主会话中确认；检查点审批不能跳过",
@@ -953,11 +953,12 @@
       "associated_tools": [
         "tools/gpt_image.py",
         "tools/tikz_vision_check.py",
-        "tools/drawio_vision_check.pyc",
-        "tools/data_fig_vision_check.pyc"
+        "tools/drawio_vision_check.py",
+        "tools/data_fig_vision_check.py",
+        "tools/host_visual_review.py"
       ],
       "external_dependencies": [
-        "Vision LLM（可选）",
+        "宿主独立窗口视觉审核（host-vision/independent-window，无需 API key）",
         "matplotlib",
         "draw.io"
       ],
@@ -5374,12 +5375,12 @@
       "associated_tools": [
         "tools/gpt_image.py",
         "tools/tikz_vision_check.py",
-        "tools/data_fig_vision_check.pyc",
-        "tools/data_fig_vision_check.py"
+        "tools/data_fig_vision_check.py",
+        "tools/host_visual_review.py"
       ],
       "external_dependencies": [
         "matplotlib",
-        "Vision LLM（可选）"
+        "宿主独立窗口视觉审核（host-vision/independent-window，无需 API key）"
       ],
       "high_risk_confirmation": "AI 插图生成涉及外部服务，需确认",
       "current_evidence": "C2 验收：figures/fig_science.png(51KB) 960×630 柱状图+误差棒（中文字体修复）",

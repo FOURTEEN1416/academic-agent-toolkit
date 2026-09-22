@@ -4,33 +4,30 @@
 背景：docx/pdf 中的关键信息（提交要求、格式规范、题目附图）经常以
 嵌入图片/截图形式存在，仅提取文本会漏读。本工具读取文档时自动：
   1. 提取全部文本（段落/表格）
-  2. 提取全部嵌入图片
-  3. 用配置的多模态视觉模型（仓库不预设，比赛时经 env 注入具视觉能力的模型）识别每张图片内容
+  2. 提取全部嵌入图片（落盘到 visual_review_tasks/docread_<文档名>/）
+  3. 为每张图片生成宿主独立窗口识别任务卡——由项目驱动宿主自身视觉能力
+     LLM 在独立窗口实际读图转录/描述（2026-09-23 换驱动：不再调用外部视觉 API，
+     零 key 零网络），结论回写 verdict 后重跑本命令自动合并
   4. 输出「文本 + 图片内容」合并报告，确保不遗漏
 
 用法：
    python doc_reader.py <文件.docx|文件.pdf> [--out report.md] [--max-images N] [--no-vision] [--allow-vision-failure]
-  --no-vision   不调用视觉 API（仅列出图片数量与位置，供人工查看）
+  --no-vision   不做独立窗口图片识别（仅列出图片数量与位置，供人工查看）
   --max-images  最多识别前 N 张图片（默认全部）
 
 输出：默认打印到 stdout；--out 时保存 markdown 报告。
-退出码：0 成功；2 参数错误；3 视觉 API 不可用（--no-vision 时不受影响）。
+退出码：0 成功；2 参数错误；3 独立窗口识别未就绪（任务卡已生成，--no-vision 时不受影响，
+--allow-vision-failure 时降为成功）。
 """
 from __future__ import annotations
 
 import argparse
-import base64
-import http.client
-import json
-import os
-import ssl
 import sys
 from pathlib import Path
-from urllib.parse import urlparse
 
 
 def load_project_env() -> None:
-    """加载套件 .env（视觉 API 配置）。"""
+    """加载套件 .env（套件环境配置）。"""
     project_root = Path(__file__).resolve().parent.parent
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
@@ -41,60 +38,85 @@ def load_project_env() -> None:
         pass
 
 
-# ============ 视觉 API 调用（多模态模型经 env 配置，仓库不预设具体型号） ============
+# ============ 宿主独立窗口图片识别（2026-09-23 换驱动，零 key 零网络） ============
 
-def _call_vision(image_bytes: bytes, mime: str, prompt: str) -> str:
-    api_key = os.environ.get("EDITOR_AI_API_KEY") or os.environ.get("OPENAI_API_KEY")
-    base_url = os.environ.get("EDITOR_AI_BASE_URL") or os.environ.get("OPENAI_BASE_URL")
-    model = os.environ.get("EDITOR_AI_MODEL_ID") or os.environ.get("REVIEWER_MODEL_ID", "")
-    if not api_key or not base_url:
-        raise RuntimeError("未配置视觉 API（需要 EDITOR_AI_API_KEY / EDITOR_AI_BASE_URL）")
-    if not model:
-        raise RuntimeError("未配置视觉模型 ID（EDITOR_AI_MODEL_ID / REVIEWER_MODEL_ID）——"
-                           "仓库不预设模型，比赛时配置任一具备视觉能力的模型")
-
-    b64 = base64.b64encode(image_bytes).decode("ascii")
-    payload = json.dumps({
-        "model": model,
-        "messages": [{
-            "role": "user",
-            "content": [
-                {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}},
-            ],
-        }],
-        "max_tokens": 2000,
-        "stream": False,
-    })
-
-    parsed = urlparse(base_url)
-    host = parsed.hostname
-    path = (parsed.path or "").rstrip("/")
-    if not path.endswith("/chat/completions"):
-        path = path + "/chat/completions"
-    scheme = parsed.scheme or "https"
-
-    conn = (http.client.HTTPSConnection(host, 443, timeout=120, context=ssl.create_default_context())
-            if scheme == "https" else http.client.HTTPConnection(host, 80, timeout=120))
-    conn.request("POST", path, payload, {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    })
-    resp = conn.getresponse()
-    data = resp.read()
-    conn.close()
-    if resp.status != 200:
-        raise RuntimeError(f"视觉 API HTTP {resp.status}: {data.decode('utf-8', errors='replace')[:300]}")
-    result = json.loads(data.decode("utf-8"))
-    return result.get("choices", [{}])[0].get("message", {}).get("content", "")
-
-
+TASK_DIR_NAME = "visual_review_tasks"
+_REVIEWED_BY_PREFIX = "Reviewed-by:"
 _IMAGE_PROMPT = (
     "这是一份竞赛文件中的嵌入图片（可能是截图、示意图、照片或表格图片）。"
     "请完整、逐字转录图片中的所有文字内容（标题、正文、表格、按钮、链接、界面文字等），"
     "不要遗漏任何细节；如果是示意图/照片，请描述其内容与关键信息。"
     "如果是提交要求/格式规范相关截图，请特别完整地转录所有要求条目。"
 )
+
+
+def _stage_image_for_host_window(doc_stem: str, index: int, data: bytes, ext: str,
+                                 workspace: Path) -> Path:
+    """嵌入图片落盘（供宿主独立窗口读图）。返回图片文件路径。"""
+    img_dir = workspace / TASK_DIR_NAME / f"docread_{doc_stem}"
+    img_dir.mkdir(parents=True, exist_ok=True)
+    img_path = img_dir / f"img_{index}{ext if ext.startswith('.') else '.' + ext}"
+    img_path.write_bytes(data)
+    return img_path
+
+
+def _build_docread_task_card(doc_stem: str, staged: list[dict]) -> str:
+    """生成独立窗口图片识别任务卡（转录/描述，非质量审核）。"""
+    lines = [
+        "# 独立窗口文档图片识别任务卡",
+        "",
+        f"- 来源文档: {doc_stem}",
+        "- 执行者要求: 必须由项目驱动宿主的**独立窗口**（视觉审子代理/独立会话，"
+        "与读取该文档的窗口隔离）中的视觉能力 LLM **实际读图**执行；"
+        "禁止由读取窗口自审。",
+        "- 识别要求: " + " ".join(_IMAGE_PROMPT.splitlines()),
+        "",
+        "## 待识别图片",
+        "",
+    ]
+    lines += [f"- 图片 {s['index']}: {s.get('staged_path', '')}" for s in staged]
+    lines += [
+        "",
+        "## 回写要求（完成后写入本文件同目录的 " + f"docread_{doc_stem}.verdict.md" + "）",
+        "",
+        "格式（缺一即判证据无效）:",
+        "",
+        "```markdown",
+        f"{_REVIEWED_BY_PREFIX} <执行窗口标识，如 zcode-visual-judge>",
+        "",
+        "### 图片 1",
+        "<逐字转录/描述>",
+        "### 图片 2",
+        "...",
+        "```",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def _collect_docread_verdict(workspace: Path, doc_stem: str) -> tuple[str, dict[int, str]]:
+    """收集独立窗口回写的逐图识别结论。返回 (reviewed_by, {图号: 描述})；
+    verdict 缺失/无效返回 ("", {})。"""
+    vpath = workspace / TASK_DIR_NAME / f"docread_{doc_stem}.verdict.md"
+    if not vpath.is_file():
+        return "", {}
+    reviewed_by = ""
+    sections: dict[int, list[str]] = {}
+    current: int | None = None
+    for raw in vpath.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = raw.strip()
+        if line.startswith(_REVIEWED_BY_PREFIX):
+            reviewed_by = line[len(_REVIEWED_BY_PREFIX):].strip()
+            continue
+        if line.startswith("### 图片"):
+            try:
+                current = int(line.replace("### 图片", "").strip())
+            except ValueError:
+                current = None
+            sections.setdefault(current, [])
+            continue
+        if current is not None and line:
+            sections[current].append(line)
+    return reviewed_by, {k: "\n".join(v) for k, v in sections.items() if v}
 
 
 def _load_image_bytes(data: bytes, ext: str) -> tuple[bytes, str]:
@@ -149,11 +171,11 @@ def read_docx(path: Path, use_vision: bool, max_images: int) -> dict:
                 mime = _load_image_bytes(data, ext)[1]
                 info = {"index": len(report["images"]) + 1, "size": len(data), "mime": mime}
                 if use_vision and len(report["images"]) < max_images:
-                    try:
-                        info["content"] = _call_vision(data, mime, _IMAGE_PROMPT)
-                    except Exception as e:
-                        info["vision_error"] = True
-                        info["content"] = f"[视觉识别失败: {e}]"
+                    img_path = _stage_image_for_host_window(
+                        path.stem, info["index"], data, ext, Path.cwd())
+                    info["staged_path"] = str(img_path)
+                    info["pending_host"] = True
+                    info["content"] = "[待宿主独立窗口识别：见任务卡]"
                 else:
                     info["content"] = "[未识别（--no-vision 或超过上限）]"
                 report["images"].append(info)
@@ -190,11 +212,11 @@ def read_pdf(path: Path, use_vision: bool, max_images: int) -> dict:
                     "mime": mime,
                 }
                 if use_vision and len(report["images"]) < max_images:
-                    try:
-                        info["content"] = _call_vision(data, mime, _IMAGE_PROMPT)
-                    except Exception as e:
-                        info["vision_error"] = True
-                        info["content"] = f"[视觉识别失败: {e}]"
+                    img_path = _stage_image_for_host_window(
+                        path.stem, info["index"], data, ext, Path.cwd())
+                    info["staged_path"] = str(img_path)
+                    info["pending_host"] = True
+                    info["content"] = "[待宿主独立窗口识别：见任务卡]"
                 else:
                     info["content"] = "[未识别（--no-vision 或超过上限）]"
                 report["images"].append(info)
@@ -212,9 +234,9 @@ def main() -> int:
     parser.add_argument("file", help="docx 或 pdf 文件路径")
     parser.add_argument("--out", default="", help="输出 markdown 报告路径")
     parser.add_argument("--max-images", type=int, default=9999, help="最多识别前 N 张图片")
-    parser.add_argument("--no-vision", action="store_true", help="不调用视觉 API（仅列出图片）")
+    parser.add_argument("--no-vision", action="store_true", help="不做独立窗口图片识别（仅列出图片）")
     parser.add_argument("--allow-vision-failure", action="store_true",
-                        help="视觉识别失败时仍返回成功（仅供人工复核场景）")
+                        help="独立窗口识别未就绪时仍返回成功（仅供人工复核场景）")
     args = parser.parse_args()
 
     path = Path(args.file)
@@ -234,6 +256,16 @@ def main() -> int:
         print(f"不支持的文件类型: {suffix}（支持 .docx / .pdf）", file=sys.stderr)
         return 2
 
+    # 独立窗口识别结论收集（verdict 存在且合规时合并进报告；须在报告行构建前完成）
+    staged = [im for im in report["images"] if im.get("pending_host")]
+    if staged:
+        reviewed_by, descriptions = _collect_docread_verdict(Path.cwd(), path.stem)
+        for im in staged:
+            desc = descriptions.get(im["index"])
+            if desc:
+                im["content"] = desc
+                im["pending_host"] = False
+
     # 输出
     lines = [f"# 文档读取报告: {path.name}", ""]
     lines.append(f"## 文本内容（{len(report['text'])} 段）")
@@ -252,6 +284,16 @@ def main() -> int:
             lines.append(img.get("content", "[无内容]"))
         lines.append("")
 
+    still_pending = [im for im in report["images"] if im.get("pending_host")]
+    if still_pending:
+        card = _build_docread_task_card(path.stem, still_pending)
+        card_path = Path.cwd() / TASK_DIR_NAME / f"docread_{path.stem}.task.md"
+        card_path.parent.mkdir(parents=True, exist_ok=True)
+        card_path.write_text(card, encoding="utf-8")
+        lines.append(f"> ⛔ 识别任务卡已生成: {card_path}")
+        lines.append("> 请派发宿主独立窗口（视觉审子代理/独立会话）按卡实际读图，"
+                     f"回写 {TASK_DIR_NAME}/docread_{path.stem}.verdict.md 后重跑本命令合并。")
+
     output = "\n".join(lines)
     if args.out:
         Path(args.out).write_text(output, encoding="utf-8")
@@ -260,9 +302,9 @@ def main() -> int:
         print(f"文本段数: {len(report['text'])}, 图片数: {len(report['images'])}")
     else:
         print(output)
-    has_vision_error = any(image.get("vision_error") is True for image in report["images"])
-    if has_vision_error and use_vision and not args.allow_vision_failure:
-        print("视觉识别未完整成功；报告已标记，停止后续自动判断。", file=sys.stderr)
+    pending = any(im.get("pending_host") or im.get("vision_error") for im in report["images"])
+    if pending and use_vision and not args.allow_vision_failure:
+        print("独立窗口图片识别未就绪；报告已标记，停止后续自动判断。", file=sys.stderr)
         return 3
     return 0
 

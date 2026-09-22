@@ -497,9 +497,9 @@ for diagram in figures/*.drawio; do
 done
 ```
 
-### Step 5.7: DrawIO 视觉自检（vision LLM，自动修复，⛔ 不阻塞）
+### Step 5.7: DrawIO 视觉自检（宿主独立窗口视觉模型，自动修复，⛔ 不阻塞）
 
-**结构自检（drawio_check.py）只看 XML 结构，看不出导出 PDF 后的真实视觉效果。这一步用 vision LLM 真正"看图"，检查文字溢出/节点重叠/连线穿越/布局松散/配色等结构检查发现不了的问题。最多 3 轮修复。**
+**结构自检（drawio_check.py）只看 XML 结构，看不出导出 PDF 后的真实视觉效果。这一步由宿主独立窗口的视觉模型真正"看图"，检查文字溢出/节点重叠/连线穿越/布局松散/配色等结构检查发现不了的问题。最多 3 轮修复。**
 
 ⛔ **执行原则（避免边缘问题）：**
 - **只对 DrawIO 产物跑**：遍历 `figures/*.drawio`，对每个取同名 `.pdf` 跑视觉自检；**不要对数据图 `gen_fig_*` 的 PDF 跑**（那是 matplotlib 图，不归这步管）。
@@ -712,13 +712,13 @@ done
 
 **如果没有 TikZ 图需要生成 → 跳过此步骤。**
 
-### Step 7.5: TikZ 视觉自检（vision LLM，自动修复）
+### Step 7.5: TikZ 视觉自检（宿主独立窗口视觉模型，自动修复）
 
-**对每个编译成功的 TikZ PDF，用 vision LLM 检查布局质量。最多 3 轮修复。**
+**对每个编译成功的 TikZ PDF，由宿主独立窗口的视觉模型检查布局质量。最多 3 轮修复。**
 
 **⛔ 本块任何模式都要执行（含快速模式）**：块内会自行 detect FAST_MODE——快速模式下清空待审列表使循环一次不进（跳 vision 省 API），但仍会执行 `rm -f` 清空标记文件、由最终 gate 跑几何自检。**不要因为是快速模式就整块不跑**，否则标记文件残留会让最终 gate 误判。
 
-**⛔ 如果 vision API 不可用（exit 2），跳过此步骤，不阻塞流程。**
+**⛔ 如果独立窗口证据未就绪（exit 2），跳过此步骤，不阻塞流程。**
 
 **⛔ 执行方式：这不是一个完整的 bash 脚本。你需要逐步执行：先运行 PDF→PNG + vision 检查，如果返回 ISSUE，你必须用 Read 工具读取 TikZ .tex 源码，根据 vision 反馈修改（调整坐标/间距/节点宽度/颜色），用 Write/Edit 工具写回，然后重新编译 xelatex，再重新检查。每轮都是：检查→修改→编译→再检查。**
 
@@ -834,7 +834,7 @@ imgs[0].save('_tmp/${bn}_vcheck.png', 'PNG')
             break
         fi
 
-        # 调 vision LLM 检查
+        # 生成独立窗口审核任务卡 / 收集独立窗口 verdict
         VRESULT=$($PYTHON "$VCHECK" "_tmp/${bn}_vcheck.png" 2>&1)
         VEXIT=$?
         echo "$VRESULT"
@@ -843,9 +843,9 @@ imgs[0].save('_tmp/${bn}_vcheck.png', 'PNG')
             echo "✅ $bn 视觉检查通过"
             break
         elif [ "$VEXIT" -eq 2 ]; then
-            echo "🟥🟥🟥 $bn: Vision API 不可用（EDITOR_AI_API_KEY / OPENAI_API_KEY 未配置或调用失败）——【本图未做视觉审查，遮挡类问题可能漏网】"
-            echo "   💡 用户可在设置里配 vision API（editor_ai 或 reviewer）后享受自动检查"
-            echo "$bn (Vision API 不可用/调用失败)" >> _tmp/vision_skipped.txt
+            echo "🟥🟥🟥 $bn: 独立窗口证据未就绪（宿主未派发视觉审子代理按任务卡审核回写 verdict）——【本图未做视觉审查，遮挡类问题可能漏网】"
+            echo "   💡 由宿主开独立窗口按任务卡审核并回写 verdict 后即可自动收集，无需任何 API key"
+            echo "$bn (独立窗口证据未就绪/未回写 verdict)" >> _tmp/vision_skipped.txt
             break
         fi
 
@@ -1056,7 +1056,7 @@ if grep -qi 'tikz\|TikZ\|模型架构\|变量关系' PROBLEM_ANALYSIS.md 2>/dev/
             _n_skip=$(wc -l < _tmp/vision_skipped.txt 2>/dev/null); _n_skip=${_n_skip:-0}
             echo "🟥🟥🟥 警告：$_n_skip 张图【未做视觉审查】（仅过了静态几何检查，遮挡类问题可能漏网）："
             sed 's/^/     - /' _tmp/vision_skipped.txt
-            echo "     → 想让这些图被真正审查：确认已配 vision API（editor_ai/reviewer），并确保工作区有 pdftoppm 或 pdf2image。"
+            echo "     → 想让这些图被真正审查：确认宿主可开独立窗口按任务卡审核回写 verdict，并确保工作区有 pdftoppm 或 pdf2image。"
         fi
     else
         echo "❌ TikZ planned but no .tex files"; GATE_FAIL=$((GATE_FAIL+1))

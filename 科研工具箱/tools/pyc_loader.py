@@ -16,7 +16,6 @@ pyc_loader.py — 通用 .pyc 加载器（跨 Python 小版本兼容）
 """
 import os
 import sys
-import json
 import marshal
 import pathlib
 import subprocess
@@ -61,108 +60,12 @@ def _load_env_file(env_path: pathlib.Path) -> dict:
     return result
 
 
-def _load_opencode_vision_config() -> dict:
-    """从 OpenCode 桌面端配置读取视觉模型配置（agnes/sensenova 的多模态 provider）。
-
-    读取顺序：
-      1. ~/.config/opencode/opencode.json  — OpenCode 桌面端全局配置
-      2. OpenCode 桌面端数据目录的 globalConfig（auth.json 含 apiKey）
-    返回可直接注入环境的 dict。
-    """
-    result = {}
-    home = pathlib.Path.home()
-
-    # 候选配置文件
-    cfg_candidates = [
-        home / '.config' / 'opencode' / 'opencode.json',
-        home / '.config' / 'opencode' / 'opencode.jsonc',
-    ]
-    auth_candidates = [
-        home / '.local' / 'share' / 'opencode' / 'auth.json',
-        home / '.config' / 'opencode' / 'auth.json',
-        home / '.local' / 'share' / 'opencode' / 'credentials.json',
-    ]
-
-    # 1. 读取 provider 配置（baseURL + apiKey + 多模态模型）
-    cfg = None
-    for c in cfg_candidates:
-        if c.exists():
-            try:
-                cfg = json.loads(c.read_text(encoding='utf-8'))
-                break
-            except Exception:
-                continue
-
-    if cfg:
-        providers = cfg.get('provider', {}) if isinstance(cfg, dict) else {}
-        # 优先选择支持图像输入（modalities.input 含 image）的 provider
-        vision_provider_key = None
-        vision_model_id = None
-        for pname, pconf in providers.items():
-            if not isinstance(pconf, dict):
-                continue
-            for mname, mconf in (pconf.get('models', {}) or {}).items():
-                if not isinstance(mconf, dict):
-                    continue
-                mods = mconf.get('modalities') or {}
-                inputs = mods.get('input') or []
-                if 'image' in inputs:
-                    vision_provider_key = pname
-                    vision_model_id = mconf.get('id') or mname
-                    break
-            if vision_provider_key:
-                break
-
-        if vision_provider_key and vision_provider_key in providers:
-            pconf = providers[vision_provider_key]
-            opts = pconf.get('options', {}) or {}
-            base_url = opts.get('baseURL', '')
-            # 工具内部会拼接 /v1/chat/completions，因此 base_url 必须去掉 /v1 后缀
-            if base_url.endswith('/v1'):
-                base_url = base_url[:-3]
-            result['EDITOR_AI_BASE_URL'] = base_url
-            result['OPENAI_BASE_URL'] = base_url
-            result['EDITOR_AI_MODEL_ID'] = vision_model_id
-            result['REVIEWER_MODEL_ID'] = vision_model_id
-            # apiKey 通常在 auth.json
-            result['_vision_provider'] = vision_provider_key
-
-    # 2. 仅注入「已识别的 vision provider」的 apiKey（SECURITY FIX：
-    #    不再遍历 auth.json 全量条目、不再把任意 provider 密钥塞进 .pyc 子进程 env）。
-    #    供应链说明：tracked tools/*.pyc 字节码不可读；pyc_loader 只把视觉链路
-    #    真正需要的 EDITOR_AI_* / OPENAI_* 两个 env 注入子进程，不导出完整 auth.json。
-    #    操作员若无需视觉工具链，勿在宿主 auth.json 中保留无关密钥。
-    _vp = result.get('_vision_provider')
-    if _vp:
-        for auth_file in auth_candidates:
-            if not auth_file.exists():
-                continue
-            try:
-                auth = json.loads(auth_file.read_text(encoding='utf-8'))
-            except Exception:
-                continue
-            # 结构示例: {"<provider名>": {"type": "api", "key": "sk-..."}}
-            entry = auth.get(_vp) or {}
-            api_key = ''
-            if isinstance(entry, dict):
-                api_key = entry.get('key') or entry.get('apiKey') or ''
-            elif isinstance(entry, str) and entry.startswith('sk-'):
-                api_key = entry
-            if api_key:
-                result['EDITOR_AI_API_KEY'] = api_key
-                result['OPENAI_API_KEY'] = api_key
-                break
-
-    result.pop('_vision_provider', None)
-    return result
-
-
 def build_vision_env() -> dict:
-    """构建工具运行所需的完整环境变量：
+    """构建 .pyc 工具运行所需的完整环境变量（2026-09-23 换驱动收敛）：
     1. 继承当前进程环境
     2. 合并套件 .env（已存在配置优先）
-    3. 从 OpenCode 桌面端配置补充视觉模型配置（.env 缺失的 key 才补）
-    注意：工具会自行拼接 /v1/chat/completions，因此 base_url 统一去掉 /v1 后缀。
+    旧实现的「从 OpenCode 桌面端 auth.json 挖掘视觉 API key 注入子进程」整段
+    已随视觉审核换驱动（宿主独立窗口，零 key 零网络）拆除。
     """
     env = os.environ.copy()
 
@@ -174,13 +77,7 @@ def build_vision_env() -> dict:
                 v = v[:-3]
         env.setdefault(k, v)
 
-    # 再补充 OpenCode 桌面端视觉配置（仅补缺失项）
-    vision_cfg = _load_opencode_vision_config()
-    for k, v in vision_cfg.items():
-        env.setdefault(k, v)
-
     return env
-
 
 def load_code_from_pyc(pyc_path: pathlib.Path):
     """跳过 pyc 头部（magic 4 + flags 4 + mtime 4 + size 4），用 marshal 加载 code object。"""
@@ -241,10 +138,9 @@ def run_pyc_native(pyc_path: pathlib.Path, argv: list = None):
 
 def run_pyc_marshal(pyc_path: pathlib.Path, argv: list = None):
     """回退路径：marshal 手动加载 code object 执行。"""
-    # 注入套件 .env + OpenCode 视觉配置到当前进程
+    # 注入套件 .env 到当前进程
     dotenv = _load_env_file(_ENV_FILE)
-    vision_cfg = _load_opencode_vision_config()
-    for k, v in {**dotenv, **vision_cfg}.items():
+    for k, v in dotenv.items():
         os.environ.setdefault(k, v)
 
     code = load_code_from_pyc(pyc_path)

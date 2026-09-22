@@ -45,7 +45,7 @@ python tools/tikz_vision_check.py figures/tikz_arch.pdf --review       # TikZ �
  "status":"pass|fail|manual_review|unavailable"}
 ```
 
-- `status=pass`：仅当所有确定性检查通过 **且** 视觉审核通道实际产生逐图证据（主通道：宿主独立窗口视觉模型；兜底：视觉 API）且未发现 fatal/major 问题。
+- `status=pass`：仅当所有确定性检查通过 **且** 视觉审核通道实际产生逐图证据（宿主独立窗口视觉模型逐图证据）且未发现 fatal/major 问题。
 - `status=fail`：发现 fatal/major 视觉问题。
 - `status=manual_review`：视觉审核通道不可用（宿主无独立视觉窗口且兜底 API 亦不可用）时的**受控人工降级**（见下方降级预案），必须伴随合规的 `VISUAL_REVIEW_MANUAL_CHECK.md`，否则质量闸硬拦。
 - `status=unavailable`：视觉审核通道不可用且**未完成人工复核**。**此时禁止判 pass**——在报告中明确列出未验证项，`VISUAL_REVIEW.md` 中标注"视觉复核未验证"，不得伪造通过。注意：`unavailable` 且无人工复核记录时，review 闸一律不放行（静默降级被拦截是设计行为）。
@@ -103,7 +103,7 @@ python tools/tikz_vision_check.py figures/tikz_arch.pdf --review       # TikZ �
 ## 方法
 
 1. PIL/PyMuPDF 确定性检查（解码、尺寸、DPI、页数、嵌入图、图题命中）。
-2. 逐图由宿主独立窗口的视觉模型读图审查，记录每张图的审核输出与执行窗口标识；兜底环境记录视觉 API 输出。
+2. 逐图由宿主独立窗口的视觉模型读图审查，记录每张图的审核输出与执行窗口标识。
 3. 汇总 findings，按严重性分级，写 `VISUAL_REVIEW.md`。
 4. 生成 `VISUAL_REVIEW_VERDICT.json`（含 `status` 字段）。
 5. 若视觉审核通道不可用：按"视觉审核通道不可用降级预案"走人工复核（status=`manual_review` +
@@ -114,7 +114,7 @@ python tools/tikz_vision_check.py figures/tikz_arch.pdf --review       # TikZ �
 
 本步完成前逐项自检（不达标即视为未完成）：
 
-- [ ] 由驱动宿主的独立窗口（只读视觉审子代理）执行且实际读图审核；兜底环境须有视觉 API 证据
+- [ ] 由驱动宿主的独立窗口（只读视觉审子代理）执行且实际读图审核
 - [ ] 发现项按分级列出，含图号与具体位置
 - [ ] 走兜底 API 通道时审查模式为 review（不受开发期迭代计数限制）
 - [ ] 不可用时如实记录 unavailable，绝不伪造通过

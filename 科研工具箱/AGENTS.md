@@ -232,7 +232,7 @@ python tools/doc_reader.py 题目.pdf --no-vision
 ## 八、视觉能力
 
 `tools/tikz_vision_check.py` / `drawio_vision_check.py` / `data_fig_vision_check.py`；
-缺视觉 API 时走人工复核降级路径（见 quality_gates 人工复核校验）。
+宿主开不出独立视觉窗口时走人工复核降级路径（见 quality_gates 人工复核校验）。
 
 ## 九、入口提示词
 

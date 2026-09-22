@@ -23,7 +23,7 @@ from engine.quality_gates import (
     validate_visual_manual_check,
 )
 
-MANUAL_CHECK_TEMPLATE = """# 视觉人工复核记录（视觉 API 不可用降级）
+MANUAL_CHECK_TEMPLATE = """# 视觉人工复核记录（视觉审核通道不可用降级）
 approved_by: {approved_by}
 
 ## 逐项检查

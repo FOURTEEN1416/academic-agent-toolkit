@@ -640,7 +640,7 @@ def test_visual_verdict_requires_status_field(tmp_path):
 
 
 def test_visual_verdict_status_unavailable_blocks_pass(tmp_path):
-    """视觉 API 不可用时 status=unavailable，不得伪装成 pass 通过门禁。"""
+    """宿主开不出独立视觉窗口时 status=unavailable，不得伪装成 pass 通过门禁。"""
     _write_review_files(tmp_path)
     (tmp_path / "VISUAL_REVIEW_VERDICT.json").write_text(
         '{"findings": [], "fatal_count": 0, "status": "unavailable"}', encoding="utf-8"

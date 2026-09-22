@@ -70,7 +70,7 @@ def test_citation_bridge_handles_bibtex_and_writes_manifest(tmp_path):
 def test_visual_bridge_handles_unavailable_tooling(tmp_path, monkeypatch):
     image = tmp_path / "fig.png"
     image.write_bytes(b"fake")
-    monkeypatch.setattr(visual_bridge, "run_command", lambda *args, **kwargs: {"command": ["python", "x"], "cwd": str(tmp_path), "exitCode": 2, "stdout": "NO_VISION_API", "stderr": ""})
+    monkeypatch.setattr(visual_bridge, "run_command", lambda *args, **kwargs: {"command": ["python", "x"], "cwd": str(tmp_path), "exitCode": 2, "stdout": "PENDING_HOST_WINDOW_REVIEW", "stderr": ""})
 
     result = visual_bridge.run_visual_check(tmp_path, image, "tikz", review=False)
 

@@ -256,7 +256,7 @@ def record_role_call_actual(workspace: Path | str, role: str, base_url: str, mod
 
 
 # =====================================================
-# 视觉人工复核记录校验（A7-M5 修复：视觉 API 不可用的受控降级路径）
+# 视觉人工复核记录校验（A7-M5 修复：宿主开不出独立视觉窗口时的受控降级路径）
 # =====================================================
 VISUAL_MANUAL_CHECK_FILE = "VISUAL_REVIEW_MANUAL_CHECK.md"
 _MANUAL_CHECK_MIN_ITEMS = 5
@@ -939,7 +939,7 @@ class QualityGate:
                 return {"ok": False, "reason": f"审稿裁定字段不完整: {name}"}
             fatal_count += verdict["fatal_count"]
             # 视觉审查裁定必须携带 status（pass|fail|manual_review|unavailable）：
-            # 视觉 API 不可用而伪装成 pass 是典型造假路径，这里硬性拦截。
+            # 视觉审核通道不可用而伪装成 pass 是典型造假路径，这里硬性拦截。
             if name == visual_verdict:
                 status = verdict.get("status")
                 if status not in ("pass", "fail", "unavailable", "manual_review"):
@@ -948,7 +948,7 @@ class QualityGate:
                                        f"（需 pass|fail|manual_review|unavailable）: {name}。"
                                        "正确示例: {\"findings\": [], \"fatal_count\": 0, \"status\": \"pass\"}")}
                 if status == "manual_review":
-                    # A7-M5 受控降级：视觉 API 不可用 → 人工按检查单逐项目检，
+                    # A7-M5 受控降级：宿主开不出独立视觉窗口 → 人工按检查单逐项目检，
                     # 记录 VISUAL_REVIEW_MANUAL_CHECK.md（approved_by 非空 + ≥5 条逐项记录）才放行。
                     manual_result = validate_visual_manual_check(self.workspace / VISUAL_MANUAL_CHECK_FILE)
                     if not manual_result["ok"]:
@@ -960,7 +960,7 @@ class QualityGate:
                 elif status != "pass":
                     return {"ok": False, "fatal_count": fatal_count, "mode": mode,
                             "reason": f"视觉审查未通过（status={status}），终审不得放行: {name}。"
-                                      "视觉 API 不可用时的合法降级路径见 comp-visual-review SKILL.md"
+                                      "宿主开不出独立视觉窗口时的合法降级路径见 comp-visual-review SKILL.md"
                                       "（人工复核 → manual_review + VISUAL_REVIEW_MANUAL_CHECK.md）"}
         provenance_ok = True
         provenance_reason = ""

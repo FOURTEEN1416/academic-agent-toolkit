@@ -433,9 +433,9 @@ Step 4.5 的几何自检只量**图内部**的相对关系，**量不到"这张�
 
 > 上游原版还要求每张 HTML 声明 `data-mh-palette` 配色契约、路线图声明 `data-mh-quality="roadmap-v2"`/`data-mh-node` 标记并由脚本 grep 硬拦——该契约绑定上游分发工具且本仓模板未含这些属性，**放弃合入**（2026-09-22 裁决），配色纪律以本仓风格种子 + 对比度门槛为准。
 
-### Step 5: 视觉自检（vision LLM，复用 drawio_vision_check，⛔ 不阻塞）
+### Step 5: 视觉自检（宿主独立窗口视觉模型，复用 drawio_vision_check，⛔ 不阻塞）
 
-html_pdf_check 只看 PDF 结构，看不出渲染后的视觉效果（文字挤、配色刺眼等）。这一步用 vision LLM 真正"看图"。**复用** `drawio_vision_check.py`（它接受 PDF/PNG，与画图引擎无关）。**FAST_MODE=1 时跳过本步。**
+html_pdf_check 只看 PDF 结构，看不出渲染后的视觉效果（文字挤、配色刺眼等）。这一步由宿主独立窗口的视觉模型真正"看图"。**复用** `drawio_vision_check.py`（它接受 PDF/PNG，与画图引擎无关）。**FAST_MODE=1 时跳过本步。**
 
 ⛔ **执行原则**：vision 不可用（`$VISION` 为空 或退出码 2）就跳过，**绝不阻塞**；这是加分项不是硬门槛，3 轮仍未解决也继续。
 
@@ -463,7 +463,7 @@ elif [ -z "$VISION" ]; then
   done
 else
   # ⛔ 只检本 skill 拥有的流程/架构图前缀（fig_arch/fig_flow_/fig_roadmap/fig_pipeline/fig_framework）；
-  #    数据图（fig_q1_* 等）由上一步 paper-figure 自检，不在此扫，免得误检+浪费 vision API。
+  #    数据图（fig_q1_* 等）由上一步 paper-figure 自检，不在此扫，免得误检+重复审核。
   for pdf in figures/fig_arch*.pdf figures/fig_flow_*.pdf figures/fig_roadmap*.pdf figures/fig_pipeline*.pdf figures/fig_framework*.pdf; do
     [ -f "$pdf" ] || continue
     bn=$(basename "$pdf" .pdf)
@@ -472,7 +472,7 @@ else
       VOUT=$($PYTHON "$VISION" "$pdf" 2>&1); VEXIT=$?
       echo "$VOUT"
       if [ "$VEXIT" -eq 0 ]; then echo "✅ $bn 视觉通过"; echo "$bn PASS" >> _tmp/vision_passed.txt; break
-      elif [ "$VEXIT" -eq 2 ]; then echo "⚠ vision 不可用，跳过 $bn（不阻塞）"; echo "$bn (Vision API 不可用/调用失败)" >> _tmp/vision_skipped.txt; break
+      elif [ "$VEXIT" -eq 2 ]; then echo "⚠ 独立窗口证据未就绪，跳过 $bn（不阻塞）"; echo "$bn (独立窗口证据未就绪/未回写 verdict)" >> _tmp/vision_skipped.txt; break
       fi
       # VEXIT=1：有视觉问题
       if [ "$VROUND" -lt 3 ]; then echo "⛔ $bn 有视觉问题，读 HTML 修复后重出 PDF..."
@@ -593,7 +593,7 @@ done
 
 ⛔ **失败兜底**：HTML 引擎**没有 drawio 可退**。若某公式图 3 轮编不出，**大幅精简**（去掉次要标注、拆成两张更简单的图、公式改行内文字描述）再试；仍不行则**保留其余已成功产物**，在 latex_includes.tex 该图位置写一行 `% TODO: tikz_xxx 编译失败，需人工补` 注释，**不阻塞整步结束**。
 
-### Step 5.6: TikZ 视觉自检（vision LLM，⛔ 不阻塞；FAST_MODE=1 跳过）
+### Step 5.6: TikZ 视觉自检（宿主独立窗口视觉模型，⛔ 不阻塞；FAST_MODE=1 跳过）
 
 结构自检看不出渲染后的视觉挤叠。这一步用 `tikz_vision_check.py`（接受 PNG）真正"看图"。**只检 TikZ 图**（同名 .tex 含 `\begin{tikzpicture}` 的 PDF），HTML 流程图前缀（`fig_arch/fig_flow_/fig_roadmap/fig_pipeline/fig_framework`）已在 Step 5 检过，这里排除。
 
@@ -664,7 +664,7 @@ convert_from_path('$pdf', dpi=200, first_page=1, last_page=1)[0].save('_tmp/${bn
       VOUT=$($PYTHON "$TIKZ_VISION" "_tmp/${bn}_v.png" 2>&1); VEXIT=$?
       echo "$VOUT"
       if [ "$VEXIT" -eq 0 ]; then echo "✅ $bn 视觉通过"; echo "$bn PASS" >> _tmp/vision_passed.txt; break
-      elif [ "$VEXIT" -eq 2 ]; then echo "⚠ vision 不可用，跳过 $bn（不阻塞）"; echo "$bn (Vision API 不可用/调用失败)" >> _tmp/vision_skipped.txt; break
+      elif [ "$VEXIT" -eq 2 ]; then echo "⚠ 独立窗口证据未就绪，跳过 $bn（不阻塞）"; echo "$bn (独立窗口证据未就绪/未回写 verdict)" >> _tmp/vision_skipped.txt; break
       fi
       # VEXIT=1：读 $tex 按反馈改坐标/间距/scale/颜色 → 重编 xelatex → 再检
       if [ "$VROUND" -lt 2 ]; then
@@ -819,7 +819,7 @@ fi
 
 # ⛔ 结算 Step 5 / Step 5.6 视觉自检两笔账（元素级几何自检抓不到的渲染遮挡/参差靠这里守门）：
 #   - unresolved：审了、3 轮没修好 → 计入 GATE_FAIL，硬拦（与 drawio 引擎对称，默认引擎不再静默放行）
-#   - skipped：环境原因（无 vision API / PDF→PNG 失败）根本没审 → 醒目警告 + 提示，不硬拦
+#   - skipped：环境原因（独立窗口证据未就绪 / PDF→PNG 失败）根本没审 → 醒目警告 + 提示，不硬拦
 if [ -s _tmp/vision_unresolved.txt ]; then
     _n_unres=$(wc -l < _tmp/vision_unresolved.txt 2>/dev/null); _n_unres=${_n_unres:-0}
     echo "❌ 视觉审查未通过 $_n_unres 张（3 轮没修好，带遮挡/参差/瑕疵）："
@@ -830,7 +830,7 @@ if [ -s _tmp/vision_skipped.txt ]; then
     _n_skip=$(wc -l < _tmp/vision_skipped.txt 2>/dev/null); _n_skip=${_n_skip:-0}
     echo "🟥🟥🟥 警告：$_n_skip 张图【未做视觉审查】（仅过了结构/几何检查，遮挡类问题可能漏网）："
     sed 's/^/     - /' _tmp/vision_skipped.txt
-    echo "     → 想让这些图被真正审查：确认已配 vision API（editor_ai/reviewer），并确保工作区有 PyMuPDF 或 pdftoppm。"
+    echo "     → 想让这些图被真正审查：确认宿主可开独立窗口按任务卡审核回写 verdict，并确保工作区有 PyMuPDF 或 pdftoppm。"
 fi
 
 # ⛔⛔ 执行凭证断言（防"没跑却当跑了"——本次会话暴露的静默跳过就靠这里拦）：
