@@ -2,7 +2,7 @@
 name: training-check
 description: "Periodically check WandB metrics during training to catch problems early (NaN, loss divergence, idle GPUs). Avoids"
 argument-hint: [wandb-run-path]
-allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit
 ---
 
 # Training Check
@@ -15,7 +15,7 @@ Periodically read WandB metrics during training to catch problems early. Do not 
 
 - WANDB_ENTITY and WANDB_PROJECT: read from AGENTS.md or passed as argument (format: `entity/project/run_id`)
 - CHECK_INTERVAL: starts at 10 minutes, then gradually increases if consistently healthy: 10 min → 20 min → 30 min → 60 min (cap)
-- REVIEWER_MODEL = `gpt-5.4` — used via Codex MCP for ambiguous cases only
+- REVIEWER_MODEL = `gpt-5.4` — 仅对模糊情形经评审桥复核
 
 ## When to Use
 
@@ -55,16 +55,16 @@ Check these signals:
 | Loss diverging (increasing for >N steps) | **Clearly bad** | Stop training, investigate |
 | Eval metrics significantly worse than baseline | **Clearly bad** | Stop training, investigate |
 | Loss decreasing, metrics improving | **Clearly fine** | Continue, increase check interval |
-| Loss flat but not diverging | **Unsure** | → Step 3 (Codex judgment) |
-| Metrics noisy, can't tell trend | **Unsure** | → Step 3 (Codex judgment) |
-| Slightly worse than baseline but still early | **Unsure** | → Step 3 (Codex judgment) |
+| Loss flat but not diverging | **Unsure** | → Step 3 (评审桥判定) |
+| Metrics noisy, can't tell trend | **Unsure** | → Step 3 (评审桥判定) |
+| Slightly worse than baseline but still early | **Unsure** | → Step 3 (评审桥判定) |
 
-### Step 3: Codex Judgment (only when unsure)
+### Step 3: 独立评审模型判定（仅存疑时）
 
-Only escalate to Codex when the signal is ambiguous. For clearly good or clearly bad signals, act directly.
+仅在信号模糊时升级到评审桥 the signal is ambiguous. For clearly good or clearly bad signals, act directly.
 
 ```
-mcp__codex__codex:
+review_bridge.invoke:  # 经评审桥调用独立评审模型（工具名随宿主；缺席时降级为当前 Agent 自审）
   config: {"model_reasoning_effort": "high"}
   prompt: |
     TRAINING HEALTH CHECK — need your judgment on ambiguous metrics.

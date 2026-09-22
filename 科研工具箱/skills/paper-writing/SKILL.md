@@ -2,7 +2,7 @@
 name: paper-writing
 description: "论文写作全流程编排：串起 paper-plan、paper-figure、paper-write、paper-compile、auto-paper-improvement-loop 五步，从叙述式报告走到可投稿 PDF。"
 argument-hint: [narrative-report-path-or-topic]
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, Skill, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, Skill
 ---
 
 # Workflow 3: Paper Writing Pipeline
@@ -26,7 +26,7 @@ In this hybrid pack, the pipeline itself is unchanged, but `paper-plan` and `pap
 
 - **VENUE = `ICLR`** — Target venue. Options: `ICLR`, `NeurIPS`, `ICML`. Affects style file, page limit, citation format.
 - **MAX_IMPROVEMENT_ROUNDS = 2** — Number of review→fix→recompile rounds in the improvement loop.
-- **REVIEWER_MODEL = `gpt-5.4`** — Model used via Codex MCP for plan review, figure review, writing review, and improvement loop.
+- **REVIEWER_MODEL = `gpt-5.4`** — 评审模型经评审桥配置（模型可换、不绑定特定宿主 MCP），用于 plan review, figure review, writing review, and improvement loop.
 - **AUTO_PROCEED = true** — Auto-continue between phases. Set `false` to pause and wait for user approval after each phase.
 - **HUMAN_CHECKPOINT = false** — When `true`, the improvement loop (Phase 5) pauses after each round's review to let you see the score and provide custom modification instructions. When `false` (default), the loop runs fully autonomously. Passed through to `/auto-paper-improvement-loop`.
 - **ILLUSTRATION = `gemini`** — AI illustration mode: `gemini` (default, needs `GEMINI_API_KEY`), `mermaid` (free, no API key), or `false` (skip, manual only).

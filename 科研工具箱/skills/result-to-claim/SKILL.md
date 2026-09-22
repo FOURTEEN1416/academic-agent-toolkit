@@ -2,12 +2,12 @@
 name: result-to-claim
 description: "Use when experiments complete to judge what claims the results support, what they don't, and what evidence is still"
 argument-hint: [experiment-description-or-wandb-run]
-allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit
 ---
 
 # Result-to-Claim Gate
 
-Experiments produce numbers; this gate decides what those numbers *mean*. Collect results from available sources, get a Codex judgment, then auto-route based on the verdict.
+Experiments produce numbers; this gate decides what those numbers *mean*. Collect results from available sources, 获取独立评审模型判定（经评审桥），再自动路由 based on the verdict.
 
 ## Context: $ARGUMENTS
 
@@ -35,12 +35,12 @@ Assemble the key information:
 - The intended claim these experiments were designed to test
 - Any known confounds or caveats
 
-### Step 2: Codex Judgment
+### Step 2: 独立评审模型判定
 
-Send the collected results to Codex for objective evaluation:
+将收集到的结果送独立评审模型（经评审桥）做客观评估:
 
 ```
-mcp__codex__codex:
+review_bridge.invoke:  # 经评审桥调用独立评审模型（工具名随宿主；缺席时降级为当前 Agent 自审）
   config: {"model_reasoning_effort": "xhigh"}
   prompt: |
     RESULT-TO-CLAIM EVALUATION
@@ -76,7 +76,7 @@ mcp__codex__codex:
 
 ### Step 3: Parse and Normalize
 
-Extract structured fields from Codex response:
+从评审桥返回中提取结构化字段:
 
 ```markdown
 - claim_supported: yes | partial | no
@@ -114,9 +114,9 @@ Extract structured fields from Codex response:
 
 ## Rules
 
-- **Codex is the judge, not CC.** CC collects evidence and routes; Codex evaluates. This prevents post-hoc rationalization.
-- Do not inflate claims beyond what the data supports. If Codex says "partial", do not round up to "yes".
+- **独立评审模型是裁判，不是执行 Agent。** 当前 Agent 收集证据并路由，评审桥负责评估。 This prevents post-hoc rationalization.
+- Do not inflate claims beyond what the data supports. 若评审模型判 "partial"，不得上调 to "yes".
 - A single positive result on one dataset does not support a general claim. Be honest about scope.
 - If `confidence` is low, treat the judgment as inconclusive and add experiments rather than committing to a claim.
-- If Codex MCP is unavailable (call fails), CC makes its own judgment and marks it `[pending Codex review]` — do not block the pipeline.
+- 若评审桥不可用（调用失败），由当前 Agent 自行判定并标注 `[pending independent review]` — do not block the pipeline.
 - Always record the verdict and reasoning in findings.md, regardless of outcome.

@@ -5,7 +5,7 @@ name: paper-plan
 description: "Generate a structured paper outline from review conclusions and experiment results. Use when user says \\"paper outline\\", \\"plan the paper\\", or wants to create a paper plan before writing."
 argument-hint: [topic-or-narrative-doc]
 
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch
 
 ---
 

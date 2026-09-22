@@ -5,7 +5,7 @@ name: paper-write
 description: "Draft LaTeX paper section by section from an outline. Use when user says \”write paper\”, \”draft LaTeX\”, or wants to draft an English ML-conference paper (ICLR/NeurIPS/ICML) as LaTeX/PDF. 区别于 paper-write-zh：本技能面向英文会议稿，中文论文改用 paper-write-zh；Word(docx) 输出改用 paper-write-docx；Nature 期刊风格改用 paper-write-nature。"
 argument-hint: [venue-or-section]
 
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch
 
 ---
 

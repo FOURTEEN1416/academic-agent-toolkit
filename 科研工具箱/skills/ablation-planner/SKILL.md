@@ -2,12 +2,12 @@
 name: ablation-planner
 description: "Use when main results pass result-to-claim (claim_supported=yes or partial) and ablation studies are needed for paper"
 argument-hint: [method-description-or-claim]
-allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit
 ---
 
 # Ablation Planner
 
-Systematically design ablation studies that answer the questions reviewers will ask. Codex leads the design (reviewer perspective), CC reviews feasibility and implements.
+Systematically design ablation studies that answer the questions reviewers will ask. 独立评审模型主导设计（审稿人视角，经评审桥调用），当前 Agent 复核可行性并实施。
 
 ## Context: $ARGUMENTS
 
@@ -27,10 +27,10 @@ CC reads available project files to build the full picture:
 - Confirmed and intended claims (from result-to-claim output or project notes)
 - Available compute resources (from AGENTS.md server config, if present)
 
-### Step 2: Codex Designs Ablations
+### Step 2: 独立评审模型设计消融
 
 ```
-mcp__codex__codex:
+review_bridge.invoke:  # 经评审桥调用独立评审模型（工具名随宿主；缺席时降级为当前 Agent 自审）
   config: {"model_reasoning_effort": "xhigh"}
   prompt: |
     You are a rigorous ML reviewer planning ablation studies.
@@ -61,7 +61,7 @@ mcp__codex__codex:
 
 ### Step 3: Parse Ablation Plan
 
-Normalize Codex response into structured format:
+规范化评审桥返回 into structured format:
 
 ```markdown
 ## Ablation Plan
@@ -101,7 +101,7 @@ Before running anything, CC checks:
 - Compute budget: can we afford all ablations with available GPUs?
 - Code changes: which ablations need code modifications vs config-only changes?
 - Dependencies: which ablations can run in parallel?
-- Cuts: if budget is tight, propose removing lower-priority ablations and ask Codex to confirm
+- Cuts: if budget is tight, propose removing lower-priority ablations and ask the reviewer model (via bridge) to confirm
 
 ### Step 5: Implement and Run
 
@@ -113,10 +113,10 @@ Before running anything, CC checks:
 
 ## Rules
 
-- **Codex leads the design. CC does not pre-filter or bias the ablation list** before Codex sees it. Codex thinks like a reviewer; CC thinks like an engineer.
+- **评审模型主导设计；在评审模型看到清单之前，当前 Agent 不预先筛选或引导**。 评审模型以审稿人视角思考，当前 Agent 以工程师视角核对。
 - Every ablation must have a clear `what_it_tests` and `expected_if_component_matters`. No "just try it" experiments.
 - Config-only ablations take priority over those needing code changes (faster, less error-prone).
-- If total compute exceeds budget, CC proposes cuts and asks Codex to re-prioritize — don't silently drop ablations.
+- If total compute exceeds budget, 当前 Agent 提出裁剪并请评审模型重排优先级 — don't silently drop ablations.
 - Component ablations (remove/replace) take priority over hyperparameter sweeps.
 - Do not generate ablations for components identical to the baseline (no-op ablations).
 - Record all ablation results in EXPERIMENT_LOG.md, including negative results (component removal had no effect = important finding).

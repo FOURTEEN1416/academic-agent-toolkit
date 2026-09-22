@@ -6,7 +6,7 @@ description: "Generate publication-quality figures and tables from experiment re
 
 argument-hint: [figure-plan-or-data-path]
 
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 
 ---
 

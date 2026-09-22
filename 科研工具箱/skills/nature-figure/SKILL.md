@@ -2,7 +2,7 @@
 name: nature-figure
 description: "Generate publication-ready matplotlib figures matching Nature journal standards. Use when user says 'Nature figure',"
 argument-hint: [figure-plan-or-data-path]
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 ---
 
 # Nature Figure: Publication-Quality Figures for Nature/High-Impact Journals

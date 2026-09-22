@@ -5,7 +5,7 @@ name: paper-write-nature-docx
 description: "Draft a Nature-style paper as Markdown for Word (docx) export. Use when params.output_format == 'docx' for。区别于 paper-write-docx 与 paper-write-zh-docx：本技能只用于 Nature 风格稿的 docx 模式。"
 argument-hint: [venue-or-section]
 
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch
 
 ---
 

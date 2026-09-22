@@ -5,7 +5,7 @@ name: paper-write-docx
 description: "Draft an English academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'. Mirrors paper-write writing rules (ICLR/NeurIPS/ICML) but produces paper/main.md only. 区别于 paper-write-zh-docx：本技能只用于英文论文的 docx 模式；中文论文改用 paper-write-zh-docx。"
 argument-hint: [venue-or-section]
 
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch
 
 ---
 

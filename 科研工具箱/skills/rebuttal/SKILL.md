@@ -2,7 +2,7 @@
 name: rebuttal
 description: "Workflow 4: Submission rebuttal pipeline. Parses external reviews, enforces coverage and grounding, drafts a safe"
 argument-hint: [paper-path-or-review-bundle]
-allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent, Skill, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent, Skill
 ---
 
 # Workflow 4: Rebuttal
@@ -40,9 +40,9 @@ Workflow 4:   rebuttal (post-submission external reviews)
 
 - **VENUE = `ICML`** — Default venue. Override if needed.
 - **RESPONSE_MODE = `TEXT_ONLY`** — v1 default.
-- **REVIEWER_MODEL = `gpt-5.4`** — Used via Codex MCP for internal stress-testing.
+- **REVIEWER_MODEL = `gpt-5.4`** — 经评审桥用于内部压力测试。
 - **MAX_INTERNAL_DRAFT_ROUNDS = 2** — draft → lint → revise.
-- **MAX_STRESS_TEST_ROUNDS = 1** — One Codex MCP critique round.
+- **MAX_STRESS_TEST_ROUNDS = 1** — 一轮评审桥批评。
 - **MAX_FOLLOWUP_ROUNDS = 3** — per reviewer thread.
 - **AUTO_EXPERIMENT = false** — When `true`, automatically invoke `/experiment-bridge` to run supplementary experiments when the strategy plan identifies reviewer concerns that require new empirical evidence. When `false` (default), pause and present the evidence gap to the user for manual handling.
 - **QUICK_MODE = false** — When `true`, only run Phase 0-3 (parse reviews, atomize concerns, build strategy). Outputs `ISSUE_BOARD.md` + `STRATEGY_PLAN.md` and stops — no drafting, no stress test. Useful for quickly understanding what reviewers want before deciding how to respond.
@@ -175,10 +175,10 @@ Run all lints:
 5. **Consistency** — no contradictions across reviewer replies
 6. **Limit** — exact character count, compress if over (redundancy → friendly → opener → wording, never drop critical answers)
 
-### Phase 6: Codex MCP Stress Test
+### Phase 6: 评审桥压力测试
 
 ```
-mcp__codex__codex:
+review_bridge.invoke:  # 经评审桥调用独立评审模型（工具名随宿主；缺席时降级为当前 Agent 自审）
   config: {"model_reasoning_effort": "xhigh"}
   prompt: |
     Stress-test this rebuttal draft:
@@ -225,7 +225,7 @@ When new reviewer comments arrive:
 2. Link to existing issues or create new ones
 3. Draft **delta reply only** (not full rewrite)
 4. Re-run safety lints
-5. Use Codex MCP reply for continuity if useful
+5. 如有必要，使用评审桥的后续回复保持上下文连续
 6. Rules: escalate technically not rhetorically; concede if reviewer is correct; stop arguing if reviewer is immovable and no new evidence exists
 
 ## Key Rules
