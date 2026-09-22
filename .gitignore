@@ -138,7 +138,14 @@ acceptance_testing/
 !科研工具箱/data/lint_baseline.json
 !科研工具箱/data/secret_scan_allowlist.json
 !科研工具箱/data/duplicate_assets_registry.json
-科研工具箱/baseline/
+# ⚠️ 2026-09-22 修正（照上方 data/ 同款模板）：原为整目录规则 `科研工具箱/baseline/`，
+#    整目录规则有静默陷阱——已 tracked 的老文件**免疫 ignore**（照常入库），但新增的
+#    交付件会**无声消失**（git status 里根本不出现），导致本地全绿、公开 clone 缺件。
+#    故改为"忽略目录内容 + 显式放行交付件"。
+#    ⚠️ negation 对被忽略的**目录**无效，必须写 `baseline/*` 而非 `baseline/`，否则 ! 规则全部失效。
+科研工具箱/baseline/*
+!科研工具箱/baseline/REFERENCE_PAPER_ANTI_AI_ANALYSIS.md
+!科研工具箱/baseline/human_paper_baseline.json
 
 # Local test and vision-call residue
 科研工具箱/_test_input.md

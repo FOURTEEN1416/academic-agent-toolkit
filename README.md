@@ -6,10 +6,10 @@
 
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
-[![Release](https://img.shields.io/badge/release-v1.2.2-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
+[![Release](https://img.shields.io/badge/release-v1.3.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-639_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-310-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-263-8b5cf6?style=flat-square)](科研工具箱/skills)
+[![Skills](https://img.shields.io/badge/skills-258_tracked-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始)
 [![Hosts](https://img.shields.io/badge/hosts-Any_Agent-1f2937?style=flat-square)](#快速开始)
@@ -19,7 +19,7 @@
 ---
 
 > [!TIP]
-> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（261 个技能）自主完成
+> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（258 个随仓技能）自主完成
 > 建模 → 编码 → 绘图 → 写作 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯**。
 
 ## ✨ 为什么不是又一个提示词合集
@@ -62,6 +62,9 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 | 🧩 | **Agent 运行时** | 2 | 宿主无关自举 · 自适应工具铸造 |
 
 > 域表与 `capabilities/catalog.json` 对齐：36/74/42/83/12/61/2 = **310**（与徽章一致）。
+
+> [!NOTE]
+> **技能计数双轨**（2026-09-22 实测定版）：徽章 `258 tracked` = `git ls-files` 口径的顶层技能 SKILL.md 数（**clone 即所见**）；主检出盘面实测 **263 incl. 5 local-only**（5 个为无 License 上游隔离件，gitignored 不入库）。口径以当前实测为准，不承诺自动同步。
 
 <details>
 <summary><b>📊 科研绘图栈（v1.1 新扩展，9 个上游技能）</b></summary>
@@ -106,7 +109,9 @@ flowchart LR
 
 ```bash
 git clone https://github.com/FOURTEEN1416/academic-agent-toolkit.git
-cd academic-agent-toolkit/科研工具箱
+cd academic-agent-toolkit
+python -m pip install -r requirements-dev.txt   # 第 0 步：测试/门禁依赖（在仓库根跑，别先 cd 进子目录）
+cd 科研工具箱
 python -m engine.workflow_cli boot
 python -m engine.workflow_cli probe
 ```
@@ -140,6 +145,7 @@ python -m engine.workflow_cli probe
 | 级别 | 组件 | 用途 | 安装 |
 |------|------|------|------|
 | 必装 | Python 3.11+ | 全部能力 | python.org |
+| 必装 | Python 依赖包 | 测试与门禁（pytest / pypdf / ruff 等） | `python -m pip install -r requirements-dev.txt`（**在仓库根执行**；ruff 版本锁死，勿单独升级） |
 | 必装 | TeX Live / XeLaTeX | 论文编译类能力 | texlive.org |
 | 推荐 | Graphviz（`dot`） | `graphviz` 技能 | `winget install --id Graphviz.Graphviz -e` |
 | 推荐 | mermaid-cli（`mmdc`） | `mermaid-diagram` 技能 | `PUPPETEER_SKIP_DOWNLOAD=true bun install -g @mermaid-js/mermaid-cli`（用系统 Edge/Chrome 需写 puppeteer 配置，见技能内说明） |
@@ -154,10 +160,13 @@ python -m engine.workflow_cli probe
 python 科研工具箱/tools/plotting_env_check.py
 ```
 
-**验证安装**：
+**验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-cd 科研工具箱 && python -m pytest -q        # 基线见下方「测试基线」与 pytest.ini（唯一真源）；以 CI/本地实测为准
+# 口径一（仓库根，回归门禁口径）：工具箱 620 + 根级门禁 19 = 639 passed / 0 failed
+python -m pytest -q
+# 口径二（工具箱内，技能验收基线口径）：620 passed / 0 failed
+cd 科研工具箱 && python -m pytest -q
 python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账通过
 ```
 
@@ -169,7 +178,7 @@ python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）66/66 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | ⚠️ **2026-09-19 起停用**：公开层曾为 CC-BY-4.0 合成题面基准（P01-P03 + 六域 7 项），已废弃入库，内容归档于 `dev-docs/archive/legacy-benchmarks-tests-20260919/`；私有层（真实竞赛题面）从未入库，**已随磁盘删除永久丢失** |
-| ✅ **测试基线** | 仓库根 **651 passed / 0 failed**（本机，2026-09-22 华为杯管线补齐轮实测；= 工具箱 **630** + 根级门禁 **21**）。唯一真源=`pytest.ini` 注释；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计。历史基线 628/603/460 见 pytest.ini 与 truth-index（保留作历史） |
+| ✅ **测试基线** | 仓库根 **651 passed / 0 failed**（本机，2026-09-22 华为杯管线补齐轮实测；= 工具箱 **630** + 根级门禁 **21**）。唯一真源=`pytest.ini` 注释；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计。历史基线 639/628/603/460 见 `pytest.ini` 注释（保留作历史；truth-index 为内部文档不入库） |
 | 🧬 **逐技能 C2 覆盖** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
 | 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + `agents/adapters/`（旧宿主降为可选适配器）+ TOOL_GAP→工具铸造（2026-09-20） |
 
@@ -192,14 +201,14 @@ academic-agent-toolkit/
 
 <br>
 
-**v1.2.0（2026-08-30）** —— 三条学术管线 C2 闭环 · 科研绘图域闭环。发布后持续演进：2026-09-09 独立审计修复与 ZCode 可选适配（L1 hook）；2026-09-19/20 基线加固与**宿主无关协议**（boot/probe/forge + adapters）。上列数字均为历史快照（原文保留）；当前唯一有效口径见 `pytest.ini` 与 `dev-docs/truth-index.md`（2026-09-20 改造轮：**639** = 620 + 19）。
+**v1.2.0（2026-08-30）** —— 三条学术管线 C2 闭环 · 科研绘图域闭环。发布后持续演进：2026-09-09 独立审计修复与 ZCode 可选适配（L1 hook）；2026-09-19/20 基线加固与**宿主无关协议**（boot/probe/forge + adapters）。上列数字均为历史快照（原文保留）；当前唯一有效口径见 `pytest.ini` 注释（2026-09-20 改造轮：**639** = 620 + 19）；`dev-docs/truth-index.md` 为内部副本，不入库。
 
 **v1.1.0（2026-08-28）** —— 全能力公开发布（含软著/专利/基金流水线）· 科研绘图 9 技能扩展 · ZCode 兼容层 · 全库文档治理（45+ 文档审计）。完整记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
 | 范围 | 许可证 |
 |------|--------|
-| 仓库核心（技能/工具/引擎/配置） | [CC-BY-NC-4.0](./LICENSE)（禁商用 · 禁 AI 训练） |
-| 公开基准集 | CC-BY-4.0 |
+| 仓库核心（技能/工具/引擎/配置） | [CC-BY-NC-4.0](./LICENSE)（+ 附加限制：禁商用 · 禁 AI 训练） |
+| 历史基准集（已于 2026-09-19 移除，不随仓库分发） | 曾以 CC-BY-4.0 发布 |
 | Vendored 第三方组件 | 随各自许可证，见各目录 `UPSTREAM.md` / `LICENSE` |
 
 </details>

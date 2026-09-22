@@ -57,7 +57,7 @@
 | `docs/superpowers/` | 设计 spec 与实施计划（dated 快照） |
 | `dev-docs/` | 内部真源根（gitignored 私有） |
 | `LOG.md` / `task_plan.md` | 操作日志 / 任务与验证基线 |
-| `releases/`、`tests/`、`SECURITY.md` | 发布快照 / 根级门禁测试 / 安全策略 |
+| `releases/`（本地 dated 快照，不入库）、`tests/`、`SECURITY.md` | 发布快照 / 根级门禁测试 / 安全策略 |
 | `参考论文/`、`赛前试炼任务/`、`workspaces/` 等 | 本地材料与产物（不入 git） |
 
 ## 硬性规则（冲突时以主控文档为准）
@@ -79,6 +79,6 @@
 | 根 `tests/` 单跑 | catalog schema + 反 AI 工具集 | **21 passed** | catalog 改动后必跑 |
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准（历史：600+3 skipped @ run 35425878920） | 门禁 |
 
-- 历史基线 628/603/460 为保留作历史的时点快照，见 `pytest.ini` 与 `dev-docs/truth-index.md`。
+- 历史基线 628/603/460 为保留作历史的时点快照，见 `pytest.ini` 注释（公开侧口径真源）；`dev-docs/truth-index.md` 为内部副本，不入库。
 - `releases/` 永不进测试收集。
 - 新增技能必须：SKILL.md + catalog 映射 + CONTEST_SKILL_MAP 归类 + `build_skill_index.py --emit`。

@@ -30,6 +30,6 @@ This project is built with:
 
 ## License
 
-- Core (suite & configuration): CC-BY-NC-4.0
-- Public benchmarks: CC-BY-4.0
+- Core (suite & configuration): CC-BY-NC-4.0 (with additional restrictions: no commercial use, no AI training)
+- Former public benchmarks (removed from the repo on 2026-09-19, not distributed): were CC-BY-4.0
 - See [LICENSE](./LICENSE) for details
