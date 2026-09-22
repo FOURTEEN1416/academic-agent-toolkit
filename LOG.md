@@ -1375,3 +1375,29 @@ comp_rules.json 无承诺书判据、模板 S14 无合规指针。方案=数据�
 缺 PDF SKIP、未知族 ERROR 不阻断），shared-scripts 副本 sha256 同步（0720983a…，主控哈希复核一致）。
 复验：test_huawei_pipeline + dual_copy + quick_gates + 根门禁 = **48 passed / 0 failed**；
 新 6 测试含两族互不误杀负例。残留：SKILL.md/地图国赛文字口径转 #15（P3/P4 在途禁其互踩，收口后挂数据源）。
+
+**续45 补记③（V1 vendor 台账 + P3 技能文本吸收，同日晚，主控逐批复验提交）**：
+- V1（0feab93）：provenance 登记册 65→66（补 eco-community-plots/UPSTREAM.md）；新增
+  `dev-docs/vendor-asset-index.md`（27 fork / 表内合计 2511MB，逐 fork 处置列：吸收/登记/保留原位，零删除）与
+  `dev-docs/cumcmthesis-diff-ledger.md`（**翻案**：库内版领先 vendor 实为 4 hunk 本地补丁而非旧口径"13 处"，
+  behind=0；vendor 独有 9 文件立为候选吸收件）；表头 2451→2511 笔误主控修正。
+- P3a（e34a883）：modex-3 技能文本合并第一批 18 文件 +1143/-24。子代理 P3 曾在 150 振中止并写坏
+  nature-figure/references/common-patterns.md 尾部（未闭合围栏+shell 残渣+Pattern 半截），主控回滚后
+  只做 Pattern 1（data-driven grid）外科式吸收——复查发现库内版已含全部 16 Pattern，"缺件"系上游快照过时。
+  日期笔误批量订正 17 文件（09-25→09-22）。
+- P3b（7838ac2）：P3b1 八文件（comp-paper-en 最优化三要素、comp-paper-zh-docx `\tag{n}` 精确替换修 Pandoc
+  吞编号、comp-compile-en Phase 所有权/DATA_CHECK_PASSED 等）+ P3b2（figure-spec 新增 integration-contract
+  461 行/review-tracing 391 行、paper-figure 三层门禁+RECIPES 预取 ACAT-GOVERNANCE 就地声明、
+  paper-figure-drawio 拓扑优先等）。泄漏机检新增行 0 命中；skill_library_audit 曾报 `data/source` 散文误判，
+  改措辞而非弱化检查器。未完清单转后续（paper-figure-html ~430 行 MH 耦合结构生成、zh-docx 摘要预算块、
+  comp-compile-en MAX_PAGES 地板冲突待裁定）。
+**续45 补记④（P4 资产激活批收编 + 基线校准，同日深夜，主控逐 hunk 复验后提交 3c025e6）**：
+P4 子代理同样 150 振中止，但工作区半态实测**完备**（早期"任务 A 未完"判断作废：13 项 P0 激活已在地图 §三）。
+主控处置：逐 hunk 读完 workflow_runner 519 行改动（C1/P4/C2 三道闸抽 `_companion/_binding/_asset_gate_message`
+复用件，语义/文案零变更；backfill_step 绑定旁路封堵——有义务步骤必须 --evidence 走同一条 validate+三闸链，
+或 --waive-binding+非空理由，waived/verified 双审计事件+运行日志+payload 三处留痕）；新增行泄漏 grep 0 命中；
+日期笔误 09-24→09-22 批正 15 处后独立复跑：P4 自有棘轮 35 过、根门禁 25 过、check_asset_utilization --strict
+exit 0（263/263 零漏网、disposition 回填 15 条棘轮、活跃死槽 3 只减不增）、provenance exit 0。
+基线校准（P6-lite 口径收敛）：全量 753+1F+3S → 唯一红为 test_project_health_check 漂移（文档 717 vs collect 757），
+非行为回归；四处口径同步 754=729+25（README badge/§口径行、AGENTS.md §测试口径、pytest.ini 唯一真源、
+dev-docs/truth-index.md；task_plan.md 快照区历史行补 717）。校准后全量复跑见下行。

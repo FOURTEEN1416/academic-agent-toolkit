@@ -70,12 +70,12 @@
 6. **路径/密钥卫生**：tracked 配置不得写本机绝对路径；`.env` 永不入库；
    `python 科研工具箱/tools/secret_scan.py --strict` 机检。
 
-## 测试口径（2026-09-22 华为杯管线补齐轮实测，pytest.ini 为唯一真源）
+## 测试口径（2026-09-22 P4 资产激活轮实测，pytest.ini 为唯一真源）
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **717 passed / 0 failed**（= 工具箱 **696** + 根级门禁 **21**；另 1 skipped；collect-only 718。2026-09-22 私有资料区删除后本机实测 715+3，差 2 项为缺私有资产时的语义 skip，非回归） | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **696 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **754 passed / 0 failed**（= 工具箱 **729** + 根级门禁 **25**；另 3 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1；collect-only 757。2026-09-22 P4 资产激活轮本机实测口径） | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **729 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
 | 根 `tests/` 单跑 | catalog schema + 反 AI 工具集 | **21 passed** | catalog 改动后必跑 |
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准（现行：**713+5 skipped / 0 failed @ run 35711171875**，收集总数与本机一致 718；历史：600+3 @ run 35425878920） | 门禁 |
 
