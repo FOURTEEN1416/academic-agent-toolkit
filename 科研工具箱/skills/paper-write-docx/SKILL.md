@@ -195,13 +195,30 @@ The downstream `docx-export` step uses `tools/docx-cn-engine/md_to_docx.js`. Fol
 
 - Inline: `$x^2 + y^2 = r^2$`
 
-- Display: `$$ \nabla_\theta L(\theta) = \mathbb{E}[\dots] \quad (1) $$`
+- Display: `$$\nabla_\theta L(\theta) = \mathbb{E}[\dots] \tag{1}$$`
 
-- Number on right by appending `(1)`, `(2)` after `$$ ... $$`
+- **Numbering goes INSIDE the formula via `\tag{n}`** — the engine extracts it and
+  right-aligns it as `(n)`. Multi-line form:
 
+```markdown
+$$
+\min_{\mathbf{x}} \sum_{i=1}^{n} c_i x_i \tag{2}
+$$
+```
 
+> ⛔ **Never put the number on the closing-delimiter line (`$$ (1)`).** An earlier
+> revision of this file said "append `(1)` after `$$ ... $$`", which is exactly the
+> instruction that caused a production incident. Once the number is not a plain
+> integer — `(8')`, full-width `（5）`, or trailing words after it — the engine fails
+> to recognise that line as the closing delimiter and **swallows everything after it**:
+> body text, later formulas and `![](figures/xxx.png)` image refs all get parsed as
+> math → **formulas render one character per line, images fail to load** (measured: 17
+> of 17 display formulas in one paper). The engine now treats any line starting with
+> `$$` as closing, but **still write `\tag{n}`** — it is the form KaTeX / MathJax /
+> Pandoc all accept. （modex-3 同源吸收 2026-09-22，本段精确取代旧"append (1) after $$"口径。）
 
-⛔ **Never use** `\begin{equation}`, `\[...\]`, `\begin{align}` — engine doesn't render those.
+⛔ **Never use** `\begin{equation}`, `\begin{align}` — the engine does not process these LaTeX environments.
+⛔ **Do not use `\[...\]` for display math** — the engine recognises it but renders it **inline** (not centered, no number), so it will not look like a display equation.
 
 
 

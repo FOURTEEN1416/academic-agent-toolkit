@@ -33,6 +33,11 @@ Generate figures and tables from data: **$ARGUMENTS**
 - **CUSTOM_REQUIREMENTS** — User-specified requirements, highest priority.
 
 
+## Evidence provenance
+
+For each actual figure, record in `FIGURE_REPORT.md` its question/scenario, generating script, data file and field, parameter conditions, sample count (when relevant), statistic and uncertainty definition. Reuse actual results; do not add a paid review round just to fill this record. Unknown provenance must be marked unknown, never guessed. A convergence trace for one parameter/scenario cannot establish another candidate's reliability; cross-question comparisons need explicit comparable conditions. Keep this metadata in the report, not as dense prose inside the figure.
+
+
 
 <tools_and_style>
 
@@ -96,6 +101,17 @@ Stats tables: `stats_utils.py` provides `regression_table`, `descriptive_table`,
 
 </tools_and_style>
 
+
+
+## 最终插入尺寸与数据可读性合同（必须）
+
+1. **按实际净空放图例**：单图用 `auto_legend(ax)`，已有位置不遮挡就保留；先尝试图内其他安全位置，确实放不下再测量顶部/右侧区域。多面板系列语义相同时用 `consolidate_shared_legends(fig, axes)`，默认测量紧凑公共区域；系列不同时不强行合并。不按随机种子选图例位置，不把所有图套成固定顶部栏，不为少数字段横向撑满。不要通过缩字、删数据或取消误差带来腾位置；最后检查全图，而不只检查图例所属的轴。
+2. **随机实验用区间表达**：多次运行画中心统计量和 `uncertainty_band(...)`，在正文/附表交代区间定义与重复次数。禁止在曲线每个点标数值；仅保留必要的阈值或拐点。
+3. **先声明论文落地尺寸**：新建 figure 后调用 `set_paper_placement(fig, width_fraction=...)`。不确定宽度时省略 `width_fraction`，由 PDF/Word 中更保守的布局分档反算字号。不得用超大画布画小字后整体缩小；信息过密时优先增加高度、缩短标签或拆图。保存钩子会按最终插入尺寸恢复最小印刷字号，修复后仍冲突则直接失败。
+4. **带数值的热力图必须用矢量单元格**：调用 `draw_vector_heatmap` / `vector_heatmap`；不用 `imshow` 或 `sns.heatmap` 生成带字栅格。`annot='auto'` 会在密集时取消单元格数值，字色按真实背景对比度自适应；精确数值放表格。
+5. **坐标和网格保持克制**：连续数据用 `dynamic_limits(...)` 根据有限数据留白，柱图才默认 `include_zero=True`，对数轴不得包含非正值。用 `declutter_axes(...)` 隐去上/右边框，只保留辅助读数所需的低对比网格；热力图不叠加坐标网格。
+
+用户选定的色系仍是最高优先级；上述合同只管布局、可读性与表达逻辑，不随机替换用户颜色。
 
 
 ## ⛔⛔⛔ Output Contract (highest priority)
@@ -1680,6 +1696,25 @@ echo "=== Summary: $FAILED scripts failed ==="
 **Do NOT proceed to Step 5 until every gen_fig_*.py has produced its PDF.**
 
 
+### Step 4.4: 单图即时检查 + 最终矢量图硬检查（默认执行，不调用模型）
+
+这一步只读取已经生成的 PDF，不消耗模型额度。它按论文中的实际插入宽度反算最终印刷字号，
+检查字体嵌入、最终字号、文字互相压盖、文字出界、低对比度及主体被异常大空白带挤开的情况。
+**每生成一张就立即检查这一张**，失败则只修这一张，不能让坏图继续出现在工作区或拖到最后一起返工：
+
+```bash
+python _utils/figure_pdf_quality_check.py figures --paper paper --only fig_xxx.pdf
+```
+
+全部图片完成后，再运行一次整批复核：
+
+```bash
+python _utils/figure_pdf_quality_check.py figures --paper paper
+```
+
+退出码非 0 时，回到对应 `gen_fig_*.py` 调整原生画布、字号、GridSpec、图例专用区或标注，
+只重跑失败图，再重复本检查。不得通过降低到 8 pt 以下来消除碰撞。
+
 
 ### Step 4.5: 数据图视觉质检（可选，默认关 · 仅当用户在高级选项开启时才跑）
 
@@ -2653,6 +2688,10 @@ echo ""
 
 **⛔ If GATE_FAIL > 0, fix every ❌ and re-run. Do NOT finish with any ❌.**
 
+
+### Step 10.5: 在本次出图会话内闭环 TABLE 数据核对
+
+如果同时生成了 `figures/TABLE_*.tex|md` 和结果 JSON，结束前逐表确认所有数据单元格均可追溯到 JSON（允许显示精度截断，禁止凭空补数，也禁止修改 JSON 来迁就表格）。确认后创建空标记文件 `figures/TABLE_DATA_CHECK_PASSED.txt`。该文件只表示本次会话已完成核对，不进入论文。引擎仍会独立生成清单并复查；缺少标记时才会启动一次聚焦核对，因此不要把这项留给第二次完整模型会话。
 
 
 ## Key Rules

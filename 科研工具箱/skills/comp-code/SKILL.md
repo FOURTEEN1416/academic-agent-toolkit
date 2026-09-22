@@ -52,6 +52,8 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 
   - ⛔ 同一求解**最多在本轮内试 3 种策略**；3 种都拿不到可行解，就在 RESULTS.md 如实记"该子问题求解受限，已用 X 策略取得 gap≈Y% 的可行解 / 或降规模近似解"，**带着已有的最好结果继续下一问**，绝不 `end_turn` 空手退出。
 
+**通用化补充（modex-3 同源吸收，2026-09-22）**：模型回合结束不等于后台计算完成——收尾阶段会回收子进程。长计算优先前台执行并设置符合规模的超时；若工具自动转后台，保留稳定任务 ID，等待该任务的最终退出状态，不能以日志出现一行文字或文件刚创建代替完成回执。修正异常、缓存不变中间量或分块计算优先于降规模；不能为了赶时间减少题设数据、放宽硬约束或伪造最优性。近似策略只有符合题目/已确认建模方案时才能采用，必须披露真实误差与适用范围。同一失败算例最多尝试 3 次有明确区别的修复策略，并受总时间预算约束；已验证算例不陪跑。仍无解就明确记录"未得到可行解"，不能编造 gap 或把失败当完成。每个算例完成后使用下文 Step 4.1 检查点保存，禁止最后统一保存导致中途失败全部丢失。
+
 ## ⚡ 快速模式检测（第一步先跑，决定后面审查强度）
 
 ```bash
@@ -151,6 +153,8 @@ ACTUAL_JSON=$(ls figures/problem_*_results.json 2>/dev/null | wc -l)
 - code/*.py 存在但无 RESULTS.md -> 直接执行已有代码
 
 - 什么都没有 -> 从头开始
+
+**恢复语义加强（modex-3 同源吸收，2026-09-22）**：文件大小不能证明完整。先核对任务清单、已完成子问题、失败算例、真实异常与结果来源。已有检查点 -> 对照输入、求解/公共代码、参数、随机种子、验证器与依赖版本；只恢复缺失或失效算例。无版本凭据的旧结果 -> 先只读核对，不能直接视为有效缓存，也不要因报告缺失就重跑所有代码。结果完整而仅缺报告 -> 从真实已验证结果汇总，不重新求解。
 
 ### Step 1: 读取建模报告 + 建立实现清单 + 防错审查
 
@@ -474,6 +478,8 @@ done
 
 检查 Python，安装必要库（numpy, pandas, scipy, matplotlib, scikit-learn, statsmodels, networkx）。
 
+**上游更新（modex-3 同源吸收，2026-09-22）**：只检查本题实际依赖是否可导入，仅安装缺失且必需的库，不默认安装/升级整个科学计算与绘图库。编程步骤不读绘图配方、不安装 SciencePlots/LaTeX，不编译论文；验证代码可以产出残差、轨迹等完整数据，由后续绘图步骤排版。
+
 ### Step 2.5: 数据读取验证（有附件数据时必做）
 
 **⛔ 写任何求解代码之前，先写一个独立的数据验证脚本，确认数据读取正确：**
@@ -660,6 +666,25 @@ cd ..
 
 ```
 
+**⛔ 规则 5（modex-3 同源吸收，2026-09-22）：存在 `_utils/run_compute.py` 时优先用它作执行入口，不能仅靠 `cd code`。** Windows 嵌入式 Python 的 `._pth` 隔离模式可能忽略当前目录与 PYTHONPATH。入口显式准备脚本目录、code/、_utils/ 与工作区根目录的导入路径，不改安装配置、不改用户源码。发布代码如需自举模块路径，放在模块文档字符串及 `from __future__` 之后、业务 import 之前。
+
+```bash
+# 从工作区根目录执行；解释器用本轮检测到的实际 python
+python _utils/run_compute.py --check --check-import utils code/problem1.py
+python _utils/run_compute.py code/problem1.py
+# 仅旧脚本明确依赖 code/ 为工作目录时使用：
+python _utils/run_compute.py --cwd script code/problem1.py
+```
+
+管道必须用 `set -e -o pipefail`，不能让 tee 的成功覆盖求解器失败：
+
+```bash
+set -e -o pipefail
+python _utils/run_compute.py code/data_check.py 2>&1 | tee _tmp/data_check.log
+python _utils/run_compute.py code/problem1.py 2>&1 | tee _tmp/problem1.log
+[ -s figures/problem_1_results.json ] || { echo "problem1 results missing"; exit 1; }
+```
+
 ### Step 4: 逐子问题编写和执行
 
 **必须按顺序逐问求解：编写 -> 执行 -> 验证 -> 下一问。**
@@ -723,6 +748,25 @@ echo "--- 编程实现时必须使用上述方法，或明确说明替代理由 
 5. 结果异常则修改代码重跑
 
 ---
+
+### Step 4.1: 逐算例检查点（modex-3 同源吸收，2026-09-22 · 存在多算例或长求解时）
+
+使用 `_utils/compute_checkpoint.py` 的 `CaseCheckpoint`，通过运行入口即可导入。每个算例验证后立即原子保存；最后一个算例失败不能丢弃前面已完成结果。检查点不代替完整结果 JSON 或最终验收。
+
+```python
+from compute_checkpoint import CaseCheckpoint
+
+checkpoint = CaseCheckpoint(workspace, f"problem3/{case_id}",
+    dependencies=["code/problem3.py", "code/utils.py", "code/params.py", input_file],
+    parameters={"case_id": case_id, "seed": seed, "settings": settings,
+                "validator_version": "v1", "library_versions": library_versions})
+result = checkpoint.load(validate_saved_case)  # 重算可行性等便宜检查，不重复求解
+if result is None:
+    result = solve_case(case_id)
+    checkpoint.save(result, validate_saved_case)
+```
+
+`validate_saved_case` 必须检查存储结果的题设硬约束、有限数值与来源并显式返回 True；不能是空壳。dependencies 要包含本算例真正依赖的数据、求解器、验证器及公共代码，不使用示例中的文件名凑清单。种子、容差、求解设置和库版本也要纳入；任何依赖变化均失效。失败/损坏/旧版本缓存不得当成功结果。不要只通过抄写"validated"字段绕过验证。
 
 ### Step 4.5: ⛔⛔⛔ 每问跑完后的自检流程（核心，每个子问题都必须做）
 
@@ -1148,6 +1192,29 @@ CAPA=$?   # 0=全达标 1=有未达标/缺结论(阻断) 2=无清单跳过
 本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
 
 建议额外记录：依赖清单、求解器、运行时长、退出码。
+
+## 补充说明：保留原流程，按证据防止无效返工（modex-3 同源吸收，2026-09-22）
+
+原有步骤、案例及检查清单保留。执行时以 `_utils/quality_gate_contract.md` 为准：
+同一版本的验证证据可复用，不因多个报告名重复求解。缺标记、关键词、原样数字
+或预期形状不等于错误；检查器故障先修检查器。有效硬约束与真实任务覆盖不能跳过。
+原文"唯一方法/唯一修法"指保持数学合同，不禁止经说明的等价实现或数值稳定化；
+改变目标、约束、题设数据或用户决定仍需确认。诊断条件不符合题设时应修条件并留依据。
+机理、PDE、连续事件、反问题、可靠性阈值题额外按需读取
+`_utils/mechanism_accuracy_addendum.md`，只选会影响当前答案的检查，不全量套用。
+沿用建模报告中的适用风险和验证计划；首次缺少这部分时在现有逐问检查中补上，
+记录"本问风险 → 题意依据 → 检查方法 → 实际证据路径/状态"。不用新增报告或
+为填表重跑求解；空泛的"已通过"不能代替实际回代、误差或可行性证据。
+
+该补充的 16.10—16.15 也覆盖离散调度、实验设计、光学近似及时间目标，不限于 PDE。
+按本问机制执行已选的最小有效检查：从最终方案回放关键资源/时序，从实际轨迹重算
+功率/时间窗，或将反演参数代回观测。重复出现同一风险不新开一轮求解。
+先区分题设要求、已确认假设与经验提示；待确认/检查不可用不自动判模型错误。
+局部任务只核授权问题，未授权的全局报告/合同不因这份补充被改写。
+
+## 检查证据与返修范围（modex-3 同源吸收，2026-09-22）
+
+检查与返修遵循 `_utils/quality_gate_contract.md`。数据推导值不一定逐字出现在原始 JSON 中，必须先核对计算、单位与舍入；禁止为迎合检查删掉真实结果。静态特征匹配不能替代能力项与实际运行证据。通过标记只能在真实核对之后写入；缺少标记是待核对状态，不是模型错误。不要自行追加固定公式数量、隐藏安全裕度或无限重复检查。
 
 ## 关键规则
 

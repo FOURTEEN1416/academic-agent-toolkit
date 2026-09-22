@@ -29,7 +29,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 
 **必须使用 daisyUI 组件库**，不手写零散 CSS。
 - 按需读参考：`cat references/daisyui_ref.md`（组件 class 写法 + 审美原则）。
-- **设计风格**：读 CLAUDE.md 的"前端设计风格"段。若指定了某风格，`cat references/styles/<风格>.md` 按其配色/字体/组件规格 + 指定的 daisyUI 主题实现；若是"系统自动"，按项目性质自选一个风格文件参考；若是自定义描述，按描述设计并选最接近的 daisyUI 主题。整站风格统一。
+- **设计风格**：读项目指令文件（AGENTS.md，或宿主等价的注入配置）的"前端设计风格"段。若指定了某风格，`cat references/styles/<风格>.md` 按其配色/字体/组件规格 + 指定的 daisyUI 主题实现；若是"系统自动"，按项目性质自选一个风格文件参考；若是自定义描述，按描述设计并选最接近的 daisyUI 主题。整站风格统一。（`references/styles/` 五档：apple / minimal / retro / tech / vibrant，2026-09-22 modex-3 同源吸收补齐。）
 - 用 daisyUI 语义组件：`btn` `card` `navbar` `input` `table` `modal` `menu` `alert` 等。
 - 选一个协调主题（`light`/`corporate`/`nord`），在 `<html data-theme="...">` 统一设置。
 - 引入优先本地（daisyUI+Tailwind CSS 放本地），CDN 兜底并在 README 注明。

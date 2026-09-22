@@ -4,29 +4,32 @@ Reusable layout and encoding patterns used across publication-grade scripts.
 
 ---
 
-## Pattern 1: Ultra-wide multi-metric bar panel
+## Pattern 1: Related metrics with a reserved legend cell
 
-For 3–4 metrics compared across many methods, use a wide canvas so bars and labels don't crowd.
+Choose rows and columns for the actual number of metrics, not an ultra-wide fixed canvas.
+The legend needs **one extra cell**, never the last data cell.
 
 ```python
-fig = plt.figure(figsize=(45, 12))   # or (28, 6) for fewer metrics
-gs = gridspec.GridSpec(1, n_metrics)
-
+import math
+ncols = 2
+nrows = math.ceil((len(metrics) + 1) / ncols)
+fig = plt.figure(figsize=(6.5, 2.2 * nrows), layout='constrained')
+set_paper_placement(fig, width_fraction=.9)
+gs = fig.add_gridspec(nrows, ncols)
 for i, metric in enumerate(metrics):
-    ax = fig.add_subplot(gs[i])
-    ax.bar(x, values[metric], color=colors, ...)
-    ax.set_ylabel(metric, fontsize=54, labelpad=12)
+    ax = fig.add_subplot(gs[i // ncols, i % ncols])
+    ax.bar(x, values[metric], color=colors, label=methods)
+    ax.set_ylabel(metric)
     ax.set_xticks([])
-
-# Last panel: legend only
-ax_leg = fig.add_subplot(gs[-1])
-ax_leg.legend(handles, labels, fontsize=38, loc='center', frameon=False)
+    if i == 0:
+        handles, labels = ax.get_legend_handles_labels()
+j = len(metrics)
+ax_leg = fig.add_subplot(gs[j // ncols, j % ncols])
+ax_leg.legend(handles, labels, loc='center', frameon=False)
 ax_leg.set_axis_off()
-
-fig.tight_layout(pad=2)
 ```
 
-**Rule**: Width often 3–4× height. Allows left-to-right narrative scanning.
+For many metrics, split into related figure groups without discarding data. Recheck final print size.
 
 ---
 

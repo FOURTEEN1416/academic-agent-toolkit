@@ -337,6 +337,8 @@ When pages overflow (and the competition truly has a hard limit), trim only in t
 
 - ❌ Any global font-shrinking command on body (non-table) text.
 
+**Upstream refinement (modex-3 same-source absorption, 2026-09-22) — adaptive figure size, anti-page-fitting works both ways**: the `0.85\textwidth` above is this repo's default consistency tier, not proof of correctness. The real criterion is **final printed legibility**: diagnose actual clipping, sub-8pt rendered text, overlap and abnormal whitespace, and reflow dense information when needed. The inverse is equally forbidden — do not enlarge everything to `0.85\textwidth` just to satisfy the rule. A readable compact diagram and a well-designed multi-panel figure are both valid; widths such as `0.48\textwidth`, absolute dimensions, and deliberate height caps are **not** proof of a defect. Font size and figure dimensions are never driven by a page-count target (neither shrinking nor inflation).
+
 **Self-check (run before Step 7 quality gate):**
 
 ```bash
@@ -530,6 +532,15 @@ echo ""
 ```
 
 **⛔ If GATE_FAIL > 0, fix every ❌, recompile, re-run gate. Do NOT finish with any ❌.**
+
+**Upstream evidence-before-repair rules (modex-3 same-source absorption, 2026-09-22; same doctrine as `_utils/quality_gate_contract.md`):**
+
+- Repair only concrete failures, in a batch, then compile once and recheck the changed final snapshot. Never suppress a true failure to make a step pass.
+- Tool failures/timeouts/missing dependencies are **not** defective paper content. Stop with a recoverable diagnostic; do not spend model calls rewriting unrelated text. Fix the checker first when the checker is what broke.
+- Advisory warnings are not passed evidence either. Resolve provenance and applicability during the already-required semantic review; retain unresolved limitations honestly.
+- Do not reimplement these checkers with broad `grep` over every file in `sections/`. Only sources included by `main.tex` and the final manuscript's actual figures count.
+- Do not use PDF byte count, fixed display-equation count, number of table rows, planned figure-name mentions, missing literal algorithm keywords, or a caption's length alone as hard failure criteria. `fig_size_consistency_check.py` compares draft plans only.
+- Distinguish two exit classes in the gate tally: `GATE_FAIL` (content failure, must fix) and `GATE_UNAVAILABLE` (check could not run — report it; do not fake a pass and do not blame the manuscript).
 
 ### Step 8: Output report
 

@@ -144,6 +144,35 @@ Semantic rules:
 - Neutral grays = reference/background
 - Use NMI pastel when comparing method families on dense pages
 
+### ⛔⛔⛔ 取色必须调 `nature_palette()`，不要把上面的 hex 抄成字面量
+
+上面的字典只是**默认值参考**，脚本里不要复制它。正确取色方式：
+
+```python
+from _utils.plot_utils import nature_palette, nature_markers
+C = nature_palette()        # 15 键语义字典；尊重用户色系，未固定色系时同族微调
+M = nature_markers()        # marker 顺序，也按工作区轮转
+
+ax.plot(x, y, color=C['blue_main'], marker=M[0], label='本文方法')
+ax.plot(x, y2, color=C['red_strong'], marker=M[1], label='基线')
+ax.fill_between(x, lo, hi, color=C['green_1'], alpha=0.6)
+```
+
+**用户指定优先**：黑白或自定义色系会覆盖默认 Nature 色值；下面的同族微调和蓝/绿/红角色只适用于未固定色系的 Nature 默认色板。文字墨色可为对比度同色相加深，不能引入色系外强调色。
+
+**为什么不能抄字面量**：`nature_palette()` 会按工作区名的种子对配色做**同族微调**（色相/饱和/明度小幅偏移，蓝还是蓝、红还是红，语义不变），这是**去指纹**机制——不同论文的图配色略有差异，不会一眼看出同一个工具产出。把 hex 抄成 `C = {"blue_main": "#0F4D92", ...}` 就绕过了微调，两篇论文的图**一模一样**。实测跨工作区色差 ΔE=11.1（肉眼可辨阈值 2.3 的 4.8 倍），而抄字面量则恒为 0。
+
+**微调不会破坏可读性**（`plot_utils` 里有不变量兜底，300 种子验证）：
+- 墨色（画线/文字用）对白底对比恒 ≥3.2（WCAG 图形元素线是 3.0）
+- 填充色恒保持"浅"（对比 ≤2.6），不会窜进墨色区间
+- 同族相邻色（如 `blue_main` vs `blue_secondary`）色差恒 ≥9.3，画两条线分得开
+- 中性灰只动明度不动色相（动了会把灰染上颜色）
+- 色相锁在族内区间（如蓝锁 195–235°），不会漂成青或紫
+
+**语义角色不变**（微调只改色值，不改角色分配）：蓝 = 主方法/本文 · 绿 = 正向/达标 · 红 = 基线/对照/负向 · 灰 = 辅助/参考线
+
+⛔ 装饰风格（网格有无 / 线宽档）由 `setup_style(palette='nature')` 按工作区种子处理，脚本不要无理由覆盖 `axes.grid` / `lines.linewidth`。图例位置不参与随机，由实际净空和标签宽高决定；可给 `auto_legend` 一个优先位置，但仍需验证实际遮挡。Nature 的身份项（左下两边框 / 刻度朝外 / 图例无框 / 白底 / 字号）恒定不变。
+
 ## Default Operating Stance
 
 1. **Classify** the figure into one of 5 Nature page archetypes (see below)
@@ -231,6 +260,81 @@ Run each script. Verify PDF output exists in `figures/`. Check:
 - Panel labels present for multi-panel figures
 - Colors from Nature palette, not matplotlib defaults
 - ⛔ **Completeness (anti-broken图)**: y-axis has numeric ticks (NOT empty); both `set_xlabel` & `set_ylabel` present with units; if x-ticks are hidden then data is directly labeled; every `fill_between` has an accompanying `plot` line; `set_frame_on(False)` only on heatmaps; no subplot is a bare colored rectangle. **Open each PNG/PDF and confirm it is not just floating color blocks — if it is, fix and re-run before continuing.**
+
+### 最终版面优先（数据图必须）
+
+- 新建 figure 后调用 `set_paper_placement`，按最终栏宽反算字号；不靠超大画布整体缩小。
+- 单图用 `auto_legend` 保留安全原位置，先尝试图内净空，放不下才测量顶部/右侧区域；多面板共同系列用 `consolidate_shared_legends` 生成紧凑公共区域。不固定顶部栏高度、不为短图例横向撑满，也不按随机种子选择位置。不可通过缩字、删数据或取消误差带来腾位置。
+- 图例不仅不得压数据，也不得压 panel 编号、直接标签或统计框；`loc='best'` 不是通过证明。
+- 重复/随机实验用 `uncertainty_band` 表示波动，图中不逐点标数。
+- 带单元格数字的热力图使用 `draw_vector_heatmap`，由真实背景对比选取黑/白字；密集矩阵不标每格数值。
+- 连续轴用 `dynamic_limits`，框线与网格用 `declutter_axes`。只保留必要的读数参照，不把"极简"做成缺失量纲或刻度。
+- 同一 panel 的 inset、统计框、图例最多一个留在绘图区；需要两个及以上时用 GridSpec 建专用区域。
+- 对数轴跨多个 decade 时次刻度只保留 2、5 两档；白色文字底板只改善对比度，不得遮住曲线。
+
+### Step 3.4: ⛔⛔⛔ 脚本闸（必跑，退出码 0 才算过）
+
+上面 Step 3 全是**肉眼自检**。肉眼会漏，也会累——本步骤是机器闸，**不跑不算完成**。
+
+⛔ **这一步曾有真实事故**：某次 Nature 配色出图，`figure_check.sh` 从未在本 SKILL 里被调用过，图内躺着 30 处整段说明文字（最长一条 118 显示宽、四行、含口径注解），用户一眼看出"图表里还是有文字"。而默认配色路径（paper-figure）有三道闸，所以**只有选 Nature 配色的用户会中招**。
+
+```bash
+if [ -f _utils/figure_check.sh ]; then
+    bash _utils/figure_check.sh
+elif [ -f skills/shared-scripts/figure_check.sh ]; then
+    bash skills/shared-scripts/figure_check.sh
+else
+    echo "❌ Figure checker missing — restore the current runtime tools" >&2
+    false
+fi
+FIGURE_CHECK_RC=$?
+if [ "$FIGURE_CHECK_RC" -ne 0 ]; then
+    echo "⛔ figure_check.sh 退出码 $FIGURE_CHECK_RC — 有 $FIGURE_CHECK_RC 处 CRITICAL 违规必须修完"
+else
+    echo "✅ figure_check.sh 通过"
+fi
+```
+
+**通过标准是退出码 0，不是"跑过了"。**
+
+⛔⛔ **报告存档 ≠ 通过。** 那次事故里，AI 自己跑过体检、把输出存进了临时目录，然后**没有去改**就往下走了。存档只是留痕，闸的意义在于**改到零**。看到违规必须：① 打开报告指出的文件与行号 ② 逐条改 ③ **重跑** ④ 循环到退出码 0。
+
+本闸包含的检查里，Nature 配色最容易踩的两条：
+
+| 报告标签 | 含义 | 怎么改 |
+|---|---|---|
+| `图内文字超标` | 把说明/结论画进了图 | 见下面 Step 3.45 的两档规则 |
+| `多行文字框压在绘图区` | 文字框盖住数据 | 先按上一条精简文字；仍需要就移到轴外 |
+
+### Final file check（每张 PDF 生成后立即跑，不调用模型）
+
+After generating each PDF, run `python _utils/figure_pdf_quality_check.py figures --paper paper --only fig_xxx.pdf`. Repair only the identified figure. Warnings about complex backgrounds mean visual review is needed, not automatic failure or a free pass. The workflow also checks the final PDF; do not publish a malformed image just because its script exited zero. 全部图片完成后再整批复核一次：`python _utils/figure_pdf_quality_check.py figures --paper paper`。
+
+### Step 3.45: ⛔⛔ 图内文字两档规则（Nature 语境）
+
+Nature 的图**信息密度靠图形承载，不靠图内文字**。正刊图里出现的中文/英文短语几乎只有两类：给线/点/区域起名，和标数值。**成段的说明、口径、结论一律在 caption 与正文里**——这既是期刊规范，也是防遮挡的根本手段（文字越少越不会撞）。
+
+**放行**（`figure_check.sh` 不会拦）：
+
+- 纯数值：`8188.06`、`45%`、`n=30`、`1007 张`、`$q^*$=0.47`
+- **短锚点标签**（给东西起名，≤45 显示宽 / ≤3 行 / 汉字 ≤12，每行"有数字"或"汉字 ≤5"）：`预算绑定区`、`肘部拐点 $k$=8`、`ROI 下限 3.0`、`膝点 $B^\ast\approx$3.2 万元`、`Youden: J=0.42, θ*=0.31`、`加权 R²=0.87 / RMSE=1.2`
+- 纯公式：`$\tau(d)=p(d)-p_0$`
+- panel 标号：`a` / `(b)`
+
+**违规**（必须移出图外）：
+
+- 结论/因果：`全区间贴死下限 → ROI 始终绑定`、`因此最优解取 8 个点`、`加预算无用`
+- 导读：`题给 $B$=500000 元 → 在图右`（行首箭头、或箭头后紧跟中文）
+- 成段说明：`面额 5→50 涨 10 倍⏎人均增量 GMV 仅涨 2.3 倍⏎预算占用却涨 18.3 倍⏎（全池均值口径）`
+- 多标签堆叠：`最优解 · 收敛区间 · 预算上限 3271 元`（拆成多个 annotate 或移进正文）
+
+**三条改法**（按优先级）：
+
+1. **结论换成能推出结论的数值**——别写"始终贴死下限"，写 `ROI 3.000–3.016`，让读者自己看出来，结论进 caption。这是最好的改法：图更硬，字更少。
+2. **解释图上元素 → 走图例**——"双箭头 = 净提升"这种话的正确出口是 `label=` 进 legend，不是 `ax.text`。图内只留纯公式。
+3. **口径/条件 → 进 caption**——"全池均值口径"、"该档实验样本仅 530 条"这类限定语，全部写在 LaTeX caption 里。
+
+⛔ **不要因为闸报违规就把标签删光**——阈值线不说明是什么线、最优点不标是最优点，图就没法读了（这也是违规，Step 3 的 anti-broken 检查会抓）。删的是**说明和结论**，留的是**名字和数值**。
 
 ### Step 3.5: 数据图视觉质检（可选，默认关 · 仅当用户在高级选项开启时才跑）
 
