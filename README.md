@@ -7,7 +7,7 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v1.3.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-772_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
+[![Tests](https://img.shields.io/badge/tests-776_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-311-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-258_tracked-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
@@ -163,9 +163,9 @@ python 科研工具箱/tools/plotting_env_check.py
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-# 口径一（仓库根，回归门禁口径）：工具箱 747 + 根级门禁 25 = 772 passed / 0 failed
+# 口径一（仓库根，回归门禁口径）：工具箱 751 + 根级门禁 25 = 776 passed / 0 failed
 python -m pytest -q
-# 口径二（工具箱内，技能验收基线口径）：747 passed / 0 failed
+# 口径二（工具箱内，技能验收基线口径）：751 passed / 0 failed
 cd 科研工具箱 && python -m pytest -q
 python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账通过
 ```
@@ -178,7 +178,7 @@ python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）66/66 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | ⚠️ **2026-09-19 起停用**：公开层曾为 CC-BY-4.0 合成题面基准（P01-P03 + 六域 7 项），已废弃入库，内容归档于 `dev-docs/archive/legacy-benchmarks-tests-20260919/`；私有层（真实竞赛题面）从未入库，**已随磁盘删除永久丢失** |
-| ✅ **测试基线** | 仓库根 **772 passed / 0 failed**（本机，2026-09-22 checkpoint 人类署名红线轮实测；= 工具箱 **747** + 根级门禁 **25**；另 3 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1）。唯一真源=`pytest.ini` 注释；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计。历史基线 768/754/717/651/639/628/603/460 见 `pytest.ini` 注释（保留作历史；truth-index 为内部文档不入库） |
+| ✅ **测试基线** | 仓库根 **776 passed / 0 failed**（本机，2026-09-23 口径对齐轮实测；= 工具箱 **751** + 根级门禁 **25**；另 3 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1，collect-only 779）。唯一真源=`pytest.ini` 注释；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计。历史基线 772/768/754/717/651/639/628/603/460 见 `pytest.ini` 注释（保留作历史；truth-index 为内部文档不入库） |
 | 🧬 **逐技能 C2 覆盖** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
 | 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + `agents/adapters/`（旧宿主降为可选适配器）+ TOOL_GAP→工具铸造（2026-09-20） |
 
