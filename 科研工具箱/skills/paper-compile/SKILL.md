@@ -302,7 +302,7 @@ echo "--- Meta content leak ---"
 META=0
 for f in paper/sections/*.tex; do
     [ -f "$f" ] || continue
-    l=$(grep -ci 'RESULTS\.md\|CLAUDE\.md\|MODELING_REPORT\|PROBLEM_ANALYSIS\|PAPER_PLAN\|latex_includes\|all_results\.json' "$f" 2>/dev/null || echo 0)
+    l=$(grep -ci 'RESULTS\.md\|AGENTS\.md\|MODELING_REPORT\|PROBLEM_ANALYSIS\|PAPER_PLAN\|latex_includes\|all_results\.json' "$f" 2>/dev/null || echo 0)
     META=$((META+l))
 done
 [ "$META" -eq 0 ] && echo "✅ No meta leaks" || { echo "❌ $META meta content leaks — remove references to internal files"; GATE_FAIL=$((GATE_FAIL+1)); }

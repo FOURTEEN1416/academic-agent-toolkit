@@ -109,7 +109,7 @@ flowchart TD
 
 ### Step 4: Verify Mermaid Syntax (MANDATORY)
 
-**Claude MUST verify the generated Mermaid code by running the Mermaid CLI (`mmdc`).**
+**执行 Agent MUST verify the generated Mermaid code by running the Mermaid CLI (`mmdc`).**
 
 ```bash
 # Check if mermaid-cli is available
@@ -138,12 +138,12 @@ fi
 3. Re-run verification
 4. Repeat up to MAX_ITERATIONS (3) times
 
-### Step 5: Claude STRICT Visual Review & Scoring (MANDATORY)
+### Step 5: 执行 Agent STRICT Visual Review & Scoring (MANDATORY)
 
-After successful rendering, Claude MUST read the generated PNG and perform a STRICT review:
+After successful rendering, 执行 Agent MUST read the generated PNG and perform a STRICT review:
 
 ```markdown
-## Claude's STRICT Review of <diagram-name>
+## 执行 Agent's STRICT Review of <diagram-name>
 
 ### What I See
 [Describe the rendered diagram in DETAIL - every block, every arrow, every label]

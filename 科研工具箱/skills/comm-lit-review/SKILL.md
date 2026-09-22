@@ -1,10 +1,10 @@
 ---
 name: comm-lit-review
-description: "Communications-domain literature review with Claude-style knowledge-base-first retrieval. Use when the task is about"
+description: "Communications-domain literature review 以知识库优先检索（knowledge-base-first）进行文献综述. Use when the task is about"
 allowed-tools: Bash(*), Read, Glob, Grep, WebSearch, WebFetch, Write, Agent, mcp__zotero__*, mcp__obsidian-vault__*
 ---
 
-# Comm Lit Review Claude Single
+# Comm Lit Review
 
 Research topic: $ARGUMENTS
 

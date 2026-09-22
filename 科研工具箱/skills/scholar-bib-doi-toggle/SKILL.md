@@ -26,7 +26,7 @@ If absent (and `\bibliographystyle{...}` / `\bibliography{...}` present instead 
 
 ### 1. Find the paper
 
-Same search order as other claude-scholar skills:
+与其他 scholar 系技能检索顺序相同：
 1. User-provided path
 2. `paper/current/main.tex`
 3. `paper/main.tex`
@@ -60,7 +60,7 @@ After turning the display **on**, scan the `.bib` file for entries missing a `do
 If any are missing:
 
 - List the citekeys (cap at ~10 for readability; say "and N more" if truncated).
-- Offer to backfill them: "Want me to look these up via `claude-scholar:doi-bibtex` (if you have DOIs) or `claude-scholar:openalex` (search by title)?"
+- Offer to backfill them: "Want me to look these up via `scholar-doi-bibtex` (if you have DOIs) or `scholar-openalex` (search by title)?"
 
 Don't nudge on the off-toggle — there's nothing actionable to surface.
 Don't nudge generically (e.g., "also run check-refs") — keep this skill atomic.
@@ -73,7 +73,7 @@ Don't nudge generically (e.g., "also run check-refs") — keep this skill atomic
 
 ## Related
 
-- `claude-scholar:check-refs` — verify references exist; complementary to this skill but separate concerns. Run check-refs once early; toggle this skill on/off across the writing/submission lifecycle.
-- `claude-scholar:doi-bibtex` — fetch BibTeX for a known DOI; pair with this skill's contextual nudge to backfill missing DOI fields.
-- `claude-scholar:openalex` — search by title to find the DOI when only a title is known.
-- `claude-scholar:presubmit-checks` — pre-submission sweep; can flag if a venue specifically needs DOIs stripped.
+- `scholar-check-refs` — verify references exist; complementary to this skill but separate concerns. Run check-refs once early; toggle this skill on/off across the writing/submission lifecycle.
+- `scholar-doi-bibtex` — fetch BibTeX for a known DOI; pair with this skill's contextual nudge to backfill missing DOI fields.
+- `scholar-openalex` — search by title to find the DOI when only a title is known.
+- `scholar-presubmit-checks` — pre-submission sweep; can flag if a venue specifically needs DOIs stripped.

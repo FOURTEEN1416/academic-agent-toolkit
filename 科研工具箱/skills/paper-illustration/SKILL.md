@@ -5,9 +5,9 @@ argument-hint: [description-or-method-file]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch
 ---
 
-# Paper Illustration: Multi-Stage Claude-Supervised Figure Generation
+# Paper Illustration: Multi-Stage Agent-Supervised Figure Generation
 
-Generate publication-quality illustrations using a **multi-stage workflow** with **Claude as the STRICT supervisor/reviewer**.
+Generate publication-quality illustrations using a **multi-stage workflow** with **执行 Agent 作为 STRICT 审校方/reviewer**.
 
 ## Core Design Philosophy
 
@@ -20,7 +20,7 @@ Generate publication-quality illustrations using a **multi-stage workflow** with
 │       │                                                                  │
 │       ▼                                                                  │
 │   ┌─────────────┐                                                        │
-│   │   Claude    │ ◄─── Step 1: Parse request, create initial prompt     │
+│   │   Agent    │ ◄─── Step 1: Parse request, create initial prompt     │
 │   │  (Planner)  │                                                        │
 │   └──────┬──────┘                                                        │
 │          │                                                               │
@@ -47,7 +47,7 @@ Generate publication-quality illustrations using a **multi-stage workflow** with
 │          │                                                               │
 │          ▼                                                               │
 │   ┌─────────────┐                                                        │
-│   │   Claude    │ ◄─── Step 5: STRICT visual review + SCORE (1-10)      │
+│   │   Agent    │ ◄─── Step 5: STRICT visual review + SCORE (1-10)      │
 │   │  (Reviewer) │      - Verify EVERY arrow direction                    │
 │   │   STRICT!   │      - Verify EVERY block content                      │
 │   └──────┬──────┘      - Verify aesthetics & visual appeal               │
@@ -170,19 +170,19 @@ fi
 mkdir -p figures/ai_generated
 ```
 
-### Step 1: Claude Plans the Figure (YOU ARE HERE)
+### Step 1: Agent Plans the Figure (YOU ARE HERE)
 
-**CRITICAL: Claude must first analyze the user's request and create a detailed prompt.**
+**CRITICAL: 执行 Agent must first analyze the user's request and create a detailed prompt.**
 
 Parse the input: **$ARGUMENTS**
 
-Claude's task:
+执行 Agent's task:
 1. Understand what figure the user wants
 2. Identify all components, connections, data flow
 3. Create a **detailed, structured prompt** for Gemini
 4. Include style requirements AND visual appeal requirements
 
-**Prompt Template for Claude to generate:**
+**供执行 Agent 生成的 prompt 模板：**
 
 ```
 Create a PROFESSIONAL, VISUALLY APPEALING publication-quality academic diagram following CVPR/ICLR/NeurIPS standards.
@@ -267,7 +267,7 @@ VERIFY: Each arrow must point to the CORRECT target!
 
 ### Step 2: Gemini Layout Optimization (gemini-3-pro)
 
-**Claude sends the initial prompt to Gemini (gemini-3-pro) for layout optimization.**
+**执行 Agent 将初始 prompt 发给 Gemini (gemini-3-pro) for layout optimization.**
 
 ```bash
 #!/bin/bash
@@ -282,8 +282,8 @@ mkdir -p "$OUTPUT_DIR"
 API_KEY="${GEMINI_API_KEY}"
 URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent?key=$API_KEY"
 
-# The initial prompt from Claude
-INITIAL_PROMPT='[Claude fills in the detailed prompt here]'
+# 执行 Agent 给出的初始 prompt
+INITIAL_PROMPT='[执行 Agent 填入详细 prompt]'
 
 # Layout optimization request
 LAYOUT_REQUEST="You are an expert in academic figure layout design for CVPR/NeurIPS papers.
@@ -335,7 +335,7 @@ echo "$LAYOUT_DESCRIPTION" > "$OUTPUT_DIR/layout_description.txt"
 
 ### Step 3: Gemini Style Verification (gemini-3-pro)
 
-**Claude sends the optimized layout to Gemini for CVPR/NeurIPS style verification.**
+**执行 Agent 将优化后的布局发给 Gemini for CVPR/NeurIPS style verification.**
 
 ```bash
 #!/bin/bash
@@ -398,7 +398,7 @@ echo "$STYLE_SPEC" > "figures/ai_generated/style_spec.txt"
 
 ### Step 4: Paperbanana Image Rendering (gemini-3-pro-image-preview)
 
-**Claude sends the optimized, style-verified specification to Paperbanana for rendering.**
+**执行 Agent 将优化并经风格核验的规格交给 Paperbanana 渲染。**
 
 ```bash
 #!/bin/bash
@@ -463,7 +463,7 @@ data = json.load(sys.stdin)
 
 try:
     parts = data['candidates'][0]['content']['parts']
-    iteration = 1  # Claude increments this each iteration
+    iteration = 1  # 执行 Agent 每轮递增
 
     for part in parts:
         if 'text' in part:
@@ -482,9 +482,9 @@ except Exception as e:
 PYTHON
 ```
 
-### Step 5: Claude STRICT Visual Review & Scoring (MANDATORY)
+### Step 5: 执行 Agent STRICT Visual Review & Scoring (MANDATORY)
 
-**Claude MUST read the generated image and perform a STRICT review:**
+**执行 Agent MUST read the generated image and perform a STRICT review:**
 
 1. **Visual Analysis**: What does the image show in detail?
 2. **Strengths**: What's good about it?
@@ -494,7 +494,7 @@ PYTHON
 **STRICT Review Template:**
 
 ```markdown
-## Claude's STRICT Review of Figure v{N}
+## 执行 Agent's STRICT Review of Figure v{N}
 
 ### What I See
 [Describe the generated image in DETAIL - every block, every arrow]
@@ -607,7 +607,7 @@ ELSE:
 
 ### Step 7: Generate Improvement Prompt (for refinement)
 
-**Claude generates TARGETED improvement prompt with EXACT issues:**
+**执行 Agent generates TARGETED improvement prompt with EXACT issues:**
 
 ```
 Refine this academic diagram. This is iteration {N}.
@@ -660,11 +660,11 @@ When figure is accepted (score ≥ 9):
 4. **VERIFY EVERY BLOCK CONTENT** — Wrong content = automatic fail (score ≤ 7)
 5. **BE SPECIFIC in feedback** — "Arrow from A to B points to wrong target C" not "arrow is wrong"
 6. **SAVE all iterations** — Keep version history for comparison
-7. **Claude is the STRICT boss** — Accept only excellence, not "good enough"
+7. **执行 Agent 是 STRICT boss** — Accept only excellence, not "good enough"
 8. **ARROW CORRECTNESS IS NON-NEGOTIABLE** — Any wrong arrow direction = reject
 9. **VISUAL APPEAL MATTERS** — Plain boring figures = score ≤ 8
 10. **Target score is 9** — Not 8, not "good enough"
-11. **USE MULTI-STAGE WORKFLOW** — Claude → Gemini Layout → Gemini Style → Paperbanana → Claude Review
+11. **USE MULTI-STAGE WORKFLOW** — 执行 Agent → Gemini 布局 → Gemini 风格 → Paperbanana → Agent 复审
 12. **USE CORRECT MODELS** — gemini-3-pro for reasoning, gemini-3-pro-image-preview for rendering
 
 ## Output Structure
@@ -685,8 +685,8 @@ figures/ai_generated/
 
 | Stage | Model | Purpose |
 |-------|-------|---------|
-| Step 1 | Claude | Parse request, create initial prompt |
+| Step 1 | 执行 Agent | Parse request, create initial prompt |
 | Step 2 | gemini-3-pro | Layout optimization (positioning, spacing, grouping) |
 | Step 3 | gemini-3-pro | CVPR/NeurIPS style verification |
 | Step 4 | gemini-3-pro-image-preview (Paperbanana) | High-quality image rendering |
-| Step 5 | Claude | STRICT visual review and scoring |
+| Step 5 | 执行 Agent | STRICT visual review and scoring |

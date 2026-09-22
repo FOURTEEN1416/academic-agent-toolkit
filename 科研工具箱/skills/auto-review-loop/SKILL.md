@@ -134,7 +134,7 @@ Then extract structured fields:
 
 **Skip this step entirely if `HUMAN_CHECKPOINT = false`.**
 
-When `HUMAN_CHECKPOINT = true`, present the review results. In interactive mode, wait for user input. **In non-interactive mode (claude -p), treat as "go" and proceed with all suggested fixes automatically. Log: "HUMAN_CHECKPOINT: non-interactive mode, auto-proceeding with all fixes."**
+When `HUMAN_CHECKPOINT = true`, present the review results. In interactive mode, wait for user input. **In non-interactive mode (no further user turn), treat as "go" and proceed with all suggested fixes automatically. Log: "HUMAN_CHECKPOINT: non-interactive mode, auto-proceeding with all fixes."**
 
 ```
 📋 Round N/MAX_ROUNDS review complete.
@@ -165,9 +165,9 @@ Wait for the user's response. Parse their input:
 
 #### Feishu Notification (if configured)
 
-After parsing the score, check if `~/.claude/feishu.json` exists and mode is not `"off"`:
+After parsing the score, 检查 `~/.acat/feishu.json`（兼容旧路径 `~/.claude/feishu.json`）存在且 mode 不为 `"off"`:
 - Send a `review_scored` notification: "Round N: X/10 — [verdict]" with top 3 weaknesses
-- If **HUMAN_CHECKPOINT=true** and verdict is "almost": send as checkpoint, wait for user reply on whether to continue or stop. In non-interactive mode (claude -p), auto-continue.
+- If **HUMAN_CHECKPOINT=true** and verdict is "almost": send as checkpoint, wait for user reply on whether to continue or stop. In non-interactive mode (no further user turn), auto-continue.
 - If config absent or mode off: skip entirely (no-op)
 
 #### Phase C: Implement Fixes (if not stopping)

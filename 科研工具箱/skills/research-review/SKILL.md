@@ -14,8 +14,8 @@ Get a multi-round critical review of research work from an external LLM with max
 ## Prerequisites
 
 - **Reviewer Script** (optional but recommended): `reviewer_client.py` must be accessible via `$REVIEWER_SCRIPT` environment variable.
-- This gives Claude Code access to the configured reviewer model for cross-model review.
-- **If the reviewer script fails (e.g. API key not configured)**: This skill will perform the review using Claude's own critical analysis capabilities. Cross-model review via the reviewer script is preferred for objectivity, but not required.
+- 这让执行 Agent 经评审桥访问所配置的评审模型，实现跨模型评审。
+- **If the reviewer script fails (e.g. API key not configured)**: This skill will perform the review using 执行 Agent's own critical analysis capabilities. Cross-model review via the reviewer script is preferred for objectivity, but not required.
 
 ## Workflow
 

@@ -846,7 +846,7 @@ grep -nE '<(div|span|p|h[1-6]|table|tr|td|thead|tbody)[^>]*>' "$TARGET_FILE" | h
 
 
 
-⛔ Claude 写公式时容易出现 `$R_2$<R_1$` 或 `$a<b$`（先关 `$` 再写 `<` 又开 `$`）, docx 里 `<R_1` 会被当成字面字符。
+⛔ 执行 Agent 写公式时容易出现 `$R_2$<R_1$` 或 `$a<b$`（先关 `$` 再写 `<` 又开 `$`）, docx 里 `<R_1` 会被当成字面字符。
 
 
 

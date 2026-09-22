@@ -21,10 +21,10 @@ Four principles dominate this skill:
 
 ```
 User input (PROBLEM + vague APPROACH)
-  -> Phase 0 (Claude): Freeze Problem Anchor
-  -> Phase 1 (Claude): Scan grounding papers -> identify technical gap -> choose the sharpest route -> write focused proposal
+  -> Phase 0 (执行 Agent): Freeze Problem Anchor
+  -> Phase 1 (执行 Agent): Scan grounding papers -> identify technical gap -> choose the sharpest route -> write focused proposal
   -> Phase 2 (External Reviewer): Review for fidelity, specificity, contribution quality, and frontier leverage
-  -> Phase 3 (Claude): Anchor check + simplicity check -> revise method -> rewrite full proposal
+  -> Phase 3 (执行 Agent): Anchor check + simplicity check -> revise method -> rewrite full proposal
   -> Phase 4 (External Reviewer, same thread): Re-evaluate revised proposal
   -> Repeat Phase 3-4 until OVERALL SCORE >= 9 or MAX_ROUNDS reached
   -> Phase 5: Save full history to refine-logs/

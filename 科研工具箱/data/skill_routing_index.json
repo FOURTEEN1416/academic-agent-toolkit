@@ -15,8 +15,8 @@
   "counts": {
     "core": 54,
     "ondemand": 211,
-    "resident_chars": 32065,
-    "full_chars": 68072
+    "resident_chars": 32067,
+    "full_chars": 68074
   },
   "skills": {
     "ablation-planner": {
@@ -766,8 +766,8 @@
     "format-profile": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "根据用户的文字格式要求或上传的格式说明文档，生成 docx-export 用的样式 profile JSON。Claude 自主理解中文字号术语、字体、行距、缩进等参数。",
-      "full_description": "根据用户的文字格式要求或上传的格式说明文档，生成 docx-export 用的样式 profile JSON。Claude 自主理解中文字号术语、字体、行距、缩进等参数。",
+      "resident_description": "根据用户的文字格式要求或上传的格式说明文档，生成 docx-export 用的样式 profile JSON。执行 Agent 自主理解中文字号术语、字体、行距、缩进等参数。",
+      "full_description": "根据用户的文字格式要求或上传的格式说明文档，生成 docx-export 用的样式 profile JSON。执行 Agent 自主理解中文字号术语、字体、行距、缩进等参数。",
       "description_compacted": false,
       "path": "科研工具箱/skills/format-profile/SKILL.md"
     },

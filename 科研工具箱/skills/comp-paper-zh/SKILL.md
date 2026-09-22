@@ -122,7 +122,7 @@ Template: `templates/stats/main.tex`
 
 **Chapter structure is driven by research content, not fixed templates.**
 
-Award-winning stats modeling papers vary wildly in structure — some organize by model, some by analysis step, some by research question. There is no "standard structure". Claude must design chapters autonomously based on the actual content in TOPIC_PLAN.md / MODELING_REPORT.md.
+Award-winning stats modeling papers vary wildly in structure — some organize by model, some by analysis step, some by research question. There is no "standard structure". 执行 Agent must design chapters autonomously based on the actual content in TOPIC_PLAN.md / MODELING_REPORT.md.
 
 #### Fixed skeleton (must keep)
 
@@ -138,7 +138,7 @@ Award-winning stats modeling papers vary wildly in structure — some organize b
 
   ↓
 
-  [Middle chapters: content-driven, Claude designs autonomously, typically 3-5 chapters]
+  [Middle chapters: content-driven, 执行 Agent designs autonomously, typically 3-5 chapters]
 
   ↓
 
@@ -530,7 +530,7 @@ else
 
     grep -q 'appendices\|\\appendix' paper/main.tex && echo "✅ 附录结构存在" || echo "❌ 缺少附录"
 
-    # ⛔ 模板指纹校验：对比 paper/main.tex 和模板原文，确认是复制的不是 Claude 自己写的
+    # ⛔ 模板指纹校验：对比 paper/main.tex 和模板原文，确认是复制的不是 执行 Agent 自己写的
 
     TMPL_BASE="_templates"
 
@@ -1896,7 +1896,7 @@ Common traits of award-winning papers:
 
 **数模竞赛**: "字不如表，表不如图". Every sub-problem must have independent result display (table + figure). Comprehensive comparison figures are additional supplements. Reviewers value information density and aesthetics.
 
-Do not force figures where they are not needed (pure literature review, theoretical derivation). Claude decides figure count and placement based on content needs.
+Do not force figures where they are not needed (pure literature review, theoretical derivation). 执行 Agent decides figure count and placement based on content needs.
 
 </figure_usage_principles>
 

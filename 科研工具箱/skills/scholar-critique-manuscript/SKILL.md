@@ -64,7 +64,7 @@ Is the paper well-situated in prior work? Key questions:
 - Could a reviewer argue the contribution is too incremental or already known?
 - Are the most relevant and recent references cited?
 
-If literature gaps are suspected, note them and guide the user on what to ask Claude to search for. For example: "You could ask me to search OpenAlex for papers on [specific topic] by [specific authors/groups] to check whether key references are missing." Provide concrete query suggestions — topics, author names, keywords — so the user can decide whether to follow up.
+If literature gaps are suspected, note them and guide the user on what to ask the Agent to search for. For example: "You could ask me to search OpenAlex for papers on [specific topic] by [specific authors/groups] to check whether key references are missing." Provide concrete query suggestions — topics, author names, keywords — so the user can decide whether to follow up.
 
 If the user explicitly requests a literature search, use `/openalex` to run targeted queries derived from:
 - The paper's title and key claims
@@ -188,7 +188,7 @@ Questions reviewers are likely to ask. Preparing answers strengthens the paper a
 
 For each criterion section, anchor every critique point to a specific location in the manuscript (section, figure, table, paragraph, or quoted claim). Vague feedback like "the literature review has gaps" is not useful — instead: "Section 2 does not cite any work on [topic], despite claiming novelty in this area (paragraph 3)."
 
-After writing the file, print a brief summary to the conversation highlighting the top findings. When flagging literature gaps, suggest specific keywords, author names, or research areas the user can ask Claude to search for.
+After writing the file, print a brief summary to the conversation highlighting the top findings. When flagging literature gaps, suggest specific keywords, author names, or research areas the user can ask the Agent to search for.
 
 ## Rules
 

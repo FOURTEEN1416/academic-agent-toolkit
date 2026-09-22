@@ -35,9 +35,9 @@ If the repo context is clear enough for a first draft, still apply this gate bef
 
 ## Core Philosophy: Collaborative Writing
 
-**Paper writing is collaborative, but Claude should be proactive in delivering drafts.**
+**Paper writing is collaborative, but 执行 Agent should be proactive in delivering drafts.**
 
-The typical workflow starts with a research repository containing code, results, and experimental artifacts. Claude's role is to:
+The typical workflow starts with a research repository containing code, results, and experimental artifacts. 执行 Agent's role is to:
 
 1. **Understand the project** by exploring the repo, results, and existing documentation
 2. **Deliver a complete first draft** when confident about the contribution

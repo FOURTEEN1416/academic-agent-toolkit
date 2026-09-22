@@ -1027,7 +1027,7 @@ fi
 
 
 
-Claude must construct the prompt BASED ON THE FINAL methods/results from MODELING_REPORT.md (not the initial plan — methods may have changed during modeling/coding). Only write the core scene/layout/content description — language adaptation, style guidelines, and safety rules are automatically injected by the tool.
+执行 Agent must construct the prompt BASED ON THE FINAL methods/results from MODELING_REPORT.md (not the initial plan — methods may have changed during modeling/coding). Only write the core scene/layout/content description — language adaptation, style guidelines, and safety rules are automatically injected by the tool.
 
 
 
@@ -1053,7 +1053,7 @@ Claude must construct the prompt BASED ON THE FINAL methods/results from MODELIN
 
 
 
-Claude 根据赛题自由构造 prompt，参考格式：
+执行 Agent 根据赛题自由构造 prompt，参考格式：
 
 
 
@@ -1101,7 +1101,7 @@ GPTIMG_FAILED=""
 
 # For each planned figure, call gpt_image.py
 
-# Example (Claude generates the actual calls based on the plan):
+# Example (执行 Agent generates the actual calls based on the plan):
 
 $PYTHON tools/gpt_image.py \
 

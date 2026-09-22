@@ -39,7 +39,7 @@ Grant proposals argue for **future work** (feasibility + potential), not complet
 - **MAX_REVIEW_ROUNDS = 2** — Maximum external review-revise cycles before finalizing.
 - **OUTPUT_DIR = `grant-proposal/`** — Directory for generated proposal files.
 - **LANGUAGE = `auto`** — Output language. Auto-detected from grant type: KAKENHI→Japanese, NSF→English, NSFC→Chinese, ERC→English, DFG→English (or German), SNSF→English, ARC→English, NWO→English. Override explicitly if needed.
-- **AUTO_PROCEED = false** — At each checkpoint, **always wait for explicit user confirmation** before proceeding. Grant proposals require PI-specific judgment at every stage. Set `true` only if user explicitly requests fully autonomous mode. **Note: In non-interactive mode (claude -p), AUTO_PROCEED is always treated as `true` regardless of this setting.**
+- **AUTO_PROCEED = false** — At each checkpoint, **always wait for explicit user confirmation** before proceeding. Grant proposals require PI-specific judgment at every stage. Set `true` only if user explicitly requests fully autonomous mode. **Note: In non-interactive mode (no further user turn), AUTO_PROCEED is always treated as `true` regardless of this setting.**
 
 > 💡 These are defaults. Override by telling the skill, e.g., `/grant-proposal "topic — NSF CAREER, latex output"` or `/grant-proposal "topic — NSFC Youth, language: English"`.
 
@@ -216,7 +216,7 @@ Invoke `/research-lit` to ground the proposal in real literature, then search fo
 Does this accurately capture the positioning? Should I adjust before designing the proposal structure?
 ```
 
-**🚦 Checkpoint:** If AUTO_PROCEED=false AND running interactively, present the landscape summary and gap statement to the user and wait for response. If AUTO_PROCEED=true or running in non-interactive mode (claude -p), proceed automatically with the current positioning. Log: "AUTO_PROCEED: proceeding with current gap statement."
+**🚦 Checkpoint:** If AUTO_PROCEED=false AND running interactively, present the landscape summary and gap statement to the user and wait for response. If AUTO_PROCEED=true or running in non-interactive mode (no further user turn), proceed automatically with the current positioning. Log: "AUTO_PROCEED: proceeding with current gap statement."
 
 Options for the user:
 - Reply **"go"** or **"ok"** → proceed to Phase 2 with current positioning
@@ -311,7 +311,7 @@ Apply structural feedback before proceeding to drafting.
 Proceed to section drafting? Or adjust the structure?
 ```
 
-**🚦 Checkpoint:** If AUTO_PROCEED=false AND running interactively, present the structure and wait for user response. This is the most critical checkpoint — the proposal structure determines everything downstream. If AUTO_PROCEED=true or running in non-interactive mode (claude -p), proceed automatically with the current structure. Log: "AUTO_PROCEED: proceeding with current proposal structure."
+**🚦 Checkpoint:** If AUTO_PROCEED=false AND running interactively, present the structure and wait for user response. This is the most critical checkpoint — the proposal structure determines everything downstream. If AUTO_PROCEED=true or running in non-interactive mode (no further user turn), proceed automatically with the current structure. Log: "AUTO_PROCEED: proceeding with current proposal structure."
 
 Options for the user:
 - Reply **"go"** or **"ok"** → proceed to Phase 3 (section drafting)
@@ -370,7 +370,7 @@ For simpler diagrams (flowcharts, Gantt charts), generate clean SVG or matplotli
 Which should I generate? (e.g., "1 and 3", "all", "skip")
 ```
 
-**🚦 Figure Checkpoint:** If AUTO_PROCEED=false AND running interactively, ask which figures the user wants. If AUTO_PROCEED=true or running in non-interactive mode (claude -p), generate all recommended figures automatically.
+**🚦 Figure Checkpoint:** If AUTO_PROCEED=false AND running interactively, ask which figures the user wants. If AUTO_PROCEED=true or running in non-interactive mode (no further user turn), generate all recommended figures automatically.
 
 #### Grant-Specific Drafting Guidelines
 
@@ -584,7 +584,7 @@ fi
 - **Preliminary data de-risks.** Include any pilot results, existing datasets, or prior publications that demonstrate feasibility.
 - **Reviewer-facing structure.** Bold key sentences. Use numbered lists for clarity. Make the reviewer's job easy.
 - **Cultural norms matter.** KAKENHI expects 社会的意義; NSF expects Broader Impacts; NSFC expects 国际前沿 positioning. Missing these is a red flag for reviewers.
-- **Feishu notifications are optional.** If `~/.claude/feishu.json` exists, send `checkpoint` at each phase transition and `pipeline_done` at final output. If absent, skip silently.
+- **Feishu notifications are optional.** 若 `~/.acat/feishu.json`（或兼容旧路径 `~/.claude/feishu.json`）存在, send `checkpoint` at each phase transition and `pipeline_done` at final output. If absent, skip silently.
 
 ## Parameter Pass-Through
 

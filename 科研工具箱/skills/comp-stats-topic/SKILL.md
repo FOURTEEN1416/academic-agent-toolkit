@@ -155,7 +155,7 @@ cat _utils/figure_style_guide.md 2>/dev/null || cat skills/shared-scripts/figure
 
 
 
-**⛔ 配方编号是必填项！** 格式为 `(类别 #编号)`，如 `(advanced #1)`、`(basic #3)`、`(empirical #1)`、`(competition #7)`。系统会根据配方编号自动注入对应的代码模板到 Claude 的 prompt 中。如果不写配方编号，Claude 将无法获得配方代码，只能从零写图表脚本，质量无法保证。如果图表类型不在配方库中，写 `(custom)` 标注。
+**⛔ 配方编号是必填项！** 格式为 `(类别 #编号)`，如 `(advanced #1)`、`(basic #3)`、`(empirical #1)`、`(competition #7)`。系统会根据配方编号自动把对应代码模板注入执行 Agent 的上下文。如果不写配方编号，执行 Agent 将无法获得配方代码，只能从零写图表脚本，质量无法保证。如果图表类型不在配方库中，写 `(custom)` 标注。
 
 
 

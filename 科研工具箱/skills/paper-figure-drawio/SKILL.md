@@ -442,7 +442,7 @@ if [ -f figures/fig_roadmap.drawio ]; then
         if [ $ROUND -lt 3 ]; then
             echo "⛔ 不合格 — 读取示例后重写..."
             echo ">>> cat _utils/example_roadmap_stats.drawio 或 _utils/example_roadmap_hex.drawio 参考结构"
-            # Claude: 你必须在这里读取一个示例模板，修改 fig_roadmap.drawio，然后重新导出 PDF
+            # 执行 Agent：你必须在这里读取一个示例模板，修改 fig_roadmap.drawio，然后重新导出 PDF
         else
             echo "⛔ 3 轮仍不合格 — 降级到 TikZ"
         fi
@@ -469,7 +469,7 @@ for flow in figures/fig_flow_*.drawio; do
 done
 ```
 
-**⛔ 关键：上面的 bash 脚本只是检测框架。Claude 在看到 `⛔ 不合格` 输出后，必须：**
+**⛔ 关键：上面的 bash 脚本只是检测框架。执行 Agent 在看到 `⛔ 不合格` 输出后，必须：**
 1. **`cat _utils/example_roadmap_stats.drawio` 或 `_utils/example_roadmap_hex.drawio`** 读取完整示例（4 个模板任选一个，与初次生成时所选模板保持一致）
 2. **重写 .drawio XML**（修复结构问题）
 3. **重新导出 PDF**（`draw.io.exe --export ...`）

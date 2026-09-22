@@ -117,7 +117,7 @@ Once initial results are in, start the autonomous improvement loop:
 
 **What this does (up to 4 rounds):**
 1. The external reviewer reviews the work (score, weaknesses, minimum fixes)
-2. Claude Code implements fixes (code changes, new experiments, reframing)
+2. 由执行 Agent 落实修改 (code changes, new experiments, reframing)
 3. Deploy fixes, collect new results
 4. Re-review → repeat until score ≥ 6/10 or 4 rounds reached
 

@@ -105,7 +105,7 @@ If the paper plan includes architecture diagrams, pipeline figures, or method il
 ```
 /paper-illustration "[method description from PAPER_PLAN.md or NARRATIVE_REPORT.md]"
 ```
-- Claude plans → Gemini optimizes → Nano Banana Pro renders → Claude reviews (score ≥ 9)
+- 执行 Agent plans → Gemini optimizes → Nano Banana Pro renders → 执行 Agent reviews (score ≥ 9)
 - Output: `figures/ai_generated/*.png`
 - Requires `GEMINI_API_KEY` environment variable
 
@@ -202,9 +202,9 @@ Invoke `/auto-paper-improvement-loop` to polish the paper:
 
 **What this does (2 rounds):**
 
-**Round 1:** The external reviewer reviews the full paper → identifies CRITICAL/MAJOR/MINOR issues → Claude Code implements fixes → recompile → save `main_round1.pdf`
+**Round 1:** The external reviewer reviews the full paper → identifies CRITICAL/MAJOR/MINOR issues → 由执行 Agent 落实修改 → recompile → save `main_round1.pdf`
 
-**Round 2:** The external reviewer re-reviews with conversation context → identifies remaining issues → Claude Code implements fixes → recompile → save `main_round2.pdf`
+**Round 2:** The external reviewer re-reviews with conversation context → identifies remaining issues → 由执行 Agent 落实修改 → recompile → save `main_round2.pdf`
 
 **Typical improvements:**
 - Fix assumption-model mismatches

@@ -86,7 +86,7 @@ Help me design an experiment to test whether AI tools improve QA officer product
 
 Most modes work with any LLM runtime that supports prompt + reasoning.
 
-**Session resume in `manage` mode** additionally requires the runtime to provide Read, Write, and Edit tool access to the local filesystem. Claude Code provides these. Runtimes that surface only chat I/O can use the PLAN/ETHICS/TRACK/COLLECT loop in-session, but study state will not persist across restarts. The `resume <study_id>` command will be unavailable.
+**Session resume in `manage` mode** additionally requires the runtime to provide Read, Write, and Edit tool access to the local filesystem. 主流宿主（如 Claude Code）通常提供这三类工具。 Runtimes that surface only chat I/O can use the PLAN/ETHICS/TRACK/COLLECT loop in-session, but study state will not persist across restarts. The `resume <study_id>` command will be unavailable.
 
 ---
 

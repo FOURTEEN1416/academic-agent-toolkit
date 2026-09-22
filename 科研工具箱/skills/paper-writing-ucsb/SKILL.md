@@ -32,9 +32,9 @@ This skill does not operate in isolation. It is part of a three-skill family, an
 - **Plan + Execute** (`plot_context.md`) → feeds the Architecture stage's figure/table plan. Each plot_context records intent, variable mappings, plot type rationale, and design decisions — ready-made entries for the paper's figure plan.
 - **Analyze** (WALTER narrations) → feeds Evaluation Move 4 (Takeaway Synthesis). The WALTER Result — "what is the takeaway? does it connect back to the hypothesis?" — is a first draft of the Takeaway paragraph for that experiment cluster.
 
-The three skills create a closed loop: the literature survey reveals the gap and teaches you how accepted papers communicate; data visualization forces you to understand what your evidence actually shows and what hypotheses it validates; paper writing turns both into a publishable argument. **If the student has artifacts from the other skills, Claude MUST load them.**
+The three skills create a closed loop: the literature survey reveals the gap and teaches you how accepted papers communicate; data visualization forces you to understand what your evidence actually shows and what hypotheses it validates; paper writing turns both into a publishable argument. **If the student has artifacts from the other skills, 执行 Agent MUST load them.**
 
-### When This Skill Triggers, Claude MUST:
+### When This Skill Triggers, 执行 Agent MUST:
 
 1. Read this SKILL.md (already loaded)
 2. Read ALL files in `author_profile/` — these are the source of truth for editorial rules
@@ -52,7 +52,7 @@ The three skills create a closed loop: the literature survey reveals the gap and
 
 ### How It Works
 
-Claude MUST read `brainstorming_guide.md` and walk the student through its 6 phases interactively. The phases are:
+执行 Agent MUST read `brainstorming_guide.md` and walk the student through its 6 phases interactively. The phases are:
 
 | Phase | Focus | Key outcome |
 |-------|-------|-------------|
@@ -75,7 +75,7 @@ Claude MUST read `brainstorming_guide.md` and walk the student through its 6 pha
 
 ## Voice and Editorial Rules
 
-Claude MUST read these files from this skill's directory. They contain the detailed rules with examples.
+执行 Agent MUST read these files from this skill's directory. They contain the detailed rules with examples.
 
 | File | What it controls |
 |---|---|
@@ -113,7 +113,7 @@ These are extracted from the detailed files above. In case of conflict, the file
 
 ## Mandatory Style Audit (GATE — applies to ALL tex edits)
 
-**Before presenting or committing ANY new or modified tex content, Claude MUST run a sentence-level style audit.** This is not optional, not triggered by the user, and not limited to full section drafts — it applies to every edit, including paragraph-level changes, subsection additions, and overview rewrites.
+**Before presenting or committing ANY new or modified tex content, 执行 Agent MUST run a sentence-level style audit.** This is not optional, not triggered by the user, and not limited to full section drafts — it applies to every edit, including paragraph-level changes, subsection additions, and overview rewrites.
 
 The audit checks every changed sentence against `author_profile/voice_profile.md` and `author_profile/compression_patterns.md`. Specifically, scan for and fix:
 
@@ -133,7 +133,7 @@ This gate is SEPARATE from and IN ADDITION TO the structural section checklists 
 
 ## Section Checklists
 
-After generating ANY section draft, Claude MUST also read the corresponding structural checklist and run it:
+After generating ANY section draft, 执行 Agent MUST also read the corresponding structural checklist and run it:
 
 | Section | Checklist file |
 |---|---|
@@ -161,7 +161,7 @@ These contain actionable guidance with concrete examples showing what works and 
 
 ## The Five-Stage Pipeline
 
-Every paper goes through these stages in order. Claude identifies which stage the user is in and enforces that stage's rules.
+Every paper goes through these stages in order. 执行 Agent identifies which stage the user is in and enforces that stage's rules.
 
 ### Stage 1: Structured Brainstorming → Project Context Creation
 
@@ -246,7 +246,7 @@ Target: 30–50% reduction from first draft. Report character count before and a
 
 ### Pre-Submission Mechanical Checklist (Automated)
 
-After compression and before submission, Claude MUST automatically run these checks using shell commands on the paper's `.tex` and compiled `.pdf` files. Do not ask the student to run them manually — execute them and report results.
+After compression and before submission, 执行 Agent MUST automatically run these checks using shell commands on the paper's `.tex` and compiled `.pdf` files. Do not ask the student to run them manually — execute them and report results.
 
 **1. Page count.** Extract page count from the compiled PDF and compare against the venue's limit (from `project_context.md`). Flag whether references/appendices count — this varies by venue.
 ```bash
@@ -333,7 +333,7 @@ Fix what can be fixed automatically (e.g., adding `~` before `\cite`). Flag what
 1. **First readings are precious.** Someone can read your work for the first time only once. Don't send your first draft to everyone simultaneously — chain your feedback. Send to one reader, incorporate their feedback, then send the revised version to the next reader. Each iteration strengthens the draft before it reaches the next pair of fresh eyes.
 2. Help the student plan their feedback chain: who reads first (someone outside the subfield for framing clarity), who reads second (a domain expert for technical correctness), who reads last (the advisor, who sees the strongest version).
 3. When asking a reader for feedback, tell them what to focus on: "Is the narrative in the introduction clear?" is more useful than "any thoughts?" Unfocused feedback wastes a first reading.
-4. Use Claude's review mode (`author_profile/intervention_types.md`) to simulate a round of feedback *before* spending a human reader's first reading on an early draft.
+4. Use 执行 Agent's review mode (`author_profile/intervention_types.md`) to simulate a round of feedback *before* spending a human reader's first reading on an early draft.
 
 ### "Help me respond to reviewers"
 1. Load `project_context.md` and the reviews

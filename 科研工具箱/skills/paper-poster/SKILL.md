@@ -668,9 +668,9 @@ pdfinfo poster/main.pdf
 3. Figures are fully visible, not cut off
 4. Text is readable (zoom to 100% = actual A0 size)
 
-### Phase 5: Visual Review via Claude + Gemini (Iterative Refinement)
+### Phase 5: 视觉复核（执行 Agent + Gemini 视觉模型，迭代精修）
 
-> This phase uses **Claude visual assessment** on rendered poster images to iteratively refine layout, readability, and visual hierarchy — similar to the `paper-illustration` skill's review loop.
+> This phase uses **执行 Agent 视觉评估** on rendered poster images to iteratively refine layout, readability, and visual hierarchy — similar to the `paper-illustration` skill's review loop.
 
 **Step 1: Render poster to PNG preview**
 
@@ -683,7 +683,7 @@ pix.save('poster/poster_review.png')
 doc.close()
 ```
 
-**Step 2: Claude visual assessment**
+**Step 2: 执行 Agent 视觉评估**
 
 Read the rendered `poster/poster_review.png` and perform a **STRICT visual review** with the following rubric (score 1-10):
 
@@ -715,7 +715,7 @@ SCORE_THRESHOLD = 9
 
 for iteration in 1..MAX_ITERATIONS:
     1. Render poster to poster/poster_v{iteration}.png (200 DPI)
-    2. Claude reads the PNG and performs STRICT visual review
+    2. 执行 Agent 读取 PNG 并执行 STRICT 视觉复核
     3. Score the poster (1-10) with detailed feedback
     4. If score >= SCORE_THRESHOLD → PASS, proceed to Phase 6
     5. If score < SCORE_THRESHOLD:
@@ -736,7 +736,7 @@ for iteration in 1..MAX_ITERATIONS:
 For poster elements that need custom illustrations (e.g., hero architecture diagram, method workflow), use the Gemini illustration pipeline:
 1. Write a detailed specification for the illustration
 2. Call `mcp__illustrator__run` with the specification
-3. Claude reviews the generated image for accuracy
+3. 执行 Agent reviews the generated image for accuracy
 4. Iterate until score ≥ 9 or max 3 attempts
 5. Save final illustration to `poster/figures/` and embed in LaTeX
 
@@ -1080,7 +1080,7 @@ Next steps:
 - **Do NOT hallucinate citations.** Use only references from the paper's bibliography.
 - **Include QR code placeholder** or code link for paper/code repository.
 - **Font size minimums (article class)**: Title ≥84pt, section headers ≥40pt, body ≥34pt, captions ≥26pt, references ≥30pt, stat numbers ≥66pt.
-- **Feishu notifications are optional.** If `~/.claude/feishu.json` exists, send notifications. Otherwise skip.
+- **Feishu notifications are optional.** 若 `~/.acat/feishu.json`（或兼容旧路径 `~/.claude/feishu.json`）存在, send notifications. Otherwise skip.
 
 ## Parameter Pass-Through
 

@@ -238,7 +238,7 @@ Find the section matching your venue (ICLR/NeurIPS/JMLR etc.) and review the fig
 
 
 
-The ratios and counts above are reference points only. Claude should adapt based on the specific research.
+The ratios and counts above are reference points only. 执行 Agent should adapt based on the specific research.
 
 
 

@@ -393,7 +393,7 @@ echo "--- 元叙述泄露 ---"
 META=0
 for f in paper/sections/*.tex; do
     [ -f "$f" ] || continue
-    l=$(grep -ci 'RESULTS\.md\|CLAUDE\.md\|MODELING_REPORT\|PROBLEM_ANALYSIS\|PAPER_PLAN\|latex_includes\|all_results\.json' "$f" 2>/dev/null || echo 0)
+    l=$(grep -ci 'RESULTS\.md\|AGENTS\.md\|MODELING_REPORT\|PROBLEM_ANALYSIS\|PAPER_PLAN\|latex_includes\|all_results\.json' "$f" 2>/dev/null || echo 0)
     META=$((META+l))
 done
 [ "$META" -eq 0 ] && echo "✅ 无元叙述泄露" || { echo "❌ $META 处泄露了内部文件名"; GATE_FAIL=$((GATE_FAIL+1)); }

@@ -6,7 +6,7 @@ description: "Search for academic papers by keyword, or look up a specific paper
 Search for academic papers and get details including title, authors, citation count, DOI, abstract, and open access links.
 
 Steps:
-1. Find the scripts directory: `find ~/.claude -name "search.sh" -path "*/paper-search/*" 2>/dev/null | sort -V | tail -1`
+1. Find the scripts directory: 优先本技能自带 `scripts/search.sh`；否则 `find ~/.acat ~/.claude -name "search.sh" -path "*/paper-search/*" 2>/dev/null | sort -V | tail -1`
    - This finds the script whether installed via plugin or manual setup
    - The `paper.sh` script is in the same directory
 2. To search for papers by keyword:

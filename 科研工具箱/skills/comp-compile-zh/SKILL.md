@@ -520,7 +520,7 @@ fi
 
 ```
 
-If any format checks fail, Claude should fix main.tex to match the template format before recompiling.
+If any format checks fail, 执行 Agent should fix main.tex to match the template format before recompiling.
 
 ### Step 6: Competition compliance
 
@@ -1333,7 +1333,7 @@ for f in paper/sections/*.tex; do
 
     [ -f "$f" ] || continue
 
-    l=$(grep -ci 'RESULTS\.md\|CLAUDE\.md\|MODELING_REPORT\|PROBLEM_ANALYSIS\|latex_includes' "$f" 2>/dev/null || echo 0)
+    l=$(grep -ci 'RESULTS\.md\|AGENTS\.md\|MODELING_REPORT\|PROBLEM_ANALYSIS\|latex_includes' "$f" 2>/dev/null || echo 0)
 
     META=$((META+l))
 

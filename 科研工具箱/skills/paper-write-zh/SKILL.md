@@ -700,7 +700,7 @@ Core result tables (主结果对比表, 消融实验表) and key analysis figure
 
 
 
-"字不如表，表不如图" — but figures only where data needs visualization (data description, experiment results). Do not force figures into pure literature review or theoretical derivation. Claude decides figure count and placement based on content needs.
+"字不如表，表不如图" — but figures only where data needs visualization (data description, experiment results). Do not force figures into pure literature review or theoretical derivation. 执行 Agent decides figure count and placement based on content needs.
 
 
 
