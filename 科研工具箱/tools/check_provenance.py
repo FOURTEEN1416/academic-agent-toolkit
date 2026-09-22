@@ -97,6 +97,12 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "skills" / "sci-sympy" / "references" / "UPSTREAM.md",
     # figures4papers 收编：语义调色板+构图五模式（2026-09-09，CC BY-NC-4.0）
     ROOT / "skills" / "paper-figure" / "references" / "UPSTREAM.md",
+    # V1 vendor 台账补齐（2026-09-22）：反向缺口——盘上有 UPSTREAM.md 但未注册
+    ROOT / "skills" / "eco-community-plots" / "references" / "UPSTREAM.md",
+    # 注：anti-defensive-writing / math-modeling-contest-route-selection /
+    # palette-health-check 三处 UPSTREAM.md 为中文表格式（无 Upstream:/Pinned
+    # commit:/License: 英文字段），照现状注册必触门禁 FAIL；待专项批次规范化
+    # 字段后再注册，缺口登记见 dev-docs/vendor-asset-index.md §反向缺口。
 ]
 
 # 需要完整许可文件的 vendored 外部依赖目录（含 LICENSE/NOTICE/UPSTREAM.md 三件套）
