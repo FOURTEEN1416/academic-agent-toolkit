@@ -12,6 +12,9 @@ metadata:
 Use Claude Code CLI as a **depth-analysis** collaborator for paper-from-zero,
 or as a generic code collaborator in fallback mode.
 
+> **ACAT 宿主中立声明（2026-09-23）**：本技能把 claude CLI 当作**外部评审桥协作者**调用（可选增强），不预设执行宿主；`claude` 不在 PATH 时跳过该协作者、由当前 Agent 自审降级，不阻断流程。
+
+
 This skill provides a lightweight bridge script (`scripts/claude_bridge.py`)
 that returns structured JSON and supports multi-turn sessions via `SESSION_ID`.
 

@@ -11,7 +11,7 @@ metadata:
 
 # Patent — Prior-Art + Landscape Intelligence
 
-> **Portability:** Requires `web_fetch` (Google Patents, Espacenet, USPTO), `WebSearch` (adjacent academic art), Node.js with `docx` package, and optionally Lens.org API key for citation-graph signals. Works in Claude Code CLI natively. In Claude.ai with web tools + Code Execution + BYOK Lens.org, the workflow is supported.
+> **Portability:** Requires `web_fetch` (Google Patents, Espacenet, USPTO), `WebSearch` (adjacent academic art), Node.js with `docx` package, and optionally Lens.org API key for citation-graph signals. 任何具备检索/抓取能力的宿主均可运行（Lens.org key 为可选增强；Claude Code / Claude.ai 为示例宿主）。
 
 > **Out of scope:** trademark, copyright, trade-secret. These are flagged at intake. Use a different skill or qualified counsel.
 

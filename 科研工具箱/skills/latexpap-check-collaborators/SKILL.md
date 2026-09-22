@@ -9,8 +9,10 @@ metadata:
 <!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（check-collaborators + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Collaborator CLI Health Check
 
+> **ACAT 宿主中立声明（2026-09-23）**：被检查的 CLI 是外部协作者而非执行宿主；任一缺位仅降级对应协作阶段，当前 Agent 可继续自审运行。
+
 ## When to use
-- Before starting any collaboration workflow that depends on Gemini or Claude Code.
+- Before starting any collaboration workflow that depends on Gemini or Claude Code（可选增强检查：CLI 缺位时对应协作阶段直接跳过，不构成阻断）。
 - When diagnosing CLI connectivity or authentication issues.
 - After installing or reconfiguring either CLI.
 

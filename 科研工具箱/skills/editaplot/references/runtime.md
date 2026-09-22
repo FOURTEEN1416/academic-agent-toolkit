@@ -30,8 +30,8 @@ Windows host whenever that fact is unknown. VMs remain unsupported in V1.
 Request only the permissions needed for the current local workflow:
 
 1. Read the complete EditaPlot repository, selected table, and optional reference image.
-2. Write to the repository for `.editaplot-venv`, to the current user's Codex Skill directory for
-   setup/update, and to the source data folder for the timestamped delivery directory.
+2. Write to the repository for `.editaplot-venv`, to the current host's skill data directory for
+   setup/update（上游原文为 Codex Skill 目录；宿主无关，指当前技能运行数据目录）, and to the source data folder for the timestamped delivery directory.
 3. Run the local batch launcher, PowerShell/Python subprocesses, and an EditaPlot-owned Origin
    process in the same active interactive Windows user session.
 4. Use network access only for repository download/update and the locked dependency source.

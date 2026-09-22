@@ -11,7 +11,7 @@ metadata:
 
 # Grants — NIH Funding Intelligence
 
-> **Portability:** Requires `bash_tool` (for RePORTER POST via curl), Node.js with `docx` package, and a Consensus MCP connection. Works in Claude Code CLI natively. In Claude.ai with Code Execution + Consensus MCP, the workflow is supported but slower.
+> **Portability:** Requires `bash_tool` (for RePORTER POST via curl), Node.js with `docx` package, and a Consensus MCP connection. 任何具备上述能力的宿主均可运行（Claude Code / Claude.ai 为示例宿主；能力缺位时按各阶段 skip 语义降级）。
 
 > **Scope: NIH-only.** Non-NIH funders (PCORI, DOD CDMRP, VA, foundations) are out of scope and flagged at intake.
 

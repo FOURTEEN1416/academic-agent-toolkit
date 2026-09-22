@@ -1090,7 +1090,7 @@
       "capability_id": "ars-adversarial-reviewer",
       "name": "adversarial-reviewer",
       "domain": "academic_papers",
-      "description": "Adversarial code review that breaks the self-review monoculture. Use when you want a genuinely critical review of recent changes, before merging a PR, or when you suspect Claude is being too agreeable about code quality. Forces perspective shifts through hostile reviewer personas that catch blind spots the author's mental model shares with the reviewer.",
+      "description": "Adversarial code review that breaks the self-review monoculture. Use when you want a genuinely critical review of recent changes, before merging a PR, or when you suspect the model is being too agreeable about code quality. Forces perspective shifts through hostile reviewer personas that catch blind spots the author's mental model shares with the reviewer.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -2688,7 +2688,7 @@
       "capability_id": "ars-research-summarizer",
       "name": "research-summarizer",
       "domain": "literature_research",
-      "description": "Structured research summarization agent skill for non-dev users. Handles academic papers, web articles, reports, and documentation. Extracts key findings, generates comparative analyses, and produces properly formatted citations. Use when: user wants to summarize a research paper, compare multiple sources, extract citations from documents, or create structured research briefs. Plugin for Claude Co",
+      "description": "Structured research summarization agent skill for non-dev users. Handles academic papers, web articles, reports, and documentation. Extracts key findings, generates comparative analyses, and produces properly formatted citations. Use when: user wants to summarize a research paper, compare multiple sources, extract citations from documents, or create structured research briefs. 可在 Claude Code 等宿主运行的研究摘要技能（宿主无关）;",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -2809,7 +2809,7 @@
       "capability_id": "comm-lit-review",
       "name": "comm-lit-review-claude-single",
       "domain": "literature_research",
-      "description": "Communications-domain literature review with Claude-style knowledge-base-first retrieval. Use when the task is about communications, wireless, networking, satellite/NTN, Wi-Fi, cellular, transport protocols, congestion control, routing, scheduling, MAC/PHY, rate adaptation, channel estimation, beamforming, or communication-system research and the user wants papers, related work, a survey, or a lan",
+      "description": "以知识库优先检索（knowledge-base-first）进行通信领域文献综述。 Use when the task is about communications, wireless, networking, satellite/NTN, Wi-Fi, cellular, transport protocols, congestion control, routing, scheduling, MAC/PHY, rate adaptation, channel estimation, beamforming, or communication-system research and the user wants papers, related work, a survey, or a lan",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -2911,7 +2911,7 @@
       "capability_id": "galaxy-obsidian-project-kb-core",
       "name": "obsidian-project-kb-core",
       "domain": "literature_research",
-      "description": "Use this as the main Claude Scholar skill for a vault-first, project-scoped Obsidian research knowledge base rooted at Research/{project-slug}/. It owns bootstrap, routing, daily logging, hub/plan/index maintenance, registry updates, lifecycle actions, and lint orchestration.",
+      "description": "Use this as the main scholar-obsidian skill for a vault-first, project-scoped Obsidian research knowledge base rooted at Research/{project-slug}/. It owns bootstrap, routing, daily logging, hub/plan/index maintenance, registry updates, lifecycle actions, and lint orchestration.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -3443,7 +3443,7 @@
       "capability_id": "ablation-planner",
       "name": "ablation-planner",
       "domain": "course_research_materials",
-      "description": "Use when main results pass result-to-claim (claim_supported=yes or partial) and ablation studies are needed for paper submission. Codex designs ablations from a reviewer's perspective, CC reviews feasibility and implements.",
+      "description": "Use when main results pass result-to-claim (claim_supported=yes or partial) and ablation studies are needed for paper submission. 独立评审模型从审稿人视角设计消融，当前 Agent 复核可行性并实施。",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -4215,7 +4215,7 @@
       "capability_id": "galaxy-skill-development",
       "name": "skill-development",
       "domain": "course_research_materials",
-      "description": "This skill should be used when the user asks to create a new skill, repair an existing skill, improve trigger descriptions, reorganize skill structure, or make a Claude skill more reusable and internally consistent.",
+      "description": "This skill should be used when the user asks to create a new skill, repair an existing skill, improve trigger descriptions, reorganize skill structure, or make a skill more reusable and internally consistent.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -4396,7 +4396,7 @@
       "capability_id": "latexpap-check-collaborators",
       "name": "check-collaborators",
       "domain": "course_research_materials",
-      "description": "Verify that Gemini CLI and Claude Code CLI are installed, authenticated, and API-reachable before starting collaboration workflows.",
+      "description": "外部协作者 CLI（Gemini/Claude Code，属可选增强而非执行宿主）安装与可达性预检；缺位仅降级对应协作阶段。",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -4416,7 +4416,7 @@
       "capability_id": "latexpap-collaborating-with-claude",
       "name": "collaborating-with-claude",
       "domain": "course_research_materials",
-      "description": "Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression, logical hole detection, evidence sufficiency audit, and review/empirical routing judgment. Also supports generic code collaboration as fallback.",
+      "description": "经评审桥调用 Claude CLI 做深度分析协作者（可选增强，缺位时当前 Agent 自审降级）服务 paper-from-zero。 Primary role: claim tree compression, logical hole detection, evidence sufficiency audit, and review/empirical routing judgment. Also supports generic code collaboration as fallback.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -4555,7 +4555,7 @@
       "capability_id": "result-to-claim",
       "name": "result-to-claim",
       "domain": "course_research_materials",
-      "description": "Use when experiments complete to judge what claims the results support, what they don't, and what evidence is still missing. Codex MCP evaluates results against intended claims and routes to next action (pivot, supplement, or confirm). Use after experiments finish — before writing the paper or running ablations.",
+      "description": "Use when experiments complete to judge what claims the results support, what they don't, and what evidence is still missing. 独立评审模型（经评审桥）对照预期主张评估结果 and routes to next action (pivot, supplement, or confirm). Use after experiments finish — before writing the paper or running ablations.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -5544,7 +5544,7 @@
       "capability_id": "format-profile",
       "name": "format-profile",
       "domain": "figures_and_document_production",
-      "description": "根据用户的文字格式要求或上传的格式说明文档，生成 docx-export 用的样式 profile JSON。Claude 自主理解中文字号术语、字体、行距、缩进等参数。",
+      "description": "根据用户的文字格式要求或上传的格式说明文档，生成 docx-export 用的样式 profile JSON。执行 Agent 自主理解中文字号术语、字体、行距、缩进等参数。",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -5767,7 +5767,7 @@
       "capability_id": "paper-illustration",
       "name": "paper-illustration",
       "domain": "figures_and_document_production",
-      "description": "Generate publication-quality AI illustrations for academic papers using Gemini image generation. Creates architecture diagrams, method illustrations with Claude-supervised iterative refinement loop. Use when user says \"生成图表\", \"画架构图\", \"AI绘图\", \"paper illustration\", \"generate diagram\", or needs visual figures for papers.",
+      "description": "Generate publication-quality AI illustrations for academic papers using Gemini image generation. Creates architecture diagrams, method illustrations 带执行 Agent 监督的迭代精修回路. Use when user says \"生成图表\", \"画架构图\", \"AI绘图\", \"paper illustration\", \"generate diagram\", or needs visual figures for papers.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [

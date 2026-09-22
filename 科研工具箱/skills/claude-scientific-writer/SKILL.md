@@ -54,13 +54,13 @@ For complex tasks spanning multiple modules (e.g., write a Nature paper + peer-r
 
 Some modules originally depended on several external APIs (Perplexity Sonar Pro, Parallel CLI, Google Nano Banana Pro, FLUX, OpenRouter, Gemini direct calls). **Those modules and bash invocations have been stripped.** Whenever a reference file contains a command like:
 
-- `python scripts/generate_schematic.py "..."` → instead call Claude.ai's `image_search` tool, or generate an SVG diagram inline using the visualizer tool, or describe the figure for the user to produce externally.
+- `python scripts/generate_schematic.py "..."` → 改用宿主的图像检索/生成能力（工具名随宿主），或用内联可视化工具生成 SVG，或描述图由用户外部产出。
 - `python scripts/generate_image.py "..."` → same as above; use `image_search` or external generation.
-- `python scripts/research_lookup.py "..."` or any "research-lookup skill" reference → use Claude.ai's `web_search` and `web_fetch` tools.
+- `python scripts/research_lookup.py "..."` or any "research-lookup skill" reference → 使用宿主的网页检索/抓取能力（工具名随宿主）。
 - `parallel-cli` invocations → use `web_search` / `web_fetch`.
-- `markitdown` references → Claude.ai already handles common file formats (PDF, DOCX, PPTX, XLSX) natively via the file-reading skill; route those tasks there.
+- `markitdown` references → 多数宿主可原生读取常见文件格式（PDF, DOCX, PPTX, XLSX），交给宿主的文件读取能力处理。
 
-**Treat every figure-generation or research-lookup bash command in the reference files as a placeholder for the equivalent Claude.ai-native action.** Do not error out, do not tell the user to install the original CLI — silently substitute.
+**Treat every figure-generation or research-lookup bash command in the reference files 作为宿主等价原生能力（检索/生成/读文件）的占位符.** Do not error out, do not tell the user to install the original CLI — silently substitute.
 
 ### 2. Writing style invariants (apply to all manuscript modules)
 

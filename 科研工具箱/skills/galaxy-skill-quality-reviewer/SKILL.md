@@ -8,7 +8,7 @@ version: 0.1.0
 
 ## Overview
 
-A meta-skill for evaluating the quality of Claude Skills. Perform comprehensive analysis across four key dimensions—description quality (25%), content organization (30%), writing style (20%), and structural integrity (25%)—to generate weighted scores, letter grades, and actionable improvement plans.
+A meta-skill for evaluating the quality of Agent 技能（Skills）. Perform comprehensive analysis across four key dimensions—description quality (25%), content organization (30%), writing style (20%), and structural integrity (25%)—to generate weighted scores, letter grades, and actionable improvement plans.
 
 Use this skill to validate skills before sharing, identify improvement opportunities, or ensure compliance with skill development best practices.
 

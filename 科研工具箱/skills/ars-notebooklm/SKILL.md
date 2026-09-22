@@ -11,7 +11,7 @@ metadata:
 
 # NotebookLM — Browser Automation
 
-> **Requires:** A browser automation environment (Claude Code CLI with computer-use, Claude Chrome Extension, or equivalent). **Skill will gracefully fail in non-automation contexts with a clear "not supported" message.**
+> **Requires:** 任一浏览器自动化能力（宿主 computer-use、浏览器扩展或 Playwright CLI 等，不限宿主）. **Skill will gracefully fail in non-automation contexts with a clear "not supported" message.**
 
 > **Critical:** This skill is the only browser-automation skill in the v2 collection. It does NOT follow the research-pack Agent Integrity Rules convention. Different constraints apply (UI dynamics, async generation, login walls).
 
@@ -20,7 +20,7 @@ metadata:
 Before any other action, verify browser automation is available:
 
 1. Check whether browser-control tools are loaded in the harness (screenshot, click, find-element, navigate)
-2. If unavailable → **halt with clear message:** "This skill requires browser automation. Currently in {context}. Cannot proceed. Use Claude Code CLI with computer-use, Claude Chrome Extension, or equivalent."
+2. If unavailable → **halt with clear message:** "This skill requires browser automation. Currently in {context}. Cannot proceed. 需要任一浏览器自动化能力（宿主 computer-use/扩展/Playwright CLI 等）。"
 3. If available → take initial screenshot, navigate to https://notebooklm.google.com
 4. **Detect login wall via screenshot.** If login screen detected: halt with "Please log in to NotebookLM in the browser, then re-invoke this skill." **Never attempt to handle login automatically.**
 

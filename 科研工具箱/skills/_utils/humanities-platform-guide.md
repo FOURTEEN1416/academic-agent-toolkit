@@ -1,6 +1,6 @@
 # Agent 适配说明
 
-本 skill 适配两个 agent 环境：**Claude Code** 和 **OpenClaw**。
+本 skill 适配多种 Agent 宿主（如 **Claude Code**、**OpenClaw**；宿主名仅为示例，差异见下表）。
 
 ---
 

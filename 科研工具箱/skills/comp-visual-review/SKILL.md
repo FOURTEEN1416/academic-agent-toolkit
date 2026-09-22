@@ -7,30 +7,32 @@ description: Use when a mathematical modeling competition paper or its figures n
 
 The designated visual-review subagent inspects final PNGs and PDF pages.
 
-## ⛔ 多模态视觉模型铁律（必须遵守）
+## ⛔ 视觉审核通道铁律（必须遵守 · 2026-09-23 用户裁定）
 
-本角色须配置**具备视觉能力的多模态模型**（支持 image_url 输入；仓库不预设具体型号——比赛时在 `engine/modex-core/contest_models.json` 或宿主 agent 配置中填写，示例：任一具备视觉能力的 GLM 系列模型）。**必须实际调用视觉工具对每张图进行多模态审查**，禁止只用 PIL/PyMuPDF 等确定性检查后直接判 pass。
+**视觉审核强制由项目驱动宿主执行：宿主使用自身具备视觉能力的 LLM，在独立窗口（独立会话/平台视觉审子代理，与产出图的窗口相互隔离）完成逐图审核。** 禁止把"赛前填写 API key、调用外部视觉 API"当作必须通道；禁止只用 PIL/PyMuPDF 等确定性检查后直接判 pass。`engine/modex-core/contest_models.json` 的 `visual_reviewer` 角色声明此通道（`host-vision/independent-window`）；审稿证据声明串须与之一致方过 strict 闸。
 
 1. 先运行确定性图像检查（PIL 解码/尺寸/DPI、PyMuPDF 页数与嵌入图）。
-2. **每张 PNG 必须调用 `tools/data_fig_vision_check.py`（数据图）或 `tools/tikz_vision_check.py`（TikZ/流程/架构图）或 `tools/drawio_vision_check.py`（draw.io 图）**，用配置的视觉模型检查：坐标轴名称与单位、刻度可读性、图例、颜色区分、截断、重叠、误导性比例、题注对应、文字溢出、配色对比度、**黑白打印下仍可分辨（仅靠色相区分的系列必须有线型/hatch 冗余编码——打印安全三件套）**、**色盲模拟（红绿色弱）下各系列可区分**。
-3. 记录每次视觉 API 调用的输出（PASS / ISSUE N: ...）作为 `VISUAL_REVIEW.md` 的证据。
+2. **每张图必须由宿主独立窗口的视觉模型实际读图审查**：坐标轴名称与单位、刻度可读性、图例、颜色区分、截断、重叠、误导性比例、题注对应、文字溢出、配色对比度、**黑白打印下仍可分辨（仅靠色相区分的系列必须有线型/hatch 冗余编码——打印安全三件套）**、**色盲模拟（红绿色弱）下各系列可区分**。
+3. 记录独立窗口逐图审核输出（PASS / ISSUE N: ...）作为 `VISUAL_REVIEW.md` 的证据，并注明执行窗口/子代理标识。
 4. 检查 PDF 页面布局与图题对应关系（确定性检查辅助）。
+5. **兜底通道（仅限宿主无视觉窗口环境）**：才允许改调 `tools/data_fig_vision_check.py`（数据图）/ `tools/tikz_vision_check.py`（TikZ/流程/架构图）/ `tools/drawio_vision_check.py`（draw.io 图）外部视觉 API——模型与 key 走 `contest_models.json` / `.env` 原槽位。该兜底不改变下方输出契约与降级预案。
 
-## ⛔⛔ --review 审核模式（审核/终审必须使用，防伪造证据）
+## ⛔⛔ --review 审核模式（兜底 API 通道专用，防伪造证据）
 
+`--review` 仅作用于兜底外部视觉 API 工具（宿主无视觉窗口环境才走此通道）。
 视觉工具带开发防死循环计数（STOP_VISION_LOOP：per-key 同图 2 轮上限 + 全局 图数×2+2 上限），
-**开发迭代**阶段该计数防"改坐标→重编→重调"无限震荡是合理的；但**审核/终审**阶段必须真实调用视觉 API——
+**开发迭代**阶段该计数防"改坐标→重编→重调"无限震荡是合理的；但**审核/终审**阶段必须真实产生视觉审核证据——
 开发阶段的迭代额度耗尽后，审核不能被迫"定稿/绕过工具/直接看图判 pass"（那等于伪造审核证据）。
 
-⛔ **审核/终审调用视觉工具必须加 `--review` 参数**：
+⛔ **兜底通道的审核调用必须加 `--review` 参数**：
 
 ```bash
 python tools/data_fig_vision_check.py figures/fig_q1.png --review     # 数据图
 python tools/tikz_vision_check.py figures/tikz_arch.pdf --review       # TikZ 图
 ```
 
-- `--review` 模式：不累计开发计数（不污染 dev 额度）、不受 per-key/全局上限拦截 → 审核永远能真实调用视觉 API
-- 审核报告（VISUAL_REVIEW.md）必须记录每张图**实际调用视觉 API 的证据输出**（PASS / ISSUE N: ...）
+- `--review` 模式：不累计开发计数（不污染 dev 额度）、不受 per-key/全局上限拦截 → 审核永远能真实产生视觉证据
+- 审核报告（VISUAL_REVIEW.md）必须记录每张图**实际视觉审核的证据输出**（主通道：宿主独立窗口读图记录；兜底通道：视觉 API 输出）（PASS / ISSUE N: ...）
 - ⛔ 禁止：计数器被拦截后"直接看图片凭感觉判 pass"；发现 STOP_VISION_LOOP 提示时改用 --review 重试，而不是绕过工具
 
 ## 输出契约（机器可读，硬性要求）
@@ -43,15 +45,15 @@ python tools/tikz_vision_check.py figures/tikz_arch.pdf --review       # TikZ �
  "status":"pass|fail|manual_review|unavailable"}
 ```
 
-- `status=pass`：仅当所有确定性检查通过 **且** 视觉模型 API 调用成功且未发现 fatal/major 问题。
+- `status=pass`：仅当所有确定性检查通过 **且** 视觉审核通道实际产生逐图证据（主通道：宿主独立窗口视觉模型；兜底：视觉 API）且未发现 fatal/major 问题。
 - `status=fail`：发现 fatal/major 视觉问题。
-- `status=manual_review`：视觉模型 API 不可用时的**受控人工降级**（见下方降级预案），必须伴随合规的 `VISUAL_REVIEW_MANUAL_CHECK.md`，否则质量闸硬拦。
-- `status=unavailable`：视觉模型 API 不可用且**未完成人工复核**。**此时禁止判 pass**——在报告中明确列出未验证项，`VISUAL_REVIEW.md` 中标注"视觉复核未验证"，不得伪造通过。注意：`unavailable` 且无人工复核记录时，review 闸一律不放行（静默降级被拦截是设计行为）。
+- `status=manual_review`：视觉审核通道不可用（宿主无独立视觉窗口且兜底 API 亦不可用）时的**受控人工降级**（见下方降级预案），必须伴随合规的 `VISUAL_REVIEW_MANUAL_CHECK.md`，否则质量闸硬拦。
+- `status=unavailable`：视觉审核通道不可用且**未完成人工复核**。**此时禁止判 pass**——在报告中明确列出未验证项，`VISUAL_REVIEW.md` 中标注"视觉复核未验证"，不得伪造通过。注意：`unavailable` 且无人工复核记录时，review 闸一律不放行（静默降级被拦截是设计行为）。
 - `fatal_count` 必须为整数；任何 fatal 都阻止后续 final-review 放行。
 
-## ⛔ 视觉 API 不可用降级预案（A7-M5：禁止静默跳过，也禁止第 11 步永久卡死）
+## ⛔ 视觉审核通道不可用降级预案（A7-M5：禁止静默跳过，也禁止第 11 步永久卡死）
 
-视觉探针失败（`data_fig_vision_check.py` / `tikz_vision_check.py` / `drawio_vision_check.py`
+宿主无独立视觉窗口、且兜底视觉 API 探针失败（`data_fig_vision_check.py` / `tikz_vision_check.py` / `drawio_vision_check.py`
 exit 2 且**已排除相对路径问题**——先用绝对路径重试一次）时，按以下顺序处置：
 
 1. **先确认是真不可用**：用绝对路径重试（`python tools/data_fig_vision_check.py <工作区>/figures/fig_q1.png --review`）；
@@ -62,7 +64,7 @@ exit 2 且**已排除相对路径问题**——先用绝对路径重试一次）
 3. **写 `VISUAL_REVIEW_MANUAL_CHECK.md`**（格式硬性要求，缺一即被闸拦截）：
 
    ```markdown
-   # 视觉人工复核记录（视觉 API 不可用降级）
+   # 视觉人工复核记录（视觉审核通道不可用降级）
    approved_by: <操作者真实姓名>     ← 必填非空，必须是人类操作者本人署名，禁止填 agent/AI/模型名
 
    ## 逐项检查
@@ -102,10 +104,10 @@ exit 2 且**已排除相对路径问题**——先用绝对路径重试一次）
 ## 方法
 
 1. PIL/PyMuPDF 确定性检查（解码、尺寸、DPI、页数、嵌入图、图题命中）。
-2. 逐图调用多模态视觉工具，记录每张图的 API 输出。
+2. 逐图由宿主独立窗口的视觉模型读图审查，记录每张图的审核输出与执行窗口标识；兜底环境记录视觉 API 输出。
 3. 汇总 findings，按严重性分级，写 `VISUAL_REVIEW.md`。
 4. 生成 `VISUAL_REVIEW_VERDICT.json`（含 `status` 字段）。
-5. 若 API 不可用：按"视觉 API 不可用降级预案"走人工复核（status=`manual_review` +
+5. 若视觉审核通道不可用：按"视觉审核通道不可用降级预案"走人工复核（status=`manual_review` +
    `VISUAL_REVIEW_MANUAL_CHECK.md`）；无法完成人工复核时 status=`unavailable`，
    并把未验证项全部列出，绝不含糊通过。
 
@@ -113,9 +115,9 @@ exit 2 且**已排除相对路径问题**——先用绝对路径重试一次）
 
 本步完成前逐项自检（不达标即视为未完成）：
 
-- [ ] 由只读子智能体执行且实际调用视觉审查通道
+- [ ] 由驱动宿主的独立窗口（只读视觉审子代理）执行且实际读图审核；兜底环境须有视觉 API 证据
 - [ ] 发现项按分级列出，含图号与具体位置
-- [ ] 审查模式为 review（不受开发期迭代计数限制）
+- [ ] 走兜底 API 通道时审查模式为 review（不受开发期迭代计数限制）
 - [ ] 不可用时如实记录 unavailable，绝不伪造通过
 
 ## 常见合理化（Common Rationalizations）

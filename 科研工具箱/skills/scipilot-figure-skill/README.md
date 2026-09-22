@@ -8,7 +8,7 @@
 [![Status: v2.1.0](https://img.shields.io/badge/Status-v2.1.0-success.svg)](#)
 [![Advisor Mode](https://img.shields.io/badge/Mode-Advisor%2BPlotter-c41e3a.svg)](#为什么这不只是个画图工具)
 [![Stack](https://img.shields.io/badge/Stack-matplotlib%20%7C%20seaborn%20%7C%20plotly-orange.svg)](#)
-[![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill-orange.svg)](https://claude.com/claude-code)
+[![Agent Skill](https://img.shields.io/badge/Agent-Skill-orange.svg)](../README.md)
 
 A [Claude Code](https://claude.com/claude-code) / [Codex](https://github.com/openai/codex) / Cursor Skill that does **two things in order**: (1) profiles your data and recommends the right chart for the argument you want to make, (2) renders it at publication grade for Nature / Science / IEEE / Elsevier / PNAS / Chinese journals. Built on **matplotlib + seaborn + SciencePlots** (static) and **plotly** (interactive), with **CJK font auto-configuration** so Chinese text never renders as boxes.
 

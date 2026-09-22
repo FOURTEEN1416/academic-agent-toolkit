@@ -11,7 +11,7 @@ metadata:
 
 # Pulse — Multi-Source Recency Research
 
-> **Portability:** Works in both Claude Code CLI and Claude.ai. The optional X/Twitter phase requires browser automation and is skipped automatically if unavailable.
+> **Portability:** 任何具备网页检索能力的宿主均可运行（宿主名仅为示例）。 The optional X/Twitter phase requires browser automation and is skipped automatically if unavailable.
 
 A recency-oriented research skill that synthesizes what people are saying about a topic across Reddit, Hacker News, the open web, and (optionally) X/Twitter — within a configurable time window. Output is a single coherent briefing with citations, engagement signals, and cross-platform pattern analysis. The skill captures the **current conversation**, not the canonical reference.
 

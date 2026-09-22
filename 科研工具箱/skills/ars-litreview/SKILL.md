@@ -11,7 +11,7 @@ metadata:
 
 # Litreview — Academic Literature Orientation
 
-> **Portability:** Works anywhere with outbound HTTPS — the default search lane is **free keyless APIs** (PubMed E-utilities + OpenAlex, no account, no key, no MCP). The **Consensus MCP is an optional enhancement lane** used only when connected in this session. Node.js with `docx` package is required for document generation, and (in CLI) `bash_tool`. Works in Claude Code CLI natively and in Claude.ai with Code Execution.
+> **Portability:** Works anywhere with outbound HTTPS — the default search lane is **free keyless APIs** (PubMed E-utilities + OpenAlex, no account, no key, no MCP). The **Consensus MCP is an optional enhancement lane** used only when connected in this session. Node.js with `docx` package is required for document generation, and (in CLI) `bash_tool`. 任何具备外网 HTTPS 的宿主均可运行（CLI 需 bash_tool；Claude Code / Claude.ai 为示例宿主）。
 
 Produce a **launching pad** — not a finished literature review, but an orientation document that gives a researcher entering an unfamiliar field everything they need to start reading and searching with confidence. Think: what a generous colleague who knows the field would tell you over coffee.
 
