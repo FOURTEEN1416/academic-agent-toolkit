@@ -22,7 +22,7 @@ allowed-tools: [Read, Write, Edit, Bash(python:*), WebFetch, WebSearch]
 S01 赛题分析(comp-prob-analysis) → S02 文献调研与核验(comp-literature)
 → S03 建模求解(comp-modeling) → S04 编程实现(comp-code)
 → S05 图表生成(paper-figure) → S06 流程与架构图绘制(paper-figure-drawio)
-→ S07 逻辑对抗复核(comp-review，默认关，enable_comp_review=true 开启)
+→ S07 逻辑对抗复核(comp-review，引擎默认包含，`skip_review=true` 可跳过)
 → S08 竞赛论文撰写(comp-paper-zh/comp-paper-en) → S09 代码-论文一致性检查(comp-consistency)
 → S10 编译与合规检查(comp-compile-zh/comp-compile-en) → S11 数模视觉审查(comp-visual-review)
 → S12 数模编辑修订(comp-editor) → S13 数模最终复审(comp-final-review)

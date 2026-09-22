@@ -55,28 +55,37 @@ CHECKS: tuple[tuple[str, list[str], bool], ...] = (
 )
 
 # 漂移检测：权威文档中记录"当前基线"的位置。
+# 三元组 = (文件, 行内模式, 指标名)；指标名缺省为 "tests"（向后兼容旧式二元组）。
+# 指标实测源：tests = pytest collect-only；skills = git ls-files 的 SKILL.md 计数；
+# capabilities = capabilities/catalog.json 条目计数。
 # 两个精度约定（都与项目既有纪律一致）：
 #   1. **行内锚定**：AGENTS.md 同时列"仓库根"与"工具箱内"两个口径（527 / 508），
 #      故模式必须锚定"仓库根"那一行，否则会把工具箱口径误判为漂移。
 #   2. **历史横幅豁免**：本项目铁律 21 要求历史记录保留原文（配"保留作历史/上一时点/
 #      快照/已失效"横幅）。命中这些横幅的行**跳过**——否则每次口径更替都会把合规的
 #      历史留痕误报为漂移，检测器就会因噪声而失去意义（同"狼来了"教训）。
-DRIFT_SOURCES: tuple[tuple[str, str], ...] = (
-    ("README.md", r"badge/tests-(\d+)_passing"),
-    ("README.md", r"仓库根 \*\*(\d+) passed / 0 failed\*\*"),
-    ("AGENTS.md", r"仓库根[^\n]{0,240}?\*\*(\d+) passed / 0 failed\*\*"),
-    ("pytest.ini", r"本机完整仓 \*\*(\d+) passed / 0 failed\*\*"),
+DRIFT_SOURCES: tuple[tuple[str, str, str], ...] = (
+    ("README.md", r"badge/tests-(\d+)_passing", "tests"),
+    ("README.md", r"仓库根 \*\*(\d+) passed / 0 failed\*\*", "tests"),
+    ("README.md", r"badge/skills-(\d+)_tracked", "skills"),
+    ("README.md", r"(\d+) 个随仓技能", "skills"),
+    ("README.md", r"badge/capabilities-(\d+)-", "capabilities"),
+    ("AGENTS.md", r"仓库根[^\n]{0,240}?\*\*(\d+) passed / 0 failed\*\*", "tests"),
+    ("pytest.ini", r"本机完整仓 \*\*(\d+) passed / 0 failed\*\*", "tests"),
     ("dev-docs/truth-index.md",
-     r"本机完整仓\*\* `pytest -q` = \*\*(\d+) passed / 0 failed\*\*"),
+     r"本机完整仓\*\* `pytest -q` = \*\*(\d+) passed / 0 failed\*\*", "tests"),
 )
 
 # 历史横幅标记：命中即视为"合规的历史留痕"，不参与漂移判定
 HISTORICAL_MARKERS = ("保留作历史", "上一时点", "保留原文", "已失效", "历史值", "快照", "仅供追溯")
 
-# 漂移容差（默认 2%）：本项目常有**并行窗口**同时增删测试与更新文档，严格等值会
-# 在并发编辑期间持续误报，把真漂移淹掉（狼来了）。2% 仍能抓住"463 vs 576"这类真过期
-# （20% 级），同时容忍并行窗口的窗口期抖动。需要精确门禁时用 --strict-drift。
+# 漂移容差：tests 默认 2%——本项目常有**并行窗口**同时增删测试与更新文档，严格等值会
+# 在并发编辑期间持续误报，把真漂移淹掉（狼来了）。skills / capabilities 为**严格等值**
+# （容差 0）——2026-09-23 教训：技能数 badge 275 vs 实际 276 只差 0.4%，2% 容差抓不住，
+# 而这两类计数变化是离散事件（收编/下架），漂了就是文档没跟上，必须报。
+# 需要测试数精确门禁时用 --strict-drift。
 DRIFT_TOLERANCE = 0.02
+METRIC_TOLERANCES = {"tests": DRIFT_TOLERANCE, "skills": 0.0, "capabilities": 0.0}
 
 
 
@@ -119,14 +128,66 @@ def _actual_test_count() -> dict:
     return {"available": True, "reason": "", "count": int(m.group(1))}
 
 
-def _drift(actual: dict) -> dict:
-    """权威文档"当前基线"数字 vs 实测收集数（历史横幅行豁免）。"""
-    if not actual.get("available"):
-        return {"available": False, "reason": actual.get("reason", ""), "mismatches": [],
-                "exempted": 0}
-    want = actual["count"]
-    mismatches, exempted = [], 0
-    for rel, pattern in DRIFT_SOURCES:
+def _actual_skill_count() -> dict:
+    """实测 tracked 技能数（git ls-files 口径 = clone 即所见，2026-09-23 止血批定版）。"""
+    try:
+        proc = subprocess.run(["git", "ls-files", "--", "科研工具箱/skills/*/SKILL.md"],
+                              cwd=str(REPO_ROOT), capture_output=True, text=True,
+                              encoding="utf-8", errors="replace", timeout=60)
+    except Exception as exc:  # noqa: BLE001
+        return {"available": False, "reason": f"git ls-files 失败: {exc}", "count": None}
+    if proc.returncode != 0:
+        return {"available": False, "reason": "git ls-files 非零退出", "count": None}
+    count = len([ln for ln in (proc.stdout or "").splitlines() if ln.strip()])
+    return {"available": True, "reason": "", "count": count}
+
+
+def _actual_capability_count() -> dict:
+    """实测 catalog 能力条目数（与 capabilities/catalog.json 的域结构对账）。"""
+    path = REPO_ROOT / "capabilities" / "catalog.json"
+    if not path.is_file():
+        return {"available": False, "reason": "catalog.json 不存在", "count": None}
+    try:
+        catalog = json.loads(path.read_text(encoding="utf-8"))
+        count = sum(1 for entries in catalog.values() if isinstance(entries, list)
+                    for e in entries if isinstance(e, dict)
+                    and ("capability_id" in e or "id" in e))
+    except Exception as exc:  # noqa: BLE001
+        return {"available": False, "reason": f"catalog 解析失败: {exc}", "count": None}
+    return {"available": True, "reason": "", "count": count}
+
+
+def _actual_counts(skip_slow: bool = False) -> dict:
+    """三个指标的实测值。skip_slow 只跳过最慢的 pytest 收集（技能/能力数为毫秒级，始终实测）。"""
+    return {
+        "tests": {"available": False, "reason": "已跳过（--skip-slow）", "count": None}
+        if skip_slow else _actual_test_count(),
+        "skills": _actual_skill_count(),
+        "capabilities": _actual_capability_count(),
+    }
+
+
+def _drift(actual) -> dict:
+    """权威文档"当前基线"数字 vs 各指标实测值（历史横幅行豁免）。
+
+    actual 兼容两种形态：
+      - 新式多指标：{"tests": {...}, "skills": {...}, "capabilities": {...}}
+      - 旧式单指标：{"available": bool, "count": int|None, "reason": str}（视为 tests）
+    """
+    if "tests" not in actual and "skills" not in actual:
+        actual = {"tests": actual}
+    mismatches, exempted, unavailable = [], 0, []
+    needed = {item[2] if len(item) > 2 else "tests" for item in DRIFT_SOURCES}
+    for item in DRIFT_SOURCES:
+        rel, pattern = item[0], item[1]
+        metric = item[2] if len(item) > 2 else "tests"
+        metric_actual = actual.get(metric)
+        if not metric_actual or not metric_actual.get("available"):
+            if metric not in unavailable:
+                unavailable.append(metric)
+            continue
+        want = metric_actual["count"]
+        tolerance = METRIC_TOLERANCES.get(metric, DRIFT_TOLERANCE)
         path = REPO_ROOT / rel
         if not path.is_file():
             continue
@@ -139,26 +200,33 @@ def _drift(actual: dict) -> dict:
                     exempted += 1
                     continue
                 documented = int(found)
-                if abs(documented - want) > max(1, int(want * DRIFT_TOLERANCE)):
-                    mismatches.append({"file": rel, "line": idx + 1,
+                if abs(documented - want) > max(1 if tolerance > 0 else 0,
+                                                int(want * tolerance)):
+                    mismatches.append({"file": rel, "line": idx + 1, "metric": metric,
                                        "documented": documented, "actual": want,
                                        "delta_pct": round(abs(documented - want) / max(want, 1) * 100, 1)})
-    return {"available": True, "reason": "", "actual": want,
+    if not mismatches and needed and set(unavailable) >= needed:
+        first = next(iter(actual.values()))
+        return {"available": False, "reason": first.get("reason", "无可用实测指标"),
+                "mismatches": [], "exempted": exempted}
+    return {"available": True,
+            "reason": "、".join(f"{m} 未实测" for m in unavailable),
+            "actual": {k: v.get("count") for k, v in actual.items()},
             "mismatches": mismatches, "exempted": exempted,
             "tolerance": DRIFT_TOLERANCE}
 
 
 def run(skip_slow: bool = False) -> dict:
     components = [_run_component(name, args) for name, args, _required in CHECKS]
-    actual = {"available": False, "reason": "已跳过（--skip-slow）", "count": None} if skip_slow \
-        else _actual_test_count()
-    drift = _drift(actual)
+    counts = _actual_counts(skip_slow=skip_slow)
+    drift = _drift(counts)
     fails = [c for c in components if c["status"] == "FAIL"]
     degraded = [c for c in components if c["status"] == "DEGRADED"]
     ok = not fails and not drift.get("mismatches")
     return {
         "components": components,
-        "pytest": actual,
+        "pytest": counts["tests"],
+        "counts": counts,
         "drift": drift,
         "fails": [c["name"] for c in fails],
         "degraded": [c["name"] for c in degraded],
@@ -178,19 +246,23 @@ def _print_report(res: dict) -> None:
         if comp["status"] in ("FAIL", "DEGRADED") and comp.get("detail"):
             first = comp["detail"].splitlines()[0] if comp["detail"] else ""
             print(f"        {first[:140]}")
-    py = res["pytest"]
-    print(f"\n[2] 测试收集：{'实测 ' + str(py['count']) if py.get('available') else '未知（' + py.get('reason', '') + '）'}")
+    print("\n[2] 实测指标："
+          + " ".join(f"{k}={v['count']}" if v.get("available") else f"{k}=未知"
+                     for k, v in res["counts"].items()))
     drift = res["drift"]
     if not drift.get("available"):
         print(f"    漂移检测：跳过（{drift.get('reason', '')}）")
     elif drift["mismatches"]:
         print(f"    漂移检测：❌ {len(drift['mismatches'])} 处文档数字与实测不一致"
-              f"（容差 {drift.get('tolerance', 0):.0%}）")
+              + ("（tests 容差 2%；skills/capabilities 严格等值）"
+                 if any(m["metric"] == "tests" for m in drift["mismatches"]) else
+                 "（skills/capabilities 严格等值）"))
         for m in drift["mismatches"]:
-            print(f"        {m['file']}: 文档 {m['documented']} ≠ 实测 {m['actual']}"
+            print(f"        [{m['metric']}] {m['file']}: 文档 {m['documented']} ≠ 实测 {m['actual']}"
                   f"（差 {m.get('delta_pct', '?')}%）")
     else:
-        print(f"    漂移检测：✅ 权威文档基线数字与实测一致（容差 {drift.get('tolerance', 0):.0%}）")
+        print("    漂移检测：✅ 权威文档基线数字与实测一致"
+              "（tests 容差 2%；skills/capabilities 严格等值）")
     if res["degraded"]:
         print(f"\n    ⚠️ 降级组件（检查件未跑起来，不折算为通过）：{', '.join(res['degraded'])}")
     print("\n结论：", "整体健康" if res["ok"] else

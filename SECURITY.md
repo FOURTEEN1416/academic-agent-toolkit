@@ -11,9 +11,10 @@
 
 ## 密钥与隐私边界（本仓的底线）
 
-- **本地密钥不入库**：`科研工具箱/.env`、任何 API key、token、证书私钥**永不提交**。`.gitignore` 已排除 `.env` 族；`tools/pyc_loader.py` 仅在本地子进程 env 注入 vision provider key，禁止写入日志/manifest。
+- **本地密钥不入库**：`科研工具箱/.env`、任何 API key、token、证书私钥**永不提交**。`.gitignore` 已排除 `.env` 族；`tools/pyc_loader.py` 旧版曾从宿主配置注入 vision provider key——2026-09-23 视觉审核换驱动（宿主独立窗口）后该注入逻辑已整段拆除，现不再读取任何宿主凭据文件。
 - **tracked 配置必须可移植**：`opencode.json` / `.zcode/config.json` / `pytest.ini` 等使用占位符（`${DOCSEARCH_MCP_SERVER}` 等）；本机绝对路径（`C:\Users\...`）与过期项目根不得写入。
 - **机检门禁**：`python 科研工具箱/tools/secret_scan.py --strict` 扫描全部 tracked 文本文件的高置信凭证模式与配置绝对路径（豁免须登记 `data/secret_scan_allowlist.json` 并给出理由）；CI 每次推送执行。
+- **受控 pyc 分发件**：`科研工具箱/tools/*.pyc` 为 tracked 分发件（与同名 `.py` 配对）。**公开仓中字节码不可源码审查**——审计者应优先阅读同名 `.py`；发布/重构以 `.py` 为真源。
 - **上游 fork**：`vendor/forks/` 为上游暂存区，不入 git。
 
 ## 报告漏洞

@@ -9,19 +9,19 @@ allowed-tools: Bash(*), Read, Grep, Glob, Agent
 
 **为什么需要这一步**：建模/编程用的是同一个"心智模型"，如果它在建模阶段就把某个方向想反了（如把上界当下界）、或把某项算了两次，**自查时用的还是那个反的脑子，永远看不见**。这一步换一个独立视角，只干一件事——挑那五类"数值合法但逻辑错"的硬伤。
 
-## ⚡ 开关说明 + FAST_MODE 二级保险（开头先跑）
+## ⚡ 链路开关 + FAST_MODE 二级保险（开头先跑）
 
-⛔ **本步默认「关」**：后端 `_resolve_template` 默认把 comp-review 从步骤链里移除，**只有用户显式 `enable_comp_review=true` 时本步才会出现并执行**（这才是真省额度——不出现在链里就不启动进程）。所以你现在能读到这段，说明用户已选择开启。
+📌 **链路实况（2026-09-23 与引擎对齐）**：引擎 `template_resolver.resolve_template` **默认把本步包含在链中**（comp_cumcm/comp_huawei 的 S07 均含本步）；要省额度跳过时由用户/编排方显式传 `skip_review=true`（或 `skip_comp-review=true`），本步才会从链中移除——不出现在链里就不启动进程，这才是真省额度。
 
 ```bash
-# 二级保险：即便被开启，FAST_MODE 下仍跳过（速度优先场景），产占位不阻塞。
+# 二级保险：即便在链中，FAST_MODE 下仍跳过（速度优先场景），产占位不阻塞。
 if grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null; then
   echo "⏭ FAST_MODE：逻辑对抗复核跳过。确定性闸(logic_audit/cross_problem_check)已在 comp-code 兜底。"
   printf '# 逻辑对抗复核\n\nFAST_MODE 跳过（省额度）。确定性逻辑闸仍在 comp-code 阶段跑过。\n' > COMP_REVIEW.md
   exit 0
 fi
 ```
-> ⛔ 本步是**唯一多花一次 AI 调用**的环节。默认关(后端移除)、开启后 FAST_MODE 仍可跳。跳过时确定性闸(logic_audit/cross_problem_check)已在上一步兜底，不影响主流程。
+> ⛔ 本步是**唯一多花一次 AI 调用**的环节。默认在链中，`skip_review=true` 可整体移除、FAST_MODE 仍可跳。跳过时确定性闸(logic_audit/cross_problem_check)已在上一步兜底，不影响主流程。
 
 ## 输入（只读摘要，禁整读大 JSON）
 

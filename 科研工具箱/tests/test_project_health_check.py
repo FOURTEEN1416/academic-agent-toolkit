@@ -100,6 +100,42 @@ def test_drift_skips_when_actual_unavailable(tmp_path: Path) -> None:
     assert "collect-only" in out["reason"]
 
 
+# ---------- 多指标漂移（2026-09-23 止血批 C10：badge 技能/能力数机检） ----------
+
+def test_drift_strict_metric_catches_off_by_one(tmp_path: Path, monkeypatch) -> None:
+    """skills 指标严格等值：差 1（275 vs 276）必须报——2% 容差抓不住这类真漂移
+    （2026-09-23 实锤：badge 275 在 editaplot-lite 入库后立刻过期）。"""
+    (tmp_path / "README.md").write_text("badge/skills-275_tracked", encoding="utf-8")
+    monkeypatch.setattr(phc, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(phc, "DRIFT_SOURCES",
+                        (("README.md", r"badge/skills-(\d+)_tracked", "skills"),))
+    out = phc._drift({"skills": {"available": True, "reason": "", "count": 276}})
+    assert len(out["mismatches"]) == 1, out["mismatches"]
+    assert out["mismatches"][0]["metric"] == "skills"
+    assert out["mismatches"][0]["documented"] == 275
+    assert out["mismatches"][0]["actual"] == 276
+
+
+def test_drift_multi_metric_agrees_across_sources(tmp_path: Path, monkeypatch) -> None:
+    """三元组 DRIFT_SOURCES + 多指标 actual：各指标各自比对，全对则零 mismatch。"""
+    (tmp_path / "README.md").write_text(
+        "badge/tests-789_passing badge/skills-276_tracked badge/capabilities-314-",
+        encoding="utf-8")
+    monkeypatch.setattr(phc, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(phc, "DRIFT_SOURCES", (
+        ("README.md", r"badge/tests-(\d+)_passing", "tests"),
+        ("README.md", r"badge/skills-(\d+)_tracked", "skills"),
+        ("README.md", r"badge/capabilities-(\d+)-", "capabilities"),
+    ))
+    out = phc._drift({
+        "tests": {"available": True, "reason": "", "count": 791},
+        "skills": {"available": True, "reason": "", "count": 276},
+        "capabilities": {"available": True, "reason": "", "count": 314},
+    })
+    assert out["mismatches"] == [], out["mismatches"]
+    assert out["actual"] == {"tests": 791, "skills": 276, "capabilities": 314}
+
+
 # ---------- TOOL_GAP：DEGRADED 不折算为 PASS ----------
 
 def test_missing_dependency_is_degraded_not_pass(tmp_path: Path) -> None:
