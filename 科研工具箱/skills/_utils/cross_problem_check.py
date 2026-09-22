@@ -20,6 +20,7 @@ from __future__ import annotations
 import sys
 import json
 import argparse
+import math
 from pathlib import Path
 
 try:
@@ -29,6 +30,7 @@ except Exception:
 
 # 数值比较容差(相对)：避免浮点噪声误报
 _REL_TOL = 1e-6
+_ABS_TOL = 1e-12
 # 同名量跨问差异告警阈值(相对)：超过即 WARN(不阻塞)
 _CROSS_DIFF_WARN = 0.05
 
@@ -48,12 +50,13 @@ def _as_float(x):
     try:
         if isinstance(x, bool):
             return None
-        return float(x)
+        val = float(x)
+        return val if math.isfinite(val) else None
     except (TypeError, ValueError):
         return None
 
 
-def check_downstream_constraints(ledger: dict) -> list:
+def check_downstream_constraints(ledger: dict, *, stats=None) -> list:
     """核对：上游问题登记的"对下游约束"是否被下游的解满足。
 
     ledger 结构(建模阶段产出，字段缺失一律软跳过该条，不误报)：
@@ -73,6 +76,9 @@ def check_downstream_constraints(ledger: dict) -> list:
     只在"约束齐全 + 下游有对应观测值 + 确凿越界"时判 FAIL。
     """
     fails = []
+    if stats is None:
+        stats = {}
+    stats.update(checked=0, unavailable=0)
     probs = ledger.get("problems")
     if not isinstance(probs, list):
         return fails
@@ -90,7 +96,11 @@ def check_downstream_constraints(ledger: dict) -> list:
         if not isinstance(p, dict):
             continue
         up = str(p.get("id", "?"))
-        for c in (p.get("conclusions") or []):
+        conclusions = p.get("conclusions") or []
+        if not isinstance(conclusions, list):
+            stats["unavailable"] += 1
+            continue
+        for c in conclusions:
             if not isinstance(c, dict):
                 continue
             imp = c.get("imposes")
@@ -100,22 +110,39 @@ def check_downstream_constraints(ledger: dict) -> list:
             if not isinstance(targets, list):
                 continue
             qty = c.get("quantity")
+            if not isinstance(qty, str) or not qty:
+                stats["unavailable"] += 1
+                continue
             note = imp.get("note", "")
             for tgt in targets:
                 tgt = str(tgt)
                 tobs = observed.get(tgt)
                 if not isinstance(tobs, dict) or qty not in tobs:
+                    stats["unavailable"] += 1
                     continue  # 下游没有对应观测值 → 软跳过，不误报
-                val = _as_float(tobs.get(qty))
+                raw = tobs.get(qty)
+                if isinstance(raw, dict):
+                    # Never compare differently scaled units as though equal.
+                    if c.get("unit") and raw.get("unit") != c["unit"]:
+                        stats["unavailable"] += 1
+                        continue
+                    raw = raw.get("value")
+                val = _as_float(raw)
                 if val is None:
+                    stats["unavailable"] += 1
+                    if isinstance(raw, (int, float)) and not isinstance(raw, bool) and not math.isfinite(raw):
+                        fails.append(f"[{up}→{tgt}] {qty} 的实际观测不是有限数，不能作为已验证结果")
                     continue
                 lim_le = _as_float(imp.get("must_le"))
                 lim_ge = _as_float(imp.get("must_ge"))
-                if lim_le is not None and val > lim_le * (1 + _REL_TOL):
+                stats["checked"] += int(lim_le is not None) + int(lim_ge is not None)
+                if lim_le is None and lim_ge is None:
+                    stats["unavailable"] += 1
+                if lim_le is not None and val > lim_le + max(_ABS_TOL, abs(lim_le) * _REL_TOL):
                     fails.append(
                         f"[{up}→{tgt}] {up} 结论「{qty}={c.get('value')}」要求 {tgt} 满足 ≤{lim_le}，"
                         f"但 {tgt} 实际 {qty}={val:g} 越界。{('（'+note+'）') if note else ''}")
-                if lim_ge is not None and val < lim_ge * (1 - _REL_TOL):
+                if lim_ge is not None and val < lim_ge - max(_ABS_TOL, abs(lim_ge) * _REL_TOL):
                     fails.append(
                         f"[{up}→{tgt}] {up} 结论「{qty}={c.get('value')}」要求 {tgt} 满足 ≥{lim_ge}，"
                         f"但 {tgt} 实际 {qty}={val:g} 不足。{('（'+note+'）') if note else ''}")
@@ -170,7 +197,8 @@ def main() -> int:
             print("  " + w)
         return 2
 
-    fails = check_downstream_constraints(ledger)
+    stats = {}
+    fails = check_downstream_constraints(ledger, stats=stats)
     print("=== 跨子问题一致性终检 ===")
     if drift_warns:
         print("— 同名量差异(WARN，不阻塞)：")
@@ -182,7 +210,11 @@ def main() -> int:
             print("   " + f)
         print("⛔ 请回 comp-modeling/comp-code：把上游问题的结论作为约束纳入下游，或修正矛盾结论。")
         return 1
-    print("✅ PASS — 各问登记的下游约束均被满足，无跨问矛盾。")
+    if not stats["checked"] or stats["unavailable"]:
+        print(f"⚠ 已核对 {stats['checked']} 条数值条件；{stats['unavailable']} 项缺观测、单位口径或有效边界。")
+        print("本次未检出已证实矛盾，但不能宣称全部约束通过；在现有验收中补证据，不自动重新求解。")
+        return 2
+    print(f"✅ PASS — 已登记且可核对的 {stats['checked']} 条下游数值条件均满足；不代替题意完整性检查。")
     return 0
 
 

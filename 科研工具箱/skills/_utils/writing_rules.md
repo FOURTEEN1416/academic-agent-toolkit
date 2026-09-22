@@ -3,6 +3,10 @@
 Common rules for all paper-writing skills (paper-write, paper-write-zh, comp-paper-zh, comp-paper-en).
 Read this file at the start of writing workflow via `cat _utils/writing_rules.md`.
 
+检查职责与失败分类以 `quality_gate_contract.md` 为准。写作建议不是机械验收阈值；
+示例中的段长、行数、比例和样式不能单独触发付费返修。竞赛 PDF 写作只做轻量源码收口，
+最终数据、文风与版面检查由编译步骤统一执行；Word 在其导出流程完成版面检查。
+
 <figure_text_interleaving>
 ## Figure-Text Interleaving
 
@@ -67,24 +71,21 @@ which aligns with our hypothesis that the benefit scales with sequence length.
 
 ### Rules
 
-> ⛔⛔⛔ **机械铁律（先记死这一条，再谈逻辑流）：图/表后那段分析的第一句，开头绝对不许是"图N""表N""Figure N""Table N"。** 每张图都这么起句是最刺眼的 AI 痕迹。把图号**沉进句子中段**，句子开头留给"论证在讲什么"。**四种合规句式轮着用，同一节里"图作主语"最多一次**：
-> 1. **括号旁注**（首选）：`来源分布呈显著长尾，头部门户高度集中（图 5）。`——先说结论，图号进括号
-> 2. **动词引导**：`观察各来源发文量（图 5），可见头部集中、长尾寥寥。` / `将预测值与实测对比（图 3）后发现……`
-> 3. **后置印证**：`这种权威度梯度在来源分布中得到印证（图 5）。` / `该趋势在图 4 中体现得尤为清晰。`
-> 4. **承上引入**（图前用）：`既然可信度依赖来源权威性，先看清训练集的来源结构。`——下一句再自然带出图
-> ❌ 禁：`图5展示了…` `图3可以看出…` `如表2所示，…`（"如图/如表所示"开头也算无信息起句，禁）。✅ 对：上面四类任意一种。**写每张图的配文前，先在这四类里挑一个和上一张不同的。**
->
+> 图号在句首、句中或句末均可；关键是给出实质解释，而不是为了避免重复强行变换句式。
+> 下列示例提供可选组织方式，不是每张图都必须套用的段落模板。
+
+
 > ⛔⛔ **图不是孤岛——最高原则是"承上启下的逻辑流"（这是"像正常论文 vs 一股 AI 味"的分水岭）：** 每张图都必须**从上文的论述里自然长出来**（因为前面谈到 X、需要看清 Y，所以引入这张图），阐述时**顺着一条逻辑线展开**（图揭示了什么 → 为什么会这样 → 说明/支持了什么观点），最后**把结论接到下文**（因此下一步要做 Z / 这引出问题 N）。**绝对禁止**"凭空冒出一张图 + 一句干巴巴的描述（如'图3展示了情感分布，可以看出正面占比高'）就完事"——那种图删掉不影响行文，就是没融进论证的孤岛。数值/趋势**有就用来支撑逻辑，没有不强求**；关键是**这段话读起来是不是论证的一环，而不是一张图的说明卡**。
 >   - **❌ 孤岛式反例（一股 AI 味）**：`图 5 展示了新闻来源的分布。可以看出，新浪财经等门户发文量领先。` —— 突兀出现、就图论图、与上下文无联系，删了毫无影响。
 >   - **✅ 承上启下正例（正常论文的样子）**：`既然可信度评分依赖来源权威性，就需要先看清训练集的来源结构。观察各来源发文量的长尾分布（图 5），头部门户高度集中而数百个长尾来源各自寥寥——这种权威度梯度正是式(6)中"来源类型先验"的现实依据，也提示我们在任务二中必须对不同来源差异化加权。` —— 从上文"可信度"引入、顺逻辑阐述、接到下文"差异化加权"。
 
 1. 图/表前：先写"为什么现在要看这张图"的引入句（承上），把它接到上文正在展开的论述上，**不许**只写"如图所示""见下图"这种无信息的引子。
-   - **⛔ 如果图/表很大（占半页以上），引导文字必须至少 3-5 句**，否则会出现一页只有一句话+大片空白的情况。在引导文字中加入方法说明、参数设置、数据来源等内容填充
-2. 图/表后：顺着一条逻辑线阐述（3-5 句），做到"承上启下"：
+   - 大图按实际版面与可读性布局，不因占地大就额外补写 3-5 句；不要用冗余文字填白。
+2. 图/表的解释可以放在图前、图后或共同讨论段，按所需信息量展开：
    - **解读**：图揭示了什么关键现象/结构/趋势（有具体数值就用数值锚定，没有就说清定性特征，不强求编数字）
    - **归因或对比**：为什么会这样 / 与基线·其他方案·上一问相比如何 / 与预期是否一致
    - **推论与衔接**：这说明/支持了什么观点，因此引出下文的哪一步——让这段成为论证链的一环，而不是就图论图
-3. **⛔ Between consecutive figures/tables: at least one full paragraph (≥5 lines of text)**. 绝对禁止两张图/表连续出现中间没有分析文字。每张图后面必须有承上启下的分析段落，然后才能放下一张图
+3. Related figures/tables may share a discussion. Every adopted figure needs a clear role and body reference; do not impose a five-line or 120-character paragraph between every pair.
 4. **Subfigure 组合图：按"必要性"判断，AI 自决（适用所有论文类型，含竞赛/学术/课程/人文社科）**
 
    组合图 = 把 2-4 个**信息上互补**的图放进同一个 `figure` 环境用 `subfigure` 排版。判据严格按"必要性"，不是为了凑数或省页：
@@ -106,7 +107,7 @@ which aligns with our hypothesis that the benefit scales with sequence length.
    - **🟡 版面效率触发（相关为前提、留白才触发）**：两张**同类或可比**的数据图（如两个变量的分布直方图、两个场景的同类结果曲线），若**各自单独放都只占半页、后面配一段文字就撑出半页以上留白**，则**优先并排**成一行，把版面填满、读起来更紧凑。⚠️ 关键前提是"同类/可比"——只有本身相关的两张图才因留白而并排；**内容不相关的图，哪怕都很空、留半页白，也各自单列，绝不为填页硬凑一行**（见下面🔴"单纯为凑页"）。
 
    **🔴 禁止组合的场景（"必要性"低，等于拼图凑数）：**
-   - **⛔ 逻辑框图（流程图 flow / 架构图 architecture / 技术路线图 roadmap / 数据流 pipeline / 研究框架图 framework / TikZ 几何·算法·架构示意图 tikz_*.pdf）一律禁止并排**：必须单列独占一行，宽度 `0.72-0.82\textwidth`。逻辑框图的价值在**节点文字和连线可读**，两张并排缩到半栏字就糊了；它们不是"同坐标系比趋势"的数据对比，并排没有信息收益、只有可读性损失。即使两张流程图主题相关，也分成两个独立 figure、中间用过渡文字串起来，不并排。（数据结果图不受此条限制，按下面的必要性判断可并排。）
+   - **⛔ 逻辑框图（流程图 flow / 架构图 architecture / 技术路线图 roadmap / 数据流 pipeline / 研究框架图 framework / TikZ 几何·算法·架构示意图 tikz_*.pdf）一律禁止并排**：必须单列独占一行。对 `fig_arch/fig_roadmap/fig_flow/fig_pipeline/fig_framework` 且高宽比 `r≤1.05` 的横向/近方图，`fig_include_size.py` 会读取 PDF 内第 10 百分位有效字号、文字量和文本块数，在 `0.80~0.98\textwidth` 之间自动选宽：简单图不无脑铺满，密图优先放大；若到 `0.98` 仍不足 7pt，则直接要求回源重排或拆图。更高的竖图也会报重排，不能靠改成通栏硬撑。逻辑框图的价值在**节点文字和连线可读**，两张并排缩到半栏字就糊了；即使两张流程图主题相关，也分成两个独立 figure、中间用过渡文字串起来。（数据结果图不受此条限制，按下面的必要性判断可并排。）
    - 两张内容无关的图硬塞一行（如把"算法收敛曲线" + "数据分布直方图"放一起）
    - **超过 4 个 panel**（视觉一定看不清，拆成两个 figure 反而更清楚）
    - 单个 panel 宽度 < `0.45\textwidth`（两张挤在一起每张都太小）
@@ -156,8 +157,8 @@ which aligns with our hypothesis that the benefit scales with sequence length.
    - `fig_space_time [2-panel] — 空间-时间联动（t=10 空间热图 / 选定点完整时序）— competition #8 — 章节: 问题二`
    - `fig_explain [2-panel] — 可解释性（特征重要性 / SHAP 摘要）— advanced #7 — 章节: 模型可解释性`
    - `fig_3d_views [3-panel] — 三维场多视角（俯视 / 侧视 / 等距）— competition #6 — 章节: 问题三可视化`
-5. Per-page density: figures/tables ≤60% of page area, text ≥40%
-6. If a section has 3+ figures, each must have ≥5 lines of text between them
+5. 最终插入尺寸下文字与数据应清晰，页面密度只作布局参考，不设置图文面积比例。
+6. 多张图表按论证关系分组解释，不以数量乘固定段长扩写。
 
 ### Anti-pattern (never do this)
 
@@ -200,9 +201,9 @@ Also never write just: "如表所示，我们的方法表现最好" / "As shown 
   - 动词引导：「观察图 3 中的三条收敛曲线，其差异集中体现于收敛速度与最终高度……」
   - 图作主语（**限量使用：整个小节最多一次，且绝不能作为默认开头**）：「图 4 对比了本文方法与基线在四项指标上的表现，其中 NDCG 由 0.83 提升至 0.908……」
   - 后置印证：「……这一结论在图 6 中得到印证。」
-- **⛔ 相邻硬边界（机器会查）**：相邻的两个图表分析段落，**不得都以图号/表号起句**（如上一段「图21给出……」、下一段「图22：可信模型……」——这是最刺眼的 AI 痕迹）。连续两张及以上图都以图号开头，直接判违规。首选把图号沉到句中或句末括号（「……（图 22）」）。
-- 连续两段不能用相同方式引用图表（如连续两段都以"...（图X）"结尾也不行）
-- 每个图表的分析段落必须包含：数值解读 + 对比/原因分析 + 结论推断，三者缺一不可
+- 相邻句式重复只提醒检查是否空泛；两句都以图号开头不构成确定性错误，不能仅据此重写。
+- 引用位置服务论证，不强制连续段落更换引用方式。
+- 结果图解释真实数值及意义，关系示意图解释必要对象和关系；不强迫无数值图补结论数字。
 
 **⛔ 图注（caption）只写简短标签，不当正文写（LaTeX 与 docx 通用）**：
 - caption 只写这张图/表**是什么**的简短名词短语。**中文 caption 主体 ≤20 字，英文 ≤14 词**（均不含"图 N／Figure N"编号前缀）。判据、公式、参数取值、坐标轴含义、结论、"如何得出"这类细节一律写进正文那段图解读里，绝不塞进 caption——caption 太长时，LaTeX 图下方会折成多行、docx 里图注居中加粗更是挤成一坨，都很难看。
@@ -279,7 +280,19 @@ Also never write just: "如表所示，我们的方法表现最好" / "As shown 
 - Narrow tables (≤4 columns): do not use `\resizebox` — it stretches text to full width, font becomes huge, table fills entire page
 - Medium tables (5 columns): use `\resizebox` only if the table actually overflows margins; when in doubt, skip it
 - Safest universal approach for any table: use `\begin{tabular*}{\textwidth}` or `\small\begin{tabular}` instead of `\resizebox` — this constrains width without distorting font size
-- If a table is too tall (>12 rows), it MUST be truncated in body text — show first 3 rows + `$\vdots$` + last 3 rows, full table goes to appendix
+- If a table is too tall (>12 rows), it MUST be truncated in body text — show first 3 rows + `$\vdots$` + last 3 rows, full table goes to appendix. **EXCEPTION: never truncate the nomenclature / symbol table** (see below).
+- **⛔⛔ 唯一例外：符号说明表绝不截断、也不挪进附录**
+  符号说明表是**全文符号的唯一索引** —— 读者碰到不认识的符号就回查这张表。省掉中间行，
+  那些符号在全文再无处可查；挪到附录同样破坏"随时回查"的用途。
+  > **实测事故**：26 行符号表被当普通长表处理成「前 5 行 + `$\vdots$` + 后 3 行」，
+  > 中间 18 个符号全部失去解释，读者看到 `$x_{age}$` 只能自己猜。
+  - ✅ **正确做法**：符号表**一行不删**，超过 15 行就用 `\begin{longtable}` **跨页续排**
+    （`longtable` 会自动在续页重复表头）。⛔ 不用 `\begin{table}` + `tabular`，那个不能跨页。
+  - ⛔ 同样免截断的还有：变量/参数**说明**表、记号说明、术语对照表、缩略语表
+    （英文 `Nomenclature` / `List of Symbols` / `Notation` / `Abbreviations`）。
+  - ⚠ **注意区分**：「参数**说明**表」（符号索引，免截断）≠「参数**取值**表」（结果数据，照常截断）。
+  - 判据同 `table_slim.py` 的 `NO_SLIM_PAT` 与 `compile_utils.sh` 6.6 段 —— 两处脚本都会
+    自动放行这些表，**但提示词这一层不许自己先截**，否则脚本救不回来（内容已经没了）。
 - **⛔ 超过 12 行的结果表必须截断展示**：正文只放前 3 行 + `\midrule` + `$\vdots$` 省略行 + 后 3 行，完整表放附录。示例：
   ```latex
   \begin{table}[H]
@@ -338,21 +351,21 @@ To embed: copy each `\begin{figure}...\end{figure}` block that references a `tik
 
 **⛔ 通用防遮挡规则（所有图表都必须遵守）：**
 - **多条线终点标注**：如果 ≥3 条线的终点 y 值差距 < y 轴范围的 5%，必须用 `smart_labels()` 而不是手动 `ax.text()`
-- **柱状图 + 折线叠加（双轴图）**：折线数值标注放在折线上方（不是柱子上方），柱子的数值标注放在柱子内部或顶部。两者不要在同一个 y 位置。**⛔ 参考线/基准线的标注框必须放在图的边缘（左上角/右上角），绝对不要放在柱子和折线的交叉区域 — 这是最常见的遮挡场景。** 用 `transform=ax.transAxes` 固定在图的角落位置。
+- **柱状图 + 折线叠加（双轴图）**：默认不逐点标数，只标论文确实引用的极值、转折或方案值。折线和柱子都必须标清各自坐标轴与单位。参考线优先通过图例或线旁极短标签说明，不放大段角落文字框。
 - **图例位置**：如果图例和数据重叠，用 `bbox_to_anchor` 把图例放到图外（上方或右侧）
-- **标注框不能超出图表边界**：所有 `ax.text()` 和 `ax.annotate()` 的位置必须在 xlim/ylim 范围内。如果标注在边缘，用 `clip_on=False` + 加大 `pad_inches`
-- **等高线图/3D 曲面图标注规则**：最优点标注（星号+文字框）如果在图的边缘（靠近轴），标注文字必须偏向图内侧，不要朝外（会遮挡坐标轴刻度）。用 `textcoords='offset points'` 控制偏移方向：靠右边缘的点偏左标注 `(-60, 20)`，靠上边缘的点偏下标注 `(20, -40)`。同时加大 `pad_inches=0.3` 防止裁切
+- **标注框不能超出图表边界**：所有 `ax.text()` 和 `ax.annotate()` 必须在最终画布内。不要用 `clip_on=False` 或扩大 `pad_inches` 掩盖越界；应把标注移向图内、扩展轴范围、缩短文字，或将解释移入正文。
+- **等高线图/3D 曲面图标注规则**：关键点靠近边缘时，标注偏向图内侧；3D 投影优先只留点形和图例，确需点名时用短代号。不得靠增大 `pad_inches` 保住画布外文字。
 - **数值标注间距**：相邻标注的 y 间距至少为字号高度的 1.5 倍。如果做不到，只标注关键点（最大/最小/首尾）
 
 **检查清单：**
-4. 参考线标注不能和数值标签重叠 — **⛔ 参考线/基准线/阈值线的文字标注必须放在图的边缘（角落），用 `transform=ax.transAxes` 定位到 (0.02, 0.98) 或 (0.98, 0.02) 等角落位置。绝对不要用 `ax.text(x_data, y_data, ...)` 把标注放在数据区域中间。**
+4. 参考线标注不能和数值标签重叠 — 优先把参考线作为图例项；只需直接标注时，在线端附近留一个短名称或数值，并按最终渲染边界检查，不使用脱离线条的大段角落说明。
 5. 密集数据（>15 个标签）时 — 只标注关键点（最大/最小/首尾），不要每个点都标
 6. 棒棒糖图/森林图 — 值域窄时（如 0.03-0.13），标签偏移量必须按值域比例计算。**数值标签必须用 `smart_labels()` 而不是手动 `ax.text()`**，因为数据点密集时固定偏移必定重叠。如果最大值的标签超出 xlim，必须加大 `xlim` 右边界（`ax.set_xlim(min_val - margin, max_val + margin)`，margin 至少为值域的 15%）。
 7. 环形图 — 小扇区（<5%）的标签必须用外部连线，不能放在扇区内
 8. 双轴图 — 柱状图用 `alpha=0.6` 半透明避免遮挡折线
 9. **多 axes 布局（聚类热力图、边际直方图等）** — 树状图/边际图和主图之间至少留 0.05 的间距。`fig.add_axes([left, bottom, width, height])` 时，相邻 axes 的边界不能紧贴。树状图右边界和热力图左边界之间至少 0.04，标签区域额外预留 0.03。推荐用 `fig.add_gridspec()` 代替手动 `add_axes()`，自动处理间距。
 
-**⛔ 热力图数字必须可读**：`sns.heatmap()` 的 `annot=True` 默认用黑色文字，深色格子上完全看不清。必须加 `annot_kws` 或用自适应文字颜色：
+**⛔ 热力图数字按需且必须可读**：小矩阵且精确读数是正文论证所需时才用 `annot=True`；密集矩阵只保留 colorbar 并标少数关键单元。逐格标数时必须按格子底色自适应文字颜色：
 ```python
 # 方法：用 seaborn 内置的自适应（推荐）
 sns.heatmap(data, annot=True, fmt='.2f', cmap='YlOrRd',
@@ -389,7 +402,7 @@ for text in ax.texts:
   - ✅ 正确：将每个要点展开为完整段落，用"首先...其次...此外..."等过渡词连接，或用"（1）...（2）...（3）..."行内编号
 - **⛔ 正文中禁止出现元叙述和内部指令。** 以下内容绝对不能出现在论文正文中：
   - "参赛者"、"参赛队伍"、"我们团队" → 用"本文"代替
-  - "RESULTS.md"、"figures/*.json"、"CLAUDE.md"、"MODELING_REPORT.md" 等文件名 → 这些是内部工作文件，不是论文内容
+  - "RESULTS.md"、"figures/*.json"、"AGENTS.md"、"MODELING_REPORT.md" 等文件名 → 这些是内部工作文件，不是论文内容
   - "数据驱动"、"可解释建模"等原则性描述如果是从 SKILL 指令中复制的，不要原样写入正文
   - "竞赛特征"、"竞赛要求" → 论文是独立的学术文档，不要提及竞赛本身的规则或要求
   - 任何看起来像是"给 AI 的指令"而不是"给读者的分析"的内容
@@ -401,10 +414,16 @@ for text in ax.texts:
   - 引用编号必须按出现顺序递增：正文中先出现的文献编号小，后出现的编号大。不要出现 `[3]` 在 `[1]` 前面的情况
   - 如果需要同时引用多篇，分开写：`王某\cite{wang2020}、李某\cite{li2021}和张某\cite{zhang2022}分别研究了...`
   - 不要在一句话末尾堆砌引用：`...具有重要意义\cite{a,b,c,d,e}` ❌ → 每篇文献对应具体的观点或贡献
-- **⛔ 模型假设用 `\needspace{20\baselineskip}`，符号说明用 `\needspace{15\baselineskip}`**——compile_utils.sh 自动处理：
-  - 模型假设（`2_assumptions.tex`）：注入 `\needspace{20\baselineskip}`，当前页剩余空间够放 5 条假设就不换页，不够才换
-  - 符号说明（`3_symbols.tex`）：注入 `\needspace{15\baselineskip}`，确保标题和表格在同一页
+- **⛔ 模型假设只使用小幅 `\needspace{8\baselineskip}`；符号说明不使用 `\needspace` 或 `\clearpage`**——compile_utils.sh 自动处理：
+  - 模型假设：只防止标题孤悬页底，不把大半页推空
+  - 符号说明：使用 `longtable` 自然跨页，章节只保留一句引导，表后不写尾段
   - 不要手动加 `\clearpage` 或 `\needspace`，compile_utils.sh 会自动处理
+- **⛔ 模型假设是“现实简化”，不是参数表、方法表或运行报告**：
+  - 数量按真正必要的假设确定，不设固定上下限；给出假设及必要理由，不以条数或句数判错。
+  - 建议编号使用短标签“（1）（2）……”；长标签先检查是否实际挤压，不能仅凭样式判错。
+  - 参数范围移到参数说明；Pareto/加权/求解器移到模型与求解；结果与误差移到结果讨论
+  - 禁止“可切换参数、对应开关、无需重写逻辑、审计状态、质量门”等内部工程表述
+  - 题面已知事实、变量定义和子问题分工不是假设，不要重复包装
 - **⛔ 封面信息不要用 tabular + `\cline`。** 封面的学校、队员、指导老师等信息用 `\makebox` 或 `\underline{\hspace{}}` 排版，不要用 tabular 表格。`\cline{2-2}` 在封面上会被渲染成文本 "cline2-2"。正确做法：
   ```latex
   参赛学校：\underline{\makebox[8cm][c]{[学校名称]}} \\[0.8em]
@@ -425,24 +444,21 @@ for text in ax.texts:
 </latex_constraints>
 
 <page_filling>
-## Page Filling (Chinese thesis/competition papers)
-
-Every page should be filled. Half-empty pages are a basic formatting failure in Chinese theses and competition papers.
-
-- Last page of each chapter: text fills at least 2/3 of the page. If only a few lines remain, expand the chapter content
-- Figures should not occupy a page alone — text must appear above or below
-- **⛔ 所有图使用 `keepaspectratio` + `height` 双约束**，LaTeX 自动处理高图缩放，不需要在 DrawIO 层面限制图的高度
-- Do not use `\clearpage` or `\newpage` between chapters (except for abstract/TOC pages). Let LaTeX flow naturally
-- If a chapter ends with empty space, add a "本章小结" paragraph (2-3 sentences summarizing the chapter and previewing the next)
+## Page Layout
+让正文自然分页，最终检查明显孤行、溢出与异常大片空白的真实原因。
+不因章节尾页不到 2/3 页就扩写，不为填白添加“本章小结”，也不设置固定图文面积比例。
+先检查强制换页、浮动体约束、表格分页和图尺寸；核心数学内容不能因页面多而删除。
+高图保留纵横比并按最终字号判断是否重排，不能无条件缩小或增写文字。
+摘要独立遵守当前赛事单页及丰满度要求。
 </page_filling>
 
 <abstract_requirements>
 ## Abstract Requirements
 
-### Chinese papers (thesis/competition)
-- Chinese abstract: 600-800 characters for competition papers (hard range, target 680-760; stats contests exception 500-700 — authoritative source `_utils/abstract_writing_contract.md`). Thesis abstracts follow each venue's own norms. Aim to fill most of one page but leave 3-4 lines margin at the bottom — overflowing onto a second page looks worse than being slightly short
+### Chinese papers
+- Non-competition theses follow their institution/template. Mathematical-modeling competition abstracts use the single contract in `abstract_writing_contract.md`: standard Chinese/CUMCM has a **600--800 hard range, a 680--760 generation target, and exactly one physical page**; the rendered abstract-to-keywords span should use at least 80% of the safe printable height. Statistics modeling is 500--700 characters.
 - Content chain: 研究背景与意义 → 现有方法的不足 → 本文提出的方法 → 数据来源与处理 → 关键发现（must have specific numbers like 精度、R²、p值） → 应用价值
-- English abstract: 300-400 words, faithful translation of Chinese abstract (stats contests exception 350-500). Same principle — fit on one page with a small margin, do not overflow
+- English abstract: 350-500 words, faithful translation of Chinese abstract. Same principle — fit on one page with a small margin, do not overflow
 - Use manual typesetting for abstracts (not `\begin{abstract}` twice — ctexart shows "摘要" as title for both)
 - The abstract is the soul of the paper — reviewers read it first. It must be thorough, never just 2-3 paragraphs
 
@@ -458,12 +474,12 @@ Every page should be filled. Half-empty pages are a basic formatting failure in 
 - 标题长度：中文 15-30 字，简洁有力，不要超过 35 字
 
 **⛔ 摘要页排版规则（中文论文）：**
-- 摘要必须在封面之后、目录之前。不要在摘要前放 `\listoffigures`（插图目录）或 `\listoftables`（表格目录）
-- 正确的页面顺序：封面 → 摘要（中文）→ 摘要（英文）→ 目录 → 正文。`\listoffigures` 和 `\listoftables` 如果需要，放在目录之后、正文之前
+- 摘要必须在封面之后、正文之前。数学建模论文统一不生成正文目录、插图目录或表格目录；
+  不使用 `\tableofcontents`、`\listoffigures` 或 `\listoftables`，摘要结束后直接进入正文。
 
 **⛔ 防空白页规则：**
 - **不要在正文章节之间加 `\newpage`、`\clearpage` 或 `\nopagebreak`** — 让 LaTeX 自动分页。`\nopagebreak` 会把标题和大表格绑死，放不下就整块推到下一页产生空白页
-- 只在摘要后和目录后用分页
+- 数学建模论文摘要结束后可按模板自然换页，但不得生成目录，也不得再插入“目录后分页”
 - 参考文献和附录前不要加 `\newpage`
 - 关键词必须用 `\textbf{关键词：}` 加粗标注，与摘要正文之间空一行
 - 摘要页推荐用 `\begin{abstract}` 环境（ctexart 自带），不要用普通 `\section*{摘要}` + 段落文本
@@ -501,8 +517,8 @@ Every page should be filled. Half-empty pages are a basic formatting failure in 
   ```
 
 ### Competition papers (数模竞赛)
-- Chinese abstract: 600-800 characters (hard range, target 680-760; stats contests exception 500-700 — see `_utils/abstract_writing_contract.md`; whole abstract ≥3 concrete numerical results), every sub-problem must have specific numerical results
-- Summary Sheet (MCM/ICM): 300-400 words, self-contained with specific numbers, one full page
+- Chinese/CUMCM abstract: 600-800 characters (aim for 680-760), every sub-problem must have specific numerical results, and the compiled abstract plus keywords must stay on one physical page without looking visibly sparse
+- Summary Sheet (MCM/ICM): 300-400 words (aim for 330-380), self-contained with specific numbers, one full page
 
 ### English papers (ML venues)
 - 150-250 words, self-contained
@@ -524,8 +540,8 @@ Writing can be interrupted by timeout. Use these strategies to enable seamless r
 Content to be added in continuation pass.
 ```
 4. Before writing, always check for existing sections:
-   - Placeholder sections (<500 chars or contains "PLACEHOLDER"/"待补充") → write these
-   - Completed sections (>2000 chars) → skip, do not overwrite
+   - 明确待补占位或实际缺失的章节 → 按缺口续写
+   - 已完整且依赖未变的章节 → 保留，不覆盖；短文件可能是完整引导、长文件也可能有占位
    - This enables automatic resume after timeout/retry
 </resume_strategy>
 
@@ -551,7 +567,7 @@ Content to be added in continuation pass.
 - 同一指标的数字**全文保持一致**（前章说 NDCG=0.908，后章不能变成 0.91）；
 - **不重复解读**已经讲过的图表。
 
-**resume 安全**：写作是**优先级顺序**（核心→实验→绪论→相关工作→结论），不是章节序号顺序；要点卡按"已完成的章节"累积，不假设顺序。若超时重启后 `_writing_context.md` 缺失或不全，先扫已完成的 `sections/*.tex`（>2000 字符的那些）首段 + 关键数值，把卡片补建出来，再继续写后续章节。与 `<resume_strategy>` 配合使用。
+**resume 安全**：写作是**优先级顺序**（核心→实验→绪论→相关工作→结论），不是章节序号顺序；要点卡按"已完成的章节"累积，不假设顺序。若超时重启后 `_writing_context.md` 缺失或不全，先扫当前实际引用且已有内容的章节首段 + 关键数值，把卡片补建出来，再继续写后续章节。与 `<resume_strategy>` 配合使用。
 </chapter_context_card>
 
 <de_ai_polish>
@@ -559,9 +575,66 @@ Content to be added in continuation pass.
 
 Remove these AI writing artifacts before finalizing:
 
-### Structural AI patterns (most obvious — fix first)
+### ⛔⛔ 工程/质检语汇泄漏（实测第一大破绽，优先于下面所有项）
+
+**这类词不是"大词空话"，而是【内部工程与质检语汇】误入学术正文。**它们从流水线提示词里流进产出——提示词用「口径/自检/兜底/闭环」讲质检流程，写作时把同一套词带进论文，读者一眼就看出非人写。
+
+#### 内部强检查，正文无痕表达
+
+容量、时限、守恒、残差、泄漏和一致性检查必须继续运行，但论文不是程序验收报告。正文不得出现
+`validate_constraints`、`validate_storage`、`monotonicity_check`、`ok=true`、"代码内置断言"、
+"单调性铁证"、"降维失败"、"约束验证全部通过"等实现痕迹，也不要设置“约束验证”“质量门”
+“能力审计”“可证伪断言”一类标题。
+
+只保留对模型解释有帮助的事实，并改写为读者视角。例如把“容量校验零越界”改为“最高利用率为
+0.992，仍有 0.8% 的余量”；把“单调性断言通过”改为“时延权重由 0 增至 20 后，迁移比例由
+0.549 降至 0，表明时延惩罚有效抑制了远距离迁移”。如果检查只说明程序没有报错，则正文不提。
+
+⛔ **实测规模（10 个真实工作区论文正文）**：命中 **442 次**。「口径」单独 **225 次**、「闭环」44 次。这是所有 AI 痕迹里最密集的一类，**远超下面的空话套话**（"值得注意的是"仅 6 次）。
+
+**⛔ 禁用词与学术替代（写作时逐个替换，不要保留原词）**：
+
+| 禁用 | 论文该说 |
+|---|---|
+| **口径**（225 次，头号） | 定义 / 取法 / 计算方式 / 统计范围 |
+| **闭环**（44 次） | 反馈校正 / 迭代修正 / 反馈回路 |
+| 清单 / 台账 | 条件 / 汇总表 / 一览表 |
+| 自检 / 对账 | 校验 / 一致性检验 / 复核 |
+| 兜底 / 回填 | 缺省处理 / 补充取值 / 默认取值 |
+| 上游 / 下游 | 前序 / 后续 / 前一阶段 / 后一阶段 |
+| 链路 | 传递路径 / 因果链 / 作用路径 |
+| 复用 | 沿用 / 采用 / 继续使用 |
+| 落地 / 打通 | 实现 / 贯通 / 完成 |
+| 对齐 / 拉齐 | 统一 / 一致化 / 归一 |
+| 修正项 | 修正量 / 校正项（数学意义时可留「校正项」） |
+| 颗粒度 | 粒度 / 精细程度 / 分辨率 |
+| 抓手 / 赋能 / 维度上 | 直接删改为具体说法 |
+
+**⛔⛔ 内部标记绝不进正文（出现即返工）**：
+- 符号：`⛔` `✅` `❌` `⚠`（实测泄漏 12 次）
+- 文件名：`RESULTS.md` `PARAMS_RAW.md` `MODELING_REPORT.md` 等
+- 内部编号：`HC-01` `METHOD_CLAIMS` `A1/H6/F1` 这类质检编号（实测 `HC-0` 泄漏 21 次）
+- ⛔ **例外**：论文自己定义并在正文解释过的编号（如"假设 A1"在符号说明里已定义）可以用；**未在论文中定义过的内部编号一律删除或改写成文字**。
+
+**在当前步骤负责文风检查时使用已有脚本，不用裸 grep。** 竞赛 PDF 写作不在此运行，留给最终编译；避免附录代码、注释、合法领域术语被误认成工程泄漏：
+
+```bash
+# 脚本三处查找（与其它 shared-scripts 同惯例）：_utils/ → skills 源目录
+AITELL=""
+for f in _utils/ai_tell_check.py skills/shared-scripts/ai_tell_check.py; do
+  [ -f "$f" ] && { AITELL="$f"; break; }
+done
+[ -n "$AITELL" ] && python "$AITELL"    # 在工作区根目录跑，自动找 paper/
+# 退出码：0=干净  1=查出禁用语汇(必修)  2=没找到正文(跳过不阻塞)
+```
+
+它已排除：代码块（``` / lstlisting / verbatim）、行内代码、Markdown 与 LaTeX 注释、报告类文件（`*REPORT*`/`*AUDIT*`/`*CHECKLIST*` 等——那些文件本就该用工程语汇）。报告仍需区分明确内部控制标记与合法领域术语，启发式命中不能一概当作真错误。
+
+只修明确的内容缺陷并按工作流有限预算复查；建议项不触发新模型轮次。解析崩溃或缺依赖归类为检查不可用，不重写论文，不设置“直到 0”的无限循环。
+
+### Structural AI patterns
 - **⛔ `\begin{itemize}` / `\begin{enumerate}` in body text** — the #1 AI writing tell. Convert every bullet list to flowing paragraphs. Use "首先...其次...最后..." or "（1）...（2）...（3）..." inline numbering instead.
-- **⛔ 每段只有 1-2 句话** — AI 喜欢写很多短段落。合并相关的短段落为 3-5 句的完整段落。
+- 段落以表达完整为准；一两句的定义、承接或结论可以保留，不为固定句数扩写。
 - **⛔ 连续段落以相同句式开头** — 如连续三段都以"本文..."开头，改为不同的开头方式。
 
 ### Chinese
@@ -582,7 +655,7 @@ Remove these AI writing artifacts before finalizing:
 <references_workflow>
 ## References Generation Workflow
 
-references.bib is a hard prerequisite for compilation. Without it, the PDF will have no references and will be judged as unqualified. Generate it during the writing phase, never skip.
+使用 BibTeX 的模板需有其实际引用的 .bib；使用 thebibliography 的模板保留有效 bibitem 即可，不强制额外创建无用的 references.bib。引用真实且服务正文，不凑固定篇数。已核实的文献与来源未变时不重复网络检索。
 
 ### Collection
 ```bash
@@ -598,12 +671,12 @@ cat _tmp/_cited_keys.txt
 **⛔ 优先使用 scholar_fetch.py 工具（环境变量 `$SCHOLAR_SCRIPT`）自动获取 BibTeX。**
 
 ```bash
-PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+PYTHON=""; for _c in python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
 # 对每个引用 key，用 scholar_fetch.py 搜索并获取 BibTeX
 # ⛔ 必须把 citation key 还原成检索关键词再搜：key 形如 wang2023supply / smith_2021_gnn，
 #    直接拿裸 key 当查询词命中率极低 → 搜空 → 被迫编造。去掉 TODO 前缀、下划线转空格。
 # ⛔ 把 scholar_fetch 的输出**同时留档**到 _tmp/refs_raw.jsonl —— 收尾的 bib_authenticity_check
-#    会拿它交叉核对：.bib 里凡是"检索留档中找不到、又无 DOI/arXiv"的条目一律判编造并拦下。
+#    会拿它交叉核对：缺少留档或 DOI 只能标记待核实，不能据此断言编造。
 #    这是把"检索归检索、编造归编造"分开的关键证据，务必保留留档、不要跳过检索直接写 .bib。
 while IFS= read -r key; do
     query=$(echo "$key" | sed 's/^TODO__//; s/_/ /g')
@@ -634,7 +707,7 @@ echo "Bib entries: $bib_count, Cited keys: $cited_count"
 [ "$bib_count" -lt "$cited_count" ] && echo "WARNING: fewer bib entries than cited keys"
 ```
 
-If references.bib is empty or missing, do not proceed to the next step.
+仅当模板实际使用 BibTeX 而对应文献库缺失时阻断。thebibliography、已核实的其他来源不得因没有 references.bib 误报。
 </references_workflow>
 
 <output_conventions>

@@ -2,8 +2,12 @@
 """drawio_check.py — DrawIO 技术路线图/求解流程图结构自检
 用法: python3 _utils/drawio_check.py figures/fig_roadmap.drawio roadmap
       python3 _utils/drawio_check.py figures/fig_flow_q1.drawio flow
+      python3 _utils/drawio_check.py figures/fig_arch.drawio generic
 """
-import re, sys
+import html
+import re
+import sys
+import xml.etree.ElementTree as ET
 
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -11,48 +15,214 @@ except Exception:
     pass
 
 
-def check_roadmap(content, filename):
-    """检查技术路线图是否符合粉色表头 + 六边形阶段节点 + 浅色子节点的设计语言。
-    支持 4 个模板（example_roadmap_stats / _stats_warm / _hex / _hex_cool），均为同一家族。"""
+def _style_map(raw):
+    result = {}
+    for item in (raw or "").split(";"):
+        if "=" in item:
+            key, value = item.split("=", 1)
+            result[key.strip()] = value.strip()
+    return result
+
+
+_RESULT_NUMBER = r"[-+]?(?:\d+(?:\.\d+)?|\.\d+)(?:\s*[eE]\s*[-+]?\d+)?\s*%?"
+_RESULT_WITH_NUMBER_RE = re.compile(
+    rf"(?:输出|结果|求得|得到|计算得|确定为|最终|最优(?:值|解|方案)?|"
+    rf"终止时刻|临界时刻|最小(?:值|螺距|成本|距离)?|最大(?:值|速度|收益)?|"
+    rf"提升|降低|减少|增加|准确率|精确率|召回率|误差|RMSE|MAE|R\s*[²2]|AUC|"
+    rf"result|output|obtained|final|optimal|minimum|maximum|improv(?:e|ed)|reduc(?:e|ed))"
+    rf"[^。；;!?]{{0,36}}{_RESULT_NUMBER}", re.IGNORECASE,
+)
+_RESULT_ASSIGNMENT_RE = re.compile(
+    rf"(?:t\s*\*|p\s*(?:_\s*)?min|v\s*(?:_\s*)?max|RMSE|MAE|MSE|MAPE|"
+    rf"R\s*[²2]|AUC|F1|cost|objective)\s*(?:=|≈|:)\s*{_RESULT_NUMBER}",
+    re.IGNORECASE,
+)
+_RESULT_CLAIM_RE = re.compile(
+    r"结论成立|验证通过|结果表明|显著优于|效果最佳|性能(?:明显|显著)?提升|"
+    r"validation\s+passed|results?\s+show|outperform(?:s|ed)?",
+    re.IGNORECASE,
+)
+_METHOD_SETTING_RE = re.compile(
+    r"终止条件|停止条件|收敛阈值|容差|步长|精度|迭代上限|最大迭代|种群规模|"
+    r"搜索范围|参数范围|置信水平|样本量|时间步|tolerance|threshold|step\s*size|"
+    r"iterations?|population\s*size|search\s*range",
+    re.IGNORECASE,
+)
+_STRONG_RESULT_CUE_RE = re.compile(
+    r"输出|结果|求得|得到|计算得|确定为|最终|最优值|终止时刻|临界时刻|"
+    r"result|output|obtained|final|optimal\s+value",
+    re.IGNORECASE,
+)
+
+
+def _plain_cell_text(raw):
+    text = html.unescape(raw or "")
+    text = re.sub(r"<br\s*/?>", " ", text, flags=re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", "", text)
+    return " ".join(html.unescape(text).split())
+
+
+def _result_leak_reason(text):
+    """Return why a diagram label leaks a solved result, or ``None``.
+
+    Algorithm settings such as ``精度 1e-6`` and ``最大迭代 1000`` remain
+    legal.  The gate targets values or declarative findings produced by the
+    solution, because those belong in result charts and paper prose.
+    """
+    text = _plain_cell_text(text)
+    if not text:
+        return None
+    if _RESULT_CLAIM_RE.search(text):
+        return "包含结论性判断"
+    if _METHOD_SETTING_RE.search(text) and not _STRONG_RESULT_CUE_RE.search(text):
+        return None
+    if _RESULT_WITH_NUMBER_RE.search(text) or _RESULT_ASSIGNMENT_RE.search(text):
+        return "包含具体求解结果数值"
+    return None
+
+
+def _result_leak_issues(cells):
+    leaks = []
+    for cell in cells:
+        value = cell.get("value", "")
+        reason = _result_leak_reason(value)
+        if reason:
+            leaks.append((cell.get("id", "?"), _plain_cell_text(value), reason))
+    if not leaks:
+        return []
+    sample = "；".join(
+        f"{cell_id}「{text[:36]}」({reason})"
+        for cell_id, text, reason in leaks[:5]
+    )
+    return [
+        "CRITICAL: 流程/架构图泄漏求解结果 %d 处（%s）— 图中只保留方法、"
+        "判断条件和待输出的量名；具体数值与结论性陈述移入正文或结果图表"
+        % (len(leaks), sample)
+    ]
+
+
+def _common_issues(content):
+    """Validate observable DrawIO invariants without prescribing a template."""
     issues = []
+    try:
+        root = ET.fromstring(content)
+    except ET.ParseError as exc:
+        return [f"CRITICAL: XML 无法解析: {exc}"]
+
+    if "<!--" in content:
+        issues.append("CRITICAL: 含 XML 注释 — CLI 导出兼容规范禁止 XML 注释")
+    if "shadow=1" in content:
+        issues.append("CRITICAL: 含 shadow=1 — CLI 导出可能丢失节点")
+
+    cells = list(root.iter("mxCell"))
+    issues.extend(_result_leak_issues(cells))
+    ids = [cell.get("id") for cell in cells if cell.get("id")]
+    if len(ids) != len(set(ids)):
+        issues.append("CRITICAL: mxCell id 不唯一")
+
+    boxes = {}
+    tiny_fonts = 0
+    missing_html = 0
+    for cell in cells:
+        style_raw = cell.get("style", "")
+        style = _style_map(style_raw)
+        value = html.unescape(cell.get("value", ""))
+        if any(tag in value.lower() for tag in ("<b", "<br", "<font", "<span")) and style.get("html") != "1":
+            missing_html += 1
+        if cell.get("vertex") != "1":
+            continue
+        try:
+            font_size = float(style.get("fontSize", "10"))
+            if font_size < 8:
+                tiny_fonts += 1
+        except ValueError:
+            pass
+        geometry = next((child for child in cell if child.tag.endswith("mxGeometry")), None)
+        if geometry is None:
+            continue
+        try:
+            x = float(geometry.get("x", "0"))
+            y = float(geometry.get("y", "0"))
+            width = float(geometry.get("width", "0"))
+            height = float(geometry.get("height", "0"))
+        except ValueError:
+            continue
+        if width <= 4 or height <= 4:
+            continue
+        if (
+            "swimlane" in style_raw
+            or style.get("shape") in {"line", "label"}
+            or (style.get("dashed") == "1" and style.get("fillColor", "none") in {"none", "#FFFFFF"})
+        ):
+            continue
+        boxes.setdefault(cell.get("parent", "1"), []).append(
+            (cell.get("id", "?"), x, y, x + width, y + height)
+        )
+
+    if missing_html:
+        issues.append(f"CRITICAL: {missing_html} 个含 HTML 标签的单元缺少 html=1")
+    if tiny_fonts:
+        issues.append(f"CRITICAL: {tiny_fonts} 个节点源字号小于 8px — 论文插入后将难以阅读")
+
+    overlaps = []
+    for siblings in boxes.values():
+        for index, first in enumerate(siblings):
+            a_id, ax1, ay1, ax2, ay2 = first
+            for second in siblings[index + 1:]:
+                b_id, bx1, by1, bx2, by2 = second
+                overlap_x = min(ax2, bx2) - max(ax1, bx1)
+                overlap_y = min(ay2, by2) - max(ay1, by1)
+                if overlap_x > 4 and overlap_y > 4:
+                    overlaps.append(f"{a_id}/{b_id}")
+    if overlaps:
+        sample = ", ".join(overlaps[:5])
+        issues.append(
+            f"CRITICAL: 同层节点发生实体重叠 {len(overlaps)} 处（{sample}）— "
+            "容器嵌套必须用 parent 关系，不能靠覆盖伪装"
+        )
+    return issues
+
+
+def check_roadmap(content, filename):
+    """检查技术路线图的可导出性、真实流向与布局安全，不规定模板。"""
+    issues = _common_issues(content)
+    has_three_column = all(token in content for token in ("研究阶段", "研究内容", "研究方法"))
     
     # ===== 必须有顶部三栏表头（研究阶段/研究内容/研究方法）=====
     has_header = bool(re.search(r'研究阶段|研究内容|研究方法|研究框架', content))
-    if not has_header:
-        issues.append("CRITICAL: 缺少顶部三栏表头（研究阶段/研究内容/研究方法）")
     
     # ===== 必须有六边形或圆形/箭头编号的阶段节点形状 =====
     has_stage_shape = bool(re.search(r'shape=hexagon|shape=step|shape=mxgraph\.arrows2\.arrow|ellipse', content))
     if not has_stage_shape:
-        issues.append("CRITICAL: 缺少阶段节点形状（应使用 shape=hexagon / shape=step / ellipse 表示阶段递进）")
+        issues.append("WARNING: 未使用阶段形状；若为分层/矩阵版式可忽略，否则请确认主路径足够清楚")
     
     # ===== 必须有粗主流程箭头连接阶段 =====
     arrows = len(re.findall(r'edgeStyle|endArrow', content))
-    if arrows < 3:
-        issues.append("CRITICAL: 阶段节点间连接不足（至少 3 个箭头/连线）")
+    if arrows < 2:
+        issues.append("CRITICAL: 路线关系不足（至少需要 2 条真实连接表达整体依赖）")
     
     # ===== 必须有右栏研究方法 =====
     has_right_col = bool(re.search(r'文献综述|相关分析|回归|熵权法|TOPSIS|NSGA|PyTorch|Gurobi|蒙特卡洛|可视化|Matplotlib|LaTeX|CiteSpace|Pandas|随机森林|XGBoost|EDA|K-fold|Bootstrap|ECharts|归纳总结', content))
-    if not has_right_col:
-        issues.append("WARNING: 可能缺少右栏研究方法卡片")
+    if has_three_column and not has_right_col:
+        issues.append("WARNING: 图声明为三栏结构，但研究方法栏可能为空")
     
     # ===== 必须有虚线框分组 =====
     has_dashed = bool(re.search(r'dashed=1|dashPattern', content))
-    if not has_dashed:
-        issues.append("WARNING: 没有虚线框容器 — 中栏每阶段应使用虚线框分组")
+    if has_three_column and not has_dashed:
+        issues.append("WARNING: 三栏结构没有明显分组边界；请确认仍能区分阶段映射")
     
     # ===== 通用检查 =====
     # 节点必须有双行
     nodes_with_br = len(re.findall(r'&lt;br&gt;|<br>', content))
     total_nodes = len(re.findall(r'vertex="1"', content))
-    if total_nodes > 5 and nodes_with_br < total_nodes * 0.3:
-        issues.append("WARNING: 大部分节点只有单行文字，应有双行（主标题+灰色副标题）")
+    if total_nodes > 5 and nodes_with_br > total_nodes * 0.8:
+        issues.append("WARNING: 超过 80% 节点使用双行文字，可能存在模板化副标题和文字墙")
     
     # 必须有渐变色/足够的色彩
     has_gradient = bool(re.search(r'gradientColor', content))
     unique_fills = set(re.findall(r'fillColor=#[A-Fa-f0-9]{6}', content))
-    if not has_gradient and len(unique_fills) < 3:
-        issues.append("WARNING: 色彩不足 — 建议使用 gradientColor 或多种填充色增加层次感")
+    if len(unique_fills) > 7:
+        issues.append("WARNING: 填充色超过 7 种，可能形成彩虹式阶段配色")
     
     # 不能有图内标题（只检查 mxCell 的 value 属性，不包含 diagram name 等元数据）
     cell_values = re.findall(r'<mxCell[^>]+value="([^"]*)"', content)
@@ -112,7 +282,7 @@ def check_roadmap(content, filename):
     # ⛔ 只比较正文区的块(y>100), 排除顶部三个表头(y≈40)。
     #    表头可以是窄居中样式(width 与内容框不同), 不该和内容框/方法块一起比一致性。
     body_cells = [(x, w) for x, w, y in top_cells if y > 100]
-    if len(body_cells) >= 4:
+    if has_three_column and len(body_cells) >= 4:
         # ---- 中列内容框 (width>=350) 之间的 x/width 一致性 ----
         wide = [(x, w) for x, w in body_cells if w >= 350]
         if len(wide) >= 2:
@@ -165,7 +335,7 @@ def check_roadmap(content, filename):
         if sm and tm and sm.group(1) in id_cx and tm.group(1) in id_cx:
             if abs(id_cx[sm.group(1)] - id_cx[tm.group(1)]) > 350:
                 cross_edges += 1
-    if cross_edges > 0:
+    if has_three_column and cross_edges > 0:
         issues.append(
             "CRITICAL: %d 条横跨连线（两端水平跨度 >350px）— 这类线必穿过中栏内容框，"
             "draw.io CLI 导出无 ELK 路由会画成歪扭折线。研究方法卡片(右栏)与对应阶段"
@@ -189,7 +359,7 @@ def check_roadmap(content, filename):
         # 中栏小卡片：y>100(排除表头) + 宽度 80~360(排除大容器框) + 落在中栏区(left>=200 且 right<=800)
         if y > 100 and 80 <= w <= 360 and left >= 200 and right <= 800:
             mid_cards.append((y, left, right))
-    if len(mid_cards) >= 3:
+    if has_three_column and len(mid_cards) >= 3:
         all_left = min(l for _, l, _ in mid_cards)
         all_right = max(r for _, _, r in mid_cards)
         cx_mid = (all_left + all_right) / 2
@@ -222,12 +392,11 @@ def check_roadmap(content, filename):
 
 def check_flow(content, filename):
     """检查求解流程图是否满足最低要求"""
-    issues = []
+    issues = _common_issues(content)
     
-    # 1. 必须有判断分支（菱形节点）
+    # 1. 只有真实判断才需要菱形；纯线性/分层流程不强制。
     has_diamond = bool(re.search(r'rhombus|shape=diamond', content))
-    if not has_diamond:
-        issues.append("CRITICAL: 没有判断分支（菱形节点）— 求解流程图必须至少有 1 个判断分支")
+    # 纯线性、分层或 pipeline 流程可以没有判断；禁止为了检查器伪造菱形。
     
     # 2. 必须有是/否标签
     has_yes_no = bool(re.search(r'[是否]|Yes|No|yes|no', content))
@@ -237,8 +406,8 @@ def check_flow(content, filename):
     # 3. 节点必须有双行（主标题+副标题）
     nodes_with_br = len(re.findall(r'&lt;br&gt;|<br>', content))
     total_nodes = len(re.findall(r'vertex="1"', content))
-    if total_nodes > 3 and nodes_with_br < total_nodes * 0.3:
-        issues.append("CRITICAL: 大部分节点只有单行文字 — 必须有双行（主标题+灰色副标题说明具体方法/参数）")
+    if total_nodes > 3 and nodes_with_br > total_nodes * 0.8:
+        issues.append("WARNING: 超过 80% 节点使用双行文字，可能有模板化副标题或信息过载")
     
     # 4. 必须有颜色区分（fillColor + strokeColor 合计至少 3 种不同颜色）
     fills = set(re.findall(r'fillColor=#([A-Fa-f0-9]{6})', content))
@@ -247,8 +416,10 @@ def check_flow(content, filename):
     strokes.discard('999999')  # 排除灰色连线
     strokes.discard('000000')
     all_colors = fills | strokes
-    if len(all_colors) < 3:
-        issues.append("CRITICAL: 颜色种类不足（只有 %d 种颜色）— 必须按步骤类型区分：输入蓝/处理绿/判断黄/检验紫/输出红" % len(all_colors))
+    if len(all_colors) == 0:
+        issues.append("WARNING: 未检测到明确的边框/填充色；请确认黑白版仍有足够层级")
+    elif len(all_colors) > 7:
+        issues.append("WARNING: 颜色种类过多（%d 种）— 优先使用中性底色 + 1 主色 + 最多 2 强调色" % len(all_colors))
     
     # 5. 不能有图内标题（只检查 mxCell 的 value 属性，不含 diagram name 等元数据）
     #    ⛔ 修复漏改：draw.io 页签名 <diagram name="问题X求解流程"> 几乎必然含"求解流程"，
@@ -262,8 +433,8 @@ def check_flow(content, filename):
     # 6. 检查是否只是一条直线（没有分叉）— 边数应该 > 节点数-1
     edges = len(re.findall(r'edge="1"', content))
     vertices = len(re.findall(r'vertex="1"', content))
-    if vertices > 4 and edges <= vertices - 1:
-        issues.append("WARNING: 流程图可能是纯线性链（无分叉/循环）— 建议增加并行分叉或循环反馈")
+    if vertices > 2 and edges < vertices - 1:
+        issues.append("WARNING: 节点可能没有被真实流程连接完整；请检查孤立步骤")
     
     # 7. 求解流程图绝对不能有「工具与方法」独立侧栏，副标题里也不能写工具/库名
     # 检测三种征兆：
@@ -308,10 +479,7 @@ def check_flow(content, filename):
         if avg_gap > 100:
             issues.append("WARNING: 节点间距过大（平均 %.0fpx）— 建议缩小到 60-80px，图会更紧凑" % avg_gap)
     
-    # 9. 字号不能太大
-    large_fonts = re.findall(r'fontSize=(\d+)', content)
-    if large_fonts and max(int(f) for f in large_fonts) > 12:
-        issues.append("WARNING: 字号过大（最大 %spx）— 流程图建议 9-11px" % max(large_fonts))
+    # 字号上限不机械限制；清晰度由最终 PDF 视觉检查决定。
     
     # 10. html=1 检查
     cells_without_html1 = 0
@@ -349,9 +517,21 @@ def check_flow(content, filename):
     
     return issues
 
+
+def check_generic(content, filename):
+    """Common gate for architecture, pipeline, hierarchy and framework diagrams."""
+    issues = _common_issues(content)
+    vertices = len(re.findall(r'vertex="1"', content))
+    edges = len(re.findall(r'edge="1"', content))
+    if vertices < 3:
+        issues.append("CRITICAL: 有效节点少于 3 个，尚不足以构成论文示意图")
+    if edges == 0 and not re.search(r'matrix|矩阵|对照|分层|layer', content, re.IGNORECASE):
+        issues.append("WARNING: 未发现连接关系；请确认这是有意的矩阵/分层图而非漏画连线")
+    return issues
+
 def main():
     if len(sys.argv) < 3:
-        print("用法: python3 drawio_check.py <file.drawio> <roadmap|flow>")
+        print("用法: python3 drawio_check.py <file.drawio> <roadmap|flow|generic>")
         sys.exit(0)
     
     filepath = sys.argv[1]
@@ -368,8 +548,10 @@ def main():
         issues = check_roadmap(content, filepath)
     elif check_type == 'flow':
         issues = check_flow(content, filepath)
+    elif check_type == 'generic':
+        issues = check_generic(content, filepath)
     else:
-        print(f"未知检查类型: {check_type}，支持 roadmap 或 flow")
+        print(f"未知检查类型: {check_type}，支持 roadmap、flow 或 generic")
         sys.exit(0)
     
     critical = sum(1 for i in issues if i.startswith('CRITICAL'))

@@ -27,6 +27,7 @@ import sys
 import re
 import json
 import argparse
+import math
 from pathlib import Path
 
 try:
@@ -52,16 +53,22 @@ def _as_float(x):
     try:
         if isinstance(x, bool):
             return None
-        return float(x)
-    except (TypeError, ValueError):
+        value = float(x)
+        return value if math.isfinite(value) else None
+    except (TypeError, ValueError, OverflowError):
         return None
 
 
-def load_contract(contract_arg: str) -> dict:
+def load_contract(contract_arg: str | None) -> dict | None:
     """加载 LOGIC_CONTRACT_MACHINE。优先独立文件，其次从 MODELING_REPORT.md 的 ```json 块里抓。
-    抓不到返回 {}(软失败)。"""
-    # 1) 独立文件
-    for cand in (contract_arg, "LOGIC_CONTRACT.json", "LOGIC_CONTRACT_MACHINE.json"):
+    未指定时抓不到返回 {}；显式指定但不可读返回 None，不回退全局合同。"""
+    # An explicit scoped contract must never fall back to another question's
+    # global contract when missing/corrupt. None is distinguishable from {}.
+    if contract_arg is not None:
+        data = _load_json(Path(contract_arg))
+        return data.get("LOGIC_CONTRACT_MACHINE", data) if isinstance(data, dict) else None
+    # 1) 独立文件（未显式指定时保持历史自动发现）
+    for cand in ("LOGIC_CONTRACT.json", "LOGIC_CONTRACT_MACHINE.json"):
         if not cand:
             continue
         d = _load_json(Path(cand))
@@ -87,23 +94,51 @@ def load_contract(contract_arg: str) -> dict:
     return {}
 
 
+class ResultEvidence(dict):
+    """Keep unresolved provenance visible without selecting a random question."""
+
+    def __init__(self):
+        super().__init__()
+        self.issues = []
+        self.unresolved = {}
+
+
 def _collect_results(fig_dir: Path) -> dict:
-    """汇总 figures 下所有 *_results.json / all_results.json 的顶层标量 → {name: value}。"""
-    out = {}
+    """Bare keys require unambiguous values; file.json::key is always scoped.
+
+    File enumeration order is not evidence that Q1's cost belongs to Q2.
+    Unreadable and non-finite numeric inputs remain unresolved, never PASS.
+    """
+    out = ResultEvidence()
     if not fig_dir.is_dir():
         return out
     try:
-        cands = list(fig_dir.glob("*_results.json")) + list(fig_dir.glob("all_results.json"))
+        cands = sorted(set(fig_dir.glob("*_results.json")) | set(fig_dir.glob("all_results.json")))
     except Exception:
         return out
+    candidates = {}
     for f in cands:
         d = _load_json(f)
         if not isinstance(d, dict):
+            out.issues.append(f"[结果未载入] {f.name}: 不可读或不是字段对象；只有合同引用此文件时才需补证据")
             continue
         for k, v in d.items():
             fv = _as_float(v)
             if fv is not None:
-                out.setdefault(k, fv)
+                scoped = f"{f.name}::{k}"
+                out[scoped] = fv
+                candidates.setdefault(k, []).append((scoped, fv))
+            elif isinstance(v, (float, int)) and not isinstance(v, bool):
+                issue = f"[NEEDS_EVIDENCE] {f.name}::{k}: 非有限数值，不能作为有效逻辑证据"
+                out.unresolved[f"{f.name}::{k}"] = issue
+                out.unresolved[k] = issue
+    for key, values in candidates.items():
+        if all(value == values[0][1] for _, value in values):
+            if key not in out.unresolved:
+                out[key] = values[0][1]
+        else:
+            locations = ', '.join(name for name, _ in values[:5])
+            out.unresolved[key] = f"[NEEDS_EVIDENCE] 同名结果 {key} 在不同问/文件中数值不同：{locations}；用 文件名::字段 明确合同来源，不混合比较"
     return out
 
 
@@ -187,8 +222,10 @@ def audit_extrapolation(contract: dict, facts: dict, results: dict) -> list:
 
 
 def audit_feature_completeness(contract: dict, code_blob: str) -> list:
-    """特征完整性(FAIL)：合同 must_features 里的变量，代码里完全找不到 → 判漏。
-    保守：只在"整个 code 里一次都没出现"时才 FAIL(防误报)。"""
+    """Only an explicit observed input schema can prove a required feature missing.
+
+    Code-name absence alone is inconclusive for aliases or vectorized frames.
+    """
     fails = []
     feats = contract.get("must_features")
     if not isinstance(feats, list) or not code_blob:
@@ -197,21 +234,40 @@ def audit_feature_completeness(contract: dict, code_blob: str) -> list:
         if not isinstance(feat, str) or not feat.strip():
             continue
         # 词边界匹配，避免 T1 命中 T12
-        if not re.search(r"(?<![\w])" + re.escape(feat) + r"(?![\w])", code_blob):
-            fails.append(f"[特征完整性] 合同要求入模变量「{feat}」在 code/ 中完全未出现 —— "
-                         f"该真实变量被漏用(疑似降维/漏项)。")
+        # Absence of a column name is not absence of the column: all-column
+        # frames, aliases and pipelines need runtime schema evidence.
+        observed = contract.get("observed_model_features")
+        if isinstance(observed, list) and all(isinstance(x, str) for x in observed) and feat not in observed:
+            fails.append(f"[特征完整性] 实际入模列清单缺少合同要求的「{feat}」；请核对模型输入而不是改写报告。")
     return fails
 
 
 def audit_double_count(contract: dict, code_blob: str) -> list:
-    """重复计量(FAIL)：合同声明"总量 aggregate 已吸收分项 contains"，
-    但代码里出现 `aggregate + ... contains`(同一行把两者相加) → 判重复计入。
-    保守：需同一行同时出现 aggregate 和 contains 且有 '+'，才 FAIL。"""
+    """Find positive aggregate/part terms in a parsed assignment or return.
+
+    Subtraction and canceled terms are not duplicate positive contributions.
+    """
     fails = []
     rules = contract.get("no_double_count")
     if not isinstance(rules, list) or not code_blob:
         return fails
-    lines = code_blob.splitlines()
+    import ast
+    try:
+        tree = ast.parse(code_blob)
+    except SyntaxError:
+        return fails  # Syntax belongs to the code syntax gate.
+
+    def terms(node, sign=1):
+        if isinstance(node, ast.Name):
+            return {node.id: sign}
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
+            return terms(node.operand, -sign if isinstance(node.op, ast.USub) else sign)
+        if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub)):
+            left = terms(node.left, sign)
+            for key, value in terms(node.right, -sign if isinstance(node.op, ast.Sub) else sign).items():
+                left[key] = left.get(key, 0) + value
+            return left
+        return {}
     for rule in rules:
         if not isinstance(rule, dict):
             continue
@@ -219,10 +275,12 @@ def audit_double_count(contract: dict, code_blob: str) -> list:
         con = rule.get("contains")
         if not (isinstance(agg, str) and isinstance(con, str) and agg and con):
             continue
-        ra = re.compile(r"(?<![\w])" + re.escape(agg) + r"(?![\w])")
-        rc = re.compile(r"(?<![\w])" + re.escape(con) + r"(?![\w])")
-        for ln in lines:
-            if "+" in ln and ra.search(ln) and rc.search(ln):
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.Assign, ast.AnnAssign, ast.Return)) or node.value is None:
+                continue
+            coefficients = terms(node.value)
+            if coefficients.get(agg, 0) > 0 and coefficients.get(con, 0) > 0:
+                ln = ast.get_source_segment(code_blob, node) or ""
                 fails.append(
                     f"[重复计量] 合同声明「{agg}」已含「{con}」，但代码里又把二者相加："
                     f"`{ln.strip()[:80]}` —— 同一部分被计两次。")
@@ -294,16 +352,16 @@ def audit_direction(contract: dict, results_raw: dict) -> tuple:
 
 
 def audit_margin(contract: dict, results: dict) -> tuple:
-    """安全裕度/鲁棒性核对(治"顶格达标、零裕度不可用")。返回 (fails, warns)。通用、无题目常量。
+    """核对题设限值与显式要求的裕度。等号合法，不自动发明安全余量。
 
     依据合同 constraints_with_margin（建模声明，字段缺则跳过）：
     [
       {"quantity":"Cout","limit":10,"kind":"le","min_margin":0.05}
       // kind: le=结果应≤limit / ge=应≥limit
-      // min_margin(可选,比例): 要求距限值至少留这么多余量; 不填则只做"零裕度"检测
+      // min_margin(可选,比例): 仅题设/已确认模型明确要求时填写
     ]
     裕度定义(相对): le → (limit-val)/|limit| ; ge → (val-limit)/|limit|
-      裕度 ≤ 0        → 越界或顶格(FAIL, 顶格=恰好达标零裕度,工程不可用)
+      裕度低于声明容差 → 真实越界；等号允许
       0<裕度<min_margin → 裕度不足(FAIL)
     ⛔ 无 constraints_with_margin → 跳过(不误报)。限值全来自合同,脚本不预置任何数值。
     """
@@ -321,22 +379,85 @@ def audit_margin(contract: dict, results: dict) -> tuple:
         if kind not in ("le", "ge"):
             continue
         if q is None or limit is None or q not in results:
+            warns.append(f"[NEEDS_EVIDENCE] 限值条件 {q!r}: 缺少明确的结果来源或有效限值")
             continue  # 下游无该量 → 软跳过
         val = _as_float(results.get(q))
         if val is None:
+            warns.append(f"[NEEDS_EVIDENCE] 限值条件 {q!r}: 结果不是有限数值")
             continue
         denom = abs(limit) if abs(limit) > 1e-12 else 1.0
         margin = (limit - val) / denom if kind == "le" else (val - limit) / denom
         req = _as_float(c.get("min_margin"))
-        if margin <= 1e-9:
-            state = "越界" if margin < -1e-9 else "恰好顶格(零裕度)"
+        if margin < -1e-9:
+            state = "越界"
             fails.append(
                 f"[安全裕度] 「{q}={val:g}」相对限值 {limit:g}({kind}) {state} —— "
-                f"零/负裕度工程上不可用(簇内其他时刻/扰动/工况切换极易破限)，须内收目标或按最坏情形约束。")
-        elif req is not None and req > 0 and margin < req:
+                f"结果超出题设限值，须修正求解结果；不得自行改变题设可行域。")
+        elif req is not None and req > 0 and margin + 1e-9 < req:
             fails.append(
                 f"[安全裕度] 「{q}={val:g}」距限值 {limit:g} 仅余 {margin*100:.2f}%，"
                 f"低于要求的 {req*100:.2f}% —— 裕度不足，须内收。")
+    return fails, warns
+
+
+def audit_self_consistency(contract: dict, results: dict) -> tuple:
+    """问内自洽核对(治"声称退化/等价却数值对不上、只能含糊归因")。返回 (fails, warns)。
+    通用、无题目常量——任何"A 退化为/等价于 B"的声称都能查，不限某一类题。
+
+    依据合同 equivalence_claims（建模声明，字段缺则跳过）：
+    [
+      {"claim":"非线性最优退化为线性",
+       "quantity_a":"nonlinear_opt_power","quantity_b":"linear_power",
+       "rel_tol":0.02,                 // 可选,声称"等价"允许的相对差,默认 0.02(2%)
+       "explanation":""}               // 可选,若确有量化机理解释两者为何仍差,填在此
+    ]
+    逻辑：a、b 两个量都能在 results 里取到数值时——
+      相对差 rel = |a-b| / max(|a|,|b|,eps)
+      rel ≤ rel_tol            → 自洽,通过
+      rel > rel_tol 且无 explanation → FAIL(声称等价/退化,数值却对不上,又无机理 = 自相矛盾)
+      rel > rel_tol 且有 explanation → WARN(给了解释,提示复核解释是否站得住,不阻塞)
+    ⛔ 无 equivalence_claims / 缺量 / 缺数值 → 软跳过(不误报)。阈值来自合同,脚本不预置题目常量。
+    """
+    fails, warns = [], []
+    claims = contract.get("equivalence_claims")
+    if not isinstance(claims, list):
+        return fails, warns
+    for c in claims:
+        if not isinstance(c, dict):
+            continue
+        qa, qb = c.get("quantity_a"), c.get("quantity_b")
+        if qa is None or qb is None or qa not in results or qb not in results:
+            warns.append(f"[NEEDS_EVIDENCE] 等价声称缺明确数值来源: {qa!r}, {qb!r}")
+            continue  # 缺量 → 软跳过
+        va, vb = _as_float(results.get(qa)), _as_float(results.get(qb))
+        if va is None or vb is None:
+            warns.append(f"[NEEDS_EVIDENCE] 等价声称含非有限/非数值结果: {qa!r}, {qb!r}")
+            continue
+        tol = _as_float(c.get("rel_tol"))
+        if "rel_tol" not in c:
+            tol = 0.02
+        atol = _as_float(c.get("abs_tol", 0.0))
+        if tol is None or tol < 0 or atol is None or atol < 0:
+            warns.append("[NEEDS_EVIDENCE] 等价声称容差无效；修合同，不改变计算结果")
+            continue
+        denom = max(abs(va), abs(vb), 1e-12)
+        rel = abs(va - vb) / denom
+        if abs(va - vb) <= atol + tol * max(abs(va), abs(vb)):
+            continue  # 自洽
+        claim = str(c.get("claim") or f"{qa} 等价/退化为 {qb}")
+        expl = c.get("explanation")
+        # ⛔ 只认"非空字符串"为有效解释：数字 0 / false / 空列表这类"伪解释"(填了个无意义假值)
+        #    不算解释，仍判 FAIL——否则硬拦会被一个 explanation:0 绕过。真正的机理说明必须是文字。
+        expl_s = expl.strip() if isinstance(expl, str) else ""
+        if expl_s:
+            warns.append(
+                f"[问内自洽] 声称「{claim}」，但 {qa}={va:g} 与 {qb}={vb:g} 相差 {rel*100:.1f}%"
+                f"(>容差 {tol*100:.1f}%)，已给解释「{expl_s}」—— 请复核该解释是否量化站得住。")
+        else:
+            fails.append(
+                f"[问内自洽] 声称「{claim}」，但 {qa}={va:g} 与 {qb}={vb:g} 相差 {rel*100:.1f}%"
+                f"(>容差 {tol*100:.1f}%)，且无任何量化机理解释 —— 自相矛盾(不能用「瞬态残余」等词含糊带过)，"
+                f"要么改正声称(其实不等价)、要么把差异用机理定量说清并写进 explanation。")
     return fails, warns
 
 
@@ -401,7 +522,7 @@ def audit_contract_completeness(contract: dict, facts: dict, code_blob: str) -> 
       A. DATA_FACTS 里有变量被标了 censored(封顶/删失) → 但合同 bounds 为空
          = 有删失数据、却没声明"反算量是上界还是下界"(方向反的高发区没上闸)。
       B. 代码里出现明确的优化 API(minimize/linprog/milp/GRB/pulp/argmin…) → 但 constraints_with_margin 为空
-         = 有优化求解、却没声明安全裕度(顶格零裕度的高发区没上闸)。
+         = 提醒核题设限值与已有可行性证据；不自动要求额外安全裕度。
     ⛔ 全 WARN：没声明是"提醒补"不是"硬错"，不阻塞、不误杀。缺 DATA_FACTS/代码则相应条跳过。
     """
     warns = []
@@ -426,7 +547,7 @@ def audit_contract_completeness(contract: dict, facts: dict, code_blob: str) -> 
                 f"但 LOGIC_CONTRACT 的 bounds 为空 —— 凡由删失值反解/取界的量，务必声明是【上界还是下界】"
                 f"(否则方向反这类错没有任何闸在核)。")
 
-    # B. 有优化求解却没声明安全裕度
+    # B. 核题设限值；不强迫优化题增加安全裕度
     if not has_cwm and code_blob:
         import re as _re
         # 明确的优化 API 关键词(词边界，避免误伤)；不匹配泛化的数学符号
@@ -436,20 +557,23 @@ def audit_contract_completeness(contract: dict, facts: dict, code_blob: str) -> 
         if opt_pat.search(code_blob):
             warns.append(
                 "[合同缺口] 代码里有优化求解，但 LOGIC_CONTRACT 的 constraints_with_margin 为空 —— "
-                "务必声明关键量的限值+安全裕度(否则'结果恰好顶格达标、零裕度'这类工程不可用的解没有任何闸在核)。")
+                "核对题设是否有限值，并复用已有可行性验证；题目没要求安全余量时不另加限制，等号可以是合法最优解。")
     return warns
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="逻辑体检")
     ap.add_argument("--stage", default="code")
-    ap.add_argument("--contract", default="LOGIC_CONTRACT.json")
+    ap.add_argument("--contract", default=None)
     ap.add_argument("--facts", default="DATA_FACTS.json")
     ap.add_argument("--figdir", default="figures")
     ap.add_argument("--codedir", default="code")
     args = ap.parse_args()
 
     contract = load_contract(args.contract)
+    if not isinstance(contract, dict):
+        print("[CHECK_UNAVAILABLE] 指定逻辑合同不可读或不是对象；先核路径和合同结构，不重新生成求解结果")
+        return 2
     facts = _load_json(Path(args.facts)) or {}
     results = _collect_results(Path(args.figdir))          # 仅标量(给外推用)
     results_raw = _load_raw_results(Path(args.figdir))     # 保留嵌套(给方向探针用)
@@ -457,7 +581,8 @@ def main() -> int:
 
     has_contract = bool(contract) and any(
         k in contract for k in ("must_features", "no_double_count", "bounds", "train_range",
-                                "monotonic", "constraints_with_margin", "calibration_anchors"))
+                                "monotonic", "constraints_with_margin", "calibration_anchors",
+                                "equivalence_claims"))
     has_facts = isinstance(facts, dict) and bool(facts.get("variables"))
 
     if not has_contract and not has_facts:
@@ -465,9 +590,24 @@ def main() -> int:
               "跳过(不阻塞)。填了逻辑合同/数据台账后本闸才生效。")
         return 2
 
-    warns, fails = [], []
+    # Unrelated questions may legitimately reuse cost/seed/n. Only inspect the
+    # quantities this contract actually references; never trigger global repair.
+    requested = set()
+    for field in ("constraints_with_margin", "equivalence_claims"):
+        entries = contract.get(field)
+        for entry in entries if isinstance(entries, list) else []:
+            if isinstance(entry, dict):
+                requested.update(entry[key] for key in ("quantity", "quantity_a", "quantity_b")
+                                 if isinstance(entry.get(key), str))
+    ranges = contract.get("train_range")
+    if isinstance(ranges, dict):
+        requested.update(ranges)
+    warns = [message for key, message in getattr(results, "unresolved", {}).items() if key in requested]
+    fails = []
     warns += audit_extrapolation(contract, facts, results)
     fails += audit_feature_completeness(contract, code_blob)
+    if contract.get("must_features") and "observed_model_features" not in contract:
+        warns.append("[特征待核实] 请从模型实际输入导出 observed_model_features；源码未出现列名不等于漏用变量。")
     fails += audit_double_count(contract, code_blob)
     _dir_fails, _dir_warns = audit_direction(contract, results_raw)
     fails += _dir_fails
@@ -475,6 +615,9 @@ def main() -> int:
     _mg_fails, _mg_warns = audit_margin(contract, results)
     fails += _mg_fails
     warns += _mg_warns
+    _sc_fails, _sc_warns = audit_self_consistency(contract, results)
+    fails += _sc_fails
+    warns += _sc_warns
     _an_fails, _an_warns = audit_anchor(contract, facts)
     fails += _an_fails
     warns += _an_warns
@@ -491,7 +634,10 @@ def main() -> int:
             print("   " + f)
         print("⛔ 请回 comp-modeling/comp-code 修正：漏用真实变量补进模型、重复计入的项去掉一次。")
         return 1
-    print("✅ PASS — 特征完整、无重复计量" + ("；有外推提醒见上。" if warns else "、无外推越界。"))
+    if any("[NEEDS_EVIDENCE]" in warning for warning in warns):
+        print("NEEDS_EVIDENCE — 来源或检查证据未齐；先核对应项，不重跑全阶段")
+        return 2
+    print("PASS — 已有可检查证据未发现矛盾；不证明未覆盖的能力或模型正确性。")
     return 0
 
 

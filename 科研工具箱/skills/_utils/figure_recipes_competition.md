@@ -1,10 +1,128 @@
 # 数学建模竞赛 专用图表代码范例
 
 适用于数学建模竞赛（国赛/美赛/MathorCup/统计建模等）。包含收敛曲线、灵敏度分析、Pareto 前沿、雷达图、甘特图、网络路径等竞赛高频图表。
-所有范例假设已执行 `from _utils.plot_utils import setup_style, save_fig, PALETTE, COLORS, _lighten; setup_style()`。
+所有范例假设已执行 `from _utils.plot_utils import setup_style, save_fig, auto_legend, PALETTE, COLORS, _lighten; setup_style()`。
 
-⚠ **图例位置规则**：所有图表统一使用 `loc='best'`，不要硬编码 `'upper right'`。如果数据在右上角会遮挡图例。
+⚠ **图例位置规则**：使用 `auto_legend(ax)` 按真实数据、填充带和标注占用选择位置。安全的原位置优先保留，图内其他位置也放不下才移到测量后的紧凑顶部/右侧区域；不随机选位置、不默认固定顶部栏或横向撑满。不要把 `loc='best'` 当作已经完成遮挡验证，也不因图例面积大但实际不遮挡而强制移动。
 ⚠ **标注边界规则**：`ax.annotate` 的 `xytext` 不要超出 `ax.get_xlim()/get_ylim()` 范围。`plot_utils._clamp_texts_to_axes` 会在 savefig 时自动裁剪超出的标注，但最好从源头避免。
+
+**配方默认使用新出版接口**：多面板共享系列用 `consolidate_shared_legends`，随机试验用 `uncertainty_band`，新图用 `set_paper_placement` 声明最终宽度，带字热力图用 `draw_vector_heatmap`，数据范围和轴线分别用 `dynamic_limits` / `declutter_axes`。这些是布局与可读性约定，不改变用户选定的色系。
+
+**旧片段现代化覆盖规则（复制任何下方配方时强制执行）**：本文件保留了部分早期 `ax.legend(loc='best')`、
+`fig.tight_layout()` 和 `inset_axes` 示例用于展示图型语法，它们不是成品版式。落地脚本必须把单轴图例换成
+`auto_legend`，把多面板重复图例换成 `consolidate_shared_legends`；多面板/边际分布/inset/colorbar 使用
+`layout='constrained'` + GridSpec 专用区域，不再调用 `tight_layout()`。同一 panel 若已有 inset、统计框、
+图例中的任意一个，第二个覆盖层必须移到专用区域。对数轴跨多个 decade 时只保留每 decade 的 2、5
+次刻度。白色 `bbox` 只能改善对比度，不能盖住曲线或数据点。配方里的旧调用与本段冲突时，以本段为准。
+
+⛔⛔ **图内标注只准「数值」或「短锚点标签」—— 不许写说明与结论**（`figure_check.sh` 的「图内标注体检」闸**进退出码**，违规必须改）
+
+**分界线：给东西【起名】放行，【下判断】拦掉。** 阐述、口径、结论写进图前后的正文；caption 只留简短图名。
+
+| ✅ 放行 | ❌ 违规 |
+|---|---|
+| `8188.06`、`45%`、`-0.5 pp` | `全区间贴死下限 → ROI 始终绑定`（结论+箭头） |
+| `1007 张`、`3271 元`、`30 人` | `因此最优解取 8 个点`（含「因此」） |
+| `n=30`、`ROI=3.0`、`p<0.001` | `题给 $B$=500000 元 → 在图右`（导读） |
+| `45%\n(9/20)`（多行数值） | 任何成句的话（有句号/分号） |
+| 公式 `$\eta_{\rm struct}$`、`$q^*$=0.47` | `样本仅 530 条，说明高估`（含「说明」） |
+| panel 标号 `a` `b` `c`（不加框不加句点） | 数据来源、口径备注、结论陈述 |
+| **短锚点标签**：`最优解`、`预算绑定区`、`ROI 下限 3.0`、`肘部拐点 $k$=8`、`膝点 $B^\ast\approx$3.2 万元`、`Youden: J=0.42, θ*=0.31`、`加权 R²=0.87 / RMSE=1.2` | `最优解 · 收敛区间 · 预算上限 3271 元`（**单个虽短，堆在一起仍是文字块**；只留能定位对象的一个，其余移入正文） |
+| `边际 GMV/人\n0.12 → 0.03 元`（箭头在行中=数值区间） | `末两检查点 差 0.001\n→ 200k 时隙已收敛`（箭头在行首=推导） |
+
+**短锚点标签的放行判据**（`figure_text_budget.py` 里 `is_short_anchor`）：
+
+- ≤45 显示宽 & ≤3 行 & 汉字总数 ≤12
+- 每行「有数字」**或**「汉字 ≤5」（无数字的长中文行 = 叙述句的签名）
+- 无结论/因果词（`始终 / 因此 / 可见 / 表明 / 须 / 劣 / 全落在 / 不可行` 等）
+- 无中文逗号、分号、冒号、句号、问叹号；括号内不得藏完整中文解释
+- 箭头不在行首、后面不紧跟中文
+- 同一行最多一段「有中文但无数字」的片段（防多标签堆叠）
+- `cn(...)`、`panel(...)` 等包装调用仍按最终显示文字检查，不能绕过
+
+⛔ **为什么留这一档**：阈值线不说明是什么线、最优点不标是最优点，图就没法读了 ——
+Nature 正刊也这么标。实测 17 个真实工作区 523 处违规里 **335 处（64%）是这类合法标签**，
+一律拦掉会逼 AI 把图删成残图（那是另一种违规，anti-broken 检查会抓）。
+
+⛔ **改判据前先跑自测**：`python _utils/figure_text_budget.py --selftest`（56 项，全过才算对）。
+
+**第二档：轴标签 / 标题 / 图例系列名 / 刻度标签 —— 允许有文字，但 ≤18 汉字且不许有句号分号**
+
+`set_xlabel` / `set_ylabel` / `set_title` / `suptitle` / `legend(title=)` / `label=` / `set_xticklabels`
+这些是图的必备构件（**图例尤其不能省**，少了它读者分不清哪条线是哪条），但不能拿来塞说明：
+
+```python
+# ❌ 违规：把口径说明塞进轴标签（宽 70）
+ax.set_xlabel('相对 baseline 的改进百分比 (%，右为更优；误差棒为两端 95% CI 的保守组合)')
+
+# ✅ 合规：轴标签只写「量名（单位）」，口径写进论文正文
+ax.set_xlabel('相对改进（%）')
+```
+
+✅ 放行样例：`迭代次数`、`峰值冲击力 $F_{peak}$ (体重倍数 BW)`、`假阳性率 FPR (1 - 特异度)`
+
+⛔ **18 汉字这个上限是量出来的，不是拍的**：25 个真实工作区 `set_xlabel` n=491 中位 15、
+P95=36 显示宽；`label=` n=476 中位 12、P95=24。定在 36 显示宽只抓尾部 5%，
+正常的"轴名 + 单位 + 口径括注"全部放行。
+
+⛔ **换 API 绕不过去**：闸同时扫 `plt.text` / `plt.figtext` / `AnchoredText` /
+`bar_label(labels=)`，以及"先赋值给变量再传"「列表 + 循环取值」这类间接写法
+（实测 13 条规避路径已全部堵住）。
+
+**想说明"这条线是什么"→ 用图例，不要在线旁边写字：**
+
+```python
+# ❌ 违规：判据线旁边写说明
+ax.axhline(3.0, ls='--'); ax.text(x, 3.0, 'ROI 阈值线', fontsize=7)
+
+# ✅ 合规：线的语义进图例，图上只留数值
+ax.axhline(3.0, ls='--', lw=0.8, color=COLORS['grid'], label='ROI 阈值 3.0')
+ax.text(x_right, 3.0, '3.0', fontsize=7, va='bottom', ha='right')
+auto_legend(ax, frameon=False)
+```
+
+⛔ **`fig.text` 只用于 panel 编号**（`fig.text(0.012, 0.965, 'a', fontweight='bold')`）。
+实测 25 个工作区的 `fig.text` 中位显示宽 **69**（≈35 汉字）、64% 是成句长文 ——
+它画在画布底部，正好压住 x 轴标签（实测 44 处）。
+
+⛔ **别靠引擎兜底。** `plot_utils` 会检测文字与曲线/点/箭头/柱边界，以及图例与数据/文字的
+渲染后冲突，但密集场景仍可能没有合法空位；保存失败时必须减字或重构 GridSpec，不能反复缩字号。
+**源头不写字，比任何算法都有效。**
+
+★ 砍掉图内文字**不会掉分**：对 94 张真实竞赛图逐图核对的结论是
+「高分图与平庸图的差距在多 panel / 判据线 / 不确定性 / 图型丰富度，**不在图内文字多少**」。
+要提信息量就加 panel、加判据线、加置信带，不要加字。
+
+## ⛔⛔ 抄本文件代码前必读：`figsize` 按「长宽比档位」收窄（不是一刀切）
+
+**下面各配方里写的 `figsize=(9,5)` / `(10,8)` / `(12,5)` 等值只是排版占位，照抄会翻车。**
+竞赛论文单栏正文宽仅约 **6.5in**：原生画到 10in，插进论文被缩到 **0.53** →
+刻度 8.5pt 变 **4.5pt**、数据线 lw0.6 变 **0.32pt** → 肉眼就是"坐标轴糊成一团、线条发虚"
+（实测翻车案例：国赛 A 题 `fig_q4_snapshots`，同篇 13 张图有 7 张犯此病）。
+
+**⛔ 不是"一律 ≤7.2"** —— `fig_include_size.py` 按长宽比 `r=高/宽` 分档给上页宽度，
+**原生宽要贴着该档的上页显示宽写**，抄配方时按下表换：
+
+| 图型（长宽比档位） | 上页只显示 | 照这个写 |
+|---|---|---|
+| 单 panel 折线/柱/散点（横图 r≤0.8） | 5.53in | `figsize=(6.0, 3.8)` |
+| 1×2 横排（横图 r≤0.8） | 5.53in | `figsize=(6.0, 2.8)` |
+| **2×2 多 panel（近方图 0.8<r≤1.2）** | **4.55in** | **`figsize=(5.0, 4.9)`** |
+| **等比例几何图 `set_aspect('equal')`（近方）** | **4.55in** | **`figsize=(5.0, 4.8)`** |
+| 横向长条 barh/甘特（多为偏竖 r>1.2） | 3.25in | `figsize=(3.6, 高度按条数算)` |
+
+⛔ **最容易踩：2×2 和等比例几何图是「近方图」，只能给 5.0in 左右。** 写 7.2in 看着不大，
+实际仍被缩到 **0.63** → 刻度 8.5pt 变 5.4pt，白改（`figure_check.sh` 的分档闸会抓）。
+矢量图**略放大无害**，怕的只有"原生远大于上页显示宽"。
+
+配套下限（缩放后才不糊）：**数据线 `lw≥0.9`、刻度字号 ≥8pt、轴标签 ≥9pt**。
+**多 panel 共用 colorbar ⛔ 必须用 gridspec 的 `cax=`，不能用 `ax=axes`** ——
+`save_fig` 内部无条件跑 `tight_layout`，会把 `ax=axes` 预留的空间算掉、面板压到 colorbar 上
+（调 `fraction`/`pad` 治不了，实测过）。写法见 `figure_style_guide.md` 的「多 panel 共用 colorbar」节。
+单 panel 用 `fig.colorbar(sm, ax=ax, fraction=0.046, pad=0.03)` 没问题。
+
+⛔ **要更多信息量就"加 panel 密度"，绝不要"把画布摊大"** —— 画布越大缩得越狠，字反而越小。
+（`figure_check.sh` 有「原生画布尺寸体检」闸会抓 >7.5in 并算出上页字号，别等它报。）
 
 ---
 
@@ -56,12 +174,12 @@ ax.annotate('收敛点', xy=(iters[conv_idx], ours[conv_idx]),
 ax.scatter([iters[conv_idx]], [ours[conv_idx]], color=COLORS['down'], s=50, zorder=5, edgecolors='white')
 
 ax.set_xlabel('迭代次数', fontsize=11); ax.set_ylabel('目标函数值', fontsize=11)
-# ★ 图例用 loc='best' 自适应，不要硬编码 'upper right'（避免数据在右上角时遮挡图例）
-ax.legend(frameon=True, edgecolor=COLORS['grid'], fontsize=9, loc='best')
+# ★ 同时测量图例与数据、注释的实际边界；无安全角落时自动建立图外区域
+from _utils.plot_utils import auto_legend
+auto_legend(ax, frameon=False, labelspacing=0.35, handlelength=1.6, fontsize=9)
 ax.set_xlim(0, 520)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
-fig.tight_layout()
 save_fig(fig, 'figures/fig_convergence.pdf')
 ```
 
@@ -70,11 +188,7 @@ save_fig(fig, 'figures/fig_convergence.pdf')
 # 1. 终点数值标注用 smart_labels()，多条曲线终点值接近时自动推开防重叠
 # 2. 收敛点标注箭头要指向曲线的拐点区域，方向朝空白处
 # 3. 本文算法的填充区域 alpha 用 0.10（太深会遮挡其他曲线）
-# 4. 收敛曲线的下降趋势：图例放 'upper right' 可能遮挡
-#    - 最小化问题（曲线从高到低）：图例放 'upper right' 右上空
-#    - 最大化问题（曲线从低到高）：图例放 'lower right' 右下空
-#    - 不确定方向时用 loc='best' 让 matplotlib 自动选择
-#    - 或者把图例放到图外：bbox_to_anchor=(1.02, 1), loc='upper left'
+# 4. 不根据“曲线大概往哪走”猜图例位置；统一交给 auto_legend 实测数据与文字占用。
 # 5. 曲线数 >4 条时，考虑本文方法用粗线 alpha=1.0 突出，其他用细线 alpha=0.55 降低视觉权重
 # 6. 标注文字不要和图例重叠（标注放在曲线空白处，图例在另一侧）
 ```
@@ -86,9 +200,9 @@ save_fig(fig, 'figures/fig_convergence.pdf')
 def smart_legend_loc(ax):
     """根据数据分布自动选择图例位置"""
     # 简单方案：直接用 matplotlib 的 best
-    ax.legend(loc='best', frameon=True, edgecolor='#DDD', fontsize=9)
+    ax.legend(loc='best', frameon=False, edgecolor='#DDD', fontsize=9)
     # 如果 best 不够好的话可以把图例移到图外
-    # ax.legend(bbox_to_anchor=(1.02, 1), loc='upper left', frameon=True, fontsize=9)
+    # ax.legend(bbox_to_anchor=(1.02, 1), loc='upper left', frameon=False, fontsize=9)
 ```
 
 ---
@@ -272,7 +386,7 @@ ax.text(0.15, 1.15, '$G_t$ 减小方向', fontsize=8, color=COLORS['ref_line'],
 
 ax.set_xlabel('农业产量 $Z_1$（标准化值）', fontsize=11)
 ax.set_ylabel('缺水缺口 $G_t$（标准化值）', fontsize=11)
-ax.legend(frameon=True, edgecolor=COLORS['grid'], fontsize=9, loc='best')
+ax.legend(frameon=False, labelspacing=0.35, handlelength=1.6, fontsize=9, loc='best')
 ax.set_xlim(0, 6.2)
 ax.set_ylim(0, 5.5)
 ax.spines['top'].set_visible(False)
@@ -325,7 +439,7 @@ ax1.text(0.05, 0.92, f'R² = {r2:.4f}\nRMSE = {rmse:.2f}', transform=ax1.transAx
          verticalalignment='top', bbox=dict(boxstyle='round,pad=0.4', facecolor='white', edgecolor=COLORS['grid'], alpha=0.9))
 ax1.set_xlabel('实际值', fontsize=11); ax1.set_ylabel('预测值', fontsize=11)
 ax1.spines['top'].set_visible(False); ax1.spines['right'].set_visible(False)
-ax1.legend(frameon=True, edgecolor=COLORS['grid'], fontsize=9)
+ax1.legend(frameon=False, labelspacing=0.35, handlelength=1.6, fontsize=9)
 # 下方：残差分布
 ax2.grid(True, linestyle='--', alpha=0.15); ax2.set_axisbelow(True)
 ax2.hist(residuals, bins=25, density=True, color=_lighten(PALETTE[0], 0.4), alpha=0.5, edgecolor=PALETTE[0], linewidth=0.8)
@@ -334,7 +448,7 @@ ax2.plot(xr, norm.pdf(xr, residuals.mean(), residuals.std()), color=PALETTE[1], 
 ax2.axvline(x=0, color=COLORS['ref_line'], linewidth=0.8, linestyle='--')
 ax2.set_xlabel('残差', fontsize=11); ax2.set_ylabel('密度', fontsize=11)
 ax2.spines['top'].set_visible(False); ax2.spines['right'].set_visible(False)
-ax2.legend(frameon=True, edgecolor=COLORS['grid'], fontsize=9)
+ax2.legend(frameon=False, labelspacing=0.35, handlelength=1.6, fontsize=9)
 fig.tight_layout()
 save_fig(fig, 'figures/fig_pred_vs_actual.pdf')
 ```
@@ -399,7 +513,7 @@ for i, (name, vals) in enumerate(methods.items()):
                     bbox=dict(facecolor='white', alpha=0.9, edgecolor='none', pad=1))
 
 ax.legend(loc='best', bbox_to_anchor=(1.28, 1.06),
-          frameon=True, edgecolor=COLORS['grid'], fontsize=9, facecolor='white')
+          frameon=False, labelspacing=0.35, handlelength=1.6, fontsize=9, facecolor='white')
 fig.tight_layout()
 save_fig(fig, 'figures/fig_radar.pdf')
 ```
@@ -633,7 +747,7 @@ y_pred = y_true + np.random.normal(0, 5, n)
 residuals = y_pred - y_true
 std_resid = (residuals - residuals.mean()) / residuals.std()
 
-fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+fig, axes = plt.subplots(2, 2, figsize=(5.0, 4.9))   # ⛔ 2×2 是近方图，上页只显示 4.55in → 原生 5.0in（写 10 会缩到 0.46）
 # (1) 残差 vs 拟合值
 ax = axes[0, 0]
 ax.scatter(y_pred, std_resid, s=15, alpha=0.5, color=PALETTE[0], edgecolor='white', linewidth=0.3)
@@ -789,7 +903,7 @@ for i, (name, (auc, lw)) in enumerate(models.items()):
 
 ax.set_xlabel('假阳性率 (FPR)', fontsize=11); ax.set_ylabel('真阳性率 (TPR)', fontsize=11)
 ax.set_xlim(-0.02, 1.02); ax.set_ylim(-0.02, 1.02)
-ax.legend(frameon=True, edgecolor=COLORS['grid'], fontsize=9, loc='lower right')
+ax.legend(frameon=False, labelspacing=0.35, handlelength=1.6, fontsize=9, loc='lower right')
 ax.spines['top'].set_visible(False); ax.spines['right'].set_visible(False)
 fig.tight_layout()
 save_fig(fig, 'figures/fig_roc.pdf')
@@ -880,7 +994,7 @@ for i in [0, len(years)//3, 2*len(years)//3, len(years)-1]:
             bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=1))
 
 ax.set_xlabel('经度 (°E)', fontsize=11); ax.set_ylabel('纬度 (°N)', fontsize=11)
-ax.legend(frameon=True, edgecolor=COLORS['grid'], fontsize=9, loc='best')
+ax.legend(frameon=False, labelspacing=0.35, handlelength=1.6, fontsize=9, loc='best')
 ax.spines['top'].set_visible(False); ax.spines['right'].set_visible(False)
 fig.tight_layout()
 save_fig(fig, 'figures/fig_centroid_migration.pdf')
@@ -971,8 +1085,7 @@ ax.text(makespan, -0.8, f'Makespan={makespan}h',
 # 图例
 legend_elements = [plt.Rectangle((0,0), 1, 1, facecolor=_lighten(PALETTE[j], 0.3), edgecolor=PALETTE[j], linewidth=1.3)
                    for j, name in enumerate(machine_names)]
-ax.legend(handles=legend_elements, labels=machine_names, frameon=True, edgecolor=COLORS['grid'],
-          fontsize=8, ncol=len(machine_names), loc='best')
+ax.legend(handles=legend_elements, labels=machine_names, frameon=False, labelspacing=0.35, handlelength=1.6, fontsize=8, ncol=len(machine_names), loc='best')
 ax.set_yticks(range(n)); ax.set_yticklabels(tasks, fontsize=10)
 ax.set_xlabel('时间 (h)', fontsize=11)
 ax.invert_yaxis()
@@ -1111,7 +1224,7 @@ ax.text(steps[-1]+0.3, 0.5, '可用阈值', fontsize=8, color=COLORS['ref_line']
 
 ax.set_xlabel('预测步长', fontsize=11); ax.set_ylabel('R² 分数', fontsize=11)
 ax.set_xticks(steps)
-ax.legend(frameon=True, edgecolor=COLORS['grid'], fontsize=9, loc='best')
+ax.legend(frameon=False, labelspacing=0.35, handlelength=1.6, fontsize=9, loc='best')
 ax.spines['top'].set_visible(False); ax.spines['right'].set_visible(False)
 fig.tight_layout()
 save_fig(fig, 'figures/fig_multistep_decay.pdf')
@@ -1394,7 +1507,7 @@ for k in range(4):
 ax1.scatter(centers[:, 0], centers[:, 1], s=200, color=COLORS['text'], marker='X',
            edgecolor='white', linewidth=2, zorder=5, label='质心')
 ax1.set_xlabel('特征维度 1', fontsize=11); ax1.set_ylabel('特征维度 2', fontsize=11)
-ax1.legend(frameon=True, edgecolor=COLORS['grid'], fontsize=8, loc='best')
+ax1.legend(frameon=False, labelspacing=0.35, handlelength=1.6, fontsize=8, loc='best')
 ax1.spines['top'].set_visible(False); ax1.spines['right'].set_visible(False)
 
 # 右图：轮廓系数
@@ -1639,4 +1752,150 @@ save_fig(fig, 'figures/fig_3d_cluster.pdf')
 # 1. 约束标签放在约束线的端点附近，不要放在空间中间
 # 2. 膝点标注的 arrowprops 用虚线，标注文字远离约束线的空白处
 # 3. 等高线标签用 clabel 自动放置，不要手动排（容易和约束线重叠）
+```
+
+## 28. 可行域图（约束满足分区 + 边界 + 最优点）
+
+**场景**：约束优化 / 参数搜索里，在**两个决策变量**的平面上画出"哪些组合可行、哪些违反约束"，
+并标出可行域边界与最优解。适用：线性规划可行域、参数扫描的达标区、
+碰撞/干涉判定的安全区（如"(螺距, 盘入圈数) 平面上是否碰撞"）、多约束交集区。
+**要点**：可行域是**离散的可行/不可行二分区**（不是连续目标值——那是等高线 #14）。
+用 `contourf` 的两档色 或 `pcolormesh` 掩膜画可行/违反两片，叠约束边界线，标最优点。
+⛔ 不要把可行域画成一堆散点或条形——那读不出"区域"和"边界"。
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+from matplotlib.lines import Line2D
+from _utils.plot_utils import setup_style, save_fig, PALETTE, COLORS, _lighten
+setup_style()
+
+# ── 数据：两个决策变量网格 + 每点是否可行（真实项目从求解结果读；此处可复现演示）
+# 例：x=螺距 pitch∈[0.35,0.55]m, y=盘入圈数 turns∈[1,16]，可行=不碰撞
+px = np.linspace(0.35, 0.55, 120)
+ty = np.linspace(1.0, 16.0, 120)
+X, Y = np.meshgrid(px, ty)
+# feasible[i,j]=1 表示该(pitch,turns)组合满足约束（真实项目用求解器逐点判定）
+margin = (X - 0.44) * 40 - (Y - 8.0) * 0.6            # 演示用的约束裕度函数
+feasible = (margin >= 0).astype(float)
+
+fig, ax = plt.subplots(figsize=(6.6, 5.2))
+# 两档填充：可行=主色浅版、违反=灰浅版（语义清晰，不用花哨渐变）
+cmap2 = ListedColormap([_lighten(COLORS['down'], 0.72), _lighten(PALETTE[0], 0.55)])
+ax.contourf(X, Y, feasible, levels=[-0.5, 0.5, 1.5], cmap=cmap2, zorder=2)
+# 可行域边界线（margin=0 那条）
+ax.contour(X, Y, margin, levels=[0], colors=[PALETTE[0]], linewidths=2.0, zorder=4)
+
+# 关键阈值参考线（如题给的临界螺距）+ 线旁短标签（不写文字框）
+p_crit = 0.44
+ax.axvline(p_crit, ls='--', lw=1.4, color=PALETTE[1], zorder=5)
+ax.text(p_crit + 0.003, ty.max(), f'临界螺距 {p_crit}', rotation=90, fontsize=8.4,
+        ha='left', va='top', color=PALETTE[1], fontweight='bold')
+
+# 最优点：白描边让它从填充里跳出来 + 一个短标签
+opt_x, opt_y = 0.45, 11.5
+ax.scatter([opt_x], [opt_y], s=150, marker='*', color=PALETTE[4], zorder=8,
+           edgecolors='white', linewidths=1.2)
+ax.text(opt_x + 0.004, opt_y, ' 最优', fontsize=8.6, va='center',
+        color=PALETTE[4], fontweight='bold')
+
+# 可行/违反用图例说明（不在图内写整句），图例去框
+legend_items = [
+    Line2D([], [], marker='s', ls='', markersize=10, markerfacecolor=_lighten(PALETTE[0], 0.55),
+           markeredgecolor=PALETTE[0], label='可行域'),
+    Line2D([], [], marker='s', ls='', markersize=10, markerfacecolor=_lighten(COLORS['down'], 0.72),
+           markeredgecolor=COLORS['down'], label='违反约束'),
+    Line2D([], [], color=PALETTE[0], lw=2.0, label='可行边界'),
+]
+ax.legend(handles=legend_items, frameon=False, fontsize=8.6, loc='lower left',
+          handlelength=1.6, labelspacing=0.3, borderpad=0.25)
+
+ax.set_xlabel('螺距 $p$ (m)', fontsize=10.4)
+ax.set_ylabel('盘入圈数', fontsize=10.4)
+ax.set_xticks([0.35, 0.40, 0.44, 0.50, 0.55])        # 临界值 0.44 进刻度
+ax.set_yticks([1, 4, 8, 12, 16])
+ax.tick_params(labelsize=9.0)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.set_title('(a) 参数平面可行域与最优解', fontsize=11.4, fontweight='bold', loc='left', pad=6)
+
+fig.subplots_adjust(left=0.10, right=0.97, bottom=0.10, top=0.93)
+save_fig(fig, 'figures/fig_feasible_region.pdf')
+```
+
+**注意事项**：
+```python
+# 1. ⛔ 可行域是"分区"不是"目标值"：用 contourf 两档色 或 pcolormesh 掩膜画可行/违反两片，
+#    不要用连续 colormap（那读者分不清哪片可行）；更不要退化成散点/条形（读不出区域和边界）。
+# 2. 结论（可行域面积占比、最优解坐标与目标值、临界约束是哪条）写进 LaTeX \caption{}，
+#    图内只留：边界线 + 阈值线旁短标签 + 最优点一个短标签。不要在图内写多行结论框。
+# 3. 边界线用 contour(margin, levels=[0]) 从裕度函数精确画，不要手描一条近似线。
+# 4. 多条约束时：每条约束画一条边界线（不同线型），可行域是它们的交集；
+#    约束多于 4 条时考虑只画"起决定作用"的活跃约束，其余进 caption 说明。
+# 5. 真实项目的 feasible 矩阵必须来自求解器逐点判定（碰撞检测/约束校验），不要用演示裕度函数编造。
+```
+
+## 29. 离散状态栅格图（仿真逐帧/逐时隙状态热图）
+
+**场景**：把离散事件仿真、排队/调度、重传轮次、设备状态机的**逐帧逐单元状态**铺成栅格，
+一眼看出"什么时候谁在什么状态"。适用：CSMA/CA 时隙占用、机器加工甘特栅格、
+病床/车位占用、重传轮次分布、元胞自动机时空快照。
+**要点**：状态是**离散类别**（不是连续值），所以必须用 `ListedColormap` + `BoundaryNorm`
+配离散色带，`colorbar` 的刻度标签写成人话（"首传成功/1轮重传/..."）；格子间加白描边分隔。
+⛔ 不要用连续 colormap（viridis 之类）画离散状态 —— 读者无法判断色深对应哪一档。
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap, BoundaryNorm
+from _utils.plot_utils import setup_style, save_fig, PALETTE, COLORS, _lighten
+setup_style()
+
+# ── 数据：n_unit 行(单元/槽位) × n_frame 列(帧/时隙)，值 = 离散状态编码
+#    真实项目里从仿真结果 JSON 读；此处用可复现的随机演示
+rng = np.random.default_rng(7)
+n_unit, n_frame = 16, 40
+Z = rng.choice([0, 1, 2, 3], size=(n_unit, n_frame), p=[0.70, 0.18, 0.09, 0.03])
+Z = Z.astype(float)
+Z[rng.random(Z.shape) < 0.05] = np.nan          # 空缺单元用 nan，画成空白不画死0
+
+STATE_NAMES = ['0（首传成功）', '1 轮重传', '2 轮', '3 轮']
+# 离散色带：低档用浅色、高档用醒目色（语义递进），一律走 PALETTE 派生
+CMAP = ListedColormap([_lighten(PALETTE[2], 0.42), _lighten(PALETTE[5], 0.20),
+                       PALETTE[1], PALETTE[4]])
+BOUNDS = [-0.5, 0.5, 1.5, 2.5, 3.5]            # 每档一个区间，边界卡在半整数
+NORM = BoundaryNorm(BOUNDS, CMAP.N)
+
+fig, ax = plt.subplots(figsize=(7.2, 4.4))
+pc = ax.pcolormesh(np.arange(n_frame + 1) - 0.5, np.arange(n_unit + 1) - 0.5,
+                   np.ma.masked_invalid(Z), cmap=CMAP, norm=NORM,
+                   edgecolors='white', linewidth=0.30, zorder=3)
+
+cb = fig.colorbar(pc, ax=ax, shrink=0.82, aspect=16, pad=0.03, ticks=[0, 1, 2, 3])
+cb.set_ticklabels(STATE_NAMES)                  # ★ 离散标签写人话，不写 0/1/2/3
+cb.set_label('该单元的状态档位', fontsize=10)
+cb.ax.tick_params(labelsize=8.4)
+
+ax.set_xlabel('帧 / 时隙序号 $k$', fontsize=10)
+ax.set_ylabel('单元 / 槽位序号', fontsize=10)
+ax.set_xticks([0, 9, 19, 29, 39]); ax.set_xticklabels(['1', '10', '20', '30', '40'])
+ax.set_yticks([0, 3, 7, 11, 15]);  ax.set_yticklabels(['1', '4', '8', '12', '16'])
+ax.tick_params(labelsize=9)
+ax.set_title('(a) 仿真逐帧状态栅格', fontsize=11, fontweight='bold', loc='left', pad=6)
+
+fig.tight_layout()
+save_fig(fig, 'figures/fig_state_grid.pdf')
+```
+
+**注意事项**：
+```python
+# 1. ⛔ 栅格铺满坐标区，图内没有空白可放文字 —— 统计结论（首传成功率/最大重传轮次/丢包数/
+#    仿真总帧数）一律写进 LaTeX \caption{}，不要用 ax.text 压在格子上（会盖住首行数据）。
+# 2. 展示帧数控制在 30-60 列：真实仿真跑几千帧时取前 N 帧展示，并在 caption 说明
+#    "取前 40 帧展示，共运行 1200 帧"，不要把几千列硬塞进一张图（格子细成条纹看不清）。
+# 3. 空缺/未定义单元用 np.nan + masked_invalid 画成空白，不要填 0 —— 填 0 会被误读成"状态0"。
+# 4. 状态超过 5 档时考虑合并语义相近的档（如"3轮及以上"归一档），离散色带超过 5 色难分辨。
+# 5. 若要同时看"状态"和"数值"（如重传轮次+时长），拆成上下两个 panel 共享 x 轴，
+#    不要在一个格子里塞两种编码。
 ```

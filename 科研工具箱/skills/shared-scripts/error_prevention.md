@@ -2,6 +2,16 @@
 
 ## 使用方法
 
+**统一优先级**：题目明确要求与可核对证据优先于本手册中的经验预期/示例数字。
+经验范围、高分、相近结果、边界解、闲置资源和关键词缺失不能单独作为失败证据。
+只在本题适用时做专项检查；一次声明验证计划并复用当前版本证据，不能各章独立追加重算。
+真实违例必须修复，缺证据先核对，环境故障修环境；统一使用当前步骤的返修/时间预算。
+
+**补充而非替换（2026-09-06）**：下列原有章节、案例和流程继续保留。
+机理、连续事件、PDE、反问题、可靠性阈值题按需读 `mechanism_accuracy_addendum.md`，
+不额外启动全量网格/多算法/多种子检查。历史案例的阈值和方法有适用条件，
+若与本题条件不符，应记录依据修检查条件，不能改正确结果迎合示例。
+
 建模开始前，根据 PROBLEM_ANALYSIS.md 判断每个子问题的题型，然后查阅对应章节的防错条目。
 在 MODELING_REPORT.md 末尾写一行：`本题涉及题型：[X, Y, Z]，已对照防错手册审查。`
 
@@ -16,15 +26,15 @@
 - [ ] 列出所有约束条件的完整数学表达式（不能只在文字中提到）
 - [ ] 每个决策变量标注类型（连续/整数/0-1）和取值范围（bounds）
 - [ ] 多目标问题必须说明权重来源（层次分析/归一化/题目给定），不能拍脑袋
-- [ ] 大M法的M值必须标注取值依据（M > 变量可能的最大值的2倍以上）
-- [ ] 验证可行域非空：至少构造一个满足所有约束的可行解
-- [ ] 非凸问题必须标注"需多起点求解"或"启发式算法"
+- [ ] 大 M 根据具体约束的有效界推导，尽量紧且不排除可行解，不通用地乘 2 或任意放大
+- [ ] 核可行性：有解时给可回代方案；确实不可行时给诊断/证明，不能为了通过而放宽题设
+- [ ] 非凸问题说明局部/全局保证；按证据与预算选择多起点、启发式、有效界或其他适用方法
 
 ### 禁止做
-- [ ] 禁止遗漏非负约束——所有物理量（数量/距离/时间/成本）默认 ≥ 0，必须显式写出
+- [ ] 按定义写符号范围：数量/距离等通常非负；相对时间、位移、净成本可负，不通用强制 ≥ 0
 - [ ] 禁止把整数变量当连续变量建模后不说明松弛策略和取整方案
 - [ ] 禁止约束只写一半（如只写上界不写下界，或只写等式不写不等式）
-- [ ] 禁止贪心算法声称"最优解"——贪心只能得到近似解，必须标注
+- [ ] 无正确性证明的贪心不声称最优；满足相应性质且有证明的贪心可以精确求解
 - [ ] 禁止多目标权重全部相等且不给理由
 
 ### 输出范围预判
@@ -35,198 +45,24 @@
 ### 常见陷阱
 - 约束互相矛盾导致可行域为空 → 建模时必须验证至少存在一个可行解
 - 非凸问题用凸优化方法 → 必须说明凸性，非凸则标注"需多起点求解"
-- 组合爆炸问题用枚举 → 变量超过20个时必须用启发式/近似算法
+- 组合搜索按实际复杂度、剪枝与预算选择方法；变量数量超过 20 不自动排除精确求解
 - 目标函数量纲不统一 → 多目标加权前必须无量纲化
 
-### ⛔ 建模合理性与算法有效性约束（通用，适用于所有优化/建模任务）
+### 建模有效性：真实约束与有界验证
 
-**问题本质：** 结果在物理约束内，但建模策略本身无效（黑箱暴力搜索高维空间、算法卡在局部最优、新增资源未被利用）。以下四条是结构性约束，不涉及具体题号或数值，长期适用。
-
-**① 资源单调性约束**
-当后续子问题相对前序子问题拥有严格更多的决策资源（更多决策变量/更多可用个体/更大的可行域包含关系）时，其最优目标函数值必须严格优于前序。
-- 违反 → 判定为建模降维失败，必须回到建模层重新分解
-- 禁止直接把"资源更多但结果更差/持平"的结果写入论文
-- 建模报告中必须写出每个子问题的"资源递进关系"和"预期改善方向"
-
-**② 解析基准下界约束**
-任何启发式/元启发式优化（GA/DE/PSO/SA/贝叶斯等）产生的数值解，必须先有一个通过几何/物理/代数推导得到的解析可行解作为下界参考。
-- 若数值解 ≤ 解析下界 → 判定为算法失败（非建模失败），必须检查编码/约束/罚函数
-- 解析基准的构造方法必须在建模报告中写明（贪心分配/几何最优点/均匀分布/物理极限）
-- 禁止"没有基准就直接跑优化然后接受结果"
-
-**③ 搜索空间健康度约束**
-在启动任何决策维度 ≥ 6 的黑箱优化前，必须先采样 N≥100 个随机点评估适应度分布。
-- 若非平凡解（适应度 > 0 或优于朴素解）比例 < 30% → 判定搜索空间过稀疏
-- 必须先做：变量降维 / 分层优化 / 启发式种群初始化
-- 禁止在稀疏空间中纯随机初始化后直接跑优化
-
-**④ 维度分层阈值**
-当决策变量维度 ≥ 10 时，禁止单层黑箱优化。
-- 必须显式完成变量分组/分层/序贯分解
-- 建模报告中必须给出分层依据（资源独立性/时间尺度分离/几何解耦/因果链分割）
-- 每层的维度应 ≤ 6，超过则继续分层
-
-**⑤ 离散取整可行性约束**
-连续松弛求解后对整数变量取整时，取整结果可能违反约束（超容量/超预算/不满足逻辑关系）。
-- 取整后必须重新代入所有约束函数验证可行性
-- 若取整后不可行 → 禁止直接使用不可行解，必须用修复启发式（贪心减少/邻域搜索/向下取整优先）
-- 建模报告中必须写明取整策略（四舍五入/向下/向上/修复启发式）及其对目标函数的影响估计
-- 禁止"取整后不验证就直接用"——这是导致最终方案不可行的最常见原因
-
-**⑤-b 松弛间隙（Relaxation Gap）监控**
-连续松弛解与整数解之间的目标函数差（integrality gap）是衡量模型质量的关键指标。
-- 必须同时报告松弛解和整数解的目标函数值
-- 若 gap > 20% → 说明整数约束对问题影响很大，取整策略必须更精细（不能简单四舍五入）
-- 若 gap ≈ 0% → 说明整数约束几乎不起作用，检查是否遗漏了关键的整数约束（如"人数必须为整数"）
-- 建模报告中必须写明预期的 gap 范围，编码阶段对照验证
-
-**⑥ 多目标归一化顺序约束**
-当目标函数包含不同量纲的多个分量时（如成本万元级 + 时间小时级 + 距离公里级），归一化顺序直接决定最优解。
-- 必须先对每个目标独立归一化到 [0,1]（极差法/Z-score），然后再加权求和
-- 禁止不同量纲的目标直接加权（大量纲项会完全主导结果，小量纲项形同虚设）
-- 归一化方法和权重来源必须在建模报告中写明
-- 验证方法：去掉某个目标后，排名/最优解是否剧烈变化？如果去掉某目标后结果几乎不变，说明该目标被淹没了
-
-**⑦ 时间/空间离散化步长约束**
-离散化步长太大会跳过关键事件（碰撞瞬间、阈值穿越、峰值、状态切换），导致结果严重偏差。
-- 步长必须 ≤ 系统最短特征时间的 1/10（如振荡周期0.1s → 步长≤0.01s）
-- 空间网格必须 ≤ 最小特征尺度的 1/5（如物体宽度0.3m → 网格≤0.06m）
-- 必须做步长收敛性验证：步长减半后结果变化 < 1% 才算收敛
-- 禁止"拍脑袋选步长"——必须有物理依据或收敛性验证
-- 事件检测型问题（碰撞/穿越/切换）必须用事件驱动而非固定步长
-
-**⑧ 约束耦合度与可行域体积预判**
-约束之间可能存在强耦合——单独看每个约束都合理，但组合后可行域极小甚至为空。
-- 建模阶段必须分析约束之间的耦合关系：哪些约束会互相"挤压"可行域？
-- 如果 N 个约束中有 ≥3 个同时约束同一组变量 → 必须验证这些约束的交集非空且有足够体积
-- 验证方法：随机采样 1000 个点，统计满足所有约束的比例（可行比例）
-  - 可行比例 < 1% → 可行域极小，优化器很难找到可行解，必须放松某些约束或分层求解
-  - 可行比例 < 0.01% → 几乎无可行解，建模有问题（约束互相矛盾或过紧）
-- 建模报告中必须写明"约束耦合分析"：哪些约束是独立的，哪些是耦合的
-- 如果优化器返回的最优解恰好在多个约束的交点上（多个约束同时取等号）→ 高度怀疑可行域退化为低维流形，需要检查是否遗漏了自由度
-
-**⑨ 目标函数灵敏度方向预判（防止"死变量"）**
-建模阶段必须预判目标函数对每个决策变量的灵敏度方向和量级。
-- 对每个决策变量 x_i，必须回答：x_i 增大时，目标函数是变好还是变差？变化量级是多少？
-- 如果某个决策变量对目标函数几乎无影响（偏导数 ≈ 0）→ 说明：
-  - 该变量可能不应该是决策变量（应该是参数或常数）
-  - 或者目标函数遗漏了与该变量相关的项
-  - 或者该变量被其他约束完全锁死了（只有一个可行值）
-- 建模报告中必须写出"灵敏度方向表"：
-
-| 决策变量 | 增大时目标函数方向 | 预期灵敏度量级 | 约束限制 |
-|----------|-------------------|---------------|---------|
-| x_1 | ↓（减小=更优） | 高（主导项） | x_1 ∈ [0, 100] |
-| x_2 | ↑（增大=更优） | 中 | x_2 ≤ budget/price |
-| x_3 | ≈0（几乎无影响） | ⚠ 需检查 | — |
-
-- 编码阶段验证：如果实际灵敏度方向与预判相反 → 目标函数或约束写错了，必须回查
-
-**⑩ 多目标 Pareto 前沿退化检测**
-多目标优化中，如果 Pareto 前沿退化（所有非支配解几乎相同），说明模型有结构性问题。
-- Pareto 前沿退化为一个点 → 目标之间不存在真正的冲突，多目标退化为单目标
-  - 原因1：约束太紧，可行域只有一个点
-  - 原因2：目标函数之间高度正相关（本质上是同一个目标的不同表达）
-  - 原因3：某个目标完全主导（权重/量级差异太大）
-- Pareto 前沿退化为一条线（一维）→ 只有两个目标真正冲突，其他目标是冗余的
-- 检测方法：计算 Pareto 前沿上各解的目标函数值标准差
-  - 所有目标的标准差 < 目标值的 1% → 判定为退化
-- 退化时必须：重新审视目标函数定义，检查是否有目标被淹没或约束过紧
-
-**⑪ 优化结果稳定性验证（防止伪最优）**
-启发式算法的结果可能是"运气好碰到的局部最优"而非真正的全局最优。
-- 必须用不同随机种子跑 ≥5 次，统计目标函数值的分布：
-  - 标准差 / 均值 < 1% → 结果稳定，可信
-  - 标准差 / 均值 在 1%-5% → 结果基本稳定，取最优的那次
-  - 标准差 / 均值 > 5% → 结果不稳定，说明搜索不充分或问题有多个局部最优
-    - 必须增加种群大小/迭代次数，或换更强的算法（如 CMA-ES/SHADE）
-    - 或者做变量降维后重新优化
-- 建模报告中必须写明"稳定性验证方案"：跑几次、用什么种子、可接受的变异系数阈值
-- 编码阶段必须执行稳定性验证并报告结果
-
-**⑫ 约束活跃性分析（防止"虚假约束"和"遗漏约束"）**
-求解完成后，必须检查每个约束的活跃状态（是否取等号/接近等号）。
-- 所有约束都不活跃（解在可行域内部远离边界）→ 两种可能：
-  - 约束太松（没有真正限制解空间）→ 检查约束参数是否正确
-  - 遗漏了关键约束（真正的限制没写进模型）→ 回到题目重新审查
-- 某个约束活跃但物理上不应该活跃 → 模型有问题
-  - 例：预算约束活跃（花光了所有预算）但题目暗示"预算充足" → 检查成本计算是否正确
-- 多个约束同时活跃且解在它们的交点上 → 解可能是角点解（非光滑点）
-  - 角点解对参数微扰极其敏感 → 必须做灵敏度分析
-- 编码阶段必须输出约束活跃性报告：
-
-```python
-# 约束活跃性分析（优化求解后必做）
-def analyze_constraint_activity(solution, constraints, tol=1e-4):
-    """分析每个约束的活跃状态。"""
-    report = []
-    for name, (func, bound, direction) in constraints.items():
-        value = func(solution)
-        slack = abs(value - bound) if direction == 'eq' else (value - bound if direction == 'ge' else bound - value)
-        status = 'ACTIVE' if abs(slack) < tol else f'slack={slack:.4f}'
-        report.append(f"  {name}: value={value:.4f}, bound={bound}, status={status}")
-    return '\n'.join(report)
-```
-
-**⑬ 时间窗/前驱约束的可行性预验证（VRP/调度类必做）**
-时间窗约束和工序前驱约束是 VRP/调度问题中最常见的不可行来源。
-- **时间窗可行性**：如果客户 i 的时间窗为 [a_i, b_i]，从 depot 到 i 的最短旅行时间为 t_i，则必须满足 t_i ≤ b_i（否则无论如何都赶不到）
-  - 建模阶段必须检查：是否存在任何客户的时间窗在物理上不可达？
-  - 如果存在 → 该客户必须被标记为"可选服务"或"允许迟到（带惩罚）"
-- **前驱约束无环验证**：工序依赖关系必须形成 DAG（有向无环图）
-  - 如果存在环（A 依赖 B，B 依赖 C，C 依赖 A）→ 问题无解，建模有误
-  - 编码阶段必须用拓扑排序验证无环性
-- **时间窗传播**：如果任务 A 必须在任务 B 之前完成，且 A 的最早完成时间 > B 的最晚开始时间 → 不可行
-  - 必须做前向传播（计算最早开始时间）和后向传播（计算最晚开始时间）
-  - 如果某个任务的最早开始时间 > 最晚开始时间 → 不可行，必须放松约束
-
-**⑭ 对称性破缺（同质资源问题必做）**
-当问题中有多个同质资源（同型号车辆/同规格机器/同能力人员）时，解空间存在大量对称解。
-- N 个同质车辆的路径分配有 N! 种等价排列 → 搜索空间被放大 N! 倍
-- 必须加入对称性破缺约束：
-  - 车辆编号约束：车辆 1 的第一个客户编号 < 车辆 2 的第一个客户编号
-  - 负载排序约束：车辆 1 的总负载 ≥ 车辆 2 的总负载
-  - 字典序约束：车辆路径按字典序排列
-- 不破缺对称性的后果：
-  - 精确求解器（MIP）：分支定界树膨胀，求解时间指数增长
-  - 启发式算法：大量时间浪费在等价解之间跳转，收敛极慢
-- 建模报告中必须识别对称性并写明破缺策略
-
-**⑮ 动态/多阶段问题的状态传递一致性**
-多阶段决策问题中，前一阶段的决策结果是后一阶段的初始状态。
-- 状态传递必须完整：前一阶段结束时的所有状态变量都必须传递到后一阶段
-  - 常见遗漏：只传递了"位置"忘了传递"剩余容量/剩余时间/疲劳度"
-- 阶段边界的连续性：
-  - 位置连续：阶段 k 结束位置 = 阶段 k+1 开始位置
-  - 资源连续：阶段 k 剩余资源 = 阶段 k+1 初始资源（除非有补给）
-  - 时间连续：阶段 k 结束时间 + 转换时间 = 阶段 k+1 开始时间
-- 验证方法：在阶段边界处检查所有状态变量的连续性
-- 如果用滚动时域优化（Rolling Horizon）：
-  - 必须验证滚动窗口重叠区域的决策一致性
-  - 窗口边界效应：靠近窗口末端的决策可能因为"看不到未来"而次优
-
-**⑯ 不确定性处理与鲁棒性验证**
-当问题参数有不确定性（需求波动/旅行时间随机/设备故障概率）时，确定性最优解可能在实际中不可行。
-- 必须识别哪些参数有不确定性：
-  - 需求量：通常 ±20-30% 波动
-  - 旅行时间：通常 ±10-50% 波动（取决于交通状况）
-  - 服务时间：通常 ±20% 波动
-  - 设备可用性：故障概率 1-10%
-- 鲁棒性验证方法（至少做一种）：
-  - **场景分析**：在最好/最坏/最可能三种场景下评估解的表现
-  - **蒙特卡洛模拟**：随机扰动参数 1000 次，统计解的可行率和目标函数分布
-  - **鲁棒优化**：用最坏情况下的参数值求解（保守但安全）
-- 如果确定性最优解在参数扰动 ±10% 后有 > 20% 概率不可行 → 必须用鲁棒优化或加松弛
-- 建模报告中必须写明"不确定性来源"和"鲁棒性验证方案"
-
-**⑰ 子回路消除（TSP/VRP 类必做）**
-TSP/VRP 的 MIP 建模中，如果不加子回路消除约束，求解器会返回包含断开子回路的"最优解"。
-- MTZ 约束（Miller-Tucker-Zemlin）：简单但松弛较弱，适合小规模
-- DFJ 约束（Dantzig-Fulkerson-Johnson）：紧但数量指数级，需要延迟生成（Lazy Constraints）
-- 如果用启发式算法：解的表示方式必须天然排除子回路（如排列编码）
-- 验证方法：检查解中是否所有节点都在一条连通路径上
-  - 如果发现子回路 → MIP 模型缺少子回路消除约束，必须补充
-- 编码阶段必须在输出路径后验证连通性
+- 可行性、整数性、单位、目标方向与任务能力必须验证，保存可核对的解与运行状态。
+- 跨问题只有同目标/口径且可行域包含才可讨论最优值单调性；允许相等，不强求新资源一定改善结果。
+- 可行解对最小化提供上界，对最大化提供下界；算法等于基线不算失败。有效理论界/求解证书与经验对照分开报告。
+- 稀疏可行域、等式约束、边界解、闲置资源、相等指标不自动等于错误；不能据此放宽硬约束或凭空加入资源利用率要求。
+- 多起点、交叉求解、灵敏度分析按题目与建模方案制定同一预算，复用已有同设置结果。不统一强制五种子、双算法或高维降维。
+- 维数不是失败判据；依据结构、复杂度与真实性能决定分层。分层/对称性破缺必须证明不排除必要可行解。
+- 多目标允许有依据的无量纲化、物理权重或原生 Pareto 方法；不统一映射到 [0,1]，也不强求 Pareto 前沿有固定散布。
+- 整数松弛后的结果必须重新检查整数性与可行性，不能盲目取整。gap 由合法上下界与声明分母计算，零 gap 可以真实存在。
+- 离散/事件精度由题设、误差估计与收敛试验证明；不硬编码 1% 或 100/300/500 次采样，不独立无限缩步。
+- 时间窗、前驱、状态传递、路径连通性按题设检查；不可达必须如实报告，不能擅自将必服务对象改为可选或软约束。
+- 不确定性分布/幅度/场景有来源，不无依据套 ±20%/1000 次仿真。必须的稳健性检验仍要做，但不被每层重复追加。
+- 约束活跃性用于解释，内部点/角点都可能正确；理论界、残差、收敛历史与验算不等于必须各启动一个求解器。
+- 检查结果先分为已证实错误、待补证据、检查不可用；只修对应范围，采用工作流的共享返修预算。
 
 ---
 
@@ -239,10 +75,10 @@ TSP/VRP 的 MIP 建模中，如果不加子回路消除约束，求解器会返�
 - [ ] 初始条件必须有物理依据，标注来源（题目给定/稳态计算/物理推导）
 - [ ] 如果用数据驱动（如附件给的力/电流数据），必须检查数据的净偏差
 - [ ] 守恒量（能量/质量/动量）必须列出，并标注"数值解中需监控"
-- [ ] 开环积分类模型必须设计去漂移/反馈机制
+- [ ] 核对开环积分的真实物理驱动与误差，不无依据加反馈或消除真实漂移
 
 ### 禁止做
-- [ ] 禁止"纯数学ODE求解"——必须在模型中写入物理约束后再求解
+- [ ] 按本题适用物理条件求解；自由运动 ODE 不凭空加接触/阻尼条件
 - [ ] 禁止忽略接触/碰撞约束（实体不能穿透、间隙不能为负、位移有上限）
 - [ ] 禁止用固定步长欧拉法解高频/刚性系统
 - [ ] 禁止不验证守恒量就输出结果
@@ -254,8 +90,8 @@ TSP/VRP 的 MIP 建模中，如果不加子回路消除约束，求解器会返�
 - 数值精度是否足够？（步长 vs 系统最高频率，至少10倍采样）
 
 ### 常见陷阱
-- 数据净冲量≠0 → 积分后状态变量单调漂移 → 必须设计去漂移机制
-- 开环积分无反馈 → 误差累积 → 必须加阻尼/反馈/事件检测
+- 数据净冲量非零可能真实导致运动改变；先核单位、采样与外力，不自动去漂移
+- 开环积分需检查累计误差；反馈/阻尼/事件只有来自模型时才加入
 - 守恒量（能量/质量）在数值解中漂移 → 必须监控并报告偏差
 - 刚性系统用显式方法 → 需要极小步长或直接发散
 
@@ -274,14 +110,14 @@ TSP/VRP 的 MIP 建模中，如果不加子回路消除约束，求解器会返�
 ### 禁止做
 - [ ] 禁止用全部数据做归一化/特征工程后再划分（数据泄露）
 - [ ] 禁止时间序列用随机 k-fold（必须用 TimeSeriesSplit 或滚动窗口）
-- [ ] 禁止 R²<0.5 的模型直接使用（必须改进模型形式或说明领域合理性）
+- [ ] R² 结合领域、基线和题设精度解释，负测试 R² 不裁零，不采用统一 0.5 合格线
 - [ ] 禁止只报告显著变量不报告全部变量（p值挖掘）
 - [ ] 禁止线性外推到训练数据范围之外而不加警告
 - [ ] 禁止因果方向反推（X→Y 不能写成 Y→X）
 
 ### 输出范围预判
 - 预测值应该在什么范围？（历史数据的 min~max，不能超出太多）
-- R² 预期多少？（物理/工程 >0.8，社科截面 0.2-0.6 可接受）
+- R² 与什么基线/题设精度比较？不采用固定领域合格线
 - 残差应该是什么分布？（正态、零均值、等方差）
 
 ### 常见陷阱
@@ -298,19 +134,19 @@ TSP/VRP 的 MIP 建模中，如果不加子回路消除约束，求解器会返�
 - [ ] 明确标注每个指标的方向（正向=越大越好 / 负向=越小越好）
 - [ ] 权重之和必须精确等于1（误差<0.001）
 - [ ] AHP 必须计算并报告一致性比率 CR（CR<0.1 才可用）
-- [ ] 最终排名必须做灵敏度分析（权重微调±10%后排名是否稳定）
+- [ ] 按已确认计划做排名稳健性分析；幅度/次数有依据，复用已有同设置试验
 - [ ] 无量纲化方法必须说明（极差法/Z-score/比值法）并统一
 
 ### 禁止做
 - [ ] 禁止正负向指标不做区分直接加权（会导致排名反转）
 - [ ] 禁止所有权重相等且不说明理由（等权法需要有依据）
-- [ ] 禁止评价结果无区分度（所有方案得分差<1%时必须换方法或调权重）
+- [ ] 评价分数相近/并列可真实存在；核对方向与误差，不为制造差异调权重或数据
 - [ ] 禁止混用不同量纲的指标直接加权（必须先无量纲化）
 
 ### 输出范围预判
 - 综合得分应该在 [0, 1] 范围内（TOPSIS）或 [0, ∞)（DEA）
 - 排名应该与常识一致（明显好的方案不应排最后）
-- 权重分布应该合理（不应某个指标权重>0.8 而其他<0.05）
+- 权重来源与含义应合理，不按固定比例判错
 
 ### 常见陷阱
 - 量纲不统一 → 混用百分比和绝对值 → 某个指标主导结果
@@ -338,10 +174,10 @@ TSP/VRP 的 MIP 建模中，如果不加子回路消除约束，求解器会返�
 ### 输出范围预判
 - 最短路长度应该 ≥ 0（无负权时）
 - 最大流 ≤ 源点出边容量之和
-- TSP 路径长度应该在 [最小生成树, 2×最小生成树] 范围内（近似）
+- MST/两倍 MST 界仅在相应度量、对称性及构造前提下使用，不套到任意 TSP/VRP
 
 ### 常见陷阱
-- 最短路结果为负 → 有负权环 → 问题无解，必须报告
+- 最短路为负可以合法；应检查是否有影响该路径的可达负环，而非仅看最终符号
 - 最大流实现时忘记加反向边 → 结果偏小
 - 图不连通但算全局最短路 → 返回 inf 或错误路径
 - 有向图建成无向图 → 路径不可行（如单行道）
@@ -362,12 +198,12 @@ TSP/VRP 的 MIP 建模中，如果不加子回路消除约束，求解器会返�
 - [ ] 禁止未声明的降维简化（矩形→线段、体积→面积、实体→质心点）
 - [ ] 禁止用中间计算坐标替代物理实体参数（用完整尺寸，不用中心距代替全长）
 - [ ] 禁止忽略物体的实际尺寸只用参考点判断碰撞
-- [ ] 禁止 AABB 碰撞检测用于旋转后的矩形（必须用 OBB 或 SAT）
+- [ ] AABB 可作快速筛选；任意旋转矩形的精确判定需 OBB/SAT 或等价方法
 
 ### 输出范围预判
 - 所有坐标应该在场地边界内
 - 物体间距离 ≥ 0（不能重叠/穿透）
-- 布局面积利用率应该合理（不能>100%，也不应<10%）
+- 利用率口径需明确；不允许重叠且区域一致时不能超过 100%，低于 10% 不自动判错误
 
 ### 常见陷阱
 - set_aspect('equal') 后坐标轴比例变化 → 视觉上的"不碰撞"可能实际碰撞
@@ -524,215 +360,29 @@ TSP/VRP 的 MIP 建模中，如果不加子回路消除约束，求解器会返�
       - 假设"时间区间连续" → 证明目标函数关于时间的连续性
       - 假设"离散采样足够" → 做收敛性验证（N=100/300/500 对比）
       - 假设"降维等价" → 证明低维判据 ⟺ 高维判据
-    - 论文中的定理/引理/命题 ≥ 1 个（评审加分项）
+    - 证明、误差分析或文献按论证需要使用，不为凑固定数量编造定理/引理
 
-17. **求解精度必须与方法匹配（避免粗糙求解）**：
-    - 连续优化问题必须用高精度方法（二分查找/牛顿迭代/自适应步长），精度至少 1e-6
-    - 禁止用固定步长遍历（如 dt=0.01）作为最终结果——精度只到 2 位小数
-    - 启发式算法（GA/DE/PSO）后必须用局部精化（如梯度下降/Nelder-Mead）
-    - 结果输出位数必须与方法精度匹配（1e-6精度→6位小数；1e-2精度→2位小数）
-
-18. **双算法交叉验证（核心结果必做）**：
-    - 每个子问题的关键结果必须用**两种独立方法**互相验证
-    - 方法组合举例：
-      - 几何解析 + 启发式优化（差 <1% 说明两者都对）
-      - DE/GA + PSO/SA（差 <5% 说明都收敛到同一最优）
-      - 精确算法 + 近似算法（差可作为近似误差上界）
-    - 单一算法结果 = 无法区分"真实最优"和"局部最优"
-    - 建模报告中必须为每个子问题写明主算法+验证算法
-
-19. **高维优化必须先做几何降维（避免盲目黑箱）**：
-    - 维度 ≥ 10 的优化问题**禁止**直接喂给 DE/PSO/GA
-    - 必须先做几何/物理分析降维：
-      - 几何降维：利用对称性/视线关系/几何不变量
-      - 物理降维：利用守恒律/量级分析/无量纲化
-      - 变量分组：独立/半独立变量分层优化
-    - 降维后每层维度应 ≤ 6
-    - 建模报告必须写明降维的几何/物理依据，不能只写"分层优化"
-
-20. **多资源协同优化必须用联合目标函数（防止资源闲置）**：
-    - 多资源（多弹/多机/多点）协同时，目标函数必须是**联合覆盖**/**联合收益**，不能是各资源独立优化后叠加
-    - 常见错误症状（检测到任何一个必须重做）：
-      - 某个资源的关键指标 = 0（T=0、覆盖=0、贡献=0 等）→ 说明该资源被误判为"无贡献"放弃了
-      - 两个资源的作用区间**完全不重叠**（并集 = 加和）→ 说明没有利用互补性
-      - 某个决策变量取到了极端边界（如 t=44s 落在任务结束后）→ 说明对该资源的搜索空间或约束错了
-    - 正确做法：
-      - 目标函数评估时必须同时考虑所有资源，不能"单机独立最优化"然后放弃
-      - 种子池必须包含"所有资源都有贡献"的启发式初始解（如几何推导的初值）
-      - 约束必须保证每个资源被充分利用（如"每个弹 T_ind > 0"的硬约束，或惩罚项）
-
-21. **启发式优化必须有几何/物理启动种子**（防止局部最优陷阱）：
-    - DE/GA/PSO 等元启发式算法的初始种群**禁止**纯随机生成（高维下有效解比例极低）
-    - 必须构造基于问题结构的启发式种子解（至少 5-10 个）加入初始种群：
-      - 几何启发：基于视线关系、拦截点预测、最近邻分配
-      - 物理启发：基于守恒律、平衡态、极限工况
-      - 贪心启发：基于局部最优/逐次选择
-    - 种子解的质量必须验证（每个种子的目标函数值必须 > 随机解的中位数）
-    - 如果启发式解已经接近最优（差异 < 10%），说明优化问题本质上不需要黑箱搜索
-
-22. **多阶段问题必须用分层优化而非全量优化**：
-    - 当问题可分解为"任务分配 + 各任务独立优化"时，必须分两层求解：
-      - 第一层（顶层）：资源分配/任务划分（离散决策）
-      - 第二层（底层）：每个子任务独立优化（连续决策）
-    - 禁止把所有维度（分配+优化）混在一起做全量搜索
-    - 分层的依据必须在建模报告中写明（如"任务间资源独立/时间独立/空间独立"）
-    - 典型例子：多导弹多无人机问题 → 先分配"哪架无人机对哪枚导弹"，再各自优化每架无人机的航迹
-
-23. **加权求和型目标函数必须做分量贡献度验证（防止目标被淹没）**：
-    - 多目标加权求和后，必须分解报告各分量对总目标的贡献百分比
-    - 如果某个分量贡献 > 90% → 其他分量形同虚设，等价于单目标优化
-      - 原因1：归一化没做好（量纲差异导致大数吃小数）
-      - 原因2：权重设置不合理（某个权重远大于其他）
-      - 原因3：某个目标的数值范围远大于其他（即使归一化了，方差也可能差很多）
-    - 如果某个分量贡献 < 1% → 该目标被完全淹没，去掉它结果不变
-      - 必须检查：这个目标是否真的不重要？如果题目强调了它，说明建模有问题
-    - 验证方法：去掉某个目标后重新优化，如果最优解几乎不变 → 该目标确实被淹没了
-    - 建模报告中必须写明各目标的预期贡献比例范围
-
-24. **优化结果的物理可解释性验证（防止"数学正确但物理荒谬"的解）**：
-    - 优化器给出的最优解必须能用自然语言解释其物理含义
-    - 以下情况必须标记为可疑并深入检查：
-      - 调度问题：某台机器利用率 100% 而其他机器 0%（除非容量差异极大）
-      - 选址问题：所有设施选在同一个位置（除非需求高度集中）
-      - 路径问题：最优路径有明显的"绕路"（除非有时间窗约束）
-      - 分配问题：某个客户/任务被分配了 0 资源（除非约束明确允许不服务）
-      - 投资组合：全部资金投入单一资产（除非该资产 Sharpe 比率远超其他）
-    - 可疑解的处理：
-      - 检查约束是否遗漏（如"每台机器至少分配 X 任务"）
-      - 检查目标函数是否遗漏了平衡项/公平性项
-      - 如果确实是最优解（物理上合理），在 RESULTS.md 中解释为什么
-    - 建模报告中必须写明"解的可解释性预期"：最优解应该长什么样？
-
-25. **收敛性判据必须量化（防止"跑够迭代次数就停"）**：
-    - 启发式算法的终止条件不能只是"跑完 N 代"，必须有收敛判据：
-      - 连续 K 代最优解改善 < ε → 判定收敛
-      - K 和 ε 必须在建模报告中指定（如 K=50, ε=0.1%）
-    - 如果达到最大迭代次数但未收敛 → 必须报告"未收敛"，不能当作最优解
-      - 未收敛的处理：增加迭代次数/换算法/做变量降维
-    - 精确求解器（LP/MIP）的收敛判据：
-      - LP：对偶间隙 < 1e-8
-      - MIP：相对间隙 (UB-LB)/LB < 1%（或题目精度要求）
-      - 如果 MIP 求解器报告 gap > 5% → 解不够好，需要加 cutting planes 或换求解器
-    - 编码阶段必须在 JSON 中记录收敛状态：`"converged": true/false, "convergence_metric": X`
-
-26. **目标函数上下界夹逼（定位解的质量）**：
-    - 对每个优化子问题，必须构造目标函数的理论上界和下界：
-      - **下界构造**（最小化问题）：松弛整数约束/去掉最紧约束/用凸包近似
-      - **上界构造**（最小化问题）：任何可行解都是上界（贪心解/随机可行解）
-    - 最优解的质量 = (你的解 - 下界) / (上界 - 下界)
-      - 质量 < 5% → 接近最优，可以接受
-      - 质量 5%-20% → 还有改进空间，但可以用
-      - 质量 > 20% → 解质量差，必须改进算法
-    - 建模报告中必须写明上下界的构造方法
-    - 编码阶段必须在 JSON 中记录：`"lower_bound": X, "upper_bound": Y, "solution": Z, "gap_pct": (Z-X)/(Y-X)*100`
-    - 如果无法构造紧的界（如高度非线性问题），至少用"最差可行解"作为上界、"无约束最优"作为下界
-
-27. **对偶信息提取与利用（LP/MIP 必做）**：
-    - 线性规划/整数规划求解后，必须提取对偶变量（影子价格/边际成本）：
-      - 影子价格 > 0 的约束 = 瓶颈约束（放松它能改善目标函数）
-      - 影子价格 = 0 的约束 = 非瓶颈（放松它没用）
-    - 对偶信息的用途：
-      - 灵敏度分析：哪个约束最值得放松？（影子价格最大的那个）
-      - 资源定价：每单位额外资源值多少钱？
-      - 问题递进验证：Q2 增加资源后，对应约束的影子价格应该下降
-    - 编码阶段必须输出对偶信息报告：
-    ```python
-    # LP/MIP 求解后提取对偶信息
-    if hasattr(result, 'dual') or hasattr(prob, 'constraints'):
-        print("=== 对偶信息（影子价格）===")
-        for name, constraint in prob.constraints.items():
-            shadow_price = constraint.pi  # PuLP
-            print(f"  {name}: shadow_price={shadow_price:.4f}")
-            if abs(shadow_price) > 0.01:
-                print(f"    → 瓶颈约束！放松 1 单位可改善目标 {shadow_price:.4f}")
-    ```
-    - 建模报告中必须预判哪些约束是瓶颈（基于物理直觉），编码阶段对照验证
-
-28. **解的邻域鲁棒性分析（防止"脆弱最优"）**：
-    - 最优解附近是否有很多"几乎一样好"的解？
-    - 验证方法：对最优解的每个决策变量做 ±5% 扰动，记录目标函数变化：
-      - 所有扰动后目标函数变化 < 1% → 解鲁棒（好事，论文中可以强调）
-      - 某个变量扰动 5% 导致目标函数变化 > 20% → 解脆弱（必须在论文中讨论）
-      - 某个变量扰动后约束被违反 → 解在可行域边界上（角点解，参考⑫）
-    - 编码阶段必须输出邻域分析结果：
-    ```python
-    def neighborhood_robustness(solution, objective_func, constraints, perturbation=0.05):
-        """分析最优解的邻域鲁棒性。"""
-        base_obj = objective_func(solution)
-        results = {}
-        for i, (name, val) in enumerate(solution.items()):
-            for direction in [1, -1]:
-                perturbed = solution.copy()
-                perturbed[name] = val * (1 + direction * perturbation)
-                try:
-                    new_obj = objective_func(perturbed)
-                    feasible = all(c(perturbed) for c in constraints)
-                    change_pct = abs(new_obj - base_obj) / abs(base_obj) * 100
-                    results[f"{name}_{'+' if direction>0 else '-'}{perturbation*100:.0f}%"] = {
-                        "obj_change_pct": change_pct,
-                        "feasible": feasible
-                    }
-                except:
-                    results[f"{name}_{'+' if direction>0 else '-'}{perturbation*100:.0f}%"] = {"error": True}
-        return results
-    ```
-    - 鲁棒性分析结果写入 `figures/robustness_results.json`，供论文灵敏度分析章节使用
-
-29. **数值精度与条件数监控（防止"计算正确但精度不够"）**：
-    - 涉及矩阵运算（回归/线性方程组/特征值）时，必须检查条件数：
-      - cond(A) < 100 → 数值稳定，结果可信
-      - cond(A) 在 100-10000 → 需要注意，结果可能有 2-4 位有效数字损失
-      - cond(A) > 10000 → 数值不稳定，结果不可信，必须做正则化/预处理
-    - 涉及大规模求和/累积运算时，检查是否有灾难性抵消：
-      - 两个大数相减得到小数 → 相对误差被放大
-      - 解决方法：Kahan 求和/重新排列计算顺序/用对数空间
-    - 编码阶段必须在涉及矩阵运算的代码中加入：
-    ```python
-    import numpy as np
-    cond = np.linalg.cond(A)
-    print(f"矩阵条件数: {cond:.2e}")
-    if cond > 1e4:
-        print(f"⚠ 条件数过大 ({cond:.2e})，数值结果可能不可靠！")
-        print(f"  建议：正则化 / SVD 截断 / 预条件处理")
-    ```
-
-30. **子问题间结果一致性自动诊断与修复（资源单调性违反时的处理流程）**：
-    - 当检测到后续问题结果不优于前序问题（违反资源单调性）时，按以下诊断树定位原因：
-    
-    ```
-    Q(n) 结果 ≥ Q(n-1) 结果（最小化问题，应该更小）
-    │
-    ├─ 检查1：Q(n) 的可行域是否包含 Q(n-1) 的最优解？
-    │   ├─ 否 → 约束写错了（Q(n) 的约束比 Q(n-1) 更紧，不是更松）
-    │   └─ 是 → 继续检查2
-    │
-    ├─ 检查2：把 Q(n-1) 的最优解代入 Q(n) 的目标函数，值是多少？
-    │   ├─ 比 Q(n) 的"最优解"更好 → Q(n) 的优化器没找到真正的最优（搜索不充分）
-    │   └─ 比 Q(n) 的"最优解"更差 → 继续检查3
-    │
-    ├─ 检查3：Q(n) 新增的资源/变量是否真的被利用了？
-    │   ├─ 新增变量取值 = 0 或取到边界 → 目标函数没有正确反映新资源的贡献
-    │   └─ 新增变量有非零取值 → 继续检查4
-    │
-    └─ 检查4：Q(n) 的目标函数定义是否与 Q(n-1) 一致？
-        ├─ 不一致（如 Q(n) 多了惩罚项）→ 不是真正的"更多资源"，是"更多约束"
-        └─ 一致 → 建模有结构性问题，需要回到 MODELING_REPORT.md 重新设计
-    ```
-    
-    - 修复优先级：检查1（约束错误）> 检查2（搜索不充分）> 检查3（目标函数遗漏）> 检查4（问题定义不一致）
-    - 编码阶段检测到违反后，必须按诊断树逐步排查，不能直接"接受结果"
-    - 在 RESULTS.md 中必须记录诊断过程和修复结果
+17. **精度与证据匹配**：采用题设/方法实际需要的容差，输出位数与可靠精度一致。不统一要求 1e-6、固定步长禁用或额外局部优化。
+18. **交叉验证按需**：优先使用可行性重验、有效求解证书、解析对照或已有独立方法。两个启发式接近不能证明全局最优；不强制每问双求解器重跑。
+19. **结构与性能**：按真实瓶颈采用分层、种子或分块；不以维数 >= 10 判错，不硬性要求每层 <= 6 或至少 5-10 个种子。
+20. **资源与分量**：按真实耦合建目标，能分解时允许分解。零贡献、互不重叠、边界解、贡献比例悬殊都是待解释现象，不自动新增公平性/利用率约束。
+21. **收敛与最优性**：报告实际停止条件、预算、残差与界。未证明最优的可行解按实际状态交付；若题设要求的精度未满足，则保持未完成，不编造 gap。
+22. **上下界**：最小化的可行解是上界；只有有效松弛/证明/证书才可称下界。gap 计算考虑零值、负值与求解器约定，不用两次启发式的差替代最优性差距。
+23. **对偶信息**：仅在适用且求解器确实提供时解释，例如连续 LP。MIP 整数解通常没有可直接解读的 LP 影子价格，禁止为凑字段强行重求解或填 0。
+24. **敏感性与条件数**：按题设与模型需要试验，复用同设置结果。条件数结合精度、缩放和残差判断，不以 cond > 10000 一律作废结果；也不按“扰动 < 1%”自动证明可靠。
+25. **跨问题关系**：不同目标、不同单位或不包含的可行域不可强行比较。先核可比性与上游解映射可行性，再定位确凿实现错误；相等或未用资源不是模型失败。
+26. **有界修复**：真实错误修对应算例，缺说明复用运行证据，环境失败修环境；不因多个检查入口而各开重算循环。
 
 ### 建模输出规范（⛔ 最重要）
 
-**核心原则：建模阶段不能只输出公式和方法名。编码阶段是纯执行者，遇到"结果不对"只能按预案操作，不得自行发明修正方法。**
+**核心原则：建模阶段不能只输出公式和方法名。编码阶段按已确认数学合同实施；预案用于定位，不锁死异常原因。允许不改变目标、约束及精度的等价实现修复，改变模型语义须按工作流范围确认。**
 
 建模报告必须在末尾包含以下 5 项，缺任何一项都不能结束本步骤：
 
 15. **结果约束清单**：每个输出量的硬边界（超出即判定代码有误，不是"需要讨论"）
 16. **预期行为描述**：合理结果的定性特征（时间尺度/稳态/瞬态/单调性），不是具体数值
 17. **异常处理预案**：每种可能的异常只给一种修正方法，不留选择空间。如果建模阶段自己都不确定用哪种方法，说明建模还没做完
-18. **方法唯一性声明**：每个计算步骤指定唯一方法（包括预处理/后处理/插值/滤波），禁止替代方案。这些"工程细节"恰恰是导致不同实现得到不同结果的根源
+18. **方法与替代边界声明**：明确方法、关键设置和误差要求；等价实现可说明依据后替换，不能静默改变数学含义。保留工程细节以便复现，不用方法名限制有效修复
 19. **验证检查点**：编码阶段必须执行的 pass/fail checklist，每项关联到异常预案
 
 ### ⛔ 方法唯一性的具体要求（第18条展开）
@@ -818,7 +468,7 @@ TSP/VRP 的 MIP 建模中，如果不加子回路消除约束，求解器会返�
 |---|---|---|
 | 1 | **每个最优解 / 估计结果，题设硬约束必须全部通过物理量复核** | RESULTS.md 末尾给出 `audit_pass=True` 凭证；或无约束任务填 `n_constraints=0` |
 | 2 | **任何 `constraints_ok=True` 标记必须由最终落盘的物理量重新计算得到** | 不能继承求解器中间状态；独立 `constraint_audit.py` 从 JSON 重新算 |
-| 3 | **每张图 / 每张表 / 每段结论必须能追溯到当前 JSON 或当前仿真日志** | 图表脚本断言 `assert json_path == 'results.json' and json_mtime > script_mtime` |
+| 3 | **每张图 / 每张表 / 每段结论必须能追溯到当前 JSON 或当前仿真日志** | 核实际登记路径、数据/求解依赖版本及结果证据；绘图脚本晚于结果是正常的，不比较两者 mtime 判新旧 |
 | 4 | **依赖载体 / 上游变量动态变化的派生属性，禁止简化成固定常量或固定几何区域** | 必须按"当前载体状态 + 平台参数"动态计算；如确需简化，必须显式声明简化条件和误差上界 |
 | 5 | **凡历史产物与当前结果冲突，必须删除 / 标注历史版本 / 重新生成** | 跑前清理 `*_v[0-9]*.json` 等；脚本读取的 JSON 必须有"本次跑产生"的时间戳标记 |
 | 6 | **写进正文的对比基线 / 对照情景，必须过与最优解同一套约束审计** | `constraint_audit.py` 对每个 baseline 也输出 `[name] PASS/FAIL n_violations`；违反约束的基线正文须显式写明"违反 cX、仅作下界/对照、不可行"，禁止当可行方案择优或反述成"已满足该约束"（对应陷阱 D） |
@@ -944,7 +594,7 @@ if __name__ == '__main__':
 - `rechecked_at=` — 本次审计的时间戳（必填，格式如 `2026-06-28T15:30:00`）
 - `n_constraints=` — 本次复核通过的硬约束条数；无硬约束任务填 `0`（必填）
 
-凭证缺失或字段不完整 → 下游 paper-analysis / comp-paper-zh / comp-paper-zh-docx 会 `grep -q '<!-- AUDIT_OK source=' RESULTS.md` 拦截，写稿步骤直接失败。
+凭证缺失或字段不完整 → 先核现有运行证据并补交接；不能仅凭 grep 缺标记判模型错误。凭证须绑定相关版本；有字符串也不证明通过。
 
 **三必查清单（通用）**：
 
@@ -1134,19 +784,21 @@ if __name__ == '__main__':
 import json, os, sys, subprocess
 from pathlib import Path
 
-def set_all_seeds(seed: int = 42) -> dict:
+def set_all_seeds(seed: int = 42, libraries=("numpy",)) -> dict:
     """统一 seed 函数，所有代码入口必须先调用此函数。返回设置详情供日志。"""
     import random
     random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(seed)
-    info = {'seed': seed, 'python_hashseed': str(seed)}
+    # PYTHONHASHSEED 只能在解释器启动前设定，此处赋值不能改变当前进程哈希种子。
+    info = {'seed': seed, 'python_hashseed': os.environ.get('PYTHONHASHSEED')}
     try:
+        if 'numpy' not in libraries: raise ImportError
         import numpy as np
         np.random.seed(seed)
         info['numpy_seed'] = seed
     except ImportError:
         pass
     try:
+        if 'torch' not in libraries: raise ImportError
         import torch
         torch.manual_seed(seed)
         if torch.cuda.is_available():
@@ -1157,6 +809,7 @@ def set_all_seeds(seed: int = 42) -> dict:
     except ImportError:
         pass
     try:
+        if 'tensorflow' not in libraries: raise ImportError
         import tensorflow as tf
         tf.random.set_seed(seed)
         info['tf_seed'] = seed
@@ -1174,12 +827,12 @@ def collect_run_metadata(seed: int) -> dict:
         'python': platform.python_version(),
         'platform': platform.platform(),
     }
-    # 关键依赖版本
+    # 读版本元数据而非导入未用到的重型库，避免仅收集版本就初始化 GPU。
+    from importlib.metadata import version, PackageNotFoundError
     for pkg in ('numpy', 'scipy', 'pandas', 'torch', 'sklearn', 'matplotlib'):
         try:
-            mod = __import__(pkg if pkg != 'sklearn' else 'sklearn')
-            meta[pkg] = getattr(mod, '__version__', 'unknown')
-        except ImportError:
+            meta[pkg] = version('scikit-learn' if pkg == 'sklearn' else pkg)
+        except PackageNotFoundError:
             pass
     return meta
 
@@ -1199,7 +852,10 @@ def audit_reproducibility(results_json_path: str, figures_dir: str = 'figures') 
         for fj in fig_dir.glob('*.json'):
             try:
                 fd = json.loads(fj.read_text(encoding='utf-8'))
-                if 'seed' in fd and fd['seed'] != ref_seed:
+                # 不同子问题/重复实验可用派生种子；只校验显式声明同一种子策略的同一运行。
+                if (isinstance(fd, dict) and results.get('seed_policy') == 'single'
+                        and fd.get('run_id') == results.get('run_id')
+                        and 'seed' in fd and fd['seed'] != ref_seed):
                     fails.append(f"{fj.name}: seed={fd['seed']} 与 results.json seed={ref_seed} 不一致")
             except Exception:
                 pass
@@ -1275,12 +931,14 @@ import numpy as np
 from pathlib import Path
 import json, sys
 
-def audit_split(X_train, X_test, y_train, y_test, time_col=None) -> dict:
+def audit_split(X_train, X_test, y_train, y_test, time_col=None, sample_id_col=None) -> dict:
     """
     检查训练/测试切分是否存在常见泄露。
     """
-    fails = []
-    # 1. 分布大幅偏移（KS 检验 p < 0.001 警告）
+    fails, warnings = [], []
+    if len(X_train) != len(y_train) or len(X_test) != len(y_test) or not len(X_train) or not len(X_test):
+        return {'audit_pass': False, 'fails': ['样本/标签长度不匹配或集合为空'], 'warnings': []}
+    # 1. 分布偏移不是泄漏证明，仅记录在已有评估中解释。
     try:
         from scipy.stats import ks_2samp
         for col in X_train.columns if hasattr(X_train, 'columns') else range(X_train.shape[1]):
@@ -1289,9 +947,9 @@ def audit_split(X_train, X_test, y_train, y_test, time_col=None) -> dict:
             if pd.api.types.is_numeric_dtype(tr):
                 _, p = ks_2samp(tr, te)
                 if p < 1e-3:
-                    fails.append(f"特征 {col}: train/test 分布显著不同 (KS p={p:.2e})")
-    except Exception:
-        pass
+                    warnings.append(f"特征 {col}: train/test 分布显著不同 (KS p={p:.2e})")
+    except Exception as exc:
+        warnings.append(f"分布诊断不可用: {type(exc).__name__}，不因此重新训练")
 
     # 2. 时序穿越检查
     if time_col is not None:
@@ -1306,19 +964,19 @@ def audit_split(X_train, X_test, y_train, y_test, time_col=None) -> dict:
             if pd.api.types.is_numeric_dtype(X_train[col]):
                 corr = np.corrcoef(X_train[col], y_train)[0, 1]
                 if abs(corr) > 0.99:
-                    fails.append(f"特征 {col}: 与标签相关性 {corr:.4f} > 0.99（疑似标签泄露）")
+                    warnings.append(f"特征 {col}: 与标签相关性 {corr:.4f} > 0.99，需核来源，不能仅凭相关性判泄漏")
 
-    # 4. 索引重叠检查
-    if hasattr(X_train, 'index'):
-        overlap = set(X_train.index) & set(X_test.index)
+    # 4. 仅比较声明的全局样本 ID；分别 read_csv/reset_index 的 0..N 索引不代表同一样本。
+    if sample_id_col is not None:
+        overlap = set(X_train[sample_id_col]) & set(X_test[sample_id_col])
         if overlap:
             fails.append(f"train/test 索引重叠 {len(overlap)} 条")
 
-    return {'audit_pass': len(fails) == 0, 'fails': fails, 'n_train': len(X_train), 'n_test': len(X_test)}
+    return {'audit_pass': len(fails) == 0, 'fails': fails, 'warnings': warnings, 'n_train': len(X_train), 'n_test': len(X_test)}
 
 
 def check_future_features(df, target_col, time_col):
-    """检测是否有特征用了未来信息（按 time 排序后，特征是否与未来标签强相关）。"""
+    """仅返回相关性待核对提示，不是未来信息已泄漏的结论。"""
     df_sorted = df.sort_values(time_col)
     fails = []
     for col in df_sorted.columns:
@@ -1338,11 +996,13 @@ def check_future_features(df, target_col, time_col):
 if __name__ == '__main__':
     # 示例使用：本题需提供 X_train.csv / X_test.csv / y_train.csv / y_test.csv
     if not all(Path(f).exists() for f in ('X_train.csv', 'X_test.csv', 'y_train.csv', 'y_test.csv')):
-        print("⚠ 未找到 X_train/X_test/y_train/y_test CSV，跳过审计")
-        sys.exit(0)
+        print("⚠ 未找到示例 CSV；改读本题已保存的真实划分证据，不自动重训")
+        sys.exit(2)
     X_tr = pd.read_csv('X_train.csv'); X_te = pd.read_csv('X_test.csv')
     y_tr = pd.read_csv('y_train.csv').iloc[:, 0]; y_te = pd.read_csv('y_test.csv').iloc[:, 0]
     r = audit_split(X_tr, X_te, y_tr, y_te)
+    for warning in r.get('warnings', [])[:5]:
+        print(f"  [WARN] {warning}")
     if r['audit_pass']:
         print(f"✅ 数据切分审计通过  train={r['n_train']} test={r['n_test']}")
     else:
@@ -1367,24 +1027,50 @@ if __name__ == '__main__':
 > ⛔ **本章解决一类典型 bug：求解器返回 `status='converged'` 但 KKT 条件未满足；最优解卡在局部极小或退化点。**
 > 通用规范，适用于任何含数值优化 / 非线性求解 / 不动点迭代 / EM / MCMC 的题目。
 
-## 13.1 三类典型陷阱
+## 13.1 按问题类型核对真实证据
 
-### 陷阱 A：盲信 status 字段，不查残差
+- 求解器状态不代替保存解的可行性、整数性、有限性、目标重算和题设精度检查。
+- 无约束可微内点优化可检查梯度；有边界/一般约束须看投影梯度、KKT 残差与适用约束资格条件。边界最优点的原始梯度可能非零，不能通用地断言 norm(jac) < tol。
+- 大目标值本身不等于数值爆炸，要结合单位/尺度与有限性；不能因 fun > 1e10 作废正确结果。
+- 时限终止但有可行解不等于最优性证明；保存 incumbent、有效上下界、实际 gap 和状态。是否足够按题设标准判断。
+- 启发式的平稳曲线不证明最优，仍变化也不要求无限加代。共享预算内按既定方案验证，未满足题设标准则如实未完成。
+- 多起点次数按既定计划，不统一 >= 5；差异须报告，不能只留最好一次。多起点不一致是局部最优风险，不自动判代码错误。
+- MCMC 按适用的分裂/秩归一 R-hat、ESS 与诊断方案检验，样本不足/非有限/零方差链不可自动通过；固定量与待采样参数分开。统计诊断不套到确定性优化。
+
+## 13.2 避免额外耗时
+
+solver_audit.py 在本手册中是可按任务实现的检查器名称，不是必须寻找或运行的通用已安装脚本。
+将上述适用验证放进本题已有 validate_constraints()/validate_capability() 或单个检查模块；
+用已落盘结果验算，不让“收敛审计”内部再次调用所有求解器。
+已有同数据、同代码、同容差和同验证器的证据可复用；依赖变化时重验相应部分。
+缺少梯度/证书时明确能力边界，不能填写假的 0 梯度、0 gap 或 PASS。
+
+---
+
+---
+
+> ⚠ **口径说明**：以下 13.3–13.6 为历史版教学段（陷阱枚举、复核表、审计模板与案例），
+> 回灌时整体保留作经验参考。其中「multistart ≥ 5」「通用地收紧容差」等为历史案例经验值，
+> **不构成统一强制阈值**；凡与上方 13.1/13.2 的按证据核对口径冲突处，以 13.1/13.2 为准。
+
+## 13.3 历史版教学段：三类典型陷阱
+
+#### 陷阱 A：盲信 status 字段，不查残差
 - scipy `minimize` 返回 `success=True`，但 `fun` 接近 1e6，`jac` 范数也大（未真正收敛）。
 - 启发式（GA/SA/PSO）跑完 max_iter 就返回，但目标函数还在下降。
 - MCMC 跑了 N 步就停，但 Gelman-Rubin R̂ > 1.1（链未混合）。
 
-### 陷阱 B：过早终止 / 容差太松
+#### 陷阱 B：过早终止 / 容差太松
 - `tol=1e-3` 对相对误差 1% 的题来说太松。
 - 默认 `max_iter=100` 对非凸大规模问题不够。
 - 早停（early stopping）触发条件设错（patience 太小）。
 
-### 陷阱 C：初始点 / 重启次数不足
+#### 陷阱 C：初始点 / 重启次数不足
 - 单一初始点跑出局部极小，未做 multistart。
 - 启发式只跑 1 次，未对比多次种子的最好/平均/方差。
 - 蒙特卡洛积分样本数不够，方差未收敛。
 
-## 13.2 五条强制复核
+## 13.4 历史版教学段：五条强制复核
 
 | # | 规则 | 落地形式 |
 |---|---|---|
@@ -1394,7 +1080,7 @@ if __name__ == '__main__':
 | 4 | **容差与题目精度匹配** | 题面要 4 位小数 → `tol ≤ 1e-5`；不要用默认值兜底 |
 | 5 | **status='converged' 必须有"二阶证据"** | 残差 / 梯度范数 / 互补松弛 / 链混合度，缺一不可 |
 
-## 13.3 通用求解器收敛性审计模板
+## 13.5 通用求解器收敛性审计模板（参考实现）
 
 ```python
 # solver_audit.py — 求解器收敛性审计
@@ -1495,7 +1181,7 @@ if __name__ == '__main__':
         for f in a['fails']: print(f"   {f}")
 ```
 
-## 13.4 真实案例
+## 13.6 真实案例
 
 - **非线性规划**：scipy `minimize` 返回 `success=True`，但 `jac` 范数 12.5（未真正收敛）。规则 1+5 救场。
 - **GA 调度**：跑 200 代收敛，单跑结果方差 8%，5 次 multistart 后取最好的 1 次"看似最优"但其余 4 次更好。规则 2 救场。
@@ -1503,6 +1189,8 @@ if __name__ == '__main__':
 - **PSO 选址**：max_iter=50 跑完仍在下降（连续 5 代 best 下降 3%）。规则 3 救场。
 
 
+
+---
 
 ---
 
@@ -1676,7 +1364,7 @@ def audit_code_against_facts(code_files: list, facts: dict, tol: float = 1e-9) -
         except (TypeError, ValueError):
             pass
 
-    NUM_RE = re.compile(r'(?<![\w.])([-+]?\d+\.\d+|\d+)(?![\w])')
+    NUM_RE = re.compile(r'(?<![\w.])([-+−]?(?:\d+\.\d+|\d+)(?:[eE][-+]?\d+)?)(?![.\d]|[eE][-+]?\d)')
     WHITELIST = {0, 1, 2, 3, 4, 5, 10, 100, 1000, 60, 24, 0.5, 1.5, -1}
     suspicious = []
     for f in code_files:
@@ -1691,7 +1379,7 @@ def audit_code_against_facts(code_files: list, facts: dict, tol: float = 1e-9) -
                     continue
                 for m in NUM_RE.finditer(line):
                     try:
-                        v = float(m.group(1))
+                        v = float(m.group(1).replace('−', '-'))
                     except ValueError:
                         continue
                     if v in WHITELIST or v in fact_values:
@@ -2011,13 +1699,13 @@ def extract_numbers_from_ocr(ocr_files) -> set:
     from pathlib import Path
     nums = set()
     # 数字后面允许跟字母（单位 km/s/min/kn 等）但禁止跟 . 或 数字（避免抓章节号）
-    NUM_RE = re.compile(r'(?<![\w.])([-+]?\d+\.\d+|\d+)(?![\.\d])')
+    NUM_RE = re.compile(r'(?<![\w.])([-+−]?(?:\d+\.\d+|\d+)(?:[eE][-+]?\d+)?)(?![.\d]|[eE][-+]?\d)')
     for fp in ocr_files:
         try:
             text = Path(fp).read_text(encoding='utf-8')
             for m in NUM_RE.finditer(text):
                 try:
-                    v = float(m.group(1))
+                    v = float(m.group(1).replace('−', '-'))
                     nums.add(round(v, 4))
                 except ValueError:
                     continue
@@ -2130,6 +1818,12 @@ def audit_subproblem_isolation(facts: dict, code_file, current_sub: str) -> list
 
 ### 在 comp-code 阶段必跑加固审计（更新版凭证）
 
+**执行口径补充**：下方保留历史接入示例供追溯，不应仅凭可疑数字数量或
+`AUDIT_OK` 字符串触发返修。实际接入优先使用现有 `_utils/facts_audit.py`，
+不因本节另生成、重复运行一个 v2 脚本。OCR 数字差异可能是单位换算、派生量或
+OCR 识别错误，应核原题与来源映射；只有证实抄错/无依据数值才修对应项。
+下方 grep 只能查凭证字段，不能替代真实结果检查，也不能把 WARN 当作 FAIL。
+
 ```bash
 python3 facts_audit_v2.py 2>&1 | tee AUDIT_REPORT.md
 n_suspicious=$(grep -c "^⚠" AUDIT_REPORT.md)
@@ -2178,7 +1872,7 @@ grep -qE '<!-- AUDIT_OK source=.*n_suspicious_numbers=0' RESULTS.md && echo "OK"
 |---|---|---|
 | 1 | **每个计数器只记录一种来源的事件**（按事件源命名） | 模式 `count_by_<source>` / `total_<metric>_from_<source>`；禁止 `n_hit` / `events` / `struck` 这种二义命名 |
 | 2 | **每次离散事件落详细元组**，不要只记 bool / 计数 | `{timestamp, source, target, value_per_event, cause_id, ...}` 完整记录上下文 |
-| 3 | **聚合量必须能由事件组合精确反推**（容差 1e-3） | `total_value == Σ(event.value_per_event)`；按 source 分组每组 `count × theoretical_per_event ≈ actual_sum` |
+| 3 | **聚合量必须能由事件组合反推**（容差按指标单位和精度确定） | `total_value ≈ Σ(event.value_per_event)`；仅固定单次贡献的 source 使用 `count × theoretical_per_event ≈ actual_sum` |
 | 4 | **中间产物（如 RESULTS.md）描述事件时必须标注**：计数器名 + 单次量值 + 事件次数 + 各 source 贡献 | 例如 `总量 X = N × per_event_value（来自 count_by_<source>，每次贡献 v）` |
 | 5 | **写稿步骤禁止凭变量名脑补语义** | 凡是"谁导致了什么"的结论必须能在 `results.json` 里 grep 到独立计数器字段（不是合并字段），否则禁止用"撞击 / 命中 / 拦截 / 来自 X"等指向性动词 |
 
@@ -2190,6 +1884,11 @@ grep -qE '<!-- AUDIT_OK source=.*n_suspicious_numbers=0' RESULTS.md && echo "OK"
 - 多种漏检/拦截/通过原因（误报 / 漏报 / 边界）累加同一统计指标
 
 ## 15.3 通用反推审计模板
+
+**适用范围补充**：以下单次恒定值反推只核已声明固定贡献的来源；变动金额、
+状态依赖贡献应按事件实际值求和。调用前按 metric、对象和时间窗筛选事件；
+不同总量不能复用同一份未分组事件。该检查证明账面一致，不证明事件已完整覆盖。
+缺少所需字段属于待补证据，完整的零事件与零总量可以正确。不得只凭总量末位反推原因。
 
 ```python
 # event_breakdown_audit.py — 事件源分类反推校验（与具体业务无关）
@@ -2203,7 +1902,19 @@ def audit_event_breakdown(events: list, total_value: float,
     """
     fails = []
     # 1. 事件总和 = 声称总量
-    event_total = sum(e['value_per_event'] for e in events)
+    import math
+    if isinstance(tol, bool) or not isinstance(tol, (int, float)) or not math.isfinite(tol) or tol < 0:
+        raise ValueError('检查容差无效；修验证器，不重跑模型')
+    if not isinstance(events, list) or any(not isinstance(e, dict) or not isinstance(e.get('source'), str) or not e['source'] for e in events):
+        raise ValueError('事件来源记录缺失或结构无效；先核记录，不重跑模型')
+    if not isinstance(source_unit_value, dict):
+        raise ValueError('固定贡献定义应为来源映射')
+    if not isinstance(total_value, (int, float)) or isinstance(total_value, bool) or not math.isfinite(total_value):
+        return ['⛔ 声称总量不是有限数值']
+    values = [e.get('value_per_event') for e in events]
+    if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in values):
+        return ['⛔ 事件贡献缺失或不是有限数值']
+    event_total = math.fsum(values)
     if abs(event_total - total_value) > tol:
         fails.append(
             f'⛔ 反推失败：事件总和 {event_total:.4f} ≠ 声称总量 {total_value:.4f}'
@@ -2216,8 +1927,9 @@ def audit_event_breakdown(events: list, total_value: float,
         by_source.setdefault(e['source'], []).append(e['value_per_event'])
     for src, vals in by_source.items():
         if src not in source_unit_value:
-            fails.append(f'⚠ 事件 source={src!r} 未在 source_unit_value 中登记理论值')
-            continue
+            continue  # 未声明固定单次贡献，不套次数×常数；总量仍已核对
+        if not isinstance(source_unit_value[src], (int, float)) or isinstance(source_unit_value[src], bool) or not math.isfinite(source_unit_value[src]):
+            raise ValueError(f'{src}: 固定单次贡献定义无效')
         expected = source_unit_value[src] * len(vals)
         actual = sum(vals)
         if abs(expected - actual) > tol * max(len(vals), 1):
@@ -2232,11 +1944,13 @@ def audit_event_breakdown(events: list, total_value: float,
 
 def audit_narrative_against_events(narrative_text: str, events: list,
                                     source_unit_value: dict,
-                                    verb_to_sources: dict) -> list:
+                                    verb_to_sources: dict, *, scope_confirmed: bool = False) -> list:
     """检查中间产物（如 RESULTS.md）的指向性陈述是否对应独立 source。
 
     verb_to_sources: 由用户按本题定义的"动词→合法 source 集合"映射，例如：
         {'伤害源动词A': ('source_A',), '伤害源动词B': ('source_B', 'source_C'), ...}
+    只有已对齐指标、对象、时间窗、否定/引用语境的片段才传 scope_confirmed=True。
+    全文关键词扫描仅提示候选，不能因此判求解失败。
     """
     import re
     fails = []
@@ -2258,7 +1972,7 @@ def audit_narrative_against_events(narrative_text: str, events: list,
             actual = sum(1 for e in events if e.get('source') in valid_sources)
             if claimed != actual:
                 fails.append(
-                    f'⛔ 陈述 "{verb} ... {claimed}" 与事件流不符：'
+                    f'{"⛔" if scope_confirmed else "⚠ 待核语境"} 陈述 "{verb} ... {claimed}" 与事件流不符：'
                     f'source ∈ {valid_sources} 的事件数 = {actual}'
                 )
     return fails
@@ -2268,27 +1982,45 @@ if __name__ == '__main__':
     import json, sys
     from pathlib import Path
     if not Path('results.json').exists():
-        sys.exit(0)
+        print('NEEDS_EVIDENCE: 未找到示例默认 results.json；请改为本项目实际注册的结果路径')
+        sys.exit(2)
     results = json.loads(Path('results.json').read_text(encoding='utf-8'))
     events = results.get('events') or results.get('damage_events') or []
     totals = results.get('totals') or {}
     source_unit = results.get('source_unit_value') or results.get('source_unit_damage') or {}
     verb_map = results.get('verb_to_sources') or {}
 
-    if not events or not source_unit:
-        print('⚠ results.json 缺 events 或 source_unit_value 字段，跳过事件源反推审计')
-        print('  按第十五章规则 2/3，仿真器必须落 events 详细元组 + source_unit_value 字典')
+    if not totals or ('events' not in results and 'damage_events' not in results):
+        print('NEEDS_EVIDENCE: 缺事件或总量记录；先核现有产物，不因缺字段重跑整个求解')
+        sys.exit(2)
+
+    if not isinstance(totals, dict) or not isinstance(events, list) or any(not isinstance(e, dict) for e in events):
+        print('NEEDS_EVIDENCE: 总量或事件记录结构不完整；先核对应产物')
+        sys.exit(2)
+    if any('metric' in e and (not isinstance(e['metric'], str) or e['metric'] not in totals) for e in events):
+        print('NEEDS_EVIDENCE: 事件 metric 无对应总量，不能静默忽略')
         sys.exit(2)
 
     all_fails = []
     for metric_name, total_value in totals.items():
-        # 总量字段可能对应所有事件，也可能按 target 子集
-        all_fails += audit_event_breakdown(events, total_value, source_unit)
+        if len(totals) > 1 and any('metric' not in e for e in events):
+            print('NEEDS_EVIDENCE: 多指标事件未声明 metric，不能把全部事件重复计入每个总量')
+            sys.exit(2)
+        metric_events = [e for e in events if e.get('metric', metric_name) == metric_name]
+        units = source_unit.get(metric_name, {}) if len(totals) > 1 else source_unit
+        # 每指标容差须与该指标单位和精度计划一致，不统一强制 1e-3。
+        tolerance = results.get('metric_tolerances', {}).get(metric_name)
+        if tolerance is None:
+            print(f'NEEDS_EVIDENCE: {metric_name} 尚未声明有依据的绝对容差')
+            sys.exit(2)
+        all_fails += audit_event_breakdown(metric_events, total_value, units, tol=tolerance)
 
     if Path('RESULTS.md').exists() and verb_map:
-        all_fails += audit_narrative_against_events(
+        narrative_candidates = audit_narrative_against_events(
             Path('RESULTS.md').read_text(encoding='utf-8'), events, source_unit, verb_map
         )
+        for candidate in narrative_candidates:
+            print(candidate)  # 全文扫描未确认统计口径，不据此硬判计算错误。
 
     for f in all_fails:
         print(f)
@@ -2300,7 +2032,7 @@ if __name__ == '__main__':
 ### 案例 1：海战部署题（陷阱 A + C 典型）
 - 题面：红方运输船被两类蓝方平台攻击 — 撞击型（无人艇接触）+ 远程型（巡飞弹命中），各有不同单次毁伤值（撞击 0.27、命中 0.081）。
 - 错误：仿真器一个聚合计数器同时 append 两类事件（变量名仅暗示其中一种），RESULTS.md 凭名字写"10 艘撞击"，正文照抄。
-- 反推证据：总毁伤 0.81 = 10 × 0.081，含 0.27 的组合凑不出，**实际 0 撞击 10 命中**。
+- 反推限制：0.81 既可等于 10 × 0.081，也可等于 3 × 0.27；总量不能唯一反推出来源次数。实际组成必须查独立来源事件，不能仅凭总量声称“0 撞击 10 命中”。
 - 通用规则对应：规则 1（分开命名）+ 规则 3（毁伤反推）+ 规则 5（写稿前 grep 独立字段）。
 
 ### 案例 2：流行病模型（陷阱 B 典型）

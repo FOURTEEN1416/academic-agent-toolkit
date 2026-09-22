@@ -59,7 +59,7 @@ if [ -f "$PAPER_DIR/references.bib" ]; then
         [ -f "$_c" ] && { _BIBCHK="$_c"; break; }
     done
     if [ -n "$_BIBCHK" ]; then
-        _PY=""; for _p in "$MH_PYTHON" python python3; do [ -z "$_p" ] && continue; command -v "$_p" >/dev/null 2>&1 && { _PY="$_p"; break; }; done; [ -z "$_PY" ] && _PY=python
+        _PY=""; for _p in python python3; do [ -z "$_p" ] && continue; command -v "$_p" >/dev/null 2>&1 && { _PY="$_p"; break; }; done; [ -z "$_PY" ] && _PY=python
         echo "--- References authenticity ---"
         "$_PY" "$_BIBCHK" --bib "$PAPER_DIR/references.bib" 2>&1
         [ $? -eq 1 ] && { echo "  FAIL: 参考文献真实性核验发现疑似编造条目（见上）"; EXIT_CODE=1; }

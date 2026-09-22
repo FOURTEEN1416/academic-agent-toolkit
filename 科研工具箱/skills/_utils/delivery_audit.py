@@ -96,9 +96,28 @@ def _audit_sampling(codedir: Path, results_path: Path):
     sampling_hits = []
     for f in sorted(codedir.rglob("*.py")):
         src = _strip_comment_lines(_read(f))
-        lines = src.splitlines()
+        import ast
+        try:
+            tree = ast.parse(src)
+        except SyntaxError:
+            continue
+        # Exclude display-only statements. A preview used as training data
+        # remains visible to this check; printing does not drop any records.
+        preview_spans = []
+        lines = src.splitlines(keepends=True)
+        def offset(line, column):
+            # AST columns are UTF-8 byte offsets, regex offsets are characters.
+            prefix = lines[line - 1].encode("utf-8")[:column].decode("utf-8")
+            return sum(len(value) for value in lines[:line - 1]) + len(prefix)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
+                func = node.value.func
+                if isinstance(func, ast.Name) and func.id in {"print", "display", "pprint"}:
+                    preview_spans.append((offset(node.lineno, node.col_offset), offset(node.end_lineno, node.end_col_offset)))
         for m in _SAMPLE_RE.finditer(src):
             ln = src.count("\n", 0, m.start()) + 1
+            if any(start <= m.start() < end for start, end in preview_spans):
+                continue
             # .sample( 命中但同行是全量洗牌 frac=1 → 豁免（不是降采样）
             line_txt = lines[ln - 1] if 0 <= ln - 1 < len(lines) else ""
             if m.group().lstrip().startswith(".sample") and _SHUFFLE_OK_RE.search(line_txt):

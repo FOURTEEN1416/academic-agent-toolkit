@@ -10,6 +10,10 @@
   * 仅超长   → longtable（跨页，默认字号，修「长表被页底挡」）
   * 仅超宽   → table[H] + resizebox（缩到页宽，仅附录内缩放）
 
+⛔⛔ 免瘦身白名单（NO_SLIM_PAT）：符号说明表等「索引型」表整表跳过，一行不删。
+   它们由 compile_utils.sh 6.6 段转成 longtable 跨页（那里有配套的同款判据，改一处要同步）。
+   理由：符号表是全文符号的唯一索引，截断即让中间那些符号在全文再无解释。
+
 用法：python table_slim.py <PAPER_DIR>
 """
 import os
@@ -18,6 +22,33 @@ import sys
 
 WIDE_COLS = 8    # 数据列 > 8 → 超宽
 LONG_ROWS = 20   # 数据行 > 20 → 超长
+
+# ⛔⛔ 免瘦身白名单（按 caption 匹配）：这些表的价值就在「完整」，截断即交付缺陷。
+#    实测事故：符号说明表 26 行被截成「前 5 行 + ⋮ + 后 3 行」，中间 18 个符号
+#    在全文再无解释 —— 读者看到 x_age 只能自己猜。
+#    ⛔ 只放「索引/字典型」表；结果数据表不在此列（它们截断后完整版进附录，可接受）。
+# ⛔ 判据设计（两轮对抗测试的产物，别退回逐条枚举）：
+#   ① 必须加边界，否则误伤结果表 —— 实测「符号表示的求解结果对比」被 `符号\s*表` 命中、
+#      「Symbolic Regression Results」被 `[Ss]ymbol` 命中，两张 26 行结果表都被误放行。
+#      故中文用负向断言挡掉"表示/表征/表达"，英文用 \b 挡掉 Symbolic（l 与 i 间无词边界）。
+#   ② ⛔ 不要逐条枚举完整表名 —— 第一版枚举了 13 条，实测 18 个常见变体里漏 11 个
+#      （缩略词表/缩写表/常用符号/符号列表/符号含义/参数含义/变量含义/变量注释/记号表/
+#        Glossary/Variable Definitions）。改成【索引词 + 紧邻释义词】的组合式判据。
+#   ③ 靠「相邻」把结果表排除掉：「参数取值表」是 参数+取值，不是 参数+表 → 不命中；
+#      「不同参数下的目标函数值」同理。这比加一堆负向断言更稳。
+#   ④ ⛔ 代价不对称，判据要【偏向保留整表】：
+#      误判结果表不截 → 表偏长，但数据齐全，读者不受损；
+#      漏判符号表被截 → 中间符号全文再无解释，是交付缺陷。
+#      所以宁可多认几张，不许漏认一张。
+_NS_IDX = r"符号|变量|参数|记号|术语|缩略[语词]?|缩写"
+_NS_EXP = r"说明|定义|一览|列表|含义|注释|对照|注解|表(?!示|征|达)"
+NO_SLIM_RE = re.compile(
+    r"(?:%s)\s*(?:[与和及]\s*(?:%s)\s*)?(?:%s)" % (_NS_IDX, _NS_IDX, _NS_EXP)
+    + r"|常用符号|主要符号|缩略[语词]|缩写"
+    + r"|[Nn]omenclature|[Ss]ymbols?\b|[Nn]otations?\b|[Aa]bbreviations?\b"
+    + r"|[Gg]lossar(?:y|ies)"
+    + r"|(?:[Vv]ariable|[Pp]arameter|[Ss]ymbol)s?\s+[Dd]efinitions?"
+)
 
 try:
     sys.stdout.reconfigure(encoding='utf-8')
@@ -219,9 +250,23 @@ def build_appendix_entry(full_block, colspec, cap_text, label, is_wide, is_long)
 
 
 def nearest_caption(content, table_start):
+    """取本表自己的 caption；⛔ 不能简单"往前 400 字符找最后一个"。
+
+    ⛔ 实测 bug：极短符号表（3 行）后紧跟一个裸 tabular（无 table 环境、无 caption），
+       两者相距仅 156 字符 < 400 → 裸表继承了「符号说明表」这个 caption，
+       于是 26 行结果数据被当符号表整表放行，一行没截。
+    ⛔ 正确判据：caption 与 tabular 必须在【同一个 table 环境】内 ——
+       若两者之间出现 \\end{table}，那个 caption 就属于上一个表，不算本表的。
+    """
     before = content[max(0, table_start - 400):table_start]
-    caps = re.findall(r'\\caption\{([^}]*)\}', before)
-    return caps[-1] if caps else '完整结果'
+    caps = list(re.finditer(r'\\caption\{([^}]*)\}', before))
+    if not caps:
+        return '完整结果'
+    last = caps[-1]
+    # caption 之后到本表之间若已闭合过 table 环境 → 该 caption 不属于本表
+    if re.search(r'\\end\{table\}|\\end\{longtable\}', before[last.end():]):
+        return '完整结果'
+    return last.group(1)
 
 
 def process_file(fp, label_counter):
@@ -241,6 +286,14 @@ def process_file(fp, label_counter):
             # ⛔ 已被 resizebox 包裹的表（本轮兜底缩放过、或 6.63 处理过）跳过，
             #    否则含合并表头的宽表会被反复选中 → 死循环。
             if 'resizebox' in content[max(0, m.start() - 40):m.start()]:
+                continue
+            # ⛔⛔ 符号说明表【绝不瘦身】：它是全文符号的唯一索引 —— 读者碰到不认识的
+            #    符号就回查这张表。省掉中间行 = 那些符号在全文再无处可查，属交付缺陷。
+            #    ⛔ 也不能"完整版进附录"：符号表的用途是随时回查，挪走同样破坏可用性。
+            #    超长时的正确做法是 6.6 段把它转成 longtable 跨页（一行不删）。
+            #    ⛔ 跳过必须写在这里（finditer 内部）而不是外层 continue ——
+            #      外层是 while True + 每轮重新 finditer，外层 continue 会死循环。
+            if NO_SLIM_RE.search(nearest_caption(content, m.start()) or ''):
                 continue
             cols = parse_colspec(m.group(2))
             rows, data = split_rows(m.group(4))

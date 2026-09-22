@@ -3,6 +3,7 @@
 # 用法: bash _utils/compile_utils.sh paper/
 
 PAPER_DIR="${1:-paper}"
+UTILS_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)"
 
 # ⛔ 检测可用的 Python 解释器（Windows 上 python3 可能是 Microsoft Store stub）
 # 1. 优先用 PATH 中的 python（Windows desktop runtime 注入的真 python）
@@ -10,6 +11,7 @@ PAPER_DIR="${1:-paper}"
 # 3. 都不行就用 py launcher
 PYTHON=""
 for _py in python python3 py; do
+    [ -z "$_py" ] && continue
     if command -v "$_py" >/dev/null 2>&1; then
         # 验证能跑（排除 Microsoft Store stub：stub 不会真正执行）
         if "$_py" -c "import sys" 2>/dev/null; then
@@ -70,6 +72,18 @@ export PYTHONUTF8="1"
 
 echo "=== 编译前清理 ($PAPER_DIR, using $PYTHON, locale $_UTF8_LOCALE) ==="
 
+# 数学建模论文统一无正文/图/表目录。这里幂等归一化，编译后再独立复核。
+_POLICY_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/modeling_tex_policy.py"
+if [ -f "$_POLICY_SCRIPT" ]; then
+    "$PYTHON" "$_POLICY_SCRIPT" normalize "$PAPER_DIR" || {
+        echo "⛔ 建模论文目录策略归一化失败" >&2
+        exit 1
+    }
+else
+    echo "⛔ 缺少 modeling_tex_policy.py，无法保证建模论文目录一致性" >&2
+    exit 1
+fi
+
 # 0. 杀掉残留的 XeLaTeX/pdflatex 进程（Windows 文件锁问题）
 # 上一次编译可能没完全退出，导致字体文件被锁住 Permission denied
 echo "--- 清理残留编译进程 ---"
@@ -109,19 +123,8 @@ for f in "$PAPER_DIR"/main.tex "$PAPER_DIR"/sections/*.tex; do
     fi
 done
 
-# 2.6 修复 \listoffigures 出现在摘要之前的问题
-if [ -f "$PAPER_DIR/main.tex" ]; then
-    if grep -q '\\listoffigures' "$PAPER_DIR/main.tex" 2>/dev/null; then
-        # 检查 \listoffigures 是否在 \begin{abstract} 之前
-        LOF_LINE=$(grep -n '\\listoffigures' "$PAPER_DIR/main.tex" | head -1 | cut -d: -f1)
-        ABS_LINE=$(grep -n '\\begin{abstract}\|摘.*要' "$PAPER_DIR/main.tex" | head -1 | cut -d: -f1)
-        if [ -n "$LOF_LINE" ] && [ -n "$ABS_LINE" ] && [ "$LOF_LINE" -lt "$ABS_LINE" ]; then
-            echo "  ⚠ \\listoffigures 在摘要之前，移除（不应出现在摘要前）"
-            sed -i '/\\listoffigures/d' "$PAPER_DIR/main.tex"
-            sed -i '/\\listoftables/d' "$PAPER_DIR/main.tex"
-        fi
-    fi
-fi
+# 2.6 目录命令已由开头的 modeling_tex_policy.py 统一处理。
+# 不在这里保留任何“目录应该放在哪里”的兼容逻辑，避免旧规则重新进入成品。
 
 # 2.7 MathorCup 封面格式检查：如果是 MathorCup 论文但有独立封面页（\maketitle），删掉
 if [ -f "$PAPER_DIR/main.tex" ]; then
@@ -229,14 +232,95 @@ if [ -f "$PAPER_DIR/main.tex" ]; then
     fi
 fi
 
+# 4.4 附录代码去指纹：抹掉工具自举头 __mh_autobootstrap_syspath__，防它印进论文 PDF
+# ⛔ 两条路径都堵：(a) \lstinputlisting 引用的 code/*.py 带自举头 → 给该行加 firstline=N 跳过不显示
+#    （不改源文件，本地照样能跑）；(b) 直接粘进正文的自举块 → 整块删除。只删这 5 行注入块，绝不碰真实代码。
+echo "--- 附录代码去指纹（抹 __mh_autobootstrap_syspath__）---"
+for f in "$PAPER_DIR"/sections/*.tex "$PAPER_DIR"/main.tex; do
+    [ -f "$f" ] || continue
+    TARGET_FILE="$f" MH_PAPER_DIR="$PAPER_DIR" "$PYTHON" - <<'PYEOF' 2>/dev/null
+import os, re
+fp = os.environ['TARGET_FILE']
+paper_dir = os.environ['MH_PAPER_DIR']
+try:
+    content = open(fp, encoding='utf-8', errors='ignore').read()
+except OSError:
+    raise SystemExit(0)
+orig = content
+BOOT = ["# __mh_autobootstrap_syspath__",
+        "import os as _mh_os, sys as _mh_sys",
+        "_mh_here = _mh_os.path.dirname(_mh_os.path.abspath(__file__))",
+        "if _mh_here and _mh_here not in _mh_sys.path:",
+        "_mh_sys.path.insert(0, _mh_here)"]
+
+# (a) \lstinputlisting[opts]{path}：引用文件带自举头 → 注入 firstline 跳过
+def _firstline(pyrel):
+    py = os.path.normpath(os.path.join(paper_dir, pyrel))
+    try:
+        lines = open(py, encoding='utf-8', errors='ignore').read().splitlines()
+    except OSError:
+        return None
+    mi = next((i for i, l in enumerate(lines[:4]) if l.strip() == BOOT[0]), None)
+    if mi is None or mi + 4 >= len(lines):
+        return None
+    for k in range(1, 5):
+        if lines[mi + k].strip() != BOOT[k]:
+            return None  # 后4行不符=块被改坏，宁可不切也不误删真实代码
+    after = mi + 5
+    if after < len(lines) and lines[after].strip() == "":
+        after += 1
+    return after + 1  # 0-based → 1-based
+
+def _fix_inc(m):
+    opts, path = m.group(1) or "", m.group(2)
+    if "firstline" in opts:
+        return m.group(0)  # 幂等：已有 firstline 不动
+    fl = _firstline(path)
+    if fl is None:
+        return m.group(0)
+    newopts = (opts[:-1] + ",firstline=%d]" % fl) if opts else "[firstline=%d]" % fl
+    return "\\lstinputlisting" + newopts + "{" + path + "}"
+content = re.sub(r"\\lstinputlisting(\[[^\]]*\])?\{([^}]*)\}", _fix_inc, content)
+
+# (b) 直接粘进正文的自举块（精确 5 行 + 可选尾空行）→ 整块删
+_boot_re = re.compile(
+    r"^# __mh_autobootstrap_syspath__\n"
+    r"import os as _mh_os, sys as _mh_sys\n"
+    r"_mh_here = _mh_os\.path\.dirname\(_mh_os\.path\.abspath\(__file__\)\)\n"
+    r"if _mh_here and _mh_here not in _mh_sys\.path:\n"
+    r"    _mh_sys\.path\.insert\(0, _mh_here\)\n\n?",
+    re.MULTILINE)
+content = _boot_re.sub("", content)
+
+if content != orig:
+    open(fp, 'w', encoding='utf-8').write(content)
+    print("  %s: 已去自举头指纹" % os.path.basename(fp))
+PYEOF
+done
+
 # 4.5 规整图片宽度（防止 AI 把正常图写太小/太大）
 # ⛔ 触发场景：AI 给正常横图写 width=0.6~0.75\textwidth → 正文里图小而挤、两边留白
 #    或写 width=1.0\textwidth 撑满 → 过大。规则要求正常大小：区间 [0.8, 0.95]，越界纠偏。
 #    只动 \includegraphics 的 width 系数，不碰 tikz_diagrams / 明确标了整页的图。
 echo "--- 规整图片宽度 ---"
+# 先运行权威策略：数据图按长宽比分档，流程/架构/路线图再按 PDF 内有效字号与
+# 文字密度自适应到 0.80~0.98。strict 会阻止“已经通栏但字仍小”或竖长逻辑图
+# 被带病编译；这类问题只能回源重排/拆图，继续放大没有物理空间可用。
+if [ -f "$UTILS_DIR/fig_include_size.py" ] && \
+   [ -f "$PAPER_DIR/../figures/latex_includes.tex" ]; then
+    "$PYTHON" "$UTILS_DIR/fig_include_size.py" \
+        --figdir "$PAPER_DIR/../figures" \
+        --latex "$PAPER_DIR/../figures/latex_includes.tex" \
+        --strict
+    _fig_policy_rc=$?
+    if [ "$_fig_policy_rc" -eq 1 ]; then
+        echo "⛔ 逻辑框图自适应检查失败：请按上方提示重排/拆图后再编译。" >&2
+        exit 1
+    fi
+fi
 for f in "$PAPER_DIR"/sections/*.tex "$PAPER_DIR"/main.tex; do
     [ -f "$f" ] || continue
-    TARGET_FILE="$f" "$PYTHON" - <<'PYEOF' 2>/dev/null
+    TARGET_FILE="$f" LI_FILE="$PAPER_DIR/../figures/latex_includes.tex" FIG_DIR="$PAPER_DIR/../figures" "$PYTHON" - <<'PYEOF' 2>/dev/null
 import os, re
 fp = os.environ['TARGET_FILE']
 with open(fp, 'r', encoding='utf-8', errors='ignore') as fh:
@@ -245,6 +329,64 @@ with open(fp, 'r', encoding='utf-8', errors='ignore') as fh:
 LOWER, UPPER = 0.80, 0.95
 FIX_LOW, FIX_HIGH = 0.85, 0.90
 changed = []
+
+# ⛔ 加固：未登记进 latex_includes 的图仍按真实 PDF 长宽比定宽。正式图应先登记，
+#    登记图已由上方 fig_include_size.py 做过密度感知；这里仅保留兼容兜底。
+_FIG_DIR = os.environ.get('FIG_DIR', '')
+_BUCKETS = [(0.80, 0.90), (1.20, 0.80), (1.60, 0.60)]  # (高宽比上界, width系数)，与 fig_include_size 一致
+_WIDTH_TALL = 0.46   # 高/宽 > 1.60 瘦高图
+_HEIGHT_CAP = 0.80   # 统一限高
+_LOGIC_PREFIXES = ('fig_arch', 'fig_roadmap', 'fig_flow', 'fig_pipeline', 'fig_framework')
+_LOGIC_WIDE = 0.98  # 仅在缺少权威登记/策略脚本时的保守兼容上限
+_LOGIC_MAX_ASPECT = 1.05
+def _pdf_aspect(name):
+    try:
+        import fitz
+    except Exception:
+        return None
+    try:
+        doc = fitz.open(os.path.join(_FIG_DIR, name))
+        if doc.page_count < 1:
+            doc.close(); return None
+        rect = doc.load_page(0).rect; doc.close()
+        w, h = float(rect.width), float(rect.height)
+        return (h / w) if (w > 0 and h > 0) else None
+    except Exception:
+        return None
+def _width_for(r, name=''):
+    stem = os.path.splitext(name)[0].lower()
+    if stem.startswith(_LOGIC_PREFIXES) and r <= _LOGIC_MAX_ASPECT:
+        return _LOGIC_WIDE
+    for bound, wc in _BUCKETS:
+        if r <= bound: return wc
+    return _WIDTH_TALL
+def _rewrite_by_aspect(opts, wc):
+    # 丢弃旧 width/height，保留其它选项(trim/clip/angle 等)，keepaspectratio 必留
+    kept = []
+    for p in [x.strip() for x in opts.split(',') if x.strip()]:
+        low = p.lower().replace(' ', '')
+        if low.startswith('width=') or low.startswith('height=') or low == 'keepaspectratio':
+            continue
+        kept.append(p)
+    return ','.join(['width=%g\\textwidth' % wc, 'height=%g\\textheight' % _HEIGHT_CAP, 'keepaspectratio'] + kept)
+
+# ⛔ 权威尺寸表：fig_include_size.py 按真实长宽比 + 逻辑图有效字号/密度算好写进
+#    latex_includes.tex。竖高图按 0.46/0.60 档收窄；横向/近方逻辑图在 0.80~0.98
+#    自适应，无法仅靠宽度保证可读时 strict 已在上方阻断。
+#    若前者被下方 [0.80,0.95] 纠偏无脑撑大，
+#    keepaspectratio 下高度顶格 → 撑满整页（"流程图又长又乱"的真根因）。
+#    对策：登记过的图一律强制回填其权威 OPTS（写作步骤写错 0.85/0.9 也改回），跳过纠偏。
+#    latex_includes 缺失/解析失败 → auth 空，全部退化为原纠偏行为，绝不崩。
+AUTH = {}
+try:
+    with open(os.environ.get('LI_FILE', ''), 'r', encoding='utf-8', errors='ignore') as _lf:
+        _litxt = _lf.read()
+    for _m in re.finditer(r'\\includegraphics\[([^\]]*)\]\s*\{([^}]*)\}', _litxt):
+        _base = _m.group(2).rsplit('/', 1)[-1]
+        if _base:
+            AUTH[_base] = _m.group(1)
+except Exception:
+    AUTH = {}
 
 # ⛔ 真·并排图豁免：minipage / subfigure / subfloat 里的 \includegraphics 本就该用
 #    小系数（如 0.48）占半栏，一律不碰——否则 0.48→0.85 会把并排图撑破换行成大图。
@@ -262,6 +404,24 @@ content = _ENV_PAT.sub(_mask, content)
 
 def fix_opts(m):
     opts = m.group(1)
+    _path = m.group(2)
+    # ⛔ 权威回填（最高优先级）：登记过的图强制用 latex_includes 的权威 OPTS，跳过下方纠偏。
+    #    也记一笔 changed 确保文件被写回（否则纯回填、无普通纠偏时 changed 为空不写回，回填失效）。
+    _base = _path.rsplit('/', 1)[-1]
+    if _base in AUTH and AUTH[_base] != opts:
+        changed.append(('(权威回填 ' + _base + ')', AUTH[_base]))
+        return '\\includegraphics[' + AUTH[_base] + ']{' + _path + '}'
+    if _base in AUTH:  # 已与权威一致，原样返回不动
+        return '\\includegraphics[' + opts + ']{' + _path + '}'
+    # ⛔ 加固：未登记图先按真实 PDF 长宽比定宽（竖高图自动收窄，不再无脑 0.85 撑满页）。
+    #    读到长宽比 → 按档重写 width+限高 0.8；读不到（无 PDF/无 fitz）→ 落到下方原纠偏兜底。
+    _asp = _pdf_aspect(_base)
+    if _asp is not None:
+        _wc = _width_for(_asp, _base)
+        _newo = _rewrite_by_aspect(opts, _wc)
+        if _newo != opts:
+            changed.append(('(按长宽比 r=%.2f)' % _asp, 'width=%g\\textwidth,height=%g\\textheight' % (_wc, _HEIGHT_CAP)))
+        return '\\includegraphics[' + _newo + ']{' + _path + '}'
     # 只处理 0.NN\textwidth / \linewidth / \columnwidth 形式的 width 系数
     def repl(wm):
         coef = float(wm.group(1)); unit = wm.group(2)
@@ -296,9 +456,9 @@ def fix_opts(m):
             add += ',keepaspectratio'   # 加 height 必须配 keepaspectratio，否则图会被拉伸变形
         new_opts = new_opts + add
         changed.append(('(+height guard)', '0.9\\textheight'))
-    return '\\includegraphics[' + new_opts + ']'
+    return '\\includegraphics[' + new_opts + ']{' + _path + '}'
 
-content2 = re.sub(r'\\includegraphics\[([^\]]*)\]', fix_opts, content)
+content2 = re.sub(r'\\includegraphics\[([^\]]*)\]\s*\{([^}]*)\}', fix_opts, content)
 # 还原被豁免的 minipage/subfigure 区块
 for i, seg in enumerate(_masked):
     content2 = content2.replace(f'@@MHMASK{i}@@', seg)
@@ -307,7 +467,12 @@ if changed:
         fh.write(content2)
     base = os.path.basename(fp)
     for old, new in changed:
-        print(f'  {base}: width {old}->{new}\\textwidth')
+        # old/new 可能是纯 width 系数(0.6->0.85)，也可能是标记串+完整OPTS(权威回填/height guard)。
+        # 纯系数才补 \textwidth 后缀，标记串原样打印，避免出现误导性的 "...keepaspectratio\textwidth"。
+        if isinstance(old, float):
+            print(f'  {base}: width {old}->{new}\\textwidth')
+        else:
+            print(f'  {base}: {old} -> {new}')
 PYEOF
 done
 
@@ -533,7 +698,33 @@ def repl(m):
     #    留给 6.65 的 table_slim 省列 + 完整表进附录（resizebox），那里才处理得了宽度。
     if count_cols(tab.group(1)) > 8:
         return block
-    # 只转 15 < n <= 20 的中长表；n > 20 留给 6.65 截断放附录（截断后变短，无需 longtable）
+    # ⛔⛔ 符号说明表等「索引型」表不许瘦身（table_slim 已跳过它们），所以这里必须
+    #    无论多长都转 longtable，否则它们会撑破页面（既不截断又不跨页 = 溢出）。
+    #    判据与 table_slim.py 的 NO_SLIM_PAT 保持一致 —— 改一处要同步改另一处。
+    # ⛔ 只拿 caption 匹配，不能拿整个 block：结果表的【表头列名】常含"符号"二字
+    #    （如「符号 & 取值 & 排名」），对整块 search 会把长结果表误判成符号型 →
+    #    它既不被截断(那边按 caption 判、正确地截了)又在这里转 longtable，行为不一致。
+    # ⛔ 正则须与 table_slim.NO_SLIM_RE 【逐字同款】：索引词 + 紧邻释义词的组合式判据。
+    #    别退回逐条枚举表名 —— 实测枚举版在 18 个常见变体里漏 11 个（缩略词表/缩写表/
+    #    常用符号/符号列表/符号含义/参数含义/变量含义/变量注释/记号表/Glossary/
+    #    Variable Definitions）。靠「相邻」排除结果表（参数取值表 = 参数+取值 ≠ 参数+表）。
+    _NS_IDX = r'符号|变量|参数|记号|术语|缩略[语词]?|缩写'
+    _NS_EXP = r'说明|定义|一览|列表|含义|注释|对照|注解|表(?!示|征|达)'
+    _NS_RE = re.compile(
+        r'(?:%s)\s*(?:[与和及]\s*(?:%s)\s*)?(?:%s)' % (_NS_IDX, _NS_IDX, _NS_EXP)
+        + r'|常用符号|主要符号|缩略[语词]|缩写'
+        + r'|[Nn]omenclature|[Ss]ymbols?\b|[Nn]otations?\b|[Aa]bbreviations?\b'
+        + r'|[Gg]lossar(?:y|ies)'
+        + r'|(?:[Vv]ariable|[Pp]arameter|[Ss]ymbol)s?\s+[Dd]efinitions?'
+    )
+    _cap_m = re.search(r'\\caption\{([^}]*)\}', block)
+    _cap = _cap_m.group(1) if _cap_m else ''
+    if _NS_RE.search(_cap):
+        if n > 15:
+            fixed += 1
+            return convert(block)
+        return block
+    # 其余表只转 15 < n <= 20 的中长表；n > 20 留给 6.65 截断放附录（截断后变短，无需 longtable）
     if n <= 15 or n > 20:
         return block
     fixed += 1
@@ -794,6 +985,54 @@ for f in "$PAPER_DIR"/sections/*.tex "$PAPER_DIR"/main.tex; do
 done
 [ "$FLOAT_FIXES" -gt 0 ] && echo "  $FLOAT_FIXES 个文件修复了浮动体" || echo "  无需修复"
 
+# 6.85 受控浮动补漏：正文用 \input{...} 引进来的表格文件也要钉 [H]
+# ⛔ 根因：6.8 的 [H] 转换只扫 sections/*.tex 和 main.tex，扫不到被 \input 引入的
+#    ../tables/TABLE_*.tex / ../figures/TABLE_*.tex。约 30% 批次的 TABLE 生成成 [htbp]/[t]
+#    浮动符，走 \input 路径就漏网 → 被 placeins 的 \FloatBarrier 逼到节末、表上方留半页空白。
+# 做法：扫 sections+main 里的 \input{目标}，路径按主文档目录(PAPER_DIR)解析(LaTeX \input 语义)，
+#    对目标文件里的 \begin{table}[...] 归一化成 [H]。longtable 不是浮动体、无 [H] 选项，一律不碰；
+#    目标文件不存在/无表格/已是 [H] → 跳过，绝不崩、绝不误改。
+echo "--- 受控浮动补漏：\\input 引入的表格 → [H] ---"
+PAPER_DIR="$PAPER_DIR" "$PYTHON" - <<'PYEOF' 2>/dev/null
+import os, re, glob
+paper_dir = os.environ.get('PAPER_DIR', 'paper').rstrip('/\\')
+# 收集正文所有 \input{目标}（sections/*.tex + main.tex）
+srcs = glob.glob(os.path.join(paper_dir, 'sections', '*.tex')) + [os.path.join(paper_dir, 'main.tex')]
+targets = set()
+for s in srcs:
+    try:
+        with open(s, 'r', encoding='utf-8', errors='ignore') as fh:
+            for m in re.finditer(r'\\input\s*\{([^}]*)\}', fh.read()):
+                targets.add(m.group(1).strip())
+    except Exception:
+        continue
+fixed = 0
+for t in targets:
+    # LaTeX \input 路径以主文档目录(paper/)为基准解析；补 .tex 后缀
+    name = t if t.lower().endswith('.tex') else t + '.tex'
+    path = os.path.normpath(os.path.join(paper_dir, name))
+    # 只处理 paper/ 外的表格文件(tables/ figures/)；sections/ 下的已由 6.8 扫过，跳过免重复
+    if not os.path.isfile(path):
+        continue
+    rp = os.path.relpath(path, paper_dir).replace('\\', '/')
+    if rp.startswith('sections/'):
+        continue
+    try:
+        with open(path, 'r', encoding='utf-8', errors='ignore') as fh:
+            txt = fh.read()
+    except Exception:
+        continue
+    # 只把浮动 table 环境的浮动符换成 [H]；longtable 不匹配(它没有 \begin{table})，天然豁免
+    new = re.sub(r'\\begin\{table\}\[(?!H\])[^\]]*\]', r'\\begin{table}[H]', txt)   # [htbp]/[t] 等 → [H]
+    new = re.sub(r'\\begin\{table\}(?=\s*\n|\s*\\centering|\s*%|\s*$)', r'\\begin{table}[H]', new)  # 无浮动符 → [H]
+    if new != txt:
+        with open(path, 'w', encoding='utf-8') as fh:
+            fh.write(new)
+        print('  %s: table 浮动符 → [H]' % rp)
+        fixed += 1
+print('  %d 个 \\input 表格文件已钉 [H]' % fixed if fixed else '  无需补漏(表格已 [H] 或无浮动表)')
+PYEOF
+
 # 6.9 检测连续图表（两个 figure/table/algorithm 之间正文过少）
 # ⚠ 判据用"字符数"而非"行数"：中文论文常一整段物理上就是一行，行数会误报连排。
 #    统计两浮动体之间的非空非注释正文字符数，<50 字视为连排（图前缺引导/图后缺承接）。
@@ -1053,8 +1292,8 @@ if [ -f "$PAPER_DIR/main.tex" ]; then
             if [ -z "$TITLE_CLEAN" ]; then
                 echo "  ⛔ \\title{} 内容为空，尝试自动修复..."
                 FALLBACK_TITLE=""
-                if [ -f "CLAUDE.md" ]; then
-                    FALLBACK_TITLE=$(grep -oP '(?<=题目|赛题|title)[：:]\s*\K.+' CLAUDE.md 2>/dev/null | head -1 | sed 's/[[:space:]]*$//')
+                if [ -f "AGENTS.md" ]; then
+                    FALLBACK_TITLE=$(grep -oP '(?<=题目|赛题|title)[：:]\s*\K.+' AGENTS.md 2>/dev/null | head -1 | sed 's/[[:space:]]*$//')
                 fi
                 if [ -z "$FALLBACK_TITLE" ] && [ -f "PROBLEM_ANALYSIS.md" ]; then
                     FALLBACK_TITLE=$(head -5 PROBLEM_ANALYSIS.md | grep -oP '(?<=^# |^## ).+' | head -1)
@@ -1076,8 +1315,8 @@ if [ -f "$PAPER_DIR/main.tex" ]; then
         else
             echo "  ⛔ main.tex 中没有 \\title 命令，自动插入..."
             FALLBACK_TITLE="数学建模竞赛论文"
-            if [ -f "CLAUDE.md" ]; then
-                FT=$(grep -oP '(?<=题目|赛题|title)[：:]\s*\K.+' CLAUDE.md 2>/dev/null | head -1 | sed 's/[[:space:]]*$//')
+            if [ -f "AGENTS.md" ]; then
+                FT=$(grep -oP '(?<=题目|赛题|title)[：:]\s*\K.+' AGENTS.md 2>/dev/null | head -1 | sed 's/[[:space:]]*$//')
                 [ -n "$FT" ] && FALLBACK_TITLE="$FT"
             fi
             sed -i "/\\\\begin{document}/i \\\\title{$FALLBACK_TITLE}" "$PAPER_DIR/main.tex"
@@ -1104,8 +1343,8 @@ fi
 
 # 9.8 符号说明/模型假设分页处理
 # 策略：
-#   - 模型假设（assumption）：用 \needspace{20\baselineskip}，够放就不换页
-#   - 符号说明（symbol）：用 \needspace{15\baselineskip}，确保标题和表格在同一页
+#   - 模型假设（assumption）：只用 \needspace{8\baselineskip} 防标题孤悬
+#   - 符号说明（symbol）：不强制换页，longtable 自然跨页
 echo "--- 修复符号说明/模型假设分页 ---"
 for f in "$PAPER_DIR"/sections/*.tex; do
     [ -f "$f" ] || continue
@@ -1165,10 +1404,8 @@ PYEOF
         sed -i '/\\needspace.*baselineskip/d' "$f" 2>/dev/null
         sed -i '/\\nopagebreak/d' "$f" 2>/dev/null
         
-        # 删引导文字
-        sed -i '/本文所用主要符号/d' "$f" 2>/dev/null
-        sed -i '/本文.*符号.*含义.*表/d' "$f" 2>/dev/null
-        sed -i '/主要符号.*如.*所示/d' "$f" 2>/dev/null
+        # 保留一句简短引导。符号说明的内容契约是“标题 + 一句引导 + 完整符号表”；
+        # 不在这里用模糊正则删自然语言，避免把合规引导句误删成光秃秃的表格。
         
         # table+tabular → longtable（简单可靠的 sed 方案）
         if grep -q '\\begin{table}' "$f" 2>/dev/null; then
@@ -1422,20 +1659,12 @@ if [ -f "$MAIN_TEX" ]; then
     fi
 fi
 
-# 10. 移除所有 section 文件中的 \nopagebreak（实践证明弊大于利，会导致空白页）
-# ⛔ 跳过符号说明和模型假设文件（9.8 步刚加了 \nopagebreak[4]）
+# 10. 移除所有 section 文件中的 \nopagebreak（实践证明弊大于利，会导致空白页）。
+# 符号说明与模型假设也不例外：前者自然分页，后者只保留小幅 needspace。
 echo "--- 移除 nopagebreak ---"
 NOPAGEBREAK_FIXES=0
 for f in "$PAPER_DIR"/sections/*.tex; do
     [ -f "$f" ] || continue
-    bn=$(basename "$f")
-    # 跳过符号说明和模型假设（9.8 步需要保留 \nopagebreak[4]）
-    if echo "$bn" | grep -qi 'symbol\|assumption'; then
-        continue
-    fi
-    if grep -q '\\section{符号说明}\|\\section{模型假设}\|\\section.*假设\|\\section.*符号' "$f" 2>/dev/null; then
-        continue
-    fi
     if grep -q '\\nopagebreak' "$f" 2>/dev/null; then
         sed -i '/\\nopagebreak/d' "$f" 2>/dev/null
         echo "  removed nopagebreak from $(basename $f)"
@@ -1462,27 +1691,14 @@ for f in "$PAPER_DIR"/sections/*.tex "$PAPER_DIR"/main.tex; do
 done
 [ "$BADCHAR_FIXES" -gt 0 ] && echo "  $BADCHAR_FIXES 个文件清理了裸坏字符" || echo "  无裸坏字符"
 
-# 11. 移除正文中多余的 \newpage 和 \clearpage（section 文件内部不应有手动分页）
-# ⛔ 跳过符号说明和模型假设文件（9.8 步刚加了 \clearpage）
+# 11. 再次归一化正文分页（前面的表格/符号处理完成后复核）。
+# 由 modeling_tex_policy.py 只删除活动的独占分页命令并保留摘要、参考文献和附录边界；
+# 不再用 sed 按“包含字符串”整行删除，避免误删注释或合法结构。
 echo "--- 移除正文多余 newpage/clearpage ---"
-NEWPAGE_FIXES=0
-for f in "$PAPER_DIR"/sections/*.tex; do
-    [ -f "$f" ] || continue
-    bn=$(basename "$f")
-    # 跳过符号说明和模型假设（有 \needspace 需要保留）
-    if echo "$bn" | grep -qi 'symbol\|assumption'; then
-        continue
-    fi
-    if grep -q '\\section{符号说明}\|\\section{模型假设}' "$f" 2>/dev/null; then
-        continue
-    fi
-    if grep -q '\\newpage\|\\clearpage' "$f" 2>/dev/null; then
-        sed -i '/\\newpage/d; /\\clearpage/d' "$f" 2>/dev/null
-        echo "  removed newpage/clearpage from $bn"
-        NEWPAGE_FIXES=$((NEWPAGE_FIXES + 1))
-    fi
-done
-[ "$NEWPAGE_FIXES" -gt 0 ] && echo "  $NEWPAGE_FIXES 个文件移除了 newpage/clearpage" || echo "  无需修复"
+"$PYTHON" "$_POLICY_SCRIPT" normalize "$PAPER_DIR" || {
+    echo "⛔ 正文分页策略归一化失败" >&2
+    exit 1
+}
 
 # 11.5 检测章节末尾空白（最后一页内容太少）
 echo "--- 检测章节末尾空白 ---"

@@ -247,7 +247,11 @@ def _doi_status(doi: str):
             return "ok" if r.status < 400 else "unknown"
     except Exception as e:
         code = getattr(e, "code", None)
-        if code in (404, 410):
+        from urllib.parse import urlparse
+        # A publisher page can disappear while the DOI remains registered.
+        # Only a direct DOI-resolver not-found response is hard evidence.
+        failed_url = getattr(e, "url", "") or ""
+        if code in (404, 410) and urlparse(failed_url).hostname in {"doi.org", "dx.doi.org"}:
             return "notfound"
         return "unknown"      # 超时/403/网络错 → 不确证，不硬拦
 
@@ -305,7 +309,7 @@ def main() -> int:
                     if best >= 0.6:
                         break
             if best < 0.6:   # 整体相似度与覆盖率都不足 → 检索留档里找不到近似 → 声称检索实则编造
-                hard.append(f"[{e['key']}] 标题未出现在检索留档中且无 DOI/arXiv（疑似编造）：{e['title'][:60]}")
+                warn.append(f"[{e['key']}] 当前检索留档未覆盖且无 DOI/arXiv，需补来源核实，不能据此判定编造：{e['title'][:60]}")
     else:
         print("  ℹ 未找到检索留档（_tmp/refs_raw.jsonl 等）→ 跳过交叉核对（不误伤未留档工作流）")
 
@@ -351,4 +355,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

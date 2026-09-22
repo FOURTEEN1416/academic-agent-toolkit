@@ -61,7 +61,7 @@ RULES = [
         "name": "整数规划(整数决策变量)",
         "claim_kw": [r"整数规划", r"混合整数", r"\bMILP\b", r"\bMIP\b", r"integer program"],
         "need_any": [r"LpInteger", r"cat\s*=\s*['\"]Integer['\"]", r"GRB\.INTEGER",
-                     r"vtype\s*=\s*['\"]?I", r"integrality\s*=", r"cp_model", r"NewIntVar",
+                     r"GRB\.BINARY", r"vtype\s*=\s*['\"]?[IB]", r"integrality\s*=", r"cp_model", r"NewIntVar",
                      r"Bool(ean)?Var", r"LpBinary", r"cat\s*=\s*['\"]Binary['\"]"],
         "hint": "声称整数规划，但代码里找不到任何整数/0-1 变量标记"
                 "（LpInteger/cat=Integer/GRB.INTEGER/integrality=/NewIntVar 等）。"

@@ -4,22 +4,23 @@
 那个案例的病：用可信度公式 C 生成弱标签，又拿 C 去算 AUC，得 roc_auc=0.994——
 循环论证的虚高值，去泄漏后真实 AUC 仅 0.377（还不如瞎猜）。这不是训练/测试切分
 泄漏（error_prevention 第十二章模板管那个），是"标签源回流评估"，静态难 100% 判，
-但有一个几乎零误报的铁证入口：**报了 ≥0.99 的性能指标，却拿不出去泄漏的举证**。
+高分只是核对入口，不是泄漏的铁证；关键词缺失也不能证明需要重新训练。
 
 本闸做两件机器能定的事：
-  A) 高分举证闸（HARD FAIL，可靠）：扫结果 JSON 里白名单性能指标(auc/accuracy/f1/r2…)，
+  A) 高分举证闸（NEEDS_EVIDENCE）：扫结果 JSON 里白名单分类指标(auc/accuracy/f1…)，
      只要有 ≥0.99（或 ≥99 百分数），就要求全局能找到去泄漏举证标记（去泄漏/holdout/
-     嵌套CV/独立测试集/deleaked…）。找不到 → HARD FAIL，逼作者举证或改。
+     嵌套CV/独立测试集/deleaked…）。找不到 → 暂停验收，先核对已有运行证据，不直接重算。
   B) 弱标签回流提醒（WARN，有误报风险故不阻断）：代码/RESULTS 出现"弱标签/伪标签/
      weak label"生成，却没有"生成弱标签的特征未进入评估"这类声明 → WARN。
 
 ⛔ 宁可漏报，不可误报：
-  - ≥0.99 本身不等于作弊（有些任务真能到），故不判"作弊"，只判"必须举证"——这几乎零误报。
+  - ≥0.99 本身不等于作弊；物理精度等字段也可能重名，必须核对语义。
+  - 找到关键词也不证明无泄漏：已有逐问能力验收需核标签来源、划分和预处理拟合边界。
   - "哪列是标签源"静态判不准，故弱标签回流只 WARN，交严格模式考官/人工看。
 
 用法：
   python _utils/leakage_audit.py [--codedir code] [--results RESULTS.md]
-退出码：0=通过（可能WARN） 1=HARD FAIL（高分无举证） 2=无可查内容（跳过不阻断）
+退出码：0=静态扫描无待补项（不证明无泄漏） 1=缺说明，待现有验收补证据 2=无可查内容
 """
 from __future__ import annotations
 import sys
@@ -36,7 +37,7 @@ except Exception:
 # 只认这些"分类/判别性能指标"键，避免把 p_value=0.99 / threshold=0.99 这类误当高分。
 # ⛔ 故意不收 r2/r_squared/拟合优度：数模曲线拟合/插值题 R²=0.999 是正常拟合优度、
 #    无训练测试划分、无泄漏概念，收了会误杀正常拟合题。若 ML 预测题真泄漏，
-#    auc/accuracy/f1 会一起虚高、照样被抓，不漏（宁漏勿误：保准确、不误伤拟合题）。
+#    回归任务也可能泄漏，仍需任务自己的划分/特征可用时间验证，本扫描不能覆盖。
 # ⛔ 同名撞车防误伤（宁漏勿误的延伸）：数模/物理题里大量希腊字母转写与英文缩写会与分类
 #    指标同名，若裸收会误判 HARD FAIL 逼无谓返工。故：
 #    - `kappa` 收紧成只认 Cohen's kappa 明确写法（cohen(s)_kappa / kappa_score /
@@ -78,7 +79,7 @@ _WEAK_OK = re.compile(r"未进入.*(评估|模型|特征)|不参与.*评估|标�
 
 def _read(p: Path) -> str:
     try:
-        return p.read_text(encoding="utf-8", errors="replace")
+        return p.read_text(encoding="utf-8-sig", errors="replace")
     except OSError:
         return ""
 
@@ -168,7 +169,7 @@ def main() -> int:
     justified = bool(_JUSTIFY.search(text))
     hard, warn = [], []
 
-    # A) 高分举证闸：结果 JSON 里有 ≥0.99 性能指标，却全局无去泄漏举证 → HARD FAIL
+    # A) Missing explanation is an evidence request, not proof of model failure.
     if json_hits and not justified:
         top = sorted(json_hits, key=lambda x: -x[2])[:5]
         detail = "; ".join(f"{f}::{k}={v:.4g}" for f, k, v in top)
@@ -176,9 +177,9 @@ def main() -> int:
             f"结果里有 {len(json_hits)} 处 ≥0.99 的性能指标（{detail}），"
             "但 RESULTS/代码/建模报告里找不到任何去泄漏举证标记"
             "（去泄漏/holdout/嵌套CV/独立测试集/真实标签…）。"
-            "近乎满分极可能是标签泄漏/循环论证（如用生成弱标签的公式又去算该指标）。"
-            "请补：①用去泄漏后的独立评估重算该指标并写进结果；"
-            "②在 RESULTS.md 说明评估为何无泄漏。二者缺一不可。")
+            "请在本轮已有能力验收中核对这些字段是否真是分类指标、标签来源、划分与预处理拟合范围。"
+            "若已有独立评估，复用其定位证据并补说明；只有证实评估受污染/缺失必要验证时，"
+            "才重算受影响的评估。不得为消除提示降低分数或改写真实结果。")
 
     # B) 弱标签回流提醒：出现弱标签生成、却无"标签源未进评估"声明 → WARN
     if _WEAK_LABEL.search(text) and not _WEAK_OK.search(text):
@@ -189,18 +190,18 @@ def main() -> int:
 
     # 有高分且已举证：给一行确认信息（供严格模式参考）
     if json_hits and justified:
-        warn.append(f"有 {len(json_hits)} 处 ≥0.99 高分指标，但已找到去泄漏举证标记（通过）——"
-                    "仍建议自查举证是否针对这些高分指标本身。")
+        warn.append(f"有 {len(json_hits)} 处 ≥0.99 高分指标，找到评估相关说明关键词；"
+                    "关键词不是证据，请在现有逐问验收中核对真实划分、标签来源与运行记录。")
 
     for w in warn:
         print(f"  [WARN] {w}")
     if hard:
-        print(f"❌ HARD FAIL {len(hard)} 条 —— 疑似标签泄漏/循环论证：")
+        print(f"[NEEDS_EVIDENCE] {len(hard)} 条高分评估待说明（不是已证实泄漏）：")
         for h in hard:
             print(f"  ✗ {h}")
-        print("  修复后重跑本闸直到 0。")
+        print("  补证据后仅复查本项；使用现有返修预算，不独立循环调用模型。")
         return 1
-    print("✅ 泄漏审计通过：无'≥0.99 高分却零去泄漏举证'的情形。")
+    print("✅ 静态扫描无待补说明项；此结果不替代独立评估或证明无泄漏。")
     return 0
 
 

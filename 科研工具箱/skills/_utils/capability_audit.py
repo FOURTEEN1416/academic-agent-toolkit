@@ -39,7 +39,7 @@ except Exception:
 
 def _read(p: Path) -> str:
     try:
-        return p.read_text(encoding="utf-8", errors="replace")
+        return p.read_text(encoding="utf-8-sig", errors="replace")
     except OSError:
         return ""
 
@@ -64,12 +64,25 @@ def _audit_one(cap: dict, verdicts: dict):
         out = cap.get("required_output")
         if not out:
             return "FAIL", "delivery 项没写 required_output，无法自动核"
+        if not isinstance(out, str):
+            return "PENDING", "required_output 必须是当前工作区内的路径，先修正清单结构"
         p = Path(out)
-        if not p.exists():
-            return "FAIL", f"声称产物 {out} 不存在（能力未交付）"
-        if p.is_file() and p.stat().st_size == 0:
-            return "FAIL", f"产物 {out} 为空(0字节)，等于没做"
-        return "PASS", f"产物 {out} 已产出（{p.stat().st_size} bytes）"
+        try:
+            root = Path.cwd().resolve()
+            resolved = p.resolve()
+            if not resolved.is_relative_to(root):
+                return "PENDING", "required_output 指向工作区外，不能作为本次交付证据"
+            if not resolved.exists():
+                return "FAIL", f"声称产物 {out} 不存在（能力未交付）"
+            if resolved.is_dir():
+                # A directory's own st_size is not evidence of an artifact.
+                return "PENDING", f"{out} 是目录，请把本项必需的具体产物登记到清单"
+            size = resolved.stat().st_size
+            if size == 0:
+                return "FAIL", f"产物 {out} 为空(0字节)，等于没做"
+            return "PASS", f"产物 {out} 已产出（{size} bytes；仅验证交付存在，不代表内容正确）"
+        except (OSError, ValueError, RuntimeError):
+            return "PENDING", f"暂时无法读取产物 {out}，先恢复检查条件，不要重复求解"
 
     # 其余 machine 项 + 所有 semantic 项：必须有考官/闸结论
     v = verdicts.get(cid) if isinstance(verdicts, dict) else None
@@ -78,6 +91,8 @@ def _audit_one(cap: dict, verdicts: dict):
         return "PENDING", f"缺{kind}：CAPABILITY_VERDICT.json 里没有 {cid} 的 verdict"
     vd = str(v.get("verdict", "")).upper()
     if vd == "PASS":
+        if not isinstance(v.get("evidence"), str) or not v["evidence"].strip():
+            return "PENDING", "PASS 缺少定位证据；补充本轮已有验证结论，不重新生成整步"
         return "PASS", f"结论 PASS —— {v.get('evidence','(无证据)')}"
     return "FAIL", f"结论 {vd} —— {v.get('evidence','')} / {v.get('note','')}"
 
@@ -115,7 +130,13 @@ def main() -> int:
     verdicts = _load_json(Path(args.verdict))
     if verdicts in (None, "ERR"):
         verdicts = {}
-    caps = [c for c in data["capabilities"] if isinstance(c, dict)]
+    caps = data["capabilities"]
+    if not caps or any(not isinstance(c, dict) or not isinstance(c.get("id"), str) or not c["id"].strip() for c in caps):
+        print("❌ 能力清单为空或缺有效 id；先修清单，不触发全量重新计算")
+        return 1
+    if len({c["id"] for c in caps}) != len(caps):
+        print("❌ 能力 id 重复，无法区分验收项；先修清单，不触发全量重新计算")
+        return 1
     caps_by_id = {c.get("id"): c for c in caps}
 
     rows, pendings, fails = [], [], []
@@ -153,7 +174,7 @@ def main() -> int:
                   "快速模式降级为提示、不阻断；但强烈建议严格模式补判，否则可能带降维交付。")
         else:
             print(f"❌ 严格模式：{len(pendings)} 条能力项缺考官/闸结论（见 SEMANTIC_REVIEW_TODO.md）——"
-                  "考官 AI 必须逐条判、把 verdict 写进 CAPABILITY_VERDICT.json，再重跑本闸。")
+                  "补充本轮逐问验证已有的客观证据与 verdict；只检查新增/变化项，不为缺结论重复求解或额外调用外部模型。")
 
     if fails:
         return 1

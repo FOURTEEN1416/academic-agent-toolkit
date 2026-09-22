@@ -10,7 +10,7 @@ EXIT_CODE=0
 #   历史 bug：本脚本裸用 python3 跑内嵌检查，stub 环境下检查没真跑却因退出码非0 触发 EXIT_CODE=1，
 #   且 2>/dev/null 吞掉 stub 提示 → AI 看到 "(see above)" 后空无一物 → 死循环。与 compile_utils.sh 对齐。
 PYTHON=""
-for _py in "$MH_PYTHON" python python3 py; do
+for _py in python python3 py; do
     [ -z "$_py" ] && continue
     if command -v "$_py" >/dev/null 2>&1 && "$_py" -c "import sys" >/dev/null 2>&1; then
         PYTHON="$_py"
@@ -18,6 +18,7 @@ for _py in "$MH_PYTHON" python python3 py; do
     fi
 done
 [ -z "$PYTHON" ] && PYTHON="python3"   # 兜底（保持原行为）
+export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 
 # grep -c 计数消毒：无匹配时 grep -c 已输出 0 但退出码 1，`|| echo 0` 会产生两行 "0"，
 # 后续 [ "$x" -gt 0 ] 报 integer expression expected 且检查静默失效。统一走本函数。
