@@ -27,7 +27,7 @@ Write an MCM/ICM/APMCM paper as Markdown for Word export: **$ARGUMENTS**
 
 FAST_MODE=0
 
-grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
 echo "FAST_MODE=$FAST_MODE"
 
@@ -1147,7 +1147,7 @@ echo "AI_DISC=$AI_DISC"
 
 ```bash
 
-FAST_MODE=0; grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+FAST_MODE=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
 python _utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper --fast $FAST_MODE
 

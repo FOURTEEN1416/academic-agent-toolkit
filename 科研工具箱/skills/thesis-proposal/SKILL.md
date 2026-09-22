@@ -41,7 +41,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 ⛔ **读用户上传的文献/数据时**：
 - 不要 `cat` 整个 `_extracted.md/.txt` 文件 — 一个大文件就能把 context budget 吃光，没空间产出主文件。
 - 用 `Read` 工具带 offset/limit 范围读，或用 `Grep` 工具按关键词提取。
-- CLAUDE.md 已列出所有上传文件清单 + 字数，**优先用清单 + Read 局部，不要全量 cat**。
+- AGENTS.md 已列出所有上传文件清单 + 字数，**优先用清单 + Read 局部，不要全量 cat**。
 
 ⛔ **结束前必跑 PASS 阻断验证**（只 echo "❌" 不算，必须显式判定）：
 ```bash
@@ -159,10 +159,10 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "你的应用场景中文" --max 3
 
 ### 4.2 技术路线
 
-⛔ **先检查 `skip_drawio` 参数**（CLAUDE.md 顶部「## 参数」段会列出）：
+⛔ **先检查 `skip_drawio` 参数**（AGENTS.md 顶部「## 参数」段会列出）：
 
 ```bash
-SKIP_DRAWIO=$(grep -E '^- skip_drawio:\s*[Tt]rue' CLAUDE.md 2>/dev/null | head -1)
+SKIP_DRAWIO=$(grep -E '^- skip_drawio:\s*[Tt]rue' AGENTS.md 2>/dev/null | head -1)
 echo "skip_drawio: ${SKIP_DRAWIO:-False}"
 ```
 

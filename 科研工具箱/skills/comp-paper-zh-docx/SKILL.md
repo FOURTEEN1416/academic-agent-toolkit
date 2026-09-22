@@ -27,7 +27,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetc
 
 FAST_MODE=0
 
-grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
 echo "FAST_MODE=$FAST_MODE"
 
@@ -559,7 +559,7 @@ echo "=== 上游检查完成 ==="
 
 ```bash
 
-FAST_MODE=0; grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+FAST_MODE=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
 python _utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper --fast $FAST_MODE
 
@@ -959,7 +959,7 @@ $$\text{s.t.} \quad \sum_i a_{ij} x_i \leq b_j, \quad j=1,\dots,m \quad (2)$$
 
 - **图号必须显式引用、句式换着来（标准优秀论文口径）。** 每张图都要点名「图 N」让读者对上号（硬规范，别为避免套路删图号）；要禁的是「图 X 展示了……从图中可以看出……」这种图作主语+空话的单调重复，不是禁止一切图作主语。相邻两图引用句式必须不同，在括号旁注（首选）／句首带出／动词引导／图作主语（带实质结论时用，整节最多一次）／后置印证间轮换；**相邻两段都以「图 N…」起句直接判违规**。术语与内部代号（如 C4、blend、脊线分布、弱监督自洽上界）首次出现必须先用大白话解释再用，不能把流水线黑话直接搬进正文。
 
-- **元叙述泄露禁止。** 正文不能出现"参赛者"、"参赛队伍"、"RESULTS.md"、"figures/all_results.json"、"CLAUDE.md"等内部文件名。
+- **元叙述泄露禁止。** 正文不能出现"参赛者"、"参赛队伍"、"RESULTS.md"、"figures/all_results.json"、"AGENTS.md"等内部文件名。
 
 
 
@@ -1289,17 +1289,17 @@ $PYTHON "$REVIEWER_SCRIPT" --prompt-file _tmp/_review_prompt.txt --thread-file _
 
 
 
-⛔ 摘要字数（按 CLAUDE.md 关键词触发）：
+⛔ 摘要字数（按 AGENTS.md 关键词触发）：
 
 - 通用数模竞赛：**400-600 字**，按问题分段
 
 - 统计建模：**500-700 字**
 
-- **丰满模式**：**1500-2200 字**，可跨两页 — 当 `CLAUDE.md` 含 `huawei` / `华为杯` / `丰满模式` / `rich_mode` 任一关键词时生效
+- **丰满模式**：**1500-2200 字**，可跨两页 — 当 `AGENTS.md` 含 `huawei` / `华为杯` / `丰满模式` / `rich_mode` 任一关键词时生效
 
   ```bash
 
-  # 检测：grep -qiE "huawei|华为杯|丰满模式|rich_mode" CLAUDE.md
+  # 检测：grep -qiE "huawei|华为杯|丰满模式|rich_mode" AGENTS.md
 
   ```
 
@@ -2229,7 +2229,7 @@ N、结论与建议（结论 + 建议 + 创新与不足）
 
 - **图号必须显式引用、句式换着来（标准优秀论文口径）。** 每张图都要点名「图 N」让读者对上号（硬规范，别为避免套路删图号）；要禁的是「图 X 展示了……从图中可以看出……」这种图作主语+空话的单调重复，不是禁止一切图作主语。相邻两图引用句式必须不同，在括号旁注（首选）／句首带出／动词引导／图作主语（带实质结论时用，整节最多一次）／后置印证间轮换；**相邻两段都以「图 N…」起句直接判违规**。术语与内部代号（如 C4、blend、脊线分布、弱监督自洽上界）首次出现必须先用大白话解释再用，不能把流水线黑话直接搬进正文。
 
-- **禁止元叙述泄露。** 正文不能出现"参赛者"、"参赛队伍"、"RESULTS.md"、"figures/all_results.json"、"CLAUDE.md"等内部文件名或工作流术语。
+- **禁止元叙述泄露。** 正文不能出现"参赛者"、"参赛队伍"、"RESULTS.md"、"figures/all_results.json"、"AGENTS.md"等内部文件名或工作流术语。
 
 
 

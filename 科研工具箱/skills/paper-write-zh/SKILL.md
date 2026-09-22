@@ -87,13 +87,13 @@ Template handles fonts, spacing, margins, gbt7714, headers/footers — do not wr
 
 
 
-**⛔ 栏数（单栏/双栏）** — 以 CLAUDE.md 里的「栏数」指令为准（如有）：
+**⛔ 栏数（单栏/双栏）** — 以 AGENTS.md 里的「栏数」指令为准（如有）：
 
 - `column_layout=single`：`\documentclass[...]` 选项中**去掉 `twocolumn`**。若用的是 journal 模板（默认 twocolumn），还要把摘要区的 `\twocolumn[\begin{@twocolumnfalse} ... \end{@twocolumnfalse}]` 降级为普通单栏写法（顺序排布 标题/作者/摘要/关键词），否则单栏下会编译报错。
 
 - `column_layout=double`：`\documentclass[...]` 选项中**必须含 `twocolumn`**。本科/硕士模板默认单栏，需自行加上 `twocolumn`，摘要用 `\twocolumn[\begin{@twocolumnfalse}...]` 跨栏。
 
-- CLAUDE.md 未给栏数指令时，按模板自带默认（journal=双栏，bachelor/master=单栏）。
+- AGENTS.md 未给栏数指令时，按模板自带默认（journal=双栏，bachelor/master=单栏）。
 
 
 
@@ -147,7 +147,7 @@ English abstract: 350-500 words, faithful translation covering the same structur
 
 ```bash
 
-grep -q "Word（.docx）" CLAUDE.md && echo "MODE=docx" || echo "MODE=pdf"
+grep -q "Word（.docx）" AGENTS.md && echo "MODE=docx" || echo "MODE=pdf"
 
 ```
 
@@ -159,7 +159,7 @@ grep -q "Word（.docx）" CLAUDE.md && echo "MODE=docx" || echo "MODE=pdf"
 
 echo "=== 产出验证（必须全部 ✅）==="
 
-MODE=$(grep -q "Word（.docx）" CLAUDE.md 2>/dev/null && echo docx || echo pdf)
+MODE=$(grep -q "Word（.docx）" AGENTS.md 2>/dev/null && echo docx || echo pdf)
 
 echo "MODE: $MODE"
 

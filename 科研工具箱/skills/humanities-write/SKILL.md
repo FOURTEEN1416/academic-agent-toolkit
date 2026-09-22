@@ -327,7 +327,7 @@ cat _utils/humanities-formatting-guide.md 2>/dev/null || cat skills/shared-scrip
 
 echo "=== 1. 字数 ==="
 
-TARGET=$(grep -E '^- word_count_target:' CLAUDE.md 2>/dev/null | sed -E 's/.*: *//' | head -1); TARGET=${TARGET:-8000}
+TARGET=$(grep -E '^- word_count_target:' AGENTS.md 2>/dev/null | sed -E 's/.*: *//' | head -1); TARGET=${TARGET:-8000}
 
 ACTUAL=$(python3 -c "import re;t=open('HUMANITIES_PAPER.md',encoding='utf-8').read();t=re.sub(r'\[[\d,\-]+\]','',t);print(len(t))")
 

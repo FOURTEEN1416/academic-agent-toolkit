@@ -28,7 +28,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 
 1. **DESIGN.md**（必读，接口权威）— 技术架构/数据库设计/API 设计/目录结构。**这是唯一需要完整读的文件。**
 2. **schema.sql** — 建表 SQL（不长，可读）。
-3. **CLAUDE.md** — 技术栈（后端框架 + 数据库），读参数段即可。
+3. **AGENTS.md** — 技术栈（后端框架 + 数据库），读参数段即可。
 4. **REQUIREMENTS.md** — 接口/功能清单，可 grep 关键小节，不必逐字。
 5. **前端接口对齐** — **只 grep** `code/frontend/src/api/` 抓路径/字段（见上方铁律），**不整文件读**。以 DESIGN.md 为准，grep 仅用于核对。
 
@@ -36,7 +36,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 
 若 `code/backend/` 已有部分代码，在其基础上**续写补全，不要推倒重来**（先 `ls code/backend/` 看已有什么，不要整个重读）。
 
-## ⛔ 先看后端框架（读 CLAUDE.md 的技术栈/目录约定段，按框架定入口和启动方式）
+## ⛔ 先看后端框架（读 AGENTS.md 的技术栈/目录约定段，按框架定入口和启动方式）
 
 后端框架有三种，**入口文件名和启动方式不同，预览服务靠入口文件识别怎么起，务必按约定命名**：
 

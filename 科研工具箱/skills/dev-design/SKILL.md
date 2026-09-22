@@ -12,11 +12,11 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 ## 输入
 
 1. **REQUIREMENTS.md**（必须存在）— 上一步的需求规格。**先完整读它。**
-2. **CLAUDE.md** — **project_type（项目类型）**+ 技术栈参数在"说明/参数"段。
+2. **AGENTS.md** — **project_type（项目类型）**+ 技术栈参数在"说明/参数"段。
 
 ## ⛔ 按项目类型 + 用户技术栈设计（不要写死）
 
-先读 CLAUDE.md 的 `project_type` 和技术栈参数，按用户实际选择设计：
+先读 AGENTS.md 的 `project_type` 和技术栈参数，按用户实际选择设计：
 - **fullstack**：前端(tech_frontend) + 后端(tech_backend) + 数据库(tech_db)。产 DESIGN.md + `schema.sql`。
 - **frontend**：纯前端(tech_frontend)，无后端/数据库。**不产 schema.sql**，DESIGN.md 的"数据库设计"小节写"本项目为纯前端，无数据库（如需本地存储用 localStorage）"。
 - **cli / script**：命令行/脚本(tech_lang)。**不产 schema.sql**，"数据库设计"小节写"无数据库"或说明数据存储方式（文件/JSON 等）。"API 设计"小节改为"命令/参数设计"或"函数/模块接口"。
@@ -82,7 +82,7 @@ code/
 ```bash
 echo "=== 系统设计产出验证 ==="
 PASS=true
-PTYPE=$(grep -oE "project_type[:=] *(fullstack|frontend|cli|script)" CLAUDE.md 2>/dev/null | grep -oE "(fullstack|frontend|cli|script)" | head -1)
+PTYPE=$(grep -oE "project_type[:=] *(fullstack|frontend|cli|script)" AGENTS.md 2>/dev/null | grep -oE "(fullstack|frontend|cli|script)" | head -1)
 PTYPE=${PTYPE:-fullstack}
 echo "项目类型: $PTYPE"
 [ -f DESIGN.md ] && SZ=$(wc -c < DESIGN.md) || SZ=0

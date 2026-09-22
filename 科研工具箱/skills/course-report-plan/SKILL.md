@@ -120,9 +120,9 @@ fi
 
 # 5. 用户标志
 
-SKIP_FIGURES=$(grep -E '^- skip_figures:\s*[Tt]rue' CLAUDE.md 2>/dev/null | head -1)
+SKIP_FIGURES=$(grep -E '^- skip_figures:\s*[Tt]rue' AGENTS.md 2>/dev/null | head -1)
 
-SKIP_DRAWIO=$(grep -E '^- skip_drawio:\s*[Tt]rue' CLAUDE.md 2>/dev/null | head -1)
+SKIP_DRAWIO=$(grep -E '^- skip_drawio:\s*[Tt]rue' AGENTS.md 2>/dev/null | head -1)
 
 echo "跳过数据图表: ${SKIP_FIGURES:-否}"
 
@@ -553,9 +553,9 @@ HAS_DATA_FIG=$(grep -cE '^- \[ \] fig_(desc|perf|main|trend|box|bar|hist|scatter
 
 HAS_DRAWIO=$(grep -cE '^- \[ \] fig_(arch|er|flow|module)' PAPER_PLAN.md)
 
-SKIP_FIGURES_FLAG=$(grep -ciE '^- skip_figures:\s*[Tt]rue' CLAUDE.md 2>/dev/null)
+SKIP_FIGURES_FLAG=$(grep -ciE '^- skip_figures:\s*[Tt]rue' AGENTS.md 2>/dev/null)
 
-SKIP_DRAWIO_FLAG=$(grep -ciE '^- skip_drawio:\s*[Tt]rue' CLAUDE.md 2>/dev/null)
+SKIP_DRAWIO_FLAG=$(grep -ciE '^- skip_drawio:\s*[Tt]rue' AGENTS.md 2>/dev/null)
 
 
 

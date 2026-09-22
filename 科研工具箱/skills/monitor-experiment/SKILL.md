@@ -34,9 +34,9 @@ If JSON results exist, fetch and parse them:
 ssh <server> "cat <results_dir>/<latest>.json"
 ```
 
-### Step 3.5: Pull W&B Metrics (when `wandb: true` in CLAUDE.md)
+### Step 3.5: Pull W&B Metrics (when `wandb: true` in AGENTS.md)
 
-**Skip this step entirely if `wandb` is not set or is `false` in CLAUDE.md.**
+**Skip this step entirely if `wandb` is not set or is `false` in AGENTS.md.**
 
 Pull training curves and metrics from Weights & Biases via Python API:
 

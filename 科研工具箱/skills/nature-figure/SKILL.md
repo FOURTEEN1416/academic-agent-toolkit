@@ -203,7 +203,7 @@ ax.fill_between(x, lo, hi, color=C['green_1'], alpha=0.6)
 
 ## Export Policy
 
-**根据工作流模式选择输出格式（查看 CLAUDE.md 末尾的格式指令）：**
+**根据工作流模式选择输出格式（查看 AGENTS.md 末尾的格式指令）：**
 
 ```python
 import os
@@ -213,14 +213,14 @@ fig.tight_layout(pad=0.5)
 # 默认（LaTeX 模式）— 只输出 PDF（矢量、给 \includegraphics 用）
 save_fig(fig, './figures/name.pdf')
 
-# Word 模式（CLAUDE.md 含「⛔ 输出格式：仅 PNG」时）— 只输出 PNG（350 DPI）
+# Word 模式（AGENTS.md 含「⛔ 输出格式：仅 PNG」时）— 只输出 PNG（350 DPI）
 # save_fig(fig, './figures/name.png')
 ```
 
 - **LaTeX 模式：只输出 PDF**（不要同时存 PNG，避免冗余）
 - **Word 模式：只输出 PNG**（DPI 350 防中文糊；不要存 PDF，Word 不能嵌 PDF）
 - `save_fig()` 自动加 `bbox_inches='tight'` 并 `plt.close(fig)`，无需手写
-- 检查 CLAUDE.md 末尾决定用哪种格式
+- 检查 AGENTS.md 末尾决定用哪种格式
 
 ## Workflow
 
@@ -338,16 +338,16 @@ Nature 的图**信息密度靠图形承载，不靠图内文字**。正刊图里
 
 ### Step 3.5: 数据图视觉质检（可选，默认关 · 仅当用户在高级选项开启时才跑）
 
-⛔ **这一步默认不执行**。只有工作区 CLAUDE.md 含 `MH_DATA_FIG_VISION=1` 标记（用户在前端「高级选项」开启了「数据图视觉质检」）时才跑。它会对每张数据图调 vision 模型看图，检查坐标轴标签截断 / 图例压数据 / 刻度重叠等**肉眼硬伤**（Step 3 的静态检查抓不到这些渲染层问题）。**会消耗额度**（每张图每轮都调一次 vision），所以默认关。
+⛔ **这一步默认不执行**。只有工作区 AGENTS.md 含 `MH_DATA_FIG_VISION=1` 标记（用户在前端「高级选项」开启了「数据图视觉质检」）时才跑。它会对每张数据图调 vision 模型看图，检查坐标轴标签截断 / 图例压数据 / 刻度重叠等**肉眼硬伤**（Step 3 的静态检查抓不到这些渲染层问题）。**会消耗额度**（每张图每轮都调一次 vision），所以默认关。
 
 先跑下面这段**检测脚本**，它会对每张数据图调 vision 并把结果记进独立账本 `_tmp/datafig_vision_*.txt`：
 
 ```bash
-# ⛔ 门 1：默认关。CLAUDE.md 无 MH_DATA_FIG_VISION=1 标记就整段跳过（一个字不打，静默）
-if ! grep -q 'MH_DATA_FIG_VISION=1' CLAUDE.md 2>/dev/null; then
+# ⛔ 门 1：默认关。AGENTS.md 无 MH_DATA_FIG_VISION=1 标记就整段跳过（一个字不打，静默）
+if ! grep -q 'MH_DATA_FIG_VISION=1' AGENTS.md 2>/dev/null; then
   :  # 用户没开数据图视觉质检 → 跳过（默认行为，省额度）
 # ⛔ 门 2：快速模式让位。省额度优先，即使开了数据图 vision 也跳过
-elif grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null; then
+elif grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null; then
   echo "⚡ 快速模式：跳过数据图视觉质检（省额度）"
 else
   mkdir -p _tmp

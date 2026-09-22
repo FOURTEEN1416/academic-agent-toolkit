@@ -11,7 +11,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 
 ## ⛔ 先确认项目类型
 
-读 CLAUDE.md 的"说明/参数"段拿 `project_type` 和技术栈。本步骤只做前端：
+读 AGENTS.md 的"说明/参数"段拿 `project_type` 和技术栈。本步骤只做前端：
 - **全栈(fullstack)**：前端放 `code/frontend/`，通过 API 调后端（后端由下一步实现，本步骤按 DESIGN.md 的 API 约定写好调用即可，允许先用假数据/占位）。
 - **纯前端(frontend)**：前端放 `code/`，无后端。
 
@@ -19,7 +19,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 
 1. **DESIGN.md**（必须存在）— 架构/API/页面/目录结构。严格按它实现。
 2. **REQUIREMENTS.md** — 页面清单、功能清单，逐条实现"必做"页面。
-3. **CLAUDE.md** — 技术栈（前端框架）。
+3. **AGENTS.md** — 技术栈（前端框架）。
 
 ## ⛔ 恢复场景
 

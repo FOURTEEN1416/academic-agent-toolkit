@@ -60,7 +60,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 
 FAST_MODE=0
 
-grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
 echo "FAST_MODE=$FAST_MODE"
 
@@ -1168,7 +1168,7 @@ echo "Missing: $MISSING"
 
 ```bash
 
-FAST_MODE=0; grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+FAST_MODE=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
 python _utils/capability_audit.py --checklist CAPABILITY_CHECKLIST.json --verdict CAPABILITY_VERDICT.json --fast $FAST_MODE
 

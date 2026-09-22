@@ -21,12 +21,12 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch
 - **DESIGN.md** + **schema.sql** — 系统设计、数据库（主要素材）
 - **TEST_REPORT.md** — 测试验证结果（主要素材）
 - **code/** — 只看目录结构 + grep 关键片段，**不通读**
-- **CLAUDE.md** — 项目类型、技术栈（读参数段）
+- **AGENTS.md** — 项目类型、技术栈（读参数段）
 
 ## ⛔ 输出格式（决定产 .tex 还是 .md，下游编译/导出要用）
 
 ```bash
-grep -q "Word（.docx）\|输出格式：Word\|output_format.*docx" CLAUDE.md && echo "MODE=docx" || echo "MODE=pdf"
+grep -q "Word（.docx）\|输出格式：Word\|output_format.*docx" AGENTS.md && echo "MODE=docx" || echo "MODE=pdf"
 ```
 - **PDF 模式（默认）**：产出 `paper/main.tex`（LaTeX，用 ctexart 中文文档类）+ `paper/sections/*.tex`（可选分节）。下游 `paper-compile` 编译成 PDF。
 - **docx 模式**：产出 `paper/main.md`（纯 Markdown，公式用 `$...$`）。下游 `docx-export` 转 Word。
@@ -35,7 +35,7 @@ grep -q "Word（.docx）\|输出格式：Word\|output_format.*docx" CLAUDE.md &&
 
 报告的"系统设计/实现"章节需要**架构图、ER 图、流程图**。先用内嵌 draw.io 画出来存 `figures/`，正文再引用真图。
 
-### 画哪些图（读 CLAUDE.md 的 project_type 决定）
+### 画哪些图（读 AGENTS.md 的 project_type 决定）
 - **fullstack**：系统架构图 `fig_arch` + 数据库 ER 图 `fig_er` + 1~2 张核心业务流程图 `fig_flow_1`(`fig_flow_2`)
 - **frontend**：系统架构图 `fig_arch` + 1 张核心流程图 `fig_flow_1`（无 ER 图）
 - **cli / script**：1 张核心流程图 `fig_flow_1`（架构太简单可省架构图）
@@ -62,7 +62,7 @@ cat _utils/example_flow.drawio 2>/dev/null | head -50  # 流程图示例 XML 结
 ```bash
 echo "=== 图表导出 ==="
 # 输出格式决定导出 PDF(LaTeX) 还是 PNG(Markdown/docx)
-MODE=$(grep -q "Word（.docx）\|输出格式：Word\|output_format.*docx" CLAUDE.md 2>/dev/null && echo docx || echo pdf)
+MODE=$(grep -q "Word（.docx）\|输出格式：Word\|output_format.*docx" AGENTS.md 2>/dev/null && echo docx || echo pdf)
 FMT=$([ "$MODE" = docx ] && echo png || echo pdf)
 echo "报告模式=$MODE, 图导出格式=$FMT"
 
@@ -155,7 +155,7 @@ ls figures/shot_*.png 2>/dev/null && echo "→ 上面这些直接引用进'系�
 ```bash
 echo "=== 项目报告产出验证 ==="
 PASS=true
-MODE=$(grep -q "Word（.docx）\|输出格式：Word\|output_format.*docx" CLAUDE.md 2>/dev/null && echo docx || echo pdf)
+MODE=$(grep -q "Word（.docx）\|输出格式：Word\|output_format.*docx" AGENTS.md 2>/dev/null && echo docx || echo pdf)
 echo "MODE=$MODE"
 if [ "$MODE" = docx ]; then
   [ -f paper/main.md ] && SZ=$(wc -c < paper/main.md) || SZ=0

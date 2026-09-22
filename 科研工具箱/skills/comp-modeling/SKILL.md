@@ -46,7 +46,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 FAST_MODE=0
 
-grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
 echo "FAST_MODE=$FAST_MODE"
 
@@ -80,7 +80,7 @@ echo "FAST_MODE=$FAST_MODE"
 
 - 用 `Read` 工具带 offset/limit 范围读，或用 `Grep` 工具按关键词提取。
 
-- CLAUDE.md 已列出所有上传文件清单 + 字数，**优先用清单 + Read 局部，不要全量 cat**。
+- AGENTS.md 已列出所有上传文件清单 + 字数，**优先用清单 + Read 局部，不要全量 cat**。
 
 ⛔ **结束前必跑 PASS 阻断验证**（只 echo "❌" 不算，必须显式判定）：
 

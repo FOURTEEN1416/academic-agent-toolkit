@@ -20,7 +20,7 @@ Write a competition paper based on modeling results: **$ARGUMENTS**
 
 FAST_MODE=0
 
-grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
 echo "FAST_MODE=$FAST_MODE"
 
@@ -232,7 +232,7 @@ Fixed sections that must be kept: 表格清单, 插图清单, 中英文摘要, �
 
 ```bash
 
-MODE=$(grep -q "Word（.docx）" CLAUDE.md 2>/dev/null && echo docx || echo pdf)
+MODE=$(grep -q "Word（.docx）" AGENTS.md 2>/dev/null && echo docx || echo pdf)
 
 echo "MODE: $MODE"
 
@@ -334,7 +334,7 @@ echo "=== 上游检查完成 ==="
 
 ```bash
 
-FAST_MODE=0; grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+FAST_MODE=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
 python _utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper/sections --fast $FAST_MODE
 
@@ -394,7 +394,7 @@ if [ "$COMPETITION" = "stats" ] || echo "$ARGUMENTS" | grep -qi "统计建模\|s
 
     cp "$TMPL_BASE/stats/"* paper/ 2>/dev/null
 
-elif echo "$ARGUMENTS" | grep -qi "apmcm_zh\|亚太.*中文\|亚太赛中文" || grep -qi "apmcm_zh\|亚太.*中文\|亚太赛中文" CLAUDE.md 2>/dev/null; then
+elif echo "$ARGUMENTS" | grep -qi "apmcm_zh\|亚太.*中文\|亚太赛中文" || grep -qi "apmcm_zh\|亚太.*中文\|亚太赛中文" AGENTS.md 2>/dev/null; then
 
     echo "Using APMCM (Chinese) template (MathorCupmodeling.cls)"
 
@@ -404,7 +404,7 @@ elif echo "$ARGUMENTS" | grep -qi "apmcm_zh\|亚太.*中文\|亚太赛中文" ||
 
     cp "$TMPL_BASE/apmcm_zh/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/apmcm_zh/ -> paper/"; exit 1; }
 
-elif echo "$ARGUMENTS" | grep -qi "mathorcup\|MathorCup\|mathor" || grep -qi "mathorcup" CLAUDE.md 2>/dev/null; then
+elif echo "$ARGUMENTS" | grep -qi "mathorcup\|MathorCup\|mathor" || grep -qi "mathorcup" AGENTS.md 2>/dev/null; then
 
     echo "Using MathorCup template"
 
@@ -414,7 +414,7 @@ elif echo "$ARGUMENTS" | grep -qi "mathorcup\|MathorCup\|mathor" || grep -qi "ma
 
     cp "$TMPL_BASE/mathorcup/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/mathorcup/ -> paper/"; exit 1; }
 
-elif echo "$ARGUMENTS" | grep -qi "huazhong\|华中杯" || grep -qi "huazhong\|华中杯" CLAUDE.md 2>/dev/null; then
+elif echo "$ARGUMENTS" | grep -qi "huazhong\|华中杯" || grep -qi "huazhong\|华中杯" AGENTS.md 2>/dev/null; then
 
     echo "Using huazhong template (= cumcmthesis, 复用已入库的 _templates/cumcm/)"
 
@@ -424,17 +424,17 @@ elif echo "$ARGUMENTS" | grep -qi "huazhong\|华中杯" || grep -qi "huazhong\|�
 
 elif echo "$ARGUMENTS" | grep -qi "huawei\|华为杯" || \
 
-     grep -qE "^## 竞赛规则.*华为杯|^- 赛事:\s*comp_huawei" CLAUDE.md 2>/dev/null; then
+     grep -qE "^## 竞赛规则.*华为杯|^- 赛事:\s*comp_huawei" AGENTS.md 2>/dev/null; then
 
     # ⛔ 模板选择必须精确：只在"## 竞赛规则（华为杯...）"标题行或显式 "- 赛事: comp_huawei" 命中
 
-    # 不能用泛泛的 `grep huawei CLAUDE.md` — 丰满模式 / 其他描述文字可能含"华为杯"字眼误触发
+    # 不能用泛泛的 `grep huawei AGENTS.md` — 丰满模式 / 其他描述文字可能含"华为杯"字眼误触发
 
     echo "Using huawei template"
 
     cp "$TMPL_BASE/huawei/"* paper/ 2>/dev/null
 
-elif echo "$ARGUMENTS" | grep -qi "wuyi\|五一杯" || grep -qi "wuyi\|五一杯" CLAUDE.md 2>/dev/null; then
+elif echo "$ARGUMENTS" | grep -qi "wuyi\|五一杯" || grep -qi "wuyi\|五一杯" AGENTS.md 2>/dev/null; then
 
     echo "Using wuyi template"
 
@@ -444,37 +444,37 @@ elif echo "$ARGUMENTS" | grep -qi "wuyi\|五一杯" || grep -qi "wuyi\|五一杯
 
     cp "$TMPL_BASE/wuyi/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/wuyi/ -> paper/"; exit 1; }
 
-elif echo "$ARGUMENTS" | grep -qi "cumcm\|国赛" || grep -qi "cumcm\|国赛" CLAUDE.md 2>/dev/null; then
+elif echo "$ARGUMENTS" | grep -qi "cumcm\|国赛" || grep -qi "cumcm\|国赛" AGENTS.md 2>/dev/null; then
 
     echo "Using cumcm template"
 
     cp "$TMPL_BASE/cumcm/"* paper/ 2>/dev/null
 
-elif echo "$ARGUMENTS" | grep -qi "changsanjiao\|长三角" || grep -qi "changsanjiao\|长三角" CLAUDE.md 2>/dev/null; then
+elif echo "$ARGUMENTS" | grep -qi "changsanjiao\|长三角" || grep -qi "changsanjiao\|长三角" AGENTS.md 2>/dev/null; then
 
     echo "Using changsanjiao template"
 
     cp "$TMPL_BASE/changsanjiao/"* paper/ 2>/dev/null
 
-elif echo "$ARGUMENTS" | grep -qi "huashu\|华数杯" || grep -qi "huashu\|华数杯" CLAUDE.md 2>/dev/null; then
+elif echo "$ARGUMENTS" | grep -qi "huashu\|华数杯" || grep -qi "huashu\|华数杯" AGENTS.md 2>/dev/null; then
 
     echo "Using huashubei template"
 
     cp "$TMPL_BASE/huashubei/"* paper/ 2>/dev/null
 
-elif echo "$ARGUMENTS" | grep -qi "diangong\|电工杯" || grep -qi "diangong\|电工杯" CLAUDE.md 2>/dev/null; then
+elif echo "$ARGUMENTS" | grep -qi "diangong\|电工杯" || grep -qi "diangong\|电工杯" AGENTS.md 2>/dev/null; then
 
     echo "Using diangongbei template"
 
     cp "$TMPL_BASE/diangongbei/"* paper/ 2>/dev/null
 
-elif echo "$ARGUMENTS" | grep -qi "dongsansheng\|东三省\|辽宁" || grep -qi "dongsansheng\|东三省\|辽宁" CLAUDE.md 2>/dev/null; then
+elif echo "$ARGUMENTS" | grep -qi "dongsansheng\|东三省\|辽宁" || grep -qi "dongsansheng\|东三省\|辽宁" AGENTS.md 2>/dev/null; then
 
     echo "Using dongsansheng template"
 
     cp "$TMPL_BASE/dongsansheng/"* paper/ 2>/dev/null
 
-elif echo "$ARGUMENTS" | grep -qi "shuwei\|数维杯" || grep -qi "shuwei\|数维杯" CLAUDE.md 2>/dev/null; then
+elif echo "$ARGUMENTS" | grep -qi "shuwei\|数维杯" || grep -qi "shuwei\|数维杯" AGENTS.md 2>/dev/null; then
 
     echo "Using shuweibei template"
 
@@ -640,7 +640,7 @@ Use the template as-is. Only modify:
 
    # 仅华为杯触发以下标题检查（其他竞赛跳过）
 
-   if grep -qi "huawei\|华为杯" CLAUDE.md 2>/dev/null; then
+   if grep -qi "huawei\|华为杯" AGENTS.md 2>/dev/null; then
 
        title_line=$(grep -oE '\\title\{[^}]+\}' paper/main.tex | head -1)
 
@@ -1136,7 +1136,7 @@ PY
 
 **⛔⛔ 丰满模式摘要标准（华为杯默认 / 任意竞赛开启丰满模式时生效，1500-2200 字，跨两页）**：
 
-⛔ **触发条件**：若 `CLAUDE.md` 含以下任一关键词，本节规范覆盖通用 600-800 字规则：
+⛔ **触发条件**：若 `AGENTS.md` 含以下任一关键词，本节规范覆盖通用 600-800 字规则：
 
 - `huawei` / `华为杯` — 华为杯默认走丰满模式
 
@@ -1146,7 +1146,7 @@ PY
 
 ```bash
 
-if grep -qiE "huawei|华为杯|丰满模式|rich_mode" CLAUDE.md 2>/dev/null; then
+if grep -qiE "huawei|华为杯|丰满模式|rich_mode" AGENTS.md 2>/dev/null; then
 
     echo "[丰满模式触发] 摘要按 1500-2200 字 + 6 项要素 + 5 段骨架写"
 
@@ -1950,7 +1950,7 @@ Figure/table selection is driven by research content, not fixed type templates. 
 
 - **图号必须显式引用、句式换着来（标准优秀论文口径）。** 每张图都要点名"图 N"让读者对上号（硬规范，别为避免套路删图号）；要禁的是"图X展示了……从图中可以看出……"这种图作主语+空话的单调重复，不是禁止一切图作主语。相邻两图引用句式必须不同，在括号旁注（首选）／句首带出／动词引导／图作主语（带实质结论时可用）／后置印证间轮换。详见 `_utils/writing_rules.md` 的"图表是论据"规则。
 
-- **禁止元叙述和内部指令泄露。** 正文中不能出现"参赛者"、"参赛队伍"、"RESULTS.md"、"figures/*.json"、"CLAUDE.md"等内部文件名或工作流术语。用"本文"代替"我们团队"，论文是独立学术文档。
+- **禁止元叙述和内部指令泄露。** 正文中不能出现"参赛者"、"参赛队伍"、"RESULTS.md"、"figures/*.json"、"AGENTS.md"等内部文件名或工作流术语。用"本文"代替"我们团队"，论文是独立学术文档。
 
 **⛔⛔ 优化/规划与求解章节写法（modex-3 同源吸收 2026-09-22，置于本清单最前执行）：**
 
@@ -2338,7 +2338,7 @@ bash _utils/writing_check.sh paper/ 2>/dev/null || bash skills/shared-scripts/wr
 
 ```bash
 
-FAST_MODE=0; grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+FAST_MODE=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
 python _utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper/sections --fast $FAST_MODE
 
@@ -2752,7 +2752,7 @@ grep -q 'superscript\|\\@cite\|setcitestyle.*super' paper/main.tex && { echo "�
 
 # 五一杯特有检查
 
-if grep -qi 'wuyi\|五一杯' CLAUDE.md 2>/dev/null; then
+if grep -qi 'wuyi\|五一杯' AGENTS.md 2>/dev/null; then
 
     grep -q '承诺书' paper/main.tex && { echo "✅ 五一杯承诺书页"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 五一杯缺少承诺书页"; TMPL_FAIL=$((TMPL_FAIL+1)); }
 
@@ -2764,7 +2764,7 @@ fi
 
 # MathorCup 特有检查
 
-if grep -qi 'mathorcup' CLAUDE.md 2>/dev/null; then
+if grep -qi 'mathorcup' AGENTS.md 2>/dev/null; then
 
     grep -q 'MathorCupmodeling' paper/main.tex && { echo "✅ MathorCup cls"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ MathorCup 未使用正确 cls"; TMPL_FAIL=$((TMPL_FAIL+1)); }
 
@@ -2774,7 +2774,7 @@ fi
 
 # 亚太赛中文 (APMCM) 特有检查 — 复用 MathorCupmodeling 文档类
 
-if grep -qi 'apmcm_zh\|亚太.*中文\|亚太赛中文' CLAUDE.md 2>/dev/null; then
+if grep -qi 'apmcm_zh\|亚太.*中文\|亚太赛中文' AGENTS.md 2>/dev/null; then
 
     grep -q 'MathorCupmodeling' paper/main.tex && { echo "✅ APMCM(中文) cls"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ APMCM(中文) 未使用正确 cls (应为 MathorCupmodeling)"; TMPL_FAIL=$((TMPL_FAIL+1)); }
 
@@ -2784,7 +2784,7 @@ fi
 
 # 华中杯特有检查
 
-if grep -qi 'huazhong\|华中杯' CLAUDE.md 2>/dev/null; then
+if grep -qi 'huazhong\|华中杯' AGENTS.md 2>/dev/null; then
 
     grep -q 'cumcmthesis' paper/main.tex && { echo "✅ 华中杯 cls"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 华中杯未使用 cumcmthesis"; TMPL_FAIL=$((TMPL_FAIL+1)); }
 

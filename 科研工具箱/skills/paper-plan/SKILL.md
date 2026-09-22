@@ -79,7 +79,7 @@ Read `../shared-references/venue-checklists.md` before freezing outline.
 
 - USE `Read` tool with explicit ranges (e.g., `Read user_data/xxx_extracted.md offset=0 limit=200`) or `Grep` to extract specific information.
 
-- The CLAUDE.md already lists all uploaded files with character counts — use that index, don't bulk-read.
+- The AGENTS.md already lists all uploaded files with character counts — use that index, don't bulk-read.
 
 
 
@@ -550,7 +550,7 @@ Save to `PAPER_PLAN.md` with: title, one-sentence contribution, Claims-Evidence 
 
 
 
-⛔ **流程/架构图那一类的章节标题按实际引擎写**：CLAUDE.md 若声明「流程图引擎 = HTML」（默认），标题写「**HTML 流程/架构图**」；若声明「引擎 = DrawIO」，才写「**DrawIO 流程/架构图**」。两种关键词下游都能识别对账，但**要与 CLAUDE.md 声明的引擎一致**，别选了 HTML 还写 DrawIO。图名前缀（fig_arch / fig_flow / fig_roadmap）与引擎无关，不变。
+⛔ **流程/架构图那一类的章节标题按实际引擎写**：AGENTS.md 若声明「流程图引擎 = HTML」（默认），标题写「**HTML 流程/架构图**」；若声明「引擎 = DrawIO」，才写「**DrawIO 流程/架构图**」。两种关键词下游都能识别对账，但**要与 AGENTS.md 声明的引擎一致**，别选了 HTML 还写 DrawIO。图名前缀（fig_arch / fig_flow / fig_roadmap）与引擎无关，不变。
 
 
 

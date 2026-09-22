@@ -106,7 +106,7 @@ grep -q '\\input{sections/' paper/main.tex || { echo "❌ 缺少 sections input"
 grep -q 'thebibliography\|bibliography{' paper/main.tex || { echo "❌ 缺少参考文献"; FAIL=$((FAIL+1)); }
 grep -q 'superscript\|\\@cite\|setcitestyle.*super' paper/main.tex || { echo "❌ 缺少上标引用"; FAIL=$((FAIL+1)); }
 # 五一杯
-if grep -qi 'wuyi\|五一杯' CLAUDE.md 2>/dev/null; then
+if grep -qi 'wuyi\|五一杯' AGENTS.md 2>/dev/null; then
     grep -q '承诺书' paper/main.tex || { echo "❌ 五一杯缺少承诺书页"; FAIL=$((FAIL+1)); }
     grep -q 'image2' paper/main.tex || { echo "❌ 五一杯缺少封面logo"; FAIL=$((FAIL+1)); }
 fi

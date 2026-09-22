@@ -95,7 +95,7 @@ Extract structured fields from Codex response:
 1. Record postmortem in findings.md (Research Findings section):
    - What was tested, what failed, hypotheses for why
    - Constraints for future attempts (what NOT to try again)
-2. Update CLAUDE.md Pipeline Status
+2. Update AGENTS.md Pipeline Status
 3. Decide whether to pivot to next idea from IDEA_CANDIDATES.md or try an alternative approach
 
 #### `partial` — Claim partially supported

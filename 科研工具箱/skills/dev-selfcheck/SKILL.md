@@ -12,7 +12,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 ## 输入（靠跑命令验证，不要通读代码）
 
 1. **RUN.md** — 启动步骤（读它就知道怎么跑）。
-2. **CLAUDE.md** — 读 `project_type` 决定验证方式（见下）。
+2. **AGENTS.md** — 读 `project_type` 决定验证方式（见下）。
 3. **REQUIREMENTS.md** — 核对核心功能，可 grep 功能清单。
 4. **code/** — ⛔ **不要 Read 整个目录**（文件多会撑爆上下文）。自测是**跑命令**（装依赖/构建/起服务探活），不是读代码；需要看时用 `ls`/`grep`/`head` 按需，别整读。
 

@@ -11,7 +11,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 
 ## 输入
 
-1. **CLAUDE.md** — 含用户填的：**project_type（项目类型）**、技术栈、功能需求、自定义要求。**先读它的"说明/参数"段获取这些。** 需求分析要贴合项目类型（全栈Web/纯前端/CLI/脚本）。
+1. **AGENTS.md** — 含用户填的：**project_type（项目类型）**、技术栈、功能需求、自定义要求。**先读它的"说明/参数"段获取这些。** 需求分析要贴合项目类型（全栈Web/纯前端/CLI/脚本）。
 2. **user_data/** — 用户可能上传的任务书/需求文档（读 `user_data/*_extracted.txt` 或 `user_data/*.txt`，若存在）。
 
 ## ⛔ 恢复场景

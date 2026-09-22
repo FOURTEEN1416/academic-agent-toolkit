@@ -31,7 +31,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 - **WORD_COUNT_TARGET** — 目标字数（默认 8000）
 
-- **CUSTOM_REQUIREMENTS** — 用户自定义要求（从 CLAUDE.md 读取）
+- **CUSTOM_REQUIREMENTS** — 用户自定义要求（从 AGENTS.md 读取）
 
 
 
@@ -395,7 +395,7 @@ PASS=true
 
 
 
-人文社科论文**默认纯文字论证、无图**。是否规划图表**以引擎在 CLAUDE.md 中的提示为准**
+人文社科论文**默认纯文字论证、无图**。是否规划图表**以引擎在 AGENTS.md 中的提示为准**
 
 （用户在前端勾选「数据图表」或「理论框架图/示意图」时，引擎会注明要规划对应图表）：
 

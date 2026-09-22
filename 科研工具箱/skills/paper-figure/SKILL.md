@@ -271,7 +271,7 @@ fi
 
 
 
-MODE=$(grep -q "Word（.docx）\|docx mode" CLAUDE.md 2>/dev/null && echo docx || echo pdf)
+MODE=$(grep -q "Word（.docx）\|docx mode" AGENTS.md 2>/dev/null && echo docx || echo pdf)
 
 if [ "$MODE" = "pdf" ] && [ ! -f figures/latex_includes.tex ]; then
 
@@ -939,11 +939,11 @@ echo "GPT_IMAGE: ready (Python=$PYTHON, config=_utils/_gpt_image_config.json)"
 
 # Check paper language from planning docs（注意：comp_apmcm_zh 是中文赛项，必须先排除）
 
-if grep -qi 'comp_apmcm_zh' CLAUDE.md 2>/dev/null; then
+if grep -qi 'comp_apmcm_zh' AGENTS.md 2>/dev/null; then
 
     GPTIMG_LANG="zh"
 
-elif grep -qi 'MCM\|ICM\|APMCM\|comp_mcm\|comp_apmcm\|comp_certcup_en\|comp_shuwei_en' CLAUDE.md 2>/dev/null; then
+elif grep -qi 'MCM\|ICM\|APMCM\|comp_mcm\|comp_apmcm\|comp_certcup_en\|comp_shuwei_en' AGENTS.md 2>/dev/null; then
 
     GPTIMG_LANG="en"
 
@@ -1473,7 +1473,7 @@ If you skip this step and generate a figure with an unsuitable chart type, defau
 
 <script_template>
 
-**Copy this EXACTLY as the first lines of every gen_fig_*.py script. Output extension：默认 `.pdf`（LaTeX 模式）；如果 CLAUDE.md 末尾包含「⛔ 输出格式：仅 PNG」（Word/docx 模式）就改成 `.png`：**
+**Copy this EXACTLY as the first lines of every gen_fig_*.py script. Output extension：默认 `.pdf`（LaTeX 模式）；如果 AGENTS.md 末尾包含「⛔ 输出格式：仅 PNG」（Word/docx 模式）就改成 `.png`：**
 
 
 
@@ -1850,7 +1850,7 @@ python _utils/figure_pdf_quality_check.py figures --paper paper
 
 
 
-⛔ **这一步默认不执行**。只有工作区 CLAUDE.md 含 `MH_DATA_FIG_VISION=1` 标记（用户在前端「高级选项」开启了「数据图视觉质检」）时才跑。它会对每张数据图调 vision 模型看图，检查坐标轴标签截断 / 图例压数据 / 刻度重叠等**肉眼硬伤**（`figure_check.sh` 的静态检查抓不到这些渲染层问题）。**会消耗额度**（每张图每轮都调一次 vision），所以默认关。
+⛔ **这一步默认不执行**。只有工作区 AGENTS.md 含 `MH_DATA_FIG_VISION=1` 标记（用户在前端「高级选项」开启了「数据图视觉质检」）时才跑。它会对每张数据图调 vision 模型看图，检查坐标轴标签截断 / 图例压数据 / 刻度重叠等**肉眼硬伤**（`figure_check.sh` 的静态检查抓不到这些渲染层问题）。**会消耗额度**（每张图每轮都调一次 vision），所以默认关。
 
 
 
@@ -1860,15 +1860,15 @@ python _utils/figure_pdf_quality_check.py figures --paper paper
 
 ```bash
 
-# ⛔ 门 1：默认关。CLAUDE.md 无 MH_DATA_FIG_VISION=1 标记就整段跳过（一个字不打，静默）
+# ⛔ 门 1：默认关。AGENTS.md 无 MH_DATA_FIG_VISION=1 标记就整段跳过（一个字不打，静默）
 
-if ! grep -q 'MH_DATA_FIG_VISION=1' CLAUDE.md 2>/dev/null; then
+if ! grep -q 'MH_DATA_FIG_VISION=1' AGENTS.md 2>/dev/null; then
 
   :  # 用户没开数据图视觉质检 → 跳过（默认行为，省额度）
 
 # ⛔ 门 2：快速模式让位。省额度优先，即使开了数据图 vision 也跳过
 
-elif grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null; then
+elif grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null; then
 
   echo "⚡ 快速模式：跳过数据图视觉质检（省额度）"
 
@@ -2074,9 +2074,9 @@ fi
 
 echo "=== 检测输出格式 ==="
 
-# CLAUDE.md 顶部「## 参数」段会列 output_format
+# AGENTS.md 顶部「## 参数」段会列 output_format
 
-OUTPUT_FORMAT=$(grep -E '^- output_format:' CLAUDE.md 2>/dev/null | sed -E 's/.*: *//' | head -1 | tr -d '[:space:]')
+OUTPUT_FORMAT=$(grep -E '^- output_format:' AGENTS.md 2>/dev/null | sed -E 's/.*: *//' | head -1 | tr -d '[:space:]')
 
 OUTPUT_FORMAT=${OUTPUT_FORMAT:-pdf}
 
@@ -2086,7 +2086,7 @@ echo "Output format: $OUTPUT_FORMAT"
 
 # 学术写作四大模板始终是 docx 模式（即使 output_format 没明写）
 
-TEMPLATE=$(grep -E '^- template:' CLAUDE.md 2>/dev/null | sed -E 's/.*: *//' | head -1 | tr -d '[:space:]')
+TEMPLATE=$(grep -E '^- template:' AGENTS.md 2>/dev/null | sed -E 's/.*: *//' | head -1 | tr -d '[:space:]')
 
 case "$TEMPLATE" in
 

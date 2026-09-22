@@ -28,7 +28,7 @@ If the center of gravity is generic ML architecture research, pure control theor
 - **PAPER_LIBRARY**: Check local PDFs in this order:
   1. `papers/` in the current project
   2. `literature/` in the current project
-  3. Custom path specified by the user in `CLAUDE.md` under `## Paper Library`
+  3. Custom path specified by the user in `AGENTS.md` under `## Paper Library`
 - **MAX_LOCAL_PAPERS = 20**: Maximum number of local PDFs to scan. If there are more, prioritize by filename and first-page relevance.
 
 ## Source Selection

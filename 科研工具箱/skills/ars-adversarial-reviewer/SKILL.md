@@ -82,7 +82,7 @@ If no changes are found, stop and report: "Nothing to review."
 For every file in the diff:
 1. Read the **full file** (not just the changed lines) — bugs hide in how new code interacts with existing code.
 2. Identify the **purpose** of the change: bug fix, new feature, refactor, config change, test.
-3. Note any **project conventions** from CLAUDE.md, .editorconfig, linting configs, or existing patterns.
+3. Note any **project conventions** from AGENTS.md, .editorconfig, linting configs, or existing patterns.
 
 ### Step 3: Run All Three Personas
 

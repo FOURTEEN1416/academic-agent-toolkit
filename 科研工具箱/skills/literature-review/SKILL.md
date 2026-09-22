@@ -79,7 +79,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 - 用 `Read` 工具带 offset/limit 范围读，或用 `Grep` 工具按关键词提取。
 
-- CLAUDE.md 已列出所有上传文件清单 + 字数，**优先用清单 + Read 局部，不要全量 cat**。
+- AGENTS.md 已列出所有上传文件清单 + 字数，**优先用清单 + Read 局部，不要全量 cat**。
 
 
 

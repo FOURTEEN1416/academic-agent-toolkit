@@ -17,7 +17,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 
 ```bash
 FAST_MODE=0
-grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 echo "FAST_MODE=$FAST_MODE"
 ```
 
@@ -199,9 +199,9 @@ if [ -f LITERATURE_REVIEW.md ] && [ -z "$PLAN_DOC" ]; then
 fi
 
 # 语言判定（comp_apmcm_zh 是中文赛项，先排除）
-if grep -qi 'comp_apmcm_zh' "$PLAN_DOC" CLAUDE.md 2>/dev/null; then
+if grep -qi 'comp_apmcm_zh' "$PLAN_DOC" AGENTS.md 2>/dev/null; then
     FIG_LANG="zh"
-elif grep -qi 'MCM\|ICM\|APMCM\|comp_mcm\|comp_apmcm\|Language.*English\|语言.*English' "$PLAN_DOC" CLAUDE.md 2>/dev/null; then
+elif grep -qi 'MCM\|ICM\|APMCM\|comp_mcm\|comp_apmcm\|Language.*English\|语言.*English' "$PLAN_DOC" AGENTS.md 2>/dev/null; then
     FIG_LANG="en"
 else
     FIG_LANG="zh"
@@ -276,9 +276,9 @@ LAYOUT=$(( (SEED / 19) % 6 ))    # 0-5 的选择种子；A 节按"LAYOUT % 该�
 #    ⛔ 三族的硬约束见文末《G 风格族》；族只管"字体/底色/圆角/阴影/副标题/分组框/是否用彩色"这几项，
 #       H0(强调色相)/LAYOUT(骨架朝向)/ARROW(连线)在 A/B 族里照常随机；C 族强制零彩色，H0 仅在极端时不用（见 G 节）。
 STYLE_FAMILY=$(( (SEED / 23) % 3 ))   # 默认：种子随机（千人千面）
-# ⛔ 用户手选覆盖（可选，照 FAST_MODE 的 grep 先例）：前端选了固定风格时，后端会往 CLAUDE.md 注入
+# ⛔ 用户手选覆盖（可选，照 FAST_MODE 的 grep 先例）：前端选了固定风格时，后端会往 AGENTS.md 注入
 #    `MH_DIAGRAM_STYLE=N`（0=A朴素 1=B现代 2=C纯黑白）。读得到就强制用它、跳过种子随机；读不到就保持上面的随机值。
-_FORCED_FAM=$(grep -oE 'MH_DIAGRAM_STYLE=[0-2]' CLAUDE.md 2>/dev/null | head -1 | cut -d= -f2)
+_FORCED_FAM=$(grep -oE 'MH_DIAGRAM_STYLE=[0-2]' AGENTS.md 2>/dev/null | head -1 | cut -d= -f2)
 if [ -n "$_FORCED_FAM" ]; then STYLE_FAMILY=$_FORCED_FAM; fi
 case $STYLE_FAMILY in
   0) _FAM_NAME="A 朴素竞赛风";;
@@ -441,10 +441,10 @@ html_pdf_check 只看 PDF 结构，看不出渲染后的视觉效果（文字挤
 
 ```bash
 # ⛔ 块内自检 FAST_MODE（本 skill bash 块间不共享变量，须就地 detect，否则快速模式跳不掉 vision）。
-FAST_MODE=0; grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+FAST_MODE=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 # ⛔ 用户在高级选项【关闭】了流程图/TikZ 视觉质检 → 跳过 vision（复用 FAST_MODE 的跳过路径；
 #    免费的 html_pdf_check/几何自检/tikz_check 不在此 if 内，照常跑，不受影响）。
-grep -q 'MH_SKIP_DIAGRAM_VISION=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+grep -q 'MH_SKIP_DIAGRAM_VISION=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 mkdir -p _tmp
 # ⛔ 无条件清空三笔记账（防断线重跑读到上一轮残留）；下面按需 append，Step 7 最终门结算：
 #   passed=真跑了vision且通过(执行凭证) / unresolved=审了3轮没修好(硬拦) / skipped=环境原因没审成(警告)。
@@ -599,10 +599,10 @@ done
 
 ```bash
 # ⛔ 块内自检 FAST_MODE（本 skill bash 块间不共享变量，须就地 detect，否则快速模式跳不掉 vision）。
-FAST_MODE=0; grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+FAST_MODE=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 # ⛔ 用户在高级选项【关闭】了流程图/TikZ 视觉质检 → 跳过 vision（复用 FAST_MODE 的跳过路径；
 #    免费的 html_pdf_check/几何自检/tikz_check 不在此 if 内，照常跑，不受影响）。
-grep -q 'MH_SKIP_DIAGRAM_VISION=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+grep -q 'MH_SKIP_DIAGRAM_VISION=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 # ⛔ 门控改为「看实际产物」而非「看规划标志 NEED_TIKZ」：规划措辞没命中「几何示意/受力
 #    分解/光路」等关键词、但实际生成了 TikZ 图（如 tikz_ballistic_motion）时，旧逻辑
 #    NEED_TIKZ=0 会整段跳过 → 明明有图却不检、遮挡/越界问题漏网。改为先扫产物收集，
@@ -837,9 +837,9 @@ fi
 #   HTML 流程/架构图 + TikZ 图，每一张【该检的图】都必须在 passed/unresolved/skipped 三笔账里
 #   有一条裁定记录。图在产物里、却三笔账都查无此名 → 说明视觉自检被静默跳过（既没审也没记）
 #   → 计入 GATE_FAIL 硬拦。⛔ 仅非快速模式生效（FAST_MODE=1 是用户主动省 API，不苛求 vision 记录）。
-_FM=0; grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && _FM=1
+_FM=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && _FM=1
 # ⛔ 用户关闭了流程图/TikZ 视觉质检时，同样不苛求 vision 记录（否则关了 vision 反而因缺记录 GATE_FAIL 崩）。
-grep -q 'MH_SKIP_DIAGRAM_VISION=1' CLAUDE.md 2>/dev/null && _FM=1
+grep -q 'MH_SKIP_DIAGRAM_VISION=1' AGENTS.md 2>/dev/null && _FM=1
 if [ "$_FM" != "1" ]; then
     _no_verdict=0
     for pdf in figures/fig_arch*.pdf figures/fig_flow_*.pdf figures/fig_roadmap*.pdf figures/fig_pipeline*.pdf figures/fig_framework*.pdf figures/tikz_*.pdf; do

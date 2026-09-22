@@ -19,7 +19,7 @@ Write a competition paper: **$ARGUMENTS**
 
 FAST_MODE=0
 
-grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
 echo "FAST_MODE=$FAST_MODE"
 
@@ -103,7 +103,7 @@ Appendix A: Code
 
 ```bash
 
-MODE=$(grep -q "Word（.docx）\|docx mode" CLAUDE.md 2>/dev/null && echo docx || echo pdf)
+MODE=$(grep -q "Word（.docx）\|docx mode" AGENTS.md 2>/dev/null && echo docx || echo pdf)
 
 PASS=true
 
@@ -167,13 +167,13 @@ TMPL_BASE="_templates"
 
 [ -d "$TMPL_BASE" ] || TMPL_BASE="templates"
 
-if echo "$ARGUMENTS" | grep -qi "mcm\|MCM\|ICM" || grep -qi "mcm\|MCM" CLAUDE.md 2>/dev/null; then
+if echo "$ARGUMENTS" | grep -qi "mcm\|MCM\|ICM" || grep -qi "mcm\|MCM" AGENTS.md 2>/dev/null; then
 
     echo "Using MCM template"
 
     cp "$TMPL_BASE/mcm/"* paper/ 2>/dev/null
 
-elif echo "$ARGUMENTS" | grep -qi "apmcm\|APMCM\|亚太" || grep -qi "apmcm" CLAUDE.md 2>/dev/null; then
+elif echo "$ARGUMENTS" | grep -qi "apmcm\|APMCM\|亚太" || grep -qi "apmcm" AGENTS.md 2>/dev/null; then
 
     echo "Using APMCM template"
 
@@ -911,7 +911,7 @@ bash _utils/writing_check.sh paper/ 2>/dev/null || bash skills/shared-scripts/wr
 
 ```bash
 
-FAST_MODE=0; grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+FAST_MODE=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
 python _utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper/sections --fast $FAST_MODE
 

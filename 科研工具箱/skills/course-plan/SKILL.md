@@ -28,7 +28,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 - **WORD_COUNT_TARGET** — 目标字数（默认 8000）
 
-- **SKIP_FIGURES** — 是否跳过图表生成（true/false，默认 false；从 CLAUDE.md 中的 `skip_figures` 参数读取）
+- **SKIP_FIGURES** — 是否跳过图表生成（true/false，默认 false；从 AGENTS.md 中的 `skip_figures` 参数读取）
 
 - **CUSTOM_REQUIREMENTS** — 用户自定义要求
 
@@ -78,9 +78,9 @@ done
 
 
 
-# 检查 SKIP_FIGURES 标志（CLAUDE.md 顶部参数区中的 skip_figures: true）
+# 检查 SKIP_FIGURES 标志（AGENTS.md 顶部参数区中的 skip_figures: true）
 
-SKIP_FIGURES=$(grep -E '^- skip_figures:\s*[Tt]rue' CLAUDE.md 2>/dev/null | head -1)
+SKIP_FIGURES=$(grep -E '^- skip_figures:\s*[Tt]rue' AGENTS.md 2>/dev/null | head -1)
 
 
 
@@ -154,7 +154,7 @@ echo "用户跳过图表: ${SKIP_FIGURES:-否}"
 
 - 用 `Read` 工具带 offset/limit 范围读，或用 `Grep` 工具按关键词提取。
 
-- CLAUDE.md 已列出所有上传文件清单 + 字数，**优先用清单 + Read 局部，不要全量 cat**。
+- AGENTS.md 已列出所有上传文件清单 + 字数，**优先用清单 + Read 局部，不要全量 cat**。
 
 
 
@@ -613,7 +613,7 @@ SKIP=$(grep -ciE '^\*\*本论文不规划任何' PAPER_PLAN.md)
 
 HAS_FIG=$(grep -cE '^- \[ \] fig_|TABLE_' PAPER_PLAN.md)
 
-SKIP_FIGURES_FLAG=$(grep -ciE '^- skip_figures:\s*[Tt]rue' CLAUDE.md 2>/dev/null)
+SKIP_FIGURES_FLAG=$(grep -ciE '^- skip_figures:\s*[Tt]rue' AGENTS.md 2>/dev/null)
 
 
 

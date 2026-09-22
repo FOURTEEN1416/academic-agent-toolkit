@@ -13,12 +13,12 @@ Deploy and run ML experiment: $ARGUMENTS
 
 ### Step 1: Detect Environment
 
-Read the project's `CLAUDE.md` to determine the experiment environment:
+Read the project's `AGENTS.md` to determine the experiment environment:
 
 - **Local GPU**: Look for local CUDA/MPS setup info
 - **Remote server**: Look for SSH alias, conda env, code directory
 
-If no server info is found in `CLAUDE.md`, check environment variables (e.g., `$GPU_SERVER`). If still unavailable, log "No server configuration found — running locally if GPU is available, otherwise report the issue" and attempt local execution.
+If no server info is found in `AGENTS.md`, check environment variables (e.g., `$GPU_SERVER`). If still unavailable, log "No server configuration found — running locally if GPU is available, otherwise report the issue" and attempt local execution.
 
 ### Step 2: Pre-flight Check
 
@@ -40,7 +40,7 @@ Free GPU = memory.used < 500 MiB.
 
 ### Step 3: Sync Code (Remote Only)
 
-Check the project's `CLAUDE.md` for a `code_sync` setting. If not specified, default to `rsync`.
+Check the project's `AGENTS.md` for a `code_sync` setting. If not specified, default to `rsync`.
 
 #### Option A: rsync (default)
 
@@ -49,7 +49,7 @@ Only sync necessary files — NOT data, checkpoints, or large files:
 rsync -avz --include='*.py' --exclude='*' <local_src>/ <server>:<remote_dst>/
 ```
 
-#### Option B: git (when `code_sync: git` is set in CLAUDE.md)
+#### Option B: git (when `code_sync: git` is set in AGENTS.md)
 
 Push local changes to remote repo, then pull on the server:
 ```bash
@@ -62,9 +62,9 @@ ssh <server> "cd <remote_dst> && git pull"
 
 Benefits: version-tracked, multi-server sync with one push, no rsync include/exclude rules needed.
 
-### Step 3.5: W&B Integration (when `wandb: true` in CLAUDE.md)
+### Step 3.5: W&B Integration (when `wandb: true` in AGENTS.md)
 
-**Skip this step entirely if `wandb` is not set or is `false` in CLAUDE.md.**
+**Skip this step entirely if `wandb` is not set or is `false` in AGENTS.md.**
 
 Before deploying, ensure the experiment scripts have W&B logging:
 
@@ -100,7 +100,7 @@ Before deploying, ensure the experiment scripts have W&B logging:
    ssh <server> "wandb login <WANDB_API_KEY>"
    ```
 
-> The W&B project name and API key come from `CLAUDE.md` (see example below). The experiment name is auto-generated from the script name + timestamp.
+> The W&B project name and API key come from `AGENTS.md` (see example below). The experiment name is auto-generated from the script name + timestamp.
 
 ### Step 4: Deploy
 
@@ -151,9 +151,9 @@ After deployment is verified, check `~/.claude/feishu.json`:
 - Report back: which GPU, which screen/process, what command, estimated time
 - If multiple experiments, launch them in parallel on different GPUs
 
-## CLAUDE.md Example
+## AGENTS.md Example
 
-Users should add their server info to their project's `CLAUDE.md`:
+Users should add their server info to their project's `AGENTS.md`:
 
 ```markdown
 ## Remote Server
@@ -171,4 +171,4 @@ Users should add their server info to their project's `CLAUDE.md`:
 - Conda env: `ml` (Python 3.10 + PyTorch)
 ```
 
-> **W&B setup**: Run `wandb login` on your server once (or set `WANDB_API_KEY` env var). The skill reads project/entity from CLAUDE.md and adds `wandb.init()` + `wandb.log()` to your training scripts automatically. Dashboard: `https://wandb.ai/<entity>/<project>`.
+> **W&B setup**: Run `wandb login` on your server once (or set `WANDB_API_KEY` env var). The skill reads project/entity from AGENTS.md and adds `wandb.init()` + `wandb.log()` to your training scripts automatically. Dashboard: `https://wandb.ai/<entity>/<project>`.

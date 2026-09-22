@@ -13,7 +13,7 @@ Autonomously iterate: review → implement fixes → re-review, until the extern
 
 ## ⛔ Output Mode (read first, before anything else)
 
-The orchestrator may inject one of two notice blocks into `CLAUDE.md`:
+The orchestrator may inject one of two notice blocks into `AGENTS.md`:
 
 | Block name | Output mode | LaTeX compile? | Final artefact |
 |---|---|---|---|
@@ -23,12 +23,12 @@ The orchestrator may inject one of two notice blocks into `CLAUDE.md`:
 
 **Behavior rules:**
 
-1. If `AUTO_REVIEW_DOCX_MODE` is in CLAUDE.md:
+1. If `AUTO_REVIEW_DOCX_MODE` is in AGENTS.md:
    - Skip every `xelatex` / `pdflatex` / `bibtex` invocation in this skill (Phase D2, Termination step 3).
    - Phase C must produce/edit `paper/draft_v<round>.md` (markdown only) — never write `.tex` files.
    - Termination step 3 reduces to: `cp paper/draft_vN.md NARRATIVE_REPORT.md`.
 
-2. If `AUTO_REVIEW_PDF_MODE` is in CLAUDE.md:
+2. If `AUTO_REVIEW_PDF_MODE` is in AGENTS.md:
    - Run LaTeX compile **only** if `paper/main.tex` already exists.
    - Otherwise behave like markdown mode and warn the user in `NARRATIVE_REPORT.md` that LaTeX source was missing.
 
@@ -215,7 +215,7 @@ If experiments were launched:
 
 **⛔ MANDATORY after every round of fixes** — but the action depends on the output mode set in the preamble at the top of this skill:
 
-| Mode (from CLAUDE.md) | Action |
+| Mode (from AGENTS.md) | Action |
 |---|---|
 | `AUTO_REVIEW_DOCX_MODE` block present | **Skip** the LaTeX compile entirely. Just sanity-check `paper/draft_v<round>.md` (line count, fenced-code balance, broken refs). |
 | `AUTO_REVIEW_PDF_MODE` block present + `paper/main.tex` exists | Run the full LaTeX compile chain below. |

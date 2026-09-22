@@ -29,7 +29,7 @@ description: "CUMCM AI 工具使用申报双件套的入口与检查：生成/�
 ## 唯一执行方式（照抄，勿手改产物）
 
 ```bash
-# 前置：CLAUDE.md 必须含 MH_AI_DISCLOSURE=used 或 =none；=invalid 时立即停止并请用户重新确认
+# 前置：AGENTS.md 必须含 MH_AI_DISCLOSURE=used 或 =none；=invalid 时立即停止并请用户重新确认
 
 AI_TOOL=skills/_utils/build_ai_disclosure.py
 [ -f "$AI_TOOL" ] || AI_TOOL=skills/shared-scripts/build_ai_disclosure.py

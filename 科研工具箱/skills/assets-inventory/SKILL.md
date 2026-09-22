@@ -25,7 +25,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 
 - `user_data/` 下的所有上传文件
 
-- `CLAUDE.md` 中的"用户自定义写作要求"段落（如果有）
+- `AGENTS.md` 中的"用户自定义写作要求"段落（如果有）
 
 - 论文类型（从工作流参数 `paper_type_target` 读取，可能值: `academic_zh / academic_en / competition / course / nature`）
 
@@ -251,7 +251,7 @@ done
 
 #### 4.3 图 vs 代码（图中算法/方法 vs 代码用的算法？）
 
-- 用 vision 描述（已自动放在 CLAUDE.md "上传图片内容（AI 自动识别）" 段）找出图中提到的方法名（NSGA-II / LSTM / ...）
+- 用 vision 描述（已自动放在 AGENTS.md "上传图片内容（AI 自动识别）" 段）找出图中提到的方法名（NSGA-II / LSTM / ...）
 
 - 在代码中搜对应关键词
 

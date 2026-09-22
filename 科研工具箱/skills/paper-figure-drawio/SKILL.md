@@ -19,7 +19,7 @@ This is a **lightweight sub-step** split from paper-figure. It ONLY handles non-
 
 ```bash
 FAST_MODE=0
-grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 echo "FAST_MODE=$FAST_MODE"
 ```
 
@@ -195,9 +195,9 @@ else
 fi
 echo ""
 # Determine language（注意：comp_apmcm_zh 是中文赛项，必须先排除）
-if grep -qi 'comp_apmcm_zh' "$PLAN_DOC" CLAUDE.md 2>/dev/null; then
+if grep -qi 'comp_apmcm_zh' "$PLAN_DOC" AGENTS.md 2>/dev/null; then
     DRAWIO_LANG="zh"
-elif grep -qi 'MCM\|ICM\|APMCM\|comp_mcm\|comp_apmcm\|comp_certcup_en\|comp_shuwei_en\|语言.*English\|Language.*English' "$PLAN_DOC" CLAUDE.md 2>/dev/null; then
+elif grep -qi 'MCM\|ICM\|APMCM\|comp_mcm\|comp_apmcm\|comp_certcup_en\|comp_shuwei_en\|语言.*English\|Language.*English' "$PLAN_DOC" AGENTS.md 2>/dev/null; then
     DRAWIO_LANG="en"
 else
     DRAWIO_LANG="zh"
@@ -521,10 +521,10 @@ done
 #   本步 vision 只是审美加分项、本就"不阻塞"，跳过不影响最终 gate 结算。
 # ⛔ 块内自检 FAST_MODE（不依赖开头块的变量继承——本 skill 每个块都独立 detect PYTHON，
 #    说明块间不共享变量；FAST_MODE 若只在开头 detect，到这里会是空 → 门控失效、快速模式白设）。
-FAST_MODE=0; grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+FAST_MODE=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 # ⛔ 用户在高级选项【关闭】了流程图/TikZ 视觉质检 → 跳过 vision（复用 FAST_MODE 跳过路径；
 #    免费的 drawio_check 结构自检不在此 if 内，照常跑，不受影响）。
-grep -q 'MH_SKIP_DIAGRAM_VISION=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+grep -q 'MH_SKIP_DIAGRAM_VISION=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 DRAWIO_VISION_SRCS=(figures/*.drawio)
 if [ "$FAST_MODE" = "1" ]; then
     echo "⚡ 快速模式：跳过 DrawIO vision 视觉自检修复循环（省 API）；结构自检 drawio_check.py 仍照跑。"
@@ -776,10 +776,10 @@ rm -f _tmp/vision_skipped.txt _tmp/vision_unresolved.txt
 #     2) 几何自检 tikz_check.sh 在最终 gate（Step 9 QUALITY GATE）仍【无条件】执行 → 遮挡/越界/重叠类真翻车照样挡；
 #     3) 不往 vision_skipped.txt 记账（那文件是"环境故障没审成"语义）→ 结算段不会误报红牌。
 # ⛔ 块内自检 FAST_MODE（同 Step 5.7 理由：块间不共享变量，须就地 detect，否则门控失效）。
-FAST_MODE=0; grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+FAST_MODE=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 # ⛔ 用户在高级选项【关闭】了流程图/TikZ 视觉质检 → 跳过 vision（复用 FAST_MODE 跳过路径；
 #    免费的 drawio_check 结构自检不在此 if 内，照常跑，不受影响）。
-grep -q 'MH_SKIP_DIAGRAM_VISION=1' CLAUDE.md 2>/dev/null && FAST_MODE=1
+grep -q 'MH_SKIP_DIAGRAM_VISION=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 if [ "$FAST_MODE" = "1" ]; then
     echo "⚡ 快速模式：跳过 TikZ vision 多轮视觉自检修复循环（省 API）；几何自检(tikz_check.sh)仍在最终 gate 执行。"
     TIKZ_PDFS=()

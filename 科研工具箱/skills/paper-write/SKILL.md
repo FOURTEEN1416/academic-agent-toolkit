@@ -99,7 +99,7 @@ cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rul
 
 ```bash
 
-grep -q "Word（.docx）\|docx mode\|output_format.*docx" CLAUDE.md && echo "MODE=docx" || echo "MODE=pdf"
+grep -q "Word（.docx）\|docx mode\|output_format.*docx" AGENTS.md && echo "MODE=docx" || echo "MODE=pdf"
 
 ```
 
@@ -111,7 +111,7 @@ grep -q "Word（.docx）\|docx mode\|output_format.*docx" CLAUDE.md && echo "MOD
 
 echo "=== Output verification (must be all ✅) ==="
 
-MODE=$(grep -q "Word（.docx）\|docx mode" CLAUDE.md 2>/dev/null && echo docx || echo pdf)
+MODE=$(grep -q "Word（.docx）\|docx mode" AGENTS.md 2>/dev/null && echo docx || echo pdf)
 
 echo "MODE: $MODE"
 

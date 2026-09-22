@@ -149,7 +149,7 @@ For each milestone (in order), write the experiment scripts:
    - Baseline implementations if not already present
    - Fixed random seeds for reproducibility
    - Results saved to JSON/CSV for later analysis
-   - Proper logging (wandb if configured in CLAUDE.md)
+   - Proper logging (wandb if configured in AGENTS.md)
 
 3. **Follow the plan's run order** — implement sanity-stage experiments first, then baselines, then main method, then ablations.
 
@@ -378,7 +378,7 @@ ls -la figures/*.pdf 2>/dev/null | wc -l
 
 #### Generate result tables (format depends on output mode)
 
-For main results and ablation tables, generate three-line tables. **Pick the format by output mode** (read `output_format` from CLAUDE.md's `## 参数` section; default `pdf`):
+For main results and ablation tables, generate three-line tables. **Pick the format by output mode** (read `output_format` from AGENTS.md's `## 参数` section; default `pdf`):
 - **PDF mode** → LaTeX tables `figures/TABLE_*.tex` (booktabs three-line)
 - **Word/DOCX mode** → Markdown tables `figures/TABLE_*.md` (Markdown three-line)
 
@@ -387,7 +387,7 @@ For main results and ablation tables, generate three-line tables. **Pick the for
 import os, re
 _cm = ''
 try:
-    _cm = open('CLAUDE.md', encoding='utf-8').read()
+    _cm = open('AGENTS.md', encoding='utf-8').read()
 except Exception:
     pass
 _m = re.search(r'^- output_format:\s*(\w+)', _cm, re.MULTILINE)

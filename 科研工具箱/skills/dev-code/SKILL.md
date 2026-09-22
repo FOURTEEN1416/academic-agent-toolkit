@@ -11,7 +11,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 
 ## ⛔ 先确认项目类型
 
-**读 CLAUDE.md 的 `project_type` 决定实现方式**（fullstack / frontend / cli / script）。不同类型目录结构和技术栈不同，按 DESIGN.md 的"目录结构"实现。
+**读 AGENTS.md 的 `project_type` 决定实现方式**（fullstack / frontend / cli / script）。不同类型目录结构和技术栈不同，按 DESIGN.md 的"目录结构"实现。
 
 ## ⛔⛔⛔ 任务规模警示
 
@@ -22,7 +22,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 1. **DESIGN.md**（必须存在）— 架构/目录结构/技术选型。严格按它实现。
 2. **REQUIREMENTS.md** — 功能清单，逐条实现"必做"项。
 3. **schema.sql** — 全栈项目的建表 SQL（仅全栈有）。
-4. **CLAUDE.md** — project_type + 技术栈参数。
+4. **AGENTS.md** — project_type + 技术栈参数。
 
 ## 各类型目录约定（按 project_type）
 
@@ -70,7 +70,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 ```bash
 echo "=== 编码产出验证 ==="
 PASS=true
-PTYPE=$(grep -oE "project_type[:=] *(fullstack|frontend|cli|script)" CLAUDE.md 2>/dev/null | grep -oE "(fullstack|frontend|cli|script)" | head -1)
+PTYPE=$(grep -oE "project_type[:=] *(fullstack|frontend|cli|script)" AGENTS.md 2>/dev/null | grep -oE "(fullstack|frontend|cli|script)" | head -1)
 PTYPE=${PTYPE:-fullstack}
 echo "项目类型: $PTYPE"
 [ -f RUN.md ] && echo "OK RUN.md" || { echo "FAIL 缺 RUN.md"; PASS=false; }

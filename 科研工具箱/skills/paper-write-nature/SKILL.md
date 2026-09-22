@@ -363,7 +363,7 @@ Remove or replace these AI-typical words:
 
 ```bash
 
-MODE=$(grep -q "Word（.docx）\|docx mode" CLAUDE.md 2>/dev/null && echo docx || echo pdf)
+MODE=$(grep -q "Word（.docx）\|docx mode" AGENTS.md 2>/dev/null && echo docx || echo pdf)
 
 PASS=true
 
