@@ -1,10 +1,10 @@
 {
-  "_comment": "竞赛时模型配置槽（2026-09-09 用户裁定：仓库不预设，比赛时配置；2026-09-10 第二次裁定：审稿四角色 = agnes/agnes-2.5-flash，独立审稿必须走外部通道——① Agnes API（tools/reviewer_client.py，.env REVIEWER_MODEL_ID=agnes-2.5-flash，证据声明串须与本文件一致方过 strict）；② 用户本人开新窗口人工独立审核（独立提示词由主控提供）。ZCode 会话内的 Agent 工具子智能体仅用于轻量复核，不冒充独立审稿证据。后续调整模型时同步本文件与证据声明。",
-  "configured_at": "2026-09-19",
+  "_comment": "竞赛时模型配置槽（2026-09-09 用户裁定：仓库不预设，比赛时配置；2026-09-10 第二次裁定：审稿角色 = agnes/agnes-2.5-flash，文字审稿独立通道走 Agnes API（tools/reviewer_client.py，.env REVIEWER_MODEL_ID=agnes-2.5-flash，证据声明串须与本文件一致方过 strict）或用户本人开新窗口人工独立审核；2026-09-23 第三次裁定：visual_reviewer 角色改走**项目驱动宿主自身视觉模型的独立窗口通道**（host-vision/independent-window），不再要求赛前填写 API key 调用外部视觉 API——tools/*_vision_check.py 外部 API 降为宿主无视觉窗口环境下的兜底（见 comp-visual-review SKILL.md 铁律）。后续调整模型时同步本文件与证据声明。",
+  "configured_at": "2026-09-23",
   "_governance_note": "⚠️ 能力边界（2026-09-19 治理收口）：本文件位于仓库内且由 agent 可写，因此**不构成独立基准**——quality_gates.check_review_evidence(strict_model_match=True) 以它比对证据声明，只能拦「证据与配置不一致」的误报，不能拦「两者被同时改写」的伪造。赛时实证：2026-09-12 S13 终审曾将四角色临时置为 human/*（含会话级 ID）以通过 strict 比对；该临时态已于 2026-09-19 回写为默认外部通道，原内容留档 dev-docs/archive/contest_models.s13-human-override-20260912.json。若需为人工通道提供真实保证，应引入独立于被检查方的证据（如人工签署件/独立会话快照），而非依赖本配置项。",
   "roles": {
     "reviewer": "agnes/agnes-2.5-flash",
-    "visual_reviewer": "agnes/agnes-2.5-flash",
+    "visual_reviewer": "host-vision/independent-window",
     "editor": "agnes/agnes-2.5-flash",
     "final_reviewer": "agnes/agnes-2.5-flash"
   }

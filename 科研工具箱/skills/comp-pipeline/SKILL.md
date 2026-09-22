@@ -1,6 +1,6 @@
 ---
 name: comp-pipeline
-description: "数学建模竞赛全流程编排器：串起问题分析、文献、建模、求解、结果、论文、编译、审查八个阶段。触发词：数模全流程、完整做一道竞赛题、comp-pipeline、从读题到交付。"
+description: "数学建模竞赛全流程编排器（轻量变体）。引擎标准流程为国赛/华为杯同构 14 步（workflow_cli --template comp_cumcm / comp_huawei）；本技能是无引擎场景下的手动串联编排：串起问题分析、文献、建模、求解、结果、论文、编译、审查八个阶段。触发词：数模全流程、完整做一道竞赛题、comp-pipeline、从读题到交付。"
 allowed-tools: [Read, Write, Edit, Bash(python:*), WebFetch, WebSearch]
 ---
 
@@ -9,11 +9,33 @@ allowed-tools: [Read, Write, Edit, Bash(python:*), WebFetch, WebSearch]
 ## 目的
 编排数模竞赛从拿到题目到提交论文的完整流程。本技能是**编排器**，不代替具体技能，只负责调度、检查点、产物传递。
 
+## 两种运行模式（先选对，再动手）
+
+| 模式 | 入口 | 适用 |
+|------|------|------|
+| **标准模式（正式竞赛推荐）** | `python -m engine.workflow_cli start --template comp_cumcm`（国赛）或 `--template comp_huawei`（华为杯） | 引擎 14 步流程，带质量门禁、STEP_MANIFEST 溯源、伴生技能绑定与完成证据闸。**国赛与华为杯 14 步 1:1 同构**（仅页数/图表量等赛事参数不同），权威步骤表见 `CONTEST_SKILL_MAP.md` §一/§七 |
+| **轻量模式（本技能）** | 直接读本 SKILL.md 按下文 8 阶段执行 | 无引擎环境（如宿主无法跑 Python CLI）或快速试做小题；无引擎门禁，纪律靠技能自述约束 |
+
+**标准模式 14 步主链**（每步绑定主技能，伴生技能清单见 CONTEST_SKILL_MAP §二）：
+
+```
+S01 赛题分析(comp-prob-analysis) → S02 文献调研与核验(comp-literature)
+→ S03 建模求解(comp-modeling) → S04 编程实现(comp-code)
+→ S05 图表生成(paper-figure) → S06 流程与架构图绘制(paper-figure-drawio)
+→ S07 逻辑对抗复核(comp-review，默认关，enable_comp_review=true 开启)
+→ S08 竞赛论文撰写(comp-paper-zh/comp-paper-en) → S09 代码-论文一致性检查(comp-consistency)
+→ S10 编译与合规检查(comp-compile-zh/comp-compile-en) → S11 数模视觉审查(comp-visual-review)
+→ S12 数模编辑修订(comp-editor) → S13 数模最终复审(comp-final-review)
+→ S14 最终交付审计(comp-final-audit)
+```
+
+> 轻量 8 阶段是上链的子集裁剪（缺架构图步与一致性检查/视觉审查/编辑修订/终审/交付审计等质量步）——**正式竞赛不要停在 8 阶段收工**，至少补跑 S09/S13 两道闸。
+
 ## 输入契约
 - `PROBLEM.md` — 竞赛题目（必需）
 - `data/` — 题目附带的数据文件（可选）
 
-## 执行流程
+## 执行流程（轻量模式：8 阶段变体）
 
 按以下顺序执行，每阶段产出后暂停等用户确认（📌=检查点）：
 

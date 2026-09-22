@@ -15,7 +15,7 @@ allowed-tools: Bash(*), Read, Grep, Glob, Agent
 
 ```bash
 # 二级保险：即便被开启，FAST_MODE 下仍跳过（速度优先场景），产占位不阻塞。
-if grep -q 'MH_FAST_MODE=1' CLAUDE.md 2>/dev/null; then
+if grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null; then
   echo "⏭ FAST_MODE：逻辑对抗复核跳过。确定性闸(logic_audit/cross_problem_check)已在 comp-code 兜底。"
   printf '# 逻辑对抗复核\n\nFAST_MODE 跳过（省额度）。确定性逻辑闸仍在 comp-code 阶段跑过。\n' > COMP_REVIEW.md
   exit 0

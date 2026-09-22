@@ -15,24 +15,24 @@ The designated visual-review subagent inspects final PNGs and PDF pages.
 2. **每张图必须由宿主独立窗口的视觉模型实际读图审查**：坐标轴名称与单位、刻度可读性、图例、颜色区分、截断、重叠、误导性比例、题注对应、文字溢出、配色对比度、**黑白打印下仍可分辨（仅靠色相区分的系列必须有线型/hatch 冗余编码——打印安全三件套）**、**色盲模拟（红绿色弱）下各系列可区分**。
 3. 记录独立窗口逐图审核输出（PASS / ISSUE N: ...）作为 `VISUAL_REVIEW.md` 的证据，并注明执行窗口/子代理标识。
 4. 检查 PDF 页面布局与图题对应关系（确定性检查辅助）。
-5. **兜底通道（仅限宿主无视觉窗口环境）**：才允许改调 `tools/data_fig_vision_check.py`（数据图）/ `tools/tikz_vision_check.py`（TikZ/流程/架构图）/ `tools/drawio_vision_check.py`（draw.io 图）外部视觉 API——模型与 key 走 `contest_models.json` / `.env` 原槽位。该兜底不改变下方输出契约与降级预案。
+5. **工具=任务卡与证据收集器**：`tools/data_fig_vision_check.py`（数据图）/ `tools/tikz_vision_check.py`（TikZ/流程/架构图）/ `tools/drawio_vision_check.py`（draw.io 图）已整体换驱动为宿主独立窗口模式——运行后生成审核任务卡（`visual_review_tasks/<图名>.task.md`），由宿主独立窗口按卡实际读图，回写 `<图名>.verdict.md`（含 `Reviewed-by: <窗口标识>` + PASS/ISSUE）后重跑收集。三件工具不发起网络调用、不需要任何 API key。
 
-## ⛔⛔ --review 审核模式（兜底 API 通道专用，防伪造证据）
+## ⛔⛔ --review 审核模式（审核/终审必须使用，防伪造证据）
 
-`--review` 仅作用于兜底外部视觉 API 工具（宿主无视觉窗口环境才走此通道）。
-视觉工具带开发防死循环计数（STOP_VISION_LOOP：per-key 同图 2 轮上限 + 全局 图数×2+2 上限），
-**开发迭代**阶段该计数防"改坐标→重编→重调"无限震荡是合理的；但**审核/终审**阶段必须真实产生视觉审核证据——
+视觉质检工具带开发防死循环计数（STOP_VISION_LOOP：per-图 2 轮上限 + 全局 图数×2+2 上限，
+沿旧实现全套治理语义），
+**开发迭代**阶段该计数防"改坐标→重编→重调"无限震荡是合理的；但**审核/终审**阶段必须真实产生独立窗口视觉审核证据——
 开发阶段的迭代额度耗尽后，审核不能被迫"定稿/绕过工具/直接看图判 pass"（那等于伪造审核证据）。
 
-⛔ **兜底通道的审核调用必须加 `--review` 参数**：
+⛔ **审核/终审调用视觉质检工具必须加 `--review` 参数**：
 
 ```bash
 python tools/data_fig_vision_check.py figures/fig_q1.png --review     # 数据图
 python tools/tikz_vision_check.py figures/tikz_arch.pdf --review       # TikZ 图
 ```
 
-- `--review` 模式：不累计开发计数（不污染 dev 额度）、不受 per-key/全局上限拦截 → 审核永远能真实产生视觉证据
-- 审核报告（VISUAL_REVIEW.md）必须记录每张图**实际视觉审核的证据输出**（主通道：宿主独立窗口读图记录；兜底通道：视觉 API 输出）（PASS / ISSUE N: ...）
+- `--review` 模式：不累计开发计数（不污染 dev 额度）、不受 per-图/全局上限拦截 → 审核永远能真实产生视觉证据
+- 审核报告（VISUAL_REVIEW.md）必须记录每张图**独立窗口实际读图的证据输出**（`Reviewed-by` 窗口标识 + PASS / ISSUE N: ...）
 - ⛔ 禁止：计数器被拦截后"直接看图片凭感觉判 pass"；发现 STOP_VISION_LOOP 提示时改用 --review 重试，而不是绕过工具
 
 ## 输出契约（机器可读，硬性要求）
@@ -53,11 +53,10 @@ python tools/tikz_vision_check.py figures/tikz_arch.pdf --review       # TikZ �
 
 ## ⛔ 视觉审核通道不可用降级预案（A7-M5：禁止静默跳过，也禁止第 11 步永久卡死）
 
-宿主无独立视觉窗口、且兜底视觉 API 探针失败（`data_fig_vision_check.py` / `tikz_vision_check.py` / `drawio_vision_check.py`
-exit 2 且**已排除相对路径问题**——先用绝对路径重试一次）时，按以下顺序处置：
+宿主开不出独立视觉窗口（无视觉审子代理/独立会话可用）时，按以下顺序处置：
 
-1. **先确认是真不可用**：用绝对路径重试（`python tools/data_fig_vision_check.py <工作区>/figures/fig_q1.png --review`）；
-   仍失败（无 key / 调用失败 / 超时）才进入降级。
+1. **先确认是真不可用**：重试派发独立窗口并重跑收集（`python tools/data_fig_vision_check.py <工作区>/figures/fig_q1.png --review`）；
+   仍无独立窗口可派发才进入降级。
 2. **人工按检查单逐项目检**：用户本人对每张图逐项核对视觉检查单
    （坐标轴名称与单位、刻度可读性、图例、颜色区分与色盲可辨、黑白打印可辨、截断、重叠、
    误导性比例、题注对应、文字溢出、对比度）。

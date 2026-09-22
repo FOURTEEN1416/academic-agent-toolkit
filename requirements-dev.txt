@@ -18,6 +18,9 @@ python-docx>=1.1     # import docx：DOCX 产出校验
 Pillow>=10           # import PIL：图像检查
 PyYAML>=6            # import yaml：配置契约测试
 numpy>=1.26          # 数值断言
+matplotlib>=3.8      # skills/editaplot-lite 契约测试（Agg 渲染+产物校验，2026-09-23）
+SciencePlots>=2      # 同上：editaplot-lite 'science' 样式族（缺库时该技能渲染测试失败）
+pandas>=2            # 同上：editaplot-lite 列角色分类
 ruff==0.16.8         # lint 棘轮（科研工具箱/tools/lint_ratchet.py，2026-09-20）。
                      # 必须锁死版本：基线 data/lint_baseline.json 的计数可比性依赖同一
                      # 版本的规则集；升级 ruff 属"基线重置"，须同步 --update。

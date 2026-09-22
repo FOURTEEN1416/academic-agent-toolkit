@@ -1,6 +1,6 @@
 # Changelog
 
-本项目所有显著变更记录于此，格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循语义化版本。更早的分节操作日志见 `LOG.md`（内部文档，不入库）。
+本项目所有显著变更记录于此，格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循语义化版本。更早的分节操作日志见 `dev-docs/LOG.md`（内部文档，2026-09-23 起移出公开仓、不入库）。
 
 ## [Unreleased]
 

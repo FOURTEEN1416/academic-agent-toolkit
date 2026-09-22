@@ -386,7 +386,6 @@ def detect_capabilities() -> dict:
         "pillow": False,
         "drawio": False,
         "gpt_image_api": False,
-        "vision_api": False,
         "xelatex_path": None,
         "runtime_source": None,
         "runtime_commands": {},
@@ -438,11 +437,9 @@ def detect_capabilities() -> dict:
         caps["pillow"] = True
     except ImportError:
         pass
-    # 4. API Key
+    # 4. API Key（仅出图类；视觉审核已换驱动：宿主独立窗口执行，不做 key 探测）
     if env_get("GPT_IMAGE_API_KEY"):
         caps["gpt_image_api"] = True
-    if env_get("EDITOR_AI_API_KEY") or env_get("OPENAI_API_KEY") or env_get("SENSENOVA_API_KEY"):
-        caps["vision_api"] = True
     return caps
 
 
@@ -1638,57 +1635,51 @@ class RoleAgent:
 
 
 # =====================================================
-# P6: 视觉能力
+# P6: 视觉能力（2026-09-23 换驱动：宿主独立窗口视觉审核）
 # =====================================================
 
 class VisionAgent:
-    """视觉能力 — 用 Vision LLM 分析图片"""
+    """视觉能力 — 宿主独立窗口视觉审核（不再调用外部 Vision LLM API）。
 
-    def __init__(self, api_key="", base_url="", model="gpt-4o"):
-        self.api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
-        self.base_url = base_url or os.environ.get("OPENAI_BASE_URL", "")
-        self.model = model
+    2026-09-23 第三次用户裁定：视觉审核驱动从「填 APIKey 调外部视觉 API」
+    整体置换为「项目驱动宿主自身视觉能力 LLM 在独立窗口读图审核」。
+    本类不再持有 api_key/base_url，不再发起任何网络请求；职责收敛为
+    任务卡生成（派发独立窗口）与证据收集（解析 verdict）。
+    """
+
+    def __init__(self):
+        self.tools_dir = TOOLS_DIR
 
     def describe_image(self, image_path: str, context: str = "") -> str:
-        """用 Vision 描述图片内容"""
-        import base64, http.client, json as _json
-        with open(image_path, "rb") as f:
-            b64 = base64.b64encode(f.read()).decode()
-        mime = "image/png" if image_path.endswith(".png") else "image/jpeg"
-        parsed = self.base_url.replace("https://", "").replace("http://", "").rstrip("/")
-        scheme = "https" if "https://" in self.base_url else "http"
-        conn_method = getattr(http.client, "HTTPSConnection" if scheme == "https" else "HTTPConnection")
-        conn = conn_method(parsed)
-        payload = _json.dumps({
-            "model": self.model,
-            "messages": [{
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": f"描述这张科研图表的内容。{context}"},
-                    {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}},
-                ],
-            }],
-        })
-        conn.request("POST", "/v1/chat/completions", payload, {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        })
-        resp = conn.getresponse()
-        data = _json.loads(resp.read().decode("utf-8"))
-        conn.close()
-        return data["choices"][0]["message"]["content"]
+        """生成独立窗口审核任务卡并返回派发指引（不再调用外部 Vision API）。"""
+        card = self.check_figure_quality(image_path)
+        lines = [
+            "宿主独立窗口视觉审核任务已就绪（本引擎不调用外部视觉 API）：",
+            f"- 待审图件: {image_path}",
+            f"- 上下文: {context}" if context else "- 上下文: （无）",
+        ]
+        if card.get("task_card"):
+            lines.append(f"- 任务卡: {card['task_card']}")
+        lines.append(f"- 判定: {card.get('verdict', '')}")
+        return "\n".join(lines)
 
     def check_figure_quality(self, image_path: str) -> dict:
-        """检查图表质量（重叠/截断/美观）"""
-        # 优先用本地 tikz_vision_check.py
+        """检查图表质量（重叠/截断/美观）— 经 tikz_vision_check.py 宿主窗口驱动。"""
         result = subprocess.run(
             [sys.executable, str(TOOLS_DIR / "tikz_vision_check.py"), image_path],
             capture_output=True, text=True, timeout=120)
-        if result.returncode == 0:
-            return {"ok": True, "verdict": result.stdout.strip()}
-        # 回退到 Vision LLM
-        desc = self.describe_image(image_path, "检查是否有文字截断、重叠、空白过多等问题。若正常回 PASS，有问题逐条列出。")
-        return {"ok": "PASS" in desc.upper(), "verdict": desc}
+        stdout = result.stdout.strip()
+        task_card = ""
+        for line in stdout.splitlines():
+            if line.startswith("任务卡已生成: "):
+                task_card = line[len("任务卡已生成: "):]
+        # exit 0=PASS/STOP 定稿放行；1=ISSUE；2=独立窗口证据未就绪（任务卡已派发）
+        return {
+            "ok": result.returncode == 0,
+            "verdict": stdout or result.stderr.strip(),
+            "task_card": task_card,
+            "pending_host_window": result.returncode == 2,
+        }
 
 
 # =====================================================

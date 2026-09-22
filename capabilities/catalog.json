@@ -159,14 +159,15 @@
       "associated_tools": [
         "tools/reviewer_client.py",
         "tools/tikz_vision_check.py",
-        "tools/drawio_vision_check.pyc",
-        "tools/data_fig_vision_check.pyc"
+        "tools/drawio_vision_check.py",
+        "tools/data_fig_vision_check.py",
+        "tools/host_visual_review.py"
       ],
       "external_dependencies": [
-        "外部 LLM 审查 API（可选）",
-        "Vision LLM"
+        "外部 LLM 审查 API（文字审稿，可选）",
+        "宿主独立窗口视觉审核（host-vision/independent-window，2026-09-23 换驱动，无需 API key）"
       ],
-      "high_risk_confirmation": "外部审查模型调用涉及数据外发，需确认",
+      "high_risk_confirmation": "文字审稿外部模型调用涉及数据外发，需确认；视觉审核已换驱动为宿主独立窗口，无数据外发",
       "current_evidence": [
         "公开基准 P01 真实审查：数模审稿人子智能体独立审查(CONDITIONAL_PASS 1major5minor)→修复→复审 PASS 0 fatal (COMP_REVIEW.md+VERDICT.json, sessions ses_ff2cb93/ses_ff2c0d43)",
         "S1升级(2026-08-17): C1合同完整+C2真实验收+C3公开基准6/7通过+C4私有基准2025B+C5专家校准4/5(B4模拟测评参考62篇获奖论文)+C6回归204tests"
@@ -6610,6 +6611,31 @@
       "high_risk_confirmation": "无",
       "current_evidence": "技能目录在位（SKILL.md+bin 脚本+data+references+review）；已入 CONTEST_SKILL_MAP §三（2026-09-12）",
       "current_gap": "单技能映射级登记；阈值口径以 skill 内 data 为准，未经独立 C2-C4 验收",
+      "promotion_history": []
+    },
+    {
+      "capability_id": "editaplot-lite",
+      "name": "无 Origin 出版级数据图（editaplot 方法论 lite 路线）",
+      "domain": "figures_and_document_production",
+      "description": "editaplot 科学绘图纪律（逐列角色确认、方案哈希冻结、官方配色目录、出版图形合同）移植到 matplotlib+SciencePlots 渲染引擎；propose→用户确认→render 三步，门禁拒绝篡改与未确认列，产物 PNG(300dpi)+PDF+SVG+verify-report，源数据 sha256 不变校验",
+      "input_contract": "CSV/TXT 表格（只读）+ 一句话科学目的 + 逐列确认书（user_confirmed）",
+      "output_contract": "PNG(300dpi)+PDF+SVG+verify-report.json 四件齐才算 success；不含 OPJU，对外表述 publication-informed lite",
+      "status": "experimental",
+      "disposition": "routed",
+      "associated_skills": [
+        "editaplot-lite"
+      ],
+      "associated_tools": [
+        "科研工具箱/skills/editaplot-lite/scripts/plot_lite.py"
+      ],
+      "external_dependencies": [
+        "matplotlib>=3.8 / SciencePlots / numpy / pandas / Pillow（requirements-dev.txt 已声明，CI 真跑）",
+        "Arial + Microsoft YaHei 字体（缺 Arial 自动回退系统无衬线体）"
+      ],
+      "high_risk_confirmation": "render 写文件前必须持有含 user_confirmed 的逐列确认书（Ask-first）；源数据文件不可变；校验不过不得宣称成功",
+      "current_evidence": "2026-09-23 本机实跑：propose/门禁负面测试（篡改源哈希/结构角色/未确认列均正确拒绝）/渲染四项校验全绿/独立窗口视觉验收 pass（出版级观感）；方法论继承自 skills/editaplot（同日收编自 hang-jin/editaplot Apache-2.0）",
+      "current_gap": "仅 line+errorbar 路线；XPS/XRD/GSAS 等材料光谱专用模板与 3D/分布/医学路线未移植（需要时用 editaplot Origin 路线或扩展本技能）",
+      "upstream": "无上游副本（渲染代码本仓原创）；方法论真源=科研工具箱/skills/editaplot/SKILL.md；配色真源复用其 assets/palettes/palette-catalog.json",
       "promotion_history": []
     }
   ],

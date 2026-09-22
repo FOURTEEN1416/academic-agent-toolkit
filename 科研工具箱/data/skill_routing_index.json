@@ -14,9 +14,9 @@
   },
   "counts": {
     "core": 54,
-    "ondemand": 211,
-    "resident_chars": 32067,
-    "full_chars": 68074
+    "ondemand": 212,
+    "resident_chars": 32202,
+    "full_chars": 68400
   },
   "skills": {
     "ablation-planner": {
@@ -470,9 +470,9 @@
     "comp-pipeline": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "数学建模竞赛全流程编排器：串起问题分析、文献、建模、求解、结果、论文、编译、审查八个阶段。触发词：数模全流程、完整做一道竞赛题、comp-pipeline、从读题到交付。",
-      "full_description": "数学建模竞赛全流程编排器：串起问题分析、文献、建模、求解、结果、论文、编译、审查八个阶段。触发词：数模全流程、完整做一道竞赛题、comp-pipeline、从读题到交付。",
-      "description_compacted": false,
+      "resident_description": "数学建模竞赛全流程编排器（轻量变体）。引擎标准流程为国赛/华为杯同构 14 步（workflow_cli --template comp_cumcm / comp_huawei）；本技能是无引擎场景下的手动串联编排：串起问题分析、文献、建模",
+      "full_description": "数学建模竞赛全流程编排器（轻量变体）。引擎标准流程为国赛/华为杯同构 14 步（workflow_cli --template comp_cumcm / comp_huawei）；本技能是无引擎场景下的手动串联编排：串起问题分析、文献、建模、求解、结果、论文、编译、审查八个阶段。触发词：数模全流程、完整做一道竞赛题、comp-pipeline、从读题到交付。",
+      "description_compacted": true,
       "path": "科研工具箱/skills/comp-pipeline/SKILL.md"
     },
     "comp-prob-analysis": {
@@ -698,6 +698,14 @@
       "full_description": "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实验表格（CSV/TXT/XLS/XLSX）画成可编辑 OPJU + PNG/PDF/TIF 出版级科研图。材料光谱（XPS/XRD/GSAS/XAS/FTIR/NMR/DSC/PL/UV-Vis/EIS/CV/LSV）、通用统计、医学与深度学习（ROC/PR/DCA/SHAP）专用模板；逐列确认数据用途、方案哈希冻结、Origin 对象反读校验。本机无 Origin 时如实降级，不伪造通过。",
       "description_compacted": true,
       "path": "科研工具箱/skills/editaplot/SKILL.md"
+    },
+    "editaplot-lite": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "无 Origin 的出版级数据图路线：把 editaplot 的科学绘图纪律（逐列角色确认、方案哈希冻结、官方配色目录、出版图形合同）移植到 matplotlib+SciencePlots 渲染引擎。",
+      "full_description": "无 Origin 的出版级数据图路线：把 editaplot 的科学绘图纪律（逐列角色确认、方案哈希冻结、官方配色目录、出版图形合同）移植到 matplotlib+SciencePlots 渲染引擎。CSV/TXT 表格三步出图：propose 列角色提案 → 用户确认（哈希冻结）→ render 出 PNG+PDF+SVG+校验报告。源数据不可变，不确定列拒画，产物如实称 publication-informed lite，不冒充 Origin OPJU。",
+      "description_compacted": true,
+      "path": "科研工具箱/skills/editaplot-lite/SKILL.md"
     },
     "editor-agent": {
       "tier": "ondemand",

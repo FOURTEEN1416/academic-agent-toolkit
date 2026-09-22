@@ -96,7 +96,7 @@
 
 ### 五、隔离纪律（硬性，逐条遵守）
 
-1. **产物落点**：一切产物只落**你当前项目的工作区**；禁止向 Academic Agent Toolkit 仓库根（`<REPO_ROOT>`）下任何路径写入、创建、修改或删除文件——包括技能库内、其 `workspaces/`、`dev-docs/`、`LOG.md` 等一切位置。
+1. **产物落点**：一切产物只落**你当前项目的工作区**；禁止向 Academic Agent Toolkit 仓库根（`<REPO_ROOT>`）下任何路径写入、创建、修改或删除文件——包括技能库内、其 `workspaces/`、`dev-docs/` 等一切位置。
 2. **只读借用**：技能库文件一律只读；不要把工作目录 cd 到该仓库，用绝对路径引用即可。
 3. **门禁不外溢**：技能文档中出现的 STEP_MANIFEST、operations.jsonl、complete_step、C1 申报闸等，属于该仓库自身的引擎质量门禁——外部项目**不触发也不伪造**它们；过程留痕（如有）落你自己的项目。
 4. **License 红线**：标 ⚠ 的 5 个技能（plot-from-data、plot-from-image、visio-image-rebuilder、paper-framework-figure-studio-pro、eco-community-plots）上游未声明 License，只可本地只读使用，**禁止复制进其它仓库再分发**；其余技能未经许可同样不得整体搬运。

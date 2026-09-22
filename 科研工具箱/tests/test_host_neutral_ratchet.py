@@ -1,9 +1,11 @@
 """宿主中性化存量棘轮（2026-09-23 宿主引用修复批）。
 
-钉住 B1/B2 两族已清零/受控的口径，防止回潮：
+钉住 B1/B2/B3 三族已清零的口径，防止回潮：
   - B2: capabilities/catalog.json 不得再出现"需在 OpenCode 会话中确认"；
   - B1: skills/**/SKILL.md 不得再以宿主绑定配置文件 CLAUDE.md 作为工作区参数文件
-        （在途步骤技能暂豁免，见豁免基线文件，只减不增）。
+        （2026-09-23 清零收口：在途工作流已不存在，原 5 技能豁免集与基线文件移除，
+        现为全库零容忍——工作区参数文件一律用 AGENTS.md）；
+  - B3: 评审桥技能不得绑定 mcp__codex__ / Codex MCP。
 """
 from __future__ import annotations
 
@@ -13,16 +15,6 @@ TOOLBOX = Path(__file__).resolve().parents[1]
 REPO = TOOLBOX.parent
 CATALOG = REPO / "capabilities" / "catalog.json"
 SKILLS = TOOLBOX / "skills"
-RATCHET_FILE = TOOLBOX / "tests" / "data" / "host_neutral_inflight_baseline.txt"
-
-# 在途（status=running）步骤对应技能：其 SKILL.md 本批禁改（sha256 闸），G3 收口后清零。
-INFLIGHT_EXEMPT = {
-    "comp-review",
-    "comp-final-review",
-    "comp-literature",
-    "research-lit",
-    "ars-research-summarizer",
-}
 
 
 def _hits(keyword: str, files: list[Path]) -> list[str]:
@@ -38,10 +30,6 @@ def _hits(keyword: str, files: list[Path]) -> list[str]:
 
 def _skill_md_files() -> list[Path]:
     return sorted(SKILLS.glob("*/SKILL.md"))
-
-
-def _is_exempt(path: Path) -> bool:
-    return path.parent.name in INFLIGHT_EXEMPT
 
 
 def test_catalog_no_opencode_session_phrase():
@@ -65,23 +53,7 @@ def test_skill_md_no_codex_review_binding():
 
 
 def test_skill_md_host_config_file_neutralized():
-    non_exempt = [f for f in _skill_md_files() if not _is_exempt(f)]
-    hits = _hits("CLAUDE.md", non_exempt)
+    hits = _hits("CLAUDE.md", _skill_md_files())
     assert not hits, (
         f"SKILL.md 出现宿主绑定配置文件 CLAUDE.md（{len(hits)} 行，B1 族回潮；"
-        f"在途豁免 {sorted(INFLIGHT_EXEMPT)} 之外必须用 AGENTS.md）: {hits[:5]}")
-
-
-def test_inflight_exempt_ratchet_shrinks():
-    exempt_hits = _hits("CLAUDE.md", [f for f in _skill_md_files() if _is_exempt(f)])
-    current = len(exempt_hits)
-    if RATCHET_FILE.is_file():
-        allowed = int(RATCHET_FILE.read_text(encoding="utf-8").strip() or "0")
-        assert current <= allowed, (
-            f"在途豁免 CLAUDE.md 命中 {current} 行 > 基线 {allowed} 行（棘轮只减不增，"
-            f"G3 收口后应把豁免集清空）")
-    else:
-        RATCHET_FILE.parent.mkdir(exist_ok=True)
-        RATCHET_FILE.write_text(str(current), encoding="utf-8")
-        raise AssertionError(
-            f"首次运行：已钉住 B1 在途豁免基线 {current} 行，复跑应通过")
+        f"2026-09-23 起全库零容忍，工作区参数文件必须用 AGENTS.md）: {hits[:5]}")

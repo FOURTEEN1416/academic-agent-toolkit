@@ -1,6 +1,6 @@
 # CUMCM 竞赛技能全库地图（CONTEST_SKILL_MAP）
 
-> **定位**：全库 265 个技能 × comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
+> **定位**：全库 266 个技能 × comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
 > `companion_skills` 字段（2026-09-11 起）每步主动给出本步推荐；本文件是全量真源，
 > 含"情境可用"、"外域不接入"与"未接入库"的完整分类账——**任何一个技能都不允许处于"无人知晓"状态**。
 > 维护纪律：新增技能入库时必须归入下列五类之一并同步本文件与引擎
@@ -55,7 +55,7 @@
 
 **赛后/场外情境推荐**（不在 14 步内）：`contest-retrospective`（赛后复盘与经验沉淀——留痕取证→场景/坑/清单三分类→每条归因仓库内真实强制点→双写经验库→机检闭环；**每个赛事周期结束后应跑一次**，2026-09-19 入库）、`paper-slides`/`paper-poster`/`sci-latex-posters`（答辩幻灯与海报）、`team-coordination`（三人分工时）、`feishu-notify`（进度通知）、`rebuttal`（答辩质询应答结构）。
 
-## 三、情境可用（78 个，按需加载）
+## 三、情境可用（79 个，按需加载）
 
 `claude-scientific-writer`（通用科学写作）、`paper-plan`/`paper-analysis`/`assets-inventory`（科研链资产管线，有既有材料时）、`paper-write-zh`/`paper-write-zh-docx`（Markdown 路线写文）、`paper-writing`/`paper-writing-ucsb`（科研写作方法论参考）、`training-check`（产出训练自检）、`editor-agent`/`experiment-agent`（代理执行模式）、`sci-citation-management`（引用管理方法论）、`scholar-accessible-pdf`/`scholar-latex-cleanup`/`scholar-presubmit-checks`（PDF 可及性/LaTeX 清理/预提交检查——投稿向但方法通用）、`novelty-check`（新颖性论证参考）、`idea-creator`（创意法参考）、`auto-paper-improvement-loop`（改进循环，第 12 步后可选）、`sci-scientific-writing`（科学写作规范）、
 `palette-health-check`（配色「去灰提彩」体检——把"发灰/发闷/太深"翻译成可机检的 C*/C*max 去灰指标、`deepen` 替代 `darken`、色带入带序单调性复核；S5 出图后或 S11 视觉审查时按需加载，脚本在 `skills/palette-health-check/bin/`，2026-09-12 入库）。
@@ -97,6 +97,16 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
   compare/reflect 双模式、≤3 条源链接建议、摘要级证据不越级；与 §二 `anti-defensive-writing`
   删-hedge 互补成对——先对照增补、后删冗余限定；含数模论文章节桥接表，修订轮/S13 终审前按需加载）
 
+**editaplot-lite 批次（2026-09-23 无 Origin 渲染路线，1 个）**——editaplot（§四）方法论的
+无 Origin 继承者：技能实体为本仓原创渲染代码，方法论/配色真源复用 `skills/editaplot`：
+
+- 绘图/可视化（1）：`editaplot-lite`（没装 Origin 也要出版级数据图——逐列角色确认/方案哈希冻结/
+  editaplot 官方配色目录/出版图形合同（白底 Arial 单栏 9cm/无标题/图例无框）移植到
+  matplotlib+SciencePlots；propose→用户确认→render 三步，篡改源哈希/结构角色/未确认列一律机检拒绝；
+  产物 PNG(300dpi)+PDF+SVG+verify-report，源 sha256 不变校验；对外表述 publication-informed lite 不冒充 OPJU；
+  已接入模板 `scientific_plotting` paper-figure 步 companion（引擎级主动推荐，2026-09-23）；
+  本机验证：门禁负面测试+渲染校验+独立窗口视觉验收 pass @2026-09-23；需 OPJU 时路由回 §四 editaplot）
+
 ## 四、外域不接入（146 个，赛时不要加载）
 
 | 域 | 技能 | 不接入理由 |
@@ -128,14 +138,14 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
   路由表接入，且为 `paper_writing_zh` 等模板步骤主技能（引擎绑定面覆盖），
   disposition 记 `evidence-bound`。
 
-## 六、统计（2026-09-22 P4 资产激活批次机对账复核，check_asset_utilization.py）
+## 六、统计（2026-09-23 editaplot-lite 批次机对账复核，check_asset_utilization.py）
 
 **机检首匹配归段口径**（技能名按首次出现的段落计一次，跨段引用不重复计；词边界 + 斜杠缩写展开 +
 前缀域 fnmatch，与 `tools/check_asset_utilization.py` 的 `load_map_coverage` 完全同口径）：
-主链家族 20 + 每步推荐 18 + 情境可用 77 + 外域 148 + 未接入库 2 = **265**，
-与 skills/ 下含 SKILL.md 的目录实测数（265）逐一相符：零幽灵名、零漏网。
-两处口径差的说明（避免读者对不上数）：§三 标题"78 个"是**具名条目数**，其中
-`paper-figure-palette` 首现于 §二 step5 必用位故首匹配归 §二（78→77）；§四 标题"146 个"为
+主链家族 20 + 每步推荐 18 + 情境可用 78 + 外域 148 + 未接入库 2 = **266**，
+与 skills/ 下含 SKILL.md 的目录实测数（266）逐一相符：零幽灵名、零漏网。
+两处口径差的说明（避免读者对不上数）：§三 标题"79 个"是**具名条目数**，其中
+`paper-figure-palette` 首现于 §二 step5 必用位故首匹配归 §二（79→78）；§四 标题"146 个"为
 手工具名数，六个前缀域（`ars-*`/`nature-*`/`spine-paper-*`/`latexpap-*`/`galaxy-*`/`dev-*`）
 按前缀展开后实得 148 个。
 **P4 激活轮（2026-09-22）变化**：§五 原 15 个未接入技能中 13 个并入 §三"P0 激活批次"小节
@@ -149,7 +159,8 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 把辅助技能一律设为必用会制造假失败（如无数值推导的题目无法合法使用 sci-sympy）。
 对账口径：技能 = skills/ 下含 SKILL.md 的目录（265 目录减 `_utils`/`shared-scripts` 两个非技能目录；
 2026-09-19 新增 `contest-retrospective`，260→261；2026-09-22 新增 `oral-paper-skill`，263→264；
-2026-09-22 新增 `editaplot`（EditaPlot 整技能收编，归 §四外域），264→265）；
+2026-09-22 新增 `editaplot`（EditaPlot 整技能收编，归 §四外域），264→265；
+2026-09-23 新增 `editaplot-lite`（无 Origin 渲染路线，归 §三情境可用），265→266）；
 主链 = §一具名，推荐 = §二表格 + 赛后段具名，情境 = §三具名，外域 = §四具名 + 六个前缀域
 （`ars-*`/`nature-*`/`spine-paper-*`/`latexpap-*`/`galaxy-*`/`dev-*` 按前缀展开）+ 斜杠缩写展开
 （如 `copyright-build/draft/source-materials`），未接入库 = §五具名。

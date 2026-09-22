@@ -8236,11 +8236,19 @@
               "name": "配色场景与使用规范",
               "note": "三步选色法/10 条规范/禁用清单（人读真源）",
               "path": "科研工具箱/skills/paper-figure-palette/references/scenarios.md"
+            },
+            {
+              "name": "editaplot-lite 配色目录（editaplot 官方真源）",
+              "note": "Origin 系方法论配色（含色觉风险/推荐图型标注）；lite 路线选色前先查",
+              "path": "科研工具箱/skills/editaplot/assets/palettes/palette-catalog.json"
             }
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "editaplot-lite"
+          ]
         },
         "has_checkpoint": false,
         "checkpoint_type": null

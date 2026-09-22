@@ -55,9 +55,8 @@
 | `capabilities/catalog.json` | 能力目录（技能须全部映射；根级 tests 硬校验） |
 | `agents/adapters/` | 可选宿主适配器元数据（协议不依赖） |
 | `docs/superpowers/` | 设计 spec 与实施计划（dated 快照） |
-| `dev-docs/` | 内部真源根（gitignored 私有） |
-| `LOG.md` / `task_plan.md` | 操作日志 / 任务与验证基线 |
-| `releases/`（本地 dated 快照，不入库）、`tests/`、`SECURITY.md` | 发布快照 / 根级门禁测试 / 安全策略 |
+| `dev-docs/` | 内部真源根（gitignored 私有）：**操作日志 `dev-docs/LOG.md`（2026-09-23 起唯一记账真源，公开仓不分发）· 任务计划 `dev-docs/task_plan.md` · 审计报告** |
+| `releases/`（本地 dated 快照，不入库）、`tests/`、`SECURITY.md`、`CHANGELOG.md` | 发布快照 / 根级门禁测试 / 安全策略 / 公开版本记录 |
 | `参考论文/`、`赛前试炼任务/`、`workspaces/` 等 | 本地材料与产物（不入 git） |
 
 ## 硬性规则（冲突时以主控文档为准）
@@ -74,8 +73,8 @@
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **776 passed / 0 failed**（= 工具箱 **751** + 根级门禁 **25**；另 3 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1；collect-only 779。2026-09-22 oral-paper-skill 整技能收编 A 批次本机实测口径；上一时点 checkpoint 人类署名红线轮 772/747、G2 泛化轮 768/771 保留作历史） | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **751 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **789 passed / 0 failed**（= 工具箱 **764** + 根级门禁 **25**；另 3 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1；collect-only 792。2026-09-23 公开仓治理止血批实测口径；上一时点口径对齐轮 776/751、续54 视觉审核批 780 保留作历史） | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **764 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
 | 根 `tests/` 单跑 | catalog schema + 反 AI 工具集 | **25 passed** | catalog 改动后必跑 |
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准（现行：**713+5 skipped / 0 failed @ run 35711171875**，收集总数与本机一致 718；历史：600+3 @ run 35425878920） | 门禁 |
 

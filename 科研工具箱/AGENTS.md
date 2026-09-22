@@ -92,6 +92,13 @@
 | "统计建模/数分" | `skills/comp-stats-topic/` | → comp-code |
 | "竞赛主链其余步骤" | CONTEST_SKILL_MAP §一 / 模板 `comp_cumcm` | 完整 14 步流程 |
 
+**快速模式开关（可选，竞赛项目级）**：在竞赛项目工作区根的 `AGENTS.md`（项目宪法）中写入一行
+`MH_FAST_MODE=1`，12 个主链技能（comp-prob-analysis / comp-modeling / comp-code / comp-review /
+paper-figure / paper-figure-drawio / paper-figure-html / nature-figure / comp-paper-zh / comp-paper-en
+及两 docx 变体）的流程开头即自动进入快速模式——跳过可选重步骤、省 AI 额度；
+确定性闸（logic_audit / cross_problem_check 等）仍兜底。不写则默认全量质量路径。
+各技能内以 `grep -q 'MH_FAST_MODE=1' AGENTS.md` 探测（宿主中性，`test_host_neutral_ratchet.py` 钉住）。
+
 ### 科研论文
 
 | 用户意图 | 路由到 |
@@ -108,6 +115,7 @@
 | "用 XX 论文那种风格画" | `skills/plot-from-data/` |
 | "重建这张 Visio 图" | `skills/visio-image-rebuilder/` |
 | "用 Origin 画可编辑图/导师要 OPJU/材料光谱专用图（XPS/XRD/FTIR/NMR/DSC/EIS）" | `skills/editaplot/`（需本机 Origin 2021+，无则如实降级） |
+| "没装 Origin 也要出版级数据图/CSV 可复现出图（matplotlib 路线）" | `skills/editaplot-lite/`（继承 editaplot 纪律：propose→逐列确认→render，PNG+PDF+SVG+校验报告） |
 | "论文方法框架图多方案" | `skills/paper-framework-figure-studio-pro/` |
 | "找参考图再动手" | `skills/agent-figure-gallery/` |
 | "编译论文 PDF" | `skills/paper-compile/` 或 `paper-compile-zh/` |
