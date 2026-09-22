@@ -1365,3 +1365,13 @@ wrapper 重建幂等。
 故 extracted_images 96% 整页系语料性质所致，P5"图级重抽"路线对扫描语料改为版面/视觉切分方案；
 矢量检测路径对电子版 PDF 已由合成样本（2 页 4 图全检出）验证可用。双副本/根门禁/provenance/secret_scan 全绿。
 UPSTREAM 登记条目（含 License 与 pin）留待 V1 批落账，防与并行 registry 写入冲突。
+
+**续45 补记②（G1 华为杯 S14 合规口径修复，同日晚，已独立验收提交 89791b8）**：
+before 实锤四处：comp-final-audit/SKILL.md:10 国赛专属描述、quick_gates.py:111-112 默认 30 页写死、
+comp_rules.json 无承诺书判据、模板 S14 无合规指针。方案=数据驱动 compliance_profile（非硬编码换向）：
+`comp_rules.json` 两族各加 `compliance` 块（华为 pledge=required/正文 50 页；国赛 pledge=forbidden_in_electronic/30 页，
+与既有 max_pages 有一致性测试钉住）；两族 S14 加 `metadata.compliance_profile` + 机器真源指针；
+`quick_gates.py --compliance-profile`（优先级：显式 --max-pages > profile > 旧默认，无 profile 行为与旧版逐项一致；
+缺 PDF SKIP、未知族 ERROR 不阻断），shared-scripts 副本 sha256 同步（0720983a…，主控哈希复核一致）。
+复验：test_huawei_pipeline + dual_copy + quick_gates + 根门禁 = **48 passed / 0 failed**；
+新 6 测试含两族互不误杀负例。残留：SKILL.md/地图国赛文字口径转 #15（P3/P4 在途禁其互踩，收口后挂数据源）。
