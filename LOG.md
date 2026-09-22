@@ -1416,3 +1416,12 @@ dev-docs/truth-index.md；task_plan.md 快照区历史行补 717）。校准后�
 - **棘轮**：tests/test_g2_package_gmcm.py 5 项（真源一致 / CLI 四象限承诺书方向 / 默认口径不漂移 / 文档分族要素 / catalog-地图登记），全绿。
 - **门禁复跑**：工具箱 `pytest -q` **743 passed / 3 skipped**（+5 为新棘轮）；根级门禁 25 passed；`check_asset_utilization --strict` / `check_provenance` / `secret_scan --strict` / `build_skill_index --check` / `project_health_check --strict`（漂移 ✅）全 exit 0；基线四文档 754→768 同步（旧值保留作历史）。
 - **留痕**：验收末轮 `test_dual_copy_consistency` 因并行窗口 22:05 改 `skills/_utils/compile_check.sh`（镜像未同步）暂红，非 G2 文件集，未代做越界修复；报告 dev-docs/board/reports/g2-report.md。
+
+## 续48 · 2026-09-22 · 第三波收编：G4/V3/P1 三批主控独立复验收编 + G1 串期日期勘误
+
+- **G4（0b57b87）**：三族低频模板断链修复收编——S7 资产指针接线 + SKILL.md 分支 fail-fast（去 `2>/dev/null` 静默吞错）+ 6 棘轮；**路径翻案**：竞赛模板真落位 `skills/comp-paper-zh/_templates/<族>/`（旧口径裸写 `_templates/` 系漏前缀），字体实测已被 .gitignore 规则挡住、仅 cls/tex/png 入库。复验：22 管线测试、双门禁 exit 0、新增行泄漏零命中。
+- **V3（c92238e）**：AFG 图库 KB 本机激活——kb_search.py（零依赖、三级根解析、缺位 TOOL_GAP+exit 2）真跑命中 284 候选中 EMB-F13BC81C31，与 SKILL.md Worked Example 逐字一致；风格卡 8→13 为 gitignored 本地面（20 样例=10 图样×原/现对，**语料诚实上限 13**，≥15 需 academic-figure/pubfig 另源补给）。
+- **P1 扫尾（d5a4420）**：待裁决 8 项定案——#5/#7/#8 销项（P3b 已顺带解决/按设计双路由）；#1 compile_check.sh 双向取长合流（上游 exit 3 机检块+库内 gcount 全保留，MH_PYTHON 带回退软探测）；#2 writing_check.sh 整替上游编排器（8 py 委派实测双副本在位）；#6 字体块正式裁定不吸收。**#3（facts_audit ⛔/⚠ 严重度）与 #4（官方字号 vs 本地补丁）留默默拍板**——#4 已取官方附件3 实证：摘要标题官方=隶书18pt（现三号16pt 差一档）、关键词官方=18pt 隶书（现小四黑体全异）、题注官方=黑体10pt 不加粗（现宋体小四加粗全异），倾向以官方为准，上游三项仅摘要标题项可原样吸收。
+- **G1 勘误（0b210e0）**：quick_gates 双副本+test_huawei_pipeline 共 5 处串期日期 2026-09-23→09-22（第三犯，后续派单 prompt 已强制写死日期）。
+- **G2 收编注记（0a13f62 内）**：主控复验时修复未知 profile 错误路径 `relative_to` 潜在崩溃；四象限/文案/登记棘轮 5 项与文档面逐项读 diff 通过。
+- **收口回归（提交前实测）**：仓库根 `pytest -q` **768 passed / 3 skipped / 0 failed**（= 工具箱 743 + 根门禁 25，collect 771，与四文档口径逐字一致）；`check_provenance` / `check_asset_utilization --strict` exit 0。G3（#17）端到端实跑仍在途，产物走 gitignored workspaces/，报告另行入账。
