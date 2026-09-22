@@ -1425,3 +1425,9 @@ dev-docs/truth-index.md；task_plan.md 快照区历史行补 717）。校准后�
 - **G1 勘误（0b210e0）**：quick_gates 双副本+test_huawei_pipeline 共 5 处串期日期 2026-09-23→09-22（第三犯，后续派单 prompt 已强制写死日期）。
 - **G2 收编注记（0a13f62 内）**：主控复验时修复未知 profile 错误路径 `relative_to` 潜在崩溃；四象限/文案/登记棘轮 5 项与文档面逐项读 diff 通过。
 - **收口回归（提交前实测）**：仓库根 `pytest -q` **768 passed / 3 skipped / 0 failed**（= 工具箱 743 + 根门禁 25，collect 771，与四文档口径逐字一致）；`check_provenance` / `check_asset_utilization --strict` exit 0。G3（#17）端到端实跑仍在途，产物走 gitignored workspaces/，报告另行入账。
+
+## 续49 · 2026-09-22 · 第三波推送 CI 一红一绿记账
+
+- `15da4ee` 轮 CI **failure**（765 passed / 5 skipped / 1 failed）：`test_g2_json_report_carries_profile_and_default_unchanged` 在公开 clone 崩——CI 侧新版 PyMuPDF 对旧名 `import fitz` 向 **stdout** 打 deprecation warning，污染 `pack_submission.py --json` 输出（本机 1.27 无此行为，本地 768 全绿不覆盖该环境差）。
+- 修复 `67edbbc` 双保险：脚本 `pymupdf` 优先导入（旧环境回退 `fitz`，从源头保 CLI 输出纯度）+ 测试只解析首段 JSON 容忍库噪声。本地 5 测与 JSON 纯度端到端复验绿后推送。
+- `35739748409`（@67edbbc）CI **success**。教训入账：凡 `--json` 契约的 CLI，第三方库 import 面必须零 stdout；本地绿≠CI 绿，gitignored 缺位语义之外还要盯依赖版本行为差。
