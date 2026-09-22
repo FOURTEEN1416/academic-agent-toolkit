@@ -1,5 +1,10 @@
 # UPSTREAM 溯源台账 — math-modeling-contest-route-selection
 
+- Upstream: https://github.com/y3519712124-ui/math-modeling-contest-route-selection
+- Pinned commit: bb15e079e6e4566cde3d0868fef0609681ef0594（main，2026-09-03 拉取时该仓库唯一 HEAD，gh api 复核 2026-09-22）
+- License: MIT
+- Local use: `skills/math-modeling-contest-route-selection/`（SKILL.md + references/ 10 文件 + scripts/score_topics.py，上游嵌套目录已展平）
+
 | 项 | 值 |
 |----|----|
 | 上游仓库 | https://github.com/y3519712124-ui/math-modeling-contest-route-selection |

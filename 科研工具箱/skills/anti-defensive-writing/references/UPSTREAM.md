@@ -1,5 +1,10 @@
 # UPSTREAM 溯源台账 — anti-defensive-writing
 
+- Upstream: https://github.com/Kiterlin/anti-defensive-writing
+- Pinned commit: 2e3317410556b7b126b31a0907c28561473a4f52（main @ 2026-09-03，gh api 复核 2026-09-22）
+- License: MIT
+- Local use: `skills/anti-defensive-writing/`（SKILL.md 根目录版 + examples/academic-introduction.md）
+
 | 项 | 值 |
 |----|----|
 | 上游仓库 | https://github.com/Kiterlin/anti-defensive-writing |

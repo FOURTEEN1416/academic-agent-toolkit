@@ -1401,3 +1401,10 @@ exit 0（263/263 零漏网、disposition 回填 15 条棘轮、活跃死槽 3 �
 基线校准（P6-lite 口径收敛）：全量 753+1F+3S → 唯一红为 test_project_health_check 漂移（文档 717 vs collect 757），
 非行为回归；四处口径同步 754=729+25（README badge/§口径行、AGENTS.md §测试口径、pytest.ini 唯一真源、
 dev-docs/truth-index.md；task_plan.md 快照区历史行补 717）。校准后全量复跑见下行。
+
+## 续46 · 2026-09-22 · 深夜 · #16 registry 补登包推送 + 本地产物边界声明
+
+- **补账**：#15（S14 口径改挂数据源）已由 ff6d571 独立提交推送但当时漏记本 LOG，此处补注一行；该提交仅动 CONTEST_SKILL_MAP + comp-final-audit/SKILL.md 两文件，无产物入库。
+- **#16 registry 补登包（本轮推送主体）**：三件中文表格式 UPSTREAM.md（anti-defensive-writing / math-modeling-contest-route-selection / palette-health-check）补齐 Upstream:/Pinned commit:/License: 规范字段行（中文表保留作史，两处 GitHub 源 pinned hash 经 gh api 按拉取日期复核）后入册；新立三件绘图技能台账（academic-figure-skill / agent-figure-gallery / scipilot-figure-skill）+ tools/extract_pdf_figures_UPSTREAM.md（ARIS fork pin 94d8093e）同批入册；check_provenance.py 新增 LOCAL_ONLY_UPSTREAM 语义——eco-community-plots 台账随 gitignored 技能本体缺位时记 SKIP（与 test_asset_utilization 同口径），公开 clone/CI 不再因此 FAIL。刻意不注册 local-only 三组（无上游 License，禁再分发红线），台账留 dev-docs。
+- **门禁复跑（提交前实测）**：仓库根 `pytest -q` **754 passed / 3 skipped**（=基线口径）；`check_provenance.py` exit 0，新入册 7 件逐一 [OK]。
+- **产物边界（默默指示"本地独立产物不要推送"，已核验）**：origin/main..HEAD 推送内容只含上述 9 个 tracked 文件；`workspaces/`、`releases/`、`dev-docs/`、`参考论文/`、`赛前试炼任务/` 等本地实战工作区均在 .gitignore（check-ignore 逐一验证），本地独立产物不入库。

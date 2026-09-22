@@ -1,5 +1,10 @@
 # UPSTREAM 溯源台账 — palette-health-check
 
+- Upstream: 本仓库下游工程 cumcm2026A（非外部 URL 源，本队原创实战沉淀）
+- Pinned commit: 不可固定（下游工程未纳入版本控制，成包于 2026-09-12 配色 v5→v6 定稿轮）
+- License: CC-BY-NC-4.0（与仓库一致）
+- Local use: `skills/palette-health-check/`（SKILL.md + bin/ 3 脚本 + data/ 4 真源 + references/cvd_check_v6.png）
+
 | 项 | 值 |
 |----|----|
 | 来源 | 本仓库下游工程 `D:\Desktop\workbuddy_space\cumcm2026A`（CUMCM 2026A 论文工程）第六轮配色优化实战沉淀 |

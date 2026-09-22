@@ -99,16 +99,35 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "skills" / "paper-figure" / "references" / "UPSTREAM.md",
     # V1 vendor 台账补齐（2026-09-22）：反向缺口——盘上有 UPSTREAM.md 但未注册
     ROOT / "skills" / "eco-community-plots" / "references" / "UPSTREAM.md",
-    # 注：anti-defensive-writing / math-modeling-contest-route-selection /
-    # palette-health-check 三处 UPSTREAM.md 为中文表格式（无 Upstream:/Pinned
-    # commit:/License: 英文字段），照现状注册必触门禁 FAIL；待专项批次规范化
-    # 字段后再注册，缺口登记见 dev-docs/vendor-asset-index.md §反向缺口。
+    # #16 registry 补登包（2026-09-22）：原"中文表格式缺英文字段"三件已补
+    # Upstream:/Pinned commit:/License: 规范字段行（中文表保留作史）后注册；
+    # 两处 GitHub 源的 pinned hash 经 gh api 按拉取日期复核取得。
+    ROOT / "skills" / "anti-defensive-writing" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "math-modeling-contest-route-selection" / "UPSTREAM.md",
+    ROOT / "skills" / "palette-health-check" / "references" / "UPSTREAM.md",
+    # V2 抽图工具移植件溯源（2026-09-22，ARIS fork pin 94d8093e）
+    ROOT / "tools" / "extract_pdf_figures_UPSTREAM.md",
+    # #16 registry 补登包（2026-09-22）：V1 盘点的"吸收了没记账"三件已入库包
+    # （academic-figure/agent-figure-gallery/scipilot，均带上游 LICENSE）。
+    # 刻意不注册：paper-framework-figure-studio-pro / visio-image-rebuilder /
+    # plot-from-data+plot-from-image 为 local-only 未入 git（上游无 License，
+    # 禁再分发红线），注册会令 CI 缺件 FAIL——台账见 dev-docs/vendor-asset-index.md。
+    ROOT / "skills" / "academic-figure-skill" / "UPSTREAM.md",
+    ROOT / "skills" / "agent-figure-gallery" / "UPSTREAM.md",
+    ROOT / "skills" / "scipilot-figure-skill" / "UPSTREAM.md",
 ]
 
 # 需要完整许可文件的 vendored 外部依赖目录（含 LICENSE/NOTICE/UPSTREAM.md 三件套）
 VENDOR_DIRS: list[Path] = [
     ROOT / "tools" / "codesucker-core",
 ]
+
+# local-only 台账件：宿主技能本体被 .gitignore 整目录豁免（无 License 禁再分发红线），
+# UPSTREAM.md 只存在于完整本地仓。公开 clone/CI 缺位 = 语义 SKIP（与
+# test_asset_utilization 的"缺 gitignored 技能即 skip"同款口径），本地在位则照常全检。
+LOCAL_ONLY_UPSTREAM: frozenset[Path] = frozenset([
+    ROOT / "skills" / "eco-community-plots" / "references" / "UPSTREAM.md",
+])
 
 REQUIRED_FIELDS = ("Upstream:", "Pinned commit:", "License:")
 REQUIRED_VENDOR_FILES = ("LICENSE", "NOTICE", "UPSTREAM.md")
@@ -181,6 +200,11 @@ def run(scope: str) -> dict:
     failures: list[str] = []
     if scope in ("upstream", "all"):
         for path in UPSTREAM_REGISTRY:
+            if path in LOCAL_ONLY_UPSTREAM and not path.is_file():
+                reports.append({"kind": "upstream", "path": _display(path), "ok": True,
+                                "skip": "local-only 台账件未随公开 clone 交付（gitignored），缺位记 SKIP",
+                                "missing": []})
+                continue
             result = check_upstream(path)
             reports.append({"kind": "upstream", **result})
             if not result["ok"]:
@@ -204,9 +228,11 @@ def main() -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
         total = len(result["reports"])
-        print(f"Provenance 审计: {total - len(result['failures'])}/{total} 通过")
+        skipped = sum(1 for r in result["reports"] if r.get("skip"))
+        passed = total - len(result["failures"]) - skipped
+        print(f"Provenance 审计: {passed}/{total} 通过（SKIP {skipped}，不计通过不计失败）")
         for report in result["reports"]:
-            status = "OK" if report["ok"] else "FAIL"
+            status = "SKIP" if report.get("skip") else ("OK" if report["ok"] else "FAIL")
             detail = f" ({', '.join(report.get('missing', []))})" if report.get("missing") else ""
             print(f"  [{status}] {report['kind']}: {report['path']}{detail}")
         if result["failures"]:
