@@ -706,6 +706,7 @@
       "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch18/problem-selection.json）：选向决策锚定 NOVELTY_CHECK recommended=1（真实评审）；",
       "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
+      "disposition": "routed",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次22（真实执行留档 skill_c2_batch18）"
       ]
@@ -1863,6 +1864,7 @@
       "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch7/paper-compile-zh/）：中文论文 XeLaTeX 两轮真实编译（section_intro 缺文件首查即修），PDF 产出含引言/编号引用/文献表；引用 ⊆ 已核验 E1-E5。",
       "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
+      "disposition": "evidence-bound",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次10（真实执行留档 skill_c2_batch7）"
       ]
@@ -2715,6 +2717,7 @@
       "current_evidence": "blocked-by-dependency（2026-08-30 如实登记）：同上；",
       "current_gap": "管线级/映射登记；C3/C4 未建",
       "status": "experimental",
+      "disposition": "routed",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
       ]
@@ -2795,6 +2798,7 @@
       "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch22/comm-lit-review.json）：通讯域模拟综述（逻辑梳理+OpenAlex 真实通道验证，检索执行由 batch15/21 覆盖）；",
       "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
+      "disposition": "routed",
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
@@ -3199,6 +3203,7 @@
       "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch6/sci-literature-review/）：仅基于 deep_research_c2 round-4 PASS 的 E1-E5 真实来源做主题综合；引用键/URL/缺口三项复核通过，未冒充完整系统综述，LITERATURE_REVIEW.md。",
       "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
+      "disposition": "routed",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次9（真实执行留档 skill_c2_batch6）"
       ]
@@ -3427,6 +3432,7 @@
       "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch3/ablation-planner/）：评审员视角 4 问→消融矩阵，A1-A3 真实执行（去温度 ΔR²=0.986 / 复杂度阶梯 0.751→0.986→0.995 / 噪声敏感性单调 0.9935→0.99→0.9766），A4（真实数据）诚实标记 NOT RUN 待外部数据；ABLATION_PLAN.json。",
       "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
+      "disposition": "routed",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次5（真实执行留档 skill_c2_batch3）"
       ]
@@ -3646,6 +3652,7 @@
       "current_evidence": "管线级覆盖（deep_research 模板 + round-4 PASS）；",
       "current_gap": "管线级验收覆盖；C3/C4 未建",
       "status": "experimental",
+      "disposition": "routed",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次22（真实执行留档 skill_c2_batch18）"
       ]
@@ -4997,6 +5004,7 @@
       "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch2/visualization/）：中文标注双面板 300dpi 图真实产出（散点+二次拟合 / 48h 曲线），PIL 校验 3300×1260 RGBA，data_overview.png。",
       "current_gap": "C3/C4 基准未建；C5 未校准；单技能试点级验收（非管线级、非独立评审）",
       "status": "experimental",
+      "disposition": "routed",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次2 试点（真实执行留档 skill_c2_batch2）"
       ]
@@ -5723,6 +5731,7 @@
       "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch12/paper-illustration/）：多阶段插图工作流——概念→线稿→矢量 SVG 真实产出（四节点三箭头可缩放印刷）；ILLUSTRATION_REPORT.json。",
       "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
+      "disposition": "routed",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次15/16（真实执行留档 skill_c2_batch12）"
       ]
@@ -5844,6 +5853,7 @@
       "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch12/sci-pdf/）：PyMuPDF 真实操作——单页抽取/双文档合并（2 页）/元数据写入，全部产物留档。",
       "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
+      "disposition": "routed",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次15/16（真实执行留档 skill_c2_batch12）"
       ]
@@ -6209,6 +6219,7 @@
       "input_contract": "技能 SKILL.md 定义的输入契约",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "status": "experimental",
+      "disposition": "routed",
       "associated_skills": [
         "excalidraw-diagram"
       ],
@@ -6260,6 +6271,7 @@
       "input_contract": "技能 SKILL.md 定义的输入契约",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "status": "experimental",
+      "disposition": "routed",
       "associated_skills": [
         "infographics"
       ],
@@ -6277,6 +6289,7 @@
       "input_contract": "技能 SKILL.md 定义的输入契约",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "status": "experimental",
+      "disposition": "routed",
       "associated_skills": [
         "matplotlib"
       ],
@@ -6294,6 +6307,7 @@
       "input_contract": "技能 SKILL.md 定义的输入契约",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "status": "experimental",
+      "disposition": "routed",
       "associated_skills": [
         "plotly"
       ],
@@ -6345,6 +6359,7 @@
       "input_contract": "技能 SKILL.md 定义的输入契约",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "status": "experimental",
+      "disposition": "routed",
       "associated_skills": [
         "seaborn"
       ],

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -147,3 +148,116 @@ def test_skill_named_entries_point_to_existing_skill_dirs() -> None:
             if "-" in cid and cid not in skill_dirs and cid not in local_only:
                 ghosts.append(cid)
     assert not ghosts, f"capability_id 无对应技能目录（幽灵条目）: {sorted(ghosts)}"
+
+
+# ---------------------------------------------------------------------------
+# disposition 字段（2026-09-22 P4 资产激活批次 E）
+#   分级：active（已接入引擎且有证据绑定面） / routed（已在路由表面在册，可被找到）
+#         / evidence-bound（已由模板步骤或 companion/mandatory 槽位驱动证据留痕）
+#   纪律：字段值合法 + 覆盖率棘轮只升不降 + 已声明的分级必须与真实资产面互证（不得虚报）。
+# ---------------------------------------------------------------------------
+
+REPO = Path(__file__).resolve().parents[1]
+DISPOSITION_LEVELS = ("active", "routed", "evidence-bound")
+# 2026-09-22 P4 批次 A 的 13 个 P0 路由修复技能（本批诚实回填为 routed，见
+# 科研工具箱/CONTEST_SKILL_MAP.md §三 "P0 激活批次" 小节）。
+P0_ACTIVATION_BATCH = [
+    "matplotlib", "plotly", "seaborn", "visualization", "infographics",
+    "excalidraw-diagram", "arxiv", "comm-lit-review", "deep-research",
+    "sci-literature-review", "ablation-planner", "paper-illustration",
+    "problem-selection",
+]
+# 覆盖率棘轮基线（2026-09-22 实测：13 P0 + sci-pdf(routed) + paper-compile-zh(evidence-bound)）
+DISPOSITION_COVERAGE_BASELINE = 15
+
+
+def _iter_entries(data: dict):
+    for items in data.values():
+        for item in items:
+            yield item
+
+
+def _mentions(text: str, name: str) -> bool:
+    """词边界具名匹配（与 tools/check_asset_utilization.load_map_coverage 同口径）。"""
+    return re.search(r"(?<![A-Za-z0-9_-])" + re.escape(name) + r"(?![A-Za-z0-9_-])", text) is not None
+
+
+def _map_active_sections_text() -> str:
+    """CONTEST_SKILL_MAP §一/§二/§三（活跃路由面）正文拼接。"""
+    text = (REPO / "科研工具箱" / "CONTEST_SKILL_MAP.md").read_text(encoding="utf-8")
+    out = []
+    keep = False
+    for block in text.split("## ")[1:]:
+        header = block.split("\n", 1)[0]
+        keep = header[:2] in ("一、", "二、", "三、")
+        if keep:
+            out.append(block)
+    return "\n".join(out)
+
+
+def _templates_text() -> str:
+    return (REPO / "科研工具箱" / "engine" / "modex-core" / "templates.json").read_text(encoding="utf-8")
+
+
+def _is_routed(name: str) -> bool:
+    """可路由：地图活跃段具名 ∪ 模板任一处具名 ∪ 工具箱 AGENTS.md 路由表具名。"""
+    return (_mentions(_map_active_sections_text(), name)
+            or _mentions(_templates_text(), name)
+            or _mentions((REPO / "科研工具箱" / "AGENTS.md").read_text(encoding="utf-8"), name))
+
+
+def _is_evidence_bound(name: str) -> bool:
+    """证据绑定：作为模板步骤主技能出现（StepAction.skill_name → 引擎 P4/C1 留痕闸覆盖）。"""
+    data = json.loads(_templates_text())
+    for tpl in data.values():
+        if not isinstance(tpl, dict):
+            continue
+        for step in tpl.get("sub_steps", []):
+            if isinstance(step, dict) and step.get("skill_name") == name:
+                return True
+    return False
+
+
+def test_disposition_values_are_legal() -> None:
+    """schema 允许项：disposition 只接受三级分级值（缺省表示尚未回填，允许）。"""
+    data = json.loads(CATALOG.read_text(encoding="utf-8"))
+    bad = [(item.get("capability_id"), item.get("disposition"))
+           for item in _iter_entries(data)
+           if "disposition" in item and item["disposition"] not in DISPOSITION_LEVELS]
+    assert not bad, f"非法 disposition 取值: {bad}"
+
+
+def test_disposition_coverage_ratchet_only_up() -> None:
+    """覆盖率棘轮：已回填 disposition 的条目数只升不降（基线为 2026-09-22 实测值）。"""
+    data = json.loads(CATALOG.read_text(encoding="utf-8"))
+    filled = [item.get("capability_id") for item in _iter_entries(data) if item.get("disposition")]
+    assert len(filled) >= DISPOSITION_COVERAGE_BASELINE, (
+        f"disposition 回填数 {len(filled)} < 基线 {DISPOSITION_COVERAGE_BASELINE}"
+        "——该棘轮只允许上调，不得回撤已激活资产的登记"
+    )
+
+
+def test_p0_batch_entries_disposition_routed() -> None:
+    """P4 批次 A 的 13 个 P0 技能必须在 catalog 登记 disposition=routed（A 与 E 互锁）。"""
+    data = json.loads(CATALOG.read_text(encoding="utf-8"))
+    by_id = {item.get("capability_id"): item for item in _iter_entries(data)}
+    for name in P0_ACTIVATION_BATCH:
+        assert name in by_id, f"catalog 缺少 P0 条目: {name}"
+        got = by_id[name].get("disposition")
+        assert got == "routed", f"{name} disposition 应为 routed，实际 {got!r}"
+
+
+def test_disposition_claims_match_real_surfaces() -> None:
+    """不虚报：routed 必须真在活跃路由面在册，evidence-bound 必须真是模板步骤主技能。"""
+    data = json.loads(CATALOG.read_text(encoding="utf-8"))
+    false_claims = []
+    for item in _iter_entries(data):
+        disp = item.get("disposition")
+        cid = item.get("capability_id", "")
+        if "-" not in cid:  # 聚合条目按合同扩展字段另行校验
+            continue
+        if disp == "routed" and not _is_routed(cid):
+            false_claims.append(f"{cid}: 声称 routed 但活跃路由面（地图 §一-§三/模板/AGENTS）无具名")
+        if disp == "evidence-bound" and not _is_evidence_bound(cid):
+            false_claims.append(f"{cid}: 声称 evidence-bound 但非任何模板步骤主技能")
+    assert not false_claims, f"disposition 虚报: {false_claims}"

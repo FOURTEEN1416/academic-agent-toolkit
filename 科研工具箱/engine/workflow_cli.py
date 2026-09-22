@@ -11,6 +11,8 @@
   python -m engine.workflow_cli approve --checkpoint <UUID> --by <批准人>
   python -m engine.workflow_cli stall --wf <id> [--hours 12]
   python -m engine.workflow_cli backfill --wf <id> --step <skill_name> --artifact <path>
+  python -m engine.workflow_cli backfill --wf <id> --step <skill_name> --artifact <path> --evidence '<同构 execution_evidence JSON>'
+      # 绑定步骤补录二选一：--evidence 全量校验，或 --waive-binding --waive-reason <理由>（落审计）
   python -m engine.workflow_cli report --wf <id>
 """
 from __future__ import annotations
@@ -359,6 +361,15 @@ def _build_parser() -> argparse.ArgumentParser:
                           help="手工执行的真实命令（可多次，进 STEP_MANIFEST.commands）")
     backfill.add_argument("--note", default="", help="补录说明（进事件 payload）")
     backfill.add_argument("--by", default="", help="补录人标识（建议必填，落 step_backfilled 事件）")
+    backfill.add_argument("--evidence", default="",
+                          help="与 complete_step 同构的 execution_evidence JSON（字符串）。"
+                               "步骤声明绑定（skill_binding/companion_skills/assets）时必填，"
+                               "否则须 --waive-binding；含真实 skill_sha256 绑定签名，走同一校验链")
+    backfill.add_argument("--waive-binding", action="store_true", dest="waive_binding",
+                          help="显式豁免补录的绑定校验（必须配 --waive-reason；"
+                               "产生 backfill_binding_waived 审计事件，禁止静默旁路）")
+    backfill.add_argument("--waive-reason", default="", dest="waive_reason",
+                          help="豁免理由（非空必填于 --waive-binding，落审计事件与运行日志）")
     backfill.add_argument("--db", default="")
 
     # 批准检查点
@@ -554,11 +565,24 @@ def _run_command(args, parser) -> int:
             return 1 if report["alert"] else 0
 
         if args.command == "backfill":
+            backfill_evidence = None
+            if str(getattr(args, "evidence", "") or "").strip():
+                try:
+                    backfill_evidence = json.loads(args.evidence)
+                except json.JSONDecodeError as exc:
+                    print(json.dumps({
+                        "status": "failed",
+                        "message": f"--evidence 不是合法 JSON：{exc}",
+                    }, ensure_ascii=False, indent=2))
+                    return 1
             result = runner.backfill_step(
                 args.wf, str(args.step).strip(),
                 artifacts=[a.strip() for a in args.artifact if a.strip()],
                 commands=[c for c in args.backfill_commands if c.strip()],
-                note=str(args.note or ""), by=str(args.by or "").strip())
+                note=str(args.note or ""), by=str(args.by or "").strip(),
+                evidence=backfill_evidence,
+                waive_binding=bool(getattr(args, "waive_binding", False)),
+                waive_reason=str(getattr(args, "waive_reason", "") or ""))
             _save_run_log(runner, args.wf)
             output = {
                 "status": result.status,

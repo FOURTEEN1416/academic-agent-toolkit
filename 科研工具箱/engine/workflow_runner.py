@@ -245,214 +245,31 @@ class WorkflowRunner:
                 )
                 return RunResult(workflow_id, "failed", step.id, message)
 
-        # ⛔ C1: 辅助技能强制申报（2026-09-11 用户质询"只推荐不强制会便宜行事"）
-        # 步骤定义了 companion_skills 时，执行证据必须含 companion_skills 申报：
-        #   {"used": [技能名...], "skipped": [{"skill": 名, "reason": 非空理由}...]}
-        # used ∪ skipped 必须恰好覆盖本步推荐清单（申报 ≠ 强制使用，但"不用"必须留痕给理由）；
-        # 缺申报/覆盖不全/申报了未推荐的技能/格式错 = 步骤失败（错误信息含正确格式教学）。
-        recommended = list(step.metadata.get("companion_skills") or [])
-        if recommended:
-            def _companion_reject(detail: str) -> RunResult:
-                # 注意：只有第一段是 f-string；后两段是普通字符串，花括号无需转义
-                # （2026-09-11 小修：此前 {{...}} 转义残留导致教学格式渲染成双花括号）
-                message = (f"invalid execution evidence: 辅助技能申报不合规——{detail}。"
-                           '正确格式: "companion_skills": {"used": ["技能名"], '
-                           '"skipped": [{"skill": "技能名", "reason": "为何跳过"}]}，'
-                           "used 与 skipped 须恰好覆盖本步推荐清单。")
-                self.store.transition_step_with_checkpoint(
-                    workflow_id, step.id, StepStatus.FAILED,
-                    {"status": "failed", "error": message},
-                    artifacts=[{"name": a, "path": a} for a in result.artifacts],
-                    event={"type": "step_failed", "stderr": message},
-                )
-                return RunResult(workflow_id, "failed", step.id, message)
+        # ⛔ C1 / P4 / C2 三道申报-痕迹门禁（2026-09-11 C1、2026-09-19 P4、
+        # 2026-09-12 C2 的校验逻辑，语义与文案不变）。P4 资产激活批次 B
+        #（2026-09-22）把三道闸从 complete_step 内联体抽成 _*_gate_message
+        # 复用件：backfill_step 补录路径调用同一组校验，堵死"产物存在即完成"
+        # 的旁路（此前补录零校验，绑定链可被静默绕开）。
+        exec_ev = result.metadata.get("execution_evidence", {})
+        message = self._companion_gate_message(step, evidence, exec_ev)
+        if message:
+            return self._gate_reject(workflow_id, step, result, message)
 
-            raw_decl = result.metadata.get("execution_evidence", {}).get("companion_skills")
-            if not isinstance(raw_decl, dict):
-                return _companion_reject(f"本步推荐了辅助技能 {recommended} 但证据缺少 companion_skills 申报")
-            used = raw_decl.get("used", [])
-            skipped = raw_decl.get("skipped", [])
-            if not isinstance(used, list) or not all(isinstance(s, str) and s.strip() for s in used):
-                return _companion_reject("used 必须是非空技能名字符串数组")
-            if not isinstance(skipped, list) or not all(
-                isinstance(s, dict) and str(s.get("skill", "")).strip() and str(s.get("reason", "")).strip()
-                for s in skipped
-            ):
-                return _companion_reject('skipped 必须是 [{"skill": 技能名, "reason": 非空理由}] 数组')
-            declared = set(used) | {str(s["skill"]) for s in skipped}
-            unknown = sorted(declared - set(recommended))
-            missing = sorted(set(recommended) - declared)
-            if unknown:
-                return _companion_reject(f"申报了本步未推荐的技能 {unknown}（本步推荐清单: {recommended}）")
-            if missing:
-                return _companion_reject(f"推荐技能未逐一申报使用或跳过: {missing}")
-            # ⛔ C1 申报自洽（A2 minor 审计修复）：used 与 skipped 不得重叠——同一技能
-            # "既声称用了又声称跳过"是自相矛盾申报，留痕必须口径唯一。归一化与痕迹
-            # 校验同口径（不区分大小写、'-' 与 '_' 等价），大小写/连字符变体的重叠同样拦截。
-            used_norm = {_norm_skill_token(u) for u in used}
-            skipped_norm = {_norm_skill_token(s["skill"]) for s in skipped}
-            overlap_norm = used_norm & skipped_norm
-            if overlap_norm:
-                overlap_display = sorted(
-                    {u for u in used if _norm_skill_token(u) in overlap_norm}
-                    | {str(s["skill"]) for s in skipped
-                       if _norm_skill_token(s["skill"]) in overlap_norm}
-                )
-                return _companion_reject(
-                    f"同一技能同时申报了 used 与 skipped: {overlap_display}（自相矛盾申报）。"
-                    "每个技能只能二选一：真实使用 → 申报 used（须留使用痕迹）；"
-                    "确未使用 → 申报 skipped 并写明非空理由")
-            # ⛔ C1 痕迹绑定（A5 ⑫/A2 major 修复：used 伪报零校验直接过闸）：
-            # 覆盖校验通过后，每个 used 技能必须有真实使用痕迹——技能名
-            # （不区分大小写，'-' 与 '_' 等价）出现在任一 evidence.commands 命令串
-            # 或任一 declared outputs/inputs 路径中才算有痕；无痕 = 步骤失败，
-            # 并教学两条出路（如实补记 consult 命令，或改报 skipped+理由）。
-            trace_blob = " ".join(
-                [str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)]
-                + [str(p) for p in evidence.get("outputs", []) or []]
-                + [str(p) for p in evidence.get("inputs", []) or []]
-            ).lower().replace("-", "_")
-            for used_skill in used:
-                trace_key = _norm_skill_token(used_skill)
-                if trace_key and trace_key not in trace_blob:
-                    return _companion_reject(
-                        f"used 申报的技能 {used_skill} 在命令与产物/输入路径中零使用痕迹"
-                        "（伪报 used 直接过闸已被禁止）。两条出路："
-                        "① 把 consult 该技能的真实命令（如读取其 SKILL.md 的命令）如实记入 "
-                        "evidence.commands；② 若确未使用，改申报为 skipped 并写明理由")
-
-        # ⛔ P4: 技能强制绑定（2026-09-19 "步骤不会强制调用 skills" 的机制层修复）
-        # 现状缺口：主技能只以 skill_sha256 形式出现在证据里——算一个哈希就能过，
-        # 无法区分"读了技能契约"与"只填了哈希"；关键步骤的必用辅助技能也可能被
-        # 一条 skipped 理由绕过。本闸让每个声明了 skill_binding 的步骤满足三件事：
-        #   ① 主技能咨询痕迹：主技能名或 skills/<main>/SKILL.md 出现在 commands/inputs；
-        #   ② mandatory 技能不得 skipped，必须 used 且留命令级痕迹；
-        #   ③ 每条 mandatory 至少有一条命令指向该技能目录（不能只在产物路径里蹭名）。
-        # 未声明 skill_binding 的步骤零影响（向后兼容）——绑定是"显式声明才生效"。
         binding = step.metadata.get("skill_binding") or {}
+        message = self._binding_gate_message(workflow, step, evidence, exec_ev)
+        if message:
+            return self._gate_reject(workflow_id, step, result, message)
         if isinstance(binding, dict) and binding:
-            def _binding_reject(detail: str) -> RunResult:
-                requirements = "; ".join(self._action_for_step(workflow, step).binding_requirements())
-                message = (f"invalid execution evidence: 技能绑定不合规——{detail}。"
-                           f"本步绑定要求：{requirements or '见模板 metadata.skill_binding'}。"
-                           "绑定技能的意义是「契约被真实读取」而非填字段："
-                           "请在执行时真的读取对应 SKILL.md 并记入 evidence.commands。")
-                self.store.transition_step_with_checkpoint(
-                    workflow_id, step.id, StepStatus.FAILED,
-                    {"status": "failed", "error": message},
-                    artifacts=[{"name": a, "path": a} for a in result.artifacts],
-                    event={"type": "step_failed", "stderr": message},
-                )
-                return RunResult(workflow_id, "failed", step.id, message)
-
             main_skill = str(binding.get("main") or step.name).strip()
-            trace_parts = (
-                [str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)]
-                + [str(p) for p in evidence.get("outputs", []) or []]
-                + [str(p) for p in evidence.get("inputs", []) or []]
-            )
-            trace_blob = " ".join(trace_parts).lower().replace("-", "_")
-            command_blob = " ".join(
-                str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)
-            ).lower().replace("-", "_")
-
-            if binding.get("main_required", True):
-                main_key = _norm_skill_token(main_skill)
-                if main_key and main_key not in trace_blob:
-                    return _binding_reject(
-                        f"未见主技能 {main_skill} 的咨询痕迹（命令/输入中缺 "
-                        f"skills/{main_skill}/SKILL.md 或技能名）——skill_sha256 只能证明文件被读取过，"
-                        "不能证明契约被遵守")
-
             mandatory = [str(s).strip() for s in (binding.get("mandatory") or []) if str(s).strip()]
-            if mandatory:
-                raw_decl = result.metadata.get("execution_evidence", {}).get("companion_skills") or {}
-                used_norm = {_norm_skill_token(u) for u in (raw_decl.get("used") or [])}
-                skipped_norm = {_norm_skill_token(str(s.get("skill", ""))) for s in (raw_decl.get("skipped") or [])
-                                if isinstance(s, dict)}
-                for skill in mandatory:
-                    key = _norm_skill_token(skill)
-                    if key in skipped_norm:
-                        return _binding_reject(
-                            f"绑定技能 {skill} 被申报为 skipped，但该技能在本步是必用项（不可跳过）")
-                    if key not in used_norm:
-                        return _binding_reject(f"绑定技能 {skill} 未申报 used（必用技能必须申报使用）")
-                    if key not in trace_blob:
-                        return _binding_reject(f"绑定技能 {skill} 在命令与产物/输入路径中零使用痕迹")
-                    if key not in command_blob:
-                        return _binding_reject(
-                            f"绑定技能 {skill} 只出现在产物/输入路径，未出现在任何命令中——"
-                            f"请把读取其契约的真实命令（如读取 skills/{skill}/SKILL.md）记入 commands")
             self._audit_record(type="engine_event", event="skill_binding_ok", workflow_id=workflow_id,
                                step_id=step.id, skill_name=step.name,
                                main=main_skill if binding.get("main_required", True) else None,
                                mandatory=mandatory)
 
-        # ⛔ C2: 步骤资产强制申报（2026-09-12 资产利用率审计落地）
-        # 现状：C1 只覆盖"技能"，数据/参考论文/工具脚本/参考图集等非技能资产在
-        # StepAction 零暴露——引擎只给技能，仓库其余资产处于"流程不可见"状态。
-        # 步骤定义了 assets（{"name","path","note"} 列表，path 为仓库根相对）时，
-        # 执行证据必须含 assets 申报，语义与 C1 同构：
-        #   {"used": [资产名...], "skipped": [{"name": 资产名, "reason": 非空理由}...]}
-        # used ∪ skipped 恰好覆盖清单；申报 ≠ 强制使用，但"不用"必须留痕给理由；
-        # used 资产须有真实痕迹（资产名或仓库根相对路径出现在命令/产物/输入路径中）。
-        required_assets = [a for a in (step.metadata.get("assets") or []) if isinstance(a, dict) and str(a.get("name", "")).strip()]
-        if required_assets:
-            def _asset_reject(detail: str) -> RunResult:
-                message = (f"invalid execution evidence: 步骤资产申报不合规——{detail}。"
-                           '正确格式: "assets": {"used": ["资产名"], '
-                           '"skipped": [{"name": "资产名", "reason": "为何跳过"}]}，'
-                           "used 与 skipped 须恰好覆盖 StepAction.assets 清单。")
-                self.store.transition_step_with_checkpoint(
-                    workflow_id, step.id, StepStatus.FAILED,
-                    {"status": "failed", "error": message},
-                    artifacts=[{"name": a, "path": a} for a in result.artifacts],
-                    event={"type": "step_failed", "stderr": message},
-                )
-                return RunResult(workflow_id, "failed", step.id, message)
-
-            raw_assets_decl = result.metadata.get("execution_evidence", {}).get("assets")
-            asset_names = [str(a["name"]).strip() for a in required_assets]
-            if not isinstance(raw_assets_decl, dict):
-                return _asset_reject(f"本步给出了资产清单 {asset_names} 但证据缺少 assets 申报")
-            assets_used = raw_assets_decl.get("used", [])
-            assets_skipped = raw_assets_decl.get("skipped", [])
-            if not isinstance(assets_used, list) or not all(isinstance(s, str) and s.strip() for s in assets_used):
-                return _asset_reject("used 必须是非空资产名字符串数组")
-            if not isinstance(assets_skipped, list) or not all(
-                isinstance(s, dict) and str(s.get("name", "")).strip() and str(s.get("reason", "")).strip()
-                for s in assets_skipped
-            ):
-                return _asset_reject('skipped 必须是 [{"name": 资产名, "reason": 非空理由}] 数组')
-            assets_declared = set(assets_used) | {str(s["name"]) for s in assets_skipped}
-            assets_unknown = sorted(assets_declared - set(asset_names))
-            assets_missing = sorted(set(asset_names) - assets_declared)
-            if assets_unknown:
-                return _asset_reject(f"申报了本步未给出的资产 {assets_unknown}（本步资产清单: {asset_names}）")
-            if assets_missing:
-                return _asset_reject(f"资产未逐一申报使用或跳过: {assets_missing}")
-            if set(assets_used) & {str(s["name"]) for s in assets_skipped}:
-                return _asset_reject("同一资产同时申报了 used 与 skipped（自相矛盾申报）。"
-                                     "真实使用 → used（须留使用痕迹）；确未使用 → skipped+理由")
-            # used 痕迹绑定：资产名或路径（归一化大小写与路径分隔符）出现在
-            # commands/outputs/inputs 任一串中即有痕。路径按仓库根相对形态匹配，
-            # 绝对路径命令天然包含该子串。
-            asset_trace_blob = " ".join(
-                [str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)]
-                + [str(p) for p in evidence.get("outputs", []) or []]
-                + [str(p) for p in evidence.get("inputs", []) or []]
-            ).lower().replace("\\", "/")
-            for asset in required_assets:
-                if str(asset["name"]).strip() not in assets_used:
-                    continue
-                asset_path_norm = str(asset.get("path", "")).strip().lower().replace("\\", "/")
-                name_hit = str(asset["name"]).strip() in asset_trace_blob
-                path_hit = bool(asset_path_norm) and asset_path_norm in asset_trace_blob
-                if not name_hit and not path_hit:
-                    return _asset_reject(
-                        f"used 申报的资产 {asset['name']} 在命令与产物/输入路径中零使用痕迹。"
-                        "两条出路：① 把读取/执行该资产的真实命令如实记入 evidence.commands"
-                        "（含资产路径或资产名）；② 若确未使用，改申报为 skipped 并写明理由")
+        message = self._asset_gate_message(step, evidence, exec_ev)
+        if message:
+            return self._gate_reject(workflow_id, step, result, message)
 
         workspace = Path(workflow.metadata["workspace"])
         declared_outputs = list(step.metadata.get("output_files", []))
@@ -617,6 +434,230 @@ class WorkflowRunner:
         return RunResult(workflow_id, "advanced", step.id,
                          message=f"步骤 {step.name} 完成，继续下一步")
 
+    # ── 申报-痕迹门禁复用件（C1 companion / P4 binding / C2 assets） ──────
+    # 三道闸的校验语义与教学文案原样保留（2026-09-22 P4 资产激活批次 B 抽出），
+    # complete_step 与 backfill_step 共用同一实现——补录不得弱于在环完成。
+    # 返回 None = 无违规；返回 str = 完整失败消息（含"invalid execution evidence:"
+    # 前缀与教学文案），调用方负责转 FAILED。
+
+    def _gate_reject(self, workflow_id: str, step: Any, result: StepResult, message: str) -> RunResult:
+        """门禁违规的统一落账：步骤转 FAILED + step_failed 事件，返回 failed。"""
+        self.store.transition_step_with_checkpoint(
+            workflow_id, step.id, StepStatus.FAILED,
+            {"status": "failed", "error": message},
+            artifacts=[{"name": a, "path": a} for a in result.artifacts],
+            event={"type": "step_failed", "stderr": message},
+        )
+        return RunResult(workflow_id, "failed", step.id, message)
+
+    @staticmethod
+    def _trace_blobs(evidence: dict) -> tuple[str, str]:
+        """(trace_blob, command_blob)——trace 覆盖命令+产物/输入路径，command 只含命令串；
+        归一化口径与抽取前一致（小写、'-'↔'_' 等价；trace 不分路径分隔符）。"""
+        parts = (
+            [str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)]
+            + [str(p) for p in evidence.get("outputs", []) or []]
+            + [str(p) for p in evidence.get("inputs", []) or []]
+        )
+        trace_blob = " ".join(parts).lower().replace("-", "_")
+        command_blob = " ".join(
+            str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)
+        ).lower().replace("-", "_")
+        return trace_blob, command_blob
+
+    def _companion_gate_message(self, step: Any, evidence: dict, exec_ev: dict) -> str | None:
+        """⛔ C1: 辅助技能强制申报（2026-09-11 用户质询"只推荐不强制会便宜行事"）。
+        步骤定义了 companion_skills 时，执行证据必须含 companion_skills 申报：
+          {"used": [技能名...], "skipped": [{"skill": 名, "reason": 非空理由}...]}
+        used ∪ skipped 必须恰好覆盖本步推荐清单（申报 ≠ 强制使用，但"不用"必须留痕给理由）；
+        缺申报/覆盖不全/申报了未推荐的技能/格式错 = 违规（消息含正确格式教学）。"""
+        recommended = list(step.metadata.get("companion_skills") or [])
+        if not recommended:
+            return None
+
+        def _reject(detail: str) -> str:
+            # 注意：只有第一段是 f-string；后两段是普通字符串，花括号无需转义
+            # （2026-09-11 小修：此前 {{...}} 转义残留导致教学格式渲染成双花括号）
+            return (f"invalid execution evidence: 辅助技能申报不合规——{detail}。"
+                    '正确格式: "companion_skills": {"used": ["技能名"], '
+                    '"skipped": [{"skill": "技能名", "reason": "为何跳过"}]}，'
+                    "used 与 skipped 须恰好覆盖本步推荐清单。")
+
+        raw_decl = (exec_ev or {}).get("companion_skills")
+        if not isinstance(raw_decl, dict):
+            return _reject(f"本步推荐了辅助技能 {recommended} 但证据缺少 companion_skills 申报")
+        used = raw_decl.get("used", [])
+        skipped = raw_decl.get("skipped", [])
+        if not isinstance(used, list) or not all(isinstance(s, str) and s.strip() for s in used):
+            return _reject("used 必须是非空技能名字符串数组")
+        if not isinstance(skipped, list) or not all(
+            isinstance(s, dict) and str(s.get("skill", "")).strip() and str(s.get("reason", "")).strip()
+            for s in skipped
+        ):
+            return _reject('skipped 必须是 [{"skill": 技能名, "reason": 非空理由}] 数组')
+        declared = set(used) | {str(s["skill"]) for s in skipped}
+        unknown = sorted(declared - set(recommended))
+        missing = sorted(set(recommended) - declared)
+        if unknown:
+            return _reject(f"申报了本步未推荐的技能 {unknown}（本步推荐清单: {recommended}）")
+        if missing:
+            return _reject(f"推荐技能未逐一申报使用或跳过: {missing}")
+        # ⛔ C1 申报自洽（A2 minor 审计修复）：used 与 skipped 不得重叠——同一技能
+        # "既声称用了又声称跳过"是自相矛盾申报，留痕必须口径唯一。归一化与痕迹
+        # 校验同口径（不区分大小写、'-' 与 '_' 等价），大小写/连字符变体的重叠同样拦截。
+        used_norm = {_norm_skill_token(u) for u in used}
+        skipped_norm = {_norm_skill_token(s["skill"]) for s in skipped}
+        overlap_norm = used_norm & skipped_norm
+        if overlap_norm:
+            overlap_display = sorted(
+                {u for u in used if _norm_skill_token(u) in overlap_norm}
+                | {str(s["skill"]) for s in skipped
+                   if _norm_skill_token(s["skill"]) in overlap_norm}
+            )
+            return _reject(
+                f"同一技能同时申报了 used 与 skipped: {overlap_display}（自相矛盾申报）。"
+                "每个技能只能二选一：真实使用 → 申报 used（须留使用痕迹）；"
+                "确未使用 → 申报 skipped 并写明非空理由")
+        # ⛔ C1 痕迹绑定（A5 ⑫/A2 major 修复：used 伪报零校验直接过闸）：
+        # 覆盖校验通过后，每个 used 技能必须有真实使用痕迹——技能名
+        # （不区分大小写，'-' 与 '_' 等价）出现在任一 evidence.commands 命令串
+        # 或任一 declared outputs/inputs 路径中才算有痕；无痕 = 步骤失败，
+        # 并教学两条出路（如实补记 consult 命令，或改报 skipped+理由）。
+        trace_blob, _command_blob = self._trace_blobs(evidence)
+        for used_skill in used:
+            trace_key = _norm_skill_token(used_skill)
+            if trace_key and trace_key not in trace_blob:
+                return _reject(
+                    f"used 申报的技能 {used_skill} 在命令与产物/输入路径中零使用痕迹"
+                    "（伪报 used 直接过闸已被禁止）。两条出路："
+                    "① 把 consult 该技能的真实命令（如读取其 SKILL.md 的命令）如实记入 "
+                    "evidence.commands；② 若确未使用，改申报为 skipped 并写明理由")
+        return None
+
+    def _binding_gate_message(self, workflow: Workflow, step: Any, evidence: dict,
+                              exec_ev: dict) -> str | None:
+        """⛔ P4: 技能强制绑定（2026-09-19 "步骤不会强制调用 skills" 的机制层修复）。
+        声明了 skill_binding 的步骤满足三件事：
+          ① 主技能咨询痕迹：主技能名或 skills/<main>/SKILL.md 出现在 commands/inputs；
+          ② mandatory 技能不得 skipped，必须 used 且留命令级痕迹；
+          ③ 每条 mandatory 至少有一条命令指向该技能目录（不能只在产物路径里蹭名）。
+        未声明 skill_binding 的步骤零影响（向后兼容）——绑定是"显式声明才生效"。"""
+        binding = step.metadata.get("skill_binding") or {}
+        if not (isinstance(binding, dict) and binding):
+            return None
+
+        def _reject(detail: str) -> str:
+            requirements = "; ".join(self._action_for_step(workflow, step).binding_requirements())
+            return (f"invalid execution evidence: 技能绑定不合规——{detail}。"
+                    f"本步绑定要求：{requirements or '见模板 metadata.skill_binding'}。"
+                    "绑定技能的意义是「契约被真实读取」而非填字段："
+                    "请在执行时真的读取对应 SKILL.md 并记入 evidence.commands。")
+
+        main_skill = str(binding.get("main") or step.name).strip()
+        trace_blob, command_blob = self._trace_blobs(evidence)
+
+        if binding.get("main_required", True):
+            main_key = _norm_skill_token(main_skill)
+            if main_key and main_key not in trace_blob:
+                return _reject(
+                    f"未见主技能 {main_skill} 的咨询痕迹（命令/输入中缺 "
+                    f"skills/{main_skill}/SKILL.md 或技能名）——skill_sha256 只能证明文件被读取过，"
+                    "不能证明契约被遵守")
+
+        mandatory = [str(s).strip() for s in (binding.get("mandatory") or []) if str(s).strip()]
+        if mandatory:
+            raw_decl = (exec_ev or {}).get("companion_skills") or {}
+            used_norm = {_norm_skill_token(u) for u in (raw_decl.get("used") or [])}
+            skipped_norm = {_norm_skill_token(str(s.get("skill", ""))) for s in (raw_decl.get("skipped") or [])
+                            if isinstance(s, dict)}
+            for skill in mandatory:
+                key = _norm_skill_token(skill)
+                if key in skipped_norm:
+                    return _reject(
+                        f"绑定技能 {skill} 被申报为 skipped，但该技能在本步是必用项（不可跳过）")
+                if key not in used_norm:
+                    return _reject(f"绑定技能 {skill} 未申报 used（必用技能必须申报使用）")
+                if key not in trace_blob:
+                    return _reject(f"绑定技能 {skill} 在命令与产物/输入路径中零使用痕迹")
+                if key not in command_blob:
+                    return _reject(
+                        f"绑定技能 {skill} 只出现在产物/输入路径，未出现在任何命令中——"
+                        f"请把读取其契约的真实命令（如读取 skills/{skill}/SKILL.md）记入 commands")
+        return None
+
+    def _asset_gate_message(self, step: Any, evidence: dict, exec_ev: dict) -> str | None:
+        """⛔ C2: 步骤资产强制申报（2026-09-12 资产利用率审计落地）。
+        步骤定义了 assets（{"name","path","note"} 列表，path 为仓库根相对）时，
+        执行证据必须含 assets 申报，语义与 C1 同构：
+          {"used": [资产名...], "skipped": [{"name": 资产名, "reason": 非空理由}...]}
+        used ∪ skipped 恰好覆盖清单；申报 ≠ 强制使用，但"不用"必须留痕给理由；
+        used 资产须有真实痕迹（资产名或仓库根相对路径出现在命令/产物/输入路径中）。"""
+        required_assets = [a for a in (step.metadata.get("assets") or [])
+                           if isinstance(a, dict) and str(a.get("name", "")).strip()]
+        if not required_assets:
+            return None
+
+        def _reject(detail: str) -> str:
+            return (f"invalid execution evidence: 步骤资产申报不合规——{detail}。"
+                    '正确格式: "assets": {"used": ["资产名"], '
+                    '"skipped": [{"name": "资产名", "reason": "为何跳过"}]}，'
+                    "used 与 skipped 须恰好覆盖 StepAction.assets 清单。")
+
+        raw_assets_decl = (exec_ev or {}).get("assets")
+        asset_names = [str(a["name"]).strip() for a in required_assets]
+        if not isinstance(raw_assets_decl, dict):
+            return _reject(f"本步给出了资产清单 {asset_names} 但证据缺少 assets 申报")
+        assets_used = raw_assets_decl.get("used", [])
+        assets_skipped = raw_assets_decl.get("skipped", [])
+        if not isinstance(assets_used, list) or not all(isinstance(s, str) and s.strip() for s in assets_used):
+            return _reject("used 必须是非空资产名字符串数组")
+        if not isinstance(assets_skipped, list) or not all(
+            isinstance(s, dict) and str(s.get("name", "")).strip() and str(s.get("reason", "")).strip()
+            for s in assets_skipped
+        ):
+            return _reject('skipped 必须是 [{"name": 资产名, "reason": 非空理由}] 数组')
+        assets_declared = set(assets_used) | {str(s["name"]) for s in assets_skipped}
+        assets_unknown = sorted(assets_declared - set(asset_names))
+        assets_missing = sorted(set(asset_names) - assets_declared)
+        if assets_unknown:
+            return _reject(f"申报了本步未给出的资产 {assets_unknown}（本步资产清单: {asset_names}）")
+        if assets_missing:
+            return _reject(f"资产未逐一申报使用或跳过: {assets_missing}")
+        if set(assets_used) & {str(s["name"]) for s in assets_skipped}:
+            return _reject("同一资产同时申报了 used 与 skipped（自相矛盾申报）。"
+                           "真实使用 → used（须留使用痕迹）；确未使用 → skipped+理由")
+        # used 痕迹绑定：资产名或路径（归一化大小写与路径分隔符）出现在
+        # commands/outputs/inputs 任一串中即有痕。路径按仓库根相对形态匹配，
+        # 绝对路径命令天然包含该子串。
+        asset_trace_blob = " ".join(
+            [str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)]
+            + [str(p) for p in evidence.get("outputs", []) or []]
+            + [str(p) for p in evidence.get("inputs", []) or []]
+        ).lower().replace("\\", "/")
+        for asset in required_assets:
+            if str(asset["name"]).strip() not in assets_used:
+                continue
+            asset_path_norm = str(asset.get("path", "")).strip().lower().replace("\\", "/")
+            name_hit = str(asset["name"]).strip() in asset_trace_blob
+            path_hit = bool(asset_path_norm) and asset_path_norm in asset_trace_blob
+            if not name_hit and not path_hit:
+                return _reject(
+                    f"used 申报的资产 {asset['name']} 在命令与产物/输入路径中零使用痕迹。"
+                    "两条出路：① 把读取/执行该资产的真实命令如实记入 evidence.commands"
+                    "（含资产路径或资产名）；② 若确未使用，改申报为 skipped 并写明理由")
+        return None
+
+    def _gate_obligations(self, step: Any) -> list[str]:
+        """步骤声明了哪些申报-痕迹义务（companion / binding / assets）。空 = 补录无绑定负担。"""
+        obligations = []
+        if step.metadata.get("companion_skills"):
+            obligations.append("companion_skills")
+        if step.metadata.get("skill_binding"):
+            obligations.append("skill_binding")
+        if step.metadata.get("assets"):
+            obligations.append("assets")
+        return obligations
+
     def approve_checkpoint(self, checkpoint_id: str, response: dict[str, Any]) -> RunResult:
         """用户批准检查点后继续工作流。"""
         candidates = [c for c in self.store.resume_candidates() if c.checkpoint.id == checkpoint_id]
@@ -753,7 +794,8 @@ class WorkflowRunner:
 
     def backfill_step(self, workflow_id: str, skill_name: str, artifacts: list[str],
                       commands: list[str] | None = None, note: str = "",
-                      by: str = "") -> RunResult:
+                      by: str = "", evidence: dict | None = None,
+                      waive_binding: bool = False, waive_reason: str = "") -> RunResult:
         """手工补录绕开 runner 完成的步骤（D1 溯源链闭合）。
 
         把手工步骤的真实产物哈希与命令补进事件库与 STEP_MANIFEST，走带内
@@ -761,6 +803,16 @@ class WorkflowRunner:
         审计。事件类型记 ``step_backfilled``（区别于 step_completed，复审时
         可区分"在环执行"与"人工补录"）。产物不存在即拒绝（backfill 只补
         真实存在的产物，防伪造溯源）。
+
+        ⛔ 绑定旁路封堵（2026-09-22 P4 资产激活批次 B）：步骤声明了任一
+        申报-痕迹义务（companion_skills / skill_binding / assets）时，补录
+        不再允许"产物存在即完成"。两条合法路径，无第三条（禁止静默旁路）：
+        ① ``evidence`` 携带与 complete_step 同构的 execution_evidence——走
+           同一 ``validate_execution_evidence``（含 skill_sha256 绑定签名对账）
+           与同一组 C1/P4/C2 门禁校验，通过后证据落盘 ``.engine/evidence/``；
+        ② ``waive_binding=True`` 且 ``waive_reason`` 非空的显式豁免——补录
+           放行，但写 ``backfill_binding_waived`` 审计事件 + 运行日志 +
+           step_backfilled 事件 payload 三处留痕，复审可逐条追问豁免理由。
         """
         workflow = self._workflow(workflow_id)
         row = self.store._connection.execute(
@@ -784,6 +836,48 @@ class WorkflowRunner:
         if not artifacts:
             return RunResult(workflow_id, "failed", step.id,
                              "补录至少需要 --artifact 一个产物（防空补录洗白断链）")
+
+        # ⛔ 绑定门（先于任何状态转移——校验不过 = 零副作用失败，不留 RUNNING 残渣）
+        obligations = self._gate_obligations(step)
+        binding_state = "no_binding"
+        ev_path = ""
+        if obligations:
+            if waive_binding:
+                if not str(waive_reason).strip():
+                    return RunResult(workflow_id, "failed", step.id,
+                                     f"补录被拒：--waive-binding 必须同时给出非空 --waive-reason "
+                                     f"（豁免不落理由 = 静默旁路）。本步义务：{obligations}")
+                binding_state = "waived"
+            else:
+                if not isinstance(evidence, dict):
+                    return RunResult(workflow_id, "failed", step.id,
+                                     f"补录被拒（禁止静默旁路）：步骤 {skill_name} 声明了绑定义务 "
+                                     f"{obligations}，backfill 必须携带与 complete_step 同构的 "
+                                     "execution_evidence（--evidence JSON，含真实 skill_sha256/"
+                                     "commands/申报），或显式 --waive-binding --waive-reason <理由> "
+                                     "豁免并落审计事件")
+                action = self._action_for_step(workflow, step)
+                try:
+                    ev = validate_execution_evidence(
+                        workflow.metadata["workspace"], action,
+                        StepResult(ok=True, artifacts=list(artifacts),
+                                   metadata={"execution_evidence": evidence}))
+                except ValueError as exc:
+                    return RunResult(workflow_id, "failed", step.id,
+                                     f"invalid backfill execution evidence: {exc}")
+                for message in (self._companion_gate_message(step, ev, evidence),
+                                self._binding_gate_message(workflow, step, ev, evidence),
+                                self._asset_gate_message(step, ev, evidence)):
+                    if message:
+                        return RunResult(workflow_id, "failed", step.id, message)
+                binding_state = "verified"
+                # 与 complete_step 同构的证据落盘（audit_store/账本可同口径对账）
+                manifest_preview = ArtifactManifest.validate(workspace, artifacts)
+                ev_path = write_execution_evidence(workspace, action, ev,
+                                                   _manifest_payload(manifest_preview))
+                if not commands:
+                    commands = [str(c.get("command", "")) for c in ev.get("commands", [])
+                                if isinstance(c, dict) and str(c.get("command", "")).strip()]
 
         # 带内转移 1：→ RUNNING（PENDING/BLOCKED 合法；已在 RUNNING 则不动）
         if step.status != StepStatus.RUNNING:
@@ -818,6 +912,7 @@ class WorkflowRunner:
         self.store.transition_step_with_checkpoint(
             workflow_id, step.id, StepStatus.COMPLETED,
             {"status": "backfilled", "by": by, "note": note,
+             "binding_check": binding_state,
              "manifest": _manifest_payload(manifest)},
             artifacts=[{"name": Path(a).name, "path": a,
                         "metadata": {"sha256": art.sha256, "size": art.size}}
@@ -825,14 +920,36 @@ class WorkflowRunner:
             event={"type": "step_backfilled", "skill_name": step.name, "by": by,
                    "note": note, "artifacts": list(artifacts),
                    "commands": list(commands or []),
+                   "binding_check": binding_state,
+                   "binding_obligations": obligations,
+                   "binding_evidence_path": ev_path,
+                   "waive_reason": str(waive_reason or "") if binding_state == "waived" else "",
                    "manifest_path": str(manifest_path)},
         )
+        _binding_label = {"no_binding": "无绑定义务", "verified": "绑定证据已验",
+                          "waived": f"绑定豁免（理由：{str(waive_reason).strip()}）"}[binding_state]
         self._log(workflow_id, step.id, step.name, "backfill",
-                  f"步骤 {step.name} 手工补录（by={by or '未署名'}，产物 {len(artifacts)} 项）",
+                  f"步骤 {step.name} 手工补录（by={by or '未署名'}，产物 {len(artifacts)} 项，{_binding_label}）",
                   agent=by or self._agent_label(workflow))
         self._audit_record(type="engine_event", event="step_backfilled",
                            workflow_id=workflow_id, step_id=step.id,
-                           skill_name=step.name, by=by, artifacts=list(artifacts))
+                           skill_name=step.name, by=by, artifacts=list(artifacts),
+                           binding_check=binding_state, binding_obligations=obligations)
+        if binding_state == "waived":
+            # 豁免必须产生独立可检索的审计事件（P4 批次 B：禁止静默旁路）
+            self._audit_record(type="engine_event", event="backfill_binding_waived",
+                               workflow_id=workflow_id, step_id=step.id,
+                               skill_name=step.name, by=by,
+                               obligations=obligations, reason=str(waive_reason).strip())
+            self._log(workflow_id, step.id, step.name, "backfill_waive",
+                      f"步骤 {step.name} 补录豁免绑定校验（by={by or '未署名'}，"
+                      f"义务 {obligations}，理由：{str(waive_reason).strip()}）",
+                      agent=by or self._agent_label(workflow))
+        elif binding_state == "verified":
+            self._audit_record(type="engine_event", event="backfill_binding_verified",
+                               workflow_id=workflow_id, step_id=step.id,
+                               skill_name=step.name, by=by,
+                               obligations=obligations, evidence_path=ev_path)
 
         # 补录后若无 pending/blocked/failed 步骤，正常收尾工作流
         if (not self._has_pending_steps(workflow_id)

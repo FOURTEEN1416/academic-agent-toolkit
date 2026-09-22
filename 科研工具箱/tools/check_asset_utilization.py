@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 """资产利用率审计（2026-09-12 资产缺口研究的反馈闭环件）。
 
-三类审计，对应"十四步流程资产未充分使用"研究的三个缺口：
+五类审计，对应"十四步流程资产未充分使用"研究的缺口与 2026-09-22 P4 资产激活批次：
   1. utilization  —— 扫 workspaces/*/evidence 的 companion_skills/assets 申报账本，
      输出各技能/资产的 used/skipped 率（死推荐 = 被推荐 N 次被用 0 次一览无余）；
   2. map-coverage —— skills/ 实存技能 vs CONTEST_SKILL_MAP.md 五类覆盖的零漏网机检
      （固化 2026-09-11 的一次性对账为可重跑工具）；
   3. assets-paths —— templates.json 各步 assets 指针的仓库根相对路径存在性校验
-     （资产指针指向不存在文件 = 假接线，必查）。
+     （资产指针指向不存在文件 = 假接线，必查）；
+  4. companion-dead-slots —— 模板 companion 死槽分代报表（P4 批次 D：
+     legacy 代际只登记不删除；活跃代际棘轮只减不增，口径见 companion_dead_slots）；
+  5. catalog-disposition —— capabilities/catalog.json 条目 disposition 分级账
+     （P4 批次 E：active / routed / evidence-bound；未回填数随激活批次递减）。
 
 用法：
-  python tools/check_asset_utilization.py                # 三类审计，人读输出
+  python tools/check_asset_utilization.py                # 五类审计，人读输出
   python tools/check_asset_utilization.py --json         # 机读 JSON
   python tools/check_asset_utilization.py --strict       # 覆盖缺口/假接线时 exit 1
   python tools/check_asset_utilization.py --workspaces X # 指定工作区根（默认 <仓库根>/workspaces）
@@ -161,6 +165,81 @@ def dead_recommendations(companion_stats: dict) -> list[dict]:
     return sorted(dead, key=lambda d: (-d["recommended"], d["skill"]))
 
 
+# 2026-09-22 P4 资产激活批次 D：companion 死槽分代报表。
+# 当前代机制字段（任一出现即判该模板属"活跃代际"）：
+#   companion_skills —— C1 申报机制（2026-09-11）引入；
+#   output_specs     —— D7 产物规格下限（2026-09-13）引入；
+#   note              —— batch4 当代模板（2026-09-22）携带。
+# legacy 代际（早期批量生成的 40+ 模板）死槽只登记不删除——用户红线"资产不撤只激活"；
+# 活跃代际死槽由 tests/test_asset_activation_p4.py 棘轮钉住"只减不增"。
+COMPANION_MECHANISM_FIELDS = ("companion_skills", "output_specs", "note")
+
+
+def companion_dead_slots(templates_path: Path) -> dict:
+    """按代际区分模板 companion 死槽（无任何步骤携带实质推荐槽的模板）。
+
+    返回 {"templates_total", "legacy_dead_slots", "active_dead_slots",
+          "active_clean_templates"}（均为模板名列表）。
+    """
+    if not templates_path.is_file():
+        return {"templates_total": 0, "legacy_dead_slots": [],
+                "active_dead_slots": [], "active_clean_templates": [],
+                "error": f"templates not found: {templates_path}"}
+    data = json.loads(templates_path.read_text(encoding="utf-8"))
+    legacy_dead, active_dead, active_clean = [], [], []
+    for tpl_name, tpl in sorted(data.items()):
+        if not isinstance(tpl, dict):
+            continue
+        steps = [s for s in tpl.get("sub_steps", []) if isinstance(s, dict)]
+        metas = [(s.get("metadata") or {}) for s in steps]
+        current_gen = any(
+            any(field in md for field in COMPANION_MECHANISM_FIELDS) for md in metas)
+        has_companion = any(bool(md.get("companion_skills")) for md in metas)
+        if not current_gen:
+            if has_companion:
+                active_clean.append(tpl_name)  # 理论不可达（companion 键即当前代）；保守归已接线
+            else:
+                legacy_dead.append(tpl_name)
+        elif has_companion:
+            active_clean.append(tpl_name)
+        else:
+            active_dead.append(tpl_name)
+    return {"templates_total": len(data), "legacy_dead_slots": legacy_dead,
+            "active_dead_slots": active_dead, "active_clean_templates": active_clean}
+
+
+def catalog_dispositions(catalog_path: Path) -> dict:
+    """capabilities/catalog.json 的 disposition 分级账（2026-09-22 P4 批次 E）。
+
+    三级：active（引擎已接入且真实留痕）/ routed（活跃路由面在册、可被找到）/
+    evidence-bound（模板步骤主技能，证据留痕闸覆盖）。缺省=尚未回填处置登记。
+    返回 {"entries_total", "filled", "by_level", "unfilled_skill_entries", "error"}。
+    """
+    out = {"entries_total": 0, "filled": 0, "by_level": {}, "unfilled_skill_entries": 0}
+    if not catalog_path.is_file():
+        out["error"] = f"catalog not found: {catalog_path}"
+        return out
+    try:
+        data = json.loads(catalog_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        out["error"] = f"catalog unreadable: {exc}"
+        return out
+    for items in data.values():
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            out["entries_total"] += 1
+            disp = item.get("disposition")
+            if disp:
+                out["filled"] += 1
+                out["by_level"][str(disp)] = out["by_level"].get(str(disp), 0) + 1
+            elif "-" in str(item.get("capability_id", "")):
+                out["unfilled_skill_entries"] += 1
+    return out
+
+
 def check_template_assets(templates_path: Path, repo_root: Path) -> dict:
     """templates.json 全模板 assets 指针存在性校验（仓库根相对）。"""
     if not templates_path.is_file():
@@ -239,6 +318,19 @@ def _print_report(result: dict) -> None:
         print(f"    ○ 未交付（公开 clone 不含该私有资料区，不拦截）: {m['path']}")
     if tpl.get("error"):
         print(f"    ⚠️ {tpl['error']}")
+    ds = result["companion_dead_slots"]
+    print(f"[4] companion 死槽分代：模板 {ds.get('templates_total', 0)} 个 / "
+          f"legacy 代际死槽 {len(ds.get('legacy_dead_slots', []))}（只登记不删除） / "
+          f"活跃代际死槽 {len(ds.get('active_dead_slots', []))}（棘轮只减不增，"
+          f"见 tests/test_asset_activation_p4.py） / 活跃已接线 {len(ds.get('active_clean_templates', []))}")
+    if ds.get("active_dead_slots"):
+        print("    活跃代际死槽模板: " + ", ".join(ds["active_dead_slots"]))
+    dp = result.get("catalog_disposition") or {}
+    print(f"[5] catalog disposition 分级账：条目 {dp.get('entries_total', 0)} / 已回填 "
+          f"{dp.get('filled', 0)}（{dp.get('by_level') or {}}）/ 技能名条目未回填 "
+          f"{dp.get('unfilled_skill_entries', 0)}（棘轮只升，见根 tests/test_minimum_catalog.py）")
+    if dp.get("error"):
+        print(f"    ⚠️ {dp['error']}")
 
 
 # 公开 clone / CI 不交付的本地私有资料区（被根 .gitignore 隔离）。
@@ -270,6 +362,8 @@ def main(argv: list[str] | None = None) -> int:
     cov["skills_total"] = len(skill_names)
     util = scan_evidence(workspaces_root)
     tpl = check_template_assets(TOOLBOX_ROOT / "engine" / "modex-core" / "templates.json", repo)
+    dead_slots = companion_dead_slots(TOOLBOX_ROOT / "engine" / "modex-core" / "templates.json")
+    dispositions = catalog_dispositions(repo / "capabilities" / "catalog.json")
 
     result = {
         "repo": str(repo),
@@ -278,6 +372,8 @@ def main(argv: list[str] | None = None) -> int:
         "utilization": util,
         "dead_recommendations": dead_recommendations(util["companion"]),
         "template_assets": tpl,
+        "companion_dead_slots": dead_slots,
+        "catalog_disposition": dispositions,
     }
     if args.as_json:
         print(json.dumps(result, ensure_ascii=False, indent=2))

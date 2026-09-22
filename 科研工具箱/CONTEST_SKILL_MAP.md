@@ -1,6 +1,6 @@
 # CUMCM 竞赛技能全库地图（CONTEST_SKILL_MAP）
 
-> **定位**：全库 257 个技能 × comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
+> **定位**：全库 263 个技能 × comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
 > `companion_skills` 字段（2026-09-11 起）每步主动给出本步推荐；本文件是全量真源，
 > 含"情境可用"、"外域不接入"与"未接入库"的完整分类账——**任何一个技能都不允许处于"无人知晓"状态**。
 > 维护纪律：新增技能入库时必须归入下列五类之一并同步本文件与引擎
@@ -55,7 +55,7 @@
 
 **赛后/场外情境推荐**（不在 14 步内）：`contest-retrospective`（赛后复盘与经验沉淀——留痕取证→场景/坑/清单三分类→每条归因仓库内真实强制点→双写经验库→机检闭环；**每个赛事周期结束后应跑一次**，2026-09-19 入库）、`paper-slides`/`paper-poster`/`sci-latex-posters`（答辩幻灯与海报）、`team-coordination`（三人分工时）、`feishu-notify`（进度通知）、`rebuttal`（答辩质询应答结构）。
 
-## 三、情境可用（64 个，按需加载）
+## 三、情境可用（77 个，按需加载）
 
 `claude-scientific-writer`（通用科学写作）、`paper-plan`/`paper-analysis`/`assets-inventory`（科研链资产管线，有既有材料时）、`paper-write-zh`/`paper-write-zh-docx`（Markdown 路线写文）、`paper-writing`/`paper-writing-ucsb`（科研写作方法论参考）、`training-check`（产出训练自检）、`editor-agent`/`experiment-agent`（代理执行模式）、`sci-citation-management`（引用管理方法论）、`scholar-accessible-pdf`/`scholar-latex-cleanup`/`scholar-presubmit-checks`（PDF 可及性/LaTeX 清理/预提交检查——投稿向但方法通用）、`novelty-check`（新颖性论证参考）、`idea-creator`（创意法参考）、`auto-paper-improvement-loop`（改进循环，第 12 步后可选）、`sci-scientific-writing`（科学写作规范）、
 `palette-health-check`（配色「去灰提彩」体检——把"发灰/发闷/太深"翻译成可机检的 C*/C*max 去灰指标、`deepen` 替代 `darken`、色带入带序单调性复核；S5 出图后或 S11 视觉审查时按需加载，脚本在 `skills/palette-health-check/bin/`，2026-09-12 入库）。
@@ -76,6 +76,19 @@
 - 论文写作（5）：`anti-ai-detection`（词表级检测由 _utils/ai_tell_check 承担）、`latex-writing`（cumcmthesis 模板内嵌）、`result-to-claim`（三要素转写为合同铁律）、`paper-plan-zh`（骨架由合同确定）、`format-profile`（cls 强制格式）
 - 编译交付（4）：`docx-export`（output_format=docx 机制自动加步）、`docx-format-check`、`docx-template-map`、`latex-document`
 
+**P0 激活批次（2026-09-22 资产充分吸收 P4，13 个）**——原 §五"未接入库"中"可修即可路由"
+的缺口：技能实体与 catalog 条目俱在、只差地图激活面（无 StepAction 推荐位之外的第二路由
+通道）。本批按情境可用接入本节，并同步 catalog 条目 `disposition: "routed"` 处置字段。
+分级口径（与根 `tests/test_minimum_catalog.py::test_disposition_claims_match_real_surfaces` 互锁）：
+本批 13 个均**不是**任何模板步骤的主技能（实测：templates.json 内 skill_name/companion_skills
+零命中），故只记 `routed`（第二路由通道=本地图活跃段具名），不冒充 `evidence-bound`；
+下一步激活面是把这些技能接入对应模板（scientific_plotting / literature_review /
+deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 evidence-bound：
+
+- 绘图/可视化（6）：`matplotlib`（全要素底层绘图，新建图型/定制集成场景）、`plotly`（交互式图表）、`seaborn`（统计图形快绘）、`visualization`（可视化方法论选型）、`infographics`（信息图/图解叙事）、`excalidraw-diagram`（手绘风示意图/白板图）
+- 文献/研究辅助（4）：`arxiv`（arXiv 检索/下载/摘要，工具线 `tools/arxiv_miner.py` 同域）、`comm-lit-review`（社区/非学术资料综述）、`deep-research`（多轮深度调研管线，与模板 `deep_research` 同域但非其步骤主技能，故仅记 routed）、`sci-literature-review`（学术综述方法模板）
+- 其他单点（3）：`ablation-planner`（消融实验规划，长周期科研按需）、`paper-illustration`（论文概念插图/示意图）、`problem-selection`（赛题选择——开引擎前选题决策环节，与 §一 comp-pipeline 前置衔接）
+
 ## 四、外域不接入（145 个，赛时不要加载）
 
 | 域 | 技能 | 不接入理由 |
@@ -94,19 +107,32 @@
 | 基础设施（5 + shared-scripts 目录） | skill-creator-official, acat-doc-governance, codesucker-integration, agent-bootstrap, tool-forge, shared-scripts(目录，非技能) | 仓库治理/技能开发/宿主无关自举与工具铸造/软著，非解题用 |
 | 其他（1） | pixel-art | 像素画风，与学术图规范冲突 |
 
-## 五、未接入库（15 个，2026-09-11 对账新增）
+## 五、未接入库（2 个，2026-09-11 对账新增；2026-09-22 P4 激活批次后余）
 
-以下技能在 skills/ 实存（有 SKILL.md）但未归入前四类任何一类（2026-09-11 机对账发现，
-此前处于"无人知晓"状态）。赛时不主动加载；确需使用时按情境技能对待并照常留痕：
+以下 2 个技能在 skills/ 实存（有 SKILL.md）但未归入前四类任何一类。它们**已有其他
+激活面路由**（区别于 2026-09-22 移入 §三 的 13 个 P0 缺口），保留在册仅作对账透明；
+赛时不主动加载；确需使用时按情境技能对待并照常留痕：
 
-- **绘图/可视化**（6）：`matplotlib`、`plotly`、`seaborn`、`visualization`、`infographics`、`excalidraw-diagram`
-- **文献/研究辅助**（5）：`arxiv`、`comm-lit-review`、`deep-research`、`sci-literature-review`、`sci-pdf`
-- **其他单点**（4）：`ablation-planner`（消融实验规划）、`paper-compile-zh`（中文编译变体，主链用 comp-compile-zh）、`paper-illustration`（论文插图）、`problem-selection`（赛题选择）
+- `sci-pdf`（PDF 合并/拆分/OCR/填表）——已随 `科研工具箱/AGENTS.md` §三 路由表接入
+  （"非竞赛域"行），disposition 记 `routed`（经路由表面，非本地图 §一-§三 具名）。
+- `paper-compile-zh`（中文编译变体，主链用 comp-compile-zh）——已随 AGENTS.md §三
+  路由表接入，且为 `paper_writing_zh` 等模板步骤主技能（引擎绑定面覆盖），
+  disposition 记 `evidence-bound`。
 
-## 六、统计（2026-09-19 机对账复核，check_asset_utilization.py）
+## 六、统计（2026-09-22 P4 资产激活批次机对账复核，check_asset_utilization.py）
 
-主链家族 20 + 每步推荐 17（§二 10 unique + 赛后段 7）+ 情境 64（19 + 修剪移入 41 + 新增 4）+ 外域 145 +
-未接入库 15 = **261**（与 skills/ 下含 SKILL.md 的目录数逐一相符：零幽灵名、零漏网）。
+**机检首匹配归段口径**（技能名按首次出现的段落计一次，跨段引用不重复计；词边界 + 斜杠缩写展开 +
+前缀域 fnmatch，与 `tools/check_asset_utilization.py` 的 `load_map_coverage` 完全同口径）：
+主链家族 20 + 每步推荐 18 + 情境可用 76 + 外域 147 + 未接入库 2 = **263**，
+与 skills/ 下含 SKILL.md 的目录实测数（263）逐一相符：零幽灵名、零漏网。
+两处口径差的说明（避免读者对不上数）：§三 标题"77 个"是**具名条目数**，其中
+`paper-figure-palette` 首现于 §二 step5 必用位故首匹配归 §二（77→76）；§四 标题"145 个"为
+手工具名数，六个前缀域（`ars-*`/`nature-*`/`spine-paper-*`/`latexpap-*`/`galaxy-*`/`dev-*`）
+按前缀展开后实得 147 个。
+**P4 激活轮（2026-09-22）变化**：§五 原 15 个未接入技能中 13 个并入 §三"P0 激活批次"小节
+（绘图/可视化 6 + 文献/研究辅助 4 + 其他单点 3），§五 只余 2 个（`sci-pdf`/`paper-compile-zh`，
+均已经 `科研工具箱/AGENTS.md` §三 路由表接入，disposition 见 §五 正文）。
+历史手工口径 20+17+64+145+15=**261**（2026-09-19 快照）仅作留档，以本节机检数为准。
 修剪只改变"哪一步主动推荐"（54→11，P4 后 12 槽位），不改变任何技能的可知性——全部 41 个移入 §三在册。
 **P4 技能绑定（2026-09-19）**：comp_cumcm 全部 14 步声明 `metadata.skill_binding`（`main_required` =
 主技能契约必须留真实读取痕迹）；step5 另声明 `mandatory: [paper-figure-palette]`（必用、不可 skipped）。
