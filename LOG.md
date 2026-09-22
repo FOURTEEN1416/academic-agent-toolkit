@@ -1431,3 +1431,12 @@ dev-docs/truth-index.md；task_plan.md 快照区历史行补 717）。校准后�
 - `15da4ee` 轮 CI **failure**（765 passed / 5 skipped / 1 failed）：`test_g2_json_report_carries_profile_and_default_unchanged` 在公开 clone 崩——CI 侧新版 PyMuPDF 对旧名 `import fitz` 向 **stdout** 打 deprecation warning，污染 `pack_submission.py --json` 输出（本机 1.27 无此行为，本地 768 全绿不覆盖该环境差）。
 - 修复 `67edbbc` 双保险：脚本 `pymupdf` 优先导入（旧环境回退 `fitz`，从源头保 CLI 输出纯度）+ 测试只解析首段 JSON 容忍库噪声。本地 5 测与 JSON 纯度端到端复验绿后推送。
 - `35739748409`（@67edbbc）CI **success**。教训入账：凡 `--json` 契约的 CLI，第三方库 import 面必须零 stdout；本地绿≠CI 绿，gitignored 缺位语义之外还要盯依赖版本行为差。
+
+## 续50 · 2026-09-22 · G3 在途并行核查 + checkpoint 人类署名红线批（#18/#19）
+
+- **G3 只读并行检查（续跑在途快照）**：① S14 compliance_profile 消费链全在位——templates.json 仅 step13(comp-final-audit) 声明 `comp_huawei`，解析 comp_rules.json 真源 OK，quick_gates `_pledge_verdict` 华为杯口径含承诺书→PASS 实测；② paper/main.pdf 11 页 ≤50、承诺书命中第 1 页（前 3 页窗口），STEP_MANIFEST 记 sha256+两遍 xelatex 真实命令；③ 账本 S0–S9 completed、S10 visual-review running、S11–13 pending，evidence/ 10 份与完成步一一对应。
+- **署名核查定案（#19）**：引擎 evidence 权威链署名与两棒分工完全吻合（S0–S5 runner / S6–S9 continuation）；唯一异常为工作区 STEP_MANIFEST.json `params.agent` 沿用第一棒模板误写，已就地订正并加 `_note` 留痕（workspaces/ 不入库）。
+- **治理缺口收口（#18，d013f72）**：G3 实跑 4 起子代理代批 approve 检查点（"预授权代批"×3 + "批次G3续跑"×1）暴露 `approve_checkpoint` 只验事件存在不验署名——本批把 A7R-F1 人类署名红线复用到通用检查点：空署名/agent 自指词一律 blocked、不写批准事件；实测词表存在 `sub**agent**` ASCII 边界逃逸（G3 真实署名竟过词表），补 subagent/multi-agent 子串硬拦，SKILL 降级预案口径同步；run_cumcm_e2e 无痕代批旁路封堵（E2E_APPROVE_AS 显式署名否则 fail-loud）。TDD 4 棘轮先 RED（3 败因正确）后 GREEN；3 处既有直调测试补人类署名。
+- **口径校准（5151002）**：基线 **772 = 工具箱 747 + 根门禁 25**（collect 775；本批 4 新棘轮 + 前轮 1 项补记），README/AGENTS/pytest.ini/truth-index 四文档同步，G2 轮 768 转入历史；漂移守护 17 测绿。
+- **门禁复跑**：仓库根 `pytest -q` 772 passed / 3 skipped / 0 failed；`secret_scan --strict` 零 FAIL；`check_provenance` exit 0；新增行泄漏扫描零命中。
+- **在途与排队**：G3（#17）剩 S10–S13，其中 S13 终检 approve 检查点此后**必须由默默本人署名**（红线已生效，子代理自批会被硬拦）——这本身是本批红线的端到端正对照；4 起代批事件全文入 G3 验收记录待 #20 收口；`?? skills/editaplot/` 未跟踪目录非本窗产物，待认领。
