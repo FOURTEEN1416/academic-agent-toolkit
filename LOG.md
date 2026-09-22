@@ -1294,3 +1294,12 @@ wrapper 重建幂等。
 改后全量复跑 = 715 passed / **3 skipped**（0 failed）——多出的 2 skip 系
 `test_asset_utilization` 检测到 `CUMCM2026Problems` 私有资料区缺失按语义降级，
 属上述删除事件的盘面反映，非代码回归。
+
+**CI 复绿确认（run 35711171875 @ 2c88d6c，2026-09-22 09:37Z）**：pytest+provenance+gates 单 job
+**success** = 公开侧 **713 passed / 5 skipped / 0 failed**，收集总数与本机一致（718）。
+5 项 skip 从 -rs 日志逐条核对：`test_asset_utilization` 真仓机检 2、缺 `参考论文` 私有资料区
+（`test_huawei_pipeline`）1、缺无 License 技能 `plot-from-image`（`test_skill_routing`）1、
+`docx_template_fill` pyc 缺陷钉住（`test_batch3_tool_happy`，batch3 已知欠账）1——全为语义 skip。
+公开侧口径按单一真源顺序回填：`pytest.ini` 注释 → `ci.yml` 步骤注释 → `AGENTS.md` 口径表
+（旧"历史 600+3"降为时点快照，新增"暂无新一轮实测"表述作废）。批次第 2 项"push 后看 run 结果
+再宣告收官"就此闭环。

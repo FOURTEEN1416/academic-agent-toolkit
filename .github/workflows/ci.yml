@@ -66,8 +66,9 @@ jobs:
         # 当前口径（2026-09-22 收官回填，本机完整仓）：717 passed / 0 failed
         # （= 工具箱自有 696 + 根级门禁 21；另 1 skipped 系 docx_template_fill pyc
         # 缺陷钉住，collect-only 718）。基线唯一真源 = pytest.ini 注释。
-        # 公开 clone 侧以 CI 实测为准（历史：run 35425878920 = 600 passed + 3 skipped；
-        # 新口径下暂无新一轮 CI 实测，不引用旧 457/455 失效口径）。
+        # 公开 clone 侧现行实测（2026-09-22 run 35711171875 = 713 passed + 5 skipped，
+        # 收集总数与本机一致 718；历史 run 35425878920 = 600+3 保留作时点快照）。
+        # 基线唯一真源 = pytest.ini 注释。
         # 公开侧与本机差异来自：gitignored 私有资产（test_asset_utilization 的
         # "真仓机检"缺其时按语义 skip，理由随 -rs 输出）与并行窗尚未提交的新测试。
         run: python -m pytest -q -rs
