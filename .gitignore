@@ -172,3 +172,11 @@ modex-3-skills/
 
 # Third-party aesthetics/reference galleries and personal material (2026-09-12 intake from Desktop, local only)
 参考图/
+
+# 竞赛模板集中字体库 + 模板内嵌字体（2026-09-22 P2 资产落位：103MB+~84MB 二进制不入公开仓；恢复源见 _templates/huawei/README.md）
+科研工具箱/skills/comp-paper-zh/_templates/_fonts-local/
+科研工具箱/skills/comp-paper-zh/_templates/**/*.[tT][tT][fF]
+科研工具箱/skills/comp-paper-zh/_templates/**/*.[tT][tT][cC]
+科研工具箱/skills/comp-paper-zh/_templates/**/*.[oO][tT][fF]
+# 官方附件3 Word/PDF（第三方模板，无再分发授权，本机参照用）
+科研工具箱/skills/comp-paper-zh/_templates/huawei/official_docx/
