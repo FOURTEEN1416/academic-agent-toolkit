@@ -1,0 +1,65 @@
+\documentclass[bwprint]{apmcmthesis}
+
+% === Extra packages ===
+\usepackage{algorithm2e}
+\usepackage{float}
+\usepackage[section]{placeins}
+\usepackage{needspace}
+
+% === TikZ ===
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+\usepackage{longtable}
+
+% === 引用上标格式（apmcmthesis 未配置上标）===
+\makeatletter
+\def\@cite#1#2{\textsuperscript{[{#1\if@tempswa , #2\fi}]}}
+\makeatother
+
+% === Competition info ===
+\tihao{[A/B/C]}
+\baominghao{[Team Number]}
+\schoolname{[School Name]}
+\membera{[Member A]}
+\memberb{[Member B]}
+\memberc{[Member C]}
+
+\title{[Paper Title]}
+
+\begin{document}
+
+\makecontrolsheet
+\maketitle
+
+\begin{abstract}
+
+[Summary: 300--400 words on one page; one paragraph per sub-problem with a named method and verified numerical result; use \textbf{} for 1--3 concise method/result anchors per sub-problem]
+
+\keywords{[Keyword1]; [Keyword2]; [Keyword3]}
+\end{abstract}
+
+\newpage
+% ⛔ 不要在这里加回 \tableofcontents：竞赛论文统一不出目录页。
+%   旁边的 \newpage/\clearpage 是摘要与正文之间的换页，删了正文会挤上来。
+\newpage
+
+% === Body ===
+\input{sections/1_introduction}
+\input{sections/2_assumptions}
+\input{sections/3_model_design}
+\input{sections/4_solution}
+\input{sections/5_sensitivity}
+\input{sections/6_strengths_weaknesses}
+\input{sections/7_conclusions}
+
+% === References ===
+\begin{thebibliography}{99}
+% \bibitem{ref1} Author. Title[J]. Journal, Year.
+\end{thebibliography}
+
+% === Appendix ===
+\begin{appendices}
+\input{sections/A_code}
+\end{appendices}
+
+\end{document}

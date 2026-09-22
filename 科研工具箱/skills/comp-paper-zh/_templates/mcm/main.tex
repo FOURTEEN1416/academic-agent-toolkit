@@ -1,0 +1,58 @@
+\documentclass{mcmthesis}
+\mcmsetup{CTeX = false,
+        tcn = 0000, problem = A,
+        sheet = true, titleinsheet = false, keywordsinsheet = true,
+        titlepage = true, abstract = true}
+\usepackage{newtxtext}
+
+% === Extra packages ===
+\usepackage{algorithm2e}
+\usepackage{float}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage[section]{placeins}
+\usepackage{needspace}
+
+% === TikZ ===
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+
+\title{[Paper Title]}
+\date{\today}
+
+\begin{document}
+
+\begin{abstract}
+
+[Summary: 300--400 words on one page; one paragraph per sub-problem with a named method and verified numerical result; use \textbf{} for 1--3 concise method/result anchors per sub-problem]
+
+\begin{keywords}
+[Keyword1]; [Keyword2]; [Keyword3]
+\end{keywords}
+\end{abstract}
+
+\maketitle
+% ⛔ 不要在这里加回 \tableofcontents：竞赛论文统一不出目录页。
+%   旁边的 \newpage/\clearpage 是摘要与正文之间的换页，删了正文会挤上来。
+\newpage
+
+% === Body ===
+\input{sections/1_introduction}
+\input{sections/2_assumptions}
+\input{sections/3_model_design}
+\input{sections/4_solution}
+\input{sections/5_sensitivity}
+\input{sections/6_strengths_weaknesses}
+\input{sections/7_conclusions}
+
+% === References ===
+\begin{thebibliography}{99}
+% \bibitem{ref1} Author. Title[J]. Journal, Year.
+\end{thebibliography}
+
+% === Appendix ===
+\begin{appendices}
+\input{sections/A_code}
+\end{appendices}
+
+\end{document}

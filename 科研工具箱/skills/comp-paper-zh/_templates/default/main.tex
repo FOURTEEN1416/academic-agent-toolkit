@@ -1,0 +1,112 @@
+\documentclass[12pt,a4paper]{ctexart}
+
+% === 页面设置 ===
+\usepackage[top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% === 字体 ===
+\ctexset{
+    section/format = \centering\zihao{3}\heiti,
+    subsection/format = \zihao{4}\heiti,
+    subsubsection/format = \zihao{-4}\heiti,
+}
+
+% === 常用宏包 ===
+\usepackage{amsmath,amssymb,amsthm}
+% ⛔ 固定中文引号字体：防加粗段引号跟随 \textbf→黑体、开引号字形像后引号。
+%   独立引号族 zhquote(宋体)+newunicodechar，加粗/西文环境字形都开闭分明。
+\setCJKfamilyfont{zhquote}[AutoFakeBold]{SimSun}
+\usepackage{newunicodechar}
+\newunicodechar{“}{{\CJKfamily{zhquote}\char"201C}}
+\newunicodechar{”}{{\CJKfamily{zhquote}\char"201D}}
+\newunicodechar{‘}{{\CJKfamily{zhquote}\char"2018}}
+\newunicodechar{’}{{\CJKfamily{zhquote}\char"2019}}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage[section]{placeins}
+\usepackage{needspace}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{labelsep=space}  % "图 1 xxx" 而非 "图 1: xxx"
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+\usepackage{algorithm2e}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{longtable}
+
+% === TikZ ===
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+
+% === 代码 ===
+\usepackage{listings}
+\lstset{
+    language=Python,
+    basicstyle=\small\ttfamily,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+}
+
+% === 定理环境 ===
+\newtheorem{definition}{定义}[section]
+\newtheorem{theorem}{定理}[section]
+
+% === 页眉页脚 ===
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[C]{\zihao{5}\songti 数学建模竞赛论文}
+\fancyfoot[C]{\thepage}
+
+\title{\heiti\zihao{2} [论文标题]}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+% === 摘要 ===
+\begin{center}
+{\zihao{3}\heiti 摘\hspace{2em}要}
+\end{center}
+\vspace{0.5em}
+\zihao{-4}\songti
+
+[摘要内容：600--800字，写满且收在一页；每个子问题独立一段，包含具名方法和真实数值结果，并用 \textbf{} 各突出1--3处关键方法/结果]
+
+\vspace{0.5em}
+\noindent\textbf{关键词：}[关键词1]；[关键词2]；[关键词3]
+
+% === 摘要与正文之间的换页（竞赛模板不出目录）===
+\newpage
+% ⛔ 不要在这里加回 \tableofcontents：竞赛论文统一不出目录页。
+%   旁边的 \newpage/\clearpage 是摘要与正文之间的换页，删了正文会挤上来。
+\clearpage
+
+% === 正文 ===
+\input{sections/1_restatement}
+\input{sections/2_analysis}
+\input{sections/3_assumptions}
+\input{sections/4_symbols}
+\input{sections/5_problem1}
+\input{sections/6_problem2}
+\input{sections/7_problem3}
+\input{sections/8_sensitivity}
+\input{sections/9_evaluation}
+
+% === 参考文献 ===
+\bibliography{references}
+
+% === 附录 ===
+\appendix
+\input{sections/A_code}
+
+\end{document}

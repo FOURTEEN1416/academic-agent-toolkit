@@ -1,0 +1,523 @@
+\documentclass[UTF8,a4paper,zihao=-4,AutoFakeBold]{ctexart}
+\usepackage[a4paper,top=2.54cm,bottom=2.54cm,left=3.17cm,right=3.17cm]{geometry}
+\linespread{1.55}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setCJKfamilyfont{fsgb}{fsGB2312.ttf}
+\newcommand{\fsgb}{\CJKfamily{fsgb}}
+\setCJKfamilyfont{fzxbsong}{fzxbsongti.TTF}
+\newcommand{\fzxbsong}{\CJKfamily{fzxbsong}}
+\ctexset{autoindent=2em}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\captionsetup{
+    font = {small, singlespacing},
+    labelsep = quad
+}
+\captionsetup[table]{
+    font = {small, singlespacing},
+    justification = centering
+}
+\captionsetup[figure]{
+    font = {small, singlespacing},
+    justification = centering
+}
+
+\newcolumntype{C}[1]{>{\zihao{5}\songti\centering\arraybackslash}p{#1}}
+\usepackage{titlesec}
+\usepackage{pifont}
+\renewcommand{\theparagraph}{\ding{\numexpr171+\value{paragraph}\relax}}
+\ctexset{
+    section = {
+        format = \heiti\zihao{-3},
+        name = {,、},
+        aftername = {},
+        number = \chinese{section},
+        beforeskip = 0pt,
+        afterskip = 0pt
+    },
+    subsection = {
+        format = \kaishu\zihao{4},
+        name = {（,）},
+        aftername = {},
+        number = \chinese{subsection},
+        beforeskip = 0pt,
+        afterskip = 12pt
+    },
+    subsubsection = {
+        format = \songti\zihao{-4}\bfseries,
+        aftername = {},
+        number = \arabic{subsubsection}.,
+        beforeskip = 0pt,
+        afterskip = 6pt
+    },
+    abstractname = {\textbf\heiti\zihao{4}摘要}
+}
+\usepackage{pifont} % 提供 \ding 命令（①、②、③等符号）
+
+% 定义 ssection 计数器，依赖 subsubsection
+\newcounter{ssection}[subsubsection] % 当 subsubsection 变化时，ssection 自动重置
+\renewcommand{\thessection}{\ding{\numexpr171+\value{ssection}\relax}}
+
+% 定义 ssection 命令（四级标题）
+\newcommand{\ssection}[1]{%
+    \refstepcounter{ssection}%
+    \par%\noindent % 新起一行，无缩进
+    {\thessection#1}% 加粗显示，如 "① 标题内容"
+    \par\noindent % 后续内容新起一行
+}
+\usepackage{titlesec}
+\titlespacing{\section}{0pt}{0pt}{0pt}
+\titlespacing{\subsection}{2em}{0pt}{0pt}
+\titlespacing{\subsubsection}{2em}{0pt}{0pt}
+\setlength{\parindent}{2em}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}                       % 清除所有页眉页脚
+\renewcommand{\headrulewidth}{0pt} % 去除页眉横线
+\fancyfoot[C]{\thepage}          % 页码居中
+
+
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \renewcommand{\headrulewidth}{0pt}
+    \fancyfoot[C]{\thepage}
+}
+
+% ==================== 超链接与参考文献 ====================
+\usepackage[backref]{hyperref}
+\hypersetup{hidelinks}
+
+\usepackage[numbers, square]{natbib}
+\renewcommand{\refname}{\heiti\zihao{4}参考文献}
+\renewcommand{\bibfont}{\songti\zihao{-4}}
+
+% ==================== 其他工具包 ====================
+\usepackage{setspace}
+\usepackage{tikz}
+% ==================== 目录设置 ====================
+
+
+% todo 目录设置
+\setcounter{tocdepth}{3}
+\usepackage{titletoc}
+\renewcommand{\contentsname}{\heiti\zihao{4}\centering 目\hspace{1em}录}
+\titlecontents{section}
+    [0pt]  % 左缩进
+    {\addvspace{0pt}\songti\zihao{-4}}  % 标题前格式
+    {\thecontentslabel\hspace{0em}}  % 带编号的标题格式
+    {}  % 无编号的标题格式
+    {\titlerule*[0.5pc]{.}\contentspage}  % 标题后格式（带引导点和页码）
+
+\titlecontents{subsection}
+    [2em]  % 左缩进
+    {\addvspace{0pt}\songti\zihao{-4}}  % 标题前格式
+    {\thecontentslabel\hspace{0em}}  % 带编号的标题格式
+    {}  % 无编号的标题格式
+    {\titlerule*[0.5pc]{.}\contentspage}  % 标题后格式
+
+\titlecontents{subsubsection}
+    [4em]  % 左缩进
+    {\addvspace{0pt}\songti\zihao{-4}}  % 标题前格式
+    {\thecontentslabel\hspace{0.4em}}  % 带编号的标题格式
+    {}  % 无编号的标题格式
+    {\titlerule*[0.5pc]{.}\contentspage}  % 标题后格式
+
+
+\begin{document}
+	\thispagestyle{empty}
+	{\heiti\zihao{3} 作品编号：TJJM}\par
+	\vspace*{5.5cm}
+	\begin{center}
+		\fzxbsong
+		{\zihao{-2} \textbf{2026}年（第十二届）全国大学生统计建模大赛}\\
+		\vspace*{20pt}
+		{\zihao{1}参~赛~作~品}
+	\end{center}\par
+	\vspace*{4.5cm}
+	\begin{table}[h]
+		\centering
+		\zihao{-3}
+		\fsgb
+		%tabelc: \setlength{\tabcolsep}{5mm}{} Control the spacing of each column.
+		\renewcommand{\arraystretch}{2}
+		\setlength{\tabcolsep}{5mm}{
+			\begin{tabular}{rc}
+				参赛学校：&大学\\\cline{2-2}
+				论文题目：& %\makecell[l]{
+					省域消费潜力动态评估与未来趋势预测研究\\\cline{2-2}
+ % 使用makecell换行
+				参赛队员：&人人人~人人人~人人人\\\cline{2-2}
+				指导老师：&人人人\\\cline{2-2}
+		\end{tabular}}
+	\end{table}
+	
+	\clearpage
+	\begin{center}
+		\zihao{3}\fzxbsong\setlength{\baselineskip}{24pt}
+		省域消费潜力动态评估与未来趋势预测研究
+		%基于多模型融合与空间异质性的居民消费潜力评估\\及国补政策动态优化研究\\
+	\end{center}
+	
+\section*{\centering\heiti\zihao{4} 摘要} 
+	%\begin{abstract}
+		\songti\zihao{-4}
+		在“双循环”新发展格局和扩大内需战略深化实施的背景下，提振消费已成为推动经济高质量发展的核心任务。2024年，我国推出新一轮大规模设备更新和消费品以旧换新政策，通过消费券发放和家电消费补贴加码进一步释放市场活力；2025年......
+		
+		在“双循环”新发展格局和扩大内需战略深化实施的背景下，提振消费已成为推动经济高质量发展的核心任务。2024年，我国推出新一轮大规模设备更新和消费品以旧换新政策，通过消费券发放和家电消费补贴加码进一步释放市场活力；2025年......在“双循环”新发展格局和扩大内需战略深化实施的背景下，提振消费已成为推动经济高质量发展的核心任务。2024年，我国推出新一轮大规模设备更新和消费品以旧换新政策，通过消费券发放和家电消费补贴加码进一步释放市场活力；2025年......在“双循环”新发展格局和扩大内需战略深化实施的背景下，提振消费已成为推动经济高质量发展的核心任务。2024年，我国推出新一轮大规模设备更新和消费品以旧换新政策，通过消费券发放和家电消费补贴加码进一步释放市场活力；2025年......
+		%——高潜力区强化“提质增效”、中高潜力区聚焦“增量跃升”、低潜力区推行“改革前置”，从而优化资源配置效率，对各区域进行有效的消费提振，
+		
+		
+		
+		\heiti\zihao{-4}\setlength{\baselineskip}{24pt}  关键词：
+		\songti\zihao{-4}\setlength{\baselineskip}{24pt} 提振消费；补贴；时序全局主成分分析；熵权-TOPSIS；贝叶斯局部线性趋势模型
+	%\end{abstract}
+	
+	% 数学建模产品统一不生成正文目录、表目录或图目录；摘要后直接进入正文。
+	\clearpage
+	\begin{center}
+		\zihao{3}\fzxbsong\setlength{\baselineskip}{24pt}
+		省域消费潜力动态评估与未来趋势预测研究
+	\end{center}
+	\section{引言}
+	\subsection{研究背景}
+	在“双循环”新发展格局与扩大内需战略背景下，提振消费成为了当前经济发展的核心问题。释放居民消费潜力是优化经济结构、实现高质量发展的关键。在“双循环”新发展格局与扩大内需战略背景下，提振消费成为了当前经济发展的核心问题。释放居民消费潜力是优化经济结构、实现高质量发展的关键。在“双循环”新发展格局与扩大内需战略背景下，提振消费成为了当前经济发展的核心问题。释放居民消费潜力是优化经济结构、实现高质量发展的关键。在“双循环”新发展格局与扩大内需战略背景下，提振消费成为了当前经济发展的核心问题。释放居民消费潜力是优化经济结构、实现高质量发展的关键。
+	
+	在“双循环”新发展格局与扩大内需战略背景下，提振消费成为了当前经济发展的核心问题。释放居民消费潜力是优化经济结构、实现高质量发展的关键。在“双循环”新发展格局与扩大内需战略背景下，提振消费成为了当前经济发展的核心问题。释放居民消费潜力是优化经济结构、实现高质量发展的关键。在“双循环”新发展格局与扩大内需战略背景下，提振消费成为了当前经济发展的核心问题。释放居民消费潜力是优化经济结构、实现高质量发展的关键。
+	
+	\subsection{研究目的与意义}
+	随着“双循环”深化及各项促消费政策推进，如何科学确定补贴标准并合理分配，以释放消费潜力且避免补贴依赖，成为重要课题。本研究旨在基于 31 省份近十年多维消费数据，融合时序全局主成分分析与熵权TOPSIS构建消费潜力评价体系，揭示其演变规律与波动特征。利用贝叶斯局部线性趋势模型预测未来潜力，识别不同潜力与增长率的典型区域，为财政补贴的差异化、动态化配置提供依据。研究结合历史演进与未来预测，以量化方式为政策制定提供参考，助力激发内需、提振消费。
+	\section{文献综述}
+	\subsection{国内外文献综述}
+	%消费潜力的量化与质化研究一直是区域经济领域的重要议题，国内的学者也就这两个方面进行了深入的探讨。	
+	现有关于消费潜力的研究为本文变量选择和评价体系构建提供重要支撑。国内学者在研究消费潜力时，多聚焦于两个层面。
+	
+	其一，影响因素分析：传统经济要素方面，学者们普遍认为居民可支配收入、国家宏观经济与政策支持、城镇化水平及消费环境是关键驱动力（王吉恒等，2012；胡清升，2015；李宜谦，2020；张利霞，2025）\textsuperscript{\cite{KFDB201202009}}\textsuperscript{\cite{ZGTJ201507006}}\textsuperscript{\cite{HBHJ202012041}}\textsuperscript{\cite{SYJJ202505008}}。新兴消费形态方面，电子商务和数字经济通过提升居民信心、幸福感及社会保障贡献，对释放消费潜力具有显著作用（郭守亭等，2022；张玮，2024）\textsuperscript{\cite{CKYK202212018}}\textsuperscript{\cite{SYJJ202424011}}。
+	
+	其二，...
+	
+	与国内研究侧重宏观指标和空间异质性不同，国外研究虽相对稀缺，但其特色在于将人口年龄结构、储蓄行为、养老金政策及家庭应纳税额等微观因素纳入分析框架。例如...
+
+	\subsection{综述述评}
+	现有文献为本研究提供了理论与方法支撑。国内研究侧重指标构建与空间异质性，国外则关注微观因素。但现有研究存在局限：多集中于特定群体或领域，缺乏整体性；静态分析为主，虽部分研究涉及时序数据，但也未能深入挖掘动态演变规律。因此，本文从宏观视角构建评价体系，侧重分析消费潜力时序变化并预测未来趋势，为中长期消费提振政策提供动态参考依据。
+	
+	\section{研究思路与内容}
+	本研究的技术路线图如图1：
+	%插入图片的方法
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1.0\textwidth]{流程图1}
+		\caption{流程图}
+	\end{figure}
+	
+	\section{省域居民消费潜力动态评价及分析}
+	\subsection{数据来源}
+	为综合研究我国各省份的居民消费潜力得分与排名，兼顾数据的可获取性、时效性以及数据分析的有效性，本文选取了...
+	\subsection{变量选择与说明}
+	被解释变量：
+	
+	解释变量： 
+	
+	%以下是三线表的方法
+	\begin{table}[H]
+		\centering
+		\caption{解释变量定义及其与居民消费的关系}
+		\renewcommand\arraystretch{1}
+		\begin{tabular}{C{3cm}C{1cm}C{4.5cm}C{5.1cm}}
+			\toprule[1.5pt] % 加粗上横线
+			
+			解释变量名称 & 表示 & 定义与测量 & 与消费的关系 \\
+			\midrule
+			人口（万人） & $x_{1}$ & 地区常住人口总数 &  人口规模驱动消费需求总量\textsuperscript{\cite{1017159173.nh}} \\
+			
+			城镇人口比重（\%） & $x_{2}$ & 城镇常住人口占总人口比例 &  城镇化提高消费水平\textsuperscript{\cite{SYJJ202505008}} \\
+			
+			城镇失业率（\%） & $x_{3}$ & 城镇登记失业率 &  失业率上升抑制居民消费信心\textsuperscript{\cite{GGYY201902007}}  \\
+			\bottomrule[1.5pt] % 加粗下横线
+		\end{tabular}
+	\end{table}
+		
+	
+	\subsection{描述性统计}	
+	（1）核心变量动态特征
+	
+	本文通过描述性统计计算得到了统计量(见附录)，并绘制了代表变量的相关图（图2—5）。研究期内，
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1.0\textwidth]{趋势图}
+		\caption{代表变量时间趋势图}
+	\end{figure}
+	
+	（2）空间差异与分布演化
+	
+	可视化分析显示......
+	
+	（3）变量关联网络
+	
+	皮尔逊相关分析显示（图5）...
+	
+	（4）时间序列特性分析：平稳性与格兰杰因果检验
+	
+	ADF 检验表明 9 个关键指标数据平稳......
+	
+	综上2015-2023年间，中国区域发展呈现"增长持续化、差异结构化、关联网络化"特征。经济总量指标普遍增长但区域绝对差异扩...
+	
+	\subsection{基于时序全局主成分分析的消费潜力动态评价}
+	\subsubsection{数据预处理}
+	对于收集到的数据进行标准化处理，消除量纲。步骤如下：
+	%以下是写公式的写法，可以直接通过AI得到公式的latex模式
+	\begin{equation}
+		x_{ij}^{\prime}=\frac{x_{ij}-\mu}{\sigma}
+	\end{equation}
+	式中$	x_{ij}^{\prime}$为标准化后的数据值，$x_{ij}$为原始数据值，$\mu$ 为该项变量均值，$\sigma$为该项变量标准差。
+	
+	接着...
+	
+	\subsubsection{数据检验}
+	%ding{172}是①的写法
+	\ding{172}多重共线性检验（VIF）
+	
+	为评估解释变量间的多重共线性问题，采用方差膨胀因子（VIF）进行检验。VIF值反映变量间线性依赖程度...
+	
+	\ding{173}因子分析适用性检验（KMO与Bartlett球形检验）
+	
+	在进行主成分分析法之前，应对数据进行适用性检验。本文对数据进行KMO取样适度性度量和Bartlett球形检验方法，结果见图7与表2...
+	
+	\begin{table}[H]
+		\centering
+		\caption{KMO和Bartlett球形检验结果}
+		\renewcommand\arraystretch{1}
+		\begin{tabular}{C{3.3cm}C{5cm}C{2.8cm}}
+			\toprule[1.5pt] % 加粗上横线
+			KMO    & KMO统计量   & 0.7417  \\
+			\midrule[1.5pt] 
+			\text{Bartlett's }球形检验  &  Chi-square（近似卡方）    &  5544.9027      \\
+			&  Degree of freedom （自由度）    &  91.0      \\
+			&  p-value （显著性）    &  0.000     \\
+			\bottomrule[1.5pt] % 加粗下横线
+		\end{tabular}
+	\end{table}
+	
+	
+	\subsubsection{时序全局主成分分析原理}
+	主成分分析（PCA）通过线性变换将高维变量降维为少数保留主要信息的主成分，实现变量精简与降维\textsuperscript{\cite{RWDL200905011}}。然而，经典PCA...
+	
+	\subsubsection{实证分析}
+	按照上面的步骤对标准化后的变量进行时序全局主成分分析，得到旋转后各个主成分的方差解释率及累计方差解释率，结果如下所示。
+	由表3可知，前五个主成分的累计方差解释率达到92.372\%...
+	
+	确定主成分因子后，利用VARIMAX旋转对提取的6个主成分因子原始荷矩进行旋转，得到旋转后的因子载荷矩阵（表4)...
+		
+	由图8可清晰看出各个主成分上的显著指标与其载荷，并结合图5相关关系系数得出...
+	
+	\subsection{基于熵权—TOPSIS法的消费潜力综合评价}
+	\subsubsection{熵权—TOPSIS法介绍}
+	直接按方差解释率赋权在时序全局主成分分析中存在权重不归一、第一主成分权重过高的问题，影响客观性。此外，主成分分析因缺乏明确的定量评价基准，更侧重相对差异而非绝对量化评估\textsuperscript{\cite{YNHK202301012}}。因此本研究选用熵权—TOPSIS法对消费潜力进行综合评价。
+	...
+	
+	\subsubsection{熵权—TOPSIS法基本步骤}
+	\ssection{构建指标矩阵}
+	对于每个年份，构建31个省份在5个主成分上的得分矩阵
+	
+	\ssection{极差法标准化处理}
+	得到新的矩阵为
+	
+	\ssection{计算评价指标的熵值}
+	对于$m$个省份，$n$个主成分，定义第$j$个指标熵为
+
+	\ssection{计算指标熵权}
+	\begin{equation}
+		w_j=\frac{(1-e_j)}{(n-\sum\limits_{j=1}^ne_j)}
+	\end{equation}
+	
+	\ssection{构造加权规范矩阵}
+	
+    ...
+	
+	\ssection{确定正负理想解}
+	负理想解：
+	\begin{equation}
+		Z_{j}^{-}=(Z_{1}^{-},Z_{2}^{-},...,Z_{n}^{-})
+	\end{equation}
+	其中$Z_{j}^{-}=max(Z_{1j},Z_{2j},...,Z_{nj})$。
+	正理想解：
+	\begin{equation}
+		Z_{j}^{+}=(Z_{1}^{+},Z_{2}^{+},...,Z_{n}^{+})
+	\end{equation}
+	其中$Z_{j}^{+}=max(Z_{1j},Z_{2j},...,Z_{nj})$。
+	
+	\ssection{计算评价结果到正负理想解的距离}
+	计算欧式距离：
+	\begin{equation}
+		D^+=\sqrt{\sum_{j=1}^n(z_{ij}-z_j^+)^2}
+	\end{equation}
+	
+	
+	\ssection{计算各评价指标的相对贴近度}
+    ...
+	
+	\subsubsection{实证分析}
+	根据熵权法的步骤计算得出五个主成分的权重如下表。...
+	
+	
+	\subsection{综合评价}
+	\subsubsection{总体消费潜力趋势与区域分布}
+	基于2015-2023年各省份消费潜力排名数据（附录表）得出以下统计图，发现我国居民消费潜力呈现以下特征：
+	
+	（1）...
+	
+	\subsubsection{消费潜力波动性}
+	基于排名波动性（图 12）与得分波动性（图 13）热力图分析，我国消费潜力波动性呈现以下规律：
+	%本研究得出排名波动性热力图（图9）和得分波动性热力图（图10），其中排名波动性和得分波动性分别定义为同一年份多次参数扰动下，排名或者得分变化的绝对值平均值。研究发现我国消费潜力波动性呈现以下规律：
+	
+	（1）...
+	
+	\subsubsection{模型稳定性分析}
+    ...
+	本研究构建的时序主成分-熵权TOPSIS消费潜力评价模型，经权重扰动实验验证具有稳健性...
+	
+	\section{省域居民消费潜力动态预测}
+	\subsection{预测模型选择}
+	本文基于2015-2023年省级消费潜力时序数据对2024及2025年消费潜力进行预测。首先考虑用省级面板数据进行预测，尝试使用动态面板模型，前置检测结果如表7。
+	\begin{table}[H]
+		\centering
+		\caption{面板数据检验结果综合表}
+		\renewcommand\arraystretch{1}
+		\begin{tabular}{C{3cm}C{3cm}C{3cm}C{4cm}}
+			\toprule[1.5pt] % 加粗上横线
+			 检验类别   &   检验方法    &  统计量/P值  & 结论描述  \\
+			\midrule
+			平稳性检验    &个体ADF检验 &  NULL  & 仅22.58\%的省份数据平稳 \\
+			             &IPS检验 &  $\mathrm{P=1.000}$  & 非平稳 \\
+		 	             &LLC检验 &  $\mathrm{P=1.000}$  & 非平稳 \\
+		 	 \midrule
+		 	 截面相关性检验  &Pesaran CD检验 &  $\mathrm{P=0.0000}$  & 存在显著省际截面相关性 \\
+		 	 &Friedman检验 &  $\mathrm{P=0.0000}$  & 存在显著省际截面相关性 \\
+		 	 \midrule
+		 	 参数异质性检验  &Swamy检验 &  $\mathrm{P≈0.0000}$  & 存在显著参数异质性（个体效应差异明显） \\
+		 	 \midrule
+		 	 动态特性分析  &平均自相关系数 &  0.5360  & 时间序列存在中度自相关性 \\     
+		 	 &滞后项系数 &  1.0310  & 滞后效应显著（系数>1） \\ 
+		 	 \midrule
+		 	 动态持续性检验  &平均一阶自相关系数 &  0.7272  & 时间依赖性较强（AR(1)显著） \\     
+		 	 &一阶滞后相关系数 &  0.9896  & 动态持续性极强（近单位根特征） \\      
+			\bottomrule[1.5pt] % 加粗下横线
+		\end{tabular}
+	\end{table}
+	
+	三个平稳性检验...
+	
+	\subsection{贝叶斯局部线性趋势模型介绍}
+	贝叶斯结构时间序列模型（BSTS）...
+	
+	\subsection{贝叶斯局部线性趋势模型基本原理}
+	\subsubsection{状态空间表示}
+	模型通过...：
+	\ssection{状态方程（系统方程）}
+	定义水平项(level)与趋势项(trend)的递推关系：
+	...
+	
+	\ssection{随机扰动机制}
+	状态转移过程引入双重随机波动源：
+    ...
+	
+	\ssection{观测方程}
+	将潜在状态映射到观测值$y_{t}$：
+	\begin{equation}
+		y_t=\mathrm{level}_t+\epsilon_t,\quad\epsilon_t\sim\mathcal{N}(0,\sigma_{\mathrm{obs}}^2)
+	\end{equation}
+	
+	\subsubsection{贝叶斯建模}
+	基于马尔可夫链蒙特卡洛（MCMC）方法，通过先验分布与似然函数迭代更新后验分布：
+    ...
+	
+	\subsubsection{预测过程}
+	\ssection{预测分布公式}
+	对未来时间点$T+h$，预测分布为：
+	...
+	
+    \ssection{具体实现步骤}
+    先进行参数采样，从后验分布中抽取 S 组参数样本：
+    ...
+    
+    对每个样本$\theta^{(s)}$递归计算未来状态：
+    ...
+    
+    \subsection{模型性能分析}
+    该模型展现出卓越的预测效能：拟合优度显著（R²=0.9984...
+    
+    \subsection{实证分析}
+    \subsubsection{预测模型评价}
+    
+    根据以上步骤，本研究预测出2024年与2025年我国各省份的消费潜力综合得分与排名（见图18、19）...
+    
+    \subsubsection{短期预测：2024-2025年区域消费潜力预测结果分析}
+    本文将预测的2024年与2025年的省份得分与排名做了对比，结合图20、21，得到以下结论：
+    
+    （1）...
+     
+     
+     \subsubsection{长期趋势：2015-2025年消费潜力对比分析}
+     据前文通过时序全局主成分分析及熵权——TOPSIS得出的2015年各省份的消费潜力得分与排名绘制图22，并与预测的2025年各省份消费潜力得分与排名（图19）进行对比得到以下图片及表格：
+    
+   ...
+    
+    \subsubsection{区域发展格局分析}
+    2015至2025年间，我国消费潜力区域差距显著扩大，区域得分方差从0.000532增至0.001607，增幅达202.01\%...
+    
+    \section{结论与建议}
+    \subsection{结论}
+    本研究基于2015-2023年省级消费潜力多维数据...
+    
+    \subsection{建议}
+    第一...
+    
+    \newpage
+\begin{thebibliography}{99}
+	
+	
+	\bibitem{KFDB201202009}
+	王吉恒, 李敏, 孟菲. 论我国居民消费水平的影响因素[J]. 开放导报, 2012(02): 44-47.
+	
+	\bibitem{ZGTJ201507006}
+	胡清升. 释放消费潜力 引领消费新常态[J]. 中国统计, 2015(07): 10-12.
+	
+	\bibitem{HBHJ202012041}
+	李宜谦. 河北省城镇居民消费支出影响因素的计量分析[J]. 环渤海经济瞭望, 2020(12): 85-88.
+	
+	\bibitem{chamon2010saving}
+	Chamon, M. D., \& Prasad, E. S. (2010). Why are saving rates of urban households in China rising? \textit{American Economic Journal: Macroeconomics}, 2(1), 93-130.
+	
+	\bibitem{secondi2021estimating}
+	Secondi, L. (2021). Estimating household consumption expenditure at local level in Italy: The potential of the cokriging spatial predictor. \textit{Social Indicators Research}, 153(2), 651-674.
+	
+	\bibitem{lo2020asymmetric}
+	Lo, K.-T., Chou, T.-S., \& Tsui, S. (2020). The asymmetric behavior of household consumption under the business cycle. \textit{The North American Journal of Economics and Finance}, 54, 100952.
+	
+\end{thebibliography}
+
+
+\newpage
+\section*{附录}	
+	
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{16得分}
+	\caption{2016年各省份得分与排名}
+\end{figure}
+	
+
+
+\section*{\centering\heiti\zihao{4} 致谢} 
+
+衷心感谢统计建模大赛主办方提供的宝贵平台与资源支持，让我们得以实践所学、挑战自我...
+	
+	\end{document}

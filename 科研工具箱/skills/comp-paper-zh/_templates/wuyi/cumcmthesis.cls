@@ -1,6 +1,6 @@
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 \ProvidesClass{cumcmthesis}
-              [2026/08/26 v2.9 Standard LaTeX Template for CUMCM]
+              [2017/09/16 v2.6 Standard LaTeX Template for CUMCM]
 %% Inital Code
 \newif\if@mcm@bwprint\@mcm@bwprintfalse
 \newif\if@mcm@preface\@mcm@prefacetrue
@@ -55,19 +55,14 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 \RequirePackage{array}
 %% 长表格
 \RequirePackage{longtable}
-%% tabularx 供封面编号页使用（见 \mcm@tokens 定义处）
-\RequirePackage{tabularx}
+%% booktabs 提供了\toprule 等命令.
+\RequirePackage{booktabs,tabularx}
 %% multirow 支持在表格中跨行
 \RequirePackage{multirow}
 %% 调整间隔, 让表格更好看些
 \RequirePackage{bigstrut}
 %% 在跨行表格中输入定界符
 \RequirePackage{bigdelim}
-%% booktabs 提供了\toprule 等命令.
-%% ⛔ 必须在 bigstrut/bigdelim/multirow 之后加载（2026-09-09 独立审计修复）：
-%%   bigstrut 接管 \\ 后, \midrule 的 \noalign 会报 ! Misplaced \noalign,
-%%   正文三线表编译中断。booktabs 手册亦要求最后加载。
-\RequirePackage{booktabs}
 % 保护脆落命令
 \RequirePackage{cprotect}
 % 设置代码环境
@@ -92,44 +87,85 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 \renewcommand{\cftsecleader}{\cftdotfill{\cftsecdotsep}}
 \renewcommand{\cftsecaftersnumb}{\hskip.4em}
 
+%%目录
+\RequirePackage{titlesec}
+\RequirePackage{titletoc}
+\renewcommand{\contentsname}{目录}
+\titlecontents{section}[0em]{\songti\zihao{-4}}{\thecontentslabel\ }{}
+{\hspace{.5em}\titlerule*[4pt]{$\cdot$}\contentspage}
+\titlecontents{subsection}[2em]{\vspace{0.1\baselineskip}\songti\zihao{-4}}{\thecontentslabel\ }{}
+{\hspace{.5em}\titlerule*[4pt]{$\cdot$}\contentspage}
+\titlecontents{subsubsection}[4em]{\vspace{0.1\baselineskip}\songti\zihao{-4}}{\thecontentslabel\ }{}
+{\hspace{.5em}\titlerule*[4pt]{$\cdot$}\contentspage}
+
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
 
 
-\definecolor{dkgreen}{rgb}{0,0.6,0}
-\definecolor{gray}{rgb}{0.5,0.5,0.5}
-\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+%\definecolor{dkgreen}{rgb}{0,0.6,0}
+%\definecolor{gray}{rgb}{0.5,0.5,0.5}
+%\definecolor{mauve}{rgb}{0.58,0,0.82}
+%
+%\lstset{
+%  frame=tb,
+%  aboveskip=3mm,
+%  belowskip=3mm,
+%  showstringspaces=false,
+%  columns=flexible,
+%  framerule=1pt,
+%  rulecolor=\color{gray!35},
+%  backgroundcolor=\color{gray!5},
+%  basicstyle={\small\ttfamily},
+%  numbers=none,
+%  numberstyle=\tiny\color{gray},
+%  keywordstyle=\color{blue},
+%  commentstyle=\color{dkgreen},
+%  stringstyle=\color{mauve},
+%  breaklines=true,
+%  breakatwhitespace=true,
+%  tabsize=3,
+%}
+\RequirePackage{fontspec}
+\newfontfamily\yaheiconsola{YaHei.Consolas.1.11b.ttf}
+\newfontfamily\monaco{MONACO.TTF}
+\setmonofont[
+Contextuals={Alternate},
+ItalicFont = Fira Code Retina Nerd Font Complete.otf     % to avoid font warning
+]{YaHei.Consolas.1.11b.ttf}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
 \lstset{
-  frame=tb,
-  aboveskip=3mm,
-  belowskip=3mm,
-  showstringspaces=false,
-  columns=flexible,
-  framerule=1pt,
-  rulecolor=\color{gray!35},
-  backgroundcolor=\color{gray!5},
-  basicstyle={\small\ttfamily},
-  numbers=none,
-  numberstyle=\tiny\color{gray},
-  keywordstyle=\color{blue},
-  commentstyle=\color{dkgreen},
-  stringstyle=\color{mauve},
-  breaklines=true,
-  breakatwhitespace=true,
-  tabsize=3,
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\small\yaheiconsola,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=10pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false, 
+	%escapebegin=\begin{CJK*}{GBK}{hei},escapeend=\end{CJK*},
+	tabsize=4
 }
 % 首行缩进
-\RequirePackage{setspace}
+\RequirePackage{indentfirst}
 % 设置浮动体的标题
 \RequirePackage{caption}
 % 定制列表环境
 \RequirePackage{enumitem}
 % 下划线
-% normalem: keep \emph as semantic emphasis. Bare ulem globally turns \emph into
-% an underline, which produced accidental underlined body text in submissions.
 \RequirePackage[normalem]{ulem}
 % 尺寸计算
 \RequirePackage{calc}
-
 
 \RequirePackage[titletoc,title]{appendix}
 
@@ -161,9 +197,20 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 % 设置字体
 \setmainfont{Times New Roman}
 %\setmonofont{Courier New}
-\setsansfont{Arial} 
-\newcommand*{\kai}{\kaishu} 
-\newcommand*{\song}{\songti}
+\setsansfont{Arial}
+\setCJKfamilyfont{kai}[AutoFakeBold]{simkai.ttf}
+\newcommand*{\kai}{\CJKfamily{kai}}
+\setCJKfamilyfont{song}[AutoFakeBold]{SimSun}
+\newcommand*{\song}{\CJKfamily{song}}
+% ⛔ 固定中文引号字体：防加粗段引号跟随 \textbf→黑体、开引号字形像后引号。
+%   独立引号族 zhquote(宋体)+newunicodechar，加粗/西文环境字形都开闭分明。
+%   ⛔ 用 \setCJKfamilyfont+\CJKfamily 机制(加粗段有效)，不用 \newCJKfontfamily(加粗段失效)。
+\setCJKfamilyfont{zhquote}[AutoFakeBold]{SimSun}
+\RequirePackage{newunicodechar}
+\newunicodechar{“}{{\CJKfamily{zhquote}\char"201C}}
+\newunicodechar{”}{{\CJKfamily{zhquote}\char"201D}}
+\newunicodechar{‘}{{\CJKfamily{zhquote}\char"2018}}
+\newunicodechar{’}{{\CJKfamily{zhquote}\char"2019}}
 
 \renewcommand\normalsize{%
 	\@setfontsize\normalsize{12.05}{14.45}%
@@ -205,7 +252,7 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 \graphicspath{{figures/}{figure/}{pictures/}%
   {picture/}{pic/}{pics/}{image/}{images/}}
 % 图表标题
-\DeclareCaptionFont{song}{\songti}
+\DeclareCaptionFont{song}{\song}
 \DeclareCaptionFont{minusfour}{\zihao{-4}}
 \captionsetup[figure]{%
 	format=hang,   % 标题从第二行开始都有缩进, 应该和 justification=raggedright 的效果一样.
@@ -251,15 +298,26 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 }
 \lstnewenvironment{tcode}
   {
-    \lstset{basicstyle = \small\ttfamily,
-        language=TeX,
-        tabsize = 4,
-        frame = single,
-        escapechar = `,
-        breaklines = true,
-        breakatwhitespace = true,
-        frameround = tttt,
-    }
+ \lstset{
+ 	language=TeX,
+ 	backgroundcolor=\color{backcolour},   
+ 	commentstyle=\color{codegreen},
+ 	keywordstyle=\color{magenta},
+ 	numberstyle=\tiny\color{codegray},
+ 	stringstyle=\color{codepurple},
+ 	basicstyle=\small\yaheiconsola,
+ 	breakatwhitespace=false,         
+ 	breaklines=true,                 
+ 	captionpos=b,                    
+ 	keepspaces=true,                 
+ 	numbers=left,                    
+ 	numbersep=10pt,                  
+ 	showspaces=false,                
+ 	showstringspaces=false,
+ 	showtabs=false, 
+ 	%escapebegin=\begin{CJK*}{GBK}{hei},escapeend=\end{CJK*},
+ 	tabsize=4
+ }
   }
   {}
 %%% crefformat settings
@@ -328,8 +386,6 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 
 % 生成封面, 使用\maketitle
 \renewcommand{\maketitle}{\par
-  \thispagestyle{plain}%
-  \setcounter{page}{1}%
 	\begingroup
       \newpage
       \global\@topnum\z@   % Prevents figures from going at top of page.
@@ -363,29 +419,26 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
     {\zihao{-4} \mcm@commit@string@contents \par}
     {\vskip1ex\zihao{-4}
     \renewcommand{\ULthickness}{0.4pt}\setlength{\ULdepth}{2pt}
-	\begin{spacing}{1.6}
-    \mcm@commit@string@problemnum\uline{\mbox{\kern1em}\mcm@tokens@tihao\hfill}\makebox[0.66em]{}\par
-    \mcm@commit@string@signupnum\uline{\mbox{\kern1em}\mcm@tokens@baominghao\hfill}\makebox[0.66em]{}\par
+    \hspace*{2em}\mcm@commit@string@problemnum\uline{\hspace{1em}\mcm@tokens@tihao\hfill}\makebox[0.66em]{}\par
+    \mcm@commit@string@signupnum\uline{\hspace{1em}\mcm@tokens@baominghao\hfill}\makebox[0.66em]{}\par
     \mcm@commit@string@schoolname\uline{\hfill\mcm@tokens@schoolname\hfill}\makebox[0.66em]{}\par
-	\end{spacing}
     \newlength{\mcm@lenB}
-    \settowidth{\mcm@lenB}{\mcm@commit@string@membername\mbox{\hspace{1em}}1.}
+    \settowidth{\mcm@lenB}{\mcm@commit@string@membername\hspace{1em}1.}
     \setlength{\mcm@lenB}{\textwidth-\mcm@lenB}
     % 不这样做右边难以对齐!
-	\vskip2em%
-    \hspace*{2em}\mcm@commit@string@membername
+    \mcm@commit@string@membername
     \begin{minipage}[t]{\mcm@lenB}
-   	1.\uline{\mbox{\kern1em}\mcm@tokens@membera\hfill} \makebox[0.46em]{}\par\vspace*{.37cm}
-   	2.\uline{\mbox{\kern1em}\mcm@tokens@memberb\hfill} \makebox[0.46em]{}\par\vspace*{.37cm}
-   	3.\uline{\mbox{\kern1em}\mcm@tokens@memberc\hfill} \makebox[0.46em]{}\par
-   \end{minipage}\par\vskip2em
-    \mcm@commit@string@supervisorname\uline{\mbox{\hspace{1em}}\mcm@tokens@supervisor\hfill}\makebox[0.66em]{}\par
+   	1.\uline{\hspace{1em}\mcm@tokens@membera\hfill} \makebox[0.46em]{}\par
+   	2.\uline{\hspace{1em}\mcm@tokens@memberb\hfill} \makebox[0.46em]{}\par
+   	3.\uline{\hspace{1em}\mcm@tokens@memberc\hfill} \makebox[0.46em]{}\par
+   \end{minipage}\par\vskip1ex
+    \mcm@commit@string@supervisorname\uline{\hspace{1em}\mcm@tokens@supervisor\hfill}\makebox[0.66em]{}\par
     \hspace{0.1cm} （{\kaishu 指导教师签名意味着对参赛队的行为和论文的真实性负责}）
     %{\kaishu\mcm@commit@string@inform\par}
     \vskip2ex
     \newlength{\mcm@lenA}
     \settowidth{\mcm@lenA}{请仔细核对，提交后将不再允许做任何修改。如}% 虽然"日期"刚好在"错误"下面, 但注意"日期"还会缩进, 所以要省去"填写""两字
-    \hspace*{\mcm@lenA}\mcm@commit@string@date\hspace{0.5em}\uline{\hfill\mbox{\kern1em}\mcm@tokens@yearinput\mbox{\kern1em}\hfill}%
+    \hspace*{\mcm@lenA}\mcm@commit@string@date\hspace{0.5em}\uline{\hfill\hspace{1em}\mcm@tokens@yearinput\hspace{1em}\hfill}%
     \mcm@commit@string@year\uline{\hfill\mcm@tokens@monthinput\hfill}\mcm@commit@string@month%
     \uline{\hfill\mcm@tokens@dayinput\hfill}\mcm@commit@string@day\makebox[1em]{}\par}
     \vskip1ex
@@ -500,14 +553,14 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Define new environment and command
-%% 摘要两个字设置为 3 号 (2026 更新).
+%% 摘要两个字设置为 4 号.
 %% 定义摘要环境
 \renewenvironment{abstract}{%
 \if@twocolumn
 		\section*{\abstractname}%
 	\else
 	 \begin{center}%
-	{\zihao{3}\bfseries \abstractname\vspace{-.5em}\vspace{\z@}}%
+	{\zihao{4}\bfseries \abstractname\vspace{-.5em}\vspace{\z@}}%
 	 \end{center}%
  	 \quotation
 	\fi}
@@ -601,7 +654,7 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 \newcommand*{\mcm@cap@figurename}{图}
 \newcommand*{\mcm@cap@tablename}{表}
 \newcommand*{\mcm@cap@appendixname}{附录}
-\newcommand*{\mcm@cap@abstractname}{摘\quad 要}
+\newcommand*{\mcm@cap@abstractname}{摘要}
  %%%  中文关键字
 \newcommand*{\mcm@cap@keywordsname}{关键字}
 
@@ -614,7 +667,7 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 
 我们完全清楚，在竞赛开始后参赛队员不能以任何方式，包括电话、电子邮件、“贴吧”、QQ群、微信群等，与队外的任何人（包括指导教师）交流、讨论与赛题有关的问题；无论主动参与讨论还是被动接收讨论信息都是严重违反竞赛纪律的行为。
 
-%我们完全清楚，在竞赛中必须合法合规地使用文献资料和软件工具，不能有任何侵犯知识产权的行为。否则我们将失去评奖资格，并可能受到严肃处理。
+我们完全清楚，在竞赛中必须合法合规地使用文献资料和软件工具，不能有任何侵犯知识产权的行为。否则我们将失去评奖资格，并可能受到严肃处理。
 
 {\bfseries\song 我们以中国大学生名誉和诚信郑重承诺，严格遵守竞赛章程和参赛规则，以保证竞赛的公正、公平性。如有违反竞赛章程和参赛规则的行为，我们将受到严肃处理。}
 
@@ -666,6 +719,6 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 % {\thecontentslabel\hskip.5em}{}{\titlerule*[0.5pc]{.}\contentspage}
 
 % 上标文献
-\newcommand{\upcite}[1]{$^{\mbox{\scriptsize \cite{#1}}}$}
+\newcommand{\upcite}[1]{\textsuperscript{\cite{#1}}}
 \newcommand{\supercite}[1]{\textsuperscript{\textsuperscript{\cite{#1}}}}
 \endinput

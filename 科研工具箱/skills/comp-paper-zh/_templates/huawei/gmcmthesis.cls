@@ -1,6 +1,6 @@
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 \ProvidesClass{gmcmthesis}
-              [2018/09/11 v2.3 update  gmcmthesis by  latexstudio.net]
+              [2024-09-17 v2.4 update by andy123t (TB merge: upstream v2.4/2024-09-17 + local patches kept)]
 %% Inital Code
 \newif\if@gmcm@bwprint\@gmcm@bwprintfalse
 \newif\if@gmcm@preface\@gmcm@prefacetrue
@@ -28,7 +28,8 @@
 \ExecuteOptions{colorprint}
 \ProcessOptions\relax
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Loading Class
-\LoadClass[a4paper,cs4size]{ctexart}
+% v2.4 上游改动：cs4size → zihao=-4（2024-09-17 合并轮吸收）
+\LoadClass[a4paper,zihao=-4]{ctexart}
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Loading Package
 \RequirePackage{ifxetex}
 \RequireXeTeX
@@ -64,12 +65,8 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 % 保护脆落命令
 \RequirePackage{cprotect}
 % 设置代码环境
-\RequirePackage{listings}
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 一 设置附录代码
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage{listings,color}
+% v2.4 上游改动：listings,color → listings,xcolor（xcolor 本文件前已加载，等价清理）
+\RequirePackage{listings,xcolor}
 
 % Matlab highlight color settings
 %\definecolor{mBasic}{RGB}{248,248,242}       % default
@@ -135,6 +132,30 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
   breaklines=true,                     % sets automatic line breaking
 }}{}
 
+% ---------- v2.4 上游吸收：全局 lstset（2024-09-17 合并轮） ----------
+% 上游注释掉的 dkgreen/mauve 定义在此激活，否则 \commentstyle/\stringstyle 引用未定义颜色
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\lstset{
+  frame=tb,
+  xleftmargin=25pt,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  framerule=1pt,
+  rulecolor=\color{gray!35},
+  backgroundcolor=\color{gray!5},
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3,
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 二 设置页面
@@ -212,13 +233,13 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 
 \setCJKmainfont[AutoFakeBold = {2.15},ItalicFont={KaiTi}]{SimSun}
 % ⛔ 固定中文引号字体：防加粗段引号跟随 \textbf→黑体、开引号字形像后引号。
-%   独立引号族 mhquote(宋体)+newunicodechar，加粗/西文环境字形都开闭分明。
-\setCJKfamilyfont{mhquote}[AutoFakeBold]{SimSun}
+%   独立引号族 zhquote(宋体)+newunicodechar，加粗/西文环境字形都开闭分明。
+\setCJKfamilyfont{zhquote}[AutoFakeBold]{SimSun}
 \RequirePackage{newunicodechar}
-\newunicodechar{“}{{\CJKfamily{mhquote}\char"201C}}
-\newunicodechar{”}{{\CJKfamily{mhquote}\char"201D}}
-\newunicodechar{‘}{{\CJKfamily{mhquote}\char"2018}}
-\newunicodechar{’}{{\CJKfamily{mhquote}\char"2019}}
+\newunicodechar{“}{{\CJKfamily{zhquote}\char"201C}}
+\newunicodechar{”}{{\CJKfamily{zhquote}\char"201D}}
+\newunicodechar{‘}{{\CJKfamily{zhquote}\char"2018}}
+\newunicodechar{’}{{\CJKfamily{zhquote}\char"2019}}
 \setCJKfamilyfont{zhkai}[AutoFakeBold=2.15]{KaiTi}
 \setCJKsansfont[AutoFakeBold=2.15]{SimHei}
 \setCJKfamilyfont{zhsong}[AutoFakeBold=2.15]{SimSun}
@@ -317,11 +338,11 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 }
 \def\ge@maketitle{%
   \clearpage
-  \thispagestyle{plain}%
+  % v2.4 上游吸收（首页页码修复）：封面页 thispagestyle plain → empty，
+  % 并移除 setcounter{page}{0}/\thepage{0} hack；正文页码仍由 \makenametitle 置 1。
+  \thispagestyle{empty}%
   \pdfbookmark[1]{封~面}{cover}
   \if@gmcm@preface
-  \setcounter{page}{0}
-  \def\thepage{0}
 
  \begin{center}
  {\includegraphics{logo}}
@@ -363,16 +384,19 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 
 \vskip0.6cm%
 
-\begin{center}\begin{tabularx}{.95\textwidth}{@{}lX@{}}
-{\zihao{4} 题\qquad 目} &
+\begin{center}
+\begin{tabularx}{.95\textwidth}{@{}lX@{}}
+% v2.4 上游吸收（封面更新）：题目行改为 -2 号隶书标签样式 + 题后 \vskip0.2cm
+{\zihao{-2}\lishu 题\quad 目: } &
 {\zihao{3}\heiti
-  % ⛔ 修复 (v1.5.0)：用 parbox 包住，让题目自动换行（X 列按宽度换）+ \\ 强制换行也能保持字号一致
+  % ⛔ 本地补丁保留 (v1.5.0)：用 parbox 包住，让题目自动换行（X 列按宽度换）+ \\ 强制换行也能保持字号一致
   % 之前直接 \@title 时，AI 写的 \\ 第二行会掉出 tabularx 表格，变成正文 12pt 字号
-  \parbox[t]{\linewidth}{\centering \@title}}
-\\
+  \parbox[t]{\linewidth}{\centering \@title}}\hfill\null\\
 \cline{2-2}
 \end{tabularx}
 \end{center}
+
+\vskip0.2cm%
 }
 
 

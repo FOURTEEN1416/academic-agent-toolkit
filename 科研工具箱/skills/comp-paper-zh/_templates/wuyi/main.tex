@@ -1,0 +1,155 @@
+% !TEX program = xelatex
+% 五一数学建模竞赛模板（基于官方原版，适配工作流 sections/ 结构）
+\documentclass[withoutpreface,bwprint]{cumcmthesis}
+
+% === 官方宏包（保持原版顺序）===
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{txfonts}
+\usepackage{mathdots}
+\usepackage[classicReIm]{kpfonts}
+\usepackage{graphicx}
+\usepackage{etoolbox}
+\BeforeBeginEnvironment{tabular}{\zihao{-5}}
+% ⛔ 不要加 \usepackage{cite} — 和 natbib 冲突导致编译错误
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[framemethod=TikZ]{mdframed}
+\usepackage{url}
+% ⛔ subcaption 和 float 已由 cumcmthesis.cls 加载，不要重复加载
+\usepackage[section]{placeins}
+\usepackage{needspace}
+\usepackage{algorithm2e}
+
+% === TikZ ===
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+
+% === 图片尺寸保护 ===
+\newcommand{\insertfig}[3][0.88\textwidth]{%
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=#1,height=0.38\textheight,keepaspectratio]{#2}
+    \caption{#3}
+  \end{figure}
+}
+
+\title{[论文标题]}
+
+\begin{document}
+
+% === 承诺书页（官方原版格式）===
+\noindent
+\noindent
+\noindent
+\noindent
+\begin{center}
+{\huge \textbf{五一数学建模竞赛}}
+\end{center}
+\begin{center}
+{\LARGE \textbf{承\quad 诺\quad 书}}
+\end{center}
+
+我们仔细阅读了五一数学建模竞赛的竞赛规则。我们完全明白，在竞赛开始后参赛队员不能以任何方式（包括电话、电子邮件、网上咨询等）与本队以外的任何人（包括指导教师）研究、讨论与赛题有关的问题。
+
+我们知道，抄袭别人的成果是违反竞赛规则的, 如果引用别人的成果或其它公开的资料（包括网上查到的资料），必须按照规定的参考文献的表述方式在正文引用处和参考文献中明确列出。
+
+我们郑重承诺，严格遵守竞赛规则，以保证竞赛的公正、公平性。如有违反竞赛规则的行为，我们愿意承担由此引起的一切后果。
+
+我们授权五一数学建模竞赛组委会，可将我们的论文以任何形式进行公开展示（包括进行网上公示，在书籍、期刊和其他媒体进行正式或非正式发表等）。
+
+参赛题号（从A/B/C中选择一项填写）：\underbar{\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad}
+
+参赛队号：\underbar{\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad}
+
+参赛组别（研究生、本科、专科、高中）：\underbar{\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad}
+
+所属学校（学校全称）：\underbar{\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad}
+
+参赛队员：
+ 队员1姓名：\underbar{\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad}
+
+\qquad\qquad\quad 队员2姓名：\underbar{\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad}
+
+\qquad\qquad\quad 队员3姓名：\underbar{\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad}
+
+联系方式：
+ Email：\underbar{\qquad\qquad\qquad\qquad} 联系电话：\underbar{\qquad\qquad\qquad\qquad}
+
+\hfill 日期： \underbar{\qquad}年\underbar{\qquad}月\underbar{\qquad}日
+
+\noindent
+\noindent \underbar{}
+\noindent \textbf{}
+\noindent \textbf{}
+\noindent \hfill \textbf{（除本页外不允许出现学校及个人信息）\eject }
+
+% === 封面页（官方格式）===
+\noindent
+\begin{center}
+{\huge \textbf{五一数学建模竞赛}}
+\end{center}
+
+\begin{center}
+\noindent \textbf{\includegraphics*[width=2in, height=2in]{image2}}
+\end{center}
+
+\noindent \textbf{}
+\begin{center}
+\noindent \textbf{ 题 目： \underbar{\quad [论文标题] \quad}}
+\end{center}
+
+% === 关键词在上，摘要在下（官方格式）===
+\noindent \textbf{关键词：}[关键词1]\quad [关键词2]\quad [关键词3]\quad [关键词4]\quad [关键词5]
+
+\noindent \textbf{摘\quad 要：}
+
+[中文摘要内容：600--800字，写满且收在一页；每个子问题独立一段，包含具名方法和真实数值结果，并用 \textbf{} 各突出1--3处关键方法/结果。]
+
+\newpage
+
+% === 摘要与正文之间的换页（竞赛模板不出目录）===
+% ⛔ 不要在这里加回 \tableofcontents：竞赛论文统一不出目录页。
+%   旁边的 \newpage/\clearpage 是摘要与正文之间的换页，删了正文会挤上来。
+\newpage
+
+% === 正文（通过 sections/ 文件引入）===
+\input{sections/1_restatement}
+\input{sections/2_analysis}
+\input{sections/3_assumptions}
+\input{sections/4_symbols}
+\input{sections/5_problem1}
+\input{sections/6_problem2}
+\input{sections/7_problem3}
+\input{sections/8_evaluation}
+
+% === 参考文献 ===
+% natbib + \bibliography 会自动生成"参考文献"标题，不要手动加 \section
+\bibliographystyle{gbt7714-numerical}
+\bibliography{references}
+
+\newpage
+
+% === 附录 ===
+\begin{appendices}
+
+\section{文件列表}
+\begin{table}[htbp]
+  \centering
+  \caption{文件列表}
+  \begin{tabularx}{\textwidth}{@{}c *1{>{\centering\arraybackslash}X}@{}}
+    \toprule[1.5pt]
+    文件名 & 文件描述 \\
+    \midrule
+    main.py & 主程序 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{代码}
+\input{sections/A_code}
+
+\end{appendices}
+
+\end{document}
