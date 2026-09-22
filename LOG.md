@@ -1303,3 +1303,12 @@ wrapper 重建幂等。
 公开侧口径按单一真源顺序回填：`pytest.ini` 注释 → `ci.yml` 步骤注释 → `AGENTS.md` 口径表
 （旧"历史 600+3"降为时点快照，新增"暂无新一轮实测"表述作废）。批次第 2 项"push 后看 run 结果
 再宣告收官"就此闭环。
+
+**L8 补记（同日晚，用户指"浏览器自动化去开启"）**：浏览器路不通（Qoder Browser Connector
+无可用外部浏览器，Edge 已拉起但扩展未连接），改走 REST API 核实服务端真态——
+`security_and_analysis` = **secret_scanning: enabled + push_protection: enabled**（alerts 端点可查，
+公开仓 GitHub 已自动启用，无需人工勾选；此前"待人工开启"登记撤销）。
+顺带发现存量告警 #1（google_api_key，open @2026-09-20）：定位 = `tests/test_secret_scan.py:24`
+哑钥匙 fixture（本地 sed 核对原文），确证误报 → PATCH `state=resolved, resolution=used_in_tests`
+（API 合法枚举四选一中最贴切语义），复检 GET 确认 state=resolved。
+剩余面：push protection 若日后拦真实 push，走 SECURITY.md 既有 bypass 流程。
