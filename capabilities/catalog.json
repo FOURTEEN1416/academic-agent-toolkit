@@ -2382,6 +2382,29 @@
       ]
     },
     {
+      "capability_id": "oral-paper-skill",
+      "name": "范例对照与学习复盘（Oral Paper Skill）",
+      "domain": "academic_papers",
+      "description": "对照优秀论文范例做稿件改进与学习复盘：基于 883 篇 ICLR/ICML/NeurIPS Oral 论文摘要蒸馏的七项做法（写清研究张力/明确贡献增量/证据对应主张/有解释力比较/条件紧随结论/资源支持的研究/有边界的认识），compare（≤3 条源链接建议）与 reflect（讲解+复盘练习）双模式，含数模论文章节桥接表；与 anti-defensive-writing（删防御性限定）互补成对。上游 Adkid-Zephyr/oral-paper-skill（无 LICENSE 文件，pinned a2c4bc4，2026-09-22；公开再发布待上游授权）",
+      "input_contract": "稿件或 idea（md/tex/pdf 文本）+ 阶段与论文类型声明（方法/理论/实证/系统/资源/立场，数模论文按桥接表归类）+ 可选范例检索材料",
+      "output_contract": "对照改进模式：≤3 条六要素建议（Practice/Source/Relevance/Observation/Action/Reflection，无来源时标注通用研究建议禁止编造引用）｜学习复盘模式：单做法讲解+已核查实例+针对用户稿件的复盘练习；均不得输出录取概率/Oral 评分/GO-WAIT-KILL",
+      "quality_gates": [
+        "来源溯源三件套：论文+链接+阅读层级（摘要级证据不得冒充全文/图表/证明结论）",
+        "STEP_MANIFEST 产出声明"
+      ],
+      "upstream": "Adkid-Zephyr/oral-paper-skill (无 LICENSE 文件, pinned a2c4bc41b3aa6946b2ccce1c844ce9936ef83308, 2026-09-22)",
+      "status": "experimental",
+      "disposition": "routed",
+      "current_evidence": "映射登记+适配块契约+UPSTREAM 溯源（2026-09-22 整技能收编 A 批次）；上游自报无对照评测，本仓应用效果未测",
+      "current_gap": "上游无 LICENSE，公开再发布待授权（待办：向上游提 license 请求 issue）；883 卡语料/蒸馏脚本未入库；disposition=routed 待接入模板步骤后升 evidence-bound",
+      "promotion_history": [
+        "2026-09-22: 整技能收编 A 批次（上游无 LICENSE 如实登记，pinned）"
+      ],
+      "associated_skills": [
+        "oral-paper-skill"
+      ]
+    },
+    {
       "capability_id": "acat-doc-governance",
       "name": "acat-doc-governance",
       "domain": "academic_papers",
@@ -5363,6 +5386,31 @@
       "promotion_history": []
     },
     {
+      "capability_id": "editaplot",
+      "name": "Origin 可编辑科研绘图（EditaPlot 收编）",
+      "domain": "figures_and_document_production",
+      "description": "AI 驱动本地 Origin/OriginPro 2021+ 生成可编辑 OPJU + PNG/PDF/TIF；材料光谱（XPS/XRD/GSAS Rietveld/XAS/FTIR/NMR/DSC/PL/UV-Vis/EIS/CV/LSV）、通用统计、分布效应、医学与深度学习（ROC/PR/DCA/校准/Bland-Altman/SHAP）专用模板；逐列用途确认、方案哈希冻结、Origin 对象反读校验",
+      "input_contract": "CSV/TXT/XLS/XLSX 实验表格（只读）、可选参考图（仅提取图形语法）、一句话科学目的",
+      "output_contract": "可编辑 OPJU + PNG/PDF/TIF + render-plan.json + 反读校验产物（六件齐全才算正式成功）",
+      "status": "experimental",
+      "associated_skills": [
+        "editaplot"
+      ],
+      "associated_tools": [
+        "vendor/forks/editaplot/editaplot.cmd"
+      ],
+      "external_dependencies": [
+        "Origin/OriginPro 2021+（商业软件，用户自装；验证基线 2024b）",
+        "Windows 10/11 x64 实体机",
+        "CPython 3.10-3.12",
+        "originpro/OriginExt/numpy/pandas/matplotlib（editaplot.cmd setup 装入 .editaplot-venv）"
+      ],
+      "high_risk_confirmation": "启动本地 Origin COM 实例（origin-smoke/render）为跨工具操作，首次渲染前需用户方向（Ask first）；绝不安装/修改 Origin、DCOM、注册表、防火墙；源数据文件不可变",
+      "current_evidence": "登记待用（2026-09-22 收编自 hang-jin/editaplot Apache-2.0 快照 vendor/forks/editaplot；上游 50+ 模板经上游 Origin 2024b 验证；本机 Origin 未安装，本机 smoke/render 未跑——如实申报，不伪造通过）",
+      "current_gap": "本机无 Origin：smoke/render/verify 全链未在本机验证；vendor/ 不入库，公开 clone 需按 SKILL.md §八自行获取上游快照；上游为 Codex 宿主，本仓按 科研工具箱/skills/editaplot/SKILL.md 适配层替换权限模型；CONTEST_SKILL_MAP 归 §四外域不接入",
+      "promotion_history": []
+    },
+    {
       "capability_id": "poster_slides",
       "name": "会议海报与幻灯片生成",
       "domain": "figures_and_document_production",
@@ -6574,8 +6622,14 @@
       "input_contract": "仓库路径 + 用户需求文本",
       "output_contract": "驱动路径（工作流 ID 或技能名）+ probe 摘要 + 后续动作",
       "status": "experimental",
-      "associated_skills": ["agent-bootstrap"],
-      "associated_tools": ["engine/workflow_cli.py", "engine/agent_protocol.py", "engine/capability_probe.py"],
+      "associated_skills": [
+        "agent-bootstrap"
+      ],
+      "associated_tools": [
+        "engine/workflow_cli.py",
+        "engine/agent_protocol.py",
+        "engine/capability_probe.py"
+      ],
       "external_dependencies": [],
       "high_risk_confirmation": "无",
       "current_evidence": "2026-09-20 宿主无关改造：agent_protocol boot 契约 + capability_probe + 文档入口泛化",
@@ -6589,8 +6643,13 @@
       "input_contract": "probe 结果或缺口描述 + 名称与 purpose",
       "output_contract": "tools/<name>.py 与 skills/<name>/SKILL.md 骨架 + catalog 登记提示",
       "status": "experimental",
-      "associated_skills": ["tool-forge"],
-      "associated_tools": ["engine/tool_forge.py", "engine/workflow_cli.py"],
+      "associated_skills": [
+        "tool-forge"
+      ],
+      "associated_tools": [
+        "engine/tool_forge.py",
+        "engine/workflow_cli.py"
+      ],
       "external_dependencies": [],
       "high_risk_confirmation": "铸造默认不覆盖已有文件；环境类 gap 不伪造安装",
       "current_evidence": "2026-09-20 落地 tool_forge CLI（--tool/--skill/--adapter/--gap）与骨架模板",

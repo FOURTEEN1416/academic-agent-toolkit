@@ -14,8 +14,9 @@
   },
   "counts": {
     "core": 54,
-    "ondemand": 209,
-    "resident_chars": 31876
+    "ondemand": 211,
+    "resident_chars": 32065,
+    "full_chars": 68072
   },
   "skills": {
     "ablation-planner": {
@@ -689,6 +690,14 @@
       "full_description": "生态群落数据专用可视化：物种丰度矩阵、排序图（PCA/NMDS/RDA）、多样性指数、稀疏曲线、群落热图与聚类。触发词：生态群落图、物种丰度、NMDS、RDA、稀疏曲线、多样性指数。",
       "description_compacted": false,
       "path": "科研工具箱/skills/eco-community-plots/SKILL.md"
+    },
+    "editaplot": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实验表格（CSV/TXT/XLS/XLSX）画成可编辑 OPJU + PNG/PDF/TIF 出版级科研图。",
+      "full_description": "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实验表格（CSV/TXT/XLS/XLSX）画成可编辑 OPJU + PNG/PDF/TIF 出版级科研图。材料光谱（XPS/XRD/GSAS/XAS/FTIR/NMR/DSC/PL/UV-Vis/EIS/CV/LSV）、通用统计、医学与深度学习（ROC/PR/DCA/SHAP）专用模板；逐列确认数据用途、方案哈希冻结、Origin 对象反读校验。本机无 Origin 时如实降级，不伪造通过。",
+      "description_compacted": true,
+      "path": "科研工具箱/skills/editaplot/SKILL.md"
     },
     "editor-agent": {
       "tier": "ondemand",
@@ -1433,6 +1442,14 @@
       "full_description": "Verify research idea novelty against recent literature. Use when user says \"查新\", \"novelty check\", \"有没有人做过\", \"check novelty\", or wants to verify a research idea is novel before implementing.",
       "description_compacted": true,
       "path": "科研工具箱/skills/novelty-check/SKILL.md"
+    },
+    "oral-paper-skill": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "对照优秀论文范例改稿件与复盘：883 篇顶会 Oral 蒸馏七项做法，compare/reflect 双模式，含数模章节桥接表。触发词：对照优秀论文、论文复盘、范例对照、向好论文学习。",
+      "full_description": "对照优秀论文范例改稿件与复盘：883 篇顶会 Oral 蒸馏七项做法，compare/reflect 双模式，含数模章节桥接表。触发词：对照优秀论文、论文复盘、范例对照、向好论文学习。",
+      "description_compacted": false,
+      "path": "科研工具箱/skills/oral-paper-skill/SKILL.md"
     },
     "palette-health-check": {
       "tier": "ondemand",

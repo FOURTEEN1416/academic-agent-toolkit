@@ -74,8 +74,8 @@
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **772 passed / 0 failed**（= 工具箱 **747** + 根级门禁 **25**；另 3 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1；collect-only 775。2026-09-22 checkpoint 人类署名红线轮本机实测口径；上一时点 G2 泛化轮 768/771 保留作历史） | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **747 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **776 passed / 0 failed**（= 工具箱 **751** + 根级门禁 **25**；另 3 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1；collect-only 779。2026-09-22 oral-paper-skill 整技能收编 A 批次本机实测口径；上一时点 checkpoint 人类署名红线轮 772/747、G2 泛化轮 768/771 保留作历史） | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **751 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
 | 根 `tests/` 单跑 | catalog schema + 反 AI 工具集 | **25 passed** | catalog 改动后必跑 |
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准（现行：**713+5 skipped / 0 failed @ run 35711171875**，收集总数与本机一致 718；历史：600+3 @ run 35425878920） | 门禁 |
 

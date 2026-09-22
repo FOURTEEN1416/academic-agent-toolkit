@@ -107,10 +107,12 @@
 | "照着这张图复现" | `skills/plot-from-image/` |
 | "用 XX 论文那种风格画" | `skills/plot-from-data/` |
 | "重建这张 Visio 图" | `skills/visio-image-rebuilder/` |
+| "用 Origin 画可编辑图/导师要 OPJU/材料光谱专用图（XPS/XRD/FTIR/NMR/DSC/EIS）" | `skills/editaplot/`（需本机 Origin 2021+，无则如实降级） |
 | "论文方法框架图多方案" | `skills/paper-framework-figure-studio-pro/` |
 | "找参考图再动手" | `skills/agent-figure-gallery/` |
 | "编译论文 PDF" | `skills/paper-compile/` 或 `paper-compile-zh/` |
 | "自动审稿" | `skills/auto-review-loop/` |
+| "对照优秀论文改进/论文复盘" | `skills/oral-paper-skill/`（与 anti-defensive-writing 删-hedge 互补，修订轮先后用） |
 
 ### 其他
 

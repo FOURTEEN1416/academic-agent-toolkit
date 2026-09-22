@@ -115,6 +115,10 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "skills" / "academic-figure-skill" / "UPSTREAM.md",
     ROOT / "skills" / "agent-figure-gallery" / "UPSTREAM.md",
     ROOT / "skills" / "scipilot-figure-skill" / "UPSTREAM.md",
+    # oral-paper-skill 整技能收编（2026-09-22 A 批次）：上游无 LICENSE 已在 UPSTREAM.md/
+    # catalog 如实登记，用户裁决收编入 git（与上方"无 License 不入 git"判例的差异：
+    # 本件已随 git 交付故注册不致 CI 缺件；公开再分发待上游授权，见 catalog upstream 字段）
+    ROOT / "skills" / "oral-paper-skill" / "references" / "UPSTREAM.md",
 ]
 
 # 需要完整许可文件的 vendored 外部依赖目录（含 LICENSE/NOTICE/UPSTREAM.md 三件套）
