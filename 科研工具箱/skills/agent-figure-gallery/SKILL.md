@@ -18,7 +18,70 @@ Treat this skill as a lightweight controller. Do not load the full visual corpus
 - Global preferences: `data/reference_global_preferences.json`
 - Reference sessions: `outputs/reference_sessions/`
 
-## Minimal Workflow
+## Loading the KB from a Local Source (pip-free, 2026-09-22)
+
+The KB data body ships as a repo-local vendor snapshot at
+`vendor/forks/AgentFigureGallery` (pin and license: see `UPSTREAM.md` beside this
+file). The data is local-only and not redistributable; the vendor tree is
+read-only — never modify or delete anything under `vendor/`.
+
+Two equivalent host-neutral entry points:
+
+1. Read-only search via the controller script (recommended first step; no install):
+   ```bash
+   python skills/agent-figure-gallery/scripts/kb_search.py \
+     --task "<user task>" [--plot-type <type>] [--limit N] [--json]
+   ```
+   KB root resolution order: `$AGENT_FIGURE_GALLERY_ROOT` → `$DRAWING_KB_ROOT` →
+   repo-local `vendor/forks/AgentFigureGallery` (derived relatively from the script
+   location). If no root is found the script prints a `TOOL_GAP:` report listing
+   the paths checked and exits 2 — it never crashes.
+2. Upstream CLI without pip install (run from the KB root so the package resolves):
+   ```bash
+   cd vendor/forks/AgentFigureGallery
+   python -m agentfiguregallery.cli doctor
+   python -m agentfiguregallery.cli query --task "<user task>"
+   ```
+
+## Worked Example (real data, 2026-09-22)
+
+Requirement: "t-SNE embedding clusters for a cell atlas".
+
+```bash
+python skills/agent-figure-gallery/scripts/kb_search.py \
+  --task "t-SNE embedding clusters for cell atlas" --limit 3
+```
+
+Result (excerpt; all 284 candidates loaded, plot type auto-resolved to `embedding_plot`):
+
+```json
+{
+  "kb_root": "vendor/forks/AgentFigureGallery",
+  "index_source": "vendor/forks/AgentFigureGallery/data/reference_candidate_index.json",
+  "resolved_plot_type": "embedding_plot",
+  "total_candidates": 284,
+  "results": [
+    {
+      "candidate_id": "EMB-F13BC81C31",
+      "plot_type": "embedding_plot",
+      "source_repo": "berenslab/mini-atlas",
+      "quality_score": 80.0,
+      "script_path": "repos/berenslab__mini-atlas/code/phenotype-tsne.ipynb",
+      "why_suggested": "style_template script in code/phenotype-tsne.ipynb using matplotlib, seaborn.",
+      "preview_path": "assets/packs/minimal/previews/embedding_plot/EMB-F13BC81C31.png"
+    }
+  ]
+}
+```
+
+ACAT-GOVERNANCE：上例 `preview_path`/`script_path` 为 KB 根内相对路径
+（KB 根 = `vendor/forks/AgentFigureGallery`），非本技能内部文件，勿按技能目录解析。
+Provenance：条目出自上述 vendor 快照的 `data/reference_candidate_index.json`；
+预览 PNG 实存于
+`vendor/forks/AgentFigureGallery/assets/packs/minimal/previews/embedding_plot/EMB-F13BC81C31.png`
+（摘录时字段顺序与斜杠按文档习惯调整，实跑输出为反斜杠混合路径）。
+
+## Minimal Workflow (full upstream CLI, requires the KB root on path)
 
 1. Resolve the KB root:
    ```bash
