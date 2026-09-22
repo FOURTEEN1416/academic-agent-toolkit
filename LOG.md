@@ -1458,3 +1458,12 @@ dev-docs/truth-index.md；task_plan.md 快照区历史行补 717）。校准后�
 - **登记面六件**：①`skills/oral-paper-skill/`（SKILL.md=中文适配块[触发条件/输入输出契约/质量铁律/数模章节桥接表/STEP_MANIFEST]+上游英文原文逐字保留；references 四件+agents/openai.yaml 上游原样）；②`references/UPSTREAM.md` 溯源（Upstream/Pinned 40 位哈希/License 未声明）；③catalog `academic_papers` 新条目（experimental/disposition routed/upstream pin/与 anti-defensive-writing 删-hedge 互补注记）；④CONTEST_SKILL_MAP §三 新增"A 批次（2026-09-22 整技能收编，1 个）"+计数联动；⑤科研工具箱 AGENTS.md §三 科研论文表加"对照优秀论文改进/论文复盘"路由行；⑥check_provenance UPSTREAM_REGISTRY 注册（含判例差异注释）+ build_skill_index --emit 重出（核心 54/按需 211）。
 - **门禁**：新增 `tests/test_oral_paper_skill.py` 4 项契约测试（适配块结构/UPSTREAM 溯源与 license 诚实标注/参考件在位/catalog 映射）；check_asset_utilization --strict 零漏网 exit 0；check_provenance exit 0（新 UPSTREAM.md 入注册表 [OK]）；secret_scan --strict 零 FAIL；全量 pytest **776 passed / 3 skipped**（collect 779；基线 772→776、工具箱 747→751 已校准进根 AGENTS.md）。过程中自伤一次：新测试 F401 unused import 触发整仓 lint 棘轮（+health check 两下游），删未用 import 收口——即续51 所记"留 A 批次窗口自修"项。
 - **多窗口协同**：与 editaplot 批次（续51）同树并行，续51 条目随本提交一并入库（其窗口 handoff 未提交，内容为其批次自记，原样保留署名）；共享文件（CONTEST_SKILL_MAP/AGENTS）两批次改动互相保留、整文件入库；commit 级按"一批次一提交"已不可行（§六计数行被双方合并改写，外科拆分会造出从未实测过的中间树）——以实测全绿的合并树一次入库。
+
+## 续53 · 2026-09-23 · 双裁决落地：license 零动作 + 七项做法轻量试点挂 comp-review
+
+- **裁决①（license）**：**零动作，不发 issue**。用户口径"我们这叫借鉴，不是抄袭"——维持内部使用+出处保留（UPSTREAM.md/catalog 署名已在）；公开 clone 携带无 License 上游件的灰区风险已两轮告知在案，用户知悉后裁决维持，不再复议。续52 所记"待办：提 license issue"就此关闭。
+- **裁决②（相位 2）**：按 **A 轻量试点**执行，且**管线重建不立项**（后续可考虑）。用户同步纠正项目定位：**全学术工具箱，数模只是其一**——后续相关资产以通用学术为主口径，不做成数模专属件。
+- **试点执行**：精读 10 篇 2023-2025 国赛优秀论文**摘要页**（本地语料 `参考论文/`，A×3/B×2/C×2/D×1/E×2 五题型三年份），逐篇验证上游七项做法迁移成立度：**贡献增量/证据对应主张/有解释力比较 三项强成立（10/10）**，条件紧随结论成立（载体=假设章+参数条件+区间），研究张力**条件成立**（方案设计类强、求解类允许背景导入替代），资源说明**形态特化**（结果文件逐问交付/附录索引，非开源数据集式），有边界认识**摘要层弱成立（3/10 显性）**——让位于数值结果、由正文结论章承接，为与顶会 abstract 的最大差异点。高分加分形态提炼 5 条（双口径并列+归因/算法对照验证/模型简化明示/灵敏度一句话收尾/具体张力第二句嵌入）。
+- **产物两件**：①`科研工具箱/skills/comp-review/references/oral-practices-bridge.md`（通用学术口径+数模验证场、逐做法成立度+实例转述+权重反转表+加分形态清单+候选机检项**登记不实现**）；②comp-review SKILL.md Step 2 挂指针（范例对照维度，默认 ≤3 条建议，沿上游纪律）。
+- **证据纪律**：引证全部转述+极短引语+编号指代（语料为私有获奖论文区，gitignored，不整段搬运）；方法限定为轻量试点，成立度仅代表样本内趋势，不外推统计规律（与 62 篇统计口径报告互补不互替）。
+- **门禁**：check_provenance exit 0；secret_scan --strict 零 FAIL；工具箱内 pytest **751 passed / 3 skipped** 基线持平（参考件为新增 references，不改任何门禁行为）。根 AGENTS.md 基线无变化（776/751 口径不变）。
