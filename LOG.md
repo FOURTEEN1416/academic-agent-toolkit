@@ -1200,7 +1200,7 @@ L11 mypy；**L12 governance 资产台账刷新**——两次实测重生成（�
    - 全量回归最终 **651 passed / 0 failed**（工具箱 630 + 根级 21；pytest.ini/根 AGENTS.md/README
      三处基线数字已按同步纪律更新）。
    - **既有红修复**（stash 对照法实证 3 项失败在 HEAD 基线原样存在，与本轮改动无关后顺手修）：
-     ① LOG.md 续41 行1095 `C:\Users\FOUR\...` 家目录路径 WARN → 忠实改写为"家目录绝对路径"（原文件
+     ① LOG.md 续41 行1095 `C:\Users\<user>\...` 家目录路径 WARN → 忠实改写为"家目录绝对路径"（原文件
      本就已修为 ~/.zcode，改写不损史实）；② secret_scan 自检 fixture（test_secret_scan.py）12 条哑钥匙
      09-20 建器当天漏登豁免台账 → 按 --emit-allowlist 流程补登 12 条（reason 注明编造值自检用途），
      台账 3→15 条，secret_scan --strict exit 0。
