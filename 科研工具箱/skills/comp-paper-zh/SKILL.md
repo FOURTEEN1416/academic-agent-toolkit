@@ -61,9 +61,9 @@ Template: `_templates/cumcm/`（国赛，2026-09-09 已入库实测编译通过�
 
 ⛔ **sty 定制纪律（D5 双源分叉修复，2026-09-13）**：需要改样式时**禁止整份复制 `cumcm2026.sty` 后私改**（双源分叉：diff 说不清改了什么，合规无法对账）。正确做法：复制同目录 `cumcm2026_local.example.sty` 为 `cumcm2026_local.sty`——`\input` 真源 + 只在 PATCH 区追加差异 + BASELINE 行登记基线版本；`cumcm2026.sty` 头部有 `TEMPLATE_VERSION` 基线标记。
 
-⛔ **其余赛事模板（mathorcup / apmcm_zh / huazhong / wuyi / changsanjiao / huashubei / diangongbei / dongsansheng / shuweibei / stats 等）尚未入库**：须先从赛事官方渠道把模板放入 `_templates/<赛事名>/` 再走流程；未放入时下方模板分支的落地断言会**显式报错 exit 1 并给出补救路径**（2026-09-09 审计修正：旧文档声称这些模板已存在，不属实）。
+⛔ **其余赛事模板现状（2026-09-22 G4 校正）**：P2 批（提交 c59ffb4）已将 13 套竞赛模板收编进 `_templates/<赛事名>/`，其中 **mathorcup / apmcm_zh / wuyi 三族已接线**（S7 论文步资产指针 + 下方分支 fail-fast 断言，2026-09-22 实测骨架在位）；其余低频族（huazhong 复用 `_templates/cumcm/`，changsanjiao / huashubei / diangongbei / dongsansheng / shuweibei / stats 等）目录已入库但分支仍靠落地断言兜底。若某族模板目录不在位，下方模板分支的落地断言会**显式报错 exit 1 并给出补救路径**（旧文档把上述各族一概描述为缺件，与 P2 收编后事实不符，已修正）。
 
-**⛔ MathorCup 与 亚太赛中文(APMCM) 都使用 `MathorCupmodeling.cls` 文档类**（该 cls 未入库，须从赛事官方渠道获取放入 `_templates/<赛事>/`）。使用 `\bianhao{}`、`\tihao{}`、`\timu{}` 设置队伍信息，`\keyword{}` 设置关键词。摘要用 `\begin{abstract}...\end{abstract}` 环境。参考文献用 `\begin{thebibliography}` 环境。
+**⛔ MathorCup 与 亚太赛中文(APMCM) 都使用 `MathorCupmodeling.cls` 文档类**（该 cls 已于 P2 批随 `_templates/mathorcup/` 与 `_templates/apmcm_zh/` 入库，2026-09-22 G4 接线，直接走下方分支复制）。使用 `\bianhao{}`、`\tihao{}`、`\timu{}` 设置队伍信息，`\keyword{}` 设置关键词。摘要用 `\begin{abstract}...\end{abstract}` 环境。参考文献用 `\begin{thebibliography}` 环境。
 
 **⛔ 华中杯必须使用 `cumcmthesis` 文档类**（与国赛同源：本仓库 `_templates/cumcm/` 已入库 cls+sty+骨架，可直接 `cp _templates/cumcm/* paper/` 复用；中文渲染由 ctex 走系统字体，无需随模板捆绑字体）。华中杯模板使用 `\begin{abstract}...\keywords{}\end{abstract}` 环境写摘要（不是手动排版），参考文献用 `\begin{thebibliography}` 环境（不是 `\bibliography{}`）。
 
@@ -398,13 +398,21 @@ elif echo "$ARGUMENTS" | grep -qi "apmcm_zh\|亚太.*中文\|亚太赛中文" ||
 
     echo "Using APMCM (Chinese) template (MathorCupmodeling.cls)"
 
-    cp "$TMPL_BASE/apmcm_zh/"* paper/ 2>/dev/null
+    # 2026-09-22 G4 断链修复：模板已入库 _templates/apmcm_zh/；目录缺失立即报错停下（旧版 cp 带 2>/dev/null 静默吞错）
+
+    [ -d "$TMPL_BASE/apmcm_zh" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/apmcm_zh/（入库位置 skills/comp-paper-zh/_templates/apmcm_zh/，请检查执行目录与 TMPL_BASE）"; exit 1; }
+
+    cp "$TMPL_BASE/apmcm_zh/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/apmcm_zh/ -> paper/"; exit 1; }
 
 elif echo "$ARGUMENTS" | grep -qi "mathorcup\|MathorCup\|mathor" || grep -qi "mathorcup" CLAUDE.md 2>/dev/null; then
 
     echo "Using MathorCup template"
 
-    cp "$TMPL_BASE/mathorcup/"* paper/ 2>/dev/null
+    # 2026-09-22 G4 断链修复：模板已入库 _templates/mathorcup/；目录缺失立即报错停下（旧版 cp 带 2>/dev/null 静默吞错）
+
+    [ -d "$TMPL_BASE/mathorcup" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/mathorcup/（入库位置 skills/comp-paper-zh/_templates/mathorcup/，请检查执行目录与 TMPL_BASE）"; exit 1; }
+
+    cp "$TMPL_BASE/mathorcup/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/mathorcup/ -> paper/"; exit 1; }
 
 elif echo "$ARGUMENTS" | grep -qi "huazhong\|华中杯" || grep -qi "huazhong\|华中杯" CLAUDE.md 2>/dev/null; then
 
@@ -430,7 +438,11 @@ elif echo "$ARGUMENTS" | grep -qi "wuyi\|五一杯" || grep -qi "wuyi\|五一杯
 
     echo "Using wuyi template"
 
-    cp "$TMPL_BASE/wuyi/"* paper/ 2>/dev/null
+    # 2026-09-22 G4 断链修复：模板已入库 _templates/wuyi/（cumcmthesis 同源 cls + 封面 image2.png）；目录缺失立即报错停下（旧版 cp 带 2>/dev/null 静默吞错）
+
+    [ -d "$TMPL_BASE/wuyi" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/wuyi/（入库位置 skills/comp-paper-zh/_templates/wuyi/，请检查执行目录与 TMPL_BASE）"; exit 1; }
+
+    cp "$TMPL_BASE/wuyi/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/wuyi/ -> paper/"; exit 1; }
 
 elif echo "$ARGUMENTS" | grep -qi "cumcm\|国赛" || grep -qi "cumcm\|国赛" CLAUDE.md 2>/dev/null; then
 

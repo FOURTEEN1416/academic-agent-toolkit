@@ -2888,6 +2888,13 @@
             "paper_consistency"
           ],
           "display_name": "竞赛论文撰写",
+          "assets": [
+            {
+              "name": "APMCM中文赛模板骨架",
+              "path": "科研工具箱/skills/comp-paper-zh/_templates/apmcm_zh/main.tex",
+              "note": "MathorCupmodeling 骨架（cls 同目录；P2 批收编、2026-09-22 G4 接线）"
+            }
+          ],
           "skill_binding": {
             "main_required": true
           }
@@ -3119,6 +3126,13 @@
             "paper_consistency"
           ],
           "display_name": "竞赛论文撰写",
+          "assets": [
+            {
+              "name": "MathorCup模板骨架",
+              "path": "科研工具箱/skills/comp-paper-zh/_templates/mathorcup/main.tex",
+              "note": "MathorCupmodeling 骨架（cls 同目录；P2 批收编、2026-09-22 G4 接线）"
+            }
+          ],
           "skill_binding": {
             "main_required": true
           }
@@ -4637,6 +4651,13 @@
             "paper_consistency"
           ],
           "display_name": "竞赛论文撰写",
+          "assets": [
+            {
+              "name": "五一杯模板骨架",
+              "path": "科研工具箱/skills/comp-paper-zh/_templates/wuyi/main.tex",
+              "note": "cumcmthesis 骨架（cls 与封面 image2.png 同目录；P2 批收编、2026-09-22 G4 接线）"
+            }
+          ],
           "skill_binding": {
             "main_required": true
           }
