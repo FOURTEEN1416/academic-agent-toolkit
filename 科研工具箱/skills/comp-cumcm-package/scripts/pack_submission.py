@@ -125,7 +125,10 @@ def check_paper(ws: Path, report: dict, profile: dict | None = None) -> Path | N
     block["identity_in_filename"] = _hits(pdf.name)
 
     try:  # 可选：页数 / 首页判据 / 承诺书方向 / 元数据（依赖 PyMuPDF）
-        import fitz  # type: ignore
+        try:  # 新版 PyMuPDF 对旧名 fitz 往 stdout 打 deprecation warning，会污染 --json 输出
+            import pymupdf as fitz  # type: ignore
+        except ImportError:
+            import fitz  # type: ignore
 
         doc = fitz.open(pdf)
         block["pages"] = doc.page_count

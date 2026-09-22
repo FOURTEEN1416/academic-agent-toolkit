@@ -52,6 +52,12 @@ def _mk_ws(tmp_path: Path, page1_text: str, name: str = "ws") -> Path:
     return ws
 
 
+def _json_of(stdout: str) -> dict:
+    """容忍库噪声前缀（如 CI 新版 PyMuPDF 的 fitz deprecation warning 打到 stdout），
+    只解析第一段 JSON 文档。"""
+    return json.loads(stdout[stdout.index("{"):])
+
+
 def test_g2_script_profile_loader_matches_rules_source():
     """脚本口径加载器与 comp_rules.json 真源一致；未知族返回 None（不伪造口径）。"""
     mod = _load_script()
@@ -93,11 +99,11 @@ def test_g2_json_report_carries_profile_and_default_unchanged(tmp_path):
         import pytest
         pytest.skip("PyMuPDF 不可用，无法构造 PDF 夹具")
     ws = _mk_ws(tmp_path, "正文第一页没有任何判据标记")
-    rep = json.loads(_run(ws, "--json").stdout)
+    rep = _json_of(_run(ws, "--json").stdout)
     assert rep["compliance_profile"] == "comp_cumcm"
     assert "摘要专用页" in rep["paper"]["hard_fail"]      # 国赛专属文案不得漂走
     assert rep["paper"]["pledge_check"]["verdict"] == "PASS"
-    rep2 = json.loads(_run(ws, "--compliance-profile", "comp_huawei", "--json").stdout)
+    rep2 = _json_of(_run(ws, "--compliance-profile", "comp_huawei", "--json").stdout)
     assert rep2["compliance_profile"] == "comp_huawei"
     assert rep2["paper"]["pledge_check"]["mode"] == "required"
     assert "摘要专用页" not in str(rep2["paper"].get("hard_fail", ""))  # 国赛首页判据不反套
