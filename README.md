@@ -7,7 +7,7 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v1.3.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-639_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
+[![Tests](https://img.shields.io/badge/tests-717_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-310-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-258_tracked-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
@@ -163,9 +163,9 @@ python 科研工具箱/tools/plotting_env_check.py
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-# 口径一（仓库根，回归门禁口径）：工具箱 620 + 根级门禁 19 = 639 passed / 0 failed
+# 口径一（仓库根，回归门禁口径）：工具箱 696 + 根级门禁 21 = 717 passed / 0 failed
 python -m pytest -q
-# 口径二（工具箱内，技能验收基线口径）：620 passed / 0 failed
+# 口径二（工具箱内，技能验收基线口径）：696 passed / 0 failed
 cd 科研工具箱 && python -m pytest -q
 python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账通过
 ```
@@ -178,7 +178,7 @@ python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）66/66 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | ⚠️ **2026-09-19 起停用**：公开层曾为 CC-BY-4.0 合成题面基准（P01-P03 + 六域 7 项），已废弃入库，内容归档于 `dev-docs/archive/legacy-benchmarks-tests-20260919/`；私有层（真实竞赛题面）从未入库，**已随磁盘删除永久丢失** |
-| ✅ **测试基线** | 仓库根 **651 passed / 0 failed**（本机，2026-09-22 华为杯管线补齐轮实测；= 工具箱 **630** + 根级门禁 **21**）。唯一真源=`pytest.ini` 注释；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计。历史基线 639/628/603/460 见 `pytest.ini` 注释（保留作历史；truth-index 为内部文档不入库） |
+| ✅ **测试基线** | 仓库根 **717 passed / 0 failed**（本机，2026-09-22 四批收编轮实测；= 工具箱 **696** + 根级门禁 **21**；另 1 skipped 系 docx_template_fill pyc 缺陷钉住）。唯一真源=`pytest.ini` 注释；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计。历史基线 651/639/628/603/460 见 `pytest.ini` 注释（保留作历史；truth-index 为内部文档不入库） |
 | 🧬 **逐技能 C2 覆盖** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
 | 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + `agents/adapters/`（旧宿主降为可选适配器）+ TOOL_GAP→工具铸造（2026-09-20） |
 
@@ -201,7 +201,7 @@ academic-agent-toolkit/
 
 <br>
 
-**v1.2.0（2026-08-30）** —— 三条学术管线 C2 闭环 · 科研绘图域闭环。发布后持续演进：2026-09-09 独立审计修复与 ZCode 可选适配（L1 hook）；2026-09-19/20 基线加固与**宿主无关协议**（boot/probe/forge + adapters）。上列数字均为历史快照（原文保留）；当前唯一有效口径见 `pytest.ini` 注释（2026-09-20 改造轮：**639** = 620 + 19）；`dev-docs/truth-index.md` 为内部副本，不入库。
+**v1.2.0（2026-08-30）** —— 三条学术管线 C2 闭环 · 科研绘图域闭环。发布后持续演进：2026-09-09 独立审计修复与 ZCode 可选适配（L1 hook）；2026-09-19/20 基线加固与**宿主无关协议**（boot/probe/forge + adapters）；2026-09-22 华为杯管线补齐与四批并行收编。上列数字均为历史快照（原文保留）；当前唯一有效口径见 `pytest.ini` 注释；`dev-docs/truth-index.md` 为内部副本，不入库。
 
 **v1.1.0（2026-08-28）** —— 全能力公开发布（含软著/专利/基金流水线）· 科研绘图 9 技能扩展 · ZCode 兼容层 · 全库文档治理（45+ 文档审计）。完整记录见 [CHANGELOG.md](./CHANGELOG.md)。
 

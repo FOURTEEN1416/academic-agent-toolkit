@@ -181,7 +181,7 @@ For each action item (highest priority first):
 
 Prioritization rules:
 - Skip fixes requiring excessive compute (flag for manual follow-up)
-- Skip fixes requiring external data/models not available
+- Skip fixes requiring external data or models not available
 - Prefer reframing/analysis over new experiments when both address the concern
 - Always implement metric additions (cheap, high impact)
 

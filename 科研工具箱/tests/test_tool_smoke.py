@@ -36,7 +36,6 @@ VENDORED_MARKER = "codesucker-core"  # vendored node 项目内嵌 py 不属本�
 #   assets_codesucker_adapter —— 脚本形态 `python tools/xxx.py --help` 即 ModuleNotFoundError
 #     （顶层 `from tools.codesucker_bridge import ...` 假设包形态）；
 #     `python -m tools.assets_codesucker_adapter --help` 可用（rc=0）。修复归后续轮次。
-# 【暂缓】plotting_env_check：--help 实测 rc=0 安全，待批次一（B1-9 argparse 改造）合并后收编。
 CLI_HELP_TOOLS = (
     # —— 2026-09-20 首批（11）——
     "derive_reference_from_docx.py", "codesucker_python.py",
@@ -54,6 +53,8 @@ CLI_HELP_TOOLS = (
     "humanities_review.py", "count_chapter_words.py", "arxiv_fetch.py",
     "screenshot_capture.py", "check_codesucker_licenses.py",
     "fix_skill_manifest_placement.py", "sync_codesucker_core.py",
+    # —— 2026-09-22 主窗收编：批次一 B1-9 合并后收编暂缓件（1）——
+    "plotting_env_check.py",
 )
 
 

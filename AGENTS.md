@@ -74,8 +74,8 @@
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **651 passed / 0 failed**（= 工具箱 **630** + 根级门禁 **21**） | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **630 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **717 passed / 0 failed**（= 工具箱 **696** + 根级门禁 **21**；另 1 skipped） | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **696 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
 | 根 `tests/` 单跑 | catalog schema + 反 AI 工具集 | **21 passed** | catalog 改动后必跑 |
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准（历史：600+3 skipped @ run 35425878920） | 门禁 |
 

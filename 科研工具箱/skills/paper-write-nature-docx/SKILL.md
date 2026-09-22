@@ -123,7 +123,7 @@ Every paragraph:
 
 - **Claim** (topic sentence)
 
-- **Evidence** (data/comparison/literature)
+- **Evidence** (data, comparison, literature)
 
 - **Boundary** (limitation, scope, transition)
 

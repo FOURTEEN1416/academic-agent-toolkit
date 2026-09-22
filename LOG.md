@@ -1211,3 +1211,39 @@ L11 mypy；**L12 governance 资产台账刷新**——两次实测重生成（�
      分支均有提交版，主仓未收编状态与其 memory 记录一致，无内容损失。
    - 溯源机检 check_provenance.py 全 OK；check_asset_utilization --strict 263/263 零漏网、模板资产
      192 条失联 0。
+
+## 续43 · 2026-09-22 · 四批并行收编合仓（wt/batch1~4 → main）与登记册处置
+
+多窗口第五轮系统性升级的主窗收编收官。四批任务包（缺陷快修 / 公开面与口径 / 机制补强 / 产品能力）
+已全部 `--no-ff` 并入 main，本节记录主窗复核、登记册处置、口径回填与卸窗。
+
+1. **收编完整性核对**：`git log main..wt/batchN` 四分支均为空（零未收编提交）；merge 顺序按看板
+   约定 batch1→2→3→4，提交链 `12c7e50` / `01bf509` / `de2280d` / `2e2fdf1`。
+2. **asset_gap_register 处置（主窗收编后可处置项闭环）**：
+   - 批次四领地 3 条**销账**（棘轮 338→335 / 75→72）：`auto-review-loop`/`-minimax` 的
+     `data/models`（正文 "external data/models"）与 `paper-write-nature-docx` 的
+     `data/comparison/literature`（段落架构 Evidence 三元组）均为词组伪引用；收编后改写为
+     "data or models" / "data, comparison, literature" 消除 INNER_REF 误报。
+   - `paper-framework-figure-studio-pro` 2 条目录形态补过期台账（2026-12-31，B3-6 ④），
+     修 `test_gap_register_dir_entries_have_expiry_ledger` 红灯。
+3. **plotting_env_check 收编入 CLI --help 名单**（33→34）：B1-9 argparse 改造已随 batch1 合并，
+   消化 batch3 暂缓项；实测 `--help` rc=0。
+4. **docx_template_fill 定性**（batch3 顺带发现 #3）：`.py` 为 pyc_loader 包装器，真正逻辑在
+   `docx_template_fill.pyc`（3.11）；`--template` 被内嵌 docx_export parser 拒绝属 **pyc 构建期
+   参数转交缺陷**，源码不在仓内、不可修。保留 skip 钉住（`test_batch3_tool_happy.py`），登记为
+   已知缺陷，不阻断收仓；修复需上游源码或重构建 pyc。
+5. **batch3 主窗复核**：九项机制补强随全量回归与门禁机检验收（RunLogger/原子写/CLI 契约/
+   catalog 双向/冒烟 33/断链盲区/适配器对账/门禁去重/工具分档）；顺带发现 #2 漂移随本轮口径
+   回填愈合；#4 assets_codesucker_adapter 脚本形态断 import 维持豁免登记，归后续轮次。
+6. **基线口径统一回填（收编门禁第 4 条）**：本机完整仓 **717 passed / 0 failed**（工具箱 696 +
+   根级 21；另 1 skipped = docx_template_fill 钉住；collect-only 718）。同步四处：
+   pytest.ini 注释 / README 徽章+口径一/二+基线表 / 根 AGENTS.md 测试口径表 / truth-index 当前基线节。
+7. **门禁实测**（收编后主检出回归门）：
+   - 根 `pytest -q` = **717 passed / 1 skipped / 0 failed**（82.5s）
+   - `secret_scan --strict` rc=0 · `lint_ratchet` 8/8 · `check_duplicate_assets --strict` 棘轮内
+   - `check_provenance` 66/66 · `skill_library_audit` OK（263 技能 / 46 模板 / acknowledged 334）
+   - `project_health_check --strict` 整体健康（10/10 PASS）
+
+**边界**：未打 v1.3.0 tag（按看板约定由用户亲手打）；未 push（main 领先 origin/main 35+ 提交，
+待用户统一推送）；docx_template_fill / assets_codesucker_adapter 两缺陷如实登记不修；
+四窗 worktree 按 `window_ops.ps1 -Action remove` 卸载（先摘 Junction 再删树）。
