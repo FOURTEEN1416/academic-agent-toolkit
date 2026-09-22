@@ -18,5 +18,16 @@ _tools_dir = _os.path.dirname(_os.path.abspath(__file__))
 if _tools_dir not in sys.path:
     sys.path.insert(0, _tools_dir)
 
-from pyc_loader import run_pyc
-run_pyc(pathlib.Path(_pyc_path), sys.argv[1:])
+# pyc 本体无 argparse（构建期探测）：wrapper 按其自身 Usage 常量响应 -h/--help
+_USAGE = 'Usage: python drawio_vision_check.py <fig.pdf|fig.png>'
+if __name__ == "__main__" and sys.argv[1:2] in (["-h"], ["--help"]):
+    print(_USAGE)
+    sys.exit(0)
+
+if __name__ == "__main__":
+    from pyc_loader import run_pyc
+    run_pyc(pathlib.Path(_pyc_path), sys.argv[1:])
+else:
+    # 被兄弟模块 import：符号须落进本模块命名空间（见 pyc_loader.import_pyc_module）
+    from pyc_loader import import_pyc_module
+    import_pyc_module(pathlib.Path(_pyc_path), globals())

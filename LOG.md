@@ -1275,6 +1275,20 @@ L11 mypy；**L12 governance 资产台账刷新**——两次实测重生成（�
 `workspaces/cumcm2026a-submission/A题提交.rar` 为该资料线唯一幸存件。全部事实以本条为准，
 此前"疑似并行窗所为"的推断撤销。
 
+**收官后 CI 红修复**（run 35708105058 = 2 failed / 711 passed / 5 skipped，两项均为 CI 环境特有、本机被
+`.venv311`/pymupdf 版本差异掩盖）：
+①`workflow_cli start` stdout 被 `warning: The fitz API is deprecated` 污染 → CLI 纯 JSON 契约破 →
+`quality_gates.py`/`doc_reader.py` 改 `import pymupdf`（fitz 兼容 shim 不打警告）；
+②`count_chapter_words.py --help` rc=1——双层真因：pyc 兄弟依赖 `from markdown_utils import ...`
+命中的 wrapper 无 `__main__` 分流，marshal 把符号 exec 进私有 globals → ImportError（新增
+`import_pyc_module` + 模板 import 分流修复；此路径同时根除 docx_template_fill 式"兄弟 CLI 劫持 argv"缺陷）；
+且该 pyc 本体无 argparse、`--help` 被当文件路径——本机旧 wrapper 曾以 SystemExit(0) **假绿**
+（attempt-vs-success 审计命中），wrapper 构建期探测 argparse、无则注入该工具自身 Usage 常量的 `--help` 分支
+（5 件 wrapper 更新，其余 11 件自带 argparse 不动）。
+验证：干净 clone + 3.11 venv（CI 等价）定向 2 passed；主检出全量 715 passed / 3 skipped / 0 failed
+（2 skip 为私有资料区缺失语义降级，见上"边界插曲"）；lint 棘轮 8/8 基线内；secret_scan rc=0；
+wrapper 重建幂等。
+
 **验证**：本轮改动全部为文档/注释面；改前全仓新鲜复验 `pytest -q` = **717 passed / 1 skipped / 0 failed**
 （131.35s），改后根级门禁 21 passed 复跑；YAML 语法自检通过。
 改后全量复跑 = 715 passed / **3 skipped**（0 failed）——多出的 2 skip 系

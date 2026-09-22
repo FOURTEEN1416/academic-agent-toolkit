@@ -266,6 +266,24 @@ def run_pyc(pyc_path: pathlib.Path, argv: list = None):
         run_pyc_marshal(pyc_path, argv)
 
 
+def import_pyc_module(pyc_path: pathlib.Path, module_globals: dict):
+    """wrapper 被当作兄弟模块 **import** 时：把 pyc 代码执行进调用模块自身命名空间。
+
+    背景（CI run 35708105058）：count_chapter_words.pyc 顶层 `from markdown_utils
+    import compute_text_metrics` 命中的是 markdown_utils.py wrapper；旧 wrapper 无
+    __main__ 分流，导入时走 run_pyc——marshal 路径把符号 exec 进 run_pyc_marshal 的
+    局部 globals_dict，wrapper 模块命名空间始终为空 → ImportError。
+    限制：跨解释器版本 marshal 不可行（3.12 载 3.11 pyc 会 ValueError），
+    该场景本仓由 .venv311 原生路径覆盖。
+    """
+    module_globals.setdefault('__name__', pyc_path.stem)
+    module_globals.setdefault('__file__', str(pyc_path))
+    module_globals.setdefault('__package__', None)
+    module_globals.setdefault('__spec__', None)
+    code = load_code_from_pyc(pyc_path)
+    exec(code, module_globals)
+
+
 def build_wrappers(tools_dir: pathlib.Path, force: bool = False):
     """为 tools/ 下所有 .pyc 生成/更新 .py wrapper（优先 venv311，回退 marshal）。"""
     wrapper_template = '''# -*- coding: utf-8 -*-
@@ -288,17 +306,61 @@ _tools_dir = _os.path.dirname(_os.path.abspath(__file__))
 if _tools_dir not in sys.path:
     sys.path.insert(0, _tools_dir)
 
-from pyc_loader import run_pyc
-run_pyc(pathlib.Path(_pyc_path), sys.argv[1:])
+{help_block}if __name__ == "__main__":
+    from pyc_loader import run_pyc
+    run_pyc(pathlib.Path(_pyc_path), sys.argv[1:])
+else:
+    # 被兄弟模块 import：符号须落进本模块命名空间（见 pyc_loader.import_pyc_module）
+    from pyc_loader import import_pyc_module
+    import_pyc_module(pathlib.Path(_pyc_path), globals())
+'''
+    help_block_template = '''# pyc 本体无 argparse（构建期探测）：wrapper 按其自身 Usage 常量响应 -h/--help
+_USAGE = {usage!r}
+if __name__ == "__main__" and sys.argv[1:2] in (["-h"], ["--help"]):
+    print(_USAGE)
+    sys.exit(0)
+
 '''
     built = []
     for pyc in sorted(tools_dir.glob('*.pyc')):
         py = pyc.with_suffix('.py')
-        need_write = force or not py.exists() or 'pyc_loader' not in py.read_text(encoding='utf-8', errors='replace')
+        help_block = ''
+        try:
+            code = load_code_from_pyc(pyc)
+        except Exception:
+            code = None
+        if code is not None and not _code_uses_argparse(code):
+            usage = _find_usage_const(code) or f"Usage: python {py.name} <args...>"
+            help_block = help_block_template.format(usage=usage)
+        need_write = force or not py.exists() \
+            or 'import_pyc_module' not in py.read_text(encoding='utf-8', errors='replace') \
+            or ('_USAGE' not in py.read_text(encoding='utf-8', errors='replace') and help_block)
         if need_write:
-            py.write_text(wrapper_template.format(pyc_name=pyc.name), encoding='utf-8')
+            py.write_text(wrapper_template.format(pyc_name=pyc.name, help_block=help_block), encoding='utf-8')
             built.append(pyc.name)
     return built
+
+
+def _code_uses_argparse(code) -> bool:
+    stack = [code]
+    while stack:
+        c = stack.pop()
+        if 'argparse' in getattr(c, 'co_names', ()):
+            return True
+        stack.extend(k for k in c.co_consts if hasattr(k, 'co_names'))
+    return False
+
+
+def _find_usage_const(code):
+    stack = [code]
+    while stack:
+        c = stack.pop()
+        for k in c.co_consts:
+            if hasattr(k, 'co_names'):
+                stack.append(k)
+            elif isinstance(k, str) and k.startswith(('Usage', 'usage')):
+                return k.splitlines()[0].strip()
+    return None
 
 
 if __name__ == '__main__':

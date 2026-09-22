@@ -165,7 +165,7 @@ def read_docx(path: Path, use_vision: bool, max_images: int) -> dict:
 # ============ PDF 读取 ============
 
 def read_pdf(path: Path, use_vision: bool, max_images: int) -> dict:
-    import fitz
+    import pymupdf as fitz  # 同 quality_gates：避开 fitz shim 的 stdout 警告
     doc = fitz.open(str(path))
     report = {"text": [], "images": []}
 

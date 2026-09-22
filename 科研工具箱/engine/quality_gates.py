@@ -5,7 +5,7 @@ quality_gates.py — 质量门禁系统 + 多角色 Agent + 视觉能力 + 编�
 from __future__ import annotations
 import os, sys, json, re, subprocess, hashlib
 from datetime import datetime, timezone
-import fitz as _fitz
+import pymupdf as _fitz  # 不用 `import fitz`：兼容 shim 会向 stdout 打 deprecation 警告，污染 CLI 纯 JSON 契约（CI run 35708105058 实测）
 from pathlib import Path
 
 # 确保 engine 目录在 sys.path（CLI 直接运行时）
