@@ -8,7 +8,7 @@
 
 [![Release](https://img.shields.io/badge/release-v1.3.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-717_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
-[![Capabilities](https://img.shields.io/badge/capabilities-310-0ea5e9?style=flat-square)](capabilities/catalog.json)
+[![Capabilities](https://img.shields.io/badge/capabilities-311-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-258_tracked-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始)
@@ -49,19 +49,19 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 </td></tr>
 </table>
 
-## 🗺️ 六大能力域 + Agent 运行时 · 310 项能力
+## 🗺️ 六大能力域 + Agent 运行时 · 311 项能力
 
 | | 能力域 | 条目 | 代表能力 |
 |--|--------|-----:|----------|
 | 🎓 | **课程与研究材料** | 83 | 课程论文 · 实验报告 · 教学大纲 |
 | 📝 | **学术论文** | 74 | 写作 · 评审 · 润色 · 投稿准备（含 Nature 工作流） |
 | 🔬 | **文献与研究** | 42 | 文献检索 · 综述 · 深度研究 · 实验设计 |
-| 🏆 | **数模竞赛** | 36 | CUMCM 14 步端到端流水线 |
+| 🏆 | **数模竞赛** | 37 | CUMCM 14 步端到端流水线 |
 | 📊 | **图表与文档生产** | 61 | 期刊级科研绘图 · 信息图 · LaTeX |
 | ©️ | **知识产权材料** | 12 | 软著 · 专利 · 基金申请书 |
 | 🧩 | **Agent 运行时** | 2 | 宿主无关自举 · 自适应工具铸造 |
 
-> 域表与 `capabilities/catalog.json` 对齐：36/74/42/83/12/61/2 = **310**（与徽章一致）。
+> 域表与 `capabilities/catalog.json` 对齐：37/74/42/83/12/61/2 = **311**（与徽章一致；2026-09-22 复核实测，数模域 +1 为 2026-09-22 收编的华为杯管线能力）。
 
 > [!NOTE]
 > **技能计数双轨**（2026-09-22 实测定版）：徽章 `258 tracked` = `git ls-files` 口径的顶层技能 SKILL.md 数（**clone 即所见**）；主检出盘面实测 **263 incl. 5 local-only**（5 个为无 License 上游隔离件，gitignored 不入库）。口径以当前实测为准，不承诺自动同步。

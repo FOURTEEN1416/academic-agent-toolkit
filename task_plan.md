@@ -35,6 +35,7 @@ Complete Phase 1 infrastructure from the handover, CodeSucker fusion design, and
 - [x] Phase 24 (2026-09-19): 仓库治理收口（用户裁定）——①公开基准集 `benchmarks/` 废弃入库：77 文件/112 KB **零丢失**归档 `dev-docs/archive/legacy-benchmarks-tests-20260919/`（含 README 损失清单 + manifest.tsv 逐文件 sha256）；②依赖核查后**收窄废弃范围**——仅移除 `tests/test_cumcm_benchmark.py`，`test_minimum_catalog.py`/`test_anti_ai_toolkit.py` 两个独立门禁保留入库（故 pytest.ini 保留 `tests`）；③`.zcode/skills` NTFS 联结重建（旧联结指向已失效的 `D:\Desktop\数模竞赛` → ZCode 技能链断裂，现已恢复 260 技能可见）；④基线口径全仓统一为 2026-09-19 实测值（460 收集）；⑤新增 CI 最小集
 - [x] Phase 26 (2026-09-20): **宿主无关 · 自适应 Agent 泛化改造**（详见 `docs/superpowers/specs/2026-09-20-host-agnostic-adaptive-agent.md`）——①引擎深度重构：`agent_bridge.py` canonical + `opencode_bridge.py` shim；evidence/默认 agent 标签改为 `acat-agent`（自由字符串）；quality_gates 模型解析链泛化（contest → adapters/*/models.json → 可选宿主目录，显式 env 覆盖时不扫默认宿主）；②新增 `agent_protocol`/`capability_probe`/`tool_forge` + CLI `boot`/`probe`/`forge`（boot/probe/forge 惰性加载重型依赖）；③旧宿主降为可选适配器（`agents/adapters/*`，协议不依赖）；④文档入口泛化（根/工具箱 AGENTS.md + README）+ 技能 `agent-bootstrap`/`tool-forge` 入册入图入索引；⑤测试基线 628→**639**（620+19）
 - [x] Phase 27 (2026-09-20): **收尾整理**——清 `__pycache__`/`.pytest_cache`/`workflow-index.json`（保留 .engine 审计/SQLite 与 tools/*.pyc）；CHANGELOG/LOG/README/CLAUDE.md/galaxy-*/acat-doc-governance/CROSS_PROJECT 措辞与路径同步；opencode/zcode 配置标 optional 适配器；徽章 skills 263 / capabilities 310；复验 pytest **639** + health 整体健康
+- [x] Phase 28 (2026-09-21/22): **系统升级四批收编合仓**（多窗口第五轮；wt/batch1~4 `--no-ff` 并入 main，详见 LOG 续42/续43 与 CHANGELOG v1.3.0）——①batch1 缺陷快修九项（12c7e50：恒真断言、反 AI 检测器基线加载链与退出码契约、case_fetcher 统计自洽、个人路径占位化、secret_scan 家目录 WARN→FAIL、lint 基线相对路径、gpt_image 第三方域名去硬编码、arxiv_miner 隐式依赖与空元素、plotting_env_check `--strict`）；②batch2 公开面与口径八项（01bf509：**CHANGELOG 定版 v1.3.0**、真源指针公开侧改写、技能计数双轨（tracked/盘面）、`科研工具箱/baseline/` 吞件陷阱修复、快速开始补依赖安装步、LICENSE 与历史引用本地性修正）；③batch3 机制补强九项（de2280d：RunLogger 落盘链路接通、workflow-index 原子写与回退、CLI 错误契约 + `--evidence-file`、catalog 双向校验 + 补齐、`--help` 契约冒烟扩容、断链棘轮盲区四类、适配器三方对账、**门禁互检去重**（全量 153.77s→93.18s，**-39.4%**）、17 工具零覆盖分档）；④batch4 产品能力（2e2fdf1：管线模板 `academic_outputs`（poster→slides）与 `course_teaching`、写论文/审稿循环/文献三簇仲裁表、§三路由表扩容、auto_review 模板 required_checks 补齐）；⑤收官 35ebb8f：asset_gap_register 处置（批次四领地 3 条销账 + 2 条目录补过期台账）、plotting_env_check 入 CLI `--help` 名单（33→34）、**基线口径统一回填 717**（根级 pytest = 工具箱 **696** + 根级门禁 **21**，另 1 skipped = docx_template_fill 钉住；本轮前置为 09-22 华为杯管线补齐 8→14 步与国赛同构，中间基线 651）
 
 ## Key Questions
 1. Does `STEP_MANIFEST.json` capture input hashes, config, output hashes, backend, commands, and dependencies robustly?
@@ -60,12 +61,14 @@ Complete Phase 1 infrastructure from the handover, CodeSucker fusion design, and
 
 ## Status
 
-> ⚠️ **本节为 2026-08-30 时点快照**（保留作历史）。当前唯一有效基线（2026-09-19 两轮升级后复测）：
-> 根级 `pytest -q` = **576 passed / 0 failed**（72.6s）/
-> 工具箱内 = **441 passed** / 根级门禁 19 passed、provenance **66/66**、
-> catalog **307 条** / 260 技能——见 `dev-docs/truth-index.md` §当前基线 与根 `AGENTS.md` §测试口径。
+> ⚠️ **本节正文为 2026-08-30 时点快照**（保留作历史）。当前唯一有效基线（**2026-09-22 四批收编合仓收官实测**）：
+> 根级 `pytest -q` = **717 passed / 0 failed**（= 工具箱 **696** + 根级门禁 **21**，另 **1 skipped**）——
+> 口径真源见根 `AGENTS.md` §测试口径 与 `pytest.ini` 注释（公开侧口径唯一真源），内部副本 `dev-docs/truth-index.md` §当前基线。
+> 历史时点快照（诚实保留，勿当现值）：2026-08-30 = 242 passed / provenance 28/28 / 245 技能；
+> 2026-09-19 两轮升级后 = 576（工具箱 441 + 根级门禁 19，provenance 66/66、catalog 307 条 / 260 技能）；
+> 2026-09-20 宿主无关轮 = 639（620+19）；2026-09-22 华为杯管线补齐轮 = 651（630+21）。
 
-All phases delivered（历史记录见下方 Errors/Decisions）。2026-08-30 当前验证基线：
+All phases delivered（历史记录见下方 Errors/Decisions）。2026-08-30 历史时点验证快照：
 - `python -m pytest -q` = **242 passed**（三管线/逐技能/绘图域回归含内）
 - `python tools/check_provenance.py` = **28/28**（27 台账 + vendor）
 - `tools/skill_library_audit.py` = OK（245 skills / 44 templates / template_missing_skill=0）

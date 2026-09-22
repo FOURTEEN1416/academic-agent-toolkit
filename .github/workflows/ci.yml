@@ -63,10 +63,13 @@ jobs:
         run: npm ci
 
       - name: Repository-root test suite
-        # CI 侧实测（2026-09-19 run 35410978808）：457 收集 = 455 passed + 2 skipped，0 failed，29.4s。
-        # 与本地 460 的口径差异：公开 clone 比本机完整仓少 3 项（并行窗尚未提交的新测试），
-        # 另有 2 项按语义 skip（test_asset_utilization 的"真仓机检"在缺 gitignored 私有
-        # 资产时 skip，理由随 -rs 输出）。
+        # 当前口径（2026-09-22 收官回填，本机完整仓）：717 passed / 0 failed
+        # （= 工具箱自有 696 + 根级门禁 21；另 1 skipped 系 docx_template_fill pyc
+        # 缺陷钉住，collect-only 718）。基线唯一真源 = pytest.ini 注释。
+        # 公开 clone 侧以 CI 实测为准（历史：run 35425878920 = 600 passed + 3 skipped；
+        # 新口径下暂无新一轮 CI 实测，不引用旧 457/455 失效口径）。
+        # 公开侧与本机差异来自：gitignored 私有资产（test_asset_utilization 的
+        # "真仓机检"缺其时按语义 skip，理由随 -rs 输出）与并行窗尚未提交的新测试。
         run: python -m pytest -q -rs
 
       - name: Provenance ledger
@@ -75,8 +78,9 @@ jobs:
 
       - name: Secret & path hygiene scan
         # 2026-09-20 建立：tracked 面密钥/配置绝对路径扫描（吸收 gitleaks 的
-        # "CI 纵深防御"思路，自建实现保持自包含）。豁免台账 3 条见
-        # 科研工具箱/data/secret_scan_allowlist.json。
+        # "CI 纵深防御"思路，自建实现保持自包含）。豁免台账逐条见
+        # 科研工具箱/data/secret_scan_allowlist.json（2026-09-22 实测在册 21 条，
+        # 台账为真源、此处不钉数）。
         run: python 科研工具箱/tools/secret_scan.py --strict
 
       - name: Lint ratchet
