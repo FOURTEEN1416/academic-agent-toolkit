@@ -21,7 +21,7 @@
   python quick_gates.py --workspace ./ws --max-pages 30  # 显式正文页数上限
   python quick_gates.py --workspace ./ws --skip page     # 跳过某类（可重复）
   python quick_gates.py --workspace ./ws --compliance-profile comp_huawei
-      # G1（2026-09-23）：按竞赛族取合规口径（compliance_profile），页数上限从
+      # G1（2026-09-22）：按竞赛族取合规口径（compliance_profile），页数上限从
       # engine/modex-core/comp_rules.json 的 compliance.max_body_pages 解析，
       # 并加跑"承诺书页"判定（华为杯必须有 / 国赛电子版不得有）。
 """
@@ -111,7 +111,7 @@ def _leakage_check(workspace: Path) -> tuple[str, str]:
     return "FAIL", f"leakage_audit 退出码 {proc.returncode}\n{tail}"
 
 
-# ── G1 合规口径分支（compliance_profile，2026-09-23）────────────────────
+# ── G1 合规口径分支（compliance_profile，2026-09-22）────────────────────
 #
 # 病根：S14 终审（comp-final-audit）的合规判据历史上只有国赛口径
 # （承诺书不进电子版、正文 ≤30 页）。华为杯正好相反：gmcmthesis 官方模板
