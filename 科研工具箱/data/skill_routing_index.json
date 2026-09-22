@@ -15,8 +15,7 @@
   "counts": {
     "core": 54,
     "ondemand": 209,
-    "resident_chars": 31754,
-    "full_chars": 67379
+    "resident_chars": 31876
   },
   "skills": {
     "ablation-planner": {
@@ -1559,7 +1558,7 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Draft LaTeX paper section by section from an outline. Use when user says \\”write paper\\”, \\”draft LaTeX\\”, or wants to",
-      "full_description": "Draft LaTeX paper section by section from an outline. Use when user says \\\"write paper\\\", \\\"draft LaTeX\\\", or wants to generate LaTeX content from a paper plan.",
+      "full_description": "Draft LaTeX paper section by section from an outline. Use when user says \\”write paper\\”, \\”draft LaTeX\\”, or wants to draft an English ML-conference paper (ICLR/NeurIPS/ICML) as LaTeX/PDF. 区别于 paper-write-zh：本技能面向英文会议稿，中文论文改用 paper-write-zh；Word(docx) 输出改用 paper-write-docx；Nature 期刊风格改用 paper-write-nature。",
       "description_compacted": true,
       "path": "科研工具箱/skills/paper-write/SKILL.md"
     },
@@ -1575,7 +1574,7 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Draft a Nature-style LaTeX paper with hourglass structure, reader-first logic, and publication-quality English. Use when",
-      "full_description": "Draft a Nature-style LaTeX paper with hourglass structure, reader-first logic, and publication-quality English. Use when user says 'Nature paper', 'Nature writing', 'SCI writing', or needs high-impact journal manuscript drafting.",
+      "full_description": "Draft a Nature-style LaTeX paper with hourglass structure, reader-first logic, and publication-quality English. Use when the target venue is a Nature-family journal. 区别于 paper-write：本技能用 Nature 沙漏结构与期刊写作规范，ML 会议稿改用 paper-write；Word(docx) 输出改用 paper-write-nature-docx；仅重构个别章节（作者已有 claims/figures）用 galaxy-nature-writing。",
       "description_compacted": true,
       "path": "科研工具箱/skills/paper-write-nature/SKILL.md"
     },
@@ -1590,8 +1589,8 @@
     "paper-write-zh": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Draft a Chinese academic paper in LaTeX using XeLaTeX + ctex. Use when user says \\”写中文论文\\”, \\”中文LaTeX\\”, \\”Chinese paper",
-      "full_description": "Draft a Chinese academic paper in LaTeX using XeLaTeX + ctex. Use when user says \\”写中文论文\\”, \\”中文LaTeX\\”, \\”Chinese paper",
+      "resident_description": "Draft a Chinese academic paper in LaTeX using XeLaTeX + ctex. Use when user says \\”写中文论文\\”, \\”中文LaTeX\\”, \\”Chinese paper\\”。区别于 paper-write：本技能面向中文学位论文/中文期刊（ctex 本科/硕士/期刊三模板 + GB/T 7714），英文会议稿改用 paper-write；Word(docx) 输出改用 paper-write-zh-docx。",
+      "full_description": "Draft a Chinese academic paper in LaTeX using XeLaTeX + ctex. Use when user says \\”写中文论文\\”, \\”中文LaTeX\\”, \\”Chinese paper\\”。区别于 paper-write：本技能面向中文学位论文/中文期刊（ctex 本科/硕士/期刊三模板 + GB/T 7714），英文会议稿改用 paper-write；Word(docx) 输出改用 paper-write-zh-docx。",
       "description_compacted": false,
       "path": "科研工具箱/skills/paper-write-zh/SKILL.md"
     },

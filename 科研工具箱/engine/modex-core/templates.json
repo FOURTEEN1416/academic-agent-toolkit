@@ -193,12 +193,18 @@
         "checkpoint_type": null,
         "metadata": {
           "requires_subagent": false,
-          "required_checks": [],
+          "required_checks": [
+            "step_manifest"
+          ],
           "display_name": "自动审稿循环",
           "skill_binding": {
             "main_required": true
-          }
-        }
+          },
+          "note": "豁免 review 门禁：其文件名契约（COMP_REVIEW.md / COMP_REVIEW_VERDICT.json 等）属竞赛多角色审稿链，与本技能产物（NARRATIVE_REPORT.md / AUTO_REVIEW.md / REVIEW_STATE.json）零重叠，加入必假失败；审稿证据由技能内置的 AUTO_REVIEW.md 轮次台账 + REVIEW_STATE.json 承载。"
+        },
+        "required_checks": [
+          "step_manifest"
+        ]
       }
     ]
   },
@@ -7573,6 +7579,158 @@
       }
     ]
   },
+  "course_teaching": {
+    "pipeline_skill": "course-plan",
+    "display_name": "课程教学一站线（课程论文线 → 课程报告线，双交付）",
+    "sub_steps": [
+      {
+        "skill_name": "course-plan",
+        "display_name": "课程论文线大纲与图表规划",
+        "output_files": [
+          "OUTLINE.md",
+          "PAPER_PLAN.md"
+        ],
+        "primary_output": "OUTLINE.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "课程论文线大纲与图表规划",
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "OUTLINE.md": {
+              "min_bytes": 800,
+              "rationale": "course-plan 完成铁律：OUTLINE.md ≥800B 完整大纲"
+            },
+            "PAPER_PLAN.md": {
+              "min_bytes": 1024,
+              "rationale": "course-plan 完成铁律：PAPER_PLAN.md ≥1KB 含图表规划"
+            }
+          }
+        }
+      },
+      {
+        "skill_name": "course-paper",
+        "display_name": "课程论文正文撰写",
+        "output_files": [
+          "COURSE_PAPER.md"
+        ],
+        "primary_output": "COURSE_PAPER.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "课程论文正文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
+        }
+      },
+      {
+        "skill_name": "course-report-plan",
+        "display_name": "课程报告线项目事实与大纲规划",
+        "output_files": [
+          "PROJECT_FACTS.md",
+          "OUTLINE.md",
+          "PAPER_PLAN.md"
+        ],
+        "primary_output": "PROJECT_FACTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "课程报告线项目事实与大纲规划",
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "PROJECT_FACTS.md": {
+              "min_bytes": 300,
+              "rationale": "course-report-plan 完成铁律：PROJECT_FACTS.md ≥300B 项目事实底稿"
+            },
+            "OUTLINE.md": {
+              "min_bytes": 800,
+              "rationale": "course-report-plan 完成铁律：报告线 OUTLINE.md ≥800B"
+            }
+          },
+          "note": "本步会以报告线版本覆盖 OUTLINE.md/PAPER_PLAN.md（技能产物名硬编码所致）。链序已保证论文线正文 COURSE_PAPER.md 在本步之前落盘，不受覆盖影响；禁止在本步之后重跑 course-paper。"
+        }
+      },
+      {
+        "skill_name": "course-report",
+        "display_name": "课程报告正文撰写",
+        "output_files": [
+          "COURSE_REPORT.md"
+        ],
+        "primary_output": "COURSE_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "课程报告正文撰写",
+          "skill_binding": {
+            "main_required": true
+          }
+        }
+      },
+      {
+        "skill_name": "docx-export",
+        "display_name": "课程论文与报告双导出 Word",
+        "output_files": [
+          "COURSE_PAPER.docx",
+          "COURSE_REPORT.docx"
+        ],
+        "primary_output": "COURSE_PAPER.docx",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "课程论文与报告双导出 Word",
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "COURSE_REPORT.docx": {
+              "min_bytes": 5000,
+              "rationale": "对齐 min_size 表中 docx-export 的 5000B 下限（primary_output 只计量第一份，第二份由规格兜底）"
+            }
+          }
+        }
+      }
+    ]
+  },
   "paper_from_assets": {
     "pipeline_skill": "assets-inventory",
     "display_name": "已有资产 → 论文",
@@ -8369,6 +8527,103 @@
           ]
         },
         "requires_subagent": true
+      }
+    ]
+  },
+  "academic_outputs": {
+    "pipeline_skill": "paper-poster",
+    "display_name": "学术产出物管线（会议海报 → 演讲幻灯 → 补充格式转换）",
+    "sub_steps": [
+      {
+        "skill_name": "paper-poster",
+        "display_name": "会议海报（A0/A1 PDF + 可编辑 PPTX/SVG）",
+        "output_files": [
+          "poster/main.pdf",
+          "poster/main.tex",
+          "poster/poster_components.pptx",
+          "poster/POSTER_CONTENT_PLAN.md",
+          "poster/POSTER_REVIEW.md"
+        ],
+        "primary_output": "poster/main.pdf",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "会议海报（A0/A1 PDF + 可编辑 PPTX/SVG）",
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "poster/main.pdf": {
+              "min_bytes": 50000,
+              "rationale": "paper-poster 技能内置 Output Verification 契约（≥50000B 才算编译完成），拦\"只写 tex 未编译\"薄产物"
+            }
+          },
+          "note": "编译日志门禁 compilation_log 的候选路径（paper/main.log / latex_bridge.log / compile.log）不含 poster/ 子目录，故本步用 output_specs 兜底 PDF 产出而不用 compilation_log。"
+        }
+      },
+      {
+        "skill_name": "paper-slides",
+        "display_name": "会议演讲幻灯（Beamer PDF + 可编辑 PPTX + 演讲稿）",
+        "output_files": [
+          "slides/main.pdf",
+          "slides/main.tex",
+          "slides/presentation.pptx",
+          "slides/SLIDE_OUTLINE.md",
+          "slides/TALK_SCRIPT.md",
+          "slides/SLIDES_REVIEW.md"
+        ],
+        "primary_output": "slides/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "会议演讲幻灯（Beamer PDF + 可编辑 PPTX + 演讲稿）",
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "slides/main.pdf": {
+              "min_bytes": 50000,
+              "rationale": "paper-slides 技能内置 Output Verification 契约（≥50000B 才算编译完成），拦\"只写 tex 未编译\"薄产物"
+            }
+          },
+          "note": "compilation_log 候选路径不含 slides/ 子目录，同 poster 步以 output_specs 兜底。"
+        }
+      },
+      {
+        "skill_name": "latex-document",
+        "display_name": "补充 LaTeX 产出与格式转换（简历/报告/格式互转，按需开放产出）",
+        "output_files": [],
+        "primary_output": "",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "补充 LaTeX 产出与格式转换（简历/报告/格式互转，按需开放产出）",
+          "skill_binding": {
+            "main_required": true
+          },
+          "note": "开放产出步：产物由用户需求决定，不预设 output_files；STEP_MANIFEST 由 runner 代写对账。"
+        }
       }
     ]
   },

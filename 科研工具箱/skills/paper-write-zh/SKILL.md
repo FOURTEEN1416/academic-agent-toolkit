@@ -2,7 +2,7 @@
 
 name: paper-write-zh
 
-description: "Draft a Chinese academic paper in LaTeX using XeLaTeX + ctex. Use when user says \”写中文论文\”, \”中文LaTeX\”, \”Chinese paper"
+description: "Draft a Chinese academic paper in LaTeX using XeLaTeX + ctex. Use when user says \”写中文论文\”, \”中文LaTeX\”, \”Chinese paper\”。区别于 paper-write：本技能面向中文学位论文/中文期刊（ctex 本科/硕士/期刊三模板 + GB/T 7714），英文会议稿改用 paper-write；Word(docx) 输出改用 paper-write-zh-docx。"
 argument-hint: [topic]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch

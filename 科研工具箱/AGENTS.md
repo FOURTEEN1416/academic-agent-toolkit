@@ -90,6 +90,7 @@
 | "写竞赛论文" | `skills/comp-paper-zh/` 或 `comp-paper-en/` | → comp-compile |
 | "审查我的论文" | `skills/comp-review/` | loop-until-clean |
 | "统计建模/数分" | `skills/comp-stats-topic/` | → comp-code |
+| "竞赛主链其余步骤" | CONTEST_SKILL_MAP §一 / 模板 `comp_cumcm` | 完整 14 步流程 |
 
 ### 科研论文
 
@@ -121,7 +122,12 @@
 | "写专利/软著" | `skills/patent-draft/` 或 `copyright-draft/` |
 | "一句话生成项目" | 管线模板 `grad_project` |
 | "已有资产写论文" | 管线模板 `paper_from_assets` |
-| "PDF 合并/拆分/OCR/填表" | `skills/sci-pdf/` |
+| "PDF 合并/拆分/OCR/填表（非竞赛域）" | `skills/sci-pdf/` |
+| "Markdown 论文导出 Word" | `skills/docx-export/` |
+| "写返修回复/审稿答复" | `skills/rebuttal/` |
+| "做会议演讲幻灯/逐页 PPT" | `skills/paper-slides/`（单页海报用 `paper-poster/`） |
+| "分析实验结果/对比解读" | `skills/analyze-results/` |
+| "赛后复盘/经验沉淀" | `skills/contest-retrospective/` |
 | "简历/海报/幻灯片/格式转换" | `skills/latex-document/` |
 | **"如何驱动本项目/自举"** | **`skills/agent-bootstrap/`** |
 | **"缺工具/造工具/自适应"** | **`skills/tool-forge/`** |
