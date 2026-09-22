@@ -1312,3 +1312,48 @@ wrapper 重建幂等。
 哑钥匙 fixture（本地 sed 核对原文），确证误报 → PATCH `state=resolved, resolution=used_in_tests`
 （API 合法枚举四选一中最贴切语义），复检 GET 确认 state=resolved。
 剩余面：push protection 若日后拦真实 push，走 SECURITY.md 既有 bypass 流程。
+
+## 续45 · 2026-09-22 · 资产吸收第一轮：P1 脚本层回灌 + P2 资产层落位（modex-3 / GMCMthesis 融合）
+
+用户裁决口径："引入资产不是垃圾，是没用起来——先把能够吸收的全部充分吸收"；clone 项目不删、华为杯流程差距先考证。三路调研（华为杯考证 / 资产利用+泛化审计 / vendor 盘点）结论入册后，本轮执行吸收批次 P1、P2。
+
+1. **P1 脚本层回灌**（modex-3-skills → 工具箱 `_utils/`，共 22 改 + 1 新增，`shared-scripts/` 23 件镜像同步）：
+   - `plot_utils.py` 1755→6292 行（上游 6343 行版回灌 + 宿主壳剥离）：修复 nature-figure 悬空契约
+     （SKILL.md:450/500 导入的 `nature_palette`/`nature_markers`/`set_paper_placement` 此前在库内不存在）；
+     `MH_DATA_FIG_*` 宿主标记读取器降级为恒 None 的宿主解耦桩（注释写明退回路径）。
+   - `figure_check.sh` 近全量替换（662 行，`_expanded_src` 消 52 处误报 CRITICAL）；
+     `inject_ai_disclosure.py` 新增（93 行）；logic_audit/drawio_check/table_slim/leakage_audit/
+     cross_problem_check/capability_audit/delivery_audit/bib_authenticity_check 等按"上游更新则回灌"逐文件裁决。
+   - **逆向保留**（工具箱更新、不被覆盖）：figure_check.py、quick_gates.py、html_pdf_check.py、
+     anti_rationalization.md、abstract_*、facts_audit.py、human_paper_style_check.py、cumcm_2026_format.md 等。
+   - 边界偏差披露：P1 代理越 `_utils/` 写界镜像 23 件进 `shared-scripts/`——系 `test_dual_copy_consistency`
+     sha256 双副本门禁强制（不镜像则门禁红），裁决为可接受的最小外溢。
+   - **待裁决清单**（下轮处理，不阻塞提交）：compile_check.sh 双向块合并、writing_check.sh 是否整替、
+     facts_audit.py HARD-FAIL 翻转、GMCM v2.4 官方字号 vs 库内本地裁定、cumcm main.tex 双路由、
+     上游跨平台字体块（C:/bootfont.bin）取舍、figure-spec 缺 integration-contract/review-tracing、
+     figure-spec SKILL.md:268 `mcp__codex__*` 残留引用。
+2. **P2 资产层落位**（GMCMthesis + modex-3 模板/样式 → `_templates/` 与各真源）：
+   - 13 个竞赛模板目录收编入库（apmcm/apmcm_zh/changsanjiao/default/diangongbei/dongsansheng/
+     huashubei/huazhong/mathorcup/mcm/shuweibei/stats/wuyi）——此前只存在于 gitignored 上游目录。
+   - `huawei/gmcmthesis.cls` **三方合并**（上游 v2.4 2024-09-17 + 库内本地补丁 \clearpage 修复/sections 骨架），
+     头部版本注记为证；xelatex 前后编译回归 exit 0、页数 3=3、首页页码修复经 pdftotext 验证。
+     `huawei/gmcm.bst` 入库（库内原完全缺 BibTeX 样式）。官方附件3 Word/PDF 入 `huawei/official_docx/`（ASCII 改名）。
+   - `_fonts-local/` 集中字体库新建（16 去重字体 103MB，gitignored）：解除"华为杯兜底字体唯一副本在
+     modex-3-skills"红线，README 恢复源指针改指 `_fonts-local/`。
+   - paper-write 收编 iclr2026/icml2025/neurips_2025 样式 4 件（逐字节核对）；
+     `shared-references/` 新建 3 件（citation-discipline/venue-checklists/writing-principles），
+     零改动闭合 paper-plan/paper-write/paper-write-docx 的 8 处悬空指针。
+   - `mhquote`→`zhquote` 宏名规范化 11 文件；cumcm cls 仅并入 `[normalem]{ulem}`。
+3. **华为杯 8 步主张考证**：过时——今日 commit 106a650 已扩至 14 步（templates.json:1976），
+   残余缺口改登 G1（S14 合规红线 CUMCM 专属口径冲突）/G2（GMCM 披露与打包技能缺）/G3（端到端证据未跑）/
+   G4（apmcm_zh/mathorcup/wuyi 断链）。vendor 盘点派生 V1 台账补齐 / V2 抽图工具移植 / V3 AFG 激活三批。
+4. **验证（主窗独立复测，非采信自报）**：nature-figure 六符号活体导入+调用 OK（palette 15 键、
+   save_fig 出 5786B PDF）；`py_compile`/`bash -n` 全过；双副本门禁 3 passed；
+   仓库根 `pytest -q` = **715 passed / 3 skipped / 0 failed**（717+1 → 715+3 之差 = 2 项
+   `test_asset_utilization` 语义 skip，系 gitignored 私有资料区 CUMCM2026Problems 缺失的盘面反映，
+   `-rs` 逐条核对，非回归；另 1 为 docx_template_fill 已知 pyc 欠账）；check_provenance exit 0 全 OK；
+   宿主标记泄漏扫描新落位文件——命中均为已披露的软依赖/内部契约/注释（MODEX_ABSTRACT_PROFILE、
+   `_mh_manual_layout`、scrubber 块、`$MH_PYTHON` 软探测带 python/python3 兜底），无硬绑。
+5. **边界**：P1/P2 只动脚本与资产层，技能文本（P3）、激活接线（P4：13 项 P0 路由 + backfill 旁路封堵 +
+   强制棘轮）、抽图知识化（P5，V2 前置）未动，排队下一轮；modex-3-skills 与 vendor/ 保留原地不删；
+   字体与官方 docx 以 .gitignore 五条规则挡在库外（`git check-ignore` 实测）；未 push（36+ 本地提交待默默裁决）。
