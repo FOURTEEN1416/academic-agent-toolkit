@@ -81,3 +81,33 @@ def test_pinned_commit_semantics_positive_and_negative(tmp_path):
     assert check("- Upstream: 官方\n- Pinned commit: 随便写的") is not None
     # 反路：缺 Pinned commit 值
     assert check("- Upstream: https://github.com/foo/bar\n- Pinned commit:") is not None
+
+
+def test_local_only_upstream_missing_is_skip_not_fail(monkeypatch):
+    """local-only 台账件（gitignored 技能随仓豁免）缺位 = 语义 SKIP，不得 FAIL
+    （2026-09-22 #16 批：V1 注册 eco-community-plots 曾令公开 clone CI 全红）。"""
+    module = load_provenance()
+    fake = module.ROOT / "skills" / "__no_such_local_only__" / "UPSTREAM.md"
+    monkeypatch.setattr(module, "UPSTREAM_REGISTRY", [fake])
+    monkeypatch.setattr(module, "LOCAL_ONLY_UPSTREAM", frozenset([fake]))
+    result = module.run("upstream")
+    assert result["ok"] is True
+    assert result["failures"] == []
+    assert result["reports"][0].get("skip")
+
+
+def test_non_local_only_missing_still_fails(monkeypatch):
+    """未标 local-only 的注册件缺位必须照旧 FAIL（SKIP 语义不得变成万能后门）。"""
+    module = load_provenance()
+    fake = module.ROOT / "skills" / "__no_such_public__" / "UPSTREAM.md"
+    monkeypatch.setattr(module, "UPSTREAM_REGISTRY", [fake])
+    result = module.run("upstream")
+    assert result["ok"] is False
+
+
+def test_eco_community_ledger_is_local_only_registered():
+    module = load_provenance()
+    rel = "skills/eco-community-plots/references/UPSTREAM.md"
+    registered = {path.relative_to(module.ROOT).as_posix() for path in module.UPSTREAM_REGISTRY}
+    local_only = {p.relative_to(module.ROOT).as_posix() for p in module.LOCAL_ONLY_UPSTREAM}
+    assert rel in registered and rel in local_only
