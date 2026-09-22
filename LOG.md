@@ -1357,3 +1357,11 @@ wrapper 重建幂等。
 5. **边界**：P1/P2 只动脚本与资产层，技能文本（P3）、激活接线（P4：13 项 P0 路由 + backfill 旁路封堵 +
    强制棘轮）、抽图知识化（P5，V2 前置）未动，排队下一轮；modex-3-skills 与 vendor/ 保留原地不删；
    字体与官方 docx 以 .gitignore 五条规则挡在库外（`git check-ignore` 实测）；未 push（36+ 本地提交待默默裁决）。
+
+**续45 补记①（V2 抽图工具移植，同日晚，已独立验收提交 3a73f71）**：
+`tools/extract_pdf_figures.py`（676 行，ARIS fork 同源、上游 posterly MIT，pinned 94d8093e；
+`_posterly.textutil.ascii_safe` 内联、CLI 宿主中性化、新增 extract 批量子命令）+ 冒烟测试 7 项。
+**关键机扫复验**：62/62 篇参考论文 PDF 文本层 <50 字符——**全为纯扫描件**（与代理结论独立一致），
+故 extracted_images 96% 整页系语料性质所致，P5"图级重抽"路线对扫描语料改为版面/视觉切分方案；
+矢量检测路径对电子版 PDF 已由合成样本（2 页 4 图全检出）验证可用。双副本/根门禁/provenance/secret_scan 全绿。
+UPSTREAM 登记条目（含 License 与 pin）留待 V1 批落账，防与并行 registry 写入冲突。
