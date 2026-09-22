@@ -1408,3 +1408,11 @@ dev-docs/truth-index.md；task_plan.md 快照区历史行补 717）。校准后�
 - **#16 registry 补登包（本轮推送主体）**：三件中文表格式 UPSTREAM.md（anti-defensive-writing / math-modeling-contest-route-selection / palette-health-check）补齐 Upstream:/Pinned commit:/License: 规范字段行（中文表保留作史，两处 GitHub 源 pinned hash 经 gh api 按拉取日期复核）后入册；新立三件绘图技能台账（academic-figure-skill / agent-figure-gallery / scipilot-figure-skill）+ tools/extract_pdf_figures_UPSTREAM.md（ARIS fork pin 94d8093e）同批入册；check_provenance.py 新增 LOCAL_ONLY_UPSTREAM 语义——eco-community-plots 台账随 gitignored 技能本体缺位时记 SKIP（与 test_asset_utilization 同口径），公开 clone/CI 不再因此 FAIL。刻意不注册 local-only 三组（无上游 License，禁再分发红线），台账留 dev-docs。
 - **门禁复跑（提交前实测）**：仓库根 `pytest -q` **754 passed / 3 skipped**（=基线口径）；`check_provenance.py` exit 0，新入册 7 件逐一 [OK]。
 - **产物边界（默默指示"本地独立产物不要推送"，已核验）**：origin/main..HEAD 推送内容只含上述 9 个 tracked 文件；`workspaces/`、`releases/`、`dev-docs/`、`参考论文/`、`赛前试炼任务/` 等本地实战工作区均在 .gitignore（check-ignore 逐一验证），本地独立产物不入库。
+
+## 续47 · 2026-09-22 · G2 有界内容批：S14 申报/打包环节两族泛化（路线 A）
+
+- **病根**：comp-cumcm-package（打包沙演 + submission_checklist）与 comp-cumcm-disclosure（AI 申报）只有国赛专属口径，华为杯链走到 S14 后无资产可吃（承诺书方向相反：国赛禁含/华为杯必含）。
+- **修法（与 G1 对 comp-final-audit 同构，选泛化不新建）**：pack_submission.py 增 `--compliance-profile`（默认 comp_cumcm 旧行为原样；口径读 engine/modex-core/comp_rules.json compliance 块，pledge_verdict 纯函数与 quick_gates G1 一致）；SKILL.md 增两族口径分支表（页限 30↔50、图表 30-46、official_docx 模板指针、包格式以当届章程为准）；checklist 增 §五 华为杯差异清单；disclosure 加"机制两族通用/规则文本出处 CUMCM"注记；catalog+地图 §三 同步去国赛专属。
+- **棘轮**：tests/test_g2_package_gmcm.py 5 项（真源一致 / CLI 四象限承诺书方向 / 默认口径不漂移 / 文档分族要素 / catalog-地图登记），全绿。
+- **门禁复跑**：工具箱 `pytest -q` **743 passed / 3 skipped**（+5 为新棘轮）；根级门禁 25 passed；`check_asset_utilization --strict` / `check_provenance` / `secret_scan --strict` / `build_skill_index --check` / `project_health_check --strict`（漂移 ✅）全 exit 0；基线四文档 754→768 同步（旧值保留作历史）。
+- **留痕**：验收末轮 `test_dual_copy_consistency` 因并行窗口 22:05 改 `skills/_utils/compile_check.sh`（镜像未同步）暂红，非 G2 文件集，未代做越界修复；报告 dev-docs/board/reports/g2-report.md。

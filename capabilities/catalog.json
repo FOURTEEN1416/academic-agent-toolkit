@@ -782,7 +782,7 @@
       "capability_id": "comp-cumcm-disclosure",
       "name": "CUMCM AI 工具使用申报双件套入口与门禁",
       "domain": "math_modeling_competition",
-      "description": "CUMCM 2026 AI 工具使用申报双件套入口：生成/校验《AI工具使用详情.pdf》与论文正文 AI 使用声明、确认声明措辞与详情用途口径一致。不重写生成器，把既有确定性脚本 skills/_utils/build_ai_disclosure.py（唯一真源 ai_disclosure_rules.md）暴露为可发现契约，固化两道硬闸：详情不得由语言模型自由编写；正文与详情口径一致。触发词：AI 申报、AI工具使用详情、AI 使用声明、build_ai_disclosure、--check-only",
+      "description": "AI 工具使用申报双件套入口（机制两族通用：CUMCM 与华为杯链 S14 共用 comp-final-audit 反查闸；规则文本出处为 CUMCM 2026 试行规定，华为杯当届另发规定时以当届规程为准）：生成/校验《AI工具使用详情.pdf》与论文正文 AI 使用声明、确认声明措辞与详情用途口径一致。不重写生成器，把既有确定性脚本 skills/_utils/build_ai_disclosure.py（唯一真源 ai_disclosure_rules.md）暴露为可发现契约，固化两道硬闸：详情不得由语言模型自由编写；正文与详情口径一致。触发词：AI 申报、AI工具使用详情、AI 使用声明、build_ai_disclosure、--check-only、华为杯 AI 申报",
       "input_contract": "论文正文（tex/pdf）、申报四节内容素材（工具名/用途/范围/成果）、工作区路径",
       "output_contract": "《AI工具使用详情.pdf》+ 正文 AI 使用声明段 + 口径一致性校验报告（--check-only）",
       "status": "experimental",
@@ -800,9 +800,9 @@
       "capability_id": "comp-cumcm-package",
       "name": "CUMCM 提交打包沙演与合规终审",
       "domain": "math_modeling_competition",
-      "description": "CUMCM 提交阶段打包沙演防呆闸（S14 comp-final-audit 之后、上传之前）：支撑材料语料收集、身份信息扫描（文件名/目录名/PDF 文档属性）、论文与包体积各 ≤20MB、MD5 计算、提交 checklist 输出；--zip 沙演验证语料清单（不生成正式 .rar，WinRAR 手工压）。触发词：提交打包、支撑材料打包、20MB、MD5、身份扫描、打包沙演、pack_submission",
+      "description": "竞赛提交阶段打包沙演防呆闸（S14 comp-final-audit 之后、上传之前；名称保留 cumcm 前缀为历史资产，2026-09-22 G2 起两族通用，口径经 --compliance-profile 数据驱动自 engine/modex-core/comp_rules.json）：支撑材料语料收集、身份信息扫描（文件名/目录名/PDF 文档属性）、论文与包体积各 ≤20MB（CUMCM 上限，两族按防呆底线执行）、承诺书方向分支（国赛禁含/华为杯必含）、MD5 计算、提交 checklist 输出；--zip 沙演验证语料清单（国赛正式包 WinRAR 手工压 .rar，华为杯以当届章程为准）。触发词：提交打包、支撑材料打包、华为杯打包、GMCM 提交、承诺书页、20MB、MD5、身份扫描、打包沙演、pack_submission",
       "input_contract": "workspaces/<ws>（paper/main.pdf、支撑材料语料：源程序+result*.xlsx+figures/*.json+AI工具使用详情.pdf）",
-      "output_contract": "机检报告（stdout/--json，体积/首页摘要/身份三项硬检查 exit 0/1）+ 论文与沙演包 MD5 + 语料清单 + 可选 _submit/支撑材料_沙演.zip",
+      "output_contract": "机检报告（stdout/--json，体积/承诺书方向/首页判据/身份硬检查 exit 0/1，含 compliance_profile 回执）+ 论文与沙演包 MD5 + 语料清单 + 可选 _submit/支撑材料_沙演.zip",
       "status": "experimental",
       "associated_skills": [
         "comp-cumcm-package"

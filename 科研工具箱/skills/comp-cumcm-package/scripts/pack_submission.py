@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""CUMCM 提交打包沙演（确定性、零依赖硬要求：标准库；页数/元数据检查可选依赖 PyMuPDF）。
+"""竞赛提交打包沙演（确定性、零依赖硬要求：标准库；页数/元数据检查可选依赖 PyMuPDF）。
+
+口径分支（2026-09-22 G2，与 S14 comp-final-audit 的 compliance_profile 做法同构）：
+默认 --compliance-profile comp_cumcm（国赛旧口径不变）；华为杯链传
+--compliance-profile comp_huawei，承诺书页/首页判据按 comp_rules.json 数据驱动翻转。
 
 用途：把"融合自检清单 第五/六部分"从人工记忆变成可执行检查——
 组包语料收集 → 身份扫描（文件名/目录名/PDF 元数据）→ 体积校验（论文与包均 ≤20MB）
@@ -7,10 +11,11 @@
 
 用法：
     python scripts/pack_submission.py --workspace <论文工程目录>            # 只检查，不打包
+    python scripts/pack_submission.py --workspace <...> --compliance-profile comp_huawei
     python scripts/pack_submission.py --workspace <...> --zip --out <目录>  # 另生成 .zip 沙演包
     python scripts/pack_submission.py --workspace <...> --json              # 机读输出
 
-退出码：0 = 全部硬项通过；1 = 有硬项失败（体积超限/首页非摘要/身份命中/论文缺失）。
+退出码：0 = 全部硬项通过；1 = 有硬项失败（体积超限/首页判据不符/身份命中/论文缺失）。
 
 ⛔ 关于 .rar：清单要求 WinRAR 单文件 RAR，本脚本**不生成 .rar**（无 rar.exe 时不可行）；
    --zip 仅作**沙演**（验证语料清单、身份、体积、MD5），正式提交仍用 WinRAR 手工压 RAR。
@@ -45,6 +50,39 @@ META_KEYS = ("title", "author", "subject", "keywords", "creator", "producer")
 RESULT_NAME_RE = re.compile(r"result[0-9]*\.xlsx$", re.IGNORECASE)
 SKIP_DIRS = {"__pycache__", ".git", ".mh", ".engine", "node_modules", "_archive"}
 
+# 合规数据真源（G2）：与 S14/quick_gates 同一 comp_rules.json，禁止在本脚本写死任何一族口径
+COMP_RULES_FILE = Path(__file__).resolve().parents[3] / "engine" / "modex-core" / "comp_rules.json"
+
+
+def load_compliance(name: str) -> dict | None:
+    """按竞赛族名（如 comp_huawei）读 comp_rules.json 的 compliance 块；缺失返回 None。"""
+    try:
+        rules = json.loads(COMP_RULES_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    entry = rules.get(name) if isinstance(rules, dict) else None
+    profile = (entry or {}).get("compliance")
+    return profile if isinstance(profile, dict) else None
+
+
+def pledge_verdict(page_texts: list[str], profile: dict) -> tuple[str, str]:
+    """承诺书页方向判定（纯函数，口径与 skills/_utils/quick_gates.py G1 分支一致）：
+    required（华为杯）前页必须命中标记；forbidden_in_electronic（国赛）必须不命中。"""
+    markers = profile.get("pledge_markers") or ["承诺书"]
+    mode = str(profile.get("pledge_page") or "")
+    scan = page_texts[: int(profile.get("preface_scan_pages", 3))]
+    hit = next((m for m in markers for text in scan if m in text), None)
+    if mode.startswith("required"):
+        if hit:
+            return "PASS", f"前 {len(scan)} 页命中承诺书标记「{hit}」（华为杯口径：承诺书页随电子版提交）"
+        return "FAIL", (f"前 {len(scan)} 页未命中承诺书标记（{'/'.join(markers)}）——华为杯电子版缺承诺书为交付红线；"
+                        "⛔ 勿套国赛『电子版不含承诺书』口径反向豁免")
+    if mode.startswith("forbidden"):
+        if hit:
+            return "FAIL", f"前 {len(scan)} 页命中「{hit}」——国赛电子版不得含承诺书/编号专用页（系统另收），移除后重编译"
+        return "PASS", "电子版前页无承诺书/编号专用页（国赛口径）"
+    return "SKIP", f"compliance.pledge_page 口径未识别: {mode!r}（不判通过/失败）"
+
 
 def _human(n: int) -> str:
     return f"{n/1048576:.2f} MB" if n >= 1048576 else f"{n/1024:.1f} KB"
@@ -66,7 +104,7 @@ def _hits(text: str) -> list[str]:
 
 
 # ------------------------------------------------------------------ 论文电子版
-def check_paper(ws: Path, report: dict) -> Path | None:
+def check_paper(ws: Path, report: dict, profile: dict | None = None) -> Path | None:
     cands = [ws / "paper" / "main.pdf", ws / "main.pdf"]
     pdf = next((p for p in cands if p.is_file()), None)
     block = {"found": bool(pdf), "path": str(pdf) if pdf else None}
@@ -86,17 +124,30 @@ def check_paper(ws: Path, report: dict) -> Path | None:
 
     block["identity_in_filename"] = _hits(pdf.name)
 
-    try:  # 可选：页数 / 首页摘要 / 元数据（依赖 PyMuPDF）
+    try:  # 可选：页数 / 首页判据 / 承诺书方向 / 元数据（依赖 PyMuPDF）
         import fitz  # type: ignore
 
         doc = fitz.open(pdf)
         block["pages"] = doc.page_count
-        first = doc[0].get_text() if doc.page_count else ""
+        n_scan = int((profile or {}).get("preface_scan_pages", 3))
+        texts = [doc[i].get_text() for i in range(min(n_scan, doc.page_count))]
+        first = texts[0] if texts else ""
         # cumcmthesis 常把标题排成「摘 要」（中间空格）——去掉空白后再匹配，避免误报 hard_fail
         first_compact = re.sub(r"\s+", "", first)
         block["page1_has_abstract"] = ("摘要" in first_compact) or ("Abstract" in first)
-        if not block["page1_has_abstract"]:
-            block["hard_fail"] = "电子版第一页未检出'摘要'（官方：第一页必须是摘要专用页）"
+        mode = str((profile or {}).get("pledge_page", ""))
+        if profile and mode:  # G2：承诺书方向数据驱动（国赛禁、华为杯必含）
+            verdict, detail = pledge_verdict(texts, profile)
+            block["pledge_check"] = {"mode": mode, "verdict": verdict, "detail": detail}
+            if verdict == "FAIL":
+                block.setdefault("hard_fail", detail)
+        if mode.startswith("required"):
+            # 华为杯首页是参赛承诺书/封面页，"首页必须是摘要页"是国赛专属口径，不反向套用
+            block["page1_abstract_note"] = (
+                "华为杯口径：电子版首页为参赛承诺书/封面页（gmcmthesis），摘要不要求在第 1 页")
+        elif not block["page1_has_abstract"]:
+            # 国赛口径与旧版兜底（comp_rules 不可读时保持原行为）
+            block.setdefault("hard_fail", "电子版第一页未检出'摘要'（CUMCM 官方：第一页必须是摘要专用页）")
         meta = {k: v for k, v in (doc.metadata or {}).items() if v and k.lower() in META_KEYS}
         block["metadata"] = meta
         dirty = {k: _hits(str(v)) for k, v in meta.items() if _hits(str(v))}
@@ -175,12 +226,17 @@ def make_zip(ws: Path, files: list[Path], out_dir: Path, report: dict) -> Path |
     with zipfile.ZipFile(zp, "w", zipfile.ZIP_DEFLATED) as zf:
         for p in files:
             zf.write(p, p.relative_to(ws).as_posix())
+    if str(report.get("compliance_profile", "")).startswith("comp_huawei"):
+        note = ("仅沙演；华为杯正式提交格式/上传系统以当届研究生竞赛章程为准，"
+                "勿默认套用国赛 WinRAR-RAR（云南赛区）口径")
+    else:
+        note = "仅沙演；正式提交须用 WinRAR 压 .rar（云南赛区要求）"
     report["sandbox_zip"] = {
         "path": str(zp),
         "size": zp.stat().st_size,
         "size_human": _human(zp.stat().st_size),
         "md5": _md5(zp),
-        "note": "仅沙演；正式提交须用 WinRAR 压 .rar（云南赛区要求）",
+        "note": note,
     }
     if zp.stat().st_size > MAX_BYTES:
         report["sandbox_zip"]["hard_fail"] = f"沙演包 {_human(zp.stat().st_size)} > 20MB"
@@ -190,17 +246,27 @@ def make_zip(ws: Path, files: list[Path], out_dir: Path, report: dict) -> Path |
 # ------------------------------------------------------------------ 输出
 def print_report(ws: Path, report: dict) -> None:
     p, s = report.get("paper", {}), report.get("support", {})
+    prof = report.get("compliance_profile") or "comp_cumcm（默认）"
     print("=" * 66)
-    print("CUMCM 提交打包沙演 —", ws)
+    print("竞赛提交打包沙演 —", ws, " 口径:", prof)
     print("=" * 66)
 
     print("\n[论文电子版]")
     if p.get("found"):
         print(f"  路径      : {p['path']}")
         print(f"  大小      : {p.get('size_human')}  (限 20MB)")
+        if str(prof).startswith("comp_huawei"):
+            print("  ※ 20MB 为 CUMCM 官方上限（清单第五部分）；华为杯当届限额未入库真源，"
+                  "此处按防呆底线执行，正式限额以当届规程为准")
         print(f"  MD5       : {p.get('md5')}")
         print(f"  页数      : {p.get('pages')}")
         print(f"  首页含摘要: {p.get('page1_has_abstract')}")
+        if p.get("page1_abstract_note"):
+            print(f"  ※ {p['page1_abstract_note']}")
+        pc = p.get("pledge_check")
+        if pc:
+            mark = {"PASS": "✅", "FAIL": "⛔"}.get(pc["verdict"], "·")
+            print(f"  承诺书页  : {mark} [{pc['verdict']}] {pc['detail']}")
         if p.get("metadata") is not None:
             print(f"  元数据    : {p.get('metadata') or '（空）'}")
     else:
@@ -226,12 +292,17 @@ def print_report(ws: Path, report: dict) -> None:
             print(f"  ⛔ {f}")
         print("  结论：存在硬项失败，先修再提交。")
     else:
-        print("  ✅ 体积/首页/身份 三项硬检查通过（人工项见 references/submission_checklist.md）")
+        print("  ✅ 体积/首页判据（含承诺书方向）/身份 硬检查通过"
+              "（人工项见 references/submission_checklist.md 对应口径分节）")
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="CUMCM 提交打包沙演（论文+支撑材料）")
+    ap = argparse.ArgumentParser(description="竞赛提交打包沙演（论文+支撑材料；口径按 compliance_profile 分支）")
     ap.add_argument("--workspace", required=True, help="论文工程目录，如 workspaces/cumcm2026A")
+    ap.add_argument("--compliance-profile", default="comp_cumcm", metavar="COMP_KEY",
+                    help="按竞赛族取合规口径（comp_rules.json 顶层键）：comp_cumcm（默认，"
+                         "国赛：首页摘要、禁承诺书页）/ comp_huawei（华为杯：承诺书页必含、"
+                         "首页非摘要判据不适用）")
     ap.add_argument("--out", default=None, help="--zip 时的输出目录（默认 <workspace>/_submit）")
     ap.add_argument("--zip", action="store_true", help="另生成沙演 .zip（正式提交仍需 WinRAR 压 RAR）")
     ap.add_argument("--json", action="store_true", help="输出机读 JSON")
@@ -242,8 +313,14 @@ def main() -> int:
         print(f"⛔ 工作区不存在：{ws}")
         return 1
 
-    report: dict = {"workspace": str(ws)}
-    pdf = check_paper(ws, report)
+    profile = load_compliance(args.compliance_profile)
+    if profile is None:
+        print(f"⛔ 无法解析 compliance profile：{args.compliance_profile}"
+              "（检查 engine/modex-core/comp_rules.json 是否含该顶层键）")
+        return 1
+
+    report: dict = {"workspace": str(ws), "compliance_profile": args.compliance_profile}
+    pdf = check_paper(ws, report, profile)
     files = check_support(ws, report)
     if args.zip and files:
         make_zip(ws, files, Path(args.out) if args.out else ws / "_submit", report)

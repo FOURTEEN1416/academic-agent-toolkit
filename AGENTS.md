@@ -74,9 +74,9 @@
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **754 passed / 0 failed**（= 工具箱 **729** + 根级门禁 **25**；另 3 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1；collect-only 757。2026-09-22 P4 资产激活轮本机实测口径） | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **729 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
-| 根 `tests/` 单跑 | catalog schema + 反 AI 工具集 | **21 passed** | catalog 改动后必跑 |
+| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **768 passed / 0 failed**（= 工具箱 **743** + 根级门禁 **25**；另 3 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1；collect-only 771。2026-09-22 G2 申报/打包泛化轮本机实测口径；上一时点 P4 轮 754/757 保留作历史） | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **743 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
+| 根 `tests/` 单跑 | catalog schema + 反 AI 工具集 | **25 passed** | catalog 改动后必跑 |
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准（现行：**713+5 skipped / 0 failed @ run 35711171875**，收集总数与本机一致 718；历史：600+3 @ run 35425878920） | 门禁 |
 
 - 历史基线 628/603/460 为保留作历史的时点快照，见 `pytest.ini` 注释（公开侧口径真源）；`dev-docs/truth-index.md` 为内部副本，不入库。
