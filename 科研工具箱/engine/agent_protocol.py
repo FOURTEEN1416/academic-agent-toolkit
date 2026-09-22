@@ -13,6 +13,8 @@ PROTOCOL_VERSION = 1
 DEFAULT_AGENT_LABEL = "acat-agent"
 
 # 可选宿主适配器：仅增强（技能发现/L1 hook/角色定义），不是驱动前提。
+# 唯一真相源 = capability_probe.ADAPTER_MARKERS（B3-7 三方对账：清单/探测标记/目录须一致；
+# gemini-cli 因无探测标记与 adapter.json 于 2026-09-22 移除，需要时按 cursor 先例补齐三件套）。
 OPTIONAL_ADAPTERS: tuple[str, ...] = (
     "generic",
     "opencode",
@@ -20,7 +22,6 @@ OPTIONAL_ADAPTERS: tuple[str, ...] = (
     "claude-code",
     "mimocode",
     "cursor",
-    "gemini-cli",
 )
 
 HARD_RULES: tuple[str, ...] = (

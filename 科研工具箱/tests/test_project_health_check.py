@@ -9,6 +9,8 @@
      单独标注，不允许当成通过。
 """
 import subprocess
+
+import pytest
 import sys
 from pathlib import Path
 
@@ -127,16 +129,23 @@ def test_timeout_is_degraded(tmp_path: Path) -> None:
 
 # ---------- CLI 契约 ----------
 
-def test_cli_skip_slow_runs_fast() -> None:
-    proc = subprocess.run([sys.executable, str(ROOT / "tools" / "project_health_check.py"),
-                           "--skip-slow", "--json"], cwd=str(ROOT), capture_output=True,
-                          text=True, encoding="utf-8", errors="replace", timeout=300)
-    assert proc.returncode == 0
-    assert '"drift"' in proc.stdout
+@pytest.fixture(scope="module")
+def cli_health_proc() -> subprocess.CompletedProcess:
+    """B3-8（2026-09-22）：两个 CLI 用例此前各起一个全量检查子进程（×2 ≈ 20s），
+    合并为一次 `--strict --skip-slow --json` 运行共享结果（strict 管 rc、json 管输出，
+    两个用例的断言面合并不减）。CI 独立 step 的双保险不受影响。"""
+    return subprocess.run([sys.executable, str(ROOT / "tools" / "project_health_check.py"),
+                           "--strict", "--skip-slow", "--json"], cwd=str(ROOT),
+                          capture_output=True, text=True, encoding="utf-8",
+                          errors="replace", timeout=300)
 
 
-def test_cli_strict_returns_zero_on_healthy_repo() -> None:
-    proc = subprocess.run([sys.executable, str(ROOT / "tools" / "project_health_check.py"),
-                           "--strict", "--skip-slow"], cwd=str(ROOT), capture_output=True,
-                          text=True, encoding="utf-8", errors="replace", timeout=300)
-    assert proc.returncode == 0, proc.stdout[-500:]
+def test_cli_skip_slow_runs_fast(cli_health_proc) -> None:
+    # rc 的 strict 判定归 test_cli_strict 专属（共享进程带 --strict，组件 FAIL 时 rc=1
+    # 是如实反映）；本用例验证 --skip-slow 快速模式可完整产出 JSON 报告。
+    assert cli_health_proc.returncode in (0, 1)
+    assert '"drift"' in cli_health_proc.stdout
+
+
+def test_cli_strict_returns_zero_on_healthy_repo(cli_health_proc) -> None:
+    assert cli_health_proc.returncode == 0, cli_health_proc.stdout[-500:]

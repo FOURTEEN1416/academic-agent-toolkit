@@ -2,8 +2,8 @@
  "_meta": {
   "purpose": "skill_library_audit 棘轮登记册：SKILL.md 内部引用断链的 2026-09-09 基线",
   "rule": "登记册内条目=已知存量(不FAIL)；新断链=FAIL。处置一批删一批条目即可收紧防线",
-  "baseline_count": 317,
-  "baseline_skills": 62,
+  "baseline_count": 336,
+  "baseline_skills": 74,
   "created": "2026-09-09",
   "cause": "大量技能集成时只收 SKILL.md 未收上游资产；处置方案见 dev-docs/AUDIT_2026-09-09.md A18",
   "disposal_log": [
@@ -14,13 +14,80 @@
    "2026-09-09 批次2: latex-document 销账 35 条",
    "2026-09-09 批次2: latexpap-*/spine-* 销账 75 条",
    "2026-09-09: claude-scientific-writer 35 条 modules/ 映射口径引用入册（非残缺，孤本路由器口径，永续豁免）",
-   "2026-09-09 赛前排查: comp-code 8 条销账（checks 七份自检协议补写完成）"
-  ]
+   "2026-09-09 赛前排查: comp-code 8 条销账（checks 七份自检协议补写完成）",
+   "2026-09-22 批次三 B3-6: 入册 19 条（17 条 data/ 前缀新暴露——多为正文词组/运行时产物路径伪引用，2 条 figure-spec 上游 ARIS 安装布局件）；目录级条目全部枚举化为正文实际断链引用；auto-review-loop*/paper-write-nature-docx 3 条系批次四领地暂入册，主窗收编后可处置"
+  ],
+  "dir_entry_expiry": {
+   "policy": "B3-6 ④：目录形态条目=正文仅引用目录本身、无可枚举具体文件；到期未枚举/销账须重新审计",
+   "expires": {
+    "ars-agent-harness": {
+     "assets/harnesses": "2026-12-31",
+     "assets/harnesses/": "2026-12-31"
+    },
+    "ars-research": {
+     "data/numbers": "2026-12-31"
+    },
+    "auto-review-loop": {
+     "data/models": "2026-12-31"
+    },
+    "auto-review-loop-minimax": {
+     "data/models": "2026-12-31"
+    },
+    "claude-scientific-writer": {
+     "assets/clinical-decision-support/": "2026-12-31",
+     "assets/hypothesis-generation/": "2026-12-31",
+     "assets/latex-posters/": "2026-12-31",
+     "assets/market-research-reports/": "2026-12-31",
+     "assets/research-grants/": "2026-12-31",
+     "assets/scientific-slides/": "2026-12-31",
+     "assets/scripts": "2026-12-31",
+     "assets/treatment-plans/": "2026-12-31",
+     "assets/venue-templates/": "2026-12-31"
+    },
+    "dev-code-frontend": {
+     "references/styles/": "2026-12-31"
+    },
+    "galaxy-kaggle-learner": {
+     "references/knowledge/nlp/": "2026-12-31",
+     "references/knowledge/cv/": "2026-12-31",
+     "references/knowledge/time-series/": "2026-12-31",
+     "references/knowledge/tabular/": "2026-12-31",
+     "references/knowledge/multimodal/": "2026-12-31",
+     "references/knowledge/": "2026-12-31"
+    },
+    "galaxy-results-analysis": {
+     "data/logs": "2026-12-31"
+    },
+    "latex-document": {
+     "data/results": "2026-12-31"
+    },
+    "math-modeling-contest-route-selection": {
+     "data/parameter": "2026-12-31",
+     "data/model/solver/time": "2026-12-31"
+    },
+    "nature-portfolio-playbook": {
+     "data/code": "2026-12-31"
+    },
+    "nature-submission-audit": {
+     "data/code": "2026-12-31"
+    },
+    "paper-write-nature-docx": {
+     "data/comparison/literature": "2026-12-31"
+    },
+    "paper-writing-ucsb": {
+     "references/appendices": "2026-12-31"
+    },
+    "scholar-presubmit-checks": {
+     "references/citations": "2026-12-31"
+    }
+   }
+  }
  },
  "gaps": {
   "ars-agent-harness": [
    "assets/harnesses",
    "assets/harnesses/",
+   "assets/harnesses/engineering.json",
    "assets/harnesses/engineering.json",
    "references/agentic_loop_canon.md",
    "references/domain_harness_design.md",
@@ -99,7 +166,8 @@
    "references/hybrid_router_architecture.md",
    "scripts/classifier.py",
    "scripts/fallback_decomposer.py",
-   "scripts/routing_transparency_logger.py"
+   "scripts/routing_transparency_logger.py",
+   "data/numbers"
   ],
   "ars-research-summarizer": [
    "references/citation-formats.md",
@@ -201,12 +269,12 @@
    "scripts/validate-hook-schema.sh"
   ],
   "galaxy-kaggle-learner": [
-   "references/knowledge/",
-   "references/knowledge/cv/",
-   "references/knowledge/multimodal/",
    "references/knowledge/nlp/",
+   "references/knowledge/cv/",
+   "references/knowledge/time-series/",
    "references/knowledge/tabular/",
-   "references/knowledge/time-series/"
+   "references/knowledge/multimodal/",
+   "references/knowledge/"
   ],
   "galaxy-mcp-integration": [
    "references/authentication.md",
@@ -336,7 +404,8 @@
    "references/figure-interpretation.md",
    "references/statistical-methods.md",
    "references/statistical-reporting.md",
-   "references/visualization-best-practices.md"
+   "references/visualization-best-practices.md",
+   "data/logs"
   ],
   "galaxy-results-report": [
    "references/EVIDENCE-PROPAGATION.md",
@@ -376,7 +445,8 @@
   ],
   "galaxy-ui-ux-pro-max": [
    "references/USAGE.md",
-   "scripts/search.py"
+   "scripts/search.py",
+   "data/ui-reasoning.csv"
   ],
   "galaxy-verification-loop": [
    "references/REPORT-TEMPLATE.md",
@@ -394,9 +464,7 @@
    "references/phrases-to-cut.md",
    "references/wikipedia-source.md"
   ],
-  "latexpap-arxiv-paper-writer": [
-   "assets/template/"
-  ],
+  "latexpap-arxiv-paper-writer": [],
   "nature-data-availability": [
    "references/repository-routing.md",
    "references/source-data-checks.md"
@@ -458,6 +526,46 @@
    "scripts/latex-posters/review_poster.sh",
    "scripts/research_lookup.py",
    "scripts/scholar-evaluation/calculate_scores.py"
+  ],
+  "agent-figure-gallery": [
+   "data/reference_candidate_index.json",
+   "data/reference_global_preferences.json"
+  ],
+  "assets-inventory": [
+   "data/load.csv",
+   "data/poi.json"
+  ],
+  "auto-review-loop": [
+   "data/models"
+  ],
+  "auto-review-loop-minimax": [
+   "data/models"
+  ],
+  "figure-spec": [
+   "tools/figure_renderer.py",
+   "tools/install_aris.sh"
+  ],
+  "galaxy-defuddle": [
+   "data/problem_info.md"
+  ],
+  "latex-document": [
+   "data/results"
+  ],
+  "math-modeling-contest-route-selection": [
+   "data/parameter",
+   "data/model/solver/time"
+  ],
+  "nature-portfolio-playbook": [
+   "data/code"
+  ],
+  "nature-submission-audit": [
+   "data/code"
+  ],
+  "paper-analysis": [
+   "data/simulated_data.csv"
+  ],
+  "paper-write-nature-docx": [
+   "data/comparison/literature"
   ]
  }
 }

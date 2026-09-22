@@ -17,12 +17,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sqlite3
 from pathlib import Path
+from typing import Any
 
 from .agent_bridge import StepResult
 from .agent_protocol import bootstrap as agent_bootstrap
 from .capability_probe import probe as capability_probe
+from .run_logger import RunLogger, RunLogEntry
 from .runtime_adapter import RuntimePaths
 from .tool_forge import forge_adapter, forge_skill, forge_tool, forge_from_gap
 
@@ -43,6 +46,18 @@ def default_workflow_db(workspace: Path | str) -> Path:
     return Path(workspace) / ".engine" / "workflow.sqlite"
 
 
+class WorkflowCliError(Exception):
+    """CLI 业务错误：顶层统一以 {"status":"error"} JSON 输出并以退出码 2 结束。"""
+
+
+def _atomic_write_json(path: Path, data: Any) -> None:
+    """B3-2：临时文件 + os.replace 原子写，避免读改写途中崩溃留下截断的索引。"""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, path)
+
+
 def _read_workflow_index() -> dict[str, str]:
     try:
         data = json.loads(WORKFLOW_INDEX.read_text(encoding="utf-8"))
@@ -55,8 +70,18 @@ def register_workflow_database(workflow_id: str, database: Path | str) -> None:
     """Persist the database location so later CLI commands need only --wf."""
     index = _read_workflow_index()
     index[workflow_id] = str(Path(database).resolve())
-    WORKFLOW_INDEX.parent.mkdir(parents=True, exist_ok=True)
-    WORKFLOW_INDEX.write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
+    _atomic_write_json(WORKFLOW_INDEX, index)
+
+
+def prune_workflow_index() -> list[str]:
+    """B3-2：移除指向已不存在数据库的孤儿注册项，返回被清理的 workflow_id。"""
+    index = _read_workflow_index()
+    stale = [wf for wf, db in sorted(index.items()) if not Path(db).is_file()]
+    if stale:
+        for wf in stale:
+            index.pop(wf, None)
+        _atomic_write_json(WORKFLOW_INDEX, index)
+    return stale
 
 
 def resolve_workflow_db(workflow_id: str) -> Path:
@@ -65,6 +90,39 @@ def resolve_workflow_db(workflow_id: str) -> Path:
     if not value:
         raise KeyError(f"workflow database is unknown: {workflow_id}; pass --db explicitly")
     return Path(value).resolve()
+
+
+def _probe_workflow_db(workflow_id: str) -> Path | None:
+    """B3-2：索引未命中时的回退探测——在默认库与各工作区库中直接找 workflow_id。
+
+    索引文件可能缺失/落后（新 clone、手工删除、原子写前崩溃）；此时按位置
+    约定扫描，命中唯一库即回退成功（并由调用方回写索引）。
+    """
+    candidates = [ROOT / ".engine" / "workflow.sqlite"]
+    workspaces_root = ROOT / "workspaces"
+    if workspaces_root.is_dir():
+        candidates.extend(sorted(workspaces_root.glob("*/.engine/workflow.sqlite")))
+    matches: list[Path] = []
+    for database in candidates:
+        if not database.is_file():
+            continue
+        try:
+            connection = sqlite3.connect(f"file:{database.as_posix()}?mode=ro", uri=True)
+            found = connection.execute(
+                "SELECT 1 FROM workflows WHERE id = ? LIMIT 1", (workflow_id,)
+            ).fetchone()
+            connection.close()
+        except sqlite3.Error:
+            continue
+        if found:
+            matches.append(database)
+    if len(matches) == 1:
+        return matches[0]
+    return None
+
+
+def _keyerror_message(exc: KeyError) -> str:
+    return str(exc.args[0]) if exc.args else str(exc)
 
 
 def resolve_checkpoint_db(checkpoint_id: str) -> Path:
@@ -87,6 +145,89 @@ def resolve_checkpoint_db(checkpoint_id: str) -> Path:
     if len(matches) != 1:
         raise KeyError(f"checkpoint database is unknown or ambiguous: {checkpoint_id}; pass --db explicitly")
     return matches[0]
+
+
+def _workflow_workspace(store, workflow_id: str) -> Path | None:
+    """从 workflow 元数据反查工作区路径（CLI 每命令一进程，workspace 不在 argv 上）。"""
+    row = store._connection.execute(
+        "SELECT metadata FROM workflows WHERE id = ?", (workflow_id,)
+    ).fetchone()
+    if row is None:
+        return None
+    workspace = json.loads(row["metadata"]).get("workspace") or ""
+    return Path(workspace) if workspace else None
+
+
+def _checkpoint_workflow_id(store, checkpoint_id: str) -> str | None:
+    row = store._connection.execute(
+        "SELECT workflow_id FROM checkpoints WHERE id = ?", (checkpoint_id,)
+    ).fetchone()
+    return row["workflow_id"] if row else None
+
+
+def _merge_existing_run_log(logger: RunLogger, path: Path) -> None:
+    """B3-1：把既有 run_<wf>.json 的事件前置合并进本次内存日志。
+
+    CLI 每命令一进程，若不合并，固定名覆盖会把累积时间线冲成仅本次命令的事件。
+    """
+    try:
+        old = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if not isinstance(old, list):
+        return
+    logger._entries[:0] = [RunLogEntry(**e) for e in old if isinstance(e, dict)]
+
+
+def _attach_run_logger(runner, store, args) -> str | None:
+    """B3-1：CLI 路径上惰性重建 RunLogger（此前恒 None，_log 静默跳过、日志全丢）。
+
+    按 workspace 约定定位日志目录（start 用 --workspace，其余从工作流元数据反查），
+    并合并既有 run 日志。返回命令结束时应落盘的 workflow_id（start 为 None，
+    因 id 在 start() 里才产生）。
+    """
+    workflow_id = str(getattr(args, "wf", "") or "") or None
+    workspace = Path(args.workspace) if args.command == "start" else None
+    if workspace is None and workflow_id:
+        workspace = _workflow_workspace(store, workflow_id)
+    if workspace is None and args.command == "approve":
+        owner = _checkpoint_workflow_id(store, args.checkpoint)
+        if owner:
+            workspace = _workflow_workspace(store, owner)
+    if workspace is None:
+        return workflow_id
+    log_dir = workspace / ".engine" / "logs"
+    logger = RunLogger(log_dir)
+    if workflow_id:
+        _merge_existing_run_log(logger, log_dir / f"run_{workflow_id}.json")
+    runner.logger = logger
+    return workflow_id
+
+
+def _save_run_log(runner, workflow_id: str | None) -> None:
+    """B3-1：命令结束前把运行日志落盘（固定名 run_<wf>.json，位置确定可定位）。
+
+    落盘失败不阻断主流程（与 runner._log 的静默语义一致）。
+    """
+    logger = getattr(runner, "logger", None)
+    if logger is None or not workflow_id:
+        return
+    try:
+        logger.save(workflow_id, filename=f"run_{workflow_id}.json")
+    except Exception:
+        pass
+
+
+def _read_json_input(inline: str, file_path: str, option: str) -> Any:
+    """B3-3：内联 JSON 与 --*-file 二选一解析；文件版缓解 Windows 引号转义地狱。"""
+    if file_path:
+        if inline and inline.strip() not in ("", "{}"):
+            raise WorkflowCliError(f"{option} 与内联 JSON 参数二选一，请勿同时提供")
+        try:
+            return json.loads(Path(file_path).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise WorkflowCliError(f"{option} 读取失败: {exc}") from None
+    return json.loads(inline)
 
 
 def _action_payload(action) -> dict:
@@ -115,6 +256,27 @@ def _action_payload(action) -> dict:
 
 
 def main() -> int:
+    parser = _build_parser()
+    args = parser.parse_args()
+    try:
+        return _run_command(args, parser)
+    except WorkflowCliError as exc:
+        # B3-3 错误契约：业务异常以 JSON 输出（与 boot/probe 的 JSON 输出对称），退出码 2
+        print(json.dumps({"status": "error", "message": str(exc)}, ensure_ascii=False, indent=2))
+        return 2
+    except json.JSONDecodeError as exc:
+        print(json.dumps({"status": "error", "message": f"JSON 解析失败: {exc}"},
+                         ensure_ascii=False, indent=2))
+        return 2
+    except KeyError as exc:
+        # 兜底：runner 内部对未知 workflow/checkpoint 抛裸 KeyError，统一进错误契约
+        print(json.dumps({"status": "error",
+                          "message": f"未知的 workflow/checkpoint 标识: {_keyerror_message(exc)}"},
+                         ensure_ascii=False, indent=2))
+        return 2
+
+
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="宿主中立的 Agent 工作流引擎（任意智能体可驱动）")
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -136,6 +298,8 @@ def main() -> int:
     forge.add_argument("--linked-tool", default="", help="技能骨架关联的工具名（默认与 skill 同名）")
     forge.add_argument("--force", action="store_true", help="覆盖已存在文件")
     forge.add_argument("--gap", default="", help="probe 输出的 gaps 条目 JSON；按 gap 自动建议/铸造")
+    forge.add_argument("--evidence-file", default="",
+                       help="从 JSON 文件读取 forge 输入（--gap 的文件版；缓解 Windows 引号转义）")
 
     # 创建工作流
     start = sub.add_parser("start")
@@ -150,12 +314,26 @@ def main() -> int:
     next_cmd.add_argument("--db", default="")
 
     # 完成当前步骤（agent 执行后调用）
-    complete = sub.add_parser("complete")
+    complete = sub.add_parser(
+        "complete",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "evidence 最小示例（schema 校验字段不可省）：\n"
+            '  --evidence \'{"schema_version": 1, "agent": "my-agent", "step_id": "<next 返回的 step_id>",\n'
+            "    \"skill_name\": \"comp-prob-analysis\", \"skill_sha256\": \"<该步 SKILL.md 的 SHA-256>\",\n"
+            "    \"commands\": [{\"command\": \"python scripts/build_analysis.py\", \"returncode\": 0, \"cwd\": \".\"}],\n"
+            "    \"inputs\": [], \"outputs\": [\"PROBLEM_ANALYSIS.md\"],\n"
+            "    \"companion_skills\": {\"used\": [], \"skipped\": []}}\'\n"
+            "Windows 引号地狱时改用文件版：--evidence-file evidence.json"
+        ),
+    )
     complete.add_argument("--wf", required=True)
     complete.add_argument("--ok", default="true")
     complete.add_argument("--artifacts", default="")
     complete.add_argument("--stderr", default="")
     complete.add_argument("--evidence", default="{}", help="Desktop execution evidence as a JSON object")
+    complete.add_argument("--evidence-file", default="",
+                          help="从 JSON 文件读取 execution evidence（与 --evidence 二选一）")
     complete.add_argument("--db", default="")
 
     # 重试失败步骤（A2 审计修复：FAILED 后此前无带内恢复路径，恢复被迫手改 SQLite）
@@ -208,8 +386,10 @@ def main() -> int:
     audit.add_argument("--out", default="", help="操作审计输出路径（默认 workspace/OPERATION_AUDIT_REPORT.json）")
     audit.add_argument("--db", default="")
 
-    args = parser.parse_args()
+    return parser
 
+
+def _run_command(args, parser) -> int:
     if args.command == "boot":
         print(json.dumps(agent_bootstrap(ROOT), ensure_ascii=False, indent=2))
         return 0
@@ -226,14 +406,16 @@ def main() -> int:
         force = bool(getattr(args, "force", False))
         purpose = str(getattr(args, "purpose", "") or "")
         gap_raw = str(getattr(args, "gap", "") or "").strip()
+        evidence_file = str(getattr(args, "evidence_file", "") or "").strip()
         results = []
-        if gap_raw:
-            try:
-                gap = json.loads(gap_raw)
-            except json.JSONDecodeError as exc:
-                print(json.dumps({"status": "error", "message": f"gap JSON 无效: {exc}"},
-                                 ensure_ascii=False, indent=2))
-                return 2
+        if gap_raw or evidence_file:
+            if gap_raw:
+                try:
+                    gap = json.loads(gap_raw)
+                except json.JSONDecodeError as exc:
+                    raise WorkflowCliError(f"--gap JSON 无效: {exc}") from None
+            else:
+                gap = _read_json_input("", evidence_file, "--evidence-file")
             results.append(forge_from_gap(gap if isinstance(gap, dict) else {}, ROOT, force=force))
         tool_name = str(getattr(args, "tool", "") or "").strip()
         skill_name = str(getattr(args, "skill", "") or "").strip()
@@ -270,23 +452,40 @@ def main() -> int:
         try:
             db = resolve_workflow_db(args.wf)
         except KeyError as exc:
-            parser.error(str(exc))
+            # B3-2：索引未命中时按位置约定回退探测（索引缺失/落后是常态而非异常）
+            db = _probe_workflow_db(args.wf)
+            if db is None:
+                raise WorkflowCliError(_keyerror_message(exc)) from None
+            register_workflow_database(args.wf, db)
     elif args.command == "approve":
         try:
             db = resolve_checkpoint_db(args.checkpoint)
         except KeyError as exc:
-            parser.error(str(exc))
+            raise WorkflowCliError(_keyerror_message(exc)) from None
     else:
         db = ROOT / ".engine" / "workflow.sqlite"
     db.parent.mkdir(parents=True, exist_ok=True)
-    catalog = json.loads((ROOT / "engine" / "modex-core" / "templates.json").read_text(encoding="utf-8"))
+    try:
+        catalog = json.loads((ROOT / "engine" / "modex-core" / "templates.json").read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise WorkflowCliError(f"templates.json 解析失败: {exc}") from None
 
     with WorkflowStore(db) as store:
         runner = WorkflowRunner(store, catalog, ROOT / "skills", audit_root=ROOT.parent)
+        # B3-1：CLI 每命令一进程，惰性重建 RunLogger 并在 return 前落盘
+        _attach_run_logger(runner, store, args)
 
         if args.command == "start":
-            workflow = runner.start(args.template, Path(args.workspace), json.loads(args.params))
+            try:
+                params = json.loads(args.params)
+            except json.JSONDecodeError as exc:
+                raise WorkflowCliError(f"--params JSON 无效: {exc}") from None
+            try:
+                workflow = runner.start(args.template, Path(args.workspace), params)
+            except KeyError as exc:
+                raise WorkflowCliError(f"无法启动工作流: {_keyerror_message(exc)}") from None
             register_workflow_database(workflow.id, db)
+            _save_run_log(runner, workflow.id)
             result = json.dumps({
                 "workflow_id": workflow.id,
                 "status": workflow.status,
@@ -297,6 +496,7 @@ def main() -> int:
 
         if args.command == "next":
             result = runner.next_action(args.wf)
+            _save_run_log(runner, args.wf)
             output = {
                 "status": result.status,
                 "message": result.message,
@@ -310,13 +510,18 @@ def main() -> int:
             return 0 if result.status in ("advanced", "completed") else 1
 
         if args.command == "complete":
+            evidence = _read_json_input(args.evidence, str(getattr(args, "evidence_file", "") or ""),
+                                        "--evidence-file")
+            if not isinstance(evidence, dict):
+                raise WorkflowCliError("execution evidence 必须是 JSON 对象")
             step_result = StepResult(
                 ok=args.ok.lower() == "true",
                 artifacts=[a.strip() for a in args.artifacts.split(",") if a.strip()],
                 stderr=args.stderr,
-                metadata={"execution_evidence": json.loads(args.evidence)},
+                metadata={"execution_evidence": evidence},
             )
             result = runner.complete_step(args.wf, step_result)
+            _save_run_log(runner, args.wf)
             output = {
                 "status": result.status,
                 "step_id": result.step_id,
@@ -330,6 +535,7 @@ def main() -> int:
 
         if args.command == "retry":
             result = runner.retry_last_failed(args.wf, by=str(args.by or "").strip())
+            _save_run_log(runner, args.wf)
             output = {
                 "status": result.status,
                 "step_id": result.step_id,
@@ -342,6 +548,7 @@ def main() -> int:
 
         if args.command == "stall":
             report = runner.detect_stalled(args.wf, stall_hours=float(args.hours))
+            _save_run_log(runner, args.wf)
             print(json.dumps(report, ensure_ascii=False, indent=2))
             # 告警即非零退出，便于脚本/钩子感知断链
             return 1 if report["alert"] else 0
@@ -352,6 +559,7 @@ def main() -> int:
                 artifacts=[a.strip() for a in args.artifact if a.strip()],
                 commands=[c for c in args.backfill_commands if c.strip()],
                 note=str(args.note or ""), by=str(args.by or "").strip())
+            _save_run_log(runner, args.wf)
             output = {
                 "status": result.status,
                 "step_id": result.step_id,
@@ -363,6 +571,8 @@ def main() -> int:
         if args.command == "approve":
             by = str(getattr(args, "by", "") or "").strip()
             if not by:
+                # 用法错误走 argparse 教学式报错（stderr + exit 2），既有测试
+                # test_workflow_retry_cli 锁定该契约；JSON 错误契约保留给业务执行异常
                 parser.error(
                     "approve 缺少必填的 --by <批准人标识>：批准事件必须记录谁批准了检查点"
                     "（防 agent 自批准且无痕）。正确用法: "
@@ -370,6 +580,7 @@ def main() -> int:
                     "[--db <workflow.sqlite 路径>] --by <批准人>"
                 )
             result = runner.approve_checkpoint(args.checkpoint, {"approved": True, "approved_by": by})
+            _save_run_log(runner, _checkpoint_workflow_id(store, args.checkpoint))
             output = {"status": result.status, "message": result.message}
             if result.action:
                 output["action"] = {
@@ -381,6 +592,10 @@ def main() -> int:
             return 0
 
         if args.command == "report":
+            # B3-2：读侧命令顺带清理指向已消失数据库的孤儿注册
+            pruned = prune_workflow_index()
+            if pruned:
+                print(f"[workflow-index] 已清理孤儿注册: {', '.join(pruned)}")
             report = store.workflow_timeline(args.wf)
             Path(args.out).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
             print(f"报告已保存: {args.out}")
@@ -396,6 +611,10 @@ def main() -> int:
 
         if args.command == "audit":
             from .audit_store import write_audit_report
+            # B3-2：审计前清理孤儿注册（指向已消失数据库的条目）
+            pruned = prune_workflow_index()
+            if pruned:
+                print(f"[workflow-index] 已清理孤儿注册: {', '.join(pruned)}")
             workspace = Path(args.workspace)
             out = Path(args.out) if args.out else workspace / "OPERATION_AUDIT_REPORT.json"
             target = write_audit_report(workspace, ROOT.parent, out, workflow_db=db)

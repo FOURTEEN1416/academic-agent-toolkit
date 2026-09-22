@@ -43,11 +43,11 @@ Generate publication-quality **architecture diagrams**, **workflow pipelines**, 
 
 Phase 3.1 (Arch C) move: the canonical implementation now lives at
 `skills/figure-spec/scripts/figure_renderer.py` (this SKILL's own
-`scripts/` subdirectory). A backwards-compatible shim at
-`tools/figure_renderer.py` forwards to the canonical file via
-`os.execv`, so existing users with `.aris/tools/figure_renderer.py`
-or a manually copied `tools/figure_renderer.py` keep working
-unchanged.
+`scripts/` subdirectory). Upstream ARIS installations additionally
+provide a backwards-compatible shim under the install layout
+(`tools/figure_renderer.py`, forwarding via `os.execv`) — that shim is
+NOT bundled in this repo; existing users of `.aris/tools/` installs or
+manual copies keep working via the shared-runtime chain below.
 
 Resolve `$FIGURE_RENDERER` with the hybrid chain (layer 0 prefers the
 self-contained location for the owning SKILL; layers 1-4 are the
