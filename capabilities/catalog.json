@@ -725,7 +725,8 @@
       "status": "experimental",
       "associated_skills": [
         "comp-prob-analysis",
-        "comp-modeling"
+        "comp-modeling",
+        "math-modeling-contest-route-selection"
       ],
       "associated_tools": [
         "skills/math-modeling-contest-route-selection/scripts/score_topics.py"
@@ -2335,6 +2336,9 @@
       "status": "experimental",
       "promotion_history": [
         "2026-09-03: 融入（Kiterlin 上游 MIT, pinned）"
+      ],
+      "associated_skills": [
+        "anti-defensive-writing"
       ]
     },
     {
@@ -5197,7 +5201,8 @@
         "copyright-source-materials",
         "copyright-draft",
         "copyright-build",
-        "assets-inventory"
+        "assets-inventory",
+        "codesucker-integration"
       ],
       "source": "https://github.com/fanbuz/codesucker",
       "license": "Apache-2.0",

@@ -113,3 +113,37 @@ def test_aggregated_capabilities_have_extended_contract_fields() -> None:
                                or item.get("current_evidence") or item.get("current_gap"))
             assert has_content, f"聚合能力 {item.get('capability_id')} 扩展字段全为空"
     assert agg_checked >= 30, f"应至少识别 30 个聚合能力，实际 {agg_checked}"
+
+def test_skill_named_entries_list_themselves() -> None:
+    """双向校验①：与技能目录同名的条目，associated_skills 必须包含该技能名自身。
+    （2026-09-22 批次三：route-selection / anti-defensive-writing / codesucker-integration
+    曾缺自身，按 capability_id 反查关联技能时拿不到入口技能。）"""
+    skills_root = Path(__file__).resolve().parents[1] / "科研工具箱" / "skills"
+    skill_dirs = {d.name for d in skills_root.iterdir() if d.is_dir() and (d / "SKILL.md").exists()}
+    data = json.loads(CATALOG.read_text(encoding="utf-8"))
+    missing_self: list[str] = []
+    for items in data.values():
+        for item in items:
+            cid = item.get("capability_id", "")
+            if "-" in cid and cid in skill_dirs and cid not in (item.get("associated_skills") or []):
+                missing_self.append(cid)
+    assert not missing_self, f"技能名形态条目的 associated_skills 缺少自身: {sorted(missing_self)}"
+
+
+def test_skill_named_entries_point_to_existing_skill_dirs() -> None:
+    """双向校验②（反向差集）：技能名形态条目的 capability_id 必须对应真实技能目录。
+    （test_all_skills_mapped 只查"目录→catalog"单向，技能目录删除/改名后条目成为幽灵不会被抓。）"""
+    local_only = {
+        "plot-from-data", "plot-from-image", "visio-image-rebuilder",
+        "paper-framework-figure-studio-pro", "eco-community-plots",
+    }
+    skills_root = Path(__file__).resolve().parents[1] / "科研工具箱" / "skills"
+    skill_dirs = {d.name for d in skills_root.iterdir() if d.is_dir() and (d / "SKILL.md").exists()}
+    data = json.loads(CATALOG.read_text(encoding="utf-8"))
+    ghosts: list[str] = []
+    for items in data.values():
+        for item in items:
+            cid = item.get("capability_id", "")
+            if "-" in cid and cid not in skill_dirs and cid not in local_only:
+                ghosts.append(cid)
+    assert not ghosts, f"capability_id 无对应技能目录（幽灵条目）: {sorted(ghosts)}"
