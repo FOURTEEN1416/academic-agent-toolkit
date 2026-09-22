@@ -2,6 +2,7 @@
 """comp_cumcm 端到端工作流执行脚本。"""
 import sys
 import json
+import os
 import hashlib
 import tempfile
 from pathlib import Path
@@ -87,8 +88,17 @@ def main():
                     (workflow.id,)
                 ).fetchone()
                 if cp:
-                    result = runner.approve_checkpoint(cp["id"], {"approved": True})
+                    # 2026-09-22 人类署名红线：本演示脚本不再无痕代批（否则 blocked 死循环）。
+                    approve_as = os.environ.get("E2E_APPROVE_AS", "").strip()
+                    if not approve_as:
+                        print("⛔ 检查点批准须人类署名：以 E2E_APPROVE_AS=<批准人> 重跑")
+                        break
+                    result = runner.approve_checkpoint(cp["id"], {"approved": True,
+                                                                  "approved_by": approve_as})
                     print(f"检查点已批准: {result.status}")
+                    if result.status == "blocked":
+                        print(f"⛔ 批准被红线拒绝: {result.message}")
+                        break
                 continue
             elif result.status == "advanced":
                 step_count += 1

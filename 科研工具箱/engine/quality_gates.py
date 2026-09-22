@@ -276,11 +276,17 @@ _MANUAL_CHECK_AGENT_WORDS_EN = (
     "opencode", "zcode",
 )
 _MANUAL_CHECK_AGENT_WORDS_CJK = ("机器人", "智能体", "自动")
+# 2026-09-22 G3 实跑补漏：边界匹配让 "subagent"（agent 前紧邻字母 b）逃逸，
+# 而它恰是子代理署名高频词——按无边界子串单列（ragent/Baier 不受影响）。
+_MANUAL_CHECK_AGENT_WORDS_EN_SUBSTR = ("subagent", "multi-agent", "multiagent")
 
 
 def _agent_self_reference_hit(approved_by: str) -> str:
     """approved_by 命中 agent 自指词时返回命中的词，未命中返回空串。"""
     lowered = approved_by.lower()
+    for word in _MANUAL_CHECK_AGENT_WORDS_EN_SUBSTR:
+        if word in lowered:
+            return word
     for word in _MANUAL_CHECK_AGENT_WORDS_EN:
         # ASCII 字母边界：两侧不得紧邻英文字母（数字相邻视为独立 token，可命中
         # "gpt4"/"qwen2.5" 这类无连字符模型写法）

@@ -160,9 +160,9 @@ def test_runner_pauses_at_checkpoint_and_resumes(tmp_path):
         r1 = execute_action(runner, workflow.id)
         assert r1.status == "waiting_checkpoint", f"expected waiting_checkpoint, got {r1.status}"
         assert store.resume_candidates()
-        # 用户批准
+        # 用户批准（2026-09-22 人类署名红线：approve 须人类署名）
         checkpoint = store.resume_candidates()[0].checkpoint
-        r2 = runner.approve_checkpoint(checkpoint.id, {"approved": True})
+        r2 = runner.approve_checkpoint(checkpoint.id, {"approved": True, "approved_by": "默默"})
         assert r2.status == "completed", f"expected completed, got {r2.status}"
 
 
@@ -191,7 +191,7 @@ def test_runner_blocks_next_action_at_pending_checkpoint(tmp_path):
         assert r2.action is None, "checkpoint 未批准时不得返回下一步动作"
         # 批准后恢复推进：第 2 步可正常开始
         checkpoint = store.resume_candidates()[0].checkpoint
-        runner.approve_checkpoint(checkpoint.id, {"approved": True})
+        runner.approve_checkpoint(checkpoint.id, {"approved": True, "approved_by": "默默"})
         r3 = runner.next_action(workflow.id)
         assert r3.status == "advanced", f"after approve: {r3.status} {r3.message}"
         assert r3.action.skill_name == "comp-modeling"

@@ -83,7 +83,9 @@ exit 2 且**已排除相对路径问题**——先用绝对路径重试一次）
    `机器人`、`智能体`、`自动`，以及模型/厂商名 `glm`、`agnes`、`gpt`、`chatgpt`、`openai`、
    `anthropic`、`claude`、`gemini`、`deepseek`、`sensenova`、`sense`、`qwen`、`kimi`、
    `doubao`、`ernie`、`hunyuan`、`llama`、`mistral`、`copilot`、`zhipu`、`opencode`、`zcode`
-   （英文词按 ASCII 字母边界匹配，不区分大小写；中文词按子串匹配。命中的典型写法：
+   （英文词按 ASCII 字母边界匹配，不区分大小写；中文词按子串匹配；`subagent`、
+   `multi-agent`、`multiagent` 按子串匹配硬拦——边界规则会放过 "sub**agent**" 这类
+   紧邻字母写法，2026-09-22 补漏。命中的典型写法：
    `approved_by: agent`、`approved_by: AI审稿机器人`、`approved_by: GLM-4`——全部硬拦）；
 3. 逐项记录凑数不足 5 条。
 

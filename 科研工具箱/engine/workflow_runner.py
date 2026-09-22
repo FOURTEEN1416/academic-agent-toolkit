@@ -18,7 +18,7 @@ from typing import Any
 from .agent_bridge import StepAction, StepResult
 from .artifact_manifest import ArtifactManifest
 from .execution_protocol import validate_execution_evidence, write_execution_evidence
-from .quality_gates import QualityGate
+from .quality_gates import QualityGate, _agent_self_reference_hit
 from .run_logger import RunLogger
 from .template_resolver import resolve_template
 from .workflow_store import StepStatus, Workflow, WorkflowStore
@@ -669,18 +669,33 @@ class WorkflowRunner:
             return RunResult(candidate.workflow_id, "blocked", candidate.step_id,
                              "检查点未批准")
 
+        # G3 治理缺口收口（2026-09-22）：approve 类检查点是人类确认门，署名红线与
+        # A7R-F1（视觉人工复核）同源——空署名或 agent 自指词一律硬拦，禁止无痕批准
+        # 与子代理自批（视同伪造审核证据）。
+        approved_by = str(response.get("approved_by") or "").strip()
+        if not approved_by:
+            return RunResult(candidate.workflow_id, "blocked", candidate.step_id,
+                             "批准被拒：approved_by 为空——检查点须由人类操作者署名批准"
+                             "（CLI 口径: approve --checkpoint <UUID> --by <批准人>）")
+        hit = _agent_self_reference_hit(approved_by)
+        if hit:
+            return RunResult(candidate.workflow_id, "blocked", candidate.step_id,
+                             f"批准被拒：approved_by 命中 agent 自指词「{hit}」——"
+                             "人类确认检查点禁止 agent 自批（视同伪造审核证据）。"
+                             "请由操作者本人（如 默默）执行 approve")
+
         # M3 FIX: 批准记录 + 步骤完成合并为一次原子事务（transition_step_with_checkpoint），
         # 避免两次独立 transition_step 中途失败导致状态不一致（BLOCKED→RUNNING→COMPLETED 非原子）。
         # approve 检查点会附带一次 checkpoint_approved 事件，步骤直接原子转为 COMPLETED。
         step, _ = self.store.transition_step_with_checkpoint(
             candidate.workflow_id, candidate.step_id, StepStatus.COMPLETED,
-            {"status": "approved", "response": response},
-            event={"type": "checkpoint_approved", "approved_by": response.get("approved_by", "")},
+            {"status": "approved", "response": {**response, "approved_by": approved_by}},
+            event={"type": "checkpoint_approved", "approved_by": approved_by},
         )
         self._log(candidate.workflow_id, candidate.step_id, step.name, "checkpoint",
-                  "用户批准检查点", agent=response.get("approved_by", ""))
+                  "用户批准检查点", agent=approved_by)
         self._audit_record(type="engine_event", event="checkpoint_approved", workflow_id=candidate.workflow_id,
-                           step_id=candidate.step_id, approved_by=response.get("approved_by", ""))
+                           step_id=candidate.step_id, approved_by=approved_by)
 
         # 返回下一个动作，并在工作流完成时落盘
         next_step = self._next_pending_step(candidate.workflow_id)

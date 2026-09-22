@@ -164,8 +164,8 @@ def test_approve_checkpoint_is_atomic(tmp_path):
         candidates = store.resume_candidates()
         assert candidates, "检查点应可被 resume_candidates 找到（BLOCKED 状态）"
         cp = candidates[0].checkpoint
-        # 批准
-        r2 = runner.approve_checkpoint(cp.id, {"approved": True})
+        # 批准（2026-09-22 人类署名红线：approve 须人类署名）
+        r2 = runner.approve_checkpoint(cp.id, {"approved": True, "approved_by": "默默"})
         # 批准后步骤必须 COMPLETED 且不再有等待中的检查点
         assert r2.status in ("completed", "advanced"), f"批准后应推进，实际 {r2.status}: {r2.message}"
         # 步骤状态一致性：无 running/blocked 残留
