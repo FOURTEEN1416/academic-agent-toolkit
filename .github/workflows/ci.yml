@@ -22,8 +22,11 @@ permissions:
 jobs:
   test:
     name: pytest + provenance + gates
-    # 与开发环境一致（Windows + Python 3.11）：本仓库含中文路径与 NTFS 联结，
-    # 在 Linux runner 上行为不可预测，故不用 ubuntu-latest。
+    # runner 选择：tracked 面已于 2026-09-23 v2.0 整仓英化——0 中文路径、无 NTFS
+    # 联结（本地 junction 不入库）、runtime_adapter 双候选（.exe/无后缀）、无 Windows
+    # 专属 API 硬依赖，ubuntu-latest 技术上已可行。仍留 windows-latest：pyc 工具的
+    # 原生路径依赖 .venv311（Windows 布局 Scripts/python.exe），ubuntu 侧将全程走
+    # marshal 回退——该路径尚未在真实 runner 验证，待一次 ubuntu 双跑确认后再切换。
     runs-on: windows-latest
     timeout-minutes: 25
 
