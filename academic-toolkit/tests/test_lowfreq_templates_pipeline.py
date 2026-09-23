@@ -34,7 +34,7 @@ def _paper_step(fam):
 
 def test_lowfreq_pipeline_keeps_8_steps():
     """三族管线步数与技能链钉死（8 步低频链；缩减须显式改本测试）。"""
-    expected = ["comp-prob-analysis", "comp-modeling", "comp-code", "paper-figure",
+    expected = ["comp-problem-analysis", "comp-modeling", "comp-code", "paper-figure",
                 "paper-figure-drawio", "comp-review", "comp-paper-zh", "comp-compile-zh"]
     for fam in FAMILIES:
         chain = [s["skill_name"] for s in TEMPLATES[fam]["sub_steps"]]

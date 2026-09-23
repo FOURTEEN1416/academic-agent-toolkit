@@ -252,7 +252,7 @@ CC=$?   # 0=通过 1=HARD FAIL(名不副实,必修) 2=缺文件跳过
 
 2. **禁止 `nrows=` / `df[:N]` / `.head(N)` 截断建模用数据**（探查打印可用）。真要抽样：`df.sample(n=, random_state=SEED)`，并在 RESULTS.md 声明"抽样 N / 总量 M"。
 
-3. **读完对 `DATA_PROFILE.json` 核行数（基准来自机器建档，不手填、不靠记忆）**：comp-prob-analysis 阶段 `data_profile.py` 已把每个文件的 `total_rows`/`n_sheets`/各 sheet 行数探测好落盘。数据加载末尾**从这份档读基准值**做断言，实读行数对不上（被截断/漏表）立即 `raise`、中止编码，禁止带残缺往下跑。关键标签列再 `assert df[label_col].notna().any()`（整列全空 = 那张标签表根本没读进来）。
+3. **读完对 `DATA_PROFILE.json` 核行数（基准来自机器建档，不手填、不靠记忆）**：comp-problem-analysis 阶段 `data_profile.py` 已把每个文件的 `total_rows`/`n_sheets`/各 sheet 行数探测好落盘。数据加载末尾**从这份档读基准值**做断言，实读行数对不上（被截断/漏表）立即 `raise`、中止编码，禁止带残缺往下跑。关键标签列再 `assert df[label_col].notna().any()`（整列全空 = 那张标签表根本没读进来）。
 
    ```python
 
@@ -298,7 +298,7 @@ DC=$?   # 0=通过 1=HARD FAIL(有裸 read_excel,必修) 2=无 code 跳过
 
 > - 扫描器**宁漏勿误**：只有"read_excel/ExcelFile.parse 没显式表明读哪张 sheet"这种零歧义铁证才 HARD FAIL；它不替你判该读几张（那是语义），只逼你别用"默认只读首表"这个危险默认值。截断写法只 WARN，交你/严格模式判用途。
 
-**⛔⛔⛔ 题面参数保真度审计（参数密集型题目必做，最前置防线）：** 若工作区存在 `PROBLEM_FACTS.json`（comp-prob-analysis 阶段产出，题面参数 ≥ 20 时必产），编码前**必须**先按以下顺序做：
+**⛔⛔⛔ 题面参数保真度审计（参数密集型题目必做，最前置防线）：** 若工作区存在 `PROBLEM_FACTS.json`（comp-problem-analysis 阶段产出，题面参数 ≥ 20 时必产），编码前**必须**先按以下顺序做：
 
 1. **以 PROBLEM_FACTS.json 为唯一权威源载入参数**：`facts = json.load(open('PROBLEM_FACTS.json'))`；所有数值常数必须从 facts 取，禁止裸数字字面量
 
@@ -404,7 +404,7 @@ DC=$?   # 0=通过 1=HARD FAIL(有裸 read_excel,必修) 2=无 code 跳过
 
    ```bash
 
-   # comp-prob-analysis 阶段已跑过 --stage prob（OCR 比对）；本阶段跑完整审计含代码端
+   # comp-problem-analysis 阶段已跑过 --stage prob（OCR 比对）；本阶段跑完整审计含代码端
 
    python3 _utils/facts_audit.py --stage code 2>&1 | tee AUDIT_REPORT.md
 
@@ -1164,7 +1164,7 @@ echo "Missing: $MISSING"
 
 ### Step 7.6: ⛔⛔ 能力清单最终验收（题型无关的"语义达标"闸，所有闸之后的总关）
 
-前面的闸（数据摄入/交付/泄漏/约束）各管一段，这一步拿 comp-prob-analysis 产出的 `CAPABILITY_CHECKLIST.json` 做**逐项总验收**——确认"题目要求的每项能力都真做到了"，而不是只看图够页够文件在。这是防"任务降维"（要 NER/五元组却做成分类、要按事件簇却按行预警）的总关。
+前面的闸（数据摄入/交付/泄漏/约束）各管一段，这一步拿 comp-problem-analysis 产出的 `CAPABILITY_CHECKLIST.json` 做**逐项总验收**——确认"题目要求的每项能力都真做到了"，而不是只看图够页够文件在。这是防"任务降维"（要 NER/五元组却做成分类、要按事件簇却按行预警）的总关。
 
 ```bash
 
@@ -1184,7 +1184,7 @@ CAPA=$?   # 0=全达标 1=有未达标/缺结论(阻断) 2=无清单跳过
 
 > - **快速模式**：semantic 项缺结论降级为提示（不阻断），但 machine 项自动核与已判 FAIL 仍阻断。
 
-> - ⛔ **天花板（诚实认知）**：本闸核不出"清单里根本没列的能力"——清单完备性取决于 comp-prob-analysis 阶段拆得全不全；semantic 判定靠考官 AI，与答题同源、有共同盲区。它**显著降低降维/漏做的漏网率，但不是万无一失**。清单尽量拆全、严格模式认真判，是它有效的前提。
+> - ⛔ **天花板（诚实认知）**：本闸核不出"清单里根本没列的能力"——清单完备性取决于 comp-problem-analysis 阶段拆得全不全；semantic 判定靠考官 AI，与答题同源、有共同盲区。它**显著降低降维/漏做的漏网率，但不是万无一失**。清单尽量拆全、严格模式认真判，是它有效的前提。
 
 
 ## STEP_MANIFEST 产出声明

@@ -4,12 +4,12 @@ description: "Orchestrator for the full academic research pipeline: research -> 
 metadata:
   version: "3.11.1"
   last_updated: "2026-06-06"
-  depends_on: "deep-research, academic-paper, academic-paper-reviewer"
+  depends_on: "comp-contest-research, academic-paper, academic-paper-reviewer"
   status: active
   data_access_level: verified_only
   task_type: open-ended
   related_skills:
-    - deep-research
+    - comp-contest-research
     - academic-paper
     - academic-paper-reviewer
 ---
@@ -84,7 +84,7 @@ resume_from_passport=<hash> [stage=<n>] [mode=<m>]
 
 | Scenario | Skill to Use |
 |----------|-------------|
-| Only need to search materials or do a literature review | `deep-research` |
+| Only need to search materials or do a literature review | `comp-contest-research` |
 | Only need to write a paper (no research phase needed) | `academic-paper` |
 | Only need to review a paper | `academic-paper-reviewer` |
 | Only need to check citation format | `academic-paper` (citation-check mode) |
@@ -102,7 +102,7 @@ resume_from_passport=<hash> [stage=<n>] [mode=<m>]
 
 | Stage | Name | Skill / Agent Called | Available Modes | Deliverables |
 |-------|------|---------------------|----------------|-------------|
-| 1 | RESEARCH | `deep-research` | socratic, full, quick | RQ Brief, Methodology, Bibliography, Synthesis |
+| 1 | RESEARCH | `comp-contest-research` | socratic, full, quick | RQ Brief, Methodology, Bibliography, Synthesis |
 | 2 | WRITE | `academic-paper` | plan, full | Paper Draft |
 | **2.5** | **INTEGRITY** | **`integrity_verification_agent`** | **pre-review** | **Integrity verification report + corrected paper** |
 | 3 | REVIEW | `academic-paper-reviewer` | full (incl. Devil's Advocate) | 5 review reports + Editorial Decision + Revision Roadmap |
@@ -277,7 +277,7 @@ After user confirmation:
 
 1. Pass the previous stage's deliverables as input to the next stage
 2. Trigger handoff protocol (defined in each skill's SKILL.md):
-   - Stage 1  --> 2: deep-research handoff (RQ Brief + Bibliography + Synthesis)
+   - Stage 1  --> 2: comp-contest-research handoff (RQ Brief + Bibliography + Synthesis)
    - Stage 2  --> 2.5: Pass complete paper to integrity_verification_agent
    - Stage 2.5 --> 3: Pass verified paper to reviewer
    - Stage 3  --> 4: Pass Revision Roadmap to academic-paper revision mode
@@ -312,13 +312,13 @@ Checkpoint: [MANDATORY/ADVISORY] — [What user needs to confirm]
 
 ## Phase-by-phase Invocation Contract (v3.9.2)
 
-academic-pipeline is the orchestrator skill that coordinates the full ARS pipeline across 10 stages (delegating to deep-research, academic-paper, academic-paper-reviewer). Two invocation modes:
+academic-pipeline is the orchestrator skill that coordinates the full ARS pipeline across 10 stages (delegating to comp-contest-research, academic-paper, academic-paper-reviewer). Two invocation modes:
 
 **Mode A — orchestrator-driven (default):** `pipeline_orchestrator_agent` runs all stages end-to-end with state tracking via Material Passport. `state_tracker_agent`, `integrity_verification_agent`, `collaboration_depth_agent`, and `claim_ref_alignment_audit_agent` are dispatched by the orchestrator at the appropriate checkpoints.
 
 **Mode B — phase-by-phase (cross-session resume):** User invokes one phase agent at a time across sessions, typically via `ARS_PASSPORT_RESET=1` + `resume_from_passport=<hash>` (see `references/passport_as_reset_boundary.md`).
 
-In Mode B, **single-phase agents (Bucket A per `docs/design/2026-05-18-ars-v3.9.2-agent-phase-classification.md`) in the downstream skills (deep-research, academic-paper, academic-paper-reviewer) stay strictly within their assigned phase for writes**. The 5 agents in academic-pipeline itself are all cross-phase / meta by design (Bucket C/D) — they have no fence by design:
+In Mode B, **single-phase agents (Bucket A per `docs/design/2026-05-18-ars-v3.9.2-agent-phase-classification.md`) in the downstream skills (comp-contest-research, academic-paper, academic-paper-reviewer) stay strictly within their assigned phase for writes**. The 5 agents in academic-pipeline itself are all cross-phase / meta by design (Bucket C/D) — they have no fence by design:
 
 - `pipeline_orchestrator_agent` (D — orchestrator, full pipeline visibility)
 - `state_tracker_agent` (D — meta state, all phases)
@@ -489,7 +489,7 @@ Explicit prohibitions to prevent common failure modes:
 | Stage | Error | Handling |
 |-------|-------|---------|
 | Intake | Cannot determine entry point | Ask user what materials they have and their goal |
-| Stage 1 | deep-research not converging | Suggest mode switch (socratic -> full) or narrow scope |
+| Stage 1 | comp-contest-research not converging | Suggest mode switch (socratic -> full) or narrow scope |
 | Stage 2 | Missing research foundation | Suggest returning to Stage 1 to supplement research |
 | Stage 2.5 | Still FAIL after 3 correction rounds | List unverifiable items; user decides whether to continue |
 | Stage 3 | Review result is Reject | Provide options: major restructuring (Stage 2) or abandon |
@@ -566,7 +566,7 @@ Follows user language. Academic terminology retained in English.
 ```
 academic-pipeline dispatches the following skills (does not do work itself):
 
-Stage 1: deep-research
+Stage 1: comp-contest-research
   - socratic mode: Guided research exploration
   - full mode: Complete research report
   - quick mode: Quick research summary
@@ -600,7 +600,7 @@ Stage 5: academic-paper (format-convert mode)
 
 | Skill | Relationship |
 |-------|-------------|
-| `deep-research` | Dispatched (Stage 1 research phase) |
+| `comp-contest-research` | Dispatched (Stage 1 research phase) |
 | `academic-paper` | Dispatched (Stage 2 writing, Stage 4/4' revision, Stage 5 formatting) |
 | `academic-paper-reviewer` | Dispatched (Stage 3 first review, Stage 3' verification review) |
 
@@ -613,7 +613,7 @@ Stage 5: academic-paper (format-convert mode)
 | Skill Version | 3.11.1 |
 | Last Updated | 2026-06-06 |
 | Maintainer | Cheng-I Wu |
-| Dependent Skills | deep-research v2.0+, academic-paper v2.0+, academic-paper-reviewer v1.1+ |
+| Dependent Skills | comp-contest-research v2.0+, academic-paper v2.0+, academic-paper-reviewer v1.1+ |
 | Role | Full academic research workflow orchestrator |
 
 ---

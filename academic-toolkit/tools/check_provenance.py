@@ -55,8 +55,8 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "skills" / "excalidraw-diagram" / "references" / "UPSTREAM.md",
     # 科研绘图扩展追加（2026-08-29）
     ROOT / "skills" / "diagram-design" / "references" / "UPSTREAM.md",
-    # claude-scientific-writer 资产补齐（2026-09-09）
-    ROOT / "skills" / "claude-scientific-writer" / "references" / "UPSTREAM.md",
+    # paper-writing-clinical 资产补齐（2026-09-09）
+    ROOT / "skills" / "paper-writing-clinical" / "references" / "UPSTREAM.md",
     # 专项治理批次 2：latexpap-*/spine-* 资产补齐（2026-09-09）
     ROOT / "skills" / "latex-paper-survey-writer" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "latex-paper-collab-check" / "references" / "UPSTREAM.md",
@@ -113,13 +113,13 @@ UPSTREAM_REGISTRY: list[Path] = [
     # 刻意不注册：paper-framework-figure-studio-pro / visio-image-rebuilder /
     # plot-from-data+plot-from-image 为 local-only 未入 git（上游无 License，
     # 禁再分发红线），注册会令 CI 缺件 FAIL——台账见 dev-docs/vendor-asset-index.md。
-    ROOT / "skills" / "academic-figure-skill" / "UPSTREAM.md",
+    ROOT / "skills" / "fig-academic" / "UPSTREAM.md",
     ROOT / "skills" / "agent-figure-gallery" / "UPSTREAM.md",
-    ROOT / "skills" / "scipilot-figure-skill" / "UPSTREAM.md",
-    # oral-paper-skill 整技能收编（2026-09-22 A 批次）：上游无 LICENSE 已在 UPSTREAM.md/
+    ROOT / "skills" / "fig-visualization-advisor" / "UPSTREAM.md",
+    # paper-oral-exemplar 整技能收编（2026-09-22 A 批次）：上游无 LICENSE 已在 UPSTREAM.md/
     # catalog 如实登记，用户裁决收编入 git（与上方"无 License 不入 git"判例的差异：
     # 本件已随 git 交付故注册不致 CI 缺件；公开再分发待上游授权，见 catalog upstream 字段）
-    ROOT / "skills" / "oral-paper-skill" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "paper-oral-exemplar" / "references" / "UPSTREAM.md",
 ]
 
 # 需要完整许可文件的 vendored 外部依赖目录（含 LICENSE/NOTICE/UPSTREAM.md 三件套）

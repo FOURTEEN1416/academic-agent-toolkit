@@ -34,8 +34,8 @@
 | 技能 | 用途 |
 |------|------|
 | `plot-from-data` ⚠ | 8 种顶会风格模板（配对增益柱/置信带曲线/断轴散点/双雷达等），选风格+代入数据，dpi=300 |
-| `scipilot-figure-skill` | CNS 级图表精修 |
-| `academic-figure-skill` | 学术图表范式与 84M 图集参考 |
+| `fig-visualization-advisor` | CNS 级图表精修 |
+| `fig-academic` | 学术图表范式与 84M 图集参考 |
 
 **C. 图库参考（照着好看的复现）**
 

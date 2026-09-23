@@ -29,7 +29,7 @@ from engine.workflow_store import WorkflowStore
 # ── 共享脚手架（与 test_workflow_retry_cli 同款两步小模板） ─────────────
 
 def make_catalog(first_checkpoint=False, binding=False):
-    first = {"skill_name": "comp-prob-analysis", "primary_output": "REPORT.md",
+    first = {"skill_name": "comp-problem-analysis", "primary_output": "REPORT.md",
              "output_files": ["REPORT.md"], "has_checkpoint": first_checkpoint,
              "checkpoint_type": "approve" if first_checkpoint else None}
     if binding:
@@ -50,7 +50,7 @@ def make_catalog(first_checkpoint=False, binding=False):
 
 def setup_runner(tmp_path, first_checkpoint=False, binding=False):
     skills = tmp_path / "skills"
-    for name in ("comp-prob-analysis", "comp-modeling"):
+    for name in ("comp-problem-analysis", "comp-modeling"):
         skill = skills / name / "SKILL.md"
         skill.parent.mkdir(parents=True, exist_ok=True)
         skill.write_text("skill", encoding="utf-8")
@@ -134,12 +134,12 @@ def test_stall_detects_running_timeout(tmp_path):
     """步骤 RUNNING 后超阈值未回报 → running_stalled 告警。"""
     store, runner, wf = setup_runner(tmp_path)
     runner.next_action(wf)  # 第一步 → RUNNING
-    _age_step(tmp_path / "workflow.sqlite", "comp-prob-analysis", hours=48.0)
+    _age_step(tmp_path / "workflow.sqlite", "comp-problem-analysis", hours=48.0)
     report = runner.detect_stalled(wf, stall_hours=12.0)
     assert report["alert"] is True
     assert len(report["stalled"]) == 1
     hit = report["stalled"][0]
-    assert hit["skill_name"] == "comp-prob-analysis"
+    assert hit["skill_name"] == "comp-problem-analysis"
     assert hit["kind"] == "running_stalled"
     assert hit["stalled_hours"] >= 12.0
 
@@ -149,7 +149,7 @@ def test_stall_detects_checkpoint_pending(tmp_path):
     store, runner, wf = setup_runner(tmp_path, first_checkpoint=True)
     result = complete_ok(runner, wf)
     assert result.status == "waiting_checkpoint"
-    _age_step(tmp_path / "workflow.sqlite", "comp-prob-analysis", hours=30.0)
+    _age_step(tmp_path / "workflow.sqlite", "comp-problem-analysis", hours=30.0)
     report = runner.detect_stalled(wf, stall_hours=12.0)
     assert report["alert"] is True
     assert report["stalled"][0]["kind"] == "checkpoint_pending"
@@ -169,7 +169,7 @@ def test_stall_alert_lands_in_audit_store(tmp_path):
     import tempfile
     store, runner, wf = setup_runner(tmp_path)
     runner.next_action(wf)
-    _age_step(tmp_path / "workflow.sqlite", "comp-prob-analysis", hours=48.0)
+    _age_step(tmp_path / "workflow.sqlite", "comp-problem-analysis", hours=48.0)
     audit_root = Path(tempfile.mkdtemp())
     from engine.audit_store import AuditStore
     runner._audit = AuditStore(audit_root)
@@ -189,7 +189,7 @@ def test_backfill_completes_pending_step_with_manifest(tmp_path):
     ws = tmp_path / "workspace"
     (ws / "REPORT.md").write_text("# 赛题分析\n" + "内容。" * 500, encoding="utf-8")
 
-    result = runner.backfill_step(wf, "comp-prob-analysis", ["REPORT.md"],
+    result = runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"],
                                   commands=["python tools/analysis.py --offline"],
                                   note="断链期间手工完成，补录产物", by="tester")
     assert result.status == "advanced", result.message
@@ -197,12 +197,12 @@ def test_backfill_completes_pending_step_with_manifest(tmp_path):
     # 步骤状态 COMPLETED
     row = store._connection.execute(
         "SELECT status FROM workflow_steps WHERE workflow_id = ? AND name = ?",
-        (wf, "comp-prob-analysis")).fetchone()
+        (wf, "comp-problem-analysis")).fetchone()
     assert row["status"] == "completed"
 
     # STEP_MANIFEST 落盘且带补录标记与产物哈希
     manifest = json.loads((ws / "STEP_MANIFEST.json").read_text(encoding="utf-8"))
-    assert manifest["stepName"] == "comp-prob-analysis"
+    assert manifest["stepName"] == "comp-problem-analysis"
     assert manifest["backend"] == "manual-backfill"
     assert manifest["config"]["backfill"] is True
     assert manifest["outputFiles"], "manifest 必须含产物记录"
@@ -227,7 +227,7 @@ def test_backfill_all_steps_completes_workflow(tmp_path):
     ws = tmp_path / "workspace"
     for name in ("REPORT.md", "MODEL.md"):
         (ws / name).write_text("x" * 3000, encoding="utf-8")
-    runner.backfill_step(wf, "comp-prob-analysis", ["REPORT.md"], by="tester")
+    runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"], by="tester")
     runner.backfill_step(wf, "comp-modeling", ["MODEL.md"], by="tester")
     row = store._connection.execute(
         "SELECT status FROM workflows WHERE id = ?", (wf,)).fetchone()
@@ -239,21 +239,21 @@ def test_backfill_blocked_step_allowed(tmp_path):
     store, runner, wf = setup_runner(tmp_path, first_checkpoint=True)
     complete_ok(runner, wf)  # 第一步 BLOCKED（waiting_checkpoint）
     (tmp_path / "workspace" / "REPORT.md").write_text("x" * 3000, encoding="utf-8")
-    result = runner.backfill_step(wf, "comp-prob-analysis", ["REPORT.md"], by="tester")
+    result = runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"], by="tester")
     assert result.status == "advanced", result.message
     row = store._connection.execute(
-        "SELECT status FROM workflow_steps WHERE name = 'comp-prob-analysis'").fetchone()
+        "SELECT status FROM workflow_steps WHERE name = 'comp-problem-analysis'").fetchone()
     assert row["status"] == "completed"
 
 
 def test_backfill_rejects_missing_artifact(tmp_path):
     """产物不存在 → 拒绝补录且步骤状态不变（防伪造溯源）。"""
     store, runner, wf = setup_runner(tmp_path)
-    result = runner.backfill_step(wf, "comp-prob-analysis", ["不存在的产物.md"], by="tester")
+    result = runner.backfill_step(wf, "comp-problem-analysis", ["不存在的产物.md"], by="tester")
     assert result.status == "failed"
     assert "不存在" in result.message
     row = store._connection.execute(
-        "SELECT status FROM workflow_steps WHERE name = 'comp-prob-analysis'").fetchone()
+        "SELECT status FROM workflow_steps WHERE name = 'comp-problem-analysis'").fetchone()
     assert row["status"] == "pending"
     assert not _events(store, wf, "step_backfilled")
 
@@ -261,7 +261,7 @@ def test_backfill_rejects_missing_artifact(tmp_path):
 def test_backfill_rejects_empty_artifacts(tmp_path):
     """零产物空补录 → 拒绝（防空补录洗白断链）。"""
     _store, runner, wf = setup_runner(tmp_path)
-    result = runner.backfill_step(wf, "comp-prob-analysis", [], by="tester")
+    result = runner.backfill_step(wf, "comp-problem-analysis", [], by="tester")
     assert result.status == "failed"
     assert "至少需要" in result.message
 
@@ -271,7 +271,7 @@ def test_backfill_rejects_completed_step(tmp_path):
     store, runner, wf = setup_runner(tmp_path)
     complete_ok(runner, wf)
     (tmp_path / "workspace" / "REPORT.md").write_text("x" * 3000, encoding="utf-8")
-    result = runner.backfill_step(wf, "comp-prob-analysis", ["REPORT.md"], by="tester")
+    result = runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"], by="tester")
     assert result.status == "failed"
     assert "已 COMPLETED" in result.message
 
@@ -295,11 +295,11 @@ def test_backfill_binding_step_requires_evidence_or_waiver(tmp_path):
     """声明绑定的步骤裸补录 → 拒绝且零状态副作用（禁止静默旁路）。"""
     store, runner, wf = setup_runner(tmp_path, binding=True)
     (tmp_path / "workspace" / "REPORT.md").write_text("x" * 3000, encoding="utf-8")
-    result = runner.backfill_step(wf, "comp-prob-analysis", ["REPORT.md"], by="tester")
+    result = runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"], by="tester")
     assert result.status == "failed"
     assert "禁止静默旁路" in result.message
     assert "--evidence" in result.message and "--waive-binding" in result.message
-    assert _status_of(store, "comp-prob-analysis") == "pending"
+    assert _status_of(store, "comp-problem-analysis") == "pending"
     assert not _events(store, wf, "step_backfilled")
 
 
@@ -307,11 +307,11 @@ def test_backfill_waive_requires_reason(tmp_path):
     """豁免必须带非空理由——无理由豁免 = 静默旁路的变体，拒绝。"""
     store, runner, wf = setup_runner(tmp_path, binding=True)
     (tmp_path / "workspace" / "REPORT.md").write_text("x" * 3000, encoding="utf-8")
-    result = runner.backfill_step(wf, "comp-prob-analysis", ["REPORT.md"], by="tester",
+    result = runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"], by="tester",
                                   waive_binding=True, waive_reason="   ")
     assert result.status == "failed"
     assert "waive-reason" in result.message
-    assert _status_of(store, "comp-prob-analysis") == "pending"
+    assert _status_of(store, "comp-problem-analysis") == "pending"
 
 
 def test_backfill_waive_passes_and_lands_audit_trail(tmp_path):
@@ -322,7 +322,7 @@ def test_backfill_waive_passes_and_lands_audit_trail(tmp_path):
     audit_root = Path(tempfile.mkdtemp())
     runner._audit = AuditStore(audit_root)
     (tmp_path / "workspace" / "REPORT.md").write_text("x" * 3000, encoding="utf-8")
-    result = runner.backfill_step(wf, "comp-prob-analysis", ["REPORT.md"], by="tester",
+    result = runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"], by="tester",
                                   waive_binding=True, waive_reason="断链期纯手工，证据不可复原")
     assert result.status == "advanced", result.message
     events = _events(store, wf, "step_backfilled")
@@ -341,18 +341,18 @@ def test_backfill_full_evidence_verified_path(tmp_path):
     ws = tmp_path / "workspace"
     (ws / "REPORT.md").write_text("x" * 3000, encoding="utf-8")
     evidence = _valid_backfill_evidence(
-        ws.parent / "skills", store, wf, "comp-prob-analysis", ["REPORT.md"])
-    result = runner.backfill_step(wf, "comp-prob-analysis", ["REPORT.md"], by="tester",
+        ws.parent / "skills", store, wf, "comp-problem-analysis", ["REPORT.md"])
+    result = runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"], by="tester",
                                   evidence=evidence)
     assert result.status == "advanced", result.message
-    assert _status_of(store, "comp-prob-analysis") == "completed"
+    assert _status_of(store, "comp-problem-analysis") == "completed"
     events = _events(store, wf, "step_backfilled")
     assert events[0]["binding_check"] == "verified"
-    ev_file = ws / ".engine" / "evidence" / f"{_step_id(store, wf, 'comp-prob-analysis')}.json"
+    ev_file = ws / ".engine" / "evidence" / f"{_step_id(store, wf, 'comp-problem-analysis')}.json"
     assert ev_file.is_file(), "verified 补录必须与 complete_step 同构落证据文件"
     # STEP_MANIFEST 的命令在缺 --command 时从证据回退（不丢溯源）
     manifest = json.loads((ws / "STEP_MANIFEST.json").read_text(encoding="utf-8"))
-    assert any("comp_prob_analysis" in c.get("command", "").replace("-", "_")
+    assert any("comp_problem_analysis" in c.get("command", "").replace("-", "_")
                for c in manifest["commands"] or [])
 
 
@@ -361,13 +361,13 @@ def test_backfill_forged_evidence_rejected(tmp_path):
     store, runner, wf = setup_runner(tmp_path, binding=True)
     (tmp_path / "workspace" / "REPORT.md").write_text("x" * 3000, encoding="utf-8")
     evidence = _valid_backfill_evidence(
-        tmp_path / "skills", store, wf, "comp-prob-analysis", ["REPORT.md"])
+        tmp_path / "skills", store, wf, "comp-problem-analysis", ["REPORT.md"])
     evidence["skill_sha256"] = "0" * 64
-    result = runner.backfill_step(wf, "comp-prob-analysis", ["REPORT.md"], by="tester",
+    result = runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"], by="tester",
                                   evidence=evidence)
     assert result.status == "failed"
     assert "invalid backfill execution evidence" in result.message
-    assert _status_of(store, "comp-prob-analysis") == "pending"
+    assert _status_of(store, "comp-problem-analysis") == "pending"
 
 
 def test_backfill_evidence_gate_violation_rejected(tmp_path):
@@ -375,20 +375,20 @@ def test_backfill_evidence_gate_violation_rejected(tmp_path):
     store, runner, wf = setup_runner(tmp_path, binding=True)
     (tmp_path / "workspace" / "REPORT.md").write_text("x" * 3000, encoding="utf-8")
     evidence = _valid_backfill_evidence(
-        tmp_path / "skills", store, wf, "comp-prob-analysis", ["REPORT.md"])
+        tmp_path / "skills", store, wf, "comp-problem-analysis", ["REPORT.md"])
     evidence.pop("companion_skills")
-    result = runner.backfill_step(wf, "comp-prob-analysis", ["REPORT.md"], by="tester",
+    result = runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"], by="tester",
                                   evidence=evidence)
     assert result.status == "failed"
     assert "辅助技能申报不合规" in result.message
-    assert _status_of(store, "comp-prob-analysis") == "pending"
+    assert _status_of(store, "comp-problem-analysis") == "pending"
 
 
 def test_backfill_no_binding_step_unaffected(tmp_path):
     """未声明任何义务的步骤补录行为不变（向后兼容，记 no_binding）。"""
     store, runner, wf = setup_runner(tmp_path)
     (tmp_path / "workspace" / "REPORT.md").write_text("x" * 3000, encoding="utf-8")
-    result = runner.backfill_step(wf, "comp-prob-analysis", ["REPORT.md"], by="tester")
+    result = runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"], by="tester")
     assert result.status == "advanced", result.message
     assert _events(store, wf, "step_backfilled")[0]["binding_check"] == "no_binding"
 
@@ -423,21 +423,21 @@ def test_cli_backfill_end_to_end(cli_env, monkeypatch, capsys):
                                             encoding="utf-8")
     # ① comp_cumcm 每一步都声明 skill_binding（2026-09-19 P4）——裸补录必须被拒
     rc, blocked = _run_cli(monkeypatch, capsys, "backfill", "--wf", wf,
-                           "--step", "comp-prob-analysis", "--artifact", "PROBLEM_ANALYSIS.md",
+                           "--step", "comp-problem-analysis", "--artifact", "PROBLEM_ANALYSIS.md",
                            "--by", "cli-tester", "--db", str(db))
     assert rc == 1
     assert "禁止静默旁路" in blocked["message"]
 
     # ② 无理由豁免也被拒
     rc, nofile = _run_cli(monkeypatch, capsys, "backfill", "--wf", wf,
-                          "--step", "comp-prob-analysis", "--artifact", "PROBLEM_ANALYSIS.md",
+                          "--step", "comp-problem-analysis", "--artifact", "PROBLEM_ANALYSIS.md",
                           "--waive-binding", "--by", "cli-tester", "--db", str(db))
     assert rc == 1
     assert "waive-reason" in nofile["message"]
 
     # ③ 显式豁免 + 理由 → 放行，step_backfilled payload 记 waived
     rc, done = _run_cli(monkeypatch, capsys, "backfill", "--wf", wf,
-                        "--step", "comp-prob-analysis", "--artifact", "PROBLEM_ANALYSIS.md",
+                        "--step", "comp-problem-analysis", "--artifact", "PROBLEM_ANALYSIS.md",
                         "--command", "python code/analyze.py --offline",
                         "--note", "断链补录演练", "--by", "cli-tester",
                         "--waive-binding", "--waive-reason", "断链期纯手工完成，命令级证据不可复原",
@@ -452,7 +452,7 @@ def test_cli_backfill_end_to_end(cli_env, monkeypatch, capsys):
     assert len(rows) == 1
     payload = json.loads(rows[0][0])
     assert payload["by"] == "cli-tester"
-    assert payload["skill_name"] == "comp-prob-analysis"
+    assert payload["skill_name"] == "comp-problem-analysis"
     assert payload["binding_check"] == "waived"
     assert "断链期纯手工完成" in payload["waive_reason"]
 
@@ -466,7 +466,7 @@ def test_cli_backfill_evidence_invalid_json_rejected(cli_env, monkeypatch, capsy
     assert rc == 0
     (ws / "PROBLEM_ANALYSIS.md").write_text("x" * 3000, encoding="utf-8")
     rc, out = _run_cli(monkeypatch, capsys, "backfill", "--wf", started["workflow_id"],
-                       "--step", "comp-prob-analysis", "--artifact", "PROBLEM_ANALYSIS.md",
+                       "--step", "comp-problem-analysis", "--artifact", "PROBLEM_ANALYSIS.md",
                        "--evidence", "{不是JSON", "--by", "cli-tester", "--db", str(db))
     assert rc == 1
     assert "不是合法 JSON" in out["message"]

@@ -100,7 +100,7 @@ def _classify_reason(paths: list[str]) -> str:
     if "_utils/" in all_paths and "shared-scripts/" in all_paths:
         return "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     if "claude-scientific-writer/modules/" in all_paths:
-        return "claude-scientific-writer 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+        return "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
     if all(p.rsplit("/", 1)[-1] == "LICENSE" for p in paths):
         return "同源开源许可证法定文本（逐字一致属合规要求）"
     if all(p.endswith(".ttf") or p.endswith(".otf") for p in paths):

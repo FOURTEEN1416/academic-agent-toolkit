@@ -27,7 +27,7 @@ from engine.workflow_store import WorkflowStore
 
 def make_catalog(first_checkpoint=False):
     return {"demo": {"sub_steps": [
-        {"skill_name": "comp-prob-analysis", "primary_output": "REPORT.md",
+        {"skill_name": "comp-problem-analysis", "primary_output": "REPORT.md",
          "output_files": ["REPORT.md"], "has_checkpoint": first_checkpoint,
          "checkpoint_type": "approve" if first_checkpoint else None},
         {"skill_name": "comp-modeling", "primary_output": "MODEL.md",
@@ -37,7 +37,7 @@ def make_catalog(first_checkpoint=False):
 
 def setup_runner(tmp_path, first_checkpoint=False):
     skills = tmp_path / "skills"
-    for name in ("comp-prob-analysis", "comp-modeling"):
+    for name in ("comp-problem-analysis", "comp-modeling"):
         skill = skills / name / "SKILL.md"
         skill.parent.mkdir(parents=True, exist_ok=True)
         skill.write_text("skill", encoding="utf-8")
@@ -92,7 +92,7 @@ def test_retry_after_failure_then_complete_succeeds(tmp_path):
     retry = runner.retry_last_failed(wf, by="tester-momo")
     assert retry.status == "advanced", retry.message
     assert retry.action is not None
-    assert retry.action.skill_name == "comp-prob-analysis"
+    assert retry.action.skill_name == "comp-problem-analysis"
     # 4. 重新 complete 成功
     again = complete_ok(runner, wf)
     assert again.status in ("advanced", "completed"), again.message
@@ -191,7 +191,7 @@ def test_cli_retry_end_to_end_with_step_retry_event(cli_env, monkeypatch, capsys
                            "--by", "cli-tester", "--db", str(db))
     assert rc == 0, json.dumps(retried, ensure_ascii=False)
     assert retried["status"] == "advanced"
-    assert retried["action"]["skill_name"] == "comp-prob-analysis"
+    assert retried["action"]["skill_name"] == "comp-problem-analysis"
     assert retried["action"]["step_number_manual"] == 1
 
     # 事件库核实 step_retry（含 step_id、by）
@@ -211,7 +211,7 @@ def _make_blocked_checkpoint(db_path):
     with WorkflowStore(db_path) as store:
         workflow = store.create_workflow("demo", {"workspace": "."})
         step = store.add_steps(workflow.id, [
-            {"name": "comp-prob-analysis", "metadata": {"has_checkpoint": True}}])[0]
+            {"name": "comp-problem-analysis", "metadata": {"has_checkpoint": True}}])[0]
         store.transition_step(step.id, "blocked")  # PENDING→BLOCKED 合法转移
         checkpoint = store.create_checkpoint(
             workflow.id, step.id, {"status": "waiting_checkpoint", "type": "approve"})

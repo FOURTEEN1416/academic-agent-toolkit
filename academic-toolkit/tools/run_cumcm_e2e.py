@@ -16,7 +16,7 @@ from engine.opencode_bridge import StepResult
 
 def create_skill_dirs(base):
     skills = [
-        "comp-prob-analysis", "comp-literature", "comp-modeling", "comp-code",
+        "comp-problem-analysis", "comp-literature", "comp-modeling", "comp-code",
         "paper-figure", "paper-figure-drawio", "comp-review", "comp-paper-zh",
         "comp-consistency", "comp-compile-zh", "comp-visual-review", "comp-editor",
         "comp-final-review", "comp-final-audit"

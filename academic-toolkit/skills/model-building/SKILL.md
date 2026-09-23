@@ -94,6 +94,6 @@ for param in ['learning_rate', 'n_estimators', 'max_depth']:
 - `work/models/README.md`（每个模型的：原理 + 公式 + 超参数 + 评价指标 + 灵敏度分析）
 
 ## 后续 Skill
-- `model-innovation`：找创新点
+- `comp-model-innovation`：找创新点
 - `visualization`：把结果画成图
 - `paper-writing`：把模型说明写进论文

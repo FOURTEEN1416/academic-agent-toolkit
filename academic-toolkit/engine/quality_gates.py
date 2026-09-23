@@ -354,8 +354,8 @@ except ImportError:
 
 # 默认门禁（若 quality_gates.json 缺失）
 DEFAULT_MIN_SIZE = {
-    "comp-prob-analysis": 1500, "comp-modeling": 2000, "comp-code": 1000,
-    "comp-review": 40, "comp-stats-topic": 1000, "comp-paper-zh": 10000,
+    "comp-problem-analysis": 1500, "comp-modeling": 2000, "comp-code": 1000,
+    "comp-review": 40, "comp-statistics-topic": 1000, "comp-paper-zh": 10000,
     "comp-paper-en": 10000, "paper-write": 15000, "paper-write-zh": 15000,
     "paper-plan": 3000, "literature-review": 5000, "idea-discovery": 3000,
 }

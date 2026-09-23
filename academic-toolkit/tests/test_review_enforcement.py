@@ -128,13 +128,13 @@ def test_approve_checkpoint_is_atomic(tmp_path):
     """approve 后步骤必须处于一致状态：批准记录 + 步骤完成不可分离。
     若 approve 中途失败（模拟第二步转换失败），批准记录不应残留半完成状态。"""
     catalog = {"demo": {"sub_steps": [{
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "primary_output": "PROB_ANALYSIS.md",
         "output_files": ["PROB_ANALYSIS.md"],
         "has_checkpoint": True,
         "checkpoint_type": "approve",
     }]}}
-    _make_skill(tmp_path, "comp-prob-analysis")
+    _make_skill(tmp_path, "comp-problem-analysis")
     with WorkflowStore(tmp_path / "workflow.sqlite") as store:
         runner = WorkflowRunner(store, catalog, tmp_path / "skills")
         workflow = runner.start("demo", tmp_path / "workspace", {})

@@ -41,7 +41,7 @@ SHOULD_ROUTE: tuple[tuple[str, str], ...] = (
     ("英文竞赛论文 docx 模式产出 main.md", "comp-paper-en-docx"),
     ("照着这张图复现配色和字体", "plot-from-image"),
     ("灰度打印要可读的配色方案", "paper-figure-palette"),
-    ("论文段落改写法 UCSB 中心句", "paper-writing-ucsb"),
+    ("论文段落改写法 UCSB 中心句", "paper-writing-paragraph-standards"),
     ("中文论文大纲规划", "paper-plan-zh"),
     ("赛后复盘把教训写进项目", "contest-retrospective"),
     ("AI 工具使用详情申报四节怎么写", "comp-cumcm-disclosure"),
@@ -180,9 +180,9 @@ def test_high_frequency_terms_do_not_black_hole() -> None:
 
 
 def test_idf_prefers_rare_terms() -> None:
-    """稀有词必须压过高频词：含 UCSB 的请求只有 paper-writing-ucsb 能命中。"""
+    """稀有词必须压过高频词：含 UCSB 的请求只有 paper-writing-paragraph-standards 能命中。"""
     hits = sta.route("论文段落改写法 UCSB 中心句", RECORDS, top_k=1)
-    assert hits[0]["skill"] == "paper-writing-ucsb"
+    assert hits[0]["skill"] == "paper-writing-paragraph-standards"
     assert "ucsb" in hits[0]["matched"], hits[0]["matched"]
 
 

@@ -10,10 +10,10 @@
    "2026-09-09 批次1a sci-*: 销账 65 条（fork 资产补齐后引用已真实存在）",
    "2026-09-09 批次1b nature-*: 销账 6 条",
    "2026-09-09 批次1c ars-*: 销账 39 条",
-   "2026-09-09 批次2: skill-creator-official 销账 2 条（claude-code-templates 聚合 fork）",
+   "2026-09-09 批次2: meta-skill-creator 销账 2 条（claude-code-templates 聚合 fork）",
    "2026-09-09 批次2: latex-document 销账 35 条",
    "2026-09-09 批次2: latexpap-*/spine-* 销账 75 条",
-   "2026-09-09: claude-scientific-writer 35 条 modules/ 映射口径引用入册（非残缺，孤本路由器口径，永续豁免）",
+   "2026-09-09: paper-writing-clinical 35 条 modules/ 映射口径引用入册（非残缺，孤本路由器口径，永续豁免）",
    "2026-09-09 赛前排查: comp-code 8 条销账（checks 七份自检协议补写完成）",
    "2026-09-22 批次三 B3-6: 入册 19 条（17 条 data/ 前缀新暴露——多为正文词组/运行时产物路径伪引用，2 条 figure-spec 上游 ARIS 安装布局件）；目录级条目全部枚举化为正文实际断链引用；auto-review-loop*/paper-write-nature-docx 3 条系批次四领地暂入册，主窗收编后可处置",
    "2026-09-22 主窗收编: 入册 2 条（paper-framework-figure-studio-pro data/ 伪引用——local-only 技能正文贡献类型枚举词组，batch3 工作树不可见、主检出回归门暴露；与 B3-6 17 条 data/ 伪引用同性质）",
@@ -32,7 +32,7 @@
     "paper-submission-audit": {
      "data/code": "2026-12-31"
     },
-    "claude-scientific-writer": {
+    "paper-writing-clinical": {
      "assets/clinical-decision-support/": "2026-12-31",
      "assets/hypothesis-generation/": "2026-12-31",
      "assets/latex-posters/": "2026-12-31",
@@ -74,7 +74,7 @@
      "data/dataset/database/data-pipeline": "2026-12-31",
      "data/dataset/database/retrieval/generation/governance/pipeline": "2026-12-31"
     },
-    "paper-writing-ucsb": {
+    "paper-writing-paragraph-standards": {
      "references/appendices": "2026-12-31"
     },
     "paper-presubmit-checks": {
@@ -472,7 +472,7 @@
   "paper-writing-scientific": [
    "references/editor-first-impression.md"
   ],
-  "paper-writing-ucsb": [
+  "paper-writing-paragraph-standards": [
    "references/appendices"
   ],
   "paper-presubmit-checks": [
@@ -490,7 +490,7 @@
   "spine-build": [
    "references/build-from-materials.md"
   ],
-  "claude-scientific-writer": [
+  "paper-writing-clinical": [
    "assets/citation-management/bibtex_template.bib",
    "assets/clinical-decision-support/",
    "assets/clinical-reports/case_report_template.md",

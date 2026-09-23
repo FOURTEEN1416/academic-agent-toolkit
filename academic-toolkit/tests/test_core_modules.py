@@ -17,7 +17,7 @@ from engine.template_resolver import resolve_template
 def _catalog():
     return {
         "demo": {"sub_steps": [
-            {"skill_name": "comp-prob-analysis", "output_files": ["A.md"]},
+            {"skill_name": "comp-problem-analysis", "output_files": ["A.md"]},
             {"skill_name": "paper-write", "output_files": ["paper/main.tex"]},
             {"skill_name": "comp-literature", "output_files": ["LITERATURE.md"]},
             {"skill_name": "comp-review", "output_files": ["REVIEW.md"]},
@@ -28,7 +28,7 @@ def _catalog():
 def test_resolve_keeps_steps_in_order():
     steps = resolve_template("demo", {}, _catalog())
     assert [s["skill_name"] for s in steps] == [
-        "comp-prob-analysis", "paper-write", "comp-literature", "comp-review",
+        "comp-problem-analysis", "paper-write", "comp-literature", "comp-review",
     ]
 
 
@@ -44,7 +44,7 @@ def test_resolve_skip_literature_and_review():
     names = [s["skill_name"] for s in steps]
     assert "comp-literature" not in names
     assert "comp-review" not in names
-    assert "comp-prob-analysis" in names
+    assert "comp-problem-analysis" in names
 
 
 def test_resolve_unknown_template_raises():

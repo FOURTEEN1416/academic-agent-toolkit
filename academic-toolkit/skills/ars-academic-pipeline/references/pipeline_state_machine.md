@@ -149,7 +149,7 @@ This document defines all legal states, transition conditions, transition action
 
 | From | To | Precondition | Action |
 |------|----|-------------|--------|
-| INIT | Stage 1 | User confirms starting from Stage 1 | Detect mode preference, launch deep-research |
+| INIT | Stage 1 | User confirms starting from Stage 1 | Detect mode preference, launch comp-contest-research |
 | INIT | Stage 2 | User has research materials, confirms skipping Stage 1 | Detect materials, launch academic-paper |
 | INIT | Stage 2.5 | User has complete paper | Launch integrity_verification_agent |
 | INIT | Stage 3 | User has verified paper + integrity report | Confirm paper language/domain, launch reviewer |

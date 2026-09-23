@@ -19,7 +19,7 @@ from engine.workflow_runner import WorkflowRunner
 from engine.workflow_store import WorkflowStore
 
 CATALOG = {"demo": {"sub_steps": [
-    {"skill_name": "comp-prob-analysis", "primary_output": "PROB_ANALYSIS.md",
+    {"skill_name": "comp-problem-analysis", "primary_output": "PROB_ANALYSIS.md",
      "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": True,
      "checkpoint_type": "approve"},
 ]}}
@@ -32,7 +32,7 @@ def _make_waiting_checkpoint(tmp_path):
     runner = WorkflowRunner(store, CATALOG, ROOT / "skills")
     workflow = store.create_workflow("demo", {"workspace": str(tmp_path)})
     step = store.add_steps(workflow.id, [dict(CATALOG["demo"]["sub_steps"][0],
-                                              name="comp-prob-analysis")])[0]
+                                              name="comp-problem-analysis")])[0]
     store.transition_step(step.id, "blocked")
     checkpoint = store.create_checkpoint(
         workflow.id, step.id, {"status": "waiting_checkpoint", "type": "approve"})

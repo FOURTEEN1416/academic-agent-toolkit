@@ -27,7 +27,7 @@ TEMPLATES = ROOT / "engine" / "modex-core" / "templates.json"
 # 升级计划 Phase 2/3/4：技能 → 应启用的 named checks（与既有 checks 合并）
 SKILL_CHECKS: dict[str, list[str]] = {
     # Phase 2 数模竞赛域
-    "comp-prob-analysis": ["step_manifest"],
+    "comp-problem-analysis": ["step_manifest"],
     "comp-modeling": ["step_manifest", "modeling_contract"],
     "comp-code": ["step_manifest"],
     "comp-paper-zh": ["step_manifest", "paper_consistency"],

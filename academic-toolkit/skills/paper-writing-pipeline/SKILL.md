@@ -8,7 +8,7 @@ metadata:
   data_access_level: redacted
   task_type: open-ended
   related_skills:
-    - deep-research
+    - comp-contest-research
     - academic-paper-reviewer
     - academic-pipeline
 ---
@@ -66,13 +66,13 @@ Activate `plan` mode when the user wants guidance, step-by-step planning, or exp
 
 | Scenario | Use Instead |
 |----------|-------------|
-| Deep research / fact-checking (not paper writing) | `deep-research` |
+| Deep research / fact-checking (not paper writing) | `comp-contest-research` |
 | Reviewing a paper (structured review) | `academic-paper-reviewer` |
 | Full research-to-paper pipeline | `academic-pipeline` |
 
-### Distinction from `deep-research`
+### Distinction from `comp-contest-research`
 
-| Feature | `academic-paper` | `deep-research` |
+| Feature | `academic-paper` | `comp-contest-research` |
 |---------|-------------------|-----------------|
 | Primary output | Publishable paper draft | Research report |
 | Structure | Journal-ready (IMRaD, etc.) | APA 7.0 report |
@@ -311,9 +311,9 @@ Socratic mode that guides users through paper planning one chapter at a time. Bu
 
 ---
 
-## Handoff Protocol: deep-research -> academic-paper
+## Handoff Protocol: comp-contest-research -> academic-paper
 
-`intake_agent` automatically detects deep-research materials (RQ Brief / Bibliography / Synthesis / INSIGHT Collection) and skips redundant steps. See `deep-research/SKILL.md` Handoff Protocol for the complete handoff material format.
+`intake_agent` automatically detects comp-contest-research materials (RQ Brief / Bibliography / Synthesis / INSIGHT Collection) and skips redundant steps. See `deep-research/SKILL.md` Handoff Protocol for the complete handoff material format.
 
 ---
 
@@ -323,7 +323,7 @@ See `references/failure_paths.md` for details. Quick reference:
 
 | Failure Scenario | Handling Strategy |
 |---------|---------|
-| Insufficient research foundation | Recommend running `deep-research` first |
+| Insufficient research foundation | Recommend running `comp-contest-research` first |
 | Wrong paper structure selected | Return to Phase 2, suggest alternative structure |
 | Word count significantly over/under target | Identify problematic chapters, suggest trimming/expansion |
 | Citation format entirely wrong | Re-run the entire citation phase |
@@ -427,7 +427,7 @@ Follows the user's language. Academic terminology is kept in English. Bilingual 
 
 ```
 academic-paper + tw-hei-intelligence  -> Evidence-based HEI paper with real MOE data
-academic-paper + deep-research        -> Deep research phase -> paper writing phase (auto-handoff)
+academic-paper + comp-contest-research        -> Deep research phase -> paper writing phase (auto-handoff)
 academic-paper + report-to-website    -> Interactive web version of the paper
 academic-paper + notebooklm-slides-generator -> Presentation slides from paper
 academic-paper + academic-paper-reviewer -> Peer review -> revision loop
@@ -442,7 +442,7 @@ academic-paper + academic-paper-reviewer -> Peer review -> revision loop
 | Skill Version | 3.2.0 |
 | Last Updated | 2026-06-01 |
 | Maintainer | Cheng-I Wu |
-| Dependent Skills | deep-research v1.0+ (upstream), academic-paper-reviewer v1.0+ (downstream) |
+| Dependent Skills | comp-contest-research v1.0+ (upstream), academic-paper-reviewer v1.0+ (downstream) |
 
 ---
 

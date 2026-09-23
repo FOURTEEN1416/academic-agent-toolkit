@@ -25,7 +25,7 @@ from engine.workflow_store import WorkflowStore
 
 def _catalog(with_review_step: bool):
     steps = [{
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "primary_output": "REPORT.md",
         "output_files": ["REPORT.md"],
         "has_checkpoint": False,
@@ -42,7 +42,7 @@ def _catalog(with_review_step: bool):
 
 def _setup(tmp_path, params, with_review_step):
     """runner.start（含 skip 参数）+ 逐完成剩余步骤（合法路径，带完整执行证据）。"""
-    skill = tmp_path / "skills" / "comp-prob-analysis" / "SKILL.md"
+    skill = tmp_path / "skills" / "comp-problem-analysis" / "SKILL.md"
     skill.parent.mkdir(parents=True)
     skill.write_text("skill", encoding="utf-8")
     store = WorkflowStore(tmp_path / "workflow.sqlite")
@@ -89,7 +89,7 @@ def test_skip_review_workflow_completes_but_delivery_blocked(tmp_path):
     # 审核步骤确实被静默删除（防线从未运行）——这正是必须 blocked 的原因
     rows = store._connection.execute(
         "SELECT name FROM workflow_steps WHERE workflow_id = ?", (wf_id,)).fetchall()
-    assert [r["name"] for r in rows] == ["comp-prob-analysis"], "skip_review 应删除审核步骤"
+    assert [r["name"] for r in rows] == ["comp-problem-analysis"], "skip_review 应删除审核步骤"
     assert runner.next_action(wf_id).action is None, "工作流应已全部完成"
 
     workspace, project_root = _workspace_with_paper(tmp_path)

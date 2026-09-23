@@ -3,7 +3,7 @@
 ```
 User: I want to write a paper about AI in higher education quality assurance, from research to submission
 
-Step 1: deep-research -> Research report
+Step 1: comp-contest-research -> Research report
 Step 2: academic-paper -> Paper first draft
 Step 3: integrity check -> 100% verification of references/data
 Step 4: academic-paper-reviewer (full) -> 5 review reports + Revision Roadmap

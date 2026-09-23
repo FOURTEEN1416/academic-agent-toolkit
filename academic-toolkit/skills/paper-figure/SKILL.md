@@ -83,7 +83,7 @@ For each actual figure, record in `FIGURE_REPORT.md` its question/scenario, gene
 
 **Plot-choice gates（选图论证与避坑，规划每张数据图前必读）**: `references/pitfalls-and-intent.md`（决策三轴：变量结构×**论证意图**×样本量分级——FIGURE_MANIFEST 每张图的"选择理由"写轴 2 论证意图；十八坑拦截清单 P1-P18：均值柱/双Y轴/饼图/Y轴截断/rainbow/缺字乱码/图例遮盖等，出图后逐条自查，P16-P18 渲染类必须程序自检+vision 复核双兜底）。来源 SciPilot @ `43098dd`（MIT，见 references/UPSTREAM.md）。
 
-**升级/备选技能路由（主链内主动发现，2026-09-11 接线）**：需要交互式逐图选型论证（数据剖析→三轴推荐图型→主动拦截经典错误→期刊级成图）时调 `scipilot-figure-skill`；想先看真实范例再定图型时用 `agent-figure-gallery`（图库检索+人工偏好选参考+导出参考包）。
+**升级/备选技能路由（主链内主动发现，2026-09-11 接线）**：需要交互式逐图选型论证（数据剖析→三轴推荐图型→主动拦截经典错误→期刊级成图）时调 `fig-visualization-advisor`；想先看真实范例再定图型时用 `agent-figure-gallery`（图库检索+人工偏好选参考+导出参考包）。
 
 **⛔ 外部规范红线（2026-09-10 收编自竞赛实战口径，与上述规范并行生效）**：
 - **概念图/数据图分家**：AI 生图（Step 1.5）只允许概念类图——场景示意/海报主视觉/图标/技术路线氛围图；任何带坐标轴的图必须是 `gen_fig_*.py` 从真实数据出图。AI 生图内**禁止出现伪造的坐标轴、刻度或"83.27%"式假精度数字**。
@@ -1277,7 +1277,7 @@ Browse the recipe library (97 total across 5 files) and the `<figure_selection_g
 
 6. Preserve the user-selected project palette; otherwise use the workspace-stable default palette.
 
-7. 若 97 种 recipe 覆盖不了需求（CNS 级精修、特殊数据结构）：升级调 `academic-figure-skill`（期刊规格+图集+四轮 QA）或 `plot-from-data`（8 种预置学术风格直接填数据出图）；手头有想对标/复现的成图时走 `plot-from-image`（读图提取字体/配色/比例→生成复现代码）。
+7. 若 97 种 recipe 覆盖不了需求（CNS 级精修、特殊数据结构）：升级调 `fig-academic`（期刊规格+图集+四轮 QA）或 `plot-from-data`（8 种预置学术风格直接填数据出图）；手头有想对标/复现的成图时走 `plot-from-image`（读图提取字体/配色/比例→生成复现代码）。
 
 
 

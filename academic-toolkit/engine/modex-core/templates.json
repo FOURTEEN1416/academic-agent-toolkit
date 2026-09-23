@@ -1046,11 +1046,11 @@
     ]
   },
   "comp_cumcm": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "国赛数学建模 (CUMCM)",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -1740,11 +1740,11 @@
     ]
   },
   "comp_mcm": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "美赛 (MCM/ICM)",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "Problem Analysis",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -1971,11 +1971,11 @@
     ]
   },
   "comp_huawei": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "华为杯研究生数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -2676,11 +2676,11 @@
     ]
   },
   "comp_apmcm_zh": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "亚太地区数学建模 (APMCM 中文赛项)",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -2914,11 +2914,11 @@
     ]
   },
   "comp_mathorcup": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "MathorCup 数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -3152,11 +3152,11 @@
     ]
   },
   "comp_apmcm": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "亚太数学建模 (APMCM)",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -3352,11 +3352,11 @@
     ]
   },
   "comp_stats": {
-    "pipeline_skill": "comp-stats-topic",
+    "pipeline_skill": "comp-statistics-topic",
     "display_name": "统计建模大赛",
     "sub_steps": [
       {
-        "skill_name": "comp-stats-topic",
+        "skill_name": "comp-statistics-topic",
         "display_name": "选题与数据规划",
         "output_files": [
           "TOPIC_PLAN.md"
@@ -3515,11 +3515,11 @@
     ]
   },
   "comp_teddy": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "泰迪杯数据挖掘挑战赛",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -3746,11 +3746,11 @@
     ]
   },
   "comp_certcup": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "认证杯数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -3977,11 +3977,11 @@
     ]
   },
   "comp_huazhong": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "华中杯数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -4208,11 +4208,11 @@
     ]
   },
   "comp_huadong": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "华东杯数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -4439,11 +4439,11 @@
     ]
   },
   "comp_wuyi": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "五一杯数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -4677,11 +4677,11 @@
     ]
   },
   "comp_shuwei": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "数维杯数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -4908,11 +4908,11 @@
     ]
   },
   "comp_zhongqing": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "中青杯数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -5139,11 +5139,11 @@
     ]
   },
   "comp_yangtze": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "长三角数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -5370,11 +5370,11 @@
     ]
   },
   "comp_diangong": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "电工杯数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -5601,11 +5601,11 @@
     ]
   },
   "comp_shenzhen": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "深圳杯数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -5832,11 +5832,11 @@
     ]
   },
   "comp_huashu": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "华数杯数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -6063,11 +6063,11 @@
     ]
   },
   "comp_tianfu": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "天府杯数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -6294,11 +6294,11 @@
     ]
   },
   "comp_liaoning": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "辽宁省/东三省数学建模",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "赛题分析",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -6525,11 +6525,11 @@
     ]
   },
   "comp_certcup_en": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "认证杯国际赛 (小美赛)",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "Problem Analysis",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -6756,11 +6756,11 @@
     ]
   },
   "comp_shuwei_en": {
-    "pipeline_skill": "comp-prob-analysis",
+    "pipeline_skill": "comp-problem-analysis",
     "display_name": "数维杯国际赛",
     "sub_steps": [
       {
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "display_name": "Problem Analysis",
         "output_files": [
           "PROBLEM_ANALYSIS.md"
@@ -8224,16 +8224,16 @@
               "path": "academic-toolkit/skills/paper-figure-palette/references/scenarios.md"
             },
             {
-              "name": "editaplot-lite 配色目录（editaplot 官方真源）",
+              "name": "fig-plot-edit-lite 配色目录（fig-plot-edit 官方真源）",
               "note": "Origin 系方法论配色（含色觉风险/推荐图型标注）；lite 路线选色前先查",
-              "path": "academic-toolkit/skills/editaplot/assets/palettes/palette-catalog.json"
+              "path": "academic-toolkit/skills/fig-plot-edit/assets/palettes/palette-catalog.json"
             }
           ],
           "skill_binding": {
             "main_required": true
           },
           "companion_skills": [
-            "editaplot-lite"
+            "fig-plot-edit-lite"
           ]
         },
         "has_checkpoint": false,

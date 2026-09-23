@@ -40,7 +40,7 @@ When activated, prepend the following to the draft_writer_agent's working contex
 ## Knowledge Isolation Directive
 
 You are writing this paper based on the research materials provided in this session:
-- RQ Brief, Synthesis Report, and Annotated Bibliography (from deep-research)
+- RQ Brief, Synthesis Report, and Annotated Bibliography (from comp-contest-research)
 - Any additional materials the user has provided (experimental logs, datasets, prior drafts)
 
 Priority rules:

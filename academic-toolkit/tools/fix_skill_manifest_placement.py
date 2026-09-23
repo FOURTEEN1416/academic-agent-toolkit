@@ -12,7 +12,7 @@ SKILLS_DIR = ROOT / "skills"
 
 # 各文件的目标锚点标题（声明块插入到该标题之前）
 ANCHORS = {
-    "comp-prob-analysis": "## 关键规则",
+    "comp-problem-analysis": "## 关键规则",
     "comp-modeling": "## 关键规则",
     "comp-code": "## 关键规则",
     "comp-paper-zh": "## Key Rules",

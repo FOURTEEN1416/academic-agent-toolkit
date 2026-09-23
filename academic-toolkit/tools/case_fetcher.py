@@ -88,7 +88,7 @@ def _type_distribution() -> Counter:
 
 
 def export_historical_json(output_path: Path) -> None:
-    """导出历史真题为 JSON（被 model-innovation 引用）"""
+    """导出历史真题为 JSON（被 comp-model-innovation 引用）"""
     dist = _type_distribution()
     data = {
         "generated_at": DATA_VERSION,
@@ -111,7 +111,7 @@ def export_historical_json(output_path: Path) -> None:
 
 
 def export_search_links(output_path: Path) -> None:
-    """导出搜索链接（被 model-innovation 引用）"""
+    """导出搜索链接（被 comp-model-innovation 引用）"""
     links = """# 国赛资料搜索链接（手动更新）
 
 ## 历年真题搜索

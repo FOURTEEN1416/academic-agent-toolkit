@@ -19,7 +19,7 @@ allowed-tools: [Read, Write, Edit, Bash(python:*), WebFetch, WebSearch]
 **标准模式 14 步主链**（每步绑定主技能，伴生技能清单见 CONTEST_SKILL_MAP §二）：
 
 ```
-S01 赛题分析(comp-prob-analysis) → S02 文献调研与核验(comp-literature)
+S01 赛题分析(comp-problem-analysis) → S02 文献调研与核验(comp-literature)
 → S03 建模求解(comp-modeling) → S04 编程实现(comp-code)
 → S05 图表生成(paper-figure) → S06 流程与架构图绘制(paper-figure-drawio)
 → S07 逻辑对抗复核(comp-review，引擎默认包含，`skip_review=true` 可跳过)
@@ -40,17 +40,17 @@ S01 赛题分析(comp-prob-analysis) → S02 文献调研与核验(comp-literatu
 按以下顺序执行，每阶段产出后暂停等用户确认（📌=检查点）：
 
 ```
-① comp-prob-analysis  [📌] → PROB_ANALYSIS.md
+① comp-problem-analysis  [📌] → PROB_ANALYSIS.md
 ② comp-literature           → LITERATURE.md（可选，跳过用 skip_literature）
 ③ comp-modeling       [📌] → MODEL.md
 ④ comp-code           [📌] → solution.py + figures/ + TABLE_*.md
-⑤ comp-stats-topic          → RESULTS.md
+⑤ comp-statistics-topic          → RESULTS.md
 ⑥ comp-paper-zh       [📌] → paper.md
 ⑦ comp-compile-zh     [📌] → paper.pdf / paper.docx
 ⑧ comp-review         [📌] → review_report.md → 修改 → 重审
 ```
 
-> 图表环节主动路由（2026-09-11 接线）：④ 数据图由 paper-figure 三轴选图规范把关；需要选图顾问/图库选型时调 `scipilot-figure-skill` / `agent-figure-gallery`；高规格框架图（人工多候选裁决）走 `paper-framework-figure-studio-pro`。
+> 图表环节主动路由（2026-09-11 接线）：④ 数据图由 paper-figure 三轴选图规范把关；需要选图顾问/图库选型时调 `fig-visualization-advisor` / `agent-figure-gallery`；高规格框架图（人工多候选裁决）走 `paper-framework-figure-studio-pro`。
 
 ## 编排规则
 

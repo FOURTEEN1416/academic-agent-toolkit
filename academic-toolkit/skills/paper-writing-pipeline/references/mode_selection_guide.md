@@ -47,7 +47,7 @@ User Input →
 - Includes all phases: Interview → Literature → Structure → Argumentation → Writing → Citation → Review → Formatting
 
 **Not Applicable When**:
-- User has no idea about research direction (→ use `deep-research` first)
+- User has no idea about research direction (→ use `comp-contest-research` first)
 - Only need a specific section (→ use another specialized mode)
 
 **Expected Output**: Complete paper draft + references + bilingual abstract + review report
@@ -80,7 +80,7 @@ User Input →
 - Wants guided thinking for each chapter's content
 - First-time academic paper writer
 - Wants to think through every section before writing
-- Just received materials from deep-research and needs to transform them into a paper plan
+- Just received materials from comp-contest-research and needs to transform them into a paper plan
 
 **Not Applicable When**:
 - Already knows exactly what to write (→ full mode is faster)
@@ -141,7 +141,7 @@ User Input →
 
 **Not Applicable When**:
 - Need a complete paper (→ full mode)
-- Need an in-depth research investigation (→ deep-research)
+- Need an in-depth research investigation (→ comp-contest-research)
 
 **Expected Output**: Annotated bibliography + literature matrix + synthesis analysis
 **Expected Duration**: Medium
@@ -247,12 +247,12 @@ tone alone never activates the variant.
 
 ---
 
-## Paths from deep-research
+## Paths from comp-contest-research
 
 ```
-deep-research completed
+comp-contest-research completed
   │
-  ├── deep-research (full mode) outputs:
+  ├── comp-contest-research (full mode) outputs:
   │   RQ Brief + Methodology Blueprint + Annotated Bibliography + Synthesis Report
   │   │
   │   ├── Want to write the paper directly ──→ academic-paper (full mode)
@@ -261,7 +261,7 @@ deep-research completed
   │   └── Want to plan before writing ──→ academic-paper (plan mode)
   │       socratic_mentor leverages existing materials to accelerate guidance
   │
-  └── deep-research (socratic mode) outputs:
+  └── comp-contest-research (socratic mode) outputs:
       INSIGHT Collection + Synthesis Report
       │
       ├── INSIGHTs are sufficiently clear ──→ academic-paper (full mode)
@@ -294,8 +294,8 @@ academic-paper completed
 | "Help me write an outline" / 「幫我寫大綱」 | outline-only | First confirm: Do they want a simple outline or deep planning? | May need plan mode |
 | "I want to write a paper but don't know how to start" / 「想寫論文但不知道怎麼開始」 | full | plan mode | Needs guided thinking |
 | "Help me revise my paper" / 「幫我修改論文」 | revision | First confirm: Are there reviewer comments? | May need full mode rewrite |
-| "Help me search for literature" / 「幫我找文獻」 | lit-review | First confirm: Is it a literature review for a paper or a research investigation? | May need deep-research |
-| "I have deep-research results, help me write a paper" / 「我有研究結果，幫我寫成論文」 | full (skip Phase 0 directly) | full (but intake needs to detect handoff) | Materials need to be properly imported |
+| "Help me search for literature" / 「幫我找文獻」 | lit-review | First confirm: Is it a literature review for a paper or a research investigation? | May need comp-contest-research |
+| "I have comp-contest-research results, help me write a paper" / 「我有研究結果，幫我寫成論文」 | full (skip Phase 0 directly) | full (but intake needs to detect handoff) | Materials need to be properly imported |
 | "I want to plan my paper step by step" / 「我想逐步規劃論文」 | outline-only | plan mode | Needs interactive guidance |
 | "The paper format is wrong" / 「論文格式不對」 | revision | citation-check or format-convert | May only need format correction |
 | 「帶我寫論文」/「引導我寫論文」 | full | plan mode | 使用者需要互動式引導，不是直接產出 |
@@ -311,8 +311,8 @@ academic-paper completed
 | Research question + literature | Complete paper | full mode |
 | Research question + literature | Outline | outline-only mode |
 | Vague idea | Paper plan | plan mode |
-| deep-research results | Complete paper | full mode (auto-handoff) |
-| deep-research results | Guided planning | plan mode |
+| comp-contest-research results | Complete paper | full mode (auto-handoff) |
+| comp-contest-research results | Guided planning | plan mode |
 | Completed paper | Revision | revision mode |
 | Completed paper | Abstract | abstract-only mode |
 | Completed paper | Format conversion | format-convert mode |

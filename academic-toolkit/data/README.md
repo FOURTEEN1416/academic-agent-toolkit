@@ -7,7 +7,7 @@
 | 文件 | 用途 | 消费者 |
 |------|------|--------|
 | `reference_models.json` | 6 类题型参考模型库 | `skills/problem-selection/model_recommender.py` |
-| `case_patterns.md` | 题型规律 + 常见国一方法库 | `skills/model-innovation/novelty_checker.py` |
+| `case_patterns.md` | 题型规律 + 常见国一方法库 | `skills/comp-model-innovation/novelty_checker.py` |
 | `historical_problems.json` | 历年真题索引与题型规律速查 | `comp_cumcm` step 1 赛题分析（assets「历年真题索引」） |
 | `risk_alerts.md` | 20 个数模国赛常见坑 + 急救 SOP | 赛中现场急救（`comp_cumcm` step 1 资产「风险预警清单」） |
 | `contest_lessons.json` | **CUMCM 实战经验库（机器可读）**：典型场景 / 决策依据 / 踩坑与避坑 / 交付清单 | `tools/contest_lessons_check.py`、`tests/test_contest_lessons.py`、写作与交付类步骤 |

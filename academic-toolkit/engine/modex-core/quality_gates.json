@@ -1,10 +1,10 @@
 {
   "_STEP_MIN_SIZE": {
-    "comp-prob-analysis": 1500,
+    "comp-problem-analysis": 1500,
     "comp-modeling": 2000,
     "comp-code": 1000,
     "comp-review": 40,
-    "comp-stats-topic": 1000,
+    "comp-statistics-topic": 1000,
     "comp-paper-zh": 10000,
     "comp-paper-en": 10000,
     "paper-write": 15000,

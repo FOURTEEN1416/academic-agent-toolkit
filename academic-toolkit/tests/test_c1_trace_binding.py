@@ -20,7 +20,7 @@ from engine.workflow_store import WorkflowStore
 
 def _make_catalog(output_files):
     return {"demo": {"sub_steps": [{
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "primary_output": output_files[0],
         "output_files": list(output_files),
         "has_checkpoint": False,
@@ -32,7 +32,7 @@ CATALOG = _make_catalog(["REPORT.md"])
 
 
 def _setup(tmp_path, output_files=("REPORT.md",)):
-    skill = tmp_path / "skills" / "comp-prob-analysis" / "SKILL.md"
+    skill = tmp_path / "skills" / "comp-problem-analysis" / "SKILL.md"
     skill.parent.mkdir(parents=True)
     skill.write_text("skill", encoding="utf-8")
     store = WorkflowStore(tmp_path / "workflow.sqlite")

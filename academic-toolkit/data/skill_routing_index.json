@@ -15,8 +15,8 @@
   "counts": {
     "core": 52,
     "ondemand": 212,
-    "resident_chars": 31945,
-    "full_chars": 68143
+    "resident_chars": 31949,
+    "full_chars": 68155
   },
   "skills": {
     "ablation-planner": {
@@ -26,22 +26,6 @@
       "full_description": "Use when main results pass result-to-claim (claim_supported=yes or partial) and ablation studies are needed for paper submission. Codex designs ablations from a reviewer's perspective, CC reviews feasibility and implements.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/ablation-planner/SKILL.md"
-    },
-    "academic-figure-skill": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Academic-grade scientific figure creation for Nature/Cell/Science journals. Use when the user asks to create, polish,",
-      "full_description": "Academic-grade scientific figure creation for Nature/Cell/Science journals. Use when the user asks to create, polish, review, or export scientific figures for manuscript submission. DO NOT trigger for: interactive dashboards (Plotly/Bokeh/Altair), exploratory data analysis without publication intent, math function plots, pie/3D charts, PowerPoint slides, or Illustrator/Figma-first design. SKIP requests about statistical testing, data cleaning, literature review, or code debugging — these are not figure-making tasks.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/academic-figure-skill/SKILL.md"
-    },
-    "acat-doc-governance": {
-      "tier": "core",
-      "reason": "治理/基础设施（每会话可能调用）",
-      "resident_description": "academic-agent-toolkit 仓库专属文档治理规程。做文档盘点、真源刷新、污染源清理、归档、命名治理、技能/长文档结构评估时使用。内置用户铁律：治理任务必须全文读完所有相关文档（禁止只看文件名）、过期与可疑信息必须清理、不重建≠不读。",
-      "full_description": "academic-agent-toolkit 仓库专属文档治理规程。做文档盘点、真源刷新、污染源清理、归档、命名治理、技能/长文档结构评估时使用。内置用户铁律：治理任务必须全文读完所有相关文档（禁止只看文件名）、过期与可疑信息必须清理、不重建≠不读。",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/acat-doc-governance/SKILL.md"
     },
     "agent-bootstrap": {
       "tier": "core",
@@ -87,7 +71,7 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise ->",
-      "full_description": "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise -> re-review -> re-revise -> final integrity check -> finalize. Coordinates deep-research, academic-paper, and academic-paper-reviewer into a seamless 10-stage workflow with mandatory integrity verification, two-stage peer review, and reproducible quality gates. Triggers on: academic pipeline, research to paper, full paper workflow, paper pipeline, end-to-end paper, research-to-publication, complete paper workflow.",
+      "full_description": "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise -> re-review -> re-revise -> final integrity check -> finalize. Coordinates comp-contest-research, academic-paper, and academic-paper-reviewer into a seamless 10-stage workflow with mandatory integrity verification, two-stage peer review, and reproducible quality gates. Triggers on: academic pipeline, research to paper, full paper workflow, paper pipeline, end-to-end paper, research-to-publication, complete paper workflow.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/ars-academic-pipeline/SKILL.md"
     },
@@ -171,30 +155,6 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/citation-check/SKILL.md"
     },
-    "claude-scientific-writer": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Comprehensive scientific writing toolkit with 15 modules for academic and clinical authorship. Use whenever the user",
-      "full_description": "Comprehensive scientific writing toolkit with 15 modules for academic and clinical authorship. Use whenever the user drafts, revises, peer-reviews, or submits a manuscript, grant, poster, slide deck, clinical report, treatment plan, literature review, hypothesis paper, or market research report. Triggers include any mention of peer review, manuscript, response to reviewers, IMRaD, abstract, citations, BibTeX, Vancouver/APA/AMA, CONSORT, STROBE, PRISMA, TRIPOD, CARE, ICH-E3, SOAP, case report, clinical trial report, ScholarEval, NSF/NIH/DOE/DARPA grants, Nature/Science/Cell/NEJM/Lancet/NeurIPS/ICML formatting, beamerposter, tikzposter, conference poster, research slides, hypothesis generation, treatment plan, or clinical decision support.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/claude-scientific-writer/SKILL.md"
-    },
-    "codesucker-integration": {
-      "tier": "core",
-      "reason": "治理/基础设施（每会话可能调用）",
-      "resident_description": "CodeSucker 软著源程序文档抽取器 — 集成技能——基于 [fanbuz/codesucker](https://github.com/fanbuz/codesucker) (Apache-2.0) 的 Python 移植版。",
-      "full_description": "CodeSucker 软著源程序文档抽取器 — 集成技能——基于 [fanbuz/codesucker](https://github.com/fanbuz/codesucker) (Apache-2.0) 的 Python 移植版。",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/codesucker-integration/SKILL.md"
-    },
-    "comm-lit-review": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Communications-domain literature review with Claude-style knowledge-base-first retrieval. Use when the task is about",
-      "full_description": "Communications-domain literature review with Claude-style knowledge-base-first retrieval. Use when the task is about communications, wireless, networking, satellite/NTN, Wi-Fi, cellular, transport protocols, congestion control, routing, scheduling, MAC/PHY, rate adaptation, channel estimation, beamforming, or communication-system research and the user wants papers, related work, a survey, or a landscape summary. Search Zotero, Obsidian, and local paper folders first when available, then search IEEE Xplore, ScienceDirect, ACM Digital Library, and broader web in that order.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/comm-lit-review/SKILL.md"
-    },
     "comp-code": {
       "tier": "core",
       "reason": "comp_cumcm 主链步骤",
@@ -226,6 +186,14 @@
       "full_description": "Use when a mathematical modeling competition paper must be checked against its canonical results JSON, code outputs, figures, and reported headline metrics before compilation.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-consistency/SKILL.md"
+    },
+    "comp-contest-research": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "深度调研（Deep Research for CUMCM）——赛题分析的顶层调研技能。比赛出题后 6 小时内快速吃透题目背景、数据来源、前沿方法、可用工具，为选题决策提供证据。",
+      "full_description": "深度调研（Deep Research for CUMCM）——赛题分析的顶层调研技能。比赛出题后 6 小时内快速吃透题目背景、数据来源、前沿方法、可用工具，为选题决策提供证据。",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/comp-contest-research/SKILL.md"
     },
     "comp-cumcm-disclosure": {
       "tier": "core",
@@ -267,6 +235,14 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-final-review/SKILL.md"
     },
+    "comp-latex-writing": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "国赛 LaTeX 写作（Latex Writing for CUMCM）——数学建模竞赛论文专用的 LaTeX 技能。封装 CTeX 中文模板 + 公式/表格/算法三件套 + 国赛摘要页精修。",
+      "full_description": "国赛 LaTeX 写作（Latex Writing for CUMCM）——数学建模竞赛论文专用的 LaTeX 技能。封装 CTeX 中文模板 + 公式/表格/算法三件套 + 国赛摘要页精修。",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/comp-latex-writing/SKILL.md"
+    },
     "comp-literature": {
       "tier": "core",
       "reason": "comp_cumcm 主链步骤",
@@ -274,6 +250,14 @@
       "full_description": "Use when a mathematical modeling competition workflow needs verified literature research, citation provenance, or a reproducible reference ledger before modeling or paper writing.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-literature/SKILL.md"
+    },
+    "comp-model-innovation": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "> 模型创新辅助专家。提供 3 个核心能力： 1. arxiv + duckduckgo 实时检索前沿方法 2. 查重（避免和历年国一撞方法） 3. 魔改/组合/自创模型的 prompt 模板 【国一价值】25% 权重——创新是国一核心",
+      "full_description": "> 模型创新辅助专家。提供 3 个核心能力： 1. arxiv + duckduckgo 实时检索前沿方法 2. 查重（避免和历年国一撞方法） 3. 魔改/组合/自创模型的 prompt 模板 【国一价值】25% 权重——创新是国一核心 【数据局限】无历年国一论文库 → 用 arxiv 替代",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/comp-model-innovation/SKILL.md"
     },
     "comp-modeling": {
       "tier": "core",
@@ -323,13 +307,13 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/comp-pipeline/SKILL.md"
     },
-    "comp-prob-analysis": {
+    "comp-problem-analysis": {
       "tier": "core",
       "reason": "comp_cumcm 主链步骤",
       "resident_description": "数学建模竞赛赛题分析。拆解子问题、定义变量、拟定建模思路。Use when user says \\\"赛题分析\\\", \\\"problem analysis\\\", \\\"分析题目\\\".",
       "full_description": "数学建模竞赛赛题分析。拆解子问题、定义变量、拟定建模思路。Use when user says \\\"赛题分析\\\", \\\"problem analysis\\\", \\\"分析题目\\\".",
       "description_compacted": false,
-      "path": "academic-toolkit/skills/comp-prob-analysis/SKILL.md"
+      "path": "academic-toolkit/skills/comp-problem-analysis/SKILL.md"
     },
     "comp-review": {
       "tier": "core",
@@ -339,13 +323,13 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-review/SKILL.md"
     },
-    "comp-stats-topic": {
+    "comp-statistics-topic": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "统计建模大赛选题与数据规划。根据官方主题方向，自拟具体题目、设计研究方案、规划数据来源。Use when user says \\”统计建模选题\\”, \\”stats topic\\”, \\”自拟题目\\”.",
       "full_description": "统计建模大赛选题与数据规划。根据官方主题方向，自拟具体题目、设计研究方案、规划数据来源。Use when user says \\”统计建模选题\\”, \\”stats topic\\”, \\”自拟题目\\”.",
       "description_compacted": false,
-      "path": "academic-toolkit/skills/comp-stats-topic/SKILL.md"
+      "path": "academic-toolkit/skills/comp-statistics-topic/SKILL.md"
     },
     "comp-visual-review": {
       "tier": "core",
@@ -458,14 +442,6 @@
       "full_description": "Guided statistical analysis with test selection and reporting. Use when you need help choosing appropriate tests for your data, assumption checking, power analysis, and APA-formatted results. Best for academic research reporting, test selection guidance. For implementing specific models programmatically use statsmodels.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/data-statistics-report/SKILL.md"
-    },
-    "deep-research": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "深度调研（Deep Research for CUMCM）——赛题分析的顶层调研技能。比赛出题后 6 小时内快速吃透题目背景、数据来源、前沿方法、可用工具，为选题决策提供证据。",
-      "full_description": "深度调研（Deep Research for CUMCM）——赛题分析的顶层调研技能。比赛出题后 6 小时内快速吃透题目背景、数据来源、前沿方法、可用工具，为选题决策提供证据。",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/deep-research/SKILL.md"
     },
     "dev-adversarial-code-review": {
       "tier": "ondemand",
@@ -707,14 +683,6 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/doi-bibtex/SKILL.md"
     },
-    "dse-loop": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Autonomous design space exploration loop for computer architecture and EDA. Runs a program, analyzes results, tunes",
-      "full_description": "Autonomous design space exploration loop for computer architecture and EDA. Runs a program, analyzes results, tunes parameters, and iterates until objective is met or timeout. Use when user says \\\"DSE\\\", \\\"design space exploration\\\", \\\"sweep parameters\\\", \\\"optimize\\\", \\\"find best config\\\", or wants iterative parameter tuning.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/dse-loop/SKILL.md"
-    },
     "eco-community-plots": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -722,22 +690,6 @@
       "full_description": "生态群落数据专用可视化：物种丰度矩阵、排序图（PCA/NMDS/RDA）、多样性指数、稀疏曲线、群落热图与聚类。触发词：生态群落图、物种丰度、NMDS、RDA、稀疏曲线、多样性指数。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/eco-community-plots/SKILL.md"
-    },
-    "editaplot": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实验表格（CSV/TXT/XLS/XLSX）画成可编辑 OPJU + PNG/PDF/TIF 出版级科研图。",
-      "full_description": "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实验表格（CSV/TXT/XLS/XLSX）画成可编辑 OPJU + PNG/PDF/TIF 出版级科研图。材料光谱（XPS/XRD/GSAS/XAS/FTIR/NMR/DSC/PL/UV-Vis/EIS/CV/LSV）、通用统计、医学与深度学习（ROC/PR/DCA/SHAP）专用模板；逐列确认数据用途、方案哈希冻结、Origin 对象反读校验。本机无 Origin 时如实降级，不伪造通过。",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/editaplot/SKILL.md"
-    },
-    "editaplot-lite": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "无 Origin 的出版级数据图路线：把 editaplot 的科学绘图纪律（逐列角色确认、方案哈希冻结、官方配色目录、出版图形合同）移植到 matplotlib+SciencePlots 渲染引擎。",
-      "full_description": "无 Origin 的出版级数据图路线：把 editaplot 的科学绘图纪律（逐列角色确认、方案哈希冻结、官方配色目录、出版图形合同）移植到 matplotlib+SciencePlots 渲染引擎。CSV/TXT 表格三步出图：propose 列角色提案 → 用户确认（哈希冻结）→ render 出 PNG+PDF+SVG+校验报告。源数据不可变，不确定列拒画，产物如实称 publication-informed lite，不冒充 Origin OPJU。",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/editaplot-lite/SKILL.md"
     },
     "editor-agent": {
       "tier": "ondemand",
@@ -787,6 +739,14 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/feishu-notify/SKILL.md"
     },
+    "fig-academic": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Academic-grade scientific figure creation for Nature/Cell/Science journals. Use when the user asks to create, polish,",
+      "full_description": "Academic-grade scientific figure creation for Nature/Cell/Science journals. Use when the user asks to create, polish, review, or export scientific figures for manuscript submission. DO NOT trigger for: interactive dashboards (Plotly/Bokeh/Altair), exploratory data analysis without publication intent, math function plots, pie/3D charts, PowerPoint slides, or Illustrator/Figma-first design. SKIP requests about statistical testing, data cleaning, literature review, or code debugging — these are not figure-making tasks.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/fig-academic/SKILL.md"
+    },
     "fig-critique": {
       "tier": "core",
       "reason": "主链步骤的推荐/必用位",
@@ -795,6 +755,22 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/fig-critique/SKILL.md"
     },
+    "fig-plot-edit": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实验表格（CSV/TXT/XLS/XLSX）画成可编辑 OPJU + PNG/PDF/TIF 出版级科研图。",
+      "full_description": "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实验表格（CSV/TXT/XLS/XLSX）画成可编辑 OPJU + PNG/PDF/TIF 出版级科研图。材料光谱（XPS/XRD/GSAS/XAS/FTIR/NMR/DSC/PL/UV-Vis/EIS/CV/LSV）、通用统计、医学与深度学习（ROC/PR/DCA/SHAP）专用模板；逐列确认数据用途、方案哈希冻结、Origin 对象反读校验。本机无 Origin 时如实降级，不伪造通过。",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/fig-plot-edit/SKILL.md"
+    },
+    "fig-plot-edit-lite": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "无 Origin 的出版级数据图路线：把 fig-plot-edit 的科学绘图纪律（逐列角色确认、方案哈希冻结、官方配色目录、出版图形合同）移植到 matplotlib+SciencePlots 渲染引擎。",
+      "full_description": "无 Origin 的出版级数据图路线：把 fig-plot-edit 的科学绘图纪律（逐列角色确认、方案哈希冻结、官方配色目录、出版图形合同）移植到 matplotlib+SciencePlots 渲染引擎。CSV/TXT 表格三步出图：propose 列角色提案 → 用户确认（哈希冻结）→ render 出 PNG+PDF+SVG+校验报告。源数据不可变，不确定列拒画，产物如实称 publication-informed lite，不冒充 Origin OPJU。",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/fig-plot-edit-lite/SKILL.md"
+    },
     "fig-publication-chart": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -802,6 +778,14 @@
       "full_description": "This skill should be used when the user asks for a publication-quality scientific figure or table, wants help choosing the right chart for results, needs a paper-ready pubfig or pubtab workflow, wants a figure + companion table for a results section, wants an Excel sheet turned into publication-ready LaTeX, or wants an existing scientific figure/table reviewed and upgraded.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/fig-publication-chart/SKILL.md"
+    },
+    "fig-visualization-advisor": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": ">- SciPilot Skills 家族成员，负责科研数据可视化——但定位不是”画图工具”， 而是”可视化顾问”。",
+      "full_description": ">- SciPilot Skills 家族成员，负责科研数据可视化——但定位不是\"画图工具\"， 而是\"可视化顾问\"。先做数据剖析（列类型/样本量/分布/异常值/分组结构/相关性）， 再结合用户的论证目标推荐图型，主动拦截科研画图的经典错误（小样本画均值柱掩盖 分布、双 Y 轴、饼图、Y 轴不当截断、rainbow 色图、把分类点连成折线等），最后 产出 Nature / Science / IEEE / Elsevier / PNAS / 中文核心期刊级别的成图。 覆盖纯数据图：折线、柱状、散点、箱线 / 小提琴、热力图、误差棒、分布图（直方 图 / KDE）、相关性矩阵 / 散点矩阵、多面板组合。技术栈 matplotlib + seaborn + SciencePlots（静态）+ plotly（交互）。中英文双语，中文模式自动配置 Noto Sans CJK / Source Han Sans / SimHei 并修复负号方框，支持中文期刊\"宋体正文 + Times New Roman 数字\"混排。默认色盲安全配色 + 冗余编码 + 灰度预览。出图后做 \"视觉自检闭环\"：渲染 PNG 预览→程序自检缺字/文字裁切/刻度重叠→AI 读图复核遮盖 与子图对齐→回改重渲，直到通过。 当用户的任务涉及以下任何情况时主动触发：论文配图、科研画图、数据可视化、 不知道用什么图、怎么展示数据、用什么图好、期刊投稿图、figure、出版级图表、 matplotlib、seaborn、plotly、误差棒、显著性标注、色盲安全配色、矢量图导出、 中文论文图表、多面板。**即使用户只是给一批数据问\"这个怎么画\"或\"用什么图 好\"，也应使用本技能——本技能首要能力是\"判断该用什么图\"，其次才是绘制。** 不做示意图、流程图、架构图。",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/fig-visualization-advisor/SKILL.md"
     },
     "figure-aesthetics-craft": {
       "tier": "core",
@@ -923,13 +907,13 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/idea-discovery/SKILL.md"
     },
-    "idea-discovery-robot": {
+    "idea-discovery-robotics": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Workflow 1 adaptation for robotics and embodied AI. Orchestrates robotics-aware literature survey, idea generation,",
       "full_description": "Workflow 1 adaptation for robotics and embodied AI. Orchestrates robotics-aware literature survey, idea generation, novelty check, and critical review to go from a broad robotics direction to benchmark-grounded, simulation-first ideas. Use when user says \\\"robotics idea discovery\\\", \\\"机器人找idea\\\", \\\"embodied AI idea\\\", \\\"机器人方向探索\\\", \\\"sim2real 选题\\\", or wants ideas for manipulation, locomotion, navigation, drones, humanoids, or general robot learning.",
       "description_compacted": true,
-      "path": "academic-toolkit/skills/idea-discovery-robot/SKILL.md"
+      "path": "academic-toolkit/skills/idea-discovery-robotics/SKILL.md"
     },
     "infographics": {
       "tier": "ondemand",
@@ -946,6 +930,14 @@
       "full_description": "Patent prior-art and landscape intelligence skill — not generic patent help. Commits to one of five sub-use-cases via forcing intake (novelty search / freedom-to-operate / competitive landscape / acquisition diligence / litigation prior-art) before any search runs. Searches Google Patents, Espacenet, USPTO, and optionally Lens.org for citation-graph signals. Output is an editable Word document (.docx) with verdict, ranked closest art (claim-text extracted), CPC-class-aware landscape, family-resolved hits, geographic coverage, FTO flags where applicable, strategy recommendations, and full audit log. Use when the user asks for patent searching or analysis (e.g., 'prior art search for [invention]', 'freedom to operate analysis for [product]'). Produces search signal, not legal advice — always recommends consulting a patent attorney before filing or licensing decisions. Trademark, copyright, and trade-secret questions are out of scope.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/ip-patent-search/SKILL.md"
+    },
+    "ip-source-extractor": {
+      "tier": "core",
+      "reason": "治理/基础设施（每会话可能调用）",
+      "resident_description": "CodeSucker 软著源程序文档抽取器 — 集成技能——基于 [fanbuz/codesucker](https://github.com/fanbuz/codesucker) (Apache-2.0) 的 Python 移植版。",
+      "full_description": "CodeSucker 软著源程序文档抽取器 — 集成技能——基于 [fanbuz/codesucker](https://github.com/fanbuz/codesucker) (Apache-2.0) 的 Python 移植版。",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/ip-source-extractor/SKILL.md"
     },
     "kaggle-learner": {
       "tier": "ondemand",
@@ -1051,14 +1043,6 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/latex-pdf-accessible/SKILL.md"
     },
-    "latex-writing": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "国赛 LaTeX 写作（Latex Writing for CUMCM）——数学建模竞赛论文专用的 LaTeX 技能。封装 CTeX 中文模板 + 公式/表格/算法三件套 + 国赛摘要页精修。",
-      "full_description": "国赛 LaTeX 写作（Latex Writing for CUMCM）——数学建模竞赛论文专用的 LaTeX 技能。封装 CTeX 中文模板 + 公式/表格/算法三件套 + 国赛摘要页精修。",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/latex-writing/SKILL.md"
-    },
     "lit-citation-manage": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1130,6 +1114,14 @@
       "full_description": "Academic literature orientation skill: searches papers via free keyless APIs (PubMed E-utilities + OpenAlex) by default, with the Consensus MCP as an optional enhancement lane when connected; builds a strategic search plan (PICO default; SPIDER / Decomposition / hybrid as fallbacks) and synthesizes findings into a formatted Word (.docx) research guide. Grill-me intake (question specificity, framework hint, tentative depth) before the recon search, plus a second checkpoint after framework + sub-areas + depth are confirmed before searches consume budget. Configurable depth (5/10/20 queries). Output is a 'launching pad' orientation guide, not a finished review. Use when the user starts literature-oriented research (e.g., 'litreview on X', 'literature review on X', 'I'm writing a paper on X', 'help me research X'). Do NOT use for single one-off paper searches wanting a quick list — that's a plain PubMed/OpenAlex (or Consensus) query.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/lit-orientation/SKILL.md"
+    },
+    "lit-review-communications": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Communications-domain literature review with Claude-style knowledge-base-first retrieval. Use when the task is about",
+      "full_description": "Communications-domain literature review with Claude-style knowledge-base-first retrieval. Use when the task is about communications, wireless, networking, satellite/NTN, Wi-Fi, cellular, transport protocols, congestion control, routing, scheduling, MAC/PHY, rate adaptation, channel estimation, beamforming, or communication-system research and the user wants papers, related work, a survey, or a landscape summary. Search Zotero, Obsidian, and local paper folders first when available, then search IEEE Xplore, ScienceDirect, ACM Digital Library, and broader web in that order.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/lit-review-communications/SKILL.md"
     },
     "lit-review-obsidian": {
       "tier": "ondemand",
@@ -1219,6 +1211,22 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/meta-deep-research/SKILL.md"
     },
+    "meta-design-space-exploration": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Autonomous design space exploration loop for computer architecture and EDA. Runs a program, analyzes results, tunes",
+      "full_description": "Autonomous design space exploration loop for computer architecture and EDA. Runs a program, analyzes results, tunes parameters, and iterates until objective is met or timeout. Use when user says \\\"DSE\\\", \\\"design space exploration\\\", \\\"sweep parameters\\\", \\\"optimize\\\", \\\"find best config\\\", or wants iterative parameter tuning.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/meta-design-space-exploration/SKILL.md"
+    },
+    "meta-doc-governance": {
+      "tier": "core",
+      "reason": "治理/基础设施（每会话可能调用）",
+      "resident_description": "academic-agent-toolkit 仓库专属文档治理规程。做文档盘点、真源刷新、污染源清理、归档、命名治理、技能/长文档结构评估时使用。内置用户铁律：治理任务必须全文读完所有相关文档（禁止只看文件名）、过期与可疑信息必须清理、不重建≠不读。",
+      "full_description": "academic-agent-toolkit 仓库专属文档治理规程。做文档盘点、真源刷新、污染源清理、归档、命名治理、技能/长文档结构评估时使用。内置用户铁律：治理任务必须全文读完所有相关文档（禁止只看文件名）、过期与可疑信息必须清理、不重建≠不读。",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/meta-doc-governance/SKILL.md"
+    },
     "meta-entity-dossier": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1291,6 +1299,14 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/meta-research-summarizer/SKILL.md"
     },
+    "meta-skill-creator": {
+      "tier": "core",
+      "reason": "治理/基础设施（每会话可能调用）",
+      "resident_description": "创建新技能、改进既有技能、度量技能表现（含 eval 与描述触发优化）。触发词：创建技能、写 SKILL.md、改进技能、skill eval、优化技能描述。",
+      "full_description": "创建新技能、改进既有技能、度量技能表现（含 eval 与描述触发优化）。触发词：创建技能、写 SKILL.md、改进技能、skill eval、优化技能描述。",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/meta-skill-creator/SKILL.md"
+    },
     "meta-skill-development": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1347,14 +1363,6 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/model-building/SKILL.md"
     },
-    "model-innovation": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "> 模型创新辅助专家。提供 3 个核心能力： 1. arxiv + duckduckgo 实时检索前沿方法 2. 查重（避免和历年国一撞方法） 3. 魔改/组合/自创模型的 prompt 模板 【国一价值】25% 权重——创新是国一核心",
-      "full_description": "> 模型创新辅助专家。提供 3 个核心能力： 1. arxiv + duckduckgo 实时检索前沿方法 2. 查重（避免和历年国一撞方法） 3. 魔改/组合/自创模型的 prompt 模板 【国一价值】25% 权重——创新是国一核心 【数据局限】无历年国一论文库 → 用 arxiv 替代",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/model-innovation/SKILL.md"
-    },
     "monitor-experiment": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1386,14 +1394,6 @@
       "full_description": "Query and analyze scholarly literature using the OpenAlex API (240M+ works). Use for literature searches, finding papers by author/institution, citation analysis, and bibliometric queries.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/openalex-search/SKILL.md"
-    },
-    "oral-paper-skill": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "对照优秀论文范例改稿件与复盘：883 篇顶会 Oral 蒸馏七项做法，compare/reflect 双模式，含数模章节桥接表。触发词：对照优秀论文、论文复盘、范例对照、向好论文学习。",
-      "full_description": "对照优秀论文范例改稿件与复盘：883 篇顶会 Oral 蒸馏七项做法，compare/reflect 双模式，含数模章节桥接表。触发词：对照优秀论文、论文复盘、范例对照、向好论文学习。",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/oral-paper-skill/SKILL.md"
     },
     "palette-health-check": {
       "tier": "ondemand",
@@ -1530,6 +1530,14 @@
       "full_description": "Use when reviewing or revising an academic manuscript whose central claim, evidence chain, figures, terminology, and prose may have drifted out of sync before submission or resubmission.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/paper-manuscript-optimize/SKILL.md"
+    },
+    "paper-oral-exemplar": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "对照优秀论文范例改稿件与复盘：883 篇顶会 Oral 蒸馏七项做法，compare/reflect 双模式，含数模章节桥接表。触发词：对照优秀论文、论文复盘、范例对照、向好论文学习。",
+      "full_description": "对照优秀论文范例改稿件与复盘：883 篇顶会 Oral 蒸馏七项做法，compare/reflect 双模式，含数模章节桥接表。触发词：对照优秀论文、论文复盘、范例对照、向好论文学习。",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/paper-oral-exemplar/SKILL.md"
     },
     "paper-peer-review-simulation": {
       "tier": "ondemand",
@@ -1723,6 +1731,22 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/paper-writing/SKILL.md"
     },
+    "paper-writing-clinical": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Comprehensive scientific writing toolkit with 15 modules for academic and clinical authorship. Use whenever the user",
+      "full_description": "Comprehensive scientific writing toolkit with 15 modules for academic and clinical authorship. Use whenever the user drafts, revises, peer-reviews, or submits a manuscript, grant, poster, slide deck, clinical report, treatment plan, literature review, hypothesis paper, or market research report. Triggers include any mention of peer review, manuscript, response to reviewers, IMRaD, abstract, citations, BibTeX, Vancouver/APA/AMA, CONSORT, STROBE, PRISMA, TRIPOD, CARE, ICH-E3, SOAP, case report, clinical trial report, ScholarEval, NSF/NIH/DOE/DARPA grants, Nature/Science/Cell/NEJM/Lancet/NeurIPS/ICML formatting, beamerposter, tikzposter, conference poster, research slides, hypothesis generation, treatment plan, or clinical decision support.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/paper-writing-clinical/SKILL.md"
+    },
+    "paper-writing-paragraph-standards": {
+      "tier": "core",
+      "reason": "路由关键集（路由回归/歧义判别直接断言）",
+      "resident_description": "按 UCSB 学术写作规范写论文：段落中心句先行、证据与论断配对、章节功能定位、读者预期管理。触发词：UCSB 写作规范、段落结构、中心句、学术论证、论文段落改写法、topic sentence、evidence-claim pairing。",
+      "full_description": "按 UCSB 学术写作规范写论文：段落中心句先行、证据与论断配对、章节功能定位、读者预期管理。触发词：UCSB 写作规范、段落结构、中心句、学术论证、论文段落改写法、topic sentence、evidence-claim pairing。",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/paper-writing-paragraph-standards/SKILL.md"
+    },
     "paper-writing-paragraphs": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1746,14 +1770,6 @@
       "full_description": "Use when writing or revising scientific manuscripts, abstracts, figures, or references for journal submission and you need full-paragraph prose, scientific structure, citation-style guidance, or reporting-guideline support.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/paper-writing-scientific/SKILL.md"
-    },
-    "paper-writing-ucsb": {
-      "tier": "core",
-      "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "按 UCSB 学术写作规范写论文：段落中心句先行、证据与论断配对、章节功能定位、读者预期管理。触发词：UCSB 写作规范、段落结构、中心句、学术论证、论文段落改写法、topic sentence、evidence-claim pairing。",
-      "full_description": "按 UCSB 学术写作规范写论文：段落中心句先行、证据与论断配对、章节功能定位、读者预期管理。触发词：UCSB 写作规范、段落结构、中心句、学术论证、论文段落改写法、topic sentence、evidence-claim pairing。",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/paper-writing-ucsb/SKILL.md"
     },
     "patent-build": {
       "tier": "ondemand",
@@ -1947,14 +1963,6 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/scientific-visualization/SKILL.md"
     },
-    "scipilot-figure-skill": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": ">- SciPilot Skills 家族成员，负责科研数据可视化——但定位不是”画图工具”， 而是”可视化顾问”。",
-      "full_description": ">- SciPilot Skills 家族成员，负责科研数据可视化——但定位不是\"画图工具\"， 而是\"可视化顾问\"。先做数据剖析（列类型/样本量/分布/异常值/分组结构/相关性）， 再结合用户的论证目标推荐图型，主动拦截科研画图的经典错误（小样本画均值柱掩盖 分布、双 Y 轴、饼图、Y 轴不当截断、rainbow 色图、把分类点连成折线等），最后 产出 Nature / Science / IEEE / Elsevier / PNAS / 中文核心期刊级别的成图。 覆盖纯数据图：折线、柱状、散点、箱线 / 小提琴、热力图、误差棒、分布图（直方 图 / KDE）、相关性矩阵 / 散点矩阵、多面板组合。技术栈 matplotlib + seaborn + SciencePlots（静态）+ plotly（交互）。中英文双语，中文模式自动配置 Noto Sans CJK / Source Han Sans / SimHei 并修复负号方框，支持中文期刊\"宋体正文 + Times New Roman 数字\"混排。默认色盲安全配色 + 冗余编码 + 灰度预览。出图后做 \"视觉自检闭环\"：渲染 PNG 预览→程序自检缺字/文字裁切/刻度重叠→AI 读图复核遮盖 与子图对齐→回改重渲，直到通过。 当用户的任务涉及以下任何情况时主动触发：论文配图、科研画图、数据可视化、 不知道用什么图、怎么展示数据、用什么图好、期刊投稿图、figure、出版级图表、 matplotlib、seaborn、plotly、误差棒、显著性标注、色盲安全配色、矢量图导出、 中文论文图表、多面板。**即使用户只是给一批数据问\"这个怎么画\"或\"用什么图 好\"，也应使用本技能——本技能首要能力是\"判断该用什么图\"，其次才是绘制。** 不做示意图、流程图、架构图。",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/scipilot-figure-skill/SKILL.md"
-    },
     "seaborn": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1962,14 +1970,6 @@
       "full_description": "Statistical visualization with pandas integration. Use for quick exploration of distributions, relationships, and categorical comparisons with attractive defaults. Best for box plots, violin plots, pair plots, heatmaps. Built on matplotlib. For interactive plots use plotly; for publication styling use scientific-visualization.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/seaborn/SKILL.md"
-    },
-    "skill-creator-official": {
-      "tier": "core",
-      "reason": "治理/基础设施（每会话可能调用）",
-      "resident_description": "创建新技能、改进既有技能、度量技能表现（含 eval 与描述触发优化）。触发词：创建技能、写 SKILL.md、改进技能、skill eval、优化技能描述。",
-      "full_description": "创建新技能、改进既有技能、度量技能表现（含 eval 与描述触发优化）。触发词：创建技能、写 SKILL.md、改进技能、skill eval、优化技能描述。",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/skill-creator-official/SKILL.md"
     },
     "spine": {
       "tier": "ondemand",

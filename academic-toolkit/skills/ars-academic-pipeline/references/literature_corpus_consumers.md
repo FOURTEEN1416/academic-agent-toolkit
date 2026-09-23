@@ -173,11 +173,11 @@ F4a/b/c are mutually exclusive by trigger. F4d applies only when zero entries de
 ## Consumer: bibliography_agent
 
 **Status**: Wired in v3.6.5
-**Skill**: deep-research
+**Skill**: comp-contest-research
 **Phase**: 1 (literature search and curation)
 **Agent file**: [`deep-research/agents/bibliography_agent.md`](../../deep-research/agents/bibliography_agent.md)
 
-The deep-research bibliography agent applies the corpus-first flow during its systematic literature search. The PRE-SCREENED block sits inside the Search Strategy section of its Annotated Bibliography output (per the agent's existing Output Format), preceding the existing DATABASES / Inclusion-Exclusion / RESULTS structure.
+The comp-contest-research bibliography agent applies the corpus-first flow during its systematic literature search. The PRE-SCREENED block sits inside the Search Strategy section of its Annotated Bibliography output (per the agent's existing Output Format), preceding the existing DATABASES / Inclusion-Exclusion / RESULTS structure.
 
 When `literature_corpus[]` is non-empty and parses cleanly, the agent enters Step 1 pre-screening. When the corpus is absent, empty, or fails the minimal shape check, the agent runs its existing external-DB-only flow (Iron Rule 4 graceful fallback for the failure cases).
 

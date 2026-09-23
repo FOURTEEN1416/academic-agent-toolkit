@@ -11,7 +11,7 @@
 
 上游更新时先在 fork 上同步，复查 references 两份文件是否需要重收编；任何取用固定新 pinned commit 并更新本文件。
 
-## 2026-09-11 追加：绘图 skills 批次（SciPilot / academic-figure-skill）
+## 2026-09-11 追加：绘图 skills 批次（SciPilot / fig-academic）
 
 - 来源一：https://github.com/Haojae/scipilot-figure-skill （本地 fork：FOURTEEN1416/scipilot-figure-skill）
 - Pinned commit: 43098ddb9e6a6d142218540c114f9ed38922fc42（2026-06-15 上游 HEAD）

@@ -10,10 +10,10 @@ sys.path.insert(0, str(ROOT))
 
 # 核心技能列表（竞赛主线流程 + 论文 + 其他）
 CORE_SKILLS = [
-    "comp-prob-analysis", "comp-modeling", "comp-code",
+    "comp-problem-analysis", "comp-modeling", "comp-code",
     "comp-review", "comp-paper-zh", "comp-paper-en",
     "comp-compile-zh", "comp-compile-en",
-    "comp-stats-topic",
+    "comp-statistics-topic",
     "comp-literature", "comp-consistency", "comp-visual-review",
     "comp-editor", "comp-final-review", "comp-final-audit",
     "paper-write", "paper-write-zh", "paper-write-nature",

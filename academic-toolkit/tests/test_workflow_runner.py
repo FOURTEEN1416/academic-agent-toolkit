@@ -54,8 +54,8 @@ def execute_action(runner, wf_id, fake_ok=True, fake_stderr="", output_text="x" 
 
 
 def test_runner_next_action_returns_step_action(tmp_path):
-    catalog = {"demo": {"sub_steps": [{"skill_name": "comp-prob-analysis", "primary_output": "PROB_ANALYSIS.md", "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": False}]}}
-    skills = tmp_path / "skills" / "comp-prob-analysis" / "SKILL.md"
+    catalog = {"demo": {"sub_steps": [{"skill_name": "comp-problem-analysis", "primary_output": "PROB_ANALYSIS.md", "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": False}]}}
+    skills = tmp_path / "skills" / "comp-problem-analysis" / "SKILL.md"
     skills.parent.mkdir(parents=True)
     skills.write_text("skill", encoding="utf-8")
     db = tmp_path / "workflow.sqlite"
@@ -66,18 +66,18 @@ def test_runner_next_action_returns_step_action(tmp_path):
         result = runner.next_action(workflow.id)
         assert result.status == "advanced"
         assert result.action is not None
-        assert result.action.skill_name == "comp-prob-analysis"
+        assert result.action.skill_name == "comp-problem-analysis"
         assert result.action.primary_output == "PROB_ANALYSIS.md"
         assert result.action.skill_path.name == "SKILL.md"
 
 
 def test_runner_complete_step_advances_to_next(tmp_path):
     catalog = {"demo": {"sub_steps": [
-        {"skill_name": "comp-prob-analysis", "primary_output": "PROB_ANALYSIS.md", "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": False},
+        {"skill_name": "comp-problem-analysis", "primary_output": "PROB_ANALYSIS.md", "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": False},
         {"skill_name": "comp-modeling", "primary_output": "MODEL.md", "output_files": ["MODEL.md"], "has_checkpoint": False},
     ]}}
     skills = tmp_path / "skills"
-    for name in ["comp-prob-analysis", "comp-modeling"]:
+    for name in ["comp-problem-analysis", "comp-modeling"]:
         (skills / name).mkdir(parents=True)
         (skills / name / "SKILL.md").write_text("skill", encoding="utf-8")
     db = tmp_path / "workflow.sqlite"
@@ -147,8 +147,8 @@ def test_runner_uses_step_primary_output_for_quality_gate(tmp_path):
 
 
 def test_runner_pauses_at_checkpoint_and_resumes(tmp_path):
-    catalog = {"demo": {"sub_steps": [{"skill_name": "comp-prob-analysis", "primary_output": "PROB_ANALYSIS.md", "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": True, "checkpoint_type": "approve"}]}}
-    skills = tmp_path / "skills" / "comp-prob-analysis" / "SKILL.md"
+    catalog = {"demo": {"sub_steps": [{"skill_name": "comp-problem-analysis", "primary_output": "PROB_ANALYSIS.md", "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": True, "checkpoint_type": "approve"}]}}
+    skills = tmp_path / "skills" / "comp-problem-analysis" / "SKILL.md"
     skills.parent.mkdir(parents=True)
     skills.write_text("skill", encoding="utf-8")
     db = tmp_path / "workflow.sqlite"
@@ -170,12 +170,12 @@ def test_runner_blocks_next_action_at_pending_checkpoint(tmp_path):
     """2026-09-09 独立审计 P1-2 回归：waiting_checkpoint 后未 approve 时，
     next_action 必须返回 blocked 且不得放行后续步骤动作；approve 后才恢复推进。"""
     catalog = {"demo": {"sub_steps": [
-        {"skill_name": "comp-prob-analysis", "primary_output": "PROB_ANALYSIS.md",
+        {"skill_name": "comp-problem-analysis", "primary_output": "PROB_ANALYSIS.md",
          "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": True, "checkpoint_type": "approve"},
         {"skill_name": "comp-modeling", "primary_output": "MODEL.md",
          "output_files": ["MODEL.md"], "has_checkpoint": False},
     ]}}
-    for name in ("comp-prob-analysis", "comp-modeling"):
+    for name in ("comp-problem-analysis", "comp-modeling"):
         p = tmp_path / "skills" / name / "SKILL.md"
         p.parent.mkdir(parents=True)
         p.write_text("skill", encoding="utf-8")
@@ -198,8 +198,8 @@ def test_runner_blocks_next_action_at_pending_checkpoint(tmp_path):
 
 
 def test_runner_fails_on_step_error(tmp_path):
-    catalog = {"demo": {"sub_steps": [{"skill_name": "comp-prob-analysis", "primary_output": "PROB_ANALYSIS.md", "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": False}]}}
-    skills = tmp_path / "skills" / "comp-prob-analysis" / "SKILL.md"
+    catalog = {"demo": {"sub_steps": [{"skill_name": "comp-problem-analysis", "primary_output": "PROB_ANALYSIS.md", "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": False}]}}
+    skills = tmp_path / "skills" / "comp-problem-analysis" / "SKILL.md"
     skills.parent.mkdir(parents=True)
     skills.write_text("skill", encoding="utf-8")
     db = tmp_path / "workflow.sqlite"
@@ -216,8 +216,8 @@ def test_runner_fails_on_step_error(tmp_path):
 
 
 def test_runner_rejects_success_without_desktop_execution_evidence(tmp_path):
-    catalog = {"demo": {"sub_steps": [{"skill_name": "comp-prob-analysis", "has_checkpoint": False}]}}
-    skill = tmp_path / "skills" / "comp-prob-analysis" / "SKILL.md"
+    catalog = {"demo": {"sub_steps": [{"skill_name": "comp-problem-analysis", "has_checkpoint": False}]}}
+    skill = tmp_path / "skills" / "comp-problem-analysis" / "SKILL.md"
     skill.parent.mkdir(parents=True)
     skill.write_text("skill", encoding="utf-8")
     with WorkflowStore(tmp_path / "workflow.sqlite") as store:
@@ -276,8 +276,8 @@ def test_runner_persists_completed_evidence_and_single_manifest_checkpoint(tmp_p
 
 
 def test_runner_next_action_returns_none_when_completed(tmp_path):
-    catalog = {"demo": {"sub_steps": [{"skill_name": "comp-prob-analysis", "primary_output": "PROB_ANALYSIS.md", "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": False}]}}
-    skills = tmp_path / "skills" / "comp-prob-analysis" / "SKILL.md"
+    catalog = {"demo": {"sub_steps": [{"skill_name": "comp-problem-analysis", "primary_output": "PROB_ANALYSIS.md", "output_files": ["PROB_ANALYSIS.md"], "has_checkpoint": False}]}}
+    skills = tmp_path / "skills" / "comp-problem-analysis" / "SKILL.md"
     skills.parent.mkdir(parents=True)
     skills.write_text("skill", encoding="utf-8")
     db = tmp_path / "workflow.sqlite"

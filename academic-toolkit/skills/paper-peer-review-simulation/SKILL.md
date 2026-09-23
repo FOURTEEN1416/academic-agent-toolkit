@@ -53,7 +53,7 @@ Review this paper: [paste paper or provide file]
 | Scenario | Skill to Use |
 |----------|-------------|
 | Need to write a paper (not review) | `academic-paper` |
-| Need in-depth investigation of a research topic | `deep-research` |
+| Need in-depth investigation of a research topic | `comp-contest-research` |
 | Need to revise a paper (already have review comments) | `academic-paper` (revision mode) |
 
 ### Quick Mode Selection Guide
@@ -280,7 +280,7 @@ The Editorial Decision Letter structure is detailed in `templates/editorial_deci
 ### Upstream/Downstream Relationships
 
 ```
-deep-research --> academic-paper --> [integrity check] --> academic-paper-reviewer --> academic-paper (revision) --> academic-paper-reviewer (re-review) --> [final integrity] --> finalize
+comp-contest-research --> academic-paper --> [integrity check] --> academic-paper-reviewer --> academic-paper (revision) --> academic-paper-reviewer (re-review) --> [final integrity] --> finalize
    (research)       (writing)         (integrity audit)      (review)                    (revision)                    (verification review)                (final verification)   (finalization)
 ```
 
@@ -393,7 +393,7 @@ Follows the paper's language. Academic terms remain in English. User can overrid
 | Skill | Relationship |
 |-------|-------------|
 | `academic-paper` | Upstream (provides paper) + Downstream (receives revision roadmap) |
-| `deep-research` | Upstream (provides research foundation) |
+| `comp-contest-research` | Upstream (provides research foundation) |
 | `tw-hei-intelligence` | Auxiliary (verifies higher education data accuracy) |
 | `academic-pipeline` | Orchestrated by (Stage 3 + Stage 3') |
 

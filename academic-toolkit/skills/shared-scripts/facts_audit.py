@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""题面参数保真度审计 — comp-prob-analysis 与 comp-code 阶段共用。
+"""题面参数保真度审计 — comp-problem-analysis 与 comp-code 阶段共用。
 
 设计目标：
   1. 防 AI 虚构：从 user_data/*_extracted.txt（OCR 原文）自动抽数字 vs PROBLEM_FACTS.json 集合比对
@@ -12,7 +12,7 @@
 
 调用方式：
   python _utils/facts_audit.py                 # 默认模式：full audit
-  python _utils/facts_audit.py --stage prob    # 只跑 OCR 比对（comp-prob-analysis 阶段）
+  python _utils/facts_audit.py --stage prob    # 只跑 OCR 比对（comp-problem-analysis 阶段）
   python _utils/facts_audit.py --stage code    # 完整审计（comp-code 阶段）
 
 退出码：
@@ -910,7 +910,7 @@ def run_audit(stage='full') -> int:
                   f'仅跑独立审计（正文结论一致性 + 事件源归属 + 图表标签）')
         else:
             print('⚠ PROBLEM_FACTS.json 不存在，跳过参数保真度审计')
-            print('  （如题面参数 ≥ 20 个，请回 comp-prob-analysis 补产 PROBLEM_FACTS.json）')
+            print('  （如题面参数 ≥ 20 个，请回 comp-problem-analysis 补产 PROBLEM_FACTS.json）')
             return 0
     else:
         try:

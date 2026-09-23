@@ -104,7 +104,7 @@ def test_drift_skips_when_actual_unavailable(tmp_path: Path) -> None:
 
 def test_drift_strict_metric_catches_off_by_one(tmp_path: Path, monkeypatch) -> None:
     """skills 指标严格等值：差 1（275 vs 276）必须报——2% 容差抓不住这类真漂移
-    （2026-09-23 实锤：badge 275 在 editaplot-lite 入库后立刻过期）。"""
+    （2026-09-23 实锤：badge 275 在 fig-plot-edit-lite 入库后立刻过期）。"""
     (tmp_path / "README.md").write_text("badge/skills-275_tracked", encoding="utf-8")
     monkeypatch.setattr(phc, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(phc, "DRIFT_SOURCES",

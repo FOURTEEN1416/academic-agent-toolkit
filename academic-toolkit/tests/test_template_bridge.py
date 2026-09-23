@@ -32,7 +32,7 @@ def test_cumcm_template_has_14_ordered_executable_stages_and_gate_bindings():
     steps = resolve_template("comp_cumcm", {}, catalog)
 
     assert [step["skill_name"] for step in steps] == [
-        "comp-prob-analysis", "comp-literature", "comp-modeling", "comp-code",
+        "comp-problem-analysis", "comp-literature", "comp-modeling", "comp-code",
         "paper-figure", "paper-figure-drawio", "comp-review", "comp-paper-zh",
         "comp-consistency", "comp-compile-zh", "comp-visual-review", "comp-editor",
         "comp-final-review", "comp-final-audit",
@@ -102,17 +102,17 @@ def test_step_action_has_execution_instructions():
         workflow_id="wf-1",
         step_id="s-1",
         position=1,
-        skill_name="comp-prob-analysis",
+        skill_name="comp-problem-analysis",
         display_name="问题分析",
         workspace=Path("/workspace"),
-        skill_path=Path("/skills/comp-prob-analysis/SKILL.md"),
+        skill_path=Path("/skills/comp-problem-analysis/SKILL.md"),
         output_files=["PROB_ANALYSIS.md"],
         primary_output="PROB_ANALYSIS.md",
         has_checkpoint=False,
         checkpoint_type=None,
     )
     instructions = action.execution_instructions()
-    assert "comp-prob-analysis" in instructions
+    assert "comp-problem-analysis" in instructions
     assert "PROB_ANALYSIS.md" in instructions
     assert "workspace" in instructions
 

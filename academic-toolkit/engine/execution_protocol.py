@@ -38,7 +38,7 @@ def _strip_quoted_spans(text: str) -> str:
     不算命令作者的自述——描述性判断只看引号外的外壳。
     引号不成对（奇数个）视为字面量，返回原文。
     （A5 误杀①修复：`grep -q '<!-- END FIGURE_MANIFEST -->' file` 曾被
-    引号内 "-->" 箭头规则误杀，而这是 comp-prob-analysis 完成铁律强制命令）
+    引号内 "-->" 箭头规则误杀，而这是 comp-problem-analysis 完成铁律强制命令）
     """
     shell = text
     for quote in ("'", '"'):

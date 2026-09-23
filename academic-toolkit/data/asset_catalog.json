@@ -41,8 +41,8 @@
       "description": "题型案例模式库：历年题型与建模套路对照",
       "when_to_use": "赛题分析步定位同类题打法；无网络时降级参照",
       "owner_skills": [
-        "comp-prob-analysis",
-        "model-innovation"
+        "comp-problem-analysis",
+        "comp-model-innovation"
       ],
       "consumers": [
         "comp_cumcm:S1",
@@ -89,7 +89,7 @@
       "description": "历年真题索引（2021-2025 元数据）",
       "when_to_use": "赛题分析步查历史同类题【mandatory 试点】",
       "owner_skills": [
-        "comp-prob-analysis",
+        "comp-problem-analysis",
         "problem-selection"
       ],
       "consumers": [
@@ -301,13 +301,13 @@
     },
     {
       "id": "figure-atlas",
-      "path": "academic-toolkit/skills/academic-figure-skill/assets/figure-atlas/",
+      "path": "academic-toolkit/skills/fig-academic/assets/figure-atlas/",
       "zone": "skills-internal",
       "type": "corpus",
       "description": "CNS 级示例图集 215 张+目录索引",
       "when_to_use": "画顶刊风格图前找参照",
       "owner_skills": [
-        "academic-figure-skill"
+        "fig-academic"
       ],
       "consumers": [],
       "local_only": false
@@ -334,7 +334,7 @@
       "description": "获奖论文资产入口地图（62 篇五年的可编码规则蒸馏）",
       "when_to_use": "用获奖论文语料前先读",
       "owner_skills": [
-        "comp-prob-analysis",
+        "comp-problem-analysis",
         "comp-paper-zh"
       ],
       "consumers": [
@@ -520,7 +520,7 @@
       "description": "赛时官方题目/规则与合规预置区（赛季期间本地放置）",
       "when_to_use": "开赛后放题；缺席=语义缺位非断链",
       "owner_skills": [
-        "comp-prob-analysis"
+        "comp-problem-analysis"
       ],
       "consumers": [],
       "local_only": true

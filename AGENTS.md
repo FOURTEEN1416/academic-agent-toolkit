@@ -65,7 +65,7 @@ L1 拦截式审计在无宿主 hook 时记为
 2. 完成步骤必须回报 `complete_step` 并附 execution_evidence，禁止伪造审核产物。
 3. 改代码后跑 `python -m pytest -q`（仓库根）+ `python academic-toolkit/tools/check_provenance.py`。
 4. `dev-docs/` 是内部真源根，默认私有；`vendor/` 不入 git。
-5. 文档治理遵守 `acat-doc-governance`：全文读完、污染必清。
+5. 文档治理遵守 `meta-doc-governance`：全文读完、污染必清。
 6. **路径/密钥卫生**：tracked 配置不得写本机绝对路径；`.env` 永不入库；
    `python academic-toolkit/tools/secret_scan.py --strict` 机检。
 

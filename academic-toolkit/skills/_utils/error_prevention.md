@@ -1240,7 +1240,7 @@ if __name__ == '__main__':
   "_meta": {
     "problem_id": "<本题编号>",
     "extracted_at": "<ISO 时间戳>",
-    "extracted_by": "comp-prob-analysis (skill v?)",
+    "extracted_by": "comp-problem-analysis (skill v?)",
     "source_pages": [1, 2, 3, 4, 5, 6, 7],
     "source_files": [
       {
@@ -1515,7 +1515,7 @@ if __name__ == '__main__':
 - **问题**：facts.json 是 AI 抄出来的，再用它审计 AI 自己写的代码——如果抄题面时就错了（0.95 抄成 0.85），audit 反而"确认"代码里的 0.85 是合法的。
 - **核心防护（不依赖人工）**：workflow_engine 入口在 AI 介入前已经把赛题 PDF 通过 Vision OCR 自动转成 `user_data/<pdf_name>_extracted.txt`。这份文件是机器产物，AI 改不了——改了 sha256 就变。
 - **机器比对流程**（`audit_facts_against_ocr`，详见 14.7）：
-  1. comp-prob-analysis 阶段，AI 把 `user_data/*_extracted.txt` 的路径 + 当前 sha256 写入 `_meta.source_files`
+  1. comp-problem-analysis 阶段，AI 把 `user_data/*_extracted.txt` 的路径 + 当前 sha256 写入 `_meta.source_files`
   2. comp-code 阶段，`facts_audit_v2.py` 启动时**重新计算**这些文件的 sha256，与声明值不一致即拒绝（防 OCR 文件被改）
   3. 自动从 OCR 文件抽出所有数字集合（regex 抓 `\d+\.\d+|\d+`），与 PROBLEM_FACTS.json 数值字段集合比对
   4. **facts ∖ OCR ≠ ∅** → 拒绝（facts 含 OCR 原文没有的数字 = AI 虚构）

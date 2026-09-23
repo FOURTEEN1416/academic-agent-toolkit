@@ -30,7 +30,7 @@
 - **驱动协议 + 自适应铸造**：`engine/agent_protocol.py` / `capability_probe.py` / `tool_forge.py`；CLI 新增 `boot` / `probe` / `forge`（三者惰性加载重型依赖，最小环境可跑）。
 - **旧宿主降为可选适配器**：`agents/adapters/{generic,opencode,zcode,claude-code,mimocode}`；无适配器时协议与 L2/L3 审计完整可用，L1 如实 `unavailable`（不阻断、不伪造通过）。
 - **文档与技能**：根/工具箱 AGENTS.md、README、skills/CLAUDE.md 宿主中立化；新增技能 `agent-bootstrap`、`tool-forge`（catalog `agent_runtime` 域 + CONTEST_SKILL_MAP §四 + skill index）。
-- **收尾整理**：清项目内 `__pycache__`/`.pytest_cache`/`workflow-index.json` 运行态（保留 `.engine` 审计与 SQLite、`tools/*.pyc` 分发件）；galaxy-* 与 acat-doc-governance 过期宿主措辞同步。
+- **收尾整理**：清项目内 `__pycache__`/`.pytest_cache`/`workflow-index.json` 运行态（保留 `.engine` 审计与 SQLite、`tools/*.pyc` 分发件）；galaxy-* 与 meta-doc-governance 过期宿主措辞同步。
 
 ### Added —— 基线基础设施加固（2026-09-20）
 
@@ -155,7 +155,7 @@
 ### Added
 
 - 科研绘图扩展：集成 9 个上游技能（scientific-visualization / matplotlib / seaborn / plotly / figure-spec / graphviz / excalidraw-diagram / infographics / scientific-schematics），catalog 新增 `scientific_plotting_expanded` 能力
-- ZCode 兼容层：根 AGENTS.md（宿主支持矩阵）、`.zcode/config.json`（docsearch MCP）、`.zcode/skills` 技能联结、`/doc-governance` 命令与 `acat-doc-governance` 治理技能
+- ZCode 兼容层：根 AGENTS.md（宿主支持矩阵）、`.zcode/config.json`（docsearch MCP）、`.zcode/skills` 技能联结、`/doc-governance` 命令与 `meta-doc-governance` 治理技能
 - 全学术定位：主套件目录更名 `科研工具箱/`（原 数学建模全流程套件/），文档定位统一为 6 大能力域科研工具箱
 
 ### Changed

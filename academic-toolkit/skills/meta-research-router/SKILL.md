@@ -41,7 +41,7 @@ The skill **never silently runs its fallback** when a specialist would have done
 | `patent` | prior art / FTO / freedom to operate / patent / "patent landscape" / invention / novelty search / "ip landscape" | Patent prior-art + landscape |
 | `dossier` | "dossier on" / "due diligence" / "background check" / "prep me for" / "competitor research" / "investor diligence" / "interview prep" / "background on" | Decision-grade entity research |
 
-**Escalation → `deep-research`:** when a wrong answer is expensive (strategy, comparing N options, hypothesis validation, mapping a field) and rigor matters more than speed, escalate to the `deep-research` skill instead of the fast fallback workflow — it runs a triangulated, multi-round, adversarial investigation and persists an auditable, reusable research folder. This router is the fast path; `deep-research` is the heavyweight one.
+**Escalation → `comp-contest-research`:** when a wrong answer is expensive (strategy, comparing N options, hypothesis validation, mapping a field) and rigor matters more than speed, escalate to the `comp-contest-research` skill instead of the fast fallback workflow — it runs a triangulated, multi-round, adversarial investigation and persists an auditable, reusable research folder. This router is the fast path; `comp-contest-research` is the heavyweight one.
 
 ## Agent Integrity Rules
 

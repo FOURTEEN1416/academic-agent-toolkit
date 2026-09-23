@@ -19,7 +19,7 @@ from engine.workflow_store import WorkflowStore
 
 def _make_catalog(companion_skills):
     return {"demo": {"sub_steps": [{
-        "skill_name": "comp-prob-analysis",
+        "skill_name": "comp-problem-analysis",
         "primary_output": "REPORT.md",
         "output_files": ["REPORT.md"],
         "has_checkpoint": False,
@@ -28,7 +28,7 @@ def _make_catalog(companion_skills):
 
 
 def _setup(tmp_path, companion_skills):
-    skill = tmp_path / "skills" / "comp-prob-analysis" / "SKILL.md"
+    skill = tmp_path / "skills" / "comp-problem-analysis" / "SKILL.md"
     skill.parent.mkdir(parents=True)
     skill.write_text("skill", encoding="utf-8")
     store = WorkflowStore(tmp_path / "workflow.sqlite")

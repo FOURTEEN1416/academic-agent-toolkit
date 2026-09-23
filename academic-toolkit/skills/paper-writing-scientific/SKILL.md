@@ -4,7 +4,7 @@ description: "Use when writing or revising scientific manuscripts, abstracts, fi
 ---
 
 
-<!--ACAT-ADAPTED: 混合上游资产补齐（scientific-agent-skills + claude-scientific-writer .claude 副本），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 混合上游资产补齐（scientific-agent-skills + paper-writing-clinical .claude 副本），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Scientific Writing
 
 ## Overview

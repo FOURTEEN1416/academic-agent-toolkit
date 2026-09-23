@@ -9,7 +9,7 @@ metadata:
   status: active
   related_skills:
     - academic-pipeline
-    - deep-research
+    - comp-contest-research
     - academic-paper
     - academic-paper-reviewer
 ---

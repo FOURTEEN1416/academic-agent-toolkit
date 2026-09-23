@@ -125,13 +125,13 @@ def test_scan_evidence_wrapped_structure_and_stats(tmp_path):
                      "skipped": [{"name": "参考图集", "reason": "不产图"}]},
                     skill="comp-literature")
     _write_evidence(ws, "b.json",
-                    {"used": [], "skipped": [{"skill": "dse-loop", "reason": "r"}]}, None)
+                    {"used": [], "skipped": [{"skill": "meta-design-space-exploration", "reason": "r"}]}, None)
     result = cau.scan_evidence(tmp_path)
     assert result["totals"]["steps_declared"] == 2
     assert result["totals"]["used"] == 2
     assert result["totals"]["skipped"] == 3
     assert result["companion"]["citation-check"] == {"recommended": 1, "used": 1, "skipped": 0}
-    assert result["companion"]["dse-loop"]["used"] == 0
+    assert result["companion"]["meta-design-space-exploration"]["used"] == 0
     assert result["assets"]["引用核验器"]["used"] == 1
     assert result["assets"]["参考图集"]["skipped"] == 1
 
@@ -177,7 +177,7 @@ def test_comp_cumcm_companion_lists_compact():
     data = json.loads((ROOT / "engine" / "modex-core" / "templates.json").read_text(encoding="utf-8"))
     steps = {s["skill_name"]: s for s in data["comp_cumcm"]["sub_steps"]}
     expected = {
-        "comp-prob-analysis": [],
+        "comp-problem-analysis": [],
         "comp-literature": ["citation-check"],
         "comp-modeling": ["sympy"],
         "comp-code": ["data-statistics-report"],

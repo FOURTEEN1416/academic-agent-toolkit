@@ -58,7 +58,7 @@ def execute_action(runner, wf_id, output_text="x"):
 def test_offline_workflow_creates_declared_artifacts(tmp_path):
     skills_root = tmp_path / "skills"
     steps = []
-    for name, output in (("comp-prob-analysis", "PROB_ANALYSIS.md"), ("comp-modeling", "MODEL.md"), ("comp-paper-zh", "PAPER.md")):
+    for name, output in (("comp-problem-analysis", "PROB_ANALYSIS.md"), ("comp-modeling", "MODEL.md"), ("comp-paper-zh", "PAPER.md")):
         skill = skills_root / name / "SKILL.md"
         skill.parent.mkdir(parents=True, exist_ok=True)
         skill.write_text("skill", encoding="utf-8")
@@ -79,8 +79,8 @@ def test_offline_workflow_creates_declared_artifacts(tmp_path):
 
 def test_offline_workflow_with_quality_gates(tmp_path):
     skills_root = tmp_path / "skills"
-    step = {"skill_name": "comp-prob-analysis", "output_files": ["PROB_ANALYSIS.md"], "primary_output": "PROB_ANALYSIS.md", "has_checkpoint": False}
-    skill = skills_root / "comp-prob-analysis" / "SKILL.md"
+    step = {"skill_name": "comp-problem-analysis", "output_files": ["PROB_ANALYSIS.md"], "primary_output": "PROB_ANALYSIS.md", "has_checkpoint": False}
+    skill = skills_root / "comp-problem-analysis" / "SKILL.md"
     skill.parent.mkdir(parents=True, exist_ok=True)
     skill.write_text("skill", encoding="utf-8")
     catalog = {"test": {"sub_steps": [step]}}
@@ -91,15 +91,15 @@ def test_offline_workflow_with_quality_gates(tmp_path):
         r = execute_action(runner, workflow.id)
         assert r.status == "completed", f"got {r.status}"
         gate = QualityGate(workspace)
-        gates_result = gate.run_all("comp-prob-analysis", declared_outputs=["PROB_ANALYSIS.md"])
+        gates_result = gate.run_all("comp-problem-analysis", declared_outputs=["PROB_ANALYSIS.md"])
         assert gates_result["ok"] is True
         assert gates_result["checks"]["min_size"]["ok"] is True
 
 
 def test_offline_workflow_with_run_log(tmp_path):
     skills_root = tmp_path / "skills"
-    step = {"skill_name": "comp-prob-analysis", "output_files": ["PROB_ANALYSIS.md"], "primary_output": "PROB_ANALYSIS.md", "has_checkpoint": False}
-    skill = skills_root / "comp-prob-analysis" / "SKILL.md"
+    step = {"skill_name": "comp-problem-analysis", "output_files": ["PROB_ANALYSIS.md"], "primary_output": "PROB_ANALYSIS.md", "has_checkpoint": False}
+    skill = skills_root / "comp-problem-analysis" / "SKILL.md"
     skill.parent.mkdir(parents=True, exist_ok=True)
     skill.write_text("skill", encoding="utf-8")
     catalog = {"test": {"sub_steps": [step]}}
@@ -133,8 +133,8 @@ def test_real_template_resolves_cumcm():
 def test_runner_writes_run_log_with_monotonic_timestamps(tmp_path):
     """RunLogger 自动接入 Runner：工作流完成后日志文件存在、条目时间戳单调递增、step_id 正确。"""
     skills_root = tmp_path / "skills"
-    step = {"skill_name": "comp-prob-analysis", "output_files": ["PROB_ANALYSIS.md"], "primary_output": "PROB_ANALYSIS.md", "has_checkpoint": False}
-    skill = skills_root / "comp-prob-analysis" / "SKILL.md"
+    step = {"skill_name": "comp-problem-analysis", "output_files": ["PROB_ANALYSIS.md"], "primary_output": "PROB_ANALYSIS.md", "has_checkpoint": False}
+    skill = skills_root / "comp-problem-analysis" / "SKILL.md"
     skill.parent.mkdir(parents=True, exist_ok=True)
     skill.write_text("skill", encoding="utf-8")
     catalog = {"test": {"sub_steps": [step]}}
@@ -152,7 +152,7 @@ def test_runner_writes_run_log_with_monotonic_timestamps(tmp_path):
         assert len(entries) >= 3  # started + step started + step completed
         timestamps = [e["timestamp"] for e in entries]
         assert timestamps == sorted(timestamps), "日志时间戳必须单调递增"
-        step_ids = [e["step_id"] for e in entries if e["step_name"] == "comp-prob-analysis"]
+        step_ids = [e["step_id"] for e in entries if e["step_name"] == "comp-problem-analysis"]
         assert all(sid == r.step_id for sid in step_ids), "日志 step_id 必须与真实步骤一致"
 
 
@@ -160,7 +160,7 @@ def test_runner_logs_real_step_ids_not_last_step(tmp_path):
     """多步骤工作流：日志中每步 step_id 必须与对应步骤匹配（回归上轮回填 bug）。"""
     skills_root = tmp_path / "skills"
     steps = []
-    for name, output in (("comp-prob-analysis", "A.md"), ("comp-modeling", "B.md")):
+    for name, output in (("comp-problem-analysis", "A.md"), ("comp-modeling", "B.md")):
         skill = skills_root / name / "SKILL.md"
         skill.parent.mkdir(parents=True, exist_ok=True)
         skill.write_text("skill", encoding="utf-8")
@@ -178,18 +178,18 @@ def test_runner_logs_real_step_ids_not_last_step(tmp_path):
         log_file = workspace / ".engine" / "logs" / f"run_{workflow.id}.json"
         entries = json.loads(log_file.read_text(encoding="utf-8"))
         # 每步的 started/completed 必须带该步自己的 step_id，且不同步骤 id 不同
-        prob_ids = [e["step_id"] for e in entries if e["step_name"] == "comp-prob-analysis" and e["event"] == "completed"]
+        prob_ids = [e["step_id"] for e in entries if e["step_name"] == "comp-problem-analysis" and e["event"] == "completed"]
         model_ids = [e["step_id"] for e in entries if e["step_name"] == "comp-modeling" and e["event"] == "completed"]
         assert prob_ids and model_ids
         assert prob_ids[0] != model_ids[0], "不同步骤的 step_id 必须不同"
-        assert all(e["step_id"] != model_ids[0] for e in entries if e["step_name"] == "comp-prob-analysis"), "步骤 step_id 错位"
+        assert all(e["step_id"] != model_ids[0] for e in entries if e["step_name"] == "comp-problem-analysis"), "步骤 step_id 错位"
 
 
 def test_runner_rejects_descriptive_fake_command_evidence(tmp_path):
     """Runner 必须拒绝描述性伪命令 evidence（回归 comp-modeling 伪命令问题）。"""
     skills_root = tmp_path / "skills"
-    step = {"skill_name": "comp-prob-analysis", "output_files": ["PROB_ANALYSIS.md"], "primary_output": "PROB_ANALYSIS.md", "has_checkpoint": False}
-    skill = skills_root / "comp-prob-analysis" / "SKILL.md"
+    step = {"skill_name": "comp-problem-analysis", "output_files": ["PROB_ANALYSIS.md"], "primary_output": "PROB_ANALYSIS.md", "has_checkpoint": False}
+    skill = skills_root / "comp-problem-analysis" / "SKILL.md"
     skill.parent.mkdir(parents=True, exist_ok=True)
     skill.write_text("skill", encoding="utf-8")
     catalog = {"test": {"sub_steps": [step]}}
@@ -222,7 +222,7 @@ def test_failed_step_blocks_subsequent_steps(tmp_path):
     """任何步骤失败后，next_action 必须阻断后续步骤（不允许带错推进）。"""
     skills_root = tmp_path / "skills"
     steps = []
-    for name, output in (("comp-prob-analysis", "A.md"), ("comp-modeling", "B.md")):
+    for name, output in (("comp-problem-analysis", "A.md"), ("comp-modeling", "B.md")):
         skill = skills_root / name / "SKILL.md"
         skill.parent.mkdir(parents=True, exist_ok=True)
         skill.write_text("skill", encoding="utf-8")
@@ -256,4 +256,4 @@ def test_failed_step_blocks_subsequent_steps(tmp_path):
         # 第二步：next_action 必须被阻断，不能推进 comp-modeling
         r2 = runner.next_action(workflow.id)
         assert r2.status == "failed", "失败后必须阻断后续步骤"
-        assert "comp-prob-analysis" in r2.message
+        assert "comp-problem-analysis" in r2.message

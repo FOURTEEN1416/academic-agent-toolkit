@@ -37,7 +37,7 @@ P0_ROUTED_BATCH = [
     "matplotlib", "plotly", "seaborn", "visualization", "infographics",
     "excalidraw-diagram",
     # 文献/研究辅助（4）
-    "arxiv", "comm-lit-review", "deep-research", "lit-review-systematic",
+    "arxiv", "lit-review-communications", "comp-contest-research", "lit-review-systematic",
     # 其他单点（3）
     "ablation-planner", "paper-illustration", "problem-selection",
 ]

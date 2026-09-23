@@ -10,7 +10,7 @@ User: "guide my paper" / "help me plan my paper"
      +-> [socratic_mentor_agent] -> Confirm what materials the user already has
          - "What research materials do you currently have? (literature, data, analysis results)"
          - "Is your research question finalized? Can you state it in one sentence?"
-         -> If research foundation is lacking, recommend running deep-research (socratic mode) first
+         -> If research foundation is lacking, recommend running comp-contest-research (socratic mode) first
      |
 === Step 1: THESIS CRYSTALLIZATION ===
      |

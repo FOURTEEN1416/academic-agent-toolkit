@@ -25,7 +25,7 @@ from engine.workflow_store import WorkflowStore
 
 def make_catalog(specs=None, first_checkpoint=False):
     """两步小模板；第一步可选挂 output_specs（D7 规格声明同款结构）。"""
-    first = {"skill_name": "comp-prob-analysis", "primary_output": "REPORT.md",
+    first = {"skill_name": "comp-problem-analysis", "primary_output": "REPORT.md",
              "output_files": ["REPORT.md"], "has_checkpoint": first_checkpoint,
              "checkpoint_type": "approve" if first_checkpoint else None}
     if specs is not None:
@@ -39,7 +39,7 @@ def make_catalog(specs=None, first_checkpoint=False):
 
 def setup_runner(tmp_path, specs=None, first_checkpoint=False):
     skills = tmp_path / "skills"
-    for name in ("comp-prob-analysis", "comp-modeling"):
+    for name in ("comp-problem-analysis", "comp-modeling"):
         skill = skills / name / "SKILL.md"
         skill.parent.mkdir(parents=True, exist_ok=True)
         skill.write_text("skill", encoding="utf-8")
@@ -178,6 +178,6 @@ def test_real_template_output_specs_scoped_to_declared_steps():
         # D7 原始两处
         "comp-literature", "comp-code",
         # P5 退出判据扩展（2026-09-19）
-        "comp-prob-analysis", "comp-modeling", "comp-review", "comp-consistency",
+        "comp-problem-analysis", "comp-modeling", "comp-review", "comp-consistency",
         "comp-visual-review", "comp-editor", "comp-final-audit",
     }

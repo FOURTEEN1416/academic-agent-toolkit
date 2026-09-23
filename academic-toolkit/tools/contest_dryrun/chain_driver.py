@@ -87,7 +87,7 @@ def _ensure_fig1():
 
 
 def gen(step_name, action):
-    if step_name == "comp-prob-analysis":
+    if step_name == "comp-problem-analysis":
         w("PROBLEM_ANALYSIS.md", ("# 赛题分析（链路验证级）\n\n" + "针对水资源优化分配问题逐子问题拆解，定义输入输出与验收标准。" * 30) + "\n")
     elif step_name == "comp-literature":
         w("LITERATURE.md", (

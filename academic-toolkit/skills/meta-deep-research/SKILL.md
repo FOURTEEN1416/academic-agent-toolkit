@@ -11,9 +11,9 @@ Turn "research this topic" into an auditable, reusable investigation instead of 
 
 ## How it differs from a quick research router
 
-A router-style research skill (keyword-classify → delegate → short sequential search → markdown brief) is optimal when you need an answer fast and the decision risk is low. `deep-research` is the opposite trade: it pays for rigor. Use it when the answer feeds a strategy, an irreversible decision, a published artifact, or a hypothesis you need to actually test — situations where a shallow fallback would be a liability.
+A router-style research skill (keyword-classify → delegate → short sequential search → markdown brief) is optimal when you need an answer fast and the decision risk is low. `comp-contest-research` is the opposite trade: it pays for rigor. Use it when the answer feeds a strategy, an irreversible decision, a published artifact, or a hypothesis you need to actually test — situations where a shallow fallback would be a liability.
 
-Concretely, `deep-research` adds what a fast overview does not: falsifiable hypotheses up front, parallel sub-agent fan-out across many channels, triangulation with explicit source-type diversity, a mandatory adversarial pass, per-source files with verbatim quotes, and a `refresh_targets.md` for delta-updates later.
+Concretely, `comp-contest-research` adds what a fast overview does not: falsifiable hypotheses up front, parallel sub-agent fan-out across many channels, triangulation with explicit source-type diversity, a mandatory adversarial pass, per-source files with verbatim quotes, and a `refresh_targets.md` for delta-updates later.
 
 ## The pipeline (9 phases)
 
@@ -81,6 +81,6 @@ These are what separate a documented investigation from a confident guess:
 
 ## Cross-References
 
-- **research router** — for fast topic overviews where decision risk is low; `deep-research` is the heavyweight alternative when rigor matters more than speed.
+- **research router** — for fast topic overviews where decision risk is low; `comp-contest-research` is the heavyweight alternative when rigor matters more than speed.
 - **competitive-teardown** — for comparing N competitors on a structured 12-dimension matrix.
 - **litreview / dossier / patent** — domain specialists when the investigation is narrowly academic, person/company-focused, or patent-focused.
