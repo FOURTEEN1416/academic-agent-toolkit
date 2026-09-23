@@ -1,6 +1,6 @@
 ---
 name: award-paper-mining
-description: 挖掘获奖论文语料并沉淀为可复用统计资产：从公开展示页采集、按题号归档、关键页语义标注到结构化统计报告。触发词：优秀论文挖掘、获奖论文语料、范文库、award paper mining、历年论文归档、论文统计报告。
+description: 挖掘获奖论文语料并沉淀为可复用统计与版面资产：从公开展示页采集、按题号归档、关键页语义标注、结构化统计报告，再到版面蒸馏（章节骨架/句式模板/图表规范/排版规格）。触发词：优秀论文挖掘、获奖论文语料、范文库、award paper mining、历年论文归档、论文统计报告、版面蒸馏、论文套壳、章节骨架、句式模板。
 status: active
 ---
 
@@ -8,9 +8,13 @@ status: active
 
 ## 定位
 
-把"国赛/美赛优秀论文"从公开展示页沉淀为**可复用的结构化语料与统计资产**，持续喂养
+把"国赛/美赛优秀论文"从公开展示页沉淀为**可复用的结构化语料、统计资产与版面资产**，持续喂养
 论文写作与文献步的范文参照。本技能固化的是本仓已跑通一届样本（2021-2025 共 62 篇）的
-流水线：**抓取 → 归档 → 合并 → 关键页语义标注 → 结构化 JSON → 统计报告**。
+流水线：**抓取 → 归档 → 合并 → 关键页语义标注 → 结构化 JSON → 统计报告 → 版面蒸馏**。
+
+版面蒸馏的目标：在作者已有自己的建模、数据与计算结果的前提下，把成果**套上国奖水准的
+论文外壳**——章节骨架、摘要页结构、段落功能句式、图表规范、排版规格全部对齐获奖范文；
+模型推导、代码实现、方案决策不在版面蒸馏范围内。
 
 **产物落私有资料区**（`assets-local/award-papers/`，gitignored，无再分发权）；
 **清单与统计摘要**（本文档同目录的 `references/` 与 `data/award_paper_exemplars.json`）入 git。
@@ -38,7 +42,15 @@ status: active
    - 摘要统计（字数区间/四要素完整度）、图表配色统计（口径显式声明：页面级≠图表级）、
      文风量化（样本覆盖数如实标注）
    - 每条统计给**样本量与口径**；口径缺陷在文首更正说明
-6. **接线**（把统计资产挂进工作流）
+6. **版面蒸馏**（62 篇全量；作业标准与 schema 见 `references/layout-distillation-schema.md`）
+   - 范围只限版面层五类：章节骨架、摘要页结构、段落功能句式、图表规范、排版规格；
+     模型推导、代码实现、方案决策**不在本步范围**
+   - 逐篇产出版面卡 JSON，落 `assets-local/award-papers/layout-distill/<论文号>.json`；
+     页面件 jpg 是视觉读取真源，无文本层/扫描件如实登记路线，不伪造文本
+   - 聚合四个版面规范库入技能 `data/`（摘要黄金结构、句式模板库、图表规范、排版规格）；
+     句式必须抽象为**带槽位模板**，成段原文不得入 git
+   - 按年分批执行（2021→2025），进度台账 `layout-distill/progress.json` 支持断点续作
+7. **接线**（把统计与版面资产挂进工作流）
    - 范文清单 → `data/award_paper_exemplars.json`（comp-paper-zh 写作步资产）
    - 统计报告 → templates.json 对应步骤 assets 指针
    - 更新 asset_catalog 台账 + check_asset_utilization 对账
@@ -48,7 +60,8 @@ status: active
 - 归档语料（`assets-local/award-papers/<年>/<论文号>/`）
 - 结构化底座 JSON（每篇一条，填充率登记）
 - 统计报告 md（口径声明 + 样本量 + 更正注记）
-- git 内：范文清单 JSON + 统计摘要（可指向本地原件）
+- 版面卡 JSON（私有区 `layout-distill/`，每篇一条）+ 四个版面规范库（技能 `data/`，摘编入 git）
+- git 内：范文清单 JSON + 统计摘要 + 版面规范库摘编（可指向本地原件）
 
 ## 质量铁律
 
@@ -57,11 +70,13 @@ status: active
 - 统计口径必须显式（页面级 vs 图表级、样本覆盖数）；不可核验的数字不写
 - 字段缺失如实标 unavailable；断链登记，不伪造
 - 抓取频率克制，遵守源站 robots 与版权声明
+- 版面蒸馏只还原"外壳"：入 git 的句式/段落必须是抽象模板（带槽位）或跨篇归纳的规范，
+  成段原文与整页仿写不得入 git；套壳使用时正文内容必须全部来自用户自有建模、数据与结果
 
 ## 关联
 
-- 产物接线：`data/award_paper_exemplars.json`、`data/paper_selfcheck_287.json`
-- 消费方：`skills/comp-paper-zh/`（写作范文参照）、`skills/comp-literature/`（同类做法定位）、
-  `skills/fig-aesthetics-craft/`（配色/构图参照）
+- 产物接线：`data/award_paper_exemplars.json`、`data/paper_selfcheck_287.json`、版面规范库四件（`data/`）
+- 消费方：`skills/comp-paper-zh/`（写作范文参照 + 版面骨架套壳）、`skills/comp-literature/`（同类做法定位）、
+  `skills/fig-aesthetics-craft/`（配色/构图参照）、`skills/paper-writing-paragraphs/`（句式模板参照）
 - 语料区：`assets-local/award-papers/`（gitignored，见 asset_catalog.json 的 local_only 条目）
 - 回退口径：语料缺席时写作步不阻断——范文参照是可选的增强，非硬门禁

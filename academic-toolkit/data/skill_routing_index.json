@@ -15,8 +15,8 @@
   "counts": {
     "core": 52,
     "ondemand": 203,
-    "resident_chars": 30965,
-    "full_chars": 64683
+    "resident_chars": 30941,
+    "full_chars": 64734
   },
   "skills": {
     "ablation-planner": {
@@ -118,9 +118,9 @@
     "award-paper-mining": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "挖掘获奖论文语料并沉淀为可复用统计资产：从公开展示页采集、按题号归档、关键页语义标注到结构化统计报告。触发词：优秀论文挖掘、获奖论文语料、范文库、award paper mining、历年论文归档、论文统计报告。",
-      "full_description": "挖掘获奖论文语料并沉淀为可复用统计资产：从公开展示页采集、按题号归档、关键页语义标注到结构化统计报告。触发词：优秀论文挖掘、获奖论文语料、范文库、award paper mining、历年论文归档、论文统计报告。",
-      "description_compacted": false,
+      "resident_description": "挖掘获奖论文语料并沉淀为可复用统计与版面资产：从公开展示页采集、按题号归档、关键页语义标注、结构化统计报告，再到版面蒸馏（章节骨架/句式模板/图表规范/排版规格）。",
+      "full_description": "挖掘获奖论文语料并沉淀为可复用统计与版面资产：从公开展示页采集、按题号归档、关键页语义标注、结构化统计报告，再到版面蒸馏（章节骨架/句式模板/图表规范/排版规格）。触发词：优秀论文挖掘、获奖论文语料、范文库、award paper mining、历年论文归档、论文统计报告、版面蒸馏、论文套壳、章节骨架、句式模板。",
+      "description_compacted": true,
       "path": "academic-toolkit/skills/award-paper-mining/SKILL.md"
     },
     "check-citations": {
