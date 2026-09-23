@@ -39,12 +39,12 @@ def test_catalog_no_opencode_session_phrase():
 
 def test_skill_md_no_codex_review_binding():
     """B3 族：mcp__codex__ 全局清零；13 个评审桥技能内不得再出现 Codex 评审绑定表述。
-    （宿主安装路径/宿主对照表如 visio README、sci-paper-lookup 属合法多宿主说明，不在禁列。）"""
+    （宿主安装路径/宿主对照表如 visio README、lit-multi-db-search 属合法多宿主说明，不在禁列。）"""
     files = _skill_md_files()
     hits = [h for h in _hits("mcp__codex__", files) + _hits("Codex MCP", files)
             if "宿主中性表述" not in h]
     assert not hits, f"SKILL.md 出现宿主 MCP 评审绑定（B3 回潮，{len(hits)} 行）: {hits[:5]}"
-    b3_skills = ["ablation-planner", "auto-paper-improvement-loop", "nature-figure",
+    b3_skills = ["ablation-planner", "auto-paper-improvement-loop", "paper-figure-nature",
                  "paper-figure", "paper-plan", "paper-write", "paper-write-docx",
                  "paper-write-nature", "paper-write-nature-docx", "paper-writing",
                  "rebuttal", "result-to-claim", "training-check"]

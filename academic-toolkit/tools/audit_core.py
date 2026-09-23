@@ -92,7 +92,7 @@ def main() -> int:
         ROOT / "skills" / "paper-write-nature" / "references",
         ROOT / "skills" / "comp-paper-zh" / "references",
         ROOT / "skills" / "comp-paper-en" / "references",
-        ROOT / "skills" / "nature-figure" / "references",
+        ROOT / "skills" / "paper-figure-nature" / "references",
         ROOT / "skills" / "patent-draft" / "references",
         ROOT / "skills" / "copyright-draft" / "references",
         ROOT / "data",

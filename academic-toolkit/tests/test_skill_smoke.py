@@ -17,7 +17,7 @@ CORE_SKILLS = [
     "comp-literature", "comp-consistency", "comp-visual-review",
     "comp-editor", "comp-final-review", "comp-final-audit",
     "paper-write", "paper-write-zh", "paper-write-nature",
-    "paper-figure", "paper-figure-html", "paper-figure-drawio", "nature-figure",
+    "paper-figure", "paper-figure-html", "paper-figure-drawio", "paper-figure-nature",
     "paper-analysis", "paper-plan-zh",
     "paper-compile", "paper-compile-zh",
     "literature-review", "auto-review-loop",

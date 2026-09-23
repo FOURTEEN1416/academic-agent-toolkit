@@ -9,7 +9,7 @@ description: "引用检查（Citation Check for CUMCM）——国赛论文参考
 国赛论文参考文献质量检查工具。覆盖：格式一致性、GB/T 7714 规范性、引用完整性、来源可信度评估。
 
 ## 依赖
-- `sci-citation-management` — scientific-agent-skills 子 skill，通用引用管理
+- `lit-citation-manage` — scientific-agent-skills 子 skill，通用引用管理
 - Python 脚本 `tools/citation_checker.py`（本目录）
 
 ## 检查清单
@@ -63,7 +63,7 @@ description: "引用检查（Citation Check for CUMCM）——国赛论文参考
 
 ## 调用方式
 ```powershell
-skill("sci-citation-management")   # 通用引用管理
+skill("lit-citation-manage")   # 通用引用管理
 skill("citation-check")            # 国赛引用检查
 python tools/citation_checker.py --input paper.md
 ```

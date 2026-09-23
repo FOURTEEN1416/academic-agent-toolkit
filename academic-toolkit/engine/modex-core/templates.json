@@ -648,7 +648,7 @@
         }
       },
       {
-        "skill_name": "nature-figure",
+        "skill_name": "paper-figure-nature",
         "display_name": "Nature 图表",
         "output_files": [
           "figures/"
@@ -1195,7 +1195,7 @@
           ],
           "display_name": "建模求解",
           "companion_skills": [
-            "sci-sympy"
+            "sympy"
           ],
           "assets": [
             {
@@ -1254,7 +1254,7 @@
             }
           },
           "companion_skills": [
-            "sci-statistical-analysis"
+            "data-statistics-report"
           ],
           "skill_binding": {
             "main_required": true
@@ -1555,7 +1555,7 @@
           ],
           "display_name": "数模视觉审查",
           "companion_skills": [
-            "scholar-critique-figures",
+            "fig-critique",
             "figure-spec"
           ],
           "assets": [
@@ -2119,7 +2119,7 @@
           ],
           "display_name": "建模求解",
           "companion_skills": [
-            "sci-sympy"
+            "sympy"
           ],
           "assets": [
             {
@@ -2178,7 +2178,7 @@
             }
           },
           "companion_skills": [
-            "sci-statistical-analysis"
+            "data-statistics-report"
           ],
           "skill_binding": {
             "main_required": true
@@ -2491,7 +2491,7 @@
           ],
           "display_name": "数模视觉审查",
           "companion_skills": [
-            "scholar-critique-figures",
+            "fig-critique",
             "figure-spec"
           ],
           "assets": [
@@ -8424,11 +8424,11 @@
     ]
   },
   "paper_submission": {
-    "pipeline_skill": "scholar-presubmit-checks",
+    "pipeline_skill": "paper-presubmit-checks",
     "display_name": "论文投稿与返修闭环（预检→审计→返修回复→Camera-Ready→独立评审）",
     "sub_steps": [
       {
-        "skill_name": "scholar-presubmit-checks",
+        "skill_name": "paper-presubmit-checks",
         "display_name": "投稿前检查（引用/格式/声明完整性）",
         "output_files": [
           "PRESUBMIT_CHECKS.md"
@@ -8451,7 +8451,7 @@
         }
       },
       {
-        "skill_name": "nature-submission-audit",
+        "skill_name": "paper-submission-audit",
         "display_name": "投稿件审计（声明支撑/图片引用/数据可用性）",
         "output_files": [
           "SUBMISSION_AUDIT.md",
@@ -8498,7 +8498,7 @@
         }
       },
       {
-        "skill_name": "scholar-latex-cleanup",
+        "skill_name": "latex-cleanup",
         "display_name": "Camera-Ready 清理（注释/调试残留/引用整理）",
         "output_files": [
           "CAMERA_READY.md",
@@ -8707,7 +8707,7 @@
         }
       },
       {
-        "skill_name": "ars-research-summarizer",
+        "skill_name": "meta-research-summarizer",
         "display_name": "多源证据汇总与矛盾标注",
         "output_files": [
           "RESEARCH_SUMMARY.md"

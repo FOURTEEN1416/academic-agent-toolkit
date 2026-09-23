@@ -224,7 +224,7 @@
       "when_to_use": "任何出图步选色",
       "owner_skills": [
         "paper-figure",
-        "nature-figure"
+        "paper-figure-nature"
       ],
       "consumers": [
         "comp_cumcm:S5",

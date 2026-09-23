@@ -15,7 +15,7 @@
 | `scientific-schematics` skill | 本仓库技能 `scientific-schematics`（skills/scientific-schematics/） |
 | `infographics` skill | 本仓库技能 `infographics`（skills/infographics/） |
 | `markitdown` 命令 | 宿主原生文件读取（PDF/DOCX/PPTX/XLSX） |
-| `pptx-posters` skill | 本仓库技能 `paper-poster` 或 `sci-latex-posters` |
+| `pptx-posters` skill | 本仓库技能 `paper-poster` 或 `doc-poster-latex` |
 
 ## 2. API 依赖门（显性化，禁止静默失败）
 

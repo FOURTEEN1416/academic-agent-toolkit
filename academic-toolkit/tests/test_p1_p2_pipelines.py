@@ -21,8 +21,8 @@ def _cap(cap_id):
 def test_paper_submission_template_contract():
     t = TPL["paper_submission"]
     names = [s["skill_name"] for s in t["sub_steps"]]
-    assert names == ["scholar-presubmit-checks", "nature-submission-audit",
-                     "galaxy-nature-response", "scholar-latex-cleanup", "comp-review"]
+    assert names == ["paper-presubmit-checks", "paper-submission-audit",
+                     "galaxy-nature-response", "latex-cleanup", "comp-review"]
     review = t["sub_steps"][-1]
     assert review["metadata"]["requires_subagent"] is True
     assert "review" in review["required_checks"]
@@ -34,7 +34,7 @@ def test_paper_submission_template_contract():
 def test_deep_research_template_contract():
     t = TPL["deep_research"]
     names = [s["skill_name"] for s in t["sub_steps"]]
-    assert names == ["idea-discovery", "research-lit", "ars-research-summarizer", "comp-review"]
+    assert names == ["idea-discovery", "research-lit", "meta-research-summarizer", "comp-review"]
     assert t["sub_steps"][-1]["metadata"]["requires_subagent"] is True
 
 

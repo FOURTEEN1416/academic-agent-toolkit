@@ -22,14 +22,14 @@
   "dir_entry_expiry": {
    "policy": "B3-6 ④：目录形态条目=正文仅引用目录本身、无可枚举具体文件；到期未枚举/销账须重新审计",
    "expires": {
-    "ars-agent-harness": {
+    "meta-agent-harness": {
      "assets/harnesses": "2026-12-31",
      "assets/harnesses/": "2026-12-31"
     },
-    "ars-research": {
+    "meta-research-router": {
      "data/numbers": "2026-12-31"
     },
-    "nature-submission-audit": {
+    "paper-submission-audit": {
      "data/code": "2026-12-31"
     },
     "claude-scientific-writer": {
@@ -64,10 +64,10 @@
      "data/parameter": "2026-12-31",
      "data/model/solver/time": "2026-12-31"
     },
-    "nature-portfolio-playbook": {
+    "paper-journal-selection": {
      "data/code": "2026-12-31"
     },
-    "nature-submission-audit": {
+    "paper-submission-audit": {
      "data/code": "2026-12-31"
     },
     "paper-framework-figure-studio-pro": {
@@ -77,14 +77,14 @@
     "paper-writing-ucsb": {
      "references/appendices": "2026-12-31"
     },
-    "scholar-presubmit-checks": {
+    "paper-presubmit-checks": {
      "references/citations": "2026-12-31"
     }
    }
   }
  },
  "gaps": {
-  "ars-agent-harness": [
+  "meta-agent-harness": [
    "assets/harnesses",
    "assets/harnesses/",
    "assets/harnesses/engineering.json",
@@ -96,17 +96,17 @@
    "scripts/harness_manifest_builder.py",
    "scripts/loop_controller.py"
   ],
-  "ars-ai-security": [
+  "dev-ai-security": [
    "references/atlas-coverage.md",
    "scripts/ai_threat_scanner.py"
   ],
-  "ars-code-reviewer": [
+  "dev-code-review": [
    "assets/sample_java_smells.java",
    "scripts/code_quality_checker.py",
    "scripts/pr_analyzer.py",
    "scripts/review_report_generator.py"
   ],
-  "ars-dossier": [
+  "meta-entity-dossier": [
    "references/conversation_hook_quality.md",
    "references/hypothesis_testing_discipline.md",
    "references/subject_type_source_matrix.md",
@@ -114,12 +114,12 @@
    "scripts/disconfirming_evidence_balance.py",
    "scripts/source_tier_classifier.py"
   ],
-  "ars-experiment-designer": [
+  "meta-experiment-design": [
    "references/experiment-playbook.md",
    "references/statistics-reference.md",
    "scripts/sample_size_calculator.py"
   ],
-  "ars-grants": [
+  "grant-nih": [
    "references/docx_9_sections.md",
    "references/nih_mechanism_matching.md",
    "references/reporter_post_patterns.md",
@@ -127,7 +127,7 @@
    "scripts/fiscal_year_calculator.py",
    "scripts/mechanism_matcher.py"
   ],
-  "ars-litreview": [
+  "lit-orientation": [
    "references/docx_8_sections.md",
    "references/framework_selection.md",
    "references/search_budget_allocation.md",
@@ -136,7 +136,7 @@
    "scripts/framework_recommender.py",
    "scripts/free_search.py"
   ],
-  "ars-notebooklm": [
+  "doc-notebooklm-control": [
    "references/async_action_discipline.md",
    "references/browser_automation_canon.md",
    "references/studio_output_custom_prompts.md",
@@ -144,7 +144,7 @@
    "scripts/async_action_classifier.py",
    "scripts/custom_prompt_template_generator.py"
   ],
-  "ars-patent": [
+  "ip-patent-search": [
    "references/cpc_classification_canon.md",
    "references/legal_disclaimer_discipline.md",
    "references/sub_use_case_routing.md",
@@ -152,7 +152,7 @@
    "scripts/family_resolver.py",
    "scripts/sub_use_case_router.py"
   ],
-  "ars-pulse": [
+  "meta-topic-pulse": [
    "references/cross_platform_synthesis.md",
    "references/parallel_execution_discipline.md",
    "references/research_pack_conventions.md",
@@ -160,7 +160,7 @@
    "scripts/time_window_calculator.py",
    "scripts/topic_slug_generator.py"
   ],
-  "ars-research": [
+  "meta-research-router": [
    "references/deterministic_classification_canon.md",
    "references/fallback_workflow_canon.md",
    "references/hybrid_router_architecture.md",
@@ -169,7 +169,7 @@
    "scripts/routing_transparency_logger.py",
    "data/numbers"
   ],
-  "ars-research-summarizer": [
+  "meta-research-summarizer": [
    "references/citation-formats.md",
    "references/summary-templates.md",
    "scripts/extract_citations.py",
@@ -183,13 +183,13 @@
    "scripts/feature_engineering_pipeline.py",
    "scripts/model_evaluation_suite.py"
   ],
-  "ars-statistical-analyst": [
+  "data-statistics-analyst": [
    "references/statistical-testing-concepts.md",
    "scripts/confidence_interval.py",
    "scripts/hypothesis_tester.py",
    "scripts/sample_size_calculator.py"
   ],
-  "ars-syllabus": [
+  "course-syllabus-reading-list": [
    "references/applied_domain_weaving.md",
    "references/audience_calibration.md",
    "references/bundled_script_pattern.md",
@@ -465,23 +465,23 @@
    "references/wikipedia-source.md"
   ],
   "latex-paper-survey-writer": [],
-  "nature-data-availability": [
+  "paper-data-availability": [
    "references/repository-routing.md",
    "references/source-data-checks.md"
   ],
-  "nature-scientific-writing": [
+  "paper-writing-scientific": [
    "references/editor-first-impression.md"
   ],
   "paper-writing-ucsb": [
    "references/appendices"
   ],
-  "scholar-presubmit-checks": [
+  "paper-presubmit-checks": [
    "references/citations"
   ],
-  "sci-citation-management": [
+  "lit-citation-manage": [
    "scripts/generate_schematic.py"
   ],
-  "sci-scientific-writing": [
+  "paper-writing-paragraphs": [
    "assets/scientific_report.sty",
    "assets/scientific_report_template.tex",
    "scripts/generate_image.py",
@@ -549,10 +549,10 @@
    "data/parameter",
    "data/model/solver/time"
   ],
-  "nature-portfolio-playbook": [
+  "paper-journal-selection": [
    "data/code"
   ],
-  "nature-submission-audit": [
+  "paper-submission-audit": [
    "data/code"
   ],
   "paper-analysis": [

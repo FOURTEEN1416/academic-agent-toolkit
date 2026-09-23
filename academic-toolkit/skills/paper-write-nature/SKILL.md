@@ -426,7 +426,7 @@ cat figures/latex_includes.tex 2>/dev/null || echo "âš  No latex_includes.tex â€
 
 Build mapping: **every figure block in `latex_includes.tex` must be copied into an appropriate section**. Sources:
 
-- `nature-figure` step writes data figure blocks (fig_*.pdf)
+- `paper-figure-nature` step writes data figure blocks (fig_*.pdf)
 
 - `paper-figure-drawio` step appends architecture/flow/pipeline figure blocks (fig_roadmap.pdf, fig_flow_*.pdf, tikz_*.pdf, etc.)
 

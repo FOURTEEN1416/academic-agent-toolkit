@@ -37,7 +37,7 @@ P0_ROUTED_BATCH = [
     "matplotlib", "plotly", "seaborn", "visualization", "infographics",
     "excalidraw-diagram",
     # 文献/研究辅助（4）
-    "arxiv", "comm-lit-review", "deep-research", "sci-literature-review",
+    "arxiv", "comm-lit-review", "deep-research", "lit-review-systematic",
     # 其他单点（3）
     "ablation-planner", "paper-illustration", "problem-selection",
 ]
@@ -158,7 +158,7 @@ def test_mandatory_slots_point_to_real_skills_and_companion_declared():
 # `companion_dead_slots()` 的可复现读数为准：当前代 = 任一步 metadata 携带
 # companion_skills / output_specs / note 三个机制字段之一，字段引入日期见工具注释。）
 ACTIVE_DEAD_SLOT_BASELINE = 3
-# catalog disposition 回填棘轮（2026-09-22 实测 15：13 P0 + sci-pdf(routed)
+# catalog disposition 回填棘轮（2026-09-22 实测 15：13 P0 + pdf-toolkit(routed)
 # + paper-compile-zh(evidence-bound)，共 routed 14 / evidence-bound 1）
 DISPOSITION_FILLED_BASELINE = 15
 LEGACY_DEAD_SLOT_REGISTRY = [

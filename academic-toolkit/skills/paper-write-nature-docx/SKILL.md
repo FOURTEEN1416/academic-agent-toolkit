@@ -51,7 +51,7 @@ Draft a Nature-quality paper as Markdown: **$ARGUMENTS**
 
 2. RESULTS.md / experiment_results.md / figures/all_results.json
 
-3. figures/ — `.png` / `.pdf` (Nature figure aesthetics from `nature-figure` step)
+3. figures/ — `.png` / `.pdf` (Nature figure aesthetics from `paper-figure-nature` step)
 
 
 

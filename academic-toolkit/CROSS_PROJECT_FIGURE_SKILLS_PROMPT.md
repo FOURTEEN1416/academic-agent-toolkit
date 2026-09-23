@@ -70,7 +70,7 @@
 
 | 技能 | 用途 |
 |------|------|
-| `scholar-critique-figures` | 外部图审批判清单 |
+| `fig-critique` | 外部图审批判清单 |
 | `figure-spec` | 图规格核对 |
 | `comp-visual-review` | 视觉审查流程 |
 
@@ -83,7 +83,7 @@
 - 机制图/流程图/技术路线 → `paper-figure-drawio` 或 `graphviz`/`mermaid-diagram`；重设计感 → `diagram-design`/`scientific-schematics`
 - 高密度多信息版面 → `paper-figure-html` / `infographics`
 - 手头有一张好看的参考图要复现 → `plot-from-image` + `agent-figure-gallery` 找同类
-- 出图后 → `scholar-critique-figures` 批判一遍再交付
+- 出图后 → `fig-critique` 批判一遍再交付
 
 ### 四、出图红线（建议全盘采纳，来源为技能库 paper-figure 系）
 

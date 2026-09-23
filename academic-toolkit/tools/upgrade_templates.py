@@ -38,7 +38,7 @@ SKILL_CHECKS: dict[str, list[str]] = {
     "paper-figure": ["figure_provenance"],
     "paper-figure-drawio": ["figure_provenance"],
     "paper-figure-html": ["figure_provenance"],
-    "nature-figure": ["figure_provenance"],
+    "paper-figure-nature": ["figure_provenance"],
     # Phase 3 学术论文域
     "paper-write": ["step_manifest", "citation_integrity"],
     "paper-write-zh": ["step_manifest", "citation_integrity"],

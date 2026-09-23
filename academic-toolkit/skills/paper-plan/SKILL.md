@@ -210,7 +210,7 @@ ls _utils/figure_recipes_*.md 2>/dev/null || ls skills/shared-scripts/figure_rec
 
 > **Avoid** `competition` — contest charts (Pareto fronts, convergence curves) violate Nature aesthetics. 
 
-> The downstream `nature-figure` step uses recipes only for *layout inspiration* — colors are overridden by `PALETTE_NATURE`.
+> The downstream `paper-figure-nature` step uses recipes only for *layout inspiration* — colors are overridden by `PALETTE_NATURE`.
 
 
 

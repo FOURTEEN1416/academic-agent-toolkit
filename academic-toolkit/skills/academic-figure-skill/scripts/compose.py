@@ -527,7 +527,7 @@ def detect_hero(panel_types: list[str], archetype: str = "auto") -> int | None:
 
     Returns the index of the hero panel, or None for symmetric layout.
 
-    Archetypes (from nature-figure stance.md):
+    Archetypes (from paper-figure-nature stance.md):
       - "quantitative_grid": all panels equal → no hero (symmetric)
       - "schematic-led composite": first schematic/illustration panel is hero
       - "image plate + quant": first image/microscopy panel is hero

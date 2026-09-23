@@ -51,7 +51,7 @@ SHOULD_ROUTE: tuple[tuple[str, str], ...] = (
 KNOWN_LEXICAL_LIMITS: tuple[tuple[str, str, str], ...] = (
     ("humanities-write", "humanities-write-latex",
      "判别句互引导致词法互染：前者为说明边界而写了 LaTeX，反被含 LaTeX 的请求命中"),
-    ("sci-latex-posters", "paper-poster",
+    ("doc-poster-latex", "paper-poster",
      "同域海报技能，词汇几乎完全重叠；靠 StepAction 绑定与 SKILL.md 边界判别"),
     ("paper-write-docx", "paper-write-zh-docx",
      "两变体描述同构，且中文论文类请求被短描述高频词的 paper-plan-zh 持续抢分"),

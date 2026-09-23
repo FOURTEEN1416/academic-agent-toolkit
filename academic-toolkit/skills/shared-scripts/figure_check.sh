@@ -458,7 +458,7 @@ for f in figures/gen_fig*.py; do
         _fs=$(grep -ohE 'labelsize=[0-9]+\.?[0-9]*|FS_TICK[[:space:]]*=[[:space:]]*[0-9]+\.?[0-9]*' "$f" 2>/dev/null \
               | grep -oE '[0-9]+\.?[0-9]*' | sort -g | head -1)
         # ⛔ 兜底值必须贴合 setup_style 实际给的刻度字号，不能凭印象写。
-        #   脚本【不写死字号】是规范做法（`setup_style` 按画布反解，nature-figure
+        #   脚本【不写死字号】是规范做法（`setup_style` 按画布反解，paper-figure-nature
         #   还明令禁止手写 fontsize），所以走兜底才是常态、不是例外。
         #   实测 setup_style 在 7.4in 画布下的 xtick.labelsize：
         #     nature 9.55pt / elegant 10.0pt / auto 10.0pt

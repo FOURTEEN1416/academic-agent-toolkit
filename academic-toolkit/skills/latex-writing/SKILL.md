@@ -9,7 +9,7 @@ description: "国赛 LaTeX 写作（Latex Writing for CUMCM）——数学建模
 数学建模竞赛论文专用的 LaTeX 技能。封装 CTeX 中文模板 + 公式/表格/算法三件套 + 国赛摘要页精修。
 
 ## 依赖
-- `sci-latex-posters`（scientific-agent-skills 子 skill）— 通用 LaTeX 排版
+- `doc-poster-latex`（scientific-agent-skills 子 skill）— 通用 LaTeX 排版
 - 本地编译器：MiKTeX / TeX Live（需预先安装）
 
 ## 核心资产
@@ -91,7 +91,7 @@ description: "国赛 LaTeX 写作（Latex Writing for CUMCM）——数学建模
 ## 调用方式
 ```powershell
 # 加载通用 LaTeX 技能
-skill("sci-latex-posters")
+skill("doc-poster-latex")
 # 加载国赛专用模板
 skill("latex-writing")
 ```

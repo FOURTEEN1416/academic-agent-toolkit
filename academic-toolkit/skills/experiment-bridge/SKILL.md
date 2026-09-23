@@ -447,7 +447,7 @@ echo "PDF figures: $pdf_count, Tables: $table_count, latex_includes: $latex_inc"
 #
 #   ⛔ Why this block exists: this skill emits `figures/gen_fig_*.py` with the same
 #   convention as paper-figure, but for a long time never invoked figure_check.sh.
-#   The identical hole in nature-figure produced a real incident (2026-08): 30
+#   The identical hole in paper-figure-nature produced a real incident (2026-08): 30
 #   in-figure prose blocks shipped, longest one 118 display-width across 4 lines.
 #   Existence checks cannot catch that class of defect.
 bash _utils/figure_check.sh 2>/dev/null || bash skills/shared-scripts/figure_check.sh

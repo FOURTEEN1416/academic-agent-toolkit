@@ -545,7 +545,7 @@ def nature_palette(seed=None):
         seed: 显式种子（仅测试用）。None = 用工作区名的 CRC32（同篇统一、重跑不变）。
 
     Returns:
-        dict: 键与 nature-figure/SKILL.md 的 PALETTE_NATURE 完全一致，值已微调。
+        dict: 键与 paper-figure-nature/SKILL.md 的 PALETTE_NATURE 完全一致，值已微调。
     """
     import colorsys
     selected = _nature_project_colors()

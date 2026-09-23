@@ -88,10 +88,10 @@ def test_binding_requirements_empty_without_binding():
 
 
 def test_binding_requirements_render_main_and_mandatory():
-    action = _binding_action(skill_binding={"main_required": True, "mandatory": ["sci-sympy"]})
+    action = _binding_action(skill_binding={"main_required": True, "mandatory": ["sympy"]})
     text = "\n".join(action.binding_requirements())
     assert "comp-code" in text and "SKILL.md" in text
-    assert "sci-sympy" in text and "不得申报 skipped" in text
+    assert "sympy" in text and "不得申报 skipped" in text
     assert "技能绑定（强制，complete 时校验）" in action.execution_instructions()
 
 

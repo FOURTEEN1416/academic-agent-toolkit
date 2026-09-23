@@ -93,7 +93,7 @@
 
 **快速模式开关（可选，竞赛项目级）**：在竞赛项目工作区根的 `AGENTS.md`（项目宪法）中写入一行
 `MH_FAST_MODE=1`，12 个主链技能（comp-prob-analysis / comp-modeling / comp-code / comp-review /
-paper-figure / paper-figure-drawio / paper-figure-html / nature-figure / comp-paper-zh / comp-paper-en
+paper-figure / paper-figure-drawio / paper-figure-html / paper-figure-nature / comp-paper-zh / comp-paper-en
 及两 docx 变体）的流程开头即自动进入快速模式——跳过可选重步骤、省 AI 额度；
 确定性闸（logic_audit / cross_problem_check 等）仍兜底。不写则默认全量质量路径。
 各技能内以 `grep -q 'MH_FAST_MODE=1' AGENTS.md` 探测（宿主中性，`test_host_neutral_ratchet.py` 钉住）。
@@ -131,7 +131,7 @@ paper-figure / paper-figure-drawio / paper-figure-html / nature-figure / comp-pa
 | "写专利/软著" | `skills/patent-draft/` 或 `copyright-draft/` |
 | "一句话生成项目" | 管线模板 `grad_project` |
 | "已有资产写论文" | 管线模板 `paper_from_assets` |
-| "PDF 合并/拆分/OCR/填表（非竞赛域）" | `skills/sci-pdf/` |
+| "PDF 合并/拆分/OCR/填表（非竞赛域）" | `skills/pdf-toolkit/` |
 | "Markdown 论文导出 Word" | `skills/docx-export/` |
 | "写返修回复/审稿答复" | `skills/rebuttal/` |
 | "做会议演讲幻灯/逐页 PPT" | `skills/paper-slides/`（单页海报用 `paper-poster/`） |

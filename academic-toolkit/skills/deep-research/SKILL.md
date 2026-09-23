@@ -10,8 +10,8 @@ description: "深度调研（Deep Research for CUMCM）——赛题分析的顶�
 
 ## 依赖
 - `paper-search` — ykdojo OpenAlex 论文搜索
-- `sci-paper-lookup` — scientific-agent-skills 论文检索
-- `sci-literature-review` — 系统性文献综述
+- `lit-multi-db-search` — scientific-agent-skills 论文检索
+- `lit-review-systematic` — 系统性文献综述
 - `paper-writing` 增强版— 调研结果输出
 - `tools/arxiv_miner.py` — arXiv 批量抓取
 - `data/search_links.md` — 常用搜索链接
@@ -101,6 +101,6 @@ Day 4     ═══ 论文撰写 ═══
 ```powershell
 skill("deep-research")         # 本 skill
 skill("paper-search")          # OpenAlex 搜索
-skill("sci-paper-lookup")      # 论文检索
+skill("lit-multi-db-search")      # 论文检索
 python tools/arxiv_miner.py    # arXiv 抓取
 ```
