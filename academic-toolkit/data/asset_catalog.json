@@ -216,6 +216,23 @@
       "local_only": false
     },
     {
+      "id": "award-paper-exemplars",
+      "path": "academic-toolkit/data/award_paper_exemplars.json",
+      "zone": "data",
+      "type": "reference-data",
+      "description": "国赛优秀论文范文精选包（62 篇 2021-2025；25 篇优先清单+题型学习路径+模型统计）",
+      "when_to_use": "竞赛论文写作步按题型取范文对照；文献步定位同类做法",
+      "owner_skills": [
+        "comp-paper-zh",
+        "comp-literature"
+      ],
+      "consumers": [
+        "comp_cumcm:S7",
+        "comp_huawei:S7"
+      ],
+      "local_only": false
+    },
+    {
       "id": "paper-selfcheck-287",
       "path": "academic-toolkit/data/paper_selfcheck_287.json",
       "zone": "data",

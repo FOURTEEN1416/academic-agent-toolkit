@@ -1438,6 +1438,11 @@
               "name": "各板块写作说明",
               "path": "assets-local/cumcm-templates/论文模板/各板块详细说明文档",
               "note": "摘要/模型/求解逐板块写法"
+            },
+            {
+              "name": "范文精选包·62 篇",
+              "path": "academic-toolkit/data/award_paper_exemplars.json",
+              "note": "按题型取优秀论文范文对照（结构/摘要/图表/论证）；25 篇优先清单+题型学习路径+模型统计；原文在 assets-local（本地），清单公开"
             }
           ],
           "quick_gates": true,
@@ -2383,6 +2388,11 @@
               "name": "各板块写作说明",
               "path": "assets-local/cumcm-templates/论文模板/各板块详细说明文档",
               "note": "摘要/模型/求解逐板块写法"
+            },
+            {
+              "name": "范文精选包·62 篇",
+              "path": "academic-toolkit/data/award_paper_exemplars.json",
+              "note": "按题型取优秀论文范文对照（结构/摘要/图表/论证）；25 篇优先清单+题型学习路径+模型统计；原文在 assets-local（本地），清单公开"
             }
           ],
           "quick_gates": true,
