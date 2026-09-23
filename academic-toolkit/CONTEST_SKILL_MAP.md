@@ -1,6 +1,6 @@
 # CUMCM 竞赛技能全库地图（CONTEST_SKILL_MAP）
 
-> **定位**：全库 266 个技能 × comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
+> **定位**：全库 255 个技能（含 SKILL.md 的目录；tracked 250）× comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
 > `companion_skills` 字段（2026-09-11 起）每步主动给出本步推荐；本文件是全量真源，
 > 含"情境可用"、"外域不接入"与"未接入库"的完整分类账——**任何一个技能都不允许处于"无人知晓"状态**。
 > 维护纪律：新增技能入库时必须归入下列五类之一并同步本文件与引擎
@@ -107,7 +107,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
   已接入模板 `scientific_plotting` paper-figure 步 companion（引擎级主动推荐，2026-09-23）；
   本机验证：门禁负面测试+渲染校验+独立窗口视觉验收 pass @2026-09-23；需 OPJU 时路由回 §四 fig-plot-edit）
 
-## 四、外域不接入（146 个，赛时不要加载）
+## 四、外域不接入（赛时不要加载）
 
 | 域 | 技能 | 不接入理由 |
 |----|------|-----------|
@@ -149,12 +149,12 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 
 **机检首匹配归段口径**（技能名按首次出现的段落计一次，跨段引用不重复计；词边界 + 斜杠缩写展开 +
 前缀域 fnmatch，与 `tools/check_asset_utilization.py` 的 `load_map_coverage` 完全同口径）：
-主链家族 20 + 每步推荐 18 + 情境可用 78 + 外域 148 + 未接入库 2 = **266**，
-与 skills/ 下含 SKILL.md 的目录实测数（266）逐一相符：零幽灵名、零漏网。
-两处口径差的说明（避免读者对不上数）：§三 标题"79 个"是**具名条目数**，其中
-`paper-figure-palette` 首现于 §二 step5 必用位故首匹配归 §二（79→78）；§四 标题"146 个"为
-手工具名数，前缀域（`spine-*`/`latex-paper-*`/`dev-*`/`meta-*`/`lit-*`/`doc-*`/`fig-*`/`paper-*`）
-按前缀展开后实得 148 个。
+主链家族 20 + 每步推荐 18 + 情境可用 78 + 外域 137 + 未接入库 2 = **255**，
+与 skills/ 下含 SKILL.md 的目录实测数（255；tracked clone 250，差 5 系 gitignored 无 License 技能）逐一相符：零幽灵名、零漏网。
+口径说明（避免读者对不上数）：§三 标题"79 个"是**具名条目数**，其中
+`paper-figure-palette` 首现于 §二 step5 必用位故首匹配归 §二（79→78）；§四 标题不再钉固定数
+（外域件随改名/合并演进），其前缀域（`spine-*`/`latex-paper-*`/`dev-*`/`meta-*`/`lit-*`/`doc-*`/`fig-*`/`paper-*`）
+按前缀展开计入外域——精确数一律以 §六末机检为准。
 **P4 激活轮（2026-09-22）变化**：§五 原 15 个未接入技能中 13 个并入 §三"P0 激活批次"小节
 （绘图/可视化 6 + 文献/研究辅助 4 + 其他单点 3），§五 只余 2 个（`pdf-toolkit`/`paper-compile-zh`，
 均已经 `academic-toolkit/AGENTS.md` §三 路由表接入，disposition 见 §五 正文）。
@@ -164,15 +164,18 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 主技能契约必须留真实读取痕迹）；step5 另声明 `mandatory: [paper-figure-palette]`（必用、不可 skipped）。
 其余步骤的推荐位仍是"申报即可跳过、跳过须给理由"（C1 闸），不做过度强制——
 把辅助技能一律设为必用会制造假失败（如无数值推导的题目无法合法使用 sympy）。
-对账口径：技能 = skills/ 下含 SKILL.md 的目录（265 目录减 `_utils`/`shared-scripts` 两个非技能目录；
+对账口径：技能 = skills/ 下含 SKILL.md 的目录（258 目录减 `_utils`/`shared-scripts`/`shared-references` 三个非技能目录；
 2026-09-19 新增 `contest-retrospective`，260→261；2026-09-22 新增 `paper-oral-exemplar`，263→264；
 2026-09-22 新增 `fig-plot-edit`（EditaPlot 整技能收编，归 §四外域），264→265；
-2026-09-23 新增 `fig-plot-edit-lite`（无 Origin 渲染路线，归 §三情境可用），265→266）；
-主链 = §一具名，推荐 = §二表格 + 赛后段具名，情境 = §三具名，外域 = §四具名 + 六个前缀域
+2026-09-23 新增 `fig-plot-edit-lite`（无 Origin 渲染路线，归 §三情境可用），265→266；
+2026-09-23 v2.0 改名合并后重算 266→255，含 scholar-critique-manuscript 并入 paper-self-review）；
+主链 = §一具名，推荐 = §二表格 + 赛后段具名，情境 = §三具名，外域 = §四具名 + 前缀域
 （`spine-*`/`latex-paper-*`/`dev-*`/`meta-*`/`lit-*`/`doc-*`/`fig-*`/`paper-*` 按前缀展开）+ 斜杠缩写展开
 （如 `copyright-build/draft/source-materials`），未接入库 = §五具名。
 **零漏网对账已固化为机检**（词边界+斜杠展开+前缀 fnmatch）：
-`python tools/check_asset_utilization.py --strict` + `tests/test_asset_utilization.py::test_real_map_covers_all_skills_zero_missing`
+`python tools/check_asset_utilization.py --strict` + `tests/test_asset_utilization.py::test_real_map_covers_all_skills_zero_missing`。
+**2026-09-23 v2.0 收尾**：全库技能 266→**255**（改名合并后重算；tracked 251→**250**——
+`scholar-critique-manuscript` 并入 `paper-self-review`）；计数以本机 `check_asset_utilization` 机检为准。
 ——任何改动本文件的维护者必须跑过机检后方可保留本节统计行。
 
 ## 七、华为杯管线对照（comp_huawei，2026-09-22 接线）
