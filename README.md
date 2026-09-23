@@ -7,9 +7,9 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v1.3.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-773_passing-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
+[![Tests](https://img.shields.io/badge/tests-774_passing-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-312-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-265_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
+[![Skills](https://img.shields.io/badge/skills-250_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始)
 [![Hosts](https://img.shields.io/badge/hosts-Any_Agent-1f2937?style=flat-square)](#快速开始)
@@ -19,7 +19,7 @@
 ---
 
 > [!TIP]
-> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（265 个随仓技能）自主完成
+> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（250 个随仓技能）自主完成
 > 建模 → 编码 → 绘图 → 写作 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯**。
 
 ## ✨ 为什么不是又一个提示词合集
@@ -80,7 +80,7 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 | 视觉论证 | `excalidraw-diagram` `infographics` `scientific-schematics` | 手绘风论证图 · 信息图 · 科学示意图 |
 | 既有沉淀 | `paper-figure-nature` + 62 篇获奖论文实证规范 | Nature 级排版与配色 |
 
-全部集成带 **pinned-commit 溯源**（`UPSTREAM.md` 台账 + vendor，`tools/check_provenance.py` 一键校验 66/66）。
+全部集成带 **pinned-commit 溯源**（`UPSTREAM.md` 台账 + vendor，`tools/check_provenance.py` 一键校验 75/75）。
 
 </details>
 
@@ -163,11 +163,11 @@ python academic-toolkit/tools/plotting_env_check.py
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-# 口径一（仓库根，回归门禁口径）：773 passed / 0 failed（与口径二同值）
+# 口径一（仓库根，回归门禁口径）：774 passed / 0 failed（与口径二同值）
 python -m pytest -q
-# 口径二（工具箱内，技能验收基线口径）：773 passed / 0 failed
+# 口径二（工具箱内，技能验收基线口径）：774 passed / 0 failed
 cd academic-toolkit && python -m pytest -q
-python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账通过
+python tools/check_provenance.py             # → 75/75 UPSTREAM+vendor 台账通过
 ```
 
 ## 🛡️ 质量与可信
@@ -176,9 +176,9 @@ python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账�
 |------|--------|
 | 🚧 **Named Gates** | `paper_consistency` · `citation_integrity` · `experiment_reproduc` · `figure_provenance` · `compilation_log` |
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
-| 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）66/66 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
+| 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）75/75 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | ⚠️ **2026-09-19 起停用**：公开层曾为 CC-BY-4.0 合成题面基准（P01-P03 + 六域 7 项），已废弃移除、不随仓库分发；私有层（真实竞赛题面）从未入库 |
-| ✅ **测试基线** | 仓库根 **773 passed / 0 failed**（另 4 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1 + 适配器元数据缺席 skip 1；仓库根与工具箱内同口径）。**唯一真源 = `pytest.ini` 注释**，历史基线演进也记录在该注释中；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
+| ✅ **测试基线** | 仓库根 **774 passed / 0 failed**（另 4 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1 + 适配器元数据缺席 skip 1；仓库根与工具箱内同口径）。**唯一真源 = `pytest.ini` 注释**，历史基线演进也记录在该注释中；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
 | 🧬 **逐技能 C2 覆盖** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
 | 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + 旧宿主降为可选适配器 + TOOL_GAP→工具铸造（2026-09-20） |
 

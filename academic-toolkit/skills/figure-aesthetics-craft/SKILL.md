@@ -34,7 +34,8 @@ paper-figure 管"画什么与配色语义"（选图三轴/semantic-palette），
 4. **叶子标签角度公式**：`angle = -((-node_angle(x, y) + 90) %% 180) + 90`，位置按 1.06 倍半径外推、
    `hjust = "outward"`；节点大小可映射富集因子（`scale_size_continuous`）。
 5. **配色警告**：原文手拍色卡（#80d52b 荧光绿/#fa0aa1 荧光洋红）**不过**色盲与印刷检查——换成本仓
-   semantic-palette 色板后再用。完整可运行 R 代码见 `references/` 指引的来源批次存档。
+   semantic-palette 色板后再用。完整可运行 R 代码见 `references/circular-dendrogram.R`（已入 git：
+   ggraph 三层树状图 + edge_class 边色继承 + 径向标签防裁剪，可直接改输入跑通）。
 
 ## 三、Agent 绘图五纪律（来源：Codex + scientific-visualization 实践）
 

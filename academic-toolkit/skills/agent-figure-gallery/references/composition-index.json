@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "title": "Origin 顶刊构图参照图集索引（04/06 号批次）",
+  "updated": "2026-09-23",
+  "source": {
+    "origin": "公众号审美批次 2026-09-11（04_Origin顶刊模板图库 / 06_Origin400模板图库）",
+    "license_note": "第三方图集，仅本地视觉参照（构图吸收、配色不吸收）；原件在 assets-local（gitignored），公开 clone 仅本索引可读。"
+  },
+  "local_only": true,
+  "local_root": "assets-local/reference-figures/公众号审美批次2026-09-11/",
+  "usage": "画图前找构图参照：按 plot_type 定位候选图集，看图型布局与元素组织；默认配色（Origin 出厂）未经色觉/印刷校验，务必换本仓 semantic-palette 色板后再用。",
+  "galleries": [
+    {
+      "id": "origin-top-journal-19",
+      "title": "Origin 顶刊模板图库（19 类图型）",
+      "path": "assets-local/reference-figures/公众号审美批次2026-09-11/04_Origin顶刊模板图库/",
+      "image_count": 28,
+      "article": "assets-local/reference-figures/公众号审美批次2026-09-11/04_Origin顶刊模板图库/article.md"
+    },
+    {
+      "id": "origin-400-templates",
+      "title": "Origin 400 模板图库（大量出厂模板）",
+      "path": "assets-local/reference-figures/公众号审美批次2026-09-11/06_Origin400模板图库/",
+      "image_count": 36,
+      "article": "assets-local/reference-figures/公众号审美批次2026-09-11/06_Origin400模板图库/article.md"
+    }
+  ],
+  "plot_types": [
+    "3d-bar", "3d-scatter", "3d-surface", "area", "box-violin", "bar-column",
+    "contour-cloud", "finance", "function-plot", "geographic-map", "multi-panel",
+    "multi-axis", "pie", "donut", "polar", "statistical", "waterfall",
+    "heatmap", "line-symbol"
+  ],
+  "how_to_query": "按 plot_type 关键词在 gallery 目录 article.md 的图型小节定位；本索引为图集级（非逐图），逐图选型请结合 agent-figure-gallery 的 KB 检索（kb_search.py --plot-type）。"
+}

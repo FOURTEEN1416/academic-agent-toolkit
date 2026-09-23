@@ -129,9 +129,18 @@ def _actual_test_count() -> dict:
 
 
 def _actual_skill_count() -> dict:
-    """实测 tracked 技能数（git ls-files 口径 = clone 即所见，2026-09-23 止血批定版）。"""
+    """实测 tracked 顶级技能数（git ls-files 口径 = clone 即所见，2026-09-23 止血批定版）。
+
+    ⚠️ 必须用 `:(glob)` magic——Git 默认 pathspec 的 `*` **会跨越 `/`**，写成
+    `academic-toolkit/skills/*/SKILL.md` 会把捆绑在技能内的子技能
+    （`<技能>/modules/<模块>/SKILL.md`，如 paper-writing-clinical 的 15 件 modules）
+    一并计为顶级技能，使计数虚高（2026-09-23 实锤：虚高口径 265 vs 真值 250）。
+    clone 即所见口径**不含** .gitignore 隔离的本地独占技能（红线隔离的上游无 License 件），
+    故 250 不等于本机盘面 255——两者差异是设计使然，不是漂移。
+    """
     try:
-        proc = subprocess.run(["git", "ls-files", "--", "academic-toolkit/skills/*/SKILL.md"],
+        proc = subprocess.run(["git", "ls-files", "--",
+                               ":(glob)academic-toolkit/skills/*/SKILL.md"],
                               cwd=str(REPO_ROOT), capture_output=True, text=True,
                               encoding="utf-8", errors="replace", timeout=60)
     except Exception as exc:  # noqa: BLE001

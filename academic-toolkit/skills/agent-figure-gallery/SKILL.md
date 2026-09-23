@@ -17,6 +17,8 @@ Treat this skill as a lightweight controller. Do not load the full visual corpus
 - Candidate index: `data/reference_candidate_index.json`
 - Global preferences: `data/reference_global_preferences.json`
 - Reference sessions: `outputs/reference_sessions/`
+- 本地构图参照索引（tracked）：`references/composition-index.json` — Origin 19 类图型图集
+  （04/06 号批次，本地图集 gitignored）；按 plot_type 定位构图参照，默认配色不吸收。
 
 ## Loading the KB from a Local Source (pip-free, 2026-09-22)
 
