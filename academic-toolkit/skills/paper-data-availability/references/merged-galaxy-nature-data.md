@@ -1,3 +1,10 @@
+# 合并件：galaxy-nature-data → paper-data-availability
+
+> 2026-09-23 v2.0 W3f 真重复合并：本技能与 `paper-data-availability` 同职能，正文折叠至此保内容与溯源，
+> 目录 `skills/galaxy-nature-data/` 已退役。若需独立调用，请用 `skills/paper-data-availability/SKILL.md`。
+
+---
+
 ---
 name: galaxy-nature-data
 description: ">- Prepare, audit, or revise Nature-ready Data Availability statements, data repository plans, dataset citations, and"
@@ -109,3 +116,4 @@ Use sources in this order:
 
 If a policy detail may have changed, verify the current journal page before giving final
 submission advice.
+

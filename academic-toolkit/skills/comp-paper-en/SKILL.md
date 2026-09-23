@@ -919,7 +919,7 @@ PCC=$?   # 0=all passed 1=some capability FAIL/PENDING (must not finalize) 2=no 
 
 ```
 
-> `PCC=1`: a capability failed acceptance in comp-code — go back and make it truly PASS before finalizing. WARN (a not-passed capability's name appears in the body): confirm you are not writing an undone capability as done (OK only if honestly stated under Limitations/Future work). Contract chain: problem-analysis defines it → modeling claims each → code implements & audits → paper reports only what passed.
+> `PCC=1`: a capability failed acceptance in comp-code — go back and make it truly PASS before finalizing. WARN (a not-passed capability's name appears in the body): confirm you are not writing an undone capability as done (OK only if honestly stated under Limitations/Future work). Contract chain: comp-problem-analysis defines it → modeling claims each → code implements & audits → paper reports only what passed.
 
 Also check:
 

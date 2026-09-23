@@ -1,3 +1,10 @@
+# 合并件：problem-analysis → comp-problem-analysis
+
+> 2026-09-23 v2.0 W3f 真重复合并：本技能与 `comp-problem-analysis` 同职能，正文折叠至此保内容与溯源，
+> 目录 `skills/problem-analysis/` 已退役。若需独立调用，请用 `skills/comp-problem-analysis/SKILL.md`。
+
+---
+
 ---
 name: problem-analysis
 description: "Problem Analysis Skill——接到赛题后 1-2 小时内把题目”拆透”：题型判定、关键约束、坑点、答案形态。"
@@ -54,3 +61,4 @@ description: "Problem Analysis Skill——接到赛题后 1-2 小时内把题目
 ## 后续 Skill
 - `data-processing`：根据数据需求清单爬数据 / 清洗
 - `model-building`：根据推荐模型 + 子问题建模型
+

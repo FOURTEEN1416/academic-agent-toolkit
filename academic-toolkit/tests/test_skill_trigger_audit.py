@@ -119,14 +119,14 @@ def test_real_repo_passes_strict() -> None:
 def test_real_repo_skill_count_matches_map() -> None:
     """技能数与地图/catalog 登记必须一致。
 
-    下限取**公开交付口径 256**，不硬编码本机完整仓的 261：本机 261、公开 clone 256
+    下限取公开交付口径 255（2026-09-23 v2.0 W3f 合并后本机 255），不硬编码本机数
     （少 5 个无 License 上游技能，被根 .gitignore 有意隔离）——写死 261 等于把
     "完整本地仓"当成交付前提，CI 必红。一致性由下面两条对账保证：
     零漏网 + 零未登记 ⟹ 技能集合 ⊆ 地图 ∩ catalog。
     """
     res = sta.run()
     reg = res["registry"]
-    assert reg["skills_total"] >= 256, reg["skills_total"]
+    assert reg["skills_total"] >= 255, reg["skills_total"]
     assert reg["missing_in_catalog"] == []
     assert reg["missing_in_map"] == []
 

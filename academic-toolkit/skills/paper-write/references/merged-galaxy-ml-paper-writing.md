@@ -1,3 +1,10 @@
+# 合并件：galaxy-ml-paper-writing → paper-write
+
+> 2026-09-23 v2.0 W3f 真重复合并：本技能与 `paper-write` 同职能，正文折叠至此保内容与溯源，
+> 目录 `skills/galaxy-ml-paper-writing/` 已退役。若需独立调用，请用 `skills/paper-write/SKILL.md`。
+
+---
+
 ---
 name: galaxy-ml-paper-writing
 description: "Write publication-ready ML/AI papers for NeurIPS, ICML, ICLR, ACL, AAAI, COLM. Use when drafting papers from research"
@@ -1120,3 +1127,4 @@ See [templates/README.md](templates/README.md) for detailed setup instructions.
 **APIs:** [Semantic Scholar](https://api.semanticscholar.org/api-docs/) | [CrossRef](https://www.crossref.org/documentation/retrieve-metadata/rest-api/) | [arXiv](https://info.arxiv.org/help/api/basics.html)
 
 **Venues:** [NeurIPS](https://neurips.cc/Conferences/2025/PaperInformation/StyleFiles) | [ICML](https://icml.cc/Conferences/2025/AuthorInstructions) | [ICLR](https://iclr.cc/Conferences/2026/AuthorGuide) | [ACL](https://github.com/acl-org/acl-style-files)
+

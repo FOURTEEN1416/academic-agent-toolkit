@@ -1,3 +1,10 @@
+# 合并件：ars-academic-pipeline → research-pipeline
+
+> 2026-09-23 v2.0 W3f 真重复合并：本技能与 `research-pipeline` 同职能，正文折叠至此保内容与溯源，
+> 目录 `skills/ars-academic-pipeline/` 已退役。若需独立调用，请用 `skills/research-pipeline/SKILL.md`。
+
+---
+
 ---
 name: ars-academic-pipeline
 description: "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise ->"
@@ -621,3 +628,4 @@ Stage 5: academic-paper (format-convert mode)
 ## Changelog
 
 > See `references/changelog.md` for full version history.
+

@@ -2,7 +2,7 @@
 
 守护三件事：
   1. 工具本身：斜杠缩写展开 / 地图对账 / 账本扫描 / 死推荐 / 模板资产在位；
-  2. 真仓零漏网：CONTEST_SKILL_MAP 对 256 实存技能覆盖必须为 0 漏网（机检固化）；
+  2. 真仓零漏网：CONTEST_SKILL_MAP 对 255 实存技能覆盖必须为 0 漏网（机检固化）；
   3. 真仓假接线防线：templates.json 全模板 assets 指针必须存在 + step5 companion
      漂移回归（eco-community-plots / figure-aesthetics-craft 曾"地图在册引擎不荐"）。
 """
@@ -86,14 +86,14 @@ def test_load_map_coverage_reports_missing(tmp_path):
 
 
 def test_real_map_covers_all_skills_zero_missing():
-    """真仓零漏网机检（CONTEST_SKILL_MAP §六 口径的固化版）：256 实存 / 0 漏网。"""
+    """真仓零漏网机检（CONTEST_SKILL_MAP §六 口径的固化版）：255 实存 / 0 漏网。"""
     reason = _skip_reason_without_local_assets()
     if reason:
         pytest.skip(reason)
     skills = cau.iter_skill_dirs(ROOT / "skills")
     cov = cau.load_map_coverage(ROOT / "CONTEST_SKILL_MAP.md", skills)
     assert cov["missing"] == [], f"漏网技能: {cov['missing']}"
-    assert len(skills) >= 256
+    assert len(skills) >= 255
 
 
 def test_iter_skill_dirs_excludes_non_skill_dirs(tmp_path):

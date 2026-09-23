@@ -49,13 +49,13 @@ def test_real_repo_has_no_local_pollution() -> None:
 def test_real_repo_reports_resident_tax() -> None:
     """常驻税必须被量化报告（这是本工具存在的理由）。
 
-    下限取公开交付口径 256（本机完整仓 261，公开 clone 少 5 个被 gitignore 隔离的
-    无 License 技能）。硬编码 261 会让 CI 必红——公开仓不是完整本地仓。
+    下限取公开交付口径 255（2026-09-23 v2.0 W3f 真重复合并后本机完整仓 255；公开
+    clone 再少 5 个被 gitignore 隔离的无 License 技能）。硬编码本机数会让 CI 必红。
     """
     res = cb.measure()
     assert res["est_resident_tokens"] > 0
     assert 0 < res["share_of_200k"] < 100
-    assert res["skills_total"] >= 256
+    assert res["skills_total"] >= 255
 
 
 def test_upstream_ledger_counts_as_upstream() -> None:

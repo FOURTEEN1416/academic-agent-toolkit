@@ -103,5 +103,5 @@ train, test = train_test_split(df, test_size=0.2, random_state=42)
 - `work/figures/data_overview.png`（4 子图：缺失值/分布/相关性/异常值）
 
 ## 后续 Skill
-- `model-building`：用清洗后的数据建模
+- `comp-modeling`：用清洗后的数据建模
 - `visualization`：用质量报告中的图做正文

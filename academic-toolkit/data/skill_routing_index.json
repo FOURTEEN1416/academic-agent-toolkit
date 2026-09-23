@@ -14,9 +14,9 @@
   },
   "counts": {
     "core": 52,
-    "ondemand": 212,
-    "resident_chars": 31949,
-    "full_chars": 68155
+    "ondemand": 203,
+    "resident_chars": 31023,
+    "full_chars": 65067
   },
   "skills": {
     "ablation-planner": {
@@ -66,30 +66,6 @@
       "full_description": "删减防御性写作：去掉不必要的免责声明、模糊限定、道歉式表述、自我贬低与过度解释，同时保留必要的范围/准确性/安全/法律/伦理/方法学限定。触发词：更简洁、更有力、更直接、更自信、少限定、少免责、别啰嗦、不要过度解释、改掉 hedge、去防御性。适用于论文/摘要/引言/贡献声明/讨论/结论/基金/报告/政策文本。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/anti-defensive-writing/SKILL.md"
-    },
-    "ars-academic-pipeline": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise ->",
-      "full_description": "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise -> re-review -> re-revise -> final integrity check -> finalize. Coordinates comp-contest-research, academic-paper, and academic-paper-reviewer into a seamless 10-stage workflow with mandatory integrity verification, two-stage peer review, and reproducible quality gates. Triggers on: academic pipeline, research to paper, full paper workflow, paper pipeline, end-to-end paper, research-to-publication, complete paper workflow.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/ars-academic-pipeline/SKILL.md"
-    },
-    "ars-pr-review-expert": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Use when the user asks to review pull requests, analyze code changes, check for security issues in PRs, or assess code",
-      "full_description": "Use when the user asks to review pull requests, analyze code changes, check for security issues in PRs, or assess code",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/ars-pr-review-expert/SKILL.md"
-    },
-    "ars-senior-data-scientist": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "World-class senior data scientist skill specialising in statistical modeling, experiment design, causal inference, and",
-      "full_description": "World-class senior data scientist skill specialising in statistical modeling, experiment design, causal inference, and predictive analytics. Covers A/B testing (sample sizing, two-proportion z-tests, Bonferroni correction), difference-in-differences, feature engineering pipelines (Scikit-learn, XGBoost), cross-validated model evaluation (AUC-ROC, AUC-PR, SHAP), and MLflow experiment tracking — using Python (NumPy, Pandas, Scikit-learn), R, and SQL. Use when designing or analysing controlled experiments, building and evaluating classification or regression models, performing causal analysis on observational data, engineering features for structured tabular datasets, or translating statistical findings into data-driven business decisions.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/ars-senior-data-scientist/SKILL.md"
     },
     "arxiv": {
       "tier": "ondemand",
@@ -811,30 +787,6 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/format-profile/SKILL.md"
     },
-    "galaxy-ml-paper-writing": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Write publication-ready ML/AI papers for NeurIPS, ICML, ICLR, ACL, AAAI, COLM. Use when drafting papers from research",
-      "full_description": "Write publication-ready ML/AI papers for NeurIPS, ICML, ICLR, ACL, AAAI, COLM. Use when drafting papers from research repos, conducting literature reviews, finding related work, verifying citations, or preparing camera-ready submissions. Includes LaTeX templates, citation verification workflows, and paper discovery/evaluation criteria.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-ml-paper-writing/SKILL.md"
-    },
-    "galaxy-nature-data": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": ">- Prepare, audit, or revise Nature-ready Data Availability statements, data repository plans, dataset citations, and",
-      "full_description": ">- Prepare, audit, or revise Nature-ready Data Availability statements, data repository plans, dataset citations, and FAIR metadata checklists for manuscripts. Use when the user asks about Nature data availability, research data sharing, repository selection, accession numbers, restricted or sensitive data, source data, supplementary datasets, DataCite-style dataset references, FAIR metadata for academic publication, or Chinese-to-English data availability wording for Chinese-speaking authors preparing Nature-family submissions.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-nature-data/SKILL.md"
-    },
-    "galaxy-nature-response": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": ">- Draft, audit, or revise point-by-point reviewer response letters for Nature-family manuscript revisions. Use when the",
-      "full_description": ">- Draft, audit, or revise point-by-point reviewer response letters for Nature-family manuscript revisions. Use when the user provides reviewer comments, editor decision letters, revision notes, response drafts, or asks how to respond to major/minor revision requests, rebuttal letters, response to reviewers, peer-review reports, 审稿意见回复, 逐点回复, 修回信, 大修回复, 小修回复, or 如何回复 reviewer.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-nature-response/SKILL.md"
-    },
     "grant-nih": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1355,14 +1307,6 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/meta-web-extract/SKILL.md"
     },
-    "model-building": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Model Building Skill——根据子问题，选模型、写代码、跑出结果、验证合理性。",
-      "full_description": "Model Building Skill——根据子问题，选模型、写代码、跑出结果、验证合理性。",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/model-building/SKILL.md"
-    },
     "monitor-experiment": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1827,14 +1771,6 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/plotly/SKILL.md"
     },
-    "problem-analysis": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Problem Analysis Skill——接到赛题后 1-2 小时内把题目”拆透”：题型判定、关键约束、坑点、答案形态。",
-      "full_description": "Problem Analysis Skill——接到赛题后 1-2 小时内把题目”拆透”：题型判定、关键约束、坑点、答案形态。",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/problem-analysis/SKILL.md"
-    },
     "problem-selection": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1862,18 +1798,10 @@
     "rebuttal": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "Workflow 4: Submission rebuttal pipeline. Parses external reviews, enforces coverage and grounding, drafts a safe",
-      "full_description": "Workflow 4: Submission rebuttal pipeline. Parses external reviews, enforces coverage and grounding, drafts a safe text-only rebuttal under venue limits, and manages follow-up rounds. Use when user says \\\"rebuttal\\\", \\\"reply to reviewers\\\", \\\"ICML rebuttal\\\", \\\"OpenReview response\\\", or wants to answer external reviews safely.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/rebuttal/SKILL.md"
-    },
-    "rebuttal-workflow": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
       "resident_description": "Systematic review response workflow from comment analysis to professional rebuttal writing. Use when the user asks to",
       "full_description": "Systematic review response workflow from comment analysis to professional rebuttal writing. Use when the user asks to \"write rebuttal\", \"respond to reviewers\", \"draft review response\", or \"analyze review comments\". Improves paper acceptance rates.",
       "description_compacted": true,
-      "path": "academic-toolkit/skills/rebuttal-workflow/SKILL.md"
+      "path": "academic-toolkit/skills/rebuttal/SKILL.md"
     },
     "research-lit": {
       "tier": "ondemand",

@@ -82,7 +82,9 @@ UPSTREAM_REGISTRY: list[Path] = [
     # 专项治理批次 1c：ars-* 资产补齐（2026-09-09）
     ROOT / "skills" / "paper-writing-pipeline" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "paper-peer-review-simulation" / "references" / "UPSTREAM.md",
-    ROOT / "skills" / "ars-academic-pipeline" / "references" / "UPSTREAM.md",
+    # 2026-09-23 v2.0 W3f：ars-academic-pipeline 并入 research-pipeline，
+    # 其 UPSTREAM.md 随合并件折叠至 references/merged-ars-academic-pipeline/references/
+    ROOT / "skills" / "research-pipeline" / "references" / "merged-ars-academic-pipeline" / "references" / "UPSTREAM.md",
     # 专项治理批次 1b：nature-* 资产补齐（2026-09-09）
     ROOT / "skills" / "paper-data-availability" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "paper-writing-scientific" / "references" / "UPSTREAM.md",

@@ -175,7 +175,7 @@
    "scripts/extract_citations.py",
    "scripts/format_summary.py"
   ],
-  "ars-senior-data-scientist": [
+  "data-statistics-analyst": [
    "references/experiment_design_frameworks.md",
    "references/feature_engineering_patterns.md",
    "references/statistical_methods_advanced.md",
@@ -281,7 +281,7 @@
    "references/server-types.md",
    "references/tool-usage.md"
   ],
-  "galaxy-ml-paper-writing": [
+  "paper-write": [
    "references/OPERATING-MODES.md",
    "references/checklists.md",
    "references/citation-workflow.md",
@@ -293,7 +293,7 @@
    "references/sources.md",
    "references/writing-guide.md"
   ],
-  "galaxy-nature-data": [
+  "paper-data-availability": [
    "references/chinese-author-alignment.md",
    "references/fair-metadata-checklist.md",
    "references/policy-principles.md",
@@ -308,7 +308,7 @@
    "references/style-guardrails.md",
    "references/writing-strategy.md"
   ],
-  "galaxy-nature-response": [
+  "paper-rebuttal-nature": [
    "references/action-mapping.md",
    "references/chinese-author-alignment.md",
    "references/comment-taxonomy.md",
@@ -415,7 +415,7 @@
    "references/report-structure.md",
    "references/statistical-completeness.md"
   ],
-  "rebuttal-workflow": [
+  "rebuttal": [
    "references/rebuttal-templates.md",
    "references/response-strategies.md",
    "references/review-classification.md",

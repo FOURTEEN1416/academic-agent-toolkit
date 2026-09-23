@@ -1,3 +1,10 @@
+# 合并件：ars-senior-data-scientist → data-statistics-analyst
+
+> 2026-09-23 v2.0 W3f 真重复合并：本技能与 `data-statistics-analyst` 同职能，正文折叠至此保内容与溯源，
+> 目录 `skills/ars-senior-data-scientist/` 已退役。若需独立调用，请用 `skills/data-statistics-analyst/SKILL.md`。
+
+---
+
 ---
 name: ars-senior-data-scientist
 description: "World-class senior data scientist skill specialising in statistical modeling, experiment design, causal inference, and"
@@ -215,3 +222,4 @@ python3 scripts/model_evaluation_suite.py --input model_predictions.json --outpu
 # Each prints a JSON run report ({status, processed_items, start/end_time}); any status other
 # than "completed" means the stage failed — fix before moving to the next pipeline stage.
 ```
+

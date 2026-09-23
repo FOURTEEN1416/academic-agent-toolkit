@@ -1,3 +1,10 @@
+# 合并件：ars-pr-review-expert → dev-code-review
+
+> 2026-09-23 v2.0 W3f 真重复合并：本技能与 `dev-code-review` 同职能，正文折叠至此保内容与溯源，
+> 目录 `skills/ars-pr-review-expert/` 已退役。若需独立调用，请用 `skills/dev-code-review/SKILL.md`。
+
+---
+
 ---
 name: ars-pr-review-expert
 description: "Use when the user asks to review pull requests, analyze code changes, check for security issues in PRs, or assess code"
@@ -395,3 +402,4 @@ Breaking Changes: None detected
 5. Label each comment clearly: "nit:", "must:", "question:", "suggestion:"
 6. Batch all comments in one review round — don't trickle feedback
 7. Acknowledge good patterns, not just problems — specific praise improves culture
+

@@ -1,3 +1,10 @@
+# 合并件：galaxy-nature-response → paper-rebuttal-nature
+
+> 2026-09-23 v2.0 W3f 真重复合并：本技能与 `paper-rebuttal-nature` 同职能，正文折叠至此保内容与溯源，
+> 目录 `skills/galaxy-nature-response/` 已退役。若需独立调用，请用 `skills/paper-rebuttal-nature/SKILL.md`。
+
+---
+
 ---
 name: galaxy-nature-response
 description: ">- Draft, audit, or revise point-by-point reviewer response letters for Nature-family manuscript revisions. Use when the"
@@ -120,3 +127,4 @@ Use sources in this order:
 
 If a policy detail may have changed, verify the current journal page before giving final
 submission advice.
+

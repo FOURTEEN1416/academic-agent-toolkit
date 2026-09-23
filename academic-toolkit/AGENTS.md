@@ -294,7 +294,7 @@ python -m engine.workflow_cli complete --wf <workflow_id> --ok true --artifacts 
   "commands": [{"command": "python scripts/build_analysis.py", "returncode": 0, "cwd": "."}],
   "inputs": [],
   "outputs": ["PROBLEM_ANALYSIS.md"],
-  "companion_skills": {"used": ["problem-analysis"], "skipped": []}
+  "companion_skills": {"used": ["comp-problem-analysis"], "skipped": []}
 }'
 ```
 

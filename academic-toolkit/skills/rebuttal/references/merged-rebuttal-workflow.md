@@ -1,3 +1,10 @@
+# 合并件：rebuttal-workflow → rebuttal
+
+> 2026-09-23 v2.0 W3f 真重复合并：本技能与 `rebuttal` 同职能，正文折叠至此保内容与溯源，
+> 目录 `skills/rebuttal-workflow/` 已退役。若需独立调用，请用 `skills/rebuttal/SKILL.md`。
+
+---
+
 ---
 name: rebuttal-workflow
 description: "Systematic review response workflow from comment analysis to professional rebuttal writing. Use when the user asks to"
@@ -129,3 +136,4 @@ For detailed guides, refer to:
 
 - **Agent**: `rebuttal-writer` - Dedicated agent for rebuttal writing and optimization
 - **Command**: `/rebuttal <review_file>` - Quick-start the rebuttal workflow
+

@@ -22,7 +22,7 @@ def test_paper_submission_template_contract():
     t = TPL["paper_submission"]
     names = [s["skill_name"] for s in t["sub_steps"]]
     assert names == ["paper-presubmit-checks", "paper-submission-audit",
-                     "galaxy-nature-response", "latex-cleanup", "comp-review"]
+                     "paper-rebuttal-nature", "latex-cleanup", "comp-review"]
     review = t["sub_steps"][-1]
     assert review["metadata"]["requires_subagent"] is True
     assert "review" in review["required_checks"]

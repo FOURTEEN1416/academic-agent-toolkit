@@ -1,3 +1,10 @@
+# 合并件：model-building → comp-modeling
+
+> 2026-09-23 v2.0 W3f 真重复合并：本技能与 `comp-modeling` 同职能，正文折叠至此保内容与溯源，
+> 目录 `skills/model-building/` 已退役。若需独立调用，请用 `skills/comp-modeling/SKILL.md`。
+
+---
+
 ---
 name: model-building
 description: "Model Building Skill——根据子问题，选模型、写代码、跑出结果、验证合理性。"
@@ -97,3 +104,4 @@ for param in ['learning_rate', 'n_estimators', 'max_depth']:
 - `comp-model-innovation`：找创新点
 - `visualization`：把结果画成图
 - `paper-writing`：把模型说明写进论文
+

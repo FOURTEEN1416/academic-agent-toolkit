@@ -8475,7 +8475,7 @@
         }
       },
       {
-        "skill_name": "galaxy-nature-response",
+        "skill_name": "paper-rebuttal-nature",
         "display_name": "审稿意见回复（逐条 point-by-point）",
         "output_files": [
           "RESPONSE_TO_REVIEWERS.md"

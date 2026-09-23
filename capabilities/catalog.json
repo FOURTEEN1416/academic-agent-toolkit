@@ -332,14 +332,14 @@
       "current_gap": "scholar_fetch 环境受限(429/SSL/超时)；引用 DOI 待核验；C5 多智能体评审校准（2026-08-17，ses_ff067c13/ses_ff067b50）已确认达标"
     },
     {
-      "capability_id": "ars-senior-data-scientist",
+      "capability_id": "data-statistics-analyst",
       "name": "senior-data-scientist",
       "domain": "math_modeling_competition",
       "description": "World-class senior data scientist skill specialising in statistical modeling, experiment design, causal inference, and predictive analytics. Covers A/B testing (sample sizing, two-proportion z-tests, Bonferroni correction), difference-in-differences, feature engineering pipelines (Scikit-learn, XGBoost), cross-validated model evaluation (AUC-ROC, AUC-PR, SHAP), and MLflow experiment tracking — usi",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
-        "ars-senior-data-scientist"
+        "data-statistics-analyst"
       ],
       "associated_tools": [],
       "external_dependencies": [],
@@ -841,7 +841,7 @@
       "output_contract": "投稿级PDF/DOCX、完整性报告、审稿回复",
       "status": "experimental",
       "associated_skills": [
-        "ars-academic-pipeline",
+        "research-pipeline",
         "paper-writing-pipeline",
         "paper-peer-review-simulation",
         "comp-contest-research",
@@ -882,7 +882,7 @@
         "paper-write-nature-docx",
         "paper-sections-nature",
         "paper-polish-nature",
-        "galaxy-nature-response",
+        "paper-rebuttal-nature",
         "paper-figure-nature",
         "paper-submission-audit",
         "paper-manuscript-optimize",
@@ -1037,7 +1037,7 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在当前宿主会话中确认",
-      "current_evidence": "管线级验收覆盖（ars-academic-pipeline 与三管线产物同构映射）；2026-08-30 登记。",
+      "current_evidence": "管线级验收覆盖（research-pipeline 与三管线产物同构映射）；2026-08-30 登记。",
       "current_gap": "管线级验收覆盖；C3/C4 未建",
       "status": "experimental",
       "promotion_history": [
@@ -1065,14 +1065,14 @@
       ]
     },
     {
-      "capability_id": "ars-academic-pipeline",
+      "capability_id": "research-pipeline",
       "name": "academic-pipeline",
       "domain": "academic_papers",
       "description": "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise -> re-review -> re-revise -> final integrity check -> finalize. Coordinates comp-contest-research, academic-paper, and academic-paper-reviewer into a seamless 10-stage workflow with mandatory integrity verification, two-stage peer review, and reproducible quality gates. Triggers on: academic pipe",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
-        "ars-academic-pipeline"
+        "research-pipeline"
       ],
       "associated_tools": [],
       "external_dependencies": [],
@@ -1145,14 +1145,14 @@
       ]
     },
     {
-      "capability_id": "ars-pr-review-expert",
+      "capability_id": "dev-code-review",
       "name": "pr-review-expert",
       "domain": "academic_papers",
       "description": "Use when the user asks to review pull requests, analyze code changes, check for security issues in PRs, or assess code quality of diffs.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
-        "ars-pr-review-expert"
+        "dev-code-review"
       ],
       "associated_tools": [],
       "external_dependencies": [],
@@ -1347,14 +1347,14 @@
       "current_gap_class": "blocked-by-dependency"
     },
     {
-      "capability_id": "galaxy-nature-data",
+      "capability_id": "paper-data-availability",
       "name": "nature-data",
       "domain": "academic_papers",
       "description": "Prepare, audit, or revise Nature-ready Data Availability statements, data repository plans, dataset citations, and FAIR metadata checklists for manuscripts. Use when the user asks about Nature data availability, research data sharing, repository selection, accession numbers, restricted or sensitive data, source data, supplementary datasets, DataCite-style dataset references, FAIR metadata for acad",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
-        "galaxy-nature-data"
+        "paper-data-availability"
       ],
       "associated_tools": [],
       "external_dependencies": [],
@@ -1387,14 +1387,14 @@
       ]
     },
     {
-      "capability_id": "galaxy-nature-response",
+      "capability_id": "paper-rebuttal-nature",
       "name": "nature-response",
       "domain": "academic_papers",
       "description": "Draft, audit, or revise point-by-point reviewer response letters for Nature-family manuscript revisions. Use when the user provides reviewer comments, editor decision letters, revision notes, response drafts, or asks how to respond to major/minor revision requests, rebuttal letters, response to reviewers, peer-review reports, 审稿意见回复, 逐点回复, 修回信, 大修回复, 小修回复, or 如何回复 reviewer.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
-        "galaxy-nature-response"
+        "paper-rebuttal-nature"
       ],
       "associated_tools": [],
       "external_dependencies": [],
@@ -1468,14 +1468,14 @@
       ]
     },
     {
-      "capability_id": "rebuttal-workflow",
+      "capability_id": "rebuttal",
       "name": "review-response",
       "domain": "academic_papers",
       "description": "Systematic review response workflow from comment analysis to professional rebuttal writing. Use when the user asks to \"write rebuttal\", \"respond to reviewers\", \"draft review response\", or \"analyze review comments\". Improves paper acceptance rates.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
-        "rebuttal-workflow"
+        "rebuttal"
       ],
       "associated_tools": [],
       "external_dependencies": [],
@@ -2344,7 +2344,7 @@
       "associated_skills": [
         "paper-presubmit-checks",
         "paper-submission-audit",
-        "galaxy-nature-response",
+        "paper-rebuttal-nature",
         "latex-cleanup",
         "comp-review"
       ],
@@ -2846,14 +2846,14 @@
       ]
     },
     {
-      "capability_id": "galaxy-ml-paper-writing",
+      "capability_id": "paper-write",
       "name": "ml-paper-writing",
       "domain": "literature_research",
       "description": "Write publication-ready ML/AI papers for NeurIPS, ICML, ICLR, ACL, AAAI, COLM. Use when drafting papers from research repos, conducting literature reviews, finding related work, verifying citations, or preparing camera-ready submissions. Includes LaTeX templates, citation verification workflows, and paper discovery/evaluation criteria.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
-        "galaxy-ml-paper-writing"
+        "paper-write"
       ],
       "associated_tools": [],
       "external_dependencies": [],
@@ -3161,7 +3161,7 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在当前宿主会话中确认",
-      "current_evidence": "试点级覆盖（batch9 rebuttal-workflow）；",
+      "current_evidence": "试点级覆盖（batch9 rebuttal）；",
       "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
       "promotion_history": [
@@ -4430,14 +4430,14 @@
       ]
     },
     {
-      "capability_id": "model-building",
-      "name": "model-building",
+      "capability_id": "comp-modeling",
+      "name": "comp-modeling",
       "domain": "course_research_materials",
       "description": "统计模型构建 — 根据研究问题选择并构建统计/机器学习模型",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
-        "model-building"
+        "comp-modeling"
       ],
       "associated_tools": [],
       "external_dependencies": [],
@@ -4490,14 +4490,14 @@
       ]
     },
     {
-      "capability_id": "problem-analysis",
-      "name": "problem-analysis",
+      "capability_id": "comp-problem-analysis",
+      "name": "comp-problem-analysis",
       "domain": "course_research_materials",
       "description": "问题分析与拆解 — 将复杂研究问题分解为可执行的子任务与建模目标",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
-        "problem-analysis"
+        "comp-problem-analysis"
       ],
       "associated_tools": [],
       "external_dependencies": [],

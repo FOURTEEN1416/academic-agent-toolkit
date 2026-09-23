@@ -28,7 +28,7 @@ from engine.opencode_bridge import StepAction, StepResult
 @pytest.mark.parametrize("command", [
     "grep -q '<!-- END FIGURE_MANIFEST -->' PROBLEM_ANALYSIS.md",
     "grep -q \"<!-- END FIGURE_MANIFEST -->\" PROBLEM_ANALYSIS.md",
-    "grep -q 'problem-analysis' notes.md && echo ok",
+    "grep -q 'comp-problem-analysis' notes.md && echo ok",
 ])
 def test_quoted_grep_pattern_with_arrow_is_accepted(command):
     assert _looks_like_descriptive_command(command) is False
