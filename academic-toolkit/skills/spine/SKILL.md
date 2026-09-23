@@ -13,7 +13,7 @@ translate, humanize, audit, and update branch skills.
 
 **Update detection**: If the user asks to update, upgrade, check for updates,
 or manage the PaperSpine installation, route immediately to
-`paper-spine-update` without starting the writing workflow.
+`spine-update` without starting the writing workflow.
 
 ## Operating Principle
 
@@ -29,7 +29,7 @@ External examples teach structure and rhetoric only.
 ## Required Configuration
 
 Prefer reading `paper_rewriting_output/paper_spine_config.json`. If it is
-missing, route to `paper-spine-intake` or ask the same fields directly.
+missing, route to `spine-intake` or ask the same fields directly.
 
 Required fields:
 
@@ -54,7 +54,7 @@ Required fields:
 ## Non-Negotiable Route
 
 1. If configuration is missing or incomplete, run the terminal wizard from
-   `paper-spine-ui`, then `paper-spine-intake`; do not ask the user to
+   `spine-config-ui`, then `spine-intake`; do not ask the user to
    hand-write JSON or answer a long plain chat checklist when a terminal is
    available. The wizard is the supported Claude Code/Codex command-line UI.
    In Claude Code, `/paperspine` is the preferred entry: it launches the
@@ -69,14 +69,14 @@ Required fields:
    files, or continue the workflow before the UI has launched or explicitly
    failed. Only fall back to numbered/chat intake if the launch returns an error.
 2. Always create or verify `source_map.md`.
-3. Always use `paper-spine-research` before choosing the final motivation.
+3. Always use `spine-research` before choosing the final motivation.
    Research must first index local/default references according to
    `reference_mode` and `reference_paths`; web collection supplements this
    index but does not replace it.
 4. Research must create `reference_materials/`, `research_dossier.md`,
    `exemplar_learning_dossier.md`, `style_profile.md`, `sota_gap_map.md`, and
    `motivation_options_after_research.md`.
-5. Use `paper-spine-citation` to create `citation_support_bank.md`. This bank
+5. Use `spine-citation` to create `citation_support_bank.md`. This bank
    is separate from exemplar learning: it supports Introduction, Related Work,
    Discussion, background, limitation, and application claims. Generate at
    least `citation_target_count * 3` candidates; default target is 20, so the
@@ -86,8 +86,8 @@ Required fields:
    rewrite until `confirmed_motivation.md` records the user's chosen motivation.
    The final motivation should be concise and specific. Do not inflate one
    narrow contribution into a multi-claim motivation.
-7. If `workflow` is `rewrite_existing`, use `paper-spine-rewrite`.
-8. If `workflow` is `build_from_materials`, use `paper-spine-build`.
+7. If `workflow` is `rewrite_existing`, use `spine-rewrite`.
+8. If `workflow` is `build_from_materials`, use `spine-build`.
 9. Before drafting, both workflows must create `section_blueprints.md` and
    `writing_rationale_matrix.md`. The matrix is the execution plan, not a
    post-hoc summary.
@@ -95,18 +95,18 @@ Required fields:
     This produces `integrity_audit.md` — a teaching report where every finding
     includes root cause, fix action, downstream impact, and a teaching note.
     The report must show no BLOCKED findings before LaTeX compilation can proceed.
-11. Use `paper-spine-latex` for final LaTeX structure, figure placement,
+11. Use `spine-latex` for final LaTeX structure, figure placement,
    citation safety, and compile-oriented cleanup.
 12. Always produce final LaTeX source. Compile PDF when a TeX engine is
     available. Markdown alone is not a final PaperSpine output.
 13. If `word_output` is `docx`, produce and check a Word version.
 14. If `output_language` is `en` and `translation_package` is `zh`, use
-    `paper-spine-translate` to produce the complete `translation_zh/` package.
+    `spine-translate-zh` to produce the complete `translation_zh/` package.
     Run `python scripts/translate_guard.py paper_rewriting_output --markdown --write`
     and require PASS. The translation package must cover every required
     intermediate and final artifact with row-by-row translation of large
     tabular files. Summaries are not acceptable.
-15. Use `paper-spine-audit` before declaring the work complete.
+15. Use `spine-audit` before declaring the work complete.
 
 If another skill is unavailable, follow the referenced workflow locally and
 produce the same artifacts.
@@ -204,7 +204,7 @@ directly.
 
 Claude Code and Codex do not guarantee a native graphical picker for skills.
 The supported UI is the bundled terminal wizard. When configuration is missing,
-run `paper-spine-intake`. In Claude Code, `/paperspine` must launch the intake
+run `spine-intake`. In Claude Code, `/paperspine` must launch the intake
 UI automatically; do not ask the user to call a separate UI command. The launcher
 opens the bundled terminal TUI, which supports Up/Down for option values,
 Left/Right for fields, Enter for edit or confirm, and `S` to save. Claude Code

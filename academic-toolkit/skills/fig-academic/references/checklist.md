@@ -6,9 +6,9 @@ This is an **LLM-executable** quality assurance protocol. After generating figur
 
 Run automated checks on any generated script:
 ```bash
-python academic-figure-skill/scripts/qa_validator.py <script.py>
+python fig-academic/scripts/qa_validator.py <script.py>
 ```
-This validates AP-0 through CL-7 without human review. See `academic-figure-skill/scripts/qa_validator.py` for the full check suite.
+This validates AP-0 through CL-7 without human review. See `fig-academic/scripts/qa_validator.py` for the full check suite.
 
 ## Protocol Structure
 

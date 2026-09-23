@@ -5,7 +5,7 @@ Academic Figure Skill Chart Atlas Generator.
 Generates 5 atlas grid images (4x4 subplots each) demonstrating Academic Figure Skill's
 visual grammar range using pure matplotlib with CNS standard styling.
 
-Output: academic-figure-skill/assets/chart-atlas/atlas-*.png
+Output: fig-academic/assets/chart-atlas/atlas-*.png
 """
 
 import os

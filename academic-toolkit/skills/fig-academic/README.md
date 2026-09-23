@@ -146,7 +146,7 @@ claude
 ```bash
 mkdir -p ~/ai-skills
 cd ~/ai-skills
-git clone https://github.com/TingxiYu/academic-figure-skill.git
+git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
 cp -r fig-academic ~/.claude/skills/
 ```
 
@@ -173,7 +173,7 @@ cp -r . ~/.claude/skills/fig-academic/
 Codex 支持通过 `install/codex/` 中的 `manifest.yaml` + `instructions.md` 加载 Skill。将以下目录复制到 `~/.codex/skills/fig-academic/`：
 
 ```bash
-git clone https://github.com/TingxiYu/academic-figure-skill.git
+git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
 cd fig-academic
 mkdir -p ~/.codex/skills/fig-academic
 cp -r SKILL.md references/ scripts/ assets/ install/codex/* ~/.codex/skills/fig-academic/
@@ -194,8 +194,8 @@ cp -r SKILL.md references/ scripts/ assets/ install/codex/* ~/.codex/skills/fig-
 将 Skill 规则文件复制到项目根目录，Cursor 在生成代码时会自动遵循其中的规范：
 
 ```bash
-git clone https://github.com/TingxiYu/academic-figure-skill.git
-cp academic-figure-skill/install/cursor/.cursorrules <your-project>/.cursorrules
+git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
+cp fig-academic/install/cursor/.cursorrules <your-project>/.cursorrules
 ```
 
 `.cursorrules` 包含了配色方案、排版基线、导出规格等核心规则。如需更新规则，重新执行上述复制命令即可。
@@ -205,9 +205,9 @@ cp academic-figure-skill/install/cursor/.cursorrules <your-project>/.cursorrules
 将 Skill 指令文件复制到项目的 `.github/` 目录，Copilot 在生成代码时会加载这些上下文：
 
 ```bash
-git clone https://github.com/TingxiYu/academic-figure-skill.git
+git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
 mkdir -p <your-project>/.github
-cp academic-figure-skill/install/copilot/copilot-instructions.md <your-project>/.github/
+cp fig-academic/install/copilot/copilot-instructions.md <your-project>/.github/
 ```
 
 如果已有 `.github/copilot-instructions.md`，建议将本 Skill 的内容追加到文件末尾。
@@ -226,7 +226,7 @@ cp academic-figure-skill/install/copilot/copilot-instructions.md <your-project>/
 ## 项目结构
 
 ```text
-	academic-figure-skill/                          ← 核心 Skill 包（本目录）
+	fig-academic/                          ← 核心 Skill 包（本目录）
     ├── README.md                      ← 项目说明文档（本文件）
     ├── LICENSE                        ← MIT 许可证
     ├── SKILL.md                       ← 技能入口：8 步闭环工作流 + 全部规则

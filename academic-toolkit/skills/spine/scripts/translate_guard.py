@@ -187,7 +187,7 @@ def check_file_completeness(trans_dir: Path, out_dir: Path, config: dict) -> lis
             severity="BLOCKER",
             what=f"Missing translation: `translation_zh/{f}`",
             fix=f"Translate `{en_name}` into `translation_zh/{f}`. "
-                f"Use `paper-spine-translate` to produce this file.",
+                f"Use `spine-translate-zh` to produce this file.",
             teaching=f"Every intermediate artifact needs a Chinese counterpart. "
                       f"`{en_name}` is a required PaperSpine artifact — its translation "
                       f"is not optional.",

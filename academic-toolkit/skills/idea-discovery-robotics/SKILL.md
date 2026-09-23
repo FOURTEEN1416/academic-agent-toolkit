@@ -42,7 +42,7 @@ The goal is not to produce flashy demos. The goal is to produce ideas that are:
 - **REVIEWER_MODEL = `外部评审模型`** — External reviewer model via reviewer_client.py
 - **TARGET_VENUES = CoRL, RSS, ICRA, IROS, RA-L** — Default novelty and reviewer framing
 
-> Override inline, e.g. `/idea-discovery-robot "bimanual manipulation" — only sim ideas, no real robot` or `/idea-discovery-robot "drone navigation" — focus on CoRL/RSS, 2 pilot ideas max`
+> Override inline, e.g. `/idea-discovery-robotics "bimanual manipulation" — only sim ideas, no real robot` or `/idea-discovery-robotics "drone navigation" — focus on CoRL/RSS, 2 pilot ideas max`
 
 ## Execution Rule
 
@@ -347,7 +347,7 @@ Write or update `IDEA_REPORT.md` with a robotics-specific structure so it stays 
 After this workflow identifies a strong robotics idea:
 
 ```
-/idea-discovery-robot "direction"   ← you are here
+/idea-discovery-robotics "direction"   ← you are here
 implement sim-first pilot
 /run-experiment                     ← if infrastructure exists
 /auto-review-loop "top robotics idea"

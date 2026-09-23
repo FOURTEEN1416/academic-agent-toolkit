@@ -12,7 +12,7 @@ instead provides a materials folder with experiment settings, results, figures,
 notes, PDFs, Word files, TXT/Markdown reports, or partial drafts.
 
 This workflow shares the same research, motivation confirmation, evidence bank,
-section blueprint, and writing rationale matrix logic as `paper-spine-rewrite`.
+section blueprint, and writing rationale matrix logic as `spine-rewrite`.
 It is not a separate shortcut.
 
 ## Required Inputs
@@ -29,11 +29,11 @@ It is not a separate shortcut.
 - `paper_rewriting_output/confirmed_motivation.md` with user confirmation
 
 If research or confirmed motivation is missing, do not draft. Return to
-`paper-spine-research` and ask the user to confirm the motivation after seeing
+`spine-research` and ask the user to confirm the motivation after seeing
 research-grounded options.
 
 If `citation_support_bank.md` is missing or shallow, return to
-`paper-spine-citation`. From-zero writing still needs literature support for
+`spine-citation`. From-zero writing still needs literature support for
 background, Introduction/overview, Discussion, limitations, and applications.
 
 ## First Pass
@@ -59,7 +59,7 @@ Create `source_inventory.md` before making claims.
 - `paper_rewriting_output/final_paper/paper.pdf` when a TeX engine is available
 - `paper_rewriting_output/latex_report.md`
 - `paper_rewriting_output/final_artifact_manifest.md`
-- `paper_rewriting_output/translation_zh/` when `translation_package` is `zh` (via `paper-spine-translate`)
+- `paper_rewriting_output/translation_zh/` when `translation_package` is `zh` (via `spine-translate-zh`)
 
 ## Writing Rationale Matrix
 
@@ -90,7 +90,7 @@ it needs its own row.
 ## Humanize Tier
 
 If `paper_spine_config.json` has `humanize_tier` set to `light`, `medium`, or
-`heavy`, route to `paper-spine-humanize` before writing.  The humanize skill
+`heavy`, route to `spine-humanize` before writing.  The humanize skill
 provides tier-specific writing constraints enforced during all prose generation.
 
 ## Build Rules
@@ -110,8 +110,8 @@ provides tier-specific writing constraints enforced during all prose generation.
 - Follow `output_language`: `en` or `zh`.
 - Use `citation_support_bank.md` to select citations sentence by sentence; do
   not treat citation candidates as user evidence or insert all candidates.
-- Before routing through `paper-spine-latex`, run `python scripts/integrity_audit.py paper_rewriting_output --markdown --write` and `python scripts/structured_review.py paper_rewriting_output --dispatch`. After dispatch, launch three parallel review sub-agents per `review_prompts/dispatch.md`, then validate independence. Only proceed when all dimensions PASS.
-- Always finish by routing through `paper-spine-latex`. A Markdown draft is not
+- Before routing through `spine-latex`, run `python scripts/integrity_audit.py paper_rewriting_output --markdown --write` and `python scripts/structured_review.py paper_rewriting_output --dispatch`. After dispatch, launch three parallel review sub-agents per `review_prompts/dispatch.md`, then validate independence. Only proceed when all dimensions PASS.
+- Always finish by routing through `spine-latex`. A Markdown draft is not
   a final deliverable for this workflow.
 - Build the final LaTeX project under `paper_rewriting_output/final_paper/`.
 - If `word_output` is `docx`, generate `final_paper/paper.docx` and run

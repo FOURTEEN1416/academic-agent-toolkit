@@ -1,9 +1,9 @@
 # Academic Figure Skill — Claude Code Installation
 
-The Claude Code skill is at `academic-figure-skill/`. Install via symlink:
+The Claude Code skill is at `fig-academic/`. Install via symlink:
 
 ```bash
-ln -s $(pwd)/academic-figure-skill ~/.claude/skills/fig-academic
+ln -s $(pwd)/fig-academic ~/.claude/skills/fig-academic
 ```
 
 Or copy:
@@ -14,7 +14,7 @@ cp -r fig-academic ~/.claude/skills/fig-academic
 After installation, Claude Code auto-triggers on: "make a volcano plot", "画个热图",
 "review this figure for Nature", etc.
 
-The skill checks `academic-figure-skill/assets/figures/<type>/` for production scripts before
+The skill checks `fig-academic/assets/figures/<type>/` for production scripts before
 generating any code. Add your own scripts there to extend figure type coverage.
 
-Generated: 2026-07-05 13:39 UTC
+Generated: 2026-09-23 10:50 UTC

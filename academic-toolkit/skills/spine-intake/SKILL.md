@@ -55,7 +55,7 @@ Allowed values:
 ## Interaction Rules
 
 The command-line wizard is the supported UI for Claude Code and Codex CLI.
-When a real terminal is available, route through `paper-spine-ui` and use the
+When a real terminal is available, route through `spine-config-ui` and use the
 bundled external terminal wizard; do not downgrade to asking the user to
 hand-write JSON or type every option in chat.
 
@@ -73,10 +73,10 @@ by its absolute installed path (never a path relative to the project directory):
 # user's project folder, where `scripts/` does not exist, so a relative path is
 # the most common reason the UI window never opens. Resolve the install dir:
 $launcher = @(
-  "$env:USERPROFILE\.codex\skills\paper-spine-ui\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\.claude\skills\paper-spine-ui\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\.codex\skills\paper-spine-intake\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\.claude\skills\paper-spine-intake\scripts\launch_paperspine_ui.ps1"
+  "$env:USERPROFILE\.codex\skills\spine-config-ui\scripts\launch_paperspine_ui.ps1",
+  "$env:USERPROFILE\.claude\skills\spine-config-ui\scripts\launch_paperspine_ui.ps1",
+  "$env:USERPROFILE\.codex\skills\spine-intake\scripts\launch_paperspine_ui.ps1",
+  "$env:USERPROFILE\.claude\skills\spine-intake\scripts\launch_paperspine_ui.ps1"
 ) | Where-Object { Test-Path $_ } | Select-Object -First 1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File $launcher -OutputDir paper_rewriting_output
 ```
@@ -85,8 +85,8 @@ This opens a separate interactive PowerShell window. For a user-run terminal,
 this direct command is also supported:
 
 ```bash
-WIZARD="$HOME/.codex/skills/paper-spine-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
-[ -f "$WIZARD" ] || WIZARD="$HOME/.claude/skills/paper-spine-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
+WIZARD="$HOME/.codex/skills/spine-config-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
+[ -f "$WIZARD" ] || WIZARD="$HOME/.claude/skills/spine-config-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
 python "$WIZARD" --output-dir paper_rewriting_output
 ```
 
@@ -123,8 +123,8 @@ On first setup, or when the user asks to change PaperSpine interface language,
 run the wizard in global setup mode:
 
 ```bash
-WIZARD="$HOME/.codex/skills/paper-spine-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
-[ -f "$WIZARD" ] || WIZARD="$HOME/.claude/skills/paper-spine-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
+WIZARD="$HOME/.codex/skills/spine-config-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
+[ -f "$WIZARD" ] || WIZARD="$HOME/.claude/skills/spine-config-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
 python "$WIZARD" --setup-global --output-dir paper_rewriting_output
 ```
 

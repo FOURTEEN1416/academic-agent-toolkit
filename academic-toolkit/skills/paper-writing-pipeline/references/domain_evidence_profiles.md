@@ -19,7 +19,7 @@ The ship-ready enum is exactly four values. `unknown_user_defined` is the defaul
 
 ## Field-guidance carry-forward (seeded from the comp-contest-research evidence hierarchy)
 
-The substance of the field-centric `## Field-Specific Adjustments` table in `deep-research/references/source_quality_hierarchy.md` is carried forward here so no per-field guidance is silently dropped. The comp-contest-research file is **read, not edited** — this is a one-time authoring copy, not a runtime dual-read.
+The substance of the field-centric `## Field-Specific Adjustments` table in `comp-contest-research/references/source_quality_hierarchy.md` is carried forward here so no per-field guidance is silently dropped. The comp-contest-research file is **read, not edited** — this is a one-time authoring copy, not a runtime dual-read.
 
 Normative (folded into a ship-ready profile row above):
 - **Social Science** → folded into `general_social_science` (Level III-V; mixed methods common).
@@ -35,4 +35,4 @@ These two rows are preserved verbatim for the eventual `clinical` / `education` 
 
 ## #246 forward reference
 
-Discipline-relative *grade aggregation* (how these evidence expectations roll up into an Overall Grade) is tracked separately in #246 and is **not yet implemented**. Until #246 ships, the A-F Overall Grade lookup in `deep-research/references/source_quality_hierarchy.md` applies unchanged. #259 ships no aggregation logic and no placeholder aggregation code.
+Discipline-relative *grade aggregation* (how these evidence expectations roll up into an Overall Grade) is tracked separately in #246 and is **not yet implemented**. Until #246 ships, the A-F Overall Grade lookup in `comp-contest-research/references/source_quality_hierarchy.md` applies unchanged. #259 ships no aggregation logic and no placeholder aggregation code.

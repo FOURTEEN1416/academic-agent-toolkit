@@ -349,7 +349,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次12（真实执行留档 skill_c2_batch9）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "comp-code",
@@ -1065,7 +1066,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-peer-review-simulation",
@@ -1085,7 +1087,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "research-pipeline",
@@ -1105,7 +1108,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "dev-adversarial-code-review",
@@ -1125,7 +1129,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "dev-code-review",
@@ -1145,7 +1150,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "meta-experiment-design",
@@ -1165,7 +1171,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "dev-code-review",
@@ -1185,7 +1192,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次24（真实执行/映射留档 skill_c2_batch19）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "auto-paper-improvement-loop",
@@ -1331,7 +1339,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "dev-daily-coding",
@@ -1352,7 +1361,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "meta-task-reporting",
@@ -1373,7 +1383,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "paper-data-availability",
@@ -1393,7 +1404,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-polish-nature",
@@ -1413,7 +1425,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-rebuttal-nature",
@@ -1454,7 +1467,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "lit-review-obsidian",
@@ -1475,7 +1489,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次26（vault 演示/pixel 试点，留档 skill_c2_batch20）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "paper-self-review",
@@ -1495,7 +1510,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "rebuttal",
@@ -1536,7 +1552,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-humanize",
@@ -1556,7 +1573,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "lit-zotero-obsidian",
@@ -1575,7 +1593,8 @@
       "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：需 Zotero 与 Obsidian 双账号/库——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "humanities-plan",
@@ -1658,7 +1677,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-figure-planner",
@@ -1678,7 +1698,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-manuscript-optimize",
@@ -1698,7 +1719,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-project-bootstrap",
@@ -1718,7 +1740,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-workflow-router",
@@ -1738,7 +1761,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-journal-selection",
@@ -1758,7 +1782,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-rebuttal-nature",
@@ -1799,7 +1824,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-writing-scientific",
@@ -1819,7 +1845,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-submission-audit",
@@ -2217,22 +2244,23 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次3（真实执行留档 skill_c2_batch2）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
-      "capability_id": "scholar-critique-manuscript",
+      "capability_id": "paper-self-review",
       "name": "critique-manuscript",
       "domain": "academic_papers",
       "description": "Structured self-review of your manuscript before submission. Systematic evaluation across review criteria.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
-        "scholar-critique-manuscript"
+        "paper-self-review"
       ],
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在当前宿主会话中确认",
-      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch6/scholar-critique-manuscript/）：对本项目自有 P1 真实终稿执行结构/局限/数据声明/绝对化/结论边界五维自审，PASS_WITH_SCOPE_NOTE；CRITIQUE_REPORT.json。",
+      "current_evidence": "C2 试点通过（2026-08-30）：对本项目自有 P1 真实终稿执行结构/局限/数据声明/绝对化/结论边界五维自审，PASS_WITH_SCOPE_NOTE；CRITIQUE_REPORT.json。2026-09-23 v2.0 收尾：原 scholar-critique-manuscript（同职能+违规前缀）并入本技能，正文折叠于 references/merged-scholar-critique-manuscript.md。",
       "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
       "promotion_history": [
@@ -2258,7 +2286,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 试点通过（真实执行留档 skill_c2_batch1）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "lit-citation-manage",
@@ -2325,7 +2354,7 @@
     },
     {
       "capability_id": "spine-rewrite",
-      "name": "paper-spine-rewrite",
+      "name": "spine-rewrite",
       "domain": "academic_papers",
       "description": "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal /paperspine step)",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
@@ -2341,7 +2370,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次14（真实执行留档 skill_c2_batch11）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "thesis-proposal",
@@ -2476,7 +2506,8 @@
       "external_dependencies": [],
       "high_risk_confirmation": "无",
       "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
-      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
+      "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）",
+      "disposition": "external"
     }
   ],
   "literature_research": [
@@ -2640,7 +2671,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "meta-deep-research",
@@ -2660,7 +2692,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "meta-entity-dossier",
@@ -2679,7 +2712,8 @@
       "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：实体调研域（SEC/ProPublica）与学术域不匹配，API 未配置——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "lit-orientation",
@@ -2699,7 +2733,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次12（真实执行留档 skill_c2_batch9）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "meta-topic-pulse",
@@ -2719,7 +2754,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "meta-research-router",
@@ -2739,7 +2775,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "meta-research-summarizer",
@@ -2780,7 +2817,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "arxiv",
@@ -2906,7 +2944,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次5（真实执行留档 skill_c2_batch3）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-write",
@@ -2948,7 +2987,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次26（vault 演示/pixel 试点，留档 skill_c2_batch20）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "meta-planning-files",
@@ -2968,7 +3008,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "idea-brainstorm",
@@ -2988,7 +3029,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-results-report",
@@ -3009,7 +3051,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "idea-creator",
@@ -3071,7 +3114,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次20（真实执行留档 skill_c2_batch16）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "latex-paper-from-zero",
@@ -3091,7 +3135,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次20（真实执行留档 skill_c2_batch16）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "literature-review",
@@ -3175,7 +3220,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次22（真实执行留档 skill_c2_batch18）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "research-refine",
@@ -3195,7 +3241,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次22（真实执行留档 skill_c2_batch18）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "research-refine-pipeline",
@@ -3283,7 +3330,7 @@
     },
     {
       "capability_id": "spine-build",
-      "name": "paper-spine-build",
+      "name": "spine-build",
       "domain": "literature_research",
       "description": "Builds a paper or report from materials using the shared PaperSpine research, motivation, and rationale workflow. (internal /paperspine step)",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
@@ -3299,11 +3346,12 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次13（真实执行留档 skill_c2_batch10）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "spine-research",
-      "name": "paper-spine-research",
+      "name": "spine-research",
       "domain": "literature_research",
       "description": "Researches target requirements, downloads reference materials, learns strong examples, and prepares motivation options. (internal /paperspine step)",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
@@ -3319,7 +3367,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次13（真实执行留档 skill_c2_batch10）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "deep_research_pipeline",
@@ -3372,7 +3421,8 @@
       ],
       "high_risk_confirmation": false,
       "current_evidence": "2026-09-23 v2.0 W4 新增：固化本仓已跑通一届样本（2021-2025 共 62 篇）的挖掘流水线；产物接线 data/award_paper_exemplars.json。",
-      "current_gap": "抓取脚本未随库（源站结构可能变化，需按当下页面重写选择器）。"
+      "current_gap": "抓取脚本未随库（源站结构可能变化，需按当下页面重写选择器）。",
+      "disposition": "external"
     }
   ],
   "course_research_materials": [
@@ -3548,7 +3598,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "doc-notebooklm-control",
@@ -3567,7 +3618,8 @@
       "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：需 NotebookLM API/账号——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "data-statistics-analyst",
@@ -3587,7 +3639,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "assets-inventory",
@@ -3777,7 +3830,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-scope"
+      "current_gap_class": "blocked-by-scope",
+      "disposition": "external"
     },
     {
       "capability_id": "dev-code-frontend",
@@ -3798,7 +3852,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-scope"
+      "current_gap_class": "blocked-by-scope",
+      "disposition": "external"
     },
     {
       "capability_id": "dev-design",
@@ -3840,7 +3895,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "dev-requirement",
@@ -3945,7 +4001,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "dev-ml-registry-pattern",
@@ -3965,7 +4022,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "dev-debug",
@@ -3985,7 +4043,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "dev-code-review-guide",
@@ -4005,7 +4064,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "meta-command-development",
@@ -4026,7 +4086,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "lit-daily-digest",
@@ -4046,7 +4107,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "doc-coauthoring",
@@ -4066,7 +4128,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "dev-git-workflow",
@@ -4087,7 +4150,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "meta-hook-development",
@@ -4108,7 +4172,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "kaggle-learner",
@@ -4127,7 +4192,8 @@
       "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：需 Kaggle 账号/API 凭证（用户未提供）——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "paper-template-organizer",
@@ -4147,7 +4213,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "meta-mcp-integration",
@@ -4168,7 +4235,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次28B（真实试点 skill_c2_batch19）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "lit-obsidian-artifacts",
@@ -4189,7 +4257,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次26（vault 演示/pixel 试点，留档 skill_c2_batch20）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "lit-obsidian-ingest",
@@ -4210,7 +4279,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次26（vault 演示/pixel 试点，留档 skill_c2_batch20）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "meta-plugin-structure",
@@ -4231,7 +4301,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "doc-post-acceptance",
@@ -4251,7 +4322,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次19（真实执行留档 skill_c2_batch15）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "results-analysis",
@@ -4271,7 +4343,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "meta-skill-development",
@@ -4290,7 +4363,8 @@
       "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：宿主会话技能开发流（需目标宿主会话）——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "meta-skill-improve",
@@ -4309,7 +4383,8 @@
       "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：技能改进流（需宿主会话）——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "dev-uv-package",
@@ -4330,7 +4405,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "dev-verification-loop",
@@ -4350,7 +4426,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "dev-web-design-review",
@@ -4371,7 +4448,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-scope"
+      "current_gap_class": "blocked-by-scope",
+      "disposition": "external"
     },
     {
       "capability_id": "dev-webapp-testing",
@@ -4392,7 +4470,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "idea-discovery-robotics",
@@ -4412,7 +4491,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次22（真实执行留档 skill_c2_batch18）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "comp-latex-writing",
@@ -4453,7 +4533,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次20（真实执行留档 skill_c2_batch16）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "latex-paper-collab-check",
@@ -4473,7 +4554,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次20（真实执行留档 skill_c2_batch16）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "latex-paper-collab-depth",
@@ -4492,7 +4574,8 @@
       "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：claude CLI 不在 PATH（请求模板已产出）——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "latex-paper-prose-rhythm",
@@ -4512,7 +4595,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次20（真实执行留档 skill_c2_batch16）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "latex-paper-results-backfill",
@@ -4532,7 +4616,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次20（真实执行留档 skill_c2_batch16）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "comp-modeling",
@@ -4573,7 +4658,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-data-availability",
@@ -4593,7 +4679,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次17（真实执行留档 skill_c2_batch13）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "comp-problem-analysis",
@@ -4655,7 +4742,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "latex-pdf-accessible",
@@ -4696,7 +4784,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "arxiv-submission-package",
@@ -4716,7 +4805,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次15/16（真实执行留档 skill_c2_batch12）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "lit-citation-verify-latex",
@@ -4736,7 +4826,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次3（真实执行留档 skill_c2_batch2）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "latex-cleanup",
@@ -4777,7 +4868,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次2 试点（真实执行留档 skill_c2_batch2）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "paper-presubmit-checks",
@@ -4902,7 +4994,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "spine",
@@ -4926,7 +5019,7 @@
     },
     {
       "capability_id": "spine-audit",
-      "name": "paper-spine-audit",
+      "name": "spine-audit",
       "domain": "course_research_materials",
       "description": "Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation coverage. (internal /paperspine step)",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
@@ -4937,16 +5030,17 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在当前宿主会话中确认",
-      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch7/spine-paper-spine-audit/，v2）：对真实 P3 工作区七产物完整性+评审结论+future-work+PI 占位+实质断言五项审计全过；v1 机检把合规声明中禁用词元提及误判为实质断言，v2 剔除元声明后扫描（教训留档）。AUDIT_REPORT.json。",
+      "current_evidence": "C2 试点通过（2026-08-30，workspaces/skill_c2_batch7/（当时名 spine-paper-spine-audit，现 spine-audit），v2）：对真实 P3 工作区七产物完整性+评审结论+future-work+PI 占位+实质断言五项审计全过；v1 机检把合规声明中禁用词元提及误判为实质断言，v2 剔除元声明后扫描（教训留档）。AUDIT_REPORT.json。",
       "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次10（真实执行留档 skill_c2_batch7）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "spine-citation",
-      "name": "paper-spine-citation",
+      "name": "spine-citation",
       "domain": "course_research_materials",
       "description": "Builds a citation support bank for Introduction, Discussion, and background claims. (internal /paperspine step)",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
@@ -4962,11 +5056,12 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次13（真实执行留档 skill_c2_batch10）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "spine-humanize",
-      "name": "paper-spine-humanize",
+      "name": "spine-humanize",
       "domain": "course_research_materials",
       "description": "Reduces AI detection rates via tiered stylistic constraints mapped to real AIGC detection dimensions. Produces a teaching humanize_matrix.md. (internal /paperspine step)",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
@@ -4982,11 +5077,12 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次13（真实执行留档 skill_c2_batch10）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "spine-intake",
-      "name": "paper-spine-intake",
+      "name": "spine-intake",
       "domain": "course_research_materials",
       "description": "Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine step)",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
@@ -5002,11 +5098,12 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次14（真实执行留档 skill_c2_batch11）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "spine-translate-zh",
-      "name": "paper-spine-translate",
+      "name": "spine-translate-zh",
       "domain": "course_research_materials",
       "description": "Produces the complete translation_zh/ package with row-by-row translation of all required artifacts and full-paper translation. (internal /paperspine step)",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
@@ -5022,11 +5119,12 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次13（真实执行留档 skill_c2_batch10）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "spine-config-ui",
-      "name": "paper-spine-ui",
+      "name": "spine-config-ui",
       "domain": "course_research_materials",
       "description": "Launches the PaperSpine external terminal configuration UI for Codex and Claude Code. (internal /paperspine step)",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
@@ -5042,11 +5140,12 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次14（真实执行留档 skill_c2_batch11）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "spine-update",
-      "name": "paper-spine-update",
+      "name": "spine-update",
       "domain": "course_research_materials",
       "description": "Checks and updates PaperSpine from GitHub while preserving global config; use for upgrades, latest-version checks, or local reinstall.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
@@ -5062,7 +5161,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次14（真实执行留档 skill_c2_batch11）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "training-check",
@@ -5177,7 +5277,8 @@
       "promotion_history": [
         "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "ip-patent-search",
@@ -5198,7 +5299,8 @@
       "promotion_history": [
         "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "copyright-build",
@@ -5285,7 +5387,8 @@
       "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：gemini CLI 不在 PATH（同上）——凭证/外部服务需用户侧提供，不伪造验收",
       "status": "experimental",
       "promotion_history": [],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "patent-build",
@@ -5355,7 +5458,8 @@
       "source": "https://github.com/fanbuz/codesucker",
       "license": "Apache-2.0",
       "input_contract": "本地项目根目录、软件全称+版本号、著作权人、清洗/分页/排序配置",
-      "output_contract": "source-materials/{files,cleaned,selection,audit,stats}.json、SOURCE_MATERIALS_MANIFEST.json、SOURCE_MATERIALS_REPORT.md、rendered/*.docx|txt"
+      "output_contract": "source-materials/{files,cleaned,selection,audit,stats}.json、SOURCE_MATERIALS_MANIFEST.json、SOURCE_MATERIALS_REPORT.md、rendered/*.docx|txt",
+      "disposition": "external"
     },
     {
       "capability_id": "copyright-source-materials",
@@ -5559,7 +5663,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "docx-export",
@@ -5664,7 +5769,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-dependency"
+      "current_gap_class": "blocked-by-dependency",
+      "disposition": "external"
     },
     {
       "capability_id": "dev-frontend-design",
@@ -5685,7 +5791,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-scope"
+      "current_gap_class": "blocked-by-scope",
+      "disposition": "external"
     },
     {
       "capability_id": "fig-publication-chart",
@@ -5705,7 +5812,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次6/7（真实执行留档 skill_c2_batch4）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "dev-ui-ux",
@@ -5726,7 +5834,8 @@
       "promotion_history": [
         "2026-08-30: C2 批次27/28（宿主转化/模拟任务/试点，留档 skill_c2_batch21-22）"
       ],
-      "current_gap_class": "blocked-by-scope"
+      "current_gap_class": "blocked-by-scope",
+      "disposition": "external"
     },
     {
       "capability_id": "latex-document",
@@ -5936,7 +6045,8 @@
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次23（真实执行/映射留档 skill_c2_batch19）",
         "2026-08-30: C2 批次26 更正登记（真实执行证据替换误置的 blocked 措辞）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "fig-critique",
@@ -6003,7 +6113,7 @@
     },
     {
       "capability_id": "spine-latex",
-      "name": "paper-spine-latex",
+      "name": "spine-latex",
       "domain": "figures_and_document_production",
       "description": "Handles LaTeX project assembly, figure placement, citations, labels, and compile-safe cleanup. (internal /paperspine step)",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
@@ -6019,7 +6129,8 @@
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次13（真实执行留档 skill_c2_batch10）"
-      ]
+      ],
+      "disposition": "external"
     },
     {
       "capability_id": "anti_ai_detection",
@@ -6769,7 +6880,8 @@
       "external_dependencies": [],
       "high_risk_confirmation": "无",
       "current_evidence": "2026-09-20 宿主无关改造：agent_protocol boot 契约 + capability_probe + 文档入口泛化",
-      "current_gap": "多宿主实测（Claude Code/Cursor 等）待操作员在真实会话验收"
+      "current_gap": "多宿主实测（Claude Code/Cursor 等）待操作员在真实会话验收",
+      "disposition": "routed"
     },
     {
       "capability_id": "tool-forge",
@@ -6789,7 +6901,8 @@
       "external_dependencies": [],
       "high_risk_confirmation": "铸造默认不覆盖已有文件；环境类 gap 不伪造安装",
       "current_evidence": "2026-09-20 落地 tool_forge CLI（--tool/--skill/--adapter/--gap）与骨架模板",
-      "current_gap": "铸造产物的真实领域实现与跨 Agent 实战样本待补充"
+      "current_gap": "铸造产物的真实领域实现与跨 Agent 实战样本待补充",
+      "disposition": "routed"
     }
   ]
 }

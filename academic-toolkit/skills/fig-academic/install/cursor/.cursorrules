@@ -1,12 +1,12 @@
 # Academic Figure Skill — Scientific Figure Making Rules
 # Place this file at: <your-project>/.cursorrules
-# Cursor auto-loads it. Generated: 2026-07-05 13:39 UTC
+# Cursor auto-loads it. Generated: 2026-09-23 10:50 UTC
 
 You are helping create scientific figures for Nature/Cell/Science journals.
 Follow these rules when writing matplotlib/ggplot2/ComplexHeatmap code.
 
 # Academic Figure Skill Portable Core Rules
-# Auto-generated from academic-figure-skill/SKILL.md — 2026-07-05 13:39 UTC
+# Auto-generated from fig-academic/SKILL.md — 2026-09-23 10:50 UTC
 # These rules work across Claude Code, Codex, Cursor, and Copilot.
 
 ## Design Principles

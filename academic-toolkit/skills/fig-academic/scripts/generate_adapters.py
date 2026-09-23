@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Academic Figure Skill Cross-Platform Adapter Generator.
 
-Reads academic-figure-skill/SKILL.md and generates platform-specific adapter files for:
+Reads fig-academic/SKILL.md and generates platform-specific adapter files for:
   - Claude Code    (already supported via ~/.claude/skills/)
   - OpenAI Codex   (manifest.yaml)
   - Cursor         (.cursorrules)
@@ -22,7 +22,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SKILL_MD = PROJECT_ROOT / "fig-academic" / "SKILL.md"
-INSTALL_DIR = PROJECT_ROOT / "install"
+INSTALL_DIR = PROJECT_ROOT / "fig-academic" / "install"
 
 # ═══════════════════════════════════════════════════════════
 # Core rule extractor — pulls the 50-line essence from SKILL.md
@@ -48,7 +48,7 @@ def extract_core_rules() -> str:
     export_py  = _extract_code_block(export_md, "python")
 
     return f'''# Academic Figure Skill Portable Core Rules
-# Auto-generated from academic-figure-skill/SKILL.md — {_now()}
+# Auto-generated from fig-academic/SKILL.md — {_now()}
 # These rules work across Claude Code, Codex, Cursor, and Copilot.
 
 ## Design Principles
@@ -140,10 +140,10 @@ def generate_claude_code(core: str) -> str:
     """Claude Code: already supported via ~/.claude/skills/. This generates a README."""
     return f'''# Academic Figure Skill — Claude Code Installation
 
-The Claude Code skill is at `academic-figure-skill/`. Install via symlink:
+The Claude Code skill is at `fig-academic/`. Install via symlink:
 
 ```bash
-ln -s $(pwd)/academic-figure-skill ~/.claude/skills/fig-academic
+ln -s $(pwd)/fig-academic ~/.claude/skills/fig-academic
 ```
 
 Or copy:
@@ -154,7 +154,7 @@ cp -r fig-academic ~/.claude/skills/fig-academic
 After installation, Claude Code auto-triggers on: "make a volcano plot", "画个热图",
 "review this figure for Nature", etc.
 
-The skill checks `academic-figure-skill/assets/figures/<type>/` for production scripts before
+The skill checks `fig-academic/assets/figures/<type>/` for production scripts before
 generating any code. Add your own scripts there to extend figure type coverage.
 
 Generated: {_now()}
@@ -187,7 +187,7 @@ triggers:
 '''
 
     instructions = f'''# Academic Figure Skill Instructions for Codex
-# Auto-generated from academic-figure-skill/SKILL.md — {_now()}
+# Auto-generated from fig-academic/SKILL.md — {_now()}
 
 {core}
 '''
@@ -251,25 +251,25 @@ def generate(target: str | None = None):
         if t == "claude-code":
             readme = generate_claude_code(core)
             path = out_dir / "README.md"
-            path.write_text(readme, encoding="utf-8")
+            path.write_text(readme, encoding="utf-8", newline="\n")
             print(f"[OK] {t} → {path}")
 
         elif t == "codex":
             manifest, instructions = generate_codex_manifest(core)
-            (out_dir / "manifest.yaml").write_text(manifest, encoding="utf-8")
-            (out_dir / "instructions.md").write_text(instructions, encoding="utf-8")
+            (out_dir / "manifest.yaml").write_text(manifest, encoding="utf-8", newline="\n")
+            (out_dir / "instructions.md").write_text(instructions, encoding="utf-8", newline="\n")
             print(f"[OK] {t} → {out_dir}/manifest.yaml + instructions.md")
 
         elif t == "cursor":
             rules = generate_cursor_rules(core)
             path = out_dir / ".cursorrules"
-            path.write_text(rules, encoding="utf-8")
+            path.write_text(rules, encoding="utf-8", newline="\n")
             print(f"[OK] {t} → {path}")
 
         elif t == "copilot":
             instructions = generate_copilot_instructions(core)
             path = out_dir / "copilot-instructions.md"
-            path.write_text(instructions, encoding="utf-8")
+            path.write_text(instructions, encoding="utf-8", newline="\n")
             print(f"[OK] {t} → {path}")
 
     print(f"\nAll generated under: {INSTALL_DIR}")

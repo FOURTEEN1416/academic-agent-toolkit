@@ -94,7 +94,7 @@ def parse_skill_md_refs() -> list[str]:
     """Extract all references/<file> and scripts/<file> mentions from SKILL.md."""
     text = SKILL_MD.read_text(encoding="utf-8")
     refs = re.findall(r'`(references/[^`]+\.(?:md|R))`', text)
-    scripts = re.findall(r'`(?:academic-figure-skill/)?scripts/([^`]+\.py)`', text)
+    scripts = re.findall(r'`(?:fig-academic/)?scripts/([^`]+\.py)`', text)
     assets = re.findall(r'`assets/figures/([^`/]+)/', text)
     all_refs = refs + [f"scripts/{s}" for s in scripts] + [f"assets/figures/{a}" for a in assets]
     # Filter out placeholder patterns like <type>, <dir>, <ext>, <panel_label>

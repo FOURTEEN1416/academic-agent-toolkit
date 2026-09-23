@@ -173,7 +173,7 @@ cp -r . ~/.claude/skills/fig-academic/
 Codex loads skills through `install/codex/` which provides `manifest.yaml` + `instructions.md`. Copy the required directories to `~/.codex/skills/fig-academic/`:
 
 ```bash
-git clone https://github.com/TingxiYu/academic-figure-skill.git
+git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
 cd fig-academic
 mkdir -p ~/.codex/skills/fig-academic
 cp -r SKILL.md references/ scripts/ assets/ install/codex/* ~/.codex/skills/fig-academic/
@@ -194,8 +194,8 @@ Keep the full directory structure — do not copy only SKILL.md.
 Copy the skill rules file to your project root. Cursor will automatically follow the specifications when generating code:
 
 ```bash
-git clone https://github.com/TingxiYu/academic-figure-skill.git
-cp academic-figure-skill/install/cursor/.cursorrules <your-project>/.cursorrules
+git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
+cp fig-academic/install/cursor/.cursorrules <your-project>/.cursorrules
 ```
 
 The `.cursorrules` file includes color palettes, typography baselines, export specifications, and other core rules. To update, re-run the copy command.
@@ -205,9 +205,9 @@ The `.cursorrules` file includes color palettes, typography baselines, export sp
 Copy the skill instructions file to your project's `.github/` directory. Copilot loads this context when generating code:
 
 ```bash
-git clone https://github.com/TingxiYu/academic-figure-skill.git
+git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
 mkdir -p <your-project>/.github
-cp academic-figure-skill/install/copilot/copilot-instructions.md <your-project>/.github/
+cp fig-academic/install/copilot/copilot-instructions.md <your-project>/.github/
 ```
 
 If you already have `.github/copilot-instructions.md`, append this skill's content to the end of the file.
@@ -226,7 +226,7 @@ For other AI coding assistants:
 ## Directory Layout
 
 ```text
-	academic-figure-skill/             ← Core skill package (this directory)
+	fig-academic/             ← Core skill package (this directory)
     ├── README.md                      ← Documentation (Chinese)
     ├── README_EN.md                   ← Documentation (English)
     ├── LICENSE                        ← Apache 2.0 License

@@ -2,7 +2,7 @@
 """Validate PaperSpine humanize_matrix.md and scan for remaining AI patterns.
 
 Self-contained — standard library only, no dependencies on other PaperSpine
-modules.  Can be distributed standalone with paper-spine-humanize skill.
+modules.  Can be distributed standalone with spine-humanize skill.
 """
 
 from __future__ import annotations

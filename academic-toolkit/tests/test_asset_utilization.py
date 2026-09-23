@@ -189,7 +189,7 @@ def test_comp_cumcm_companion_lists_compact():
         "comp-compile-zh": [],
         "comp-visual-review": ["fig-critique", "figure-spec"],
         "comp-editor": ["anti-defensive-writing"],
-        "comp-final-review": ["scholar-critique-manuscript"],
+        "comp-final-review": ["paper-self-review"],
         "comp-final-audit": ["citation-check", "quality-check"],
     }
     for skill, comp in expected.items():

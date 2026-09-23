@@ -455,31 +455,31 @@ All figure types routed through `assets/figures/<type>/`. Adding a new type = ad
 
 ```bash
 # Full asset audit — scripts, syntax, baseline compliance
-py academic-figure-skill/scripts/eval_runner.py
-py academic-figure-skill/scripts/eval_runner.py --type PCA
+py fig-academic/scripts/eval_runner.py
+py fig-academic/scripts/eval_runner.py --type PCA
 
 # Trigger accuracy benchmark — 40 prompts, F1/precision/recall
-py academic-figure-skill/scripts/trigger_benchmark.py
-py academic-figure-skill/scripts/trigger_benchmark.py --calibrate
+py fig-academic/scripts/trigger_benchmark.py
+py fig-academic/scripts/trigger_benchmark.py --calibrate
 
 # QA validator coverage — test each check against known-good/bad scripts
-py academic-figure-skill/scripts/qa_coverage.py
+py fig-academic/scripts/qa_coverage.py
 
 # Reference integrity — directory-map, PANEL_ASPECT, SKILL.md cross-links
-py academic-figure-skill/scripts/check_references.py
-py academic-figure-skill/scripts/check_references.py --json
+py fig-academic/scripts/check_references.py
+py fig-academic/scripts/check_references.py --json
 
 # E2E integration — automated A/B scenario scoring
-py academic-figure-skill/scripts/e2e_runner.py
-py academic-figure-skill/scripts/e2e_runner.py --scenario S1_pca
+py fig-academic/scripts/e2e_runner.py
+py fig-academic/scripts/e2e_runner.py --scenario S1_pca
 ```
 
 ## Cross-Platform Adapters
 
 Generate platform-specific adapter files for non-Claude-Code agents:
 ```bash
-python academic-figure-skill/scripts/generate_adapters.py            # all platforms
-python academic-figure-skill/scripts/generate_adapters.py --target cursor  # Cursor only
+python fig-academic/scripts/generate_adapters.py            # all platforms
+python fig-academic/scripts/generate_adapters.py --target cursor  # Cursor only
 ```
 
 Generated adapters are in `install/`:

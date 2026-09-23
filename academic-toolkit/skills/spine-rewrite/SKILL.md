@@ -24,11 +24,11 @@ manuscript improvement.
 - evidence from the user's draft, figures, tables, data, or notes
 
 If research or confirmed motivation is missing, do not rewrite. Return to
-`paper-spine-research` and ask the user to confirm the motivation after seeing
+`spine-research` and ask the user to confirm the motivation after seeing
 research-grounded options.
 
 If `citation_support_bank.md` is missing or shallow, return to
-`paper-spine-citation` before final writing. Introduction, background, related
+`spine-citation` before final writing. Introduction, background, related
 work, and Discussion claims should draw from that bank when they need
 literature support.
 
@@ -41,7 +41,7 @@ literature support.
 - `paper_rewriting_output/rewrite_matrix.md`
 - `paper_rewriting_output/logic_transfer_audit.md`
 - revised manuscript or revised sections
-- `translation_zh/` package when `translation_package` is `zh` (via `paper-spine-translate`)
+- `translation_zh/` package when `translation_package` is `zh` (via `spine-translate-zh`)
 
 ## Original Logic Map
 
@@ -87,7 +87,7 @@ too shallow.
 ## Humanize Tier
 
 If `paper_spine_config.json` has `humanize_tier` set to `light`, `medium`, or
-`heavy`, route to `paper-spine-humanize` before writing.  The humanize skill
+`heavy`, route to `spine-humanize` before writing.  The humanize skill
 provides tier-specific writing constraints enforced during all prose generation.
 
 ## Rewrite Rules
@@ -108,7 +108,7 @@ provides tier-specific writing constraints enforced during all prose generation.
 
 ## Pre-LaTeX Gate
 
-Before routing output to `paper-spine-latex`, run:
+Before routing output to `spine-latex`, run:
 
 ```bash
 python scripts/integrity_audit.py paper_rewriting_output --markdown --write

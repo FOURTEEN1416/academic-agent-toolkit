@@ -32,7 +32,7 @@ Autonomously explore a design space: run → analyze → pick next parameters �
 | `PATIENCE` | 10 | Stop early if no improvement for this many consecutive iterations. |
 | `OBJECTIVE` | minimize | `minimize` or `maximize` the target metric. |
 
-Override inline: `/dse-loop "task desc — timeout: 4h, max_iterations: 100, patience: 15"`
+Override inline: `/meta-design-space-exploration "task desc — timeout: 4h, max_iterations: 100, patience: 15"`
 
 ## Typical Use Cases
 
@@ -265,14 +265,14 @@ If the context window compacts mid-run, the loop recovers from `DSE_STATE.json` 
 
 ```
 # Minimal — just name the parameters, let the agent figure out ranges
-/dse-loop "Run gem5 mcf benchmark. Tune: L1D_SIZE, L2_SIZE, ROB_ENTRIES. Objective: maximize IPC. Timeout: 3h"
+/meta-design-space-exploration "Run gem5 mcf benchmark. Tune: L1D_SIZE, L2_SIZE, ROB_ENTRIES. Objective: maximize IPC. Timeout: 3h"
 
 # Partial — some ranges given, some not
-/dse-loop "Run make synth. Tune: CLOCK_PERIOD [5ns, 4ns, 3ns, 2ns], FLATTEN, ABC_SCRIPT. Objective: minimize area at timing closure. Timeout: 1h"
+/meta-design-space-exploration "Run make synth. Tune: CLOCK_PERIOD [5ns, 4ns, 3ns, 2ns], FLATTEN, ABC_SCRIPT. Objective: minimize area at timing closure. Timeout: 1h"
 
 # Fully specified — explicit ranges for everything
-/dse-loop "Simulate processor with FIFO_DEPTH [4,8,16,32], ISSUE_WIDTH [1,2,4], PREFETCH [on,off]. Run: make sim. Objective: max throughput/area. Timeout: 2h"
+/meta-design-space-exploration "Simulate processor with FIFO_DEPTH [4,8,16,32], ISSUE_WIDTH [1,2,4], PREFETCH [on,off]. Run: make sim. Objective: max throughput/area. Timeout: 2h"
 
 # Real-world: PDAG-SFA formal verification tuning
-/dse-loop "Run python run_bmc.py. Tune: BMC_DEPTH, ENGINE, TIMEOUT_PER_PROP. Objective: maximize properties proved. Timeout: 2h"
+/meta-design-space-exploration "Run python run_bmc.py. Tune: BMC_DEPTH, ENGINE, TIMEOUT_PER_PROP. Objective: maximize properties proved. Timeout: 2h"
 ```

@@ -100,6 +100,6 @@ counterpart, and its final status (`translated`).  Every entry must be
 
 ## Integration
 
-This branch is called by the orchestrator after `paper-spine-latex` and before
-`paper-spine-audit`.  The orchestrator's Non-Negotiable Route step 14 requires
+This branch is called by the orchestrator after `spine-latex` and before
+`spine-audit`.  The orchestrator's Non-Negotiable Route step 14 requires
 the translate guard to PASS before audit begins.

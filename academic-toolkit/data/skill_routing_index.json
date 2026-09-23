@@ -14,9 +14,9 @@
   },
   "counts": {
     "core": 52,
-    "ondemand": 204,
-    "resident_chars": 31129,
-    "full_chars": 65173
+    "ondemand": 203,
+    "resident_chars": 30977,
+    "full_chars": 64778
   },
   "skills": {
     "ablation-planner": {
@@ -1588,11 +1588,11 @@
       "path": "academic-toolkit/skills/paper-sections-nature/SKILL.md"
     },
     "paper-self-review": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
+      "tier": "core",
+      "reason": "主链步骤的推荐/必用位",
       "resident_description": "This skill should be used when the user asks to ”review paper quality”, ”check paper completeness”, ”validate paper",
-      "full_description": "This skill should be used when the user asks to \"review paper quality\", \"check paper completeness\", \"validate paper structure\", \"self-review before submission\", \"audit claims\", \"check overclaiming\", \"verify whether results support claims\", or mentions systematic paper quality checking. Provides comprehensive quality assurance checklist for academic papers.",
-      "description_compacted": true,
+      "full_description": "This skill should be used when the user asks to ”review paper quality”, ”check paper completeness”, ”validate paper",
+      "description_compacted": false,
       "path": "academic-toolkit/skills/paper-self-review/SKILL.md"
     },
     "paper-slides": {
@@ -1874,14 +1874,6 @@
       "full_description": "Deploy and run ML experiments on local or remote GPU servers. Use when user says \"run experiment\", \"deploy to server\", \"跑实验\", or needs to launch training jobs.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/run-experiment/SKILL.md"
-    },
-    "scholar-critique-manuscript": {
-      "tier": "core",
-      "reason": "主链步骤的推荐/必用位",
-      "resident_description": "Structured self-review of your manuscript before submission. Systematic evaluation across review criteria. Use when 用户要求投稿前自审、论文批判性复核、模拟审稿意见或按审稿清单逐条对照时。",
-      "full_description": "Structured self-review of your manuscript before submission. Systematic evaluation across review criteria. Use when 用户要求投稿前自审、论文批判性复核、模拟审稿意见或按审稿清单逐条对照时。",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/scholar-critique-manuscript/SKILL.md"
     },
     "scientific-schematics": {
       "tier": "ondemand",

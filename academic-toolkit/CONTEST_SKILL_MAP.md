@@ -50,7 +50,7 @@
 | 10 编译 | （无） | Word 交付需求由 output_format=docx 参数机制自动加步，不再重复推荐 |
 | 11 视觉审查 | fig-critique, figure-spec | 外部图审视角清单/图规格说明 |
 | 12 编辑 | anti-defensive-writing | 修订删 hedge/免责/过度解释（该技能唯一正确档位，S8 写作期不适用） |
-| 13 终审 | scholar-critique-manuscript | 外部审稿人视角批判清单（参考用，不替代独立审稿通道） |
+| 13 终审 | paper-self-review | 外部审稿人视角批判清单（参考用，不替代独立审稿通道） |
 | 14 交付审计 | citation-check, quality-check | 引用终检+产出质量终检（按本步 `metadata.compliance_profile` 挂 `engine/modex-core/comp_rules.json` 对应族 compliance 块逐条核验：国赛 cumcm_2026_format 口径，华为杯承诺书必在、正文≤50） |
 
 **赛后/场外情境推荐**（不在 14 步内）：`contest-retrospective`（赛后复盘与经验沉淀——留痕取证→场景/坑/清单三分类→每条归因仓库内真实强制点→双写经验库→机检闭环；**每个赛事周期结束后应跑一次**，2026-09-19 入库）、`paper-slides`/`paper-poster`/`doc-poster-latex`（答辩幻灯与海报）、`team-coordination`（三人分工时）、`feishu-notify`（进度通知）、`rebuttal`（答辩质询应答结构）。

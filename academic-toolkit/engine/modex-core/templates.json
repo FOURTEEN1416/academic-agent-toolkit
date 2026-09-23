@@ -1669,12 +1669,12 @@
           ],
           "display_name": "数模最终复审",
           "companion_skills": [
-            "scholar-critique-manuscript"
+            "paper-self-review"
           ],
           "skill_binding": {
             "main_required": true,
             "mandatory": [
-              "scholar-critique-manuscript"
+              "paper-self-review"
             ]
           },
           "assets": [
@@ -2636,12 +2636,12 @@
           ],
           "display_name": "数模最终复审",
           "companion_skills": [
-            "scholar-critique-manuscript"
+            "paper-self-review"
           ],
           "skill_binding": {
             "main_required": true,
             "mandatory": [
-              "scholar-critique-manuscript"
+              "paper-self-review"
             ]
           },
           "assets": [

@@ -1,9 +1,9 @@
 # Academic Figure Skill — Scientific Figure Instructions for GitHub Copilot
 # Place this file at: <your-repo>/.github/copilot-instructions.md
-# Generated: 2026-07-05 13:39 UTC
+# Generated: 2026-09-23 10:50 UTC
 
 # Academic Figure Skill Portable Core Rules
-# Auto-generated from academic-figure-skill/SKILL.md — 2026-07-05 13:39 UTC
+# Auto-generated from fig-academic/SKILL.md — 2026-09-23 10:50 UTC
 # These rules work across Claude Code, Codex, Cursor, and Copilot.
 
 ## Design Principles

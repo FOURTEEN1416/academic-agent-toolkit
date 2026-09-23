@@ -1,8 +1,8 @@
 # Academic Figure Skill Instructions for Codex
-# Auto-generated from academic-figure-skill/SKILL.md — 2026-07-05 13:39 UTC
+# Auto-generated from fig-academic/SKILL.md — 2026-09-23 10:50 UTC
 
 # Academic Figure Skill Portable Core Rules
-# Auto-generated from academic-figure-skill/SKILL.md — 2026-07-05 13:39 UTC
+# Auto-generated from fig-academic/SKILL.md — 2026-09-23 10:50 UTC
 # These rules work across Claude Code, Codex, Cursor, and Copilot.
 
 ## Design Principles

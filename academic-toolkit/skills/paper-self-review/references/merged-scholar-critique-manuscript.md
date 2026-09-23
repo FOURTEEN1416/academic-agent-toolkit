@@ -1,3 +1,10 @@
+# 合并件：scholar-critique-manuscript → paper-self-review
+
+> 2026-09-23 v2.0 收尾：本技能与 `paper-self-review` 同职能（投稿前自审），且带 `scholar-` 批次前缀
+> （违反命名法）。正文折叠至此保内容与溯源，目录 `skills/scholar-critique-manuscript/` 已退役。
+
+---
+
 ---
 name: scholar-critique-manuscript
 user_invocable: true
@@ -201,3 +208,4 @@ After writing the file, print a brief summary to the conversation highlighting t
 - Present strengths alongside weaknesses — the author needs to hear suggestions regarding what to preserve, not just what to fix.
 - In the critique report, use author-directed language ("your methods", "your claims", "your literature review").
 - Anchor every critique point to a specific location in the manuscript — cite the section, figure, table, or quoted claim. Generic feedback without evidence is not actionable.
+

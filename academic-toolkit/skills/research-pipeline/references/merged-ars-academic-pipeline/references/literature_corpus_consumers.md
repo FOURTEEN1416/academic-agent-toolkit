@@ -175,7 +175,7 @@ F4a/b/c are mutually exclusive by trigger. F4d applies only when zero entries de
 **Status**: Wired in v3.6.5
 **Skill**: comp-contest-research
 **Phase**: 1 (literature search and curation)
-**Agent file**: [`deep-research/agents/bibliography_agent.md`](../../deep-research/agents/bibliography_agent.md)
+**Agent file**: [`comp-contest-research/agents/bibliography_agent.md`](../../comp-contest-research/agents/bibliography_agent.md)
 
 The comp-contest-research bibliography agent applies the corpus-first flow during its systematic literature search. The PRE-SCREENED block sits inside the Search Strategy section of its Annotated Bibliography output (per the agent's existing Output Format), preceding the existing DATABASES / Inclusion-Exclusion / RESULTS structure.
 

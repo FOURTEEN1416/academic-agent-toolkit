@@ -98,18 +98,18 @@ def load_config(out_dir: Path) -> dict:
 # ---------------------------------------------------------------------------
 
 ARTIFACT_OWNERS: dict[str, str] = {
-    "paper_spine_config.json": "paper-spine-intake",
-    "research_dossier.md": "paper-spine-research",
-    "exemplar_learning_dossier.md": "paper-spine-research",
-    "citation_support_bank.md": "paper-spine-citation",
-    "confirmed_motivation.md": "user confirmation (after paper-spine-research)",
-    "section_blueprints.md": "paper-spine-rewrite / paper-spine-build",
-    "writing_rationale_matrix.md": "paper-spine-rewrite / paper-spine-build",
-    "original_logic_map.md": "paper-spine-rewrite",
-    "evidence_bank.md": "paper-spine-rewrite / paper-spine-build",
-    "rewrite_matrix.md": "paper-spine-rewrite",
-    "logic_transfer_audit.md": "paper-spine-rewrite",
-    "source_inventory.md": "paper-spine-build",
+    "paper_spine_config.json": "spine-intake",
+    "research_dossier.md": "spine-research",
+    "exemplar_learning_dossier.md": "spine-research",
+    "citation_support_bank.md": "spine-citation",
+    "confirmed_motivation.md": "user confirmation (after spine-research)",
+    "section_blueprints.md": "spine-rewrite / spine-build",
+    "writing_rationale_matrix.md": "spine-rewrite / spine-build",
+    "original_logic_map.md": "spine-rewrite",
+    "evidence_bank.md": "spine-rewrite / spine-build",
+    "rewrite_matrix.md": "spine-rewrite",
+    "logic_transfer_audit.md": "spine-rewrite",
+    "source_inventory.md": "spine-build",
 }
 
 ARTIFACT_DESCRIPTIONS: dict[str, str] = {
@@ -174,7 +174,7 @@ def audit_reasoning_depth(out_dir: Path, _config: dict) -> AuditDimension:
         dim.findings.append(AuditFinding(
             id="RSN-001", severity="BLOCKER", dimension=dim.name,
             what_was_found="writing_rationale_matrix.md not found — cannot audit reasoning depth",
-            root_cause="paper-spine-rewrite or paper-spine-build did not produce the rationale matrix",
+            root_cause="spine-rewrite or spine-build did not produce the rationale matrix",
             fix_action="Return to the rewrite/build step and generate a complete rationale matrix before retrying.",
             downstream_impact="Without the matrix, the manuscript has no documented reasoning. "
                               "The LaTeX stage cannot verify that structural choices are intentional.",
