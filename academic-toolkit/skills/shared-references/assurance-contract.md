@@ -100,7 +100,7 @@ human-readable Markdown sibling). The JSON must contain at minimum:
     "sections/5.evidence.tex":           "sha256:b2d1...",
     "/Users/me/project/results/run_2026_04_19.json": "sha256:c9e4..."
   },
-  "trace_path": ".aris/traces/paper-claim-audit/2026-04-21_run01/",
+  "trace_path": "traces/paper-claim-audit/2026-04-21_run01/",
   "thread_id":  "019dae73-fc12-4ab8-...",
   "executor_model": "claude-opus-4-8",
   "executor_family": "anthropic",
