@@ -9,9 +9,11 @@
 > 引擎（engine/）只负责状态记忆、编排、质量门禁和审计，绝不代执行。
 > 本系统完全独立，不依赖任何特定商业宿主。
 >
-> **宿主适配（可选，非驱动前提）**：OpenCode（`opencode.json` + `.opencode/`）与
-> ZCode（`.zcode/` + hooks）保留为可选适配器，提供技能扫描与 L1 审计增强；
-> 无它们时协议与 L2/L3 审计完整可用。见仓库根 `agents/adapters/`。
+> **宿主适配（可选，非驱动前提）**：OpenCode（`opencode.json`，subagent 角色内联）与
+> ZCode（`.zcode/skills` 本地联结）保留为可选适配器；宿主适配层 tracked 件已于 2026-09-23
+> 按用户裁决移除（`agents/adapters/`、`.opencode/` 层、`.zcode` 配置件，永不恢复），
+> 需要时 `python -m engine.workflow_cli forge --adapter <name>` 本地重建。
+> 无适配器时协议与 L2/L3 审计完整可用。
 
 ---
 
@@ -57,7 +59,6 @@
 ```
 仓库根/
 ├── AGENTS.md              ← 宿主无关驱动协议入口
-├── agents/adapters/       ← 可选宿主适配器元数据（非依赖）
 ├── 科研工具箱/
 │   ├── AGENTS.md          ← 你在这里（路由 + 门禁 + 引擎用法）
 │   ├── skills/            ← 技能库（每个技能一个 SKILL.md）
@@ -156,10 +157,15 @@ paper-figure / paper-figure-drawio / paper-figure-html / nature-figure / comp-pa
 
 **动手前扫一眼**：`skills/_utils/anti_rationalization.md`
 
+**审稿/评审类步骤**：凡技能要求外部审稿 API（`reviewer_client.py` 等），一律按统一
+《独立评审操作手册》`skills/_utils/independent_review_manual.md` 执行——评审任务卡 →
+独立上下文评审（独立子代理/会话/窗口/另一模型均可）→ 缺席降级自审；
+外部 LLM API 审稿通道已退役，零 APIKey 零网络。
+
 ## 可选宿主配置（非协议前提）
 
 OpenCode：根 `opencode.json` 扫描 `./科研工具箱/skills`，加载本文件为指令；
-agent 定义在 `.opencode/agents/`。变更后需重启 OpenCode。
+agent 定义内联于 `opencode.json`（`.opencode/agents/` 已于 2026-09-23 移除）。变更后需重启 OpenCode。
 
 MCP：tracked 配置用占位符 `${DOCSEARCH_MCP_SERVER}` / `${DOCSEARCH_ROOTS}`；
 本机绝对路径放未提交本地覆盖。
@@ -206,7 +212,7 @@ python tools/doc_reader.py 题目.pdf --no-vision
 ## 六、质量门禁（P4 核心）
 
 `engine/quality_gates.py`：最小大小 / 伴随文件 / 论文页数 / 图表健康 / named gates。
-模型配置解析（宿主中立）：contest_models.json → agents/adapters/*/models.json → 可选宿主 agent 目录。
+模型配置解析（宿主中立）：contest_models.json → agents/adapters/*/models.json（该级目录已移出仓库，仅本地重建适配器时生效）→ 可选宿主 agent 目录。
 
 | 技能 | 最小大小 |
 |------|---------|
@@ -284,5 +290,5 @@ evidence.agent 为**自由非空字符串**（你的工具名）；schema/哈希
 **竞赛解题入口**：CUMCM 等解题任务**一律经工作流引擎启动**后再使用技能——
 绕开会丢失审计链。非竞赛任务可按路由表自由加载技能。
 
-**模型配置仓库不预设**：填 `engine/modex-core/contest_models.json` 或
-`agents/adapters/*/models.json`，仅供工具脚本与 strict 门禁比对。
+**模型配置仓库不预设**：填 `engine/modex-core/contest_models.json`
+（或本地重建的 `agents/adapters/*/models.json`），仅供工具脚本与 strict 门禁比对。

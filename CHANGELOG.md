@@ -4,18 +4,24 @@
 
 ## [Unreleased]
 
-### Changed —— 审稿循环换驱动 · 宿主智能体直接驱动（2026-09-23）
+### Changed —— 审稿循环换驱动 · 统一独立评审操作手册（2026-09-23）
 
-- `auto-review-loop` 评审底层从 `reviewer_client.py` 外部 LLM API 整体置换为**宿主驱动任务卡制**：写评审任务卡 `review_tasks/round_N.task.md` → 宿主独立窗口评审并回写 verdict → 宿主无独立窗口能力时缺席降级为当前 Agent 负面对照自审；`REVIEW_STATE.json` 新增 `review_driver` 如实记录驱动方；上下文连续性改任务卡链承载。循环状态机、输出模式、人工检查点、图表规范铁律、编译质量门机制骨架不变。**零 APIKey、零网络调用**。
+- `auto-review-loop` 评审底层从 `reviewer_client.py` 外部 LLM API 整体置换为**统一独立评审操作手册**（`skills/_utils/independent_review_manual.md`，宿主无关、任意驱动 Agent 可执行）：写评审任务卡 `review_tasks/round_N.task.md` → 交任何独立上下文（独立子代理/会话/窗口/另一模型）评审并回写 verdict → 无法获得独立上下文时缺席降级为当前 Agent 负面对照自审（如实标记 `self-fallback`）；`REVIEW_STATE.json` 新增 `review_driver` 如实记录驱动方；上下文连续性改任务卡链承载。循环状态机、输出模式、人工检查点、图表规范铁律、编译质量门机制骨架不变。**零 APIKey、零网络调用**。`reviewer_client.py` 标记 deprecated，新流程勿调用。
 
 ### Removed
 
 - `auto-review-loop-llm` / `auto-review-loop-minimax` 两个外部 API 通道变体技能（经实证与 base 版机制完全同构、base 为功能超集，随换驱动一并退役并入）；catalog 双向映射、CONTEST_SKILL_MAP 审稿循环分组、路由回归登记、路由关键集、技能分层索引已同步重建。
 
+### Removed —— 宿主适配层瘦身（2026-09-23 用户裁决，永不恢复）
+
+- 宿主适配层 tracked 件整体移除：`agents/adapters/`（六宿主 adapter.json + README）、`.opencode/`（agents 四角色 .md + plugins/audit-trail.ts）、`.zcode/config.json` 与 `.zcode/commands/`。驱动协议不依赖任何适配器（AGENTS.md + skills/ + workflow_cli 即完整协议）；L1 审计无宿主 hook 时如实 `unavailable`，ZCode 侧等价脚本 `科研工具箱/hooks/zcode_audit_l1.py` 保留在库，注册契约冻结于 `tests/test_zcode_host_compat.py` D 段与 git 历史。OpenCode 用户改用 `opencode.json` 内联 subagent（数模专家/审稿人/编辑/视觉审查）。需要适配器元数据时 `python -m engine.workflow_cli forge --adapter <name>` 本地重建。
+- `docs/skill-cluster-arbitration.md` 与 `docs/superpowers/`（plans 3 件 + specs 5 件，dated 快照）——内容已并入各真源文档，git 历史可溯。
+- 测试与口径同步：根级 `tests/test_minimum_catalog.py`（catalog schema 硬校验）与 `tests/test_anti_ai_toolkit.py` 随根级门禁退役；catalog 一致性改由工具箱 asset 系测试 + `tools/check_asset_utilization.py --strict` 守护。相关测试（test_opencode_configuration / test_review_contract / test_zcode_host_compat D 段）向前改写，并新增 `test_host_adapter_layer_files_are_not_tracked` 防误恢复。
+
 ## [v1.3.0] - 2026-09-22
 
 > 定版范围：2026-09-19 系统性升级五项 → 2026-09-20 基线基础设施加固 → 宿主无关自适应泛化 → L8-L12 遗留裁决落地 → 第五轮四批次并行升级。
-> 设计文档：`docs/superpowers/specs/2026-09-19-peer-project-fusion-assessment.md`、`docs/superpowers/specs/2026-09-20-baseline-infrastructure-hardening.md`、`docs/superpowers/specs/2026-09-20-host-agnostic-adaptive-agent.md`（dated 快照，仅供追溯）。
+> 设计文档：三件 dated 快照（peer-project-fusion-assessment / baseline-infrastructure-hardening / host-agnostic-adaptive-agent）已于 2026-09-23 随 `docs/superpowers/` 移出仓库，git 历史可溯。
 
 ### Added —— 宿主无关 · 自适应 Agent 泛化（2026-09-20）
 

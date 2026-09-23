@@ -1,6 +1,11 @@
 ﻿#!/usr/bin/env python3
 """reviewer_client.py — 调用外部 LLM 进行评审（替代 Codex MCP）
 
+.. deprecated:: 2026-09-23
+    外部 LLM API 审稿通道已退役。审稿/评审一律改走统一《独立评审操作手册》
+    skills/_utils/independent_review_manual.md（评审任务卡 → 独立上下文评审 →
+    缺席降级自审，零 APIKey 零网络）。本脚本仅为历史消费者保留，新流程勿调用。
+
 环境变量:
     OPENAI_API_KEY      — API Key（必填）
     OPENAI_BASE_URL     — Base URL，如 https://api.openai.com/v1（必填）

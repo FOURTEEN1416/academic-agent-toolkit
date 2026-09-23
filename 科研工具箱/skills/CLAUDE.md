@@ -28,7 +28,7 @@ python -m engine.workflow_cli forge --tool <name> --purpose "..."
 ```
 
 自举技能：`skills/agent-bootstrap/` · 铸造技能：`skills/tool-forge/`
-可选适配器：仓库根 `agents/adapters/`（协议不依赖）
+可选适配器：协议不依赖（宿主适配层 tracked 件已于 2026-09-23 移除，需要时 `forge --adapter` 本地重建）
 
 ## 工作流模板
 
@@ -75,7 +75,7 @@ python -m engine.workflow_cli forge --tool <name> --purpose "..."
 |------|------|
 | `tools/scholar_fetch.py` | 学术文献搜索 |
 | `tools/gpt_image.py` | 科研插图生成 |
-| `tools/reviewer_client.py` | 外部 LLM 评审 |
+| `tools/reviewer_client.py` | ~~外部 LLM 评审~~（通道已退役；审稿一律走 `skills/_utils/independent_review_manual.md` 独立评审操作手册，零 APIKey 零网络） |
 | `tools/doc_reader.py` | DOCX/PDF 完整读取（含嵌入图） |
 | `engine.workflow_cli boot/probe/forge` | 协议 / 探测 / 铸造 |
 

@@ -1,13 +1,13 @@
 ---
 name: auto-review-loop
-description: "Autonomous multi-round research review loop driven by the host agent itself: write review task cards, get independent-window review (degrade to current-agent self-review when absent), implement fixes, re-review until positive assessment or max rounds. 零 APIKey 零网络（2026-09-23 换驱动：外部 LLM API 通道退役，auto-review-loop-llm / auto-review-loop-minimax 已并入本技能）。Trigger with \"auto review loop\", \"review until it passes\"."
+description: "Autonomous multi-round research review loop: write review task cards, obtain an independent review (any isolated context - independent subagent / session / window / another model), implement fixes, re-review until positive assessment or max rounds; degrade to current-agent adversarial self-review only when no independent context is obtainable. 统一遵循 skills/_utils/independent_review_manual.md，零 APIKey 零网络（外部 LLM API 通道已退役）。Trigger with \"auto review loop\", \"review until it passes\"."
 argument-hint: [topic-or-scope]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent, Skill
 ---
 
 # Auto Review Loop: Autonomous Research Improvement
 
-Autonomously iterate: review → implement fixes → re-review, until the independent reviewer (host independent window, or current-agent self-review fallback) gives a positive assessment or MAX_ROUNDS is reached.
+Autonomously iterate: review → implement fixes → re-review, until the independent reviewer (any isolated context, or current-agent adversarial self-review fallback) gives a positive assessment or MAX_ROUNDS is reached.
 
 ## Context: $ARGUMENTS
 
@@ -40,7 +40,7 @@ The orchestrator may inject one of two notice blocks into `AGENTS.md`:
 - POSITIVE_THRESHOLD: score >= 6/10, or verdict contains "accept", "sufficient", "ready for submission"
 - REVIEW_DOC: `AUTO_REVIEW.md` in project root (cumulative log)
 - REVIEW_TASK_DIR: `review_tasks/` — task cards `round_<N>.task.md`, verdicts `round_<N>.verdict.md`
-- REVIEW_DRIVER ∈ {"independent-window", "self-fallback"} — recorded per round in `REVIEW_STATE.json`
+- REVIEW_DRIVER ∈ {"independent", "self-fallback"} — recorded per round in `REVIEW_STATE.json`（降级须附一句原因）
 - **HUMAN_CHECKPOINT = false** — When `true`, pause after each round's review (Phase B) and present the score + weaknesses to the user. Wait for user input before proceeding to Phase C. The user can: approve the suggested fixes, provide custom modification instructions, skip specific fixes, or stop the loop early. When `false` (default), the loop runs fully autonomously.
 
 > 💡 Override: `/auto-review-loop "topic" — human checkpoint: true`
@@ -55,7 +55,7 @@ Long-running loops may hit the context window limit, triggering automatic compac
   "status": "in_progress",
   "last_score": 5.0,
   "last_verdict": "not ready",
-  "review_driver": "independent-window",
+  "review_driver": "independent",
   "pending_experiments": ["screen_name_1"],
   "timestamp": "2026-03-13T21:00:00"
 }
@@ -91,9 +91,10 @@ Long-running loops may hit the context window limit, triggering automatic compac
 
 ### Loop (repeat up to MAX_ROUNDS)
 
-#### Phase A: Review（宿主驱动 · 零 APIKey 零网络）
+#### Phase A: Review（独立评审 · 零 APIKey 零网络）
 
-审稿底层驱动是**宿主智能体自身**（2026-09-23 换驱动裁定，与视觉审核同法：换驱动，不拆机制）。
+审稿执行遵循统一《独立评审操作手册》`skills/_utils/independent_review_manual.md`
+（2026-09-23 换驱动裁定，与视觉审核同法：换驱动，不拆机制）。
 本技能不读取任何 API key、不发起任何网络 LLM 调用、不调用 `reviewer_client.py`。
 
 1. **写评审任务卡** `review_tasks/round_<N>.task.md`：
@@ -120,15 +121,14 @@ Be brutally honest. If the work is ready, say so clearly.
 REVIEW_EOF
 ```
 
-2. **派发评审**（按宿主能力择一，如实记录驱动方）：
-   - **独立窗口优先**：宿主提供子代理/独立会话能力时，把任务卡交给**独立评审窗口**执行，
-     评审结果回写 `review_tasks/round_<N>.verdict.md`；
-   - **缺席降级**：宿主无独立窗口能力（或评审窗口缺席）时，当前 Agent 切换为审稿人角色自审。
-     自审必须做**负面对照**：专门攻击自己刚实现的修改——"如果我是对手审稿人，第一枪打哪里？"
-     不得因为作品是自己写的而放水。
+2. **派发独立评审**（手册 §②）：把任务卡交给**任何独立上下文**执行——独立子代理、独立会话、
+   独立窗口、另一模型均可，宿主形态不限；判独立的标准只有一条：评审上下文不携带实现过程的
+   沉没成本。评审结果回写 `review_tasks/round_<N>.verdict.md`。
+   **缺席降级（手册 §④，最后手段）**：确实无法获得独立上下文时，当前 Agent 才切换审稿人角色
+   自审——必须先做**负面对照**（"对手审稿人第一枪打哪里？"）再评分，不得因作品出自己手而放水。
 
-3. 读取 verdict（独立窗口回写或自审产出），并把驱动方记入 `REVIEW_STATE.json`：
-   `"review_driver": "independent-window"` 或 `"self-fallback"`。
+3. 读取 verdict（独立评审回写或降级自审产出），并把驱动方如实记入 `REVIEW_STATE.json`：
+   `"review_driver": "independent"` 或 `"self-fallback"`（降级须附一句原因）。
 
 **上下文连续性 = 任务卡链**：Round 2+ 的任务卡必须携带"上一轮评审摘要 + 本轮修改清单 + 更新后结果"
 （见文末 Round 2+ 模板）；跨窗口评审上下文由任务卡承载，不依赖任何外部线程文件。
@@ -397,8 +397,8 @@ fi
 [ "$PASS" != true ] && echo "⛔ Verification failed — must produce output before ending step"
 ```
 
-- ALWAYS keep review context on the task-card chain: `review_tasks/round_<N>.task.md` carries prior-round summaries so any independent window can pick up mid-loop
-- 每轮如实记录 `review_driver`（independent-window / self-fallback）；自审轮必须留负面对照记录
+- ALWAYS keep review context on the task-card chain: `review_tasks/round_<N>.task.md` carries prior-round summaries so any independent context can pick up mid-loop
+- 每轮如实记录 `review_driver`（independent / self-fallback）；自审轮必须留负面对照记录
 - Be honest — include negative results and failed experiments
 - Do NOT hide weaknesses to game a positive score
 - Implement fixes BEFORE re-reviewing (don't just promise to fix)

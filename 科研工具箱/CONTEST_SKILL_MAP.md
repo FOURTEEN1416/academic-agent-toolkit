@@ -72,14 +72,15 @@
 - 文献检索（5）：`check-citations`（无执行器，功能由 scholar_fetch 等效承担）、`research-lit`、`literature-review`、`paper-search`、`sci-paper-lookup`（S2 契约为台账三查非综述）
 - 绘图（8）：`scipilot-figure-skill`（图型已由 S1 FIGURE_MANIFEST 前置定案）、`agent-figure-gallery`、`academic-figure-skill`（精修档位，S11 视觉审查可升级）、`plot-from-data`、`plot-from-image`、`scientific-visualization`、`paper-figure-html`、`eco-community-plots`（生态群落特化）
 - 架构图（6）：`paper-framework-figure-studio-pro`（高规格多候选档位）、`visio-image-rebuilder`、`diagram-design`、`scientific-schematics`、`graphviz`、`mermaid-diagram`（drawio/xelatex 主链未用其语法）
-- 审稿循环（1）：`auto-review-loop`（宿主驱动任务卡评审：任务卡→宿主独立窗口评审，缺席降级当前 Agent 负面对照自审，零 APIKey 零网络；备选循环引擎，主通道=contest_models 独立审稿。原 `-llm`/`-minimax` 外部 API 通道变体已于 2026-09-23 换驱动批退役并入）
+- 审稿循环（1）：`auto-review-loop`（统一独立评审操作手册驱动：任务卡→独立上下文评审（独立子代理/会话/窗口/另一模型均可），缺席降级当前 Agent 负面对照自审，零 APIKey 零网络；备选循环引擎，主通道=contest_models 独立审稿。原 `-llm`/`-minimax` 外部 API 通道变体已于 2026-09-23 换驱动批退役并入）
 - 论文写作（5）：`anti-ai-detection`（词表级检测由 _utils/ai_tell_check 承担）、`latex-writing`（cumcmthesis 模板内嵌）、`result-to-claim`（三要素转写为合同铁律）、`paper-plan-zh`（骨架由合同确定）、`format-profile`（cls 强制格式）
 - 编译交付（4）：`docx-export`（output_format=docx 机制自动加步）、`docx-format-check`、`docx-template-map`、`latex-document`
 
 **P0 激活批次（2026-09-22 资产充分吸收 P4，13 个）**——原 §五"未接入库"中"可修即可路由"
 的缺口：技能实体与 catalog 条目俱在、只差地图激活面（无 StepAction 推荐位之外的第二路由
 通道）。本批按情境可用接入本节，并同步 catalog 条目 `disposition: "routed"` 处置字段。
-分级口径（与根 `tests/test_minimum_catalog.py::test_disposition_claims_match_real_surfaces` 互锁）：
+分级口径（原与根级 catalog 硬校验测试互锁；该测试已于 2026-09-23 随根级门禁退役，
+现由 `tests/test_asset_activation_p4.py` 与 `tools/check_asset_utilization.py --strict` 守护）：
 本批 13 个均**不是**任何模板步骤的主技能（实测：templates.json 内 skill_name/companion_skills
 零命中），故只记 `routed`（第二路由通道=本地图活跃段具名），不冒充 `evidence-bound`；
 下一步激活面是把这些技能接入对应模板（scientific_plotting / literature_review /

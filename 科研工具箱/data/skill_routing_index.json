@@ -15,8 +15,8 @@
   "counts": {
     "core": 52,
     "ondemand": 212,
-    "resident_chars": 31883,
-    "full_chars": 68081
+    "resident_chars": 31956,
+    "full_chars": 68154
   },
   "skills": {
     "ablation-planner": {
@@ -286,8 +286,8 @@
     "auto-review-loop": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Autonomous multi-round research review loop driven by the host agent itself: write review task cards, get independent-window review (degrade to current-agent self-review when absent), implement fixes, re-review until positive assessment or max rounds. 零 APIKey 零网络（2026-09-23 换驱动：外部 LLM API 通道退役，auto-review-loop-llm / auto-review-loop-minimax 已并入本技能）。Trigger with \\\"auto review loop\\\", \\\"review until it passes\\\".",
-      "full_description": "Autonomous multi-round research review loop driven by the host agent itself: write review task cards, get independent-window review (degrade to current-agent self-review when absent), implement fixes, re-review until positive assessment or max rounds. 零 APIKey 零网络（2026-09-23 换驱动：外部 LLM API 通道退役，auto-review-loop-llm / auto-review-loop-minimax 已并入本技能）。Trigger with \\\"auto review loop\\\", \\\"review until it passes\\\".",
+      "resident_description": "Autonomous multi-round research review loop: write review task cards, obtain an independent review (any isolated context - independent subagent / session / window / another model), implement fixes, re-review until positive assessment or max rounds; degrade to current-agent adversarial self-review only when no independent context is obtainable. 统一遵循 skills/_utils/independent_review_manual.md，零 APIKey 零网络（外部 LLM API 通道已退役）。Trigger with \\\"auto review loop\\\", \\\"review until it passes\\\".",
+      "full_description": "Autonomous multi-round research review loop: write review task cards, obtain an independent review (any isolated context - independent subagent / session / window / another model), implement fixes, re-review until positive assessment or max rounds; degrade to current-agent adversarial self-review only when no independent context is obtainable. 统一遵循 skills/_utils/independent_review_manual.md，零 APIKey 零网络（外部 LLM API 通道已退役）。Trigger with \\\"auto review loop\\\", \\\"review until it passes\\\".",
       "description_compacted": false,
       "path": "科研工具箱/skills/auto-review-loop/SKILL.md"
     },
