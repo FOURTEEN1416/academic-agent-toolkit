@@ -4,7 +4,13 @@
 
 ## [Unreleased]
 
-（暂无——待下一轮升级条目。）
+### Changed —— 审稿循环换驱动 · 宿主智能体直接驱动（2026-09-23）
+
+- `auto-review-loop` 评审底层从 `reviewer_client.py` 外部 LLM API 整体置换为**宿主驱动任务卡制**：写评审任务卡 `review_tasks/round_N.task.md` → 宿主独立窗口评审并回写 verdict → 宿主无独立窗口能力时缺席降级为当前 Agent 负面对照自审；`REVIEW_STATE.json` 新增 `review_driver` 如实记录驱动方；上下文连续性改任务卡链承载。循环状态机、输出模式、人工检查点、图表规范铁律、编译质量门机制骨架不变。**零 APIKey、零网络调用**。
+
+### Removed
+
+- `auto-review-loop-llm` / `auto-review-loop-minimax` 两个外部 API 通道变体技能（经实证与 base 版机制完全同构、base 为功能超集，随换驱动一并退役并入）；catalog 双向映射、CONTEST_SKILL_MAP 审稿循环分组、路由回归登记、路由关键集、技能分层索引已同步重建。
 
 ## [v1.3.0] - 2026-09-22
 

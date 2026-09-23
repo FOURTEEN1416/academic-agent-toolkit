@@ -53,8 +53,6 @@ KNOWN_LEXICAL_LIMITS: tuple[tuple[str, str, str], ...] = (
      "判别句互引导致词法互染：前者为说明边界而写了 LaTeX，反被含 LaTeX 的请求命中"),
     ("sci-latex-posters", "paper-poster",
      "同域海报技能，词汇几乎完全重叠；靠 StepAction 绑定与 SKILL.md 边界判别"),
-    ("auto-review-loop-llm", "auto-review-loop-minimax",
-     "除 API 厂商名外描述同构；查询含明确厂商名时可分，不含时不可分"),
     ("paper-write-docx", "paper-write-zh-docx",
      "两变体描述同构，且中文论文类请求被短描述高频词的 paper-plan-zh 持续抢分"),
     ("paper-write-nature-docx", "paper-write-zh-docx",

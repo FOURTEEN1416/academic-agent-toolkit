@@ -72,7 +72,7 @@
 - 文献检索（5）：`check-citations`（无执行器，功能由 scholar_fetch 等效承担）、`research-lit`、`literature-review`、`paper-search`、`sci-paper-lookup`（S2 契约为台账三查非综述）
 - 绘图（8）：`scipilot-figure-skill`（图型已由 S1 FIGURE_MANIFEST 前置定案）、`agent-figure-gallery`、`academic-figure-skill`（精修档位，S11 视觉审查可升级）、`plot-from-data`、`plot-from-image`、`scientific-visualization`、`paper-figure-html`、`eco-community-plots`（生态群落特化）
 - 架构图（6）：`paper-framework-figure-studio-pro`（高规格多候选档位）、`visio-image-rebuilder`、`diagram-design`、`scientific-schematics`、`graphviz`、`mermaid-diagram`（drawio/xelatex 主链未用其语法）
-- 审稿循环（3）：`auto-review-loop`、`auto-review-loop-llm`、`auto-review-loop-minimax`（备选循环引擎，主通道=contest_models 独立审稿）
+- 审稿循环（1）：`auto-review-loop`（宿主驱动任务卡评审：任务卡→宿主独立窗口评审，缺席降级当前 Agent 负面对照自审，零 APIKey 零网络；备选循环引擎，主通道=contest_models 独立审稿。原 `-llm`/`-minimax` 外部 API 通道变体已于 2026-09-23 换驱动批退役并入）
 - 论文写作（5）：`anti-ai-detection`（词表级检测由 _utils/ai_tell_check 承担）、`latex-writing`（cumcmthesis 模板内嵌）、`result-to-claim`（三要素转写为合同铁律）、`paper-plan-zh`（骨架由合同确定）、`format-profile`（cls 强制格式）
 - 编译交付（4）：`docx-export`（output_format=docx 机制自动加步）、`docx-format-check`、`docx-template-map`、`latex-document`
 

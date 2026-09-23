@@ -1,13 +1,13 @@
 ---
 name: auto-review-loop
-description: "Autonomous multi-round research review loop. Repeatedly reviews via external reviewer script, implements fixes, and。区别于 auto-review-loop-llm 与 auto-review-loop-minimax：本技能用本仓自带审稿脚本，不接外部 LLM API。"
+description: "Autonomous multi-round research review loop driven by the host agent itself: write review task cards, get independent-window review (degrade to current-agent self-review when absent), implement fixes, re-review until positive assessment or max rounds. 零 APIKey 零网络（2026-09-23 换驱动：外部 LLM API 通道退役，auto-review-loop-llm / auto-review-loop-minimax 已并入本技能）。Trigger with \"auto review loop\", \"review until it passes\"."
 argument-hint: [topic-or-scope]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent, Skill
 ---
 
 # Auto Review Loop: Autonomous Research Improvement
 
-Autonomously iterate: review → implement fixes → re-review, until the external reviewer gives a positive assessment or MAX_ROUNDS is reached.
+Autonomously iterate: review → implement fixes → re-review, until the independent reviewer (host independent window, or current-agent self-review fallback) gives a positive assessment or MAX_ROUNDS is reached.
 
 ## Context: $ARGUMENTS
 
@@ -39,7 +39,8 @@ The orchestrator may inject one of two notice blocks into `AGENTS.md`:
 - MAX_ROUNDS = 4
 - POSITIVE_THRESHOLD: score >= 6/10, or verdict contains "accept", "sufficient", "ready for submission"
 - REVIEW_DOC: `AUTO_REVIEW.md` in project root (cumulative log)
-- REVIEWER_MODEL: the configured reviewer model, invoked via `reviewer_client.py` script
+- REVIEW_TASK_DIR: `review_tasks/` — task cards `round_<N>.task.md`, verdicts `round_<N>.verdict.md`
+- REVIEW_DRIVER ∈ {"independent-window", "self-fallback"} — recorded per round in `REVIEW_STATE.json`
 - **HUMAN_CHECKPOINT = false** — When `true`, pause after each round's review (Phase B) and present the score + weaknesses to the user. Wait for user input before proceeding to Phase C. The user can: approve the suggested fixes, provide custom modification instructions, skip specific fixes, or stop the loop early. When `false` (default), the loop runs fully autonomously.
 
 > 💡 Override: `/auto-review-loop "topic" — human checkpoint: true`
@@ -54,6 +55,7 @@ Long-running loops may hit the context window limit, triggering automatic compac
   "status": "in_progress",
   "last_score": 5.0,
   "last_verdict": "not ready",
+  "review_driver": "independent-window",
   "pending_experiments": ["screen_name_1"],
   "timestamp": "2026-03-13T21:00:00"
 }
@@ -89,23 +91,26 @@ Long-running loops may hit the context window limit, triggering automatic compac
 
 ### Loop (repeat up to MAX_ROUNDS)
 
-#### Phase A: Review
+#### Phase A: Review（宿主驱动 · 零 APIKey 零网络）
 
-Send comprehensive context to the external reviewer via `reviewer_client.py`.
+审稿底层驱动是**宿主智能体自身**（2026-09-23 换驱动裁定，与视觉审核同法：换驱动，不拆机制）。
+本技能不读取任何 API key、不发起任何网络 LLM 调用、不调用 `reviewer_client.py`。
 
-**If the reviewer script fails (API key not configured)**: perform the review yourself using your own critical analysis capabilities. Act as a senior ML reviewer (NeurIPS/ICML level) and score the work honestly. The loop can still function without external review, though cross-model review is preferred for objectivity.
-
-When the reviewer script is available, use:
+1. **写评审任务卡** `review_tasks/round_<N>.task.md`：
 
 ```bash
-cat << 'REVIEW_EOF' > _review_prompt.txt
-[Round N/MAX_ROUNDS of autonomous review loop]
+mkdir -p review_tasks
+cat << 'REVIEW_EOF' > review_tasks/round_${ROUND}.task.md
+# Review Task — Round N/MAX_ROUNDS
 
+## Role
+You are a senior ML reviewer (NeurIPS/ICML level). 审稿窗口独立于实现窗口：只评不改。
+
+## Input
 [Full research context: claims, methods, results, known weaknesses]
 [Changes since last round, if any]
 
-Please act as a senior ML reviewer (NeurIPS/ICML level).
-
+## Output contract — 回写 review_tasks/round_<N>.verdict.md
 1. Score this work 1-10 for a top venue
 2. List remaining critical weaknesses (ranked by severity)
 3. For each weakness, specify the MINIMUM fix (experiment, analysis, or reframing)
@@ -113,15 +118,24 @@ Please act as a senior ML reviewer (NeurIPS/ICML level).
 
 Be brutally honest. If the work is ready, say so clearly.
 REVIEW_EOF
-PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
-$PYTHON "$REVIEWER_SCRIPT" --prompt-file _review_prompt.txt --thread-file _reviewer_thread.json
 ```
 
-If this is round 2+, use the same `_reviewer_thread.json` to maintain conversation context (对话历史通过 `_reviewer_thread.json` 自动保存).
+2. **派发评审**（按宿主能力择一，如实记录驱动方）：
+   - **独立窗口优先**：宿主提供子代理/独立会话能力时，把任务卡交给**独立评审窗口**执行，
+     评审结果回写 `review_tasks/round_<N>.verdict.md`；
+   - **缺席降级**：宿主无独立窗口能力（或评审窗口缺席）时，当前 Agent 切换为审稿人角色自审。
+     自审必须做**负面对照**：专门攻击自己刚实现的修改——"如果我是对手审稿人，第一枪打哪里？"
+     不得因为作品是自己写的而放水。
+
+3. 读取 verdict（独立窗口回写或自审产出），并把驱动方记入 `REVIEW_STATE.json`：
+   `"review_driver": "independent-window"` 或 `"self-fallback"`。
+
+**上下文连续性 = 任务卡链**：Round 2+ 的任务卡必须携带"上一轮评审摘要 + 本轮修改清单 + 更新后结果"
+（见文末 Round 2+ 模板）；跨窗口评审上下文由任务卡承载，不依赖任何外部线程文件。
 
 #### Phase B: Parse Assessment
 
-**CRITICAL: Save the FULL raw response** from the external reviewer verbatim (store in a variable for Phase E). Do NOT discard or summarize — the raw text is the primary record.
+**CRITICAL: Save the FULL raw response** from the reviewer verdict (`review_tasks/round_<N>.verdict.md`) verbatim (store in a variable for Phase E). Do NOT discard or summarize — the raw text is the primary record.
 
 Then extract structured fields:
 - **Score** (numeric 1-10)
@@ -286,7 +300,7 @@ Append to `AUTO_REVIEW.md`:
 <details>
 <summary>Click to expand full reviewer response</summary>
 
-[Paste the COMPLETE raw response from the external reviewer here — verbatim, unedited.
+[Paste the COMPLETE raw response from the reviewer verdict here — verbatim, unedited.
 This is the authoritative record. Do NOT truncate or paraphrase.]
 
 </details>
@@ -383,8 +397,8 @@ fi
 [ "$PASS" != true ] && echo "⛔ Verification failed — must produce output before ending step"
 ```
 
-- ALWAYS use the same `_reviewer_thread.json` across rounds to maintain conversation context
-- 对话历史通过 `_reviewer_thread.json` 自动保存
+- ALWAYS keep review context on the task-card chain: `review_tasks/round_<N>.task.md` carries prior-round summaries so any independent window can pick up mid-loop
+- 每轮如实记录 `review_driver`（independent-window / self-fallback）；自审轮必须留负面对照记录
 - Be honest — include negative results and failed experiments
 - Do NOT hide weaknesses to game a positive score
 - Implement fixes BEFORE re-reviewing (don't just promise to fix)
@@ -392,23 +406,25 @@ fi
 - Document EVERYTHING — the review log should be self-contained
 - Update project notes after each round, not just at the end
 
-## Prompt Template for Round 2+
+## Prompt Template for Round 2+（追加到新任务卡的 Input 节）
 
-```bash
-cat << 'REVIEW_EOF' > _review_prompt.txt
-[Round N update]
+```markdown
+## Delta since last round (Round N-1 summary)
+- Previous Score: X/10
+- Previous Verdict: [ready/almost/not ready]
+- Previous Key Weaknesses: [list]
 
-Since your last review, we have:
+## Changes Since Last Review
 1. [Action 1]: [result]
 2. [Action 2]: [result]
 3. [Action 3]: [result]
 
-Updated results table:
-[paste metrics]
+## Updated Results
+[paste updated metrics/tables]
 
-Please re-score and re-assess. Are the remaining concerns addressed?
-Same format: Score, Verdict, Remaining Weaknesses, Minimum Fixes.
-REVIEW_EOF
-PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
-$PYTHON "$REVIEWER_SCRIPT" --prompt-file _review_prompt.txt --thread-file _reviewer_thread.json
+Please re-score and re-assess:
+1. Score this work 1-10 for a top venue
+2. List remaining critical weaknesses (ranked by severity)
+3. For each weakness, specify the MINIMUM fix
+4. State clearly: is this READY for submission? Yes/No/Almost
 ```

@@ -907,14 +907,12 @@
       "capability_id": "paper_review_auto",
       "name": "自动多轮论文审查循环",
       "domain": "academic_papers",
-      "description": "外部LLM审查→修改→重审，直到通过或达上限，支持多种API",
+      "description": "审查→修改→重审循环，直到通过或达上限（宿主驱动评审，外部 LLM API 通道已于 2026-09-23 退役）",
       "input_contract": "论文草稿、审查提示词",
       "output_contract": "修改后论文、审查报告、迭代记录",
       "status": "experimental",
       "associated_skills": [
         "auto-review-loop",
-        "auto-review-loop-llm",
-        "auto-review-loop-minimax",
         "research-review",
         "ars-adversarial-reviewer",
         "ars-academic-paper-reviewer",
@@ -924,10 +922,8 @@
         "tools/reviewer_client.py",
         "tools/auto_review*.py"
       ],
-      "external_dependencies": [
-        "外部 LLM 审查 API"
-      ],
-      "high_risk_confirmation": "外部审查涉及数据外发，需确认",
+      "external_dependencies": [],
+      "high_risk_confirmation": "覆盖论文草稿前需确认",
       "current_evidence": "C2 验收：review_evidence.json(3.1KB) 1 轮审查（verdict=minor_revision, 0 fatal, 6 findings）",
       "current_gap": "状态回退（2026-08-17 发布前合规复核）：C3/C4 双层基准未完整通过或证据不足，不得标正式（design §10 Step 4）；此修正曾被执行但被后续操作覆盖，现重新强制执行；无跨域基准集（2026-08-17 审核确认）；许可证已改为CC-BY-NC-4.0禁止商用",
       "promotion_history": []
@@ -2751,7 +2747,7 @@
       "capability_id": "auto-review-loop",
       "name": "auto-review-loop",
       "domain": "literature_research",
-      "description": "Autonomous multi-round research review loop. Repeatedly reviews via external reviewer script, implements fixes, and re-reviews until positive assessment or max rounds reached. Use when user says \"auto review loop\", \"review until it passes\", or wants autonomous iterative improvement.",
+      "description": "Autonomous multi-round research review loop driven by the host agent itself: write review task cards, get independent-window review (degrade to current-agent self-review when absent), implement fixes, re-review until positive assessment or max rounds reached. 零 APIKey 零网络。Use when user says \"auto review loop\", \"review until it passes\", or wants autonomous iterative improvement.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -2759,49 +2755,9 @@
       ],
       "associated_tools": [],
       "external_dependencies": [],
-      "high_risk_confirmation": "使用外部 API 或覆盖文件前需在当前宿主会话中确认",
+      "high_risk_confirmation": "覆盖既有文件前需在当前宿主会话中确认",
       "current_evidence": "管线级覆盖（P1 三轮评审实录 8 major→PASS）；",
-      "current_gap": "管线级验收覆盖；C3/C4 未建",
-      "status": "experimental",
-      "promotion_history": [
-        "2026-08-30: 单技能 C2 批次22（真实执行留档 skill_c2_batch18）"
-      ]
-    },
-    {
-      "capability_id": "auto-review-loop-llm",
-      "name": "auto-review-loop-llm",
-      "domain": "literature_research",
-      "description": "Autonomous research review loop using any OpenAI-compatible LLM API. Configure reviewer via MH Agent settings page or environment variables. Trigger with \"auto review loop llm\" or \"llm review\".",
-      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
-      "output_contract": "技能 SKILL.md 定义的交付物",
-      "associated_skills": [
-        "auto-review-loop-llm"
-      ],
-      "associated_tools": [],
-      "external_dependencies": [],
-      "high_risk_confirmation": "使用外部 API 或覆盖文件前需在当前宿主会话中确认",
-      "current_evidence": "管线级覆盖（P1 映射）；",
-      "current_gap": "管线级验收覆盖；C3/C4 未建",
-      "status": "experimental",
-      "promotion_history": [
-        "2026-08-30: 单技能 C2 批次22（真实执行留档 skill_c2_batch18）"
-      ]
-    },
-    {
-      "capability_id": "auto-review-loop-minimax",
-      "name": "auto-review-loop-minimax",
-      "domain": "literature_research",
-      "description": "Autonomous multi-round research review loop using MiniMax API. Use when you want to use MiniMax directly for external review. Trigger with \"auto review loop minimax\" or \"minimax review\".",
-      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
-      "output_contract": "技能 SKILL.md 定义的交付物",
-      "associated_skills": [
-        "auto-review-loop-minimax"
-      ],
-      "associated_tools": [],
-      "external_dependencies": [],
-      "high_risk_confirmation": "使用外部 API 或覆盖文件前需在当前宿主会话中确认",
-      "current_evidence": "管线级覆盖（P1 映射）；",
-      "current_gap": "管线级验收覆盖；C3/C4 未建",
+      "current_gap": "管线级验收覆盖；C3/C4 未建；2026-09-23 换驱动宿主评审（任务卡/证据制，外部 API 通道退役）后管线级验收未重跑",
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次22（真实执行留档 skill_c2_batch18）"

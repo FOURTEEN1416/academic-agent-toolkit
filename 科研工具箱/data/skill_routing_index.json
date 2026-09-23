@@ -13,10 +13,10 @@
     ]
   },
   "counts": {
-    "core": 54,
+    "core": 52,
     "ondemand": 212,
-    "resident_chars": 32202,
-    "full_chars": 68400
+    "resident_chars": 31883,
+    "full_chars": 68081
   },
   "skills": {
     "ablation-planner": {
@@ -286,26 +286,10 @@
     "auto-review-loop": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Autonomous multi-round research review loop. Repeatedly reviews via external reviewer script, implements fixes, and。区别于 auto-review-loop-llm 与 auto-review-loop-minimax：本技能用本仓自带审稿脚本，不接外部 LLM API。",
-      "full_description": "Autonomous multi-round research review loop. Repeatedly reviews via external reviewer script, implements fixes, and。区别于 auto-review-loop-llm 与 auto-review-loop-minimax：本技能用本仓自带审稿脚本，不接外部 LLM API。",
+      "resident_description": "Autonomous multi-round research review loop driven by the host agent itself: write review task cards, get independent-window review (degrade to current-agent self-review when absent), implement fixes, re-review until positive assessment or max rounds. 零 APIKey 零网络（2026-09-23 换驱动：外部 LLM API 通道退役，auto-review-loop-llm / auto-review-loop-minimax 已并入本技能）。Trigger with \\\"auto review loop\\\", \\\"review until it passes\\\".",
+      "full_description": "Autonomous multi-round research review loop driven by the host agent itself: write review task cards, get independent-window review (degrade to current-agent self-review when absent), implement fixes, re-review until positive assessment or max rounds. 零 APIKey 零网络（2026-09-23 换驱动：外部 LLM API 通道退役，auto-review-loop-llm / auto-review-loop-minimax 已并入本技能）。Trigger with \\\"auto review loop\\\", \\\"review until it passes\\\".",
       "description_compacted": false,
       "path": "科研工具箱/skills/auto-review-loop/SKILL.md"
-    },
-    "auto-review-loop-llm": {
-      "tier": "core",
-      "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Autonomous research review loop using any OpenAI-compatible LLM API. Configure reviewer via MH Agent settings page or environment variables. Trigger with \\”auto review loop llm\\” or \\”llm review\\”.。只走通用 OpenAI 兼容端点；明确要用 MiniMax 官方 API 时改用 auto-review-loop-minimax。",
-      "full_description": "Autonomous research review loop using any OpenAI-compatible LLM API. Configure reviewer via MH Agent settings page or environment variables. Trigger with \\”auto review loop llm\\” or \\”llm review\\”.。只走通用 OpenAI 兼容端点；明确要用 MiniMax 官方 API 时改用 auto-review-loop-minimax。",
-      "description_compacted": false,
-      "path": "科研工具箱/skills/auto-review-loop-llm/SKILL.md"
-    },
-    "auto-review-loop-minimax": {
-      "tier": "core",
-      "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Autonomous multi-round research review loop using MiniMax API. Use when you want to use MiniMax directly for external review. Trigger with \\”auto review loop minimax\\” or \\”minimax review\\”.。区别于 auto-review-loop-llm：本技能只走 MiniMax 官方 API，其它 OpenAI 兼容端点改用 auto-review-loop-llm。",
-      "full_description": "Autonomous multi-round research review loop using MiniMax API. Use when you want to use MiniMax directly for external review. Trigger with \\”auto review loop minimax\\” or \\”minimax review\\”.。区别于 auto-review-loop-llm：本技能只走 MiniMax 官方 API，其它 OpenAI 兼容端点改用 auto-review-loop-llm。",
-      "description_compacted": false,
-      "path": "科研工具箱/skills/auto-review-loop-minimax/SKILL.md"
     },
     "check-citations": {
       "tier": "ondemand",

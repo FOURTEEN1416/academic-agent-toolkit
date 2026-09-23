@@ -10,8 +10,6 @@
   },
   "skills": {
     "auto-review-loop": "歧义判别句持有者（判别句被压缩截断即失效）",
-    "auto-review-loop-llm": "路由回归/歧义判别直接断言",
-    "auto-review-loop-minimax": "路由回归/歧义判别直接断言",
     "comp-compile-en": "歧义判别句持有者（判别句被压缩截断即失效）",
     "comp-cumcm-disclosure": "路由回归/歧义判别直接断言",
     "comp-paper-en": "歧义判别句持有者（判别句被压缩截断即失效）",
