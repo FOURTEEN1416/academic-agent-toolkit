@@ -6,6 +6,7 @@
 - Local use: `skills/infographics/`（SKILL.md 及附带 references/assets/scripts）
 - License: MIT（见仓库 LICENSE.md）
 - Local adaptation: 原样集成，未改动 SKILL.md 正文；路径引用按本套件目录结构解析。
+- 改写融入（2026-09-24，R2）：frontmatter 上游宿主平台元数据块移除，改中性环境变量说明（降级路径不变）。
 
 ## Upgrade rule
 

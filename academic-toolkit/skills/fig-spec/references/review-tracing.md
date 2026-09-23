@@ -22,7 +22,7 @@ Do NOT trace: purely informational LLM calls (e.g., `codex exec` for code genera
 ## Trace Directory
 
 ```
-.aris/traces/<skill-name>/<YYYY-MM-DD>_run<NN>/
+<workspace>/traces/<skill-name>/<YYYY-MM-DD>_run<NN>/
   ├── run.meta.json                      # Run-level metadata
   ├── 001-<purpose>.request.json         # Request snapshot
   ├── 001-<purpose>.response.md          # Full response text
@@ -31,7 +31,7 @@ Do NOT trace: purely informational LLM calls (e.g., `codex exec` for code genera
   └── ...
 ```
 
-- `<skill-name>`: the ARIS skill that triggered this call (e.g., `auto-review-loop`)
+- `<skill-name>`: the owning skill that triggered this call (e.g., `auto-review-loop`)
 - `<YYYY-MM-DD>_run<NN>`: date + sequential run number (start from `01`)
 - `<purpose>`: short kebab-case label (e.g., `round-1-review`, `critique`, `ideation`, `audit`, `patch-gate`)
 
@@ -39,64 +39,25 @@ Do NOT trace: purely informational LLM calls (e.g., `codex exec` for code genera
 
 After each reviewer call — including every FAILED attempt in a
 capability-fallback chain (one trace entry per attempt: `--status error` +
-`--fallback-reason`; the successful entry records the RESOLVED pair) — save the trace using `save_trace.sh`,
-resolved through the canonical helper chain (see
-`integration-contract.md` §2 — failure policy C, "forensic helper").
-The full invocation:
+`--fallback-reason`; the successful entry records the RESOLVED pair) — write the trace files **directly** per the "File Schemas" section
+below, into:
 
-```bash
-# Resolve $TRACE_HELPER (canonical strict-safe chain; see integration-contract.md §2).
-cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)" || exit 1
-if [ -z "${ARIS_REPO:-}" ] && [ -f .aris/installed-skills.txt ]; then
-    ARIS_REPO=$(awk -F'\t' '$1=="repo_root"{print $2; exit}' .aris/installed-skills.txt 2>/dev/null) || true
-fi
-if [ -z "${ARIS_REPO:-}" ] && [ -f "$HOME/.aris/repo" ]; then
-    ARIS_REPO=$(cat "$HOME/.aris/repo" 2>/dev/null) || true
-fi
-TRACE_HELPER=".aris/tools/save_trace.sh"
-[ -f "$TRACE_HELPER" ] || TRACE_HELPER="tools/save_trace.sh"
-[ -f "$TRACE_HELPER" ] || { [ -n "${ARIS_REPO:-}" ] && TRACE_HELPER="$ARIS_REPO/tools/save_trace.sh"; }
-[ -f "$TRACE_HELPER" ] || TRACE_HELPER=""
+```
+<workspace>/traces/<skill-name>/<YYYY-MM-DD>_run<NN>/
+  ├── run.meta.json
+  ├── 001-<purpose>.request.json
+  ├── 001-<purpose>.response.md
+  ├── 001-<purpose>.meta.json
+  └── ...
+```
 
-if [ -n "$TRACE_HELPER" ]; then
-  bash "$TRACE_HELPER" \
-    --skill "<skill-name>" \
-    --purpose "<purpose>" \
-    --model "<model that actually ran — the RESOLVED pair, not the target>" \
-    --effort "<effort that actually ran>" \
-    --fallback-reason "<why the capability chain stepped down; empty when it didn't>" \
-    --status "<ok | fallback_used | error>" \
-    --thread-id "<threadId from response>" \
-    --backend "<codex | copilot-native | copilot | manual | oracle-pro | agy>" \
-    --tool "<the reviewer call actually used: host reviewer bridge / sub-agent task / CLI reviewer client>" \
-    --executor "<claude-code | copilot | codex>" \
-    --executor-model "<from --executor-model; omit this flag if not set>" \
-    --executor-family "<legacy consistency hint; helper re-derives from executor-model>" \
-    --reviewer-profile "<profile name for copilot backend; empty for others>" \
-    --reviewer-family "<legacy consistency hint; helper re-derives from reviewer model>" \
-    --requested-reviewer-model "<model originally requested>" \
-    --reported-reviewer-model "<model the backend reports it used>" \
-    --memory-hash "<sha256 of memory artifact if available; empty otherwise>" \
-    --native-evidence "<required for copilot-native; omit otherwise>" \
-    --independence-verified "<legacy consistency hint; helper ignores and re-derives>" \
-    --prompt "<full prompt as sent>" \
-    --response "<full response content>"
-else
-  # Required fallback: the resolver exhausted all four layers and
-  # save_trace.sh is unreachable, but trace artifacts are still
-  # required (unless `--- trace: off` was explicitly set on this
-  # SKILL invocation). Write the four files below directly per the
-  # schemas in "File Schemas", into:
-  #   .aris/traces/<skill-name>/<YYYY-MM-DD>_run<NN>/
-  #     run.meta.json
-  #     <NNN>-<purpose>.request.json
-  #     <NNN>-<purpose>.response.md
-  #     <NNN>-<purpose>.meta.json
-  # Do NOT silently skip — trace_path is load-bearing for any
-  # mandatory audit emitting `trace_path` in its artifact (see
-  # assurance-contract.md §"Required Audit Artifact Schema").
-  echo "WARN: save_trace.sh not resolved; writing trace files directly per review-tracing.md schema." >&2
-fi
+No helper script is bundled: the trace files themselves are the
+contract. A workspace may provide its own `save_trace` helper as an
+optimization, never as a dependency. Do NOT silently skip —
+trace_path is load-bearing for any mandatory audit emitting
+`trace_path` in its artifact (see assurance-contract
+§"Required Audit Artifact Schema"). Every FAILED attempt in a round
+gets its own numbered pair, same as successes.
 ```
 
 The helper, when present, handles directory creation, run numbering, file
@@ -157,7 +118,7 @@ copy caller family labels or promote caller-declared identity to verification.
 ```
 
 - `executor`: the name of the running executor (from `--executor` parameter; defaults to `"claude-code"`). Dynamic — set by the caller, not hardcoded.
-- `executor_model`: the declared model running this ARIS invocation (from `--executor-model` when available; otherwise `null`).
+- `executor_model`: the declared model running this invocation (from `--executor-model` when available; otherwise `null`).
 - `executor_model_source`: `"host-session-event"` for validated native evidence,
   `"caller-declared"` when a non-native caller passes `--executor-model`, or
   `"unavailable"`.
@@ -223,7 +184,7 @@ For compatibility copilot backend (`--reviewer: copilot`):
   "model": "gpt-5.4",
   "effort": "xhigh",
   "effort_unpinned": false,
-  "reviewer_profile": "aris-reviewer-openai",
+  "reviewer_profile": "profile-openai",
   "requested_reviewer_model": "gpt-5.4",
   "reported_reviewer_model": null,
   "executor_model": "claude-sonnet-4-5",
@@ -244,7 +205,7 @@ Fields:
 - `backend`: the logical backend (`codex`, `copilot-native`, compatibility
   `copilot`, `manual`, `oracle-pro`, `agy`).
 - `effort_unpinned`: applies only to compatibility `copilot`; native
-  complementary dispatch does not accept an ARIS model/effort pin.
+  complementary dispatch does not accept a model/effort pin.
 - `reviewer_profile`: custom profile for compatibility copilot; `rubber-duck`
   may be used as a descriptive value for native traces; `null` otherwise.
 - `requested_reviewer_model`: the model parsed from profile frontmatter and repeated through subprocess `--model`; `null` when unavailable.
@@ -305,7 +266,7 @@ For compatibility copilot backend:
   "reviewer_model_source": "requested",
   "family_relation": "different",
   "independence_verified": "unverified",
-  "reviewer_profile": "aris-reviewer-openai",
+  "reviewer_profile": "profile-openai",
   "duration_ms": 142000,
   "status": "ok"
 }
@@ -337,10 +298,10 @@ Tracing respects three modes, set via inline parameter `--- trace: off | meta | 
 
 ## Integration with events.jsonl
 
-After writing a trace, append a compact summary event to `.aris/meta/events.jsonl`:
+After writing a trace, append a compact summary event to `<workspace>/traces/meta/events.jsonl`:
 
 ```json
-{"event":"review_trace","skill":"auto-review-loop","purpose":"round-1-review","thread_id":null,"trace_path":".aris/traces/auto-review-loop/2026-04-15_run01/","backend":"copilot-native","tool":"task(agent_type=rubber-duck)","executor_model":"claude-sonnet-4.6","executor_model_source":"host-session-event","executor_family":"anthropic","reviewer_model_source":"host-session-event","reviewer_family":"openai","family_relation":"different","independence_verified":true,"native_evidence_id":"cne_0123456789abcdef0123456789abcdef","native_evidence_path":"/project/review-stage/COPILOT_NATIVE_run_20260715_a1b2c3d4_ROUND_1_REVIEW.evidence.json","status":"ok"}
+{"event":"review_trace","skill":"auto-review-loop","purpose":"round-1-review","thread_id":null,"trace_path":"traces/auto-review-loop/2026-04-15_run01/","backend":"copilot-native","tool":"task(agent_type=rubber-duck)","executor_model":"claude-sonnet-4.6","executor_model_source":"host-session-event","executor_family":"anthropic","reviewer_model_source":"host-session-event","reviewer_family":"openai","family_relation":"different","independence_verified":true,"native_evidence_id":"cne_0123456789abcdef0123456789abcdef","native_evidence_path":"/project/review-stage/COPILOT_NATIVE_run_20260715_a1b2c3d4_ROUND_1_REVIEW.evidence.json","status":"ok"}
 ```
 
 This allows `/meta-optimize` to discover traces without reading the full trace files.
@@ -356,19 +317,19 @@ its judgment actually changed:
 ```bash
 # Diff the raw response bodies across the two calls in question
 skill=auto-review-loop run=2026-04-15_run01
-diff ".aris/traces/$skill/$run/002-round-2.response.md" \
-     ".aris/traces/$skill/$run/003-round-3.response.md"
+diff "traces/$skill/$run/002-round-2.response.md" \
+     "traces/$skill/$run/003-round-3.response.md"
 
 # Grep for the sentence where the assessment turned
 grep -En 'however|but|concern|missing|cannot' \
-     ".aris/traces/$skill/$run/003-round-3.response.md"
+     "traces/$skill/$run/003-round-3.response.md"
 ```
 
 The paragraph where the assessment changed **is** the causal explanation for the
 divergence — cite it, don't guess. Re-running the reviewer without reading the
 trace is tuning by vibe: you get a new opinion, not an explanation.
 
-This is the same muscle ARIS already applies to code failures (the "**Read the
+This is the same muscle this toolbox already applies to code failures (the "**Read the
 error** — parse traceback, stderr, and log files" step in `/experiment-bridge`'s
 auto-debug sequence, and `/codex:rescue` reading tracebacks before a retry) —
 applied to saved AI-judgment transcripts instead of stderr. The trace is written
@@ -387,6 +348,6 @@ Practical triggers:
 
 ## Privacy
 
-- `.aris/traces/` should be in `.gitignore` — traces are project-local, never committed
+- `traces/` should be in the workspace `.gitignore` — traces are project-local, never committed
 - Traces may contain sensitive research content; treat them as confidential
 - Use `--- trace: off` for projects with strict confidentiality requirements

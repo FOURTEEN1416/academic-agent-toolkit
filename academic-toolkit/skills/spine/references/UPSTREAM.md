@@ -8,3 +8,4 @@
 
 - 本仓库 spine 系 11 个技能为上游单一 paper-spine 技能的**拆分重组**编排；2026-09-09 专项治理批次 2 按各技能 SKILL.md 引用从上游分发目录回填 scripts/references 资产。
 - 上游脚本对本仓库为只读工具，编排仍按本仓库各技能 SKILL.md 执行。
+- 改写融入（2026-09-23，R1）：SKILL.md 死路径命令改仓内解析（ACAT-GOVERNANCE 语义保留）。

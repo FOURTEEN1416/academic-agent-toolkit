@@ -12,3 +12,4 @@
 | references/writing_principles.md | K-Dense-AI/claude-scientific-writer `.claude/skills/scientific-writing/references/`（安装态副本，根 skills/ 无此文件） |
 | SKILL.md 本体 | 本仓库既有版本（改编自 nature-skills nature-writing 系），未改动 |
 | references/editor-first-impression.md | 上游全体系无此资产，SKILL.md 已加 ACAT-GOVERNANCE 内联标记，登记册诚实存量保留 |
+- 改写融入（2026-09-23/24，R1）：SKILL.md 图像生成 helper 段改写为工具中性 prompt 模板，死路径命令移除。

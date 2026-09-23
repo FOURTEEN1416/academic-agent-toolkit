@@ -2,9 +2,9 @@
 
 <!-- modex-3 同源吸收 P3（2026-09-22）：自上游共享参考收编为本技能 references/，补齐 SKILL.md 悬空指针；内容保持上游原样（无宿主专有引用）。 -->
 
-When one ARIS skill delegates work to another (or to persistent project
+When one skill delegates work to another (or to persistent project
 state), the coupling must be **engineered**, not assumed. This document
-formalizes what every cross-skill integration inside ARIS must provide.
+formalizes what every cross-skill integration inside this toolbox must provide.
 
 Rule of thumb: **SKILL.md prose can *describe* an integration; it cannot
 *guarantee* one.** Any integration whose silent failure would damage the
@@ -33,7 +33,7 @@ prose without a canonical helper, a concrete artifact, or a verifier**.
 
 ## Required components
 
-Every integration between two ARIS skills (or between a skill and a
+Every integration between two skills (or between a skill and a
 persistent project artifact) must provide all six:
 
 ### 1. Activation predicate — single, explicit, observable
@@ -50,48 +50,33 @@ relevant."
 ### 2. Canonical helper — one implementation, not copy-pasted
 
 The business logic lives in **exactly one place** — a script under
-`tools/` (canonical name, no path prefix), or a single subcommand of
-an existing helper. Every caller invokes the same entrypoint, but
-every caller must also resolve **where** that entrypoint lives,
-because the helper may sit at any of:
+`tools/` (toolbox-level shared helpers) or the owning skill's own
+`skills/<name>/scripts/` (skill-local helpers). Every caller invokes
+the same entrypoint, but every caller must also resolve **where**
+that entrypoint lives, because the helper may sit at either of:
 
-- `<project>/.aris/tools/<helper>` — symlinked by `install_aris.sh` (Phase 0, #174)
-- `<project>/tools/<helper>` — manual copy or running from inside the ARIS repo
-- `$ARIS_REPO/tools/<helper>` — env var or auto-resolved from the install manifest
-- `$ARIS_REPO/tools/<helper>` via `$HOME/.aris/repo` — global pointer file
-  (one line, absolute repo path) written by `install_aris*.{sh,ps1}` and
-  `smart_update*.{sh,ps1}` at install/update time; the only layer that
-  resolves for a global copy-install of the skill package with no
-  project-local `.aris/` manifest (#366)
+- `<repo>/skills/<owning-skill>/scripts/<helper>` — skill-local helper
+- `<repo>/tools/<helper>` — toolbox-level shared helper
 
-Every caller — including those primarily exercised from inside the
-ARIS repo — MUST use the resolution chain. The chain's middle layer
-(`tools/<helper>`) covers the in-repo case at the same code path,
-with no special-casing needed. The exception that used to live here
-("helpers run from inside ARIS repo may stay plain `tools/...`")
-caused the canonical user-report bug: `/paper-writing` invoked from
-a downstream paper project could not find `verify_paper_audits.sh`
-because the prose endorsed the hardcoded form.
+Every caller MUST use the resolution chain (never a hardcoded path):
+the historical failure was `/paper-writing` invoked from a downstream
+paper project unable to find `verify_paper_audits.sh` because the
+prose endorsed the hardcoded form. In this toolbox the chain is two
+layers; workspaces that vendor their own helper copies may prepend an
+explicit `$HELPER_DIR` override ahead of both layers.
 
 #### Resolver block (lookup only — failure policy is separate)
 
 ```bash
 # Canonical strict-safe variant: works whether or not the caller has
-# `set -e` enabled. The manifest read only runs when the file exists,
-# and `|| true` consumes a non-zero awk exit so chain evaluation
-# continues. Run `chmod +x` not required: the block uses `[ -f ]`.
+# `set -e` enabled. Explicit override first, then the two in-repo
+# layers. `chmod +x` not required: the block only uses `[ -f ]`.
 cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)" || exit 1
-if [ -z "${ARIS_REPO:-}" ] && [ -f .aris/installed-skills.txt ]; then
-    ARIS_REPO=$(awk -F'\t' '$1=="repo_root"{print $2; exit}' .aris/installed-skills.txt 2>/dev/null) || true
-fi
-# Layer 4: global pointer file, written by the installer/updater at
-# ~/.aris/repo (#366) — covers global copy-installs with no project manifest.
-if [ -z "${ARIS_REPO:-}" ] && [ -f "$HOME/.aris/repo" ]; then
-    ARIS_REPO=$(cat "$HOME/.aris/repo" 2>/dev/null) || true
-fi
-HELPER=".aris/tools/<helper>"
+HELPER="${HELPER_DIR:-}/<helper>"
+[ -f "$HELPER" ] || HELPER="academic-toolkit/skills/<owning-skill>/scripts/<helper>"
+[ -f "$HELPER" ] || HELPER="skills/<owning-skill>/scripts/<helper>"
+[ -f "$HELPER" ] || HELPER="academic-toolkit/tools/<helper>"
 [ -f "$HELPER" ] || HELPER="tools/<helper>"
-[ -f "$HELPER" ] || { [ -n "${ARIS_REPO:-}" ] && HELPER="$ARIS_REPO/tools/<helper>"; }
 [ -f "$HELPER" ] || HELPER=""
 ```
 
@@ -104,9 +89,9 @@ does not clobber one with another.
 If the SKILL is invoked from a subdirectory of a non-git project (no
 `.git/` anywhere up the tree), `git rev-parse --show-toplevel` fails
 and the `|| pwd` fallback keeps the resolver in the current directory.
-SKILLs that need to discover `.aris/` from a deeper subdirectory MUST
-either run from project root or set `$ARIS_REPO` explicitly — the
-resolver intentionally does not walk parent directories.
+SKILLs that need to discover the repo root from a deeper subdirectory
+MUST run from repo root or set `$HELPER_DIR` explicitly — the resolver
+intentionally does not walk parent directories.
 
 #### Failure policy (chosen per integration)
 
@@ -120,9 +105,9 @@ verifiers whose exit code gates submission readiness (e.g.
 
 ```bash
 [ -n "$AUDIT_VERIFIER" ] || {
-  echo "ERROR: verify_paper_audits.sh not resolved at .aris/tools/, tools/, \$ARIS_REPO/tools/, or via ~/.aris/repo." >&2
+  echo "ERROR: verify_paper_audits.sh not resolved (override \$HELPER_DIR, skills/<owning-skill>/scripts/, or tools/)." >&2
   echo "       assurance=submission requires the verifier; aborting Final Report." >&2
-  echo "       Fix: rerun bash tools/install_aris.sh (or smart_update.sh) to refresh ~/.aris/repo, or export ARIS_REPO." >&2
+  echo "       Fix: repair the repo checkout or place the helper at one of the resolved locations." >&2
   exit 1
 }
 ```
@@ -135,19 +120,19 @@ gets produced, only the wiki side-effect is missed).
 ```bash
 [ -n "$WIKI_SCRIPT" ] || {
   echo "WARN: research_wiki.py not resolved; primary output unaffected, wiki side-effect skipped." >&2
-  echo "      Fix: rerun bash tools/install_aris.sh or smart_update.sh (refreshes ~/.aris/repo), export ARIS_REPO, or copy the helper to tools/." >&2
+  echo "      Fix: repair the repo checkout or copy the helper into tools/." >&2
 }
 [ -n "$WIKI_SCRIPT" ] && python3 "$WIKI_SCRIPT" ingest_paper research-wiki/ --arxiv-id "$id"
 ```
 
 **C. Forensic helper — unresolved means write artifacts directly.**
 Use when the helper produces a record the SKILL is contractually
-required to leave behind (e.g. `save_trace.sh`). The fallback is
+required to leave behind (e.g. a review-trace writer). The fallback is
 **not** "skip"; it is "write the schema artifacts inline."
 
 ```bash
 [ -n "$TRACE_HELPER" ] || {
-  echo "WARN: save_trace.sh not resolved; writing trace files directly per review-tracing.md schema." >&2
+  echo "WARN: trace helper not resolved; writing trace files directly per review-tracing.md schema." >&2
 }
 if [ -n "$TRACE_HELPER" ]; then
   bash "$TRACE_HELPER" --skill "$SKILL" --purpose "$PURPOSE" --model "$MODEL" \
@@ -265,44 +250,36 @@ of this generic resolver, and is the precedent for everything in §2.
 
 #### Layer 0 — self-contained owner SKILL (Arch C, Phase 3+)
 
-Single-owner helpers progressively migrate into the owning SKILL's
-`scripts/` subdirectory (matching the Claude Code official skill
-layout). When an owner SKILL invokes its own helper, it tries the
-self-contained location FIRST, then falls through to the canonical
-4-layer chain so legacy users continue to work:
+Skill-local helpers live in the owning SKILL's `scripts/`
+subdirectory; toolbox-shared helpers live in `tools/`. When an owner
+SKILL invokes its own helper, the two-layer resolver covers both
+without any host-specific discovery:
 
 ```bash
-# Layer 0 (owner SKILL only): self-contained at $CLAUDE_SKILL_DIR/scripts/.
-HELPER=""
-if [ -n "${CLAUDE_SKILL_DIR:-}" ] && [ -f "$CLAUDE_SKILL_DIR/scripts/<helper>" ]; then
-  HELPER="$CLAUDE_SKILL_DIR/scripts/<helper>"
-fi
-# Layers 1-4: fall through to the standard chain.
-if [ -z "$HELPER" ]; then
+# Layer 0 (owner SKILL only): skill-local scripts/ directory.
+HELPER="skills/<owning-skill>/scripts/<helper>"
+# Layer 1: toolbox-shared helpers.
+if [ ! -f "$HELPER" ]; then
   # ... canonical strict-safe resolver block from above ...
 fi
 ```
 
-Three properties of layer 0:
+Two properties of this arrangement:
 
-1. **Single-skill only.** Only the owning SKILL uses layer 0. Cross-skill
-   helpers (`research_wiki.py` consumed by 9 SKILLs; `save_trace.sh`
-   by 14) stay on the shared-runtime chain because there is no single
-   `${CLAUDE_SKILL_DIR}` to point at.
+1. **Single-skill only.** Only the owning SKILL's layer-0 path is
+   skill-local. Cross-skill helpers (`research_wiki.py` consumed by
+   9 SKILLs; the trace writer by 14) stay on the shared `tools/`
+   layer because there is no single owning skill.
 
-2. **CC 1.0+ feature.** `${CLAUDE_SKILL_DIR}` is set by Claude Code 1.0+;
-   on older hosts (Codex CLI, Cursor today, manual bash) it is empty
-   and layer 0 is skipped — the SKILL silently falls through to the
-   standard chain.
+2. **Host-neutral.** No host-provided variable is involved — the
+   resolver only depends on the repo checkout layout, so the same
+   chain works from any driving agent and from plain bash.
 
-3. **Backwards-compatible.** The canonical 4-layer chain still works
-   because Phase 3 keeps the legacy entry at `tools/<helper>` as a
-   thin `os.execv` shim that forwards to the canonical location. So
-   `.aris/tools/<helper>` (layer 1), `tools/<helper>` (layer 2),
-   `$ARIS_REPO/tools/<helper>` via the manifest (layer 3), and
-   `$ARIS_REPO/tools/<helper>` via `~/.aris/repo` (layer 4) all
-   resolve to a working Python script for any user who has not
-   re-run `install_aris.sh`.
+3. **Backwards-compatible.** Callers that still resolve the shared
+   `tools/<helper>` layer keep working: this toolbox keeps shared
+   helpers where callers expect them and skill-local helpers at the
+   owning skill's `scripts/`, both covered by the two-layer resolver
+   above.
 
 The per-helper policy table at the end of §2 marks Phase 3 moves
 with a "Phase 3.N move" note pointing at the new canonical location.
@@ -310,11 +287,9 @@ with a "Phase 3.N move" note pointing at the new canonical location.
 #### Per-helper policy assignments
 
 Every helper invoked from any SKILL.md (single-skill or shared
-across skills) is classified below so that downstream SKILLs in
-Phase 1.2-1.7 do not have to guess. Pure developer utilities that
-are never invoked from a SKILL.md — installers
-(`install_aris.sh`, `install_aris_codex.sh`), update scripts
-(`smart_update.sh`, `smart_update_codex.sh`), manual setup
+across skills) is classified below so that downstream SKILLs do not
+have to guess. Pure developer utilities that are never invoked from a
+SKILL.md — repo scaffolding and maintenance scripts, manual setup
 (`overleaf_setup.sh`), generators
 (`convert_skills_to_llm_chat.py`, `generate_codex_claude_review_overrides.py`),
 the `meta_opt/` hook scripts, and `watchdog.py` — are out of scope.
@@ -399,7 +374,7 @@ helper should not have to guess what to backfill.
 
 - ✅ `/research-wiki sync --arxiv-ids 2501.12345,1706.03762`
 - ✅ `/research-wiki sync --from-file ids.txt`
-- ⚠️ `/research-wiki sync` that scans `.aris/traces/` for arxiv IDs —
+- ⚠️ `/research-wiki sync` that scans the workspace `traces/` directory for arxiv IDs —
      only as a best-effort secondary mode, not the primary UX, and
      clearly labeled as heuristic.
 
@@ -446,7 +421,7 @@ resolve actual paths via §2.
 
 | Integration | Predicate | Helper | Artifact | Checklist | Backfill | Verifier |
 |---|---|---|---|---|---|---|
-| Submission audits (`max`/`beast`) | `paper/.aris/assurance.txt = submission` | `verify_paper_audits.sh` + 3 audit skills emit JSON | `paper/PROOF_AUDIT.json`, `PAPER_CLAIM_AUDIT.json`, `CITATION_AUDIT.json` + `paper/.aris/audit-verifier-report.json` | Phase 6.0 pre-flight checklist | Rerun the failed audit | `verify_paper_audits.sh` (exit 1 blocks) |
+| Submission audits (`max`/`beast`) | `paper/assurance.txt = submission` | `verify_paper_audits.sh` + 3 audit skills emit JSON | `paper/PROOF_AUDIT.json`, `PAPER_CLAIM_AUDIT.json`, `CITATION_AUDIT.json` + `paper/audit-verifier-report.json` | Phase 6.0 pre-flight checklist | Rerun the failed audit | `verify_paper_audits.sh` (exit 1 blocks) |
 | Research wiki ingest | `research-wiki/` exists | `research_wiki.py ingest_paper` | `research-wiki/papers/<slug>.md` + `log.md` entry | Step in each paper-reading skill | `research_wiki.py sync --arxiv-ids …` | `verify_wiki_coverage.sh` (diagnostic) |
 | paper-illustration-image2 finalization | `paper_illustration_image2.py preflight --workspace <cwd>` returns `ok=true` | `paper_illustration_image2.py` (`preflight`, `finalize`, `verify`) | `figures/ai_generated/figure_final.png`, `latex_include.tex`, `review_log.json` | Step 0 checklist in `paper-illustration-image2` | `paper_illustration_image2.py finalize --workspace <cwd> --best-image <png>` | `paper_illustration_image2.py verify` (skill-local gate; exit 1 on missing artifacts blocks finalize claim, parent workflow may continue with the alternate illustration path) |
 

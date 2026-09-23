@@ -41,43 +41,25 @@ Generate publication-quality **architecture diagrams**, **workflow pipelines**, 
 
 ## Tool Location
 
-Phase 3.1 (Arch C) move: the canonical implementation now lives at
-`skills/fig-spec/scripts/figure_renderer.py` (this SKILL's own
-`scripts/` subdirectory). Upstream ARIS installations additionally
-provide a backwards-compatible shim under the install layout
-(`tools/figure_renderer.py`, forwarding via `os.execv`) — that shim is
-NOT bundled in this repo; existing users of `.aris/tools/` installs or
-manual copies keep working via the shared-runtime chain below.
-
-Resolve `$FIGURE_RENDERER` with the hybrid chain (layer 0 prefers the
-self-contained location for the owning SKILL; layers 1-4 are the
-shared-runtime chain documented in
-[`references/integration-contract.md`](references/integration-contract.md) §2,
-Policy A — skill-local gate):
+The canonical renderer lives inside this skill:
+`skills/fig-spec/scripts/figure_renderer.py`. Resolve it with the
+two-step chain below — first an explicit override, then the in-repo
+skill directory (the driver agent already knows the repo root, so no
+install layout is involved):
 
 ```bash
-# Layer 0: self-contained (CC 1.0+ exposes $CLAUDE_SKILL_DIR).
-FIGURE_RENDERER=""
-if [ -n "${CLAUDE_SKILL_DIR:-}" ] && [ -f "$CLAUDE_SKILL_DIR/scripts/figure_renderer.py" ]; then
-  FIGURE_RENDERER="$CLAUDE_SKILL_DIR/scripts/figure_renderer.py"
-fi
-# Layers 1-4: shared-runtime chain (legacy compatibility + non-CC hosts).
+# 1) explicit override wins (set by the driver/workspace when needed)
+FIGURE_RENDERER="${FIGURE_RENDERER:-}"
+# 2) in-repo skill directory, from either checkout root layout
 if [ -z "$FIGURE_RENDERER" ]; then
-  cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)" || exit 1
-  if [ -z "${ARIS_REPO:-}" ] && [ -f .aris/installed-skills.txt ]; then
-      ARIS_REPO=$(awk -F'\t' '$1=="repo_root"{print $2; exit}' .aris/installed-skills.txt 2>/dev/null) || true
-  fi
-  if [ -z "${ARIS_REPO:-}" ] && [ -f "$HOME/.aris/repo" ]; then
-      ARIS_REPO=$(cat "$HOME/.aris/repo" 2>/dev/null) || true
-  fi
-  FIGURE_RENDERER=".aris/tools/figure_renderer.py"
-  [ -f "$FIGURE_RENDERER" ] || FIGURE_RENDERER="tools/figure_renderer.py"
-  [ -f "$FIGURE_RENDERER" ] || { [ -n "${ARIS_REPO:-}" ] && FIGURE_RENDERER="$ARIS_REPO/tools/figure_renderer.py"; }
-  [ -f "$FIGURE_RENDERER" ] || FIGURE_RENDERER=""
+  ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+  for c in "$ROOT/academic-toolkit/skills/fig-spec/scripts/figure_renderer.py"            "$ROOT/skills/fig-spec/scripts/figure_renderer.py"; do
+    [ -f "$c" ] && { FIGURE_RENDERER="$c"; break; }
+  done
 fi
-[ -z "$FIGURE_RENDERER" ] && {
-  echo "ERROR: figure_renderer.py not resolved (layer 0: \$CLAUDE_SKILL_DIR/scripts/; layers 1-4: .aris/tools/, tools/, \$ARIS_REPO/tools/, \$ARIS_REPO/tools/ via ~/.aris/repo)." >&2
-  echo "       /fig-spec cannot produce SVG output. Fix: rerun bash tools/install_aris.sh or smart_update.sh (refreshes ~/.aris/repo), or copy the helper from \$ARIS_REPO/skills/fig-spec/scripts/." >&2
+[ -f "$FIGURE_RENDERER" ] || {
+  echo "ERROR: figure_renderer.py not found under skills/fig-spec/scripts/ (override: \$FIGURE_RENDERER)." >&2
+  echo "       fig-spec cannot produce SVG output without the renderer; check the repo checkout." >&2
   exit 1
 }
 ```
@@ -267,5 +249,5 @@ Three-stage horizontal cascade with inputs feeding in from top, outputs exiting 
 
 ## Review Tracing
 
-After each cross-model reviewer call (any host reviewer path — see Step 5), save the trace following `references/review-tracing.md` (Policy C — forensic; never silently skip). Use `save_trace.sh` (resolved per the chain in `references/integration-contract.md` §2) or write files directly to `.aris/traces/<skill>/<date>_run<NN>/`. Respect the `--- trace:` parameter (default: `full`).
+After each cross-model reviewer call (any host reviewer path — see Step 5), save the trace following `references/review-tracing.md` (Policy C — forensic; never silently skip). Write the trace files directly to `<workspace>/traces/<skill>/<date>_run<NN>/` (the layout in `references/review-tracing.md`); no helper script is required. Respect the `--- trace:` parameter (default: `full`).
 

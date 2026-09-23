@@ -9,3 +9,4 @@
 - 2026-09-09 专项治理批次 2：拷入上游 references/ assets/ scripts/ 补齐本仓库技能目录（SKILL.md 沿用本仓库既有中文触发词版本未动）。
 - 上游 scripts 依赖 TeX Live/pdftoppm 等本地工具链，运行时按 SKILL.md 自动安装逻辑处理；无外部 API 依赖。
 - 残留断链（上游亦无）：见 tools/asset_gap_register.json 本技能条目。
+- 改写融入（2026-09-23，R1）：references/advanced-features.md 宿主特定路径解析说明改中性。

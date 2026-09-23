@@ -6,6 +6,7 @@
 - Local use: `skills/excalidraw-diagram/`（SKILL.md 及附带 references/assets/scripts）
 - License: 上游仓库未附 LICENSE 文件（截至 2026-08-28 检查）；用户于 2026-08-28 明确授权随本仓库公开发布。版权仍归上游作者，如上游提出异议将按要求移除。
 - Local adaptation: 原样集成，未改动 SKILL.md 正文；路径引用按本套件目录结构解析。
+- 改写融入（2026-09-24，R1）：README 安装节改随仓使用、render_excalidraw.py 路径指引改仓内相对。
 
 ## Upgrade rule
 

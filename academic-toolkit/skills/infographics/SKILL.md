@@ -5,12 +5,7 @@ allowed-tools: Read Write Edit Bash
 metadata:
   requires: multimodal-llm-image-generation
   version: "1.6"
-  openclaw:
-    primaryEnv: OPENROUTER_API_KEY
-    envVars:
-    - name: OPENROUTER_API_KEY
-      required: false
-      description: OpenRouter API key for the skill's LLM-powered steps.
+  env_note: "LLM-powered steps take an OpenRouter API key from the environment when present; absent keys follow the in-skill degradation path."
 ---
 
 # Infographics
