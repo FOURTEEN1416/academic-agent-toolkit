@@ -188,7 +188,7 @@ MCP：tracked 配置用占位符 `${DOCSEARCH_MCP_SERVER}` / `${DOCSEARCH_ROOTS}
 
 ## 安全注意
 
-- `tools/*.pyc` 审查读同名 `.py`；`pyc_loader.py` 只注入 vision provider 所需 env
+- `tools/` 下 14 个工具的 `.pyc` 是**真源码**（Python 3.11 字节码），同名 `.py` 是 `pyc_loader.py` 生成的薄包装器——**严禁按“以 .py 为真源”删除 pyc**；审计读 `.pyc` 需支持 3.11 的反编译器，或跑 `.venv311` 验证行为；`pyc_loader.py` 只注入 vision provider 所需 env
 - `.env` gitignored，不入库
 - `python tools/secret_scan.py --strict` 扫 tracked 面
 
