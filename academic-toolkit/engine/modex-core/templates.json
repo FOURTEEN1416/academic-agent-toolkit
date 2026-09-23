@@ -292,7 +292,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -486,7 +491,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -1815,7 +1825,10 @@
           "display_name": "Modeling & Solution",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -1839,7 +1852,10 @@
           "display_name": "Programming",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -1874,7 +1890,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -2771,7 +2792,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -2795,7 +2819,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -2830,7 +2857,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -3009,7 +3041,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -3033,7 +3068,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -3068,7 +3106,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -3247,7 +3290,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -3271,7 +3317,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -3306,7 +3355,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -3434,7 +3488,10 @@
           "display_name": "数据采集与统计分析",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -3469,7 +3526,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -3610,7 +3672,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -3634,7 +3699,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -3669,7 +3737,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -3841,7 +3914,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -3865,7 +3941,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -3900,7 +3979,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -4072,7 +4156,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -4096,7 +4183,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -4131,7 +4221,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -4303,7 +4398,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -4327,7 +4425,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -4362,7 +4463,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -4534,7 +4640,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -4558,7 +4667,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -4593,7 +4705,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -4772,7 +4889,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -4796,7 +4916,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -4831,7 +4954,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -5003,7 +5131,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -5027,7 +5158,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -5062,7 +5196,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -5234,7 +5373,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -5258,7 +5400,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -5293,7 +5438,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -5465,7 +5615,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -5489,7 +5642,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -5524,7 +5680,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -5696,7 +5857,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -5720,7 +5884,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -5755,7 +5922,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -5927,7 +6099,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -5951,7 +6126,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -5986,7 +6164,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -6158,7 +6341,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -6182,7 +6368,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -6217,7 +6406,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -6389,7 +6583,10 @@
           "display_name": "建模求解",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -6413,7 +6610,10 @@
           "display_name": "编程实现",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -6448,7 +6648,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -6620,7 +6825,10 @@
           "display_name": "Modeling & Solution",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -6644,7 +6852,10 @@
           "display_name": "Programming",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -6679,7 +6890,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -6851,7 +7067,10 @@
           "display_name": "Modeling & Solution",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "sympy"
+          ]
         }
       },
       {
@@ -6875,7 +7094,10 @@
           "display_name": "Programming",
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ]
         }
       },
       {
@@ -6910,7 +7132,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -7239,7 +7466,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -7401,7 +7633,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -7562,7 +7799,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -7893,7 +8135,12 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "figure-aesthetics-craft",
+            "paper-figure-palette"
+          ]
         }
       },
       {
@@ -8457,7 +8704,11 @@
           ],
           "skill_binding": {
             "main_required": true
-          }
+          },
+          "companion_skills": [
+            "fig-critique",
+            "figure-spec"
+          ]
         },
         "requires_subagent": true
       }

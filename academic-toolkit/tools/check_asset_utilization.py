@@ -211,10 +211,12 @@ def companion_dead_slots(templates_path: Path) -> dict:
 
 
 def catalog_dispositions(catalog_path: Path) -> dict:
-    """capabilities/catalog.json 的 disposition 分级账（2026-09-22 P4 批次 E）。
+    """capabilities/catalog.json 的 disposition 分级账（2026-09-22 P4 批次 E；2026-09-23 v2.0 收尾扩级）。
 
-    三级：active（引擎已接入且真实留痕）/ routed（活跃路由面在册、可被找到）/
-    evidence-bound（模板步骤主技能，证据留痕闸覆盖）。缺省=尚未回填处置登记。
+    四级：active（引擎已接入且真实留痕）/ evidence-bound（模板步骤主技能，证据留痕闸覆盖）/
+    routed（活跃路由面在册、可被找到）/ external（登记在册但属外域——地图 §四「不接入」
+    或未落入任何活跃路由面，如实标注"有户籍、非活跃路由"）。
+    缺省=尚未回填处置登记。
     返回 {"entries_total", "filled", "by_level", "unfilled_skill_entries", "error"}。
     """
     out = {"entries_total": 0, "filled": 0, "by_level": {}, "unfilled_skill_entries": 0}

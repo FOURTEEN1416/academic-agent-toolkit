@@ -158,22 +158,30 @@ def test_mandatory_slots_point_to_real_skills_and_companion_declared():
 # `companion_dead_slots()` 的可复现读数为准：当前代 = 任一步 metadata 携带
 # companion_skills / output_specs / note 三个机制字段之一，字段引入日期见工具注释。）
 ACTIVE_DEAD_SLOT_BASELINE = 3
-# catalog disposition 回填棘轮（2026-09-22 实测 15：13 P0 + pdf-toolkit(routed)
-# + paper-compile-zh(evidence-bound)，共 routed 14 / evidence-bound 1）
-DISPOSITION_FILLED_BASELINE = 15
+# catalog disposition 回填棘轮（2026-09-22 实测 15；2026-09-23 v2.0 收尾扩级并全量回填：
+# 264 = evidence-bound 70 + routed 83 + external 111；external 为第四级——登记在册但属
+# catalog disposition 回填棘轮（2026-09-22 实测 15；2026-09-23 v2.0 收尾扩级并全量回填：
+# 264 = evidence-bound 70 + routed 83 + external 111；external 为第四级——登记在册但属
+# 地图 §四「不接入」外域，如实标注不伪装 routed。技能名条目未回填 0。棘轮只升。）
+DISPOSITION_FILLED_BASELINE = 264
+# legacy 代际死槽登记（2026-09-23 v2.0 收尾：40→13）。回填做法=从已接线模板抽取
+# skill_name→companion 既有映射，按技能名全局应用到同名步骤（非编造接线）。余 13 个
+# 模板其步骤技能无既有 companion 映射可依，如实保留 legacy（只登记不删）。
 LEGACY_DEAD_SLOT_REGISTRY = [
-    "comp_apmcm", "comp_apmcm_zh", "comp_certcup", "comp_certcup_en", "comp_diangong",
-    "comp_huadong", "comp_huashu", "comp_huazhong", "comp_liaoning", "comp_mathorcup",
-    "comp_mcm", "comp_shenzhen", "comp_shuwei", "comp_shuwei_en", "comp_stats",
-    "comp_teddy", "comp_tianfu", "comp_wuyi", "comp_yangtze", "comp_zhongqing",
-    "copyright_material", "copyright_source_materials", "course_paper", "course_report",
-    "deep_research", "experiment_bridge", "full_pipeline", "grad_project",
-    "grant_proposal", "humanities_paper", "idea_discovery", "literature_review",
-    "nature_writing", "paper_from_assets", "paper_submission", "paper_writing",
-    "paper_writing_zh", "patent_disclosure", "scientific_figure_suite",
-    "scientific_plotting", "thesis_proposal",
+    "copyright_material", "copyright_source_materials", "deep_research", "experiment_bridge",
+    "full_pipeline", "grad_project", "grant_proposal", "idea_discovery", "literature_review",
+    "nature_writing", "paper_submission", "patent_disclosure", "thesis_proposal",
 ]
-ACTIVE_CLEAN_BASELINE = ["comp_cumcm", "comp_huawei"]
+# 活跃已接线模板（2026-09-23 v2.0 收尾：3→30）。棘轮只升不降。
+ACTIVE_CLEAN_BASELINE = [
+    "comp_apmcm", "comp_apmcm_zh", "comp_certcup", "comp_certcup_en", "comp_cumcm",
+    "comp_diangong", "comp_huadong", "comp_huashu", "comp_huawei", "comp_huazhong",
+    "comp_liaoning", "comp_mathorcup", "comp_mcm", "comp_shenzhen", "comp_shuwei",
+    "comp_shuwei_en", "comp_stats", "comp_teddy", "comp_tianfu", "comp_wuyi",
+    "comp_yangtze", "comp_zhongqing", "course_paper", "course_report", "humanities_paper",
+    "paper_from_assets", "paper_writing", "paper_writing_zh", "scientific_figure_suite",
+    "scientific_plotting",
+]
 
 
 def test_companion_dead_slots_synthetic_generation(tmp_path):
@@ -296,6 +304,9 @@ def test_real_repo_catalog_disposition_report_matches_catalog():
         "（P4 批次 E 棘轮只升）")
     assert got["by_level"].get("routed", 0) >= 14
     assert got["by_level"].get("evidence-bound", 0) >= 1
+    # 2026-09-23 v2.0 收尾：第四级 external（外域在册）纳入；技能名条目应零未回填
+    assert got["by_level"].get("external", 0) >= 1
+    assert got["unfilled_skill_entries"] == 0, "技能名条目应全量回填 disposition"
     assert not got.get("error")
 
 

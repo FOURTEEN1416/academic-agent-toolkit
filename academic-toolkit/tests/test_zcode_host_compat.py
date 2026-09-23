@@ -317,8 +317,11 @@ def _hook_contract_cfg() -> dict:
 
     工作区 config 若存在且含 hooks 块（本地已注册）→ 直接按契约校验（活契约，注册错了必红）；
     文件缺席或为"清除态"（仅剩 mcp）→ 回退 git 定稿版校验引导器契约
-    （最后含注册版的提交为 4ef9c55 的父提交，注册形态冻结在该历史点，
+    （动态解析：取"最后一个 .zcode/config.json 含 hooks 块的提交"，注册形态冻结在该历史点，
     将来重注册照此契约）；两处皆无注册版 → skip（本文件行为测试仍守着脚本本体）。
+
+    2026-09-23 收尾修复：此前硬编码 `4ef9c55^` 锚点——该短哈希随历史演进失效致 6 项
+    skip；改动态解析，对历史重写免疫。
     """
     try:
         cfg = json.loads((REPO_ROOT / ".zcode" / "config.json").read_text(encoding="utf-8"))
@@ -326,13 +329,25 @@ def _hook_contract_cfg() -> dict:
         cfg = {}
     if "hooks" in cfg:
         return cfg
-    r = subprocess.run(["git", "-C", str(REPO_ROOT), "show", "4ef9c55^:.zcode/config.json"],
-                       capture_output=True, text=True, encoding="utf-8", timeout=30)
-    if r.returncode != 0:
-        pytest.skip(f"git show 读取定稿配置失败: {r.stderr[:120]}")
-    cfg = json.loads(r.stdout)
-    if "hooks" not in cfg:
-        pytest.skip("hooks 已按用户裁定清除且 git 历史无注册版（重注册须按本段契约）")
+    # 动态解析：按时间倒序列出触及 .zcode/config.json 的提交，取第一个能从其
+    # blob 中解出含 hooks 块的版本（改名前最后含注册版的提交即冻结契约）。
+    log = subprocess.run(
+        ["git", "-C", str(REPO_ROOT), "log", "--format=%H", "--", ".zcode/config.json",
+         "科研工具箱/.zcode/config.json"],
+        capture_output=True, text=True, encoding="utf-8", timeout=30)
+    for sha in [s.strip() for s in (log.stdout or "").splitlines() if s.strip()]:
+        show = subprocess.run(
+            ["git", "-C", str(REPO_ROOT), "show", f"{sha}:.zcode/config.json"],
+            capture_output=True, text=True, encoding="utf-8", timeout=30)
+        if show.returncode != 0:
+            continue
+        try:
+            candidate = json.loads(show.stdout)
+        except ValueError:
+            continue
+        if "hooks" in candidate:
+            return candidate
+    pytest.skip("hooks 已按用户裁定清除且 git 历史无注册版（重注册须按本段契约）")
     return cfg
 
 

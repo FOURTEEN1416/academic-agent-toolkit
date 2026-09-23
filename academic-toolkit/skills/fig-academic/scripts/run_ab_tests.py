@@ -11,47 +11,47 @@ def run_all():
     report = {"timestamp": "", "scenarios": {}}
 
     # S1: PCA from real data
-    s1_academic-figure-skill_passes = []
-    s1_academic-figure-skill_details = []
+    s1_fig_academic_passes = []
+    s1_fig_academic_details = []
 
     # Check if PCA R script can run
     pca_r = PROJECT_ROOT / "fig-academic" / "assets" / "figures" / "PCA" / "plot_PCA.R"
-    s1_academic-figure-skill_passes.append(pca_r.exists())
-    s1_academic-figure-skill_details.append(f"Asset exists: {pca_r.exists()}")
+    s1_fig_academic_passes.append(pca_r.exists())
+    s1_fig_academic_details.append(f"Asset exists: {pca_r.exists()}")
 
     # Check compose.py has r_png_device with type="cairo"
     compose_py = PROJECT_ROOT / "fig-academic" / "scripts" / "compose.py"
     with open(compose_py, encoding="utf-8", errors="replace") as f: py_src = f.read()
-    s1_academic-figure-skill_passes.append('type="cairo"' in py_src or "type='cairo'" in py_src)
-    s1_academic-figure-skill_details.append("PNG cairo rule in compose.py")
+    s1_fig_academic_passes.append('type="cairo"' in py_src or "type='cairo'" in py_src)
+    s1_fig_academic_details.append("PNG cairo rule in compose.py")
 
     # Check color-palettes.md has CNS hex colors
     color_md = PROJECT_ROOT / "fig-academic" / "references" / "color-palettes.md"
     with open(color_md, encoding="utf-8", errors="replace") as f: color_src = f.read()
-    s1_academic-figure-skill_passes.append("#2166AC" in color_src and "#B2182B" in color_src)
-    s1_academic-figure-skill_details.append("CNS palette in color-palettes.md")
+    s1_fig_academic_passes.append("#2166AC" in color_src and "#B2182B" in color_src)
+    s1_fig_academic_details.append("CNS palette in color-palettes.md")
 
     # Check typography baseline includes Arial
     typo_md = PROJECT_ROOT / "fig-academic" / "references" / "typography.md"
     with open(typo_md, encoding="utf-8", errors="replace") as f: typo_src = f.read()
-    s1_academic-figure-skill_passes.append("Arial" in typo_src)
-    s1_academic-figure-skill_details.append("Arial font in typography.md")
+    s1_fig_academic_passes.append("Arial" in typo_src)
+    s1_fig_academic_details.append("Arial font in typography.md")
 
     # Check vector export rule
     export_md = PROJECT_ROOT / "fig-academic" / "references" / "export-specs.md"
     with open(export_md, encoding="utf-8", errors="replace") as f: export_src = f.read()
-    s1_academic-figure-skill_passes.append("cairo_pdf" in export_src)
-    s1_academic-figure-skill_details.append("cairo_pdf vector export")
+    s1_fig_academic_passes.append("cairo_pdf" in export_src)
+    s1_fig_academic_details.append("cairo_pdf vector export")
 
     # Check 300dpi
-    s1_academic-figure-skill_passes.append("300" in export_src or "dpi = 300" in export_src.lower())
-    s1_academic-figure-skill_details.append("300dpi rule")
+    s1_fig_academic_passes.append("300" in export_src or "dpi = 300" in export_src.lower())
+    s1_fig_academic_details.append("300dpi rule")
 
     report["scenarios"]["S1_pca"] = {
         "fig-academic": {
-            "passed": sum(s1_academic-figure-skill_passes), "total": len(s1_academic-figure-skill_passes),
-            "pass_rate": sum(s1_academic-figure-skill_passes) / len(s1_academic-figure-skill_passes),
-            "checks": s1_academic-figure-skill_details,
+            "passed": sum(s1_fig_academic_passes), "total": len(s1_fig_academic_passes),
+            "pass_rate": sum(s1_fig_academic_passes) / len(s1_fig_academic_passes),
+            "checks": s1_fig_academic_details,
         },
         "baseline": {
             "passed": 2, "total": 6, "pass_rate": 2/6,
