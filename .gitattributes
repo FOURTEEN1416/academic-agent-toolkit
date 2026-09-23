@@ -13,10 +13,6 @@
 * text=auto eol=lf
 
 # 二进制：禁止行尾转换与 diff
-# 注：`*.pyc` 是 16 个受控分发件（tools/*.py 仅为加载器），其字节被 pyc_loader
-# 直接读取、且与 3.11 magic number 绑定，绝不可被改写。
-*.pyc binary
-*.pyo binary
 *.png binary
 *.jpg binary
 *.jpeg binary

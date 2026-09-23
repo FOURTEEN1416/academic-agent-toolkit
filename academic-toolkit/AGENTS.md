@@ -71,7 +71,7 @@
 
 1. **技能即知识**：每个 `skills/<name>/SKILL.md` 描述"如何做一件事"
 2. **Agent 即执行者**：当前 Agent 读取 SKILL.md 后自主执行，无需外部调度器
-3. **工具即手脚**：`tools/*.py|pyc` 是独立可执行脚本；缺口可 forge
+3. **工具即手脚**：`tools/*.py` 是独立可执行脚本（单一 `.py` 真源）；缺口可 forge
 4. **门禁即质量**：每步产出后检查质量，不达标则重做
 5. **Agent 定角色**：executor / reviewer / editor
 6. **工程原则**：**TOOL_GAP** / **三振升级** / **决策点≠批准** / **无证据＝未执行** —— 见 `skills/_utils/anti_rationalization.md`
@@ -188,7 +188,7 @@ MCP：tracked 配置用占位符 `${DOCSEARCH_MCP_SERVER}` / `${DOCSEARCH_ROOTS}
 
 ## 安全注意
 
-- `tools/` 下 14 个工具的 `.pyc` 是**真源码**（Python 3.11 字节码），同名 `.py` 是 `pyc_loader.py` 生成的薄包装器——**严禁按“以 .py 为真源”删除 pyc**；审计读 `.pyc` 需支持 3.11 的反编译器，或跑 `.venv311` 验证行为；`pyc_loader.py` 只注入 vision provider 所需 env
+- `tools/` 全部工具为单一 `.py` 真源（原 14 件 `.pyc` 分发件已于 2026-09-23 v2.0 收尾反编译重建后退役，`tools/ 零 .pyc` 由 `test_tool_reliability` 棘轮钉住）
 - `.env` gitignored，不入库
 - `python tools/secret_scan.py --strict` 扫 tracked 面
 

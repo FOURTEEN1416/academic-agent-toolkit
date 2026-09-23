@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """密钥与路径卫生扫描门禁（secret_scan，2026-09-20 建立）。
 
-**为什么需要**：本仓是 PUBLIC 仓且运行时确有密钥注入面（`pyc_loader` 注入
-vision provider key、`.env` 本地配置、MCP 本地覆盖）——但此前密钥卫生只有
+**为什么需要**：本仓是 PUBLIC 仓且曾有密钥注入面（旧 `pyc_loader` 曾注入
+vision provider key——2026-09-23 换驱动后拆除、v2.0 收尾随 pyc 退役整体删除；
+`.env` 本地配置、MCP 本地覆盖仍在）——但此前密钥卫生只有
 gitignore 单层防护，无任何机检。根 AGENTS.md 硬性规则 6（tracked 配置与文档
 不得写入本机绝对路径）也只靠人工遵守。
 

@@ -7,7 +7,7 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v2.0.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-774_passing-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
+[![Tests](https://img.shields.io/badge/tests-768_passing-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-313-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-250_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
@@ -163,9 +163,9 @@ python academic-toolkit/tools/plotting_env_check.py
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-# 口径一（仓库根，回归门禁口径）：774 passed / 0 failed（与口径二同值）
+# 口径一（仓库根，回归门禁口径）：768 passed / 0 failed（与口径二同值）
 python -m pytest -q
-# 口径二（工具箱内，技能验收基线口径）：774 passed / 0 failed
+# 口径二（工具箱内，技能验收基线口径）：768 passed / 0 failed
 cd academic-toolkit && python -m pytest -q
 python tools/check_provenance.py             # → 75/75 UPSTREAM+vendor 台账通过
 ```
@@ -178,7 +178,7 @@ python tools/check_provenance.py             # → 75/75 UPSTREAM+vendor 台账�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）75/75 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | ⚠️ **2026-09-19 起停用**：公开层曾为 CC-BY-4.0 合成题面基准（P01-P03 + 六域 7 项），已废弃移除、不随仓库分发；私有层（真实竞赛题面）从未入库 |
-| ✅ **测试基线** | 仓库根 **774 passed / 0 failed**（另 4 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1 + 适配器元数据缺席 skip 1；仓库根与工具箱内同口径）。**唯一真源 = `pytest.ini` 注释**，历史基线演进也记录在该注释中；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
+| ✅ **测试基线** | 仓库根 **768 passed / 0 failed**（另 3 skipped：私有资料区缺位语义 skip 2 + 适配器元数据缺席 skip 1；仓库根与工具箱内同口径）。**唯一真源 = `pytest.ini` 注释**，历史基线演进也记录在该注释中；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
 | 🧬 **逐技能 C2 覆盖** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
 | 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + 旧宿主降为可选适配器 + TOOL_GAP→工具铸造（2026-09-20） |
 

@@ -2,11 +2,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-# ⚠️ 例外（2026-09-19 修复）：academic-toolkit/tools/ 下的 16 个 .pyc 是**受控分发件**，
-# 与同名 .py 加载器配对（加载器由 tools/pyc_loader.py 生成，3.11 编译器锁定），
-# 属本仓既有设计。上面 `*.py[cod]` 曾把它们全部排除 → 公开 clone 后 16 个工具
-# 一律报 "xxx.pyc not found" 并 exit 1（CI 首次实测发现，属发布物残缺）。
-!academic-toolkit/tools/*.pyc
 *.so
 .Python
 build/

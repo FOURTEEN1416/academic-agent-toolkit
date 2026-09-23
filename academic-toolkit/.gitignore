@@ -4,12 +4,6 @@
 # Python 编译缓存
 __pycache__/
 *.pyc
-# ⚠️ 例外（2026-09-19 修复）：tools/ 下的 16 个 .pyc 是**受控分发件**，与同名 .py
-# 加载器（tools/pyc_loader.py 生成，3.11 编译器锁定）配对，须随仓分发。
-# 上面的 `*.pyc` 曾将其全部排除 → 公开 clone 后 16 个工具一律报
-# "xxx.pyc not found" 并 exit 1（CI 首次实测发现）。
-# 注：根 .gitignore 的同名 negation 无法覆盖本文件（子目录规则优先），故此例外必须写在这里。
-!tools/*.pyc
 
 # Vendored Node dependencies are installed locally for the CodeSucker adapter
 third_party/codesucker-core/node_modules/

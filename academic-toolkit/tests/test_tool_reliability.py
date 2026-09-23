@@ -87,9 +87,12 @@ def test_runtime_discovery_combines_suite_and_path_commands(tmp_path, monkeypatc
 
 
 def test_pyc_not_taught_as_invocation_entry(tmp_path):
-    """2026-09-09 独立审计（未验证②转化）：.pyc 是 3.11 编译的字节码分发件，
-    版本锁定（本机 3.12 直跑报 Bad magic number）。文档/技能一律不得教学
-    `python tools/*.pyc` 直调——真源是同名 .py。本测试防该口径回潮。"""
+    """.pyc 直调禁令（2026-09-09 独立审计转化；2026-09-23 v2.0 收尾升级为整仓退役）。
+
+    历史两阶段：①.pyc 作为分发件时，文档不得教学 `python tools/*.pyc` 直调；
+    ②v2.0 收尾（Decompyle++ 反编译重建 14 工具真源码 + 行为等价验证后）pyc 整体
+    退役——tools/ 下不再允许任何 .pyc 存在（防字节码死灰复燃）。本测试守两道：
+    文档不教学直调 + tools/ 零 pyc。"""
     import re
     bad = []
     targets = [ROOT / "AGENTS.md"]
@@ -100,8 +103,8 @@ def test_pyc_not_taught_as_invocation_entry(tmp_path):
         text = f.read_text(encoding="utf-8", errors="ignore")
         for m in re.finditer(r"python3?\s+[\w/\.-]*?([\w-]+)\.pyc", text):
             bad.append(f"{f.relative_to(ROOT)}: python …{m.group(0)[:60]}")
-    assert not bad, "文档教学了 .pyc 直调（应改为同名 .py 真源）:\n  " + "\n  ".join(bad)
-    # 每个 .pyc 必须有同名 .py 真源
-    orphans = [p.name for p in (ROOT / "tools").glob("*.pyc")
-               if not p.with_suffix(".py").is_file() and "__pycache__" not in p.parts]
-    assert not orphans, f"存在无 .py 真源的孤儿 .pyc: {orphans}"
+    assert not bad, "文档教学了 .pyc 直调:\n  " + "\n  ".join(bad)
+    # v2.0 收尾：tools/ 下不允许任何 .pyc（真源码已全部重建为 .py）
+    leftover = [p.name for p in (ROOT / "tools").glob("*.pyc")
+                if "__pycache__" not in p.parts]
+    assert not leftover, f"tools/ 下存在 .pyc（已于 v2.0 收尾退役，真源码为同名 .py）: {leftover}"

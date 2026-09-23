@@ -99,19 +99,19 @@ def test_docx_export_converts_minimal_markdown(tmp_path):
     assert output.is_file() and output.stat().st_size > 1000, "DOCX 产物缺失或异常小"
 
 
-# ---------- docx_template_fill（缺陷钉住，见 batch3-report.md 顺带发现 #4） ----------
+# ---------- docx_template_fill（契约测试） ----------
+# 历史：旧 pyc 时代本用例因"marshal 回退路径命名空间串扰（docx_export parser 被
+# 内嵌复用，--template 被拒）"而 skip（batch3-report.md #4）。2026-09-23 v2.0 收尾
+# pyc 退役、真源码反编译重建后缺陷不复现——--template 被正确解析，走业务路径。
+# 本机无 docx-cn-engine/node_modules，fill 依赖 Node 渲染 → RuntimeError rc=1。
 
-@pytest.mark.skip(reason=(
-    "docx_template_fill.pyc CLI 契约破损：任何 --template 调用都被内嵌复用的 "
-    "docx_export parser 拒绝（unrecognized arguments: --template ...），"
-    "3.11 原生与 marshal 回退路径均可复现；pyc 及其源码不在批次三白名单，"
-    "修复留待后续轮次。详见 dev-docs/board/reports/batch3-report.md"
-))
-def test_docx_template_fill_happy_path_blocked_by_pyc_defect(tmp_path):
+def test_docx_template_fill_parses_args_and_reports_node_gap(tmp_path):
+    """--template 契约：参数被正确解析（不再被串扰 parser 拒绝）；
+    Node 引擎缺失时如实报 RuntimeError（rc=1），不伪造成功。"""
     template = tmp_path / "tpl.docx"
     source = tmp_path / "content.md"
     output = tmp_path / "filled.docx"
-    template.write_bytes(b"PK\x03\x04")  # 非 docx 内容即可——缺陷在参数解析层，走不到填充
+    template.write_bytes(b"PK\x03\x04")
     source.write_text("# 内容\n", encoding="utf-8")
 
     proc = subprocess.run(
@@ -119,5 +119,10 @@ def test_docx_template_fill_happy_path_blocked_by_pyc_defect(tmp_path):
          "--template", str(template), "--source", str(source), "--output", str(output)],
         capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120,
     )
-    assert proc.returncode == 0
-    assert output.is_file()
+    combined = (proc.stdout or "") + (proc.stderr or "")
+    # 参数解析通过（旧缺陷是 unrecognized arguments 在解析层即死，走不到业务报错）
+    assert "unrecognized arguments" not in combined, combined[-400:]
+    assert not output.is_file(), "Node 缺失时不得伪造产物"
+    # 业务层如实报 Node 引擎缺口
+    assert proc.returncode != 0, combined[-400:]
+    assert "Node" in combined or "node" in combined, combined[-400:]
