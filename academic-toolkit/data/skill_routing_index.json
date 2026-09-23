@@ -1203,6 +1203,70 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/latex-document/SKILL.md"
     },
+    "latex-paper-collab-breadth": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "> Use the Gemini CLI as a breadth-exploration co-pilot for paper-from-zero. Primary role: candidate direction expansion,",
+      "full_description": "> Use the Gemini CLI as a breadth-exploration co-pilot for paper-from-zero. Primary role: candidate direction expansion, adjacent work scanning, keyword cluster generation, and alternative framing proposals. Also supports generic code collaboration as fallback.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/latex-paper-collab-breadth/SKILL.md"
+    },
+    "latex-paper-collab-check": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "> Verify that Gemini CLI and Claude Code CLI are installed, authenticated, and API-reachable before starting",
+      "full_description": "> Verify that Gemini CLI and Claude Code CLI are installed, authenticated, and API-reachable before starting collaboration workflows.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/latex-paper-collab-check/SKILL.md"
+    },
+    "latex-paper-collab-depth": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "> Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression,",
+      "full_description": "> Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression, logical hole detection, evidence sufficiency audit, and review/empirical routing judgment. Also supports generic code collaboration as fallback.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/latex-paper-collab-depth/SKILL.md"
+    },
+    "latex-paper-empirical-writer": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "> Draft IEEE-style empirical ML/AI papers from a structured research contract. Builds experiment plans, section",
+      "full_description": "> Draft IEEE-style empirical ML/AI papers from a structured research contract. Builds experiment plans, section skeletons, placeholder-safe results, and a near-submission draft without fabricating evidence.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/latex-paper-empirical-writer/SKILL.md"
+    },
+    "latex-paper-from-zero": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "> Route a fixed research topic into a rigorous paper-generation workflow. Handles active literature search, innovation",
+      "full_description": "> Route a fixed research topic into a rigorous paper-generation workflow. Handles active literature search, innovation framing, contribution/evidence planning, and routes to either the review writer or empirical writer skill.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/latex-paper-from-zero/SKILL.md"
+    },
+    "latex-paper-prose-rhythm": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "> Post-process LaTeX project prose to improve readability through varied sentence and paragraph lengths. Removes filler",
+      "full_description": "> Post-process LaTeX project prose to improve readability through varied sentence and paragraph lengths. Removes filler phrases and unnecessary transitions while preserving all citations and semantic meaning.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/latex-paper-prose-rhythm/SKILL.md"
+    },
+    "latex-paper-results-backfill": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "> Back-fill verified experiment results into an existing empirical paper draft. Resolves placeholders, upgrades",
+      "full_description": "> Back-fill verified experiment results into an existing empirical paper draft. Resolves placeholders, upgrades hypotheses to factual claims, generates figures/tables, drafts abstract, and runs rhythm refinement + QA.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/latex-paper-results-backfill/SKILL.md"
+    },
+    "latex-paper-survey-writer": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "> Writes ML/AI review and survey papers for arXiv using the IEEEtran LaTeX template with verified BibTeX citations.",
+      "full_description": "> Writes ML/AI review and survey papers for arXiv using the IEEEtran LaTeX template with verified BibTeX citations. Triggers when the deliverable is a review paper, literature survey, or when an existing LaTeX project needs citation validation or repair.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/latex-paper-survey-writer/SKILL.md"
+    },
     "latex-writing": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1210,70 +1274,6 @@
       "full_description": "国赛 LaTeX 写作（Latex Writing for CUMCM）——数学建模竞赛论文专用的 LaTeX 技能。封装 CTeX 中文模板 + 公式/表格/算法三件套 + 国赛摘要页精修。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/latex-writing/SKILL.md"
-    },
-    "latexpap-arxiv-paper-writer": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "> Writes ML/AI review and survey papers for arXiv using the IEEEtran LaTeX template with verified BibTeX citations.",
-      "full_description": "> Writes ML/AI review and survey papers for arXiv using the IEEEtran LaTeX template with verified BibTeX citations. Triggers when the deliverable is a review paper, literature survey, or when an existing LaTeX project needs citation validation or repair.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/latexpap-arxiv-paper-writer/SKILL.md"
-    },
-    "latexpap-check-collaborators": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "> Verify that Gemini CLI and Claude Code CLI are installed, authenticated, and API-reachable before starting",
-      "full_description": "> Verify that Gemini CLI and Claude Code CLI are installed, authenticated, and API-reachable before starting collaboration workflows.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/latexpap-check-collaborators/SKILL.md"
-    },
-    "latexpap-collaborating-with-claude": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "> Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression,",
-      "full_description": "> Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression, logical hole detection, evidence sufficiency audit, and review/empirical routing judgment. Also supports generic code collaboration as fallback.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/latexpap-collaborating-with-claude/SKILL.md"
-    },
-    "latexpap-collaborating-with-gemini": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "> Use the Gemini CLI as a breadth-exploration co-pilot for paper-from-zero. Primary role: candidate direction expansion,",
-      "full_description": "> Use the Gemini CLI as a breadth-exploration co-pilot for paper-from-zero. Primary role: candidate direction expansion, adjacent work scanning, keyword cluster generation, and alternative framing proposals. Also supports generic code collaboration as fallback.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/latexpap-collaborating-with-gemini/SKILL.md"
-    },
-    "latexpap-empirical-paper-writer": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "> Draft IEEE-style empirical ML/AI papers from a structured research contract. Builds experiment plans, section",
-      "full_description": "> Draft IEEE-style empirical ML/AI papers from a structured research contract. Builds experiment plans, section skeletons, placeholder-safe results, and a near-submission draft without fabricating evidence.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/latexpap-empirical-paper-writer/SKILL.md"
-    },
-    "latexpap-latex-rhythm-refiner": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "> Post-process LaTeX project prose to improve readability through varied sentence and paragraph lengths. Removes filler",
-      "full_description": "> Post-process LaTeX project prose to improve readability through varied sentence and paragraph lengths. Removes filler phrases and unnecessary transitions while preserving all citations and semantic meaning.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/latexpap-latex-rhythm-refiner/SKILL.md"
-    },
-    "latexpap-paper-from-zero": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "> Route a fixed research topic into a rigorous paper-generation workflow. Handles active literature search, innovation",
-      "full_description": "> Route a fixed research topic into a rigorous paper-generation workflow. Handles active literature search, innovation framing, contribution/evidence planning, and routes to either the review writer or empirical writer skill.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/latexpap-paper-from-zero/SKILL.md"
-    },
-    "latexpap-results-backfill": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "> Back-fill verified experiment results into an existing empirical paper draft. Resolves placeholders, upgrades",
-      "full_description": "> Back-fill verified experiment results into an existing empirical paper draft. Resolves placeholders, upgrades hypotheses to factual claims, generates figures/tables, drafts abstract, and runs rhythm refinement + QA.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/latexpap-results-backfill/SKILL.md"
     },
     "literature-review": {
       "tier": "ondemand",

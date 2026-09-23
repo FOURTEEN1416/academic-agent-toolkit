@@ -464,7 +464,7 @@
    "references/phrases-to-cut.md",
    "references/wikipedia-source.md"
   ],
-  "latexpap-arxiv-paper-writer": [],
+  "latex-paper-survey-writer": [],
   "nature-data-availability": [
    "references/repository-routing.md",
    "references/source-data-checks.md"
