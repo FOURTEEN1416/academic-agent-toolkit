@@ -1,0 +1,596 @@
+{
+  "schema_version": 1,
+  "updated": "2026-09-23",
+  "note": "资产台账真源：智能体资产发现入口（boot/probe 暴露；check_asset_utilization 第六类审计对账）。path 为仓库根相对；local_only=true 表示 gitignored 私有资料区，公开 clone 缺席属语义缺位。",
+  "assets": [
+    {
+      "id": "contest-lessons",
+      "path": "academic-toolkit/data/contest_lessons.md",
+      "zone": "data",
+      "type": "reference-data",
+      "description": "国赛实战经验库：赛中决策复盘+P0/P1 坑位对照+上传前 8 项硬闸",
+      "when_to_use": "竞赛项目启动时读避坑；复盘步必读",
+      "owner_skills": [
+        "contest-retrospective",
+        "comp-review"
+      ],
+      "consumers": [
+        "comp_cumcm:S13",
+        "comp_huawei:S13"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "contest-lessons-json",
+      "path": "academic-toolkit/data/contest_lessons.json",
+      "zone": "data",
+      "type": "governance-ledger",
+      "description": "经验库机读版（contest_lessons_check 门禁对账）",
+      "when_to_use": "CI 机检；agent 不直接读",
+      "owner_skills": [],
+      "consumers": [
+        "gate:contest_lessons_check"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "case-patterns",
+      "path": "academic-toolkit/data/case_patterns.md",
+      "zone": "data",
+      "type": "reference-data",
+      "description": "题型案例模式库：历年题型与建模套路对照",
+      "when_to_use": "赛题分析步定位同类题打法；无网络时降级参照",
+      "owner_skills": [
+        "comp-prob-analysis",
+        "model-innovation"
+      ],
+      "consumers": [
+        "comp_cumcm:S1",
+        "comp_huawei:S1"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "risk-alerts",
+      "path": "academic-toolkit/data/risk_alerts.md",
+      "zone": "data",
+      "type": "checklist",
+      "description": "风险预警清单：常见翻车点",
+      "when_to_use": "建模/写作前扫一遍",
+      "owner_skills": [
+        "comp-modeling"
+      ],
+      "consumers": [
+        "comp_cumcm:S3",
+        "comp_huawei:S3"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "reference-models",
+      "path": "academic-toolkit/data/reference_models.json",
+      "zone": "data",
+      "type": "reference-data",
+      "description": "参考模型库：可选算法模型卡",
+      "when_to_use": "建模步选型参照",
+      "owner_skills": [
+        "comp-modeling"
+      ],
+      "consumers": [
+        "comp_cumcm:S3"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "historical-problems",
+      "path": "academic-toolkit/data/historical_problems.json",
+      "zone": "data",
+      "type": "reference-data",
+      "description": "历年真题索引（2021-2025 元数据）",
+      "when_to_use": "赛题分析步查历史同类题【mandatory 试点】",
+      "owner_skills": [
+        "comp-prob-analysis",
+        "problem-selection"
+      ],
+      "consumers": [
+        "comp_cumcm:S1",
+        "comp_huawei:S1"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "historical-papers",
+      "path": "academic-toolkit/data/historical_papers.md",
+      "zone": "data",
+      "type": "reference-data",
+      "description": "获奖论文摘要索引",
+      "when_to_use": "文献步找范文线索",
+      "owner_skills": [
+        "comp-literature"
+      ],
+      "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "search-links",
+      "path": "academic-toolkit/data/search_links.md",
+      "zone": "data",
+      "type": "reference-data",
+      "description": "检索链接清单",
+      "when_to_use": "文献检索起步",
+      "owner_skills": [
+        "comp-literature"
+      ],
+      "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "data-readme",
+      "path": "academic-toolkit/data/README.md",
+      "zone": "data",
+      "type": "methodology",
+      "description": "data/ 文件、用途、消费者映射表",
+      "when_to_use": "想知道库里有什么数据时先读",
+      "owner_skills": [],
+      "consumers": [
+        "manual"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "skill-routing-index",
+      "path": "academic-toolkit/data/skill_routing_index.json",
+      "zone": "data",
+      "type": "governance-ledger",
+      "description": "技能分层索引（build_skill_index --emit 生成物）",
+      "when_to_use": "agent 技能路由；勿手改",
+      "owner_skills": [],
+      "consumers": [
+        "gate:build_skill_index"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "skill-tiers",
+      "path": "academic-toolkit/data/skill_tiers.json",
+      "zone": "data",
+      "type": "governance-ledger",
+      "description": "技能分层（核心/按需）生成物",
+      "when_to_use": "同上",
+      "owner_skills": [],
+      "consumers": [
+        "gate:build_skill_index"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "skill-routing-critical",
+      "path": "academic-toolkit/data/skill_routing_critical.json",
+      "zone": "data",
+      "type": "governance-ledger",
+      "description": "路由关键技能集",
+      "when_to_use": "测试对账",
+      "owner_skills": [],
+      "consumers": [
+        "gate:routing_tests"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "lint-baseline",
+      "path": "academic-toolkit/data/lint_baseline.json",
+      "zone": "data",
+      "type": "governance-ledger",
+      "description": "lint 棘轮基线",
+      "when_to_use": "CI 机检",
+      "owner_skills": [],
+      "consumers": [
+        "gate:lint_ratchet"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "secret-allowlist",
+      "path": "academic-toolkit/data/secret_scan_allowlist.json",
+      "zone": "data",
+      "type": "governance-ledger",
+      "description": "密钥扫描豁免台账",
+      "when_to_use": "CI 机检",
+      "owner_skills": [],
+      "consumers": [
+        "gate:secret_scan"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "dup-assets-registry",
+      "path": "academic-toolkit/data/duplicate_assets_registry.json",
+      "zone": "data",
+      "type": "governance-ledger",
+      "description": "重复资产登记（双副本设计台账）",
+      "when_to_use": "CI 机检",
+      "owner_skills": [],
+      "consumers": [
+        "gate:check_duplicate_assets"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "palette-registry",
+      "path": "academic-toolkit/skills/paper-figure-palette/assets/palette_registry.json",
+      "zone": "skills-internal",
+      "type": "palette",
+      "description": "统一配色注册表（62 模板指针）",
+      "when_to_use": "任何出图步选色",
+      "owner_skills": [
+        "paper-figure",
+        "nature-figure"
+      ],
+      "consumers": [
+        "comp_cumcm:S5",
+        "comp_huawei:S5"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "palette-scenarios",
+      "path": "academic-toolkit/skills/paper-figure-palette/references/scenarios.md",
+      "zone": "skills-internal",
+      "type": "palette",
+      "description": "配色场景手册（32 指针）",
+      "when_to_use": "按场景选色板",
+      "owner_skills": [
+        "paper-figure"
+      ],
+      "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "anti-rationalization",
+      "path": "academic-toolkit/skills/_utils/anti_rationalization.md",
+      "zone": "skills-internal",
+      "type": "methodology",
+      "description": "反合理化表：跳步骤借口与反驳",
+      "when_to_use": "动手指令/写结论前扫一遍（28 模板指针）",
+      "owner_skills": [],
+      "consumers": [
+        "comp_cumcm:全链"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "figure-exemplars",
+      "path": "academic-toolkit/skills/_utils/figure_exemplars.md",
+      "zone": "skills-internal",
+      "type": "methodology",
+      "description": "图表数量/类型规划启发式",
+      "when_to_use": "规划画几张图画什么",
+      "owner_skills": [
+        "paper-figure"
+      ],
+      "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "cumcm-format-2026",
+      "path": "academic-toolkit/skills/_utils/cumcm_2026_format.md",
+      "zone": "skills-internal",
+      "type": "checklist",
+      "description": "国赛 2026 格式规范（承诺书/编号页/匿名红线）",
+      "when_to_use": "论文排版与终审步",
+      "owner_skills": [
+        "comp-paper-zh",
+        "comp-final-audit"
+      ],
+      "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "templates-16fam",
+      "path": "academic-toolkit/skills/comp-paper-zh/_templates/",
+      "zone": "skills-internal",
+      "type": "template-family",
+      "description": "16 赛事族 LaTeX 模板库（cumcm/huawei 已接线，其余落地断言兜底）",
+      "when_to_use": "对应赛事编译步",
+      "owner_skills": [
+        "comp-paper-zh",
+        "comp-compile-zh"
+      ],
+      "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "figure-atlas",
+      "path": "academic-toolkit/skills/academic-figure-skill/assets/figure-atlas/",
+      "zone": "skills-internal",
+      "type": "corpus",
+      "description": "CNS 级示例图集 215 张+目录索引",
+      "when_to_use": "画顶刊风格图前找参照",
+      "owner_skills": [
+        "academic-figure-skill"
+      ],
+      "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "shared-references",
+      "path": "academic-toolkit/skills/shared-references/",
+      "zone": "skills-internal",
+      "type": "methodology",
+      "description": "跨技能共享参考件（3 文件）",
+      "when_to_use": "paper-plan/write 族",
+      "owner_skills": [
+        "paper-plan",
+        "paper-write"
+      ],
+      "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "award-papers-guide",
+      "path": "assets-local/award-papers/参考论文使用指南.md",
+      "zone": "assets-local",
+      "type": "methodology",
+      "description": "获奖论文资产入口地图（62 篇五年的可编码规则蒸馏）",
+      "when_to_use": "用获奖论文语料前先读",
+      "owner_skills": [
+        "comp-prob-analysis",
+        "comp-paper-zh"
+      ],
+      "consumers": [
+        "comp_cumcm:S1",
+        "comp_huawei:S1"
+      ],
+      "local_only": true
+    },
+    {
+      "id": "award-papers-corpus",
+      "path": "assets-local/award-papers/2021/",
+      "zone": "assets-local",
+      "type": "corpus",
+      "description": "国赛优秀论文原始页扫描真源（62 篇/2962 页 JPG，2021-2025 五个年分子目录）",
+      "when_to_use": "逐篇精读/图示参照时按 年/题号 取",
+      "owner_skills": [
+        "comp-literature",
+        "paper-figure"
+      ],
+      "consumers": [],
+      "local_only": true
+    },
+    {
+      "id": "abstract-analysis",
+      "path": "assets-local/award-papers/摘要深度分析报告.md",
+      "zone": "assets-local",
+      "type": "analysis-report",
+      "description": "62 篇摘要统计：700-900 字黄金区间/四要素",
+      "when_to_use": "写竞赛摘要前读",
+      "owner_skills": [
+        "comp-paper-zh"
+      ],
+      "consumers": [
+        "comp_cumcm:S8",
+        "comp_huawei:S8"
+      ],
+      "local_only": true
+    },
+    {
+      "id": "style-analysis",
+      "path": "assets-local/award-papers/论文风格分析报告.md",
+      "zone": "assets-local",
+      "type": "analysis-report",
+      "description": "逐篇 OCR 风格量化（覆盖 20/62 篇，注意样本口径）",
+      "when_to_use": "文风对标；anti-ai 基线再生成源",
+      "owner_skills": [
+        "comp-paper-zh",
+        "anti-ai-detection"
+      ],
+      "consumers": [
+        "comp_cumcm:S8"
+      ],
+      "local_only": true
+    },
+    {
+      "id": "color-analysis",
+      "path": "assets-local/award-papers/图表配色分析报告.md",
+      "zone": "assets-local",
+      "type": "analysis-report",
+      "description": "62 篇页面级配色统计（口径=页面非图表）+可视化规范",
+      "when_to_use": "出图步配色参照",
+      "owner_skills": [
+        "paper-figure"
+      ],
+      "consumers": [
+        "comp_cumcm:S5",
+        "comp_huawei:S5",
+        "comp_cumcm:S11"
+      ],
+      "local_only": true
+    },
+    {
+      "id": "selfcheck-287",
+      "path": "assets-local/award-papers/论文自查表_287项.md",
+      "zone": "assets-local",
+      "type": "checklist",
+      "description": "bzdshumo 287 项提交前自查清单（22 静态板块+66 动态检查，全库唯一高质量审查基准）",
+      "when_to_use": "最终复审/交付审计步逐项过（W4 将摘编为 tracked JSON）",
+      "owner_skills": [
+        "comp-review",
+        "comp-final-audit"
+      ],
+      "consumers": [],
+      "local_only": true
+    },
+    {
+      "id": "study-plan-25",
+      "path": "assets-local/award-papers/学习笔记/学习规划.json",
+      "zone": "assets-local",
+      "type": "reference-data",
+      "description": "25 篇优先范文清单（每年每题型 1 篇）+img 到 pdf 映射",
+      "when_to_use": "精选范文快读入口（W4 接线 S8）",
+      "owner_skills": [
+        "comp-paper-zh"
+      ],
+      "consumers": [],
+      "local_only": true
+    },
+    {
+      "id": "deep-learning-reports",
+      "path": "assets-local/award-papers/深度学习报告/",
+      "zone": "assets-local",
+      "type": "analysis-report",
+      "description": "62 篇总览 README（按题型学习路径）+六章写作规范+半成品总览 json",
+      "when_to_use": "选范文/学规范",
+      "owner_skills": [
+        "comp-paper-zh"
+      ],
+      "consumers": [],
+      "local_only": true
+    },
+    {
+      "id": "pdf-archive",
+      "path": "assets-local/_archive/",
+      "zone": "assets-local",
+      "type": "corpus",
+      "description": "冷归档：7.6GB PDF 合并版（与年份目录同源 15 倍膨胀）+旧工作区重资产",
+      "when_to_use": "不建议日常使用；待外置盘转移",
+      "owner_skills": [],
+      "consumers": [],
+      "local_only": true
+    },
+    {
+      "id": "ref-figures-aesthetic",
+      "path": "assets-local/reference-figures/公众号审美批次2026-09-11/",
+      "zone": "assets-local",
+      "type": "corpus",
+      "description": "6 篇方法论文章+103 张本地化图（00_总览是资产说明书）",
+      "when_to_use": "画有质感的图前找视觉参照",
+      "owner_skills": [
+        "figure-aesthetics-craft"
+      ],
+      "consumers": [],
+      "local_only": true
+    },
+    {
+      "id": "ref-figures-palettes",
+      "path": "assets-local/reference-figures/科研配色提取与调色结果.json",
+      "zone": "assets-local",
+      "type": "palette",
+      "description": "96 色（12 组乘 8）结构化色板（11 组 88 色 W4 接入 palette）",
+      "when_to_use": "海报/幻灯配色扩展候选",
+      "owner_skills": [
+        "paper-figure-palette"
+      ],
+      "consumers": [],
+      "local_only": true
+    },
+    {
+      "id": "cumcm-templates-bzd",
+      "path": "assets-local/cumcm-templates/论文模板/",
+      "zone": "assets-local",
+      "type": "template-family",
+      "description": "BZD数模社 docx 模板：主模板+9 板块说明（含成套 AI 提示词）",
+      "when_to_use": "逐板块写作提示词参照（W4 步骤资产化）",
+      "owner_skills": [
+        "comp-paper-zh"
+      ],
+      "consumers": [
+        "comp_cumcm:S8"
+      ],
+      "local_only": true
+    },
+    {
+      "id": "ip-materials",
+      "path": "assets-local/ip-materials/",
+      "zone": "assets-local",
+      "type": "reference-data",
+      "description": "用户独有 IP：专利交底书《基于强化学习的无人机配送调度》+版权草案",
+      "when_to_use": "专利/软著项目起步材料",
+      "owner_skills": [
+        "patent-draft",
+        "copyright-draft"
+      ],
+      "consumers": [],
+      "local_only": true
+    },
+    {
+      "id": "cumcm-2026-problems",
+      "path": "CUMCM2026Problems/",
+      "zone": "seasonal",
+      "type": "corpus",
+      "description": "赛时官方题目/规则与合规预置区（赛季期间本地放置）",
+      "when_to_use": "开赛后放题；缺席=语义缺位非断链",
+      "owner_skills": [
+        "comp-prob-analysis"
+      ],
+      "consumers": [],
+      "local_only": true
+    },
+    {
+      "id": "vendor-codesucker-core",
+      "path": "academic-toolkit/third_party/codesucker-core/",
+      "zone": "third_party",
+      "type": "vendored-code",
+      "description": "CodeSucker 源码抽取引擎（Node monorepo，npm ci 后可用）；UPSTREAM.md 溯源",
+      "when_to_use": "对应技能执行时调用",
+      "owner_skills": [
+        "copyright-source-materials"
+      ],
+      "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "vendor-pubfig",
+      "path": "academic-toolkit/third_party/pubfig/",
+      "zone": "third_party",
+      "type": "vendored-code",
+      "description": "pubfig 出版图表库（上游完整拷贝）；UPSTREAM.md 溯源",
+      "when_to_use": "对应技能执行时调用",
+      "owner_skills": [
+        "galaxy-publication-chart-skill"
+      ],
+      "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "vendor-docx-cn-engine",
+      "path": "academic-toolkit/third_party/docx-cn-engine/",
+      "zone": "third_party",
+      "type": "vendored-code",
+      "description": "中文 docx 排版引擎；UPSTREAM.md 溯源",
+      "when_to_use": "对应技能执行时调用",
+      "owner_skills": [
+        "comp-paper-zh-docx",
+        "paper-write-docx"
+      ],
+      "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "vendor-humanize-chinese",
+      "path": "academic-toolkit/third_party/humanize-chinese/",
+      "zone": "third_party",
+      "type": "vendored-code",
+      "description": "中文学术文风人化引擎；UPSTREAM.md 溯源",
+      "when_to_use": "对应技能执行时调用",
+      "owner_skills": [
+        "anti-ai-detection"
+      ],
+      "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "vendor-docx-style-profiles",
+      "path": "academic-toolkit/third_party/docx-style-profiles/",
+      "zone": "third_party",
+      "type": "vendored-code",
+      "description": "docx 样式档案（competition/course 等 JSON）；UPSTREAM.md 溯源",
+      "when_to_use": "对应技能执行时调用",
+      "owner_skills": [
+        "docx-export",
+        "comp-paper-zh-docx"
+      ],
+      "consumers": [],
+      "local_only": false
+    }
+  ]
+}

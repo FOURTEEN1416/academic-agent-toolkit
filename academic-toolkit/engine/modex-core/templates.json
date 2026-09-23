@@ -1072,7 +1072,8 @@
             {
               "name": "历年真题索引",
               "path": "academic-toolkit/data/historical_problems.json",
-              "note": "历史题目与题型规律速查"
+              "note": "历史题目与题型规律速查；mandatory 试点（W2）：本步必须真实查阅，不接受 skipped",
+              "mandatory": true
             },
             {
               "name": "题型案例模式库",

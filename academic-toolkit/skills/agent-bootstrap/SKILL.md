@@ -36,6 +36,14 @@ MiMo Desktop / OpenCode / ZCode / 自写脚本）如何在 5 分钟内合法接�
    - 在 evidence 中自报 `agent`：如 `claude-code` / `cursor` / `mimo-desktop`
    - 可用环境变量 `ACAT_AGENT_LABEL` 固定默认标签
 
+3.5 **扫资产台账（先知道自己有什么，再决定怎么做）**
+   - 读 `academic-toolkit/data/asset_catalog.json`（probe 输出的 `asset_catalog` 字段是同一份摘要）
+   - 按 `when_to_use` / `owner_skills` 匹配当前任务：命中资产 → 先用资产，再造轮子
+     （例：写竞赛摘要前读 62 篇摘要统计；画图前查统一配色注册表；建模前查题型案例库）
+   - `local_only: true` 条目在私有资料区（`assets-local/` 等）：本机有则用；公开 clone 缺席
+     属语义缺位，不算断链，改走降级路径
+   - 台账没覆盖到的需求 → TOOL_GAP 流程（forge 或如实上报）
+
 4. **选择路径**
    - **竞赛/多步管线**：`python -m engine.workflow_cli start --template comp_cumcm --workspace <ws>` → `next` → 执行 → `complete`
    - **单技能任务**：按 `academic-toolkit/AGENTS.md` §三 路由表读 `skills/<name>/SKILL.md` 直接执行

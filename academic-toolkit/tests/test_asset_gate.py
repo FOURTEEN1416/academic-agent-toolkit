@@ -192,3 +192,32 @@ def test_step_without_assets_gate_inactive(tmp_path):
     _store, runner, wf = _setup(tmp_path, assets=None)
     result = _complete(runner, wf, commands=[{"command": "python code/build.py", "returncode": 0, "cwd": "."}])
     assert result.status in ("advanced", "completed"), result.message
+
+
+def test_mandatory_asset_skip_rejected(tmp_path):
+    """W2 mandatory 档：标 "mandatory": true 的资产申报 skipped → 拒（强制使用）。"""
+    assets = [dict(ASSETS[0]), dict(ASSETS[1])]
+    assets[1]["mandatory"] = True
+    _store, runner, wf = _setup(tmp_path, assets=assets)
+    result = _complete(
+        runner, wf,
+        commands=[{"command": "python code/build.py", "returncode": 0, "cwd": "."}],
+        assets_decl={"used": [], "skipped": [
+            {"name": "引用核验器", "reason": "本步无引用核验需求"},
+            {"name": "获奖论文配色分析", "reason": "时间不够"},
+        ]})
+    assert result.status == "failed"
+    assert "mandatory" in result.message
+
+
+def test_mandatory_asset_used_with_trace_passes(tmp_path):
+    """W2 mandatory 档：真实使用留痕 → 过（强制但可达成）。"""
+    assets = [dict(ASSETS[0]), dict(ASSETS[1])]
+    assets[1]["mandatory"] = True
+    _store, runner, wf = _setup(tmp_path, assets=assets)
+    result = _complete(
+        runner, wf,
+        commands=[{"command": "python academic-toolkit/tools/citation_checker.py LITERATURE.md && "
+                              "cat assets-local/award-papers/图表配色分析报告.md", "returncode": 0, "cwd": "."}],
+        assets_decl={"used": ["引用核验器", "获奖论文配色分析"], "skipped": []})
+    assert result.status == "completed", result.message

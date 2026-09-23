@@ -64,9 +64,13 @@ def default_agent_label(host_hint: str | None = None) -> str:
     return hint or DEFAULT_AGENT_LABEL
 
 
-def bootstrap(project_root: Path | None = None) -> dict[str, Any]:
-    """最小驱动契约：任意 Agent 启动时读这个即可。"""
-    root = Path(project_root) if project_root else project_root()
+def bootstrap(root_path: Path | None = None) -> dict[str, Any]:
+    """最小驱动契约：任意 Agent 启动时读这个即可驱动。
+
+    root_path 缺省时按本文件位置自推套件根（参数名不得再叫 project_root——
+    会遮蔽模块级 project_root() 函数，裸调用即 TypeError，2026-09-23 修复）。
+    """
+    root = Path(root_path) if root_path else project_root()
     repo = root.parent
     return {
         "protocol_version": PROTOCOL_VERSION,
@@ -80,7 +84,17 @@ def bootstrap(project_root: Path | None = None) -> dict[str, Any]:
             "skills": "academic-toolkit/skills/",
             "tools": "academic-toolkit/tools/",
             "engine": "academic-toolkit/engine/",
-            "adapters": "agents/adapters/",
+            "data": "academic-toolkit/data/",
+            "third_party": "academic-toolkit/third_party/",
+            "asset_catalog": "academic-toolkit/data/asset_catalog.json",
+            "assets_local": "assets-local/",
+        },
+        "assets": {
+            "catalog": "data/asset_catalog.json（资产台账：非技能资产的唯一机器可读目录）",
+            "how_to_use": (
+                "按 when_to_use/owner_skills 检索资产；local_only=true 的条目在"
+                "私有资料区（gitignored），公开 clone 缺席属语义缺位而非断链"
+            ),
         },
         "required_reads": [
             "AGENTS.md",
@@ -121,6 +135,7 @@ def bootstrap(project_root: Path | None = None) -> dict[str, Any]:
         "routing_shortcuts": [
             {"intent": "竞赛全流程", "route": "workflow template comp_cumcm"},
             {"intent": "写论文/文献/图表", "route": "academic-toolkit/AGENTS.md §三 入口路由"},
+            {"intent": "找数据/模板/参考资产", "route": "data/asset_catalog.json 台账直查（boot paths.asset_catalog）"},
             {"intent": "自举与铸造", "route": "skills/agent-bootstrap + skills/tool-forge"},
         ],
     }

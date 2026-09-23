@@ -103,6 +103,32 @@ def _adapter_status(repo_root: Path) -> dict[str, Any]:
     return out
 
 
+def _asset_summary(suite: Path) -> dict[str, Any]:
+    """资产台账摘要（W2 资产激活）：条目数/分区统计/高价值入口。
+
+    台账缺失或损坏时如实降级（available=false），不阻断 probe——与 TOOL_GAP 纪律一致。
+    """
+    catalog_path = suite / "data" / "asset_catalog.json"
+    summary: dict[str, Any] = {"path": "academic-toolkit/data/asset_catalog.json"}
+    try:
+        import json
+        data = json.loads(catalog_path.read_text(encoding="utf-8"))
+        assets = data.get("assets", [])
+        zones: dict[str, int] = {}
+        for entry in assets:
+            zones[entry.get("zone", "?")] = zones.get(entry.get("zone", "?"), 0) + 1
+        summary.update({
+            "available": True,
+            "entries": len(assets),
+            "local_only_entries": sum(1 for e in assets if e.get("local_only")),
+            "zones": zones,
+            "usage": "按 when_to_use/owner_skills 检索；local_only 条目在私有资料区（公开 clone 缺席属语义缺位）",
+        })
+    except (OSError, ValueError):
+        summary.update({"available": False, "note": "资产台账缺失或损坏：run check_asset_utilization 对账"})
+    return summary
+
+
 def probe(project_root: Path | None = None) -> dict[str, Any]:
     """完整能力探测。project_root 默认为套件根（academic-toolkit/）。"""
     suite = Path(project_root) if project_root else Path(__file__).resolve().parent.parent
@@ -154,6 +180,7 @@ def probe(project_root: Path | None = None) -> dict[str, Any]:
         "cli": clis,
         "env_presence": env_presence,
         "host_adapters": adapters,
+        "asset_catalog": _asset_summary(suite),
         "gaps": gaps,
         "drive_ready": True,
         "drive_ready_note": (

@@ -11,7 +11,9 @@
   4. companion-dead-slots —— 模板 companion 死槽分代报表（P4 批次 D：
      legacy 代际只登记不删除；活跃代际棘轮只减不增，口径见 companion_dead_slots）；
   5. catalog-disposition —— capabilities/catalog.json 条目 disposition 分级账
-     （P4 批次 E：active / routed / evidence-bound；未回填数随激活批次递减）。
+     （P4 批次 E：active / routed / evidence-bound；未回填数随激活批次递减）；
+  6. ledger-reconciliation —— asset_catalog.json ↔ 磁盘 ↔ git tracked 三方对账
+     （W2 资产激活：台账声称 tracked 的必须盘上有且入 git；模板接线资产必须入账）。
 
 用法：
   python tools/check_asset_utilization.py                # 五类审计，人读输出
@@ -331,6 +333,19 @@ def _print_report(result: dict) -> None:
           f"{dp.get('unfilled_skill_entries', 0)}（棘轮只升）")
     if dp.get("error"):
         print(f"    ⚠️ {dp['error']}")
+    lr = result.get("ledger_reconciliation") or {}
+    print(f"[6] 资产台账三方对账：条目 {lr.get('entries', 0)} / 缺盘 {len(lr.get('missing_disk', []))}"
+          f"（其中未交付 {len(lr.get('missing_local_only', []))}）/ 未跟踪 {len(lr.get('not_tracked', []))}"
+          f" / 模板指针未入账 {len(lr.get('uncovered_template_paths', []))} / schema 错 {len(lr.get('schema_errors', []))}")
+    for item in lr.get("missing_disk", []):
+        tag = "未交付" if item.get("local_only") else "❌ 缺盘"
+        print(f"    {tag}: {item['id']} → {item['path']}")
+    for item in lr.get("not_tracked", []):
+        print(f"    ❌ 声称 tracked 但未入 git: {item['id']} → {item['path']}")
+    for p in lr.get("uncovered_template_paths", []):
+        print(f"    ⚠️ 模板资产指针未入台账: {p}")
+    for e in lr.get("schema_errors", []):
+        print(f"    ❌ schema: {e}")
 
 
 # 公开 clone / CI 不交付的本地私有资料区（被根 .gitignore 隔离）。
@@ -344,6 +359,75 @@ def is_local_only_asset(path: str) -> bool:
     """该资产路径是否落在不随公开仓交付的私有资料区下。"""
     p = str(path or "").replace("\\", "/").lstrip("./")
     return any(p == r or p.startswith(r + "/") for r in LOCAL_ONLY_ASSET_ROOTS)
+
+
+_LEDGER_REQUIRED_FIELDS = ("id", "path", "zone", "type", "description", "when_to_use", "local_only")
+
+
+def ledger_reconciliation(repo: Path) -> dict:
+    """第六类审计（W2 资产激活）：asset_catalog.json ↔ 磁盘 ↔ git tracked 三方对账。
+
+    - 台账每条：local_only=false 时磁盘必须存在且 git 必须跟踪；
+      local_only=true 时缺失记"未交付"（公开 clone 语义缺位，不拦截）。
+    - 反向：templates.json 的资产指针（去重后、排除 tools/skills/Third_party 代码路径）
+      应有台账条目覆盖——接线资产不入账 = 智能体发现面缺口。
+    - schema：id 唯一、必填字段齐全。
+    """
+    import subprocess
+
+    out: dict = {"entries": 0, "schema_errors": [], "missing_disk": [], "missing_local_only": [],
+                 "not_tracked": [], "uncovered_template_paths": []}
+    ledger_path = TOOLBOX_ROOT / "data" / "asset_catalog.json"
+    try:
+        data = json.loads(ledger_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        out["schema_errors"].append(f"台账不可读: {exc}")
+        return out
+    assets = data.get("assets") or []
+    out["entries"] = len(assets)
+    seen_ids: set[str] = set()
+    tracked: set[str] | None = None
+    for entry in assets:
+        eid = str(entry.get("id", ""))
+        path = str(entry.get("path", "")).replace("\\", "/").lstrip("./")
+        if eid in seen_ids:
+            out["schema_errors"].append(f"id 重复: {eid}")
+        seen_ids.add(eid)
+        for field in _LEDGER_REQUIRED_FIELDS:
+            if field not in entry:
+                out["schema_errors"].append(f"{eid or path} 缺字段 {field}")
+        local_only = bool(entry.get("local_only"))
+        full = repo / path
+        if not full.exists():
+            (out["missing_local_only"] if local_only else out["missing_disk"]).append(
+                {"id": eid, "path": path, "local_only": local_only})
+            continue
+        if not local_only:
+            if tracked is None:
+                proc = subprocess.run(["git", "-C", str(repo), "ls-files"], capture_output=True, text=True)
+                tracked = {line.strip() for line in proc.stdout.splitlines() if line.strip()}
+            hits = any(t == path or t.startswith(path.rstrip("/") + "/") for t in tracked)
+            if not hits:
+                out["not_tracked"].append({"id": eid, "path": path})
+    # 反向覆盖：模板资产指针应有台账条目（数据/资料类；tools/skills 引用属技能域豁免）
+    try:
+        tpl = json.loads((TOOLBOX_ROOT / "engine" / "modex-core" / "templates.json").read_text(encoding="utf-8"))
+        ledger_paths = {str(e.get("path", "")).replace("\\", "/").rstrip("/") for e in assets}
+        for tpl_id, tpl_def in tpl.items():
+            for step in (tpl_def.get("sub_steps") or []):
+                for asset in ((step.get("metadata") or {}).get("assets") or []):
+                    p = str(asset.get("path", "")).replace("\\", "/").lstrip("./").rstrip("/")
+                    if not p or p.startswith(("academic-toolkit/tools/", "academic-toolkit/skills/",
+                                              "academic-toolkit/third_party/", "academic-toolkit/engine/")):
+                        continue
+                    norm = p.rstrip("/")
+                    if not any(norm == lp or norm.startswith(lp + "/") or lp.startswith(norm + "/")
+                               for lp in ledger_paths if lp):
+                        out["uncovered_template_paths"].append(f"{tpl_id}: {p}")
+    except (OSError, ValueError) as exc:
+        out["schema_errors"].append(f"templates.json 反向对账失败: {exc}")
+    out["missing_disk"] = [m for m in out["missing_disk"]]
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -365,6 +449,7 @@ def main(argv: list[str] | None = None) -> int:
     tpl = check_template_assets(TOOLBOX_ROOT / "engine" / "modex-core" / "templates.json", repo)
     dead_slots = companion_dead_slots(TOOLBOX_ROOT / "engine" / "modex-core" / "templates.json")
     dispositions = catalog_dispositions(repo / "capabilities" / "catalog.json")
+    ledger = ledger_reconciliation(repo)
 
     result = {
         "repo": str(repo),
@@ -375,6 +460,7 @@ def main(argv: list[str] | None = None) -> int:
         "template_assets": tpl,
         "companion_dead_slots": dead_slots,
         "catalog_disposition": dispositions,
+        "ledger_reconciliation": ledger,
     }
     if args.as_json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -385,7 +471,9 @@ def main(argv: list[str] | None = None) -> int:
     # 组件会误报 FAIL（实测公开 clone 唯一 FAIL 组件即此）。
     fake_wiring = [m for m in (tpl.get("missing") or [])
                    if not is_local_only_asset(m.get("path", ""))]
-    if args.strict and (cov["missing"] or fake_wiring):
+    ledger_hard = (ledger.get("missing_disk") or []) + (ledger.get("not_tracked") or []) \
+        + (ledger.get("schema_errors") or [])
+    if args.strict and (cov["missing"] or fake_wiring or ledger_hard):
         return 1
     return 0
 

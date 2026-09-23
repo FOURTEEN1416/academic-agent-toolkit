@@ -141,6 +141,25 @@ paper-figure / paper-figure-drawio / paper-figure-html / nature-figure / comp-pa
 | **"如何驱动本项目/自举"** | **`skills/agent-bootstrap/`** |
 | **"缺工具/造工具/自适应"** | **`skills/tool-forge/`** |
 
+### 资产直查（非技能资源，2026-09-23 W2 资产激活）
+
+> 完整台账：`data/asset_catalog.json`（42 条，含 when_to_use/owner_skills/local_only）；
+> boot 契约 `paths.asset_catalog` 与 probe 输出 `asset_catalog` 字段同源。
+> `local_only` 条目在私有资料区（`assets-local/` 等，gitignored）：本机有则用，公开 clone 缺席属语义缺位。
+
+| 需要什么 | 直接用 |
+|---------|--------|
+| 历年真题/题型规律 | `data/historical_problems.json` + `data/case_patterns.md` |
+| 赛中避坑/交付硬闸 | `data/contest_lessons.md` |
+| 出图选色 | `skills/paper-figure-palette/assets/palette_registry.json` |
+| 赛事 LaTeX 模板 | `skills/comp-paper-zh/_templates/`（16 赛事族） |
+| 获奖论文范文与统计 | `assets-local/award-papers/`（使用指南 → 摘要/配色/风格报告 → 25 篇优先清单） |
+| 提交前 287 项自查 | `assets-local/award-papers/论文自查表_287项.md` |
+| 审美/构图视觉参照 | `assets-local/reference-figures/` |
+| 板块写作提示词（docx） | `assets-local/cumcm-templates/论文模板/` |
+| 专利交底书原件 | `assets-local/ip-materials/` |
+
+
 ## 四、技能执行协议
 
 ```markdown

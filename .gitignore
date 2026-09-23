@@ -131,6 +131,7 @@ academic-toolkit/data/*
 # 2026-09-20 基线加固轮三件门禁台账（lint 棘轮基线 / 密钥豁免 / 重复资产登记）
 # ——CI 三道门禁步与对应测试直接消费，缺件即红
 !academic-toolkit/data/lint_baseline.json
+!academic-toolkit/data/asset_catalog.json
 !academic-toolkit/data/secret_scan_allowlist.json
 !academic-toolkit/data/duplicate_assets_registry.json
 # ⚠️ 2026-09-22 修正（照上方 data/ 同款模板）：原为整目录规则 `academic-toolkit/baseline/`，

@@ -590,8 +590,10 @@ class WorkflowRunner:
         步骤定义了 assets（{"name","path","note"} 列表，path 为仓库根相对）时，
         执行证据必须含 assets 申报，语义与 C1 同构：
           {"used": [资产名...], "skipped": [{"name": 资产名, "reason": 非空理由}...]}
-        used ∪ skipped 恰好覆盖清单；申报 ≠ 强制使用，但"不用"必须留痕给理由；
-        used 资产须有真实痕迹（资产名或仓库根相对路径出现在命令/产物/输入路径中）。"""
+        used ∪ skipped 恰好覆盖清单；申报 ≠ 默认强制使用，但"不用"必须留痕给理由；
+        used 资产须有真实痕迹（资产名或仓库根相对路径出现在命令/产物/输入路径中）。
+        mandatory 档（W2 资产激活试点）：步骤资产标 "mandatory": true 时 skipped
+        不被接受——重资产不得零成本跳过，必须真实读取并留命令痕迹。"""
         required_assets = [a for a in (step.metadata.get("assets") or [])
                            if isinstance(a, dict) and str(a.get("name", "")).strip()]
         if not required_assets:
@@ -645,6 +647,13 @@ class WorkflowRunner:
                     f"used 申报的资产 {asset['name']} 在命令与产物/输入路径中零使用痕迹。"
                     "两条出路：① 把读取/执行该资产的真实命令如实记入 evidence.commands"
                     "（含资产路径或资产名）；② 若确未使用，改申报为 skipped 并写明理由")
+        # W2 mandatory 档：强制使用资产不接受 skipped 申报（试点重资产防零成本跳过）
+        skipped_names = {str(s["name"]) for s in assets_skipped}
+        for asset in required_assets:
+            if asset.get("mandatory") and str(asset["name"]).strip() in skipped_names:
+                return _reject(
+                    f"资产 {asset['name']} 为 mandatory（强制使用档）：不接受 skipped 申报，"
+                    "必须真实读取该资产并把命令记入 evidence.commands")
         return None
 
     def _gate_obligations(self, step: Any) -> list[str]:

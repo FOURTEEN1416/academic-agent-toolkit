@@ -308,18 +308,22 @@ def test_cli_complete_waiting_checkpoint_output_contains_checkpoint_id(cli_env, 
         # 主技能契约必须留真实读取痕迹——咨询命令随本测试显式给出（这正是新闸要的形态：
         # 不是"应该读了"，而是 evidence 里有一条读技能的命）。
         "commands": [{"command": "python code/gen_report.py", "returncode": 0, "cwd": "."},
-                     {"command": f"cat {action['skill_path']}", "returncode": 0, "cwd": "."}],
+                     {"command": f"cat {action['skill_path']}", "returncode": 0, "cwd": "."}]
+                    # mandatory 资产的真实读取痕迹（W2：used 申报须有命令级痕迹）
+                    + [{"command": f"cat {a['path']}", "returncode": 0, "cwd": "."}
+                       for a in action.get("assets", []) if a.get("mandatory")],
         "inputs": [], "outputs": [output_file],
         # 真实模板第 1 步（2026-09-12 修剪后推荐清单为空）：链路验证级按 next 输出动态如实申报。
         # 清单为空时 C1 闸不激活，字段可省略；此处仍随 action 输出以保持契约演练覆盖。
         "companion_skills": {"used": [],
                              "skipped": [{"skill": s, "reason": "链路验证级测试不加载辅助技能"}
                                          for s in action.get("companion_skills", [])]},
-        # 真实模板第 1 步 assets（2026-09-12 C2 资产机制）：链路验证级如实申报全 skipped。
-        # 清单从 next 输出的 action.assets 动态取——模板资产清单演进时本测试自维护。
-        "assets": {"used": [],
+        # 真实模板第 1 步 assets（2026-09-12 C2 资产机制；2026-09-23 W2 mandatory 档起）：
+        # mandatory 资产（历年真题索引）不接受 skipped——如实申报 used 并在下述命令留读取痕迹；
+        # 其余资产仍按链路验证级 skipped。清单从 next 输出动态取，模板演进时自维护。
+        "assets": {"used": [a["name"] for a in action.get("assets", []) if a.get("mandatory")],
                    "skipped": [{"name": a["name"], "reason": "链路验证级测试不消费资产"}
-                               for a in action.get("assets", [])]},
+                               for a in action.get("assets", []) if not a.get("mandatory")]},
     }
     rc, done = _run_cli(monkeypatch, capsys, "complete", "--wf", wf, "--ok", "true",
                         "--artifacts", output_file,
