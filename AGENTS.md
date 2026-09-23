@@ -57,7 +57,7 @@ L1 拦截式审计在无宿主 hook 时记为
 | `capabilities/catalog.json` | 能力目录（技能须全部映射；一致性由工具箱 asset 系门禁 + `check_asset_utilization --strict` 守护，原根级 tests 硬校验已随 2026-09-23 适配层裁决退役） |
 | `dev-docs/` | 内部真源根（gitignored 私有）：**操作日志 `dev-docs/LOG.md`（2026-09-23 起唯一记账真源，公开仓不分发）· 任务计划 `dev-docs/task_plan.md` · 审计报告** |
 | `releases/`（本地 dated 快照，不入库）、`SECURITY.md`、`CHANGELOG.md` | 发布快照 / 安全策略 / 公开版本记录 |
-| `参考论文/`、`赛前试炼任务/`、`workspaces/` 等 | 本地材料与产物（不入 git） |
+| `assets-local/award-papers/`、`赛前试炼任务/`、`workspaces/` 等 | 本地材料与产物（不入 git） |
 
 ## 硬性规则（冲突时以主控文档为准）
 

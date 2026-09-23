@@ -14,9 +14,12 @@ from pathlib import Path
 from collections import Counter
 
 
-# 风格分析报告路径
-REPORT_PATH = Path(r"D:\Desktop\数模竞赛\参考论文\论文风格分析报告.md")
-OUTPUT_DIR = Path(r"D:\Desktop\数模竞赛\academic-toolkit\baseline")
+# 风格分析报告路径（私有资料区，gitignored；输出为仓内 baseline/）
+# 2026-09-23 v2.0 改造：原绝对路径指向已不存在的旧仓位置（D:\Desktop\数模竞赛\），
+# 改为仓库根相对解析——REPORT 落在 assets-local/award-papers/，产物写 academic-toolkit/baseline/。
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+REPORT_PATH = _REPO_ROOT / "assets-local" / "award-papers" / "论文风格分析报告.md"
+OUTPUT_DIR = Path(__file__).resolve().parents[1] / "baseline"
 OUTPUT_JSON = OUTPUT_DIR / "human_paper_baseline.json"
 OUTPUT_MD = OUTPUT_DIR / "REFERENCE_PAPER_ANTI_AI_ANALYSIS.md"
 

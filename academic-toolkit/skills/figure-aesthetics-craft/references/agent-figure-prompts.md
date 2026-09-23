@@ -45,5 +45,5 @@
 ## 来源
 
 批次 02 篇《Codex让我的科研绘图提升好几个档次》（AIPaperWrite，2026-09-01），全文存档
-`D:\Desktop\数模竞赛\参考图\公众号审美批次2026-09-11\02_Codex科研绘图skill方法论\article.md`
+`D:\Desktop\学术工作流\assets-local\reference-figures\公众号审美批次2026-09-11\02_Codex科研绘图skill方法论\article.md`
 （2026-09-12 起图集收编入仓 `参考图/`，gitignored 仅本地）。

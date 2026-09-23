@@ -23,7 +23,7 @@ from engine.workflow_store import WorkflowStore
 
 ASSETS = [
     {"name": "引用核验器", "path": "academic-toolkit/tools/citation_checker.py", "note": "引用条目机检"},
-    {"name": "获奖论文配色分析", "path": "参考论文/图表配色分析报告.md", "note": "配色对照"},
+    {"name": "获奖论文配色分析", "path": "assets-local/award-papers/图表配色分析报告.md", "note": "配色对照"},
 ]
 
 

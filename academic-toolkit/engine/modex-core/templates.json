@@ -1086,7 +1086,7 @@
             },
             {
               "name": "获奖论文使用指南",
-              "path": "参考论文/参考论文使用指南.md",
+              "path": "assets-local/award-papers/参考论文使用指南.md",
               "note": "获奖论文资产入口地图"
             },
             {
@@ -1285,12 +1285,12 @@
           "assets": [
             {
               "name": "获奖论文图表配色分析",
-              "path": "参考论文/图表配色分析报告.md",
+              "path": "assets-local/award-papers/图表配色分析报告.md",
               "note": "获奖论文图表配色/构图统计"
             },
             {
               "name": "参考图集",
-              "path": "参考图",
+              "path": "assets-local/reference-figures",
               "note": "本地构图/配色参照（gitignored）"
             },
             {
@@ -1335,7 +1335,7 @@
           "assets": [
             {
               "name": "参考图集",
-              "path": "参考图",
+              "path": "assets-local/reference-figures",
               "note": "机理图/架构图构图参照"
             },
             {
@@ -1420,22 +1420,22 @@
           "assets": [
             {
               "name": "摘要深度分析报告",
-              "path": "参考论文/摘要深度分析报告.md",
+              "path": "assets-local/award-papers/摘要深度分析报告.md",
               "note": "获奖论文摘要写法统计"
             },
             {
               "name": "论文风格分析报告",
-              "path": "参考论文/论文风格分析报告.md",
+              "path": "assets-local/award-papers/论文风格分析报告.md",
               "note": "获奖论文行文风格统计"
             },
             {
               "name": "完善模板骨架",
-              "path": "CUMCM论文模板/论文模板/数模完善模板.tex",
+              "path": "assets-local/cumcm-templates/论文模板/数模完善模板.tex",
               "note": "章节骨架参照，禁止照抄文字"
             },
             {
               "name": "各板块写作说明",
-              "path": "CUMCM论文模板/论文模板/各板块详细说明文档",
+              "path": "assets-local/cumcm-templates/论文模板/各板块详细说明文档",
               "note": "摘要/模型/求解逐板块写法"
             }
           ],
@@ -1560,7 +1560,7 @@
           "assets": [
             {
               "name": "获奖论文图表配色分析",
-              "path": "参考论文/图表配色分析报告.md",
+              "path": "assets-local/award-papers/图表配色分析报告.md",
               "note": "视觉审查配色对照基准"
             },
             {
@@ -1699,11 +1699,6 @@
               "name": "引用终检器",
               "path": "academic-toolkit/tools/citation_checker.py",
               "note": "交付前引用条目终检"
-            },
-            {
-              "name": "规则与合规区",
-              "path": "CUMCM2026Problems/规则与合规",
-              "note": "申报/查重红线原始依据"
             },
             {
               "name": "实战经验库·交付硬闸清单",
@@ -2015,7 +2010,7 @@
             },
             {
               "name": "获奖论文使用指南",
-              "path": "参考论文/参考论文使用指南.md",
+              "path": "assets-local/award-papers/参考论文使用指南.md",
               "note": "获奖论文资产入口地图"
             },
             {
@@ -2214,12 +2209,12 @@
           "assets": [
             {
               "name": "获奖论文图表配色分析",
-              "path": "参考论文/图表配色分析报告.md",
+              "path": "assets-local/award-papers/图表配色分析报告.md",
               "note": "获奖论文图表配色/构图统计"
             },
             {
               "name": "参考图集",
-              "path": "参考图",
+              "path": "assets-local/reference-figures",
               "note": "本地构图/配色参照（gitignored）"
             },
             {
@@ -2270,7 +2265,7 @@
           "assets": [
             {
               "name": "参考图集",
-              "path": "参考图",
+              "path": "assets-local/reference-figures",
               "note": "机理图/架构图构图参照"
             },
             {
@@ -2360,12 +2355,12 @@
           "assets": [
             {
               "name": "摘要深度分析报告",
-              "path": "参考论文/摘要深度分析报告.md",
+              "path": "assets-local/award-papers/摘要深度分析报告.md",
               "note": "获奖论文摘要写法统计"
             },
             {
               "name": "论文风格分析报告",
-              "path": "参考论文/论文风格分析报告.md",
+              "path": "assets-local/award-papers/论文风格分析报告.md",
               "note": "获奖论文行文风格统计"
             },
             {
@@ -2375,7 +2370,7 @@
             },
             {
               "name": "各板块写作说明",
-              "path": "CUMCM论文模板/论文模板/各板块详细说明文档",
+              "path": "assets-local/cumcm-templates/论文模板/各板块详细说明文档",
               "note": "摘要/模型/求解逐板块写法"
             }
           ],
@@ -2501,7 +2496,7 @@
           "assets": [
             {
               "name": "获奖论文图表配色分析",
-              "path": "参考论文/图表配色分析报告.md",
+              "path": "assets-local/award-papers/图表配色分析报告.md",
               "note": "视觉审查配色对照基准"
             },
             {

@@ -83,7 +83,8 @@ def test_huawei_quick_gates_page_budget():
 def test_huawei_assets_all_exist():
     """华为杯 14 步资产指针逐一在位（公开 clone 缺 gitignored 私有资料区时 skip）。"""
     reason = None
-    for name in ("参考论文", "参考图", "CUMCM论文模板"):
+    for name in ("assets-local/award-papers", "assets-local/reference-figures",
+                 "assets-local/cumcm-templates"):
         if not (ROOT.parent / name).exists():
             reason = f"非完整本地仓（缺 gitignored 私有资料区 {name}）"
             break

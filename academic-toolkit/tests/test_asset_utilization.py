@@ -21,14 +21,15 @@ import check_asset_utilization as cau
 
 # 公开 clone 不交付的两类本地资产（均被根 .gitignore 隔离）：
 #   1) 无 License 上游技能（侵权红线隔离，5 个）
-#   2) 赛时/参考类私有资料区（参考论文 / 参考图 / CUMCM论文模板 / CUMCM2026Problems）
+#   2) 私有资料区 assets-local/（award-papers / reference-figures / cumcm-templates）
+#      与赛时预置区 CUMCM2026Problems（2026-09-23 v2.0 改造统一布局）
 # 下两条"真仓机检"以**完整本地仓**为前提，在公开 clone（含 CI）上必须 skip 而非 fail
 # ——2026-09-19 首次 CI 实测发现（本地 node/资产常驻故从未暴露）。
 LOCAL_ONLY_SKILLS = (
     "plot-from-data", "plot-from-image", "visio-image-rebuilder",
     "paper-framework-figure-studio-pro", "eco-community-plots",
 )
-LOCAL_ASSET_ROOTS = ("参考论文", "参考图", "CUMCM论文模板", "CUMCM2026Problems")
+LOCAL_ASSET_ROOTS = ("assets-local", "CUMCM2026Problems")
 
 
 def _skip_reason_without_local_assets():

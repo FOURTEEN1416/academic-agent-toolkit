@@ -336,7 +336,8 @@ def _print_report(result: dict) -> None:
 # 公开 clone / CI 不交付的本地私有资料区（被根 .gitignore 隔离）。
 # 资产指针落在这些前缀下时，缺失属"未交付"而非"假接线"——strict 不据此拦截。
 # 与 tests/test_asset_utilization.py 的 LOCAL_ASSET_ROOTS 同源，此处为工具侧单一真源。
-LOCAL_ONLY_ASSET_ROOTS = ("参考论文", "参考图", "CUMCM论文模板", "CUMCM2026Problems")
+# 2026-09-23 v2.0 改造：原根级 参考论文/参考图/CUMCM论文模板 统一迁入 assets-local/。
+LOCAL_ONLY_ASSET_ROOTS = ("assets-local", "CUMCM2026Problems")
 
 
 def is_local_only_asset(path: str) -> bool:

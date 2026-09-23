@@ -16,21 +16,7 @@
   "plugin": [
     "opencode-logger"
   ],
-  "_security_note_paths": "PUBLIC repo: do not commit host-absolute paths (C:\\Users\\... / D:\\Desktop\\...). MCP command/DOCSEARCH_ROOTS below are portable placeholders. Operators MUST set a local untracked override (e.g. edit this file locally without committing, or use host-level MCP config) with absolute paths to the installed docsearch-mcp and DOCSEARCH_ROOTS pointing at this checkout.",
-  "mcp": {
-    "docsearch": {
-      "type": "local",
-      "command": [
-        "python",
-        "${DOCSEARCH_MCP_SERVER:-.opencode/mcp/docsearch-mcp/server.py}"
-      ],
-      "environment": {
-        "DOCSEARCH_ROOTS": "${DOCSEARCH_ROOTS:-.}",
-        "DOCSEARCH_EXCLUDE_DIRS": "技能,skills,知识库,知识库搭建,node_modules,.venv,venv,.git,archive,assets,desc,__pycache__,.next"
-      },
-      "timeout": 30000
-    }
-  },
+  "_security_note_paths": "PUBLIC repo: do not commit host-absolute paths (C:\\Users\\... / D:\\Desktop\\...). Operators needing the docsearch MCP should configure it in a host-level/local untracked override (the in-repo .opencode/mcp server layer was removed 2026-09-23).",
   "agent": {
     "数模视觉审查": {
       "description": "只读数学建模图表与论文视觉审查子智能体。用于检查图表可读性、截断、重叠、题注、单位和导出质量。",
