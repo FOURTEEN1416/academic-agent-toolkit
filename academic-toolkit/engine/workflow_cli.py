@@ -40,7 +40,10 @@ def _load_runner_types():
 
 
 ROOT = Path(__file__).resolve().parent.parent
-WORKFLOW_INDEX = ROOT / ".engine" / "workflow-index.json"
+# 2026-09-23 v2.0 改造：引擎运行态（索引/默认库/审计）统一收敛到仓库根 .engine/ 一处
+# ——与 L1 hook 的 audit_root=ROOT.parent 同源；套件目录与 engine/ 源码目录内不再落运行态。
+STATE_ROOT = ROOT.parent / ".engine"
+WORKFLOW_INDEX = STATE_ROOT / "workflow-index.json"
 
 
 def default_workflow_db(workspace: Path | str) -> Path:
@@ -100,7 +103,7 @@ def _probe_workflow_db(workflow_id: str) -> Path | None:
     索引文件可能缺失/落后（新 clone、手工删除、原子写前崩溃）；此时按位置
     约定扫描，命中唯一库即回退成功（并由调用方回写索引）。
     """
-    candidates = [ROOT / ".engine" / "workflow.sqlite"]
+    candidates = [STATE_ROOT / "workflow.sqlite"]
     workspaces_root = ROOT / "workspaces"
     if workspaces_root.is_dir():
         candidates.extend(sorted(workspaces_root.glob("*/.engine/workflow.sqlite")))
@@ -474,7 +477,7 @@ def _run_command(args, parser) -> int:
         except KeyError as exc:
             raise WorkflowCliError(_keyerror_message(exc)) from None
     else:
-        db = ROOT / ".engine" / "workflow.sqlite"
+        db = STATE_ROOT / "workflow.sqlite"
     db.parent.mkdir(parents=True, exist_ok=True)
     try:
         catalog = json.loads((ROOT / "engine" / "modex-core" / "templates.json").read_text(encoding="utf-8"))
