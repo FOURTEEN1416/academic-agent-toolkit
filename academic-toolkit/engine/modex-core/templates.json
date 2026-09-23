@@ -1443,6 +1443,11 @@
               "name": "范文精选包·62 篇",
               "path": "academic-toolkit/data/award_paper_exemplars.json",
               "note": "按题型取优秀论文范文对照（结构/摘要/图表/论证）；25 篇优先清单+题型学习路径+模型统计；原文在 assets-local（本地），清单公开"
+            },
+            {
+              "name": "板块写作提示词包",
+              "path": "academic-toolkit/data/cumcm_section_prompts.json",
+              "note": "论文各板块（摘要/重述/分析/假设/符号/求解/总结/参考/申报）的成稿模板要点+AI 提示词+自查清单；逐章写作时按 id 取用"
             }
           ],
           "quick_gates": true,
@@ -2393,6 +2398,11 @@
               "name": "范文精选包·62 篇",
               "path": "academic-toolkit/data/award_paper_exemplars.json",
               "note": "按题型取优秀论文范文对照（结构/摘要/图表/论证）；25 篇优先清单+题型学习路径+模型统计；原文在 assets-local（本地），清单公开"
+            },
+            {
+              "name": "板块写作提示词包",
+              "path": "academic-toolkit/data/cumcm_section_prompts.json",
+              "note": "论文各板块（摘要/重述/分析/假设/符号/求解/总结/参考/申报）的成稿模板要点+AI 提示词+自查清单；逐章写作时按 id 取用"
             }
           ],
           "quick_gates": true,

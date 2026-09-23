@@ -216,6 +216,22 @@
       "local_only": false
     },
     {
+      "id": "cumcm-section-prompts",
+      "path": "academic-toolkit/data/cumcm_section_prompts.json",
+      "zone": "data",
+      "type": "template-asset",
+      "description": "CUMCM 论文 9 板块的成稿模板要点+AI 提示词+自查清单结构化摘编",
+      "when_to_use": "comp-paper-zh 逐章写作时按板块取提示词与自查清单",
+      "owner_skills": [
+        "comp-paper-zh"
+      ],
+      "consumers": [
+        "comp_cumcm:S7",
+        "comp_huawei:S7"
+      ],
+      "local_only": false
+    },
+    {
       "id": "award-paper-exemplars",
       "path": "academic-toolkit/data/award_paper_exemplars.json",
       "zone": "data",
