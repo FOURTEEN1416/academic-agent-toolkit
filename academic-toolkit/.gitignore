@@ -21,3 +21,10 @@ runtime/texlive/
 # 临时
 *.tmp
 .DS_Store
+
+# 工具运行/验证临时产物（2026-09-23 v2.0 收尾：reconstruct/verify 期散落件不入库）
+tools/_tmp_*
+tools/*.err
+tools/*.out
+tools/_a.*
+tools/_b.*

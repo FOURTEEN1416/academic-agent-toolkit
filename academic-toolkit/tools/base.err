@@ -1,4 +1,0 @@
-INFO: Pseudo-markup normalized for _tmp_paper.md
-WARNING: Detected complex content [公式, 三线表, 上标引用, 参考文献, 学术格式] but Node engine unavailable, falling back to Python (公式/三线表/上标可能不准确)
-WARNING: Default profile not found: D:\Desktop\学术工作流\academic-toolkit\tools\docx_style_profiles\default_cn_thesis.json
-INFO: DOCX exported via Python engine: _tmp_base.docx (37643 bytes)
