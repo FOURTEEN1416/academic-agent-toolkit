@@ -244,3 +244,7 @@ Structure all results as:
 ## References
 
 - `references/statistical-testing-concepts.md` — t-test, Z-test, chi-square theory; p-value interpretation; Type I/II errors; power analysis math
+
+## 补充参考（v2.0 全部吸收批）
+
+- `references/arc-stat-research/`：AutoResearchClaw 统计研究六件（方法设计/问题形式化/理论分析/实验评估/orchestrator/validator）——研究级统计方法论设计时读（MIT）。溯源见该目录 UPSTREAM.md。

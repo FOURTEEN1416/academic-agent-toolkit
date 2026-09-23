@@ -424,3 +424,7 @@ Follows the paper's language. Academic terms remain in English. User can overrid
 ## Changelog
 
 > See `references/changelog.md` for full version history.
+
+## 补充参考（v2.0 全部吸收批）
+
+- `references/nature-statistics/`：论文级统计报告审计合同（实验单位/重复数/p 值/多重比较/效应量/CI/图注统计/跨节数值一致性）——统计审查轮读（Apache-2.0，来源 nature-skills）。溯源见该目录 UPSTREAM.md。

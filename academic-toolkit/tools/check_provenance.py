@@ -127,6 +127,28 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "skills" / "comp-modeling" / "references" / "mml-skills" / "UPSTREAM.md",
     ROOT / "skills" / "comp-review" / "references" / "mml-skills" / "UPSTREAM.md",
     ROOT / "skills" / "comp-paper-zh" / "references" / "mml-skills" / "UPSTREAM.md",
+    # 2026-09-23 v2.0 收尾【全部吸收】批 A1-A4
+    ROOT / "skills" / "data-statistics-analyst" / "references" / "arc-stat-research" / "UPSTREAM.md",
+    ROOT / "skills" / "paper-peer-review-simulation" / "references" / "nature-statistics" / "UPSTREAM.md",
+    ROOT / "skills" / "monitor-experiment" / "references" / "nature-experiment-log" / "UPSTREAM.md",
+    ROOT / "skills" / "comp-contest-research" / "references" / "competition-profiles" / "UPSTREAM.md",
+]
+
+# 【全部吸收】批 F4：ARS#2（Auto-claude-code-research-in-sleep）V1.1 同名整采 34 件
+# 批量补 UPSTREAM（vendor-asset-index #2 的 §四-3 欠账结清）。
+_UPSTREAM_BATCH_ARS2 = (
+    "ablation-planner", "analyze-results", "arxiv", "auto-paper-improvement-loop",
+    "auto-review-loop", "experiment-bridge", "experiment-plan", "feishu-notify",
+    "grant-proposal", "idea-creator", "idea-discovery", "idea-discovery-robotics",
+    "mermaid-diagram", "meta-design-space-exploration", "monitor-experiment",
+    "novelty-check", "paper-compile", "paper-illustration", "paper-plan",
+    "paper-poster", "paper-slides", "paper-writing", "pixel-art", "proof-writer",
+    "rebuttal", "research-lit", "research-pipeline", "research-refine",
+    "research-refine-pipeline", "research-review", "result-to-claim",
+    "run-experiment", "shared-references", "training-check",
+)
+UPSTREAM_REGISTRY += [
+    ROOT / "skills" / n / "references" / "UPSTREAM.md" for n in _UPSTREAM_BATCH_ARS2
 ]
 
 # 需要完整许可文件的 vendored 外部依赖目录（含 LICENSE/NOTICE/UPSTREAM.md 三件套）

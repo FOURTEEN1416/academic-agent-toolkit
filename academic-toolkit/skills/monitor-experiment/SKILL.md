@@ -108,3 +108,7 @@ After results are collected, 检查 `~/.acat/feishu.json`（兼容旧路径 `~/.
 - Compare against the correct baseline (same config)
 - Note if experiments are still running (check progress bars, iteration counts)
 - If results look wrong, check training logs for errors before concluding
+
+## 补充参考（v2.0 全部吸收批）
+
+- `references/nature-experiment-log/`：实验知识日志（图片/语音/文字标准化记录 → YAML frontmatter Obsidian 日志 + 材料归档）——实验记录沉淀时读（Apache-2.0，来源 nature-skills）。溯源见该目录 UPSTREAM.md。

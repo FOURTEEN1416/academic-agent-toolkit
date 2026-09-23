@@ -104,3 +104,7 @@ skill("paper-search")          # OpenAlex 搜索
 skill("lit-multi-db-search")      # 论文检索
 python tools/arxiv_miner.py    # arXiv 抓取
 ```
+
+## 补充参考（v2.0 全部吸收批）
+
+- `references/competition-profiles/`：三赛事执行档案（51MCM / CUMCM / MCM-ICM：页限/摘要/匿名/附件口径）——跨赛事研究与合规判断时读（MIT，来源 Math-model-skills）。溯源见该目录 UPSTREAM.md。
