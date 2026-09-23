@@ -50,7 +50,7 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "skills" / "infographics" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "plotly" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "scientific-schematics" / "references" / "UPSTREAM.md",
-    ROOT / "skills" / "figure-spec" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "fig-spec" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "graphviz" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "excalidraw-diagram" / "references" / "UPSTREAM.md",
     # 科研绘图扩展追加（2026-08-29）

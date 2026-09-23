@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REPO = ROOT.parent
 PLOTTING_SKILLS = [
     "scientific-visualization", "matplotlib", "seaborn", "plotly",
-    "figure-spec", "graphviz", "excalidraw-diagram", "infographics",
+    "fig-spec", "graphviz", "excalidraw-diagram", "infographics",
     "scientific-schematics", "diagram-design",
 ]
 REQUIRED_13 = {

@@ -23,5 +23,5 @@
 
 ## 与既有技能的边界
 
-- 与 `figure-aesthetics-craft`（参考配色**提取**、渐变/边色/绘图纪律）互补：本技能管**配色体检与去灰提彩**（"已有一组色板，怎么修得更好 + 怎么机检"）。
+- 与 `fig-aesthetics-craft`（参考配色**提取**、渐变/边色/绘图纪律）互补：本技能管**配色体检与去灰提彩**（"已有一组色板，怎么修得更好 + 怎么机检"）。
 - 与 `_utils/` 三闸（tikz_palette_check / figure_text_budget / figure_pdf_quality_check）互补：本技能提供**第四道"色彩健康闸"**的判据与脚本，接口可按 argparse + 退出码对齐。

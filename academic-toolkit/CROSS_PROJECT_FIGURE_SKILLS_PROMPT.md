@@ -27,7 +27,7 @@
 | `paper-figure` | 论文数据图总纲：选图三轴、语义化配色（semantic-palette）、构图五模式（composition-patterns）、十八坑清单、图宽/字号纪律 |
 | `paper-figure-drawio` | draw.io 源文件级框架图/流程图 |
 | `paper-figure-html` | HTML/CSS 高密度信息图表 |
-| `figure-spec` | 图规格说明书（尺寸/字号/导出参数的成文规范） |
+| `fig-spec` | 图规格说明书（尺寸/字号/导出参数的成文规范） |
 
 **B. 风格模板直出（给数据就出图）**
 
@@ -71,7 +71,7 @@
 | 技能 | 用途 |
 |------|------|
 | `fig-critique` | 外部图审批判清单 |
-| `figure-spec` | 图规格核对 |
+| `fig-spec` | 图规格核对 |
 | `comp-visual-review` | 视觉审查流程 |
 
 ⚠ = 无 License 技能（见隔离纪律第 4 条）。

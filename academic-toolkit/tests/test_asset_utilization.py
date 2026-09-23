@@ -4,7 +4,7 @@
   1. 工具本身：斜杠缩写展开 / 地图对账 / 账本扫描 / 死推荐 / 模板资产在位；
   2. 真仓零漏网：CONTEST_SKILL_MAP 对 255 实存技能覆盖必须为 0 漏网（机检固化）；
   3. 真仓假接线防线：templates.json 全模板 assets 指针必须存在 + step5 companion
-     漂移回归（eco-community-plots / figure-aesthetics-craft 曾"地图在册引擎不荐"）。
+     漂移回归（eco-community-plots / fig-aesthetics-craft 曾"地图在册引擎不荐"）。
 """
 import json
 import sys
@@ -181,13 +181,13 @@ def test_comp_cumcm_companion_lists_compact():
         "comp-literature": ["citation-check"],
         "comp-modeling": ["sympy"],
         "comp-code": ["data-statistics-report"],
-        "paper-figure": ["figure-aesthetics-craft", "paper-figure-palette"],
+        "paper-figure": ["fig-aesthetics-craft", "paper-figure-palette"],
         "paper-figure-drawio": [],
         "comp-review": [],
         "comp-paper-zh": [],
         "comp-consistency": ["analyze-results"],
         "comp-compile-zh": [],
-        "comp-visual-review": ["fig-critique", "figure-spec"],
+        "comp-visual-review": ["fig-critique", "fig-spec"],
         "comp-editor": ["anti-defensive-writing"],
         "comp-final-review": ["paper-self-review"],
         "comp-final-audit": ["citation-check", "quality-check"],
@@ -199,7 +199,7 @@ def test_comp_cumcm_companion_lists_compact():
 
 def test_map_section2_matches_engine_companions():
     """地图 §二 表格与引擎 templates.json companion 集合逐步一致——
-    杀死"地图在册、StepAction 不荐"漂移类（eco/figure-aesthetics-craft 曾死信）。"""
+    杀死"地图在册、StepAction 不荐"漂移类（eco/fig-aesthetics-craft 曾死信）。"""
     map_text = (ROOT / "CONTEST_SKILL_MAP.md").read_text(encoding="utf-8")
     section = map_text.split("## 二、")[1].split("## 三、")[0]
     rows = {}

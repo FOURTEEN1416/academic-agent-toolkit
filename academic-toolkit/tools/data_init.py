@@ -317,8 +317,8 @@ def main():
 存放国赛相关数据资产。
 
 ## 文件清单
-- `reference_models.json` — 6 类题型参考模型库（被 `problem-selection/model_recommender.py` 引用）
-- `case_patterns.md` — 题型规律 + 常见国一方法库（被 `model-innovation/novelty_checker.py` 引用）
+- `reference_models.json` — 6 类题型参考模型库（建模步选型参照，模板 `comp_cumcm` S3 资产指针）
+- `case_patterns.md` — 题型规律 + 常见国一方法库（`tools/arxiv_miner.py` 离线兜底读取）
 
 ## 维护说明
 - 比赛结束后，可补充 `historical_papers.json`（历年真题 + 优秀论文链接）

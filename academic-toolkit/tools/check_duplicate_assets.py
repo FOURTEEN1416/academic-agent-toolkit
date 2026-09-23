@@ -2,7 +2,8 @@
 """重复资产注册表守护（check_duplicate_assets，2026-09-20 建立）。
 
 **为什么需要**：2026-09-20 普查实测——tracked 文件中存在大量字节级重复（双份
-10.56MB 字体、claude-scientific-writer/modules 与 sci-* 族的多重复制等），其中
+10.56MB 字体、claude-scientific-writer/modules（2026-09 改名 paper-writing-clinical/modules）
+与 sci-* 族的多重复制等），其中
 仅 `_utils↔shared-scripts` 一组有守护测试（test_dual_copy_consistency.py）。
 其余重复**全部无登记、无守护**：新一轮误复制（如又一个 10MB 级资产被复制进
 技能目录）不会被发现，仓库体积只涨不降。
@@ -99,7 +100,7 @@ def _classify_reason(paths: list[str]) -> str:
     all_paths = "\n".join(paths)
     if "_utils/" in all_paths and "shared-scripts/" in all_paths:
         return "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    if "claude-scientific-writer/modules/" in all_paths:
+    if "paper-writing-clinical/modules/" in all_paths:
         return "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
     if all(p.rsplit("/", 1)[-1] == "LICENSE" for p in paths):
         return "同源开源许可证法定文本（逐字一致属合规要求）"

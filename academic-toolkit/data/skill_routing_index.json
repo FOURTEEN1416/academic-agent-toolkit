@@ -731,6 +731,14 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/fig-academic/SKILL.md"
     },
+    "fig-aesthetics-craft": {
+      "tier": "core",
+      "reason": "主链步骤的推荐/必用位",
+      "resident_description": "图形质感技法集（来自科研绘图文章精编，2026-09-11 批次）：渐变色的合法语义与滥用边界、树图/网络图边色继承（免图例层级图）、AI 绘图代理的五条纪律与逐图提示模板、19 类顶刊构图参照片。触发词：更有质感、渐变色、边色继承、免图例、绘图纪律、审美、网络图边怎么配色、环形树图、桑基/维恩/背景条带。",
+      "full_description": "图形质感技法集（来自科研绘图文章精编，2026-09-11 批次）：渐变色的合法语义与滥用边界、树图/网络图边色继承（免图例层级图）、AI 绘图代理的五条纪律与逐图提示模板、19 类顶刊构图参照片。触发词：更有质感、渐变色、边色继承、免图例、绘图纪律、审美、网络图边怎么配色、环形树图、桑基/维恩/背景条带。",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/fig-aesthetics-craft/SKILL.md"
+    },
     "fig-critique": {
       "tier": "core",
       "reason": "主链步骤的推荐/必用位",
@@ -763,6 +771,14 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/fig-publication-chart/SKILL.md"
     },
+    "fig-spec": {
+      "tier": "core",
+      "reason": "主链步骤的推荐/必用位",
+      "resident_description": "Generate deterministic publication-quality architecture, workflow, and pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Use when user says \\\"架构图\\\", \\\"workflow 图\\\", \\\"pipeline 图\\\", \\\"确定性矢量图\\\", \\\"figure spec\\\", \\\"draw architecture\\\", or needs precise, editable, publication-ready vector diagrams. Preferred over AI illustration for formal architecture/workflow figures.",
+      "full_description": "Generate deterministic publication-quality architecture, workflow, and pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Use when user says \\\"架构图\\\", \\\"workflow 图\\\", \\\"pipeline 图\\\", \\\"确定性矢量图\\\", \\\"figure spec\\\", \\\"draw architecture\\\", or needs precise, editable, publication-ready vector diagrams. Preferred over AI illustration for formal architecture/workflow figures.",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/fig-spec/SKILL.md"
+    },
     "fig-visualization-advisor": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -770,22 +786,6 @@
       "full_description": ">- SciPilot Skills 家族成员，负责科研数据可视化——但定位不是\"画图工具\"， 而是\"可视化顾问\"。先做数据剖析（列类型/样本量/分布/异常值/分组结构/相关性）， 再结合用户的论证目标推荐图型，主动拦截科研画图的经典错误（小样本画均值柱掩盖 分布、双 Y 轴、饼图、Y 轴不当截断、rainbow 色图、把分类点连成折线等），最后 产出 Nature / Science / IEEE / Elsevier / PNAS / 中文核心期刊级别的成图。 覆盖纯数据图：折线、柱状、散点、箱线 / 小提琴、热力图、误差棒、分布图（直方 图 / KDE）、相关性矩阵 / 散点矩阵、多面板组合。技术栈 matplotlib + seaborn + SciencePlots（静态）+ plotly（交互）。中英文双语，中文模式自动配置 Noto Sans CJK / Source Han Sans / SimHei 并修复负号方框，支持中文期刊\"宋体正文 + Times New Roman 数字\"混排。默认色盲安全配色 + 冗余编码 + 灰度预览。出图后做 \"视觉自检闭环\"：渲染 PNG 预览→程序自检缺字/文字裁切/刻度重叠→AI 读图复核遮盖 与子图对齐→回改重渲，直到通过。 当用户的任务涉及以下任何情况时主动触发：论文配图、科研画图、数据可视化、 不知道用什么图、怎么展示数据、用什么图好、期刊投稿图、figure、出版级图表、 matplotlib、seaborn、plotly、误差棒、显著性标注、色盲安全配色、矢量图导出、 中文论文图表、多面板。**即使用户只是给一批数据问\"这个怎么画\"或\"用什么图 好\"，也应使用本技能——本技能首要能力是\"判断该用什么图\"，其次才是绘制。** 不做示意图、流程图、架构图。",
       "description_compacted": true,
       "path": "academic-toolkit/skills/fig-visualization-advisor/SKILL.md"
-    },
-    "figure-aesthetics-craft": {
-      "tier": "core",
-      "reason": "主链步骤的推荐/必用位",
-      "resident_description": "图形质感技法集（来自科研绘图文章精编，2026-09-11 批次）：渐变色的合法语义与滥用边界、树图/网络图边色继承（免图例层级图）、AI 绘图代理的五条纪律与逐图提示模板、19 类顶刊构图参照片。触发词：更有质感、渐变色、边色继承、免图例、绘图纪律、审美、网络图边怎么配色、环形树图、桑基/维恩/背景条带。",
-      "full_description": "图形质感技法集（来自科研绘图文章精编，2026-09-11 批次）：渐变色的合法语义与滥用边界、树图/网络图边色继承（免图例层级图）、AI 绘图代理的五条纪律与逐图提示模板、19 类顶刊构图参照片。触发词：更有质感、渐变色、边色继承、免图例、绘图纪律、审美、网络图边怎么配色、环形树图、桑基/维恩/背景条带。",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/figure-aesthetics-craft/SKILL.md"
-    },
-    "figure-spec": {
-      "tier": "core",
-      "reason": "主链步骤的推荐/必用位",
-      "resident_description": "Generate deterministic publication-quality architecture, workflow, and pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Use when user says \\\"架构图\\\", \\\"workflow 图\\\", \\\"pipeline 图\\\", \\\"确定性矢量图\\\", \\\"figure spec\\\", \\\"draw architecture\\\", or needs precise, editable, publication-ready vector diagrams. Preferred over AI illustration for formal architecture/workflow figures.",
-      "full_description": "Generate deterministic publication-quality architecture, workflow, and pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Use when user says \\\"架构图\\\", \\\"workflow 图\\\", \\\"pipeline 图\\\", \\\"确定性矢量图\\\", \\\"figure spec\\\", \\\"draw architecture\\\", or needs precise, editable, publication-ready vector diagrams. Preferred over AI illustration for formal architecture/workflow figures.",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/figure-spec/SKILL.md"
     },
     "format-profile": {
       "tier": "ondemand",

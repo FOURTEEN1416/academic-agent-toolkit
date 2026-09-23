@@ -62,6 +62,6 @@ status: active
 
 - 产物接线：`data/award_paper_exemplars.json`、`data/paper_selfcheck_287.json`
 - 消费方：`skills/comp-paper-zh/`（写作范文参照）、`skills/comp-literature/`（同类做法定位）、
-  `skills/figure-aesthetics-craft/`（配色/构图参照）
+  `skills/fig-aesthetics-craft/`（配色/构图参照）
 - 语料区：`assets-local/award-papers/`（gitignored，见 asset_catalog.json 的 local_only 条目）
 - 回退口径：语料缺席时写作步不阻断——范文参照是可选的增强，非硬门禁

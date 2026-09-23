@@ -42,13 +42,13 @@
 | 2 文献 | citation-check | GB/T 7714 引用格式检查（赛时唯一真实使用记录，有执行器） |
 | 3 建模 | sympy | 符号推导验证（facts_audit 只覆盖数值核验，此为符号位互补） |
 | 4 编程 | data-statistics-report | 统计检验/数分（数据型问题高频，无其他步骤兜底） |
-| 5 图表 | figure-aesthetics-craft, paper-figure-palette | 图形质感技法（渐变合法语义/边色继承/绘图五纪律，recipe 体系外互补层）+ **统一配色注册表（必用：色值不得自创）** |
+| 5 图表 | fig-aesthetics-craft, paper-figure-palette | 图形质感技法（渐变合法语义/边色继承/绘图五纪律，recipe 体系外互补层）+ **统一配色注册表（必用：色值不得自创）** |
 | 6 架构图 | （无） | drawio_rules/tikz 规范已随主合同加载，方法论备选见 §三 |
 | 7 逻辑复核 | （无） | contest_models 独立审稿通道为唯一主通道 |
 | 8 论文 | （无） | 写作铁律/去 AI 化（ai_tell_check）/格式（cumcmthesis cls）全部内嵌合同+_utils 脚本 |
 | 9 一致性 | analyze-results | 数值口径交叉核对方法论（机器兜底 = 本步资产 paper_data_check） |
 | 10 编译 | （无） | Word 交付需求由 output_format=docx 参数机制自动加步，不再重复推荐 |
-| 11 视觉审查 | fig-critique, figure-spec | 外部图审视角清单/图规格说明 |
+| 11 视觉审查 | fig-critique, fig-spec | 外部图审视角清单/图规格说明 |
 | 12 编辑 | anti-defensive-writing | 修订删 hedge/免责/过度解释（该技能唯一正确档位，S8 写作期不适用） |
 | 13 终审 | paper-self-review | 外部审稿人视角批判清单（参考用，不替代独立审稿通道） |
 | 14 交付审计 | citation-check, quality-check | 引用终检+产出质量终检（按本步 `metadata.compliance_profile` 挂 `engine/modex-core/comp_rules.json` 对应族 compliance 块逐条核验：国赛 cumcm_2026_format 口径，华为杯承诺书必在、正文≤50） |

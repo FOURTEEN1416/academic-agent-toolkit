@@ -5529,8 +5529,9 @@
         "pdf-toolkit"
       ],
       "associated_tools": [
-        "tools/sci-pdf/*.py",
-        "tools/doc_reader.py"
+        "tools/doc_reader.py",
+        "tools/extract_pdf_figures.py",
+        "tools/pdf_ocr.py"
       ],
       "external_dependencies": [
         "pypdf/pypdfium2 等"
@@ -5635,7 +5636,9 @@
         "docx-export"
       ],
       "associated_tools": [
-        "tools/sci-pdf/*.py"
+        "tools/doc_reader.py",
+        "tools/extract_pdf_figures.py",
+        "tools/pdf_ocr.py"
       ],
       "external_dependencies": [
         "pypdf 等"
@@ -6170,7 +6173,7 @@
         "matplotlib",
         "seaborn",
         "plotly",
-        "figure-spec",
+        "fig-spec",
         "graphviz",
         "excalidraw-diagram",
         "infographics",
@@ -6192,7 +6195,7 @@
         "scientific-schematics 需图像生成后端（可选）"
       ],
       "high_risk_confirmation": "覆盖 figures/ 下同名文件需确认；外部 API 技能为可选",
-      "current_evidence": "C2 真实验收 PASS（2026-08-29）：引擎驱动 scientific_plotting 模板 5 步全 completed（figure-spec→diagram-design→paper-figure→scientific-visualization→comp-review），逐步 STEP_MANIFEST + L3 执行证据（schema v1，含 skill_sha256），figure_provenance 门禁强制通过，独立评审 subagent 四轮（渲染截图+PIL测宽+字节核验+numpy复算）终审 PASS（0 fatal/0 major/9 minor）。工作区 workspaces/plotting_acceptance（wf b1f55fb0，含 WORKFLOW_REPORT.json）。集成 10 个上游技能（fork pinned commit 见各 UPSTREAM.md），provenance 27 条。 C3/C4/C5 完成（2026-08-29）：公开基准 FIGURES-01 评估器 exit 0；C4 私有基准（62篇获奖论文规范）PASS；C5 四维指标入 benchmarks/six_domains_public/FIGURES-01/results.json。C6 回归 test_plotting_capability 4 项。核心 5 步管线具备 C1-C6 全链路。",
+      "current_evidence": "C2 真实验收 PASS（2026-08-29）：引擎驱动 scientific_plotting 模板 5 步全 completed（fig-spec→diagram-design→paper-figure→scientific-visualization→comp-review），逐步 STEP_MANIFEST + L3 执行证据（schema v1，含 skill_sha256），figure_provenance 门禁强制通过，独立评审 subagent 四轮（渲染截图+PIL测宽+字节核验+numpy复算）终审 PASS（0 fatal/0 major/9 minor）。工作区 workspaces/plotting_acceptance（wf b1f55fb0，含 WORKFLOW_REPORT.json）。集成 10 个上游技能（fork pinned commit 见各 UPSTREAM.md），provenance 27 条。 C3/C4/C5 完成（2026-08-29）：公开基准 FIGURES-01 评估器 exit 0；C4 私有基准（62篇获奖论文规范）PASS；C5 四维指标入 benchmarks/six_domains_public/FIGURES-01/results.json。C6 回归 test_plotting_capability 4 项。核心 5 步管线具备 C1-C6 全链路。",
       "current_gap": "正式提升待用户裁决（已具备条件但 12 关联技能中 6 个尚未过 C2：graphviz/mermaid 运行时依赖未装、infographics/scientific-schematics 需外部 API、seaborn/plotly/excalidraw 待独立验收）；graphviz 与 excalidraw-diagram 上游无 LICENSE，用户授权发布（异议即移除）",
       "promotion_history": []
     },
@@ -6302,25 +6305,25 @@
     },
     {
       "capability_id": "cap_skill_figure_spec",
-      "name": "技能映射：figure-spec",
+      "name": "技能映射：fig-spec",
       "domain": "figures_and_document_production",
       "description": "确定性 JSON→SVG 架构/流程/管线图（FigureSpec 规范，可校验可复现）",
       "input_contract": "FigureSpec JSON（节点/边/分组）",
       "output_contract": "编辑就绪 SVG + 校验报告",
       "status": "experimental",
       "associated_skills": [
-        "figure-spec"
+        "fig-spec"
       ],
       "associated_tools": [
         "Python 3.10+",
-        "skills/figure-spec/scripts/figure_renderer.py"
+        "skills/fig-spec/scripts/figure_renderer.py"
       ],
       "external_dependencies": [
         "Python 3.10+",
-        "skills/figure-spec/scripts/figure_renderer.py"
+        "skills/fig-spec/scripts/figure_renderer.py"
       ],
       "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
-      "current_evidence": "C1 合同完整；溯源见 skills/figure-spec/references/UPSTREAM.md（pinned commit）；C2 真实验收见 workspaces/plotting_acceptance（2026-08-29 引擎驱动 scientific_plotting 工作流） C3+C4 验收通过（FIGURES-01，2026-08-29）。",
+      "current_evidence": "C1 合同完整；溯源见 skills/fig-spec/references/UPSTREAM.md（pinned commit）；C2 真实验收见 workspaces/plotting_acceptance（2026-08-29 引擎驱动 scientific_plotting 工作流） C3+C4 验收通过（FIGURES-01，2026-08-29）。",
       "current_gap": "C3 公开基准/C5 四维指标未建（figures 域无专用基准集）",
       "promotion_history": [
         "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
@@ -6485,15 +6488,15 @@
       "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）"
     },
     {
-      "capability_id": "figure-spec",
-      "name": "figure-spec",
+      "capability_id": "fig-spec",
+      "name": "fig-spec",
       "domain": "figures_and_document_production",
       "description": "\"Generate deterministic publication-quality architecture, workflow, and pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Use when user says \\\"架构图\\\", \\\"workflo",
       "input_contract": "技能 SKILL.md 定义的输入契约",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "status": "experimental",
       "associated_skills": [
-        "figure-spec"
+        "fig-spec"
       ],
       "associated_tools": [],
       "external_dependencies": [],
@@ -6778,7 +6781,7 @@
       "disposition": "routed"
     },
     {
-      "capability_id": "figure-aesthetics-craft",
+      "capability_id": "fig-aesthetics-craft",
       "name": "图形质感技法（渐变规范/边色继承/Agent 绘图纪律/顶刊构图参照）",
       "domain": "figures_and_document_production",
       "description": "公众号审美批次四组技法：渐变色合法语义（数值/装饰两场景+clip=off 要点）、层级网络边色继承末端节点免图例（ggraph 角度公式+防裁剪三件套）、Agent 绘图五纪律+逐图提示词模板、19 类顶刊构图参照集（图集本地不入 git）",
@@ -6786,7 +6789,7 @@
       "output_contract": "按技法规范产出的图表+逐图提示词模板套用记录",
       "status": "experimental",
       "associated_skills": [
-        "figure-aesthetics-craft"
+        "fig-aesthetics-craft"
       ],
       "associated_tools": [],
       "external_dependencies": [],

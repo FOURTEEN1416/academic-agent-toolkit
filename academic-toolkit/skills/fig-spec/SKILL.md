@@ -1,5 +1,5 @@
 ---
-name: figure-spec
+name: fig-spec
 description: "Generate deterministic publication-quality architecture, workflow, and pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Use when user says \"架构图\", \"workflow 图\", \"pipeline 图\", \"确定性矢量图\", \"figure spec\", \"draw architecture\", or needs precise, editable, publication-ready vector diagrams. Preferred over AI illustration for formal architecture/workflow figures."
 argument-hint: "[description-of-diagram]"
 allowed-tools: Bash(*), Read, Write, Edit
@@ -17,7 +17,7 @@ Generate publication-quality **architecture diagrams**, **workflow pipelines**, 
 
 ## When to Use This Skill
 
-**Use `figure-spec`** for:
+**Use `fig-spec`** for:
 - System architecture diagrams (layered, hub-and-spoke, multi-plane)
 - Workflow / pipeline figures
 - Audit cascade / flow-control diagrams
@@ -42,7 +42,7 @@ Generate publication-quality **architecture diagrams**, **workflow pipelines**, 
 ## Tool Location
 
 Phase 3.1 (Arch C) move: the canonical implementation now lives at
-`skills/figure-spec/scripts/figure_renderer.py` (this SKILL's own
+`skills/fig-spec/scripts/figure_renderer.py` (this SKILL's own
 `scripts/` subdirectory). Upstream ARIS installations additionally
 provide a backwards-compatible shim under the install layout
 (`tools/figure_renderer.py`, forwarding via `os.execv`) — that shim is
@@ -77,7 +77,7 @@ if [ -z "$FIGURE_RENDERER" ]; then
 fi
 [ -z "$FIGURE_RENDERER" ] && {
   echo "ERROR: figure_renderer.py not resolved (layer 0: \$CLAUDE_SKILL_DIR/scripts/; layers 1-4: .aris/tools/, tools/, \$ARIS_REPO/tools/, \$ARIS_REPO/tools/ via ~/.aris/repo)." >&2
-  echo "       /figure-spec cannot produce SVG output. Fix: rerun bash tools/install_aris.sh or smart_update.sh (refreshes ~/.aris/repo), or copy the helper from \$ARIS_REPO/skills/figure-spec/scripts/." >&2
+  echo "       /fig-spec cannot produce SVG output. Fix: rerun bash tools/install_aris.sh or smart_update.sh (refreshes ~/.aris/repo), or copy the helper from \$ARIS_REPO/skills/fig-spec/scripts/." >&2
   exit 1
 }
 ```

@@ -107,7 +107,7 @@ python palette_kit.py registry-verify   # 全注册表体检：色值/单调性/
 |------|----------|-----------|
 | `paper-figure-palette`（本技能） | 色值真源、类型与场景映射、使用规范、禁用清单、机检 | 图形构图、字号、排版 |
 | `palette-health-check` | 单套论文色板的**去灰提彩**诊断与重解（C*/Cmax、deepen、入带序单调） | 多场景选型 |
-| `figure-aesthetics-craft` | 图形质感技法（渐变语义、边色继承、绘图纪律） | 色值选择 |
+| `fig-aesthetics-craft` | 图形质感技法（渐变语义、边色继承、绘图纪律） | 色值选择 |
 | `_utils/figure_pdf_quality_check` | 出图后的 PDF 级门禁（图内文字预算、字号下限） | 配色合规 |
 
 冲突时以本技能的类型/场景映射与禁用清单为准（配色合规责任在本技能）。

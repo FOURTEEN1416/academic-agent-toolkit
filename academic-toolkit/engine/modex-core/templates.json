@@ -295,7 +295,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -494,7 +494,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -1290,7 +1290,7 @@
           ],
           "display_name": "图表生成",
           "companion_skills": [
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ],
           "assets": [
@@ -1576,7 +1576,7 @@
           "display_name": "数模视觉审查",
           "companion_skills": [
             "fig-critique",
-            "figure-spec"
+            "fig-spec"
           ],
           "assets": [
             {
@@ -1593,7 +1593,7 @@
           "skill_binding": {
             "main_required": true,
             "mandatory": [
-              "figure-spec"
+              "fig-spec"
             ]
           },
           "output_specs": {
@@ -1893,7 +1893,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -2245,7 +2245,7 @@
           ],
           "display_name": "图表生成",
           "companion_skills": [
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ],
           "assets": [
@@ -2543,7 +2543,7 @@
           "display_name": "数模视觉审查",
           "companion_skills": [
             "fig-critique",
-            "figure-spec"
+            "fig-spec"
           ],
           "assets": [
             {
@@ -2560,7 +2560,7 @@
           "skill_binding": {
             "main_required": true,
             "mandatory": [
-              "figure-spec"
+              "fig-spec"
             ]
           },
           "output_specs": {
@@ -2860,7 +2860,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -3109,7 +3109,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -3358,7 +3358,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -3529,7 +3529,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -3740,7 +3740,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -3982,7 +3982,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -4224,7 +4224,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -4466,7 +4466,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -4708,7 +4708,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -4957,7 +4957,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -5199,7 +5199,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -5441,7 +5441,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -5683,7 +5683,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -5925,7 +5925,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -6167,7 +6167,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -6409,7 +6409,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -6651,7 +6651,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -6893,7 +6893,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -7135,7 +7135,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -7469,7 +7469,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -7636,7 +7636,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -7802,7 +7802,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -8138,7 +8138,7 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite",
-            "figure-aesthetics-craft",
+            "fig-aesthetics-craft",
             "paper-figure-palette"
           ]
         }
@@ -8431,11 +8431,11 @@
     ]
   },
   "scientific_plotting": {
-    "pipeline_skill": "figure-spec",
+    "pipeline_skill": "fig-spec",
     "display_name": "科研绘图流水线（确定性图→编辑级图→数据图→期刊图→视觉审查）",
     "sub_steps": [
       {
-        "skill_name": "figure-spec",
+        "skill_name": "fig-spec",
         "display_name": "架构图/流程图（JSON→SVG 确定性渲染）",
         "output_files": [
           "figures/diagrams/",
@@ -8631,7 +8631,7 @@
         }
       },
       {
-        "skill_name": "figure-spec",
+        "skill_name": "fig-spec",
         "display_name": "确定性 JSON→SVG 架构与流程图",
         "output_files": [
           "figures/"
@@ -8707,7 +8707,7 @@
           },
           "companion_skills": [
             "fig-critique",
-            "figure-spec"
+            "fig-spec"
           ]
         },
         "requires_subagent": true
