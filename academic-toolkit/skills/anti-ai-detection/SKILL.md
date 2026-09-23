@@ -108,6 +108,12 @@ python tools/ai_usage_declaration.py --used --usage "语言润色、代码调试
 python tools/reference_paper_baseline.py
 ```
 
+### 3.5 从参考论文 docx 派生写作参照（章节骨架/题注/公式编号风格）
+```bash
+python tools/derive_reference_from_docx.py --input <完整论文.docx> --out <输出目录>
+```
+产出通用参考资料（非模板）：供写作步对照真实论文的结构与体例；与 3.4 同属"参考论文派生资产"族。
+
 ## 四、风险等级
 | 等级 | 分数 | 处理 |
 |------|------|------|

@@ -13,6 +13,8 @@ metadata:
 
 本步骤根据 `AGENTS.md` 中注入的**软件全称、版本号、软件描述/大纲**，由 AI **直接撰写**软件著作权申请资料的全部草稿，并写出成品脚本校验所需的门禁 JSON。下一步 `copyright-build` 会读取这些草稿生成正式 Word/TXT。
 
+> **本机素材（local_only）**：`assets-local/ip-materials/` 有既有版权草案（COPYRIGHT_DRAFT.md）可作参照；公开 clone 缺席属语义缺位。
+
 ## 场景与硬约束
 
 - **两种输入模式，先判断当前属于哪种：**

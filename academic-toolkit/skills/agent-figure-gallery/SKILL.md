@@ -117,6 +117,16 @@ Provenance：条目出自上述 vendor 快照的 `data/reference_candidate_index
 
 Local preferences must preserve `plot_type`. Global preferences are cross-task.
 
+## Local Corpus Figure Extraction (repo tool, no install)
+
+从本地获奖论文 PDF 抽取**图级**（非整页）插图，扩充本地参照语料（与 KB 检索互补）：
+
+```bash
+python academic-toolkit/tools/extract_pdf_figures.py --pdf <论文.pdf> --out <输出目录>
+```
+
+适用场景：语料建设（配合 `award-paper-mining` 技能）；产出图为候选级，需人工筛留。
+
 ## Validation
 
 After changing the CLI, gallery, preference logic, or bundle export:

@@ -130,8 +130,8 @@
       ],
       "associated_tools": [
         "latexmk/xelatex",
-        "tools/docx_export.pyc",
-        "tools/fix_bare_latex_in_md.pyc"
+        "tools/docx_export.py",
+        "tools/fix_bare_latex_in_md.py"
       ],
       "external_dependencies": [
         "TeX Live/XeLaTeX",
@@ -295,7 +295,7 @@
         "comp-consistency"
       ],
       "associated_tools": [
-        "tools/paper_data_check.pyc"
+        "tools/paper_data_check.py"
       ],
       "external_dependencies": [],
       "high_risk_confirmation": "无",
@@ -882,7 +882,7 @@
         "tools/scholar_fetch.py",
         "tools/reviewer_client.py",
         "latexmk",
-        "tools/docx_export.pyc"
+        "tools/docx_export.py"
       ],
       "external_dependencies": [
         "外部 LLM 审查 API（可选）",
@@ -943,8 +943,7 @@
         "dev-code-review"
       ],
       "associated_tools": [
-        "tools/reviewer_client.py",
-        "tools/auto_review*.py"
+        "tools/reviewer_client.py"
       ],
       "external_dependencies": [],
       "high_risk_confirmation": "覆盖论文草稿前需确认",
@@ -1006,8 +1005,8 @@
       ],
       "associated_tools": [
         "latexmk",
-        "tools/docx_export.pyc",
-        "tools/docx_precheck.pyc"
+        "tools/docx_export.py",
+        "tools/docx_precheck.py"
       ],
       "external_dependencies": [
         "TeX Live",
@@ -3445,7 +3444,7 @@
       "associated_tools": [
         "tools/doc_reader.py",
         "latexmk",
-        "tools/docx_export.pyc"
+        "tools/docx_export.py"
       ],
       "external_dependencies": [
         "TeX Live"
@@ -3471,7 +3470,7 @@
       ],
       "associated_tools": [
         "tools/doc_reader.py",
-        "tools/docx_export.pyc"
+        "tools/docx_export.py"
       ],
       "external_dependencies": [
         "Pandoc（可选）"
@@ -5222,8 +5221,8 @@
         "ip-patent-search"
       ],
       "associated_tools": [
-        "tools/html_figure_render.py",
-        "tools/docx_export.pyc"
+        "skills/patent-build/tools/html_figure_render.py",
+        "tools/docx_export.py"
       ],
       "external_dependencies": [
         "Electron（图渲染）"
@@ -5248,7 +5247,7 @@
         "copyright-build"
       ],
       "associated_tools": [
-        "tools/build_docx_from_md.py"
+        "skills/copyright-build/scripts/build_docx_from_md.py"
       ],
       "external_dependencies": [],
       "high_risk_confirmation": "无",
@@ -5612,7 +5611,7 @@
       ],
       "associated_tools": [
         "latexmk",
-        "tools/docx_export.pyc"
+        "tools/docx_export.py"
       ],
       "external_dependencies": [
         "TeX Live",

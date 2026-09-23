@@ -41,8 +41,8 @@
       "description": "题型案例模式库：历年题型与建模套路对照",
       "when_to_use": "赛题分析步定位同类题打法；无网络时降级参照",
       "owner_skills": [
-        "comp-problem-analysis",
-        "comp-model-innovation"
+        "comp-prob-analysis",
+        "model-innovation"
       ],
       "consumers": [
         "comp_cumcm:S1",
@@ -89,7 +89,7 @@
       "description": "历年真题索引（2021-2025 元数据）",
       "when_to_use": "赛题分析步查历史同类题【mandatory 试点】",
       "owner_skills": [
-        "comp-problem-analysis",
+        "comp-prob-analysis",
         "problem-selection"
       ],
       "consumers": [
@@ -249,6 +249,20 @@
       "local_only": false
     },
     {
+      "id": "comp-paper-fonts-local",
+      "path": "academic-toolkit/skills/comp-paper-zh/_templates/_fonts-local/",
+      "zone": "skills-internal",
+      "type": "fonts",
+      "description": "竞赛模板集中字体库（约 103MB，gitignored 隔离不入公开仓；恢复源见 _templates/huawei/README.md）",
+      "when_to_use": "对应赛事编译步缺字体时的回退源",
+      "owner_skills": [
+        "comp-paper-zh",
+        "comp-compile-zh"
+      ],
+      "consumers": [],
+      "local_only": true
+    },
+    {
       "id": "paper-selfcheck-287",
       "path": "academic-toolkit/data/paper_selfcheck_287.json",
       "zone": "data",
@@ -276,7 +290,7 @@
       "when_to_use": "任何出图步选色",
       "owner_skills": [
         "paper-figure",
-        "paper-figure-nature"
+        "nature-figure"
       ],
       "consumers": [
         "comp_cumcm:S5",
@@ -359,7 +373,7 @@
       "description": "CNS 级示例图集 215 张+目录索引",
       "when_to_use": "画顶刊风格图前找参照",
       "owner_skills": [
-        "fig-academic"
+        "academic-figure-skill"
       ],
       "consumers": [],
       "local_only": false
@@ -386,7 +400,7 @@
       "description": "获奖论文资产入口地图（62 篇五年的可编码规则蒸馏）",
       "when_to_use": "用获奖论文语料前先读",
       "owner_skills": [
-        "comp-problem-analysis",
+        "comp-prob-analysis",
         "comp-paper-zh"
       ],
       "consumers": [
@@ -404,9 +418,12 @@
       "when_to_use": "逐篇精读/图示参照时按 年/题号 取",
       "owner_skills": [
         "comp-literature",
-        "paper-figure"
+        "paper-figure",
+        "award-paper-mining"
       ],
-      "consumers": [],
+      "consumers": [
+        "manual:award-paper-mining 语料步"
+      ],
       "local_only": true
     },
     {
@@ -464,12 +481,14 @@
       "zone": "assets-local",
       "type": "checklist",
       "description": "bzdshumo 287 项提交前自查清单（22 静态板块+66 动态检查，全库唯一高质量审查基准）",
-      "when_to_use": "最终复审/交付审计步逐项过（W4 将摘编为 tracked JSON）",
+      "when_to_use": "最终复审/交付审计步逐项过；tracked 摘编版为 data/paper_selfcheck_287.json（原件仅本地）",
       "owner_skills": [
         "comp-review",
         "comp-final-audit"
       ],
-      "consumers": [],
+      "consumers": [
+        "data:paper_selfcheck_287.json"
+      ],
       "local_only": true
     },
     {
@@ -478,11 +497,13 @@
       "zone": "assets-local",
       "type": "reference-data",
       "description": "25 篇优先范文清单（每年每题型 1 篇）+img 到 pdf 映射",
-      "when_to_use": "精选范文快读入口（W4 接线 S8）",
+      "when_to_use": "精选范文快读入口；tracked 索引为 data/award_paper_exemplars.json（priority_25 即本清单）",
       "owner_skills": [
         "comp-paper-zh"
       ],
-      "consumers": [],
+      "consumers": [
+        "data:award_paper_exemplars.json"
+      ],
       "local_only": true
     },
     {
@@ -506,7 +527,7 @@
       "description": "6 篇方法论文章+103 张本地化图（00_总览是资产说明书）",
       "when_to_use": "画有质感的图前找视觉参照",
       "owner_skills": [
-        "fig-aesthetics-craft"
+        "figure-aesthetics-craft"
       ],
       "consumers": [],
       "local_only": true
@@ -550,7 +571,9 @@
         "patent-draft",
         "copyright-draft"
       ],
-      "consumers": [],
+      "consumers": [
+        "manual:patent-draft 起步步 / copyright-draft 素材步"
+      ],
       "local_only": true
     },
     {
@@ -561,7 +584,7 @@
       "description": "赛时官方题目/规则与合规预置区（赛季期间本地放置）",
       "when_to_use": "开赛后放题；缺席=语义缺位非断链",
       "owner_skills": [
-        "comp-problem-analysis"
+        "comp-prob-analysis"
       ],
       "consumers": [],
       "local_only": true
@@ -587,7 +610,7 @@
       "description": "pubfig 出版图表库（上游完整拷贝）；UPSTREAM.md 溯源",
       "when_to_use": "对应技能执行时调用",
       "owner_skills": [
-        "fig-publication-chart"
+        "galaxy-publication-chart-skill"
       ],
       "consumers": [],
       "local_only": false

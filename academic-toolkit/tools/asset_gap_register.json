@@ -1,566 +1,546 @@
 {
- "_meta": {
-  "purpose": "skill_library_audit 棘轮登记册：SKILL.md 内部引用断链的 2026-09-09 基线",
-  "rule": "登记册内条目=已知存量(不FAIL)；新断链=FAIL。处置一批删一批条目即可收紧防线",
-  "baseline_count": 335,
-  "baseline_skills": 72,
-  "created": "2026-09-09",
-  "cause": "大量技能集成时只收 SKILL.md 未收上游资产；处置方案见 dev-docs/AUDIT_2026-09-09.md A18",
-  "disposal_log": [
-   "2026-09-09 批次1a sci-*: 销账 65 条（fork 资产补齐后引用已真实存在）",
-   "2026-09-09 批次1b nature-*: 销账 6 条",
-   "2026-09-09 批次1c ars-*: 销账 39 条",
-   "2026-09-09 批次2: meta-skill-creator 销账 2 条（claude-code-templates 聚合 fork）",
-   "2026-09-09 批次2: latex-document 销账 35 条",
-   "2026-09-09 批次2: latexpap-*/spine-* 销账 75 条",
-   "2026-09-09: paper-writing-clinical 35 条 modules/ 映射口径引用入册（非残缺，孤本路由器口径，永续豁免）",
-   "2026-09-09 赛前排查: comp-code 8 条销账（checks 七份自检协议补写完成）",
-   "2026-09-22 批次三 B3-6: 入册 19 条（17 条 data/ 前缀新暴露——多为正文词组/运行时产物路径伪引用，2 条 fig-spec 上游 ARIS 安装布局件）；目录级条目全部枚举化为正文实际断链引用；auto-review-loop*/paper-write-nature-docx 3 条系批次四领地暂入册，主窗收编后可处置",
-   "2026-09-22 主窗收编: 入册 2 条（paper-framework-figure-studio-pro data/ 伪引用——local-only 技能正文贡献类型枚举词组，batch3 工作树不可见、主检出回归门暴露；与 B3-6 17 条 data/ 伪引用同性质）",
-   "2026-09-22 主窗收编处置: 批次四领地 3 条销账（auto-review-loop/-minimax「external data/models」、paper-write-nature-docx「data/comparison/literature」均为正文词组伪引用；收编后改写为 data or models / data, comparison, literature 消除误报，收紧棘轮 338→335）；paper-framework-figure-studio-pro 2 条目录形态补过期台账"
-  ],
-  "dir_entry_expiry": {
-   "policy": "B3-6 ④：目录形态条目=正文仅引用目录本身、无可枚举具体文件；到期未枚举/销账须重新审计",
-   "expires": {
-    "meta-agent-harness": {
-     "assets/harnesses": "2026-12-31",
-     "assets/harnesses/": "2026-12-31"
-    },
-    "meta-research-router": {
-     "data/numbers": "2026-12-31"
-    },
-    "paper-submission-audit": {
-     "data/code": "2026-12-31"
-    },
-    "paper-writing-clinical": {
-     "assets/clinical-decision-support/": "2026-12-31",
-     "assets/hypothesis-generation/": "2026-12-31",
-     "assets/latex-posters/": "2026-12-31",
-     "assets/market-research-reports/": "2026-12-31",
-     "assets/research-grants/": "2026-12-31",
-     "assets/scientific-slides/": "2026-12-31",
-     "assets/scripts": "2026-12-31",
-     "assets/treatment-plans/": "2026-12-31",
-     "assets/venue-templates/": "2026-12-31"
-    },
-    "dev-code-frontend": {
-     "references/styles/": "2026-12-31"
-    },
-    "kaggle-learner": {
-     "references/knowledge/nlp/": "2026-12-31",
-     "references/knowledge/cv/": "2026-12-31",
-     "references/knowledge/time-series/": "2026-12-31",
-     "references/knowledge/tabular/": "2026-12-31",
-     "references/knowledge/multimodal/": "2026-12-31",
-     "references/knowledge/": "2026-12-31"
-    },
-    "results-analysis": {
-     "data/logs": "2026-12-31"
-    },
-    "latex-document": {
-     "data/results": "2026-12-31"
-    },
-    "math-modeling-contest-route-selection": {
-     "data/parameter": "2026-12-31",
-     "data/model/solver/time": "2026-12-31"
-    },
-    "paper-journal-selection": {
-     "data/code": "2026-12-31"
-    },
-    "paper-submission-audit": {
-     "data/code": "2026-12-31"
-    },
-    "paper-framework-figure-studio-pro": {
-     "data/dataset/database/data-pipeline": "2026-12-31",
-     "data/dataset/database/retrieval/generation/governance/pipeline": "2026-12-31"
-    },
-    "paper-writing-paragraph-standards": {
-     "references/appendices": "2026-12-31"
-    },
-    "paper-presubmit-checks": {
-     "references/citations": "2026-12-31"
+  "_meta": {
+    "purpose": "skill_library_audit 棘轮登记册：SKILL.md 内部引用断链的 2026-09-09 基线",
+    "rule": "登记册内条目=已知存量(不FAIL)；新断链=FAIL。处置一批删一批条目即可收紧防线",
+    "baseline_count": 321,
+    "baseline_skills": 72,
+    "created": "2026-09-09",
+    "cause": "大量技能集成时只收 SKILL.md 未收上游资产；处置方案见 dev-docs/AUDIT_2026-09-09.md A18",
+    "disposal_log": [
+      "2026-09-09 批次1a sci-*: 销账 65 条（fork 资产补齐后引用已真实存在）",
+      "2026-09-09 批次1b nature-*: 销账 6 条",
+      "2026-09-09 批次1c ars-*: 销账 39 条",
+      "2026-09-09 批次2: meta-skill-creator 销账 2 条（claude-code-templates 聚合 fork）",
+      "2026-09-09 批次2: latex-document 销账 35 条",
+      "2026-09-09 批次2: latexpap-*/spine-* 销账 75 条",
+      "2026-09-09: paper-writing-clinical 35 条 modules/ 映射口径引用入册（非残缺，孤本路由器口径，永续豁免）",
+      "2026-09-09 赛前排查: comp-code 8 条销账（checks 七份自检协议补写完成）",
+      "2026-09-22 批次三 B3-6: 入册 19 条（17 条 data/ 前缀新暴露——多为正文词组/运行时产物路径伪引用，2 条 fig-spec 上游 ARIS 安装布局件）；目录级条目全部枚举化为正文实际断链引用；auto-review-loop*/paper-write-nature-docx 3 条系批次四领地暂入册，主窗收编后可处置",
+      "2026-09-22 主窗收编: 入册 2 条（paper-framework-figure-studio-pro data/ 伪引用——local-only 技能正文贡献类型枚举词组，batch3 工作树不可见、主检出回归门暴露；与 B3-6 17 条 data/ 伪引用同性质）",
+      "2026-09-22 主窗收编处置: 批次四领地 3 条销账（auto-review-loop/-minimax「external data/models」、paper-write-nature-docx「data/comparison/literature」均为正文词组伪引用；收编后改写为 data or models / data, comparison, literature 消除误报，收紧棘轮 338→335）；paper-framework-figure-studio-pro 2 条目录形态补过期台账",
+      "2026-09-23 v2.0 收尾：销账 dev-code-frontend/references/styles（文件已在库）；删 meta-agent-harness 自重复 1 条；baseline_count 校正为实测值。"
+    ],
+    "dir_entry_expiry": {
+      "policy": "B3-6 ④：目录形态条目=正文仅引用目录本身、无可枚举具体文件；到期未枚举/销账须重新审计",
+      "expires": {
+        "meta-agent-harness": {
+          "assets/harnesses": "2026-12-31",
+          "assets/harnesses/": "2026-12-31"
+        },
+        "meta-research-router": {
+          "data/numbers": "2026-12-31"
+        },
+        "paper-submission-audit": {
+          "data/code": "2026-12-31"
+        },
+        "paper-writing-clinical": {
+          "assets/clinical-decision-support/": "2026-12-31",
+          "assets/hypothesis-generation/": "2026-12-31",
+          "assets/latex-posters/": "2026-12-31",
+          "assets/market-research-reports/": "2026-12-31",
+          "assets/research-grants/": "2026-12-31",
+          "assets/scientific-slides/": "2026-12-31",
+          "assets/scripts": "2026-12-31",
+          "assets/treatment-plans/": "2026-12-31",
+          "assets/venue-templates/": "2026-12-31"
+        },
+        "dev-code-frontend": {
+          "references/styles/": "2026-12-31"
+        },
+        "kaggle-learner": {
+          "references/knowledge/nlp/": "2026-12-31",
+          "references/knowledge/cv/": "2026-12-31",
+          "references/knowledge/time-series/": "2026-12-31",
+          "references/knowledge/tabular/": "2026-12-31",
+          "references/knowledge/multimodal/": "2026-12-31",
+          "references/knowledge/": "2026-12-31"
+        },
+        "results-analysis": {
+          "data/logs": "2026-12-31"
+        },
+        "latex-document": {
+          "data/results": "2026-12-31"
+        },
+        "math-modeling-contest-route-selection": {
+          "data/parameter": "2026-12-31",
+          "data/model/solver/time": "2026-12-31"
+        },
+        "paper-journal-selection": {
+          "data/code": "2026-12-31"
+        },
+        "paper-framework-figure-studio-pro": {
+          "data/dataset/database/data-pipeline": "2026-12-31",
+          "data/dataset/database/retrieval/generation/governance/pipeline": "2026-12-31"
+        },
+        "paper-writing-paragraph-standards": {
+          "references/appendices": "2026-12-31"
+        },
+        "paper-presubmit-checks": {
+          "references/citations": "2026-12-31"
+        }
+      }
     }
-   }
+  },
+  "gaps": {
+    "meta-agent-harness": [
+      "assets/harnesses",
+      "assets/harnesses/",
+      "assets/harnesses/engineering.json",
+      "references/agentic_loop_canon.md",
+      "references/domain_harness_design.md",
+      "references/verification_discipline.md",
+      "scripts/goal_compiler.py",
+      "scripts/harness_manifest_builder.py",
+      "scripts/loop_controller.py"
+    ],
+    "dev-ai-security": [
+      "references/atlas-coverage.md",
+      "scripts/ai_threat_scanner.py"
+    ],
+    "dev-code-review": [
+      "assets/sample_java_smells.java",
+      "scripts/code_quality_checker.py",
+      "scripts/pr_analyzer.py",
+      "scripts/review_report_generator.py"
+    ],
+    "meta-entity-dossier": [
+      "references/conversation_hook_quality.md",
+      "references/hypothesis_testing_discipline.md",
+      "references/subject_type_source_matrix.md",
+      "scripts/citation_tracker.py",
+      "scripts/disconfirming_evidence_balance.py",
+      "scripts/source_tier_classifier.py"
+    ],
+    "meta-experiment-design": [
+      "references/experiment-playbook.md",
+      "references/statistics-reference.md",
+      "scripts/sample_size_calculator.py"
+    ],
+    "grant-nih": [
+      "references/docx_9_sections.md",
+      "references/nih_mechanism_matching.md",
+      "references/reporter_post_patterns.md",
+      "scripts/citation_tracker.py",
+      "scripts/fiscal_year_calculator.py",
+      "scripts/mechanism_matcher.py"
+    ],
+    "lit-orientation": [
+      "references/docx_8_sections.md",
+      "references/framework_selection.md",
+      "references/search_budget_allocation.md",
+      "scripts/citation_tracker.py",
+      "scripts/cross_search_aggregator.py",
+      "scripts/framework_recommender.py",
+      "scripts/free_search.py"
+    ],
+    "doc-notebooklm-control": [
+      "references/async_action_discipline.md",
+      "references/browser_automation_canon.md",
+      "references/studio_output_custom_prompts.md",
+      "scripts/action_router.py",
+      "scripts/async_action_classifier.py",
+      "scripts/custom_prompt_template_generator.py"
+    ],
+    "ip-patent-search": [
+      "references/cpc_classification_canon.md",
+      "references/legal_disclaimer_discipline.md",
+      "references/sub_use_case_routing.md",
+      "scripts/citation_tracker.py",
+      "scripts/family_resolver.py",
+      "scripts/sub_use_case_router.py"
+    ],
+    "meta-topic-pulse": [
+      "references/cross_platform_synthesis.md",
+      "references/parallel_execution_discipline.md",
+      "references/research_pack_conventions.md",
+      "scripts/citation_tracker.py",
+      "scripts/time_window_calculator.py",
+      "scripts/topic_slug_generator.py"
+    ],
+    "meta-research-router": [
+      "references/deterministic_classification_canon.md",
+      "references/fallback_workflow_canon.md",
+      "references/hybrid_router_architecture.md",
+      "scripts/classifier.py",
+      "scripts/fallback_decomposer.py",
+      "scripts/routing_transparency_logger.py",
+      "data/numbers"
+    ],
+    "meta-research-summarizer": [
+      "references/citation-formats.md",
+      "references/summary-templates.md",
+      "scripts/extract_citations.py",
+      "scripts/format_summary.py"
+    ],
+    "data-statistics-analyst": [
+      "references/statistical-testing-concepts.md",
+      "scripts/confidence_interval.py",
+      "scripts/hypothesis_tester.py",
+      "scripts/sample_size_calculator.py"
+    ],
+    "course-syllabus-reading-list": [
+      "references/applied_domain_weaving.md",
+      "references/audience_calibration.md",
+      "references/bundled_script_pattern.md",
+      "scripts/citation_tracker.py",
+      "scripts/discussion_question_validator.py",
+      "scripts/generate_reading_list.js",
+      "scripts/topic_grouper.py"
+    ],
+    "check-citations": [
+      "scripts/citation_checker.py"
+    ],
+    "dev-code-frontend": [
+      "references/daisyui_ref.md"
+    ],
+    "experiment-agent": [
+      "references/ars_integration_guide.md",
+      "references/irb_ethics_checklist.md",
+      "references/reproducibility_protocol.md",
+      "references/stall_detection_protocol.md",
+      "references/statistical_interpretation_guide.md",
+      "references/study_state_protocol.md"
+    ],
+    "meta-agent-config": [
+      "references/agent-creation-system-prompt.md",
+      "references/system-prompt-design.md",
+      "references/triggering-examples.md",
+      "scripts/validate-agent.sh"
+    ],
+    "dev-ml-registry-pattern": [
+      "references/auto_import.md",
+      "references/code_style.md",
+      "references/factory_pattern.md",
+      "references/registry_pattern.md",
+      "references/structure.md"
+    ],
+    "dev-debug": [
+      "references/common-patterns.md",
+      "references/debugging-tools.md",
+      "references/javascript-errors.md",
+      "references/python-errors.md",
+      "references/shell-errors.md"
+    ],
+    "meta-command-development": [
+      "references/frontmatter-reference.md",
+      "references/plugin-features-reference.md"
+    ],
+    "lit-daily-digest": [
+      "references/keywords.md",
+      "references/quality-criteria.md",
+      "references/writing-style.md",
+      "scripts/arxiv_search.py"
+    ],
+    "doc-coauthoring": [
+      "references/DOC-TYPES.md",
+      "references/READER-TEST.md",
+      "references/RUNTIME-MATRIX.md"
+    ],
+    "meta-task-reporting": [
+      "references/communication-sop.md",
+      "references/user-preferences.md"
+    ],
+    "dev-git-workflow": [
+      "references/advanced-usage.md",
+      "references/branching-strategies.md",
+      "references/collaboration.md",
+      "references/commit-conventions.md",
+      "references/conflict-resolution.md",
+      "references/gitignore-guide.md",
+      "references/merge-strategies.md"
+    ],
+    "meta-hook-development": [
+      "references/advanced.md",
+      "references/migration.md",
+      "references/patterns.md",
+      "scripts/test-hook.sh",
+      "scripts/validate-hook-schema.sh"
+    ],
+    "kaggle-learner": [
+      "references/knowledge/nlp/",
+      "references/knowledge/cv/",
+      "references/knowledge/time-series/",
+      "references/knowledge/tabular/",
+      "references/knowledge/multimodal/",
+      "references/knowledge/"
+    ],
+    "meta-mcp-integration": [
+      "references/authentication.md",
+      "references/server-types.md",
+      "references/tool-usage.md"
+    ],
+    "paper-write": [
+      "references/OPERATING-MODES.md",
+      "references/checklists.md",
+      "references/citation-workflow.md",
+      "references/knowledge/README.md",
+      "references/knowledge/paper-miner-writing-memory.md",
+      "references/literature-research/arxiv-search-guide.md",
+      "references/literature-research/paper-quality-criteria.md",
+      "references/reviewer-guidelines.md",
+      "references/sources.md",
+      "references/writing-guide.md"
+    ],
+    "paper-data-availability": [
+      "references/repository-routing.md",
+      "references/source-data-checks.md"
+    ],
+    "paper-polish-nature": [
+      "references/phrasebank-playbook.md",
+      "references/published-article-patterns.md",
+      "references/section-moves.md",
+      "references/style-guardrails.md",
+      "references/writing-strategy.md"
+    ],
+    "paper-rebuttal-nature": [
+      "references/action-mapping.md",
+      "references/chinese-author-alignment.md",
+      "references/comment-taxonomy.md",
+      "references/difficult-cases.md",
+      "references/intake-and-routing.md",
+      "references/qa-checklist.md",
+      "references/response-structure.md",
+      "references/source-basis.md",
+      "references/tone-and-stance.md"
+    ],
+    "paper-sections-nature": [
+      "references/abstract.md",
+      "references/article-architecture.md",
+      "references/chinese-author-workflow.md",
+      "references/conclusion.md",
+      "references/examples/index.md",
+      "references/experiments.md",
+      "references/introduction.md",
+      "references/method.md",
+      "references/paper-review.md",
+      "references/paragraph-flow.md",
+      "references/related-work.md"
+    ],
+    "lit-obsidian-artifacts": [
+      "references/BASES.md",
+      "references/CANVAS.md",
+      "references/CLI.md",
+      "references/LINK-REPAIR.md",
+      "references/OBSIDIAN-MARKDOWN.md",
+      "references/REGISTRY-TABLES.md"
+    ],
+    "lit-review-obsidian": [
+      "references/CLAIM-EXTRACTION.md",
+      "references/LITERATURE-CANVAS.md",
+      "references/LITERATURE-OVERVIEW.md",
+      "references/METHOD-TAXONOMY.md",
+      "references/PAPER-NOTE-SCHEMA.md",
+      "references/RESEARCH-GAPS.md"
+    ],
+    "lit-obsidian-kb-core": [
+      "references/BINDING-LAYER.md",
+      "references/DAILY-PROMOTION.md",
+      "references/DIRECTORY-SCHEMA.md",
+      "references/HUB-PLAN-INDEX.md",
+      "references/LIFECYCLE.md",
+      "references/LINT.md",
+      "references/REGISTRY.md"
+    ],
+    "lit-obsidian-ingest": [
+      "references/DATA-SOURCE-NOTES.md",
+      "references/INTERVIEW-SOURCE-NOTES.md",
+      "references/PAPER-SOURCE-NOTES.md",
+      "references/SOURCE-TYPES.md",
+      "references/WEB-SOURCE-NOTES.md"
+    ],
+    "paper-self-review": [
+      "references/FINAL-VERDICT.md",
+      "references/SECTION-CHECKLIST.md"
+    ],
+    "doc-post-acceptance": [
+      "references/deliverable-checklists.md",
+      "references/design-guidelines.md"
+    ],
+    "fig-publication-chart": [
+      "references/chart-selection.md",
+      "references/composite-assembly.md",
+      "references/execution-and-verification.md",
+      "references/pubfig-recipes.md",
+      "references/publication-qa-checklist.md",
+      "references/pubtab-recipes.md",
+      "references/source-guides/pubfig-api-map.md",
+      "references/source-guides/pubfig-architecture.md",
+      "references/source-guides/pubfig-export-flow.md",
+      "references/source-guides/pubtab-architecture.md",
+      "references/source-guides/pubtab-backend-and-preview.md",
+      "references/source-guides/pubtab-cli-api-flow.md",
+      "references/workflow.md",
+      "scripts/ensure_publication_tooling.py"
+    ],
+    "idea-brainstorm": [
+      "references/5w1h-framework.md",
+      "references/gap-analysis-guide.md",
+      "references/literature-search-strategies.md",
+      "references/method-selection-guide.md",
+      "references/research-contract.md",
+      "references/research-planning.md",
+      "references/research-question-formulation.md",
+      "references/zotero-integration-guide.md"
+    ],
+    "results-analysis": [
+      "references/analysis-depth.md",
+      "references/common-pitfalls.md",
+      "references/figure-interpretation.md",
+      "references/statistical-methods.md",
+      "references/statistical-reporting.md",
+      "references/visualization-best-practices.md",
+      "data/logs"
+    ],
+    "paper-results-report": [
+      "references/EVIDENCE-PROPAGATION.md",
+      "references/decision-oriented-analysis.md",
+      "references/figure-interpretation.md",
+      "references/report-naming.md",
+      "references/report-structure.md",
+      "references/statistical-completeness.md"
+    ],
+    "rebuttal": [
+      "references/rebuttal-templates.md",
+      "references/response-strategies.md",
+      "references/review-classification.md",
+      "references/tone-guidelines.md"
+    ],
+    "meta-skill-development": [
+      "references/checklist.md",
+      "references/integrity-checks.md",
+      "references/skill-creator-original.md"
+    ],
+    "meta-skill-improve": [
+      "references/error-handling.md",
+      "references/file.md",
+      "references/guide.md",
+      "references/merge-strategies.md",
+      "references/plan-format.md",
+      "references/supported-updates.md",
+      "scripts/backup-skill.sh",
+      "scripts/verify-update.sh"
+    ],
+    "meta-skill-review": [
+      "references/examples-bad.md",
+      "references/examples-good.md",
+      "references/scoring-criteria.md",
+      "scripts/extract-yaml.sh",
+      "scripts/skill-audit.py"
+    ],
+    "dev-ui-ux": [
+      "references/USAGE.md",
+      "scripts/search.py",
+      "data/ui-reasoning.csv"
+    ],
+    "dev-verification-loop": [
+      "references/REPORT-TEMPLATE.md",
+      "references/STACK-DETECTION.md"
+    ],
+    "dev-web-design-review": [
+      "references/framework-fixes.md"
+    ],
+    "dev-webapp-testing": [
+      "scripts/with_server.py"
+    ],
+    "paper-humanize": [
+      "references/patterns-chinese.md",
+      "references/patterns-english.md",
+      "references/phrases-to-cut.md",
+      "references/wikipedia-source.md"
+    ],
+    "latex-paper-survey-writer": [],
+    "paper-writing-scientific": [
+      "references/editor-first-impression.md"
+    ],
+    "paper-writing-paragraph-standards": [
+      "references/appendices"
+    ],
+    "paper-presubmit-checks": [
+      "references/citations"
+    ],
+    "lit-citation-manage": [
+      "scripts/generate_schematic.py"
+    ],
+    "paper-writing-paragraphs": [
+      "assets/scientific_report.sty",
+      "assets/scientific_report_template.tex",
+      "scripts/generate_image.py",
+      "scripts/generate_schematic.py"
+    ],
+    "spine-build": [
+      "references/build-from-materials.md"
+    ],
+    "paper-writing-clinical": [
+      "assets/citation-management/bibtex_template.bib",
+      "assets/clinical-decision-support/",
+      "assets/clinical-reports/case_report_template.md",
+      "assets/clinical-reports/hipaa_compliance_checklist.md",
+      "assets/hypothesis-generation/",
+      "assets/latex-posters/",
+      "assets/literature-review/review_template.md",
+      "assets/market-research-reports/",
+      "assets/research-grants/",
+      "assets/scientific-slides/",
+      "assets/scientific-writing/scientific_report.sty",
+      "assets/scripts",
+      "assets/treatment-plans/",
+      "assets/venue-templates/",
+      "references/citation-management.md",
+      "references/clinical-decision-support.md",
+      "references/clinical-reports.md",
+      "references/hypothesis-generation.md",
+      "references/latex-posters.md",
+      "references/literature-review.md",
+      "references/market-research-reports.md",
+      "references/peer-review.md",
+      "references/research-grants.md",
+      "references/scholar-evaluation.md",
+      "references/scientific-critical-thinking.md",
+      "references/scientific-slides.md",
+      "references/scientific-writing.md",
+      "references/treatment-plans.md",
+      "references/venue-templates.md",
+      "scripts/clinical-reports/check_deidentification.py",
+      "scripts/generate_image.py",
+      "scripts/generate_schematic.py",
+      "scripts/latex-posters/review_poster.sh",
+      "scripts/research_lookup.py",
+      "scripts/scholar-evaluation/calculate_scores.py"
+    ],
+    "agent-figure-gallery": [
+      "data/reference_candidate_index.json",
+      "data/reference_global_preferences.json"
+    ],
+    "assets-inventory": [
+      "data/load.csv",
+      "data/poi.json"
+    ],
+    "fig-spec": [
+      "tools/figure_renderer.py",
+      "tools/install_aris.sh"
+    ],
+    "meta-web-extract": [
+      "data/problem_info.md"
+    ],
+    "latex-document": [
+      "data/results"
+    ],
+    "math-modeling-contest-route-selection": [
+      "data/parameter",
+      "data/model/solver/time"
+    ],
+    "paper-journal-selection": [
+      "data/code"
+    ],
+    "paper-submission-audit": [
+      "data/code"
+    ],
+    "paper-analysis": [
+      "data/simulated_data.csv"
+    ],
+    "paper-framework-figure-studio-pro": [
+      "data/dataset/database/data-pipeline",
+      "data/dataset/database/retrieval/generation/governance/pipeline"
+    ]
   }
- },
- "gaps": {
-  "meta-agent-harness": [
-   "assets/harnesses",
-   "assets/harnesses/",
-   "assets/harnesses/engineering.json",
-   "assets/harnesses/engineering.json",
-   "references/agentic_loop_canon.md",
-   "references/domain_harness_design.md",
-   "references/verification_discipline.md",
-   "scripts/goal_compiler.py",
-   "scripts/harness_manifest_builder.py",
-   "scripts/loop_controller.py"
-  ],
-  "dev-ai-security": [
-   "references/atlas-coverage.md",
-   "scripts/ai_threat_scanner.py"
-  ],
-  "dev-code-review": [
-   "assets/sample_java_smells.java",
-   "scripts/code_quality_checker.py",
-   "scripts/pr_analyzer.py",
-   "scripts/review_report_generator.py"
-  ],
-  "meta-entity-dossier": [
-   "references/conversation_hook_quality.md",
-   "references/hypothesis_testing_discipline.md",
-   "references/subject_type_source_matrix.md",
-   "scripts/citation_tracker.py",
-   "scripts/disconfirming_evidence_balance.py",
-   "scripts/source_tier_classifier.py"
-  ],
-  "meta-experiment-design": [
-   "references/experiment-playbook.md",
-   "references/statistics-reference.md",
-   "scripts/sample_size_calculator.py"
-  ],
-  "grant-nih": [
-   "references/docx_9_sections.md",
-   "references/nih_mechanism_matching.md",
-   "references/reporter_post_patterns.md",
-   "scripts/citation_tracker.py",
-   "scripts/fiscal_year_calculator.py",
-   "scripts/mechanism_matcher.py"
-  ],
-  "lit-orientation": [
-   "references/docx_8_sections.md",
-   "references/framework_selection.md",
-   "references/search_budget_allocation.md",
-   "scripts/citation_tracker.py",
-   "scripts/cross_search_aggregator.py",
-   "scripts/framework_recommender.py",
-   "scripts/free_search.py"
-  ],
-  "doc-notebooklm-control": [
-   "references/async_action_discipline.md",
-   "references/browser_automation_canon.md",
-   "references/studio_output_custom_prompts.md",
-   "scripts/action_router.py",
-   "scripts/async_action_classifier.py",
-   "scripts/custom_prompt_template_generator.py"
-  ],
-  "ip-patent-search": [
-   "references/cpc_classification_canon.md",
-   "references/legal_disclaimer_discipline.md",
-   "references/sub_use_case_routing.md",
-   "scripts/citation_tracker.py",
-   "scripts/family_resolver.py",
-   "scripts/sub_use_case_router.py"
-  ],
-  "meta-topic-pulse": [
-   "references/cross_platform_synthesis.md",
-   "references/parallel_execution_discipline.md",
-   "references/research_pack_conventions.md",
-   "scripts/citation_tracker.py",
-   "scripts/time_window_calculator.py",
-   "scripts/topic_slug_generator.py"
-  ],
-  "meta-research-router": [
-   "references/deterministic_classification_canon.md",
-   "references/fallback_workflow_canon.md",
-   "references/hybrid_router_architecture.md",
-   "scripts/classifier.py",
-   "scripts/fallback_decomposer.py",
-   "scripts/routing_transparency_logger.py",
-   "data/numbers"
-  ],
-  "meta-research-summarizer": [
-   "references/citation-formats.md",
-   "references/summary-templates.md",
-   "scripts/extract_citations.py",
-   "scripts/format_summary.py"
-  ],
-  "data-statistics-analyst": [
-   "references/experiment_design_frameworks.md",
-   "references/feature_engineering_patterns.md",
-   "references/statistical_methods_advanced.md",
-   "scripts/experiment_designer.py",
-   "scripts/feature_engineering_pipeline.py",
-   "scripts/model_evaluation_suite.py"
-  ],
-  "data-statistics-analyst": [
-   "references/statistical-testing-concepts.md",
-   "scripts/confidence_interval.py",
-   "scripts/hypothesis_tester.py",
-   "scripts/sample_size_calculator.py"
-  ],
-  "course-syllabus-reading-list": [
-   "references/applied_domain_weaving.md",
-   "references/audience_calibration.md",
-   "references/bundled_script_pattern.md",
-   "scripts/citation_tracker.py",
-   "scripts/discussion_question_validator.py",
-   "scripts/generate_reading_list.js",
-   "scripts/topic_grouper.py"
-  ],
-  "check-citations": [
-   "scripts/citation_checker.py"
-  ],
-  "dev-code-frontend": [
-   "references/daisyui_ref.md",
-   "references/styles/"
-  ],
-  "experiment-agent": [
-   "references/ars_integration_guide.md",
-   "references/irb_ethics_checklist.md",
-   "references/reproducibility_protocol.md",
-   "references/stall_detection_protocol.md",
-   "references/statistical_interpretation_guide.md",
-   "references/study_state_protocol.md"
-  ],
-  "meta-agent-config": [
-   "references/agent-creation-system-prompt.md",
-   "references/system-prompt-design.md",
-   "references/triggering-examples.md",
-   "scripts/validate-agent.sh"
-  ],
-  "dev-ml-registry-pattern": [
-   "references/auto_import.md",
-   "references/code_style.md",
-   "references/factory_pattern.md",
-   "references/registry_pattern.md",
-   "references/structure.md"
-  ],
-  "dev-debug": [
-   "references/common-patterns.md",
-   "references/debugging-tools.md",
-   "references/javascript-errors.md",
-   "references/python-errors.md",
-   "references/shell-errors.md"
-  ],
-  "meta-command-development": [
-   "references/frontmatter-reference.md",
-   "references/plugin-features-reference.md"
-  ],
-  "lit-daily-digest": [
-   "references/keywords.md",
-   "references/quality-criteria.md",
-   "references/writing-style.md",
-   "scripts/arxiv_search.py"
-  ],
-  "doc-coauthoring": [
-   "references/DOC-TYPES.md",
-   "references/READER-TEST.md",
-   "references/RUNTIME-MATRIX.md"
-  ],
-  "meta-task-reporting": [
-   "references/communication-sop.md",
-   "references/user-preferences.md"
-  ],
-  "dev-git-workflow": [
-   "references/advanced-usage.md",
-   "references/branching-strategies.md",
-   "references/collaboration.md",
-   "references/commit-conventions.md",
-   "references/conflict-resolution.md",
-   "references/gitignore-guide.md",
-   "references/merge-strategies.md"
-  ],
-  "meta-hook-development": [
-   "references/advanced.md",
-   "references/migration.md",
-   "references/patterns.md",
-   "scripts/test-hook.sh",
-   "scripts/validate-hook-schema.sh"
-  ],
-  "kaggle-learner": [
-   "references/knowledge/nlp/",
-   "references/knowledge/cv/",
-   "references/knowledge/time-series/",
-   "references/knowledge/tabular/",
-   "references/knowledge/multimodal/",
-   "references/knowledge/"
-  ],
-  "meta-mcp-integration": [
-   "references/authentication.md",
-   "references/server-types.md",
-   "references/tool-usage.md"
-  ],
-  "paper-write": [
-   "references/OPERATING-MODES.md",
-   "references/checklists.md",
-   "references/citation-workflow.md",
-   "references/knowledge/README.md",
-   "references/knowledge/paper-miner-writing-memory.md",
-   "references/literature-research/arxiv-search-guide.md",
-   "references/literature-research/paper-quality-criteria.md",
-   "references/reviewer-guidelines.md",
-   "references/sources.md",
-   "references/writing-guide.md"
-  ],
-  "paper-data-availability": [
-   "references/chinese-author-alignment.md",
-   "references/fair-metadata-checklist.md",
-   "references/policy-principles.md",
-   "references/repository-and-identifiers.md",
-   "references/source-basis.md",
-   "references/statement-patterns.md"
-  ],
-  "paper-polish-nature": [
-   "references/phrasebank-playbook.md",
-   "references/published-article-patterns.md",
-   "references/section-moves.md",
-   "references/style-guardrails.md",
-   "references/writing-strategy.md"
-  ],
-  "paper-rebuttal-nature": [
-   "references/action-mapping.md",
-   "references/chinese-author-alignment.md",
-   "references/comment-taxonomy.md",
-   "references/difficult-cases.md",
-   "references/intake-and-routing.md",
-   "references/qa-checklist.md",
-   "references/response-structure.md",
-   "references/source-basis.md",
-   "references/tone-and-stance.md"
-  ],
-  "paper-sections-nature": [
-   "references/abstract.md",
-   "references/article-architecture.md",
-   "references/chinese-author-workflow.md",
-   "references/conclusion.md",
-   "references/examples/index.md",
-   "references/experiments.md",
-   "references/introduction.md",
-   "references/method.md",
-   "references/paper-review.md",
-   "references/paragraph-flow.md",
-   "references/related-work.md"
-  ],
-  "lit-obsidian-artifacts": [
-   "references/BASES.md",
-   "references/CANVAS.md",
-   "references/CLI.md",
-   "references/LINK-REPAIR.md",
-   "references/OBSIDIAN-MARKDOWN.md",
-   "references/REGISTRY-TABLES.md"
-  ],
-  "lit-review-obsidian": [
-   "references/CLAIM-EXTRACTION.md",
-   "references/LITERATURE-CANVAS.md",
-   "references/LITERATURE-OVERVIEW.md",
-   "references/METHOD-TAXONOMY.md",
-   "references/PAPER-NOTE-SCHEMA.md",
-   "references/RESEARCH-GAPS.md"
-  ],
-  "lit-obsidian-kb-core": [
-   "references/BINDING-LAYER.md",
-   "references/DAILY-PROMOTION.md",
-   "references/DIRECTORY-SCHEMA.md",
-   "references/HUB-PLAN-INDEX.md",
-   "references/LIFECYCLE.md",
-   "references/LINT.md",
-   "references/REGISTRY.md"
-  ],
-  "lit-obsidian-ingest": [
-   "references/DATA-SOURCE-NOTES.md",
-   "references/INTERVIEW-SOURCE-NOTES.md",
-   "references/PAPER-SOURCE-NOTES.md",
-   "references/SOURCE-TYPES.md",
-   "references/WEB-SOURCE-NOTES.md"
-  ],
-  "paper-self-review": [
-   "references/FINAL-VERDICT.md",
-   "references/SECTION-CHECKLIST.md"
-  ],
-  "doc-post-acceptance": [
-   "references/deliverable-checklists.md",
-   "references/design-guidelines.md"
-  ],
-  "fig-publication-chart": [
-   "references/chart-selection.md",
-   "references/composite-assembly.md",
-   "references/execution-and-verification.md",
-   "references/pubfig-recipes.md",
-   "references/publication-qa-checklist.md",
-   "references/pubtab-recipes.md",
-   "references/source-guides/pubfig-api-map.md",
-   "references/source-guides/pubfig-architecture.md",
-   "references/source-guides/pubfig-export-flow.md",
-   "references/source-guides/pubtab-architecture.md",
-   "references/source-guides/pubtab-backend-and-preview.md",
-   "references/source-guides/pubtab-cli-api-flow.md",
-   "references/workflow.md",
-   "scripts/ensure_publication_tooling.py"
-  ],
-  "idea-brainstorm": [
-   "references/5w1h-framework.md",
-   "references/gap-analysis-guide.md",
-   "references/literature-search-strategies.md",
-   "references/method-selection-guide.md",
-   "references/research-contract.md",
-   "references/research-planning.md",
-   "references/research-question-formulation.md",
-   "references/zotero-integration-guide.md"
-  ],
-  "results-analysis": [
-   "references/analysis-depth.md",
-   "references/common-pitfalls.md",
-   "references/figure-interpretation.md",
-   "references/statistical-methods.md",
-   "references/statistical-reporting.md",
-   "references/visualization-best-practices.md",
-   "data/logs"
-  ],
-  "paper-results-report": [
-   "references/EVIDENCE-PROPAGATION.md",
-   "references/decision-oriented-analysis.md",
-   "references/figure-interpretation.md",
-   "references/report-naming.md",
-   "references/report-structure.md",
-   "references/statistical-completeness.md"
-  ],
-  "rebuttal": [
-   "references/rebuttal-templates.md",
-   "references/response-strategies.md",
-   "references/review-classification.md",
-   "references/tone-guidelines.md"
-  ],
-  "meta-skill-development": [
-   "references/checklist.md",
-   "references/integrity-checks.md",
-   "references/skill-creator-original.md"
-  ],
-  "meta-skill-improve": [
-   "references/error-handling.md",
-   "references/file.md",
-   "references/guide.md",
-   "references/merge-strategies.md",
-   "references/plan-format.md",
-   "references/supported-updates.md",
-   "scripts/backup-skill.sh",
-   "scripts/verify-update.sh"
-  ],
-  "meta-skill-review": [
-   "references/examples-bad.md",
-   "references/examples-good.md",
-   "references/scoring-criteria.md",
-   "scripts/extract-yaml.sh",
-   "scripts/skill-audit.py"
-  ],
-  "dev-ui-ux": [
-   "references/USAGE.md",
-   "scripts/search.py",
-   "data/ui-reasoning.csv"
-  ],
-  "dev-verification-loop": [
-   "references/REPORT-TEMPLATE.md",
-   "references/STACK-DETECTION.md"
-  ],
-  "dev-web-design-review": [
-   "references/framework-fixes.md"
-  ],
-  "dev-webapp-testing": [
-   "scripts/with_server.py"
-  ],
-  "paper-humanize": [
-   "references/patterns-chinese.md",
-   "references/patterns-english.md",
-   "references/phrases-to-cut.md",
-   "references/wikipedia-source.md"
-  ],
-  "latex-paper-survey-writer": [],
-  "paper-data-availability": [
-   "references/repository-routing.md",
-   "references/source-data-checks.md"
-  ],
-  "paper-writing-scientific": [
-   "references/editor-first-impression.md"
-  ],
-  "paper-writing-paragraph-standards": [
-   "references/appendices"
-  ],
-  "paper-presubmit-checks": [
-   "references/citations"
-  ],
-  "lit-citation-manage": [
-   "scripts/generate_schematic.py"
-  ],
-  "paper-writing-paragraphs": [
-   "assets/scientific_report.sty",
-   "assets/scientific_report_template.tex",
-   "scripts/generate_image.py",
-   "scripts/generate_schematic.py"
-  ],
-  "spine-build": [
-   "references/build-from-materials.md"
-  ],
-  "paper-writing-clinical": [
-   "assets/citation-management/bibtex_template.bib",
-   "assets/clinical-decision-support/",
-   "assets/clinical-reports/case_report_template.md",
-   "assets/clinical-reports/hipaa_compliance_checklist.md",
-   "assets/hypothesis-generation/",
-   "assets/latex-posters/",
-   "assets/literature-review/review_template.md",
-   "assets/market-research-reports/",
-   "assets/research-grants/",
-   "assets/scientific-slides/",
-   "assets/scientific-writing/scientific_report.sty",
-   "assets/scripts",
-   "assets/treatment-plans/",
-   "assets/venue-templates/",
-   "references/citation-management.md",
-   "references/clinical-decision-support.md",
-   "references/clinical-reports.md",
-   "references/hypothesis-generation.md",
-   "references/latex-posters.md",
-   "references/literature-review.md",
-   "references/market-research-reports.md",
-   "references/peer-review.md",
-   "references/research-grants.md",
-   "references/scholar-evaluation.md",
-   "references/scientific-critical-thinking.md",
-   "references/scientific-slides.md",
-   "references/scientific-writing.md",
-   "references/treatment-plans.md",
-   "references/venue-templates.md",
-   "scripts/clinical-reports/check_deidentification.py",
-   "scripts/generate_image.py",
-   "scripts/generate_schematic.py",
-   "scripts/latex-posters/review_poster.sh",
-   "scripts/research_lookup.py",
-   "scripts/scholar-evaluation/calculate_scores.py"
-  ],
-  "agent-figure-gallery": [
-   "data/reference_candidate_index.json",
-   "data/reference_global_preferences.json"
-  ],
-  "assets-inventory": [
-   "data/load.csv",
-   "data/poi.json"
-  ],
-  "fig-spec": [
-   "tools/figure_renderer.py",
-   "tools/install_aris.sh"
-  ],
-  "meta-web-extract": [
-   "data/problem_info.md"
-  ],
-  "latex-document": [
-   "data/results"
-  ],
-  "math-modeling-contest-route-selection": [
-   "data/parameter",
-   "data/model/solver/time"
-  ],
-  "paper-journal-selection": [
-   "data/code"
-  ],
-  "paper-submission-audit": [
-   "data/code"
-  ],
-  "paper-analysis": [
-   "data/simulated_data.csv"
-  ],
-  "paper-framework-figure-studio-pro": [
-   "data/dataset/database/data-pipeline",
-   "data/dataset/database/retrieval/generation/governance/pipeline"
-  ]
- }
 }
