@@ -499,17 +499,6 @@
       "local_only": true
     },
     {
-      "id": "pdf-archive",
-      "path": "assets-local/_archive/",
-      "zone": "assets-local",
-      "type": "corpus",
-      "description": "冷归档：7.6GB PDF 合并版（与年份目录同源 15 倍膨胀）+旧工作区重资产",
-      "when_to_use": "不建议日常使用；待外置盘转移",
-      "owner_skills": [],
-      "consumers": [],
-      "local_only": true
-    },
-    {
       "id": "ref-figures-aesthetic",
       "path": "assets-local/reference-figures/公众号审美批次2026-09-11/",
       "zone": "assets-local",
