@@ -41,7 +41,7 @@ REPO_ROOT = TOOLBOX_ROOT.parent
 SKILLS_ROOT = TOOLBOX_ROOT / "skills"
 
 # 非技能目录（与 check_asset_utilization / CONTEST_SKILL_MAP 口径一致）
-NON_SKILL_DIRS = {"_utils", "shared-scripts"}
+NON_SKILL_DIRS = {"_utils", "shared-scripts", "shared-references"}
 
 DESC_MAX = 1024
 FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.S)

@@ -34,11 +34,11 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TOOLBOX_ROOT = Path(__file__).resolve().parents[1]
-NON_SKILL_DIRS = {"_utils", "shared-scripts"}
+NON_SKILL_DIRS = {"_utils", "shared-scripts", "shared-references"}
 
 
 def iter_skill_dirs(skills_root: Path) -> list[str]:
-    """skills/ 下含 SKILL.md 的目录名（排除 _utils/shared-scripts 两个非技能目录）。"""
+    """skills/ 下含 SKILL.md 的目录名（排除 _utils/shared-scripts/shared-references 三个非技能目录）。"""
     if not skills_root.is_dir():
         return []
     return sorted(
