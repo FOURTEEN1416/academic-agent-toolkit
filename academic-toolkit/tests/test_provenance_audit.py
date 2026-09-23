@@ -31,10 +31,10 @@ def test_provenance_registry_covers_phase5_minimum_scope():
 
     assert len(module.UPSTREAM_REGISTRY) >= 15
     assert "skills/paper-write/templates/UPSTREAM.md" in registered
-    assert "tools/docx_style_profiles/UPSTREAM.md" in registered
-    assert "tools/docx-cn-engine/UPSTREAM.md" in registered
-    assert "tools/humanize_chinese/UPSTREAM.md" in registered
-    assert "tools/codesucker-core/UPSTREAM.md" in registered
+    assert "third_party/docx-style-profiles/UPSTREAM.md" in registered
+    assert "third_party/docx-cn-engine/UPSTREAM.md" in registered
+    assert "third_party/humanize-chinese/UPSTREAM.md" in registered
+    assert "third_party/codesucker-core/UPSTREAM.md" in registered
 
 
 def test_provenance_detects_missing_upstream_fields(tmp_path):

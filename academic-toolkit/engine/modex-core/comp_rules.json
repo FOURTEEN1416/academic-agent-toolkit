@@ -51,7 +51,7 @@
     "preface_scan_pages": 3,
     "max_body_pages": 50,
     "figure_total_range": [30, 46],
-    "source": "tools/docx_style_profiles/covers/huawei.json（参赛承诺书封面页）+ skills/comp-paper-zh/_templates/huawei/gmcmthesis.cls:8 承诺书节 + 本条目 max_pages=50；图表 30-46 见 skills/_utils/figure_exemplars.md"
+    "source": "third_party/docx-style-profiles/covers/huawei.json（参赛承诺书封面页）+ skills/comp-paper-zh/_templates/huawei/gmcmthesis.cls:8 承诺书节 + 本条目 max_pages=50；图表 30-46 见 skills/_utils/figure_exemplars.md"
   },
     "rules": [
       "使用 gmcmthesis 文档类，XeLaTeX 编译",

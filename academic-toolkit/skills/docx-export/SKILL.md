@@ -11,7 +11,7 @@ allowed-tools: [Read, Write, Bash(python:*)]
 
 ## 输入契约
 - `*.md`（Markdown 论文/报告）
-- 可选：`tools/docx_style_profiles/*.json`（样式配置，如 competition_zh.json）
+- 可选：`third_party/docx-style-profiles/*.json`（样式配置，如 competition_zh.json）
 
 ## 执行步骤
 
@@ -28,7 +28,7 @@ python tools/docx_precheck.py <input.md>
 python tools/docx_export.py <input.md> <output.docx> --profile competition_zh
 ```
 
-可用的样式配置（`tools/docx_style_profiles/`）：
+可用的样式配置（`third_party/docx-style-profiles/`）：
 - `competition_zh.json` — 数模竞赛中文样式（对标 cumcmthesis.cls）
 - `competition_en.json` — 数模竞赛英文样式
 - `course_paper.json` — 课程论文样式

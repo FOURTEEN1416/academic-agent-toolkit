@@ -5220,7 +5220,7 @@
       "description": "将 fanbuz/codesucker (Apache-2.0) 的纯 TypeScript core 以 vendored 方式融合进套件：离线源码发现、状态机清洗、敏感信息脱敏、署名证据提取、前后段截取、显式分页、DOCX/TXT 渲染与合规审计，通过 JSON CLI + Python bridge 接入 workflow 引擎与质量门禁。",
       "associated_tools": [
         "tools/codesucker_bridge.py",
-        "tools/codesucker-cli.mjs",
+        "third_party/codesucker-core/codesucker-cli.mjs",
         "tools/codesucker_materials.py",
         "tools/assets_codesucker_adapter.py"
       ],
@@ -5901,7 +5901,7 @@
         "tools/rewrite_quality_gate.py",
         "tools/reference_paper_baseline.py",
         "tools/ai_usage_declaration.py",
-        "tools/humanize_chinese/scripts/detect_cn.py"
+        "third_party/humanize-chinese/scripts/detect_cn.py"
       ],
       "external_dependencies": [],
       "high_risk_confirmation": "AI使用声明涉及竞赛合规，措辞不允许修改",

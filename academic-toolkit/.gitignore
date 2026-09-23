@@ -12,7 +12,7 @@ __pycache__/
 !tools/*.pyc
 
 # Vendored Node dependencies are installed locally for the CodeSucker adapter
-tools/codesucker-core/node_modules/
+third_party/codesucker-core/node_modules/
 
 # 运行产物
 runtime/texlive/

@@ -86,7 +86,7 @@ def main() -> int:
     upstream_files = list(ROOT.rglob("UPSTREAM.md"))
     print(f"  UPSTREAM.md 文件数: {len(upstream_files)}")
     required_dirs = [
-        ROOT / "tools" / "codesucker-core",
+        ROOT / "third_party" / "codesucker-core",
         ROOT / "skills" / "paper-write" / "references",
         ROOT / "skills" / "paper-write-zh" / "references",
         ROOT / "skills" / "paper-write-nature" / "references",

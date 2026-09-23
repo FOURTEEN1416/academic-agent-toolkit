@@ -59,9 +59,12 @@ CLI_HELP_TOOLS = (
 
 
 def test_all_tools_compile():
+    # 2026-09-23 v2.0 改造：五个第三方子项目（codesucker-core/pubfig/docx-cn-engine/
+    # humanize-chinese/docx-style-profiles）自 tools/ 迁入 third_party/，工具面口径收窄为
+    # 自产脚本（时点实测 73）——下限相应回调，意图不变：自产工具面不得意外缩水。
     files = [p for p in sorted(TOOLS_DIR.rglob("*.py"))
              if VENDORED_MARKER not in str(p)]
-    assert len(files) >= 100, f"工具面意外缩水: 仅 {len(files)} 个 .py"
+    assert len(files) >= 70, f"工具面意外缩水: 仅 {len(files)} 个 .py"
     broken = []
     for p in files:
         try:

@@ -663,7 +663,7 @@ def main():
     p.add_argument("input", type=Path, help="输入 .docx 文件")
     p.add_argument("--out-dir", type=Path,
                    default=Path(__file__).resolve().parent / "docx_style_profiles",
-                   help="输出目录（默认 tools/docx_style_profiles/）")
+                   help="输出目录（默认 third_party/docx-style-profiles/）")
     p.add_argument("--profile-name", default="reference_paper_general.json",
                    help="JSON 文件名")
     p.add_argument("--md-name", default="reference_structure_general.md",

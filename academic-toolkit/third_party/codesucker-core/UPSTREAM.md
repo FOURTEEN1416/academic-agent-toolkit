@@ -9,7 +9,7 @@
 
 ## Local adaptation
 
-The upstream core is consumed through `tools/codesucker-cli.mjs`. The CLI owns
+The upstream core is consumed through `third_party/codesucker-core/codesucker-cli.mjs`. The CLI owns
 the JSON protocol, workspace-safe output paths, deterministic serialization, and
 manifest generation. A local portability patch in
 `packages/core/src/discover.ts` uses `**/*.ext` for a singleton extension

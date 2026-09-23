@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parent / "codesucker-core"
+ROOT = Path(__file__).resolve().parent.parent / "third_party" / "codesucker-core"
 REQUIRED = ("LICENSE", "NOTICE", "UPSTREAM.md", "package.json", "packages/core/package.json")
 
 

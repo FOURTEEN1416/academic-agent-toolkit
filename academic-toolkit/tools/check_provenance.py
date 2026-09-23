@@ -22,12 +22,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 # UPSTREAM.md 台账注册表（Phase 5.1 清单，可扩展）
+# 2026-09-23 v2.0 改造：五个第三方子项目自 tools/ 迁入 third_party/（下划线名规范为 kebab）。
 UPSTREAM_REGISTRY: list[Path] = [
-    ROOT / "tools" / "codesucker-core" / "UPSTREAM.md",
-    ROOT / "tools" / "pubfig" / "UPSTREAM.md",
-    ROOT / "tools" / "docx-cn-engine" / "UPSTREAM.md",
-    ROOT / "tools" / "docx_style_profiles" / "UPSTREAM.md",
-    ROOT / "tools" / "humanize_chinese" / "UPSTREAM.md",
+    ROOT / "third_party" / "codesucker-core" / "UPSTREAM.md",
+    ROOT / "third_party" / "pubfig" / "UPSTREAM.md",
+    ROOT / "third_party" / "docx-cn-engine" / "UPSTREAM.md",
+    ROOT / "third_party" / "docx-style-profiles" / "UPSTREAM.md",
+    ROOT / "third_party" / "humanize-chinese" / "UPSTREAM.md",
     ROOT / "skills" / "shared-scripts" / "UPSTREAM.md",
     ROOT / "skills" / "paper-write" / "templates" / "UPSTREAM.md",
     ROOT / "skills" / "paper-write" / "references" / "UPSTREAM.md",
@@ -122,8 +123,9 @@ UPSTREAM_REGISTRY: list[Path] = [
 ]
 
 # 需要完整许可文件的 vendored 外部依赖目录（含 LICENSE/NOTICE/UPSTREAM.md 三件套）
+# 2026-09-23 v2.0 改造：codesucker-core 自 tools/ 迁入 third_party/
 VENDOR_DIRS: list[Path] = [
-    ROOT / "tools" / "codesucker-core",
+    ROOT / "third_party" / "codesucker-core",
 ]
 
 # local-only 台账件：宿主技能本体被 .gitignore 整目录豁免（无 License 禁再分发红线），

@@ -14,8 +14,8 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parent
-CLI = ROOT / "codesucker-cli.mjs"
-VENDOR = ROOT / "codesucker-core"
+VENDOR = ROOT.parent / "third_party" / "codesucker-core"
+CLI = VENDOR / "codesucker-cli.mjs"
 TSX_LOADER = VENDOR / "node_modules" / "tsx" / "dist" / "loader.mjs"
 CONFIG_SCHEMA_VERSION = 1
 CORE_VERSION = "0.4.4"
@@ -72,7 +72,7 @@ def run_source_materials(
     if not CLI.is_file() or not VENDOR.is_dir():
         raise RuntimeError("vendored CodeSucker core is incomplete")
     if not TSX_LOADER.is_file():
-        raise RuntimeError("vendored TypeScript loader is missing; run npm install in tools/codesucker-core")
+        raise RuntimeError("vendored TypeScript loader is missing; run npm install in third_party/codesucker-core")
 
     config_path = workspace / "source-materials.config.json"
     config_payload = dict(config)

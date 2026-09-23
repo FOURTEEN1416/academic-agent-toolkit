@@ -32,7 +32,7 @@ description: "中文学术文本 AI 特征检测：八维度加八项统计特�
 | `tools/de_ai_writer.py` | AI味定位+改写方向引导（含审美守则与术语保护） | `python tools/de_ai_writer.py <文件>` |
 | `tools/rewrite_quality_gate.py` | **改写质量门禁**（审美护栏，4维护栏） | `python tools/rewrite_quality_gate.py <原文> <改写后>` |
 | `tools/ai_usage_declaration.py` | 2026国赛AI工具使用声明生成 | `python tools/ai_usage_declaration.py --used --usage "语言润色"` |
-| `tools/humanize_chinese/` | 外部方案（MIT）：**仅检测可信任；自动改写必须过门禁** | `python tools/humanize_chinese/scripts/detect_cn.py <文件> -v` |
+| `third_party/humanize-chinese/` | 外部方案（MIT）：**仅检测可信任；自动改写必须过门禁** | `python third_party/humanize-chinese/scripts/detect_cn.py <文件> -v` |
 | `baseline/human_paper_baseline.json` | 62篇获奖论文基线（20篇OCR可用） | 检测器自动加载 |
 
 ### 推荐工作流（检测→方向→人工改写→门禁→复检）
@@ -40,7 +40,7 @@ description: "中文学术文本 AI 特征检测：八维度加八项统计特�
 ```bash
 # 1. 双检测器交叉验证
 python tools/anti_ai_detector.py <文件> --json
-python tools/humanize_chinese/scripts/detect_cn.py <文件> -v
+python third_party/humanize-chinese/scripts/detect_cn.py <文件> -v
 
 # 2. 获取改写方向（含审美守则+受保护术语提示）
 python tools/de_ai_writer.py <文件> --output DE_AI_REPORT.md

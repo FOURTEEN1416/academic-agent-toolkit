@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-VENDOR = ROOT / "tools" / "codesucker-core"
+VENDOR = ROOT / "third_party" / "codesucker-core"
 
 
 def test_vendored_core_has_provenance_and_license():

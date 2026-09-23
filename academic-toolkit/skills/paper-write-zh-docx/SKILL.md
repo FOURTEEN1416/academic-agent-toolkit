@@ -181,7 +181,7 @@ fi
 
 
 
-后续 `docx-export` 步骤用 `tools/docx-cn-engine/md_to_docx.js` 把 main.md 转 .docx。引擎对以下 markdown 语法有特殊处理，**必须按规范写**：
+后续 `docx-export` 步骤用 `third_party/docx-cn-engine/md_to_docx.js` 把 main.md 转 .docx。引擎对以下 markdown 语法有特殊处理，**必须按规范写**：
 
 
 

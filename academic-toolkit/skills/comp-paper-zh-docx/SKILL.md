@@ -181,7 +181,7 @@ ls paper/*.tex paper/sections/*.tex 2>/dev/null | head -1 | grep -q . && { echo 
 
 
 
-后续 `docx-export` 步骤用 `tools/docx-cn-engine/md_to_docx.js` 把 main.md 转成 .docx：
+后续 `docx-export` 步骤用 `third_party/docx-cn-engine/md_to_docx.js` 把 main.md 转成 .docx：
 
 
 

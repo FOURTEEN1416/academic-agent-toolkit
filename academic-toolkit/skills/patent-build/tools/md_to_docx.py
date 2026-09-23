@@ -36,7 +36,7 @@ from docx.shared import Cm, Inches, Pt, RGBColor
 _omml = None
 try:
     import os as _os
-    # 优先用平台注入的引擎绝对路径（工作区跑脚本时向上找不到 tools/docx-cn-engine，
+    # 优先用平台注入的引擎绝对路径（工作区跑脚本时向上找不到 third_party/docx-cn-engine，
     # 后端把主仓库引擎位置通过 DOCX_CN_ENGINE_DIR 传进来）；否则再向上逐级搜索兜底。
     _cand_dirs = []
     _env_engine = _os.environ.get("DOCX_CN_ENGINE_DIR", "").strip()
@@ -44,7 +44,7 @@ try:
         _cand_dirs.append(Path(_env_engine))
     _cur = Path(__file__).resolve().parent
     for _ in range(8):
-        _cand_dirs.append(_cur / "tools" / "docx-cn-engine")
+        _cand_dirs.append(_cur / "third_party" / "docx-cn-engine")
         if _cur.parent == _cur:
             break
         _cur = _cur.parent

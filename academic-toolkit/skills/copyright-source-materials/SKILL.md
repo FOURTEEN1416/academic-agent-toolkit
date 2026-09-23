@@ -14,7 +14,7 @@ allowed-tools: Bash, Read, Edit, Glob, Grep
 
 ## 执行
 
-1. 先确认 `tools/codesucker-core/UPSTREAM.md`、LICENSE、NOTICE 和 Node/tsx 依赖存在。
+1. 先确认 `third_party/codesucker-core/UPSTREAM.md`、LICENSE、NOTICE 和 Node/tsx 依赖存在。
 2. 在 workspace 写入 `source-materials.config.json`。标题必须含版本号，项目根目录不得指向 workspace 外的未授权路径。
 3. 调用：
 

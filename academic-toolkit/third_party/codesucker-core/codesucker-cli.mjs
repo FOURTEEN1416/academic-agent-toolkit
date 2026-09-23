@@ -6,7 +6,7 @@ import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
-const CORE = path.join(ROOT, 'codesucker-core', 'packages', 'core', 'src', 'index.ts');
+const CORE = path.join(ROOT, 'packages', 'core', 'src', 'index.ts');
 
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
@@ -60,8 +60,8 @@ async function main() {
 
   const core = await import(pathToFileURL(CORE).href);
   const coreFiles = [];
-  for (const file of fs.readdirSync(path.join(ROOT, 'codesucker-core', 'packages', 'core', 'src'))) {
-    const full = path.join(ROOT, 'codesucker-core', 'packages', 'core', 'src', file);
+  for (const file of fs.readdirSync(path.join(ROOT, 'packages', 'core', 'src'))) {
+    const full = path.join(ROOT, 'packages', 'core', 'src', file);
     if (file.endsWith('.ts')) coreFiles.push(sha256(fs.readFileSync(full)));
   }
   const schemaVersion = core.CONFIG_SCHEMA_VERSION;

@@ -19,7 +19,7 @@ Draft an English academic paper as Markdown: **$ARGUMENTS**
 
 
 
-> docx-mode counterpart of `paper-write`. Keeps all writing principles (claims-evidence, story arc, citation discipline, venue checklists) but produces **`paper/main.md`** only. The downstream `docx-export` step runs `tools/docx-cn-engine/md_to_docx.js` to convert it.
+> docx-mode counterpart of `paper-write`. Keeps all writing principles (claims-evidence, story arc, citation discipline, venue checklists) but produces **`paper/main.md`** only. The downstream `docx-export` step runs `third_party/docx-cn-engine/md_to_docx.js` to convert it.
 
 >
 
@@ -157,7 +157,7 @@ ls paper/*.tex paper/sections/*.tex 2>/dev/null | head -1 | grep -q . && { echo 
 
 
 
-The downstream `docx-export` step uses `tools/docx-cn-engine/md_to_docx.js`. Follow these conventions:
+The downstream `docx-export` step uses `third_party/docx-cn-engine/md_to_docx.js`. Follow these conventions:
 
 
 

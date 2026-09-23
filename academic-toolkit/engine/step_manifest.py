@@ -279,7 +279,8 @@ def _validate_upstream_provenance(workspace: Path, dependencies: dict[str, str])
 
     搜索路径：
     1. 工作区根目录下的 UPSTREAM.md
-    2. tools/ 目录下的各子目录 UPSTREAM.md
+    2. tools/ 与 third_party/ 目录下的各子目录 UPSTREAM.md（2026-09-23 v2.0：
+       第三方子项目自 tools/ 迁入 third_party/，两处都扫）
     3. skills/*/references/UPSTREAM.md
     4. 项目根目录的 data/UPSTREAM.md
 
@@ -292,7 +293,8 @@ def _validate_upstream_provenance(workspace: Path, dependencies: dict[str, str])
     # 收集所有已存在的 UPSTREAM.md 路径
     upstream_files: set[Path] = set()
     for root in (project_root, suite_root):
-        for pattern in ["UPSTREAM.md", "tools/*/UPSTREAM.md", "skills/*/references/UPSTREAM.md",
+        for pattern in ["UPSTREAM.md", "tools/*/UPSTREAM.md", "third_party/*/UPSTREAM.md",
+                        "skills/*/references/UPSTREAM.md",
                         "skills/*/*/UPSTREAM.md", "data/UPSTREAM.md"]:
             upstream_files.update(root.glob(pattern))
 
