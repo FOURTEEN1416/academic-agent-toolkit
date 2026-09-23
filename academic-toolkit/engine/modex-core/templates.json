@@ -1662,6 +1662,11 @@
               "name": "反合理化表",
               "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
               "path": "academic-toolkit/skills/_utils/anti_rationalization.md"
+            },
+            {
+              "name": "提交前自查表·287 项",
+              "path": "academic-toolkit/data/paper_selfcheck_287.json",
+              "note": "论文提交前逐项对照（22 静态板块 247 项机检 + 6 类动态检查 40 项人工逐处过）；源自 BZD 数模社公开自查口径的结构化摘编，仅学习参照"
             }
           ]
         }
@@ -1715,6 +1720,11 @@
               "name": "交付合规口径·国赛(机器真源)",
               "path": "academic-toolkit/engine/modex-core/comp_rules.json",
               "note": "S14 合规判据取 comp_cumcm.compliance：电子版前 3 页不得含承诺书/编号页（摘要为首篇）、正文 ≤30 页——机检 python skills/_utils/quick_gates.py --workspace <工作区> --compliance-profile comp_cumcm"
+            },
+            {
+              "name": "提交前自查表·287 项",
+              "path": "academic-toolkit/data/paper_selfcheck_287.json",
+              "note": "论文提交前逐项对照（22 静态板块 247 项机检 + 6 类动态检查 40 项人工逐处过）；源自 BZD 数模社公开自查口径的结构化摘编，仅学习参照"
             }
           ],
           "skill_binding": {
@@ -2598,6 +2608,11 @@
               "name": "反合理化表",
               "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
               "path": "academic-toolkit/skills/_utils/anti_rationalization.md"
+            },
+            {
+              "name": "提交前自查表·287 项",
+              "path": "academic-toolkit/data/paper_selfcheck_287.json",
+              "note": "论文提交前逐项对照（22 静态板块 247 项机检 + 6 类动态检查 40 项人工逐处过）；源自 BZD 数模社公开自查口径的结构化摘编，仅学习参照"
             }
           ]
         }
@@ -2651,6 +2666,11 @@
               "name": "交付合规口径·华为杯(机器真源)",
               "path": "academic-toolkit/engine/modex-core/comp_rules.json",
               "note": "S14 合规判据取 comp_huawei.compliance：参赛承诺书封面页必须存在（gmcmthesis 首页，勿按国赛『电子版无承诺书』口径误杀）、正文 ≤50 页（勿沿用国赛 30 页）——机检 python skills/_utils/quick_gates.py --workspace <工作区> --compliance-profile comp_huawei"
+            },
+            {
+              "name": "提交前自查表·287 项",
+              "path": "academic-toolkit/data/paper_selfcheck_287.json",
+              "note": "论文提交前逐项对照（22 静态板块 247 项机检 + 6 类动态检查 40 项人工逐处过）；源自 BZD 数模社公开自查口径的结构化摘编，仅学习参照"
             }
           ],
           "skill_binding": {

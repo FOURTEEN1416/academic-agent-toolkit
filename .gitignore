@@ -132,6 +132,7 @@ academic-toolkit/data/*
 # ——CI 三道门禁步与对应测试直接消费，缺件即红
 !academic-toolkit/data/lint_baseline.json
 !academic-toolkit/data/asset_catalog.json
+!academic-toolkit/data/paper_selfcheck_287.json
 !academic-toolkit/data/secret_scan_allowlist.json
 !academic-toolkit/data/duplicate_assets_registry.json
 # ⚠️ 2026-09-22 修正（照上方 data/ 同款模板）：原为整目录规则 `academic-toolkit/baseline/`，

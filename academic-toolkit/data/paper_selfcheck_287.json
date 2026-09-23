@@ -1,0 +1,1866 @@
+{
+  "schema_version": 1,
+  "title": "数学建模论文提交前自查表（287 项）",
+  "source": {
+    "origin": "https://bzdshumo.com/paper-checklist（BZD 数模社，2026-09-10 抓取）",
+    "license_note": "原站声明禁止商用/倒卖/付费传播；本文件为结构化摘编（条目要点转述），非原文转载；原件留 assets-local（gitignored）仅本地学习用。",
+    "adapted_by": "2026-09-23 v2.0 W4 收编"
+  },
+  "usage": "论文提交前逐项自查；挂 comp-review/comp-final-audit 最终复审步作打分基准。静态项可机检，动态项（DQ/DP/DR/DO/DG/DC）需人工逐处核对。",
+  "summary": {
+    "static": 247,
+    "dynamic": 40,
+    "total": 287
+  },
+  "sections": [
+    {
+      "code": "A",
+      "title": "A 摘要（21 项）",
+      "kind": "static"
+    },
+    {
+      "code": "B",
+      "title": "B 页面结构、页码与总体篇幅（12 项）",
+      "kind": "static"
+    },
+    {
+      "code": "C",
+      "title": "C 标题层级与密度（8 项）",
+      "kind": "static"
+    },
+    {
+      "code": "D",
+      "title": "D 模型建立、求解与表述（9 项）",
+      "kind": "static"
+    },
+    {
+      "code": "R",
+      "title": "R 问题重述（13 项）",
+      "kind": "static"
+    },
+    {
+      "code": "PA",
+      "title": "PA 问题分析（16 项）",
+      "kind": "static"
+    },
+    {
+      "code": "AS",
+      "title": "AS 模型假设（18 项）",
+      "kind": "static"
+    },
+    {
+      "code": "SY",
+      "title": "SY 符号说明（31 项）",
+      "kind": "static"
+    },
+    {
+      "code": "MS",
+      "title": "MS 算法求解、结果、检验与灵敏度（23 项）",
+      "kind": "static"
+    },
+    {
+      "code": "ME",
+      "title": "ME 模型评价与推广（20 项）",
+      "kind": "static"
+    },
+    {
+      "code": "E",
+      "title": "E 正文字体、段落、页眉页脚（7 项）",
+      "kind": "static"
+    },
+    {
+      "code": "F",
+      "title": "F 图片与可视化（9 项）",
+      "kind": "static"
+    },
+    {
+      "code": "G",
+      "title": "G 表格（9 项）",
+      "kind": "static"
+    },
+    {
+      "code": "H",
+      "title": "H 图表重复表达（5 项）",
+      "kind": "static"
+    },
+    {
+      "code": "I",
+      "title": "I 公式（7 项）",
+      "kind": "static"
+    },
+    {
+      "code": "J",
+      "title": "J 页面视觉质量（5 项）",
+      "kind": "static"
+    },
+    {
+      "code": "K",
+      "title": "K 匿名性、元数据与文件安全（6 项）",
+      "kind": "static"
+    },
+    {
+      "code": "L",
+      "title": "L AI 使用支撑材料（6 项）",
+      "kind": "static"
+    },
+    {
+      "code": "RA",
+      "title": "RA 参考文献与附录（22 项）",
+      "kind": "static"
+    },
+    {
+      "code": "DQ",
+      "title": "DQ 摘要逐问（5 项）",
+      "kind": "dynamic"
+    },
+    {
+      "code": "DP",
+      "title": "DP 问题篇幅（5 项）",
+      "kind": "dynamic"
+    },
+    {
+      "code": "DR",
+      "title": "DR 建模段落（10 项）",
+      "kind": "dynamic"
+    },
+    {
+      "code": "DO",
+      "title": "DO 优化模型（6 项）",
+      "kind": "dynamic"
+    },
+    {
+      "code": "DG",
+      "title": "DG 图表重复（8 项）",
+      "kind": "dynamic"
+    },
+    {
+      "code": "DC",
+      "title": "DC 跨问题联动（6 项）",
+      "kind": "dynamic"
+    }
+  ],
+  "items": [
+    {
+      "id": "A01",
+      "section": "A",
+      "kind": "static",
+      "check": "脱离题目和正文仍能知道研究的具体问题"
+    },
+    {
+      "id": "A02",
+      "section": "A",
+      "kind": "static",
+      "check": "能知道采用的主要模型或数学方法"
+    },
+    {
+      "id": "A03",
+      "section": "A",
+      "kind": "static",
+      "check": "能知道模型或算法如何求解"
+    },
+    {
+      "id": "A04",
+      "section": "A",
+      "kind": "static",
+      "check": "能知道各问得到的关键结果"
+    },
+    {
+      "id": "A05",
+      "section": "A",
+      "kind": "static",
+      "check": "能知道结果说明了什么结论"
+    },
+    {
+      "id": "A06",
+      "section": "A",
+      "kind": "static",
+      "check": "开头简短说明现实背景或研究意义"
+    },
+    {
+      "id": "A07",
+      "section": "A",
+      "kind": "static",
+      "check": "开头明确全文需要解决的核心问题"
+    },
+    {
+      "id": "A08",
+      "section": "A",
+      "kind": "static",
+      "check": "背景篇幅不过长"
+    },
+    {
+      "id": "A09",
+      "section": "A",
+      "kind": "static",
+      "check": "背景未堆砌模型名称和数据处理步骤"
+    },
+    {
+      "id": "A10",
+      "section": "A",
+      "kind": "static",
+      "check": "有数据时，交代实际完成的清洗、转换或特征处理"
+    },
+    {
+      "id": "A11",
+      "section": "A",
+      "kind": "static",
+      "check": "未虚构正文或代码中不存在的数据处理"
+    },
+    {
+      "id": "A12",
+      "section": "A",
+      "kind": "static",
+      "check": "总结各问题之间的逻辑联系"
+    },
+    {
+      "id": "A13",
+      "section": "A",
+      "kind": "static",
+      "check": "说明模型有效性、应用价值或适用结论"
+    },
+    {
+      "id": "A14",
+      "section": "A",
+      "kind": "static",
+      "check": "仅在确有依据时表述创新，没有强行拔高"
+    },
+    {
+      "id": "A15",
+      "section": "A",
+      "kind": "static",
+      "check": "语言正式、客观、凝练，无机械罗列"
+    },
+    {
+      "id": "A16",
+      "section": "A",
+      "kind": "static",
+      "check": "无图片、表格、图表编号和参考文献"
+    },
+    {
+      "id": "A17",
+      "section": "A",
+      "kind": "static",
+      "check": "无行内公式或行间公式"
+    },
+    {
+      "id": "A18",
+      "section": "A",
+      "kind": "static",
+      "check": "无独立变量、希腊字母、上下标和关系式"
+    },
+    {
+      "id": "A19",
+      "section": "A",
+      "kind": "static",
+      "check": "普通数值、年份、百分比、单位或化学式未被误判为公式"
+    },
+    {
+      "id": "A20",
+      "section": "A",
+      "kind": "static",
+      "check": "关键词 4—5 个，覆盖对象、模型和算法且均来自正文"
+    },
+    {
+      "id": "A21",
+      "section": "A",
+      "kind": "static",
+      "check": "摘要连同题目和关键词不超过一页"
+    },
+    {
+      "id": "B01",
+      "section": "B",
+      "kind": "static",
+      "check": "摘要页位置符合竞赛要求"
+    },
+    {
+      "id": "B02",
+      "section": "B",
+      "kind": "static",
+      "check": "页码从摘要页的阿拉伯数字 1 开始"
+    },
+    {
+      "id": "B03",
+      "section": "B",
+      "kind": "static",
+      "check": "页码位于页脚中部"
+    },
+    {
+      "id": "B04",
+      "section": "B",
+      "kind": "static",
+      "check": "页码连续，无跳号、重号和断号"
+    },
+    {
+      "id": "B05",
+      "section": "B",
+      "kind": "static",
+      "check": "正文从规定页面开始"
+    },
+    {
+      "id": "B06",
+      "section": "B",
+      "kind": "static",
+      "check": "未出现竞赛禁止的目录"
+    },
+    {
+      "id": "B07",
+      "section": "B",
+      "kind": "static",
+      "check": "正文原则上不超过 30 页"
+    },
+    {
+      "id": "B08",
+      "section": "B",
+      "kind": "static",
+      "check": "主要问题求解约占 22—25 页或正文主体"
+    },
+    {
+      "id": "B09",
+      "section": "B",
+      "kind": "static",
+      "check": "各问题篇幅与难度、任务量和分值匹配"
+    },
+    {
+      "id": "B10",
+      "section": "B",
+      "kind": "static",
+      "check": "不存在某一问挤占全文或核心问题过短"
+    },
+    {
+      "id": "B11",
+      "section": "B",
+      "kind": "static",
+      "check": "参考文献和附录按要求另起页"
+    },
+    {
+      "id": "B12",
+      "section": "B",
+      "kind": "static",
+      "check": "附录页数不过度，内容具有支撑价值"
+    },
+    {
+      "id": "C01",
+      "section": "C",
+      "kind": "static",
+      "check": "一级、二级、三级标题格式统一"
+    },
+    {
+      "id": "C02",
+      "section": "C",
+      "kind": "static",
+      "check": "标题编号连续，无跳级、重号和孤立标题"
+    },
+    {
+      "id": "C03",
+      "section": "C",
+      "kind": "static",
+      "check": "同级标题命名风格一致"
+    },
+    {
+      "id": "C04",
+      "section": "C",
+      "kind": "static",
+      "check": "二级标题通常每 1—1.5 页出现一次"
+    },
+    {
+      "id": "C05",
+      "section": "C",
+      "kind": "static",
+      "check": "不存在多个二级标题间隔明显不足 1 页"
+    },
+    {
+      "id": "C06",
+      "section": "C",
+      "kind": "static",
+      "check": "每页三级标题不超过 2 个；出现 3 个及以上必须扣分"
+    },
+    {
+      "id": "C07",
+      "section": "C",
+      "kind": "static",
+      "check": "标题下有实质内容，不存在碎片化小节"
+    },
+    {
+      "id": "C08",
+      "section": "C",
+      "kind": "static",
+      "check": "正文一般不超过三级标题，三级以下改用段首加粗或步骤编号"
+    },
+    {
+      "id": "D01",
+      "section": "D",
+      "kind": "static",
+      "check": "实际问题到数学对象的映射清楚"
+    },
+    {
+      "id": "D02",
+      "section": "D",
+      "kind": "static",
+      "check": "决策变量、状态变量、参数、集合和下标均定义"
+    },
+    {
+      "id": "D03",
+      "section": "D",
+      "kind": "static",
+      "check": "单位、取值范围和参数来源明确"
+    },
+    {
+      "id": "D04",
+      "section": "D",
+      "kind": "static",
+      "check": "目标函数、约束和核心关系式均有文字解释"
+    },
+    {
+      "id": "D05",
+      "section": "D",
+      "kind": "static",
+      "check": "公式前说明为何建立，公式后解释表达含义"
+    },
+    {
+      "id": "D06",
+      "section": "D",
+      "kind": "static",
+      "check": "逐段直接阅读均能理解，不需要猜测逻辑"
+    },
+    {
+      "id": "D07",
+      "section": "D",
+      "kind": "static",
+      "check": "不存在因符号未定义而读不懂的段落或公式"
+    },
+    {
+      "id": "D08",
+      "section": "D",
+      "kind": "static",
+      "check": "不存在大段公式堆积而缺乏推导和解释"
+    },
+    {
+      "id": "D09",
+      "section": "D",
+      "kind": "static",
+      "check": "前后模型名称、符号、单位和约束口径一致"
+    },
+    {
+      "id": "R01",
+      "section": "R",
+      "kind": "static",
+      "check": "完整说明研究对象和必要的问题背景"
+    },
+    {
+      "id": "R02",
+      "section": "R",
+      "kind": "static",
+      "check": "覆盖题目提出的全部问题"
+    },
+    {
+      "id": "R03",
+      "section": "R",
+      "kind": "static",
+      "check": "保留关键数据、时间范围、单位和限制条件"
+    },
+    {
+      "id": "R04",
+      "section": "R",
+      "kind": "static",
+      "check": "真正重组语言，而非只替换同义词"
+    },
+    {
+      "id": "R05",
+      "section": "R",
+      "kind": "static",
+      "check": "删除原题中非必要的图表和附件内容"
+    },
+    {
+      "id": "R06",
+      "section": "R",
+      "kind": "static",
+      "check": "未提前写入模型、算法、求解过程和结果"
+    },
+    {
+      "id": "R07",
+      "section": "R",
+      "kind": "static",
+      "check": "研究背景简洁，未喧宾夺主"
+    },
+    {
+      "id": "R08",
+      "section": "R",
+      "kind": "static",
+      "check": "问题回顾使用明确的任务动词"
+    },
+    {
+      "id": "R09",
+      "section": "R",
+      "kind": "static",
+      "check": "问题之间的逻辑关系准确"
+    },
+    {
+      "id": "R10",
+      "section": "R",
+      "kind": "static",
+      "check": "若设置研究综述，约 500 字且围绕相关方法展开"
+    },
+    {
+      "id": "R11",
+      "section": "R",
+      "kind": "static",
+      "check": "研究综述中的文献和研究结论真实可核验"
+    },
+    {
+      "id": "R12",
+      "section": "R",
+      "kind": "static",
+      "check": "全章控制在 1—2 页或赛事规定范围内"
+    },
+    {
+      "id": "R13",
+      "section": "R",
+      "kind": "static",
+      "check": "无错别字、病句和题意偏差"
+    },
+    {
+      "id": "PA01",
+      "section": "PA",
+      "kind": "static",
+      "check": "说明题目整体需要完成什么"
+    },
+    {
+      "id": "PA02",
+      "section": "PA",
+      "kind": "static",
+      "check": "分析各任务所属的数学问题类型"
+    },
+    {
+      "id": "PA03",
+      "section": "PA",
+      "kind": "static",
+      "check": "说明各问题之间的数据流或逻辑联系"
+    },
+    {
+      "id": "PA04",
+      "section": "PA",
+      "kind": "static",
+      "check": "分析附件和补充数据的特点"
+    },
+    {
+      "id": "PA05",
+      "section": "PA",
+      "kind": "static",
+      "check": "说明数据处理方法及选择理由"
+    },
+    {
+      "id": "PA06",
+      "section": "PA",
+      "kind": "static",
+      "check": "解释模型选择依据和可行备选方案"
+    },
+    {
+      "id": "PA07",
+      "section": "PA",
+      "kind": "static",
+      "check": "说明后续模型检验思路"
+    },
+    {
+      "id": "PA08",
+      "section": "PA",
+      "kind": "static",
+      "check": "明确最终输出形式但不提前给出结果"
+    },
+    {
+      "id": "PA09",
+      "section": "PA",
+      "kind": "static",
+      "check": "未出现计算结果、权重、排序和最终结论"
+    },
+    {
+      "id": "PA10",
+      "section": "PA",
+      "kind": "static",
+      "check": "未出现大段公式、推导和程序过程"
+    },
+    {
+      "id": "PA11",
+      "section": "PA",
+      "kind": "static",
+      "check": "没有重复问题重述"
+    },
+    {
+      "id": "PA12",
+      "section": "PA",
+      "kind": "static",
+      "check": "统一使用第三人称或客观学术表述"
+    },
+    {
+      "id": "PA13",
+      "section": "PA",
+      "kind": "static",
+      "check": "用连贯段落体现问题联动，不机械堆砌小标题"
+    },
+    {
+      "id": "PA14",
+      "section": "PA",
+      "kind": "static",
+      "check": "整体求解框架图与正文真实建模过程一致"
+    },
+    {
+      "id": "PA15",
+      "section": "PA",
+      "kind": "static",
+      "check": "篇幅适中，分析具体但点到为止"
+    },
+    {
+      "id": "PA16",
+      "section": "PA",
+      "kind": "static",
+      "check": "数据预处理交代判定标准、方法理由、处理数量及处理后影响"
+    },
+    {
+      "id": "AS01",
+      "section": "AS",
+      "kind": "static",
+      "check": "包含题目明确给出的关键条件"
+    },
+    {
+      "id": "AS02",
+      "section": "AS",
+      "kind": "static",
+      "check": "包含后续模型真正需要的假设"
+    },
+    {
+      "id": "AS03",
+      "section": "AS",
+      "kind": "static",
+      "check": "每条假设均有合理依据"
+    },
+    {
+      "id": "AS04",
+      "section": "AS",
+      "kind": "static",
+      "check": "说明主要简化及研究边界"
+    },
+    {
+      "id": "AS05",
+      "section": "AS",
+      "kind": "static",
+      "check": "保留核心因素，只忽略次要因素"
+    },
+    {
+      "id": "AS06",
+      "section": "AS",
+      "kind": "static",
+      "check": "不存在与题目要求冲突的假设"
+    },
+    {
+      "id": "AS07",
+      "section": "AS",
+      "kind": "static",
+      "check": "未假设模型、指标体系或结果必然正确"
+    },
+    {
+      "id": "AS08",
+      "section": "AS",
+      "kind": "static",
+      "check": "数据假设与实际数据处理一致"
+    },
+    {
+      "id": "AS09",
+      "section": "AS",
+      "kind": "static",
+      "check": "分布、独立性和平稳性假设有检验或依据"
+    },
+    {
+      "id": "AS10",
+      "section": "AS",
+      "kind": "static",
+      "check": "未将数据处理步骤误写成假设"
+    },
+    {
+      "id": "AS11",
+      "section": "AS",
+      "kind": "static",
+      "check": "不存在重复或后文完全未使用的假设"
+    },
+    {
+      "id": "AS12",
+      "section": "AS",
+      "kind": "static",
+      "check": "不存在过度理想化、明显偏离现实的假设"
+    },
+    {
+      "id": "AS13",
+      "section": "AS",
+      "kind": "static",
+      "check": "关键假设说明理由和作用"
+    },
+    {
+      "id": "AS14",
+      "section": "AS",
+      "kind": "static",
+      "check": "假设数量与问题复杂度匹配"
+    },
+    {
+      "id": "AS15",
+      "section": "AS",
+      "kind": "static",
+      "check": "编号、句式和标点统一"
+    },
+    {
+      "id": "AS16",
+      "section": "AS",
+      "kind": "static",
+      "check": "模型检验结果与假设相容"
+    },
+    {
+      "id": "AS17",
+      "section": "AS",
+      "kind": "static",
+      "check": "模型局限回应较强假设"
+    },
+    {
+      "id": "AS18",
+      "section": "AS",
+      "kind": "static",
+      "check": "论文完成后已回查并修订假设"
+    },
+    {
+      "id": "SY01",
+      "section": "SY",
+      "kind": "static",
+      "check": "符号说明采用三线表"
+    },
+    {
+      "id": "SY02",
+      "section": "SY",
+      "kind": "static",
+      "check": "包含\"符号、含义、单位\"三列"
+    },
+    {
+      "id": "SY03",
+      "section": "SY",
+      "kind": "static",
+      "check": "只集中收录反复使用的主要符号"
+    },
+    {
+      "id": "SY04",
+      "section": "SY",
+      "kind": "static",
+      "check": "删除只出现一次的临时变量"
+    },
+    {
+      "id": "SY05",
+      "section": "SY",
+      "kind": "static",
+      "check": "优先使用通用符号，未无意义堆砌希腊字母"
+    },
+    {
+      "id": "SY06",
+      "section": "SY",
+      "kind": "static",
+      "check": "每个符号含义具体完整"
+    },
+    {
+      "id": "SY07",
+      "section": "SY",
+      "kind": "static",
+      "check": "有量纲变量标明单位"
+    },
+    {
+      "id": "SY08",
+      "section": "SY",
+      "kind": "static",
+      "check": "无量纲符号标注方式统一"
+    },
+    {
+      "id": "SY09",
+      "section": "SY",
+      "kind": "static",
+      "check": "单位与正文和数据口径一致"
+    },
+    {
+      "id": "SY10",
+      "section": "SY",
+      "kind": "static",
+      "check": "同一符号只表示一个含义"
+    },
+    {
+      "id": "SY11",
+      "section": "SY",
+      "kind": "static",
+      "check": "同一变量始终使用同一符号"
+    },
+    {
+      "id": "SY12",
+      "section": "SY",
+      "kind": "static",
+      "check": "大小写、粗体、向量和矩阵格式统一"
+    },
+    {
+      "id": "SY13",
+      "section": "SY",
+      "kind": "static",
+      "check": "上下标含义前后一致"
+    },
+    {
+      "id": "SY14",
+      "section": "SY",
+      "kind": "static",
+      "check": "不存在符号过载"
+    },
+    {
+      "id": "SY15",
+      "section": "SY",
+      "kind": "static",
+      "check": "表中符号均在正文实际使用"
+    },
+    {
+      "id": "SY16",
+      "section": "SY",
+      "kind": "static",
+      "check": "正文核心符号均已说明"
+    },
+    {
+      "id": "SY17",
+      "section": "SY",
+      "kind": "static",
+      "check": "核心符号首次出现时再次解释"
+    },
+    {
+      "id": "SY18",
+      "section": "SY",
+      "kind": "static",
+      "check": "自定义概念和指标单独定义"
+    },
+    {
+      "id": "SY19",
+      "section": "SY",
+      "kind": "static",
+      "check": "符号表控制在合理篇幅内"
+    },
+    {
+      "id": "SY20",
+      "section": "SY",
+      "kind": "static",
+      "check": "表题和编号符合全文规范"
+    },
+    {
+      "id": "SY21",
+      "section": "SY",
+      "kind": "static",
+      "check": "数学符号由公式编辑器规范录入"
+    },
+    {
+      "id": "SY22",
+      "section": "SY",
+      "kind": "static",
+      "check": "论文修改后同步更新符号表"
+    },
+    {
+      "id": "SY23",
+      "section": "SY",
+      "kind": "static",
+      "check": "正式稿已删除模板示例符号并按实际模型填写"
+    },
+    {
+      "id": "SY24",
+      "section": "SY",
+      "kind": "static",
+      "check": "局部临时变量在公式附近解释，未全部塞入符号表"
+    },
+    {
+      "id": "SY25",
+      "section": "SY",
+      "kind": "static",
+      "check": "未把无特殊含义的 min、max、sum、ln、exp 等运算符列入符号表"
+    },
+    {
+      "id": "SY26",
+      "section": "SY",
+      "kind": "static",
+      "check": "已删除废弃变量、程序循环变量和数组名"
+    },
+    {
+      "id": "SY27",
+      "section": "SY",
+      "kind": "static",
+      "check": "符号表覆盖全文核心变量，而非只列 n、m 等简单符号"
+    },
+    {
+      "id": "SY28",
+      "section": "SY",
+      "kind": "static",
+      "check": "符号含义完整，未仅写成\"第 i 个值\"等模糊表述"
+    },
+    {
+      "id": "SY29",
+      "section": "SY",
+      "kind": "static",
+      "check": "单位及数值口径闭环，元/万元和百分数/0—1 换算有说明"
+    },
+    {
+      "id": "SY30",
+      "section": "SY",
+      "kind": "static",
+      "check": "普通文本、公式编辑器及上下标格式未混杂"
+    },
+    {
+      "id": "SY31",
+      "section": "SY",
+      "kind": "static",
+      "check": "三线表无大量竖线、底纹和逐行边框"
+    },
+    {
+      "id": "MS01",
+      "section": "MS",
+      "kind": "static",
+      "check": "模型针对本题重新定义变量、目标、约束和参数，而非复制原理"
+    },
+    {
+      "id": "MS02",
+      "section": "MS",
+      "kind": "static",
+      "check": "前一问输出真实进入后一问的变量、参数、目标、约束或数据输入，符号、单位和时间尺度一致"
+    },
+    {
+      "id": "MS03",
+      "section": "MS",
+      "kind": "static",
+      "check": "参数有数据、文献、估计或校准来源"
+    },
+    {
+      "id": "MS04",
+      "section": "MS",
+      "kind": "static",
+      "check": "约束具有明确现实意义"
+    },
+    {
+      "id": "MS05",
+      "section": "MS",
+      "kind": "static",
+      "check": "求解前集中给出优化目标、约束和变量范围"
+    },
+    {
+      "id": "MS06",
+      "section": "MS",
+      "kind": "static",
+      "check": "说明算法思想、步骤与采用理由"
+    },
+    {
+      "id": "MS07",
+      "section": "MS",
+      "kind": "static",
+      "check": "给出关键参数、初值、迭代次数、随机种子和终止条件"
+    },
+    {
+      "id": "MS08",
+      "section": "MS",
+      "kind": "static",
+      "check": "求解过程具有足够信息，可由他人复现"
+    },
+    {
+      "id": "MS09",
+      "section": "MS",
+      "kind": "static",
+      "check": "逐项给出具体结果并直接回答题目"
+    },
+    {
+      "id": "MS10",
+      "section": "MS",
+      "kind": "static",
+      "check": "解释结果的现实意义、适用范围和限制"
+    },
+    {
+      "id": "MS11",
+      "section": "MS",
+      "kind": "static",
+      "check": "模型检验方法与模型类型匹配"
+    },
+    {
+      "id": "MS12",
+      "section": "MS",
+      "kind": "static",
+      "check": "给出检验指标数值、判定标准、图表或对照结果并解释结论"
+    },
+    {
+      "id": "MS13",
+      "section": "MS",
+      "kind": "static",
+      "check": "灵敏度参数及变化范围有依据"
+    },
+    {
+      "id": "MS14",
+      "section": "MS",
+      "kind": "static",
+      "check": "给出敏感参数、稳定区间和结论解释"
+    },
+    {
+      "id": "MS15",
+      "section": "MS",
+      "kind": "static",
+      "check": "分析输入扰动、假设变化、误差来源和误差传播"
+    },
+    {
+      "id": "MS16",
+      "section": "MS",
+      "kind": "static",
+      "check": "完整长表、代码和详细输出移至附录并被正文准确引用"
+    },
+    {
+      "id": "MS17",
+      "section": "MS",
+      "kind": "static",
+      "check": "主要结果和关键图表仍保留在正文"
+    },
+    {
+      "id": "MS18",
+      "section": "MS",
+      "kind": "static",
+      "check": "超过 15 行的表格已评估是否影响阅读；必要时移至附录"
+    },
+    {
+      "id": "MS19",
+      "section": "MS",
+      "kind": "static",
+      "check": "未用\"将数据导入 Python，求解结果如下\"替代算法思想与参数说明"
+    },
+    {
+      "id": "MS20",
+      "section": "MS",
+      "kind": "static",
+      "check": "灵敏度分析按模型同质性集中或分别设置，未机械重复"
+    },
+    {
+      "id": "MS21",
+      "section": "MS",
+      "kind": "static",
+      "check": "未为凑数量堆叠模型或仅将经典模型改名为\"改进模型\""
+    },
+    {
+      "id": "MS22",
+      "section": "MS",
+      "kind": "static",
+      "check": "删除赛题背景后，模型表述仍保留本题特有对象、变量、参数和约束"
+    },
+    {
+      "id": "MS23",
+      "section": "MS",
+      "kind": "static",
+      "check": "目标函数、约束和变量域集中完整，未将\"约束条件\"误写为\"约数条件\""
+    },
+    {
+      "id": "ME01",
+      "section": "ME",
+      "kind": "static",
+      "check": "章节编号与全文结构衔接正确"
+    },
+    {
+      "id": "ME02",
+      "section": "ME",
+      "kind": "static",
+      "check": "用一段话概括主要模型、联动关系和核心结论"
+    },
+    {
+      "id": "ME03",
+      "section": "ME",
+      "kind": "static",
+      "check": "未重复摘要和前文建模步骤"
+    },
+    {
+      "id": "ME04",
+      "section": "ME",
+      "kind": "static",
+      "check": "每项优点均来自论文真实内容"
+    },
+    {
+      "id": "ME05",
+      "section": "ME",
+      "kind": "static",
+      "check": "优点包含具体做法或量化证据"
+    },
+    {
+      "id": "ME06",
+      "section": "ME",
+      "kind": "static",
+      "check": "未无依据声称\"精度高、创新性强、稳定性好\""
+    },
+    {
+      "id": "ME07",
+      "section": "ME",
+      "kind": "static",
+      "check": "缺点说明来源、影响和适用范围"
+    },
+    {
+      "id": "ME08",
+      "section": "ME",
+      "kind": "static",
+      "check": "缺点客观但不直接否定全文"
+    },
+    {
+      "id": "ME09",
+      "section": "ME",
+      "kind": "static",
+      "check": "未用\"时间有限、能力不足\"代替模型缺陷"
+    },
+    {
+      "id": "ME10",
+      "section": "ME",
+      "kind": "static",
+      "check": "改进方向逐项对应模型缺点"
+    },
+    {
+      "id": "ME11",
+      "section": "ME",
+      "kind": "static",
+      "check": "区分模型改进与模型推广"
+    },
+    {
+      "id": "ME12",
+      "section": "ME",
+      "kind": "static",
+      "check": "推广说明对象、变量、参数、约束和数据如何调整"
+    },
+    {
+      "id": "ME13",
+      "section": "ME",
+      "kind": "static",
+      "check": "引用前文误差、检验或灵敏度结果作为证据"
+    },
+    {
+      "id": "ME14",
+      "section": "ME",
+      "kind": "static",
+      "check": "未新增大量重复图表和公式"
+    },
+    {
+      "id": "ME15",
+      "section": "ME",
+      "kind": "static",
+      "check": "篇幅约半页至一页或与全文规模匹配"
+    },
+    {
+      "id": "ME16",
+      "section": "ME",
+      "kind": "static",
+      "check": "评价与摘要、结果和检验保持一致"
+    },
+    {
+      "id": "ME17",
+      "section": "ME",
+      "kind": "static",
+      "check": "正文没有模型比较时，未声称进行了多模型交叉验证"
+    },
+    {
+      "id": "ME18",
+      "section": "ME",
+      "kind": "static",
+      "check": "正文没有灵敏度分析时，未声称模型稳定性强"
+    },
+    {
+      "id": "ME19",
+      "section": "ME",
+      "kind": "static",
+      "check": "未设置功能重复的\"模型总结\"\"模型评价\"等多个一级章节"
+    },
+    {
+      "id": "ME20",
+      "section": "ME",
+      "kind": "static",
+      "check": "未为降重机械凑固定数量的优缺点"
+    },
+    {
+      "id": "E01",
+      "section": "E",
+      "kind": "static",
+      "check": "中文字体、字号统一"
+    },
+    {
+      "id": "E02",
+      "section": "E",
+      "kind": "static",
+      "check": "英文和数字字体统一"
+    },
+    {
+      "id": "E03",
+      "section": "E",
+      "kind": "static",
+      "check": "行距、段前段后距和首行缩进统一"
+    },
+    {
+      "id": "E04",
+      "section": "E",
+      "kind": "static",
+      "check": "对齐、空格和换行规范"
+    },
+    {
+      "id": "E05",
+      "section": "E",
+      "kind": "static",
+      "check": "页眉内容合规且统一"
+    },
+    {
+      "id": "E06",
+      "section": "E",
+      "kind": "static",
+      "check": "页脚除规定页码外无多余信息"
+    },
+    {
+      "id": "E07",
+      "section": "E",
+      "kind": "static",
+      "check": "页边距和版心稳定"
+    },
+    {
+      "id": "F01",
+      "section": "F",
+      "kind": "static",
+      "check": "每幅图均有图号和图题"
+    },
+    {
+      "id": "F02",
+      "section": "F",
+      "kind": "static",
+      "check": "图题位于图下并居中"
+    },
+    {
+      "id": "F03",
+      "section": "F",
+      "kind": "static",
+      "check": "正文对每幅图有引用和解释"
+    },
+    {
+      "id": "F04",
+      "section": "F",
+      "kind": "static",
+      "check": "图内没有标题与图外图题重复"
+    },
+    {
+      "id": "F05",
+      "section": "F",
+      "kind": "static",
+      "check": "图号连续、格式统一"
+    },
+    {
+      "id": "F06",
+      "section": "F",
+      "kind": "static",
+      "check": "图片清晰，坐标轴、图例和标注可读"
+    },
+    {
+      "id": "F07",
+      "section": "F",
+      "kind": "static",
+      "check": "坐标轴名称、单位和颜色含义完整"
+    },
+    {
+      "id": "F08",
+      "section": "F",
+      "kind": "static",
+      "check": "没有图片堆积而缺少文字分析"
+    },
+    {
+      "id": "F09",
+      "section": "F",
+      "kind": "static",
+      "check": "图尺寸、字体和配色风格统一"
+    },
+    {
+      "id": "G01",
+      "section": "G",
+      "kind": "static",
+      "check": "每个表均有表号和表题"
+    },
+    {
+      "id": "G02",
+      "section": "G",
+      "kind": "static",
+      "check": "表题位于表上并居中"
+    },
+    {
+      "id": "G03",
+      "section": "G",
+      "kind": "static",
+      "check": "正文对每个表有引用和解释"
+    },
+    {
+      "id": "G04",
+      "section": "G",
+      "kind": "static",
+      "check": "表号连续、格式统一"
+    },
+    {
+      "id": "G05",
+      "section": "G",
+      "kind": "static",
+      "check": "三线表或竞赛允许的表格格式统一"
+    },
+    {
+      "id": "G06",
+      "section": "G",
+      "kind": "static",
+      "check": "表头、量纲和单位完整"
+    },
+    {
+      "id": "G07",
+      "section": "G",
+      "kind": "static",
+      "check": "跨页表重复表头，无断裂、错位或孤行"
+    },
+    {
+      "id": "G08",
+      "section": "G",
+      "kind": "static",
+      "check": "数字小数位、对齐和字体统一"
+    },
+    {
+      "id": "G09",
+      "section": "G",
+      "kind": "static",
+      "check": "没有表格堆积而缺少文字分析"
+    },
+    {
+      "id": "H01",
+      "section": "H",
+      "kind": "static",
+      "check": "相邻图和表没有表达完全相同的数据与指标"
+    },
+    {
+      "id": "H02",
+      "section": "H",
+      "kind": "static",
+      "check": "不存在可由表格全部或主要数值直接绘出的重复图"
+    },
+    {
+      "id": "H03",
+      "section": "H",
+      "kind": "static",
+      "check": "不存在用表格再次逐项列出图中全部数据"
+    },
+    {
+      "id": "H04",
+      "section": "H",
+      "kind": "static",
+      "check": "同时保留的图与表承担不同的信息任务"
+    },
+    {
+      "id": "H05",
+      "section": "H",
+      "kind": "static",
+      "check": "未以\"图看趋势、表看数值\"为由保留完全重复内容"
+    },
+    {
+      "id": "I01",
+      "section": "I",
+      "kind": "static",
+      "check": "需要引用的公式均有编号"
+    },
+    {
+      "id": "I02",
+      "section": "I",
+      "kind": "static",
+      "check": "公式编号连续且位置统一"
+    },
+    {
+      "id": "I03",
+      "section": "I",
+      "kind": "static",
+      "check": "变量斜体、常量和函数正体基本规范"
+    },
+    {
+      "id": "I04",
+      "section": "I",
+      "kind": "static",
+      "check": "公式作为句子组成部分时标点正确"
+    },
+    {
+      "id": "I05",
+      "section": "I",
+      "kind": "static",
+      "check": "长公式断行合理，无越界、遮挡和压缩"
+    },
+    {
+      "id": "I06",
+      "section": "I",
+      "kind": "static",
+      "check": "公式与正文间距统一"
+    },
+    {
+      "id": "I07",
+      "section": "I",
+      "kind": "static",
+      "check": "正文引用的公式编号准确"
+    },
+    {
+      "id": "J01",
+      "section": "J",
+      "kind": "static",
+      "check": "图文比例合理，既非纯文字也非图表堆积"
+    },
+    {
+      "id": "J02",
+      "section": "J",
+      "kind": "static",
+      "check": "页面留白均衡，无大面积无意义空白"
+    },
+    {
+      "id": "J03",
+      "section": "J",
+      "kind": "static",
+      "check": "无孤行、寡行、标题悬空和图表标题跨页"
+    },
+    {
+      "id": "J04",
+      "section": "J",
+      "kind": "static",
+      "check": "无对象重叠、裁切、超出版心和横向溢出"
+    },
+    {
+      "id": "J05",
+      "section": "J",
+      "kind": "static",
+      "check": "页面风格统一，配色打印后仍可辨认"
+    },
+    {
+      "id": "K01",
+      "section": "K",
+      "kind": "static",
+      "check": "摘要、正文、参考文献和附录无姓名"
+    },
+    {
+      "id": "K02",
+      "section": "K",
+      "kind": "static",
+      "check": "无学校、学院、赛区、指导教师和队伍信息"
+    },
+    {
+      "id": "K03",
+      "section": "K",
+      "kind": "static",
+      "check": "图片、代码截图、路径和账户中无身份信息"
+    },
+    {
+      "id": "K04",
+      "section": "K",
+      "kind": "static",
+      "check": "PDF 作者、公司、标题等元数据已清理"
+    },
+    {
+      "id": "K05",
+      "section": "K",
+      "kind": "static",
+      "check": "无隐藏批注、修订记录或附件身份信息"
+    },
+    {
+      "id": "K06",
+      "section": "K",
+      "kind": "static",
+      "check": "引用公开资料均在正文标注并列入参考文献"
+    },
+    {
+      "id": "L01",
+      "section": "L",
+      "kind": "static",
+      "check": "正文中没有不必要的 AI 工具使用声明"
+    },
+    {
+      "id": "L02",
+      "section": "L",
+      "kind": "static",
+      "check": "当届要求披露时，声明与详情置于独立支撑材料"
+    },
+    {
+      "id": "L03",
+      "section": "L",
+      "kind": "static",
+      "check": "支撑材料与真实使用一致且匿名"
+    },
+    {
+      "id": "L04",
+      "section": "L",
+      "kind": "static",
+      "check": "当届规则要求正文声明时，声明位于规定位置（如参考文献之前）"
+    },
+    {
+      "id": "L05",
+      "section": "L",
+      "kind": "static",
+      "check": "AI 工具没有被误列为普通参考文献条目"
+    },
+    {
+      "id": "L06",
+      "section": "L",
+      "kind": "static",
+      "check": "论文声明与《AI工具使用详情》内容一致"
+    },
+    {
+      "id": "RA01",
+      "section": "RA",
+      "kind": "static",
+      "check": "每条参考文献真实存在且可核验"
+    },
+    {
+      "id": "RA02",
+      "section": "RA",
+      "kind": "static",
+      "check": "正文引用与文末条目一一对应"
+    },
+    {
+      "id": "RA03",
+      "section": "RA",
+      "kind": "static",
+      "check": "文献编号连续且顺序正确"
+    },
+    {
+      "id": "RA04",
+      "section": "RA",
+      "kind": "static",
+      "check": "数据来源、网址和访问日期完整"
+    },
+    {
+      "id": "RA05",
+      "section": "RA",
+      "kind": "static",
+      "check": "附录列出支撑材料文件清单"
+    },
+    {
+      "id": "RA06",
+      "section": "RA",
+      "kind": "static",
+      "check": "附录包含全部必要、完整且可运行的源程序"
+    },
+    {
+      "id": "RA07",
+      "section": "RA",
+      "kind": "static",
+      "check": "程序输入、参数和结果与正文一致"
+    },
+    {
+      "id": "RA08",
+      "section": "RA",
+      "kind": "static",
+      "check": "未重复提交赛题原始数据"
+    },
+    {
+      "id": "RA09",
+      "section": "RA",
+      "kind": "static",
+      "check": "自主查阅数据已注明来源"
+    },
+    {
+      "id": "RA10",
+      "section": "RA",
+      "kind": "static",
+      "check": "AI 使用详情按当届要求作为独立支撑材料提交"
+    },
+    {
+      "id": "RA11",
+      "section": "RA",
+      "kind": "static",
+      "check": "论文、附录、代码、截图和文件属性均无身份信息"
+    },
+    {
+      "id": "RA12",
+      "section": "RA",
+      "kind": "static",
+      "check": "最终版本已按当年组委会及赛区要求复核"
+    },
+    {
+      "id": "RA13",
+      "section": "RA",
+      "kind": "static",
+      "check": "未将 ChatGPT、DeepSeek、Copilot 等 AI 工具列为普通参考文献"
+    },
+    {
+      "id": "RA14",
+      "section": "RA",
+      "kind": "static",
+      "check": "未直接复制其他论文参考文献，且已阅读全文或核验引用关系"
+    },
+    {
+      "id": "RA15",
+      "section": "RA",
+      "kind": "static",
+      "check": "作者、题名、DOI、期刊、卷期、页码和网址真实且相互匹配"
+    },
+    {
+      "id": "RA16",
+      "section": "RA",
+      "kind": "static",
+      "check": "正文每个引用编号在文末均有对应条目"
+    },
+    {
+      "id": "RA17",
+      "section": "RA",
+      "kind": "static",
+      "check": "文末每条参考文献均在正文实际引用"
+    },
+    {
+      "id": "RA18",
+      "section": "RA",
+      "kind": "static",
+      "check": "中英文标点、作者写法、日期格式和条目结构统一"
+    },
+    {
+      "id": "RA19",
+      "section": "RA",
+      "kind": "static",
+      "check": "数据来源注明发布机构、具体页面或数据集名称，未只写\"网络收集\""
+    },
+    {
+      "id": "RA20",
+      "section": "RA",
+      "kind": "static",
+      "check": "网络资源包含可定位页面和访问日期"
+    },
+    {
+      "id": "RA21",
+      "section": "RA",
+      "kind": "static",
+      "check": "未仅引用搜索引擎首页或数据库首页"
+    },
+    {
+      "id": "RA22",
+      "section": "RA",
+      "kind": "static",
+      "check": "未为凑数量引用与题目、数据、方法或论断无关的资料"
+    },
+    {
+      "id": "DQ01",
+      "section": "DQ",
+      "kind": "dynamic",
+      "check": "问题 1：任务、模型、求解过程、关键结果、对象/单位和方法结果对应均明确"
+    },
+    {
+      "id": "DQ02",
+      "section": "DQ",
+      "kind": "dynamic",
+      "check": "问题 2：同上"
+    },
+    {
+      "id": "DQ03",
+      "section": "DQ",
+      "kind": "dynamic",
+      "check": "问题 3：同上"
+    },
+    {
+      "id": "DQ04",
+      "section": "DQ",
+      "kind": "dynamic",
+      "check": "问题 4：同上"
+    },
+    {
+      "id": "DQ05",
+      "section": "DQ",
+      "kind": "dynamic",
+      "check": "问题 5：同上"
+    },
+    {
+      "id": "DP01",
+      "section": "DP",
+      "kind": "dynamic",
+      "check": "问题 1—5：篇幅与重要程度、模型复杂度、求解过程、结果解释和检验要求匹配"
+    },
+    {
+      "id": "DP02",
+      "section": "DP",
+      "kind": "dynamic",
+      "check": "问题 1—5：篇幅与重要程度、模型复杂度、求解过程、结果解释和检验要求匹配"
+    },
+    {
+      "id": "DP03",
+      "section": "DP",
+      "kind": "dynamic",
+      "check": "问题 1—5：篇幅与重要程度、模型复杂度、求解过程、结果解释和检验要求匹配"
+    },
+    {
+      "id": "DP04",
+      "section": "DP",
+      "kind": "dynamic",
+      "check": "问题 1—5：篇幅与重要程度、模型复杂度、求解过程、结果解释和检验要求匹配"
+    },
+    {
+      "id": "DP05",
+      "section": "DP",
+      "kind": "dynamic",
+      "check": "问题 1—5：篇幅与重要程度、模型复杂度、求解过程、结果解释和检验要求匹配"
+    },
+    {
+      "id": "DR01",
+      "section": "DR",
+      "kind": "dynamic",
+      "check": "第 1—10 处：记录读不懂的段落/公式、未定义符号、缺失逻辑及修改动作"
+    },
+    {
+      "id": "DR02",
+      "section": "DR",
+      "kind": "dynamic",
+      "check": "第 1—10 处：记录读不懂的段落/公式、未定义符号、缺失逻辑及修改动作"
+    },
+    {
+      "id": "DR03",
+      "section": "DR",
+      "kind": "dynamic",
+      "check": "第 1—10 处：记录读不懂的段落/公式、未定义符号、缺失逻辑及修改动作"
+    },
+    {
+      "id": "DR04",
+      "section": "DR",
+      "kind": "dynamic",
+      "check": "第 1—10 处：记录读不懂的段落/公式、未定义符号、缺失逻辑及修改动作"
+    },
+    {
+      "id": "DR05",
+      "section": "DR",
+      "kind": "dynamic",
+      "check": "第 1—10 处：记录读不懂的段落/公式、未定义符号、缺失逻辑及修改动作"
+    },
+    {
+      "id": "DR06",
+      "section": "DR",
+      "kind": "dynamic",
+      "check": "第 1—10 处：记录读不懂的段落/公式、未定义符号、缺失逻辑及修改动作"
+    },
+    {
+      "id": "DR07",
+      "section": "DR",
+      "kind": "dynamic",
+      "check": "第 1—10 处：记录读不懂的段落/公式、未定义符号、缺失逻辑及修改动作"
+    },
+    {
+      "id": "DR08",
+      "section": "DR",
+      "kind": "dynamic",
+      "check": "第 1—10 处：记录读不懂的段落/公式、未定义符号、缺失逻辑及修改动作"
+    },
+    {
+      "id": "DR09",
+      "section": "DR",
+      "kind": "dynamic",
+      "check": "第 1—10 处：记录读不懂的段落/公式、未定义符号、缺失逻辑及修改动作"
+    },
+    {
+      "id": "DR10",
+      "section": "DR",
+      "kind": "dynamic",
+      "check": "第 1—10 处：记录读不懂的段落/公式、未定义符号、缺失逻辑及修改动作"
+    },
+    {
+      "id": "DO01",
+      "section": "DO",
+      "kind": "dynamic",
+      "check": "模型 1—6：总结句后集中列出完整目标函数、核心约束、变量域和索引"
+    },
+    {
+      "id": "DO02",
+      "section": "DO",
+      "kind": "dynamic",
+      "check": "模型 1—6：总结句后集中列出完整目标函数、核心约束、变量域和索引"
+    },
+    {
+      "id": "DO03",
+      "section": "DO",
+      "kind": "dynamic",
+      "check": "模型 1—6：总结句后集中列出完整目标函数、核心约束、变量域和索引"
+    },
+    {
+      "id": "DO04",
+      "section": "DO",
+      "kind": "dynamic",
+      "check": "模型 1—6：总结句后集中列出完整目标函数、核心约束、变量域和索引"
+    },
+    {
+      "id": "DO05",
+      "section": "DO",
+      "kind": "dynamic",
+      "check": "模型 1—6：总结句后集中列出完整目标函数、核心约束、变量域和索引"
+    },
+    {
+      "id": "DO06",
+      "section": "DO",
+      "kind": "dynamic",
+      "check": "模型 1—6：总结句后集中列出完整目标函数、核心约束、变量域和索引"
+    },
+    {
+      "id": "DG01",
+      "section": "DG",
+      "kind": "dynamic",
+      "check": "组合 1—8：记录图号/表号、重复数据或结论、独立信息价值及保留建议"
+    },
+    {
+      "id": "DG02",
+      "section": "DG",
+      "kind": "dynamic",
+      "check": "组合 1—8：记录图号/表号、重复数据或结论、独立信息价值及保留建议"
+    },
+    {
+      "id": "DG03",
+      "section": "DG",
+      "kind": "dynamic",
+      "check": "组合 1—8：记录图号/表号、重复数据或结论、独立信息价值及保留建议"
+    },
+    {
+      "id": "DG04",
+      "section": "DG",
+      "kind": "dynamic",
+      "check": "组合 1—8：记录图号/表号、重复数据或结论、独立信息价值及保留建议"
+    },
+    {
+      "id": "DG05",
+      "section": "DG",
+      "kind": "dynamic",
+      "check": "组合 1—8：记录图号/表号、重复数据或结论、独立信息价值及保留建议"
+    },
+    {
+      "id": "DG06",
+      "section": "DG",
+      "kind": "dynamic",
+      "check": "组合 1—8：记录图号/表号、重复数据或结论、独立信息价值及保留建议"
+    },
+    {
+      "id": "DG07",
+      "section": "DG",
+      "kind": "dynamic",
+      "check": "组合 1—8：记录图号/表号、重复数据或结论、独立信息价值及保留建议"
+    },
+    {
+      "id": "DG08",
+      "section": "DG",
+      "kind": "dynamic",
+      "check": "组合 1—8：记录图号/表号、重复数据或结论、独立信息价值及保留建议"
+    },
+    {
+      "id": "DC01",
+      "section": "DC",
+      "kind": "dynamic",
+      "check": "联动 1—6：前问输出真实进入后问的变量、参数、目标、约束或数据输入"
+    },
+    {
+      "id": "DC02",
+      "section": "DC",
+      "kind": "dynamic",
+      "check": "联动 1—6：前问输出真实进入后问的变量、参数、目标、约束或数据输入"
+    },
+    {
+      "id": "DC03",
+      "section": "DC",
+      "kind": "dynamic",
+      "check": "联动 1—6：前问输出真实进入后问的变量、参数、目标、约束或数据输入"
+    },
+    {
+      "id": "DC04",
+      "section": "DC",
+      "kind": "dynamic",
+      "check": "联动 1—6：前问输出真实进入后问的变量、参数、目标、约束或数据输入"
+    },
+    {
+      "id": "DC05",
+      "section": "DC",
+      "kind": "dynamic",
+      "check": "联动 1—6：前问输出真实进入后问的变量、参数、目标、约束或数据输入"
+    },
+    {
+      "id": "DC06",
+      "section": "DC",
+      "kind": "dynamic",
+      "check": "联动 1—6：前问输出真实进入后问的变量、参数、目标、约束或数据输入"
+    }
+  ]
+}

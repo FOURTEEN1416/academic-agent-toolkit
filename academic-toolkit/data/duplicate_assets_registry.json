@@ -386,6 +386,16 @@
     },
     {
       "paths": [
+        "academic-toolkit/skills/paper-peer-review-simulation/scripts/check_pipeline_integrity.py",
+        "academic-toolkit/skills/paper-writing-pipeline/scripts/check_pipeline_integrity.py",
+        "academic-toolkit/skills/research-pipeline/references/merged-ars-academic-pipeline/scripts/check_pipeline_integrity.py"
+      ],
+      "size": 13812,
+      "wasted_bytes": 27624,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
         "academic-toolkit/skills/_utils/example_roadmap_hex_cool.drawio",
         "academic-toolkit/skills/shared-scripts/example_roadmap_hex_cool.drawio"
       ],
@@ -538,15 +548,6 @@
       "size": 14336,
       "wasted_bytes": 14336,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/paper-peer-review-simulation/scripts/check_pipeline_integrity.py",
-        "academic-toolkit/skills/paper-writing-pipeline/scripts/check_pipeline_integrity.py"
-      ],
-      "size": 13812,
-      "wasted_bytes": 13812,
-      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
     },
     {
       "paths": [

@@ -41,8 +41,8 @@
       "description": "题型案例模式库：历年题型与建模套路对照",
       "when_to_use": "赛题分析步定位同类题打法；无网络时降级参照",
       "owner_skills": [
-        "comp-problem-analysis",
-        "comp-model-innovation"
+        "comp-prob-analysis",
+        "model-innovation"
       ],
       "consumers": [
         "comp_cumcm:S1",
@@ -89,7 +89,7 @@
       "description": "历年真题索引（2021-2025 元数据）",
       "when_to_use": "赛题分析步查历史同类题【mandatory 试点】",
       "owner_skills": [
-        "comp-problem-analysis",
+        "comp-prob-analysis",
         "problem-selection"
       ],
       "consumers": [
@@ -216,6 +216,25 @@
       "local_only": false
     },
     {
+      "id": "paper-selfcheck-287",
+      "path": "academic-toolkit/data/paper_selfcheck_287.json",
+      "zone": "data",
+      "type": "checklist",
+      "description": "论文提交前自查表 287 项结构化摘编（22 静态板块 247 项 + 6 类动态检查 40 项）",
+      "when_to_use": "竞赛论文最终复审/交付审计步逐项对照（comp-final-review/comp-final-audit）",
+      "owner_skills": [
+        "comp-review",
+        "comp-final-audit"
+      ],
+      "consumers": [
+        "comp_cumcm:S12",
+        "comp_cumcm:S13",
+        "comp_huawei:S12",
+        "comp_huawei:S13"
+      ],
+      "local_only": false
+    },
+    {
       "id": "palette-registry",
       "path": "academic-toolkit/skills/paper-figure-palette/assets/palette_registry.json",
       "zone": "skills-internal",
@@ -224,7 +243,7 @@
       "when_to_use": "任何出图步选色",
       "owner_skills": [
         "paper-figure",
-        "paper-figure-nature"
+        "nature-figure"
       ],
       "consumers": [
         "comp_cumcm:S5",
@@ -307,7 +326,7 @@
       "description": "CNS 级示例图集 215 张+目录索引",
       "when_to_use": "画顶刊风格图前找参照",
       "owner_skills": [
-        "fig-academic"
+        "academic-figure-skill"
       ],
       "consumers": [],
       "local_only": false
@@ -334,7 +353,7 @@
       "description": "获奖论文资产入口地图（62 篇五年的可编码规则蒸馏）",
       "when_to_use": "用获奖论文语料前先读",
       "owner_skills": [
-        "comp-problem-analysis",
+        "comp-prob-analysis",
         "comp-paper-zh"
       ],
       "consumers": [
@@ -520,7 +539,7 @@
       "description": "赛时官方题目/规则与合规预置区（赛季期间本地放置）",
       "when_to_use": "开赛后放题；缺席=语义缺位非断链",
       "owner_skills": [
-        "comp-problem-analysis"
+        "comp-prob-analysis"
       ],
       "consumers": [],
       "local_only": true
@@ -546,7 +565,7 @@
       "description": "pubfig 出版图表库（上游完整拷贝）；UPSTREAM.md 溯源",
       "when_to_use": "对应技能执行时调用",
       "owner_skills": [
-        "fig-publication-chart"
+        "galaxy-publication-chart-skill"
       ],
       "consumers": [],
       "local_only": false
