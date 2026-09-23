@@ -61,7 +61,7 @@ because the helper may sit at any of:
 - `$ARIS_REPO/tools/<helper>` via `$HOME/.aris/repo` — global pointer file
   (one line, absolute repo path) written by `install_aris*.{sh,ps1}` and
   `smart_update*.{sh,ps1}` at install/update time; the only layer that
-  resolves for a global copy-install (`~/.claude/skills`) with no
+  resolves for a global copy-install of the skill package with no
   project-local `.aris/` manifest (#366)
 
 Every caller — including those primarily exercised from inside the

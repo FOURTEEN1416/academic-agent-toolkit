@@ -133,16 +133,19 @@ Academic Figure Skill 是一个面向 AI 编程助手（Claude Code、Codex 等�
 `fig-academic` 是一个以 `SKILL.md` 为核心的 Skill 包。使用时必须保留 `references/`、`scripts/`、
 `assets/` 等目录与 `SKILL.md` 的相对结构——Skill 依赖这些文件完成视觉基线注入、资产检索和跨平台适配。
 
+> 2026-09-24 改写融入：上游的 `install/` 宿主适配器样例目录及其生成器已自本仓移除
+>（本仓不依赖任何宿主安装路径；如需上游原样适配器，见上游仓库）。
+
 **在本仓库（academic-toolkit）中随仓使用，无需安装到任何宿主目录**：
 
 - 技能位于本仓 `skills/fig-academic/`，驱动 Agent 按本仓 `AGENTS.md` 驱动协议加载 `SKILL.md` 执行；
-- 引擎路由与技能索引自动发现本技能，不需要复制到 `~/.claude`、`~/.codex` 等宿主私有目录；
+- 引擎路由与技能索引自动发现本技能，不需要复制到任何宿主私有目录；
 - 上游原仓库（github.com/TingxiYu/academic-figure-skill）另提供面向各宿主的独立安装方式，
-  本仓不采用；`install/` 目录仅保留上游宿主适配器样例（cursor / copilot / codex / claude-code），
-  属历史参考物，本仓运行时不依赖、不应照其复制。
+  本仓不采用；上游的 `install/` 适配器样例目录已自本仓移除（2026-09-24 改写融入），
+  本仓运行时不依赖任何宿主安装路径。
 
-<!-- 2026-09-23 宿主中性化改写：原 README 含逐宿主安装教学（复制到 ~/.claude/skills/、
-     ~/.codex/skills/ 等），在本仓语境下为死路径误导，已整节替换为随仓使用口径。 -->
+<!-- 2026-09-23 宿主中性化改写：原 README 含逐宿主安装教学（复制到各宿主私有技能目录），
+     在本仓语境下为死路径误导，已整节替换为随仓使用口径。 -->
 
 ---
 
@@ -221,7 +224,6 @@ Academic Figure Skill 是一个面向 AI 编程助手（Claude Code、Codex 等�
     │   │   ├── multipanel/            ← 多面板模板
     │   │   └── other/                 ← 长尾图型
     │   └── figure-atlas/              ← 图鉴预览 PNG 合集
-    └── install/                       ← 跨平台适配
         ├── claude-code/               ← Claude Code（原生支持，开箱即用）
         ├── cursor/                    ← Cursor IDE 适配
         ├── copilot/                   ← GitHub Copilot 适配

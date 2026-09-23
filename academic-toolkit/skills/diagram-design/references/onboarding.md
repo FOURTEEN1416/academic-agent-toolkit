@@ -193,10 +193,10 @@ Use the installed-skill location exposed by the current agent when available. Ot
 2. `.pi/skills/<skill-name>/` in the current directory, plus `.agents/skills/<skill-name>/` from the current directory through the repo root (project installs)
 3. Package paths listed in `~/.pi/agent/settings.json` or `.pi/settings.json`; managed packages live under `~/.pi/agent/git/`, `~/.pi/agent/npm/`, `.pi/git/`, or `.pi/npm/`
 
-**Claude Code:**
+**This repo (academic-toolkit):**
 
-1. `~/.claude/skills/<skill-name>/` (user install)
-2. `.claude/skills/<skill-name>/` (project install)
+1. Skills live in-place under `skills/<skill-name>/` and are discovered via the repo's
+   driving protocol — there is no install step and no host-private copy.
 
 **Factory Droid:**
 

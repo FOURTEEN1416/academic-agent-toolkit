@@ -51,7 +51,7 @@ that returns structured JSON and supports multi-turn sessions via `SESSION_ID`.
 
 Claude Code supports model aliases, so you can use `--model sonnet` / `--model opus` instead of hard-coding versioned model IDs.
 
-- If you omit `--model`, Claude Code uses its configured default (typically from `~/.claude/settings.json`, optionally overridden by `.claude/settings.json` and `.claude/settings.local.json`).
+- If you omit `--model`, the driving agent uses its configured default model (see your host's model configuration; in this repo the engine adapter decides).
 - If you need strict reproducibility, pass a full model name via `--model <full-name>`.
 - For `claim-stress-test` and `route-review-vs-empirical` templates, prefer `opus`.
 - For `evidence-sufficiency-audit`, `sonnet` is sufficient.

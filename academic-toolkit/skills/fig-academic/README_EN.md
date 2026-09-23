@@ -134,20 +134,24 @@ The skill does not replace the plotting capabilities of Python or R. It provides
 `assets/` alongside `SKILL.md` with their relative structure intact — the skill depends on them
 for visual baseline injection, asset lookup and cross-platform adaptation.
 
+> Rewritten-integration note (2026-09-24): the upstream `install/` host-adapter samples and
+> their generator were removed from this repo — no host install path is used here. For the
+> original adapters, see the upstream repository.
+
 **Inside this repository (academic-toolkit) the skill is used in-place; no host installation is needed:**
 
 - The skill lives at `skills/fig-academic/` in this repo; the driving agent loads `SKILL.md`
   through the repo's `AGENTS.md` driving protocol;
 - Engine routing and the skill index discover it automatically — do NOT copy it into
-  host-private directories such as `~/.claude` or `~/.codex`;
+  any host-private directory;
 - The upstream repository (github.com/TingxiYu/academic-figure-skill) documents per-host
-  installation for standalone use; this repo does not use it. The `install/` directory keeps
-  the upstream host-adapter samples (cursor / copilot / codex / claude-code) for reference
-  only — the runtime does not depend on them and they must not be followed as instructions.
+  installation for standalone use; this repo does not use it. The upstream `install/`
+  adapter samples were removed during rewritten integration (2026-09-24) — no host
+  install path exists in this repo.
 
 <!-- 2026-09-23 host-neutral rewrite: the original README taught per-host installation
-     (copying into ~/.claude/skills/, ~/.codex/skills/, ...) which is a dead-path hazard in
-     this repo's context; the whole section was replaced with in-repo usage. -->
+     (copying into host-private skill directories) which is a dead-path hazard in this
+     repo's context; the whole section was replaced with in-repo usage. -->
 
 ---
 
@@ -227,7 +231,6 @@ for visual baseline injection, asset lookup and cross-platform adaptation.
     │   │   ├── multipanel/            ← Multi-panel templates
     │   │   └── other/                 ← Long-tail figure types
     │   └── figure-atlas/              ← Figure atlas preview PNG collection
-    └── install/                       ← Cross-platform adapters
         ├── claude-code/               ← Claude Code (native support, ready to use)
         ├── cursor/                    ← Cursor IDE adapter
         ├── copilot/                   ← GitHub Copilot adapter

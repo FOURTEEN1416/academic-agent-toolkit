@@ -45,7 +45,7 @@ This skill provides Feishu/Lark integration for MH Agent. It is designed as an *
 ### Step 1: Read Config
 
 ```bash
-cat ~/.acat/feishu.json 2>/dev/null || cat ~/.claude/feishu.json 2>/dev/null
+cat ~/.acat/feishu.json 2>/dev/null
 ```
 
 - **File not found** → return silently, do nothing

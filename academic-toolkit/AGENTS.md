@@ -199,6 +199,21 @@ MCP：tracked 配置用占位符 `${DOCSEARCH_MCP_SERVER}` / `${DOCSEARCH_ROOTS}
 - `.env` gitignored，不入库
 - `python tools/secret_scan.py --strict` 扫 tracked 面
 
+## 上游资产收编规程（2026-09-24 起改写融入为默认工序）
+
+1. **改写融入是默认形态，原样整采是例外**：上游技能/参考入库时，SKILL.md 与正文按本仓语境
+   改写（宿主中性、AGENTS.md 驱动协议、本仓工具链引用），不再接受"原样复制+事后打补丁"。
+   例外（原样保留）仅限：无 License 冻结件、上游脚本运行时快照（UPSTREAM.md 注明）。
+2. **宿主中性化是收编的一道工序**：收编时即清除宿主私有路径安装教学与宿主绑定探测；
+   `python tools/host_dep_scan.py --strict` 必须绿——skills/ 内宿主特征词命中只允许
+   `tools/data/host_dep_exemptions.json` 登记条目（逐条理由；新增豁免须经用户裁决，
+   豁免命中归零时收缩清单）。
+3. **溯源义务不随改写消失**：UPSTREAM.md 保留 Upstream / Pinned commit / License 三字段；
+   改写件注明"改写融入+日期"，clean-room 件按 `skills/graphviz/references/UPSTREAM.md`
+   先例出具独立创作声明。台账明细在 `dev-docs/vendor-asset-index.md`（内部私有）。
+4. **存量收敛方向**：历史原样整采件按批改写融入（2026-09-24 用户裁决），批次计划见
+   `dev-docs/vendor-asset-index.md` §6；未改写件保持 UPSTREAM.md 如实登记。
+
 ## 五、工具链调用规范
 
 ### 检索/搜索（先检索，再动手）

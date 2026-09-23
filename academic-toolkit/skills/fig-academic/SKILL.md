@@ -482,10 +482,9 @@ python fig-academic/scripts/generate_adapters.py            # all platforms
 python fig-academic/scripts/generate_adapters.py --target cursor  # Cursor only
 ```
 
-Generated adapter samples are kept in `install/` for upstream reference only
-(cursor / copilot / codex / claude-code). They are **not** used by this repo's runtime:
-in academic-toolkit the skill runs in-place from `skills/fig-academic/` via the repo's
-`AGENTS.md` driving protocol — do not copy it into host-private directories.
+The upstream host-adapter samples and their generator are **not bundled here** (removed
+during rewritten integration, 2026-09-24): in academic-toolkit the skill runs in-place from
+`skills/fig-academic/` via the repo's driving protocol — no host installation path exists.
 ---
 
 ## References

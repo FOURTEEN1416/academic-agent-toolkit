@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "purpose": "宿主依赖特征词豁免登记制：本清单之外的 skills/ 内命中一律 FAIL（登记外零命中棘轮）。",
+  "policy": "每条豁免必须写明不可清除的理由；理由消失时收缩本清单。新增豁免须经用户裁决。",
+  "updated": "2026-09-24",
+  "exemptions": [
+    {
+      "file": "skills/meta-agent-config/SKILL.md",
+      "pattern": ".claude/",
+      "reason": "跨宿主机制对照表内容本体（对比各宿主 agent 定义位置），删除即毁文档职能；已标注存档性质"
+    },
+    {
+      "file": "skills/meta-command-development/SKILL.md",
+      "pattern": ".claude/",
+      "reason": "跨宿主机制对照表内容本体（Slash 命令目录位置对比）"
+    },
+    {
+      "file": "skills/meta-hook-development/SKILL.md",
+      "pattern": ".claude/",
+      "reason": "跨宿主机制对照表内容本体（hooks 配置位置对比）"
+    },
+    {
+      "file": "skills/paper-writing-scientific/references/UPSTREAM.md",
+      "pattern": ".claude/",
+      "reason": "溯源台账如实记录上游仓内安装态路径（审计义务，不可改写上游事实）"
+    },
+    {
+      "file": "skills/lit-citation-verify-latex/SKILL.md",
+      "pattern": "ANTHROPIC_API_KEY",
+      "reason": "运行时依赖事实：上游脚本真实读取该环境变量，改文案即失真；属外部 API 依赖非宿主绑定"
+    },
+    {
+      "file": "skills/paper-writing-clinical/SKILL.md",
+      "pattern": "ANTHROPIC_API_KEY",
+      "reason": "运行时依赖事实：上游 scripts 依赖该环境变量，资产查找口径如实声明不可直接运行"
+    },
+    {
+      "file": "skills/paper-writing-clinical/modules/ADAPTATION.md",
+      "pattern": "ANTHROPIC_API_KEY",
+      "reason": "适配映射表事实：该 API 依赖由会话 agent 本体替代的映射记录"
+    },
+    {
+      "file": "skills/paper-writing-clinical/references/UPSTREAM.md",
+      "pattern": "ANTHROPIC_API_KEY",
+      "reason": "溯源台账如实记录上游 API 依赖（审计义务）"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # paper-search: 学术论文检索（OpenAlex keyless API）
-# ACAT-GOVERNANCE 标注（2026-08-30）：上游契约引用 ~/.claude 插件脚本但脚本从未入库；
+# ACAT-GOVERNANCE 标注（2026-08-30）：上游契约引用宿主私有路径的插件脚本但脚本从未入库；
 # 按契约重建为本地可执行版（OpenAlex keyless，双宿主可用）。非上游原样文件。
 # 用法: search.sh "<query>" [limit] [sort:relevance|cites] [page]
 # v2: cites 模式客户端被引排序（relevance 拉取）。

@@ -107,7 +107,7 @@ A [Claude Code](https://claude.com/claude-code) / [Codex](https://github.com/ope
 ```bash
 git clone https://github.com/Haojae/scipilot-figure-skill.git \
           skills/fig-visualization-advisor (in-repo; no host install step)
-pip install -r ~/.claude/skills/fig-visualization-advisor/requirements.txt
+pip install -r skills/fig-visualization-advisor/requirements.txt
 ```
 
 `SciencePlots` / `pypdf` / `kaleido` 是可选增强，缺失时不影响运行。
@@ -283,8 +283,8 @@ Manual:
 
 ```bash
 git clone https://github.com/Haojae/scipilot-figure-skill.git \
-          ~/.claude/skills/fig-visualization-advisor
-pip install -r ~/.claude/skills/fig-visualization-advisor/requirements.txt
+          skills/fig-visualization-advisor
+pip install -r skills/fig-visualization-advisor/requirements.txt
 ```
 
 ### Usage examples

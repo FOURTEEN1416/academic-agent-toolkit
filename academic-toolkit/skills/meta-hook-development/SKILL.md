@@ -109,7 +109,7 @@ Execute bash commands for deterministic checks:
 
 ### Settings Format (Direct)
 
-**For user settings** in `.claude/settings.json`, use direct format:
+**For user settings** in the host's hooks configuration file (location varies by host — see the comparison table above), use direct format:
 
 ```json
 {
@@ -555,7 +555,7 @@ input=$(cat)
 ```bash
 #!/bin/bash
 # Check configuration for activation
-CONFIG_FILE="$CLAUDE_PROJECT_DIR/.claude/plugin-config.json"
+CONFIG_FILE="${PROJECT_DIR}/plugin-config.json"
 
 if [ -f "$CONFIG_FILE" ]; then
   enabled=$(jq -r '.strictMode // false' "$CONFIG_FILE")
