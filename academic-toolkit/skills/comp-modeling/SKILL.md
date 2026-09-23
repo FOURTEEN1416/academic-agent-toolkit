@@ -960,3 +960,7 @@ echo "<!-- MODELING_OK facts_traced=N rules_covered=M source=PROBLEM_FACTS.json 
 
 > 本段与 `skills/_utils/anti_rationalization.md`（全局版）配套：本表是本步专属，
 > 全局版覆盖跨步骤通用借口。新增借口时优先落到本表（更贴岗位），能泛化再上升。
+
+## 补充参考
+
+- `references/mml-skills/model-quality-contracts.md`：模型质量与逐问递进合同（跨问题统一机制内核/继承扩展纪律）——多子问题建模前读。（来源 Math-model-skills，MIT，溯源见同目录 UPSTREAM.md）

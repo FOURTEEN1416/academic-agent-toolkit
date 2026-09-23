@@ -392,7 +392,8 @@ if [ "$COMPETITION" = "stats" ] || echo "$ARGUMENTS" | grep -qi "统计建模\|s
 
     echo "Using stats template"
 
-    cp "$TMPL_BASE/stats/"* paper/ 2>/dev/null
+    [ -d "$TMPL_BASE/stats" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/stats/（入库位置 skills/comp-paper-zh/_templates/stats/，请检查执行目录与 TMPL_BASE）"; exit 1; }
+    cp "$TMPL_BASE/stats/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/stats/ -> paper/"; exit 1; }
 
 elif echo "$ARGUMENTS" | grep -qi "apmcm_zh\|亚太.*中文\|亚太赛中文" || grep -qi "apmcm_zh\|亚太.*中文\|亚太赛中文" AGENTS.md 2>/dev/null; then
 
@@ -420,7 +421,8 @@ elif echo "$ARGUMENTS" | grep -qi "huazhong\|华中杯" || grep -qi "huazhong\|�
 
     # 华中杯与国赛同文档类（2026-09-09 审计修正：旧版 cp _templates/huazhong/* 指向不存在的目录，靠断言兜底报错）
 
-    cp "$TMPL_BASE/cumcm/"* paper/ 2>/dev/null
+    [ -d "$TMPL_BASE/cumcm" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/cumcm/（入库位置 skills/comp-paper-zh/_templates/cumcm/，请检查执行目录与 TMPL_BASE）"; exit 1; }
+    cp "$TMPL_BASE/cumcm/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/cumcm/ -> paper/"; exit 1; }
 
 elif echo "$ARGUMENTS" | grep -qi "huawei\|华为杯" || \
 
@@ -432,7 +434,8 @@ elif echo "$ARGUMENTS" | grep -qi "huawei\|华为杯" || \
 
     echo "Using huawei template"
 
-    cp "$TMPL_BASE/huawei/"* paper/ 2>/dev/null
+    [ -d "$TMPL_BASE/huawei" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/huawei/（入库位置 skills/comp-paper-zh/_templates/huawei/，请检查执行目录与 TMPL_BASE）"; exit 1; }
+    cp "$TMPL_BASE/huawei/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/huawei/ -> paper/"; exit 1; }
 
 elif echo "$ARGUMENTS" | grep -qi "wuyi\|五一杯" || grep -qi "wuyi\|五一杯" AGENTS.md 2>/dev/null; then
 
@@ -448,37 +451,43 @@ elif echo "$ARGUMENTS" | grep -qi "cumcm\|国赛" || grep -qi "cumcm\|国赛" AG
 
     echo "Using cumcm template"
 
-    cp "$TMPL_BASE/cumcm/"* paper/ 2>/dev/null
+    [ -d "$TMPL_BASE/cumcm" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/cumcm/（入库位置 skills/comp-paper-zh/_templates/cumcm/，请检查执行目录与 TMPL_BASE）"; exit 1; }
+    cp "$TMPL_BASE/cumcm/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/cumcm/ -> paper/"; exit 1; }
 
 elif echo "$ARGUMENTS" | grep -qi "changsanjiao\|长三角" || grep -qi "changsanjiao\|长三角" AGENTS.md 2>/dev/null; then
 
     echo "Using changsanjiao template"
 
-    cp "$TMPL_BASE/changsanjiao/"* paper/ 2>/dev/null
+    [ -d "$TMPL_BASE/changsanjiao" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/changsanjiao/（入库位置 skills/comp-paper-zh/_templates/changsanjiao/，请检查执行目录与 TMPL_BASE）"; exit 1; }
+    cp "$TMPL_BASE/changsanjiao/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/changsanjiao/ -> paper/"; exit 1; }
 
 elif echo "$ARGUMENTS" | grep -qi "huashu\|华数杯" || grep -qi "huashu\|华数杯" AGENTS.md 2>/dev/null; then
 
     echo "Using huashubei template"
 
-    cp "$TMPL_BASE/huashubei/"* paper/ 2>/dev/null
+    [ -d "$TMPL_BASE/huashubei" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/huashubei/（入库位置 skills/comp-paper-zh/_templates/huashubei/，请检查执行目录与 TMPL_BASE）"; exit 1; }
+    cp "$TMPL_BASE/huashubei/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/huashubei/ -> paper/"; exit 1; }
 
 elif echo "$ARGUMENTS" | grep -qi "diangong\|电工杯" || grep -qi "diangong\|电工杯" AGENTS.md 2>/dev/null; then
 
     echo "Using diangongbei template"
 
-    cp "$TMPL_BASE/diangongbei/"* paper/ 2>/dev/null
+    [ -d "$TMPL_BASE/diangongbei" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/diangongbei/（入库位置 skills/comp-paper-zh/_templates/diangongbei/，请检查执行目录与 TMPL_BASE）"; exit 1; }
+    cp "$TMPL_BASE/diangongbei/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/diangongbei/ -> paper/"; exit 1; }
 
 elif echo "$ARGUMENTS" | grep -qi "dongsansheng\|东三省\|辽宁" || grep -qi "dongsansheng\|东三省\|辽宁" AGENTS.md 2>/dev/null; then
 
     echo "Using dongsansheng template"
 
-    cp "$TMPL_BASE/dongsansheng/"* paper/ 2>/dev/null
+    [ -d "$TMPL_BASE/dongsansheng" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/dongsansheng/（入库位置 skills/comp-paper-zh/_templates/dongsansheng/，请检查执行目录与 TMPL_BASE）"; exit 1; }
+    cp "$TMPL_BASE/dongsansheng/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/dongsansheng/ -> paper/"; exit 1; }
 
 elif echo "$ARGUMENTS" | grep -qi "shuwei\|数维杯" || grep -qi "shuwei\|数维杯" AGENTS.md 2>/dev/null; then
 
     echo "Using shuweibei template"
 
-    cp "$TMPL_BASE/shuweibei/"* paper/ 2>/dev/null
+    [ -d "$TMPL_BASE/shuweibei" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/shuweibei/（入库位置 skills/comp-paper-zh/_templates/shuweibei/，请检查执行目录与 TMPL_BASE）"; exit 1; }
+    cp "$TMPL_BASE/shuweibei/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/shuweibei/ -> paper/"; exit 1; }
 
 else
 
@@ -3014,3 +3023,7 @@ fi
 
 > 本段与 `skills/_utils/anti_rationalization.md`（全局版）配套：本表是本步专属，
 > 全局版覆盖跨步骤通用借口。新增借口时优先落到本表（更贴岗位），能泛化再上升。
+
+## 版式参考（paper-layout）
+
+- `references/mml-skills/paper-layout/`：论文版式六件（core/body-density/page-composition/latex-figures/latex-math/docx-figures）——排版与图表密度决策时按需读。（来源 Math-model-skills，MIT，溯源见同目录 UPSTREAM.md）

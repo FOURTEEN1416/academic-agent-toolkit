@@ -122,6 +122,11 @@ UPSTREAM_REGISTRY: list[Path] = [
     # catalog 如实登记，用户裁决收编入 git（与上方"无 License 不入 git"判例的差异：
     # 本件已随 git 交付故注册不致 CI 缺件；公开再分发待上游授权，见 catalog upstream 字段）
     ROOT / "skills" / "paper-oral-exemplar" / "references" / "UPSTREAM.md",
+    # 2026-09-23 v2.0 收尾"全部吸收"批：Math-model-skills 四件参考收编（vendor-asset-index #5 既定路径）
+    ROOT / "skills" / "comp-problem-analysis" / "references" / "mml-skills" / "UPSTREAM.md",
+    ROOT / "skills" / "comp-modeling" / "references" / "mml-skills" / "UPSTREAM.md",
+    ROOT / "skills" / "comp-review" / "references" / "mml-skills" / "UPSTREAM.md",
+    ROOT / "skills" / "comp-paper-zh" / "references" / "mml-skills" / "UPSTREAM.md",
 ]
 
 # 需要完整许可文件的 vendored 外部依赖目录（含 LICENSE/NOTICE/UPSTREAM.md 三件套）

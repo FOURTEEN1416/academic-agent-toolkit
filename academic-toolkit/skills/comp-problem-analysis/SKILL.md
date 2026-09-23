@@ -1530,3 +1530,7 @@ EOF
 
 > 本段与 `skills/_utils/anti_rationalization.md`（全局版）配套：本表是本步专属，
 > 全局版覆盖跨步骤通用借口。新增借口时优先落到本表（更贴岗位），能泛化再上升。
+
+## 补充参考
+
+- `references/mml-skills/cumcm-official-notes.md`：官方规则笔记（论文格式标准/参赛准则官方链接与落地要点）——赛题分析与全文合规判断时读。（来源 Math-model-skills，MIT，溯源见同目录 UPSTREAM.md）

@@ -22,7 +22,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FRONT = re.compile(r"\A---\s*\n(.*?)\n---", re.S)
-REF = re.compile(r"(?:skills|tools|engine)/[A-Za-z0-9_\-./\u4e00-\u9fff]+\.(?:py|md|json|sh|tex|drawio|mjs|ttf|geojson)")
+REF = re.compile(r"(?<![A-Za-z0-9_\-./])(?:skills|tools|engine)/[A-Za-z0-9_\-./\u4e00-\u9fff]+\.(?:py|md|json|sh|tex|drawio|mjs|ttf|geojson)")
+# 2026-09-23 v2.0 收尾：加左侧标识符边界——否则 `references/mml-skills/x.md` 这类
+# 路径中的子串 `skills/x.md` 会被截胡命中成幽灵断链（mml-skills 收编批实测）。
 # 技能内部相对引用（references/ scripts/ assets/ 三个 skills 生态标准目录开头，
 # 外加 _utils/ 与 shared-scripts/ 两个 skills 级共享脚本目录——2026-09-09 独立审计
 # P1-4 扩展：此前 _utils/ 前缀引用不在机检范围，dev-selfcheck 等真实断链漏网；

@@ -718,3 +718,35 @@ This skill includes LaTeX style packages and templates for professional report f
 
 Load these references as needed when working on specific aspects of scientific writing.
 
+## Scripts & Additional Resources (full inventory)
+
+本技能随附的确定性脚本与补充资源全量清单（2026-09-23 收尾批补登记；此前未列入目录致成"死资源"）：
+
+**Scripts（确定性校验/脚手架，`python scripts/<name>.py`）：**
+
+- `scripts/scaffold_manuscript.py`: 按 IMRAD 生成稿件脚手架（配合 `assets/manuscript_scaffold.md`）
+- `scripts/lint_manuscript.py`: 稿件 Markdown 结构 lint（标题层级/图表引用/缩写）
+- `scripts/audit_claims.py`: 主张-证据配对审计（配合 `assets/claim_evidence_template.csv`）
+- `scripts/check_consistency.py`: 数字/术语跨章一致性检查（配合 `assets/consistency_manifest_template.json`）
+- `scripts/check_references.py`: 引用完整性检查
+- `scripts/validate_manifest.py`: 稿件 manifest 校验（配合 `assets/manuscript_manifest_template.json`）
+- `scripts/validate_authorship.py`: 作者贡献/署名校验（配合 `assets/authorship_template.json` 与 ICMJE 口径）
+- `scripts/select_reporting_guidelines.py`: 按研究类型选择报告规范（配合 `assets/reporting_coverage_template.json`）
+- `scripts/_common.py`: 上述脚本的共享工具模块（内部，不直接调用）
+
+**Additional references（按需加载）：**
+
+- `references/evidence_workflow.md`: 证据分级与引用工作流
+- `references/journal_policies.md`: 期刊政策常见条款（重复发表/预印本/利益冲突）
+- `references/research_integrity_open_science.md`: 研究诚信与开放科学口径
+- `references/authorship_ai_confidentiality.md`: 署名伦理 + AI 使用披露 + 保密边界
+- `references/source_ledger.md`: 来源台账纪律（每条主张可溯源）
+- `references/cli_reference.md`: 本技能脚本族 CLI 速查
+- `references/reporting_guidelines.md`（补充数据文件 `assets/reporting_guidelines.json`）: 各研究类型报告规范清单
+
+**Additional assets（模板/脚手架）：**
+
+- `assets/manuscript_scaffold.md`: 稿件骨架样例
+- `assets/authorship_template.json` / `assets/claim_evidence_template.csv` / `assets/consistency_manifest_template.json` / `assets/manuscript_manifest_template.json` / `assets/source_manifest_template.json` / `assets/reporting_coverage_template.json`: 对应脚本的输入模板
+
+
