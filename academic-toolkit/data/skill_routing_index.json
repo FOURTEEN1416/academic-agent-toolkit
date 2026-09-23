@@ -595,6 +595,30 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/dev-code-frontend/SKILL.md"
     },
+    "dev-code-review-guide": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to review a diff or pull request, write review comments, audit code quality",
+      "full_description": "This skill should be used when the user asks to review a diff or pull request, write review comments, audit code quality, establish review standards, or improve how a team performs code review.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/dev-code-review-guide/SKILL.md"
+    },
+    "dev-daily-coding": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Use for everyday coding tasks that involve writing or modifying source code.",
+      "full_description": "Use for everyday coding tasks that involve writing or modifying source code.",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/dev-daily-coding/SKILL.md"
+    },
+    "dev-debug": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”debug this”, ”fix this error”, ”investigate this bug”, ”troubleshoot",
+      "full_description": "This skill should be used when the user asks to \"debug this\", \"fix this error\", \"investigate this bug\", \"troubleshoot this issue\", \"find the problem\", \"something is broken\", \"this isn't working\", \"why is this failing\", or reports errors/exceptions/bugs. Provides systematic debugging workflow and common error patterns.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/dev-debug/SKILL.md"
+    },
     "dev-design": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -602,6 +626,30 @@
       "full_description": "毕业设计(软件开发)系统设计。基于需求规格产出架构/数据库/API设计。Use when user says 系统设计/毕设设计.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/dev-design/SKILL.md"
+    },
+    "dev-frontend-design": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to",
+      "full_description": "Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, artifacts, posters, or applications (examples include websites, landing pages, dashboards, React components, HTML/CSS layouts, or when styling/beautifying any web UI). Generates creative, polished code and UI design that avoids generic AI aesthetics.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/dev-frontend-design/SKILL.md"
+    },
+    "dev-git-workflow": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”create git commit”, ”manage branches”, ”follow git workflow”, ”use",
+      "full_description": "This skill should be used when the user asks to \"create git commit\", \"manage branches\", \"follow git workflow\", \"use Conventional Commits\", \"handle merge conflicts\", or asks about git branching strategies, version control best practices, pull request workflows. Provides comprehensive Git workflow guidance for team collaboration.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/dev-git-workflow/SKILL.md"
+    },
+    "dev-ml-registry-pattern": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Use only when creating new registrable ML components that require Factory or Registry patterns.",
+      "full_description": "Use only when creating new registrable ML components that require Factory or Registry patterns.",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/dev-ml-registry-pattern/SKILL.md"
     },
     "dev-report": {
       "tier": "ondemand",
@@ -627,6 +675,46 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/dev-selfcheck/SKILL.md"
     },
+    "dev-ui-ux": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to design or review a UI, create a landing page or dashboard, choose colors",
+      "full_description": "This skill should be used when the user asks to design or review a UI, create a landing page or dashboard, choose colors or typography, improve accessibility, or implement polished frontend interfaces with a clear design system.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/dev-ui-ux/SKILL.md"
+    },
+    "dev-uv-package": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Master the uv package manager for fast Python dependency management, virtual environments, and modern Python project",
+      "full_description": "Master the uv package manager for fast Python dependency management, virtual environments, and modern Python project workflows. Use when setting up Python projects, managing dependencies, or optimizing Python development workflows with uv.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/dev-uv-package/SKILL.md"
+    },
+    "dev-verification-loop": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”verify code”, ”run verification”, ”check quality”, ”validate changes”,",
+      "full_description": "This skill should be used when the user asks to \"verify code\", \"run verification\", \"check quality\", \"validate changes\", or before creating a PR. Provides comprehensive verification including build, type check, lint, tests, security scan, and diff review.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/dev-verification-loop/SKILL.md"
+    },
+    "dev-web-design-review": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "'This skill enables visual inspection of websites running locally or remotely to identify and fix design issues.",
+      "full_description": "'This skill enables visual inspection of websites running locally or remotely to identify and fix design issues. Triggers on requests like \"review website design\", \"check the UI\", \"fix the layout\", \"find design problems\". Detects issues with responsive design, accessibility, visual consistency, and layout breakage, then performs fixes at the source code level.'",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/dev-web-design-review/SKILL.md"
+    },
+    "dev-webapp-testing": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend",
+      "full_description": "Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/dev-webapp-testing/SKILL.md"
+    },
     "diagram-design": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -634,6 +722,22 @@
       "full_description": "Create branded architecture, IT current-state, flowchart, sequence, state machine, ER/data model, timeline, swimlane, quadrant, radar/spider, polar chart (polar/radial lollipop), loop/flywheel, nested, tree, org chart, layer stack, Venn, pyramid/funnel, treemap, bar, line, Gantt and scatter charts, high-level, process, medallion, data flow, DP integration, DP security matrix, Sankey, fishbone, Wardley map, kanban, user journey, deployment, dependency graph, UML class, story map, or database schema diagrams as standalone HTML/SVG/PNG. Redraw .drawio/.drawio.png/.drawio.svg or Mermaid .mmd sources at a chosen size/detail; onboard brand tokens from a website; add semantic patterns, callouts, accessible motion, or sketchy/hand-drawn styling.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/diagram-design/SKILL.md"
+    },
+    "doc-coauthoring": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to co-author documentation, draft a proposal, write a technical spec,",
+      "full_description": "This skill should be used when the user asks to co-author documentation, draft a proposal, write a technical spec, create a decision doc or RFC, or structure a substantial document through iterative collaboration and reader testing.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/doc-coauthoring/SKILL.md"
+    },
+    "doc-post-acceptance": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”prepare conference presentation”, ”create presentation slides”, ”design",
+      "full_description": "This skill should be used when the user asks to \"prepare conference presentation\", \"create presentation slides\", \"design poster\", \"make academic poster\", \"write promotion content\", \"create Twitter thread\", or mentions post-acceptance conference preparation. Provides comprehensive workflow for presentation, poster, and promotion content creation.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/doc-post-acceptance/SKILL.md"
     },
     "docx-export": {
       "tier": "ondemand",
@@ -739,6 +843,14 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/feishu-notify/SKILL.md"
     },
+    "fig-publication-chart": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks for a publication-quality scientific figure or table, wants help choosing",
+      "full_description": "This skill should be used when the user asks for a publication-quality scientific figure or table, wants help choosing the right chart for results, needs a paper-ready pubfig or pubtab workflow, wants a figure + companion table for a results section, wants an Excel sheet turned into publication-ready LaTeX, or wants an existing scientific figure/table reviewed and upgraded.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/fig-publication-chart/SKILL.md"
+    },
     "figure-aesthetics-craft": {
       "tier": "core",
       "reason": "主链步骤的推荐/必用位",
@@ -763,142 +875,6 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/format-profile/SKILL.md"
     },
-    "galaxy-agent-identifier": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Use when creating or configuring Claude Code agents and their frontmatter.",
-      "full_description": "Use when creating or configuring Claude Code agents and their frontmatter.",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/galaxy-agent-identifier/SKILL.md"
-    },
-    "galaxy-architecture-design": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Use only when creating new registrable ML components that require Factory or Registry patterns.",
-      "full_description": "Use only when creating new registrable ML components that require Factory or Registry patterns.",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/galaxy-architecture-design/SKILL.md"
-    },
-    "galaxy-bug-detective": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”debug this”, ”fix this error”, ”investigate this bug”, ”troubleshoot",
-      "full_description": "This skill should be used when the user asks to \"debug this\", \"fix this error\", \"investigate this bug\", \"troubleshoot this issue\", \"find the problem\", \"something is broken\", \"this isn't working\", \"why is this failing\", or reports errors/exceptions/bugs. Provides systematic debugging workflow and common error patterns.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-bug-detective/SKILL.md"
-    },
-    "galaxy-citation-verification": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill provides reference guidance for citation verification in academic writing. Use when the user asks about",
-      "full_description": "This skill provides reference guidance for citation verification in academic writing. Use when the user asks about \"citation verification best practices\", \"how to verify references\", \"preventing fake citations\", or needs guidance on citation accuracy. This skill supports ml-paper-writing by providing detailed verification principles and common error patterns.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-citation-verification/SKILL.md"
-    },
-    "galaxy-code-review-excellence": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to review a diff or pull request, write review comments, audit code quality",
-      "full_description": "This skill should be used when the user asks to review a diff or pull request, write review comments, audit code quality, establish review standards, or improve how a team performs code review.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-code-review-excellence/SKILL.md"
-    },
-    "galaxy-command-development": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”create a slash command”, ”add a command”, ”write a custom command”,",
-      "full_description": "This skill should be used when the user asks to \"create a slash command\", \"add a command\", \"write a custom command\", \"define command arguments\", \"use command frontmatter\", \"organize commands\", \"create command with file references\", \"interactive command\", \"use AskUserQuestion in command\", or needs guidance on slash command structure, YAML frontmatter fields, dynamic arguments, bash execution in commands, user interaction patterns, or command development best practices for Claude Code.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-command-development/SKILL.md"
-    },
-    "galaxy-daily-coding": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Use for everyday coding tasks that involve writing or modifying source code.",
-      "full_description": "Use for everyday coding tasks that involve writing or modifying source code.",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/galaxy-daily-coding/SKILL.md"
-    },
-    "galaxy-daily-paper-generator": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Use when the user asks to generate daily paper digests on a general topic. This skill supports both arXiv and bioRxiv",
-      "full_description": "Use when the user asks to generate daily paper digests on a general topic. This skill supports both arXiv and bioRxiv (or either one), then produces structured Chinese/English summaries for selected papers.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-daily-paper-generator/SKILL.md"
-    },
-    "galaxy-defuddle": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "HTML-to-Markdown 网页正文提取工具。从任意 URL/HTML 中提取主内容，去除导航/广告/侧栏，返回干净 Markdown。",
-      "full_description": "HTML-to-Markdown 网页正文提取工具。从任意 URL/HTML 中提取主内容，去除导航/广告/侧栏，返回干净 Markdown。",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/galaxy-defuddle/SKILL.md"
-    },
-    "galaxy-doc-coauthoring": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to co-author documentation, draft a proposal, write a technical spec,",
-      "full_description": "This skill should be used when the user asks to co-author documentation, draft a proposal, write a technical spec, create a decision doc or RFC, or structure a substantial document through iterative collaboration and reader testing.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-doc-coauthoring/SKILL.md"
-    },
-    "galaxy-expression-skill": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks for efficient communication, task reports, file-operation summaries,",
-      "full_description": "This skill should be used when the user asks for efficient communication, task reports, file-operation summaries, research discussion, study-note synthesis, planning, writing feedback, or responses that need conclusion-first structure, concrete evidence, risk disclosure, and useful next steps.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-expression-skill/SKILL.md"
-    },
-    "galaxy-frontend-design": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to",
-      "full_description": "Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, artifacts, posters, or applications (examples include websites, landing pages, dashboards, React components, HTML/CSS layouts, or when styling/beautifying any web UI). Generates creative, polished code and UI design that avoids generic AI aesthetics.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-frontend-design/SKILL.md"
-    },
-    "galaxy-git-workflow": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”create git commit”, ”manage branches”, ”follow git workflow”, ”use",
-      "full_description": "This skill should be used when the user asks to \"create git commit\", \"manage branches\", \"follow git workflow\", \"use Conventional Commits\", \"handle merge conflicts\", or asks about git branching strategies, version control best practices, pull request workflows. Provides comprehensive Git workflow guidance for team collaboration.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-git-workflow/SKILL.md"
-    },
-    "galaxy-hook-development": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”create a hook”, ”add a PreToolUse/PostToolUse/Stop hook”, ”validate",
-      "full_description": "This skill should be used when the user asks to \"create a hook\", \"add a PreToolUse/PostToolUse/Stop hook\", \"validate tool use\", \"implement prompt-based hooks\", \"use ${CLAUDE_PLUGIN_ROOT}\", \"set up event-driven automation\", \"block dangerous commands\", or mentions hook events (PreToolUse, PostToolUse, Stop, SubagentStop, SessionStart, SessionEnd, UserPromptSubmit, PreCompact, Notification). Provides comprehensive guidance for creating and implementing Claude Code plugin hooks with focus on advanced prompt-based hooks API.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-hook-development/SKILL.md"
-    },
-    "galaxy-kaggle-learner": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”learn from Kaggle”, ”study Kaggle solutions”, ”analyze Kaggle",
-      "full_description": "This skill should be used when the user asks to \"learn from Kaggle\", \"study Kaggle solutions\", \"analyze Kaggle competitions\", or mentions Kaggle competition URLs. Provides access to extracted knowledge from winning Kaggle solutions across NLP, CV, time series, tabular, and multimodal domains.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-kaggle-learner/SKILL.md"
-    },
-    "galaxy-latex-conference-template-organizer": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Organize messy conference LaTeX template .zip files into clean Overleaf-ready structure. Use when the user asks to",
-      "full_description": "Organize messy conference LaTeX template .zip files into clean Overleaf-ready structure. Use when the user asks to \"organize LaTeX template\", \"clean up .zip template\", or \"prepare Overleaf submission template\".",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-latex-conference-template-organizer/SKILL.md"
-    },
-    "galaxy-mcp-integration": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”add MCP server”, ”integrate MCP”, ”configure MCP in plugin”, ”use",
-      "full_description": "This skill should be used when the user asks to \"add MCP server\", \"integrate MCP\", \"configure MCP in plugin\", \"use .mcp.json\", \"set up Model Context Protocol\", \"connect external service\", mentions \"${CLAUDE_PLUGIN_ROOT} with MCP\", or discusses MCP server types (SSE, stdio, HTTP, WebSocket). Provides comprehensive guidance for integrating Model Context Protocol servers into Claude Code plugins for external tool and service integration.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-mcp-integration/SKILL.md"
-    },
     "galaxy-ml-paper-writing": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -915,14 +891,6 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/galaxy-nature-data/SKILL.md"
     },
-    "galaxy-nature-polishing": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Polish, restructure, or translate academic prose into Nature-leaning English using writing-strategy principles, curated",
-      "full_description": "Polish, restructure, or translate academic prose into Nature-leaning English using writing-strategy principles, curated Nature/Nature Communications article patterns, and phrase-level support from Academic Phrasebank. Use whenever the user asks to polish a manuscript paragraph, abstract, introduction, results, discussion, conclusion, title, methods section, or Chinese academic draft for publication-quality English.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-nature-polishing/SKILL.md"
-    },
     "galaxy-nature-response": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -930,198 +898,6 @@
       "full_description": ">- Draft, audit, or revise point-by-point reviewer response letters for Nature-family manuscript revisions. Use when the user provides reviewer comments, editor decision letters, revision notes, response drafts, or asks how to respond to major/minor revision requests, rebuttal letters, response to reviewers, peer-review reports, 审稿意见回复, 逐点回复, 修回信, 大修回复, 小修回复, or 如何回复 reviewer.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/galaxy-nature-response/SKILL.md"
-    },
-    "galaxy-nature-writing": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Draft, restructure, or plan Nature-style manuscript sections from author-provided claims, results, figures, notes, or",
-      "full_description": "Draft, restructure, or plan Nature-style manuscript sections from author-provided claims, results, figures, notes, or Chinese drafts. Use when the user wants to write or rebuild an abstract, introduction, results narrative, discussion, conclusion, title, or full manuscript argument rather than only polish finished prose.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-nature-writing/SKILL.md"
-    },
-    "galaxy-obsidian-kb-artifacts": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Use this skill for Obsidian-native formatting and derived artifacts such as Markdown formatting, wikilinks, registry",
-      "full_description": "Use this skill for Obsidian-native formatting and derived artifacts such as Markdown formatting, wikilinks, registry tables, canvas files, optional Bases, CLI operations, and link repair. This skill does not decide knowledge routing.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-obsidian-kb-artifacts/SKILL.md"
-    },
-    "galaxy-obsidian-literature-workflow": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Use this skill for project-scoped literature review built on Sources/Papers, with synthesis landing in Knowledge,",
-      "full_description": "Use this skill for project-scoped literature review built on Sources/Papers, with synthesis landing in Knowledge, writing handoff in Writing, and the default literature canvas under Maps/literature.canvas.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-obsidian-literature-workflow/SKILL.md"
-    },
-    "galaxy-obsidian-project-kb-core": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Use this as the main Claude Scholar skill for a vault-first, project-scoped Obsidian research knowledge base rooted at",
-      "full_description": "Use this as the main Claude Scholar skill for a vault-first, project-scoped Obsidian research knowledge base rooted at Research/{project-slug}/. It owns bootstrap, routing, daily logging, hub/plan/index maintenance, registry updates, lifecycle actions, and lint orchestration.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-obsidian-project-kb-core/SKILL.md"
-    },
-    "galaxy-obsidian-source-ingestion": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Use this skill to ingest external materials into the current project-scoped Obsidian KB as source notes under",
-      "full_description": "Use this skill to ingest external materials into the current project-scoped Obsidian KB as source notes under Sources/Papers, Sources/Web, Sources/Docs, Sources/Data, Sources/Interviews, or Sources/Notes.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-obsidian-source-ingestion/SKILL.md"
-    },
-    "galaxy-paper-self-review": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”review paper quality”, ”check paper completeness”, ”validate paper",
-      "full_description": "This skill should be used when the user asks to \"review paper quality\", \"check paper completeness\", \"validate paper structure\", \"self-review before submission\", \"audit claims\", \"check overclaiming\", \"verify whether results support claims\", or mentions systematic paper quality checking. Provides comprehensive quality assurance checklist for academic papers.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-paper-self-review/SKILL.md"
-    },
-    "galaxy-planning-with-files": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Use this by default for non-trivial multi-step work that needs persistent planning, progress tracking, or durable notes",
-      "full_description": "Use this by default for non-trivial multi-step work that needs persistent planning, progress tracking, or durable notes on disk. Trigger when a task will likely span multiple tool calls, research steps, verification loops, or enough context that the plan should not live only in transient chat memory.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-planning-with-files/SKILL.md"
-    },
-    "galaxy-plugin-structure": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”create a plugin”, ”scaffold a plugin”, ”understand plugin structure”,",
-      "full_description": "This skill should be used when the user asks to \"create a plugin\", \"scaffold a plugin\", \"understand plugin structure\", \"organize plugin components\", \"set up plugin.json\", \"use ${CLAUDE_PLUGIN_ROOT}\", \"add commands/agents/skills/hooks\", \"configure auto-discovery\", or needs guidance on plugin directory layout, manifest configuration, component organization, file naming conventions, or Claude Code plugin architecture best practices.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-plugin-structure/SKILL.md"
-    },
-    "galaxy-post-acceptance": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”prepare conference presentation”, ”create presentation slides”, ”design",
-      "full_description": "This skill should be used when the user asks to \"prepare conference presentation\", \"create presentation slides\", \"design poster\", \"make academic poster\", \"write promotion content\", \"create Twitter thread\", or mentions post-acceptance conference preparation. Provides comprehensive workflow for presentation, poster, and promotion content creation.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-post-acceptance/SKILL.md"
-    },
-    "galaxy-publication-chart-skill": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks for a publication-quality scientific figure or table, wants help choosing",
-      "full_description": "This skill should be used when the user asks for a publication-quality scientific figure or table, wants help choosing the right chart for results, needs a paper-ready pubfig or pubtab workflow, wants a figure + companion table for a results section, wants an Excel sheet turned into publication-ready LaTeX, or wants an existing scientific figure/table reviewed and upgraded.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-publication-chart-skill/SKILL.md"
-    },
-    "galaxy-research-ideation": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”brainstorm research ideas”, ”use 5W1H framework”, ”identify research",
-      "full_description": "This skill should be used when the user asks to \"brainstorm research ideas\", \"use 5W1H framework\", \"identify research gaps\", \"conduct gap analysis\", \"start research project\", \"conduct literature review\", \"define research question\", \"select research method\", \"plan research\", or mentions research project initiation phase. Provides comprehensive guidance for research startup workflow from idea generation to planning.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-research-ideation/SKILL.md"
-    },
-    "galaxy-results-analysis": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”analyze experimental results”, ”run strict statistical analysis”,",
-      "full_description": "This skill should be used when the user asks to \"analyze experimental results\", \"run strict statistical analysis\", \"compare model performance\", \"generate scientific figures\", \"check significance\", \"do ablation analysis\", or mentions interpreting experiment data with rigorous statistics and visualization. It focuses on strict analysis bundles, not Results-section prose.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-results-analysis/SKILL.md"
-    },
-    "galaxy-results-report": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”write an experiment report”, ”summarize experimental results”, ”do",
-      "full_description": "This skill should be used when the user asks to \"write an experiment report\", \"summarize experimental results\", \"do experiment retrospection\", \"write a results report\", \"写实验总结报告\", \"写实验复盘\", or mentions turning completed experiment artifacts into a structured, decision-oriented research report. It assumes strict analysis should come from `results-analysis` first.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-results-report/SKILL.md"
-    },
-    "galaxy-review-response": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Systematic review response workflow from comment analysis to professional rebuttal writing. Use when the user asks to",
-      "full_description": "Systematic review response workflow from comment analysis to professional rebuttal writing. Use when the user asks to \"write rebuttal\", \"respond to reviewers\", \"draft review response\", or \"analyze review comments\". Improves paper acceptance rates.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-review-response/SKILL.md"
-    },
-    "galaxy-skill-development": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to create a new skill, repair an existing skill, improve trigger",
-      "full_description": "This skill should be used when the user asks to create a new skill, repair an existing skill, improve trigger descriptions, reorganize skill structure, or make a Claude skill more reusable and internally consistent.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-skill-development/SKILL.md"
-    },
-    "galaxy-skill-improver": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”apply skill improvements”, ”update skill from plan”, ”execute",
-      "full_description": "This skill should be used when the user asks to \"apply skill improvements\", \"update skill from plan\", \"execute improvement plan\", \"fix skill issues\", \"implement skill recommendations\", or mentions applying improvements from quality review reports. Reads improvement-plan-{name}.md files generated by skill-quality-reviewer and intelligently merges and executes the suggested changes to improve Claude Skills quality.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-skill-improver/SKILL.md"
-    },
-    "galaxy-skill-quality-reviewer": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”analyze skill quality”, ”evaluate this skill”, ”review skill quality”,",
-      "full_description": "This skill should be used when the user asks to \"analyze skill quality\", \"evaluate this skill\", \"review skill quality\", \"check my skill\", or \"generate quality report\". Evaluates local skills across description quality, content organization, writing style, and structural integrity.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-skill-quality-reviewer/SKILL.md"
-    },
-    "galaxy-ui-ux-pro-max": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to design or review a UI, create a landing page or dashboard, choose colors",
-      "full_description": "This skill should be used when the user asks to design or review a UI, create a landing page or dashboard, choose colors or typography, improve accessibility, or implement polished frontend interfaces with a clear design system.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-ui-ux-pro-max/SKILL.md"
-    },
-    "galaxy-uv-package-manager": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Master the uv package manager for fast Python dependency management, virtual environments, and modern Python project",
-      "full_description": "Master the uv package manager for fast Python dependency management, virtual environments, and modern Python project workflows. Use when setting up Python projects, managing dependencies, or optimizing Python development workflows with uv.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-uv-package-manager/SKILL.md"
-    },
-    "galaxy-verification-loop": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”verify code”, ”run verification”, ”check quality”, ”validate changes”,",
-      "full_description": "This skill should be used when the user asks to \"verify code\", \"run verification\", \"check quality\", \"validate changes\", or before creating a PR. Provides comprehensive verification including build, type check, lint, tests, security scan, and diff review.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-verification-loop/SKILL.md"
-    },
-    "galaxy-web-design-reviewer": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "'This skill enables visual inspection of websites running locally or remotely to identify and fix design issues.",
-      "full_description": "'This skill enables visual inspection of websites running locally or remotely to identify and fix design issues. Triggers on requests like \"review website design\", \"check the UI\", \"fix the layout\", \"find design problems\". Detects issues with responsive design, accessibility, visual consistency, and layout breakage, then performs fixes at the source code level.'",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-web-design-reviewer/SKILL.md"
-    },
-    "galaxy-webapp-testing": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend",
-      "full_description": "Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-webapp-testing/SKILL.md"
-    },
-    "galaxy-writing-anti-ai": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”remove AI writing patterns”, ”humanize this text”, ”make this sound",
-      "full_description": "This skill should be used when the user asks to \"remove AI writing patterns\", \"humanize this text\", \"make this sound more natural\", \"remove AI-generated traces\", \"fix robotic writing\", or needs to eliminate AI writing patterns from prose. Supports both English and Chinese text. Based on Wikipedia's \"Signs of AI writing\" guide, detects and fixes inflated symbolism, promotional language, superficial -ing analyses, vague attributions, AI vocabulary, negative parallelisms, and excessive conjunctive phrases.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-writing-anti-ai/SKILL.md"
-    },
-    "galaxy-zotero-obsidian-bridge": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Use this skill when Zotero is the literature source of truth and the project KB should receive source notes under",
-      "full_description": "Use this skill when Zotero is the literature source of truth and the project KB should receive source notes under Sources/Papers plus project-linked synthesis in Knowledge and Writing.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/galaxy-zotero-obsidian-bridge/SKILL.md"
     },
     "grant-proposal": {
       "tier": "ondemand",
@@ -1163,6 +939,14 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/humanities-write-latex/SKILL.md"
     },
+    "idea-brainstorm": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”brainstorm research ideas”, ”use 5W1H framework”, ”identify research",
+      "full_description": "This skill should be used when the user asks to \"brainstorm research ideas\", \"use 5W1H framework\", \"identify research gaps\", \"conduct gap analysis\", \"start research project\", \"conduct literature review\", \"define research question\", \"select research method\", \"plan research\", or mentions research project initiation phase. Provides comprehensive guidance for research startup workflow from idea generation to planning.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/idea-brainstorm/SKILL.md"
+    },
     "idea-creator": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1194,6 +978,14 @@
       "full_description": "Create professional infographics using Nano Banana Pro AI with smart iterative refinement. Uses Gemini 3.6 Flash for quality review. Integrates research-lookup and web search for accurate data. Supports 10 infographic types, 8 industry styles, and colorblind-safe palettes.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/infographics/SKILL.md"
+    },
+    "kaggle-learner": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”learn from Kaggle”, ”study Kaggle solutions”, ”analyze Kaggle",
+      "full_description": "This skill should be used when the user asks to \"learn from Kaggle\", \"study Kaggle solutions\", \"analyze Kaggle competitions\", or mentions Kaggle competition URLs. Provides access to extracted knowledge from winning Kaggle solutions across NLP, CV, time series, tabular, and multimodal domains.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/kaggle-learner/SKILL.md"
     },
     "latex-document": {
       "tier": "ondemand",
@@ -1275,6 +1067,62 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/latex-writing/SKILL.md"
     },
+    "lit-citation-verify": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill provides reference guidance for citation verification in academic writing. Use when the user asks about",
+      "full_description": "This skill provides reference guidance for citation verification in academic writing. Use when the user asks about \"citation verification best practices\", \"how to verify references\", \"preventing fake citations\", or needs guidance on citation accuracy. This skill supports ml-paper-writing by providing detailed verification principles and common error patterns.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/lit-citation-verify/SKILL.md"
+    },
+    "lit-daily-digest": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Use when the user asks to generate daily paper digests on a general topic. This skill supports both arXiv and bioRxiv",
+      "full_description": "Use when the user asks to generate daily paper digests on a general topic. This skill supports both arXiv and bioRxiv (or either one), then produces structured Chinese/English summaries for selected papers.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/lit-daily-digest/SKILL.md"
+    },
+    "lit-obsidian-artifacts": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Use this skill for Obsidian-native formatting and derived artifacts such as Markdown formatting, wikilinks, registry",
+      "full_description": "Use this skill for Obsidian-native formatting and derived artifacts such as Markdown formatting, wikilinks, registry tables, canvas files, optional Bases, CLI operations, and link repair. This skill does not decide knowledge routing.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/lit-obsidian-artifacts/SKILL.md"
+    },
+    "lit-obsidian-ingest": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Use this skill to ingest external materials into the current project-scoped Obsidian KB as source notes under",
+      "full_description": "Use this skill to ingest external materials into the current project-scoped Obsidian KB as source notes under Sources/Papers, Sources/Web, Sources/Docs, Sources/Data, Sources/Interviews, or Sources/Notes.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/lit-obsidian-ingest/SKILL.md"
+    },
+    "lit-obsidian-kb-core": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Use this as the main Claude Scholar skill for a vault-first, project-scoped Obsidian research knowledge base rooted at",
+      "full_description": "Use this as the main Claude Scholar skill for a vault-first, project-scoped Obsidian research knowledge base rooted at Research/{project-slug}/. It owns bootstrap, routing, daily logging, hub/plan/index maintenance, registry updates, lifecycle actions, and lint orchestration.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/lit-obsidian-kb-core/SKILL.md"
+    },
+    "lit-review-obsidian": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Use this skill for project-scoped literature review built on Sources/Papers, with synthesis landing in Knowledge,",
+      "full_description": "Use this skill for project-scoped literature review built on Sources/Papers, with synthesis landing in Knowledge, writing handoff in Writing, and the default literature canvas under Maps/literature.canvas.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/lit-review-obsidian/SKILL.md"
+    },
+    "lit-zotero-obsidian": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Use this skill when Zotero is the literature source of truth and the project KB should receive source notes under",
+      "full_description": "Use this skill when Zotero is the literature source of truth and the project KB should receive source notes under Sources/Papers plus project-linked synthesis in Knowledge and Writing.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/lit-zotero-obsidian/SKILL.md"
+    },
     "literature-review": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1306,6 +1154,94 @@
       "full_description": "Generate Mermaid diagrams from user requirements. Saves .mmd and .md files to figures/ directory with syntax verification. Supports flowcharts, sequence diagrams, class diagrams, ER diagrams, Gantt charts, and 18 more diagram types.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/mermaid-diagram/SKILL.md"
+    },
+    "meta-agent-config": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Use when creating or configuring Claude Code agents and their frontmatter.",
+      "full_description": "Use when creating or configuring Claude Code agents and their frontmatter.",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/meta-agent-config/SKILL.md"
+    },
+    "meta-command-development": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”create a slash command”, ”add a command”, ”write a custom command”,",
+      "full_description": "This skill should be used when the user asks to \"create a slash command\", \"add a command\", \"write a custom command\", \"define command arguments\", \"use command frontmatter\", \"organize commands\", \"create command with file references\", \"interactive command\", \"use AskUserQuestion in command\", or needs guidance on slash command structure, YAML frontmatter fields, dynamic arguments, bash execution in commands, user interaction patterns, or command development best practices for Claude Code.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/meta-command-development/SKILL.md"
+    },
+    "meta-hook-development": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”create a hook”, ”add a PreToolUse/PostToolUse/Stop hook”, ”validate",
+      "full_description": "This skill should be used when the user asks to \"create a hook\", \"add a PreToolUse/PostToolUse/Stop hook\", \"validate tool use\", \"implement prompt-based hooks\", \"use ${CLAUDE_PLUGIN_ROOT}\", \"set up event-driven automation\", \"block dangerous commands\", or mentions hook events (PreToolUse, PostToolUse, Stop, SubagentStop, SessionStart, SessionEnd, UserPromptSubmit, PreCompact, Notification). Provides comprehensive guidance for creating and implementing Claude Code plugin hooks with focus on advanced prompt-based hooks API.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/meta-hook-development/SKILL.md"
+    },
+    "meta-mcp-integration": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”add MCP server”, ”integrate MCP”, ”configure MCP in plugin”, ”use",
+      "full_description": "This skill should be used when the user asks to \"add MCP server\", \"integrate MCP\", \"configure MCP in plugin\", \"use .mcp.json\", \"set up Model Context Protocol\", \"connect external service\", mentions \"${CLAUDE_PLUGIN_ROOT} with MCP\", or discusses MCP server types (SSE, stdio, HTTP, WebSocket). Provides comprehensive guidance for integrating Model Context Protocol servers into Claude Code plugins for external tool and service integration.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/meta-mcp-integration/SKILL.md"
+    },
+    "meta-planning-files": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Use this by default for non-trivial multi-step work that needs persistent planning, progress tracking, or durable notes",
+      "full_description": "Use this by default for non-trivial multi-step work that needs persistent planning, progress tracking, or durable notes on disk. Trigger when a task will likely span multiple tool calls, research steps, verification loops, or enough context that the plan should not live only in transient chat memory.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/meta-planning-files/SKILL.md"
+    },
+    "meta-plugin-structure": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”create a plugin”, ”scaffold a plugin”, ”understand plugin structure”,",
+      "full_description": "This skill should be used when the user asks to \"create a plugin\", \"scaffold a plugin\", \"understand plugin structure\", \"organize plugin components\", \"set up plugin.json\", \"use ${CLAUDE_PLUGIN_ROOT}\", \"add commands/agents/skills/hooks\", \"configure auto-discovery\", or needs guidance on plugin directory layout, manifest configuration, component organization, file naming conventions, or Claude Code plugin architecture best practices.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/meta-plugin-structure/SKILL.md"
+    },
+    "meta-skill-development": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to create a new skill, repair an existing skill, improve trigger",
+      "full_description": "This skill should be used when the user asks to create a new skill, repair an existing skill, improve trigger descriptions, reorganize skill structure, or make a Claude skill more reusable and internally consistent.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/meta-skill-development/SKILL.md"
+    },
+    "meta-skill-improve": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”apply skill improvements”, ”update skill from plan”, ”execute",
+      "full_description": "This skill should be used when the user asks to \"apply skill improvements\", \"update skill from plan\", \"execute improvement plan\", \"fix skill issues\", \"implement skill recommendations\", or mentions applying improvements from quality review reports. Reads improvement-plan-{name}.md files generated by skill-quality-reviewer and intelligently merges and executes the suggested changes to improve Claude Skills quality.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/meta-skill-improve/SKILL.md"
+    },
+    "meta-skill-review": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”analyze skill quality”, ”evaluate this skill”, ”review skill quality”,",
+      "full_description": "This skill should be used when the user asks to \"analyze skill quality\", \"evaluate this skill\", \"review skill quality\", \"check my skill\", or \"generate quality report\". Evaluates local skills across description quality, content organization, writing style, and structural integrity.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/meta-skill-review/SKILL.md"
+    },
+    "meta-task-reporting": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks for efficient communication, task reports, file-operation summaries,",
+      "full_description": "This skill should be used when the user asks for efficient communication, task reports, file-operation summaries, research discussion, study-note synthesis, planning, writing feedback, or responses that need conclusion-first structure, concrete evidence, risk disclosure, and useful next steps.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/meta-task-reporting/SKILL.md"
+    },
+    "meta-web-extract": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "HTML-to-Markdown 网页正文提取工具。从任意 URL/HTML 中提取主内容，去除导航/广告/侧栏，返回干净 Markdown。",
+      "full_description": "HTML-to-Markdown 网页正文提取工具。从任意 URL/HTML 中提取主内容，去除导航/广告/侧栏，返回干净 Markdown。",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/meta-web-extract/SKILL.md"
     },
     "model-building": {
       "tier": "ondemand",
@@ -1515,6 +1451,14 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-framework-figure-studio-pro/SKILL.md"
     },
+    "paper-humanize": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”remove AI writing patterns”, ”humanize this text”, ”make this sound",
+      "full_description": "This skill should be used when the user asks to \"remove AI writing patterns\", \"humanize this text\", \"make this sound more natural\", \"remove AI-generated traces\", \"fix robotic writing\", or needs to eliminate AI writing patterns from prose. Supports both English and Chinese text. Based on Wikipedia's \"Signs of AI writing\" guide, detects and fixes inflated symbolism, promotional language, superficial -ing analyses, vague attributions, AI vocabulary, negative parallelisms, and excessive conjunctive phrases.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/paper-humanize/SKILL.md"
+    },
     "paper-illustration": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1539,6 +1483,14 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-plan-zh/SKILL.md"
     },
+    "paper-polish-nature": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Polish, restructure, or translate academic prose into Nature-leaning English using writing-strategy principles, curated",
+      "full_description": "Polish, restructure, or translate academic prose into Nature-leaning English using writing-strategy principles, curated Nature/Nature Communications article patterns, and phrase-level support from Academic Phrasebank. Use whenever the user asks to polish a manuscript paragraph, abstract, introduction, results, discussion, conclusion, title, methods section, or Chinese academic draft for publication-quality English.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/paper-polish-nature/SKILL.md"
+    },
     "paper-poster": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
@@ -1546,6 +1498,14 @@
       "full_description": "从已成稿论文生成会议海报（article + tcbposter LaTeX，出 A0/A1 PDF，另出可编辑 PPTX 与 SVG）。触发词：做海报、制作海报、conference poster、make poster、生成poster、poster session。只做海报（A0/A1 单页 + PPTX）；要做逐页幻灯/演讲稿改用 paper-slides。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-poster/SKILL.md"
+    },
+    "paper-results-report": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”write an experiment report”, ”summarize experimental results”, ”do",
+      "full_description": "This skill should be used when the user asks to \"write an experiment report\", \"summarize experimental results\", \"do experiment retrospection\", \"write a results report\", \"写实验总结报告\", \"写实验复盘\", or mentions turning completed experiment artifacts into a structured, decision-oriented research report. It assumes strict analysis should come from `results-analysis` first.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/paper-results-report/SKILL.md"
     },
     "paper-search": {
       "tier": "ondemand",
@@ -1555,6 +1515,22 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/paper-search/SKILL.md"
     },
+    "paper-sections-nature": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Draft, restructure, or plan Nature-style manuscript sections from author-provided claims, results, figures, notes, or",
+      "full_description": "Draft, restructure, or plan Nature-style manuscript sections from author-provided claims, results, figures, notes, or Chinese drafts. Use when the user wants to write or rebuild an abstract, introduction, results narrative, discussion, conclusion, title, or full manuscript argument rather than only polish finished prose.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/paper-sections-nature/SKILL.md"
+    },
+    "paper-self-review": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”review paper quality”, ”check paper completeness”, ”validate paper",
+      "full_description": "This skill should be used when the user asks to \"review paper quality\", \"check paper completeness\", \"validate paper structure\", \"self-review before submission\", \"audit claims\", \"check overclaiming\", \"verify whether results support claims\", or mentions systematic paper quality checking. Provides comprehensive quality assurance checklist for academic papers.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/paper-self-review/SKILL.md"
+    },
     "paper-slides": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
@@ -1562,6 +1538,14 @@
       "full_description": "从已成稿论文生成会议演讲幻灯（Beamer LaTeX 编译为 PDF，另出可编辑 PPTX），含演讲备注与完整演讲稿。触发词：做PPT、做幻灯片、make slides、conference talk、presentation slides、生成slides、写演讲稿。只做幻灯（Beamer 逐页 + 演讲稿）；要做单页海报改用 paper-poster。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-slides/SKILL.md"
+    },
+    "paper-template-organizer": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Organize messy conference LaTeX template .zip files into clean Overleaf-ready structure. Use when the user asks to",
+      "full_description": "Organize messy conference LaTeX template .zip files into clean Overleaf-ready structure. Use when the user asks to \"organize LaTeX template\", \"clean up .zip template\", or \"prepare Overleaf submission template\".",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/paper-template-organizer/SKILL.md"
     },
     "paper-write": {
       "tier": "ondemand",
@@ -1583,7 +1567,7 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Draft a Nature-style LaTeX paper with hourglass structure, reader-first logic, and publication-quality English. Use when",
-      "full_description": "Draft a Nature-style LaTeX paper with hourglass structure, reader-first logic, and publication-quality English. Use when the target venue is a Nature-family journal. 区别于 paper-write：本技能用 Nature 沙漏结构与期刊写作规范，ML 会议稿改用 paper-write；Word(docx) 输出改用 paper-write-nature-docx；仅重构个别章节（作者已有 claims/figures）用 galaxy-nature-writing。",
+      "full_description": "Draft a Nature-style LaTeX paper with hourglass structure, reader-first logic, and publication-quality English. Use when the target venue is a Nature-family journal. 区别于 paper-write：本技能用 Nature 沙漏结构与期刊写作规范，ML 会议稿改用 paper-write；Word(docx) 输出改用 paper-write-nature-docx；仅重构个别章节（作者已有 claims/figures）用 paper-sections-nature。",
       "description_compacted": true,
       "path": "academic-toolkit/skills/paper-write-nature/SKILL.md"
     },
@@ -1715,6 +1699,14 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/rebuttal/SKILL.md"
     },
+    "rebuttal-workflow": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Systematic review response workflow from comment analysis to professional rebuttal writing. Use when the user asks to",
+      "full_description": "Systematic review response workflow from comment analysis to professional rebuttal writing. Use when the user asks to \"write rebuttal\", \"respond to reviewers\", \"draft review response\", or \"analyze review comments\". Improves paper acceptance rates.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/rebuttal-workflow/SKILL.md"
+    },
     "research-lit": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
@@ -1762,6 +1754,14 @@
       "full_description": "Use when experiments complete to judge what claims the results support, what they don't, and what evidence is still missing. Codex MCP evaluates results against intended claims and routes to next action (pivot, supplement, or confirm). Use after experiments finish — before writing the paper or running ablations.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/result-to-claim/SKILL.md"
+    },
+    "results-analysis": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "This skill should be used when the user asks to ”analyze experimental results”, ”run strict statistical analysis”,",
+      "full_description": "This skill should be used when the user asks to \"analyze experimental results\", \"run strict statistical analysis\", \"compare model performance\", \"generate scientific figures\", \"check significance\", \"do ablation analysis\", or mentions interpreting experiment data with rigorous statistics and visualization. It focuses on strict analysis bundles, not Results-section prose.",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/results-analysis/SKILL.md"
     },
     "run-experiment": {
       "tier": "ondemand",

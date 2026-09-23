@@ -52,7 +52,7 @@
 | `scientific-visualization` | matplotlib/seaborn/plotly 出版规范：多面板、误差棒、显著性标记、色盲安全、PDF/EPS/TIFF 导出 |
 | `matplotlib` / `seaborn` / `plotly` | 三大绘图库语法规范 |
 | `eco-community-plots` ⚠ | 群落生态多元统计 R 模板 6 件：PCoA+边缘箱线+PERMANOVA / RDA 双标图+envfit / Mantel 热图 / Procrustes / 回归组合面板 / 富集 z-score（毫米制印刷导出） |
-| `galaxy-publication-chart-skill` | 期刊级图表 |
+| `fig-publication-chart` | 期刊级图表 |
 | `visualization` | 通用可视化方法 |
 
 **E. 概念图/框架图/示意图**

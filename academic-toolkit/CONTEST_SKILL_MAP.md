@@ -115,7 +115,13 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 | nature-* 期刊套件（12） | nature-citation-verifier, nature-data-availability, nature-figure, nature-figure-planner, nature-manuscript-optimizer, nature-paper-bootstrap, nature-paper-workflow, nature-portfolio-playbook, nature-rebuttal-response, nature-results-section-revision, nature-scientific-writing, nature-submission-audit | 期刊投稿口径，与国赛格式/审稿逻辑不符 |
 | spine-*（12） | spine 及其 11 个内部子技能 | 自媒体长文管线 |
 | latex-paper-*（8） | latex-paper-survey-writer 等 | arXiv/合作论文管线 |
-| galaxy-*（45） | galaxy-ui-ux-pro-max 等 web/obsidian/插件杂域 | 非竞赛域（边缘：galaxy-kaggle-learner/galaxy-publication-chart-skill/galaxy-ml-paper-writing 如需可临时按情境用） |
+| meta-*（12） | meta-agent-config / meta-skill-* / meta-planning-files 等 | 宿主与技能开发元域（原 galaxy 杂域语义化） |
+| lit-*（7） | lit-citation-verify / lit-obsidian-* / lit-daily-digest / lit-zotero-obsidian | 文献管理域（外域；kaggle-learner 亦此批具名） |
+| doc-*（2） | doc-coauthoring, doc-post-acceptance | 文档生产域 |
+| fig-*（1） | fig-publication-chart | 出版图表顾问（外域） |
+| paper-* 外域件（7） | paper-humanize, paper-polish-nature, paper-results-report, paper-sections-nature, paper-self-review, paper-template-organizer | 期刊写作族未接入件 |
+| 散名（4） | idea-brainstorm, rebuttal-workflow, results-analysis, kaggle-learner | 单件外域 |
+| 待合并（3） | galaxy-ml-paper-writing, galaxy-nature-data, galaxy-nature-response | W3f 真重复合并批处理中 |
 | dev-*（7） | dev-requirement → dev-selfcheck | 毕设/软件项目管线 |
 | 知识产权（5） | copyright-build/draft/source-materials, patent-build/draft | 软著专利域 |
 | 课程/人文（9） | course-paper, course-plan, course-report, course-report-plan, humanities-plan/write/write-latex, grant-proposal, thesis-proposal | 课程论文/人文/基金开题域 |
@@ -146,7 +152,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 与 skills/ 下含 SKILL.md 的目录实测数（266）逐一相符：零幽灵名、零漏网。
 两处口径差的说明（避免读者对不上数）：§三 标题"79 个"是**具名条目数**，其中
 `paper-figure-palette` 首现于 §二 step5 必用位故首匹配归 §二（79→78）；§四 标题"146 个"为
-手工具名数，六个前缀域（`ars-*`/`nature-*`/`spine-*`/`latex-paper-*`/`galaxy-*`/`dev-*`）
+手工具名数，前缀域（`ars-*`/`nature-*`/`spine-*`/`latex-paper-*`/`dev-*`/`meta-*`/`lit-*`/`doc-*`/`fig-*`/`paper-*`）
 按前缀展开后实得 148 个。
 **P4 激活轮（2026-09-22）变化**：§五 原 15 个未接入技能中 13 个并入 §三"P0 激活批次"小节
 （绘图/可视化 6 + 文献/研究辅助 4 + 其他单点 3），§五 只余 2 个（`sci-pdf`/`paper-compile-zh`，
@@ -162,7 +168,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 2026-09-22 新增 `editaplot`（EditaPlot 整技能收编，归 §四外域），264→265；
 2026-09-23 新增 `editaplot-lite`（无 Origin 渲染路线，归 §三情境可用），265→266）；
 主链 = §一具名，推荐 = §二表格 + 赛后段具名，情境 = §三具名，外域 = §四具名 + 六个前缀域
-（`ars-*`/`nature-*`/`spine-*`/`latex-paper-*`/`galaxy-*`/`dev-*` 按前缀展开）+ 斜杠缩写展开
+（`ars-*`/`nature-*`/`spine-*`/`latex-paper-*`/`dev-*`/`meta-*`/`lit-*`/`doc-*`/`fig-*`/`paper-*` 按前缀展开）+ 斜杠缩写展开
 （如 `copyright-build/draft/source-materials`），未接入库 = §五具名。
 **零漏网对账已固化为机检**（词边界+斜杠展开+前缀 fnmatch）：
 `python tools/check_asset_utilization.py --strict` + `tests/test_asset_utilization.py::test_real_map_covers_all_skills_zero_missing`

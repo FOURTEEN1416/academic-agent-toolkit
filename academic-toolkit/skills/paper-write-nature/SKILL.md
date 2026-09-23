@@ -2,7 +2,7 @@
 
 name: paper-write-nature
 
-description: "Draft a Nature-style LaTeX paper with hourglass structure, reader-first logic, and publication-quality English. Use when the target venue is a Nature-family journal. 区别于 paper-write：本技能用 Nature 沙漏结构与期刊写作规范，ML 会议稿改用 paper-write；Word(docx) 输出改用 paper-write-nature-docx；仅重构个别章节（作者已有 claims/figures）用 galaxy-nature-writing。"
+description: "Draft a Nature-style LaTeX paper with hourglass structure, reader-first logic, and publication-quality English. Use when the target venue is a Nature-family journal. 区别于 paper-write：本技能用 Nature 沙漏结构与期刊写作规范，ML 会议稿改用 paper-write；Word(docx) 输出改用 paper-write-nature-docx；仅重构个别章节（作者已有 claims/figures）用 paper-sections-nature。"
 argument-hint: [venue-or-section]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch

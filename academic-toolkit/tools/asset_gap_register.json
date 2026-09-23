@@ -46,7 +46,7 @@
     "dev-code-frontend": {
      "references/styles/": "2026-12-31"
     },
-    "galaxy-kaggle-learner": {
+    "kaggle-learner": {
      "references/knowledge/nlp/": "2026-12-31",
      "references/knowledge/cv/": "2026-12-31",
      "references/knowledge/time-series/": "2026-12-31",
@@ -54,7 +54,7 @@
      "references/knowledge/multimodal/": "2026-12-31",
      "references/knowledge/": "2026-12-31"
     },
-    "galaxy-results-analysis": {
+    "results-analysis": {
      "data/logs": "2026-12-31"
     },
     "latex-document": {
@@ -213,46 +213,46 @@
    "references/statistical_interpretation_guide.md",
    "references/study_state_protocol.md"
   ],
-  "galaxy-agent-identifier": [
+  "meta-agent-config": [
    "references/agent-creation-system-prompt.md",
    "references/system-prompt-design.md",
    "references/triggering-examples.md",
    "scripts/validate-agent.sh"
   ],
-  "galaxy-architecture-design": [
+  "dev-ml-registry-pattern": [
    "references/auto_import.md",
    "references/code_style.md",
    "references/factory_pattern.md",
    "references/registry_pattern.md",
    "references/structure.md"
   ],
-  "galaxy-bug-detective": [
+  "dev-debug": [
    "references/common-patterns.md",
    "references/debugging-tools.md",
    "references/javascript-errors.md",
    "references/python-errors.md",
    "references/shell-errors.md"
   ],
-  "galaxy-command-development": [
+  "meta-command-development": [
    "references/frontmatter-reference.md",
    "references/plugin-features-reference.md"
   ],
-  "galaxy-daily-paper-generator": [
+  "lit-daily-digest": [
    "references/keywords.md",
    "references/quality-criteria.md",
    "references/writing-style.md",
    "scripts/arxiv_search.py"
   ],
-  "galaxy-doc-coauthoring": [
+  "doc-coauthoring": [
    "references/DOC-TYPES.md",
    "references/READER-TEST.md",
    "references/RUNTIME-MATRIX.md"
   ],
-  "galaxy-expression-skill": [
+  "meta-task-reporting": [
    "references/communication-sop.md",
    "references/user-preferences.md"
   ],
-  "galaxy-git-workflow": [
+  "dev-git-workflow": [
    "references/advanced-usage.md",
    "references/branching-strategies.md",
    "references/collaboration.md",
@@ -261,14 +261,14 @@
    "references/gitignore-guide.md",
    "references/merge-strategies.md"
   ],
-  "galaxy-hook-development": [
+  "meta-hook-development": [
    "references/advanced.md",
    "references/migration.md",
    "references/patterns.md",
    "scripts/test-hook.sh",
    "scripts/validate-hook-schema.sh"
   ],
-  "galaxy-kaggle-learner": [
+  "kaggle-learner": [
    "references/knowledge/nlp/",
    "references/knowledge/cv/",
    "references/knowledge/time-series/",
@@ -276,7 +276,7 @@
    "references/knowledge/multimodal/",
    "references/knowledge/"
   ],
-  "galaxy-mcp-integration": [
+  "meta-mcp-integration": [
    "references/authentication.md",
    "references/server-types.md",
    "references/tool-usage.md"
@@ -301,7 +301,7 @@
    "references/source-basis.md",
    "references/statement-patterns.md"
   ],
-  "galaxy-nature-polishing": [
+  "paper-polish-nature": [
    "references/phrasebank-playbook.md",
    "references/published-article-patterns.md",
    "references/section-moves.md",
@@ -319,7 +319,7 @@
    "references/source-basis.md",
    "references/tone-and-stance.md"
   ],
-  "galaxy-nature-writing": [
+  "paper-sections-nature": [
    "references/abstract.md",
    "references/article-architecture.md",
    "references/chinese-author-workflow.md",
@@ -332,7 +332,7 @@
    "references/paragraph-flow.md",
    "references/related-work.md"
   ],
-  "galaxy-obsidian-kb-artifacts": [
+  "lit-obsidian-artifacts": [
    "references/BASES.md",
    "references/CANVAS.md",
    "references/CLI.md",
@@ -340,7 +340,7 @@
    "references/OBSIDIAN-MARKDOWN.md",
    "references/REGISTRY-TABLES.md"
   ],
-  "galaxy-obsidian-literature-workflow": [
+  "lit-review-obsidian": [
    "references/CLAIM-EXTRACTION.md",
    "references/LITERATURE-CANVAS.md",
    "references/LITERATURE-OVERVIEW.md",
@@ -348,7 +348,7 @@
    "references/PAPER-NOTE-SCHEMA.md",
    "references/RESEARCH-GAPS.md"
   ],
-  "galaxy-obsidian-project-kb-core": [
+  "lit-obsidian-kb-core": [
    "references/BINDING-LAYER.md",
    "references/DAILY-PROMOTION.md",
    "references/DIRECTORY-SCHEMA.md",
@@ -357,22 +357,22 @@
    "references/LINT.md",
    "references/REGISTRY.md"
   ],
-  "galaxy-obsidian-source-ingestion": [
+  "lit-obsidian-ingest": [
    "references/DATA-SOURCE-NOTES.md",
    "references/INTERVIEW-SOURCE-NOTES.md",
    "references/PAPER-SOURCE-NOTES.md",
    "references/SOURCE-TYPES.md",
    "references/WEB-SOURCE-NOTES.md"
   ],
-  "galaxy-paper-self-review": [
+  "paper-self-review": [
    "references/FINAL-VERDICT.md",
    "references/SECTION-CHECKLIST.md"
   ],
-  "galaxy-post-acceptance": [
+  "doc-post-acceptance": [
    "references/deliverable-checklists.md",
    "references/design-guidelines.md"
   ],
-  "galaxy-publication-chart-skill": [
+  "fig-publication-chart": [
    "references/chart-selection.md",
    "references/composite-assembly.md",
    "references/execution-and-verification.md",
@@ -388,7 +388,7 @@
    "references/workflow.md",
    "scripts/ensure_publication_tooling.py"
   ],
-  "galaxy-research-ideation": [
+  "idea-brainstorm": [
    "references/5w1h-framework.md",
    "references/gap-analysis-guide.md",
    "references/literature-search-strategies.md",
@@ -398,7 +398,7 @@
    "references/research-question-formulation.md",
    "references/zotero-integration-guide.md"
   ],
-  "galaxy-results-analysis": [
+  "results-analysis": [
    "references/analysis-depth.md",
    "references/common-pitfalls.md",
    "references/figure-interpretation.md",
@@ -407,7 +407,7 @@
    "references/visualization-best-practices.md",
    "data/logs"
   ],
-  "galaxy-results-report": [
+  "paper-results-report": [
    "references/EVIDENCE-PROPAGATION.md",
    "references/decision-oriented-analysis.md",
    "references/figure-interpretation.md",
@@ -415,18 +415,18 @@
    "references/report-structure.md",
    "references/statistical-completeness.md"
   ],
-  "galaxy-review-response": [
+  "rebuttal-workflow": [
    "references/rebuttal-templates.md",
    "references/response-strategies.md",
    "references/review-classification.md",
    "references/tone-guidelines.md"
   ],
-  "galaxy-skill-development": [
+  "meta-skill-development": [
    "references/checklist.md",
    "references/integrity-checks.md",
    "references/skill-creator-original.md"
   ],
-  "galaxy-skill-improver": [
+  "meta-skill-improve": [
    "references/error-handling.md",
    "references/file.md",
    "references/guide.md",
@@ -436,29 +436,29 @@
    "scripts/backup-skill.sh",
    "scripts/verify-update.sh"
   ],
-  "galaxy-skill-quality-reviewer": [
+  "meta-skill-review": [
    "references/examples-bad.md",
    "references/examples-good.md",
    "references/scoring-criteria.md",
    "scripts/extract-yaml.sh",
    "scripts/skill-audit.py"
   ],
-  "galaxy-ui-ux-pro-max": [
+  "dev-ui-ux": [
    "references/USAGE.md",
    "scripts/search.py",
    "data/ui-reasoning.csv"
   ],
-  "galaxy-verification-loop": [
+  "dev-verification-loop": [
    "references/REPORT-TEMPLATE.md",
    "references/STACK-DETECTION.md"
   ],
-  "galaxy-web-design-reviewer": [
+  "dev-web-design-review": [
    "references/framework-fixes.md"
   ],
-  "galaxy-webapp-testing": [
+  "dev-webapp-testing": [
    "scripts/with_server.py"
   ],
-  "galaxy-writing-anti-ai": [
+  "paper-humanize": [
    "references/patterns-chinese.md",
    "references/patterns-english.md",
    "references/phrases-to-cut.md",
@@ -539,7 +539,7 @@
    "tools/figure_renderer.py",
    "tools/install_aris.sh"
   ],
-  "galaxy-defuddle": [
+  "meta-web-extract": [
    "data/problem_info.md"
   ],
   "latex-document": [

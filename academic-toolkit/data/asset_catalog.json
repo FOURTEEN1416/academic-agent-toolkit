@@ -546,7 +546,7 @@
       "description": "pubfig 出版图表库（上游完整拷贝）；UPSTREAM.md 溯源",
       "when_to_use": "对应技能执行时调用",
       "owner_skills": [
-        "galaxy-publication-chart-skill"
+        "fig-publication-chart"
       ],
       "consumers": [],
       "local_only": false

@@ -63,10 +63,20 @@ def test_upstream_ledger_counts_as_upstream() -> None:
     assert cb.has_upstream_ledger("scientific-visualization") or cb.has_upstream_ledger("matplotlib")
 
 
-def test_local_domains_are_not_exempt_by_prefix() -> None:
-    """本地六域技能不得被当成上游：前缀表里不许出现 course-/humanities-/patent-/copyright-。"""
-    for prefix in ("course-", "humanities-", "patent-", "copyright-", "research-", "idea-"):
-        assert prefix not in cb.UPSTREAM_FAMILIES, prefix
+def test_local_domains_are_not_exempt(tmp_path: Path) -> None:
+    """本地六域技能不得被当成上游（2026-09-23 v2.0 起按 UPSTREAM.md 溯源判定，
+    名字前缀不再是豁免信号——无台账即本地件，计入罚则）。"""
+    for name in ("course-one", "humanities-one", "patent-one", "copyright-one",
+                 "research-one", "idea-one", "ars-one"):
+        assert not cb.is_upstream(name), name
+    (tmp_path / "course-two").mkdir(parents=True)
+    (tmp_path / "course-two" / "UPSTREAM.md").write_text("Upstream: x", encoding="utf-8")
+    original = cb.SKILLS_ROOT
+    try:
+        cb.SKILLS_ROOT = tmp_path
+        assert cb.is_upstream("course-two"), "有溯源台账的才豁免"
+    finally:
+        cb.SKILLS_ROOT = original
 
 
 # ---------- 污染判据（负例） ----------
@@ -96,9 +106,20 @@ def test_clean_description_has_no_pollution(tmp_path: Path) -> None:
     assert res["local_polluted"] == []
 
 
-def test_upstream_family_pollution_is_counted_not_penalized(tmp_path: Path) -> None:
-    """上游族描述含实施细节只计数不计罚（改了会与上游分叉）。"""
-    res = _measure_texts(tmp_path, {"ars-one": "上游技能，流程为 A → B，含 tools/x.py。"})
+def test_upstream_pollution_is_counted_not_penalized(tmp_path: Path) -> None:
+    """上游件描述含实施细节只计数不计罚（改了会与上游分叉）——以 UPSTREAM.md 判上游。"""
+    d = tmp_path / "ars-one"
+    d.mkdir(parents=True)
+    (d / "UPSTREAM.md").write_text("Upstream: x", encoding="utf-8")
+    (d / "SKILL.md").write_text(
+        '---\nname: ars-one\ndescription: "上游技能，流程为 A → B，含 tools/x.py。"\n---\n\n# ars-one\n',
+        encoding="utf-8")
+    original = cb.SKILLS_ROOT
+    try:
+        cb.SKILLS_ROOT = tmp_path
+        res = cb.measure()
+    finally:
+        cb.SKILLS_ROOT = original
     assert res["upstream_polluted"], "上游污染应被计入统计"
     assert res["local_polluted"] == [], "上游污染不得计入罚则"
 

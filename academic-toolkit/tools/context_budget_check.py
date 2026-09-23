@@ -52,10 +52,11 @@ PER_SKILL_DESC_CEILING = 512     # 核心层单条上限（本地自研）
 ONDEMAND_DESC_CEILING = 132      # 按需层单条上限（build_skill_index.OND_RESEARCH_CAP + 余量）
 INDEX_PATH = TOOLBOX_ROOT / "data" / "skill_routing_index.json"
 
-# 外部集成族前缀：这些技能的描述随上游仓库分发，改它＝与上游分叉（只计数不计罚）。
-# 注意：**只列真正的外部族**——本校自研的六域技能（course-/humanities-/patent-/copyright-/
-# research-/idea-/dev- 等）属本地资产，必须计入罚则，不得靠前缀逃避预算。
-UPSTREAM_FAMILIES = ("ars-", "galaxy-", "latexpap-", "spine-paper-", "nature-")
+# 外部集成判定（2026-09-23 v2.0 起改为**溯源台账单一信号**）：
+# 技能目录内有 UPSTREAM.md（含 references/ 下）即上游集成件——描述随上游分发，
+# 改它＝与上游分叉（只计数不计罚）。此前按 ars-/galaxy-/latexpap- 等名字前缀判族，
+# v2.0 技能语义化改名后前缀信号失效，且前缀法无法覆盖无前缀的上游件；
+# 本校自研技能无 UPSTREAM.md，天然计入罚则，不得靠登记伪溯源逃避预算。
 
 
 def has_upstream_ledger(name: str) -> bool:
@@ -68,7 +69,7 @@ POLLUTION_PATTERNS: tuple[tuple[str, str], ...] = (
     (r"→", "流程箭头（逐步流程属正文）"),
     (r"academic-toolkit/|skills/|tools/|engine/|_utils/|shared-scripts/", "仓库路径（属正文）"),
     (r"步骤\s*[1-9]|Step\s*[1-9]", "步骤编号（属正文）"),
-    (r"门禁|gates?\b|哈希|sha256|min_bytes", "门禁/哈希实现细节（属正文）"),
+    (r"门禁|\bgates?\b|哈希|sha256|min_bytes", "门禁/哈希实现细节（属正文；左边界防 investi*gate* 类误伤）"),
     (r"──|===|\|\s*$", "表格/分隔线（属正文）"),
 )
 
@@ -78,8 +79,8 @@ def iter_skill_dirs() -> list[str]:
 
 
 def is_upstream(name: str) -> bool:
-    """外部来源判定：外部族前缀 ∪ 溯源台账在位（两信号取并，口径写进报告）。"""
-    return name.startswith(UPSTREAM_FAMILIES) or has_upstream_ledger(name)
+    """外部来源判定：溯源台账在位（UPSTREAM.md 单一信号，口径写进报告）。"""
+    return has_upstream_ledger(name)
 
 
 def load_tiers() -> dict[str, str]:
