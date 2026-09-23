@@ -73,19 +73,19 @@ For each actual figure, record in `FIGURE_REPORT.md` its question/scenario, gene
 
 
 
-**Quality floor**: 300 DPI PDF, no in-figure title (`plt.title`), font ≥9pt, grayscale-distinguishable, **`figure_check.sh` exit code 0** (CRITICAL only — INFO/WARNING don't block). **出图当下即跑图形质量闸（2026-09-11 前移，别拖到第 10 步编译才暴露）**：`fig_include_size.py`（插图尺寸）+ `figure_text_budget.py`（图内文字预算）+ `figure_narrative_check.py`（图-叙事同步，图后解读不足即报）——双副本同 shared-scripts/，本轮跑不完的至少在收尾清单点名。
+**Quality floor**: 300 DPI PDF, no in-figure title (`plt.title`), font ≥9pt, grayscale-distinguishable, **`figure_check.sh` exit code 0** (CRITICAL only — INFO/WARNING don't block). **出图当下即跑图形质量闸（别拖到第 10 步编译才暴露）**：`fig_include_size.py`（插图尺寸）+ `figure_text_budget.py`（图内文字预算）+ `figure_narrative_check.py`（图-叙事同步，图后解读不足即报）——双副本同 shared-scripts/，本轮跑不完的至少在收尾清单点名。
 
 
 
 **Color palette and recipes**: read `_utils/figure_style_guide.md` (color schemes) and `_utils/figure_recipes_*.md` (code examples).
 
-**Semantic roles & composition patterns**（多系列对比图/多指标面板出图前必读）: `references/semantic-palette.md`（颜色→数据角色语义映射：本队方法=蓝 `#0072B2`、基线=橙 `#E69F00`、改进=蓝绿 `#009E73`、红/红粉禁作数据系列色、高亮≤1处——2026-09-11 仲裁锚点，详见 semantic-palette.md §〇仲裁链；含顶刊高对比 PALETTE 备选与消融 alpha 梯度；§五为外部交叉校验色板：Okabe-Ito 数据图组合 + 国赛概念图配色）+ `references/composition-patterns.md`（构图五模式：超宽面板/独立图例面板/分类柱隐藏刻度/动态y轴/边线+hatch 打印安全——多方法对比图规划阶段先选模式再写代码；**模式一有印刷宽度前置条件：仅当最终版面下每格 ≥45mm 才连排，否则改堆叠**）。来源 figures4papers @ `3c181f8`（CC BY-NC-4.0，见 references/UPSTREAM.md）。
+**Semantic roles & composition patterns**（多系列对比图/多指标面板出图前必读）: `references/semantic-palette.md`（颜色→数据角色语义映射：本队方法=蓝 `#0072B2`、基线=橙 `#E69F00`、改进=蓝绿 `#009E73`、红/红粉禁作数据系列色、高亮≤1处——详见 semantic-palette.md §〇仲裁链；含顶刊高对比 PALETTE 备选与消融 alpha 梯度；§五为外部交叉校验色板：Okabe-Ito 数据图组合 + 国赛概念图配色）+ `references/composition-patterns.md`（构图五模式：超宽面板/独立图例面板/分类柱隐藏刻度/动态y轴/边线+hatch 打印安全——多方法对比图规划阶段先选模式再写代码；**模式一有印刷宽度前置条件：仅当最终版面下每格 ≥45mm 才连排，否则改堆叠**）。来源 figures4papers @ `3c181f8`（CC BY-NC-4.0，见 references/UPSTREAM.md）。
 
 **Plot-choice gates（选图论证与避坑，规划每张数据图前必读）**: `references/pitfalls-and-intent.md`（决策三轴：变量结构×**论证意图**×样本量分级——FIGURE_MANIFEST 每张图的"选择理由"写轴 2 论证意图；十八坑拦截清单 P1-P18：均值柱/双Y轴/饼图/Y轴截断/rainbow/缺字乱码/图例遮盖等，出图后逐条自查，P16-P18 渲染类必须程序自检+vision 复核双兜底）。来源 SciPilot @ `43098dd`（MIT，见 references/UPSTREAM.md）。
 
-**升级/备选技能路由（主链内主动发现，2026-09-11 接线）**：需要交互式逐图选型论证（数据剖析→三轴推荐图型→主动拦截经典错误→期刊级成图）时调 `fig-visualization-advisor`；想先看真实范例再定图型时用 `agent-figure-gallery`（图库检索+人工偏好选参考+导出参考包）。
+**升级/备选技能路由（主链内主动发现）**：需要交互式逐图选型论证（数据剖析→三轴推荐图型→主动拦截经典错误→期刊级成图）时调 `fig-visualization-advisor`；想先看真实范例再定图型时用 `agent-figure-gallery`（图库检索+人工偏好选参考+导出参考包）。
 
-**⛔ 外部规范红线（2026-09-10 收编自竞赛实战口径，与上述规范并行生效）**：
+**⛔ 外部规范红线（与上述规范并行生效）**：
 - **概念图/数据图分家**：AI 生图（Step 1.5）只允许概念类图——场景示意/海报主视觉/图标/技术路线氛围图；任何带坐标轴的图必须是 `gen_fig_*.py` 从真实数据出图。AI 生图内**禁止出现伪造的坐标轴、刻度或"83.27%"式假精度数字**。
 - **AI 生图生成后自检**：图内文字与提示词**逐字一致**（漏字/改写/中英混杂即重出）；每条箭头起点/终点/虚实/标签逐一核对；涉及中国地图的内容九段线为红线——地图类走 geo 脚本出图，AI 只允许"补南海 inset"式受控编辑且出图后人工核国境。
 - **打印安全三件套**：黑白打印下仅靠色相不可分的系列必须补线型/填充差异（hatch 手法见 composition-patterns 模式五）；饼图类别 ≤5；禁用软件默认英文标签（轴标签语言规则见 Step 6）。
@@ -110,7 +110,7 @@ Stats tables: `stats_utils.py` provides `regression_table`, `descriptive_table`,
 3. **先声明论文落地尺寸**：新建 figure 后调用 `set_paper_placement(fig, width_fraction=...)`。不确定宽度时省略 `width_fraction`，由 PDF/Word 中更保守的布局分档反算字号。不得用超大画布画小字后整体缩小；信息过密时优先增加高度、缩短标签或拆图。保存钩子会按最终插入尺寸恢复最小印刷字号，修复后仍冲突则直接失败。
 4. **带数值的热力图必须用矢量单元格**：调用 `draw_vector_heatmap` / `vector_heatmap`；不用 `imshow` 或 `sns.heatmap` 生成带字栅格。`annot='auto'` 会在密集时取消单元格数值，字色按真实背景对比度自适应；精确数值放表格。
 5. **坐标和网格保持克制**：连续数据用 `dynamic_limits(...)` 根据有限数据留白，柱图才默认 `include_zero=True`，对数轴不得包含非正值。用 `declutter_axes(...)` 隐去上/右边框，只保留辅助读数所需的低对比网格；热力图不叠加坐标网格。
-6. **多 panel 默认在创建 Figure 时启用 `layout='constrained'`**，并用 GridSpec 给 colorbar、公共 legend、长说明各自分配专用行/列；colorbar 必须使用独立 `cax=`，公共 legend 不得用负数 `bbox_to_anchor` 悬挂在坐标轴外。启用 constrained/compressed layout 后禁止再调用 `tight_layout` 或 `subplots_adjust`。确需完全手工 GridSpec 时由调用方承担全部边距。**inset 也必须提前预留区域**：仅当主图存在持续空白区时可用 inset；否则用 GridSpec 拆成独立 panel（modex-3 同源吸收 P3（2026-09-22））。
+6. **多 panel 默认在创建 Figure 时启用 `layout='constrained'`**，并用 GridSpec 给 colorbar、公共 legend、长说明各自分配专用行/列；colorbar 必须使用独立 `cax=`，公共 legend 不得用负数 `bbox_to_anchor` 悬挂在坐标轴外。启用 constrained/compressed layout 后禁止再调用 `tight_layout` 或 `subplots_adjust`。确需完全手工 GridSpec 时由调用方承担全部边距。**inset 也必须提前预留区域**：仅当主图存在持续空白区时可用 inset；否则用 GridSpec 拆成独立 panel。
 
 用户选定的色系仍是最高优先级；上述合同只管布局、可读性与表达逻辑，不随机替换用户颜色。
 
@@ -574,7 +574,7 @@ fi
 ```bash
 
 # Step 4 末尾：检查图标签单位 / 图例与 facts 实体名匹配 / 图脚本数据来源
-# ⛔ 先判文件存在再跑：不能写成 `[ -f ... ] && python|tee` 后取 $?——（modex-3 同源吸收 P3（2026-09-22））
+# ⛔ 先判文件存在再跑：不能写成 `[ -f ... ] && python|tee` 后取 $?——
 #   ①有 `| tee` 时 $? 取的是 tee 的码(恒0)，会吞掉 facts_audit 的 FAIL；
 #   ②文件不存在时 `&&` 短路，$? 会取到 `[ -f ]` 的 1 → 误判"审计失败"。
 if [ -f PROBLEM_FACTS.json ]; then
@@ -1253,7 +1253,7 @@ done
 
 - 失败的图记录到 GPTIMG_FAILED，DrawIO 子阶段会自动兜底
 
-**框架图/机制图高规格路由（2026-09-11 接线）**：需要"人工在多候选间裁决"的高规格框架图/架构图/机制图（非本步自动出图档位）时，把该图标记移交 `paper-framework-figure-studio-pro`（S0-S5 候选生成+人审终局）；需交付可编辑 Visio 源文件时用 `visio-image-rebuilder`（图片→.vsdx 原生图形重建）。
+**框架图/机制图高规格路由**：需要"人工在多候选间裁决"的高规格框架图/架构图/机制图（非本步自动出图档位）时，把该图标记移交 `paper-framework-figure-studio-pro`（S0-S5 候选生成+人审终局）；需交付可编辑 Visio 源文件时用 `visio-image-rebuilder`（图片→.vsdx 原生图形重建）。
 
 
 
@@ -1269,7 +1269,7 @@ Browse the recipe library (97 total across 5 files) and the `<figure_selection_g
 
 2. Browse ALL available recipe types — don't default to the same few charts every time
 
-3. Pick the type that best communicates the data and supports the intended comparison（modex-3 同源吸收 P3（2026-09-22）：本条与第 4/6 条精确取代旧「看起来与其他图不同 / 同型不超两次 / 按领域选色板」口径——可比实验允许复用同一图型，禁的是无依据的千篇一律，不是禁止同型。）
+3. Pick the type that best communicates the data and supports the intended comparison
 
 4. Comparable experiments may reuse the same chart type and visual encoding. Vary structure only when the scientific relation differs；结构确需变化时优先混用 basic/advanced/competition/empirical 配方族，避免无依据的雷同
 
@@ -1281,7 +1281,7 @@ Browse the recipe library (97 total across 5 files) and the `<figure_selection_g
 
 
 
-**⛔ Do NOT always default to grouped bar / lollipop / line chart.** The recipe library has 97 chart types — use the variety. For any data shape, there are usually 3-5 suitable types. Pick the one that best communicates the data — laziness (always the same few charts) is the failure mode, not reuse per se（modex-3 同源吸收 P3（2026-09-22））.
+**⛔ Do NOT always default to grouped bar / lollipop / line chart.** The recipe library has 97 chart types — use the variety. For any data shape, there are usually 3-5 suitable types. Pick the one that best communicates the data — laziness (always the same few charts) is the failure mode, not reuse per se.
 
 
 
@@ -1419,7 +1419,7 @@ python3 _utils/get_recipe.py competition 2
 
 
 
-**⛔ 建议先一次性预取全部规划配方（modex-3 同源吸收 P3（2026-09-22））：**
+**⛔ 建议先一次性预取全部规划配方：**
 
 ```bash
 # ACAT-GOVERNANCE: _utils/RECIPES_FOR_THIS_PAPER.md 为下方命令运行时就地产物，非仓库资产（2026-09-22 P3 吸收注记）
@@ -1510,7 +1510,7 @@ setup_style()  # defaults to Soft palette; alternatives: tableau/npg/nejm/scienc
 # NEVER use cmap='RdYlGn' — use 'coolwarm' or 'YlOrRd' instead. Do NOT use 'RdBu_r' (too dark)
 
 # No plt.title() — captions go in LaTeX only
-# ⛔⛔ 图内标注只准「数值」或「短锚点标签」【进退出码，会被拦】：ax.text / ax.annotate。（modex-3 同源吸收 P3（2026-09-22））
+# ⛔⛔ 图内标注只准「数值」或「短锚点标签」【进退出码，会被拦】：ax.text / ax.annotate。
 #    ✅ 纯数值   8188.06 / 45% / 1007 张 / n=30 / $q^*$=0.47 / panel 标号 a b c
 #    ✅ 短锚点标签（给线/点/区域起名，学术图常规做法）：
 #       最优解 / 预算绑定区 / ROI 下限 3.0 / 肘部拐点 $k$=8 / Youden: J=0.42, θ*=0.31
@@ -1566,7 +1566,7 @@ setup_style()  # defaults to Soft palette; alternatives: tableau/npg/nejm/scienc
 
 
 
-**⛔ 多图工作区建议抽公共引导模块 `figures/_figbase.py`（modex-3 同源吸收 P3（2026-09-22））**——各 `gen_fig_*.py` 统一 `from _figbase import ...`；模块名必须下划线开头（见 Step 10 计数检查的假失败说明）：
+**⛔ 多图工作区建议抽公共引导模块 `figures/_figbase.py`**——各 `gen_fig_*.py` 统一 `from _figbase import ...`；模块名必须下划线开头（见 Step 10 计数检查的假失败说明）：
 
 ```python
 # figures/_figbase.py — 各 gen_fig_*.py 统一 from _figbase import ...
@@ -1644,7 +1644,7 @@ def cn(s):
 
 ```bash
 
-# checker-selection:start（modex-3 同源吸收 P3（2026-09-22）：只按文件存在性选择一次，不用旧副本覆盖失败结果）
+# checker-selection:start
 if [ -f _utils/figure_check.sh ]; then
     bash _utils/figure_check.sh
 elif [ -f skills/shared-scripts/figure_check.sh ]; then
@@ -2257,7 +2257,7 @@ Save to `figures/latex_includes.tex`. Figures use `[H]` float specifier (pinned 
 - English papers (MCM/ICM/APMCM): `\caption{Model Performance Comparison}` — English caption
 
 ```latex
-% ✅ 图注只命名；正文另写各 panel 的证据与结论（modex-3 同源吸收 P3（2026-09-22））
+% ✅ 图注只命名；正文另写各 panel 的证据与结论
 \caption{相对论钟速率沿轨道相位的变化}
 % ❌ 不把结果段、数据源和计算口径塞进 caption
 \caption{相对论钟速率沿轨道相位的变化。(a) 速度项……数据源……}
@@ -2562,7 +2562,7 @@ if [ "$PDFS" -ge "$SCRIPTS" ]; then
     echo "✅ All scripts produced PDFs ($PDFS/$SCRIPTS)"
 else
     echo "❌ $((SCRIPTS-PDFS)) scripts failed to produce PDFs"
-    # ⛔ 先排除一个假失败（modex-3 同源吸收 P3（2026-09-22））：共用引导模块若被命名成
+    # ⛔ 先排除一个假失败：共用引导模块若被命名成
     #   gen_fig*.py，会被这个 glob 当成一份出图脚本 → 脚本数永远比 PDF 多一个，本检查
     #   【无法通过】。引导模块必须以下划线开头（`_figbase.py` / `_figcommon.py`），见前文。
     for _m in $(ls figures/gen_fig*.py 2>/dev/null); do
@@ -2626,7 +2626,7 @@ fi
 
 
 
-# 4. Figure check script passes — 只按文件存在性选择一次，不用旧副本覆盖失败结果（modex-3 同源吸收 P3（2026-09-22））
+# 4. Figure check script passes — 只按文件存在性选择一次，不用旧副本覆盖失败结果
 # checker-selection:start
 if [ -f _utils/figure_check.sh ]; then
     bash _utils/figure_check.sh

@@ -11,10 +11,10 @@
 
 ## 密钥与隐私边界（本仓的底线）
 
-- **本地密钥不入库**：`academic-toolkit/.env`、任何 API key、token、证书私钥**永不提交**。`.gitignore` 已排除 `.env` 族；`tools/pyc_loader.py` 旧版曾从宿主配置注入 vision provider key——2026-09-23 视觉审核换驱动（宿主独立窗口）后该注入逻辑已整段拆除，现不再读取任何宿主凭据文件。
+- **本地密钥不入库**：`academic-toolkit/.env`、任何 API key、token、证书私钥**永不提交**。`.gitignore` 已排除 `.env` 族；工具链不读取任何宿主凭据文件。
 - **tracked 配置必须可移植**：`opencode.json` / `pytest.ini` 等使用占位符（`${DOCSEARCH_MCP_SERVER}` 等）；本机绝对路径（`C:\Users\...`）与过期项目根不得写入。宿主本地配置一律不入库。
 - **机检门禁**：`python academic-toolkit/tools/secret_scan.py --strict` 扫描全部 tracked 文本文件的高置信凭证模式与配置绝对路径（豁免须登记 `data/secret_scan_allowlist.json` 并给出理由）；CI 每次推送执行。
-- **pyc 已退役（2026-09-23 v2.0 收尾）**：`tools/` 下 14 个工具曾以 `.pyc` 分发且字节码即真源（同名 `.py` 仅为加载器生成的薄包装器）。已用 Decompyle++ 反编译重建全部真源码、经行为等价验证（`--help` 与业务路径 stdout/rc 逐字节一致）后整体退役——现 `tools/` 只有 `.py` 单一真源，`tools/ 零 .pyc` 由 `test_tool_reliability` 棘轮钉住。退役前字节码的 sha256 快照存内部台账（dev-docs）。
+- **单一真源**：`tools/` 只有 `.py` 单一真源，零 `.pyc`（`test_tool_reliability` 棘轮钉住）。
 - **上游 fork**：`vendor/forks/` 为上游暂存区，不入 git。
 
 ## 报告漏洞

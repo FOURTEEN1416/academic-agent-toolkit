@@ -17,7 +17,7 @@ This skill provides Feishu/Lark integration for MH Agent. It is designed as an *
 
 ## Configuration
 
-本技能读取 `~/.acat/feishu.json`（兼容旧路径 `~/.claude/feishu.json`）。 If this file does not exist, **all Feishu functionality is disabled** — skills behave exactly as before.
+本技能读取 `~/.acat/feishu.json`。 If this file does not exist, **all Feishu functionality is disabled** — skills behave exactly as before.
 
 ### Config Format
 
@@ -120,7 +120,7 @@ Other skills should use this pattern to send notifications:
 ```markdown
 ### Feishu Notification (if configured)
 
-检查 `~/.acat/feishu.json`（兼容旧路径）存在且 mode 不为 "off":
+检查 `~/.acat/feishu.json` 存在且 mode 不为 "off":
 - If **push** mode: send webhook notification with event summary
 - If **interactive** mode: send notification and wait for user reply
 - If **off** or file absent: skip entirely (no-op)

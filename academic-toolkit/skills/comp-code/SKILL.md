@@ -602,7 +602,7 @@ code/
 
 **问题本质：** code/ 下的脚本互相 `import` 时，从不同目录调用会导致 sys.path 不包含 `code/`，
 
-报 `ModuleNotFoundError: No module named 'utils'` / `'problem1'` 等。这是历史上最高频的失败原因。
+报 `ModuleNotFoundError: No module named 'utils'` / `'problem1'` 等。这是最高频的失败原因。
 
 **⛔ 规则 1：每个 .py 文件顶部必须有自举 import 头（在所有 import 之前）：**
 

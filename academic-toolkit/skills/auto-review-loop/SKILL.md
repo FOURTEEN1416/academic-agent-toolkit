@@ -178,7 +178,7 @@ Wait for the user's response. Parse their input:
 
 #### Feishu Notification (if configured)
 
-After parsing the score, 检查 `~/.acat/feishu.json`（兼容旧路径 `~/.claude/feishu.json`）存在且 mode 不为 `"off"`:
+After parsing the score, 检查 `~/.acat/feishu.json` 存在且 mode 不为 `"off"`:
 - Send a `review_scored` notification: "Round N: X/10 — [verdict]" with top 3 weaknesses
 - If **HUMAN_CHECKPOINT=true** and verdict is "almost": send as checkpoint, wait for user reply on whether to continue or stop. In non-interactive mode (no further user turn), auto-continue.
 - If config absent or mode off: skip entirely (no-op)

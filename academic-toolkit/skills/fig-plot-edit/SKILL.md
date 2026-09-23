@@ -104,5 +104,5 @@ vendor\forks\editaplot\editaplot.cmd doctor --repair
   `vendor/forks/editaplot/skill/editaplot/references/`，重新同步副本并复读本 SKILL.md 校对适配层。
 - 本技能 tracked 入库依据：Apache-2.0 + NOTICE 随目录保留（同 fig-academic 收编先例）；
   vendor/ 快照本身不入库。
-- 本机现状（2026-09-22）：Origin 未安装，COM 未注册——本技能处于**登记待用**状态，首次实际出图前
+- 本机现状：Origin 未安装，COM 未注册——本技能处于**登记待用**状态，首次实际出图前
   需用户安装 Origin 2021+。

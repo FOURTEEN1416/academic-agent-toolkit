@@ -54,8 +54,8 @@ L1 拦截式审计在无宿主 hook 时记为
 | 路径 | 性质 |
 |------|------|
 | `academic-toolkit/` | 产品主体：skills/engine/tools/tests/hooks/data |
-| `capabilities/catalog.json` | 能力目录（技能须全部映射；一致性由工具箱 asset 系门禁 + `check_asset_utilization --strict` 守护，原根级 tests 硬校验已随 2026-09-23 适配层裁决退役） |
-| `dev-docs/` | 内部真源根（gitignored 私有）：**操作日志 `dev-docs/LOG.md`（2026-09-23 起唯一记账真源，公开仓不分发）· 任务计划 `dev-docs/task_plan.md` · 审计报告** |
+| `capabilities/catalog.json` | 能力目录（技能须全部映射；一致性由工具箱 asset 系门禁 + `check_asset_utilization --strict` 守护） |
+| `dev-docs/` | 内部真源根（gitignored 私有，公开仓不分发）：**操作日志 `dev-docs/LOG.md`（唯一记账真源）· 任务计划 `dev-docs/task_plan.md` · 审计报告** |
 | `releases/`（本地 dated 快照，不入库）、`SECURITY.md`、`CHANGELOG.md` | 发布快照 / 安全策略 / 公开版本记录 |
 | `assets-local/award-papers/`、`赛前试炼任务/`、`workspaces/` 等 | 本地材料与产物（不入 git） |
 
@@ -69,15 +69,15 @@ L1 拦截式审计在无宿主 hook 时记为
 6. **路径/密钥卫生**：tracked 配置不得写本机绝对路径；`.env` 永不入库；
    `python academic-toolkit/tools/secret_scan.py --strict` 机检。
 
-## 测试口径（2026-09-23 宿主适配层移除收口批实测，pytest.ini 为唯一真源）
+## 测试口径（pytest.ini 为唯一真源）
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `academic-toolkit/tests` | **768 passed / 0 failed**（另 3 skipped：私有资料区缺位语义 skip 2 + 适配器元数据缺席 skip 1；collect-only 771。2026-09-23 v2.0 收尾 pyc 退役后实测口径） | 仓库级回归 |
-| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **768 passed / 0 failed**（与仓库根同口径） | 技能验收基线（硬规则 3 口径） |
-| **公开 clone / CI** | 已提交内容 | 以 CI 实测为准（历史：713+5 skipped / 0 failed @ run 35711171875） | 门禁 |
+| 仓库根 `pytest -q` | `academic-toolkit/tests` | **769 passed / 0 failed**（另 3 skipped：私有资料区缺位语义 skip 2 + 适配器元数据缺席 skip 1；collect-only 772） | 仓库级回归 |
+| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **769 passed / 0 failed**（与仓库根同口径） | 技能验收基线（硬规则 3 口径） |
+| **公开 clone / CI** | 已提交内容 | 以 CI 实测为准 | 门禁 |
 
 - catalog 一致性由工具箱 asset 系测试 + `check_asset_utilization --strict` 守护。
-- 上一时点基线 **791 = 工具箱 766 + 根级门禁 25** 保留作历史，见 `pytest.ini` 注释（公开侧口径真源）；`dev-docs/truth-index.md` 为内部副本，不入库。
+- 基线演进历史见 `CHANGELOG.md` 与内部 `dev-docs/LOG.md`；`dev-docs/truth-index.md` 为内部副本，不入库。
 - `releases/` 永不进测试收集。
 - 新增技能必须：SKILL.md + catalog 映射 + CONTEST_SKILL_MAP 归类 + `build_skill_index.py --emit`。

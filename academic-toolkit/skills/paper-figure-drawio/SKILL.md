@@ -11,9 +11,9 @@ Generate DrawIO architecture diagrams and TikZ figures for: **$ARGUMENTS**
 
 This is a **lightweight sub-step** split from paper-figure. It ONLY handles non-data diagrams (DrawIO + TikZ). Data figures (matplotlib/seaborn) were already generated in the previous paper-figure step.
 
-> 高规格路由（2026-09-11 接线）：需要人工在多候选间裁决的框架图/架构图 → `paper-framework-figure-studio-pro`（S0-S5 候选生成+人审终局）；需可编辑 Visio 交付物 → `visio-image-rebuilder`。
+> 高规格路由：需要人工在多候选间裁决的框架图/架构图 → `paper-framework-figure-studio-pro`（S0-S5 候选生成+人审终局）；需可编辑 Visio 交付物 → `visio-image-rebuilder`。
 
-> 出图即检（2026-09-11 前移）：本步产出的每个 TikZ/drawio 成品**当场**跑 `tikz_structure_check.py <file>` + `tikz_palette_check.py`（双副本同 shared-scripts/）——结构/配色问题在第 6 步就地修，不要拖到第 10 步编译才暴露。
+> 出图即检：本步产出的每个 TikZ/drawio 成品**当场**跑 `tikz_structure_check.py <file>` + `tikz_palette_check.py`（双副本同 shared-scripts/）——结构/配色问题在第 6 步就地修，不要拖到第 10 步编译才暴露。
 
 ## ⚡ 快速模式检测（开头先跑）
 
@@ -277,7 +277,7 @@ XMLEOF
 
 按规划清单逐条生成，每张图一个 `.drawio` 文件：
 
-**⛔ 先定信息拓扑，再定版式和配色：**<!-- modex-3 同源吸收 P3（2026-09-22）：上游拓扑优先设计观精确取代旧「配色自由发挥+强制三件套」口径 -->
+**⛔ 先定信息拓扑，再定版式和配色：**
 1. 先把本图压缩成“节点 + 有方向的关系”：哪些步骤串行、哪些子问题并行、哪里真实存在判断、循环、共享内核或跨角色交接。
 2. 按拓扑从 `drawio_rules.md` 的版式族中选择：阶段带、分支汇合、泳道、分层架构、控制回路、树/径向、矩阵或横向 pipeline。**不允许先抽模板再硬塞内容。**
 3. 工作区路径与图文件名只用于在“同样适合的候选”中稳定选择方向、卡片形态和低饱和配色；重跑必须复现，同一项目的多张图不得使用完全相同的版式签名。
@@ -478,7 +478,7 @@ done
 
 **不允许看到 CRITICAL 后跳过不修。**
 
-**其余架构 / pipeline / framework / hierarchy 图也必须过通用 XML、字号和重叠检查**<!-- modex-3 同源吸收 P3（2026-09-22） -->：
+**其余架构 / pipeline / framework / hierarchy 图也必须过通用 XML、字号和重叠检查**：
 ```bash
 # 解析可用 Python：在候选里挑一个能真正执行的（宿主中性探测）。
 PYTHON=""
@@ -503,7 +503,7 @@ done
 
 ⛔ **执行原则（避免边缘问题）：**
 - **只对 DrawIO 产物跑**：遍历 `figures/*.drawio`，对每个取同名 `.pdf` 跑视觉自检；**不要对数据图 `gen_fig_*` 的 PDF 跑**（那是 matplotlib 图，不归这步管）。
-- **vision 不可用不阻塞**：脚本退出码 `2` = API 未配置/PDF 无法转图/调用失败 → 记录为未审并继续；免费结构/几何检查仍必须通过。退出码 `0` = 通过，`1` = 有视觉问题需修复。（modex-3 同源吸收 P3（2026-09-22）：本两条精确取代旧「3 轮未解决也继续、这是加分项不是硬门槛」口径。）
+- **vision 不可用不阻塞**：脚本退出码 `2` = API 未配置/PDF 无法转图/调用失败 → 记录为未审并继续；免费结构/几何检查仍必须通过。退出码 `0` = 通过，`1` = 有视觉问题需修复。
 - **vision 已明确发现的问题必须闭环**：退出码 `1` 时最多修 3 轮；仍未解决写入 `_tmp/drawio_vision_unresolved.txt`，由最终质量门判失败，不能把已知遮挡当成合格。
 
 ```bash
@@ -981,7 +981,7 @@ else
     echo "❌ No DrawIO diagrams generated"; GATE_FAIL=$((GATE_FAIL+1))
 fi
 
-# ⛔ 版式账本硬门（modex-3 同源吸收 P3（2026-09-22））：ledger 缺失/非法 → 阻断
+# ⛔ 版式账本硬门：ledger 缺失/非法 → 阻断
 PYTHON=""
 for _cand in python python3 "py -3"; do
     if $_cand -c "import sys" >/dev/null 2>&1; then PYTHON="$_cand"; break; fi
@@ -1063,7 +1063,7 @@ if grep -qi 'tikz\|TikZ\|模型架构\|变量关系' PROBLEM_ANALYSIS.md 2>/dev/
     fi
 fi
 
-# 最终矢量 PDF：字体嵌入、真实插入后字号和高置信文字压盖（modex-3 同源吸收 P3（2026-09-22））
+# 最终矢量 PDF：字体嵌入、真实插入后字号和高置信文字压盖
 "$PYTHON" _utils/figure_pdf_quality_check.py figures --paper paper
 FPDF_RC=$?
 [ "$FPDF_RC" -eq 0 ] || { echo "❌ 图 PDF 终检失败（exit=$FPDF_RC）"; GATE_FAIL=$((GATE_FAIL+1)); }

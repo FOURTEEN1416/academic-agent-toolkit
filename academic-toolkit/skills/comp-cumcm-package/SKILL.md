@@ -7,8 +7,8 @@ description: ">- 竞赛提交阶段打包沙演与合规终审入口（默认 CU
 
 **定位**：提交阶段（T-4h ~ 上传）的**防呆闸**。只做提交前可机检的硬项，
 **不代替官方客户端上传**，**不生成 .rar**（WinRAR 手工压 RAR 是国赛口径，本技能给 --zip 沙演）。
-名称保留 cumcm 前缀是历史资产（catalog/地图已登记）；**能力覆盖两族**：国赛默认口径 +
-华为杯 `--compliance-profile comp_huawei` 分支（2026-09-22 G2，与 S14 `comp-final-audit`
+名称保留 cumcm 前缀（catalog/地图已登记）；**能力覆盖两族**：国赛默认口径 +
+华为杯 `--compliance-profile comp_huawei` 分支（与 S14 `comp-final-audit`
 的 compliance_profile 做法同构）。
 
 ## 口径分支（compliance_profile，机器真源：`engine/modex-core/comp_rules.json`）

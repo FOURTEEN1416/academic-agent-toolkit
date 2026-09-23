@@ -34,7 +34,6 @@ single authoritative closeout on one stable source snapshot: data reconciliation
 formal compilation, Summary Sheet physical-page/layout checks, TOC, fonts and overflow, figure
 references and sizing, modeling completeness, and the final PDF snapshot report. Batch all source
 fixes before compiling; never compile separately for each small finding.
-<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 ### Step 1: Verify environment
 
@@ -63,7 +62,6 @@ fi
 The script auto-handles: special chars, table fixes, path correction, hidelinks, wide table resizebox, light-color text fixes, TikZ library injection.
 
 **Pre-compile data reconciliation (upstream closeout)**: before compiling, if `PAPER_DATA_CHECKLIST.md` exists, reconcile every result, comparison, error, and optimum in the Summary Sheet/body/conclusion against the real JSON/TABLE sources. Fix only the manuscript; never alter result data to fit the prose. Once reconciled, append `% DATA_CHECK_PASSED` to a `.tex` source actually included by `main.tex`, then record the current data-and-source fingerprint with `paper_data_check.py --mode pdf --workspace . --record-review` (under `_utils/` or `skills/shared-scripts/`, if provided) after the real review. If unavailable, retain an unverified status rather than inventing a receipt; then compile this exact source snapshot.
-<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 Also check ref/label matching and embed missing figures:
 
@@ -580,7 +578,6 @@ if [ -f "$CHECK_DIR/paper_claim_check.py" ]; then
 fi
 echo "Content failures: $GATE_FAIL; unavailable checks: $GATE_UNAVAILABLE"
 ```
-<!-- modex-3 同源吸收 P3（2026-09-22）：上游 `--supplemental` 语义与 GATE_UNAVAILABLE 双轨计数；宿主标记已中性化（AGENTS.md 锚点、`python` 解释器）。 -->
 
 **Upstream evidence-before-repair rules (modex-3 same-source absorption, 2026-09-22; same doctrine as `_utils/quality_gate_contract.md`):**
 
@@ -603,7 +600,6 @@ python _utils/pdf_snapshot_report.py check paper/main.pdf --report COMPILE_REPOR
 ```
 
 Never copy a page count from an earlier round. Any later change to `paper/main.pdf` invalidates the report and requires a fresh snapshot.
-<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 
 ## STEP_MANIFEST 产出声明

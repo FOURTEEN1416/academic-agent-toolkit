@@ -462,7 +462,6 @@ fi
 echo ""
 [ "$GATE_FAIL" -eq 0 ] && echo "✅ ALL PASSED" || echo "❌ $GATE_FAIL FAILURES — fix before proceeding"
 ```
-<!-- modex-3 同源吸收 P3（2026-09-22）：上方 bash 块内 QUALITY 闸为上游增量。 -->
 
 **⛔ If GATE_FAIL > 0, fix and re-run. Do NOT proceed to paper writing with missing data.**
 
@@ -475,7 +474,6 @@ annotations may carry **numbers** or **short anchor labels** (naming a line/poin
 region — `optimal point`, `ROI floor 3.0`, `elbow k=8`), but **never explanations,
 caveats, or conclusions** — those belong in the LaTeX caption and body text.
 Full two-tier spec: `_utils/figure_recipes_competition.md` (top section).
-<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 ### Phase 6: Handoff
 

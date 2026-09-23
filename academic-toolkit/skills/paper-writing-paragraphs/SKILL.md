@@ -720,7 +720,7 @@ Load these references as needed when working on specific aspects of scientific w
 
 ## Scripts & Additional Resources (full inventory)
 
-本技能随附的确定性脚本与补充资源全量清单（2026-09-23 收尾批补登记；此前未列入目录致成"死资源"）：
+本技能随附的确定性脚本与补充资源全量清单：
 
 **Scripts（确定性校验/脚手架，`python scripts/<name>.py`）：**
 

@@ -63,7 +63,6 @@ do not leave an empty section referenced by `main.tex`.
 
 **⛔⛔ HARD RULE: each sub-problem flow chart must stay beside the model it explains — never pile all of them into one overview section.**
 Filenames do not matter. Each flow chart needs nearby model-specific lead-in and interpretation, and one file must not stack several large flow charts without substantive text between them.
-<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 ```
 
@@ -610,7 +609,6 @@ neither constraint is tied to a sentence in the problem statement; no model clas
 must appear in its objective/constraint traceability table, and the number of constraints must not
 fall below the key constraints registered during modeling. Do not invent a constraint that modeling
 never had, and do not quietly drop one that it did.
-<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 #### ⛔⛔ Solution section: argue why the solution is credible, do not recount how the algorithm works
 
@@ -672,7 +670,6 @@ level (not the tooling level).
 - ⛔ Test: if the claim would hold for any other problem ("we used machine learning", "we ran a
   sensitivity analysis"), it is not an innovation for this problem — cut it. Two substantive items
   beat five hollow ones.
-<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 ### Step 4: Build bibliography
 
@@ -877,7 +874,6 @@ deleting any clause loses information. That is the standard.
 **[Final paragraph] optional, but write it whenever there is sensitivity analysis, verification,
 or a generalization worth stating** — say what the model is sensitive to, what it is not, and why
 that matters. ❌ Filler: "The model has good practical value and generalizability."
-<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 ### Step 4.7: AI tool usage statement (only when the user enabled it)
 
@@ -894,12 +890,10 @@ echo "AI_DISC=$AI_DISC"
   cat _utils/ai_disclosure_rules.md 2>/dev/null || cat skills/shared-scripts/ai_disclosure_rules.md
   ```
   ⛔ The official CUMCM statement and standalone detail PDF remain in Chinese even when the paper body is English. Never randomize or infer tools, dates, purposes, or interaction records. Do not put details in the paper appendix or list AI tools as academic references. Invalid records or a failed PDF check must fail this step.
-<!-- modex-3 同源吸收 P3（2026-09-22）：开关锚点已宿主中性化（改读 AGENTS.md 的 AI_DISCLOSURE 标记，去宿主前缀）。 -->
 
 ### Step 5: Final verification
 
 **Upstream closeout & handoff (incremental; local checks below remain the item source):** while writing, read numerical claims from the real JSON/TABLE sources and never change result data to make prose agree; the `% DATA_CHECK_PASSED` marker and the authoritative data audit are generated once by the following `comp-compile-en` step on the final source snapshot (it also owns rendered layout, fonts, physical pages, figure-size consistency and stale-result checks — see its Phase ownership section). This step may run its source-level gates, but do not launch a second compiler audit loop for temporary drafts: batch source fixes, then let one compile+recheck close them out. Never expand merely to approach `MAX_PAGES`, and never compress merely to fall below it; add or remove material only for a real modeling, evidence, clarity, or final-submission need explicitly requested by the user. Figure inventory, inter-figure prose, template structure and rendered visual results must not drive repeated compiles here; while writing, each selected figure must still appear inside its actual formulation, solution, or results narrative rather than in a gallery.
-<!-- modex-3 同源吸收 P3（2026-09-22）：与本地 Step 5 全量自检并存，冲突处以"最终编译步统一收口"口径优先解释重复审计部分。 -->
 
 ```bash
 

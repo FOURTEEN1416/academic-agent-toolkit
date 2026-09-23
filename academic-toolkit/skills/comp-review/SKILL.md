@@ -11,7 +11,7 @@ allowed-tools: Bash(*), Read, Grep, Glob, Agent
 
 ## ⚡ 链路开关 + FAST_MODE 二级保险（开头先跑）
 
-📌 **链路实况（2026-09-23 与引擎对齐）**：引擎 `template_resolver.resolve_template` **默认把本步包含在链中**（comp_cumcm/comp_huawei 的 S07 均含本步）；要省额度跳过时由用户/编排方显式传 `skip_review=true`（或 `skip_comp-review=true`），本步才会从链中移除——不出现在链里就不启动进程，这才是真省额度。
+📌 **链路实况**：引擎 `template_resolver.resolve_template` **默认把本步包含在链中**（comp_cumcm/comp_huawei 的 S07 均含本步）；要省额度跳过时由用户/编排方显式传 `skip_review=true`（或 `skip_comp-review=true`），本步才会从链中移除——不出现在链里就不启动进程，这才是真省额度。
 
 ```bash
 # 二级保险：即便在链中，FAST_MODE 下仍跳过（速度优先场景），产占位不阻塞。

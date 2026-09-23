@@ -26,7 +26,7 @@
 **不存在「调用另一个 agent runtime」的逻辑。** 你读到 `StepAction` 后直接执行技能，
 完成后调用 `complete_step` 回报结果。
 
-## 自举与自适应（2026-09-20 泛化）
+## 自举与自适应
 
 | 能力 | 命令/技能 |
 |------|-----------|
@@ -148,9 +148,9 @@ paper-figure / paper-figure-drawio / paper-figure-html / paper-figure-nature / c
 | **"如何驱动本项目/自举"** | **`skills/agent-bootstrap/`** |
 | **"缺工具/造工具/自适应"** | **`skills/tool-forge/`** |
 
-### 资产直查（非技能资源，2026-09-23 W2 资产激活）
+### 资产直查（非技能资源）
 
-> 完整台账：`data/asset_catalog.json`（42 条，含 when_to_use/owner_skills/local_only）；
+> 完整台账：`data/asset_catalog.json`（45 条，含 when_to_use/owner_skills/local_only）；
 > boot 契约 `paths.asset_catalog` 与 probe 输出 `asset_catalog` 字段同源。
 > `local_only` 条目在私有资料区（`assets-local/` 等，gitignored）：本机有则用，公开 clone 缺席属语义缺位。
 
@@ -195,7 +195,7 @@ MCP：tracked 配置用占位符 `${DOCSEARCH_MCP_SERVER}` / `${DOCSEARCH_ROOTS}
 
 ## 安全注意
 
-- `tools/` 全部工具为单一 `.py` 真源（原 14 件 `.pyc` 分发件已于 2026-09-23 v2.0 收尾反编译重建后退役，`tools/ 零 .pyc` 由 `test_tool_reliability` 棘轮钉住）
+- `tools/` 全部工具为单一 `.py` 真源，零 `.pyc`（`test_tool_reliability` 棘轮钉住）
 - `.env` gitignored，不入库
 - `python tools/secret_scan.py --strict` 扫 tracked 面
 
@@ -230,7 +230,7 @@ python tools/doc_reader.py 题目.pdf --no-vision
 | `tools/build_skill_index.py` | 技能分层索引 | `python tools/build_skill_index.py [--check\|--emit]` |
 | `tools/check_asset_utilization.py` | 资产/地图对账 | `python tools/check_asset_utilization.py [--strict]` |
 
-（其余门禁与图表工具见历史版本全文；能力以 skills/tools 实存为准。）
+（其余图表工具能力以 skills/tools 实存为准。）
 
 ## 六、质量门禁（P4 核心）
 

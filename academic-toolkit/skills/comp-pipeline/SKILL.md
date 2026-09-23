@@ -50,7 +50,7 @@ S01 赛题分析(comp-problem-analysis) → S02 文献调研与核验(comp-liter
 ⑧ comp-review         [📌] → review_report.md → 修改 → 重审
 ```
 
-> 图表环节主动路由（2026-09-11 接线）：④ 数据图由 paper-figure 三轴选图规范把关；需要选图顾问/图库选型时调 `fig-visualization-advisor` / `agent-figure-gallery`；高规格框架图（人工多候选裁决）走 `paper-framework-figure-studio-pro`。
+> 图表环节主动路由：④ 数据图由 paper-figure 三轴选图规范把关；需要选图顾问/图库选型时调 `fig-visualization-advisor` / `agent-figure-gallery`；高规格框架图（人工多候选裁决）走 `paper-framework-figure-studio-pro`。
 
 ## 编排规则
 

@@ -226,7 +226,7 @@ fi
 - **Empirical signal > theoretical appeal.** An idea with a positive pilot outranks a "sounds great" idea without evidence.
 - **Document everything.** Dead ends are just as valuable as successes for future reference.
 - **Be honest with the reviewer.** Include negative results and failed pilots in the review prompt.
-- **Feishu notifications are optional.** 若 `~/.acat/feishu.json`（或兼容旧路径 `~/.claude/feishu.json`）存在, send `checkpoint` at each phase transition and `pipeline_done` at final report. If absent/off, skip silently.
+- **Feishu notifications are optional.** 若 `~/.acat/feishu.json`存在, send `checkpoint` at each phase transition and `pipeline_done` at final report. If absent/off, skip silently.
 
 ## Composing with Workflow 2
 

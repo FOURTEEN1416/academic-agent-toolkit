@@ -68,7 +68,7 @@ Open these only when needed:
   Use when drafting or repairing the actual statement text.
 - `references/repository-and-identifiers.md`
   Use when deciding where each dataset should live and what identifier type is needed.
-- `references/source-data-checks.md` <!--ACAT-GOVERNANCE: 上游无此资产，集成期规划文件，不可得（2026-09-09 审计标记）-->
+- `references/source-data-checks.md` <!--ACAT-GOVERNANCE: 上游无此资产，集成期规划文件，不可得-->
   Use when checking whether figures, tables, and supplements expose enough underlying data.
 
 ## Output Standard

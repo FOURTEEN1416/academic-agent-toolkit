@@ -699,12 +699,6 @@ GATE_FAIL=0
 
 #      一次 → 再判【产物类】。禁止每修一个源码类问题就重编 57 页(那是"卡很久"的根因)。
 
-# ⛔ 已删除原 #1(PDF存在/大小)、#2(LaTeX错误)、#3(参考文献非空)手工检查：
-
-#    这三项 compile_check.sh 已分别在其 #1/#2.5/#6 覆盖，且第18项退出码现已计入
-
-#    GATE_FAIL（见上）。此处不再手工重查，避免同一检查跑两遍、AI 逐条空转。
-
 # 4. No unembedded figures
 
 UNEMBED=0
@@ -731,20 +725,14 @@ PAGE_EST=$((PAGE_EST / 900))
 
 echo "  Page estimate: ~$PAGE_EST pages (target: ≥ MAX_PAGES)"
 
-# ⛔ 已删除原 #6(overfull vbox)：compile_check.sh #3.5 已覆盖，第18项退出码现已计分。
-
-# ⛔ 已删除原 #7(itemize 检查)：与下方 #23 完全重复，且 #23 更全（itemize+enumerate、
-
-#    阈值 ≤3）。保留 #23，此处删除，避免同一检查在一个门里跑两遍。
-
 # 8. Template integrity — compare preamble against original template
 
 echo "--- Template integrity ---"
 
 TMPL=""
 
-# 2026-09-09 审计修复：旧版硬编码 _templates/<某赛事>/main.tex 列表，这些路径在工作区恒不存在 → TMPL 恒空 → 整段模板 preamble 完整性检查静默空转。
-# 改为工作区动态探测：真源是 comp-paper-zh 落进 paper/ 的同名原始模板（若用户/流程保存过）与仓库 _templates/*/main.tex。
+# TMPL 用工作区动态探测：真源是 comp-paper-zh 落进 paper/ 的同名原始模板（若用户/流程保存过）与仓库 _templates/*/main.tex；
+# 禁止硬编码单一赛事模板列表（工作区恒不存在 → 检查静默空转）。
 for t in paper/_original_main.tex _templates/*/main.tex _templates/*_main.tex; do
     [ -f "$t" ] && TMPL="$t" && break
 done
@@ -889,19 +877,11 @@ else
 
 fi
 
-# ⛔ 已删除原 #11(正文引用数)：compile_check.sh #7 已查引用数，第18项退出码现已计分。
-
 # 12. No placeholders remaining
 
 PLACEHOLDERS=$(grep -rl 'PLACEHOLDER\|待补充\|TODO\|\[论文标题\]\|\[中文摘要内容\]' paper/sections/*.tex paper/main.tex 2>/dev/null | wc -l)
 
 [ "$PLACEHOLDERS" -eq 0 ] && echo "✅ No placeholders" || { echo "❌ $PLACEHOLDERS files have placeholders"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-# ⛔ 已删除原 #13(未定义引用)、#14(overfull hbox)、#15(图堆叠)：
-
-#    compile_check.sh 分别在其 #2/#3/#9 覆盖（#9 注释明写与 writing_check 同一检查，
-
-#    原本查了三遍），第18项退出码现已计分。此处不再手工重查。
 
 # 16. TOC 【产物类】——⛔ 唯一在本门主体内会重编的项，但仅当 main.toc 真空时才触发兜底重编。
 
@@ -943,13 +923,13 @@ echo ""
 
 echo "--- Full check scripts ---"
 
-# ⛔ 必须分别捕获两个脚本的退出码：过去 `WC_EXIT=$?` 只接到 writing_check 的，
+# ⛔ 必须分别捕获两个脚本的退出码：`WC_EXIT=$?` 只能接到 writing_check 的，
 
-#    compile_check 的退出码被覆盖丢弃 → 它 506 行的检查白跑、FAIL 不计分。
+#    compile_check 的退出码会被覆盖丢弃 → 它 506 行的检查白跑、FAIL 不计分。
 
-#    现在两者都计入 GATE_FAIL，本项就成了「引用格式/未定义引用/hbox/vbox/未用图/
+#    两者都计入 GATE_FAIL 后，本项是「引用格式/未定义引用/hbox/vbox/未用图/
 
-#    图堆叠/模板包冲突…」等一大批检查的权威裁判，下面手工项里与之重叠的已删除。
+#    图堆叠/模板包冲突…」等一大批检查的权威裁判，手工项不得重复查同一项。
 
 bash _utils/compile_check.sh paper/ 2>/dev/null || bash skills/shared-scripts/compile_check.sh paper/ 2>/dev/null
 
@@ -986,12 +966,6 @@ for f in paper/sections/*.tex; do
     fi
 
 done
-
-# ⛔ 已删除原 #20(长表格 >15 行)：与下方 #22.8(>12 行)阈值矛盾、检查重复。
-
-#    保留 #22.8（阈值更严 >12、Python 精确数行、排除附录），此处删除，避免一个门里
-
-#    两套打架的长表格标准。
 
 # 21. babel[english] 冲突
 
@@ -1419,7 +1393,7 @@ Competition name, status, PDF path, total pages, body pages, compliance pass/fai
 
 ## Key Rules
 
-- ⛔ **写稿/图表质量闸全家桶（2026-09-10 同源吸收，按需选跑，双副本同 shared-scripts/）**：编译侧 `latex_typography_check.py`（排版精细检查）/`normalize_cjk_quotes.py`（中文引号规范）；图表侧 `tikz_structure_check.py <file>` + `tikz_palette_check.py`（TikZ 结构/配色）/`fig_include_size.py` + `fig_size_consistency_check.py`（插图尺寸与一致性）/`figure_pdf_quality_check.py` + `pdf_page_density_check.py` + `pdf_snapshot_report.py`（PDF 成品质量/页密度/快照）/`figure_text_budget.py` + `figure_narrative_check.py`（图内文字预算与叙事）/`fig_bucket_doc_sync_check.py`（图桶-文档同步）；写作侧 `abstract_emphasis_check.py`（摘要重点）/`symbol_layout_check.py` + `assumption_layout_check.py`（符号表/假设排版）/`writing_source_check.py` + `compile_source_check.py`（写稿/编译源一致性）/`paper_source_scope.py`（正文范围）。计算侧 `compute_checkpoint.py`/`run_compute.py`/`modeling_tex_policy.py`/`recipe_audit.py` 归 comp-code 侧按需。合同规范：`modeling_paper_contract.md`（建模-论文合同）/`abstract_writing_contract.md`（摘要合同）/`quality_gate_contract.md`（验证证据复用）/`cumcm_2026_format.md`（2026 国赛格式）/`tikz_style_families.md`（TikZ 风格族）。
+- ⛔ **写稿/图表质量闸全家桶（按需选跑，双副本同 shared-scripts/）**：编译侧 `latex_typography_check.py`（排版精细检查）/`normalize_cjk_quotes.py`（中文引号规范）；图表侧 `tikz_structure_check.py <file>` + `tikz_palette_check.py`（TikZ 结构/配色）/`fig_include_size.py` + `fig_size_consistency_check.py`（插图尺寸与一致性）/`figure_pdf_quality_check.py` + `pdf_page_density_check.py` + `pdf_snapshot_report.py`（PDF 成品质量/页密度/快照）/`figure_text_budget.py` + `figure_narrative_check.py`（图内文字预算与叙事）/`fig_bucket_doc_sync_check.py`（图桶-文档同步）；写作侧 `abstract_emphasis_check.py`（摘要重点）/`symbol_layout_check.py` + `assumption_layout_check.py`（符号表/假设排版）/`writing_source_check.py` + `compile_source_check.py`（写稿/编译源一致性）/`paper_source_scope.py`（正文范围）。计算侧 `compute_checkpoint.py`/`run_compute.py`/`modeling_tex_policy.py`/`recipe_audit.py` 归 comp-code 侧按需。合同规范：`modeling_paper_contract.md`（建模-论文合同）/`abstract_writing_contract.md`（摘要合同）/`quality_gate_contract.md`（验证证据复用）/`cumcm_2026_format.md`（2026 国赛格式）/`tikz_style_families.md`（TikZ 风格族）。
 
 - No latexmk — manual step-by-step compilation
 

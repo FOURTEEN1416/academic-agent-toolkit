@@ -500,7 +500,6 @@ echo "缺失嵌入: $missing"
 
 - `references_pool.md` — 文献候选池（中间产物）
 - `HUMANITIES_PAPER.md` — 最终论文（**主产出**，含参考文献）
-<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 ## STEP_MANIFEST 产出声明
 

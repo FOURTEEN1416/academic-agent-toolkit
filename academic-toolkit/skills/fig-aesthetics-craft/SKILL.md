@@ -58,10 +58,10 @@ Origin Learning Center 官方模板覆盖 19 类图型（3D 柱状/3D 曲面/面
 ## 五、图集与来源
 
 - 批次图集（103 张本地化图片 + 六篇全文）：`D:\Desktop\学术工作流\assets-local\reference-figures\公众号审美批次2026-09-11\`
-  （**不在 git 内**；2026-09-12 收编入仓 gitignored 区；缺失时本技能正文技法仍完整可用，图集仅作视觉参照）；
+  （**不在 git 内**；缺失时本技能正文技法仍完整可用，图集仅作视觉参照）；
 - 逐篇要点与来源映射：该目录 `00_总览与美学要点提炼.md` 与各篇 `article.md`；
 - 顶刊配色系列（LPH 等）可按期续收进同一目录；
-- **顶刊海报 12 组 96 色提取+锁色相调色**（2026-09-12 收编）：数据快照 `references/top-journal-palette-96.json`
+- **顶刊海报 12 组 96 色提取+锁色相调色**：数据快照 `references/top-journal-palette-96.json`
   与方法论 `references/palette-extraction-method.md`（已入 git）；原海报图与 HTML 对比查看器在
   `参考图/科研配色方案/`（仅本地）。调色值作候选输入，用前仍须过 paper-figure 色觉/打印校验。
 

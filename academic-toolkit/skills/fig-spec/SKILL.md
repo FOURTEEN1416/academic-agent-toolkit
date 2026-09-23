@@ -269,4 +269,3 @@ Three-stage horizontal cascade with inputs feeding in from top, outputs exiting 
 
 After each cross-model reviewer call (any host reviewer path — see Step 5), save the trace following `references/review-tracing.md` (Policy C — forensic; never silently skip). Use `save_trace.sh` (resolved per the chain in `references/integration-contract.md` §2) or write files directly to `.aris/traces/<skill>/<date>_run<NN>/`. Respect the `--- trace:` parameter (default: `full`).
 
-<!-- modex-3 同源吸收 P3（2026-09-22）：收编 upstream integration-contract.md / review-tracing.md 至本技能 references/（原指针悬空）；宿主专有 reviewer 调用引用（Codex MCP 工具名）改为宿主中性表述。 -->

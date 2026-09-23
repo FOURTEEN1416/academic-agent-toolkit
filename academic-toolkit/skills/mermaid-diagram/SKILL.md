@@ -113,8 +113,8 @@ flowchart TD
 
 ```bash
 # Check if mermaid-cli is available
-# ⛔ 2026-09-09 审计修复 P2-2：旧版注释要求带 -p 但可执行命令没带——裸 mmdc 在本机
-#   必失败（puppeteer 缺 chrome-headless-shell 缓存）。-p 配置探测顺序：用户级 → 仓库级。
+# ⛔ mmdc 必须带 -p（裸 mmdc 会因 puppeteer 缺 chrome-headless-shell 缓存而失败）。
+#   -p 配置探测顺序：用户级 → 仓库级。
 PUPPETEER_CFG=""
 for _cfg in "$HOME/.mmdc/puppeteer-config.json" skills/_utils/puppeteer-config.json ../skills/_utils/puppeteer-config.json; do
     [ -f "$_cfg" ] && { PUPPETEER_CFG="$_cfg"; break; }

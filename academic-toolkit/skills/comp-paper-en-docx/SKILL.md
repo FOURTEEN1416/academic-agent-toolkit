@@ -117,7 +117,6 @@ Appendix A: Code
 not mandatory chapter names. Do not generate a Table of Contents. Follow
 `_utils/modeling_paper_contract.md` and keep each core model connected to its results and validation;
 model chapters are named after what they actually contain (see Step 2.9).
-<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 ## ⛔⛔⛔ Output Contract (highest priority)
 
@@ -631,7 +630,6 @@ constraint tightness and slack. A relaxation bound is **not** a feasible solutio
 conclusion): 2-4 items, each "conventional approach → what this paper does → what difference it
 makes", at the modeling level. If a claim would hold for any other problem ("we used ML", "we ran
 sensitivity analysis"), cut it — two substantive items beat five hollow ones.
-<!-- modex-3 同源吸收 P3（2026-09-22）：docx 模板骨架内注释未逐条改写，本节为等价口径的正文增量；模板示例细节见 comp-paper-en 同源章节。 -->
 
 ### Step 3: Writing discipline
 
@@ -1134,12 +1132,10 @@ echo "AI_DISC=$AI_DISC"
   cat _utils/ai_disclosure_rules.md 2>/dev/null || cat skills/shared-scripts/ai_disclosure_rules.md
   ```
   The official CUMCM statement and standalone detail PDF remain in Chinese even when the paper body is English. Never randomize or infer tools, dates, purposes, or interaction records. Do not put details in the Word appendix or list AI tools as academic references. Invalid records or a failed PDF check must fail this step.
-<!-- modex-3 同源吸收 P3（2026-09-22）：开关锚点已宿主中性化（改读 AGENTS.md 的 AI_DISCLOSURE 标记，去宿主前缀）。 -->
 
 ### Step 6: Final verification
 
 **Data closeout (upstream, incremental):** if `PAPER_DATA_CHECKLIST.md` exists, read it before finishing and reconcile every reported result, comparison, error, and optimum against the real JSON/TABLE sources. Fix `paper/main.md` only; never change result data to make prose agree. After the reconciliation is complete, append `<!-- DATA_CHECK_PASSED -->` to `paper/main.md` (an invisible HTML comment in the Word export). The engine still verifies this independently. Do not defer this audit to another model session or rerun checks that already passed.
-<!-- modex-3 同源吸收 P3（2026-09-22）-->
 
 
 

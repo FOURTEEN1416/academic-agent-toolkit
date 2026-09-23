@@ -56,14 +56,14 @@ cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rul
 
 ### 数模竞赛 (cumcm/huawei/mathorcup/huazhong/etc.)
 
-Template: `_templates/cumcm/`（国赛，2026-09-09 已入库实测编译通过：`cumcmthesis.cls` + `cumcm2026.sty` + 骨架 `main.tex`）
-华为杯：`_templates/huawei/`（2026-09-22 入库：`gmcmthesis.cls` + 骨架 `main.tex` + 封面 `logo.pdf`/`title.pdf`；字体 SimSun/SimHei/KaiTi/LiSu 不随库分发，取法见其 README.md。此前华为杯分支 `cp _templates/huawei/*` 因目录缺失静默空转，靠落地断言兜底报错——现已修复断链）
+Template: `_templates/cumcm/`（国赛：`cumcmthesis.cls` + `cumcm2026.sty` + 骨架 `main.tex`）
+华为杯：`_templates/huawei/`（`gmcmthesis.cls` + 骨架 `main.tex` + 封面 `logo.pdf`/`title.pdf`；字体 SimSun/SimHei/KaiTi/LiSu 不随库分发，取法见其 README.md）
 
-⛔ **sty 定制纪律（D5 双源分叉修复，2026-09-13）**：需要改样式时**禁止整份复制 `cumcm2026.sty` 后私改**（双源分叉：diff 说不清改了什么，合规无法对账）。正确做法：复制同目录 `cumcm2026_local.example.sty` 为 `cumcm2026_local.sty`——`\input` 真源 + 只在 PATCH 区追加差异 + BASELINE 行登记基线版本；`cumcm2026.sty` 头部有 `TEMPLATE_VERSION` 基线标记。
+⛔ **sty 定制纪律（防双源分叉）**：需要改样式时**禁止整份复制 `cumcm2026.sty` 后私改**（双源分叉：diff 说不清改了什么，合规无法对账）。正确做法：复制同目录 `cumcm2026_local.example.sty` 为 `cumcm2026_local.sty`——`\input` 真源 + 只在 PATCH 区追加差异 + BASELINE 行登记基线版本；`cumcm2026.sty` 头部有 `TEMPLATE_VERSION` 基线标记。
 
-⛔ **其余赛事模板现状（2026-09-22 G4 校正）**：P2 批（提交 c59ffb4）已将 13 套竞赛模板收编进 `_templates/<赛事名>/`，其中 **mathorcup / apmcm_zh / wuyi 三族已接线**（S7 论文步资产指针 + 下方分支 fail-fast 断言，2026-09-22 实测骨架在位）；其余低频族（huazhong 复用 `_templates/cumcm/`，changsanjiao / huashubei / diangongbei / dongsansheng / shuweibei / stats 等）目录已入库但分支仍靠落地断言兜底。若某族模板目录不在位，下方模板分支的落地断言会**显式报错 exit 1 并给出补救路径**（旧文档把上述各族一概描述为缺件，与 P2 收编后事实不符，已修正）。
+⛔ **其余赛事模板现状**：13 套竞赛模板已收编进 `_templates/<赛事名>/`，其中 **mathorcup / apmcm_zh / wuyi 三族已接线**（S7 论文步资产指针 + 下方分支 fail-fast 断言）；其余低频族（huazhong 复用 `_templates/cumcm/`，changsanjiao / huashubei / diangongbei / dongsansheng / shuweibei / stats 等）目录已入库，分支由下方模板落地断言兜底。若某族模板目录不在位，落地断言会**显式报错 exit 1 并给出补救路径**。
 
-**⛔ MathorCup 与 亚太赛中文(APMCM) 都使用 `MathorCupmodeling.cls` 文档类**（该 cls 已于 P2 批随 `_templates/mathorcup/` 与 `_templates/apmcm_zh/` 入库，2026-09-22 G4 接线，直接走下方分支复制）。使用 `\bianhao{}`、`\tihao{}`、`\timu{}` 设置队伍信息，`\keyword{}` 设置关键词。摘要用 `\begin{abstract}...\end{abstract}` 环境。参考文献用 `\begin{thebibliography}` 环境。
+**⛔ MathorCup 与 亚太赛中文(APMCM) 都使用 `MathorCupmodeling.cls` 文档类**（该 cls 随 `_templates/mathorcup/` 与 `_templates/apmcm_zh/` 入库，直接走下方分支复制）。使用 `\bianhao{}`、`\tihao{}`、`\timu{}` 设置队伍信息，`\keyword{}` 设置关键词。摘要用 `\begin{abstract}...\end{abstract}` 环境。参考文献用 `\begin{thebibliography}` 环境。
 
 **⛔ 华中杯必须使用 `cumcmthesis` 文档类**（与国赛同源：本仓库 `_templates/cumcm/` 已入库 cls+sty+骨架，可直接 `cp _templates/cumcm/* paper/` 复用；中文渲染由 ctex 走系统字体，无需随模板捆绑字体）。华中杯模板使用 `\begin{abstract}...\keywords{}\end{abstract}` 环境写摘要（不是手动排版），参考文献用 `\begin{thebibliography}` 环境（不是 `\bibliography{}`）。
 
@@ -399,7 +399,7 @@ elif echo "$ARGUMENTS" | grep -qi "apmcm_zh\|亚太.*中文\|亚太赛中文" ||
 
     echo "Using APMCM (Chinese) template (MathorCupmodeling.cls)"
 
-    # 2026-09-22 G4 断链修复：模板已入库 _templates/apmcm_zh/；目录缺失立即报错停下（旧版 cp 带 2>/dev/null 静默吞错）
+    # 模板已入库 _templates/apmcm_zh/；目录缺失立即报错停下，禁止 cp 带 2>/dev/null 静默吞错
 
     [ -d "$TMPL_BASE/apmcm_zh" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/apmcm_zh/（入库位置 skills/comp-paper-zh/_templates/apmcm_zh/，请检查执行目录与 TMPL_BASE）"; exit 1; }
 
@@ -409,7 +409,7 @@ elif echo "$ARGUMENTS" | grep -qi "mathorcup\|MathorCup\|mathor" || grep -qi "ma
 
     echo "Using MathorCup template"
 
-    # 2026-09-22 G4 断链修复：模板已入库 _templates/mathorcup/；目录缺失立即报错停下（旧版 cp 带 2>/dev/null 静默吞错）
+    # 模板已入库 _templates/mathorcup/；目录缺失立即报错停下，禁止 cp 带 2>/dev/null 静默吞错
 
     [ -d "$TMPL_BASE/mathorcup" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/mathorcup/（入库位置 skills/comp-paper-zh/_templates/mathorcup/，请检查执行目录与 TMPL_BASE）"; exit 1; }
 
@@ -419,7 +419,7 @@ elif echo "$ARGUMENTS" | grep -qi "huazhong\|华中杯" || grep -qi "huazhong\|�
 
     echo "Using huazhong template (= cumcmthesis, 复用已入库的 _templates/cumcm/)"
 
-    # 华中杯与国赛同文档类（2026-09-09 审计修正：旧版 cp _templates/huazhong/* 指向不存在的目录，靠断言兜底报错）
+    # 华中杯与国赛同文档类：复用 _templates/cumcm/（不得指向不存在的 _templates/huazhong/）
 
     [ -d "$TMPL_BASE/cumcm" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/cumcm/（入库位置 skills/comp-paper-zh/_templates/cumcm/，请检查执行目录与 TMPL_BASE）"; exit 1; }
     cp "$TMPL_BASE/cumcm/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/cumcm/ -> paper/"; exit 1; }
@@ -441,7 +441,7 @@ elif echo "$ARGUMENTS" | grep -qi "wuyi\|五一杯" || grep -qi "wuyi\|五一杯
 
     echo "Using wuyi template"
 
-    # 2026-09-22 G4 断链修复：模板已入库 _templates/wuyi/（cumcmthesis 同源 cls + 封面 image2.png）；目录缺失立即报错停下（旧版 cp 带 2>/dev/null 静默吞错）
+    # 模板已入库 _templates/wuyi/（cumcmthesis 同源 cls + 封面 image2.png）；目录缺失立即报错停下，禁止 cp 带 2>/dev/null 静默吞错
 
     [ -d "$TMPL_BASE/wuyi" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/wuyi/（入库位置 skills/comp-paper-zh/_templates/wuyi/，请检查执行目录与 TMPL_BASE）"; exit 1; }
 
@@ -497,8 +497,8 @@ else
 
 fi
 
-# ⛔ 模板落地断言（2026-09-09 赛前加固）：模板缺失时上面的 cp 带 2>/dev/null 会静默跳过，
-#   直到编译阶段才炸。此处硬性断言 cls/sty 已就位，否则立即失败并给出补救路径。
+# ⛔ 模板落地断言：防止模板缺失时 cp 静默跳过、拖到编译阶段才炸——
+#   此处硬性断言 cls/sty 已就位，否则立即失败并给出补救路径。
 if ls paper/*.cls paper/*.sty > /dev/null 2>&1; then
     echo "✅ 模板文件已就位: $(ls paper/*.cls paper/*.sty 2>/dev/null | tr '
 ' ' ')"
@@ -1823,7 +1823,7 @@ Follow the interleaving, embedding, and LaTeX rules from `_utils/writing_rules.m
 
 - **⛔ 图片宽度下限：** `width` 参数不得小于 `0.8\textwidth`。任何 `width=0.5\textwidth`、`width=0.48\textwidth`、`width=0.45\textwidth` 都是错误的，必须改为 `0.85\textwidth` 或 `0.9\textwidth`
 
-> ⛔ 长表格处理规则见上方「长表格处理规则（>12 行的数据表格）」一处（含缩略版示例 + 汇总统计行 + 附录 longtable + compile_utils.sh 兜底）。此处原来重复写了一遍「>15 行」版本，阈值与上面的 12 行矛盾（同一张表可能一处判超、一处判过，逼 AI 反复改），已删除，统一以上面的 **12 行** 阈值为准。
+> ⛔ 长表格处理规则以上方「长表格处理规则（>12 行的数据表格）」一处为唯一口径（含缩略版示例 + 汇总统计行 + 附录 longtable + compile_utils.sh 兜底）；此处不重复，禁止另立 >15 行之类矛盾阈值。
 
 After each chapter, check character count:
 
@@ -2822,9 +2822,9 @@ echo "模板检查: $TMPL_OK 通过, $TMPL_FAIL 失败"
 
 ## Key Rules
 
-- ⛔ **AI 申报双件套自动生成（2026-09-10 同源吸收，合规硬要求）**：竞赛要求正文参考文献前放“AI 工具使用声明”+ 独立支撑材料《AI工具使用详情.pdf》。生成/核验必须用确定性脚本 `_utils/build_ai_disclosure.py`（双副本同 shared-scripts/，规范见 `_utils/ai_disclosure_rules.md`）：工具/型号/日期/用途只来自用户确认的清单（`.mh/ai_disclosure.json`），禁止语言模型自由编写详情；正文声明位置在参考文献之前；交付前必跑 `--check-only` 反查闸。未使用 AI 时用脚本生成“未使用”声明并清理旧详情文件。
+- ⛔ **AI 申报双件套自动生成（合规硬要求）**：竞赛要求正文参考文献前放“AI 工具使用声明”+ 独立支撑材料《AI工具使用详情.pdf》。生成/核验必须用确定性脚本 `_utils/build_ai_disclosure.py`（双副本同 shared-scripts/，规范见 `_utils/ai_disclosure_rules.md`）：工具/型号/日期/用途只来自用户确认的清单（`.mh/ai_disclosure.json`），禁止语言模型自由编写详情；正文声明位置在参考文献之前；交付前必跑 `--check-only` 反查闸。未使用 AI 时用脚本生成“未使用”声明并清理旧详情文件。
 - ⛔ **AI 痕迹自检（交稿前必跑）**：`python _utils/ai_tell_check.py paper/`（双副本同 shared-scripts/）——工程/质检语汇（口径/闭环等）从提示词流进正文是实测最高频 AI 痕迹（10 工作区 442 次命中）；exit 1 时必修。人工风格对照 `_utils/human_competition_paper_style.md`，风格检查 `python _utils/human_paper_style_check.py paper/`。
-- **防过度/辩护性写作（修订轮主动推荐，2026-09-11 接线）**：修订或压缩页数时调 `anti-defensive-writing` 技能，删不必要的 hedge/免责声明/道歉式框架/过度解释——保留必要的范围、误差与方法学限定，删的是"可能在一定程度上"式空转措辞；深度检测可加跑 `anti-ai-detection` 技能（8 维度 AI 特征分析+改写建议）。与 ai_tell_check 互补：一个删 AI 痕迹语汇、一个删防御性冗余。
+- **防过度/辩护性写作（修订轮主动推荐）**：修订或压缩页数时调 `anti-defensive-writing` 技能，删不必要的 hedge/免责声明/道歉式框架/过度解释——保留必要的范围、误差与方法学限定，删的是"可能在一定程度上"式空转措辞；深度检测可加跑 `anti-ai-detection` 技能（8 维度 AI 特征分析+改写建议）。与 ai_tell_check 互补：一个删 AI 痕迹语汇、一个删防御性冗余。
 
 - Use templates from `templates/`, do not write main.tex from scratch
 

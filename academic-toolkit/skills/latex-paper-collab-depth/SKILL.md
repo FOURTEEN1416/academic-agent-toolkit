@@ -12,7 +12,7 @@ metadata:
 Use Claude Code CLI as a **depth-analysis** collaborator for paper-from-zero,
 or as a generic code collaborator in fallback mode.
 
-> **ACAT 宿主中立声明（2026-09-23）**：本技能把 claude CLI 当作**外部评审桥协作者**调用（可选增强），不预设执行宿主；`claude` 不在 PATH 时跳过该协作者、由当前 Agent 自审降级，不阻断流程。
+> **ACAT 宿主中立声明**：本技能把 claude CLI 当作**外部评审桥协作者**调用（可选增强），不预设执行宿主；`claude` 不在 PATH 时跳过该协作者、由当前 Agent 自审降级，不阻断流程。
 
 
 This skill provides a lightweight bridge script (`scripts/claude_bridge.py`)
@@ -66,7 +66,7 @@ Review src/auth.py around login() and propose fixes.
 OUTPUT: Unified Diff Patch ONLY.
 EOF
 )"
-python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> --cd "." --model sonnet --PROMPT "$PROMPT" --output-format stream-json
+python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --cd "." --model sonnet --PROMPT "$PROMPT" --output-format stream-json
 ```
 
 **Output:** JSON with `success`, `SESSION_ID`, `agent_messages`, and optional `error` / `all_messages`.
@@ -79,14 +79,14 @@ PROMPT="$(cat <<'EOF'
 Analyze the bug in foo(). Keep it short.
 EOF
 )"
-python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> --cd "." --PROMPT "$PROMPT" --output-format stream-json
+python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --cd "." --PROMPT "$PROMPT" --output-format stream-json
 
 # Continue the same session
 PROMPT="$(cat <<'EOF'
 Now propose a minimal fix as Unified Diff Patch ONLY.
 EOF
 )"
-python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> --cd "." --SESSION_ID "<SESSION_ID>" --PROMPT "$PROMPT" --output-format stream-json
+python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --cd "." --SESSION_ID "<SESSION_ID>" --PROMPT "$PROMPT" --output-format stream-json
 ```
 
 ## Prompting Patterns (Paper Mode)
@@ -101,7 +101,7 @@ Each template specifies its input sources, output artifact mappings, and constra
 
 ## Verification
 - Cross-check both collaborators: use the `check-collaborators` skill
-- Smoke-test the bridge: `python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> --help`
+- Smoke-test the bridge: `python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --help`
 - For session testing: run one prompt with `--output-format stream-json` and confirm JSON contains `success: true` and a `SESSION_ID`.
 
 ## References
