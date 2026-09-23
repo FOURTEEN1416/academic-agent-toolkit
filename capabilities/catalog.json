@@ -3282,6 +3282,25 @@
         "2026-08-29: 新建（P2 缺口补齐）",
         "2026-08-30: C2 闭环（round-4 独立评审 PASS，工作流 completed）"
       ]
+    },
+    {
+      "capability_id": "award-paper-mining",
+      "name": "获奖论文语料挖掘与统计沉淀",
+      "domain": "literature_research",
+      "description": "挖掘获奖论文语料并沉淀为可复用统计资产：抓取→按题号归档→合并PDF→关键页语义标注→结构化JSON→统计报告；持续喂养论文写作范文参照。触发词：优秀论文挖掘、获奖论文语料、范文库、论文统计报告",
+      "input_contract": "目标年份/赛事/题型 + 公开展示源（只采公开往届展示页）",
+      "output_contract": "归档语料（私有区）+ 结构化底座 JSON + 统计报告 md；git 内范文清单与统计摘要",
+      "status": "experimental",
+      "associated_skills": [
+        "award-paper-mining"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [
+        "公开往届展示页（dxs.moe.gov.cn 等）"
+      ],
+      "high_risk_confirmation": false,
+      "current_evidence": "2026-09-23 v2.0 W4 新增：固化本仓已跑通一届样本（2021-2025 共 62 篇）的挖掘流水线；产物接线 data/award_paper_exemplars.json。",
+      "current_gap": "抓取脚本未随库（源站结构可能变化，需按当下页面重写选择器）。"
     }
   ],
   "course_research_materials": [

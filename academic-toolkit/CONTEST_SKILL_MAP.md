@@ -131,6 +131,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 | 基础设施（5 + shared-scripts 目录） | meta-skill-creator, meta-doc-governance, ip-source-extractor, agent-bootstrap, tool-forge, shared-scripts(目录，非技能) | 仓库治理/技能开发/宿主无关自举与工具铸造/软著，非解题用 |
 | 其他（1） | pixel-art | 像素画风，与学术图规范冲突 |
 | Origin 可编辑绘图（1） | fig-plot-edit | 需本机 Origin/OriginPro 2021+ 商业软件 + Windows COM 自动化，非赛时工具；学术科研域按需（2026-09-22 整技能收编自 hang-jin/editaplot，Apache-2.0，本机 Origin 未装、登记待用；runtime 引擎在 vendor/forks/editaplot 不入库） |
+| 语料挖掘（1） | award-paper-mining | 获奖论文语料挖掘与统计沉淀（赛后/赛前语料建设用；2026-09-23 v2.0 W4 新增） |
 
 ## 五、未接入库（2 个，2026-09-11 对账新增；2026-09-22 P4 激活批次后余）
 

@@ -8,7 +8,7 @@
 
 [![Release](https://img.shields.io/badge/release-v1.3.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-774_passing-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
-[![Capabilities](https://img.shields.io/badge/capabilities-312-0ea5e9?style=flat-square)](capabilities/catalog.json)
+[![Capabilities](https://img.shields.io/badge/capabilities-313-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-250_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始)
@@ -49,7 +49,7 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 </td></tr>
 </table>
 
-## 🗺️ 六大能力域 + Agent 运行时 · 312 项能力
+## 🗺️ 六大能力域 + Agent 运行时 · 313 项能力
 
 | | 能力域 | 条目 | 代表能力 |
 |--|--------|-----:|----------|
@@ -61,7 +61,7 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 | ©️ | **知识产权材料** | 12 | 软著 · 专利 · 基金申请书 |
 | 🧩 | **Agent 运行时** | 2 | 宿主无关自举 · 自适应工具铸造 |
 
-> 域表与 `capabilities/catalog.json` 对齐：37/75/40/83/12/63/2 = **312**（与徽章一致；2026-09-23 实测）。
+> 域表与 `capabilities/catalog.json` 对齐：37/75/41/83/12/63/2 = **313**（与徽章一致；2026-09-23 v2.0 W4 实测）。
 
 > [!NOTE]
 > **技能计数口径**（唯一）：徽章与正文统一为 `git ls-files` 口径的技能 SKILL.md 数（**clone 即所见**）；另有 5 个无 License 上游隔离件仅存本地、gitignored 不入库，不计入。

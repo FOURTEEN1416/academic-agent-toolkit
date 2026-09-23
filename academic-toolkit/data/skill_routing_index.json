@@ -14,9 +14,9 @@
   },
   "counts": {
     "core": 52,
-    "ondemand": 203,
-    "resident_chars": 31023,
-    "full_chars": 65067
+    "ondemand": 204,
+    "resident_chars": 31129,
+    "full_chars": 65173
   },
   "skills": {
     "ablation-planner": {
@@ -114,6 +114,14 @@
       "full_description": "Autonomous multi-round research review loop: write review task cards, obtain an independent review (any isolated context - independent subagent / session / window / another model), implement fixes, re-review until positive assessment or max rounds; degrade to current-agent adversarial self-review only when no independent context is obtainable. 统一遵循独立评审手册（independent_review_manual，正文有指引），零 APIKey 零网络。Trigger with \\\"auto review loop\\\", \\\"review until it passes\\\".",
       "description_compacted": false,
       "path": "academic-toolkit/skills/auto-review-loop/SKILL.md"
+    },
+    "award-paper-mining": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "挖掘获奖论文语料并沉淀为可复用统计资产：从公开展示页采集、按题号归档、关键页语义标注到结构化统计报告。触发词：优秀论文挖掘、获奖论文语料、范文库、award paper mining、历年论文归档、论文统计报告。",
+      "full_description": "挖掘获奖论文语料并沉淀为可复用统计资产：从公开展示页采集、按题号归档、关键页语义标注到结构化统计报告。触发词：优秀论文挖掘、获奖论文语料、范文库、award paper mining、历年论文归档、论文统计报告。",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/award-paper-mining/SKILL.md"
     },
     "check-citations": {
       "tier": "ondemand",

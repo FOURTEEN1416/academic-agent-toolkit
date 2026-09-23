@@ -14,6 +14,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -162,6 +163,24 @@ def test_strict_warns_without_blocking_when_unconfigured(tmp_path, monkeypatch):
 HOOK = SUITE_ROOT / "hooks" / "zcode_audit_l1.py"
 
 
+def _outside_repo_dir(tmp_path: Path, sub: str) -> Path:
+    """返回一个**确在仓库外**的目录（供"cwd 漂出仓库"场景使用）。
+
+    ⚠️ 不能只依赖 pytest 的 tmp_path：basetemp 可能落在**仓库内**
+    （如 `--basetemp=dev-docs/_pt_tmp`），此时"仓库外 cwd"前提不成立，用例会以
+    难以定位的形态失败（2026-09-23 审计实测：仓内 basetemp 下本文件 2 项必红：
+    `test_hook_passes_from_foreign_cwd` 的前提断言、`test_bootstrap_fails_open_
+    outside_any_repo` 的"定位失败"留痕断言；默认 basetemp 下 23 项全绿）。
+    basetemp 在仓内时自动回退到系统临时目录，保持用例意图（cwd 在仓库外）不变。
+    """
+    base = tmp_path
+    if str(base.resolve()).startswith(str(REPO_ROOT.resolve())):
+        base = Path(tempfile.gettempdir()) / f"acat-outside-{os.getpid()}"
+    d = base / sub
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
 def _run_hook(payload: str, mode: str, tmp_path: Path) -> subprocess.CompletedProcess:
     env = {**os.environ, "ZCODE_PROJECT_DIR": str(tmp_path)}
     return subprocess.run([sys.executable, str(HOOK), mode],
@@ -269,8 +288,7 @@ def test_hook_passes_from_foreign_cwd(tmp_path):
     脚本路径由 ${ZCODE_PROJECT_DIR} 绝对展开、审计目录由该变量解析，
     均不依赖进程 cwd——cwd 在仓库外不得产生 exit 2。
     """
-    foreign_cwd = tmp_path / "somewhere" / "else"
-    foreign_cwd.mkdir(parents=True)
+    foreign_cwd = _outside_repo_dir(tmp_path, "somewhere/else")
     assert not str(foreign_cwd).startswith(str(REPO_ROOT)), "测试前提：cwd 确在仓库外"
     env = {**os.environ, "ZCODE_PROJECT_DIR": str(tmp_path)}
     p = subprocess.run(
@@ -437,8 +455,7 @@ def test_bootstrap_preserves_deny_exit2_from_subdir_cwd(tmp_path, monkeypatch):
 
 def test_bootstrap_fails_open_outside_any_repo(tmp_path, monkeypatch):
     """cwd 漂出仓库且无 env：定位失败 → stderr 警告 + exit 0 放行（绝不 deny）。"""
-    outside = tmp_path / "elsewhere"
-    outside.mkdir()
+    outside = _outside_repo_dir(tmp_path, "elsewhere")
     _strip_project_env(monkeypatch)
     p = subprocess.run(
         [sys.executable, "-c", _bootstrap_code(), "pre"],
