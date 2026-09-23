@@ -2,14 +2,14 @@
 
 # ⚗️ Academic Agent Toolkit
 
-### 科研工具箱 · 让 Agent 像科研人员一样工作
+### academic-toolkit · 让 Agent 像科研人员一样工作
 
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v1.3.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-763_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
+[![Tests](https://img.shields.io/badge/tests-763_passing-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-312-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-274_tracked-8b5cf6?style=flat-square)](科研工具箱/skills)
+[![Skills](https://img.shields.io/badge/skills-274_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始)
 [![Hosts](https://img.shields.io/badge/hosts-Any_Agent-1f2937?style=flat-square)](#快速开始)
@@ -111,18 +111,18 @@ flowchart LR
 git clone https://github.com/FOURTEEN1416/academic-agent-toolkit.git
 cd academic-agent-toolkit
 python -m pip install -r requirements-dev.txt   # 第 0 步：测试/门禁依赖（在仓库根跑，别先 cd 进子目录）
-cd 科研工具箱
+cd academic-toolkit
 python -m engine.workflow_cli boot
 python -m engine.workflow_cli probe
 ```
 
-1. 读仓库根 `AGENTS.md` 与 `科研工具箱/AGENTS.md`
+1. 读仓库根 `AGENTS.md` 与 `academic-toolkit/AGENTS.md`
 2. `boot` 取得驱动契约；`probe` 查看能力与 TOOL_GAP
 3. 缺工具时 `python -m engine.workflow_cli forge --tool <name> --purpose "..."`
 4. 竞赛/长流程：`start --template comp_cumcm` → `next` → 执行 → `complete`
 5. 单技能：按路由表读 `skills/<name>/SKILL.md`
 
-自举：`科研工具箱/skills/agent-bootstrap/` · 铸造：`科研工具箱/skills/tool-forge/`
+自举：`academic-toolkit/skills/agent-bootstrap/` · 铸造：`academic-toolkit/skills/tool-forge/`
 适配器：协议不依赖；需要适配器元数据时 `python -m engine.workflow_cli forge --adapter <name>` 本地生成
 
 > [!IMPORTANT]
@@ -137,7 +137,7 @@ python -m engine.workflow_cli probe
 | 适配器 | 用途 |
 |--------|------|
 | **OpenCode Desktop** | 打开仓库根即可用 `opencode.json`（默认角色数模专家 + skills 扫描 + subagent 内联）。**不依赖 `opencode` CLI** |
-| **ZCode** | `cmd /c "mklink /J .zcode\skills 科研工具箱\skills"` 后打开仓库根；L1 hook 按本地未提交配置注册（契约见 `科研工具箱/tests/test_zcode_host_compat.py` D 段） |
+| **ZCode** | `cmd /c "mklink /J .zcode\skills academic-toolkit\skills"` 后打开仓库根；L1 hook 按本地未提交配置注册（契约见 `academic-toolkit/tests/test_zcode_host_compat.py` D 段） |
 | **其他** | 无需专用配置，按上文协议驱动；需要适配器元数据时 `python -m engine.workflow_cli forge --adapter <name>` 本地重建 |
 
 ### 环境要求
@@ -157,7 +157,7 @@ python -m engine.workflow_cli probe
 **一键体检**（本机能用哪些绘图技能、缺什么、怎么装）：
 
 ```bash
-python 科研工具箱/tools/plotting_env_check.py
+python academic-toolkit/tools/plotting_env_check.py
 ```
 
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
@@ -166,7 +166,7 @@ python 科研工具箱/tools/plotting_env_check.py
 # 口径一（仓库根，回归门禁口径）：763 passed / 0 failed（与口径二同值）
 python -m pytest -q
 # 口径二（工具箱内，技能验收基线口径）：763 passed / 0 failed
-cd 科研工具箱 && python -m pytest -q
+cd academic-toolkit && python -m pytest -q
 python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账通过
 ```
 
@@ -186,7 +186,7 @@ python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账�
 
 ```
 academic-agent-toolkit/
-├── 科研工具箱/     ★ 产品主体  skills · engine · tools · tests
+├── academic-toolkit/     ★ 产品主体  skills · engine · tools · tests
 ├── capabilities/      能力目录 catalog.json
 ├── SECURITY.md        安全策略
 ├── AGENTS.md          Agent 入口：宿主无关驱动协议 + 适配器矩阵

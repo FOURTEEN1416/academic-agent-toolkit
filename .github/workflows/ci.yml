@@ -59,7 +59,7 @@ jobs:
         # 14 项测试（source_materials_gate / codesucker_bridge / codesucker_materials /
         # copyright_codesucker_integration）依赖该 vendored TS loader；本机 node_modules
         # 常驻故从未暴露，CI 须显式安装（2026-09-19 首次 CI 实测发现）。
-        working-directory: 科研工具箱/tools/codesucker-core
+        working-directory: academic-toolkit/tools/codesucker-core
         run: npm ci
 
       - name: Repository-root test suite
@@ -75,20 +75,20 @@ jobs:
 
       - name: Provenance ledger
         # 期望：66/66 通过（UPSTREAM.md 台账 + vendor pinned commit）
-        run: python 科研工具箱/tools/check_provenance.py
+        run: python academic-toolkit/tools/check_provenance.py
 
       - name: Secret & path hygiene scan
         # 2026-09-20 建立：tracked 面密钥/配置绝对路径扫描（吸收 gitleaks 的
         # "CI 纵深防御"思路，自建实现保持自包含）。豁免台账逐条见
-        # 科研工具箱/data/secret_scan_allowlist.json（2026-09-22 实测在册 21 条，
+        # academic-toolkit/data/secret_scan_allowlist.json（2026-09-22 实测在册 21 条，
         # 台账为真源、此处不钉数）。
-        run: python 科研工具箱/tools/secret_scan.py --strict
+        run: python academic-toolkit/tools/secret_scan.py --strict
 
       - name: Lint ratchet
         # 2026-09-20 建立：ruff 基线棘轮（新增违规即拦；基线只降不升）。
         # ruff 版本由 requirements-dev.txt 锁死（==0.16.8），保证计数可比。
-        run: python 科研工具箱/tools/lint_ratchet.py
+        run: python academic-toolkit/tools/lint_ratchet.py
 
       - name: Duplicate assets registry
         # 2026-09-20 建立：重复资产台账棘轮（未登记的字节级重复组即拦）。
-        run: python 科研工具箱/tools/check_duplicate_assets.py --strict
+        run: python academic-toolkit/tools/check_duplicate_assets.py --strict

@@ -8,7 +8,7 @@
 # 用法：python -m pip install -r requirements-dev.txt
 # CI：`.github/workflows/ci.yml` 直接消费本文件，使"声明"与"执行"保持单一真源。
 #
-# 依赖来源：由 `科研工具箱/tests/**` 与 `tests/**` 的 import 静态提取 + 2026-09-19
+# 依赖来源：由 `academic-toolkit/tests/**` 与 `tests/**` 的 import 静态提取 + 2026-09-19
 # 干净环境实测（460 passed / 0 failed）确认充分性。
 
 pytest>=8,<10        # 测试运行器（本机实测 9.1.1）
@@ -21,6 +21,6 @@ numpy>=1.26          # 数值断言
 matplotlib>=3.8      # skills/editaplot-lite 契约测试（Agg 渲染+产物校验，2026-09-23）
 SciencePlots>=2      # 同上：editaplot-lite 'science' 样式族（缺库时该技能渲染测试失败）
 pandas>=2            # 同上：editaplot-lite 列角色分类
-ruff==0.16.8         # lint 棘轮（科研工具箱/tools/lint_ratchet.py，2026-09-20）。
+ruff==0.16.8         # lint 棘轮（academic-toolkit/tools/lint_ratchet.py，2026-09-20）。
                      # 必须锁死版本：基线 data/lint_baseline.json 的计数可比性依赖同一
                      # 版本的规则集；升级 ruff 属"基线重置"，须同步 --update。

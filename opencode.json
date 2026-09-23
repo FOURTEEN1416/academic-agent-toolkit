@@ -5,11 +5,11 @@
   "default_agent": "数模专家",
   "skills": {
     "paths": [
-      "./科研工具箱/skills"
+      "./academic-toolkit/skills"
     ]
   },
   "instructions": [
-    "科研工具箱/AGENTS.md"
+    "academic-toolkit/AGENTS.md"
   ],
   "subagent_depth": 1,
   "share": "disabled",

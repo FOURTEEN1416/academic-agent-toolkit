@@ -2,11 +2,11 @@
 __pycache__/
 *.py[cod]
 *$py.class
-# ⚠️ 例外（2026-09-19 修复）：科研工具箱/tools/ 下的 16 个 .pyc 是**受控分发件**，
+# ⚠️ 例外（2026-09-19 修复）：academic-toolkit/tools/ 下的 16 个 .pyc 是**受控分发件**，
 # 与同名 .py 加载器配对（加载器由 tools/pyc_loader.py 生成，3.11 编译器锁定），
 # 属本仓既有设计。上面 `*.py[cod]` 曾把它们全部排除 → 公开 clone 后 16 个工具
 # 一律报 "xxx.pyc not found" 并 exit 1（CI 首次实测发现，属发布物残缺）。
-!科研工具箱/tools/*.pyc
+!academic-toolkit/tools/*.pyc
 *.so
 .Python
 build/
@@ -39,7 +39,7 @@ env/
 **/.env
 **/.env.*
 # 修复（2026-09-19）：上一行的 `**/.env.*` 会连带吃掉子目录的模板文件，
-# 而 `!.env.example` 只对仓库根生效 → 科研工具箱/.env.example（纯 <REPLACE_ME> 模板，
+# 而 `!.env.example` 只对仓库根生效 → academic-toolkit/.env.example（纯 <REPLACE_ME> 模板，
 # 无真实密钥）被误忽略，导致公开 clone 后 test_security_baseline 缺件失败。
 !**/.env.example
 
@@ -121,34 +121,34 @@ releases/
 acceptance_testing/
 
 # Suite-internal private reference data and anti-AI baselines derived from award papers
-# ⚠️ 2026-09-19 修正：原为整目录 `科研工具箱/data/`。整目录规则有静默陷阱——
+# ⚠️ 2026-09-19 修正：原为整目录 `academic-toolkit/data/`。整目录规则有静默陷阱——
 #    已 tracked 的老文件**免疫 ignore**（照常入库），但新增的交付件会**无声消失**
 #    （git status 里根本不出现），导致本地全绿、公开 clone 缺件、对应测试全红。
 #    故改为"忽略目录内容 + 显式放行交付件"。
 #    ⚠️ negation 对被忽略的**目录**无效，必须写 `data/*` 而非 `data/`，否则 ! 规则全部失效。
 #    （data/ 下 8 个历史文件已于 2026-08-28 入库，靠 tracked 免疫延续，不在此列）
-科研工具箱/data/*
-!科研工具箱/data/skill_tiers.json
-!科研工具箱/data/skill_routing_index.json
-!科研工具箱/data/skill_routing_critical.json
-!科研工具箱/data/contest_lessons.json
-!科研工具箱/data/contest_lessons.md
+academic-toolkit/data/*
+!academic-toolkit/data/skill_tiers.json
+!academic-toolkit/data/skill_routing_index.json
+!academic-toolkit/data/skill_routing_critical.json
+!academic-toolkit/data/contest_lessons.json
+!academic-toolkit/data/contest_lessons.md
 # 2026-09-20 基线加固轮三件门禁台账（lint 棘轮基线 / 密钥豁免 / 重复资产登记）
 # ——CI 三道门禁步与对应测试直接消费，缺件即红
-!科研工具箱/data/lint_baseline.json
-!科研工具箱/data/secret_scan_allowlist.json
-!科研工具箱/data/duplicate_assets_registry.json
-# ⚠️ 2026-09-22 修正（照上方 data/ 同款模板）：原为整目录规则 `科研工具箱/baseline/`，
+!academic-toolkit/data/lint_baseline.json
+!academic-toolkit/data/secret_scan_allowlist.json
+!academic-toolkit/data/duplicate_assets_registry.json
+# ⚠️ 2026-09-22 修正（照上方 data/ 同款模板）：原为整目录规则 `academic-toolkit/baseline/`，
 #    整目录规则有静默陷阱——已 tracked 的老文件**免疫 ignore**（照常入库），但新增的
 #    交付件会**无声消失**（git status 里根本不出现），导致本地全绿、公开 clone 缺件。
 #    故改为"忽略目录内容 + 显式放行交付件"。
 #    ⚠️ negation 对被忽略的**目录**无效，必须写 `baseline/*` 而非 `baseline/`，否则 ! 规则全部失效。
-科研工具箱/baseline/*
-!科研工具箱/baseline/REFERENCE_PAPER_ANTI_AI_ANALYSIS.md
-!科研工具箱/baseline/human_paper_baseline.json
+academic-toolkit/baseline/*
+!academic-toolkit/baseline/REFERENCE_PAPER_ANTI_AI_ANALYSIS.md
+!academic-toolkit/baseline/human_paper_baseline.json
 
 # Local test and vision-call residue
-科研工具箱/_test_input.md
+academic-toolkit/_test_input.md
 **/.drawio_vision_calls.json
 **/.tikz_vision_calls.json
 # Upstream fork staging (local research only, not tracked)
@@ -162,21 +162,21 @@ vendor/
 modex-3-skills/
 
 # 无 License 上游技能（本地完整复刻可用，不入公开仓——侵权红线隔离）
-科研工具箱/skills/plot-from-data/
-科研工具箱/skills/plot-from-image/
-科研工具箱/skills/visio-image-rebuilder/
-科研工具箱/skills/paper-framework-figure-studio-pro/
+academic-toolkit/skills/plot-from-data/
+academic-toolkit/skills/plot-from-image/
+academic-toolkit/skills/visio-image-rebuilder/
+academic-toolkit/skills/paper-framework-figure-studio-pro/
 
 # No-license upstream skill batch (2026-09-11): eco-community-plots
-科研工具箱/skills/eco-community-plots/
+academic-toolkit/skills/eco-community-plots/
 
 # Third-party aesthetics/reference galleries and personal material (2026-09-12 intake from Desktop, local only)
 参考图/
 
 # 竞赛模板集中字体库 + 模板内嵌字体（2026-09-22 P2 资产落位：103MB+~84MB 二进制不入公开仓；恢复源见 _templates/huawei/README.md）
-科研工具箱/skills/comp-paper-zh/_templates/_fonts-local/
-科研工具箱/skills/comp-paper-zh/_templates/**/*.[tT][tT][fF]
-科研工具箱/skills/comp-paper-zh/_templates/**/*.[tT][tT][cC]
-科研工具箱/skills/comp-paper-zh/_templates/**/*.[oO][tT][fF]
+academic-toolkit/skills/comp-paper-zh/_templates/_fonts-local/
+academic-toolkit/skills/comp-paper-zh/_templates/**/*.[tT][tT][fF]
+academic-toolkit/skills/comp-paper-zh/_templates/**/*.[tT][tT][cC]
+academic-toolkit/skills/comp-paper-zh/_templates/**/*.[oO][tT][fF]
 # 官方附件3 Word/PDF（第三方模板，无再分发授权，本机参照用）
-科研工具箱/skills/comp-paper-zh/_templates/huawei/official_docx/
+academic-toolkit/skills/comp-paper-zh/_templates/huawei/official_docx/

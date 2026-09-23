@@ -827,7 +827,7 @@
         "contest-retrospective"
       ],
       "associated_tools": [
-        "科研工具箱/tools/contest_lessons_check.py"
+        "academic-toolkit/tools/contest_lessons_check.py"
       ]
     }
   ],
@@ -3998,7 +3998,7 @@
       "associated_tools": [],
       "external_dependencies": [],
       "high_risk_confirmation": "使用外部 API 或覆盖文件前需在当前宿主会话中确认",
-      "current_evidence": "宿主转化完成（2026-08-30，同上）：Claude Code hooks ↔ OpenCode L1 拦截式审计插件对照——audit-trail.ts 当日实存抽验为审计/hook 性质；ZCode 侧等价物 科研工具箱/hooks/zcode_audit_l1.py 在库；",
+      "current_evidence": "宿主转化完成（2026-08-30，同上）：Claude Code hooks ↔ OpenCode L1 拦截式审计插件对照——audit-trail.ts 当日实存抽验为审计/hook 性质；ZCode 侧等价物 academic-toolkit/hooks/zcode_audit_l1.py 在库；",
       "current_gap": "宿主转化完成（三宿主对照节+真实资产验证）；C3/C4 未建",
       "status": "experimental",
       "promotion_history": [
@@ -5365,7 +5365,7 @@
       ],
       "high_risk_confirmation": "启动本地 Origin COM 实例（origin-smoke/render）为跨工具操作，首次渲染前需用户方向（Ask first）；绝不安装/修改 Origin、DCOM、注册表、防火墙；源数据文件不可变",
       "current_evidence": "登记待用（2026-09-22 收编自 hang-jin/editaplot Apache-2.0 快照 vendor/forks/editaplot；上游 50+ 模板经上游 Origin 2024b 验证；本机 Origin 未安装，本机 smoke/render 未跑——如实申报，不伪造通过）",
-      "current_gap": "本机无 Origin：smoke/render/verify 全链未在本机验证；vendor/ 不入库，公开 clone 需按 SKILL.md §八自行获取上游快照；上游为 Codex 宿主，本仓按 科研工具箱/skills/editaplot/SKILL.md 适配层替换权限模型；CONTEST_SKILL_MAP 归 §四外域不接入",
+      "current_gap": "本机无 Origin：smoke/render/verify 全链未在本机验证；vendor/ 不入库，公开 clone 需按 SKILL.md §八自行获取上游快照；上游为 Codex 宿主，本仓按 academic-toolkit/skills/editaplot/SKILL.md 适配层替换权限模型；CONTEST_SKILL_MAP 归 §四外域不接入",
       "promotion_history": []
     },
     {
@@ -6583,7 +6583,7 @@
         "editaplot-lite"
       ],
       "associated_tools": [
-        "科研工具箱/skills/editaplot-lite/scripts/plot_lite.py"
+        "academic-toolkit/skills/editaplot-lite/scripts/plot_lite.py"
       ],
       "external_dependencies": [
         "matplotlib>=3.8 / SciencePlots / numpy / pandas / Pillow（requirements-dev.txt 已声明，CI 真跑）",
@@ -6592,7 +6592,7 @@
       "high_risk_confirmation": "render 写文件前必须持有含 user_confirmed 的逐列确认书（Ask-first）；源数据文件不可变；校验不过不得宣称成功",
       "current_evidence": "2026-09-23 本机实跑：propose/门禁负面测试（篡改源哈希/结构角色/未确认列均正确拒绝）/渲染四项校验全绿/独立窗口视觉验收 pass（出版级观感）；方法论继承自 skills/editaplot（同日收编自 hang-jin/editaplot Apache-2.0）",
       "current_gap": "仅 line+errorbar 路线；XPS/XRD/GSAS 等材料光谱专用模板与 3D/分布/医学路线未移植（需要时用 editaplot Origin 路线或扩展本技能）",
-      "upstream": "无上游副本（渲染代码本仓原创）；方法论真源=科研工具箱/skills/editaplot/SKILL.md；配色真源复用其 assets/palettes/palette-catalog.json",
+      "upstream": "无上游副本（渲染代码本仓原创）；方法论真源=academic-toolkit/skills/editaplot/SKILL.md；配色真源复用其 assets/palettes/palette-catalog.json",
       "promotion_history": []
     }
   ],
@@ -6601,7 +6601,7 @@
       "capability_id": "agent-bootstrap",
       "name": "宿主无关 Agent 自举协议",
       "domain": "agent_runtime",
-      "description": "任意智能体自举驱动本科研工具箱：读协议、probe 能力、选择路由或启动工作流，不依赖 OpenCode/ZCode。触发词：启动项目、如何驱动、bootstrap、自举、宿主无关接入",
+      "description": "任意智能体自举驱动本academic-toolkit：读协议、probe 能力、选择路由或启动工作流，不依赖 OpenCode/ZCode。触发词：启动项目、如何驱动、bootstrap、自举、宿主无关接入",
       "input_contract": "仓库路径 + 用户需求文本",
       "output_contract": "驱动路径（工作流 ID 或技能名）+ probe 摘要 + 后续动作",
       "status": "experimental",
