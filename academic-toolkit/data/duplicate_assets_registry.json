@@ -146,10 +146,10 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/spine-paper-spine-audit/scripts/integrity_audit.py",
-        "academic-toolkit/skills/spine-paper-spine-build/scripts/integrity_audit.py",
-        "academic-toolkit/skills/spine-paper-spine-rewrite/scripts/integrity_audit.py",
-        "academic-toolkit/skills/spine-paper-spine/scripts/integrity_audit.py"
+        "academic-toolkit/skills/spine-audit/scripts/integrity_audit.py",
+        "academic-toolkit/skills/spine-build/scripts/integrity_audit.py",
+        "academic-toolkit/skills/spine-rewrite/scripts/integrity_audit.py",
+        "academic-toolkit/skills/spine/scripts/integrity_audit.py"
       ],
       "size": 33814,
       "wasted_bytes": 101442,
@@ -166,9 +166,9 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/spine-paper-spine-audit/scripts/word_guard.py",
-        "academic-toolkit/skills/spine-paper-spine-build/scripts/word_guard.py",
-        "academic-toolkit/skills/spine-paper-spine-latex/scripts/word_guard.py"
+        "academic-toolkit/skills/spine-audit/scripts/word_guard.py",
+        "academic-toolkit/skills/spine-build/scripts/word_guard.py",
+        "academic-toolkit/skills/spine-latex/scripts/word_guard.py"
       ],
       "size": 40891,
       "wasted_bytes": 81782,
@@ -212,9 +212,9 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/spine-paper-spine-audit/scripts/structured_review.py",
-        "academic-toolkit/skills/spine-paper-spine-build/scripts/structured_review.py",
-        "academic-toolkit/skills/spine-paper-spine-rewrite/scripts/structured_review.py"
+        "academic-toolkit/skills/spine-audit/scripts/structured_review.py",
+        "academic-toolkit/skills/spine-build/scripts/structured_review.py",
+        "academic-toolkit/skills/spine-rewrite/scripts/structured_review.py"
       ],
       "size": 35050,
       "wasted_bytes": 70100,
@@ -341,8 +341,8 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/spine-paper-spine-audit/scripts/citation_quality_audit.py",
-        "academic-toolkit/skills/spine-paper-spine-citation/scripts/citation_quality_audit.py"
+        "academic-toolkit/skills/spine-audit/scripts/citation_quality_audit.py",
+        "academic-toolkit/skills/spine-citation/scripts/citation_quality_audit.py"
       ],
       "size": 30582,
       "wasted_bytes": 30582,
@@ -350,8 +350,8 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/spine-paper-spine-translate/scripts/translate_guard.py",
-        "academic-toolkit/skills/spine-paper-spine/scripts/translate_guard.py"
+        "academic-toolkit/skills/spine-translate-zh/scripts/translate_guard.py",
+        "academic-toolkit/skills/spine/scripts/translate_guard.py"
       ],
       "size": 30325,
       "wasted_bytes": 30325,
@@ -596,8 +596,8 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/spine-paper-spine-audit/scripts/latex_guard.py",
-        "academic-toolkit/skills/spine-paper-spine-latex/scripts/latex_guard.py"
+        "academic-toolkit/skills/spine-audit/scripts/latex_guard.py",
+        "academic-toolkit/skills/spine-latex/scripts/latex_guard.py"
       ],
       "size": 16514,
       "wasted_bytes": 16514,
@@ -904,8 +904,8 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/spine-paper-spine-build/references/writing-rationale-matrix.md",
-        "academic-toolkit/skills/spine-paper-spine-rewrite/references/writing-rationale-matrix.md"
+        "academic-toolkit/skills/spine-build/references/writing-rationale-matrix.md",
+        "academic-toolkit/skills/spine-rewrite/references/writing-rationale-matrix.md"
       ],
       "size": 8610,
       "wasted_bytes": 8610,

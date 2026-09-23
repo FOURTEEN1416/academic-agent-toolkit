@@ -1987,101 +1987,101 @@
       "description_compacted": false,
       "path": "academic-toolkit/skills/skill-creator-official/SKILL.md"
     },
-    "spine-paper-spine": {
+    "spine": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end, then output",
       "full_description": "Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end, then output LaTeX/PDF/Word. The main PaperSpine entry point that orchestrates every step.",
       "description_compacted": true,
-      "path": "academic-toolkit/skills/spine-paper-spine/SKILL.md"
+      "path": "academic-toolkit/skills/spine/SKILL.md"
     },
-    "spine-paper-spine-audit": {
+    "spine-audit": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation",
       "full_description": "Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation coverage. (internal /paperspine step)",
       "description_compacted": true,
-      "path": "academic-toolkit/skills/spine-paper-spine-audit/SKILL.md"
+      "path": "academic-toolkit/skills/spine-audit/SKILL.md"
     },
-    "spine-paper-spine-build": {
+    "spine-build": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Builds a paper or report from materials using the shared PaperSpine research, motivation, and rationale workflow.",
       "full_description": "Builds a paper or report from materials using the shared PaperSpine research, motivation, and rationale workflow. (internal /paperspine step)",
       "description_compacted": true,
-      "path": "academic-toolkit/skills/spine-paper-spine-build/SKILL.md"
+      "path": "academic-toolkit/skills/spine-build/SKILL.md"
     },
-    "spine-paper-spine-citation": {
+    "spine-citation": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Builds a citation support bank for Introduction, Discussion, and background claims. (internal /paperspine step)",
       "full_description": "Builds a citation support bank for Introduction, Discussion, and background claims. (internal /paperspine step)",
       "description_compacted": false,
-      "path": "academic-toolkit/skills/spine-paper-spine-citation/SKILL.md"
+      "path": "academic-toolkit/skills/spine-citation/SKILL.md"
     },
-    "spine-paper-spine-humanize": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Reduces AI detection rates via tiered stylistic constraints mapped to real AIGC detection dimensions. Produces a",
-      "full_description": "Reduces AI detection rates via tiered stylistic constraints mapped to real AIGC detection dimensions. Produces a teaching humanize_matrix.md. (internal /paperspine step)",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/spine-paper-spine-humanize/SKILL.md"
-    },
-    "spine-paper-spine-intake": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine",
-      "full_description": "Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/spine-paper-spine-intake/SKILL.md"
-    },
-    "spine-paper-spine-latex": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Handles LaTeX project assembly, figure placement, citations, labels, and compile-safe cleanup. (internal /paperspine",
-      "full_description": "Handles LaTeX project assembly, figure placement, citations, labels, and compile-safe cleanup. (internal /paperspine",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/spine-paper-spine-latex/SKILL.md"
-    },
-    "spine-paper-spine-research": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Researches target requirements, downloads reference materials, learns strong examples, and prepares motivation options.",
-      "full_description": "Researches target requirements, downloads reference materials, learns strong examples, and prepares motivation options. (internal /paperspine step)",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/spine-paper-spine-research/SKILL.md"
-    },
-    "spine-paper-spine-rewrite": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal",
-      "full_description": "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal",
-      "description_compacted": false,
-      "path": "academic-toolkit/skills/spine-paper-spine-rewrite/SKILL.md"
-    },
-    "spine-paper-spine-translate": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "Produces the complete translation_zh/ package with row-by-row translation of all required artifacts and full-paper",
-      "full_description": "Produces the complete translation_zh/ package with row-by-row translation of all required artifacts and full-paper translation. (internal /paperspine step)",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/spine-paper-spine-translate/SKILL.md"
-    },
-    "spine-paper-spine-ui": {
+    "spine-config-ui": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Launches the PaperSpine external terminal configuration UI for Codex and Claude Code. (internal /paperspine step)",
       "full_description": "Launches the PaperSpine external terminal configuration UI for Codex and Claude Code. (internal /paperspine step)",
       "description_compacted": false,
-      "path": "academic-toolkit/skills/spine-paper-spine-ui/SKILL.md"
+      "path": "academic-toolkit/skills/spine-config-ui/SKILL.md"
     },
-    "spine-paper-spine-update": {
+    "spine-humanize": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Reduces AI detection rates via tiered stylistic constraints mapped to real AIGC detection dimensions. Produces a",
+      "full_description": "Reduces AI detection rates via tiered stylistic constraints mapped to real AIGC detection dimensions. Produces a teaching humanize_matrix.md. (internal /paperspine step)",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/spine-humanize/SKILL.md"
+    },
+    "spine-intake": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine",
+      "full_description": "Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/spine-intake/SKILL.md"
+    },
+    "spine-latex": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Handles LaTeX project assembly, figure placement, citations, labels, and compile-safe cleanup. (internal /paperspine",
+      "full_description": "Handles LaTeX project assembly, figure placement, citations, labels, and compile-safe cleanup. (internal /paperspine",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/spine-latex/SKILL.md"
+    },
+    "spine-research": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Researches target requirements, downloads reference materials, learns strong examples, and prepares motivation options.",
+      "full_description": "Researches target requirements, downloads reference materials, learns strong examples, and prepares motivation options. (internal /paperspine step)",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/spine-research/SKILL.md"
+    },
+    "spine-rewrite": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal",
+      "full_description": "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/spine-rewrite/SKILL.md"
+    },
+    "spine-translate-zh": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Produces the complete translation_zh/ package with row-by-row translation of all required artifacts and full-paper",
+      "full_description": "Produces the complete translation_zh/ package with row-by-row translation of all required artifacts and full-paper translation. (internal /paperspine step)",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/spine-translate-zh/SKILL.md"
+    },
+    "spine-update": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Checks and updates PaperSpine from GitHub while preserving global config; use for upgrades, latest-version checks, or",
       "full_description": "Checks and updates PaperSpine from GitHub while preserving global config; use for upgrades, latest-version checks, or",
       "description_compacted": false,
-      "path": "academic-toolkit/skills/spine-paper-spine-update/SKILL.md"
+      "path": "academic-toolkit/skills/spine-update/SKILL.md"
     },
     "team-coordination": {
       "tier": "ondemand",
