@@ -9,7 +9,7 @@
 [![Release](https://img.shields.io/badge/release-v1.3.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-774_passing-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-313-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-250_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
+[![Skills](https://img.shields.io/badge/skills-251_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始)
 [![Hosts](https://img.shields.io/badge/hosts-Any_Agent-1f2937?style=flat-square)](#快速开始)
@@ -19,7 +19,7 @@
 ---
 
 > [!TIP]
-> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（250 个随仓技能）自主完成
+> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（251 个随仓技能）自主完成
 > 建模 → 编码 → 绘图 → 写作 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯**。
 
 ## ✨ 为什么不是又一个提示词合集
