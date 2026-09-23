@@ -120,7 +120,7 @@ The original anti-pattern. Bloats the prompt, makes layout changes risky, makes 
 
 ### "Import the script from another skill"
 
-Cross-skill dependencies break the per-skill self-contained discipline (per CLAUDE.md anti-patterns). Even though it would save duplication, the bundled script lives within syllabus's own folder.
+Cross-skill dependencies break the per-skill self-contained discipline (a core anti-pattern rule of skill authoring). Even though it would save duplication, the bundled script lives within syllabus's own folder.
 
 ## Operational Checklist
 
@@ -137,7 +137,7 @@ Cross-skill dependencies break the per-skill self-contained discipline (per CLAU
 
 1. **Karpathy-coder discipline + write-a-skill conventions** (this repo's `engineering/write-a-skill/`). Source for the "stdlib-only Python tools, bundled non-Python scripts allowed for mechanical jobs" pattern.
 
-2. **CLAUDE.md anti-pattern: "Don't add features beyond what the task requires."** The bundled script honors this — it does ONE thing (DOCX layout) and does it mechanically.
+2. **Skill-authoring anti-pattern: "Don't add features beyond what the task requires."** The bundled script honors this — it does ONE thing (DOCX layout) and does it mechanically.
 
 3. **`docx` Node.js package — github.com/dolanmiu/docx (MIT).** Authoritative source for the API patterns the bundled script uses. Active maintenance, comprehensive feature set.
 

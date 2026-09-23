@@ -98,6 +98,13 @@ paper-figure / paper-figure-drawio / paper-figure-html / paper-figure-nature / c
 确定性闸（logic_audit / cross_problem_check 等）仍兜底。不写则默认全量质量路径。
 各技能内以 `grep -q 'MH_FAST_MODE=1' AGENTS.md` 探测（宿主中性，`test_host_neutral_ratchet.py` 钉住）。
 
+**AI 使用声明开关（CUMCM 2026，竞赛项目级）**：在竞赛项目工作区根的 `AGENTS.md`（项目宪法）中写入
+`MH_AI_DISCLOSURE=used`（真实使用了 AI 工具）或 `MH_AI_DISCLOSURE=none`（全程未使用），comp-cumcm-disclosure
+步骤才会执行 AI 工具使用声明与《AI工具使用详情.pdf》生成；不写则该步完全跳过。写入 `MH_AI_DISCLOSURE=invalid`
+表示记录未经用户确认，该步立即停止并要求重新确认，不得猜测生成。探测方式与快速模式一致：
+`grep -q 'MH_AI_DISCLOSURE=' AGENTS.md`（宿主中性；规则正文见
+`skills/_utils/ai_disclosure_rules.md` 与 `skills/shared-scripts/ai_disclosure_rules.md`）。
+
 ### 科研论文
 
 | 用户意图 | 路由到 |

@@ -3,7 +3,7 @@
 > 依据全国大学生数学建模竞赛官网发布的《全国大学生数学建模竞赛人工智能工具使用规定（2026年试行）》执行：
 > https://www.mcm.edu.cn/html_cn/node/fef94648f2836ab6cc81586f4c38512b.html
 
-本规范只在 `CLAUDE.md` 含 `MH_AI_DISCLOSURE=used` 或 `MH_AI_DISCLOSURE=none` 时执行。没有标记时完全跳过。若出现 `MH_AI_DISCLOSURE=invalid`，立即停止本步并报告“需要用户重新确认真实 AI 使用记录”，不得猜测、随机生成或沿用旧版记录。
+本规范只在项目工作区根的 `AGENTS.md`（项目宪法）含 `MH_AI_DISCLOSURE=used` 或 `MH_AI_DISCLOSURE=none` 时执行。没有标记时完全跳过。若出现 `MH_AI_DISCLOSURE=invalid`，立即停止本步并报告“需要用户重新确认真实 AI 使用记录”，不得猜测、随机生成或沿用旧版记录。
 
 ## 不可变边界
 
@@ -26,9 +26,9 @@
 
 ```bash
 AI_DISC=off
-grep -q 'MH_AI_DISCLOSURE=used' CLAUDE.md 2>/dev/null && AI_DISC=used
-grep -q 'MH_AI_DISCLOSURE=none' CLAUDE.md 2>/dev/null && AI_DISC=none
-grep -q 'MH_AI_DISCLOSURE=invalid' CLAUDE.md 2>/dev/null && AI_DISC=invalid
+grep -q 'MH_AI_DISCLOSURE=used' AGENTS.md 2>/dev/null && AI_DISC=used
+grep -q 'MH_AI_DISCLOSURE=none' AGENTS.md 2>/dev/null && AI_DISC=none
+grep -q 'MH_AI_DISCLOSURE=invalid' AGENTS.md 2>/dev/null && AI_DISC=invalid
 
 [ "$AI_DISC" != invalid ] || { echo "⛔ AI 使用记录缺少用户确认，禁止生成"; exit 1; }
 

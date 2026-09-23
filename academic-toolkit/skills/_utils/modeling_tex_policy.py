@@ -79,9 +79,9 @@ def is_modeling_paper(paper_dir: Path, source: str) -> bool:
         return True
     if MODELING_CLASS_RE.search(source):
         return True
-    claude = root / "CLAUDE.md"
-    if claude.exists():
-        text = claude.read_text(encoding="utf-8", errors="ignore")
+    agents = root / "AGENTS.md"
+    if agents.exists():
+        text = agents.read_text(encoding="utf-8", errors="ignore")
         if re.search(r"数学建模|mathematical\s+model", text, re.IGNORECASE):
             return True
     return False

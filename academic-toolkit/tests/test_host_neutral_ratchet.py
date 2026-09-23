@@ -57,3 +57,18 @@ def test_skill_md_host_config_file_neutralized():
     assert not hits, (
         f"SKILL.md 出现宿主绑定配置文件 CLAUDE.md（{len(hits)} 行，B1 族回潮；"
         f"2026-09-23 起全库零容忍，工作区参数文件必须用 AGENTS.md）: {hits[:5]}")
+
+
+def test_runtime_helper_files_no_claude_md_probe():
+    """B1 扩面（2026-09-23 宿主明示二次清洗）：`_utils/` 与 `shared-scripts/` 的运行时
+    规则/策略文件（非 SKILL.md，此前不在 B1 网内）同样不得探测宿主绑定配置文件
+    CLAUDE.md 作为工作区参数文件——ai_disclosure_rules.md 的 MH_AI_DISCLOSURE 开关与
+    modeling_tex_policy.py 的 is_modeling_paper 都曾因此静默失效（CLAUDE.md 已退役）。
+    工作区参数文件一律 AGENTS.md。低危面（如实历史说明、防御性词表）不在此列。
+    """
+    targets = sorted(set(SKILLS.glob("_utils/*")) | set(SKILLS.glob("shared-scripts/*")))
+    watched = [f for f in targets if f.is_file() and f.suffix in (".md", ".py")]
+    hits = _hits("CLAUDE.md", watched)
+    assert not hits, (
+        f"运行时规则/策略文件探测宿主绑定配置 CLAUDE.md（{len(hits)} 行，B1 扩面回潮；"
+        f"工作区参数文件必须用 AGENTS.md）: {hits[:5]}")
