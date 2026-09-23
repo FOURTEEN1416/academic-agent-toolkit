@@ -6,7 +6,7 @@
 
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
-[![Release](https://img.shields.io/badge/release-v1.3.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
+[![Release](https://img.shields.io/badge/release-v2.0.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-774_passing-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-313-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-251_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
@@ -197,6 +197,8 @@ academic-agent-toolkit/
 <summary><b>🔖 版本与许可证</b></summary>
 
 <br>
+
+**v2.0.0（2026-09-23）** —— 整仓彻底重构：套件目录 `科研工具箱/`→`academic-toolkit/` · 技能命名法（139 件改名 + 9 对真重复合并，264→255）· 资产激活机制（asset_catalog 台账 + boot/probe/bootstrap 资产暴露 + 三方对账）· 私有资料区统一 `assets-local/` · 第三方子项目独立 `third_party/` · 上游 fork `vendor/forks/` · 内容融入（287 自查表 / 范文包 / 板块提示词 / 88 色板）· 新增 `award-paper-mining`。**破坏性变更**，迁移指引见 [CHANGELOG.md](./CHANGELOG.md)。
 
 **v1.3.0（2026-09-22）** —— 宿主无关协议（boot/probe/forge + agents/adapters，旧宿主降为可选适配器）· 基线基础设施加固（secret_scan / lint_ratchet / duplicate_assets / 工具冒烟闸 + CI 加固）· 系统性升级五项（实战经验库 / 统一配色 / 技能触发审计）· 华为杯管线补齐（与国赛同构 14 步）· 四批并行收编。
 

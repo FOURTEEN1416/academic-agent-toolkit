@@ -2,22 +2,42 @@
 
 本项目所有显著变更记录于此，格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循语义化版本。更早的分节操作日志存于项目内部文档（2026-09-23 起移出公开仓，不随仓库分发）。
 
-## [Unreleased]
+## [v2.0.0] - 2026-09-23 —— 整仓彻底重构（框架到文件名）
 
-### Changed —— 审稿循环换驱动 · 统一独立评审操作手册（2026-09-23）
+> **破坏性变更**：套件目录更名、技能大面积改名与合并、私有资料区重新布局。公开 clone 与下游引用须按下方迁移指引更新。
 
-- `auto-review-loop` 评审底层从 `reviewer_client.py` 外部 LLM API 整体置换为**统一独立评审操作手册**（`skills/_utils/independent_review_manual.md`，宿主无关、任意驱动 Agent 可执行）：写评审任务卡 `review_tasks/round_N.task.md` → 交任何独立上下文（独立子代理/会话/窗口/另一模型）评审并回写 verdict → 无法获得独立上下文时缺席降级为当前 Agent 负面对照自审（如实标记 `self-fallback`）；`REVIEW_STATE.json` 新增 `review_driver` 如实记录驱动方；上下文连续性改任务卡链承载。循环状态机、输出模式、人工检查点、图表规范铁律、编译质量门机制骨架不变。**零 APIKey、零网络调用**。`reviewer_client.py` 标记 deprecated，新流程勿调用。
+### Changed —— 套件目录与分区（v2.0）
 
-### Removed
+- 套件主目录 `科研工具箱/` → **`academic-toolkit/`**（git mv 保 rename；58 文件 1023 处引用字节级替换）。CI 路径、pytest.ini、opencode.json、模板资产指针、zcode hook 契约同步。
+- 私有资料区统一 **`assets-local/`**（原根级 `参考论文/` `参考图/` `CUMCM论文模板/` → `award-papers/` `reference-figures/` `cumcm-templates/`；7.6GB PDF 合并版冷归档 `_archive/`）。
+- 第三方子项目独立分区 **`third_party/`**（codesucker-core / pubfig / docx-cn-engine / humanize-chinese / docx-style-profiles 自 `tools/` 迁入，下划线名规范 kebab）。
+- 上游 fork 暂存 `fork/` → **`vendor/forks/`**（激活 13 处 tracked 契约引用）。
+- 引擎运行态三处散落合一：索引/默认库/审计统一写入仓库根 `.engine/`。
 
-- `auto-review-loop-llm` / `auto-review-loop-minimax` 两个外部 API 通道变体技能（经实证与 base 版机制完全同构、base 为功能超集，随换驱动一并退役并入）；catalog 双向映射、CONTEST_SKILL_MAP 审稿循环分组、路由回归登记、路由关键集、技能分层索引已同步重建。
-- `科研工具箱/skills/CLAUDE.md`（宿主绑定入口双拷贝）随宿主适配层瘦身一并移除；`test_tool_reliability` 扫描清单同步。
+### Changed —— 技能命名法（139 件改名 + 9 对真重复合并，264→255）
 
-### Removed —— 宿主适配层瘦身（2026-09-23 用户裁决，永不恢复）
+- 命名法：全小写 ASCII kebab-case；禁宿主/厂商/机构名、批次前缀、事故名、谜语缩写。
+- `spine-paper-spine-*`（事故名）→ `spine-*`；`latexpap-*` → `latex-paper-*`；`galaxy-*` 45 件语义化（→ `dev-*`/`meta-*`/`lit-*` 等）；`ars-*`/`nature-*`/`sci-*`/`scholar-*` 去批次前缀。
+- 真重复合并（保内容，正文折入主推者 `references/merged-*.md`）：problem-analysis→comp-problem-analysis、model-building→comp-modeling、ars-pr-review-expert→dev-code-review、ars-senior-data-scientist→data-statistics-analyst、ars-academic-pipeline→research-pipeline、galaxy-nature-data→paper-data-availability、galaxy-nature-response→paper-rebuttal-nature、rebuttal-workflow→rebuttal、galaxy-ml-paper-writing→paper-write。
 
-- 宿主适配层 tracked 件整体移除：`agents/adapters/`（六宿主 adapter.json + README）、`.opencode/`（agents 四角色 .md + plugins/audit-trail.ts）、`.zcode/config.json` 与 `.zcode/commands/`。驱动协议不依赖任何适配器（AGENTS.md + skills/ + workflow_cli 即完整协议）；L1 审计无宿主 hook 时如实 `unavailable`，ZCode 侧等价脚本 `科研工具箱/hooks/zcode_audit_l1.py` 保留在库，注册契约冻结于 `tests/test_zcode_host_compat.py` D 段与 git 历史。OpenCode 用户改用 `opencode.json` 内联 subagent（数模专家/审稿人/编辑/视觉审查）。需要适配器元数据时 `python -m engine.workflow_cli forge --adapter <name>` 本地重建。
-- `docs/skill-cluster-arbitration.md` 与 `docs/superpowers/`（plans 3 件 + specs 5 件，dated 快照）——内容已并入各真源文档，git 历史可溯。
-- 测试与口径同步：根级 `tests/test_minimum_catalog.py`（catalog schema 硬校验）与 `tests/test_anti_ai_toolkit.py` 随根级门禁退役；catalog 一致性改由工具箱 asset 系测试 + `tools/check_asset_utilization.py --strict` 守护。相关测试（test_opencode_configuration / test_review_contract / test_zcode_host_compat D 段）向前改写，并新增 `test_host_adapter_layer_files_are_not_tracked` 防误恢复。
+### Added —— 资产激活机制（治"智能体只见 skills"）
+
+- `academic-toolkit/data/asset_catalog.json` 资产台账（非技能资产唯一机器可读目录，含 `when_to_use`/`owner_skills`/`local_only`）。
+- boot 契约新增 `paths.data`/`third_party`/`asset_catalog`/`assets_local` 与 `assets` 说明节；probe 输出 `asset_catalog` 摘要；agent-bootstrap 增资产发现步。
+- `check_asset_utilization.py` 新增第六类审计"台账↔磁盘↔git tracked 三方对账"；C2 门禁增 `mandatory` 档（历年真题索引试点）。
+- 内容融入（闲置资产升级）：287 项提交前自查表 → `data/paper_selfcheck_287.json`（挂最终复审/交付审计步）；范文精选包 → `data/award_paper_exemplars.json`（挂写作步）；CUMCM 9 板块写作提示词 → `data/cumcm_section_prompts.json`；88 色板接入 palette 注册表；05 号 ggraph R 代码入 git；Origin 构图索引入 agent-figure-gallery。
+- 新增技能 `award-paper-mining`（获奖论文语料挖掘流水线固化）。
+
+### Fixed
+
+- `tools/` 下 14 个工具的 `.pyc` 是**真源码**（同名 `.py` 仅为 `pyc_loader.py` 生成的薄包装器）——修正 SECURITY/AGENTS 中"以 .py 为真源"的错误表述（该表述会误导删除 pyc 致 14 工具失效）。
+- 重命名波期间修正两处工程事故：改名波提交须全仓 `git add`（根级 catalog/README 含引用）；批量替换须用标识符边界正则（避免误伤 `vendor/forks/editaplot` 等上游实体名）。
+
+### 迁移指引
+
+- 下游引用 `科研工具箱/` → `academic-toolkit/`；`fork/` → `vendor/forks/`；根级 `参考论文/` 等 → `assets-local/` 对应子目录。
+- 旧技能名可用 `academic-toolkit/data/skill_rename_map.json`（renames + merges 全量映射）反查新名。
+- 本机 ZCode 用户重建 skills 联结：`cmd /c mklink /J .zcode\skills academic-toolkit\skills`。
 
 ## [v1.3.0] - 2026-09-22
 
