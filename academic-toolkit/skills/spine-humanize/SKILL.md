@@ -68,5 +68,5 @@ density, and flags remaining AI patterns.
 
 ## Integration
 
-In PaperSpine: called internally by rewrite and build.  Standalone: place this
-skill directory under `~/.claude/skills/` and invoke directly.
+In PaperSpine: called internally by rewrite and build.  Standalone in this repo:
+keep the skill directory in place under `skills/` and invoke via the repo driving protocol.

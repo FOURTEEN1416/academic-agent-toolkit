@@ -108,11 +108,11 @@ Order changes by priority within each file.
 
 ### Step 5: Backup and Execute
 
-**Backup location:** `~/.claude/skills/backup/{skill-name}-{timestamp}/`
+**Backup location:** `_backup/{skill-name}-{timestamp}/` inside the repo (gitignored temp area; never write outside the checkout)
 
 ```bash
 # Use backup script
-~/.claude/skills/skill-improver/scripts/backup-skill.sh <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> <skill-path>
+skills/meta-skill-improve/scripts/backup-skill.sh <skill-path>（ACAT-GOVERNANCE：上游脚本未随本仓库集成，宿主安装路径已废弃；2026-09-23 宿主中性化改写，改用本仓技能目录内路径）
 ```
 
 **Apply changes:**
@@ -130,7 +130,7 @@ Order changes by priority within each file.
 
 ```bash
 # Use verify script
-~/.claude/skills/skill-improver/scripts/verify-update.sh <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> <skill-path>
+skills/meta-skill-improve/scripts/verify-update.sh <skill-path>（ACAT-GOVERNANCE：上游脚本未随本仓库集成，宿主安装路径已废弃；2026-09-23 宿主中性化改写，改用本仓技能目录内路径）
 ```
 
 **Generate update-report-{skill-name}-{timestamp}.md** documenting:

@@ -85,8 +85,7 @@ This opens a separate interactive PowerShell window. For a user-run terminal,
 this direct command is also supported:
 
 ```bash
-WIZARD="$HOME/.codex/skills/spine-config-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
-[ -f "$WIZARD" ] || WIZARD="$HOME/.claude/skills/spine-config-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
+WIZARD="$(find "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" -path "*spine-config-ui/scripts/intake_wizard.py" 2>/dev/null | head -1)"（ACAT-GOVERNANCE：上游脚本未随本仓库集成，宿主安装路径已废弃；2026-09-23 宿主中性化改写，改用本仓技能目录内路径）
 python "$WIZARD" --output-dir paper_rewriting_output
 ```
 
@@ -123,8 +122,7 @@ On first setup, or when the user asks to change PaperSpine interface language,
 run the wizard in global setup mode:
 
 ```bash
-WIZARD="$HOME/.codex/skills/spine-config-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
-[ -f "$WIZARD" ] || WIZARD="$HOME/.claude/skills/spine-config-ui/scripts/intake_wizard.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->"
+WIZARD="$(find "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" -path "*spine-config-ui/scripts/intake_wizard.py" 2>/dev/null | head -1)"（ACAT-GOVERNANCE：上游脚本未随本仓库集成，宿主安装路径已废弃；2026-09-23 宿主中性化改写，改用本仓技能目录内路径）
 python "$WIZARD" --setup-global --output-dir paper_rewriting_output
 ```
 

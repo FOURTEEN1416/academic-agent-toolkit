@@ -22,7 +22,7 @@ python $script --yes
 
 **macOS / Linux:**
 ```bash
-python3 ~/.claude/skills/spine-update/scripts/paperspine_update.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> --yes
+python3 <repo>/skills/spine-update/scripts/paperspine_update.py --yes（ACAT-GOVERNANCE：上游脚本未随本仓库集成，宿主安装路径已废弃；2026-09-23 宿主中性化改写，改用本仓技能目录内路径）
 ```
 
 For a version check only, use `--check-only` instead of `--yes`.

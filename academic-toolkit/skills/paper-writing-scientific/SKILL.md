@@ -46,17 +46,13 @@ Before finalizing any document:
 - Write prompts that specify academic style, white background, clean labels, colorblind-friendly colors, and high contrast.
 - Save outputs under a local `figures/` directory in the current project.
 
-**Example command when `inno-figure-gen` is installed:**
-```bash
-uv run ~/.codex/skills/inno-figure-gen/scripts/generate_image.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> \
-  --prompt "Publication-style scientific schematic of your method; white background; clean labels; colorblind-friendly palette; high contrast" \
-  --filename "figures/output.png" \
-  --resolution 2K
-# Claude Code (global install): replace ~/.codex/skills with ~/.claude/skills
-# Claude Code (project-local install): replace ~/.codex/skills with .claude/skills
-```
+**Prompt template (tool-agnostic):**
+`"Publication-style scientific schematic of your method; white background; clean labels; colorblind-friendly palette; high contrast"` —
+save to `figures/output.png` at the highest resolution the tool supports, then iterate on the prompt until the figure is publication-ready.
+（ACAT-GOVERNANCE：上游 `inno-figure-gen` 脚本未随本仓库集成，原宿主安装路径已废弃，不可直接调用；
+2026-09-23 宿主中性化改写。用本仓 `infographics` 等图像能力或环境内可用的生成工具执行。）
 
-Requires `GEMINI_API_KEY` or an explicit `--api-key`. Iterate on the prompt until the figure is publication-ready.
+External generation APIs (if used) take their keys from environment variables — never write keys into repo files.
 
 **When to add figures:**
 - Study design and methodology flowcharts (CONSORT, PRISMA, STROBE)

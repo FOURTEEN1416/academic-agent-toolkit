@@ -41,8 +41,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File $launcher -OutputDir pap
 For a user-run terminal, the direct wizard command is:
 
 ```bash
-WIZARD="$HOME/.codex/skills/paper-spine/scripts/intake_wizard.py"
-[ -f "$WIZARD" ] || WIZARD="$HOME/.claude/skills/paper-spine/scripts/intake_wizard.py"
+WIZARD="$(find "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" -path "*intake_wizard.py" 2>/dev/null | head -1)"（宿主安装路径已废弃，改按仓内解析）
 python "$WIZARD" --output-dir paper_rewriting_output
 ```
 
@@ -54,8 +53,7 @@ screen, and an edit loop before writing config files.
 For first-time setup or changing interface language:
 
 ```bash
-WIZARD="$HOME/.codex/skills/paper-spine/scripts/intake_wizard.py"
-[ -f "$WIZARD" ] || WIZARD="$HOME/.claude/skills/paper-spine/scripts/intake_wizard.py"
+WIZARD="$(find "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" -path "*intake_wizard.py" 2>/dev/null | head -1)"（宿主安装路径已废弃，改按仓内解析）
 python "$WIZARD" --setup-global --output-dir paper_rewriting_output
 ```
 

@@ -128,98 +128,26 @@ The skill does not replace the plotting capabilities of Python or R. It provides
 
 ---
 
-## Installation
+## Installation (Host-Neutral · rewritten 2026-09-23)
 
-`fig-academic` is a skill package built around `SKILL.md`. A complete installation must preserve `references/`, `scripts/`, `assets/`, `install/`, and other directories — the skill depends on these files for style baseline injection, asset scanning, and cross-platform adaptation.
+`fig-academic` is a Skill package built around `SKILL.md`. Keep `references/`, `scripts/` and
+`assets/` alongside `SKILL.md` with their relative structure intact — the skill depends on them
+for visual baseline injection, asset lookup and cross-platform adaptation.
 
-### Claude Code
+**Inside this repository (academic-toolkit) the skill is used in-place; no host installation is needed:**
 
-If Claude Code is not yet installed:
+- The skill lives at `skills/fig-academic/` in this repo; the driving agent loads `SKILL.md`
+  through the repo's `AGENTS.md` driving protocol;
+- Engine routing and the skill index discover it automatically — do NOT copy it into
+  host-private directories such as `~/.claude` or `~/.codex`;
+- The upstream repository (github.com/TingxiYu/academic-figure-skill) documents per-host
+  installation for standalone use; this repo does not use it. The `install/` directory keeps
+  the upstream host-adapter samples (cursor / copilot / codex / claude-code) for reference
+  only — the runtime does not depend on them and they must not be followed as instructions.
 
-```bash
-npm install -g @anthropic-ai/claude-code
-claude
-```
-
-Clone the repository to a stable path and install the skill:
-
-```bash
-mkdir -p ~/ai-skills
-cd ~/ai-skills
-git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
-cp -r fig-academic ~/.claude/skills/
-```
-
-After installation, describe your task naturally in a Claude Code session — the skill triggers automatically:
-
-```text
-Please use fig-academic to analyze the multip-traits.csv data in the project files and perform a visualization analysis.
-```
-
-```text
-Use fig-academic to plot the data.csv data as a Nature-style differential expression volcano plot.
-```
-
-To update:
-
-```bash
-cd ~/ai-skills/fig-academic
-git pull
-cp -r . ~/.claude/skills/fig-academic/
-```
-
-### Codex
-
-Codex loads skills through `install/codex/` which provides `manifest.yaml` + `instructions.md`. Copy the required directories to `~/.codex/skills/fig-academic/`:
-
-```bash
-git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
-cd fig-academic
-mkdir -p ~/.codex/skills/fig-academic
-cp -r SKILL.md references/ scripts/ assets/ install/codex/* ~/.codex/skills/fig-academic/
-```
-
-After installation, describe your task naturally in a Codex session — the skill activates automatically based on trigger rules in `manifest.yaml`.
-
-You can also ask Codex to install for you:
-
-```text
-Install the Codex skill from https://github.com/TingxiYu/academic-figure-skill.git.
-Clone the repo, then copy SKILL.md, references/, scripts/, assets/, and install/codex/ to ~/.codex/skills/fig-academic/.
-Keep the full directory structure — do not copy only SKILL.md.
-```
-
-### Cursor
-
-Copy the skill rules file to your project root. Cursor will automatically follow the specifications when generating code:
-
-```bash
-git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
-cp fig-academic/install/cursor/.cursorrules <your-project>/.cursorrules
-```
-
-The `.cursorrules` file includes color palettes, typography baselines, export specifications, and other core rules. To update, re-run the copy command.
-
-### GitHub Copilot
-
-Copy the skill instructions file to your project's `.github/` directory. Copilot loads this context when generating code:
-
-```bash
-git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
-mkdir -p <your-project>/.github
-cp fig-academic/install/copilot/copilot-instructions.md <your-project>/.github/
-```
-
-If you already have `.github/copilot-instructions.md`, append this skill's content to the end of the file.
-
-### Other Agents
-
-For other AI coding assistants:
-
-1. Keep a stable local clone of the repository
-2. Create a lightweight subagent, slash command, or custom prompt wrapper that points to `SKILL.md`
-3. Ensure `references/`, `scripts/`, `assets/` stay at the same relative path as `SKILL.md`
-4. If the agent has its own format requirements, adjust the frontmatter and body structure
+<!-- 2026-09-23 host-neutral rewrite: the original README taught per-host installation
+     (copying into ~/.claude/skills/, ~/.codex/skills/, ...) which is a dead-path hazard in
+     this repo's context; the whole section was replaced with in-repo usage. -->
 
 ---
 

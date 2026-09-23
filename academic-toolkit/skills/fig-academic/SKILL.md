@@ -482,12 +482,10 @@ python fig-academic/scripts/generate_adapters.py            # all platforms
 python fig-academic/scripts/generate_adapters.py --target cursor  # Cursor only
 ```
 
-Generated adapters are in `install/`:
-- `install/cursor/.cursorrules` → copy to your project root for Cursor
-- `install/copilot/copilot-instructions.md` → copy to `.github/` for GitHub Copilot
-- `install/codex/manifest.yaml` + `instructions.md` → copy to `~/.codex/skills/fig-academic/` for Codex
-- `install/claude-code/README.md` → already supported natively via `~/.claude/skills/`
-
+Generated adapter samples are kept in `install/` for upstream reference only
+(cursor / copilot / codex / claude-code). They are **not** used by this repo's runtime:
+in academic-toolkit the skill runs in-place from `skills/fig-academic/` via the repo's
+`AGENTS.md` driving protocol — do not copy it into host-private directories.
 ---
 
 ## References

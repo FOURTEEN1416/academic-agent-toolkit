@@ -29,15 +29,9 @@ Do not use this skill for:
 
 Start with a local citation scan before any online verification.
 
-The helper script:
-
-```bash
-python ~/.codex/skills/citation-verifier/scripts/scan_citations.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> path/to/file_or_dir [...]
-# Claude Code (global install): replace ~/.codex/skills with ~/.claude/skills
-# Claude Code (project-local install): replace ~/.codex/skills with .claude/skills
-```
-
-Use it to find:
+The upstream helper script is **not bundled with this repo**（ACAT-GOVERNANCE：上游脚本未随本仓库集成，
+原宿主安装路径已废弃，不可直接调用，2026-08-29 审计标记；2026-09-23 宿主中性化改写）。
+Run the scan directly instead. Look for:
 - `[CITATION NEEDED]` or similar placeholders
 - `PLACEHOLDER_...` citation keys
 - `TODO: verify` markers

@@ -13,8 +13,8 @@ the user asks to configure PaperSpine interactively.
 ## Required Behavior
 
 The supported interaction is a real terminal window launched by
-the installed `launch_paperspine_ui.ps1` (resolve its absolute path under
-`~/.codex/skills/...` or `~/.claude/skills/...`). Do not run `input()`-based Python inside a
+the installed `launch_paperspine_ui.ps1` (resolve its absolute path inside the repo
+checkout; host-private skill installs are retired in this repo). Do not run `input()`-based Python inside a
 hidden tool surface when the host cannot expose stdin.
 
 In Claude Code, `/paperspine` must call this branch automatically when config is

@@ -128,98 +128,21 @@ Academic Figure Skill 是一个面向 AI 编程助手（Claude Code、Codex 等�
 
 ---
 
-## 安装与使用
+## 安装与使用（宿主中性版 · 2026-09-23 改写）
 
-`fig-academic` 是一个以 `SKILL.md` 为核心的 Skill 包。完整安装需保留 `references/`、`scripts/`、`assets/`、`install/` 等目录，Skill 依赖这些文件完成视觉基线注入、资产检索和跨平台适配。
+`fig-academic` 是一个以 `SKILL.md` 为核心的 Skill 包。使用时必须保留 `references/`、`scripts/`、
+`assets/` 等目录与 `SKILL.md` 的相对结构——Skill 依赖这些文件完成视觉基线注入、资产检索和跨平台适配。
 
-### Claude Code
+**在本仓库（academic-toolkit）中随仓使用，无需安装到任何宿主目录**：
 
-如果尚未安装 Claude Code：
+- 技能位于本仓 `skills/fig-academic/`，驱动 Agent 按本仓 `AGENTS.md` 驱动协议加载 `SKILL.md` 执行；
+- 引擎路由与技能索引自动发现本技能，不需要复制到 `~/.claude`、`~/.codex` 等宿主私有目录；
+- 上游原仓库（github.com/TingxiYu/academic-figure-skill）另提供面向各宿主的独立安装方式，
+  本仓不采用；`install/` 目录仅保留上游宿主适配器样例（cursor / copilot / codex / claude-code），
+  属历史参考物，本仓运行时不依赖、不应照其复制。
 
-```bash
-npm install -g @anthropic-ai/claude-code
-claude
-```
-
-克隆仓库到稳定路径并安装 Skill：
-
-```bash
-mkdir -p ~/ai-skills
-cd ~/ai-skills
-git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
-cp -r fig-academic ~/.claude/skills/
-```
-
-安装后在 Claude Code 会话中直接描述需求即可自动触发：
-
-```text
-请使用 fig-academic 分析项目文件中的multip-traits.csv数据，并进行可视化分析。
-```
-
-```text
-用fig-academic将data.csv数据绘制为一个 Nature 风格的差异表达火山图。
-```
-
-如需更新：
-
-```bash
-cd ~/ai-skills/fig-academic
-git pull
-cp -r . ~/.claude/skills/fig-academic/
-```
-
-### Codex
-
-Codex 支持通过 `install/codex/` 中的 `manifest.yaml` + `instructions.md` 加载 Skill。将以下目录复制到 `~/.codex/skills/fig-academic/`：
-
-```bash
-git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
-cd fig-academic
-mkdir -p ~/.codex/skills/fig-academic
-cp -r SKILL.md references/ scripts/ assets/ install/codex/* ~/.codex/skills/fig-academic/
-```
-
-安装后在 Codex 会话中自然描述需求，Skill 会根据 `manifest.yaml` 中的触发规则自动激活。
-
-也可以让 Codex 代为安装：
-
-```text
-从 https://github.com/TingxiYu/academic-figure-skill.git 安装 Codex skill。
-克隆仓库后，将 SKILL.md、references/、scripts/、assets/ 和 install/codex/ 复制到 ~/.codex/skills/fig-academic/。
-保持完整目录结构，不要只复制 SKILL.md。
-```
-
-### Cursor
-
-将 Skill 规则文件复制到项目根目录，Cursor 在生成代码时会自动遵循其中的规范：
-
-```bash
-git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
-cp fig-academic/install/cursor/.cursorrules <your-project>/.cursorrules
-```
-
-`.cursorrules` 包含了配色方案、排版基线、导出规格等核心规则。如需更新规则，重新执行上述复制命令即可。
-
-### GitHub Copilot
-
-将 Skill 指令文件复制到项目的 `.github/` 目录，Copilot 在生成代码时会加载这些上下文：
-
-```bash
-git clone https://github.com/TingxiYu/academic-figure-skill.git fig-academic
-mkdir -p <your-project>/.github
-cp fig-academic/install/copilot/copilot-instructions.md <your-project>/.github/
-```
-
-如果已有 `.github/copilot-instructions.md`，建议将本 Skill 的内容追加到文件末尾。
-
-### 其他 Agent
-
-对于其他 AI 编程助手：
-
-1. 保持仓库的稳定克隆副本
-2. 创建一个轻量级的 subagent、slash command 或自定义 prompt wrapper，指向 `SKILL.md`
-3. 确保 `references/`、`scripts/`、`assets/` 等目录与 `SKILL.md` 保持在同一相对路径下
-4. 如果 Agent 有特殊的格式要求，可基于 `SKILL.md` 调整 frontmatter 和 body 结构
+<!-- 2026-09-23 宿主中性化改写：原 README 含逐宿主安装教学（复制到 ~/.claude/skills/、
+     ~/.codex/skills/ 等），在本仓语境下为死路径误导，已整节替换为随仓使用口径。 -->
 
 ---
 

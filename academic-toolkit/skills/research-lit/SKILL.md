@@ -160,8 +160,6 @@ Locate the fetch script and search arXiv directly:
 ```bash
 # Try to find arxiv_fetch.py
 SCRIPT=$(find tools/ -name "arxiv_fetch.py" 2>/dev/null | head -1)
-# If not found, check MH Agent install
-[ -z "$SCRIPT" ] && SCRIPT=$(find ~/.claude/skills/arxiv/ -name "arxiv_fetch.py" 2>/dev/null | head -1)
 
 # Search arXiv API for structured results (title, abstract, authors, categories)
 # Use python3 or python depending on what's available

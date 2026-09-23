@@ -253,7 +253,7 @@ Flag these without being asked:
 ### One-liner (any tool)
 ```bash
 git clone https://github.com/alirezarezvani/claude-skills.git
-cp -r claude-skills/product-team/research-summarizer ~/.claude/skills/
+keep the skill directory in place under `skills/` (in-repo usage; no host install step)
 ```
 
 ### Multi-tool install (run from the claude-skills repo root)

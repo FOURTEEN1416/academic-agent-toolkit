@@ -23,7 +23,7 @@ Use this skill to validate skills before sharing, identify improvement opportuni
 
 **Trigger phrases:**
 - "Analyze skill quality for ./my-skill"
-- "Evaluate this skill: ~/.claude/skills/api-helper"
+- "Evaluate this skill: skills/api-helper"
 - "Review skill quality of git-workflow"
 - "Check my skill for best practices"
 - "Generate quality report for this skill"
@@ -50,7 +50,7 @@ Accept skill path as input. Verify the path exists and contains `SKILL.md`. Read
 
 ```bash
 # Example invocation
-ls -la ~/.claude/skills/target-skill/
+ls -la skills/<target-skill>/
 ```
 
 **Validate:**
@@ -387,7 +387,7 @@ For detailed evaluation criteria and examples, consult:
 
 **Example 1: Analyze a local skill**
 ```
-User: "Analyze skill quality for ~/.claude/skills/git-workflow"
+User: "Analyze skill quality for skills/git-workflow"
 
 [Claude executes the 8-step workflow and generates:]
 - quality-report-git-workflow.md
@@ -416,7 +416,7 @@ User: "Check skill quality of api-helper"
 
 **Example 4: Batch portfolio review**
 ```
-User: "Review all skills in ~/.claude/skills and tell me what to fix first"
+User: "Review all skills in this repo's skills directory and tell me what to fix first"
 
 [Claude evaluates and reports:]
 - portfolio matrix

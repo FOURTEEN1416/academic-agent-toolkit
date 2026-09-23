@@ -13,13 +13,9 @@ Default assumption: broad-impact journal work should start from the global `Natu
 
 When the manuscript depends on experiments, figures, or results produced across multiple rounds, initialize lightweight project-state documents early so writing does not depend on memory alone: `project_truth.md`, `decision_log.md`, `result_summary.md`, and `paper_handoff.md`.
 
-Use the helper script when you need a clean baseline layout quickly:
-
-```bash
-python ~/.codex/skills/paper-bootstrap/scripts/init_paper_layout.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）--> path/to/paper
-# Claude Code (global install): replace ~/.codex/skills with ~/.claude/skills
-# Claude Code (project-local install): replace ~/.codex/skills with .claude/skills
-```
+The upstream helper script is **not bundled with this repo**（ACAT-GOVERNANCE：上游脚本未随本仓库集成，
+原宿主安装路径已废弃，不可直接调用，2026-08-29 审计标记；2026-09-23 宿主中性化改写）。
+Create the four state files below by hand when you need a clean baseline layout.
 
 ## When To Use
 

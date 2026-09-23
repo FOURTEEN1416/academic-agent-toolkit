@@ -63,8 +63,8 @@ Required fields:
    **Codex hard constraint (do not skip):** when
    `paper_rewriting_output/paper_spine_config.json` is missing, the FIRST tool
    action after reading this skill MUST be to run the absolute
-   `launch_paperspine_ui.ps1` (resolve under `~/.codex/skills/...` or
-   `~/.claude/skills/...`) with `sandbox_permissions: require_escalated` so the
+   `launch_paperspine_ui.ps1` (resolve its absolute path inside the repo checkout;
+   host-private skill installs are retired) with `sandbox_permissions: require_escalated` so the
    window can open. Do NOT inspect materials, infer defaults, create config
    files, or continue the workflow before the UI has launched or explicitly
    failed. Only fall back to numbered/chat intake if the launch returns an error.

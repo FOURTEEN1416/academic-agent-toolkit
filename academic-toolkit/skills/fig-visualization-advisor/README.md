@@ -106,7 +106,7 @@ A [Claude Code](https://claude.com/claude-code) / [Codex](https://github.com/ope
 
 ```bash
 git clone https://github.com/Haojae/scipilot-figure-skill.git \
-          ~/.claude/skills/fig-visualization-advisor
+          skills/fig-visualization-advisor (in-repo; no host install step)
 pip install -r ~/.claude/skills/fig-visualization-advisor/requirements.txt
 ```
 

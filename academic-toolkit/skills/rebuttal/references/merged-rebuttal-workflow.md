@@ -93,7 +93,7 @@ When the rebuttal task involves:
 
 read the active installed writing memory before drafting:
 
-- `~/.claude/skills/ml-paper-writing/references/knowledge/paper-miner-writing-memory.md <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用（2026-08-29 审计标记）-->` on Claude Code installs
+- the upstream `ml-paper-writing` writing-memory knowledge file（ACAT-GOVERNANCE：上游文件未随本仓库集成，宿主安装路径已废弃；2026-09-23 宿主中性化改写）
 - the equivalent installed skill-home path on Codex/OpenCode branches
 - otherwise skip this optional memory and continue with the local review-response references
 

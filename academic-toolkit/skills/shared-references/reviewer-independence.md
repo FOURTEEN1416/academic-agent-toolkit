@@ -37,7 +37,7 @@ Cross-model adversarial collaboration only works if the reviewer forms its own a
 ## Correct pattern
 
 ```
-mcp__codex__codex:
+review_channel:
   prompt: |
     Review the following research project as a senior ML reviewer.
 
@@ -51,10 +51,10 @@ mcp__codex__codex:
     Score 1-10 on: novelty, soundness, clarity, significance.
 ```
 
-## Incorrect pattern
+## Incorrect pattern (executor pre-digests)
 
 ```
-mcp__codex__codex:
+review_channel:
   prompt: |
     The main contribution is a new loss function that improves by 15%.
     However, I noticed the ablation is incomplete.
@@ -72,8 +72,10 @@ This protocol applies to ALL cross-model review calls in ARIS:
 - `/paper-figure` — figure quality review
 - `/rebuttal` — stress test
 - `/meta-optimize` — patch review
-- Any skill that sends artifacts to `mcp__codex__codex` or `mcp__codex__codex-reply`
+- Any skill that sends artifacts to the configured review channel (the concrete
+  channel/endpoint is decided by the adapter layer; the protocol here is channel-agnostic)
 
 ## Exception
 
-Multi-round review within the SAME thread (`codex-reply`) may reference the reviewer's own previous feedback to check resolution — but still must not include executor interpretations of that feedback.
+Multi-round review within the SAME reviewer thread (a follow-up message to the same
+review session) may reference the reviewer's own previous feedback to check resolution — but still must not include executor interpretations of that feedback.
