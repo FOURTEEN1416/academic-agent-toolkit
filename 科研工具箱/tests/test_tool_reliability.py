@@ -92,7 +92,7 @@ def test_pyc_not_taught_as_invocation_entry(tmp_path):
     `python tools/*.pyc` 直调——真源是同名 .py。本测试防该口径回潮。"""
     import re
     bad = []
-    targets = [ROOT / "AGENTS.md", ROOT / "skills" / "CLAUDE.md"]
+    targets = [ROOT / "AGENTS.md"]
     targets += list((ROOT / "skills").glob("*/SKILL.md"))
     for f in targets:
         if not f.is_file():

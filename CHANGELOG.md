@@ -11,6 +11,7 @@
 ### Removed
 
 - `auto-review-loop-llm` / `auto-review-loop-minimax` 两个外部 API 通道变体技能（经实证与 base 版机制完全同构、base 为功能超集，随换驱动一并退役并入）；catalog 双向映射、CONTEST_SKILL_MAP 审稿循环分组、路由回归登记、路由关键集、技能分层索引已同步重建。
+- `科研工具箱/skills/CLAUDE.md`（宿主绑定入口双拷贝）随宿主适配层瘦身一并移除；`test_tool_reliability` 扫描清单同步。
 
 ### Removed —— 宿主适配层瘦身（2026-09-23 用户裁决，永不恢复）
 

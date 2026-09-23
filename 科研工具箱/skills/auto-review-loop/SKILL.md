@@ -1,6 +1,6 @@
 ---
 name: auto-review-loop
-description: "Autonomous multi-round research review loop: write review task cards, obtain an independent review (any isolated context - independent subagent / session / window / another model), implement fixes, re-review until positive assessment or max rounds; degrade to current-agent adversarial self-review only when no independent context is obtainable. 统一遵循 skills/_utils/independent_review_manual.md，零 APIKey 零网络（外部 LLM API 通道已退役）。Trigger with \"auto review loop\", \"review until it passes\"."
+description: "Autonomous multi-round research review loop: write review task cards, obtain an independent review (any isolated context - independent subagent / session / window / another model), implement fixes, re-review until positive assessment or max rounds; degrade to current-agent adversarial self-review only when no independent context is obtainable. 统一遵循独立评审手册（independent_review_manual，正文有指引），零 APIKey 零网络。Trigger with \"auto review loop\", \"review until it passes\"."
 argument-hint: [topic-or-scope]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent, Skill
 ---
@@ -93,8 +93,7 @@ Long-running loops may hit the context window limit, triggering automatic compac
 
 #### Phase A: Review（独立评审 · 零 APIKey 零网络）
 
-审稿执行遵循统一《独立评审操作手册》`skills/_utils/independent_review_manual.md`
-（2026-09-23 换驱动裁定，与视觉审核同法：换驱动，不拆机制）。
+审稿执行遵循统一《独立评审操作手册》`skills/_utils/independent_review_manual.md`。
 本技能不读取任何 API key、不发起任何网络 LLM 调用、不调用 `reviewer_client.py`。
 
 1. **写评审任务卡** `review_tasks/round_<N>.task.md`：

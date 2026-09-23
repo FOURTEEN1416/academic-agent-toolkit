@@ -159,8 +159,7 @@ paper-figure / paper-figure-drawio / paper-figure-html / nature-figure / comp-pa
 
 **审稿/评审类步骤**：凡技能要求外部审稿 API（`reviewer_client.py` 等），一律按统一
 《独立评审操作手册》`skills/_utils/independent_review_manual.md` 执行——评审任务卡 →
-独立上下文评审（独立子代理/会话/窗口/另一模型均可）→ 缺席降级自审；
-外部 LLM API 审稿通道已退役，零 APIKey 零网络。
+独立上下文评审（独立子代理/会话/窗口/另一模型均可）→ 缺席降级自审。零 APIKey 零网络。
 
 ## 可选宿主配置（非协议前提）
 

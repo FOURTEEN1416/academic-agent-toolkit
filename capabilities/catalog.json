@@ -907,7 +907,7 @@
       "capability_id": "paper_review_auto",
       "name": "自动多轮论文审查循环",
       "domain": "academic_papers",
-      "description": "审查→修改→重审循环，直到通过或达上限（统一独立评审操作手册驱动，外部 LLM API 通道已于 2026-09-23 退役）",
+      "description": "审查→修改→重审循环，直到通过或达上限（统一独立评审操作手册驱动）",
       "input_contract": "论文草稿、审查提示词",
       "output_contract": "修改后论文、审查报告、迭代记录",
       "status": "experimental",
@@ -2757,7 +2757,7 @@
       "external_dependencies": [],
       "high_risk_confirmation": "覆盖既有文件前需在当前宿主会话中确认",
       "current_evidence": "管线级覆盖（P1 三轮评审实录 8 major→PASS）；",
-      "current_gap": "管线级验收覆盖；C3/C4 未建；2026-09-23 换驱动宿主评审（任务卡/证据制，外部 API 通道退役）后管线级验收未重跑",
+      "current_gap": "管线级验收覆盖；C3/C4 未建；换驱动后管线级验收未重跑",
       "status": "experimental",
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次22（真实执行留档 skill_c2_batch18）"
