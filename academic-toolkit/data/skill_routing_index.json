@@ -15,8 +15,8 @@
   "counts": {
     "core": 52,
     "ondemand": 203,
-    "resident_chars": 30977,
-    "full_chars": 64778
+    "resident_chars": 30965,
+    "full_chars": 64683
   },
   "skills": {
     "ablation-planner": {
@@ -814,9 +814,9 @@
     "graphviz": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "Create directed/undirected graphs using DOT language with automatic layout. Best for dependency trees, call graphs,",
-      "full_description": "Create directed/undirected graphs using DOT language with automatic layout. Best for dependency trees, call graphs, package hierarchies, and module relationships requiring fine-grained edge routing.",
-      "description_compacted": true,
+      "resident_description": "Draw dependency trees, call graphs, pipeline DAGs, state machines and module hierarchies from DOT text.",
+      "full_description": "Draw dependency trees, call graphs, pipeline DAGs, state machines and module hierarchies from DOT text.",
+      "description_compacted": false,
       "path": "academic-toolkit/skills/graphviz/SKILL.md"
     },
     "humanities-plan": {

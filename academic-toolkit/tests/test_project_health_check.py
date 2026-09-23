@@ -138,19 +138,21 @@ def test_drift_multi_metric_agrees_across_sources(tmp_path: Path, monkeypatch) -
 
 def test_actual_skill_count_ignores_nested_bundled_skills() -> None:
     """计数口径守卫：`skills/*/SKILL.md` 的 **Git 默认通配符会跨越 `/`**，必须用
-    `:(glob)` 单级匹配——否则捆绑在技能内的子技能 `<技能>/modules/<模块>/SKILL.md`
-    会被计为顶级技能，指标虚高并与"clone 即所见"口径脱钩。
+    `:(glob)` 单级匹配——否则捆绑在技能内的子技能会被计为顶级技能，指标虚高并
+    与"clone 即所见"口径脱钩。嵌套面有两类：
 
-    2026-09-23 实锤：默认通配口径 265（= 250 顶级 + 15 嵌套 modules）vs `:(glob)` 真值 250；
-    徽章曾一度被"同步"到虚高值，使漂移门禁为错值永久背书。
+    - `<技能>/modules/<模块>/SKILL.md`（paper-writing-clinical 15 件，2026-09-23 实锤：
+      默认通配 265 vs `:(glob)` 真值 250，徽章曾被"同步"到虚高值）；
+    - `<技能>/references/<收编参考>/.../SKILL.md`（a0e7f79 收编批带入 8 件：
+      arc-stat-research 内 6 件 + nature-experiment-log / nature-statistics 各 1 件）。
     """
     proc = subprocess.run(["git", "ls-files", "--", "academic-toolkit/skills/*/SKILL.md"],
                           cwd=str(ROOT.parent), capture_output=True, text=True,
                           encoding="utf-8", errors="replace", timeout=60)
     naive = [ln for ln in (proc.stdout or "").splitlines() if ln.strip()]
-    nested = [p for p in naive if "/modules/" in p]
+    nested = [p for p in naive if "/modules/" in p or "/references/" in p]
     if not nested:
-        pytest.skip("本仓当前无捆绑子技能（<技能>/modules/*/SKILL.md），无需守护单级匹配")
+        pytest.skip("本仓当前无捆绑子技能/收编参考 SKILL.md，无需守护单级匹配")
     counted = phc._actual_skill_count()
     assert counted["available"], counted
     assert counted["count"] == len(naive) - len(nested), (

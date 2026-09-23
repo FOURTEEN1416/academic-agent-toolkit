@@ -3405,11 +3405,11 @@
     },
     {
       "capability_id": "award-paper-mining",
-      "name": "获奖论文语料挖掘与统计沉淀",
+      "name": "获奖论文语料挖掘与版面沉淀",
       "domain": "literature_research",
-      "description": "挖掘获奖论文语料并沉淀为可复用统计资产：抓取→按题号归档→合并PDF→关键页语义标注→结构化JSON→统计报告；持续喂养论文写作范文参照。触发词：优秀论文挖掘、获奖论文语料、范文库、论文统计报告",
-      "input_contract": "目标年份/赛事/题型 + 公开展示源（只采公开往届展示页）",
-      "output_contract": "归档语料（私有区）+ 结构化底座 JSON + 统计报告 md；git 内范文清单与统计摘要",
+      "description": "挖掘获奖论文语料并沉淀为可复用统计与版面资产：抓取→按题号归档→合并PDF→关键页语义标注→结构化JSON→统计报告→版面蒸馏（章节骨架/摘要结构/句式模板/图表规范/排版规格）；在作者自有建模与数据前提下把成果套上国奖论文外壳。触发词：优秀论文挖掘、获奖论文语料、范文库、论文统计报告、版面蒸馏、论文套壳",
+      "input_contract": "目标年份/赛事/题型 + 公开展示源（只采公开往届展示页）或既有本地语料（增量补差）",
+      "output_contract": "归档语料（私有区）+ 结构化底座 JSON + 统计报告 md + 版面卡 JSON（私有区 layout-distill/）+ 四个版面规范库（data/，带槽位摘编）；git 内范文清单、统计摘要与版面规范库",
       "status": "experimental",
       "associated_skills": [
         "award-paper-mining"
@@ -3419,8 +3419,8 @@
         "公开往届展示页（dxs.moe.gov.cn 等）"
       ],
       "high_risk_confirmation": false,
-      "current_evidence": "2026-09-23 v2.0 W4 新增：固化本仓已跑通一届样本（2021-2025 共 62 篇）的挖掘流水线；产物接线 data/award_paper_exemplars.json。",
-      "current_gap": "抓取脚本未随库（源站结构可能变化，需按当下页面重写选择器）。",
+      "current_evidence": "2026-09-23 v2.0 W4 新增：固化本仓已跑通一届样本（2021-2025 共 62 篇）的挖掘流水线；产物接线 data/award_paper_exemplars.json。2026-09-23 版面蒸馏升级：新增步骤 6 全量版面蒸馏管线（作业标准 references/layout-distillation-schema.md），目标=自有内容套国奖版面外壳。",
+      "current_gap": "抓取脚本未随库（源站结构可能变化，需按当下页面重写选择器）；版面蒸馏 62 篇尚未执行（schema 已备，待分批跑卡）。",
       "disposition": "external"
     }
   ],
@@ -6508,7 +6508,7 @@
       "capability_id": "graphviz",
       "name": "graphviz",
       "domain": "figures_and_document_production",
-      "description": "Create directed/undirected graphs using DOT language with automatic layout. Best for dependency trees, call graphs, package hierarchies, and module relationships requiring fine-gra",
+      "description": "Draw dependency trees, call graphs, pipeline DAGs, state machines and module hierarchies from DOT text.",
       "input_contract": "技能 SKILL.md 定义的输入契约",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "status": "experimental",
