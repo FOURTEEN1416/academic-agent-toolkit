@@ -40,12 +40,12 @@ status: active
 
 4. **补全技能契约**
    - 完善 `skills/<name>/SKILL.md` 的输入/输出/步骤/铁律
-   - 短横线命名的技能须映射进 `capabilities/catalog.json`（根级 catalog 门禁会硬校验）
+   - 短横线命名的技能须映射进 `capabilities/catalog.json`（映射一致性由工具箱 asset 系门禁与 `tools/check_asset_utilization.py --strict` 校验）
 
 5. **自检与留痕**
    ```bash
    python tools/<name>.py --json
-   python -m pytest tests/test_minimum_catalog.py -q   # 若改了 catalog/skills
+   python -m pytest -q   # 若改了 catalog/skills（仓库根全套件）
    ```
    将 forge 命令与产物路径写入 execution_evidence.commands/outputs
 

@@ -36,12 +36,13 @@ TOOLBOX_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = TOOLBOX_ROOT.parent
 BASELINE_PATH = TOOLBOX_ROOT / "data" / "lint_baseline.json"
 
-# 检查范围：引擎 + 工具 + hooks + 两级测试（与 pytest 收集面同构的代码面）
+# 检查范围：引擎 + 工具 + hooks + 工具箱测试（与 pytest 收集面同构的代码面）
 # scope 条目语法（B1-6 相对化）：裸名 = 相对 TOOLBOX_ROOT；"repo:" 前缀 = 相对
 # 仓库根。禁写本机绝对路径（tracked 基线必须可移植，secret_scan 同款纪律）。
+# 原 "repo:tests"（仓库根门禁测试）已随 2026-09-23 根级门禁退役移除——
+# 向不存在路径传参会被 ruff 计 E902，棘轮从此假性 +1。
 SCOPE: tuple[str, ...] = (
     "engine", "tools", "hooks", "tests",          # 相对 TOOLBOX_ROOT
-    "repo:tests",                                 # 仓库根门禁测试
 )
 SCOPE_REPO_PREFIX = "repo:"
 

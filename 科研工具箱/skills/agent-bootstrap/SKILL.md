@@ -11,7 +11,7 @@ status: active
 本技能告诉**当前驱动本项目的任意 Agent**（Claude Code / Cursor / Gemini CLI /
 MiMo Desktop / OpenCode / ZCode / 自写脚本）如何在 5 分钟内合法接入并开始工作。
 
-**不依赖任何宿主专用配置。** OpenCode / ZCode 配置仅为可选适配器（见 `agents/adapters/`）。
+**不依赖任何宿主专用配置。** OpenCode / ZCode 配置仅为可选适配器（本地可选自建）。
 
 ## 输入契约
 
@@ -64,4 +64,4 @@ MiMo Desktop / OpenCode / ZCode / 自写脚本）如何在 5 分钟内合法接�
 - 协议实现: `科研工具箱/engine/agent_protocol.py`
 - 能力探测: `科研工具箱/engine/capability_probe.py`
 - 工具铸造: `skills/tool-forge`
-- 可选适配器: `agents/adapters/`
+- 可选适配器: 协议不依赖（`forge --adapter` 可本地生成）

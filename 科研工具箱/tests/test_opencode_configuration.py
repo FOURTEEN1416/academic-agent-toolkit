@@ -1,27 +1,20 @@
+"""OpenCode 可选适配器配置契约。
+
+opencode.json 随库分发（subagent 角色内联其中）：本文件校验其配置契约，并把只读
+审稿角色契约落在内联 subagent 上。适配层文件（.opencode/agents、.opencode/plugins、
+agents/adapters/）不入库，由 test_host_adapter_layer_files_are_not_tracked 守护
+该形态——文件回流即红灯，重引入适配层须显式改写本测试。
+"""
 import json
 from pathlib import Path
-
-import yaml
 
 
 SUITE_ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = SUITE_ROOT.parent
-AGENTS = PROJECT_ROOT / ".opencode" / "agents"
-
-
-def parse_agent_file(path: Path) -> tuple[dict, str]:
-    text = path.read_text(encoding="utf-8")
-    _, frontmatter, body = text.split("---", 2)
-    return yaml.safe_load(frontmatter), body
-
-
-def parse_agent_frontmatter(path: Path) -> dict:
-    frontmatter, _ = parse_agent_file(path)
-    return frontmatter
 
 
 def test_shared_project_opencode_configuration_is_optional_adapter():
-    """OpenCode 配置仍在位，但语义是可选适配器：必须指向技能库与主控文档。"""
+    """OpenCode 配置仍在库，但语义是可选适配器：必须指向技能库与主控文档。"""
     config = json.loads((PROJECT_ROOT / "opencode.json").read_text(encoding="utf-8"))
 
     assert config["$schema"] == "https://opencode.ai/config.json"
@@ -33,27 +26,31 @@ def test_shared_project_opencode_configuration_is_optional_adapter():
     assert (PROJECT_ROOT / config["skills"]["paths"][0]).is_dir()
     assert (PROJECT_ROOT / config["instructions"][0]).is_file()
 
-    adapter_meta = PROJECT_ROOT / "agents" / "adapters" / "opencode" / "adapter.json"
-    assert adapter_meta.is_file()
-    meta = json.loads(adapter_meta.read_text(encoding="utf-8"))
-    assert meta["required_for_drive"] is False
-    assert meta["status"] == "optional"
+
+def test_host_adapter_layer_files_are_not_tracked():
+    """适配层文件形态守护：以下路径保持缺席，出现即红灯。
+
+    若重新引入宿主适配层，应显式改写本测试，不得悄悄删除断言。
+    """
+    assert not any((PROJECT_ROOT / ".opencode" / "agents").glob("*.md"))
+    assert not (PROJECT_ROOT / ".opencode" / "plugins" / "audit-trail.ts").exists()
+    assert not any((PROJECT_ROOT / "agents" / "adapters").rglob("adapter.json"))
 
 
-def test_generic_adapter_always_present():
-    generic = PROJECT_ROOT / "agents" / "adapters" / "generic" / "adapter.json"
-    assert generic.is_file()
-    meta = json.loads(generic.read_text(encoding="utf-8"))
-    assert meta["adapter_id"] == "generic"
-    assert meta["kind"] == "protocol"
+def test_review_subagent_contracts_inline_in_opencode_config():
+    """只读审稿角色契约（原 .opencode/agents/*.md 契约的内联化，2026-09-23 迁移）：
+    审稿人/视觉审查只读（edit=deny），编辑子代理受控可写。"""
+    config = json.loads((PROJECT_ROOT / "opencode.json").read_text(encoding="utf-8"))
+    agents = config["agent"]
 
-
-def test_shared_project_root_is_the_only_agent_source():
-    assert sorted(path.name for path in AGENTS.glob("*.md")) == [
-        "数模专家.md", "数模审稿人.md", "数模编辑.md", "数模视觉审查.md",
-    ]
-    suite_agents = SUITE_ROOT / ".opencode" / "agents"
-    assert not suite_agents.exists() or not list(suite_agents.glob("*.md"))
+    for name in ("数模审稿人", "数模视觉审查"):
+        agent = agents[name]
+        assert agent["mode"] == "subagent"
+        assert agent["permission"]["edit"] == "deny"
+        assert "只读" in agent["description"]
+    editor = agents["数模编辑"]
+    assert editor["mode"] == "subagent"
+    assert editor["permission"]["edit"] == "allow"
 
 
 def test_shared_project_configuration_is_discoverable_from_all_workspaces():
@@ -65,27 +62,6 @@ def test_shared_project_configuration_is_discoverable_from_all_workspaces():
         found = next((parent / "opencode.json" for parent in (workspace, *workspace.parents)
                       if (parent / "opencode.json").is_file()), None)
         assert found == PROJECT_ROOT / "opencode.json"
-
-
-def test_modeling_agent_contracts():
-    primary = parse_agent_frontmatter(AGENTS / "数模专家.md")
-    assert primary["mode"] == "primary"
-    assert primary["permission"]["task"] == "allow"
-    assert primary["permission"]["edit"] == "allow"
-
-    for filename, artifact in {
-        "数模审稿人.md": "COMP_REVIEW_VERDICT.json",
-        "数模视觉审查.md": "VISUAL_REVIEW_VERDICT.json",
-        "数模编辑.md": "EDITOR_CHANGELOG.md",
-    }.items():
-        frontmatter, body = parse_agent_file(AGENTS / filename)
-        assert frontmatter["mode"] == "subagent"
-        assert artifact in body
-
-    reviewer = parse_agent_frontmatter(AGENTS / "数模审稿人.md")
-    visual = parse_agent_frontmatter(AGENTS / "数模视觉审查.md")
-    assert reviewer["permission"]["edit"] == "deny"
-    assert visual["permission"]["edit"] == "deny"
 
 
 def test_agents_documentation_is_host_agnostic_protocol():
@@ -115,17 +91,7 @@ def test_root_readme_names_host_agnostic_entry():
 
 
 def test_tracked_host_configs_have_no_personal_absolute_paths():
-    """opencode.json / .zcode/config.json 不得含本机用户名或过期项目绝对路径。"""
-    for rel in ("opencode.json", ".zcode/config.json"):
-        raw = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
-        assert r"C:\Users\FOUR" not in raw, f"{rel} 含本机用户目录绝对路径"
-        assert r"D:\Desktop\数模竞赛" not in raw, f"{rel} 含过期项目根路径"
-        if rel.endswith("zcode/config.json"):
-            cfg = json.loads(raw)
-            hooks = cfg.get("hooks", {}).get("events", {})
-            for event, entries in hooks.items():
-                for e in entries:
-                    for h in e.get("hooks", []):
-                        code = "".join(h.get("args", []))
-                        assert r"C:\Users" not in code
-                        assert "fail-open" in code or "sys.exit(0)" in code
+    """opencode.json 不得含本机用户名或过期项目绝对路径。"""
+    raw = (PROJECT_ROOT / "opencode.json").read_text(encoding="utf-8")
+    assert r"C:\Users\FOUR" not in raw, "opencode.json 含本机用户目录绝对路径"
+    assert r"D:\Desktop\数模竞赛" not in raw, "opencode.json 含过期项目根路径"

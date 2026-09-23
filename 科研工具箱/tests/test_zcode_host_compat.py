@@ -294,14 +294,18 @@ _VALID_EVENTS = {"SessionStart", "UserPromptSubmit", "PreToolUse", "PermissionRe
 
 
 def _hook_contract_cfg() -> dict:
-    """hook 契约的配置源解析（2026-09-10 用户裁定：hooks 保持清除态）。
+    """hook 契约的配置源解析（2026-09-10 用户裁定：hooks 保持清除态；
+    2026-09-23 起 .zcode/config.json 不入库）。
 
-    工作区 config 若含 hooks 块（已注册）→ 直接按契约校验（活契约，注册错了必红）；
-    若为"清除态"（仅剩 mcp，用户裁定的合法运行时状态）→ 回退 git HEAD 定稿版
-    校验引导器契约（注册形态冻结在历史中，将来重注册照此契约）；两处皆无
-    注册版 → skip（清除已入历史，契约无从校验，但本文件行为测试仍守着脚本本体）。
+    工作区 config 若存在且含 hooks 块（本地已注册）→ 直接按契约校验（活契约，注册错了必红）；
+    文件缺席或为"清除态"（仅剩 mcp）→ 回退 git HEAD 定稿版校验引导器契约
+    （注册形态冻结在历史中，将来重注册照此契约）；两处皆无注册版 → skip
+    （本文件行为测试仍守着脚本本体）。
     """
-    cfg = json.loads((REPO_ROOT / ".zcode" / "config.json").read_text(encoding="utf-8"))
+    try:
+        cfg = json.loads((REPO_ROOT / ".zcode" / "config.json").read_text(encoding="utf-8"))
+    except (FileNotFoundError, NotADirectoryError):
+        cfg = {}
     if "hooks" in cfg:
         return cfg
     r = subprocess.run(["git", "-C", str(REPO_ROOT), "show", "HEAD:.zcode/config.json"],

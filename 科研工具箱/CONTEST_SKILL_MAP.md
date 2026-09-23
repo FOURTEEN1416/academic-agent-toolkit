@@ -79,8 +79,7 @@
 **P0 激活批次（2026-09-22 资产充分吸收 P4，13 个）**——原 §五"未接入库"中"可修即可路由"
 的缺口：技能实体与 catalog 条目俱在、只差地图激活面（无 StepAction 推荐位之外的第二路由
 通道）。本批按情境可用接入本节，并同步 catalog 条目 `disposition: "routed"` 处置字段。
-分级口径（原与根级 catalog 硬校验测试互锁；该测试已于 2026-09-23 随根级门禁退役，
-现由 `tests/test_asset_activation_p4.py` 与 `tools/check_asset_utilization.py --strict` 守护）：
+分级口径（由 `tests/test_asset_activation_p4.py` 与 `tools/check_asset_utilization.py --strict` 守护）：
 本批 13 个均**不是**任何模板步骤的主技能（实测：templates.json 内 skill_name/companion_skills
 零命中），故只记 `routed`（第二路由通道=本地图活跃段具名），不冒充 `evidence-bound`；
 下一步激活面是把这些技能接入对应模板（scientific_plotting / literature_review /

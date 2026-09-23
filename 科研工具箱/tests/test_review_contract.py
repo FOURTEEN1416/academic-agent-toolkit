@@ -13,11 +13,14 @@ def test_cumcm_final_review_declares_review_execution_evidence():
     assert "REVIEW_EXECUTION_EVIDENCE.json" in final_review["output_files"]
 
 
-def test_read_only_reviewer_agents_delegate_evidence_writing_to_primary_agent():
-    agents_dir = ROOT.parent / ".opencode" / "agents"
+def test_read_only_reviewer_subagents_delegate_evidence_writing_to_primary_agent():
+    """只读审稿角色契约（2026-09-23 起角色定义内联于 opencode.json，
+    原 .opencode/agents/*.md 已随宿主适配层移除）：审稿人/视觉审查 edit=deny
+    且描述声明只读，证据落盘由主 Agent 承担。"""
+    config = json.loads((ROOT.parent / "opencode.json").read_text(encoding="utf-8"))
 
-    for name in ("数模审稿人.md", "数模视觉审查.md"):
-        content = (agents_dir / name).read_text(encoding="utf-8")
-        assert "edit: deny" in content
-        assert "主 Agent" in content
-        assert "不直接写入工作区文件" in content
+    for name in ("数模审稿人", "数模视觉审查"):
+        agent = config["agent"][name]
+        assert agent["permission"]["edit"] == "deny"
+        assert "只读" in agent["description"]
+        assert agent["mode"] == "subagent"

@@ -39,11 +39,11 @@
          科研工具箱/ 后展开成双重拼接 科研工具箱/科研工具箱/hooks/... → 同样
          起不来 exit 2 再锁死——变量展开在子目录 cwd 下不可靠，已弃用。
      引导器任何一步失败（找不到/加载失败/执行异常）→ stderr 一行警告 + exit 0
-     放行；exit 2 唯一合法来源仍是 _DENY_RULES。引导器实现在 .zcode/config.json
-     （保持随仓可移植，禁写死盘符），契约见 tests/test_zcode_host_compat.py D 段
-     （双 cwd 定位 / 无仓库 fail-open / deny 经 runpy 透传保真）。
+     放行；exit 2 唯一合法来源仍是 _DENY_RULES。引导器契约（保持随仓可移植，
+     禁写死盘符）见 tests/test_zcode_host_compat.py D 段（双 cwd 定位 / 无仓库
+     fail-open / deny 经 runpy 透传保真）——注册配置不入库，重注册按该契约本地自建。
 
-用法（由 .zcode/config.json hooks 注册，也可手动喂 stdin 测试）：
+用法（宿主 hooks 注册——注册配置不入库，按 D 段契约本地注册；也可手动喂 stdin 测试）：
   echo '<hook json>' | python zcode_audit_l1.py pre|post|fail
 """
 from __future__ import annotations

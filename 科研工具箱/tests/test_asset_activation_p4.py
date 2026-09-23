@@ -4,14 +4,14 @@
 
   A. P0 路由修复在册：13 个此前仅"注册不可路由"的技能必须在
      CONTEST_SKILL_MAP §一-§三（活跃路由段）具名，且 catalog 侧 disposition=routed
-     （根 tests/test_minimum_catalog.py 另有互锁测试，此处守地图半区）。
+     （根级 catalog 硬校验测试已于 2026-09-23 随根级门禁退役，本文件守地图半区）。
   C. 强制步棘轮：全仓 templates.json 声明非空 `mandatory` 的步骤数 / 槽位数
      只升不降——防止"把必用位改回可选"这类静默降级（资产激活成果不可回撤）。
   D. 辅助技能死槽分代：legacy 代际死槽只登记不删除（用户红线"资产不撤只激活"），
      活跃代际死槽数只减不增；工具 `companion_dead_slots()` 的分代逻辑有合成用例锁定。
   E. 报告接线：check_asset_utilization 主流程必须输出第 [4] 项死槽分代报表与
-     第 [5] 项 catalog disposition 分级账（工具侧棘轮，与根 tests/test_minimum_catalog.py
-     的 schema 测试互为镜像：一处守字段合法性与不虚报，一处守回填进度可读）。
+     第 [5] 项 catalog disposition 分级账（工具侧棘轮：守回填进度可读；原与根级
+     schema 测试互为镜像，该测试已于 2026-09-23 随根级门禁退役）。
 
 口径与真值均为 2026-09-22 本地实测（数字与审计口头 claim 不一致时以本文件实测为准，
 见 test_mandatory_* 与 LEGACY_DEAD_SLOT_REGISTRY 的注释）。
@@ -66,7 +66,7 @@ def test_p0_batch_skills_named_in_active_map_sections():
 
 
 def test_p0_batch_count_is_thirteen_and_unique():
-    """批次清单本身钉死：13 个、无重复（与根 tests/test_minimum_catalog.py 同源）。"""
+    """批次清单本身钉死：13 个、无重复（原与根级 catalog 测试互锁，该测试 2026-09-23 退役）。"""
     assert len(P0_ROUTED_BATCH) == 13
     assert len(set(P0_ROUTED_BATCH)) == 13
 
@@ -293,7 +293,7 @@ def test_real_repo_catalog_disposition_report_matches_catalog():
     assert got["filled"] == len([i for i in entries if i.get("disposition")])
     assert got["filled"] >= DISPOSITION_FILLED_BASELINE, (
         f"disposition 回填数 {got['filled']} < 基线 {DISPOSITION_FILLED_BASELINE}"
-        "（P4 批次 E 棘轮只升；须与根 tests/test_minimum_catalog.py 同批上调）")
+        "（P4 批次 E 棘轮只升）")
     assert got["by_level"].get("routed", 0) >= 14
     assert got["by_level"].get("evidence-bound", 0) >= 1
     assert not got.get("error")

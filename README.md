@@ -7,9 +7,9 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v1.3.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-791_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
-[![Capabilities](https://img.shields.io/badge/capabilities-314-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-276_tracked-8b5cf6?style=flat-square)](科研工具箱/skills)
+[![Tests](https://img.shields.io/badge/tests-763_passing-22c55e?style=flat-square&logo=pytest)](科研工具箱/tests)
+[![Capabilities](https://img.shields.io/badge/capabilities-312-0ea5e9?style=flat-square)](capabilities/catalog.json)
+[![Skills](https://img.shields.io/badge/skills-274_tracked-8b5cf6?style=flat-square)](科研工具箱/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始)
 [![Hosts](https://img.shields.io/badge/hosts-Any_Agent-1f2937?style=flat-square)](#快速开始)
@@ -19,7 +19,7 @@
 ---
 
 > [!TIP]
-> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（276 个随仓技能）自主完成
+> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（274 个随仓技能）自主完成
 > 建模 → 编码 → 绘图 → 写作 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯**。
 
 ## ✨ 为什么不是又一个提示词合集
@@ -49,19 +49,19 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 </td></tr>
 </table>
 
-## 🗺️ 六大能力域 + Agent 运行时 · 314 项能力
+## 🗺️ 六大能力域 + Agent 运行时 · 312 项能力
 
 | | 能力域 | 条目 | 代表能力 |
 |--|--------|-----:|----------|
 | 🎓 | **课程与研究材料** | 83 | 课程论文 · 实验报告 · 教学大纲 |
 | 📝 | **学术论文** | 75 | 写作 · 评审 · 润色 · 投稿准备（含 Nature 工作流） |
-| 🔬 | **文献与研究** | 42 | 文献检索 · 综述 · 深度研究 · 实验设计 |
+| 🔬 | **文献与研究** | 40 | 文献检索 · 综述 · 深度研究 · 实验设计 |
 | 🏆 | **数模竞赛** | 37 | CUMCM 14 步端到端流水线 |
 | 📊 | **图表与文档生产** | 63 | 期刊级科研绘图 · 信息图 · LaTeX |
 | ©️ | **知识产权材料** | 12 | 软著 · 专利 · 基金申请书 |
 | 🧩 | **Agent 运行时** | 2 | 宿主无关自举 · 自适应工具铸造 |
 
-> 域表与 `capabilities/catalog.json` 对齐：37/75/42/83/12/63/2 = **314**（与徽章一致；2026-09-23 实测）。
+> 域表与 `capabilities/catalog.json` 对齐：37/75/40/83/12/63/2 = **312**（与徽章一致；2026-09-23 实测）。
 
 > [!NOTE]
 > **技能计数口径**（唯一）：徽章与正文统一为 `git ls-files` 口径的技能 SKILL.md 数（**clone 即所见**）；另有 5 个无 License 上游隔离件仅存本地、gitignored 不入库，不计入。
@@ -123,10 +123,10 @@ python -m engine.workflow_cli probe
 5. 单技能：按路由表读 `skills/<name>/SKILL.md`
 
 自举：`科研工具箱/skills/agent-bootstrap/` · 铸造：`科研工具箱/skills/tool-forge/`
-适配器元数据：`agents/adapters/`（OpenCode/ZCode 为可选，非前提）
+适配器：协议不依赖；需要适配器元数据时 `python -m engine.workflow_cli forge --adapter <name>` 本地生成
 
 > [!IMPORTANT]
-> **路径卫生（PUBLIC 仓）**：tracked `opencode.json` / `.zcode/config.json` 的 MCP `command` 与 `DOCSEARCH_ROOTS` 使用**可移植占位符**（`${DOCSEARCH_MCP_SERVER}` / `${DOCSEARCH_ROOTS}`）。docsearch MCP 装在宿主用户目录时，**操作员须在本地设置未提交的覆盖**；勿将 `C:\Users\...`、过期项目根路径写回 tracked 文件。
+> **路径卫生（PUBLIC 仓）**：tracked `opencode.json` 的 MCP `command` 与 `DOCSEARCH_ROOTS` 使用**可移植占位符**（`${DOCSEARCH_MCP_SERVER}` / `${DOCSEARCH_ROOTS}`）。docsearch MCP 装在宿主用户目录时，**操作员须在本地设置未提交的覆盖**；勿将 `C:\Users\...`、过期项目根路径写回 tracked 文件。宿主本地配置一律不入库。
 
 直接下任务（任意 Agent）：
 
@@ -136,9 +136,9 @@ python -m engine.workflow_cli probe
 
 | 适配器 | 用途 |
 |--------|------|
-| **OpenCode Desktop** | 打开仓库根即可用 `opencode.json`（默认角色数模专家 + skills 扫描 + subagent）。**不依赖 `opencode` CLI** |
-| **ZCode** | `cmd /c "mklink /J .zcode\skills 科研工具箱\skills"` 后打开仓库根；L1 hook 自动生效 |
-| **其他** | 无需专用配置，按上文协议驱动；需要增强时在 `agents/adapters/` 登记 |
+| **OpenCode Desktop** | 打开仓库根即可用 `opencode.json`（默认角色数模专家 + skills 扫描 + subagent 内联）。**不依赖 `opencode` CLI** |
+| **ZCode** | `cmd /c "mklink /J .zcode\skills 科研工具箱\skills"` 后打开仓库根；L1 hook 按本地未提交配置注册（契约见 `科研工具箱/tests/test_zcode_host_compat.py` D 段） |
+| **其他** | 无需专用配置，按上文协议驱动；需要适配器元数据时 `python -m engine.workflow_cli forge --adapter <name>` 本地重建 |
 
 ### 环境要求
 
@@ -163,9 +163,9 @@ python 科研工具箱/tools/plotting_env_check.py
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-# 口径一（仓库根，回归门禁口径）：工具箱 766 + 根级门禁 25 = 791 passed / 0 failed
+# 口径一（仓库根，回归门禁口径）：763 passed / 0 failed（与口径二同值）
 python -m pytest -q
-# 口径二（工具箱内，技能验收基线口径）：766 passed / 0 failed
+# 口径二（工具箱内，技能验收基线口径）：763 passed / 0 failed
 cd 科研工具箱 && python -m pytest -q
 python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账通过
 ```
@@ -178,19 +178,16 @@ python tools/check_provenance.py             # → 66/66 UPSTREAM+vendor 台账�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）66/66 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **双层基准集** | ⚠️ **2026-09-19 起停用**：公开层曾为 CC-BY-4.0 合成题面基准（P01-P03 + 六域 7 项），已废弃移除、不随仓库分发；私有层（真实竞赛题面）从未入库 |
-| ✅ **测试基线** | 仓库根 **791 passed / 0 failed**（= 工具箱 **766** + 根级门禁 **25**；另 3 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1）。**唯一真源 = `pytest.ini` 注释**，历史基线演进也记录在该注释中；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
+| ✅ **测试基线** | 仓库根 **763 passed / 0 failed**（另 4 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1 + 适配器元数据缺席 skip 1；仓库根与工具箱内同口径）。**唯一真源 = `pytest.ini` 注释**，历史基线演进也记录在该注释中；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
 | 🧬 **逐技能 C2 覆盖** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
-| 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + `agents/adapters/`（旧宿主降为可选适配器）+ TOOL_GAP→工具铸造（2026-09-20） |
+| 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + 旧宿主降为可选适配器 + TOOL_GAP→工具铸造（2026-09-20） |
 
 ## 📁 仓库地图
 
 ```
 academic-agent-toolkit/
 ├── 科研工具箱/     ★ 产品主体  skills · engine · tools · tests
-├── agents/adapters/  可选宿主适配器元数据（协议不依赖）
 ├── capabilities/      能力目录 catalog.json
-├── tests/             根级门禁测试（catalog schema / 反 AI）
-├── docs/superpowers/  设计 spec 与实施计划（dated 快照）
 ├── SECURITY.md        安全策略
 ├── AGENTS.md          Agent 入口：宿主无关驱动协议 + 适配器矩阵
 └── CHANGELOG.md       版本记录

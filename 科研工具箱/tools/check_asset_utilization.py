@@ -328,7 +328,7 @@ def _print_report(result: dict) -> None:
     dp = result.get("catalog_disposition") or {}
     print(f"[5] catalog disposition 分级账：条目 {dp.get('entries_total', 0)} / 已回填 "
           f"{dp.get('filled', 0)}（{dp.get('by_level') or {}}）/ 技能名条目未回填 "
-          f"{dp.get('unfilled_skill_entries', 0)}（棘轮只升，见根 tests/test_minimum_catalog.py）")
+          f"{dp.get('unfilled_skill_entries', 0)}（棘轮只升）")
     if dp.get("error"):
         print(f"    ⚠️ {dp['error']}")
 

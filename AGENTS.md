@@ -25,17 +25,18 @@
 
 | 适配器 | 配置文件 | 状态 |
 |------|----------|------|
-| generic（协议层） | 无；`agents/adapters/generic/` | **默认可用**：AGENTS.md + skills/ + workflow_cli |
-| OpenCode Desktop | `opencode.json` + 根级 `.opencode/`（插件 + subagent） | 可选适配器（L1 插件在此层生效） |
-| ZCode | `.zcode/config.json` + `.zcode/skills/` + `.zcode/commands/` | 可选适配器（L1 hook 等价实现） |
-| Claude Code / Cursor / MiMo 等 | 见 `agents/adapters/` | 可选；无配置也可直接按协议驱动 |
+| generic（协议层） | 无需配置 | **默认可用**：AGENTS.md + skills/ + workflow_cli |
+| OpenCode Desktop | `opencode.json`（subagent 角色内联） | 可选适配器 |
+| ZCode | `.zcode/skills/` 本地联结（不入 git） | 可选适配器（L1 hook 按本地未提交配置自建，契约见 科研工具箱/tests/test_zcode_host_compat.py D 段） |
+| Claude Code / Cursor / MiMo 等 | 无需专用配置 | 可选；直接按协议驱动 |
 
-适配器元数据：`agents/adapters/*/adapter.json`。L1 拦截式审计在无宿主 hook 时记为
+需要适配器元数据时 `python -m engine.workflow_cli forge --adapter <name>` 本地生成。
+L1 拦截式审计在无宿主 hook 时记为
 `unavailable`（不阻断）；L2（引擎）/L3（evidence）始终可用。
 
 ## OpenCode 可选适配说明（保留兼容）
 
-- `.opencode/skills` 不需要；OpenCode 经 `opencode.json` 的 `skills.paths` 扫描 `./科研工具箱/skills`
+- OpenCode 经 `opencode.json` 的 `skills.paths` 扫描 `./科研工具箱/skills`，subagent 角色内联于该文件
 - `opencode.json` 使用 `数模专家` 作为默认 primary agent（仅 OpenCode 用户）
 - MCP 路径用占位符；本机绝对路径放在**未提交**本地覆盖中
 - hook/配置变更后需重启对应宿主会话才生效
@@ -44,7 +45,8 @@
 
 - `.zcode/skills` 是指向 `科研工具箱/skills` 的 NTFS 目录联结（不跟踪入 git）。
   重建：`cmd /c mklink /J .zcode\skills 科研工具箱\skills`
-- L1 hooks：`科研工具箱/hooks/zcode_audit_l1.py`（fail-open；配置改动需重启会话）
+- L1 hooks：`科研工具箱/hooks/zcode_audit_l1.py`（fail-open），注册形态契约见
+  `科研工具箱/tests/test_zcode_host_compat.py` D 段
 - 审稿模型名须与 `engine/modex-core/contest_models.json` 或适配器 `models.json` 一致
 
 ## 仓库地图（治理入口）
@@ -52,11 +54,9 @@
 | 路径 | 性质 |
 |------|------|
 | `科研工具箱/` | 产品主体：skills/engine/tools/tests/hooks/data |
-| `capabilities/catalog.json` | 能力目录（技能须全部映射；根级 tests 硬校验） |
-| `agents/adapters/` | 可选宿主适配器元数据（协议不依赖） |
-| `docs/superpowers/` | 设计 spec 与实施计划（dated 快照） |
+| `capabilities/catalog.json` | 能力目录（技能须全部映射；一致性由工具箱 asset 系门禁 + `check_asset_utilization --strict` 守护，原根级 tests 硬校验已随 2026-09-23 适配层裁决退役） |
 | `dev-docs/` | 内部真源根（gitignored 私有）：**操作日志 `dev-docs/LOG.md`（2026-09-23 起唯一记账真源，公开仓不分发）· 任务计划 `dev-docs/task_plan.md` · 审计报告** |
-| `releases/`（本地 dated 快照，不入库）、`tests/`、`SECURITY.md`、`CHANGELOG.md` | 发布快照 / 根级门禁测试 / 安全策略 / 公开版本记录 |
+| `releases/`（本地 dated 快照，不入库）、`SECURITY.md`、`CHANGELOG.md` | 发布快照 / 安全策略 / 公开版本记录 |
 | `参考论文/`、`赛前试炼任务/`、`workspaces/` 等 | 本地材料与产物（不入 git） |
 
 ## 硬性规则（冲突时以主控文档为准）
@@ -69,15 +69,15 @@
 6. **路径/密钥卫生**：tracked 配置不得写本机绝对路径；`.env` 永不入库；
    `python 科研工具箱/tools/secret_scan.py --strict` 机检。
 
-## 测试口径（2026-09-22 P4 资产激活轮实测，pytest.ini 为唯一真源）
+## 测试口径（2026-09-23 宿主适配层移除收口批实测，pytest.ini 为唯一真源）
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `科研工具箱/tests` + 根 `tests/` | **789 passed / 0 failed**（= 工具箱 **764** + 根级门禁 **25**；另 3 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1；collect-only 792。2026-09-23 公开仓治理止血批实测口径；上一时点口径对齐轮 776/751、续54 视觉审核批 780 保留作历史） | 仓库级回归 |
-| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **764 passed / 0 failed** | 技能验收基线（硬规则 3 口径） |
-| 根 `tests/` 单跑 | catalog schema + 反 AI 工具集 | **25 passed** | catalog 改动后必跑 |
-| **公开 clone / CI** | 已提交内容 | 以 CI 实测为准（现行：**713+5 skipped / 0 failed @ run 35711171875**，收集总数与本机一致 718；历史：600+3 @ run 35425878920） | 门禁 |
+| 仓库根 `pytest -q` | `科研工具箱/tests` | **763 passed / 0 failed**（另 4 skipped：私有资料区缺位语义 skip 2 + docx_template_fill pyc 缺陷钉住 1 + 适配器元数据缺席 skip 1；collect-only 767。2026-09-23 收口批实测口径） | 仓库级回归 |
+| `科研工具箱/` 内 `pytest -q` | 工具箱自有 tests | **763 passed / 0 failed**（与仓库根同口径） | 技能验收基线（硬规则 3 口径） |
+| **公开 clone / CI** | 已提交内容 | 以 CI 实测为准（历史：713+5 skipped / 0 failed @ run 35711171875） | 门禁 |
 
-- 历史基线 628/603/460 为保留作历史的时点快照，见 `pytest.ini` 注释（公开侧口径真源）；`dev-docs/truth-index.md` 为内部副本，不入库。
+- catalog 一致性由工具箱 asset 系测试 + `check_asset_utilization --strict` 守护。
+- 上一时点基线 **791 = 工具箱 766 + 根级门禁 25** 保留作历史，见 `pytest.ini` 注释（公开侧口径真源）；`dev-docs/truth-index.md` 为内部副本，不入库。
 - `releases/` 永不进测试收集。
 - 新增技能必须：SKILL.md + catalog 映射 + CONTEST_SKILL_MAP 归类 + `build_skill_index.py --emit`。
