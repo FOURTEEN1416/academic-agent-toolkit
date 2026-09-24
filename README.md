@@ -55,13 +55,13 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 |--|--------|-----:|----------|
 | 🎓 | **课程与研究材料** | 83 | 课程论文 · 实验报告 · 教学大纲 |
 | 📝 | **学术论文** | 75 | 写作 · 评审 · 润色 · 投稿准备（含 Nature 工作流） |
-| 🔬 | **文献与研究** | 40 | 文献检索 · 综述 · 深度研究 · 实验设计 |
+| 🔬 | **文献与研究** | 41 | 文献检索 · 综述 · 深度研究 · 实验设计 |
 | 🏆 | **数模竞赛** | 37 | CUMCM 14 步端到端流水线 |
 | 📊 | **图表与文档生产** | 63 | 期刊级科研绘图 · 信息图 · LaTeX |
 | ©️ | **知识产权材料** | 12 | 软著 · 专利 · 基金申请书 |
 | 🧩 | **Agent 运行时** | 2 | 宿主无关自举 · 自适应工具铸造 |
 
-> 域表与 `capabilities/catalog.json` 对齐：37/75/41/83/12/63/2 = **313**（与徽章一致；2026-09-23 v2.0 W4 实测）。
+> 域表与 `capabilities/catalog.json` 对齐：37/75/41/83/12/63/2 = **313**（与徽章一致；2026-09-24 复核实测）。
 
 > [!NOTE]
 > **技能计数口径**（唯一）：徽章与正文统一为 `git ls-files` 口径的技能 SKILL.md 数（**clone 即所见**）；另有 5 个无 License 上游隔离件仅存本地、gitignored 不入库，不计入。
@@ -80,7 +80,7 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 | 视觉论证 | `excalidraw-diagram` `infographics` `scientific-schematics` | 手绘风论证图 · 信息图 · 科学示意图 |
 | 既有沉淀 | `paper-figure-nature` + 62 篇获奖论文实证规范 | Nature 级排版与配色 |
 
-全部集成带 **pinned-commit 溯源**（`UPSTREAM.md` 台账 + vendor，`tools/check_provenance.py` 一键校验 75/75）。
+全部集成带 **pinned-commit 溯源**（`UPSTREAM.md` 台账 + vendor，`tools/check_provenance.py` 一键校验 117/117）。
 
 </details>
 
@@ -163,11 +163,11 @@ python academic-toolkit/tools/plotting_env_check.py
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-# 口径一（仓库根，回归门禁口径）：768 passed / 0 failed（与口径二同值）
+# 口径一（仓库根，回归门禁口径）：773 passed / 0 failed（与口径二同值）
 python -m pytest -q
-# 口径二（工具箱内，技能验收基线口径）：768 passed / 0 failed
+# 口径二（工具箱内，技能验收基线口径）：773 passed / 0 failed
 cd academic-toolkit && python -m pytest -q
-python tools/check_provenance.py             # → 75/75 UPSTREAM+vendor 台账通过
+python tools/check_provenance.py             # → 117/117 UPSTREAM+vendor 台账通过
 ```
 
 ## 🛡️ 质量与可信
@@ -198,7 +198,7 @@ academic-agent-toolkit/
 
 <br>
 
-**v2.0.0（2026-09-23）** —— 整仓彻底重构：套件目录 `科研工具箱/`→`academic-toolkit/` · 技能命名法（139 件改名 + 9 对真重复合并，264→255）· 资产激活机制（asset_catalog 台账 + boot/probe/bootstrap 资产暴露 + 三方对账）· 私有资料区统一 `assets-local/` · 第三方子项目独立 `third_party/` · 上游 fork `vendor/forks/` · 内容融入（287 自查表 / 范文包 / 板块提示词 / 88 色板）· 新增 `award-paper-mining`。**破坏性变更**，迁移指引见 [CHANGELOG.md](./CHANGELOG.md)。
+**v2.0.0（2026-09-23）** —— 整仓彻底重构：套件目录 `科研工具箱/`→`academic-toolkit/` · 技能命名法（139 件改名 + 9 对真重复合并，264→255）· 资产激活机制（asset_catalog 台账 + boot/probe/bootstrap 资产暴露 + 三方对账）· 私有资料区统一 `assets-local/` · 第三方子项目独立 `third_party/` · 上游 fork `vendor/forks/` · 内容融入（287 自查表 / 范文包 / 板块提示词 / 88 色板）· 新增 `award-paper-mining`。**破坏性变更**，迁移指引见 [CHANGELOG.md](./CHANGELOG.md)。（后续技能清洗与 GPL 件 clean-room 收编，现行 tracked 口径 **250**，见上方徽章。）
 
 **v1.3.0（2026-09-22）** —— 宿主无关协议（boot/probe/forge + agents/adapters，旧宿主降为可选适配器）· 基线基础设施加固（secret_scan / lint_ratchet / duplicate_assets / 工具冒烟闸 + CI 加固）· 系统性升级五项（实战经验库 / 统一配色 / 技能触发审计）· 华为杯管线补齐（与国赛同构 14 步）· 四批并行收编。
 
