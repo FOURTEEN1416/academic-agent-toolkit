@@ -58,10 +58,19 @@ def _tracked_files() -> list[str]:
 
 
 def _md5(path: Path) -> str:
+    """内容哈希（**换行规范化**，2026-09-24）。
+
+    ⚠️ 必须先规范化 CRLF→LF 再哈希：Windows 检出（core.autocrlf=true）为 CRLF、
+    Linux/CI 检出为 LF——同一 tracked 文件在两平台磁盘内容不同，会导致
+    "本机漏检、CI 命中"的假绿/假红分裂（2026-09-24 实锤：CI 自 W3e 起连续红，
+    本机全绿，重复组全系 tracked 文本件）。规范化是确定性变换：两份文件规范化后
+    相同 ⇔ 其 LF 形态相同，跨平台判定一致；二进制件内容真实不同时规范化后
+    大概率仍不同，不引入误报。
+    """
     h = hashlib.md5()
     with path.open("rb") as fh:
         for chunk in iter(lambda: fh.read(1 << 20), b""):
-            h.update(chunk)
+            h.update(chunk.replace(b"\r\n", b"\n"))
     return h.hexdigest()
 
 

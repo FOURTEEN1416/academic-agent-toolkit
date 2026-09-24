@@ -18,300 +18,6 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/fig-academic/assets/figure-atlas/MantelCorrelation.png",
-        "academic-toolkit/skills/fig-academic/assets/figures/MantelCorrelation/plot_MantelCorrelation3.png"
-      ],
-      "size": 3125675,
-      "wasted_bytes": 3125675,
-      "reason": "示例图/示例脚本资产随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/fig-academic/assets/figure-atlas/Correlationmatrix.png",
-        "academic-toolkit/skills/fig-academic/assets/figures/CorrelationMatrix/plot_CorrelationHeatmap_v1.png"
-      ],
-      "size": 2097874,
-      "wasted_bytes": 2097874,
-      "reason": "示例图/示例脚本资产随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/fig-academic/assets/figure-atlas/GroupCorrelationmatrix.png",
-        "academic-toolkit/skills/fig-academic/assets/figures/GroupedCorrelationMatrix/plot_GroupCorrelationHeatmap_1.png"
-      ],
-      "size": 1506041,
-      "wasted_bytes": 1506041,
-      "reason": "示例图/示例脚本资产随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/fig-academic/assets/figure-atlas/3Dheatmap.png",
-        "academic-toolkit/skills/fig-academic/assets/figures/3DHeatmap/plot_3Dheatmap_4.png"
-      ],
-      "size": 650181,
-      "wasted_bytes": 650181,
-      "reason": "示例图/示例脚本资产随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/china_provinces.geojson",
-        "academic-toolkit/skills/shared-scripts/china_provinces.geojson"
-      ],
-      "size": 582522,
-      "wasted_bytes": 582522,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/fig-academic/assets/figure-atlas/PCA.png",
-        "academic-toolkit/skills/fig-academic/assets/figures/PCA/plot_PCA_1.png"
-      ],
-      "size": 414551,
-      "wasted_bytes": 414551,
-      "reason": "示例图/示例脚本资产随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/fig-academic/assets/figure-atlas/GroupedBarChart.png",
-        "academic-toolkit/skills/fig-academic/assets/figures/GroupedBarChart/plot_GroupedBarChartv1_1.png"
-      ],
-      "size": 330825,
-      "wasted_bytes": 330825,
-      "reason": "示例图/示例脚本资产随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/plot_utils.py",
-        "academic-toolkit/skills/shared-scripts/plot_utils.py"
-      ],
-      "size": 283115,
-      "wasted_bytes": 283115,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/fig-academic/assets/figures/MarginalDensity/plot_VariableCorrelation_1.png",
-        "academic-toolkit/skills/fig-academic/assets/figures/MarginalDensity/plot_VariableCorrelation_2.png"
-      ],
-      "size": 260225,
-      "wasted_bytes": 260225,
-      "reason": "示例图/示例脚本资产随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/fig-academic/assets/figure-atlas/StackedBarScatter.png",
-        "academic-toolkit/skills/fig-academic/assets/figures/StackedBarScatter/plot_StackedBarScatter_2.png"
-      ],
-      "size": 238433,
-      "wasted_bytes": 238433,
-      "reason": "示例图/示例脚本资产随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/fig-academic/assets/figure-atlas/CorrelationDensity.png",
-        "academic-toolkit/skills/fig-academic/assets/figures/KernelDensity/plot_CorrelationDensity3_detail.png"
-      ],
-      "size": 188318,
-      "wasted_bytes": 188318,
-      "reason": "示例图/示例脚本资产随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/fig-academic/assets/figure-atlas/RidgePlot.png",
-        "academic-toolkit/skills/fig-academic/assets/figures/RidgePlot/plot_RidgePlot1_1.png"
-      ],
-      "size": 157779,
-      "wasted_bytes": 157779,
-      "reason": "示例图/示例脚本资产随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/figure_recipes_advanced.md",
-        "academic-toolkit/skills/shared-scripts/figure_recipes_advanced.md"
-      ],
-      "size": 143999,
-      "wasted_bytes": 143999,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/error_prevention.md",
-        "academic-toolkit/skills/shared-scripts/error_prevention.md"
-      ],
-      "size": 114077,
-      "wasted_bytes": 114077,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/spine-audit/scripts/integrity_audit.py",
-        "academic-toolkit/skills/spine-build/scripts/integrity_audit.py",
-        "academic-toolkit/skills/spine-rewrite/scripts/integrity_audit.py",
-        "academic-toolkit/skills/spine/scripts/integrity_audit.py"
-      ],
-      "size": 33814,
-      "wasted_bytes": 101442,
-      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/paper-writing-clinical/modules/citation-management/scripts/generate_schematic_ai.py",
-        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/scripts/generate_schematic_ai.py",
-        "academic-toolkit/skills/paper-writing-clinical/modules/literature-review/scripts/generate_schematic_ai.py",
-        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-slides/scripts/generate_schematic_ai.py"
-      ],
-      "size": 33517,
-      "wasted_bytes": 100551,
-      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/figure_style_guide.md",
-        "academic-toolkit/skills/shared-scripts/figure_style_guide.md"
-      ],
-      "size": 89670,
-      "wasted_bytes": 89670,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/figure_recipes_competition.md",
-        "academic-toolkit/skills/shared-scripts/figure_recipes_competition.md"
-      ],
-      "size": 88003,
-      "wasted_bytes": 88003,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/compile_utils.sh",
-        "academic-toolkit/skills/shared-scripts/compile_utils.sh"
-      ],
-      "size": 85944,
-      "wasted_bytes": 85944,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/build_ai_disclosure.py",
-        "academic-toolkit/skills/shared-scripts/build_ai_disclosure.py"
-      ],
-      "size": 83128,
-      "wasted_bytes": 83128,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/spine-audit/scripts/word_guard.py",
-        "academic-toolkit/skills/spine-build/scripts/word_guard.py",
-        "academic-toolkit/skills/spine-latex/scripts/word_guard.py"
-      ],
-      "size": 40891,
-      "wasted_bytes": 81782,
-      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/figure_recipes_empirical.md",
-        "academic-toolkit/skills/shared-scripts/figure_recipes_empirical.md"
-      ],
-      "size": 70397,
-      "wasted_bytes": 70397,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/spine-audit/scripts/structured_review.py",
-        "academic-toolkit/skills/spine-build/scripts/structured_review.py",
-        "academic-toolkit/skills/spine-rewrite/scripts/structured_review.py"
-      ],
-      "size": 35050,
-      "wasted_bytes": 70100,
-      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/writing_rules.md",
-        "academic-toolkit/skills/shared-scripts/writing_rules.md"
-      ],
-      "size": 63102,
-      "wasted_bytes": 63102,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/facts_audit.py",
-        "academic-toolkit/skills/shared-scripts/facts_audit.py"
-      ],
-      "size": 46154,
-      "wasted_bytes": 46154,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/figure_text_budget.py",
-        "academic-toolkit/skills/shared-scripts/figure_text_budget.py"
-      ],
-      "size": 44782,
-      "wasted_bytes": 44782,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/figure_recipes_academic.md",
-        "academic-toolkit/skills/shared-scripts/figure_recipes_academic.md"
-      ],
-      "size": 41837,
-      "wasted_bytes": 41837,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/figure_exemplars.md",
-        "academic-toolkit/skills/shared-scripts/figure_exemplars.md"
-      ],
-      "size": 41127,
-      "wasted_bytes": 41127,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/figure_recipes_basic.md",
-        "academic-toolkit/skills/shared-scripts/figure_recipes_basic.md"
-      ],
-      "size": 41073,
-      "wasted_bytes": 41073,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/figure_check.sh",
-        "academic-toolkit/skills/shared-scripts/figure_check.sh"
-      ],
-      "size": 40963,
-      "wasted_bytes": 40963,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/doc-poster-latex/scripts/generate_schematic_ai.py",
-        "academic-toolkit/skills/lit-review-systematic/scripts/generate_schematic_ai.py"
-      ],
-      "size": 39484,
-      "wasted_bytes": 39484,
-      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/compile_check.sh",
-        "academic-toolkit/skills/shared-scripts/compile_check.sh"
-      ],
-      "size": 33165,
-      "wasted_bytes": 33165,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
         "academic-toolkit/skills/_utils/abstract_emphasis_check.py",
         "academic-toolkit/skills/shared-scripts/abstract_emphasis_check.py"
       ],
@@ -321,259 +27,20 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/figure_pdf_quality_check.py",
-        "academic-toolkit/skills/shared-scripts/figure_pdf_quality_check.py"
+        "academic-toolkit/skills/_utils/abstract_writing_contract.md",
+        "academic-toolkit/skills/shared-scripts/abstract_writing_contract.md"
       ],
-      "size": 32107,
-      "wasted_bytes": 32107,
+      "size": 8428,
+      "wasted_bytes": 8428,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/logic_audit.py",
-        "academic-toolkit/skills/shared-scripts/logic_audit.py"
+        "academic-toolkit/skills/_utils/ai_disclosure_rules.md",
+        "academic-toolkit/skills/shared-scripts/ai_disclosure_rules.md"
       ],
-      "size": 31779,
-      "wasted_bytes": 31779,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/html_pdf_check.py",
-        "academic-toolkit/skills/paper-figure-html/templates/html_pdf_check.py",
-        "academic-toolkit/skills/paper-figure-html/tools/html_pdf_check.py",
-        "academic-toolkit/skills/shared-scripts/html_pdf_check.py"
-      ],
-      "size": 10532,
-      "wasted_bytes": 31596,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/spine-audit/scripts/citation_quality_audit.py",
-        "academic-toolkit/skills/spine-citation/scripts/citation_quality_audit.py"
-      ],
-      "size": 30582,
-      "wasted_bytes": 30582,
-      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/spine-translate-zh/scripts/translate_guard.py",
-        "academic-toolkit/skills/spine/scripts/translate_guard.py"
-      ],
-      "size": 30325,
-      "wasted_bytes": 30325,
-      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/drawio_check.py",
-        "academic-toolkit/skills/shared-scripts/drawio_check.py"
-      ],
-      "size": 28108,
-      "wasted_bytes": 28108,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/humanities-terminology-bilingual.md",
-        "academic-toolkit/skills/shared-scripts/humanities-terminology-bilingual.md"
-      ],
-      "size": 28062,
-      "wasted_bytes": 28062,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/paper-peer-review-simulation/scripts/check_pipeline_integrity.py",
-        "academic-toolkit/skills/paper-writing-pipeline/scripts/check_pipeline_integrity.py",
-        "academic-toolkit/skills/research-pipeline/references/merged-ars-academic-pipeline/scripts/check_pipeline_integrity.py"
-      ],
-      "size": 13812,
-      "wasted_bytes": 27624,
-      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/example_roadmap_hex_cool.drawio",
-        "academic-toolkit/skills/shared-scripts/example_roadmap_hex_cool.drawio"
-      ],
-      "size": 25413,
-      "wasted_bytes": 25413,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/tikz_rules.md",
-        "academic-toolkit/skills/shared-scripts/tikz_rules.md"
-      ],
-      "size": 23893,
-      "wasted_bytes": 23893,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/drawio_rules.md",
-        "academic-toolkit/skills/shared-scripts/drawio_rules.md"
-      ],
-      "size": 23659,
-      "wasted_bytes": 23659,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/mechanism_accuracy_addendum.md",
-        "academic-toolkit/skills/shared-scripts/mechanism_accuracy_addendum.md"
-      ],
-      "size": 22389,
-      "wasted_bytes": 22389,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/paper-writing-clinical/modules/citation-management/scripts/generate_schematic.py",
-        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/scripts/generate_schematic.py",
-        "academic-toolkit/skills/paper-writing-clinical/modules/literature-review/scripts/generate_schematic.py",
-        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-slides/scripts/generate_schematic.py"
-      ],
-      "size": 7459,
-      "wasted_bytes": 22377,
-      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/example_roadmap_hex.drawio",
-        "academic-toolkit/skills/shared-scripts/example_roadmap_hex.drawio"
-      ],
-      "size": 21205,
-      "wasted_bytes": 21205,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/humanities-theory-frameworks.md",
-        "academic-toolkit/skills/shared-scripts/humanities-theory-frameworks.md"
-      ],
-      "size": 21055,
-      "wasted_bytes": 21055,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/table_slim.py",
-        "academic-toolkit/skills/shared-scripts/table_slim.py"
-      ],
-      "size": 20999,
-      "wasted_bytes": 20999,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/humanities-writing-templates.md",
-        "academic-toolkit/skills/shared-scripts/humanities-writing-templates.md"
-      ],
-      "size": 19248,
-      "wasted_bytes": 19248,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/modeling_paper_contract.md",
-        "academic-toolkit/skills/shared-scripts/modeling_paper_contract.md"
-      ],
-      "size": 19139,
-      "wasted_bytes": 19139,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/tikz_check.sh",
-        "academic-toolkit/skills/shared-scripts/tikz_check.sh"
-      ],
-      "size": 18943,
-      "wasted_bytes": 18943,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/tikz_examples_extra.tex",
-        "academic-toolkit/skills/shared-scripts/tikz_examples_extra.tex"
-      ],
-      "size": 18343,
-      "wasted_bytes": 18343,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/example_roadmap_stats_warm.drawio",
-        "academic-toolkit/skills/shared-scripts/example_roadmap_stats_warm.drawio"
-      ],
-      "size": 17592,
-      "wasted_bytes": 17592,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/human_paper_style_check.py",
-        "academic-toolkit/skills/shared-scripts/human_paper_style_check.py"
-      ],
-      "size": 17328,
-      "wasted_bytes": 17328,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/spine-audit/scripts/latex_guard.py",
-        "academic-toolkit/skills/spine-latex/scripts/latex_guard.py"
-      ],
-      "size": 16514,
-      "wasted_bytes": 16514,
-      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/bib_authenticity_check.py",
-        "academic-toolkit/skills/shared-scripts/bib_authenticity_check.py"
-      ],
-      "size": 15298,
-      "wasted_bytes": 15298,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/fig_include_size.py",
-        "academic-toolkit/skills/shared-scripts/fig_include_size.py"
-      ],
-      "size": 14336,
-      "wasted_bytes": 14336,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/figure_check.py",
-        "academic-toolkit/skills/shared-scripts/figure_check.py"
-      ],
-      "size": 13610,
-      "wasted_bytes": 13610,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/quick_gates.py",
-        "academic-toolkit/skills/shared-scripts/quick_gates.py"
-      ],
-      "size": 13474,
-      "wasted_bytes": 13474,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/stats_utils.py",
-        "academic-toolkit/skills/shared-scripts/stats_utils.py"
-      ],
-      "size": 13059,
-      "wasted_bytes": 13059,
+      "size": 9276,
+      "wasted_bytes": 9276,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
@@ -587,11 +54,47 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/modeling_tex_policy.py",
-        "academic-toolkit/skills/shared-scripts/modeling_tex_policy.py"
+        "academic-toolkit/skills/_utils/anti_rationalization.md",
+        "academic-toolkit/skills/shared-scripts/anti_rationalization.md"
       ],
-      "size": 12672,
-      "wasted_bytes": 12672,
+      "size": 8151,
+      "wasted_bytes": 8151,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/assumption_layout_check.py",
+        "academic-toolkit/skills/shared-scripts/assumption_layout_check.py"
+      ],
+      "size": 6346,
+      "wasted_bytes": 6346,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/bib_authenticity_check.py",
+        "academic-toolkit/skills/shared-scripts/bib_authenticity_check.py"
+      ],
+      "size": 15298,
+      "wasted_bytes": 15298,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/build_ai_disclosure.py",
+        "academic-toolkit/skills/shared-scripts/build_ai_disclosure.py"
+      ],
+      "size": 83128,
+      "wasted_bytes": 83128,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/capability_audit.py",
+        "academic-toolkit/skills/shared-scripts/capability_audit.py"
+      ],
+      "size": 9327,
+      "wasted_bytes": 9327,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
@@ -605,6 +108,15 @@
     },
     {
       "paths": [
+        "academic-toolkit/skills/_utils/china_provinces.geojson",
+        "academic-toolkit/skills/shared-scripts/china_provinces.geojson"
+      ],
+      "size": 582522,
+      "wasted_bytes": 582522,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
         "academic-toolkit/skills/_utils/claim_code_check.py",
         "academic-toolkit/skills/shared-scripts/claim_code_check.py"
       ],
@@ -614,29 +126,38 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/plotly/LICENSE",
-        "academic-toolkit/skills/scientific-schematics/LICENSE"
+        "academic-toolkit/skills/_utils/compile_check.sh",
+        "academic-toolkit/skills/shared-scripts/compile_check.sh"
       ],
-      "size": 11564,
-      "wasted_bytes": 11564,
-      "reason": "同源开源许可证法定文本（逐字一致属合规要求）"
+      "size": 33165,
+      "wasted_bytes": 33165,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
       "paths": [
-        "academic-toolkit/skills/fig-academic/LICENSE",
-        "academic-toolkit/skills/fig-plot-edit/LICENSE"
+        "academic-toolkit/skills/_utils/compile_source_check.py",
+        "academic-toolkit/skills/shared-scripts/compile_source_check.py"
       ],
-      "size": 11357,
-      "wasted_bytes": 11357,
-      "reason": "同源开源许可证法定文本（逐字一致属合规要求）"
+      "size": 5008,
+      "wasted_bytes": 5008,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/leakage_audit.py",
-        "academic-toolkit/skills/shared-scripts/leakage_audit.py"
+        "academic-toolkit/skills/_utils/compile_utils.sh",
+        "academic-toolkit/skills/shared-scripts/compile_utils.sh"
       ],
-      "size": 10601,
-      "wasted_bytes": 10601,
+      "size": 85944,
+      "wasted_bytes": 85944,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/compute_checkpoint.py",
+        "academic-toolkit/skills/shared-scripts/compute_checkpoint.py"
+      ],
+      "size": 4409,
+      "wasted_bytes": 4409,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
@@ -659,38 +180,11 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/capability_audit.py",
-        "academic-toolkit/skills/shared-scripts/capability_audit.py"
+        "academic-toolkit/skills/_utils/data_profile.py",
+        "academic-toolkit/skills/shared-scripts/data_profile.py"
       ],
-      "size": 9327,
-      "wasted_bytes": 9327,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/ai_disclosure_rules.md",
-        "academic-toolkit/skills/shared-scripts/ai_disclosure_rules.md"
-      ],
-      "size": 9276,
-      "wasted_bytes": 9276,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/fig_bucket_doc_sync_check.py",
-        "academic-toolkit/skills/shared-scripts/fig_bucket_doc_sync_check.py"
-      ],
-      "size": 9177,
-      "wasted_bytes": 9177,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/human_competition_paper_style.md",
-        "academic-toolkit/skills/shared-scripts/human_competition_paper_style.md"
-      ],
-      "size": 9010,
-      "wasted_bytes": 9010,
+      "size": 5955,
+      "wasted_bytes": 5955,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
@@ -713,200 +207,11 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/spine-build/references/writing-rationale-matrix.md",
-        "academic-toolkit/skills/spine-rewrite/references/writing-rationale-matrix.md"
+        "academic-toolkit/skills/_utils/demo_roadmap_competition.tex",
+        "academic-toolkit/skills/shared-scripts/demo_roadmap_competition.tex"
       ],
-      "size": 8610,
-      "wasted_bytes": 8610,
-      "reason": "共享模板/参考文档随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/abstract_writing_contract.md",
-        "academic-toolkit/skills/shared-scripts/abstract_writing_contract.md"
-      ],
-      "size": 8428,
-      "wasted_bytes": 8428,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/pdf_page_density_check.py",
-        "academic-toolkit/skills/shared-scripts/pdf_page_density_check.py"
-      ],
-      "size": 8336,
-      "wasted_bytes": 8336,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/paper-figure-html/templates/tpl_flow.html",
-        "academic-toolkit/skills/patent-draft/templates/tpl_flow.html"
-      ],
-      "size": 8293,
-      "wasted_bytes": 8293,
-      "reason": "共享模板/参考文档随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/anti_rationalization.md",
-        "academic-toolkit/skills/shared-scripts/anti_rationalization.md"
-      ],
-      "size": 8151,
-      "wasted_bytes": 8151,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/recipe_audit.py",
-        "academic-toolkit/skills/shared-scripts/recipe_audit.py"
-      ],
-      "size": 8019,
-      "wasted_bytes": 8019,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/example_flow.drawio",
-        "academic-toolkit/skills/shared-scripts/example_flow.drawio"
-      ],
-      "size": 7811,
-      "wasted_bytes": 7811,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/doc-poster-latex/scripts/generate_schematic.py",
-        "academic-toolkit/skills/lit-review-systematic/scripts/generate_schematic.py"
-      ],
-      "size": 7798,
-      "wasted_bytes": 7798,
-      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/paper_source_scope.py",
-        "academic-toolkit/skills/shared-scripts/paper_source_scope.py"
-      ],
-      "size": 7044,
-      "wasted_bytes": 7044,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/tikz_structure_check.py",
-        "academic-toolkit/skills/shared-scripts/tikz_structure_check.py"
-      ],
-      "size": 7006,
-      "wasted_bytes": 7006,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/humanities-formatting-guide.md",
-        "academic-toolkit/skills/shared-scripts/humanities-formatting-guide.md"
-      ],
-      "size": 6961,
-      "wasted_bytes": 6961,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/pdf_snapshot_report.py",
-        "academic-toolkit/skills/shared-scripts/pdf_snapshot_report.py"
-      ],
-      "size": 6550,
-      "wasted_bytes": 6550,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/assumption_layout_check.py",
-        "academic-toolkit/skills/shared-scripts/assumption_layout_check.py"
-      ],
-      "size": 6346,
-      "wasted_bytes": 6346,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/data_profile.py",
-        "academic-toolkit/skills/shared-scripts/data_profile.py"
-      ],
-      "size": 5955,
-      "wasted_bytes": 5955,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/demo_roadmap_research_premium.tex",
-        "academic-toolkit/skills/shared-scripts/demo_roadmap_research_premium.tex"
-      ],
-      "size": 5894,
-      "wasted_bytes": 5894,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/fig_size_consistency_check.py",
-        "academic-toolkit/skills/shared-scripts/fig_size_consistency_check.py"
-      ],
-      "size": 5762,
-      "wasted_bytes": 5762,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/latex_typography_check.py",
-        "academic-toolkit/skills/shared-scripts/latex_typography_check.py"
-      ],
-      "size": 5689,
-      "wasted_bytes": 5689,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/paper-figure-html/templates/tpl_arch.html",
-        "academic-toolkit/skills/patent-draft/templates/tpl_arch.html"
-      ],
-      "size": 5653,
-      "wasted_bytes": 5653,
-      "reason": "共享模板/参考文档随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/fig-academic/assets/figures/CorrelationMatrix/plot_CorrelationHeatmap_v2.R",
-        "academic-toolkit/skills/fig-academic/assets/figures/CorrelationMatrix/plot_CorrelationHeatmap_v3.R"
-      ],
-      "size": 5562,
-      "wasted_bytes": 5562,
-      "reason": "示例图/示例脚本资产随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/paper_claim_check.py",
-        "academic-toolkit/skills/shared-scripts/paper_claim_check.py"
-      ],
-      "size": 5536,
-      "wasted_bytes": 5536,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/humanities-platform-guide.md",
-        "academic-toolkit/skills/shared-scripts/humanities-platform-guide.md"
-      ],
-      "size": 5310,
-      "wasted_bytes": 5310,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/tikz_style_families.md",
-        "academic-toolkit/skills/shared-scripts/tikz_style_families.md"
-      ],
-      "size": 5270,
-      "wasted_bytes": 5270,
+      "size": 4374,
+      "wasted_bytes": 4374,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
@@ -920,11 +225,74 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/compile_source_check.py",
-        "academic-toolkit/skills/shared-scripts/compile_source_check.py"
+        "academic-toolkit/skills/_utils/demo_roadmap_research_premium.tex",
+        "academic-toolkit/skills/shared-scripts/demo_roadmap_research_premium.tex"
       ],
-      "size": 5008,
-      "wasted_bytes": 5008,
+      "size": 5894,
+      "wasted_bytes": 5894,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/demo_roadmap_template4.tex",
+        "academic-toolkit/skills/shared-scripts/demo_roadmap_template4.tex"
+      ],
+      "size": 4325,
+      "wasted_bytes": 4325,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/drawio_check.py",
+        "academic-toolkit/skills/shared-scripts/drawio_check.py"
+      ],
+      "size": 28108,
+      "wasted_bytes": 28108,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/drawio_rules.md",
+        "academic-toolkit/skills/shared-scripts/drawio_rules.md"
+      ],
+      "size": 23659,
+      "wasted_bytes": 23659,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/error_prevention.md",
+        "academic-toolkit/skills/shared-scripts/error_prevention.md"
+      ],
+      "size": 114077,
+      "wasted_bytes": 114077,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/example_flow.drawio",
+        "academic-toolkit/skills/shared-scripts/example_flow.drawio"
+      ],
+      "size": 7811,
+      "wasted_bytes": 7811,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/example_roadmap_hex.drawio",
+        "academic-toolkit/skills/shared-scripts/example_roadmap_hex.drawio"
+      ],
+      "size": 21205,
+      "wasted_bytes": 21205,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/example_roadmap_hex_cool.drawio",
+        "academic-toolkit/skills/shared-scripts/example_roadmap_hex_cool.drawio"
+      ],
+      "size": 25413,
+      "wasted_bytes": 25413,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
@@ -938,56 +306,74 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/normalize_cjk_quotes.py",
-        "academic-toolkit/skills/shared-scripts/normalize_cjk_quotes.py"
+        "academic-toolkit/skills/_utils/example_roadmap_stats_warm.drawio",
+        "academic-toolkit/skills/shared-scripts/example_roadmap_stats_warm.drawio"
       ],
-      "size": 4903,
-      "wasted_bytes": 4903,
+      "size": 17592,
+      "wasted_bytes": 17592,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
       "paths": [
-        "academic-toolkit/skills/paper-writing-paragraphs/references/reporting_guidelines.md",
-        "academic-toolkit/skills/paper-writing-scientific/references/reporting_guidelines.md"
+        "academic-toolkit/skills/_utils/facts_audit.py",
+        "academic-toolkit/skills/shared-scripts/facts_audit.py"
       ],
-      "size": 4892,
-      "wasted_bytes": 4892,
-      "reason": "共享模板/参考文档随技能自包含分发"
-    },
-    {
-      "paths": [
-        "academic-toolkit/skills/_utils/humanities-literature-analysis.md",
-        "academic-toolkit/skills/shared-scripts/humanities-literature-analysis.md"
-      ],
-      "size": 4824,
-      "wasted_bytes": 4824,
+      "size": 46154,
+      "wasted_bytes": 46154,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/quality_gate_contract.md",
-        "academic-toolkit/skills/shared-scripts/quality_gate_contract.md"
+        "academic-toolkit/skills/_utils/fig_bucket_doc_sync_check.py",
+        "academic-toolkit/skills/shared-scripts/fig_bucket_doc_sync_check.py"
       ],
-      "size": 4730,
-      "wasted_bytes": 4730,
+      "size": 9177,
+      "wasted_bytes": 9177,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
       "paths": [
-        "academic-toolkit/skills/paper-writing-paragraphs/references/imrad_structure.md",
-        "academic-toolkit/skills/paper-writing-scientific/references/imrad_structure.md"
+        "academic-toolkit/skills/_utils/fig_include_size.py",
+        "academic-toolkit/skills/shared-scripts/fig_include_size.py"
       ],
-      "size": 4626,
-      "wasted_bytes": 4626,
-      "reason": "共享模板/参考文档随技能自包含分发"
+      "size": 14336,
+      "wasted_bytes": 14336,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/symbol_layout_check.py",
-        "academic-toolkit/skills/shared-scripts/symbol_layout_check.py"
+        "academic-toolkit/skills/_utils/fig_size_consistency_check.py",
+        "academic-toolkit/skills/shared-scripts/fig_size_consistency_check.py"
       ],
-      "size": 4493,
-      "wasted_bytes": 4493,
+      "size": 5762,
+      "wasted_bytes": 5762,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/figure_check.py",
+        "academic-toolkit/skills/shared-scripts/figure_check.py"
+      ],
+      "size": 13610,
+      "wasted_bytes": 13610,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/figure_check.sh",
+        "academic-toolkit/skills/shared-scripts/figure_check.sh"
+      ],
+      "size": 40963,
+      "wasted_bytes": 40963,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/figure_exemplars.md",
+        "academic-toolkit/skills/shared-scripts/figure_exemplars.md"
+      ],
+      "size": 41127,
+      "wasted_bytes": 41127,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
@@ -1001,30 +387,1024 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/compute_checkpoint.py",
-        "academic-toolkit/skills/shared-scripts/compute_checkpoint.py"
+        "academic-toolkit/skills/_utils/figure_pdf_quality_check.py",
+        "academic-toolkit/skills/shared-scripts/figure_pdf_quality_check.py"
       ],
-      "size": 4409,
-      "wasted_bytes": 4409,
+      "size": 32107,
+      "wasted_bytes": 32107,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/demo_roadmap_competition.tex",
-        "academic-toolkit/skills/shared-scripts/demo_roadmap_competition.tex"
+        "academic-toolkit/skills/_utils/figure_recipes_academic.md",
+        "academic-toolkit/skills/shared-scripts/figure_recipes_academic.md"
       ],
-      "size": 4374,
-      "wasted_bytes": 4374,
+      "size": 41837,
+      "wasted_bytes": 41837,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/demo_roadmap_template4.tex",
-        "academic-toolkit/skills/shared-scripts/demo_roadmap_template4.tex"
+        "academic-toolkit/skills/_utils/figure_recipes_advanced.md",
+        "academic-toolkit/skills/shared-scripts/figure_recipes_advanced.md"
       ],
-      "size": 4325,
-      "wasted_bytes": 4325,
+      "size": 143999,
+      "wasted_bytes": 143999,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/figure_recipes_basic.md",
+        "academic-toolkit/skills/shared-scripts/figure_recipes_basic.md"
+      ],
+      "size": 41073,
+      "wasted_bytes": 41073,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/figure_recipes_competition.md",
+        "academic-toolkit/skills/shared-scripts/figure_recipes_competition.md"
+      ],
+      "size": 88003,
+      "wasted_bytes": 88003,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/figure_recipes_empirical.md",
+        "academic-toolkit/skills/shared-scripts/figure_recipes_empirical.md"
+      ],
+      "size": 70397,
+      "wasted_bytes": 70397,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/figure_style_guide.md",
+        "academic-toolkit/skills/shared-scripts/figure_style_guide.md"
+      ],
+      "size": 89670,
+      "wasted_bytes": 89670,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/figure_text_budget.py",
+        "academic-toolkit/skills/shared-scripts/figure_text_budget.py"
+      ],
+      "size": 44782,
+      "wasted_bytes": 44782,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/html_pdf_check.py",
+        "academic-toolkit/skills/paper-figure-html/templates/html_pdf_check.py",
+        "academic-toolkit/skills/paper-figure-html/tools/html_pdf_check.py",
+        "academic-toolkit/skills/shared-scripts/html_pdf_check.py"
+      ],
+      "size": 10532,
+      "wasted_bytes": 31596,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/human_competition_paper_style.md",
+        "academic-toolkit/skills/shared-scripts/human_competition_paper_style.md"
+      ],
+      "size": 9010,
+      "wasted_bytes": 9010,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/human_paper_style_check.py",
+        "academic-toolkit/skills/shared-scripts/human_paper_style_check.py"
+      ],
+      "size": 17328,
+      "wasted_bytes": 17328,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/humanities-formatting-guide.md",
+        "academic-toolkit/skills/shared-scripts/humanities-formatting-guide.md"
+      ],
+      "size": 6961,
+      "wasted_bytes": 6961,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/humanities-literature-analysis.md",
+        "academic-toolkit/skills/shared-scripts/humanities-literature-analysis.md"
+      ],
+      "size": 4824,
+      "wasted_bytes": 4824,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/humanities-platform-guide.md",
+        "academic-toolkit/skills/shared-scripts/humanities-platform-guide.md"
+      ],
+      "size": 5310,
+      "wasted_bytes": 5310,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/humanities-terminology-bilingual.md",
+        "academic-toolkit/skills/shared-scripts/humanities-terminology-bilingual.md"
+      ],
+      "size": 28062,
+      "wasted_bytes": 28062,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/humanities-theory-frameworks.md",
+        "academic-toolkit/skills/shared-scripts/humanities-theory-frameworks.md"
+      ],
+      "size": 21055,
+      "wasted_bytes": 21055,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/humanities-writing-templates.md",
+        "academic-toolkit/skills/shared-scripts/humanities-writing-templates.md"
+      ],
+      "size": 19248,
+      "wasted_bytes": 19248,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/latex_typography_check.py",
+        "academic-toolkit/skills/shared-scripts/latex_typography_check.py"
+      ],
+      "size": 5689,
+      "wasted_bytes": 5689,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/leakage_audit.py",
+        "academic-toolkit/skills/shared-scripts/leakage_audit.py"
+      ],
+      "size": 10601,
+      "wasted_bytes": 10601,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/logic_audit.py",
+        "academic-toolkit/skills/shared-scripts/logic_audit.py"
+      ],
+      "size": 31779,
+      "wasted_bytes": 31779,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/mechanism_accuracy_addendum.md",
+        "academic-toolkit/skills/shared-scripts/mechanism_accuracy_addendum.md"
+      ],
+      "size": 22389,
+      "wasted_bytes": 22389,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/modeling_paper_contract.md",
+        "academic-toolkit/skills/shared-scripts/modeling_paper_contract.md"
+      ],
+      "size": 19139,
+      "wasted_bytes": 19139,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/modeling_tex_policy.py",
+        "academic-toolkit/skills/shared-scripts/modeling_tex_policy.py"
+      ],
+      "size": 12672,
+      "wasted_bytes": 12672,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/normalize_cjk_quotes.py",
+        "academic-toolkit/skills/shared-scripts/normalize_cjk_quotes.py"
+      ],
+      "size": 4903,
+      "wasted_bytes": 4903,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/paper_claim_check.py",
+        "academic-toolkit/skills/shared-scripts/paper_claim_check.py"
+      ],
+      "size": 5536,
+      "wasted_bytes": 5536,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/paper_source_scope.py",
+        "academic-toolkit/skills/shared-scripts/paper_source_scope.py"
+      ],
+      "size": 7044,
+      "wasted_bytes": 7044,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/pdf_page_density_check.py",
+        "academic-toolkit/skills/shared-scripts/pdf_page_density_check.py"
+      ],
+      "size": 8336,
+      "wasted_bytes": 8336,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/pdf_snapshot_report.py",
+        "academic-toolkit/skills/shared-scripts/pdf_snapshot_report.py"
+      ],
+      "size": 6550,
+      "wasted_bytes": 6550,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/plot_utils.py",
+        "academic-toolkit/skills/shared-scripts/plot_utils.py"
+      ],
+      "size": 283115,
+      "wasted_bytes": 283115,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/quality_gate_contract.md",
+        "academic-toolkit/skills/shared-scripts/quality_gate_contract.md"
+      ],
+      "size": 4730,
+      "wasted_bytes": 4730,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/quick_gates.py",
+        "academic-toolkit/skills/shared-scripts/quick_gates.py"
+      ],
+      "size": 13474,
+      "wasted_bytes": 13474,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/recipe_audit.py",
+        "academic-toolkit/skills/shared-scripts/recipe_audit.py"
+      ],
+      "size": 8019,
+      "wasted_bytes": 8019,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/stats_utils.py",
+        "academic-toolkit/skills/shared-scripts/stats_utils.py"
+      ],
+      "size": 13059,
+      "wasted_bytes": 13059,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/symbol_layout_check.py",
+        "academic-toolkit/skills/shared-scripts/symbol_layout_check.py"
+      ],
+      "size": 4493,
+      "wasted_bytes": 4493,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/table_slim.py",
+        "academic-toolkit/skills/shared-scripts/table_slim.py"
+      ],
+      "size": 20999,
+      "wasted_bytes": 20999,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/tikz_check.sh",
+        "academic-toolkit/skills/shared-scripts/tikz_check.sh"
+      ],
+      "size": 18943,
+      "wasted_bytes": 18943,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/tikz_examples_extra.tex",
+        "academic-toolkit/skills/shared-scripts/tikz_examples_extra.tex"
+      ],
+      "size": 18343,
+      "wasted_bytes": 18343,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/tikz_rules.md",
+        "academic-toolkit/skills/shared-scripts/tikz_rules.md"
+      ],
+      "size": 23893,
+      "wasted_bytes": 23893,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/tikz_structure_check.py",
+        "academic-toolkit/skills/shared-scripts/tikz_structure_check.py"
+      ],
+      "size": 7006,
+      "wasted_bytes": 7006,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/tikz_style_families.md",
+        "academic-toolkit/skills/shared-scripts/tikz_style_families.md"
+      ],
+      "size": 5270,
+      "wasted_bytes": 5270,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/writing_rules.md",
+        "academic-toolkit/skills/shared-scripts/writing_rules.md"
+      ],
+      "size": 63102,
+      "wasted_bytes": 63102,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/assets/baposter_template.tex",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/assets/baposter_template.tex"
+      ],
+      "size": 7689,
+      "wasted_bytes": 7689,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/assets/beamerposter_template.tex",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/assets/beamerposter_template.tex"
+      ],
+      "size": 7896,
+      "wasted_bytes": 7896,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/assets/poster_quality_checklist.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/assets/poster_quality_checklist.md"
+      ],
+      "size": 11530,
+      "wasted_bytes": 11530,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/assets/tikzposter_template.tex",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/assets/tikzposter_template.tex"
+      ],
+      "size": 8138,
+      "wasted_bytes": 8138,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/references/README.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/references/README.md"
+      ],
+      "size": 12955,
+      "wasted_bytes": 12955,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/references/ai_graphics_for_posters.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/references/ai_graphics_for_posters.md"
+      ],
+      "size": 25014,
+      "wasted_bytes": 25014,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/references/compilation_and_quality_control.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/references/compilation_and_quality_control.md"
+      ],
+      "size": 14355,
+      "wasted_bytes": 14355,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/references/latex_poster_packages.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/references/latex_poster_packages.md"
+      ],
+      "size": 18581,
+      "wasted_bytes": 18581,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/references/latex_poster_reference.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/references/latex_poster_reference.md"
+      ],
+      "size": 7625,
+      "wasted_bytes": 7625,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/references/poster_content_guide.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/references/poster_content_guide.md"
+      ],
+      "size": 21109,
+      "wasted_bytes": 21109,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/references/poster_design_principles.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/references/poster_design_principles.md"
+      ],
+      "size": 23722,
+      "wasted_bytes": 23722,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/references/poster_layout_design.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/references/poster_layout_design.md"
+      ],
+      "size": 23227,
+      "wasted_bytes": 23227,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/scripts/generate_schematic.py",
+        "academic-toolkit/skills/lit-review-systematic/scripts/generate_schematic.py"
+      ],
+      "size": 7798,
+      "wasted_bytes": 7798,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/scripts/generate_schematic_ai.py",
+        "academic-toolkit/skills/lit-review-systematic/scripts/generate_schematic_ai.py"
+      ],
+      "size": 39484,
+      "wasted_bytes": 39484,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/doc-poster-latex/scripts/review_poster.sh",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/scripts/review_poster.sh"
+      ],
+      "size": 8153,
+      "wasted_bytes": 8153,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/fig-academic/LICENSE",
+        "academic-toolkit/skills/fig-plot-edit/LICENSE"
+      ],
+      "size": 11357,
+      "wasted_bytes": 11357,
+      "reason": "同源开源许可证法定文本（逐字一致属合规要求）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/fig-academic/assets/figure-atlas/3Dheatmap.png",
+        "academic-toolkit/skills/fig-academic/assets/figures/3DHeatmap/plot_3Dheatmap_4.png"
+      ],
+      "size": 650181,
+      "wasted_bytes": 650181,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/fig-academic/assets/figure-atlas/CorrelationDensity.png",
+        "academic-toolkit/skills/fig-academic/assets/figures/KernelDensity/plot_CorrelationDensity3_detail.png"
+      ],
+      "size": 188318,
+      "wasted_bytes": 188318,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/fig-academic/assets/figure-atlas/Correlationmatrix.png",
+        "academic-toolkit/skills/fig-academic/assets/figures/CorrelationMatrix/plot_CorrelationHeatmap_v1.png"
+      ],
+      "size": 2097874,
+      "wasted_bytes": 2097874,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/fig-academic/assets/figure-atlas/GroupCorrelationmatrix.png",
+        "academic-toolkit/skills/fig-academic/assets/figures/GroupedCorrelationMatrix/plot_GroupCorrelationHeatmap_1.png"
+      ],
+      "size": 1506041,
+      "wasted_bytes": 1506041,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/fig-academic/assets/figure-atlas/GroupedBarChart.png",
+        "academic-toolkit/skills/fig-academic/assets/figures/GroupedBarChart/plot_GroupedBarChartv1_1.png"
+      ],
+      "size": 330825,
+      "wasted_bytes": 330825,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/fig-academic/assets/figure-atlas/MantelCorrelation.png",
+        "academic-toolkit/skills/fig-academic/assets/figures/MantelCorrelation/plot_MantelCorrelation3.png"
+      ],
+      "size": 3125675,
+      "wasted_bytes": 3125675,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/fig-academic/assets/figure-atlas/PCA.png",
+        "academic-toolkit/skills/fig-academic/assets/figures/PCA/plot_PCA_1.png"
+      ],
+      "size": 414551,
+      "wasted_bytes": 414551,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/fig-academic/assets/figure-atlas/RidgePlot.png",
+        "academic-toolkit/skills/fig-academic/assets/figures/RidgePlot/plot_RidgePlot1_1.png"
+      ],
+      "size": 157779,
+      "wasted_bytes": 157779,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/fig-academic/assets/figure-atlas/StackedBarScatter.png",
+        "academic-toolkit/skills/fig-academic/assets/figures/StackedBarScatter/plot_StackedBarScatter_2.png"
+      ],
+      "size": 238433,
+      "wasted_bytes": 238433,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/fig-academic/assets/figures/CorrelationMatrix/plot_CorrelationHeatmap_v2.R",
+        "academic-toolkit/skills/fig-academic/assets/figures/CorrelationMatrix/plot_CorrelationHeatmap_v3.R"
+      ],
+      "size": 5562,
+      "wasted_bytes": 5562,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/fig-academic/assets/figures/MarginalDensity/plot_VariableCorrelation_1.png",
+        "academic-toolkit/skills/fig-academic/assets/figures/MarginalDensity/plot_VariableCorrelation_2.png"
+      ],
+      "size": 260225,
+      "wasted_bytes": 260225,
+      "reason": "示例图/示例脚本资产随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-citation-manage/assets/bibtex_template.bib",
+        "academic-toolkit/skills/paper-writing-clinical/modules/citation-management/assets/bibtex_template.bib"
+      ],
+      "size": 9465,
+      "wasted_bytes": 9465,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-citation-manage/assets/citation_checklist.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/citation-management/assets/citation_checklist.md"
+      ],
+      "size": 10734,
+      "wasted_bytes": 10734,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-citation-manage/references/bibtex_formatting.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/citation-management/references/bibtex_formatting.md"
+      ],
+      "size": 20194,
+      "wasted_bytes": 20194,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-citation-manage/references/metadata_extraction.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/citation-management/references/metadata_extraction.md"
+      ],
+      "size": 20052,
+      "wasted_bytes": 20052,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-citation-manage/references/pubmed_search.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/citation-management/references/pubmed_search.md"
+      ],
+      "size": 18574,
+      "wasted_bytes": 18574,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-citation-manage/scripts/doi_to_bibtex.py",
+        "academic-toolkit/skills/paper-writing-clinical/modules/citation-management/scripts/doi_to_bibtex.py"
+      ],
+      "size": 6503,
+      "wasted_bytes": 6503,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-review-systematic/assets/review_template.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/literature-review/assets/review_template.md"
+      ],
+      "size": 13394,
+      "wasted_bytes": 13394,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-review-systematic/references/citation_styles.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/literature-review/references/citation_styles.md"
+      ],
+      "size": 6278,
+      "wasted_bytes": 6278,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-review-systematic/references/core_workflow.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/literature-review/references/core_workflow.md"
+      ],
+      "size": 10183,
+      "wasted_bytes": 10183,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-review-systematic/references/database_strategies.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/literature-review/references/database_strategies.md"
+      ],
+      "size": 15946,
+      "wasted_bytes": 15946,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-review-systematic/references/search_and_citation.md",
+        "academic-toolkit/skills/paper-writing-clinical/modules/literature-review/references/search_and_citation.md"
+      ],
+      "size": 5855,
+      "wasted_bytes": 5855,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-review-systematic/scripts/generate_pdf.py",
+        "academic-toolkit/skills/paper-writing-clinical/modules/literature-review/scripts/generate_pdf.py"
+      ],
+      "size": 5586,
+      "wasted_bytes": 5586,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-review-systematic/scripts/search_databases.py",
+        "academic-toolkit/skills/paper-writing-clinical/modules/literature-review/scripts/search_databases.py"
+      ],
+      "size": 9339,
+      "wasted_bytes": 9339,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/lit-review-systematic/scripts/verify_citations.py",
+        "academic-toolkit/skills/paper-writing-clinical/modules/literature-review/scripts/verify_citations.py"
+      ],
+      "size": 7272,
+      "wasted_bytes": 7272,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-figure-html/templates/tpl_arch.html",
+        "academic-toolkit/skills/patent-draft/templates/tpl_arch.html"
+      ],
+      "size": 5653,
+      "wasted_bytes": 5653,
+      "reason": "共享模板/参考文档随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-figure-html/templates/tpl_flow.html",
+        "academic-toolkit/skills/patent-draft/templates/tpl_flow.html"
+      ],
+      "size": 8293,
+      "wasted_bytes": 8293,
+      "reason": "共享模板/参考文档随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-peer-review-simulation/scripts/check_pipeline_integrity.py",
+        "academic-toolkit/skills/paper-writing-pipeline/scripts/check_pipeline_integrity.py",
+        "academic-toolkit/skills/research-pipeline/references/merged-ars-academic-pipeline/scripts/check_pipeline_integrity.py"
+      ],
+      "size": 13812,
+      "wasted_bytes": 27624,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/citation-management/scripts/generate_schematic.py",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/scripts/generate_schematic.py",
+        "academic-toolkit/skills/paper-writing-clinical/modules/literature-review/scripts/generate_schematic.py",
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-slides/scripts/generate_schematic.py"
+      ],
+      "size": 7459,
+      "wasted_bytes": 22377,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/citation-management/scripts/generate_schematic_ai.py",
+        "academic-toolkit/skills/paper-writing-clinical/modules/latex-posters/scripts/generate_schematic_ai.py",
+        "academic-toolkit/skills/paper-writing-clinical/modules/literature-review/scripts/generate_schematic_ai.py",
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-slides/scripts/generate_schematic_ai.py"
+      ],
+      "size": 33517,
+      "wasted_bytes": 100551,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/assets/reporting_guidelines.json",
+        "academic-toolkit/skills/paper-writing-paragraphs/assets/reporting_guidelines.json"
+      ],
+      "size": 16009,
+      "wasted_bytes": 16009,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/references/authorship_ai_confidentiality.md",
+        "academic-toolkit/skills/paper-writing-paragraphs/references/authorship_ai_confidentiality.md"
+      ],
+      "size": 4496,
+      "wasted_bytes": 4496,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/references/imrad_structure.md",
+        "academic-toolkit/skills/paper-writing-paragraphs/references/imrad_structure.md",
+        "academic-toolkit/skills/paper-writing-scientific/references/imrad_structure.md"
+      ],
+      "size": 4512,
+      "wasted_bytes": 9024,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/references/reporting_guidelines.md",
+        "academic-toolkit/skills/paper-writing-paragraphs/references/reporting_guidelines.md",
+        "academic-toolkit/skills/paper-writing-scientific/references/reporting_guidelines.md"
+      ],
+      "size": 4785,
+      "wasted_bytes": 9570,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/references/research_integrity_open_science.md",
+        "academic-toolkit/skills/paper-writing-paragraphs/references/research_integrity_open_science.md"
+      ],
+      "size": 4149,
+      "wasted_bytes": 4149,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/references/source_ledger.md",
+        "academic-toolkit/skills/paper-writing-paragraphs/references/source_ledger.md"
+      ],
+      "size": 10175,
+      "wasted_bytes": 10175,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/scripts/_common.py",
+        "academic-toolkit/skills/paper-writing-paragraphs/scripts/_common.py"
+      ],
+      "size": 7670,
+      "wasted_bytes": 7670,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/scripts/audit_claims.py",
+        "academic-toolkit/skills/paper-writing-paragraphs/scripts/audit_claims.py"
+      ],
+      "size": 8834,
+      "wasted_bytes": 8834,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/scripts/check_consistency.py",
+        "academic-toolkit/skills/paper-writing-paragraphs/scripts/check_consistency.py"
+      ],
+      "size": 14209,
+      "wasted_bytes": 14209,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/scripts/check_references.py",
+        "academic-toolkit/skills/paper-writing-paragraphs/scripts/check_references.py"
+      ],
+      "size": 7075,
+      "wasted_bytes": 7075,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/scripts/lint_manuscript.py",
+        "academic-toolkit/skills/paper-writing-paragraphs/scripts/lint_manuscript.py"
+      ],
+      "size": 5881,
+      "wasted_bytes": 5881,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/scripts/scaffold_manuscript.py",
+        "academic-toolkit/skills/paper-writing-paragraphs/scripts/scaffold_manuscript.py"
+      ],
+      "size": 4328,
+      "wasted_bytes": 4328,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/scripts/select_reporting_guidelines.py",
+        "academic-toolkit/skills/paper-writing-paragraphs/scripts/select_reporting_guidelines.py"
+      ],
+      "size": 7580,
+      "wasted_bytes": 7580,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/scripts/validate_authorship.py",
+        "academic-toolkit/skills/paper-writing-paragraphs/scripts/validate_authorship.py"
+      ],
+      "size": 11498,
+      "wasted_bytes": 11498,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-clinical/modules/scientific-writing/scripts/validate_manifest.py",
+        "academic-toolkit/skills/paper-writing-paragraphs/scripts/validate_manifest.py"
+      ],
+      "size": 14514,
+      "wasted_bytes": 14514,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-paragraphs/references/imrad_structure.md",
+        "academic-toolkit/skills/paper-writing-scientific/references/imrad_structure.md"
+      ],
+      "size": 4626,
+      "wasted_bytes": 4626,
+      "reason": "共享模板/参考文档随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/paper-writing-paragraphs/references/reporting_guidelines.md",
+        "academic-toolkit/skills/paper-writing-scientific/references/reporting_guidelines.md"
+      ],
+      "size": 4892,
+      "wasted_bytes": 4892,
+      "reason": "共享模板/参考文档随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/plotly/LICENSE",
+        "academic-toolkit/skills/scientific-schematics/LICENSE"
+      ],
+      "size": 11564,
+      "wasted_bytes": 11564,
+      "reason": "同源开源许可证法定文本（逐字一致属合规要求）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/spine-audit/scripts/citation_quality_audit.py",
+        "academic-toolkit/skills/spine-citation/scripts/citation_quality_audit.py"
+      ],
+      "size": 30582,
+      "wasted_bytes": 30582,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/spine-audit/scripts/integrity_audit.py",
+        "academic-toolkit/skills/spine-build/scripts/integrity_audit.py",
+        "academic-toolkit/skills/spine-rewrite/scripts/integrity_audit.py",
+        "academic-toolkit/skills/spine/scripts/integrity_audit.py"
+      ],
+      "size": 33814,
+      "wasted_bytes": 101442,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/spine-audit/scripts/latex_guard.py",
+        "academic-toolkit/skills/spine-latex/scripts/latex_guard.py"
+      ],
+      "size": 16514,
+      "wasted_bytes": 16514,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/spine-audit/scripts/structured_review.py",
+        "academic-toolkit/skills/spine-build/scripts/structured_review.py",
+        "academic-toolkit/skills/spine-rewrite/scripts/structured_review.py"
+      ],
+      "size": 35050,
+      "wasted_bytes": 70100,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/spine-audit/scripts/word_guard.py",
+        "academic-toolkit/skills/spine-build/scripts/word_guard.py",
+        "academic-toolkit/skills/spine-latex/scripts/word_guard.py"
+      ],
+      "size": 40891,
+      "wasted_bytes": 81782,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/spine-build/references/writing-rationale-matrix.md",
+        "academic-toolkit/skills/spine-rewrite/references/writing-rationale-matrix.md"
+      ],
+      "size": 8610,
+      "wasted_bytes": 8610,
+      "reason": "共享模板/参考文档随技能自包含分发"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/spine-translate-zh/scripts/translate_guard.py",
+        "academic-toolkit/skills/spine/scripts/translate_guard.py"
+      ],
+      "size": 30325,
+      "wasted_bytes": 30325,
+      "reason": "技能族共享脚本随技能自包含分发（spine/ars/sci 等族各持一份，可独立拷走）"
     }
   ]
 }
