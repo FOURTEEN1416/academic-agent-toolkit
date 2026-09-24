@@ -73,8 +73,8 @@ L1 拦截式审计在无宿主 hook 时记为
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `academic-toolkit/tests` | **769 passed / 0 failed**（另 3 skipped：私有资料区缺位语义 skip 2 + 适配器元数据缺席 skip 1；collect-only 772） | 仓库级回归 |
-| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **769 passed / 0 failed**（与仓库根同口径） | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `academic-toolkit/tests` | **773 passed / 0 failed**（另 3 skipped：私有资料区缺位语义 skip 2 + 适配器元数据缺席 skip 1；collect-only 776。2026-09-24 审计批实测口径，含 host_dep_scan 四重钉） | 仓库级回归 |
+| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **773 passed / 0 failed**（与仓库根同口径） | 技能验收基线（硬规则 3 口径） |
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准 | 门禁 |
 
 - catalog 一致性由工具箱 asset 系测试 + `check_asset_utilization --strict` 守护。
