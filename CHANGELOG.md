@@ -28,6 +28,14 @@
 - 内容融入（闲置资产升级）：287 项提交前自查表 → `data/paper_selfcheck_287.json`（挂最终复审/交付审计步）；范文精选包 → `data/award_paper_exemplars.json`（挂写作步）；CUMCM 9 板块写作提示词 → `data/cumcm_section_prompts.json`；88 色板接入 palette 注册表；05 号 ggraph R 代码入 git；Origin 构图索引入 agent-figure-gallery。
 - 新增技能 `award-paper-mining`（获奖论文语料挖掘流水线固化）。
 
+### Changed —— v2.0 收尾强化批（09-23 午后—09-24 晨，tag 补记）
+
+- **pyc 真源码彻底退役**：14 工具真源码自 `.pyc` 反编译重建为 `.py` 入库（行为等价验证 14/14）；删 `pyc_loader.py`；`tools/` 零 `.pyc`（棘轮钉住）——上文 Fixed 节"pyc 即真源码"为退役前的过渡态表述，最终态以本条为准。
+- **上游收编口径修订**：原样整采 → **改写融入**；新守卫 `tools/host_dep_scan.py`（六特征词全量扫描 + 豁免登记封闭，登记外零命中棘轮）；R1-R6 批次改写融入收口。
+- **GPL 传染解除**：graphviz 技能 clean-room 独立重写（仅以上游主题覆盖清单为事实输入）。
+- **审计修复批（2026-09-24）**：技能计数口径修复（Git 默认通配符跨 `/` → `:(glob)` 单级）；tests 漂移容差 2%→0.5%（实证 2% 盲区吞掉基线滞后）；测试拆分（宿主无关模型配置契约迁出 `test_model_config_contract.py`）。
+- 基线终态：**773 passed / 3 skipped**（collect 776）· provenance **117/117** · skills **250**（clone 即所见）。
+
 ### Fixed
 
 - `tools/` 下 14 个工具的 `.pyc` 是**真源码**（同名 `.py` 仅为 `pyc_loader.py` 生成的薄包装器）——修正 SECURITY/AGENTS 中"以 .py 为真源"的错误表述（该表述会误导删除 pyc 致 14 工具失效）。
