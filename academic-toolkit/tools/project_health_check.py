@@ -79,12 +79,16 @@ DRIFT_SOURCES: tuple[tuple[str, str, str], ...] = (
 # 历史横幅标记：命中即视为"合规的历史留痕"，不参与漂移判定
 HISTORICAL_MARKERS = ("保留作历史", "上一时点", "保留原文", "已失效", "历史值", "快照", "仅供追溯")
 
-# 漂移容差：tests 默认 2%——本项目常有**并行窗口**同时增删测试与更新文档，严格等值会
-# 在并发编辑期间持续误报，把真漂移淹掉（狼来了）。skills / capabilities 为**严格等值**
-# （容差 0）——2026-09-23 教训：技能数 badge 275 vs 实际 276 只差 0.4%，2% 容差抓不住，
-# 而这两类计数变化是离散事件（收编/下架），漂了就是文档没跟上，必须报。
-# 需要测试数精确门禁时用 --strict-drift。
-DRIFT_TOLERANCE = 0.02
+# 漂移容差：tests 0.5%——⚠️ 2026-09-24 收紧（0.02→0.005，审计裁决 D1）。原 2% 容差
+# ≈ ±15 项，被实证为**盲区**：一波次加 4-8 个守卫测试后四处基线文档整体滞后而机检
+# 绿灯（实锤：README 768 / pytest.ini 769 / AGENTS.md 769 vs 实测 773/776，偏差 8 项
+# ≈ 1.03% 恰落 2% 盲区）。0.5% 恰好容住 passed 与 collect 的固有差（3 skipped ≈
+# 0.39%），下一波 +5 即报警。**配套纪律**：新增守卫测试的批次必须在同一提交内同步
+# 全部基线文档（README 徽章+基线表 / pytest.ini / 根 AGENTS.md / truth-index）。
+# skills / capabilities 为**严格等值**（容差 0）——2026-09-23 教训：技能数 badge 275
+# vs 实际 276 只差 0.4%，抓不住；这两类计数变化是离散事件（收编/下架），漂了就是
+# 文档没跟上，必须报。需要测试数精确门禁时用 --strict-drift。
+DRIFT_TOLERANCE = 0.005
 METRIC_TOLERANCES = {"tests": DRIFT_TOLERANCE, "skills": 0.0, "capabilities": 0.0}
 
 
@@ -263,7 +267,7 @@ def _print_report(res: dict) -> None:
         print(f"    漂移检测：跳过（{drift.get('reason', '')}）")
     elif drift["mismatches"]:
         print(f"    漂移检测：❌ {len(drift['mismatches'])} 处文档数字与实测不一致"
-              + ("（tests 容差 2%；skills/capabilities 严格等值）"
+              + (f"（tests 容差 {DRIFT_TOLERANCE:.1%}；skills/capabilities 严格等值）"
                  if any(m["metric"] == "tests" for m in drift["mismatches"]) else
                  "（skills/capabilities 严格等值）"))
         for m in drift["mismatches"]:
@@ -271,7 +275,7 @@ def _print_report(res: dict) -> None:
                   f"（差 {m.get('delta_pct', '?')}%）")
     else:
         print("    漂移检测：✅ 权威文档基线数字与实测一致"
-              "（tests 容差 2%；skills/capabilities 严格等值）")
+              f"（tests 容差 {DRIFT_TOLERANCE:.1%}；skills/capabilities 严格等值）")
     if res["degraded"]:
         print(f"\n    ⚠️ 降级组件（检查件未跑起来，不折算为通过）：{', '.join(res['degraded'])}")
     print("\n结论：", "整体健康" if res["ok"] else
