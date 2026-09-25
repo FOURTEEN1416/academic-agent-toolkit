@@ -152,6 +152,12 @@
       "exemplars": [
         "2024_E218"
       ]
+    },
+    "研赛/华为杯": {
+      "focus": "研究生组：“华为杯”中国研究生数学建模竞赛。与国赛的硬差异在格式层——统一摘要页（≤2 页、六要素、无需英文）、正文上限 50 页（附录另计）、首页封皮不可删且除首页外不得出现身份信息、无页眉、页码自摘要页起；内容层对推导深度要求更高。（经验口径，非官方：一等奖正文常见 50–65 页量级，见 comp_rules.json comp_huawei.rules）",
+      "exemplars": [],
+      "detail_ref": "graduate_contest（逐篇字段见该块 papers；本轮空，待用户分批提供研赛获奖论文后填充）",
+      "note": "与 A–E 国赛分型并列，不并入国赛题型统计——model_stats 仍只覆盖国赛 A–E，counts.papers=62 不变"
     }
   },
   "model_stats": {
@@ -173,6 +179,37 @@
       "神经网络": "C 题（近年增多）",
       "微分方程": "A 题"
     }
+  },
+  "graduate_contest": {
+    "key": "研赛/华为杯",
+    "full_name": "“华为杯”中国研究生数学建模竞赛（中国研究生创新实践系列大赛）",
+    "parallel_to": "learning_paths 的 A/B/C/D/E（国赛本科组分型）。本块为并列第二分型，只增不改——国赛既有数据（priority_25 / all_by_year / counts / learning_paths A–E / model_stats）一律不动。",
+    "source": {
+      "level_1_official": "官方规范（一级）：cpipc.acge.org.cn 开赛公告（21/22/23 届同口径）+《“华为杯”第二十二届中国研究生数学建模竞赛论文格式规范》（中国研究生数学建模竞赛专家委员会，2025-09-15）",
+      "level_2_papers": "获奖论文原文（二级）：由用户分批提供 PDF/文本，逐篇抽取时登记文件名",
+      "level_3_internal": "内部经验口径（三级，不得冒充官方）：comp_rules.json comp_huawei.rules、skills/_utils/figure_exemplars.md",
+      "format_evidence": "skills/comp-paper-zh/references/huawei-official-format.md（官方口径外部实证备份；镜像 engine/modex-core/comp_rules.json → comp_huawei.compliance）",
+      "official_template": "skills/comp-paper-zh/_templates/huawei/official_docx/huabei-21st-official-paper-template.doc|.pdf（官方模板全 4 页，无承诺书页）",
+      "local_root": "assets-local/award-papers/graduate/（gitignored 私有资料区；待论文落盘后启用）"
+    },
+    "source_level_policy": "官方规范 > 获奖论文原文 > 内部经验口径。三级来源不可混用、不可跨级替代：同一取值若两级冲突，取高级；每条断言必须带 provenance 记录来源层级。内部经验口径在条目内显式标 internal_empirical。",
+    "field_schema": {
+      "题": "论文题目（原文标题页逐字；无标题页时标 unavailable）",
+      "年": "获奖年份（4 位数字，取自原文/用户提供文件名，不确定标 unavailable）",
+      "题型": "研赛试题编号 A–F（按当届实际设置；不套用国赛 A–E 语义）",
+      "方法链": "有序数组：建模思路 → 模型 → 求解算法 → 检验/灵敏度，逐环节附原文出处",
+      "图表风格": "对象：图表类型分布 / 配色与线型 / 编号与题注位置 / 跨页与分辨率处理，逐项附原文出处",
+      "结构特色": "数组：章节骨架与版面安排上可识别的特征（如每问“建模→推导→求解→检验”四段式、公式逐式编号密度）",
+      "可迁移要点": "数组：可跨题复用的做法，每条一行并附原文出处",
+      "provenance": "对象：逐字段出处 = 文件名 + 章节/页码；无法定位一律标 unavailable，禁止占位编造"
+    },
+    "intake_protocol": "每收到一篇论文 → 按 field_schema 抽取 → 逐字段写 provenance → 追加到 papers[<paper_id>] → 同步 counts.papers / counts.years → 跑机检（pytest -q + check_asset_utilization --strict）→ 数据+测试同批一个 commit。空字段标 unavailable，不编造。",
+    "counts": {
+      "papers": 0,
+      "years": [],
+      "note": "本轮仅建分型骨架，未编造任何论文条目；待用户分批提供后递增"
+    },
+    "papers": {}
   },
   "companion_reports": {
     "使用指南": "assets-local/award-papers/参考论文使用指南.md",
