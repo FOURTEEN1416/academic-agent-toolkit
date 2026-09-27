@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sqlite3
 from pathlib import Path
 from typing import Any
@@ -29,6 +28,7 @@ from .agent_protocol import bootstrap as agent_bootstrap
 from .capability_probe import probe as capability_probe
 from .run_logger import RunLogger, RunLogEntry
 from .runtime_adapter import RuntimePaths
+from .step_manifest import atomic_write_json
 from .tool_forge import forge_adapter, forge_skill, forge_tool, forge_from_gap
 
 
@@ -55,14 +55,6 @@ class WorkflowCliError(Exception):
     """CLI 业务错误：顶层统一以 {"status":"error"} JSON 输出并以退出码 2 结束。"""
 
 
-def _atomic_write_json(path: Path, data: Any) -> None:
-    """B3-2：临时文件 + os.replace 原子写，避免读改写途中崩溃留下截断的索引。"""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-    os.replace(tmp, path)
-
-
 def _read_workflow_index() -> dict[str, str]:
     try:
         data = json.loads(WORKFLOW_INDEX.read_text(encoding="utf-8"))
@@ -75,7 +67,7 @@ def register_workflow_database(workflow_id: str, database: Path | str) -> None:
     """Persist the database location so later CLI commands need only --wf."""
     index = _read_workflow_index()
     index[workflow_id] = str(Path(database).resolve())
-    _atomic_write_json(WORKFLOW_INDEX, index)
+    atomic_write_json(WORKFLOW_INDEX, index)
 
 
 def prune_workflow_index() -> list[str]:
@@ -85,7 +77,7 @@ def prune_workflow_index() -> list[str]:
     if stale:
         for wf in stale:
             index.pop(wf, None)
-        _atomic_write_json(WORKFLOW_INDEX, index)
+        atomic_write_json(WORKFLOW_INDEX, index)
     return stale
 
 
@@ -112,7 +104,7 @@ def _probe_workflow_db(workflow_id: str) -> Path | None:
         if not database.is_file():
             continue
         try:
-            connection = sqlite3.connect(f"file:{database.as_posix()}?mode=ro", uri=True)
+            connection = sqlite3.connect(database.resolve().as_uri() + "?mode=ro", uri=True)
             found = connection.execute(
                 "SELECT 1 FROM workflows WHERE id = ? LIMIT 1", (workflow_id,)
             ).fetchone()
@@ -138,7 +130,7 @@ def resolve_checkpoint_db(checkpoint_id: str) -> Path:
         if not database.is_file():
             continue
         try:
-            connection = sqlite3.connect(f"file:{database.as_posix()}?mode=ro", uri=True)
+            connection = sqlite3.connect(database.resolve().as_uri() + "?mode=ro", uri=True)
             found = connection.execute(
                 "SELECT 1 FROM checkpoints WHERE id = ? LIMIT 1", (checkpoint_id,)
             ).fetchone()

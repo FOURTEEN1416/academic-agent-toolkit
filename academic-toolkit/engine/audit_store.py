@@ -415,7 +415,7 @@ def _workflow_window_start(workspace: Path) -> datetime | None:
         return None
     try:
         import sqlite3
-        con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+        con = sqlite3.connect(db.resolve().as_uri() + "?mode=ro", uri=True)
         try:
             row = con.execute(
                 "SELECT created_at FROM workflows ORDER BY created_at ASC LIMIT 1").fetchone()

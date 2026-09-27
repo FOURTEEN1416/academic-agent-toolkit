@@ -100,7 +100,11 @@ class ExecutionSession:
             contest_view = dict(snapshot)
             contest_view["consumed_by"] = ["context", "pages", "early_check", "final_audit"]
             current_digest = cp_mod.rules_digest()
-            if current_digest and current_digest != snapshot.get("rules_revision"):
+            # 比对基线取快照冻结的档案文件哈希；rules_revision 可能是档案显式版本
+            # 标签（如"2026年修订稿"），与 64 位哈希不同域，混比会恒报 drift。
+            baseline = (snapshot.get("source") or {}).get("rules_sha256") or \
+                snapshot.get("rules_revision")
+            if current_digest and current_digest != baseline:
                 contest_view["rules_drift"] = {
                     "detected": True,
                     "current_rules_sha256": current_digest,
