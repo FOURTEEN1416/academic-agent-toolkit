@@ -179,14 +179,27 @@ class RewriteQualityGate:
     def check_register(self) -> dict:
         """检查：学术/正式文体是否被口语化破坏"""
         problems = []
-        # 口语化词
-        colloquial = ["说白了", "反正", "挺", "蛮", "超", "搞", "弄", "咱们",
-                      "咱", "咋", "啥", "呗", "啦", "呀", "哦", "嗯", "哈"]
-        for w in colloquial:
+        # 口语化词：无歧义多字词直接包含匹配；单字/易撞车词用正则圈定口语化
+        # 搭配，避免整串误伤数学术语（超松弛/反正切/哈希 等曾被判 error 拒稿）。
+        colloquial_plain = ["说白了", "搞", "弄", "咱们", "咱", "咋", "啥", "呗",
+                            "啦", "呀", "哦", "嗯"]
+        colloquial_patterns = [
+            (r"超[级速快好强多爽]", "超"),
+            (r"反正(?!切|弦)", "反正"),
+            (r"哈(?!希|密顿|密尔顿|佛|代|雷|当)", "哈"),
+            (r"挺(好|快|多|舒服|不错)", "挺"),
+            (r"蛮(好|多|不错|可以)", "蛮"),
+        ]
+        for w in colloquial_plain:
             if w in self.new:
                 problems.append(f"口语化词『{w}』进入学术文本")
                 self.issues.append(GateIssue("register", "error",
                                              f"口语化词『{w}』进入学术文本，破坏文体"))
+        for pat, label in colloquial_patterns:
+            if re.search(pat, self.new):
+                problems.append(f"口语化词『{label}』进入学术文本")
+                self.issues.append(GateIssue("register", "error",
+                                             f"口语化词『{label}』进入学术文本，破坏文体"))
         # 网络语
         internet = ["yyds", "绝绝子", "栓Q", "emo", "破防", "内卷", "躺平", "逆袭"]
         for w in internet:

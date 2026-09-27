@@ -25,7 +25,9 @@ def run_visual_check(workspace: Path, image_path: Path, backend: str, review: bo
         raise ValueError(f"unsupported visual backend: {backend}")
     script = BACKENDS[backend]
     command = [sys.executable, str(script), str(image_path)]
-    if backend == "tikz" and review:
+    # 终审复核模式三个后端一律透传：review 模式不受防死循环计数约束，
+    # 静默丢弃会让 drawio/data-fig 的终审跑成 dev 模式并假放行。
+    if review:
         command.append("--review")
     result = run_command(command, cwd=workspace, timeout=180)
     status = "pass" if result["exitCode"] == 0 else ("unavailable" if result["exitCode"] == 2 else "fail")

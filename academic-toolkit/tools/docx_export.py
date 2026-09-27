@@ -29,11 +29,12 @@ log = logging.getLogger(__name__)
 
 def _resolve_profiles_dir() -> Path:
     """样式 profile 目录解析（2026-09-23 v2.0：原 tools/docx_style_profiles/ 已迁
-    third_party/docx-style-profiles/，故按候选列表探测，兼容两种布局）。"""
+    third_party/docx-style-profiles/，故按候选列表探测，兼容两种布局）。
+    新布局优先：旧布局目录若存在但缺 default profile，会把导出静默拖回内置默认。"""
     base = Path(__file__).resolve().parent
     candidates = [
-        base / 'docx_style_profiles',                               # 旧布局（本机历史）
         base.parent / 'third_party' / 'docx-style-profiles',        # v2.0 新布局
+        base / 'docx_style_profiles',                               # 旧布局（本机历史）
     ]
     for c in candidates:
         if c.is_dir():
@@ -1039,7 +1040,7 @@ def _is_node_engine_available() -> bool:
     import shutil as _shutil
     if _shutil.which('node'):
         return True
-    for candidate in ('D:\\nodejs\\node.exe', 'C:\\Program Files\\nodejs\\node.exe'):
+    for candidate in ('C:\\Program Files\\nodejs\\node.exe',):
         if Path(candidate).exists():
             return True
     return False
@@ -1049,7 +1050,7 @@ def _resolve_engine_dir() -> Optional[Path]:
     '''查找 docx-cn-engine 目录。优先级：
         1. 环境变量 DOCX_CN_ENGINE_DIR
         2. 与 docx_export.py 同目录下的 docx-cn-engine
-        3. 上层 tools/docx-cn-engine（_utils/ 复制时实际目录）
+        3. 上层 third_party/docx-cn-engine（v2.0 新布局）或 tools/docx-cn-engine
     '''
     import os as _os
     env_path = _os.environ.get('DOCX_CN_ENGINE_DIR')
@@ -1057,15 +1058,19 @@ def _resolve_engine_dir() -> Optional[Path]:
         p = Path(env_path)
         if p.is_dir():
             return p
-    same_dir = Path(__file__).resolve().parent / 'docx-cn-engine'
+    base = Path(__file__).resolve().parent
+    same_dir = base / 'docx-cn-engine'
     if same_dir.is_dir():
         return same_dir
-    cur = Path(__file__).resolve().parent
+    candidates = []
+    cur = base
     for _ in range(5):
-        cand = cur / 'tools' / 'docx-cn-engine'
+        candidates.append(cur / 'third_party' / 'docx-cn-engine')
+        candidates.append(cur / 'tools' / 'docx-cn-engine')
+        cur = cur.parent
+    for cand in candidates:
         if cand.is_dir():
             return cand
-        cur = cur.parent
     return None
 
 
@@ -1075,7 +1080,7 @@ def _find_node_executable() -> Optional[str]:
     found = _shutil.which('node')
     if found:
         return found
-    for candidate in ('D:\\nodejs\\node.exe', 'C:\\Program Files\\nodejs\\node.exe'):
+    for candidate in ('C:\\Program Files\\nodejs\\node.exe',):
         if Path(candidate).exists():
             return candidate
     return None

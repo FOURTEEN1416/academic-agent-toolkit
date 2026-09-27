@@ -121,7 +121,9 @@ def main():
 
     # 计算各特征分布
     baseline = {
-        "source": str(REPORT_PATH),
+        # 产物入 tracked 仓，source 写仓库根相对路径（私有资料区缺席属语义缺位），
+        # 不得内嵌本机绝对路径（tracked 卫生禁令）。
+        "source": REPORT_PATH.relative_to(_REPO_ROOT).as_posix(),
         "paper_count": len(papers),
         "features": {},
         "papers": papers,

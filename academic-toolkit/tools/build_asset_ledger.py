@@ -58,7 +58,9 @@ def classify_path(relative_path: Path) -> tuple[str, str, str, str]:
         classification = "historical_reference" if parts[0] == "赛前试炼任务" else "private_extension"
         group = "historical_exercises" if parts[0] == "赛前试炼任务" else "private_research_material"
         return classification, group, "unverified", "excluded"
-    if name in HISTORICAL_ROOT_NAMES or name.startswith(("analyze_", "check_", "ref_")):
+    # 仅仓库根同名层级的分析脚本按历史件处理；限定 len(parts)==1 防止
+    # 前缀误吞 academic-toolkit/tools/ 下的现役 check_/analyze_ 工具。
+    if len(parts) == 1 and (name in HISTORICAL_ROOT_NAMES or name.startswith(("analyze_", "check_", "ref_"))):
         return "historical_reference", "root_historical_analysis", "unverified", "excluded"
     if name in {"opencode.json", "README.md", "CURRENT_STATE.md", ".gitignore"} or normalized.startswith("docs/"):
         return "candidate_public_core", "publication_governance", "project_authored_unverified", "blocked"

@@ -10,6 +10,7 @@ import argparse
 import json
 import logging
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -21,17 +22,121 @@ log = logging.getLogger(__name__)
 PROG = Path(sys.argv[0]).stem + '.pyc'
 
 
+def _majority(values) -> Any:
+    """取出现次数最多的非空值（None 不计），空集返回 None。"""
+    counts = Counter(v for v in values if v is not None)
+    return counts.most_common(1)[0][0] if counts else None
+
+
+def _font_of(paragraph):
+    """段落代表字体名：显式 run 字体优先，回落 eastAsia 声明，再回落段落样式。"""
+    from docx.oxml.ns import qn
+    for run in paragraph.runs:
+        if run.font.name:
+            return run.font.name
+        rpr = run._element.rPr
+        if rpr is not None:
+            rfonts = rpr.find(qn('w:rFonts'))
+            if rfonts is not None and rfonts.get(qn('w:eastAsia')):
+                return rfonts.get(qn('w:eastAsia'))
+    style = paragraph.style
+    if style is not None and style.font is not None and style.font.name:
+        return style.font.name
+    return None
+
+
+def _size_of(paragraph):
+    """段落代表字号（pt）：显式 run 字号优先，回落段落样式。"""
+    for run in paragraph.runs:
+        if run.font.size is not None:
+            return run.font.size.pt
+    style = paragraph.style
+    if style is not None and style.font is not None and style.font.size is not None:
+        return style.font.size.pt
+    return None
+
+
+def _alignment_of(paragraph, style):
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    value = paragraph.alignment
+    if value is None and style is not None:
+        value = style.paragraph_format.alignment
+    mapping = {
+        WD_ALIGN_PARAGRAPH.CENTER: 'center',
+        WD_ALIGN_PARAGRAPH.RIGHT: 'right',
+        WD_ALIGN_PARAGRAPH.JUSTIFY: 'justify',
+    }
+    return mapping.get(value, 'left')
+
+
+def _classify(paragraph) -> str:
+    """按样式名把段落归入 body_cn / heading1-3 / references_body 之一。"""
+    style = paragraph.style
+    name = (style.name or '') if style is not None else ''
+    lowered = name.lower()
+    if 'heading 1' in lowered or name.startswith('标题 1'):
+        return 'heading1'
+    if 'heading 2' in lowered or name.startswith('标题 2'):
+        return 'heading2'
+    if 'heading 3' in lowered or name.startswith('标题 3'):
+        return 'heading3'
+    if 'reference' in lowered or '参考文献' in name:
+        return 'references_body'
+    return 'body_cn'
+
+
+def aggregate_styles(doc) -> dict[str, dict[str, Any]]:
+    """扫描每段文字的字体/字号/对齐/缩进/行距，取最常见值作为代表性样式。
+
+    返回键与 docx_export profile 消费口径一致：
+    body_cn / heading1 / heading2 / heading3 / references_body。
+    更深层标题不参与统计。
+    """
+    from docx.shared import Length
+    buckets: dict[str, list[dict[str, Any]]] = {
+        'body_cn': [], 'heading1': [], 'heading2': [], 'heading3': [],
+        'references_body': [],
+    }
+    for para in doc.paragraphs:
+        if not para.text.strip():
+            continue
+        key = _classify(para)
+        if key == 'body_cn' and (para.style.name or '').lower().startswith('heading'):
+            continue
+        style = para.style
+        fmt = para.paragraph_format
+        style_fmt = style.paragraph_format if style is not None else None
+        spacing = fmt.line_spacing
+        if spacing is None and style_fmt is not None:
+            spacing = style_fmt.line_spacing
+        if isinstance(spacing, Length):
+            # 固定磅值行距换算为相对行距（单倍 ≈ 12pt）
+            spacing = round(spacing.pt / 12, 2)
+        indent = fmt.first_line_indent
+        if indent is None and style_fmt is not None:
+            indent = style_fmt.first_line_indent
+        entry = {
+            'size_pt': _size_of(para),
+            'font': _font_of(para),
+            'alignment': _alignment_of(para, style),
+            'line_spacing': spacing,
+            'first_line_indent_pt': indent.pt if indent else None,
+            'space_before_pt': fmt.space_before.pt if fmt.space_before else None,
+            'space_after_pt': fmt.space_after.pt if fmt.space_after else None,
+            'page_break_before': bool(fmt.page_break_before),
+        }
+        buckets[key].append(entry)
+    return {key: {k: _majority(e.get(k) for e in entries) for k in entries[0]}
+            for key, entries in buckets.items() if entries}
+
 
 def derive_profile_from_docx(template_path: Path) -> dict[str, Any]:
     """读取 docx 模板，分析其样式，返回 docx_export 兼容的 profile 字典。
 
-    采用 analyze_docx.py 的统计方法：扫描每段文字的字体/字号/对齐/缩进/行距，
+    统计方法见 aggregate_styles：扫描每段文字的字体/字号/对齐/缩进/行距，
     取最常见值作为代表性样式。
     """
     from docx import Document
-
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from analyze_docx import aggregate_styles
 
     doc = Document(str(template_path))
     styles = aggregate_styles(doc)

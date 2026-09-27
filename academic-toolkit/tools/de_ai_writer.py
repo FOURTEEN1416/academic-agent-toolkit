@@ -141,6 +141,12 @@ class DeAiWriter:
         pos = 0
         for sent in self.sentences:
             sent_start = self.text.find(sent, pos)
+            if sent_start == -1:
+                # 清洗文本与原文不再逐字对应（跨被剔除的代码块/表格行），
+                # 定位失效时不下发 position，也不让 -1 污染后续偏移。
+                sent_start = None
+            else:
+                pos = sent_start + len(sent)
             # 本句受保护术语（改写时不得动）
             protected_hit = [t for t in PROTECTED_TERMS if t in sent]
             # 本句需避免的危险替换
@@ -179,7 +185,6 @@ class DeAiWriter:
                     protected_terms=protected_hit,
                     danger_swaps=danger_hit,
                 ))
-            pos = sent_start + len(sent)
 
         # 跨句模板化连接词序列
         for pat, name in SEQ_PATTERNS:

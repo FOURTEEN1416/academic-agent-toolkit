@@ -68,9 +68,20 @@ def _md5(path: Path) -> str:
     大概率仍不同，不引入误报。
     """
     h = hashlib.md5()
+    # \r\n 跨 1MB 块边界时 \r 会落在上一块末尾，直接逐块 replace 会漏配对；
+    # 用一字节 carry 把块尾孤立 \r 延到下一块参与配对，保证规范化确定性。
+    pending_cr = False
     with path.open("rb") as fh:
         for chunk in iter(lambda: fh.read(1 << 20), b""):
+            if pending_cr:
+                chunk = b"\r" + chunk
+                pending_cr = False
+            if chunk.endswith(b"\r"):
+                pending_cr = True
+                chunk = chunk[:-1]
             h.update(chunk.replace(b"\r\n", b"\n"))
+    if pending_cr:
+        h.update(b"\r")
     return h.hexdigest()
 
 

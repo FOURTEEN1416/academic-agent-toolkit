@@ -1,7 +1,7 @@
 # 参考论文反AI特征基线分析报告
 
 - 样本量: 20 篇 (2021-2025 国赛获奖论文)
-- 数据源: D:\Desktop\数模竞赛\参考论文\论文风格分析报告.md
+- 数据源: assets-local/award-papers/论文风格分析报告.md（gitignored 私有资料区，公开 clone 缺席属语义缺位）
 - 生成时间: 2026-08-17
 - 用途: 校准 anti_ai_detector.py v2 的人类写作基线区间
 

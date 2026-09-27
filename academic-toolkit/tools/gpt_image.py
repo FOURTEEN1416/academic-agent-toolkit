@@ -253,7 +253,7 @@ def main():
             if os.path.exists(cfg_path):
                 try:
                     import json as _json
-                    with open(cfg_path, "r") as _f:
+                    with open(cfg_path, "r", encoding="utf-8") as _f:
                         _cfg = _json.load(_f)
                     api_key = _cfg.get("api_key", "").strip()
                     api_base = _cfg.get("base_url", api_base).strip()

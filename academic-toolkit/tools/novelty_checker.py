@@ -85,7 +85,7 @@ def calculate_novelty(method: str) -> dict:
         is_common = True
 
     # 判定
-    if novelty < 0.3:
+    if novelty <= 0.3:
         suggestion = f"风险高：'{method}' 与历年国一方法高度雷同，必须创新（魔改/组合/加新机制）"
     elif novelty < 0.7:
         suggestion = f"可接受：'{method}' 较常见，建议在论文中强调'为什么选这个方法 + 差异化点'"

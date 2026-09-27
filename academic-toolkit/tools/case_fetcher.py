@@ -105,7 +105,8 @@ def export_historical_json(output_path: Path) -> None:
     }
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w", encoding="utf-8") as f:
+    # 显式 LF：产物入 tracked 仓受 .gitattributes eol=lf 约束，默认写出会产生 CRLF 漂移
+    with open(output_path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     print(f"[OK] 写入: {output_path}")
 
@@ -134,7 +135,7 @@ def export_search_links(output_path: Path) -> None:
 """
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w", encoding="utf-8") as f:
+    with open(output_path, "w", encoding="utf-8", newline="\n") as f:
         f.write(links)
     print(f"[OK] 写入: {output_path}")
 

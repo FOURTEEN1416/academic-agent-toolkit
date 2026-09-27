@@ -86,7 +86,11 @@ def run_source_materials(
         "node", "--import", TSX_LOADER.as_uri(), str(CLI),
         "--config", str(config_path), "--workspace", str(workspace),
     ]
-    completed = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, encoding="utf-8")
+    try:
+        completed = subprocess.run(command, cwd=ROOT, capture_output=True, text=True,
+                                   encoding="utf-8", timeout=600)
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError("CodeSucker CLI timed out after 600s") from exc
     (workspace / "source-materials.stdout.log").write_text(completed.stdout, encoding="utf-8")
     (workspace / "source-materials.stderr.log").write_text(completed.stderr, encoding="utf-8")
     if completed.returncode != 0:

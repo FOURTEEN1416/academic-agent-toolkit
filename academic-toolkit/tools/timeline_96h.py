@@ -42,7 +42,7 @@ def current_phase(now: datetime) -> dict:
     """根据当前时间判断在哪个阶段"""
     elapsed = (now - CONTEST_START).total_seconds() / 3600
     if elapsed < 0:
-        return {"name": "赛前", "elapsed": elapsed, "remaining": TOTAL_HOURS, "checkpoint": "等待开赛"}
+        return {"name": "赛前", "elapsed_hours": elapsed, "remaining": TOTAL_HOURS, "checkpoint": "等待开赛"}
     if elapsed >= TOTAL_HOURS:
         return {"name": "赛后", "elapsed": elapsed, "remaining": 0, "checkpoint": "比赛已结束"}
 
@@ -173,8 +173,10 @@ def main():
     args = parser.parse_args()
 
     if args.start:
-        global CONTEST_START
-        CONTEST_START = datetime.strptime(args.start, "%Y-%m-%d %H:%M")
+        global CONTEST_START, CONTEST_END
+        shift = datetime.strptime(args.start, "%Y-%m-%d %H:%M") - CONTEST_START
+        CONTEST_START += shift
+        CONTEST_END += shift  # 结束时刻随开始时刻整体平移，避免自定义开赛后截止失真
 
     if args.overview:
         show_overview()

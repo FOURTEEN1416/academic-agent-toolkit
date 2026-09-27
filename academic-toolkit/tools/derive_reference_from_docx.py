@@ -75,20 +75,6 @@ def _is_caption_text(text: str) -> bool:
     return False
 
 
-def _is_formula_number_pattern(text: str) -> Optional[str]:
-    """识别公式编号风格。返回模式名或 None"""
-    if not text:
-        return None
-    s = text.strip()
-    # "$$ ... $$ (1)" — 同行尾追加
-    if re.search(r"\)\s*$", s) and re.search(r"\$\$.+\$\$", s):
-        return "trailing_paren"
-    # \tag{1}
-    if r"\tag{" in s:
-        return "inline_tag"
-    return None
-
-
 # ---------------------------------------------------------------------------
 # 派生
 # ---------------------------------------------------------------------------
@@ -659,11 +645,18 @@ def build_general_reference_md(derived: dict) -> str:
 # ---------------------------------------------------------------------------
 
 def main():
+    def _display_path(path: Path) -> str:
+        """展示用路径：优先仓库/工作目录相对形态，跨盘等场景回落绝对路径。"""
+        try:
+            return str(path.relative_to(Path.cwd()))
+        except ValueError:
+            return str(path)
+
     p = argparse.ArgumentParser(description="从一份完整 docx 论文派生通用参考资料")
     p.add_argument("input", type=Path, help="输入 .docx 文件")
     p.add_argument("--out-dir", type=Path,
-                   default=Path(__file__).resolve().parent / "docx_style_profiles",
-                   help="输出目录（默认 third_party/docx-style-profiles/）")
+                   default=Path(__file__).resolve().parent.parent / "third_party" / "docx-style-profiles",
+                   help="输出目录（默认 third_party/docx-style-profiles/，与 docx_export 的解析一致）")
     p.add_argument("--profile-name", default="reference_paper_general.json",
                    help="JSON 文件名")
     p.add_argument("--md-name", default="reference_structure_general.md",
@@ -683,14 +676,14 @@ def main():
     profile = build_general_profile(derived)
     profile_path = args.out_dir / args.profile_name
     profile_path.write_text(json.dumps(profile, ensure_ascii=False, indent=2),
-                            encoding="utf-8")
-    print(f"  → {profile_path.relative_to(Path.cwd())} ({profile_path.stat().st_size} bytes)")
+                            encoding="utf-8", newline="\n")
+    print(f"  → {_display_path(profile_path)} ({profile_path.stat().st_size} bytes)")
 
     # 输出 markdown 自检对照
     md = build_general_reference_md(derived)
     md_path = args.out_dir / args.md_name
-    md_path.write_text(md, encoding="utf-8")
-    print(f"  → {md_path.relative_to(Path.cwd())} ({md_path.stat().st_size} bytes)")
+    md_path.write_text(md, encoding="utf-8", newline="\n")
+    print(f"  → {_display_path(md_path)} ({md_path.stat().st_size} bytes)")
 
     # 简要统计
     print()

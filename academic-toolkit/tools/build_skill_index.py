@@ -269,7 +269,9 @@ def sync_descriptions() -> tuple[list[str], list[str]]:
             continue
         escaped = target.replace('"', '\\"')
         new_fm = fm[:dm.start()] + f'description: "{escaped}"' + fm[dm.end():]
-        path.write_text(text[:m.start(1)] + new_fm + text[m.end(1):], encoding="utf-8")
+        # 显式 LF：SKILL.md 逐字节哈希被技能索引自证，Windows 默认 CRLF 写出即爆哈希
+        path.write_text(text[:m.start(1)] + new_fm + text[m.end(1):],
+                        encoding="utf-8", newline="\n")
         (compacted if entry["tier"] == "ondemand" else restored).append(name)
     return compacted, restored
 
