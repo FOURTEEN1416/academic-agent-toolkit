@@ -73,8 +73,8 @@ L1 拦截式审计在无宿主 hook 时记为
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `academic-toolkit/tests` | **1005 collected**（2026-09-27 D窗 collect-only 独立收集；本轮未重跑全仓，最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言） | 仓库级回归 |
-| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **1005 collected**（相同 tests 收集范围；实跑结果见唯一真源 `pytest.ini`） | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `academic-toolkit/tests` | **1011 collected**（2026-09-28 收尾批 +4 回归测试后）；最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言 | 仓库级回归 |
+| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **1011 collected**（相同 tests 收集范围；实跑结果见唯一真源 `pytest.ini`） | 技能验收基线（硬规则 3 口径） |
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准 | 门禁 |
 
 - catalog 一致性由工具箱 asset 系测试 + `check_asset_utilization --strict` 守护。

@@ -49,6 +49,17 @@ def _dynamic_placeholder(ref: str) -> bool:
     return "{" in ref or "*" in ref or ref.endswith(("_", "-"))
 
 
+def _clean_ref(raw: str) -> str:
+    """引用清洗：剥尾部标点与粗体星号。
+
+    2026-09-28 盲区修复：'**references/x.md**' 形态的粗体引用，尾随 '**' 此前
+    未被剥离，_dynamic_placeholder 见 '*' 即判为动态占位符 → 整类引用被静默
+    漏扫（既不 FAIL 也不入 acknowledged）。剥离后真实通配（如 references/*.md，
+    星号在路径中段）仍走通配豁免，行为不变。
+    """
+    return raw.rstrip(".,);:”\"'*")
+
+
 def _load_gap_register() -> dict:
     """棘轮登记册：2026-09-09 基线内的已知内部断链（存量豁免，新增必 FAIL）。"""
     path = Path(__file__).resolve().parent / "asset_gap_register.json"
@@ -91,6 +102,7 @@ def audit() -> dict:
         seen_names.setdefault(fm_name, []).append(name)
         body_refs = set(REF.findall(text))
         for ref in body_refs:
+            ref = _clean_ref(ref)
             if (ROOT / ref).exists():
                 continue
             # 治理标注过的"上游脚本未集成"引用视为 acknowledged
@@ -113,7 +125,7 @@ def audit() -> dict:
             declared_gaps = set(re.findall(r"^- `(.+?)`", gap_file.read_text(encoding="utf-8"), re.M))
         seen_inner = set()
         for m in INNER_REF.finditer(text):
-            ref = m.group(1).rstrip(".,);:”\"'")
+            ref = _clean_ref(m.group(1))
             if ref in seen_inner:
                 continue
             seen_inner.add(ref)

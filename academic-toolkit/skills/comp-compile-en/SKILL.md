@@ -261,7 +261,7 @@ Check items:
 
 6. **Code appendix exists**
 
-7. **No undefined references/citations**
+7. **No undefined cross-references or citations**
 
 <page_diagnosis>
 
