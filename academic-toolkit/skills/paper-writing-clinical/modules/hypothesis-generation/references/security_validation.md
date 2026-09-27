@@ -70,5 +70,6 @@ uv run python scan_pr_skills.py \
   --output /tmp/hypothesis-generation-pr-scan.md \
   skills/hypothesis-generation
 ```
+> **Note:** `scan_pr_skills.py` is an upstream script not bundled with this toolkit; run this step in the upstream repository.
 
 The repository-level `SECURITY.md` is intentionally not edited in this scoped refresh; its generated snapshot updates through the repository’s normal scan process.

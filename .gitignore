@@ -181,3 +181,6 @@ academic-toolkit/skills/comp-paper-zh/_templates/huawei/official_docx/
 .snapshots/
 .workbuddy-ai/
 .zcodeignore
+
+# 2026-09-28：本机评测运行快照（含机器路径），不入公开仓
+academic-toolkit/skills/fig-academic/scripts/.eval_results.json

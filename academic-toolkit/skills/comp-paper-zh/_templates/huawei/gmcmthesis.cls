@@ -34,7 +34,7 @@
 \RequirePackage{ifxetex}
 \RequireXeTeX
 \ifxetex\else
-\ClassError{mcmthesis}{You must use the `xelatex' driver\MessageBreak Please choose `xelatex'}{%
+\ClassError{gmcmthesis}{You must use the `xelatex' driver\MessageBreak Please choose `xelatex'}{%
 Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 \fi
 % 页面布局
@@ -123,7 +123,7 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
   rulecolor=\color{gray!50},
   title=#1,                            % \lstnames how the filename of files
   emph={format_string,eff_ana_bf,permute,eff_ana_btr},
-  emphstyle=\color{pIdentifier}
+  emphstyle=\color{pIdentifier},
   showspaces=false,                    % show spaces adding particular underscores
   showstringspaces=false,              % underline spaces within strings
   showtabs=false,                      % show tabs within strings adding particular underscores

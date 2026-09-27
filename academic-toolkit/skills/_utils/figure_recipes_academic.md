@@ -341,7 +341,7 @@ save_fig(fig, 'figures/fig_attention.pdf')
 
 ---
 
-## 5. Architecture Comparison Radar — 架构对比雷达图
+## 5. Multi-Dataset Grouped Bar with Rank Heatmap — 多方法×多数据集主结果图（排名热图柱）
 
 **Use case**: Multiple methods across multiple datasets. Main result figure.
 **Upgrades**: Heatmap-style background coloring on bars, rank numbers on top, significance markers (bold = best).
@@ -495,7 +495,7 @@ save_fig(fig, 'figures/fig_hyperparam.pdf')
 
 ---
 
-## 7. Confusion Matrix — 混淆矩阵
+## 7. Raincloud Plot — 雨云图（分布 + 箱线 + 原始数据）
 
 **Use case**: Distribution + box stats + raw data in one figure. Method comparison.
 **Upgrades**: Gradient violin fill, significance brackets with p-values, Cohen's d effect size.
@@ -588,7 +588,7 @@ save_fig(fig, 'figures/fig_raincloud.pdf')
 
 ---
 
-## 8. Feature Importance (SHAP-style) — 特征重要性
+## 8. 3D Loss Landscape — 3D 损失曲面
 
 **Use case**: Visualize loss surface topology and optimization difficulty.
 **Upgrades**: Optimization trajectory with gradient coloring (early=red, late=blue), saddle point annotations, contour projection.
@@ -669,7 +669,7 @@ save_fig(fig, 'figures/fig_loss_landscape.pdf')
 
 ---
 
-## 9. Learning Rate Schedule — 学习率调度曲线
+## 9. Qualitative Comparison Grid — 定性对比网格
 
 **Use case**: Multi-method visual output comparison (generation/segmentation/detection).
 **Upgrades**: SSIM/PSNR score annotations, error map row, red box highlights on key regions.
@@ -750,7 +750,7 @@ save_fig(fig, 'figures/fig_qualitative.pdf')
 
 ---
 
-## 10. Latent Space Interpolation — 隐空间插值
+## 10. Radar Chart — 多方法多指标雷达图
 
 **Use case**: Multi-method multi-metric comprehensive comparison.
 **Upgrades**: Value labels at each vertex, threshold ring (e.g., 0.8 baseline), area ratio annotation in center.
@@ -838,7 +838,7 @@ save_fig(fig, 'figures/fig_radar.pdf')
 
 ---
 
-## 11. Multi-Dataset Benchmark Table — 多数据集基准表
+## 11. 3D Feature Scatter — 3D 特征散点
 
 **Use case**: High-dimensional feature visualization in 3D with class separation.
 **Upgrades**: Semi-transparent convex hulls per class, 2D projections on coordinate walls, class labels.
@@ -912,7 +912,7 @@ save_fig(fig, 'figures/fig_3d_features.pdf')
 
 ---
 
-## 12. Error Analysis — 错误分析图
+## 12. Efficiency Bubble Chart — 效率气泡图（Accuracy-FLOPs 权衡 + Pareto 前沿）
 
 **Use case**: Accuracy vs FLOPs/Params trade-off. Common in CV/NLP model comparison.
 **Upgrades**: Pareto frontier line, "better" direction arrow, iso-efficiency contour lines, bubble size legend.

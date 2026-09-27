@@ -151,7 +151,8 @@ mkdir -p paper/sections
 
 TMPL_BASE="_templates"
 
-[ -d "$TMPL_BASE" ] || TMPL_BASE="templates"
+[ -d "$TMPL_BASE" ] || TMPL_BASE="../comp-paper-zh/_templates"
+[ -d "$TMPL_BASE" ] || { echo "⛔ 模板目录不存在：_templates/ 与 ../comp-paper-zh/_templates 均缺失" >&2; exit 1; }
 
 # Template selection: the canonical CONTEST_ID transcribed verbatim from
 # contest_profile.contest_id (a comp_rules.json top-level key). Never guessed from
@@ -169,7 +170,7 @@ case "$CONTEST_ID" in
 
         echo "Using MCM/ICM template (mcmthesis)"
 
-        cp "$TMPL_BASE/mcm/"* paper/ 2>/dev/null
+        cp "$TMPL_BASE/mcm/"* paper/ || { echo "⛔ 模板复制失败（见 paper/ 权限与 $TMPL_BASE）"; exit 1; }
 
         ;;
 
@@ -182,7 +183,7 @@ case "$CONTEST_ID" in
         # never reach another contest's deliverable.
         echo "Using certcup_en standalone article skeleton (archive: template_cls=article, Summary standalone page)"
 
-        cp "$TMPL_BASE/certcup_en/"* paper/ 2>/dev/null
+        cp "$TMPL_BASE/certcup_en/"* paper/ || { echo "⛔ 模板复制失败（见 paper/ 权限与 $TMPL_BASE）"; exit 1; }
 
         ;;
 
@@ -190,7 +191,7 @@ case "$CONTEST_ID" in
 
         echo "Using APMCM template (apmcmthesis)"
 
-        cp "$TMPL_BASE/apmcm/"* paper/ 2>/dev/null
+        cp "$TMPL_BASE/apmcm/"* paper/ || { echo "⛔ 模板复制失败（见 paper/ 权限与 $TMPL_BASE）"; exit 1; }
 
         ;;
 
@@ -938,7 +939,7 @@ The CUMCM statement format (Chinese "AI工具使用声明" + `_utils/build_ai_di
 
 ```bash
 
-bash _utils/writing_check.sh paper/ 2>/dev/null || bash skills/shared-scripts/writing_check.sh paper/
+bash _utils/writing_check.sh paper/ || { echo "⛔ 模板复制失败（见 paper/ 权限与 $TMPL_BASE）"; exit 1; } || bash skills/shared-scripts/writing_check.sh paper/
 
 ```
 

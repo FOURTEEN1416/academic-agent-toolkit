@@ -406,6 +406,13 @@ for _f in "$TMPL_BASE/$TMPL/"*.tex "$TMPL_BASE/$TMPL/"*.cls "$TMPL_BASE/$TMPL/"*
     [ -e "$_f" ] || continue
     cp "$_f" paper/ || { echo "❌ 模板复制失败：$_f -> paper/"; exit 1; }
 done
+# 图/书目族（wuyi image2.png、dongsansheng refs.bib、huawei gmcm.bst 等骨架组成）
+for _f in "$TMPL_BASE/$TMPL/"*.png "$TMPL_BASE/$TMPL/"*.bib "$TMPL_BASE/$TMPL/"*.bst; do
+    [ -e "$_f" ] || continue
+    cp "$_f" paper/ || { echo "❌ 模板复制失败：$_f -> paper/"; exit 1; }
+done
+# 字体子目录（huazhong/shuweibei 等模板以 Path=fonts/ 相对引用，整目录随迁）
+if [ -d "$TMPL_BASE/$TMPL/fonts" ]; then cp -r "$TMPL_BASE/$TMPL/fonts" paper/; fi
 echo "Template source: $CONTEST_ID -> $TMPL_BASE/$TMPL"
 
 # ⛔ 同文档类复用核对（复制后立即执行）：复用骨架不携带另一赛事的封面、队号或声明。
@@ -563,7 +570,7 @@ Use the template as-is. Only modify:
 
 | 项 | 硬约束 | 自检命令/位置 |
 |---|---|---|
-| 页边距 | 上下左右各 **≥ 2.5 cm**（模板默认 22.5mm **不合规**） | `grep -n "geometry" paper/main.tex` / `gmcmthesis.cls` |
+| 页边距 | 上下左右各 **≥ 2.5 cm**（gmcmthesis.cls 默认已修 25mm，勿回退） | `grep -n "geometry" paper/main.tex` / `gmcmthesis.cls` |
 | 页眉 | **禁止有页眉** | PDF 顶部 50pt 区无文字 |
 | 页码 | 自**摘要页**起、页脚中部、阿拉伯数字从 1 连续 | PDF 逐页页脚 |
 | 首页 | 封皮不可删，4 logo 不可替换；**除首页外不得出现单位/姓名/队号**（否则论文无效） | 全文检索校名/姓名/队号 |
@@ -571,7 +578,7 @@ Use the template as-is. Only modify:
 | 字体 | 题目三号黑体、一级标题四号黑体（均居中）、其余小四宋体、单倍行距 | cls 设置 |
 | 参考文献 | 方括号编号、**按正文引用次序**；书籍/期刊/网络三种表述；**引用程序须注明来源**（未标注且雷同按抄袭认定） | 文末 + 正文引用处 |
 | 承诺书 | 官方模板**无承诺书页**（校级材料，不入论文） | 前 3 页不得命中「承诺书」 |
-| 页数 | 正文 ≤ 50 页（附录不计） | `quick_gates --compliance-profile comp_huawei` |
+| 页数 | 当届 **unknown**（50 为历届内部口径不作官方主张；本轮任务口径经任务级覆盖通道下发） | `quick_gates --compliance-profile comp_huawei` |
 
 8. **⛔ 华为杯专属：模板与标题约束（gmcmthesis，只对华为杯生效）**：
 
@@ -675,7 +682,7 @@ If you need to add packages, add them after the existing `\usepackage` block, be
 
 Do not write main.tex from scratch — the template handles fonts, spacing, margins, citation format, headers/footers.
 
-Note: citation command depends on the template. **stats / huawei / dongsansheng / apmcm_zh / mathorcup / huashubei** load `natbib` with the `super`(or `\setcitestyle{super}`) option → use `\cite{key}` directly (auto-superscript). **cumcm / wuyi** load `natbib[numbers]` **without** super → `\cite` gives inline `[1]`, so body text MUST use `\upcite{key}` to get superscript. **huazhong / apmcm / changsanjiao / diangongbei / shuweibei / mcm** use a manual `\@cite` superscript hack (or manual thebibliography) → use `\cite{key}` directly. ⛔ `\upcite` is ONLY defined in cumcm / huazhong / wuyi / dongsansheng — do NOT use `\upcite` in any other template (undefined → compile error); use `\cite` there.
+Note: citation command depends on the template. **stats / huawei / dongsansheng / apmcm_zh / mathorcup / huashubei** load `natbib` with the `super`(or `\setcitestyle{super}`) option → use `\cite{key}` directly (auto-superscript). **cumcm / wuyi**（含按派发表落到 `_templates/cumcm/` 的 huazhong）carry **no natbib load** — they define a manual `\@cite` superscript hack → use `\cite{key}` directly (superscript automatic). **apmcm / changsanjiao / diangongbei / shuweibei / mcm** use manual thebibliography → use `\cite{key}` directly. ⛔ `\upcite` is ONLY defined in cumcm / huazhong / wuyi / dongsansheng — do NOT use `\upcite` in any other template (undefined → compile error); use `\cite` there.
 
 Do not redefine LaTeX built-in commands (`\sin`, `\cos`, `\tanh`, `\log`, `\exp`, `\max`, `\min`, etc.) in math_commands.tex.
 

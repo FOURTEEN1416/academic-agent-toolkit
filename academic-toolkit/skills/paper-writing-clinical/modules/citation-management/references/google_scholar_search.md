@@ -417,13 +417,14 @@ time.sleep(random.uniform(3, 7))  # Random delay 3-7 seconds
 
 1. **Start simple, then refine**:
    ```
-   # Too specific initially
-   intitle:"deep learning" intitle:review source:Nature 2023..2024
+   # Too specific initially (note: years cannot be written into the query —
+   # year ranges are not search operators; use --year-start/--year-end)
+   intitle:"deep learning" intitle:review source:Nature
    
    # Better approach
    deep learning review
    # Review results
-   # Add intitle:, source:, year filters as needed
+   # Add intitle:, source:, and --year-start/--year-end filters as needed
    ```
 
 2. **Use multiple search strategies**:
@@ -440,8 +441,8 @@ time.sleep(random.uniform(3, 7))  # Random delay 3-7 seconds
 
 4. **Combine operators strategically**:
    ```
-   # Good combination
-   author:Church intitle:"synthetic biology" 2015..2024
+   # Good combination (year range goes to --year-start/--year-end, not the query)
+   author:Church intitle:"synthetic biology"
    
    # Find reviews by specific author on topic in recent years
    ```
@@ -492,10 +493,14 @@ time.sleep(random.uniform(3, 7))  # Random delay 3-7 seconds
    # Save search results for later analysis
    python scripts/search_google_scholar.py "your topic" \
      --output topic_papers.json
-   
-   # Can re-process later without re-searching
+
+   # Re-process later without re-searching: the JSON has a "results" array with
+   # a url field (no DOI field). Pull the URLs out, one per line, then feed the
+   # file to extract_metadata.py — only URLs embedding a DOI/PMID/arXiv ID resolve
+   python -c "import json; d = json.load(open('topic_papers.json')); print('\n'.join(r.get('url','') for r in d['results']))" \
+     | grep -v '^$' > topic_ids.txt
    python scripts/extract_metadata.py \
-     --input topic_papers.json \
+     --input topic_ids.txt \
      --output topic_refs.bib
    ```
 
@@ -508,13 +513,15 @@ Combine multiple operators for precise searches:
 ```
 # Highly cited reviews on specific topic by known authors
 intitle:review "machine learning" ("drug discovery" OR "drug development")
-author:Horvath OR author:Bengio 2020..2024
+author:Horvath OR author:Bengio
 
 # Method papers excluding reviews
 intitle:method "protein folding" -review -survey
 
 # Papers in top journals only
-("Nature" OR "Science" OR "Cell") CRISPR 2022..2024
+# (add --year-start 2022 --year-end 2024 for recency; year ranges
+#  cannot be typed into the query — see "Year Range" above)
+("Nature" OR "Science" OR "Cell") CRISPR
 ```
 
 ### Finding Open Access Papers
@@ -528,10 +535,10 @@ machine learning
 # Check arXiv, bioRxiv versions
 ```
 
-**In script**:
+**In script**: `search_google_scholar.py` has no open-access filter flag. Search the topic normally, then look for open-access versions in the results ([PDF] links, "All X versions", arXiv/bioRxiv entries):
+
 ```bash
 python scripts/search_google_scholar.py "topic" \
-  --open-access-only \
   --output open_access_papers.json
 ```
 
@@ -680,9 +687,21 @@ python scripts/search_google_scholar.py "topic" \
   --format json \
   --output results.json
 
-# Later: extract full metadata
+# Later: extract the result URLs (one per line — extract_metadata.py identifies
+# each line and cannot parse the JSON directly)
+python -c "import json; d = json.load(open('results.json')); print('\n'.join(r.get('url','') for r in d['results']))" \
+  | grep -v '^$' > result_ids.txt
+
+# Then extract full metadata (partial success expected for non-DOI URLs)
 python scripts/extract_metadata.py \
-  --input results.json \
+  --input result_ids.txt \
+  --output references.bib
+```
+
+**Export directly to BibTeX** (reliable path — the search script formats BibTeX itself):
+```bash
+python scripts/search_google_scholar.py "topic" \
+  --format bibtex \
   --output references.bib
 ```
 

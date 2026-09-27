@@ -66,3 +66,4 @@ uv run python scan_pr_skills.py \
   --output /tmp/treatment-plans-pr-scan.md \
   skills/treatment-plans
 ```
+> **Note:** `scan_pr_skills.py` is an upstream script not bundled with this toolkit; run this step in the upstream repository.

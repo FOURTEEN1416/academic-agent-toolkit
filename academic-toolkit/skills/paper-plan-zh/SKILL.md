@@ -211,7 +211,7 @@ ls _utils/figure_recipes_*.md 2>/dev/null || ls skills/shared-scripts/figure_rec
 
 
 
-FIGURE_MANIFEST 显式标注 `[2-panel]` / `[4-panel]` / `[single]`（默认 single 可省略），示例：`fig_ablation [2-panel] — w/ vs w/o 模块 — academic #3 — 章节: 消融`。详细判据见 `_utils/writing_rules.md` 第 4 条。**AI 自己判断是否组合，不强求数量，鼓励"信息密度 > 占页数"的设计。**
+FIGURE_MANIFEST 显式标注 `[2-panel]` / `[4-panel]` / `[single]`（默认 single 可省略），示例：`fig_ablation [2-panel] — w/ vs w/o 模块 — academic #1 — 章节: 消融`。详细判据见 `_utils/writing_rules.md` 第 4 条。**AI 自己判断是否组合，不强求数量，鼓励"信息密度 > 占页数"的设计。**
 
 
 

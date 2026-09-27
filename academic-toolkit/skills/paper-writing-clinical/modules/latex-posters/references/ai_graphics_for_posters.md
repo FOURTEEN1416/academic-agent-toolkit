@@ -273,7 +273,7 @@ After passing the pre-generation review, identify visual elements needed:
 
 Use the appropriate tool for each element type:
 
-**For Schematics and Diagrams (scientific-schematics):**
+**For Schematics and Diagrams (local `scripts/generate_schematic.py`):**
 ```bash
 # Create figures directory
 mkdir -p figures
@@ -299,7 +299,7 @@ python scripts/generate_schematic.py "POSTER FORMAT for A0. ONE case study: Larg
 # If you need 3 cases → make 3 separate simple graphics (not one complex graphic)
 ```
 
-**For Stylized Blocks and Graphics (Nano Banana Pro):**
+**For Stylized Blocks and Graphics (local `scripts/generate_schematic.py`):**
 ```bash
 # Title block - SIMPLE
 python scripts/generate_schematic.py "POSTER FORMAT for A0. Title block: 'ML FOR DRUG DISCOVERY' in HUGE bold text (120pt+). Dark blue background. ONE subtle icon. NO other text. 40% white space. Readable from 15 feet." -o figures/title_block.png

@@ -93,3 +93,4 @@ uv run python scan_pr_skills.py \
   --output /tmp/scholar-evaluation-pr-scan.md \
   skills/scholar-evaluation
 ```
+> **Note:** `scan_pr_skills.py` is an upstream script not bundled with this toolkit; run this step in the upstream repository.

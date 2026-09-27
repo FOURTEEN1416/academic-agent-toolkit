@@ -396,7 +396,7 @@
 - [ ] Distinguishes confirmatory from exploratory
 
 ### Reporting Guidelines
-- [ ] **RCTs:** CONSORT 2010 checklist (with applicable extensions)
+- [ ] **RCTs:** CONSORT 2025 checklist (supersedes 2010; with applicable extensions)
 - [ ] **Observational studies:** STROBE checklist
 - [ ] **Systematic reviews:** PRISMA 2020 checklist
 - [ ] **Diagnostic studies:** STARD checklist

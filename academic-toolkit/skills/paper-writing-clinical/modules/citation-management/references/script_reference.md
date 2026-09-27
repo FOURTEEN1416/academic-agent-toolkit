@@ -2,7 +2,8 @@
 
 Purpose, arguments, and usage examples for each script in `scripts/`:
 `search_google_scholar.py`, `search_pubmed.py`, `extract_metadata.py`,
-`validate_citations.py`, `format_bibtex.py`, and `doi_to_bibtex.py`.
+`validate_citations.py`, `format_bibtex.py`, `doi_to_bibtex.py`,
+`generate_schematic.py`, and `generate_schematic_ai.py`.
 
 ## Tools and Scripts
 
@@ -103,7 +104,7 @@ python scripts/extract_metadata.py \
 # Different output formats
 python scripts/extract_metadata.py \
   --doi 10.1038/nature12345 \
-  --format json  # or bibtex, yaml
+  --format json  # or bibtex
 ```
 
 ### validate_citations.py
@@ -149,10 +150,9 @@ Format and clean BibTeX files.
 
 **Features**:
 - Standardize formatting
-- Sort entries (by key, year, author)
+- Fix common issues by default (DOI URL prefixes, field cleanup; disable with `--no-fix`)
+- Sort entries (by key, year, author, title)
 - Remove duplicates
-- Validate syntax
-- Fix common errors
 - Enforce citation key conventions
 
 **Usage**:
@@ -175,10 +175,11 @@ python scripts/format_bibtex.py references.bib \
 python scripts/format_bibtex.py references.bib \
   --deduplicate \
   --sort year \
-  --validate \
-  --auto-fix \
   --output final_refs.bib
 ```
+
+This script formats only — it does not validate. For error/duplicate reporting
+and venue/min-count/manuscript checks, use `validate_citations.py`.
 
 ### doi_to_bibtex.py
 
@@ -186,9 +187,9 @@ Quick DOI to BibTeX conversion.
 
 **Features**:
 - Fast single DOI conversion
-- Batch processing
+- Batch processing (multiple DOIs or an input file)
 - Multiple output formats
-- Clipboard support
+- Configurable request delay
 
 **Usage**:
 ```bash
@@ -203,7 +204,26 @@ python scripts/doi_to_bibtex.py \
 
 # From file (one DOI per line)
 python scripts/doi_to_bibtex.py --input dois.txt --output references.bib
+```
 
-# Copy to clipboard
-python scripts/doi_to_bibtex.py 10.1038/nature12345 --clipboard
+### generate_schematic.py
+
+**Status**: 待处置（安全重设计口径下暂缓使用）— pending disposition under the safe-redesign decision; not part of the standard citation workflow.
+
+Generate scientific schematics from a natural-language prompt via Nano Banana 2.
+
+**Usage**:
+```bash
+python scripts/generate_schematic.py "CONSORT flowchart" -o flowchart.png --doc-type journal
+```
+
+### generate_schematic_ai.py
+
+**Status**: 待处置（安全重设计口径下暂缓使用）— pending disposition under the safe-redesign decision; not part of the standard citation workflow.
+
+AI-powered schematic generation with iterative quality review (requires `OPENROUTER_API_KEY`).
+
+**Usage**:
+```bash
+python scripts/generate_schematic_ai.py "Neural network architecture diagram" -o architecture.png --doc-type journal
 ```

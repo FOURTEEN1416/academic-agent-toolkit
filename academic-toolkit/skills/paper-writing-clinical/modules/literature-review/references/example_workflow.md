@@ -60,9 +60,10 @@ cat crispr_sickle_cell_review_citation_report.json
 python scripts/verify_citations.py crispr_sickle_cell_review.md
 
 # 8. Generate professional PDF
-python scripts/generate_pdf.py crispr_sickle_cell_review.md \
-  --citation-style nature \
-  --output crispr_sickle_cell_review.pdf
+# (output PDF is a positional argument; the script silently ignores unknown flags,
+#  so there is no --output option)
+python scripts/generate_pdf.py crispr_sickle_cell_review.md crispr_sickle_cell_review.pdf \
+  --citation-style nature
 
 # 9. Review final PDF and markdown outputs
 ```

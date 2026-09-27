@@ -2,7 +2,7 @@
 
 This reference answers exactly one decision: **how does litreview spend its search budget across the 5/10/20 depth tiers, and what makes the cross-search intelligence layer add value beyond per-query results?**
 
-Pair with `scripts/cross_search_aggregator.py` for the deterministic implementation.
+Pair with `cross_search_aggregator.py` for the deterministic implementation.
 
 ## The Core Constraint
 
@@ -78,7 +78,7 @@ Use when:
 
 ## Cross-Search Intelligence
 
-Three trackers across ALL Phase 3 search results. Run after Phase 3 completes via `scripts/cross_search_aggregator.py --session NAME`.
+Three trackers across ALL Phase 3 search results. Run after Phase 3 completes via `cross_search_aggregator.py --session NAME`.
 
 ### Tracker 1: Repeat-Hit Papers (foundational signal)
 
@@ -133,13 +133,13 @@ search_1 → wait response → record → 1 second pause → search_2 → ...
 
 If parallel: rate limit triggers 429, error counter increments, after 3 consecutive failures → stop.
 
-`scripts/citation_tracker.py --action record_search` enforces the timestamp gap (rejects calls within 1s of prior).
+`citation_tracker.py --action record_search` enforces the timestamp gap (rejects calls within 1s of prior).
 
 ## Lane Check (Replaces Plan-Tier Detection)
 
 One runtime check at session start: **are the Consensus MCP tools available in this session?**
 
-- **No** → use the free lane (PubMed E-utilities + OpenAlex via `scripts/free_search.py`). Do not attempt tier detection. Do not parse response text for marketing copy ("Showing top 10" / "upgrade"). There is nothing to detect — the free lane has no tiers.
+- **No** → use the free lane (PubMed E-utilities + OpenAlex via `free_search.py`). Do not attempt tier detection. Do not parse response text for marketing copy ("Showing top 10" / "upgrade"). There is nothing to detect — the free lane has no tiers.
 - **Yes** → run Consensus queries *in addition to* the free lane; merge and dedupe by DOI/title.
 
 Surface the lane at the checkpoint:

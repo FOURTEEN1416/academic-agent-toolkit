@@ -71,5 +71,6 @@ uv run python scan_pr_skills.py \
   --output /tmp/peer-review-pr-scan.md \
   skills/peer-review
 ```
+> **Note:** `scan_pr_skills.py` is an upstream script not bundled with this toolkit; run this step in the upstream repository.
 
 The repository-level `SECURITY.md` was intentionally not edited in this scoped refresh; its generated snapshot will update through the repository’s normal scan process.

@@ -116,7 +116,7 @@ Detailed formatting guidelines are in `references/citation_styles.md`. Quick ref
 
 ### Prioritizing High-Impact Papers (CRITICAL)
 
-**Always prioritize influential, highly-cited papers from reputable authors and top venues.** Quality matters more than quantity in literature reviews.
+**Always prioritize influential, highly-cited papers from reputable authors and top venues.** Quality matters more than quantity in literature reviews. **These signals are retrieval-ranking heuristics, not validity proxies**: citation counts, venue tiers, and author reputation decide what to read next, but evidence evaluation must verify that each cited source actually supports the claim — citation count or prestige never substitutes for that support check.
 
 #### Citation Count Thresholds
 

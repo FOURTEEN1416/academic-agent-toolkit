@@ -150,7 +150,7 @@ Validation rules and venue standards are in
 ### Phase 5: Integration with Writing Workflow
 
 Search, extract, format, validate, then cite. End-to-end sequences — including the
-literature-review and Zotero/pyzotero export paths — are in
+literature-review and Zotero (`lit-zotero-obsidian`) export paths — are in
 [references/core_workflow.md](references/core_workflow.md) and
 [references/example_workflows.md](references/example_workflows.md).
 

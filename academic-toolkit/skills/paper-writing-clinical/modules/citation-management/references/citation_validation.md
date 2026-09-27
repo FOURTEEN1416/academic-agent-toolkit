@@ -147,8 +147,10 @@ doi OR url    % At least one required
 
 #### Validation Script
 
+Required-field checking runs by default (there is no separate flag):
+
 ```bash
-python scripts/validate_citations.py references.bib --check-required-fields
+python scripts/validate_citations.py references.bib --verbose
 ```
 
 **Output**:
@@ -215,8 +217,10 @@ author = {{World Health Organization}}
 
 **Automated validation**:
 ```bash
-python scripts/validate_citations.py references.bib --check-authors
+python scripts/validate_citations.py references.bib --verbose
 ```
+
+Author-format checking runs by default as part of the base validation (there is no separate flag).
 
 **Checks for**:
 - Proper separator (and, not &, ; , etc.)
@@ -367,8 +371,10 @@ url = {bit.ly/...}  % URL shortener (not permanent)
 
 **Automated detection**:
 ```bash
-python scripts/validate_citations.py references.bib --check-duplicates
+python scripts/validate_citations.py references.bib --verbose
 ```
+
+Duplicate detection (duplicate DOIs, duplicate keys, identical titles) runs by default as part of the base validation (there is no separate flag).
 
 **Output**:
 ```
@@ -454,8 +460,10 @@ title = {Title with {Protected} Text}
 #### Validation
 
 ```bash
-python scripts/validate_citations.py references.bib --check-syntax
+python scripts/validate_citations.py references.bib
 ```
+
+Syntax and structure checks (balanced braces, commas, entry structure, key format) run by default as part of the base validation (there is no separate flag).
 
 **Checks**:
 - Valid BibTeX structure
@@ -539,38 +547,30 @@ Examine validation report:
 1. Standardize formatting
 2. Add URLs for accessibility
 
-### Step 4: Auto-Fix
+### Step 4: Generate a JSON Report (No Auto-Fix)
 
-Use auto-fix for safe corrections:
+**Note**: The `--auto-fix` flag exists but is not implemented — the script cannot rewrite your BibTeX file for you. Generate a JSON report instead and use it to guide manual revisions:
 
 ```bash
 python scripts/validate_citations.py references.bib \
-  --auto-fix \
-  --output fixed_references.bib
+  --report validation_report.json
 ```
 
-**Auto-fix can**:
-- Fix page range format (- to --)
-- Remove "pp." from pages
-- Standardize author separators
-- Fix common syntax errors
-- Normalize field order
+The report records, per entry:
+- Missing required fields
+- Invalid year or DOI formats
+- Page range format issues
+- Author separator problems
+- Duplicate DOIs, keys, and identical titles
 
-**Auto-fix cannot**:
-- Add missing information
-- Find correct DOIs
-- Determine which duplicate to keep
-- Fix semantic errors
+All corrections must be made manually in the BibTeX file using this report as the worklist.
 
 ### Step 5: Manual Review
 
-Review auto-fixed file:
+Fix the issues listed in the report directly in `references.bib`:
 ```bash
-# Check what changed
-diff references.bib fixed_references.bib
-
 # Review specific entries that had errors
-grep -A 10 "Smith2024" fixed_references.bib
+grep -A 10 "Smith2024" references.bib
 ```
 
 ### Step 6: Re-Validate
@@ -578,7 +578,7 @@ grep -A 10 "Smith2024" fixed_references.bib
 Validate after fixes:
 
 ```bash
-python scripts/validate_citations.py fixed_references.bib --verbose
+python scripts/validate_citations.py references.bib --verbose
 ```
 
 Should show:
@@ -641,7 +641,8 @@ python scripts/validate_citations.py refs.bib
 python scripts/validate_citations.py refs.bib
 
 # Before submission
-python scripts/validate_citations.py refs.bib --strict
+python scripts/validate_citations.py refs.bib --verbose \
+  --report submission_check_report.json
 ```
 
 ### 2. Use Automated Tools
@@ -654,20 +655,21 @@ Don't validate manually - use scripts:
 
 ### 3. Keep Backup
 
+The validator never writes to your BibTeX file (auto-fix is not implemented), so manual edits are the correction path — keep a backup before editing:
+
 ```bash
-# Before auto-fix
+# Before manual corrections
 cp references.bib references_backup.bib
 
-# Run auto-fix
+# Generate the validation report
 python scripts/validate_citations.py references.bib \
-  --auto-fix \
-  --output references_fixed.bib
+  --report validation_report.json
 
-# Review changes
-diff references.bib references_fixed.bib
+# Fix issues by hand in references.bib, then re-validate
+python scripts/validate_citations.py references.bib --verbose
 
-# If satisfied, replace
-mv references_fixed.bib references.bib
+# If needed, compare against the backup
+diff references_backup.bib references.bib
 ```
 
 ### 4. Fix High-Priority First

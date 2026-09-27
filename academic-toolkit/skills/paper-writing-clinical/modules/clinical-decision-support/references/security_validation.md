@@ -58,3 +58,4 @@ uv run python scan_pr_skills.py \
   --output /tmp/clinical-decision-support-pr-scan.md \
   skills/clinical-decision-support
 ```
+> **Note:** `scan_pr_skills.py` is an upstream script not bundled with this toolkit; run this step in the upstream repository.

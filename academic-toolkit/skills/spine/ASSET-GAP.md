@@ -10,3 +10,11 @@
 
 - scripts/integrity_audit.py
 - scripts/translate_guard.py
+
+## 补登（2026-09-28 逐行轮：references/orchestrator-branch-map.md 引用的上游 playbook）
+
+- `references/intake.md`、`references/research.md`、`references/citation.md`、`references/rewrite.md`、
+  `references/build.md`、`references/audit.md`、`references/latex.md`、`references/translate.md`、
+  `references/submission.md`（branch-map 引用的 9 份 playbook，本仓已拆分为 spine-* 独立技能——
+  路由请改走各 spine-* 技能）
+- `scripts/progress_check.py`（branch-map :70 引用）

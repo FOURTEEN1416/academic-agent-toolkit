@@ -108,7 +108,7 @@ User pastes into PubMed / OpenAlex / Scopus (or Consensus, if they use it) to co
 
 **Length:** 3-5 groups.
 
-**Source:** `scripts/cross_search_aggregator.py` recurring-authors output.
+**Source:** `cross_search_aggregator.py` recurring-authors output.
 
 **Per group:**
 - Lead author (or 2-3 authors if collaborative)

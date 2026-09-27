@@ -100,8 +100,8 @@ version.
 |---|---|
 | [references/policy-principles.md](references/policy-principles.md) | You need the governing Nature/Springer Nature data-sharing rules or edge-case policy logic |
 | [references/chinese-author-alignment.md](references/chinese-author-alignment.md) | The user writes in Chinese, needs bilingual wording, or provides Chinese availability notes |
-| [references/statement-patterns.md](references/statement-patterns.md) | You need ready-to-adapt Data Availability statement patterns |
-| [references/repository-and-identifiers.md](references/repository-and-identifiers.md) | You need repository choice, accession, DOI, embargo, versioning, or dataset citation guidance |
+| [references/statement-patterns.md](statement-patterns.md) | You need ready-to-adapt Data Availability statement patterns |
+| [references/repository-and-identifiers.md](repository-and-identifiers.md) | You need repository choice, accession, DOI, embargo, versioning, or dataset citation guidance |
 | [references/fair-metadata-checklist.md](references/fair-metadata-checklist.md) | You need FAIR checks, README metadata, file organization, licences, provenance, or DataCite fields |
 | [references/source-basis.md](references/source-basis.md) | You need to justify rules with official sources or check which source supports which rule |
 

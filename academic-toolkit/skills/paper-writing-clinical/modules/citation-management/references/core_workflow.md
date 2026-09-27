@@ -338,10 +338,9 @@ python scripts/format_bibtex.py references.bib \
   --deduplicate \
   --output clean_references.bib
 
-# Validate and report issues
-python scripts/format_bibtex.py references.bib \
-  --validate \
-  --report validation_report.txt
+# Validate and report issues (separate tool — format_bibtex.py has no validation flags)
+python scripts/validate_citations.py references.bib \
+  --report validation_report.json
 ```
 
 **Formatting Operations**:
@@ -488,33 +487,37 @@ python scripts/search_pubmed.py \
   --limit 200 \
   --output crispr_papers.json
 
-# 2. Extract DOIs from search results and convert to BibTeX
+# 2. Pull the DOI/PMID fields out of the search JSON into an identifier file
+#    (extract_metadata.py reads one identifier per line — it cannot parse the JSON directly)
+python -c "import json; d = json.load(open('crispr_papers.json')); print('\n'.join(r.get('doi') or r.get('pmid', '') for r in d['results']))" \
+  | grep -v '^$' > crispr_ids.txt
+
+# 3. Convert identifiers to BibTeX
 python scripts/extract_metadata.py \
-  --input crispr_papers.json \
+  --input crispr_ids.txt \
   --output crispr_refs.bib
 
-# 3. Add specific papers by DOI
+# 4. Add specific papers by DOI
 python scripts/doi_to_bibtex.py 10.1038/nature12345 >> crispr_refs.bib
 python scripts/doi_to_bibtex.py 10.1126/science.abcd1234 >> crispr_refs.bib
 
-# 4. Format and clean the BibTeX file
+# 5. Format and clean the BibTeX file
 python scripts/format_bibtex.py crispr_refs.bib \
   --deduplicate \
   --sort year \
   --descending \
   --output references.bib
 
-# 5. Validate all citations
+# 6. Validate all citations (auto-fix is not implemented; the script reports only)
 python scripts/validate_citations.py references.bib \
-  --auto-fix \
   --report validation.json \
-  --output final_references.bib
+  --verbose
 
-# 6. Review validation report and fix any remaining issues
+# 7. Review validation report and fix any remaining issues by hand
 cat validation.json
 
-# 7. Use in your LaTeX document
-# \bibliography{final_references}
+# 8. Use in your LaTeX document
+# \bibliography{references}
 ```
 
 #### Integration with Literature Review Skill
@@ -535,37 +538,36 @@ This skill complements the `literature-review` skill:
 # Verify all citations in the review document
 python scripts/validate_citations.py my_review_references.bib --report review_validation.json
 
-# Format for specific citation style if needed
+# Format, deduplicate, and sort if needed (format_bibtex.py has no --style flag;
+# citation style is chosen at LaTeX compile time)
 python scripts/format_bibtex.py my_review_references.bib \
-  --style nature \
+  --deduplicate \
+  --sort key \
   --output formatted_refs.bib
 ```
 
-#### Integration with Zotero (pyzotero Skill)
+#### Integration with Zotero (lit-zotero-obsidian Skill)
 
-When the user already keeps references in Zotero, treat the Zotero library as the source of truth for the bibliography and use this skill for validation and formatting. The `pyzotero` skill covers the library side — reading items and collections, creating and updating references, uploading attachments, and exporting citations via the Zotero Web API v3.
+When the user already keeps references in Zotero, treat the Zotero library as the source of truth for the bibliography and use this skill for validation and formatting. The `lit-zotero-obsidian` skill covers the Zotero side — it bridges the Zotero library into the project knowledge base (one canonical paper note per paper under `Sources/Papers/`, synthesis under `Knowledge/`, and the derived `Maps/literature.canvas` graph).
 
-**Zotero Library (`pyzotero`)** → Library of record: storage, collections, tags, attachments
-**Citation Management Skill** → Metadata accuracy: validation, enrichment, style formatting
+**Zotero Library (`lit-zotero-obsidian`)** → Library of record: storage, collections, per-paper notes, KB integration
+**Citation Management Skill** → Metadata accuracy: validation, enrichment, BibTeX cleanup
 
 **Combined Workflow**:
-1. Use `pyzotero` to pull the working set from the Zotero library, filtered by collection or tag
-2. Export it as BibTeX with `zot.add_parameters(format='bibtex')` (see `pyzotero` → `references/exports.md`)
+1. Use `lit-zotero-obsidian` to pull the working set from the Zotero library, filtered by collection or tag
+2. Export the desired collection from Zotero as BibTeX (Zotero's built-in BibTeX export) → write to `zotero_export.bib`
 3. Use `citation-management` to validate the exported entries and repair incomplete metadata
 4. Use `citation-management` to format for the target venue
-5. Optionally use `pyzotero` to write corrected fields back so the library benefits from the fixes
+5. Optionally write corrected fields back in Zotero so the library benefits from the fixes
 
 ```bash
-# 1-2. Export the desired collection from Zotero as BibTeX (pyzotero skill)
-#      zot.add_parameters(format='bibtex'); bibtex = zot.collection_items(collection_id)
-#      → write to zotero_export.bib
-
 # 3. Validate the exported bibliography
 python scripts/validate_citations.py zotero_export.bib --report zotero_validation.json
 
-# 4. Format for the target venue
+# 4. Format for the target venue (deduplicate and sort; style is applied at compile time)
 python scripts/format_bibtex.py zotero_export.bib \
-  --style nature \
+  --deduplicate \
+  --sort key \
   --output formatted_refs.bib
 ```
 

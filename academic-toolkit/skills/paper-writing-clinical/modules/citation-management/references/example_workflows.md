@@ -9,50 +9,53 @@ list of DOIs, cleaning an existing BibTeX file, and finding and citing seminal p
 
 ```bash
 # Step 1: Find key papers on your topic
+# (Google Scholar: export BibTeX directly — GS results carry no DOI field)
 python scripts/search_google_scholar.py "transformer neural networks" \
   --year-start 2017 \
   --limit 50 \
-  --output transformers_gs.json
+  --format bibtex \
+  --output transformers_gs.bib
 
 python scripts/search_pubmed.py "deep learning medical imaging" \
   --date-start 2020 \
   --limit 50 \
   --output medical_dl_pm.json
 
-# Step 2: Extract metadata from search results
-python scripts/extract_metadata.py \
-  --input transformers_gs.json \
-  --output transformers.bib
+# Step 2: Pull DOI/PMID identifiers out of the PubMed JSON into a text file
+# (one identifier per line — extract_metadata.py identifies each line; it
+#  cannot parse the JSON file directly)
+python -c "import json; d = json.load(open('medical_dl_pm.json')); print('\n'.join(r.get('doi') or r.get('pmid','') for r in d['results']))" \
+  | grep -v '^$' > medical_ids.txt
 
+# Step 3: Extract metadata from the identifier file
 python scripts/extract_metadata.py \
-  --input medical_dl_pm.json \
+  --input medical_ids.txt \
   --output medical.bib
 
-# Step 3: Add specific papers you already know
+# Step 4: Add specific papers you already know
 python scripts/doi_to_bibtex.py 10.1038/s41586-021-03819-2 >> specific.bib
 python scripts/doi_to_bibtex.py 10.1126/science.aam9317 >> specific.bib
 
-# Step 4: Combine all BibTeX files
-cat transformers.bib medical.bib specific.bib > combined.bib
+# Step 5: Combine all BibTeX files
+cat transformers_gs.bib medical.bib specific.bib > combined.bib
 
-# Step 5: Format and deduplicate
+# Step 6: Format and deduplicate
 python scripts/format_bibtex.py combined.bib \
   --deduplicate \
   --sort year \
   --descending \
-  --output formatted.bib
+  --output references.bib
 
-# Step 6: Validate
-python scripts/validate_citations.py formatted.bib \
-  --auto-fix \
+# Step 7: Validate (auto-fix is not implemented — the validator reports only)
+python scripts/validate_citations.py references.bib \
   --report validation.json \
-  --output final_references.bib
+  --verbose
 
-# Step 7: Review any issues
+# Step 8: Review any issues
 cat validation.json | grep -A 3 '"errors"'
 
-# Step 8: Use in LaTeX
-# \bibliography{final_references}
+# Step 9: Use in LaTeX
+# \bibliography{references}
 ```
 
 ### Example 2: Converting a List of DOIs
@@ -86,13 +89,12 @@ python scripts/format_bibtex.py step1_formatted.bib \
   --deduplicate \
   --output step2_deduplicated.bib
 
-# Step 3: Validate and auto-fix
+# Step 3: Validate (auto-fix is not implemented — the validator reports only)
 python scripts/validate_citations.py step2_deduplicated.bib \
-  --auto-fix \
-  --output step3_validated.bib
+  --report step3_validation.json
 
-# Step 4: Sort by year
-python scripts/format_bibtex.py step3_validated.bib \
+# Step 4: Fix any reported issues by hand, then sort by year
+python scripts/format_bibtex.py step2_deduplicated.bib \
   --sort year \
   --descending \
   --output clean_references.bib
@@ -109,7 +111,7 @@ cat final_validation.json
 ### Example 4: Finding and Citing Seminal Papers
 
 ```bash
-# Find highly cited papers on a topic
+# Find highly cited papers on a topic (each result includes its citation count)
 python scripts/search_google_scholar.py "AlphaFold protein structure" \
   --year-start 2020 \
   --year-end 2024 \
@@ -117,12 +119,22 @@ python scripts/search_google_scholar.py "AlphaFold protein structure" \
   --limit 20 \
   --output alphafold_seminal.json
 
-# Extract the top 10 by citation count
-# (script will have included citation counts in JSON)
+# Convert to BibTeX — reliable path: the search script exports BibTeX itself
+python scripts/search_google_scholar.py "AlphaFold protein structure" \
+  --year-start 2020 \
+  --year-end 2024 \
+  --sort-by citations \
+  --limit 20 \
+  --format bibtex \
+  --output alphafold_refs.bib
 
-# Convert to BibTeX
+# Alternative two-step: pull the result URLs out of the JSON (one per line),
+# then feed the file to extract_metadata.py. Expect partial success —
+# extract_metadata.py resolves only URLs that embed a DOI, PMID, or arXiv ID.
+python -c "import json; d = json.load(open('alphafold_seminal.json')); print('\n'.join(r.get('url','') for r in d['results']))" \
+  | grep -v '^$' > alphafold_ids.txt
 python scripts/extract_metadata.py \
-  --input alphafold_seminal.json \
+  --input alphafold_ids.txt \
   --output alphafold_refs.bib
 
 # The BibTeX file now contains the most influential papers

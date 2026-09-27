@@ -13,20 +13,21 @@
 ### 命令行调用
 
 ```bash
+# 检查器本体：academic-toolkit/tools/humanities_review.py（cwd = academic-toolkit 根）
 # 评估一个文件
-python scripts/review.py paper.md
+python tools/humanities_review.py paper.md
 
 # 只看错误级别
-python scripts/review.py paper.md --severity error
+python tools/humanities_review.py paper.md --severity error
 
 # JSON输出（方便程序处理）
-python scripts/review.py paper.md --format json
+python tools/humanities_review.py paper.md --format json
 ```
 
 ### Agent 内部调用
 
 ```python
-from scripts.review import review
+from tools.humanities_review import review
 
 text = "论文文本内容..."
 issues = review(text)

@@ -529,11 +529,10 @@ GET https://api.datacite.org/dois/10.5281/zenodo.1234567
 # Single DOI
 python scripts/extract_metadata.py --doi 10.1038/s41586-021-03819-2
 
-# Multiple DOIs
-python scripts/extract_metadata.py \
-  --doi 10.1038/nature12345 \
-  --doi 10.1126/science.abc1234 \
-  --output refs.bib
+# Multiple DOIs — --doi accepts a single value (repeating it silently keeps only
+# the last one), so write one DOI per line and pass the file via --input
+printf '%s\n' 10.1038/nature12345 10.1126/science.abc1234 > dois.txt
+python scripts/extract_metadata.py --input dois.txt --output refs.bib
 ```
 
 **Process**:
@@ -552,11 +551,10 @@ python scripts/extract_metadata.py \
 # Single PMID
 python scripts/extract_metadata.py --pmid 34265844
 
-# Multiple PMIDs
-python scripts/extract_metadata.py \
-  --pmid 34265844 \
-  --pmid 28445112 \
-  --output refs.bib
+# Multiple PMIDs — same as --doi, --pmid is single-value; use an --input file
+# (one identifier per line; the script auto-detects DOIs, PMIDs, arXiv IDs, and URLs)
+printf '%s\n' 34265844 28445112 > pmids.txt
+python scripts/extract_metadata.py --input pmids.txt --output refs.bib
 ```
 
 **Process**:

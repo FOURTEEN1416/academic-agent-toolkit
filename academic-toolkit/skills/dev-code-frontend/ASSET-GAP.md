@@ -5,7 +5,7 @@
 ## 缺失资产清单（2 项，2026-09-09 审计）
 
 - `references/daisyui_ref.md`
-- `references/styles/`
+- `references/styles/`——2026-09-28 核实已落位（apple/minimal/retro 等在库），本条销账
 
 ## 处置口径
 

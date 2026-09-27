@@ -669,12 +669,17 @@ done
 ### Extract Metadata
 
 ```bash
-# Search returns PMIDs
+# Search returns a JSON object whose "results" array carries doi/pmid per entry
 python scripts/search_pubmed.py "topic" --output results.json
+
+# Pull the DOIs/PMIDs out into a text file, one per line
+# (extract_metadata.py identifies each line; it cannot parse the JSON directly)
+python -c "import json; d = json.load(open('results.json')); print('\n'.join(r.get('doi') or r.get('pmid','') for r in d['results']))" \
+  | grep -v '^$' > result_ids.txt
 
 # Extract full metadata
 python scripts/extract_metadata.py \
-  --input results.json \
+  --input result_ids.txt \
   --output references.bib
 ```
 

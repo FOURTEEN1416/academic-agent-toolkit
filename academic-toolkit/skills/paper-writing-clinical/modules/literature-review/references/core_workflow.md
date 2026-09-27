@@ -229,12 +229,13 @@ Literature reviews follow a structured, multi-phase workflow:
 
 1. **Generate PDF**:
    ```bash
-   python scripts/generate_pdf.py my_literature_review.md \
-     --citation-style apa \
-     --output my_review.pdf
+   python scripts/generate_pdf.py my_literature_review.md my_review.pdf \
+     --citation-style apa
    ```
 
-   Options:
+   The output PDF is a **positional argument** (the script has no `--output` flag and
+   silently ignores unknown flags). Options:
+   - `markdown_file` (arg 1) and `output_pdf` (arg 2): input and output paths
    - `--citation-style`: apa, nature, chicago, vancouver, ieee
    - `--no-toc`: Disable table of contents
    - `--no-numbers`: Disable section numbering

@@ -9,7 +9,7 @@ date and publication-type filters, and worked query examples.
 
 **Finding Seminal and High-Impact Papers** (CRITICAL):
 
-Always prioritize papers based on citation count, venue quality, and author reputation:
+When ranking what to read and retrieve, prioritize papers based on citation count, venue quality, and author reputation. **These are retrieval-ranking heuristics, not validity proxies**: citation counts and prestige can guide which papers to pull, but evidence evaluation must check whether the cited source actually supports the claim — never substitute citation count or author/venue prestige for that support check.
 
 **Citation Count Thresholds:**
 | Paper Age | Citations | Classification |
@@ -49,19 +49,22 @@ intitle:keyword          # Search in title only
 source:journal           # Search specific journal
 -exclude                 # Exclude terms
 OR                       # Alternative terms
-2020..2024              # Year range
 ```
+
+Year ranges are **not** query operators in Google Scholar — filter with the
+script's `--year-start`/`--year-end` flags (or the web interface's custom range).
 
 **Example Searches**:
 ```
-# Find recent reviews on a topic
-"CRISPR" intitle:review 2023..2024
+# Find recent reviews on a topic (pair with --year-start 2023 --year-end 2024)
+"CRISPR" intitle:review
 
 # Find papers by specific author on topic
 author:Church "synthetic biology"
 
-# Find highly cited foundational work
-"deep learning" 2012..2015 sort:citations
+# Find highly cited foundational work (sorting by citations is done via
+# the script's --sort-by citations, not a query operator; pair with --year-start 2012 --year-end 2015)
+"deep learning"
 
 # Exclude surveys and focus on methods
 "protein folding" -survey -review intitle:method

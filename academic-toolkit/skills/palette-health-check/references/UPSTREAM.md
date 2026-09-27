@@ -7,7 +7,7 @@
 
 | 项 | 值 |
 |----|----|
-| 来源 | 本仓库下游工程 `D:\Desktop\workbuddy_space\cumcm2026A`（CUMCM 2026A 论文工程）第六轮配色优化实战沉淀 |
+| 来源 | 本仓库下游工程 维护者本地 CUMCM 2026A 论文工程（路径未随仓分发）（CUMCM 2026A 论文工程）第六轮配色优化实战沉淀 |
 | 成包时间 | 2026-09-12（配色 v5→v6「去灰提彩」定稿轮） |
 | 原始资产包 | `cumcm2026A/palette_kit_v6/`（自包含：bin 3 脚本 + data 4 真源 + review 目检图 + README + SKILL.md） |
 | 迁移文件 | SKILL.md / README.md / bin/{design_palette_v6, palette_cvd_check_v6, make_cvd_sheet_v6}.py / data/{_palette_v6.json, _cvd_v6.json, _cvd_v6.txt, _cvd_ramp_v6.txt} / references/cvd_check_v6.png |

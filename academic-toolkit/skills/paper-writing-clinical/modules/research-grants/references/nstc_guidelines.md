@@ -48,7 +48,7 @@ Based on official CM03 templates, the proposal must include:
 
 **Requirements**:
 - **Chinese abstract**: Maximum 500 characters
-- **English abstract**: Maximum 500 words
+- **English abstract**: Maximum 800 words (Chinese abstract remains at most 500 characters)
 - **Keywords**: 3-5 keywords in both languages
 
 **Content**:

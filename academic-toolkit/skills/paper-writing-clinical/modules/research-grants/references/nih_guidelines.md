@@ -411,7 +411,7 @@ NIH requires explicit discussion of:
 - **Duration**: Maximum 2 years
 - **Preliminary data**: Not required (though can strengthen)
 - **Page limits**: 6 pages Research Strategy
-- **No-cost extensions**: Not allowed
+- **No-cost extensions**: One 12-month grantee-initiated no-cost extension is allowed
 
 **Purpose**:
 - Pilot or feasibility studies
@@ -448,7 +448,8 @@ NIH requires explicit discussion of:
 - For clinicians (MD, DO, DDS, etc.)
 - 3-5 years protected time for research training
 - Requires mentoring team
-- Up to $100K direct costs/year
+- Salary support: up to $100K/year (institutional base salary, including fringe)
+- Research development support: up to $50K/year (research-related expenses)
 
 **K23 - Mentored Patient-Oriented Research Career Development Award**:
 - For patient-oriented research
@@ -761,7 +762,7 @@ We have addressed these concerns as follows:
 7. **Refocus innovation**: Clarify what's novel and why it matters
 
 **Timing**:
-- Can resubmit at any of the next 3 deadlines (36 months after initial submission)
+- Can resubmit at any of the next 3 deadlines (37 months after initial submission)
 - Use time wisely to generate new data
 - Don't rush resubmission with minor changes
 

@@ -209,7 +209,7 @@ ls _utils/figure_recipes_*.md 2>/dev/null || ls skills/shared-scripts/figure_rec
 
 
 
-Annotate in FIGURE_MANIFEST as `[2-panel]` / `[4-panel]` / `[single]` (single is default, may omit). Example: `fig_ablation [2-panel] — w/ vs w/o module — academic #3 — section: Ablation`. Full criteria in `_utils/writing_rules.md` rule 4. **AI judges per-figure based on necessity; no hard count target — encourage "information density > page footprint".**
+Annotate in FIGURE_MANIFEST as `[2-panel]` / `[4-panel]` / `[single]` (single is default, may omit). Example: `fig_ablation [2-panel] — w/ vs w/o module — academic #1 — section: Ablation`. Full criteria in `_utils/writing_rules.md` rule 4. **AI judges per-figure based on necessity; no hard count target — encourage "information density > page footprint".**
 
 
 

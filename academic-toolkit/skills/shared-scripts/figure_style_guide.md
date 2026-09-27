@@ -72,14 +72,14 @@ Repeated comparable experiments may reuse the same chart type and encoding. Do n
 | Time series (1-3 lines) | Line plot with CI band | basic #3 | — |
 | Time series (4+ lines) | Small multiples (subplot grid) | basic #12 | spaghetti plot |
 | Distribution (1 group) | Violin + strip | basic #11 | histogram |
-| Distribution (2-5 groups) | Rain Cloud Plot | academic #4 | box plot |
+| Distribution (2-5 groups) | Rain Cloud Plot | academic #7 | box plot |
 | Proportion/composition | Donut Chart or Stacked Area | basic #6, #8 | pie chart |
 | Correlation matrix | Heatmap + dendrogram | advanced #14 | plain heatmap |
 | 2D scatter + relationship | Scatter + regression + R² | basic #4 | — |
 | 2D joint distribution (large N) | Hexbin + marginal histograms | competition #24 | plain scatter (overplotting) |
 | 2D joint distribution (small N, clusters) | KDE contour + marginal density | competition #25 | plain scatter |
 | 2D relationship + distribution | Scatter + regression + marginal density | competition #26 | scatter without marginals |
-| High-dim features | t-SNE/UMAP scatter | academic #2 | — |
+| High-dim features | t-SNE/UMAP scatter | academic #3 | — |
 | 3D clustering results (3 features) | 3D scatter + centroids | competition #27 | 2D scatter (loses dimension) |
 | Multi-criteria evaluation | Radar chart | competition #5 | — |
 | Feature importance | SHAP Summary Plot | advanced #7 | horizontal bar |
@@ -110,9 +110,9 @@ Repeated comparable experiments may reuse the same chart type and encoding. Do n
 | DID/causal inference | Parallel trends + Event study + Placebo | empirical #2, #3, #4 |
 | Regression analysis | Forest plot + Heterogeneity forest + Marginal effects | empirical #1, #10, #15 |
 | Prediction/forecasting | Prediction with CI band + Error Rain Cloud + Multi-step decay + Model heatmap | empirical #12, #14, #16, #13 |
-| Deep learning | Training curves + Attention map + t-SNE | academic #3, #6, #2 |
+| Deep learning | Training curves + Attention map + t-SNE | academic #2, #4, #3 |
 | Model comparison | Grouped Bar + Method Comparison Heatmap + Radar | basic #1, advanced #16, comp #5 |
-| Hyperparameter tuning | Sensitivity grid + 3D loss landscape | academic #7, #8 |
+| Hyperparameter tuning | Sensitivity grid + 3D loss landscape | academic #6, #8 |
 | Meta-analysis | Forest plot + Funnel plot | empirical #1, advanced #12 |
 | Survival analysis | Kaplan-Meier curve | advanced #9 |
 | Genomics/omics | Volcano plot + Cluster heatmap | advanced #10, #14 |

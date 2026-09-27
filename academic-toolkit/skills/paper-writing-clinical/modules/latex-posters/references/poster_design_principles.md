@@ -360,11 +360,15 @@ Ensure readability with sufficient contrast:
 
 **IBM Color Blind Safe** (excellent accessibility):
 ```latex
-\definecolor{ibmblue}{RGB}{100,143,255}
-\definecolor{ibmmagenta}{RGB}{254,97,0}
-\definecolor{ibmpurple}{RGB}{220,38,127}
-\definecolor{ibmcyan}{RGB}{33,191,115}
+% IBM Design Library color-blind-safe palette (labels corrected 2026-09-27)
+\definecolor{ibmblue}{RGB}{100,143,255}   % #648FFF IBM Blue
+\definecolor{ibmpurple}{RGB}{120,94,240}   % #785EF0 IBM Purple
+\definecolor{ibmmagenta}{RGB}{220,38,127}  % #DC267F IBM Magenta
+\definecolor{ibmorange}{RGB}{254,97,0}     % #FE6100 IBM Orange
+\definecolor{ibmgold}{RGB}{255,176,0}      % #FFB000 IBM Gold
 ```
+
+(`ibmcyan`/`#21BF73` was removed in the 2026-09-27 correction — it is not part of the IBM palette.)
 
 **Okabe-Ito Palette** (scientifically tested):
 ```latex
@@ -738,22 +742,28 @@ Strategic use of icons enhances comprehension:
 
 ## Evidence-Based Design Recommendations
 
-Research on poster effectiveness shows:
+> **Correction (2026-09-27):** Earlier versions of this section quoted precise
+> figures ("visual content processed 60,000× faster than text", "high contrast
+> improves recall by 40%", "white space increases comprehension by 20%", "QR codes
+> increase engagement by 30%"). These widely circulated numbers have no verifiable
+> source; they have been removed and the guidance below is stated qualitatively.
+
+Research on poster effectiveness supports the following qualitative guidance:
 
 **Findings from Studies**:
 1. **Viewers spend 3-5 minutes average** on posters
    - Design for scanning, not deep reading
    - Most important info must be visible immediately
 
-2. **Visual content processed 60,000× faster** than text
+2. **Visual content registers faster than text**
    - Use figures, not paragraphs, to convey key findings
    - Images attract attention first
 
-3. **High contrast improves recall** by 40%
+3. **High contrast aids readability and recall**
    - Dark on light > light on dark for comprehension
    - Color contrast aids memory retention
 
-4. **White space increases comprehension** by 20%
+4. **White space aids comprehension**
    - Don't fear empty space
    - Margins and padding are essential
 
@@ -761,7 +771,7 @@ Research on poster effectiveness shows:
    - Balanced visual weight
    - Natural reading flow
 
-6. **QR codes increase engagement** by 30%
+6. **QR codes can increase engagement**
    - Provide digital access to full paper
    - Link to videos, code repositories, data
 

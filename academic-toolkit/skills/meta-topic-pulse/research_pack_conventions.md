@@ -11,6 +11,7 @@ The 7-skill research pack (`pulse`, `litreview`, `grants`, `syllabus`, `patent`,
 3. **Three-count tracking.** Queries sent / sources received / sources cited. Surfaced in the audit log inline in the synthesis section.
 4. **Retry policy.** On failure → wait 3s → retry once → log. After 3 consecutive failures across all sources: stop, alert user, share what was collected.
 5. **Plan-tier detection.** Surface rate-limit signals from response headers when available; degrade gracefully when not.
+   *(2026-09-28 lane-check 修正案：lit-orientation 经实证移除 plan-tier detection，降级为单一 Consensus 存在性检查——该技能对本条的偏离属既成修正；新建研究技能仍从本条原义起步。)*
 
 These rules are **non-negotiable** for any new research skill. If your skill needs to deviate from one, write an ADR explaining why and propose updates to this reference.
 

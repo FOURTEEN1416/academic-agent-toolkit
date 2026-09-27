@@ -79,7 +79,7 @@ palette_kit_v6/
 ### 运行
 
 ```bash
-PY="C:/Program Files/Python312/python.exe"   # 需含 numpy/matplotlib
+PY=python   # 解释器按环境替换；需含 numpy/matplotlib
 $PY bin/design_palette_v6.py            # 重新求解色板，写 _palette_v6.json 同构 JSON
 $PY bin/palette_cvd_check_v6.py         # 交叉复核（含 v5 对照）
 $PY bin/make_cvd_sheet_v6.py            # 出目检图板

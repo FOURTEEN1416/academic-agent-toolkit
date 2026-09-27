@@ -11,8 +11,7 @@ including how to respond to a summary statement or reviewer critique.
 - **CAREER Awards**: Early career faculty, integrated research/education, $400-500K over 5 years
 - **Collaborative Research**: Multiple institutions, separately submitted, shared research plan
 - **RAPID**: Urgent research opportunities, up to $200K, no preliminary data required
-- **EAGER**: High-risk, high-reward exploratory research, up to $300K
-- **EArly-concept Grants for Exploratory Research (EAGER)**: Early-stage exploratory work
+- **EAGER (EArly-concept Grants for Exploratory Research)**: High-risk, high-reward early-stage exploratory research, up to $300K
 
 ### NIH Award Mechanisms
 

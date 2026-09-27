@@ -2,7 +2,7 @@
 
 This reference answers exactly one decision: **which literature-review framework does litreview pick for a given research question, and how does each map sub-areas to search queries?**
 
-Pair with `scripts/framework_recommender.py` for the deterministic heuristic.
+Pair with `framework_recommender.py` for the deterministic heuristic.
 
 ## The Core Claim
 
@@ -94,7 +94,7 @@ Hybrid framing is more work but more accurate for questions that genuinely span 
 
 ## The Framework Recommender Heuristic
 
-`scripts/framework_recommender.py` uses keyword signals to suggest a framework:
+`framework_recommender.py` uses keyword signals to suggest a framework:
 
 | Signal in research question | Suggests |
 |---|---|

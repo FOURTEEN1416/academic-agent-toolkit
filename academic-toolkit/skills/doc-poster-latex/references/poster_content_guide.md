@@ -64,10 +64,9 @@ Hook (Problem) → Approach → Discovery → Impact
 | References/Acknowledgments | 50-100 | 10% |
 
 **Counting Tool**:
-```latex
-% Add word count to poster (remove for final)
-\usepackage{texcount}
-% Compile with: texcount -inc poster.tex
+```bash
+% texcount 是 CLI 工具而非 LaTeX 包——勿 \usepackage（correction 2026-09-28）
+texcount -inc poster.tex
 ```
 
 ### 4. Visual-to-Text Ratio

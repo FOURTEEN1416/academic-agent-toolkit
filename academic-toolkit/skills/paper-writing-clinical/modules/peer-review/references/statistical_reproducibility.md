@@ -90,7 +90,8 @@ Prefer:
 
 The ASA’s six p-value principles include:
 
-- A p-value is about incompatibility with a specified model, not the probability a hypothesis is true.
+- A p-value can indicate how incompatible the data are with a specified statistical model.
+- P-values do not measure the probability that the studied hypothesis is true, or the probability that the data were produced by random chance alone.
 - Threshold crossing alone should not determine scientific conclusions.
 - Transparent reporting of all relevant analyses is required.
 - Statistical significance does not measure effect size or importance.
