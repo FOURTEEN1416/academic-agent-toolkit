@@ -31,7 +31,7 @@ echo "FAST_MODE=$FAST_MODE"
 
 The execution session context carries a `contest_profile` JSON (issued by the engine from `comp_rules.json`; `contest_profile: null` means this workflow has no contest identity). Transcribe the fields below **verbatim** into shell variables once, then only consume them — never derive, prefix, rename, or guess them from AGENTS.md, filenames, free text, or shell defaults:
 
-> Transition channel: program-side injection (interface request filed with B — contest id / page cap / scope / status read from the bound snapshot and fed into the actual command environment) has **not landed yet**; until it does, this verbatim transcription is performed by the model. It is a pending interface, not a completed program path — never describe it as automated.
+> The injection channel has landed (B-CLOSE-01): at step start the engine writes contest id / page cap / scope / status / edition from the bound snapshot into `workspace/.engine/contest_env` and injects them into the actual command environment. The model-side verbatim transcription below remains as a consistency cross-check; on any mismatch the engine-injected values win and must be reported (待核实).
 
 - **CONTEST_ID** ← `contest_profile.contest_id` — canonical `comp_*` key of the contest archive (e.g. `comp_mcm`, `comp_apmcm`). There is no `comp_icm`: ICM runs under `comp_mcm`. Transcribe it only when `contest_profile.status == "bound"`; `pending_binding` or absent ⇒ no valid contest identity — stop and report (待核实), never guess, no default.
 

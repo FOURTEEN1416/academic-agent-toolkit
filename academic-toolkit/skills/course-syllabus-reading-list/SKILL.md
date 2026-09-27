@@ -24,7 +24,7 @@ This skill uses a **bundled JavaScript helper script** for DOCX generation rathe
 - Token-efficient: skill doesn't re-derive layout each run
 - Easier to maintain and version
 
-The bundled script is at `scripts/generate_reading_list.js`. The skill orchestrates the pipeline + invokes the script with JSON input.
+The bundled script is at `generate_reading_list.js`. The skill orchestrates the pipeline + invokes the script with JSON input.
 
 ## Agent Integrity Rules (Research-Pack Convention)
 
@@ -62,7 +62,7 @@ Forcing choice. Refuse to start without a syllabus.
 >
 > *Why I'm asking:* Audience dictates summary jargon level and discussion-question complexity. Undergrad summaries define every term; grad summaries assume technical fluency. Discussion questions for undergrads test analysis; for grads test critique and extension.
 
-See [`references/audience_calibration.md`](references/audience_calibration.md) for the canon.
+See [`audience_calibration.md`](audience_calibration.md) for the canon.
 
 ### Q3 (depends on Q1) — Year range
 
@@ -98,7 +98,7 @@ Mark inferred learning outcomes as `[inferred]` in the DOCX.
 
 ### Group via topic_grouper.py
 
-Use `scripts/topic_grouper.py` to cluster related topics into 6-12 sections. Heuristic: closely-related topics merge; cross-cutting topics get their own section.
+Use `topic_grouper.py` to cluster related topics into 6-12 sections. Heuristic: closely-related topics merge; cross-cutting topics get their own section.
 
 ### Group-and-Confirm Checkpoint (Forcing Options)
 
@@ -131,7 +131,7 @@ Don't just search the topic — **search the topic + applied domain**:
 | "thermodynamics" | "thermodynamics renewable energy systems" |
 | "social network analysis" | "social network analysis public health interventions" |
 
-Boosts paper relevance dramatically. See [`references/applied_domain_weaving.md`](references/applied_domain_weaving.md) for the canon.
+Boosts paper relevance dramatically. See [`applied_domain_weaving.md`](applied_domain_weaving.md) for the canon.
 
 ### Per-Section Pattern
 
@@ -177,12 +177,12 @@ Per paper:
 |---|---|
 | "If dietary fat quality can reshape your lipoprotein lipidome, what does this suggest about the biochemical basis for dietary guidelines recommending unsaturated over saturated fats?" | "What did the authors find?" (Just recall) |
 
-Use `scripts/discussion_question_validator.py` to flag recall-only questions.
+Use `discussion_question_validator.py` to flag recall-only questions.
 
 ## Phase 5: Generate .docx via Bundled Script
 
 ```bash
-node scripts/generate_reading_list.js \
+node generate_reading_list.js \
   --input /tmp/syllabus_data.json \
   --output /path/to/reading_list_<course>_<date>.docx
 ```
@@ -240,7 +240,7 @@ The script handles:
 - Footer with generation metadata
 - Input validation (missing fields → graceful error)
 
-See [`references/bundled_script_pattern.md`](references/bundled_script_pattern.md) for why bundled vs inline.
+See [`bundled_script_pattern.md`](bundled_script_pattern.md) for why bundled vs inline.
 
 ## Phase 6: Deliver
 
@@ -252,16 +252,16 @@ See [`references/bundled_script_pattern.md`](references/bundled_script_pattern.m
 
 | Script | Role |
 |---|---|
-| `scripts/citation_tracker.py` | Consensus three-count audit + 1s sequential discipline at `~/.syllabus_sessions/<session>.json` |
-| `scripts/topic_grouper.py` | Heuristic 6-12 section grouping from extracted topics |
-| `scripts/discussion_question_validator.py` | Bloom higher-order quality check; flags recall-only questions |
-| `scripts/generate_reading_list.js` | **Bundled Node.js DOCX generator** — JSON input → .docx output |
+| `citation_tracker.py` | Consensus three-count audit + 1s sequential discipline at `~/.syllabus_sessions/<session>.json` |
+| `topic_grouper.py` | Heuristic 6-12 section grouping from extracted topics |
+| `discussion_question_validator.py` | Bloom higher-order quality check; flags recall-only questions |
+| `generate_reading_list.js` | **Bundled Node.js DOCX generator** — JSON input → .docx output |
 
 ## References
 
-- [`references/applied_domain_weaving.md`](references/applied_domain_weaving.md) — search-quality canon (7+ sources)
-- [`references/audience_calibration.md`](references/audience_calibration.md) — undergrad vs grad summary jargon (7+ sources)
-- [`references/bundled_script_pattern.md`](references/bundled_script_pattern.md) — why bundle vs inline (7+ sources)
+- [`applied_domain_weaving.md`](applied_domain_weaving.md) — search-quality canon (7+ sources)
+- [`audience_calibration.md`](audience_calibration.md) — undergrad vs grad summary jargon (7+ sources)
+- [`bundled_script_pattern.md`](bundled_script_pattern.md) — why bundle vs inline (7+ sources)
 
 ## Error Handling
 

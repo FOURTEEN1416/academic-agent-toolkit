@@ -12,7 +12,7 @@ Automate the tedious steps of preparing a LaTeX paper for arXiv upload. Creates 
 
 - "prep for arxiv", "make an arxiv package", "I need to upload this to arxiv"
 - After the paper is finalized and ready for submission
-- Complements `presubmit-checks` (content quality) — this skill handles packaging
+- Complements `paper-presubmit-checks` (content quality) — this skill handles packaging
 
 ## Workflow
 
@@ -20,7 +20,7 @@ Automate the tedious steps of preparing a LaTeX paper for arXiv upload. Creates 
 
 #### 1. Find the paper
 
-Same search logic as presubmit-checks:
+Same search logic as paper-presubmit-checks:
 1. User-provided path
 2. `paper/current/main.tex`
 3. `paper/main.tex`
@@ -29,9 +29,9 @@ Same search logic as presubmit-checks:
 
 Identify the **paper directory** (parent of the main `.tex` file). All subsequent operations are relative to this directory.
 
-#### 2. Optionally run presubmit-checks
+#### 2. Optionally run paper-presubmit-checks
 
-Ask the user: "Want me to run the presubmit-checks first?" Skip if they say they already did.
+Ask the user: "Want me to run the paper-presubmit-checks first?" Skip if they say they already did.
 
 #### 3. Check for supplements
 

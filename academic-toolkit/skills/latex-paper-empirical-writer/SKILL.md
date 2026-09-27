@@ -177,9 +177,9 @@ For each issue:
 7. **Dependency enforcement**: Before marking any issue DONE, verify that ALL issues listed in its `Depends_On` column are already DONE or SKIP. If any dependency is still TODO or DOING, the current issue MUST NOT be marked DONE. This rule is non-negotiable.
 
 ### Phase 2.2: Issue Execution Helpers
-- Use `python3 ../arxiv-paper-writer/scripts/issue_workflow.py --project-dir <paper_dir> render-skeleton --issues <issues.csv> --issue-id <Wx>` to render a LaTeX section skeleton for a Writing issue.
+- Use `python3 ../latex-paper-survey-writer/scripts/issue_workflow.py --project-dir <paper_dir> render-skeleton --issues <issues.csv> --issue-id <Wx>` to render a LaTeX section skeleton for a Writing issue.
 - Add `--apply-if-missing` only when the full section path is entirely absent from `main.tex`; nested insertion under an existing parent stays manual.
-- Before QA or after a batch of edits, run `python3 ../arxiv-paper-writer/scripts/issue_workflow.py --project-dir <paper_dir> audit --issues <issues.csv>` to check section-path consistency, citation counts, placeholders, and lightweight figure/page signals.
+- Before QA or after a batch of edits, run `python3 ../latex-paper-survey-writer/scripts/issue_workflow.py --project-dir <paper_dir> audit --issues <issues.csv>` to check section-path consistency, citation counts, placeholders, and lightweight figure/page signals.
 
 ### Phase 2.3: Experiment Execution Checkpoint
 After all experiment design issues (E0-E4) and experiment code issues (E5-E7) are DONE:
@@ -309,15 +309,15 @@ For each `experiment-matrix.csv` row with `result_status=verified`:
 After all writing issues are `DONE`, refine prose section-by-section using the `latex-rhythm-refiner` skill. This step varies sentence/paragraph lengths and removes filler phrases while preserving all citations.
 
 ### Phase 3: QA Gate
-1. Run internal QA checklist (see `../arxiv-paper-writer/references/quality-report.md`).
+1. Run internal QA checklist (see `../latex-paper-survey-writer/references/quality-report.md`).
 2. Audit source quality and venue policy:
-   - `python3 ../arxiv-paper-writer/scripts/issue_workflow.py --project-dir <paper_dir> audit --issues <issues.csv> --fail-on-issues`
-   - `python3 ../arxiv-paper-writer/scripts/source_ranker.py --project-dir <paper_dir> rank`
-   - `python3 ../arxiv-paper-writer/scripts/citation_policy.py --project-dir <paper_dir> audit-bib`
-   - `python3 ../arxiv-paper-writer/scripts/citation_policy.py --project-dir <paper_dir> audit-tex --issues <issues.csv>`
-   - `python3 ../arxiv-paper-writer/scripts/style_profile.py --project-dir <paper_dir> check-draft` (if using `style_mode=target_venue`)
-   - `python3 ../arxiv-paper-writer/scripts/compile_paper.py --project-dir <paper_dir> --check-warnings --fail-on-warnings`
-   - `python3 ../arxiv-paper-writer/scripts/citation_policy.py --project-dir <paper_dir> lint-bib --fail-on-lint`
+   - `python3 ../latex-paper-survey-writer/scripts/issue_workflow.py --project-dir <paper_dir> audit --issues <issues.csv> --fail-on-issues`
+   - `python3 ../latex-paper-survey-writer/scripts/source_ranker.py --project-dir <paper_dir> rank`
+   - `python3 ../latex-paper-survey-writer/scripts/citation_policy.py --project-dir <paper_dir> audit-bib`
+   - `python3 ../latex-paper-survey-writer/scripts/citation_policy.py --project-dir <paper_dir> audit-tex --issues <issues.csv>`
+   - `python3 ../latex-paper-survey-writer/scripts/style_profile.py --project-dir <paper_dir> check-draft` (if using `style_mode=target_venue`)
+   - `python3 ../latex-paper-survey-writer/scripts/compile_paper.py --project-dir <paper_dir> --check-warnings --fail-on-warnings`
+   - `python3 ../latex-paper-survey-writer/scripts/citation_policy.py --project-dir <paper_dir> lint-bib --fail-on-lint`
 3. Compile; ensure no `Overfull \hbox` warnings in `main.log`.
 4. Deliver `main.tex`, `ref.bib`, figures, and `main.pdf`.
 
@@ -333,7 +333,7 @@ Before running any experiment or utility script:
 
 ## Success Criteria
 
-**Compilation**: `python3 ../arxiv-paper-writer/scripts/compile_paper.py --project-dir <paper_dir> --check-warnings --fail-on-warnings` (exit 0).
+**Compilation**: `python3 ../latex-paper-survey-writer/scripts/compile_paper.py --project-dir <paper_dir> --check-warnings --fail-on-warnings` (exit 0).
 
 **Quality Metrics**:
 - 6-10 pages of main text (references excluded)
@@ -395,11 +395,11 @@ The empirical issues CSV uses an 18-column schema with experiment-specific field
 **Phase prefixes**: R (Research), E (Experiment), W (Writing), RF (Refinement), Q (QA).
 
 Schema validated by `scripts/validate_empirical_paper_issues.py`.
-- `../arxiv-paper-writer/scripts/arxiv_registry.py`
-- `../arxiv-paper-writer/scripts/compile_paper.py`
-- `../arxiv-paper-writer/scripts/citation_policy.py`
-- `../arxiv-paper-writer/scripts/source_ranker.py`
-- `../arxiv-paper-writer/scripts/style_profile.py`
+- `../latex-paper-survey-writer/scripts/arxiv_registry.py`
+- `../latex-paper-survey-writer/scripts/compile_paper.py`
+- `../latex-paper-survey-writer/scripts/citation_policy.py`
+- `../latex-paper-survey-writer/scripts/source_ranker.py`
+- `../latex-paper-survey-writer/scripts/style_profile.py`
 
 ## References to Read
 - `references/experiment-design.md` (baseline selection, experiment matrix patterns, ablation design, statistical rigor)
@@ -411,7 +411,7 @@ Schema validated by `scripts/validate_empirical_paper_issues.py`.
 - `references/reviewer-loop.md`
 - `references/reproducibility-checklist.md`
 - `references/fork-extend-workflow.md`
-- Also reuse common references from `../arxiv-paper-writer/references/`:
+- Also reuse common references from `../latex-paper-survey-writer/references/`:
   - `bibtex-guide.md`
   - `citation-workflow.md`
   - `quality-report.md`

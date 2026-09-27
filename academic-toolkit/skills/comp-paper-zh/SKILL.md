@@ -34,7 +34,7 @@ echo "FAST_MODE=$FAST_MODE"
 
 执行会话上下文带有 `contest_profile` JSON（引擎按 `comp_rules.json` 下发；`contest_profile: null` = 本工作流无赛事身份）。把下列字段**逐字**转录进 shell 变量后只消费，不自己加前缀、转换名字、或从 AGENTS.md / 文件名 / 自由文本 / shell 默认值猜：
 
-> 过渡通道：程序侧注入（接口需求已提交 B 窗：从 bound 快照取赛事 ID/页限/范围/性质并注入实际命令环境）**尚未落地**；落地前机械字段转录暂由模型执行——这是待接入接口，不得因本说明视为已程序化。
+> 注入通道已落地（B-CLOSE-01）：引擎 `workflow_runner` 在步骤启动时把 bound 快照的赛事 ID/页限/范围/性质/届次写入 `workspace/.engine/contest_env` 并注入实际命令环境。下述模型侧逐字转录保留作一致性冗余；两边不一致时以引擎注入值为准并上报待核实。
 
 - **CONTEST_ID** ← `contest_profile.contest_id` — 档案规范 `comp_*` 键（如 `comp_cumcm`、`comp_huawei`）。仅在 `contest_profile.status == "bound"` 时转录；`pending_binding` 或缺失 ⇒ 无有效赛事身份——停下报待核实，不是猜测，无默认，不回退国赛。
 
@@ -116,15 +116,13 @@ Template: `_templates/cumcm/`（国赛：`cumcmthesis.cls` + `cumcm2026.sty` + �
 
 - **`comp_cumcm`（2026 国赛强制，档案已入库规定）**：
 1. **声明位置**：AI工具使用声明必须放在**参考文献之前**，不能放在附录中
-2. **声明内容**：仅声明以下两项使用了AI：
-   - **资料查询**：使用AI辅助检索文献、查找数据来源
-   - **语言润色**：使用AI辅助润色论文语言表达
-3. **禁止声明**：不要声明代码编写、图表制作、建模求解等环节使用了AI（即使实际使用了，也只需声明资料查询和润色）
-4. **声明格式**：使用 `ai_usage_declaration.py` 工具生成，或手动写入以下内容：
+2. **声明内容**：用途逐项**如实**来自用户确认的使用记录（`.mh/ai_disclosure.json`，存在时）——实际使用了哪些环节（资料查询/语言润色/代码调试/图表制作/建模求解等）就声明哪些；**不得隐瞒实际发生的 AI 用途**（隐瞒或虚假声明按当届规程可取消评奖资格），也不得虚构未发生的用途
+3. **唯一生成通道**：`comp-cumcm-disclosure` 技能 / `skills/_utils/build_ai_disclosure.py` 程序化生成——禁止手写声明正文、禁止事后手工改写产物；声明正文与详情 PDF 口径必须一致（`--check-only` 会反查一致性）
+4. 格式骨架（由程序生成，此处仅为结构示意，勿照抄为终稿）：
 
 ```latex
 \section*{AI工具使用声明}
-本参赛队在竞赛过程中使用了AI工具，主要用于资料查询和语言润色，详细使用情况见支撑材料。
+（由 build_ai_disclosure.py 依 .mh/ai_disclosure.json 如实生成）
 ```
 
 - **其他赛事**：档案（`contest_profile.compliance`）无当届 AI 声明规定 ⇒ **不得静默不生成、也不得套用国赛格式冒充合规**——在交付/交接说明中显式上报待核实项：`AI_USE_REPORT: 待核实（comp_<x> 当届 AI 声明规定未入库，提交前对照当届官方规程核实）`。内容一律只依据用户确认的记录（`.mh/ai_disclosure.json`，存在时），不虚构工具、日期、用途。用户关闭 AI_DISCLOSURE 开关只影响是否生成声明内容，不免除上述待核实上报。
@@ -918,9 +916,9 @@ if os.path.isfile(mt):
         m = re.search("摘[^要]{0,16}要", s)
         if m:
             tail = s[m.end():]
-            stops = [x for x in (tail.find(BS + "section"), tail.find("\u5145\u94fe\u8bed")) if x != -1]
+            stops = [x for x in (tail.find(BS + "section"), tail.find("关键词")) if x != -1]
             seg = tail[:min(stops)] if stops else tail[:4000]
-            if "\u5针对问题" in seg:
+            if "针对问题" in seg:
                 s = seg
                 where = "paper/main.tex manual paragraph"
 
@@ -1025,7 +1023,7 @@ if os.path.isfile(mt):
         m = re.search("摘[^要]{0,16}要", s)
         if m:
             tail = s[m.end():]
-            stops = [x for x in (tail.find(BS + "section"), tail.find(充链语)) if x != -1]
+            stops = [x for x in (tail.find(BS + "section"), tail.find("关键词")) if x != -1]
             seg = tail[:min(stops)] if stops else tail[:4000]
             if "针对问题" in seg:
                 text = seg

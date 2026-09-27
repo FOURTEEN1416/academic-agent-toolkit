@@ -575,7 +575,7 @@ echo "=== PAPER_PLAN 自检 ==="
 
 SKIP=$(grep -ciE '^\*\*本论文不规划任何' PAPER_PLAN.md)
 
-HAS_FIG=$(grep -cE '^- \[ \] fig_|TABLE_' PAPER_PLAN.md)
+HAS_FIG=$(grep -cE '^- \[ \] (fig_|TABLE_)' PAPER_PLAN.md)
 
 SKIP_FIGURES_FLAG=$(grep -ciE '^- skip_figures:\s*[Tt]rue' AGENTS.md 2>/dev/null)
 

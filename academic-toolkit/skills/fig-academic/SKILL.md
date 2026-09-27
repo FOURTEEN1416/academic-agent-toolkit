@@ -476,15 +476,10 @@ py fig-academic/scripts/e2e_runner.py --scenario S1_pca
 
 ## Cross-Platform Adapters
 
-Generate platform-specific adapter files for non-Claude-Code agents:
-```bash
-python fig-academic/scripts/generate_adapters.py            # all platforms
-python fig-academic/scripts/generate_adapters.py --target cursor  # Cursor only
-```
-
-The upstream host-adapter samples and their generator are **not bundled here** (removed
-during rewritten integration, 2026-09-24): in academic-toolkit the skill runs in-place from
-`skills/fig-academic/` via the repo's driving protocol — no host installation path exists.
+Adapter generation is **not available in-repo**: the upstream host-adapter samples and their
+generator (`generate_adapters.py`) were not bundled here (removed during rewritten integration,
+2026-09-24). In academic-toolkit the skill runs in-place from `skills/fig-academic/` via the
+repo's driving protocol — no host installation path exists.
 ---
 
 ## References

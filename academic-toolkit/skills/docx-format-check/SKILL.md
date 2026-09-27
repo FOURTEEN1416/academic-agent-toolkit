@@ -362,11 +362,11 @@ grep -nE '\$\$\s*（[0-9]+）' "$TARGET_FILE" || true
 
 ```bash
 
-python3 - <<'PY'
+python3 - "$TARGET_FILE" <<'PY'
 
-import re
+import re, sys
 
-content = open("$TARGET_FILE", encoding="utf-8").read()
+content = open(sys.argv[1], encoding="utf-8").read()
 
 # 过滤代码块（避免误报）
 
@@ -488,11 +488,11 @@ grep -nE '\$\$.+\$\$' "$TARGET_FILE" | grep -v '^\s*\$\$' || true
 
 # 扫描裸 LaTeX 命令（反斜杠开头）但当前行不在 $$ 块或 $...$ 行内公式内
 
-python3 - <<'PY'
+python3 - "$TARGET_FILE" <<'PY'
 
 import re, sys
 
-text = open("$TARGET_FILE", encoding="utf-8").read()
+text = open(sys.argv[1], encoding="utf-8").read()
 
 # 移除已正确包围的代码块、$$ 块、$ 行内
 

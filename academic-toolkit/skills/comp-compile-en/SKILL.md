@@ -2,7 +2,7 @@
 
 name: comp-compile-en
 
-description: "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says \”compile MCM paper\”,。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。"
+description: "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says ”compile MCM paper”,。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。"
 argument-hint: [paper-directory]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
@@ -61,7 +61,7 @@ fi
 
 The script auto-handles: special chars, table fixes, path correction, hidelinks, wide table resizebox, light-color text fixes, TikZ library injection.
 
-**Pre-compile data reconciliation (upstream closeout)**: before compiling, if `PAPER_DATA_CHECKLIST.md` exists, reconcile every result, comparison, error, and optimum in the Summary Sheet/body/conclusion against the real JSON/TABLE sources. Fix only the manuscript; never alter result data to fit the prose. Once reconciled, append `% DATA_CHECK_PASSED` to a `.tex` source actually included by `main.tex`, then record the current data-and-source fingerprint with `paper_data_check.py --mode pdf --workspace . --record-review` (under `_utils/` or `skills/shared-scripts/`, if provided) after the real review. If unavailable, retain an unverified status rather than inventing a receipt; then compile this exact source snapshot.
+**Pre-compile data reconciliation (upstream closeout)**: before compiling, if `PAPER_DATA_CHECKLIST.md` exists, reconcile every result, comparison, error, and optimum in the Summary Sheet/body/conclusion against the real JSON/TABLE sources. Fix only the manuscript; never alter result data to fit the prose. Once reconciled, append `% DATA_CHECK_PASSED` to a `.tex` source actually included by `main.tex`, then record the current data-and-source fingerprint with `paper_data_check.py --mode pdf --workspace .` (under `_utils/` or `skills/shared-scripts/`, if provided) after the real review. If unavailable, retain an unverified status rather than inventing a receipt; then compile this exact source snapshot.
 
 Also check ref/label matching and embed missing figures:
 

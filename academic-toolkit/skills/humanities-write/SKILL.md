@@ -401,9 +401,9 @@ PY
 
 
 
-echo "=== 4. 残留 markdown 标记 ==="
+echo "=== 4. 孤立 markdown 加粗标记（成对 **标签** 按反AI铁律2保留，只抓不成对） ==="
 
-grep -nE '\*\*[^*]+\*\*' HUMANITIES_PAPER.md | head -5 || echo "✅ 无残留 **"
+awk -F'\\*\\*' 'NF % 2 == 0 {print "孤立 ** 于行 " NR; bad=1} END {exit bad}' HUMANITIES_PAPER.md || echo "✅ 无孤立 **"
 
 
 
@@ -496,9 +496,6 @@ echo "缺失嵌入: $missing"
 使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 保留实际输入来源与模板信息；其内容摘要由程序记录。
-- `references_pool.md` — 文献候选池（中间产物）
-
-- `HUMANITIES_PAPER.md` — 最终论文（**主产出**，含参考文献）
 
 
 

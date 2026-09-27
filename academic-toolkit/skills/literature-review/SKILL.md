@@ -2,7 +2,7 @@
 
 name: literature-review
 
-description: "文献综述撰写。检索学术文献、验证真实性、按主题分类、撰写综合性文献综述。Use when user says \”文献综述\”, \”literature review\”, \”综述\”."
+description: "文献综述撰写。检索学术文献、验证真实性、按主题分类、撰写综合性文献综述。Use when user says ”文献综述”, ”literature review”, ”综述”."
 argument-hint: [research-topic]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent

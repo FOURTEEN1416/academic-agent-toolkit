@@ -2,7 +2,7 @@
 
 name: paper-plan-zh
 
-description: "Generate a structured Chinese paper outline. Use when user says \\"中文大纲\\", \\"中文论文规划\\", \\"Chinese paper outline\\", or wants to create a Chinese academic paper plan."
+description: "Generate a structured Chinese paper outline. Use when user says \"中文大纲\", \"中文论文规划\", \"Chinese paper outline\", or wants to create a Chinese academic paper plan."
 argument-hint: [topic]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch

@@ -81,7 +81,7 @@ python scripts/plot_lite.py propose examples/line_error_demo.csv --intent "演�
 python scripts/plot_lite.py render examples/line_error_demo.csv --confirm <确认书>
 ```
 
-契约测试：`academic-toolkit/tests/test_editaplot_lite_skill.py`（列分类/门禁负面/渲染校验/catalog 映射）。
+契约测试：`academic-toolkit/tests/test_fig_plot_edit_lite_skill.py`（列分类/门禁负面/渲染校验/catalog 映射）。
 
 ## 六、边界（继承 fig-plot-edit 三段式适配，本技能无 Origin COM 故风险更低）
 

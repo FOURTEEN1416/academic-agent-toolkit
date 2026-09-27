@@ -271,7 +271,7 @@ expr = 0.5 * x  # Creates approximate value
 ```python
 from sympy import pi, sqrt
 result = sqrt(8) + pi
-result.evalf()    # 5.96371554103586
+result.evalf()    # 5.97001977833598
 result.evalf(50)  # 50 digits of precision
 ```
 

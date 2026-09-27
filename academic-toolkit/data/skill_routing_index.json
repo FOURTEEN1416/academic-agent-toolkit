@@ -15,8 +15,8 @@
   "counts": {
     "core": 52,
     "ondemand": 203,
-    "resident_chars": 31104,
-    "full_chars": 64881
+    "resident_chars": 31062,
+    "full_chars": 64839
   },
   "skills": {
     "ablation-planner": {
@@ -150,8 +150,8 @@
     "comp-compile-en": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says \\”compile MCM paper\\”,。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。",
-      "full_description": "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says \\”compile MCM paper\\”,。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。",
+      "resident_description": "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says ”compile MCM paper”,。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。",
+      "full_description": "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says ”compile MCM paper”,。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-compile-en/SKILL.md"
     },
@@ -310,8 +310,8 @@
     "comp-statistics-topic": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "统计建模大赛选题与数据规划。根据官方主题方向，自拟具体题目、设计研究方案、规划数据来源。Use when user says \\”统计建模选题\\”, \\”stats topic\\”, \\”自拟题目\\”.",
-      "full_description": "统计建模大赛选题与数据规划。根据官方主题方向，自拟具体题目、设计研究方案、规划数据来源。Use when user says \\”统计建模选题\\”, \\”stats topic\\”, \\”自拟题目\\”.",
+      "resident_description": "统计建模大赛选题与数据规划。根据官方主题方向，自拟具体题目、设计研究方案、规划数据来源。Use when user says ”统计建模选题”, ”stats topic”, ”自拟题目”.",
+      "full_description": "统计建模大赛选题与数据规划。根据官方主题方向，自拟具体题目、设计研究方案、规划数据来源。Use when user says ”统计建模选题”, ”stats topic”, ”自拟题目”.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-statistics-topic/SKILL.md"
     },
@@ -630,8 +630,8 @@
     "doc-poster-latex": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Create professional research posters in LaTeX using beamerposter, tikzposter, or baposter. Support for conference presentations, academic posters, and scientific communication. Includes layout design, color schemes, multi-column formats, figure integration, and poster-specific best practices for visual communication. Use when 用户说\\\\\"做学术海报\\\\\"\\\\\"会议海报\\\\\"\\\\\"LaTeX 海报\\\\\"或要求把论文改成一页海报时。从已成稿论文走流水线生成海报改用 paper-poster。",
-      "full_description": "Create professional research posters in LaTeX using beamerposter, tikzposter, or baposter. Support for conference presentations, academic posters, and scientific communication. Includes layout design, color schemes, multi-column formats, figure integration, and poster-specific best practices for visual communication. Use when 用户说\\\\\"做学术海报\\\\\"\\\\\"会议海报\\\\\"\\\\\"LaTeX 海报\\\\\"或要求把论文改成一页海报时。从已成稿论文走流水线生成海报改用 paper-poster。",
+      "resident_description": "Create professional research posters in LaTeX using beamerposter, tikzposter, or baposter. Support for conference presentations, academic posters, and scientific communication. Includes layout design, color schemes, multi-column formats, figure integration, and poster-specific best practices for visual communication. Use when 用户说\\\"做学术海报\\\"\\\"会议海报\\\"\\\"LaTeX 海报\\\"或要求把论文改成一页海报时。从已成稿论文走流水线生成海报改用 paper-poster。",
+      "full_description": "Create professional research posters in LaTeX using beamerposter, tikzposter, or baposter. Support for conference presentations, academic posters, and scientific communication. Includes layout design, color schemes, multi-column formats, figure integration, and poster-specific best practices for visual communication. Use when 用户说\\\"做学术海报\\\"\\\"会议海报\\\"\\\"LaTeX 海报\\\"或要求把论文改成一页海报时。从已成稿论文走流水线生成海报改用 paper-poster。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/doc-poster-latex/SKILL.md"
     },
@@ -1110,8 +1110,8 @@
     "literature-review": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "文献综述撰写。检索学术文献、验证真实性、按主题分类、撰写综合性文献综述。Use when user says \\”文献综述\\”, \\”literature review\\”, \\”综述\\”.",
-      "full_description": "文献综述撰写。检索学术文献、验证真实性、按主题分类、撰写综合性文献综述。Use when user says \\”文献综述\\”, \\”literature review\\”, \\”综述\\”.",
+      "resident_description": "文献综述撰写。检索学术文献、验证真实性、按主题分类、撰写综合性文献综述。Use when user says ”文献综述”, ”literature review”, ”综述”.",
+      "full_description": "文献综述撰写。检索学术文献、验证真实性、按主题分类、撰写综合性文献综述。Use when user says ”文献综述”, ”literature review”, ”综述”.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/literature-review/SKILL.md"
     },
@@ -1502,16 +1502,16 @@
     "paper-plan": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Generate a structured paper outline from review conclusions and experiment results. Use when user says \\\\\"paper outline\\\\\", \\\\\"plan the paper\\\\\", or wants to create a paper plan before writing.",
-      "full_description": "Generate a structured paper outline from review conclusions and experiment results. Use when user says \\\\\"paper outline\\\\\", \\\\\"plan the paper\\\\\", or wants to create a paper plan before writing.",
+      "resident_description": "Generate a structured paper outline from review conclusions and experiment results. Use when user says \\\"paper outline\\\", \\\"plan the paper\\\", or wants to create a paper plan before writing.",
+      "full_description": "Generate a structured paper outline from review conclusions and experiment results. Use when user says \\\"paper outline\\\", \\\"plan the paper\\\", or wants to create a paper plan before writing.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-plan/SKILL.md"
     },
     "paper-plan-zh": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Generate a structured Chinese paper outline. Use when user says \\\\\"中文大纲\\\\\", \\\\\"中文论文规划\\\\\", \\\\\"Chinese paper outline\\\\\", or wants to create a Chinese academic paper plan.",
-      "full_description": "Generate a structured Chinese paper outline. Use when user says \\\\\"中文大纲\\\\\", \\\\\"中文论文规划\\\\\", \\\\\"Chinese paper outline\\\\\", or wants to create a Chinese academic paper plan.",
+      "resident_description": "Generate a structured Chinese paper outline. Use when user says \\\"中文大纲\\\", \\\"中文论文规划\\\", \\\"Chinese paper outline\\\", or wants to create a Chinese academic paper plan.",
+      "full_description": "Generate a structured Chinese paper outline. Use when user says \\\"中文大纲\\\", \\\"中文论文规划\\\", \\\"Chinese paper outline\\\", or wants to create a Chinese academic paper plan.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-plan-zh/SKILL.md"
     },
@@ -1662,8 +1662,8 @@
     "paper-write-zh": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Draft a Chinese academic paper in LaTeX using XeLaTeX + ctex. Use when user says \\”写中文论文\\”, \\”中文LaTeX\\”, \\”Chinese paper\\”。区别于 paper-write：本技能面向中文学位论文/中文期刊（ctex 本科/硕士/期刊三模板 + GB/T 7714），英文会议稿改用 paper-write；Word(docx) 输出改用 paper-write-zh-docx。",
-      "full_description": "Draft a Chinese academic paper in LaTeX using XeLaTeX + ctex. Use when user says \\”写中文论文\\”, \\”中文LaTeX\\”, \\”Chinese paper\\”。区别于 paper-write：本技能面向中文学位论文/中文期刊（ctex 本科/硕士/期刊三模板 + GB/T 7714），英文会议稿改用 paper-write；Word(docx) 输出改用 paper-write-zh-docx。",
+      "resident_description": "Draft a Chinese academic paper in LaTeX using XeLaTeX + ctex. Use when user says ”写中文论文”, ”中文LaTeX”, ”Chinese paper”。区别于 paper-write：本技能面向中文学位论文/中文期刊（ctex 本科/硕士/期刊三模板 + GB/T 7714），英文会议稿改用 paper-write；Word(docx) 输出改用 paper-write-zh-docx。",
+      "full_description": "Draft a Chinese academic paper in LaTeX using XeLaTeX + ctex. Use when user says ”写中文论文”, ”中文LaTeX”, ”Chinese paper”。区别于 paper-write：本技能面向中文学位论文/中文期刊（ctex 本科/硕士/期刊三模板 + GB/T 7714），英文会议稿改用 paper-write；Word(docx) 输出改用 paper-write-zh-docx。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-write-zh/SKILL.md"
     },
@@ -2022,8 +2022,8 @@
     "thesis-proposal": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "开题报告撰写。生成完整的学位论文开题报告，包含选题背景、研究现状、研究内容、技术路线、进度安排和参考文献。Use when user says \\”开题报告\\”, \\”thesis proposal\\”, \\”开题\\”.",
-      "full_description": "开题报告撰写。生成完整的学位论文开题报告，包含选题背景、研究现状、研究内容、技术路线、进度安排和参考文献。Use when user says \\”开题报告\\”, \\”thesis proposal\\”, \\”开题\\”.",
+      "resident_description": "开题报告撰写。生成完整的学位论文开题报告，包含选题背景、研究现状、研究内容、技术路线、进度安排和参考文献。Use when user says ”开题报告”, ”thesis proposal”, ”开题”.",
+      "full_description": "开题报告撰写。生成完整的学位论文开题报告，包含选题背景、研究现状、研究内容、技术路线、进度安排和参考文献。Use when user says ”开题报告”, ”thesis proposal”, ”开题”.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/thesis-proposal/SKILL.md"
     },

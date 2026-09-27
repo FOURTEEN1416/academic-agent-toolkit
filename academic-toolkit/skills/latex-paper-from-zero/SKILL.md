@@ -36,7 +36,7 @@ This skill is the **front door** of the paper stack:
 - `plan/outline-contract.md`
 - `plan/router-decision.md`
 - A routing decision to one downstream writer:
-  - `../arxiv-paper-writer/SKILL.md` for review papers
+  - `../latex-paper-survey-writer/SKILL.md` for review papers
   - `../empirical-paper-writer/SKILL.md` for experimental papers
 
 ## Workflow
@@ -56,7 +56,7 @@ This skill is the **front door** of the paper stack:
    - what may remain placeholder vs what must be verified before finalization
 7. Produce an outline contract with section goals, citation quotas, and figure quotas.
 8. Route:
-   - `review` -> use `../arxiv-paper-writer/SKILL.md`
+   - `review` -> use `../latex-paper-survey-writer/SKILL.md`
    - `empirical` -> use `../empirical-paper-writer/SKILL.md`
 
 ## Collaboration Hooks (Recommended)

@@ -24,8 +24,9 @@ examples. Do not reinterpret a stylistic preference as mathematical evidence.
 
 A textual DATA_CHECK_PASSED / MODELING_OK / METHOD_CHECK marker is not fresh proof.
 Review calculations against actual data, including rounding, units and derived formulas.
-Write an acknowledgment only after review, then record the current file fingerprint with
-the runtime-provided paper_data_check.py --mode pdf|docx|table --workspace . --record-review.
+Write an acknowledgment only after review, then record the current file fingerprint by re-running
+the runtime-provided `paper_data_check.py --mode pdf|docx|table --workspace .` and keeping its
+fresh output as the review receipt.
 Never write a receipt manually. Unchanged verified snapshots can reuse the review;
 changes to the relevant source, data or checker invalidate it. Legacy markers receive
 one focused confirmation, not repeated full-stage regeneration. Missing provenance

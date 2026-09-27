@@ -27,7 +27,7 @@ Inherited; locked verbatim per PR #657 audit.
 - **Error handling.** On failure → wait 3s → retry once → log. After 3 consecutive failures across tools: stop, alert researcher, explain what's missing. Never silently skip.
 - **Transparency.** Audit Log section in the DOCX. Same standards in chat summary as in document.
 
-See [`references/reporter_post_patterns.md`](references/reporter_post_patterns.md) for the RePORTER POST canon + plan-tier detection.
+See [`reporter_post_patterns.md`](reporter_post_patterns.md) for the RePORTER POST canon + plan-tier detection.
 
 ## Phase 1: Grill-Me Intake (6 forcing questions, one at a time)
 
@@ -105,7 +105,7 @@ Run sequentially at 1 q/sec. Each search corresponds to one positioning facet:
 4. **Adjacent Methods** — `"<related technique>" applied to <topic>` — methodological possibilities
 5. **Gaps** — `"<topic>" limitations OR unanswered OR future directions OR challenge` — gap signals
 
-Use `scripts/citation_tracker.py --action record_consensus_search` for each. Plan-tier detected from first response.
+Use `citation_tracker.py --action record_consensus_search` for each. Plan-tier detected from first response.
 
 **Synthesis:** for each facet, extract 2-3 quotable findings (becomes Section 2 gap quotes). Draft Significance/Innovation language using "the field has established X (refs), but Y remains unanswered (refs)" pattern.
 
@@ -115,10 +115,10 @@ RePORTER is **POST-only**. Use `bash_tool` + `curl` — never `web_fetch`.
 
 ### Dynamic fiscal year window
 
-Compute at runtime via `scripts/fiscal_year_calculator.py`. Default: current FY + 3 prior. Federal FY starts Oct 1, so:
+Compute at runtime via `fiscal_year_calculator.py`. Default: current FY + 3 prior. Federal FY starts Oct 1, so:
 
 ```bash
-python scripts/fiscal_year_calculator.py --output json
+python fiscal_year_calculator.py --output json
 # Returns: {"current_fy": 2026, "window": [2023, 2024, 2025, 2026]}
 ```
 
@@ -182,10 +182,10 @@ If fetch fails: log `[NOSI {number} — fetch failed, not included]`, continue.
 
 NOT career stage alone. Career stage **+** project scope **+** prelim data drive recommendation.
 
-Use `scripts/mechanism_matcher.py`:
+Use `mechanism_matcher.py`:
 
 ```bash
-python scripts/mechanism_matcher.py \
+python mechanism_matcher.py \
   --career-stage "early_career" \
   --prelim-data "pilot" \
   --environment "r01_eligible" \
@@ -194,11 +194,11 @@ python scripts/mechanism_matcher.py \
 # Returns mechanism shortlist with rationale
 ```
 
-See [`references/nih_mechanism_matching.md`](references/nih_mechanism_matching.md) for the full matrix.
+See [`nih_mechanism_matching.md`](nih_mechanism_matching.md) for the full matrix.
 
 ## Phase 3: DOCX Generation
 
-9 sections via Node.js + `docx` library. See [`references/docx_9_sections.md`](references/docx_9_sections.md) for full spec.
+9 sections via Node.js + `docx` library. See [`docx_9_sections.md`](docx_9_sections.md) for full spec.
 
 1. **Executive Summary** — title + career stage + environment + 3-4 key findings bullets
 2. **Research Positioning** — 3-5 gap quotes (italicized, inline Consensus citations) + 2-3 paragraph positioning narrative + supporting evidence table
@@ -244,15 +244,15 @@ This is the single most valuable advice for any applicant. Never skip.
 
 | Script | Role |
 |---|---|
-| `scripts/citation_tracker.py` | Three-count audit (Consensus sent/shown/cited + RePORTER projects/cited) at `~/.grants_sessions/<session>.json` |
-| `scripts/fiscal_year_calculator.py` | Current FY + 3-prior window. Computed at runtime, never hardcoded. |
-| `scripts/mechanism_matcher.py` | Career stage × scope × prelim → mechanism recommendation shortlist |
+| `citation_tracker.py` | Three-count audit (Consensus sent/shown/cited + RePORTER projects/cited) at `~/.grants_sessions/<session>.json` |
+| `fiscal_year_calculator.py` | Current FY + 3-prior window. Computed at runtime, never hardcoded. |
+| `mechanism_matcher.py` | Career stage × scope × prelim → mechanism recommendation shortlist |
 
 ## References
 
-- [`references/nih_mechanism_matching.md`](references/nih_mechanism_matching.md) — career stage × scope × prelim → mechanism canon (7+ sources)
-- [`references/reporter_post_patterns.md`](references/reporter_post_patterns.md) — RePORTER curl POST templates + plan-tier detection (7+ sources)
-- [`references/docx_9_sections.md`](references/docx_9_sections.md) — 9-section .docx spec + technical requirements (7+ sources)
+- [`nih_mechanism_matching.md`](nih_mechanism_matching.md) — career stage × scope × prelim → mechanism canon (7+ sources)
+- [`reporter_post_patterns.md`](reporter_post_patterns.md) — RePORTER curl POST templates + plan-tier detection (7+ sources)
+- [`docx_9_sections.md`](docx_9_sections.md) — 9-section .docx spec + technical requirements (7+ sources)
 
 ## Error Handling
 
@@ -282,5 +282,4 @@ This is the single most valuable advice for any applicant. Never skip.
 ---
 
 **Version:** 1.0.0
-**Source spec:** [`megaprompts/08-grants-megaprompt.md`](../../../../megaprompts/08-grants-megaprompt.md)
 **Build pattern:** Path B (direct conversion). Research-pack sibling of pulse + litreview.

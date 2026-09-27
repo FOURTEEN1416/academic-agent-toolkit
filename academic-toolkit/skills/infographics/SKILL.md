@@ -308,7 +308,7 @@ This skill works synergistically with:
 - **scientific-schematics**: For technical diagrams and flowcharts
 - **market-research-reports**: Infographics for business reports
 - **scientific-slides**: Infographic elements for presentations
-- **generate-image**: For non-infographic visual content
+- **generate-image** *(not bundled in this repo — unavailable; fall back to host-native image generation when the host offers it)*: For non-infographic visual content
 
 ---
 

@@ -2,8 +2,8 @@
 name: experiment-agent
 description: "Experiment executor and monitor for academic research. 2-agent system covering code experiments (ML training,"
 metadata:
-  version: "1.0"
-  last_updated: "2026-04-14"
+  version: "1.1.0"
+  last_updated: "2026-05-02"
   author: "Cheng-I Wu"
   license: "CC-BY-NC 4.0"
   status: active

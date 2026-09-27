@@ -19,7 +19,7 @@ Produce a **launching pad** — not a finished literature review, but an orienta
 
 | Lane | When | How |
 |---|---|---|
-| **Free lane (default)** | Always available; no key, no plan, no MCP | PubMed E-utilities + OpenAlex via `scripts/free_search.py` or direct HTTPS (URL templates below) |
+| **Free lane (default)** | Always available; no key, no plan, no MCP | PubMed E-utilities + OpenAlex via `free_search.py` or direct HTTPS (URL templates below) |
 | **Consensus lane (optional enhancement)** | Only when Consensus MCP tools are available in this session | Run Consensus queries *in addition to* the free lane for its synthesized answer cards |
 
 **Lane check (one runtime check — replaces all tier detection):** if the Consensus MCP tools are **not** available in this session, use the free lane — **do not attempt tier detection**, do not parse marketing copy, do not ask the user about their Consensus plan. If Consensus IS available, additionally run its searches and merge results (dedupe by DOI/title).
@@ -49,12 +49,12 @@ OpenAlex's `cited_by_count` is the citation-count source for the cross-search in
 Inherited from the research-pack convention; locked verbatim per PR #657's cross-skill consistency audit.
 
 - **Source discipline.** Only cite papers returned by THIS session's searches (free lane and/or Consensus). Training knowledge labeled `[Not from search — model knowledge]` and excluded from cited count. Sparse results stated explicitly, never silently filled.
-- **Counting discipline.** Three numbers tracked: searches executed / unique papers received (deduplicated by DOI/title) / papers cited. Every cited paper has a retrievable URL from this session (PubMed, DOI, OpenAlex, or Consensus). Use `scripts/citation_tracker.py` for deterministic counts.
+- **Counting discipline.** Three numbers tracked: searches executed / unique papers received (deduplicated by DOI/title) / papers cited. Every cited paper has a retrievable URL from this session (PubMed, DOI, OpenAlex, or Consensus). Use `citation_tracker.py` for deterministic counts.
 - **Rate-limit etiquette.** PubMed E-utilities: ≤3 requests/second keyless. OpenAlex: polite pool via `mailto`. Consensus (if connected): 1 query/sec, sequential execution mandatory. Default discipline: **sequential, 1 query/sec across all lanes.**
 - **Retry policy.** On failure → wait 3s → retry once → log. After 3 consecutive failures: stop, alert user, share what was collected.
 - **Lane check.** One runtime check at session start: Consensus MCP tools available or not. No tier detection, ever.
 
-See [`references/search_budget_allocation.md`](references/search_budget_allocation.md) for the sequential-execution rationale + budget ceilings.
+See [`search_budget_allocation.md`](search_budget_allocation.md) for the sequential-execution rationale + budget ceilings.
 
 ## Error Handling
 
@@ -92,9 +92,9 @@ Each question carries explicit "why I'm asking". Stop condition: max 3 before Ph
 >
 > *Why I'm asking:* PICO is the default for ~70% of clinical questions but maps poorly to qualitative work or technology evaluation. Picking upfront saves the recon search from suggesting a misaligned framework.
 
-Forcing choice with default ("you pick"). The skill surfaces its own framework recommendation after the recon search so user can override. Use `scripts/framework_recommender.py` for the heuristic.
+Forcing choice with default ("you pick"). The skill surfaces its own framework recommendation after the recon search so user can override. Use `framework_recommender.py` for the heuristic.
 
-See [`references/framework_selection.md`](references/framework_selection.md) for PICO / SPIDER / Decomposition canon.
+See [`framework_selection.md`](framework_selection.md) for PICO / SPIDER / Decomposition canon.
 
 ### Q3 (depends on Q1) — Tentative depth
 
@@ -115,7 +115,7 @@ Forcing choice. **Re-asked** at the post-Phase-2 checkpoint after the user has s
 **One broad recon search** to map themes, terminology, methodological distinctions.
 
 - Run the lane check (Consensus available or not), then:
-  - Free lane: `python scripts/free_search.py --query "<broad version of Q1>" --source both --max 20` (or the esearch/works URL templates above)
+  - Free lane: `python free_search.py --query "<broad version of Q1>" --source both --max 20` (or the esearch/works URL templates above)
   - **If Consensus is available, additionally** run one broad Consensus search and merge
 - Query: broad version of Q1 (terminology variants are okay; first search casts wide)
 - Record: `citation_tracker.py --action record_search --session NAME --query "..."`
@@ -179,7 +179,7 @@ Surface the **practical constraint**: search lane in use (free / free+Consensus)
 
 ## Phase 3: Targeted Searches
 
-Sequential (1 query/sec), budget per depth tier. Every search runs on the free lane (`free_search.py` or the URL templates); **if Consensus is available, additionally** run the same query there and merge. See [`references/search_budget_allocation.md`](references/search_budget_allocation.md) for full canon.
+Sequential (1 query/sec), budget per depth tier. Every search runs on the free lane (`free_search.py` or the URL templates); **if Consensus is available, additionally** run the same query there and merge. See [`search_budget_allocation.md`](search_budget_allocation.md) for full canon.
 
 ### Quick scan (5 searches)
 - 5 sub-area searches (one per sub-area)
@@ -202,7 +202,7 @@ Throughout: 1 q/sec rate limit. Sequential. Confirm response before next call. R
 
 ## Cross-Search Intelligence
 
-Three trackers across ALL search results — run `scripts/cross_search_aggregator.py --session NAME` after Phase 3 completes:
+Three trackers across ALL search results — run `cross_search_aggregator.py --session NAME` after Phase 3 completes:
 
 1. **Repeat-hit papers** — same paper appearing in 3+ sub-area searches = likely foundational
 2. **Recurring authors** — same author in multiple searches = dominant research group; top 3-5 most frequent matter
@@ -212,7 +212,7 @@ These feed the "Start Here" + "Key Research Groups" + "Bibliography" DOCX sectio
 
 ## Phase 4: DOCX Research Guide
 
-Generate via Node.js + `docx` library. 8 sections (see [`references/docx_8_sections.md`](references/docx_8_sections.md) for full spec):
+Generate via Node.js + `docx` library. 8 sections (see [`docx_8_sections.md`](docx_8_sections.md) for full spec):
 
 1. **Topic Overview** — single tight paragraph (4-6 sentences)
 2. **Start Here — Priority Reading Order** — 5-7 papers ordered: best recent review → foundational → 2-3 frontier → gap/controversy. Each: hyperlinked title + authors/year + 1-sentence contribution + 1-sentence "what to look for"
@@ -253,16 +253,16 @@ Plus:
 
 | Script | Role |
 |---|---|
-| `scripts/free_search.py` | Free keyless search lane — PubMed E-utilities + OpenAlex via stdlib urllib (`--query`, `--source pubmed|openalex|both`, `--max`, `--json`, `--mailto`; exits 2 with a clear message when offline) |
-| `scripts/citation_tracker.py` | JSON-backed three-count audit at `~/.litreview_sessions/<session>.json` |
-| `scripts/framework_recommender.py` | Heuristic PICO/SPIDER/Decomposition suggestion from research question |
-| `scripts/cross_search_aggregator.py` | Repeat-hits + recurring-authors + citation-per-year ranking after Phase 3 |
+| `free_search.py` | Free keyless search lane — PubMed E-utilities + OpenAlex via stdlib urllib (`--query`, `--source pubmed|openalex|both`, `--max`, `--json`, `--mailto`; exits 2 with a clear message when offline) |
+| `citation_tracker.py` | JSON-backed three-count audit at `~/.litreview_sessions/<session>.json` |
+| `framework_recommender.py` | Heuristic PICO/SPIDER/Decomposition suggestion from research question |
+| `cross_search_aggregator.py` | Repeat-hits + recurring-authors + citation-per-year ranking after Phase 3 |
 
 ## References
 
-- [`references/framework_selection.md`](references/framework_selection.md) — PICO / SPIDER / Decomposition canon (7+ sources)
-- [`references/search_budget_allocation.md`](references/search_budget_allocation.md) — depth tiers + cross-search intelligence + sequential execution rationale (7+ sources)
-- [`references/docx_8_sections.md`](references/docx_8_sections.md) — research guide DOCX spec + technical requirements (7+ sources)
+- [`framework_selection.md`](framework_selection.md) — PICO / SPIDER / Decomposition canon (7+ sources)
+- [`search_budget_allocation.md`](search_budget_allocation.md) — depth tiers + cross-search intelligence + sequential execution rationale (7+ sources)
+- [`docx_8_sections.md`](docx_8_sections.md) — research guide DOCX spec + technical requirements (7+ sources)
 
 ## Anti-Patterns To Reject
 
@@ -280,5 +280,4 @@ Plus:
 ---
 
 **Version:** 1.1.0
-**Source spec:** [`megaprompts/09-litreview-megaprompt.md`](../../../../megaprompts/09-litreview-megaprompt.md)
 **Build pattern:** Path B (direct conversion). Sibling of `pulse` (research-pack shape). v1.1.0: free keyless APIs (PubMed + OpenAlex) became the default search lane; Consensus demoted to optional enhancement; plan-tier detection deleted per the 2026-06 newgen audit + ClawHub rule #3 (no paid-service dependencies).

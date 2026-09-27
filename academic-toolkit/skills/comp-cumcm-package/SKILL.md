@@ -15,14 +15,14 @@ description: ">- 竞赛提交阶段打包沙演与合规终审入口（口径必
 
 **口径选择属任务裁决**：按当次任务的赛事身份（`contest_profile.contest_id` 或用户显式指定）选择
 comp_cumcm / comp_huawei；未指明时先向用户确认，**不静默套用任何默认**
-（`pack_submission.py` 的 `--compliance-profile` default=comp_cumcm 旧默认已实证为跨赛事误用通道，
-移除申请已提请 B 窗；在该默认移除前，使用本技能时必须显式带口径）。
+（`pack_submission.py` 的 `--compliance-profile` 旧默认 comp_cumcm 已移除，现为**必填**——
+两族口径必须显式声明）。
 
 | 判据 | comp_cumcm（国赛，默认） | comp_huawei（华为杯） |
 |---|---|---|
 | 承诺书页 | ⛔ 电子版**禁含**承诺书/编号专用页（`pledge_page: forbidden_in_electronic`，系统另收） | ⛔ 官方模板**全无承诺书页**（`pledge_page: absent_in_official_template`，2026-09-25 按官方开赛公告勘误：承诺书为校级材料，签字盖章扫描件交培养单位，不入论文） |
 | 电子版首页 | 摘要专用页（机检硬项） | 封皮页（不可删除、4 logo 不能替换）——**禁止**套用国赛"首页必须摘要"硬检查；除首页外不得出现单位/姓名/队号 |
-| 正文页限 | 档案 `compliance.max_body_pages`（现值 30，人工项） | 档案 `compliance.max_body_pages`（现值 80；旧值 50 已作废——2026-09-25 用户裁决本轮投稿口径 80。档案 rules 中"目标 40-60"为经验区间，非硬门禁） |
+| 正文页限 | profiles 约束经引擎 bound 快照注入（`gate_page_cap`/`gate_page_scope`；cumcm 电子版 `official_verified` 30） | 当届 operative 页限 **unknown**（`hw-page-limit` 无 verified 值）——80 仅是 huawei2026d_zcode 本轮投稿的 migration_evidence 任务口径（不继承新任务），50 为历轮配置基线已不作数；页限未知按"待核实"上报，不编默认 |
 | 图表总量 | 常规 | 档案 `compliance.figure_total_range` [30,46]——来源为经验汇编（figure_exemplars.md），**非已证官方规则**：按建议区间对待，不作为硬门禁（待 E 取证当届规程后升级） |
 | 封面模板 | cumcmthesis | 官方第 21 届 Word/PDF 模板指针：`skills/comp-paper-zh/_templates/huawei/official_docx/`（gitignored，按指针取用勿复制入库）+ LaTeX `gmcmthesis` |
 | 正式包格式 | WinRAR 压 .rar（云南赛区） | 以当届研究生竞赛章程为准，勿默认套用国赛 RAR 口径 |
@@ -41,8 +41,9 @@ comp_cumcm / comp_huawei；未指明时先向用户确认，**不静默套用任
 ## 执行
 
 ```bash
-# 国赛（默认口径，行为与 G2 之前完全一致）
-python skills/comp-cumcm-package/scripts/pack_submission.py --workspace workspaces/<ws>
+# 国赛：显式带 comp_cumcm 口径（--compliance-profile 已必填，无默认）
+python skills/comp-cumcm-package/scripts/pack_submission.py --workspace workspaces/<ws> \
+  --compliance-profile comp_cumcm
 
 # 华为杯：官方模板无承诺书页 + 首页摘要硬检查停用（首页为封皮）
 python skills/comp-cumcm-package/scripts/pack_submission.py --workspace workspaces/<ws> \

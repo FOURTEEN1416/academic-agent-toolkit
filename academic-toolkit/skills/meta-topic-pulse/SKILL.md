@@ -34,11 +34,11 @@ The following rules apply throughout the run. They are inherited from the resear
 
 - **Execution discipline.** Phases 1–3 run in parallel (Reddit + HN + Web are independent). Within each phase, sequential calls only. **1 q/sec rate limit per platform.** Confirm response received before next call within the same phase.
 - **Source discipline.** Cite only sources returned by **this session's tool calls.** Training knowledge is labeled `[Background — not from search]` and excluded from primary findings count.
-- **Three-count tracking.** Queries sent / sources received (shown) / sources cited. Surfaced in the audit log inline in the synthesis section. Use `scripts/citation_tracker.py` for the deterministic count.
+- **Three-count tracking.** Queries sent / sources received (shown) / sources cited. Surfaced in the audit log inline in the synthesis section. Use `citation_tracker.py` for the deterministic count.
 - **Retry policy.** On failure → wait 3s → retry once → log. After **3 consecutive failures across all sources:** stop, alert user, share what was collected. Never deliver an empty file.
 - **Plan-tier detection.** Reddit + HN are unauthenticated public JSON APIs (rate-limited per IP, not per plan). Surface rate-limit signals from response headers when available; degrade gracefully otherwise.
 
-See `references/research_pack_conventions.md` for the canon and `references/parallel_execution_discipline.md` for the rate-limit rationale.
+See `research_pack_conventions.md` for the canon and `parallel_execution_discipline.md` for the rate-limit rationale.
 
 ## Phase 0: Grill-Me Intake (2–4 forcing questions, one at a time)
 
@@ -88,9 +88,9 @@ Asked only if Q1 + Q2 suggest some platforms are clearly off-target (e.g., consu
 
 Before any phase fires:
 
-1. **Compute the time window** with `scripts/time_window_calculator.py --window <Nd>`. Get back the Unix timestamp for `created_at_i>` (HN) and the `t=` parameter (`hour|day|week|month|year|all`) for Reddit.
-2. **Generate the output slug** with `scripts/topic_slug_generator.py --topic "<topic>" --date $(date +%Y-%m-%d)`. Detect if `${RESEARCH_DIR}/pulse/<slug>-<date>.md` already exists; if yes, append `-v2` suffix or warn user.
-3. **Start the three-count audit log** with `scripts/citation_tracker.py --action start --session pulse-<date>-<slug>`. This file at `~/.pulse_sessions/<session>.json` persists across the run.
+1. **Compute the time window** with `time_window_calculator.py --window <Nd>`. Get back the Unix timestamp for `created_at_i>` (HN) and the `t=` parameter (`hour|day|week|month|year|all`) for Reddit.
+2. **Generate the output slug** with `topic_slug_generator.py --topic "<topic>" --date $(date +%Y-%m-%d)`. Detect if `${RESEARCH_DIR}/pulse/<slug>-<date>.md` already exists; if yes, append `-v2` suffix or warn user.
+3. **Start the three-count audit log** with `citation_tracker.py --action start --session pulse-<date>-<slug>`. This file at `~/.pulse_sessions/<session>.json` persists across the run.
 
 ## Phase 1: Reddit (parallel with HN + Web)
 
@@ -159,7 +159,7 @@ After Phases 1–4 complete (or Phase 4 skipped), produce the synthesis:
 
 For each pattern, **cite the source URLs** that support it. Use `citation_tracker.py --action record_cited --session NAME --url "..."` per citation.
 
-See `references/cross_platform_synthesis.md` for detection heuristics.
+See `cross_platform_synthesis.md` for detection heuristics.
 
 ## Output
 
@@ -229,15 +229,15 @@ Sources received: M. Sources cited: K. Training knowledge: 0 ([Background] exclu
 
 | Script | Role |
 |---|---|
-| `scripts/time_window_calculator.py` | Compute Unix timestamps + Reddit `t=` parameter from window string (`30d`, `7d`, etc.). Deterministic from `datetime.now()`. |
-| `scripts/citation_tracker.py` | JSON-backed three-count audit log (sent / received / cited) at `~/.pulse_sessions/<session>.json`. |
-| `scripts/topic_slug_generator.py` | Filesystem-safe slug + duplicate-date detection for output paths. |
+| `time_window_calculator.py` | Compute Unix timestamps + Reddit `t=` parameter from window string (`30d`, `7d`, etc.). Deterministic from `datetime.now()`. |
+| `citation_tracker.py` | JSON-backed three-count audit log (sent / received / cited) at `~/.pulse_sessions/<session>.json`. |
+| `topic_slug_generator.py` | Filesystem-safe slug + duplicate-date detection for output paths. |
 
 ## References
 
-- `references/research_pack_conventions.md` — Agent Integrity Rules canon (7+ sources: Google SRE, Reddit API docs, Algolia HN docs, exponential-backoff literature, citation discipline)
-- `references/cross_platform_synthesis.md` — consensus / controversy / pain detection across platforms (7+ sources)
-- `references/parallel_execution_discipline.md` — 1 q/sec rationale + plan-tier signals (7+ sources)
+- `research_pack_conventions.md` — Agent Integrity Rules canon (7+ sources: Google SRE, Reddit API docs, Algolia HN docs, exponential-backoff literature, citation discipline)
+- `cross_platform_synthesis.md` — consensus / controversy / pain detection across platforms (7+ sources)
+- `parallel_execution_discipline.md` — 1 q/sec rationale + plan-tier signals (7+ sources)
 
 ## Anti-Patterns To Reject
 
@@ -254,5 +254,4 @@ Sources received: M. Sources cited: K. Training knowledge: 0 ([Background] exclu
 ---
 
 **Version:** 1.0.0
-**Source spec:** [`megaprompts/01-pulse-megaprompt.md`](../../../../megaprompts/01-pulse-megaprompt.md)
 **Build pattern:** Path B (direct conversion). Re-grill with `/cs:grill-with-docs` if drift between spec and implementation surfaces.

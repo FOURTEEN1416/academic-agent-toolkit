@@ -643,7 +643,7 @@ sns.set_context('paper', font_scale=1.2)  # Increase if needed
 #### Additional Resources
 
 For more detailed seaborn information, see:
-- `scientific-packages/seaborn/SKILL.md` - Comprehensive seaborn documentation
+- `../seaborn/SKILL.md` - Comprehensive seaborn documentation
 - `scientific-packages/seaborn/references/examples.md` - Practical use cases
 - `scientific-packages/seaborn/references/function_reference.md` - Complete API reference
 - `scientific-packages/seaborn/references/objects_interface.md` - Modern declarative API

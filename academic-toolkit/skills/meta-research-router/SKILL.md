@@ -141,7 +141,7 @@ else:
   route_to = "fallback"                     # ambiguous or no match — ask Q3 / run fallback
 ```
 
-**Implementation:** `scripts/classifier.py --question "..."` returns the routing decision + matched signals + per-specialist scores + (for `ask`) the recommended specialist. Use it; don't re-implement. The SIGNALS map and rules above are kept phrase-for-phrase in sync with the script — drift = bug.
+**Implementation:** `classifier.py --question "..."` returns the routing decision + matched signals + per-specialist scores + (for `ask`) the recommended specialist. Use it; don't re-implement. The SIGNALS map and rules above are kept phrase-for-phrase in sync with the script — drift = bug.
 
 ## Phase 3a: Specialist Delegation (≥2 signals OR one strong multi-word phrase)
 
@@ -151,13 +151,13 @@ When delegating:
 2. **Let the specialist run its own grill-me intake** — do NOT pre-answer specialist questions
 3. Return specialist output as the user-visible result
 4. Tag the result with `[Delegated to: research → {specialist}]` in the chat output so the user knows what skill produced it
-5. Tag the audit log via `scripts/routing_transparency_logger.py --action record_delegation`
+5. Tag the audit log via `routing_transparency_logger.py --action record_delegation`
 
 ## Phase 3b: Own Fallback Workflow
 
 If routing produced no specialist match (and Q3 confirmed general research), run the 8-step fallback:
 
-1. **Decompose** — break the question into 3–5 sub-questions (what / why / how / who / what's next). Show the decomposition before searching. `scripts/fallback_decomposer.py --question "..."` gives a deterministic starting point.
+1. **Decompose** — break the question into 3–5 sub-questions (what / why / how / who / what's next). Show the decomposition before searching. `fallback_decomposer.py --question "..."` gives a deterministic starting point.
 2. **Source selection** — per sub-question: recency → WebSearch+WebFetch (+Reddit/HN on signal); technical/docs → WebSearch+WebFetch; academic → Consensus MCP if connected, else WebSearch with `scholar.google.com` site filter; data/numbers → WebFetch primary documents; entity-level → offer `dossier` re-route.
 3. **Search** — sequential per sub-question, 1 q/sec, 2–4 queries per source, broad-to-narrow.
 4. **Read + extract** — WebFetch high-signal results; note every source URL.
@@ -225,15 +225,15 @@ All routing decisions + overrides also logged to `~/.research_sessions/<session>
 
 ## Tooling
 
-- **`scripts/classifier.py`** — Deterministic SIGNALS matching → routing decision (`specialist` / `ask` + recommended / `fallback`) + per-specialist score + matched phrases. `--question "..." --output json`.
-- **`scripts/routing_transparency_logger.py`** — JSON-backed audit log at `~/.research_sessions/<session>.json`. Records every routing decision, override, and delegation handoff.
-- **`scripts/fallback_decomposer.py`** — Heuristic question → 3–5 sub-questions (what / why / how / who / what's next).
+- **`classifier.py`** — Deterministic SIGNALS matching → routing decision (`specialist` / `ask` + recommended / `fallback`) + per-specialist score + matched phrases. `--question "..." --output json`.
+- **`routing_transparency_logger.py`** — JSON-backed audit log at `~/.research_sessions/<session>.json`. Records every routing decision, override, and delegation handoff.
+- **`fallback_decomposer.py`** — Heuristic question → 3–5 sub-questions (what / why / how / who / what's next).
 
 ### Reference Docs (each cites 7+ authoritative sources)
 
-- **`references/hybrid_router_architecture.md`** — router-vs-run trade-offs + routing transparency principle
-- **`references/deterministic_classification_canon.md`** — why keyword > LLM-reasoned for routing
-- **`references/fallback_workflow_canon.md`** — plan-decompose-search-synthesize methodology
+- **`hybrid_router_architecture.md`** — router-vs-run trade-offs + routing transparency principle
+- **`deterministic_classification_canon.md`** — why keyword > LLM-reasoned for routing
+- **`fallback_workflow_canon.md`** — plan-decompose-search-synthesize methodology
 
 ## Dependencies
 
@@ -245,5 +245,4 @@ All routing decisions + overrides also logged to `~/.research_sessions/<session>
 ---
 
 **Version:** 1.1.0
-**Source spec:** [`megaprompts/13-research-megaprompt.md`](../../../../megaprompts/13-research-megaprompt.md)
 **Build pattern:** Path B (direct conversion). v1.1.0: bare-noun signals now ask instead of silent-routing; 5s auto-proceed affordance removed; context-economy trim per the 2026-06 newgen audit.

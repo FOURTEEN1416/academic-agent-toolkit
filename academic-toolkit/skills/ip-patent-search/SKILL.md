@@ -29,7 +29,7 @@ This skill is **prior-art + landscape intelligence**. It **refuses to be a bucke
 | **Acquisition diligence** | Specific assignee + portfolio scope + assignment chain | Portfolio table + ownership verification |
 | **Litigation prior-art** | Specific target patent + adjacent art before priority date | Knock-out candidates ranked by relevance |
 
-See [`references/sub_use_case_routing.md`](references/sub_use_case_routing.md) for the canon.
+See [`sub_use_case_routing.md`](sub_use_case_routing.md) for the canon.
 
 ## Agent Integrity Rules (Research-Pack Convention)
 
@@ -101,10 +101,10 @@ Asked for novelty and FTO; skipped for pure landscape (always signal-gathering b
 
 ## Phase 2: Search Strategy Selection
 
-Deterministic from intake answers. Use `scripts/sub_use_case_router.py`:
+Deterministic from intake answers. Use `sub_use_case_router.py`:
 
 ```bash
-python scripts/sub_use_case_router.py \
+python sub_use_case_router.py \
   --sub-use-case novelty \
   --jurisdictions "" \
   --risk strict \
@@ -152,7 +152,7 @@ Returns: query plan (5-8 queries) + ranking heuristic + DOCX emphasis flags.
 
 ### Sequential discipline
 
-1 q/sec across ALL sources combined. Tracked via `scripts/citation_tracker.py` with timestamp-enforced gap.
+1 q/sec across ALL sources combined. Tracked via `citation_tracker.py` with timestamp-enforced gap.
 
 ## Phase 4: Claim Extraction + Relevance Scoring
 
@@ -176,10 +176,10 @@ If no Lens.org key: skip; note in audit log; recommend manual citation review on
 
 ### Family resolution
 
-Same invention often filed in multiple jurisdictions (US + EP + JP + CN). Group by family ID or priority number to avoid double-counting. Use `scripts/family_resolver.py`:
+Same invention often filed in multiple jurisdictions (US + EP + JP + CN). Group by family ID or priority number to avoid double-counting. Use `family_resolver.py`:
 
 ```bash
-python scripts/family_resolver.py --hits-file hits.json
+python family_resolver.py --hits-file hits.json
 # Returns: deduplicated family list + family-member jurisdictions
 ```
 
@@ -187,7 +187,7 @@ python scripts/family_resolver.py --hits-file hits.json
 
 **Critical:** keyword search alone misses adjacent art. After initial search, extract the CPC/IPC classes from top 5 hits and run **one class-restricted query**. This consistently surfaces art that keyword search misses.
 
-See [`references/cpc_classification_canon.md`](references/cpc_classification_canon.md) for the canon.
+See [`cpc_classification_canon.md`](cpc_classification_canon.md) for the canon.
 
 ## Phase 6: DOCX Generation (8 Sections)
 
@@ -241,15 +241,15 @@ Surface the **legally-relevant date** per sub-use-case:
 
 | Script | Role |
 |---|---|
-| `scripts/citation_tracker.py` | Multi-source three-count audit (Google Patents + Espacenet + USPTO + Lens.org) at `~/.patent_sessions/<session>.json` |
-| `scripts/family_resolver.py` | Group same-invention filings across jurisdictions by family ID / priority number |
-| `scripts/sub_use_case_router.py` | Deterministic search-strategy selection from intake answers |
+| `citation_tracker.py` | Multi-source three-count audit (Google Patents + Espacenet + USPTO + Lens.org) at `~/.patent_sessions/<session>.json` |
+| `family_resolver.py` | Group same-invention filings across jurisdictions by family ID / priority number |
+| `sub_use_case_router.py` | Deterministic search-strategy selection from intake answers |
 
 ## References
 
-- [`references/sub_use_case_routing.md`](references/sub_use_case_routing.md) — 5-sub-use-case canon (7+ sources)
-- [`references/cpc_classification_canon.md`](references/cpc_classification_canon.md) — CPC/IPC class follow-up rationale (7+ sources)
-- [`references/legal_disclaimer_discipline.md`](references/legal_disclaimer_discipline.md) — when + why disclaimer mandatory (7+ sources)
+- [`sub_use_case_routing.md`](sub_use_case_routing.md) — 5-sub-use-case canon (7+ sources)
+- [`cpc_classification_canon.md`](cpc_classification_canon.md) — CPC/IPC class follow-up rationale (7+ sources)
+- [`legal_disclaimer_discipline.md`](legal_disclaimer_discipline.md) — when + why disclaimer mandatory (7+ sources)
 
 ## Error Handling
 
@@ -283,5 +283,4 @@ Surface the **legally-relevant date** per sub-use-case:
 ---
 
 **Version:** 1.0.0
-**Source spec:** [`megaprompts/11-patent-megaprompt.md`](../../../../megaprompts/11-patent-megaprompt.md)
 **Build pattern:** Path B (direct conversion). Research-pack sibling, sub-use-case routing variant.

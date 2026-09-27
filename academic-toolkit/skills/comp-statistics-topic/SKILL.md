@@ -2,7 +2,7 @@
 
 name: comp-statistics-topic
 
-description: "统计建模大赛选题与数据规划。根据官方主题方向，自拟具体题目、设计研究方案、规划数据来源。Use when user says \”统计建模选题\”, \”stats topic\”, \”自拟题目\”."
+description: "统计建模大赛选题与数据规划。根据官方主题方向，自拟具体题目、设计研究方案、规划数据来源。Use when user says ”统计建模选题”, ”stats topic”, ”自拟题目”."
 argument-hint: [official-theme-direction]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent

@@ -4,7 +4,7 @@ user_invocable: true
 description: Critique academic figures for format, colorblind safety, legibility, overplotting, and category count. Use when reviewing figures before submission.
 ---
 
-# critique-figures — Figure Quality Review
+# fig-critique — Figure Quality Review
 
 Systematically review academic figures and flag common issues that hurt readability, accessibility, and print quality.
 

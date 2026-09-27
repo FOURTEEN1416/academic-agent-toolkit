@@ -27,7 +27,7 @@ The use case shape:
 
 The forcing Q4 — the hypothesis question — is the non-generic anchor. Skip it and the skill produces a Wikipedia summary.
 
-See [`references/hypothesis_testing_discipline.md`](references/hypothesis_testing_discipline.md) for the canon.
+See [`hypothesis_testing_discipline.md`](hypothesis_testing_discipline.md) for the canon.
 
 ## Agent Integrity Rules (Research-Pack Convention)
 
@@ -121,7 +121,7 @@ If still ambiguous after Q1 push-back: **halt and re-ask Q1** with disambiguatin
 
 ## Phase 3: Source Matrix Selection
 
-Routed by Q2 subject type. See [`references/subject_type_source_matrix.md`](references/subject_type_source_matrix.md) for the full canon.
+Routed by Q2 subject type. See [`subject_type_source_matrix.md`](subject_type_source_matrix.md) for the full canon.
 
 ### Person
 
@@ -165,7 +165,7 @@ Every Phase 4 search MUST be classified as either:
 - **Supporting evidence** (confirms hypothesis), OR
 - **Disconfirming evidence** (would refute hypothesis)
 
-**≥30% of search budget allocated to disconfirming queries.** Enforced via `scripts/disconfirming_evidence_balance.py`.
+**≥30% of search budget allocated to disconfirming queries.** Enforced via `disconfirming_evidence_balance.py`.
 
 Example for hypothesis "Microsoft is consolidating AI spend on Foundry":
 
@@ -223,7 +223,7 @@ Surface but don't sensationalize:
 
 3-5 specific hooks tied to **actual findings**, not generic talking points.
 
-See [`references/conversation_hook_quality.md`](references/conversation_hook_quality.md) for the canon.
+See [`conversation_hook_quality.md`](conversation_hook_quality.md) for the canon.
 
 | ❌ Generic | ✅ Finding-tied |
 |---|---|
@@ -273,15 +273,15 @@ new ExternalHyperlink({
 
 | Script | Role |
 |---|---|
-| `scripts/citation_tracker.py` | Three-count audit + supporting/disconfirming classification + source-tier tagging at `~/.dossier_sessions/<session>.json` |
-| `scripts/disconfirming_evidence_balance.py` | Verifies ≥30% of search budget allocated to disconfirming queries; warns if biased |
-| `scripts/source_tier_classifier.py` | URL → primary / secondary / tertiary classification via domain heuristics |
+| `citation_tracker.py` | Three-count audit + supporting/disconfirming classification + source-tier tagging at `~/.dossier_sessions/<session>.json` |
+| `disconfirming_evidence_balance.py` | Verifies ≥30% of search budget allocated to disconfirming queries; warns if biased |
+| `source_tier_classifier.py` | URL → primary / secondary / tertiary classification via domain heuristics |
 
 ## References
 
-- [`references/hypothesis_testing_discipline.md`](references/hypothesis_testing_discipline.md) — ≥30% rule + decision-grade vs encyclopedic (7+ sources)
-- [`references/subject_type_source_matrix.md`](references/subject_type_source_matrix.md) — person/company/nonprofit/gov source matrices (7+ sources)
-- [`references/conversation_hook_quality.md`](references/conversation_hook_quality.md) — finding-tied hook discipline (7+ sources)
+- [`hypothesis_testing_discipline.md`](hypothesis_testing_discipline.md) — ≥30% rule + decision-grade vs encyclopedic (7+ sources)
+- [`subject_type_source_matrix.md`](subject_type_source_matrix.md) — person/company/nonprofit/gov source matrices (7+ sources)
+- [`conversation_hook_quality.md`](conversation_hook_quality.md) — finding-tied hook discipline (7+ sources)
 
 ## Error Handling
 
@@ -314,5 +314,4 @@ new ExternalHyperlink({
 ---
 
 **Version:** 1.0.0
-**Source spec:** [`megaprompts/12-dossier-megaprompt.md`](../../../../megaprompts/12-dossier-megaprompt.md)
 **Build pattern:** Path B (direct conversion). Research-pack sibling, hypothesis-testing variant.

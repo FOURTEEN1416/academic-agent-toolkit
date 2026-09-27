@@ -234,22 +234,22 @@ Read PAPER_PLAN.md and data files. For each figure, classify into archetype and 
 
 ```bash
 # 必读：配色方案和 helper 函数
-cat _references/api.md
+cat references/api.md
 
 # 必读：根据图表类型选择对应教程
-cat _references/tutorials.md
+cat references/tutorials.md
 
 # 按需读取（多面板/复杂布局时）
-cat _references/common-patterns.md
+cat references/common-patterns.md
 
 # 按需读取（需要了解 Nature 真实页面风格时）
-cat _references/nature-2026-observations.md
+cat references/nature-2026-observations.md
 
 # 按需读取（雷达图/3D/特殊图表时）
-cat _references/chart-types.md
+cat references/chart-types.md
 ```
 
-One script per figure. Each starts with Nature rcParams setup (`setup_style(palette='nature')` or inline rcParams). Follow the patterns from `_references/tutorials.md` as starting point.
+One script per figure. Each starts with Nature rcParams setup (`setup_style(palette='nature')` or inline rcParams). Follow the patterns from `references/tutorials.md` as starting point.
 
 ### Step 3: Execute and validate
 

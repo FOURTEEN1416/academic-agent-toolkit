@@ -86,7 +86,7 @@ For action 4 (create new): replace with "What's the title for the new notebook?"
 
 **Stop condition:** After Q4 (or earlier with dependency skips), commit and start the action sequence.
 
-See [`references/studio_output_custom_prompts.md`](references/studio_output_custom_prompts.md) for the canon.
+See [`studio_output_custom_prompts.md`](studio_output_custom_prompts.md) for the canon.
 
 ## Notebook Discovery
 
@@ -157,7 +157,7 @@ Sub-flows per source type:
 **Slides (slide deck):**
 > "12 slides max. 1-2 sentences per slide body. Presenter notes per slide with: one concrete example + one likely audience objection + how to address it. No bullet points in slide bodies — prose only. End with one-slide call-to-action."
 
-See [`references/studio_output_custom_prompts.md`](references/studio_output_custom_prompts.md) for more.
+See [`studio_output_custom_prompts.md`](studio_output_custom_prompts.md) for more.
 
 ## Action 4: Create New Notebook
 
@@ -176,7 +176,7 @@ See [`references/studio_output_custom_prompts.md`](references/studio_output_cust
 
 This is the **fire-and-notify** pattern. Different from add-source and auto-summary (which are fast enough to wait).
 
-Use `scripts/async_action_classifier.py` to determine wait-or-notify per action:
+Use `async_action_classifier.py` to determine wait-or-notify per action:
 
 | Action | Wait? |
 |---|---|
@@ -190,12 +190,12 @@ Use `scripts/async_action_classifier.py` to determine wait-or-notify per action:
 
 ```bash
 # Verdict + paste-ready notify message for any action
-python3 scripts/async_action_classifier.py --action "video overview"
+python3 async_action_classifier.py --action "video overview"
 # -> Verdict: FIRE_AND_NOTIFY, estimated 5-15 minutes, with the exact
 #    "NOT waiting in this session" message to relay to the user
 ```
 
-See [`references/async_action_discipline.md`](references/async_action_discipline.md) for the canon.
+See [`async_action_discipline.md`](async_action_discipline.md) for the canon.
 
 ## Screenshot-First Discipline
 
@@ -213,7 +213,7 @@ NotebookLM is a **dynamic SPA** where UI varies by:
 
 Use `screenshot()` (or equivalent in your browser-automation tool) before every meaningful UI interaction.
 
-See [`references/browser_automation_canon.md`](references/browser_automation_canon.md) for the discipline.
+See [`browser_automation_canon.md`](browser_automation_canon.md) for the discipline.
 
 ## find()-Before-Click
 
@@ -271,15 +271,15 @@ After completing any action:
 
 | Script | Role |
 |---|---|
-| `scripts/action_router.py` | Q1-Q4 answers → action plan + UI flow + required parameters |
-| `scripts/custom_prompt_template_generator.py` | Studio output type + audience + length → starter custom prompt |
-| `scripts/async_action_classifier.py` | Action name → wait-or-notify pattern (fire-and-notify for slow generations) |
+| `action_router.py` | Q1-Q4 answers → action plan + UI flow + required parameters |
+| `custom_prompt_template_generator.py` | Studio output type + audience + length → starter custom prompt |
+| `async_action_classifier.py` | Action name → wait-or-notify pattern (fire-and-notify for slow generations) |
 
 ## References
 
-- [`references/browser_automation_canon.md`](references/browser_automation_canon.md) — screenshot-first + find-before-click + tool-agnostic patterns (7+ sources)
-- [`references/studio_output_custom_prompts.md`](references/studio_output_custom_prompts.md) — why defaults are mediocre + per-output-type templates (7+ sources)
-- [`references/async_action_discipline.md`](references/async_action_discipline.md) — fire-and-notify pattern for slow UI ops (7+ sources)
+- [`browser_automation_canon.md`](browser_automation_canon.md) — screenshot-first + find-before-click + tool-agnostic patterns (7+ sources)
+- [`studio_output_custom_prompts.md`](studio_output_custom_prompts.md) — why defaults are mediocre + per-output-type templates (7+ sources)
+- [`async_action_discipline.md`](async_action_discipline.md) — fire-and-notify pattern for slow UI ops (7+ sources)
 
 ## Anti-Patterns To Reject
 
