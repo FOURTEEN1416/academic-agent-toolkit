@@ -37,7 +37,7 @@ The orchestrator may inject one of two notice blocks into `AGENTS.md`:
 ## Constants
 
 - MAX_ROUNDS = 4
-- POSITIVE_THRESHOLD: score >= 6/10, or verdict contains "accept", "sufficient", "ready for submission"
+- POSITIVE_THRESHOLD: score >= 6/10 AND the parsed verdict is exactly `ready` or `accept`; `not ready`, `almost`, negated text and unresolved fatal findings never count as positive.
 - REVIEW_DOC: `AUTO_REVIEW.md` in project root (cumulative log)
 - REVIEW_TASK_DIR: `review_tasks/` — task cards `round_<N>.task.md`, verdicts `round_<N>.verdict.md`
 - REVIEW_DRIVER ∈ {"independent", "self-fallback"} — recorded per round in `REVIEW_STATE.json`（降级须附一句原因）
@@ -63,31 +63,30 @@ Long-running loops may hit the context window limit, triggering automatic compac
 
 **Write this file at the end of every Phase E** (after documenting the round). Overwrite each time — only the latest state matters.
 
-**On completion** (positive assessment or max rounds), set `"status": "completed"` so future invocations don't accidentally resume a finished loop.
+**On completion** (positive assessment or max rounds), set `"status": "completed"`. This marker records that this in-step round chain reached its end; it never tells a later invocation to start over. Any later invocation — same workflow, same task — still follows the Initialization reconciliation below: the engine's step state, the input version, and the actual deliverables decide whether there is anything left to do. A new round starts only on an explicit new task or a user-confirmed redo.
 
 ## Workflow
 
 ### Initialization
 
-1. **Check for `REVIEW_STATE.json`** in project root:
-   - If it does not exist: **fresh start** (normal case, identical to behavior before this feature existed)
-   - If it exists AND `status` is `"completed"`: **fresh start** (previous loop finished normally)
-   - If it exists AND `status` is `"in_progress"` AND `timestamp` is older than 24 hours: **fresh start** (stale state from a killed/abandoned run — delete the file and start over)
-   - If it exists AND `status` is `"in_progress"` AND `timestamp` is within 24 hours: **resume**
-     - Read the state file to recover `round`, `last_score`, `pending_experiments`
-     - Read `AUTO_REVIEW.md` to restore full context of prior rounds
-     - If `pending_experiments` is non-empty, check if they have completed (e.g., check screen sessions)
-     - Resume from the next round (round = saved round + 1)
-     - Log: "Recovered from context compaction. Resuming at Round N."
-2. Read project narrative documents, memory files, and any prior review documents
-3. Read recent experiment results — **explicitly check these files in order**:
+1. **Recovery obeys engine facts, and the program owns reconciliation.** Step status, input version, and actual deliverables are checked by the session/runtime — not hand-audited by the model. Work on the task the engine dispatches; act only on the business conflicts the program returns.
+   - Program reports this step as **already completed** → treat it as a returned business conflict: report the finished state and stop. There is no restart path in this skill; a new round begins only when the user explicitly issues a new task or confirms a redo (arriving as a new engine instruction).
+   - Program reports this step as **in progress / pending** → proceed with in-step recovery below.
+2. **In-step round context.** `REVIEW_STATE.json` is only a round accelerator written by earlier passes of this same step — it is never the authority:
+   - It exists → read `round`, `last_score`, `pending_experiments`; restore prior-round context from `AUTO_REVIEW.md`; check pending experiments (e.g., screen sessions); resume from the next round. A stale `timestamp` is never a reason to reset.
+   - It is missing → carry out the dispatched task from its first round; a missing file is not a restart decision — what to run is what the engine dispatched, and nothing the engine tracks is lost.
+   - If the program returns a reconciliation conflict (e.g., `AUTO_REVIEW.md` rounds disagree with the recorded `round`, or deliverables disagree with the record), resolve the specific conflict named; when the old file must be superseded, rename it (`REVIEW_STATE.archived_<timestamp>.json`) instead of deleting it, and say so.
+   - Log: "Recovered from context compaction. Resuming at Round N."
+3. The state file carries only in-step round context. It does not decide the engine's step status, and no second scheduler is maintained here.
+4. Read project narrative documents, memory files, and any prior review documents
+5. Read recent experiment results — **explicitly check these files in order**:
    - `experiment_results.md` (from experiment-bridge, contains structured results summary)
    - `figures/experiment_data.json` (consolidated raw experiment data)
    - `RESULTS.md` (from comp-code, if competition workflow)
    - Output directories: `results/`, `outputs/`, `logs/`
-4. Identify current weaknesses and open TODOs from prior reviews
-5. Initialize round counter = 1 (unless recovered from state file)
-6. Create/update `AUTO_REVIEW.md` with header and timestamp
+6. Identify current weaknesses and open TODOs from prior reviews
+7. Initialize round counter = 1 (unless recovered from state file)
+8. Create/update `AUTO_REVIEW.md` with header and timestamp
 
 ### Loop (repeat up to MAX_ROUNDS)
 
@@ -141,13 +140,13 @@ Then extract structured fields:
 - **Verdict** ("ready" / "almost" / "not ready")
 - **Action items** (ranked list of fixes)
 
-**STOP CONDITION**: If score >= 6 AND verdict contains "ready" or "almost" → stop loop, document final state.
+**STOP CONDITION**: Positive completion requires score >= 6, an exact affirmative verdict (`ready` or `accept`), and no unresolved fatal finding. `not ready` and `almost` require remediation or an explicit unresolved stop; reaching MAX_ROUNDS ends iteration, not validates the research.
 
 #### Human Checkpoint (if enabled)
 
 **Skip this step entirely if `HUMAN_CHECKPOINT = false`.**
 
-When `HUMAN_CHECKPOINT = true`, present the review results. In interactive mode, wait for user input. **In non-interactive mode (no further user turn), treat as "go" and proceed with all suggested fixes automatically. Log: "HUMAN_CHECKPOINT: non-interactive mode, auto-proceeding with all fixes."**
+When `HUMAN_CHECKPOINT = true`, present the review results and wait for explicit user input. Non-interactive execution or no reply is not approval; save current work and remain at the checkpoint.
 
 ```
 📋 Round N/MAX_ROUNDS review complete.
@@ -180,7 +179,7 @@ Wait for the user's response. Parse their input:
 
 After parsing the score, 检查 `~/.acat/feishu.json` 存在且 mode 不为 `"off"`:
 - Send a `review_scored` notification: "Round N: X/10 — [verdict]" with top 3 weaknesses
-- If **HUMAN_CHECKPOINT=true** and verdict is "almost": send as checkpoint, wait for user reply on whether to continue or stop. In non-interactive mode (no further user turn), auto-continue.
+- If **HUMAN_CHECKPOINT=true** and verdict is "almost": send as checkpoint and wait for explicit user reply; non-interactive mode preserves the pending checkpoint.
 - If config absent or mode off: skip entirely (no-op)
 
 #### Phase C: Implement Fixes (if not stopping)
@@ -383,18 +382,7 @@ When loop ends (positive assessment or max rounds):
 - For long content (>150 lines): use **Write** for the first section (ensures file exists on disk), then append remaining sections with `cat << 'EOF' >> NARRATIVE_REPORT.md`
 - **NEVER `end_turn` without producing `NARRATIVE_REPORT.md`** — even if upstream steps had issues, write what you have
 
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-[ -f NARRATIVE_REPORT.md ] && SZ=$(wc -c < NARRATIVE_REPORT.md) || SZ=0
-if [ "$SZ" -ge 500 ]; then
-    echo "✅ NARRATIVE_REPORT.md ($SZ bytes)"
-else
-    echo "❌ NARRATIVE_REPORT.md missing or too small ($SZ bytes) — write it NOW before ending"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must produce output before ending step"
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 - ALWAYS keep review context on the task-card chain: `review_tasks/round_<N>.task.md` carries prior-round summaries so any independent context can pick up mid-loop
 - 每轮如实记录 `review_driver`（independent / self-fallback）；自审轮必须留负面对照记录

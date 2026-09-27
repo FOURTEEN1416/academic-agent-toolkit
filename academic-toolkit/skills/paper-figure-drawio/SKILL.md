@@ -36,70 +36,11 @@ echo "FAST_MODE=$FAST_MODE"
 
 ⛔ **特殊豁免**：如果 PAPER_PLAN.md 明确无架构图/流程图需求（纯文字论文/数据分析报告），允许跳过此 skill 的产物要求；但仍要保留已有的 `figures/latex_includes.tex` 不破坏。
 
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-mkdir -p figures
-PDF_COUNT=$(ls figures/*.pdf 2>/dev/null | wc -l)
-DRAWIO_COUNT=$(ls figures/*.drawio 2>/dev/null | wc -l)
-TIKZ_COUNT=$(ls figures/tikz_*.tex 2>/dev/null | wc -l)
-PLAN_NEEDS_DIAGRAM=$(grep -iE 'drawio|tikz|架构图|流程图|fig_arch|fig_flow|fig_roadmap|fig_er' PAPER_PLAN.md 2>/dev/null | wc -l)
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
-# ⛔ 优先按 FIGURE_MANIFEST 对账: 规划的每张 drawio/tikz 必须产出
-PLAN_FILE=""
-for f in PROBLEM_ANALYSIS.md PAPER_PLAN.md MODELING_REPORT.md; do
-  [ -f "$f" ] && grep -q '<!-- BEGIN FIGURE_MANIFEST -->' "$f" && { PLAN_FILE="$f"; break; }
-done
+## 执行与产出
 
-if [ -n "$PLAN_FILE" ]; then
-    START=$(grep -n '<!-- BEGIN FIGURE_MANIFEST -->' "$PLAN_FILE" | head -1 | cut -d: -f1)
-    END=$(grep -n '<!-- END FIGURE_MANIFEST -->' "$PLAN_FILE" | head -1 | cut -d: -f1)
-    MANI=$(sed -n "${START},${END}p" "$PLAN_FILE")
-    # ⛔ 按 manifest「流程/架构图章节」标题抓该章节下的全部图名(权威), 不靠文件名前缀白名单。
-    #    旧白名单法要求关键词紧跟 fig_(如 fig_pipeline), 会漏掉 fig_data_pipeline/fig_model_arch
-    #    这类「关键词在中间」的架构图 → 少画也不报错。按章节抓则一张不漏。
-    #    ⛔ 关键词认 html|drawio 双向: 规划文档标题可能写「HTML 流程/架构图」或「DrawIO 流程/架构图」
-    #    (取决于用户选的引擎), 与 paper-figure-html 的对账口径对称, 保证任一写法都不漏图。
-    EXPECTED_DRAWIO=$(printf '%s\n' "$MANI" | awk '
-        /^[[:space:]]*\*\*/ { cap = (tolower($0) ~ /html|drawio/) ? 1 : 0; next }
-        cap && match($0, /^[[:space:]]*-[[:space:]]+fig_[a-zA-Z0-9_]+/) {
-            s=substr($0, RSTART, RLENGTH); sub(/^[[:space:]]*-[[:space:]]*/, "", s); print s
-        }')
-    # TikZ 章节(manifest 标注 paper-figure 产出, 但本步骤也兜底对账, 双保险不漏)
-    EXPECTED_TIKZ=$(printf '%s\n' "$MANI" | awk '
-        /^[[:space:]]*\*\*/ { cap = (tolower($0) ~ /tikz/) ? 1 : 0; next }
-        cap && match($0, /^[[:space:]]*-[[:space:]]+tikz_[a-zA-Z0-9_]+/) {
-            s=substr($0, RSTART, RLENGTH); sub(/^[[:space:]]*-[[:space:]]*/, "", s); print s
-        }')
-    drawio_missing=0
-    for name in $EXPECTED_DRAWIO; do
-        ls figures/${name}.drawio figures/${name}.pdf figures/${name}.png 2>/dev/null | head -1 | grep -q . || { echo "❌ MANIFEST drawio: $name missing"; drawio_missing=$((drawio_missing+1)); }
-    done
-    tikz_missing=0
-    for name in $EXPECTED_TIKZ; do
-        ls figures/${name}.pdf figures/${name}.tex 2>/dev/null | head -1 | grep -q . || { echo "❌ MANIFEST tikz: $name missing"; tikz_missing=$((tikz_missing+1)); }
-    done
-    if [ $drawio_missing -gt 0 ] || [ $tikz_missing -gt 0 ]; then
-        echo "⛔ FIGURE_MANIFEST drawio/tikz audit failed (drawio: $drawio_missing, tikz: $tikz_missing missing)"
-        PASS=false
-    else
-        echo "✅ FIGURE_MANIFEST drawio/tikz 全部产出"
-    fi
-elif [ "$PDF_COUNT" -ge 1 ] || [ "$DRAWIO_COUNT" -ge 1 ] || [ "$TIKZ_COUNT" -ge 1 ]; then
-    echo "✅ diagrams: PDF=$PDF_COUNT drawio=$DRAWIO_COUNT tikz=$TIKZ_COUNT"
-elif [ "$PLAN_NEEDS_DIAGRAM" -eq 0 ]; then
-    echo "✓ 规划无架构图/流程图需求, 跳过"
-else
-    echo "❌ 规划要求架构图/流程图但未生成"
-    PASS=false
-fi
-[ -f figures/latex_includes.tex ] || touch figures/latex_includes.tex
-[ "$PASS" != true ] && echo "⛔ Output verification FAILED — must complete before ending"
-```
-
-## STEP_MANIFEST 产出声明
-
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：每张图的数据源、生成脚本、colormap、参数。图表溯源门禁 figure_provenance 要求图有来源证据。
 

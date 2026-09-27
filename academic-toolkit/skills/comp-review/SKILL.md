@@ -9,19 +9,11 @@ allowed-tools: Bash(*), Read, Grep, Glob, Agent
 
 **为什么需要这一步**：建模/编程用的是同一个"心智模型"，如果它在建模阶段就把某个方向想反了（如把上界当下界）、或把某项算了两次，**自查时用的还是那个反的脑子，永远看不见**。这一步换一个独立视角，只干一件事——挑那五类"数值合法但逻辑错"的硬伤。
 
-## ⚡ 链路开关 + FAST_MODE 二级保险（开头先跑）
+## 范围与独立性
 
-📌 **链路实况**：引擎 `template_resolver.resolve_template` **默认把本步包含在链中**（comp_cumcm/comp_huawei 的 S07 均含本步）；要省额度跳过时由用户/编排方显式传 `skip_review=true`（或 `skip_comp-review=true`），本步才会从链中移除——不出现在链里就不启动进程，这才是真省额度。
+本步由引擎分派，不能因为快速模式写占位报告或宣称通过。确定性检查不能替代独立语义审查。没有独立上下文时如实阻塞或报告降级，不能伪造会话。
 
-```bash
-# 二级保险：即便在链中，FAST_MODE 下仍跳过（速度优先场景），产占位不阻塞。
-if grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null; then
-  echo "⏭ FAST_MODE：逻辑对抗复核跳过。确定性闸(logic_audit/cross_problem_check)已在 comp-code 兜底。"
-  printf '# 逻辑对抗复核\n\nFAST_MODE 跳过（省额度）。确定性逻辑闸仍在 comp-code 阶段跑过。\n' > COMP_REVIEW.md
-  exit 0
-fi
-```
-> ⛔ 本步是**唯一多花一次 AI 调用**的环节。默认在链中，`skip_review=true` 可整体移除、FAST_MODE 仍可跳。跳过时确定性闸(logic_audit/cross_problem_check)已在上一步兜底，不影响主流程。
+按当前步骤的 `review_scope` 选择业务输入：竞赛审模型与代码；deep_research审来源、综合论证与边界；grant_proposal审科学问题、方法、可行性、预算依据与申请书；paper_submission审稿件、逐条回复和投稿合同；scientific_plotting审图表的数据语义。非竞赛范围不要求不存在的竞赛题面/建模文件。
 
 ## 输入（只读摘要，禁整读大 JSON）
 
@@ -73,23 +65,15 @@ EOF
 ```
 
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：审稿人模型、session_id、审查轮次。
 
 ## Step 4: 硬门禁（⛔ 有 fatal 不许放行）
 
-```bash
-FATAL=$(python3 -c "import json;d=json.load(open('COMP_REVIEW_VERDICT.json'));print(d.get('fatal_count',0))" 2>/dev/null || echo 0)
-if [ "$FATAL" -gt 0 ]; then
-  echo "❌ 逻辑对抗复核发现 $FATAL 处致命逻辑错 — 必须回 comp-modeling/comp-code 修正后重跑，不许进论文撰写。"
-  echo "   (fatal 类：方向反、同一项算两次、跨问硬矛盾——这些会系统性歪曲结论)"
-else
-  echo "✅ 逻辑对抗复核通过（无 fatal；major/minor 见 COMP_REVIEW.md，写论文时注意）。"
-fi
-```
+`finish` 调用真实 review 检查器读取裁定。`fatal_count > 0`、裁定无法解析、必需证据缺失均不能通过；不得把解析失败转换为0。当前执行者只根据独立审查的具体发现修订业务产物。
 > - `fatal`（方向反/重复计量/跨问硬矛盾）= 退出前必修，回炉重跑。
 > - `major/minor`（外推口吻、可疑假设）= 不硬拦，但必须在论文里如实标注为"情景模拟/假设"，禁确定性口吻。
 

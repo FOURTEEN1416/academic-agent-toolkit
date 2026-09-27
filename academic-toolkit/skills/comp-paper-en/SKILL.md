@@ -2,7 +2,7 @@
 
 name: comp-paper-en
 
-description: "Mathematical modeling competition paper writing in English (MCM/ICM/APMCM). Generate complete LaTeX paper following。区别于 comp-compile-en：本技能只写正文并产出 LaTeX 源，不负责编译。"
+description: "Mathematical modeling competition paper writing in English. Supported contests (canonical comp_rules IDs): comp_mcm (MCM/ICM), comp_apmcm, comp_certcup_en; comp_shuwei_en is a declared template capability gap. Generate complete LaTeX paper following COMAP-style format. 区别于 comp-compile-en：本技能只写正文并产出 LaTeX 源，不负责编译。"
 argument-hint: [competition-type]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch
@@ -25,13 +25,23 @@ echo "FAST_MODE=$FAST_MODE"
 
 ```
 
-**If `FAST_MODE=1` (speed priority):** still MUST produce a complete paper (all chapters present, every sub-problem covered, figures embedded per manifest, body pages meet MAX_PAGES, cite real data — no fabrication, pass output verification), but **SKIP**: line-by-line figure-text number consistency re-checks, source-traceback audits, and repeated polish/rewrite for minor issues. Write it once, complete in structure and content. **If `FAST_MODE=0` (default):** run all consistency checks as usual.
+**If `FAST_MODE=1` (speed priority):** still MUST produce a complete paper (all chapters present, every sub-problem covered, figures embedded per manifest, body pages within the dispatched page cap, cite real data — no fabrication, pass output verification), but **SKIP**: line-by-line figure-text number consistency re-checks, source-traceback audits, and repeated polish/rewrite for minor issues. Write it once, complete in structure and content. **If `FAST_MODE=0` (default):** run all consistency checks as usual.
 
-## Constants
+## Constants (transcribed verbatim from the dispatched `contest_profile`)
 
-- **COMPETITION** — Default `mcm`. From Additional Parameters.
+The execution session context carries a `contest_profile` JSON (issued by the engine from `comp_rules.json`; `contest_profile: null` means this workflow has no contest identity). Transcribe the fields below **verbatim** into shell variables once, then only consume them — never derive, prefix, rename, or guess them from AGENTS.md, filenames, free text, or shell defaults:
 
-- **MAX_PAGES** — Default 25. Body pages must be ≥ MAX_PAGES.
+> Transition channel: program-side injection (interface request filed with B — contest id / page cap / scope / status read from the bound snapshot and fed into the actual command environment) has **not landed yet**; until it does, this verbatim transcription is performed by the model. It is a pending interface, not a completed program path — never describe it as automated.
+
+- **CONTEST_ID** ← `contest_profile.contest_id` — canonical `comp_*` key of the contest archive (e.g. `comp_mcm`, `comp_apmcm`). There is no `comp_icm`: ICM runs under `comp_mcm`. Transcribe it only when `contest_profile.status == "bound"`; `pending_binding` or absent ⇒ no valid contest identity — stop and report (待核实), never guess, no default.
+
+- **PAGE_CAP** ← `contest_profile.gate_page_cap` — this task's operative page-gate cap. A ceiling must not be exceeded; **there is no page floor and no default value**. Numeric rules live in the archive, not in this skill. Absent ⇒ this contest has no operative page contract (or a historical ruling was deliberately not inherited): page cap unknown → report 待核实.
+
+- **PAGE_SCOPE** ← `contest_profile.gate_page_scope` — `body` (cap counts body chapters; appendix/references separate) or `total` (cap counts the whole PDF). Never merge the two counts.
+
+- **PAGE_CAP_STATUS** ← `contest_profile.page_cap_status` — `official_verified` / `task_override` / `unverified`. An `unverified` (unknown-provenance) cap does **not** create a default hard page limit and is never presented as a proven official rule: unknown only blocks the corresponding compliance verdict (it neither passes it nor invents a limit). A cap is enforced as hard only when `official_verified`, or when separately identified as an explicit task authorization (`task_override` / explicit task cap) — never rebrand an unknown official rule as a task override.
+
+- **EDITION** ← `contest_profile.edition` — may be absent; absence is reported via `missing_fields`, never inferred.
 
 - **CUSTOM_REQUIREMENTS**
 
@@ -40,6 +50,13 @@ echo "FAST_MODE=$FAST_MODE"
 1. PROBLEM_ANALYSIS.md, MODELING_REPORT.md, RESULTS.md
 
 2. figures/, code/
+
+## Content map (four categories — load only what applies)
+
+- **通用方法 Generic method** (contest-independent): paper structure semantic slots, figure interleaving/embedding rules, `<exemplar_depth>` writing depth, bibliography workflow, de-AI polish, Summary Sheet method, capability-claim gate, universal paper-stage audit.
+- **赛事专属 Contest-specific**: comes from the dispatched `contest_profile` (identity, page cap/scope, `rules_highlights`, `compliance`) plus `references/contest_profiles.md` — **read only the entry matching `CONTEST_ID`**, never another contest's entry and never the whole file set.
+- **任务裁决 Task adjudication**: Step 1 template selection (canonical-ID case branches + capability-gap errors), Step 4.7 AI-use statement resolution (evidenced → produce; absent → 待核实), page pre-check scope resolution.
+- **经验建议 Empirical advice, non-binding**: the per-chapter depth breakdown and chars/page estimation are marked empirical; they never create a quota and never override the dispatched cap.
 
 ## Load shared rules
 
@@ -68,21 +85,19 @@ Filenames do not matter. Each flow chart needs nearby model-specific lead-in and
 
 Summary Sheet (1 page — most important page in the entire paper)
 
-Table of Contents
+1. Introduction
 
-1. Introduction (1-2 pages)
+2. Assumptions and Justifications
 
-2. Assumptions and Justifications (0.5 page)
+3. Notations
 
-3. Notations (0.5 page)
+4. Model Design and Solution (one chapter per sub-problem; no per-chapter page quota)
 
-4. Model Design and Solution (per sub-problem, 4-5 pages each)
-
-5. Sensitivity Analysis (1-2 pages)
+5. Sensitivity Analysis
 
 6. Model Evaluation (Strengths + Weaknesses)
 
-7. Conclusions (0.5 page)
+7. Conclusions
 
 References
 
@@ -90,43 +105,15 @@ Appendix A: Code
 
 ```
 
+Page counts are intentionally absent from this skeleton (a Table of Contents is not generated either): no per-chapter page rule is evidenced in the archive, and writing one here would create a fake quota. Depth guidance lives in `<exemplar_depth>` as marked-empirical advice.
+
 ## ⛔⛔⛔ Output Contract (highest priority)
 
-**Mandatory output depends on `params.output_format`**:
+- **This skill always produces the LaTeX deliverable set**: `paper/main.tex` (≥ 5KB) + `paper/sections/*.tex` + `paper/references.bib` — exactly what the workflow template's `output_contract` verifies at `finish`.
 
-- **PDF mode**: `paper/main.tex` (≥ 5KB) + `paper/sections/*.tex` + `paper/references.bib`
+- **`params.output_format=docx` does NOT change this step's product**: the engine appends a downstream `docx-export` step that converts the compiled paper. The LaTeX sources are contract-required legitimate intermediates — **never delete or skip them "for DOCX export"**. (The main.md-only product belongs to the standalone `comp-paper-en-docx` skill, not to this one.)
 
-- **docx mode**: `paper/main.md` (single file, ≥ 5KB). Do NOT create `paper/main.tex`
-
-⛔ **MUST run output verification before ending the step**:
-
-```bash
-
-MODE=$(grep -q "Word（.docx）\|docx mode" AGENTS.md 2>/dev/null && echo docx || echo pdf)
-
-PASS=true
-
-if [ "$MODE" = "docx" ]; then
-
-    [ -f paper/main.md ] && SZ=$(wc -c < paper/main.md) || SZ=0
-
-    [ "$SZ" -ge 5120 ] && echo "✅ paper/main.md ($SZ)" || { echo "❌ paper/main.md missing"; PASS=false; }
-
-else
-
-    [ -f paper/main.tex ] && SZ=$(wc -c < paper/main.tex) || SZ=0
-
-    [ "$SZ" -ge 5120 ] && echo "✅ paper/main.tex ($SZ)" || { echo "❌ paper/main.tex missing"; PASS=false; }
-
-    SECT_COUNT=$(ls paper/sections/*.tex 2>/dev/null | wc -l)
-
-    [ "$SECT_COUNT" -ge 3 ] && echo "✅ sections ($SECT_COUNT)" || { echo "❌ too few sections"; PASS=false; }
-
-fi
-
-[ "$PASS" != true ] && echo "⛔ Output verification FAILED — must complete before ending"
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 ## Workflow
 
@@ -166,31 +153,80 @@ TMPL_BASE="_templates"
 
 [ -d "$TMPL_BASE" ] || TMPL_BASE="templates"
 
-if echo "$ARGUMENTS" | grep -qi "mcm\|MCM\|ICM" || grep -qi "mcm\|MCM" AGENTS.md 2>/dev/null; then
-
-    echo "Using MCM template"
-
-    cp "$TMPL_BASE/mcm/"* paper/ 2>/dev/null
-
-elif echo "$ARGUMENTS" | grep -qi "apmcm\|APMCM\|亚太" || grep -qi "apmcm" AGENTS.md 2>/dev/null; then
-
-    echo "Using APMCM template"
-
-    cp "$TMPL_BASE/apmcm/"* paper/ 2>/dev/null
-
-else
-
-    echo "Using default English template"
-
-    cp "$TMPL_BASE/default/"* paper/ 2>/dev/null
-
+# Template selection: the canonical CONTEST_ID transcribed verbatim from
+# contest_profile.contest_id (a comp_rules.json top-level key). Never guessed from
+# free text, AGENTS.md, or filenames — substring matching once sent APMCM into the
+# MCM template because "apmcm" contains "mcm". Bare names like "mcm"/"icm"/"apmcm"
+# are NOT archive IDs (there is no comp_icm; ICM runs under comp_mcm) and are rejected.
+if [ -z "$CONTEST_ID" ]; then
+    echo "⛔ CONTEST_ID is empty: contest_profile was not dispatched (contest_profile=null)." >&2
+    echo "   This skill only runs inside a comp_* workflow; refusing to guess." >&2
+    exit 1
 fi
+case "$CONTEST_ID" in
+
+    comp_mcm)
+
+        echo "Using MCM/ICM template (mcmthesis)"
+
+        cp "$TMPL_BASE/mcm/"* paper/ 2>/dev/null
+
+        ;;
+
+    comp_certcup_en)
+
+        # certcup_en has its own standalone skeleton (archive comp_certcup_en:
+        # template_cls=article; "article 或 mcmthesis" both sanctioned). It does NOT
+        # copy the mcm/ skeleton — that skeleton carries its home contest's own
+        # identity settings (control number / problem / summary sheet), which must
+        # never reach another contest's deliverable.
+        echo "Using certcup_en standalone article skeleton (archive: template_cls=article, Summary standalone page)"
+
+        cp "$TMPL_BASE/certcup_en/"* paper/ 2>/dev/null
+
+        ;;
+
+    comp_apmcm)
+
+        echo "Using APMCM template (apmcmthesis)"
+
+        cp "$TMPL_BASE/apmcm/"* paper/ 2>/dev/null
+
+        ;;
+
+    comp_shuwei_en)
+
+        echo "⛔ Capability gap: comp_shuwei_en (archive class: article) has no starter skeleton" >&2
+
+        echo "   in _templates (mcm/ = mcmthesis, apmcm/ = apmcmthesis). Reporting the gap and" >&2
+
+        echo "   stopping — silently substituting another contest's template is forbidden." >&2
+
+        exit 1
+
+        ;;
+
+    *)
+
+        echo "⛔ Unknown CONTEST_ID: '$CONTEST_ID' is not an archive key this skill supports" >&2
+
+        echo "   (comp_mcm | comp_apmcm | comp_certcup_en; comp_shuwei_en = declared capability gap)." >&2
+
+        echo "   Refusing to guess the competition; report the capability gap, never fall back to MCM." >&2
+
+        exit 1
+
+        ;;
+
+esac
 
 [ -f paper/main.tex ] && echo "Template copied: $(wc -l < paper/main.tex) lines" || echo "ERROR: template not found!"
 
 ```
 
-MCM/ICM uses `mcmthesis.cls` (included in template folder). APMCM uses article class.
+`comp_mcm` uses `mcmthesis.cls` (in its own template folder). `comp_certcup_en` has its own standalone `certcup_en/` skeleton (archive `template_cls: article`; Summary on a standalone page; carries no other contest's cover or control-number elements). `comp_apmcm` uses `apmcmthesis.cls`. `comp_shuwei_en` (archive class: article) is a declared capability gap — no skeleton, report and stop; no silent substitution.
+
+**⛔ Reused-skeleton content check (mandatory after `cp`)**: a shared document class does **not** carry another contest's identity. Whenever this skill copies a skeleton into `paper/`, verify and replace/remove every other contest's cover element, control-number/problem setting (`tcn = …`, `problem = …`, submission sheet), and contest declaration in `paper/main.tex` before writing — per the current contest's own rules. This check stays mandatory even though every current route copies a home or standalone skeleton: it is defense in depth (the `certcup_en` skeleton only became standalone on 2026-09-27; before that its copies silently carried the source contest's identity settings). Leaving another contest's cover, control number, or declaration in the deliverable is a compliance failure.
 
 **⛔ Do not write main.tex from scratch** — copy the template and only replace placeholders. The template handles fonts, margins, headers, and formatting.
 
@@ -442,7 +478,7 @@ File names must match template `\input{sections/...}` lines.
 
 #### Writing depth reference
 
-**MCM/ICM Outstanding Paper (25 pages total, including everything)**:
+**MCM/ICM paper skeleton (page ceiling: PAGE_CAP binds as hard only when its status is `official_verified` or an explicit task authorization; an `unverified` cap is not executed as a hard limit. The per-section depth breakdown below is 经验建议 — empirical guidance from Outstanding papers, not an official rule and not a quota)**:
 
 - Summary Sheet (1p): 300-400 words, self-contained with specific numerical results. Structure: problem statement (1-2 sentences) → method (2-3 sentences) → key results (3-4 sentences with numbers) → conclusion (1-2 sentences)
 
@@ -452,15 +488,15 @@ File names must match template `\input{sections/...}` lines.
 
 - Notations (0.5p): **use non-floating table** (`\begin{center}\begin{tabular}` + `\captionof{table}{}`, NOT `\begin{table}`). This prevents the section title and table from being split across pages. Keep to 15-20 symbols max.
 
-- Each sub-problem (4-5p): model formulation (1.5p, with derivation) + solution method (1p, with algorithm) + results with table+figure+numbers (1p) + analysis (0.5-1p, interpretation + comparison)
+- Each sub-problem: model formulation (with derivation) + solution method (with algorithm) + results with table+figure+numbers + analysis (interpretation + comparison). No per-sub-problem page quota — depth follows the modeling; only the dispatched PAGE_CAP binds.
 
 - Sensitivity Analysis (2-3p): ≥2 key parameters, each with variation plot + analysis paragraph
 
 - Model Evaluation (1.5p): 3-5 strengths + 2-3 weaknesses (honest, not token weaknesses) + generalization discussion
 
-- References + Appendix (3-4p)
+- References + Appendix
 
-**APMCM First Prize (25-30 pages)**: similar but can be longer, 5-6 pages per sub-problem with more detailed analysis.
+For `comp_apmcm` and `comp_certcup_en`: same structure, same dispatched PAGE_CAP. The archive evidences no "25-30 pages / First Prize" target, so no such target exists here.
 
 </exemplar_depth>
 
@@ -472,9 +508,11 @@ chars=$(wc -c < "paper/sections/current_chapter.tex")
 
 echo "Current chapter: $chars chars"
 
-# English LaTeX ≈ 2000-2500 chars/page
+# English LaTeX ≈ 2000-2500 chars/page — estimation only. Use it to notice a section
 
-# If sub-problem chapter expected 4 pages but only 4000 chars (~2 pages), expand immediately
+# that is clearly underdeveloped relative to its modeling content. It is NOT a
+
+# per-chapter quota: length follows modeling and evidence, never a page target.
 
 ```
 
@@ -875,25 +913,26 @@ deleting any clause loses information. That is the standard.
 or a generalization worth stating** — say what the model is sensitive to, what it is not, and why
 that matters. ❌ Filler: "The model has good practical value and generalizability."
 
-### Step 4.7: AI tool usage statement (only when the user enabled it)
+### Step 4.7: AI tool usage statement (resolved from the contest profile; never silently skipped)
+
+**Resolve the obligation first (任务裁决 — this resolution runs even when the user disabled disclosure):**
+
+1. **Evidenced provision** — the archive for `CONTEST_ID` (via `contest_profile.compliance` / constraint items with confirmed `status` + `source_ids`) requires an AI-use statement: produce it **in the official format for that contest** — placement, content limits, and naming exactly as the constraint specifies. Content comes only from the user-confirmed record (`.mh/ai_disclosure.json` when present): never randomize or infer tools, dates, purposes, or interaction records; do not list AI tools as academic references. If the record shows AI was not used, record exactly that fact.
+2. **No evidenced provision** — the archive carries no current-year AI-use rule for `CONTEST_ID`/`EDITION`: **do not** substitute a generic short note and do not present it as compliance. Surface an explicit pending-verification item instead: `AI_USE_REPORT: 待核实 (no evidenced provision in the archive for CONTEST_ID/EDITION — verify against the current-year official instructions before submission)` in the step's handoff notes.
+3. **User disabled disclosure (`AI_DISCLOSURE` off)** — the switch only suppresses generating disclosure *content*; it cannot waive a competition requirement: an evidenced requirement still gets its statement from the user-confirmed record, and a contest without an evidenced provision still gets the 待核实 item. Nothing is bypassed by default.
 
 ```bash
 AI_DISC=off
 grep -q 'AI_DISCLOSURE=used' AGENTS.md 2>/dev/null && AI_DISC=used
 grep -q 'AI_DISCLOSURE=none' AGENTS.md 2>/dev/null && AI_DISC=none
-echo "AI_DISC=$AI_DISC"
+echo "AI_DISC=$AI_DISC CONTEST_ID=$CONTEST_ID"
 ```
 
-- `AI_DISC=off` (default) → **skip this step entirely**; produce no disclosure content (byte-identical to current output).
-- `AI_DISC=used` / `none` → read and **strictly follow** `_utils/ai_disclosure_rules.md`. This is a **LaTeX** project: read only the user-confirmed `.mh/ai_disclosure.json`, call `_utils/build_ai_disclosure.py` to insert the short statement before references, and generate the standalone supporting file `AI工具使用详情.pdf` in the workspace root:
-  ```bash
-  cat _utils/ai_disclosure_rules.md 2>/dev/null || cat skills/shared-scripts/ai_disclosure_rules.md
-  ```
-  ⛔ The official CUMCM statement and standalone detail PDF remain in Chinese even when the paper body is English. Never randomize or infer tools, dates, purposes, or interaction records. Do not put details in the paper appendix or list AI tools as academic references. Invalid records or a failed PDF check must fail this step.
+The CUMCM statement format (Chinese "AI工具使用声明" + `_utils/build_ai_disclosure.py` + "AI工具使用详情.pdf") belongs to the CUMCM chain (`comp-cumcm-disclosure`), **not** to this skill — it is never reused as a stand-in for another contest's requirement.
 
 ### Step 5: Final verification
 
-**Upstream closeout & handoff (incremental; local checks below remain the item source):** while writing, read numerical claims from the real JSON/TABLE sources and never change result data to make prose agree; the `% DATA_CHECK_PASSED` marker and the authoritative data audit are generated once by the following `comp-compile-en` step on the final source snapshot (it also owns rendered layout, fonts, physical pages, figure-size consistency and stale-result checks — see its Phase ownership section). This step may run its source-level gates, but do not launch a second compiler audit loop for temporary drafts: batch source fixes, then let one compile+recheck close them out. Never expand merely to approach `MAX_PAGES`, and never compress merely to fall below it; add or remove material only for a real modeling, evidence, clarity, or final-submission need explicitly requested by the user. Figure inventory, inter-figure prose, template structure and rendered visual results must not drive repeated compiles here; while writing, each selected figure must still appear inside its actual formulation, solution, or results narrative rather than in a gallery.
+**Upstream closeout & handoff (incremental; local checks below remain the item source):** while writing, read numerical claims from the real JSON/TABLE sources and never change result data to make prose agree; the `% DATA_CHECK_PASSED` marker and the authoritative data audit are generated once by the following `comp-compile-en` step on the final source snapshot (it also owns rendered layout, fonts, physical pages, figure-size consistency and stale-result checks — see its Phase ownership section). This step may run its source-level gates, but do not launch a second compiler audit loop for temporary drafts: batch source fixes, then let one compile+recheck close them out. Never expand merely to approach `PAGE_CAP`, and never compress merely to fall below it; add or remove material only for a real modeling, evidence, clarity, or final-submission need explicitly requested by the user. Figure inventory, inter-figure prose, template structure and rendered visual results must not drive repeated compiles here; while writing, each selected figure must still appear inside its actual formulation, solution, or results narrative rather than in a gallery.
 
 ```bash
 
@@ -937,9 +976,7 @@ echo "  Total: $total chars (~$(echo "scale=1; $total/2200" | bc) pages)"
 
 ```
 
-- Total chars ≥ MAX_PAGES × 1800 (expand thinnest chapters if not)
-
-- Any sub-problem chapter <8000 chars (~4 pages) needs expansion
+- Chapter completeness is owned by the writing contract (every sub-problem covered, claims evidence-backed); there is no character-count or page-count target, and no chapter is padded for length
 
 - Summary Sheet exists (MCM/ICM critical)
 
@@ -951,15 +988,15 @@ echo "  Total: $total chars (~$(echo "scale=1; $total/2200" | bc) pages)"
 
 **⛔ Page count pre-check (MUST pass before finishing):**
 
-> ⛔ **MAX_PAGES counts BODY pages only** (chapters 1 → conclusion, including figures/tables).
+> ⛔ The binding cap is **PAGE_CAP** (`contest_profile.gate_page_cap`, this task's operative gate cap); which pages it counts is **PAGE_SCOPE** (`gate_page_scope`: `body` / `total`) — body and total are tracked separately, never merged into one number.
 
-> Does **NOT** include abstract / TOC / references / **appendix code**.
+> `PAGE_SCOPE=body` (e.g. `comp_cumcm`/`comp_huawei`): the cap counts body chapters only (including figures/tables) — **not** abstract / TOC / references / **appendix code**. Scan covers `paper/sections/*.tex` only; appendix code goes in `paper/appendix/` (separate, no page cap).
 
-> Check scans `paper/sections/*.tex` only; appendix code goes in `paper/appendix/` (separate, no page cap).
+> `PAGE_SCOPE=total` (e.g. `comp_mcm`, whose 25-page cap counts the whole PDF): check against the **whole-paper estimate**, not the body-only estimate — a body-only count would silently under-count.
+
+> **PAGE_CAP_STATUS** (`page_cap_status`) is reported together with the numbers: `unverified` = unknown provenance — it does **not** create a default hard page cap and is not presented as a proven official rule; unknown only leaves the compliance verdict blocked. A cap binds as hard only with `official_verified` or a separately identified explicit task authorization (`task_override`) — never packaged as one.
 
 ```bash
-
-source .env_skill 2>/dev/null || true
 
 echo "=== Body page pre-check (paper/sections/ only, NOT appendix) ==="
 
@@ -1005,7 +1042,11 @@ done
 
 est_pages=$((total_chars / 2200))
 
-echo "Body chars: $total_chars, Est pages: ~$est_pages, Target: ≥ ${MAX_PAGES:-25} pages"
+if [ -n "$PAGE_CAP" ]; then
+    echo "Body chars: $total_chars (est ~$est_pages pages); Cap: <= $PAGE_CAP pages, scope: $PAGE_SCOPE, status: ${PAGE_CAP_STATUS:-unreported}"
+else
+    echo "⛔ PAGE_CAP missing: contest_profile.gate_page_cap not dispatched (no operative page contract for this contest, or a non-inherited ruling) — page cap unknown (待核实); do not invent a default."
+fi
 
 # 3. Appendix separately (info only)
 
@@ -1023,13 +1064,23 @@ if [ -d paper/appendix ]; then
 
     app_pages=$((app_chars / 2200))
 
-    echo "(Appendix chars: $app_chars, ~$app_pages pages — NOT counted in MAX_PAGES)"
+    echo "(Appendix chars: $app_chars, ~$app_pages pages — tracked separately from the body count)"
 
 fi
 
+# Total-paper estimate (body + front/back matter) — reported separately from the body
+
+# estimate; which of the two PAGE_CAP binds is decided by PAGE_SCOPE, not by this script.
+
+total_all_chars=$total_chars
+
+[ -n "$app_chars" ] && total_all_chars=$((total_chars + app_chars))
+
+echo "(Whole-paper estimate: ~$((total_all_chars / 2200)) pages incl. appendix)"
+
 ```
 
-If estimated pages < 80% of MAX_PAGES, expand the thinnest chapters before finishing.
+Do not pad or expand chapters to approach any page target; length follows the modeling and evidence, not a quota.
 
 ⛔ **Body vs Appendix file convention**:
 
@@ -1170,9 +1221,9 @@ echo "Total missing: $missing"
 Page count, Summary Sheet, Team Control Number, anonymous, APMCM commitment letter not in PDF, code appendix.
 
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：论文模板版本、TeX Live 版本、引用条目数。
 

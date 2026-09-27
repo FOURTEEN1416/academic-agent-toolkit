@@ -45,14 +45,16 @@ MiMo Desktop / OpenCode / ZCode / 自写脚本）如何在 5 分钟内合法接�
    - 台账没覆盖到的需求 → TOOL_GAP 流程（forge 或如实上报）
 
 4. **选择路径**
-   - **竞赛/多步管线**：`python -m engine.workflow_cli start --template comp_cumcm --workspace <ws>` → `next` → 执行 → `complete`
+   - **竞赛/多步管线**：`python -m engine.workflow_cli start --template comp_cumcm --workspace <ws>` → `next`（自动提供执行会话/本步技能正文）→ `session run/write` → `session finish`（自动组装证据、一次核验和推进）
    - **单技能任务**：按 `academic-toolkit/AGENTS.md` §三 路由表读 `skills/<name>/SKILL.md` 直接执行
    - **能力不足**：转入 `skills/tool-forge`
 
 5. **执行与回报**
    - 产出写入 StepAction.workspace（工作流）或用户指定目录（单技能）
-   - 完成步骤必须 `complete_step` + 真实 `execution_evidence`（schema_version=1）
-   - 无宿主 L1 时审计允许 `unavailable`，但 L3 证据不可省略
+   - 默认用 `session run --session <next返回路径> --plan <任务计划> --finish`；纯内容用 `session write --path <产物> --stdin`，完成后 `session finish`。程序采集实际返回码、输入输出和指纹，不手填 evidence JSON。
+   - 计划只声明业务命令/依赖/产物；明确纯计算且完整依赖的节点可复用，变化时自动重跑受影响节点。不要缓存网络、独立评审或人工批准。
+   - `needs_work` 保持本步可编辑，一次修复诊断后再次 finish；不为修字段创建 retry 循环。中断恢复需确认进程已停，不能伪造成功。
+   - 旧外部接入仍可 `complete_step` + 真实 `execution_evidence`。无宿主 L1 时审计如实降级；执行会话的机器采集记录独立核验，不冒充宿主L1。
 
 ## 输出契约
 

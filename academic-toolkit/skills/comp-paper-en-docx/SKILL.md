@@ -35,7 +35,7 @@ echo "FAST_MODE=$FAST_MODE"
 
 
 
-**If `FAST_MODE=1` (speed priority):** still MUST produce a complete paper (all sections present, every sub-problem covered, figures embedded per manifest, body pages meet MAX_PAGES, cite real data — no fabrication, pass output verification), but **SKIP** line-by-line number consistency re-checks and repeated polish for minor issues. **If `FAST_MODE=0` (default):** run all consistency checks as usual.
+**If `FAST_MODE=1` (speed priority):** still MUST produce a complete paper (all sections present, every sub-problem covered, figures embedded per manifest, body pages within the dispatched page cap, cite real data — no fabrication, pass output verification), but **SKIP** line-by-line number consistency re-checks and repeated polish for minor issues. **If `FAST_MODE=0` (default):** run all consistency checks as usual.
 
 
 
@@ -51,9 +51,9 @@ echo "FAST_MODE=$FAST_MODE"
 
 
 
-- **COMPETITION** — Default `mcm`
+- **CONTEST_ID** — Transcribed verbatim from `contest_profile.contest_id` (canonical `comp_*` archive key, only when `contest_profile.status == "bound"`). **No default**: pending_binding/absent/unknown is an error, never `mcm`.
 
-- **MAX_PAGES** — Default 25. Body ≥ MAX_PAGES (~600 words/page in English)
+- **PAGE_CAP** — Transcribed verbatim from `contest_profile.gate_page_cap` when dispatched. A ceiling, no floor, **no default**; absent ⇒ the page cap is unknown (待核实) — never assume 25.
 
 - **CUSTOM_REQUIREMENTS**
 
@@ -146,11 +146,11 @@ words=$(wc -w < paper/main.md 2>/dev/null || echo 0)
 
 est_pages=$((words / 600))
 
-target_pages="${MAX_PAGES:-25}"
-
-echo "words: $words, est pages: ~$est_pages, target: ≥ $target_pages"
-
-[ "$est_pages" -lt "$((target_pages * 80 / 100))" ] && echo "⚠ below 80% target"
+if [ -n "$PAGE_CAP" ]; then
+    echo "words: $words, est pages: ~$est_pages, cap: <= $PAGE_CAP pages (scope: ${PAGE_SCOPE:-UNSPECIFIED -> 待核实})"
+else
+    echo "words: $words, est pages: ~$est_pages — PAGE_CAP not dispatched, page cap unknown (待核实); no default target."
+fi
 
 
 
@@ -170,7 +170,7 @@ ls paper/*.tex paper/sections/*.tex 2>/dev/null | head -1 | grep -q . && { echo 
 
 
 
-[ "$PASS" != true ] && echo "⛔ verification FAILED"
+if [ "$PASS" != true ]; then echo "⛔ verification FAILED"; exit 1; fi
 
 ```
 
@@ -1171,11 +1171,7 @@ words=$(wc -w < paper/main.md)
 
 est_pages=$((words / 600))
 
-target=${MAX_PAGES:-25}
-
-echo "words: $words, est pages: ~$est_pages, target: ≥ $target"
-
-[ "$est_pages" -lt "$((target * 80 / 100))" ] && echo "⛔ MUST expand thinnest sections"
+# Length follows modeling and evidence: no per-section quota, no "below target must expand" floor.
 
 
 
@@ -1569,7 +1565,7 @@ If any box is ❌, fix before submission.
 
 - Summary Sheet structure: each sub-problem with specific number
 
-- Body length ≥ MAX_PAGES × 600 words
+- Length follows modeling and evidence (no word-count floor); stay within the dispatched PAGE_CAP
 
 - Numbers from `figures/*.json` / `RESULTS.md`
 

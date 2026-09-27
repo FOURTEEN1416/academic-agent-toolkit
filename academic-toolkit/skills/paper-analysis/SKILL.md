@@ -92,47 +92,18 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 
 2. **不要在工作流末尾才创建文件**：每完成一个分析任务立刻 `cat << EOF >> RESULTS.md` 追加（避免 token 用完时整个 RESULTS.md 还没写）
 
-3. **结束前必跑产出验证**（步骤的最后一步）：
 
 
 
-```bash
-
-echo "=== 产出验证（必须全部 ✅，否则继续补全）==="
-
-PASS=true
-
-[ -f RESULTS.md ] && SZ=$(wc -c < RESULTS.md) || SZ=0
-
-if [ "$SZ" -ge 1024 ]; then echo "✅ RESULTS.md ($SZ bytes)"; else echo "❌ RESULTS.md 缺失或过小 ($SZ bytes)"; PASS=false; fi
-
-
-
-JSON_COUNT=$(ls figures/*.json 2>/dev/null | wc -l)
-
-if [ "$JSON_COUNT" -ge 1 ]; then echo "✅ figures/*.json ($JSON_COUNT 个)"; else echo "❌ figures/*.json 缺失"; PASS=false; fi
-
-
-
-if [ "$PASS" != true ]; then
-
-    echo ""
-
-    echo "⛔ 产出验证失败 — 必须立刻补全后重新跑验证。不要结束本步骤。"
-
-    echo "   正确做法: 用 Edit/Write 工具补全 RESULTS.md, 或重跑代码生成 figures/*.json"
-
-fi
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 **如果验证失败,继续补全产出而不是退出**。执行 Agent 必须看到"✅"才能结束本步骤。
 
 
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：输入数据/大纲来源哈希。
 

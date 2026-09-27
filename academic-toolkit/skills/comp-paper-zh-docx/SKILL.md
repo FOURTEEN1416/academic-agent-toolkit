@@ -51,9 +51,9 @@ echo "FAST_MODE=$FAST_MODE"
 
 
 
-- **COMPETITION** — `stats` = 统计建模, `huazhong` = 华中杯, `wuyi` = 五一杯, `mathorcup` = MathorCup, others = 数模竞赛 (cumcm/huawei/etc.)
+- **CONTEST_ID** — 逐字转录自 `contest_profile.contest_id`（规范 `comp_*` 档案键，仅 `status == "bound"` 时）。**无默认**：pending_binding/缺失/未知是错误，不回退国赛。
 
-- **MAX_PAGES** — Default 20。正文字符数 ≥ MAX_PAGES × 800
+- **PAGE_CAP** — 有下发时逐字转录自 `contest_profile.gate_page_cap`。只准不超，无下限、**无默认值**；缺席 ⇒ 页数上限未知（待核实），不得假设 20。
 
 - **CUSTOM_REQUIREMENTS** — 最高优先级
 
@@ -121,7 +121,7 @@ PASS=true
 
 
 
-# ⛔ MAX_PAGES 指正文页数（不含附录代码 / 参考文献）
+# 上限口径由 PAGE_SCOPE 决定（正文/全文分开统计；附录与参考文献是否计入以档案为准）
 
 # 按 "## 附录" 切开统计：正文 = 起到附录前；附录 = 附录之后（含代码 / 长数据表）
 
@@ -137,17 +137,12 @@ est_body=$((body_chars / 800))
 
 est_appendix=$((appendix_chars / 800))
 
-target=${MAX_PAGES:-20}
-
-echo "正文字符: $body_chars (~$est_body 页), 目标: ≥ $target 页"
-
-echo "附录字符: $appendix_chars (~$est_appendix 页，不计入 MAX_PAGES)"
-
-if [ "$est_body" -lt "$((target * 80 / 100))" ]; then
-
-    echo "⛔ 正文页数低于目标 80% — 必须扩充正文章节（不要靠附录代码凑数）"
-
+if [ -n "$PAGE_CAP" ]; then
+    echo "正文字符: $body_chars (~$est_body 页), 附录字符: $appendix_chars (~$est_appendix 页, 单独统计), 上限: <= $PAGE_CAP 页 (口径: ${PAGE_SCOPE:-未指明 -> 待核实})"
+else
+    echo "正文字符: $body_chars (~$est_body 页), 附录字符: $appendix_chars (~$est_appendix 页) — PAGE_CAP 未下发，页数上限未知（待核实），不设默认目标"
 fi
+
 
 
 
@@ -169,7 +164,7 @@ ls paper/*.tex paper/sections/*.tex 2>/dev/null | head -1 | grep -q . && { echo 
 
 
 
-[ "$PASS" != true ] && echo "⛔ 验证失败 — 必须修复后重跑"
+if [ "$PASS" != true ]; then echo "⛔ 验证失败 — 必须修复后重跑"; exit 1; fi
 
 ```
 
@@ -1291,11 +1286,11 @@ $PYTHON "$REVIEWER_SCRIPT" --prompt-file _tmp/_review_prompt.txt --thread-file _
 
 - 统计建模：**500-700 字**
 
-- **丰满模式**：**1500-2200 字**，可跨两页 — 当 `AGENTS.md` 含 `huawei` / `华为杯` / `丰满模式` / `rich_mode` 任一关键词时生效
+- **丰满模式**：**1500-2200 字**，可跨两页 — 当 `CONTEST_ID = comp_huawei`（华为杯默认，赛事判据=下发的规范赛事 ID）或 `AGENTS.md` 含用户开关 `丰满模式` / `rich_mode` 时生效
 
   ```bash
 
-  # 检测：grep -qiE "huawei|华为杯|丰满模式|rich_mode" AGENTS.md
+  # 检测：[ "$CONTEST_ID" = "comp_huawei" ] || grep -qiE "丰满模式|rich_mode" AGENTS.md
 
   ```
 
@@ -1403,7 +1398,7 @@ echo "paper/main.md: $SZ bytes"
 
 
 
-# 2. 正文 vs 附录 分离统计（MAX_PAGES 只针对正文）
+# 2. 正文 vs 附录 分离统计（正文/附录分开报告）
 
 body_md=$(awk '/^## *附录/{exit} {print}' paper/main.md 2>/dev/null)
 
@@ -1417,25 +1412,17 @@ est_body=$((body_chars / 800))
 
 est_appendix=$((appendix_chars / 800))
 
-target=${MAX_PAGES:-20}
-
-echo "正文字符: $body_chars (~$est_body 页), 目标: ≥ $target 页"
-
-echo "附录字符: $appendix_chars (~$est_appendix 页，不计入 MAX_PAGES)"
-
-if [ "$est_body" -lt "$((target * 80 / 100))" ]; then
-
-    echo "⛔ 正文页数严重不足，必须扩充最薄章节后再结束（华为杯：每子问题正文 ≥ 8-10 页 + ≥ 6-8 张图表）"
-
-    echo "扩展方向：补公式推导（每步可解释）/ 增过程图（建模/算法流程）/ 加灵敏度 / 充实结果讨论"
-
-    echo "⛔ 扩展约束（防幻觉）：补公式只能从 MODELING_REPORT.md 抄推导，不能凭印象编新公式 / 编数字"
-
-    echo "                  增过程图必须真画 PNG（不能占位符）；加灵敏度必须真跑 sensitivity 代码（不能编数字）"
-
-    echo "                  扩展后强制重跑 python3 _utils/facts_audit.py paper（FAIL 不允许结束）"
-
+if [ -n "$PAGE_CAP" ]; then
+    echo "正文字符: $body_chars (~$est_body 页), 附录字符: $appendix_chars (~$est_appendix 页, 单独统计), 上限: <= $PAGE_CAP 页 (口径: ${PAGE_SCOPE:-未指明 -> 待核实})"
+else
+    echo "正文字符: $body_chars (~$est_body 页), 附录字符: $appendix_chars (~$est_appendix 页) — PAGE_CAP 未下发，页数上限未知（待核实），不设默认目标"
 fi
+
+# 篇幅随建模与论证需要自然形成：无每章/每子问题页数配额，无"低于目标80%必须扩写"类下限
+# （华为杯单题配额"每子问题 ≥8-10 页+≥6-8图"已废止——非已证官方规则）。确需扩充时遵守防幻觉约束：
+#   补公式只能从 MODELING_REPORT.md 抄推导，不能凭印象编新公式 / 编数字；
+#   增过程图必须真画 PNG（不能占位符）；加灵敏度必须真跑 sensitivity 代码（不能编数字）；
+#   扩展后强制重跑 python3 _utils/facts_audit.py paper（FAIL 不允许结束）
 
 
 
@@ -2307,7 +2294,7 @@ N、结论与建议（结论 + 建议 + 创新与不足）
 
 - 中文 caption（不要英文）
 
-- 正文字符数 ≥ MAX_PAGES × 800
+- 篇幅随建模与论证需要自然形成（无字符数下限配额）；不超过下发的 PAGE_CAP
 
 - 数值必须来自 `figures/all_results.json` / `figures/problem_*_results.json` / `RESULTS.md`，禁止编造
 

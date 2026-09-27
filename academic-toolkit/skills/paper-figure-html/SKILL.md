@@ -150,12 +150,12 @@ else
     echo "❌ 规划要求架构图/流程图但未生成"; PASS=false
 fi
 [ -f figures/latex_includes.tex ] || touch figures/latex_includes.tex
-[ "$PASS" != true ] && echo "⛔ Output verification FAILED — must complete before ending"
+if [ "$PASS" != true ]; then echo "⛔ Output verification FAILED — must complete before ending"; exit 1; fi
 ```
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：每张图的数据源、生成脚本、colormap、参数。图表溯源门禁 figure_provenance 要求图有来源证据。
 

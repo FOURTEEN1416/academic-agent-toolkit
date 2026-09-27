@@ -349,41 +349,8 @@ FIGURE_MANIFEST 显式标注 `[2-panel]` / `[4-panel]` / `[single]`（默认 sin
 
 
 
-⛔ **结束前必跑产出验证**：
 
-```bash
-
-PASS=true
-
-[ -f TOPIC_PLAN.md ] && SZ=$(wc -c < TOPIC_PLAN.md) || SZ=0
-
-if [ "$SZ" -ge 1024 ]; then
-
-    echo "✅ TOPIC_PLAN.md ($SZ bytes)"
-
-else
-
-    echo "❌ TOPIC_PLAN.md 缺失或过小 ($SZ bytes) — 立即用 Write 工具产出, 不要 end_turn"
-
-    PASS=false
-
-fi
-
-if grep -q '<!-- BEGIN FIGURE_MANIFEST -->' TOPIC_PLAN.md 2>/dev/null && grep -q '<!-- END FIGURE_MANIFEST -->' TOPIC_PLAN.md 2>/dev/null; then
-
-    echo "✅ FIGURE_MANIFEST 区块存在"
-
-else
-
-    echo "❌ FIGURE_MANIFEST 区块缺失，必须按上面格式追加（即使无图也要写 ALL=0）"
-
-    PASS=false
-
-fi
-
-[ "$PASS" != true ] && echo "⛔ 验证未通过 — 必须修复后再结束本步骤"
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 
 

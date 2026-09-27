@@ -7,18 +7,13 @@ allowed-tools: Bash(*), Read, Write, Glob, Grep, WebSearch, WebFetch
 
 # Novelty Check Skill
 
+使用当前执行会话完成本步；路径按步骤合同，运行清单和证据由程序生成，模型负责实质成果。
+
 Check whether a proposed method/idea has already been done in the literature: **$ARGUMENTS**
 
-## CRITICAL: Progress Output Rules
+## 检索范围与证据
 
-**You MUST print progress messages to stdout frequently** — at least once every 2 minutes. The system monitors stdout activity and will **kill the process if no output is detected for 5 minutes**. This means:
-
-- Before EVERY WebSearch call, print: `echo ">>> Searching: [query]"`
-- Before EVERY WebFetch call, print: `echo ">>> Fetching: [url]"`
-- After each claim is checked, print: `echo ">>> Claim [N] checked. Moving to next."`
-- If a WebSearch/WebFetch call fails or times out, **skip it immediately** and move on. Do NOT retry.
-
-**Time budget: Complete this skill in under 15 minutes total.**
+按任务预算进行新颖性检索，保留真实查询、来源及最接近工作。进度直接汇报，不调用shell打印心跳；工具超时或不可用时说明证据缺口，不能推断“无人做过”。时间预算来自用户任务，不假定宿主五分钟无stdout就强杀。
 
 ## Instructions
 
@@ -137,21 +132,4 @@ Write the report to **`novelty_check_report.md`** in the project root:
 - If the method is not novel but the FINDING would be, say so explicitly
 - If search results are limited (network issues), note this in the report and give a conservative assessment
 
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-[ -f novelty_check_report.md ] && SZ=$(wc -c < novelty_check_report.md) || SZ=0
-if [ "$SZ" -ge 800 ]; then
-    echo "✅ novelty_check_report.md ($SZ bytes)"
-else
-    echo "❌ novelty_check_report.md missing or too small ($SZ bytes) — use Write tool to create it NOW"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must write report before ending step"
-
-## STEP_MANIFEST 产出声明
-
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
-
-建议额外记录：搜索词、源 API、结果数、fallback 链。
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。

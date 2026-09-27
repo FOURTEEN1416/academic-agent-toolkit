@@ -7,6 +7,8 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, Skill
 
 # Workflow 1.5: Experiment Bridge
 
+使用当前执行会话完成本步；路径按步骤合同，运行清单和证据由程序生成，模型负责实质成果。
+
 Implement and deploy experiments from plan: **$ARGUMENTS**
 
 ## Overview
@@ -508,26 +510,7 @@ Ready for next steps:
 - For long content (>150 lines): use **Write** for the first section (ensures file exists on disk), then append remaining sections with `cat << 'EOF' >> experiment_results.md`
 - **NEVER `end_turn` without producing `experiment_results.md`** — even if upstream steps had issues, write what you have
 
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-[ -f experiment_results.md ] && SZ=$(wc -c < experiment_results.md) || SZ=0
-if [ "$SZ" -ge 500 ]; then
-    echo "✅ experiment_results.md ($SZ bytes)"
-else
-    echo "❌ experiment_results.md missing or too small ($SZ bytes) — write it NOW before ending"
-    PASS=false
-fi
-# 引擎按 figures/ 目录判定本步骤成败, 必须有至少 1 张图产出
-PDF_N=$(ls figures/*.pdf figures/*.png 2>/dev/null | wc -l)
-if [ "$PDF_N" -ge 1 ]; then
-    echo "✅ figures/ 有 $PDF_N 张图"
-else
-    echo "❌ figures/ 没有任何图 — 必须产出图表后再结束 (引擎按 figures/ 判定成败)"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must produce output before ending step"
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 - **Follow the plan.** Do not invent experiments not in EXPERIMENT_PLAN.md. If you think something is missing, note it but don't add it.
 - **Sanity first.** Never deploy a full suite without verifying the sanity stage passes.
@@ -551,9 +534,6 @@ fi
 
 Or use /research-pipeline for the full end-to-end flow (includes this bridge).
 
-## STEP_MANIFEST 产出声明
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
 
-建议额外记录：环境依赖、随机种子、GPU 信息、运行时长。实验可复现门禁 experiment_reproduc 要求 manifest 声明依赖与命令。
 ```

@@ -43,6 +43,14 @@ python palette_kit.py check             # 本地 8 色板体检（对比度/去�
 **禁用零容忍**：`jet`/`rainbow`/`turbo`、`RdGn`/`RdYlGn`（红-绿）、`hsv`；
 期刊品牌色板（ggsci npg/jama/lancet/nejm）是**风格合规**工具、不是无障碍工具，用它必须自行复核。
 
+**用户指定复刻色板（2026-09-26 登记）**：`aqing-teal-cat` / `aqing-teal-ramp`——默默驳回
+huawei2026d 工作区图面"颜色过深"并指定参考论文，实测抽色后注册；categorical 为
+`secondary_encoding` 档（靠 hatch/线型第二编码，ΔE 直用不达标），ramp 深端为结构深青
+`#186078`（替代 cividis 的 `#00224E` 近黑深端）。仅该工作区引用，未挂任何场景。
+**共存条件（W-PALQA P1-3）**：`aqing-teal-cat` 主系列 `#1890B4` 与 `aqing-teal-ramp`
+stops[5] 同值，属参考件同源设计的刻意保留——**同一面板内禁止让类别系列与连续量
+色带共用同一编码通道**（线/点=cat、热图/填色=ramp，且 cat 须带第二编码）。
+
 ## 1. 本地 8 色板速查（8 + 4 + 2）
 
 **暖族（温度/热/主体 A）**——按色相推进排布，L* 基本单调：

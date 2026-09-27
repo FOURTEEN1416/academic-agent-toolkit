@@ -66,7 +66,7 @@ Poster generation can be long. Persist state to `poster/POSTER_STATE.json` after
 }
 ```
 
-**On startup**: if `POSTER_STATE.json` exists with `"status": "in_progress"` and within 24h → resume from saved phase. Otherwise → fresh start.
+**On startup**: recovery obeys engine facts, and the program owns reconciliation — step status, input version, and actual deliverables are checked by the session/runtime, not hand-audited here. Work on the task the engine dispatches; act only on the business conflicts the program returns. If the program reports this step as already completed, report the finished state and stop — there is no restart path, and a new round begins only when the user explicitly issues a new task or confirms a redo. Otherwise `POSTER_STATE.json` is only a phase accelerator written by earlier passes of this same step: when it exists, resume from the saved phase (a stale timestamp is never a reason to reset); when it is missing, carry out the dispatched task from phase 0 — a missing file is not a restart decision, and nothing the engine tracks is lost. If the program returns a reconciliation conflict (recorded phases disagree with deliverables or the record), resolve the specific conflict named; supersede the old file by renaming (`POSTER_STATE.archived_<timestamp>.json`), never delete. The state file does not decide the engine's step status, and no second scheduler is maintained here.
 
 ## Critical LaTeX Architecture Decisions
 
@@ -1103,14 +1103,4 @@ Parameters can be passed inline with `—` separator:
 
 The final deliverable is the compiled `poster/main.pdf`. Do NOT `end_turn` without it.
 
-```bash
-PASS=true
-[ -f poster/main.pdf ] && SZ=$(wc -c < poster/main.pdf) || SZ=0
-if [ "$SZ" -ge 50000 ]; then
-    echo "✅ poster/main.pdf ($SZ bytes)"
-else
-    echo "❌ poster/main.pdf missing or too small ($SZ bytes) — must compile the poster before ending"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must produce the compiled poster before ending"
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。

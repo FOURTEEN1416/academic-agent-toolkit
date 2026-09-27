@@ -371,23 +371,8 @@ TPL=$(find user_data -maxdepth 1 -name "*.docx" 2>/dev/null | head -1); [ -n "$T
 
 
 
-结束前必跑 PASS 阻断验证：
 
-```bash
-
-PASS=true
-
-[ -f OUTLINE.md ] && SZ_O=$(wc -c < OUTLINE.md) || SZ_O=0
-
-[ -f PAPER_PLAN.md ] && SZ_P=$(wc -c < PAPER_PLAN.md) || SZ_P=0
-
-[ "$SZ_O" -ge 800 ] && echo "✅ OUTLINE.md ($SZ_O)" || { echo "❌ OUTLINE.md 缺失/过小 ($SZ_O) — 立即 Write"; PASS=false; }
-
-[ "$SZ_P" -ge 800 ] && echo "✅ PAPER_PLAN.md ($SZ_P)" || { echo "❌ PAPER_PLAN.md 缺失/过小 ($SZ_P) — 立即 Write"; PASS=false; }
-
-[ "$PASS" != true ] && echo "⛔ 验证未通过 — 修复后再结束"
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 
 
@@ -502,8 +487,8 @@ fi
 5. Claims-Evidence Matrix 必须存在，是后续撰写质量基准。
 6. FIGURE_MANIFEST 区块必须存在（无图写 ALL=0）。
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
-建议额外记录：输入材料来源哈希、模板版本。
+保留实际输入来源与模板信息；其内容摘要由程序记录。

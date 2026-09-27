@@ -261,7 +261,7 @@ See `improvement-plan-{skill-name}.md` for detailed improvement suggestions.
 
 ### Improvement Plan Template
 
-```markdown
+````markdown
 # Skill Improvement Plan: {skill-name}
 
 ## Priority Summary
@@ -304,7 +304,7 @@ See `improvement-plan-{skill-name}.md` for detailed improvement suggestions.
 - Current: X/100 ({Grade})
 - After High Priority: X/100 ({Grade})
 - After All: X/100 ({Grade})
-```
+````
 
 ## Additional Resources
 

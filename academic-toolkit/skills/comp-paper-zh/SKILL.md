@@ -12,6 +12,8 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetc
 
 # Competition Paper Writing (Chinese)
 
+使用当前执行会话完成本步；路径按步骤合同，运行清单和证据由程序生成，模型负责实质成果。
+
 Write a competition paper based on modeling results: **$ARGUMENTS**
 
 ## ⚡ 快速模式检测（开头先跑）
@@ -26,13 +28,23 @@ echo "FAST_MODE=$FAST_MODE"
 
 ```
 
-**若 `FAST_MODE=1`（速度优先）：** 仍必须产出完整论文（各章齐全、子问题全覆盖、图表按 manifest 嵌入、正文页数达标、引用真实数据不编造、通过产出验证），但**跳过**：图文数值一致性逐句核对、AUDIT_OK 溯源反查、发现小瑕疵后的反复润色重写。一次写成、结构与内容齐全即可。**若 `FAST_MODE=0`（默认）：** 后文所有一致性检查照常执行。
+**若 `FAST_MODE=1`（速度优先）：** 仍必须产出完整论文（各章齐全、子问题全覆盖、图表按 manifest 嵌入、正文页数不超过下发上限、引用真实数据不编造、通过产出验证），但**跳过**：图文数值一致性逐句核对、AUDIT_OK 溯源反查、发现小瑕疵后的反复润色重写。一次写成、结构与内容齐全即可。**若 `FAST_MODE=0`（默认）：** 后文所有一致性检查照常执行。
 
-## Constants
+## Constants（全部逐字转录自下发的 `contest_profile`，禁止转换与猜测）
 
-- **COMPETITION** — `stats` = 统计建模, `huazhong` = 华中杯, `wuyi` = 五一杯, `mathorcup` = MathorCup, others = 数模竞赛 (cumcm/huawei/etc.)
+执行会话上下文带有 `contest_profile` JSON（引擎按 `comp_rules.json` 下发；`contest_profile: null` = 本工作流无赛事身份）。把下列字段**逐字**转录进 shell 变量后只消费，不自己加前缀、转换名字、或从 AGENTS.md / 文件名 / 自由文本 / shell 默认值猜：
 
-- **MAX_PAGES** — Default 20. Body pages (chapter 1 through conclusion) must be ≥ MAX_PAGES.
+> 过渡通道：程序侧注入（接口需求已提交 B 窗：从 bound 快照取赛事 ID/页限/范围/性质并注入实际命令环境）**尚未落地**；落地前机械字段转录暂由模型执行——这是待接入接口，不得因本说明视为已程序化。
+
+- **CONTEST_ID** ← `contest_profile.contest_id` — 档案规范 `comp_*` 键（如 `comp_cumcm`、`comp_huawei`）。仅在 `contest_profile.status == "bound"` 时转录；`pending_binding` 或缺失 ⇒ 无有效赛事身份——停下报待核实，不是猜测，无默认，不回退国赛。
+
+- **PAGE_CAP** ← `contest_profile.gate_page_cap` — 本任务 operative 页数门禁口径。只准不超，**没有页数下限、没有默认值**；具体数值以档案下发为准，本技能不写死。缺席 ⇒ 该赛事无 operative 页数合同（或历史裁决不继承）：页数上限未知 → 报待核实。
+
+- **PAGE_SCOPE** ← `contest_profile.gate_page_scope` — `body`（只计正文，附录/参考文献另计）或 `total`（整本 PDF 计）。两个计数分开统计，不混用。
+
+- **PAGE_CAP_STATUS** ← `contest_profile.page_cap_status` — `official_verified` / `task_override` / `unverified`。`unverified`（来源未核验）**不产生默认硬页限**，也不得当作已证官方规则——未知只阻塞对应合规结论（既不放行也不编出限制）。仅 `official_verified` 或单独标识的显式任务授权（`task_override`/显式任务口径）才按硬上限执行；禁止把未知官方规则包装成任务覆盖。
+
+- **EDITION** ← `contest_profile.edition` — 可缺席；缺席经 `missing_fields` 上报，不反向推断。
 
 - **CUSTOM_REQUIREMENTS**
 
@@ -61,7 +73,7 @@ Template: `_templates/cumcm/`（国赛：`cumcmthesis.cls` + `cumcm2026.sty` + �
 
 ⛔ **sty 定制纪律（防双源分叉）**：需要改样式时**禁止整份复制 `cumcm2026.sty` 后私改**（双源分叉：diff 说不清改了什么，合规无法对账）。正确做法：复制同目录 `cumcm2026_local.example.sty` 为 `cumcm2026_local.sty`——`\input` 真源 + 只在 PATCH 区追加差异 + BASELINE 行登记基线版本；`cumcm2026.sty` 头部有 `TEMPLATE_VERSION` 基线标记。
 
-⛔ **其余赛事模板现状**：13 套竞赛模板已收编进 `_templates/<赛事名>/`，其中 **mathorcup / apmcm_zh / wuyi 三族已接线**（S7 论文步资产指针 + 下方分支 fail-fast 断言）；其余低频族（huazhong 复用 `_templates/cumcm/`，changsanjiao / huashubei / diangongbei / dongsansheng / shuweibei / stats 等）目录已入库，分支由下方模板落地断言兜底。若某族模板目录不在位，落地断言会**显式报错 exit 1 并给出补救路径**。
+⛔ **其余赛事模板现状**：模板目录已收编进 `_templates/<模板目录>/`，Step 1 的 case 表把规范 `comp_*` ID 一一映射到目录（comp_huazhong 复用 `cumcm/`；comp_teddy / comp_certcup / comp_zhongqing / comp_tianfu / comp_shenzhen / comp_huadong 暂无专用目录，按档案 `template_cls: ctexart` 走通用骨架 `default/`——这是档案指定文档类的通用骨架，不是跨赛事套用）。目录不在位时断言**显式报错 exit 1 并给出补救路径**，不改用其他赛事模板。
 
 **⛔ MathorCup 与 亚太赛中文(APMCM) 都使用 `MathorCupmodeling.cls` 文档类**（该 cls 随 `_templates/mathorcup/` 与 `_templates/apmcm_zh/` 入库，直接走下方分支复制）。使用 `\bianhao{}`、`\tihao{}`、`\timu{}` 设置队伍信息，`\keyword{}` 设置关键词。摘要用 `\begin{abstract}...\end{abstract}` 环境。参考文献用 `\begin{thebibliography}` 环境。
 
@@ -93,15 +105,16 @@ Template: `_templates/cumcm/`（国赛：`cumcmthesis.cls` + `cumcm2026.sty` + �
 
 ```
 
-**⛔ 国赛提交文件命名规则（强制）**：
+**⛔ 国赛提交文件命名规则（仅 `comp_cumcm` 适用；以下两条规则均为国赛专属，其他赛事按各自官方要求执行，不套用）**：
 
 1. **所有提交文件必须以中文命名**，例如：`论文.pdf`、`代码说明.txt`、`支撑材料.pdf`、`AI工具使用详情.pdf`
 2. **禁止使用英文文件名**提交，如 `paper.pdf`、`code_description.txt` 等
 3. **程序说明仅使用 TXT 文件**（`代码说明.txt`），不使用 Markdown 或其他格式
 4. **压缩包命名**：`参赛编号+队号.zip`（如 `20260001_A01.zip`），内部文件中文命名
 
-**⛔ AI工具使用声明规则（2026国赛强制）**：
+**⛔ AI工具使用声明规则（按赛事档案裁决，不静默跳过）**：
 
+- **`comp_cumcm`（2026 国赛强制，档案已入库规定）**：
 1. **声明位置**：AI工具使用声明必须放在**参考文献之前**，不能放在附录中
 2. **声明内容**：仅声明以下两项使用了AI：
    - **资料查询**：使用AI辅助检索文献、查找数据来源
@@ -114,7 +127,7 @@ Template: `_templates/cumcm/`（国赛：`cumcmthesis.cls` + `cumcm2026.sty` + �
 本参赛队在竞赛过程中使用了AI工具，主要用于资料查询和语言润色，详细使用情况见支撑材料。
 ```
 
-```
+- **其他赛事**：档案（`contest_profile.compliance`）无当届 AI 声明规定 ⇒ **不得静默不生成、也不得套用国赛格式冒充合规**——在交付/交接说明中显式上报待核实项：`AI_USE_REPORT: 待核实（comp_<x> 当届 AI 声明规定未入库，提交前对照当届官方规程核实）`。内容一律只依据用户确认的记录（`.mh/ai_disclosure.json`，存在时），不虚构工具、日期、用途。用户关闭 AI_DISCLOSURE 开关只影响是否生成声明内容，不免除上述待核实上报。
 
 ### 统计建模 (stats)
 
@@ -228,37 +241,8 @@ Fixed sections that must be kept: 表格清单, 插图清单, 中英文摘要, �
 
 - **docx 模式**：`paper/main.md`（单文件，≥ 5KB）。**禁止产 paper/main.tex**
 
-⛔ **结束前必跑产出验证**：
 
-```bash
-
-MODE=$(grep -q "Word（.docx）" AGENTS.md 2>/dev/null && echo docx || echo pdf)
-
-echo "MODE: $MODE"
-
-PASS=true
-
-if [ "$MODE" = "docx" ]; then
-
-    [ -f paper/main.md ] && SZ=$(wc -c < paper/main.md) || SZ=0
-
-    [ "$SZ" -ge 5120 ] && echo "✅ paper/main.md ($SZ)" || { echo "❌ paper/main.md 缺失或过小"; PASS=false; }
-
-else
-
-    [ -f paper/main.tex ] && SZ=$(wc -c < paper/main.tex) || SZ=0
-
-    [ "$SZ" -ge 5120 ] && echo "✅ paper/main.tex ($SZ)" || { echo "❌ paper/main.tex 缺失或过小"; PASS=false; }
-
-    SECT_COUNT=$(ls paper/sections/*.tex 2>/dev/null | wc -l)
-
-    [ "$SECT_COUNT" -ge 3 ] && echo "✅ sections ($SECT_COUNT)" || { echo "❌ 章节过少"; PASS=false; }
-
-fi
-
-[ "$PASS" != true ] && echo "⛔ 产出验证失败 — 必须补全后重新跑验证, 不要结束本步骤"
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 ## Workflow
 
@@ -376,7 +360,7 @@ fi
 
 Resume rules: only write placeholder sections (<500 chars or contains "待补充"/"placeholder"), skip completed ones (>2000 chars). Save each chapter immediately — do not accumulate in memory.
 
-### Step 1: Copy template (based on COMPETITION type)
+### Step 1: Select template（规范 CONTEST_ID → 模板目录；拒绝猜测，无默认）
 
 ```bash
 
@@ -388,114 +372,47 @@ TMPL_BASE="_templates"
 
 [ -d "$TMPL_BASE" ] || TMPL_BASE="templates"
 
-if [ "$COMPETITION" = "stats" ] || echo "$ARGUMENTS" | grep -qi "统计建模\|stats"; then
-
-    echo "Using stats template"
-
-    [ -d "$TMPL_BASE/stats" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/stats/（入库位置 skills/comp-paper-zh/_templates/stats/，请检查执行目录与 TMPL_BASE）"; exit 1; }
-    cp "$TMPL_BASE/stats/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/stats/ -> paper/"; exit 1; }
-
-elif echo "$ARGUMENTS" | grep -qi "apmcm_zh\|亚太.*中文\|亚太赛中文" || grep -qi "apmcm_zh\|亚太.*中文\|亚太赛中文" AGENTS.md 2>/dev/null; then
-
-    echo "Using APMCM (Chinese) template (MathorCupmodeling.cls)"
-
-    # 模板已入库 _templates/apmcm_zh/；目录缺失立即报错停下，禁止 cp 带 2>/dev/null 静默吞错
-
-    [ -d "$TMPL_BASE/apmcm_zh" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/apmcm_zh/（入库位置 skills/comp-paper-zh/_templates/apmcm_zh/，请检查执行目录与 TMPL_BASE）"; exit 1; }
-
-    cp "$TMPL_BASE/apmcm_zh/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/apmcm_zh/ -> paper/"; exit 1; }
-
-elif echo "$ARGUMENTS" | grep -qi "mathorcup\|MathorCup\|mathor" || grep -qi "mathorcup" AGENTS.md 2>/dev/null; then
-
-    echo "Using MathorCup template"
-
-    # 模板已入库 _templates/mathorcup/；目录缺失立即报错停下，禁止 cp 带 2>/dev/null 静默吞错
-
-    [ -d "$TMPL_BASE/mathorcup" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/mathorcup/（入库位置 skills/comp-paper-zh/_templates/mathorcup/，请检查执行目录与 TMPL_BASE）"; exit 1; }
-
-    cp "$TMPL_BASE/mathorcup/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/mathorcup/ -> paper/"; exit 1; }
-
-elif echo "$ARGUMENTS" | grep -qi "huazhong\|华中杯" || grep -qi "huazhong\|华中杯" AGENTS.md 2>/dev/null; then
-
-    echo "Using huazhong template (= cumcmthesis, 复用已入库的 _templates/cumcm/)"
-
-    # 华中杯与国赛同文档类：复用 _templates/cumcm/（不得指向不存在的 _templates/huazhong/）
-
-    [ -d "$TMPL_BASE/cumcm" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/cumcm/（入库位置 skills/comp-paper-zh/_templates/cumcm/，请检查执行目录与 TMPL_BASE）"; exit 1; }
-    cp "$TMPL_BASE/cumcm/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/cumcm/ -> paper/"; exit 1; }
-
-elif echo "$ARGUMENTS" | grep -qi "huawei\|华为杯" || \
-
-     grep -qE "^## 竞赛规则.*华为杯|^- 赛事:\s*comp_huawei" AGENTS.md 2>/dev/null; then
-
-    # ⛔ 模板选择必须精确：只在"## 竞赛规则（华为杯...）"标题行或显式 "- 赛事: comp_huawei" 命中
-
-    # 不能用泛泛的 `grep huawei AGENTS.md` — 丰满模式 / 其他描述文字可能含"华为杯"字眼误触发
-
-    echo "Using huawei template"
-
-    [ -d "$TMPL_BASE/huawei" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/huawei/（入库位置 skills/comp-paper-zh/_templates/huawei/，请检查执行目录与 TMPL_BASE）"; exit 1; }
-    cp "$TMPL_BASE/huawei/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/huawei/ -> paper/"; exit 1; }
-
-elif echo "$ARGUMENTS" | grep -qi "wuyi\|五一杯" || grep -qi "wuyi\|五一杯" AGENTS.md 2>/dev/null; then
-
-    echo "Using wuyi template"
-
-    # 模板已入库 _templates/wuyi/（cumcmthesis 同源 cls + 封面 image2.png）；目录缺失立即报错停下，禁止 cp 带 2>/dev/null 静默吞错
-
-    [ -d "$TMPL_BASE/wuyi" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/wuyi/（入库位置 skills/comp-paper-zh/_templates/wuyi/，请检查执行目录与 TMPL_BASE）"; exit 1; }
-
-    cp "$TMPL_BASE/wuyi/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/wuyi/ -> paper/"; exit 1; }
-
-elif echo "$ARGUMENTS" | grep -qi "cumcm\|国赛" || grep -qi "cumcm\|国赛" AGENTS.md 2>/dev/null; then
-
-    echo "Using cumcm template"
-
-    [ -d "$TMPL_BASE/cumcm" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/cumcm/（入库位置 skills/comp-paper-zh/_templates/cumcm/，请检查执行目录与 TMPL_BASE）"; exit 1; }
-    cp "$TMPL_BASE/cumcm/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/cumcm/ -> paper/"; exit 1; }
-
-elif echo "$ARGUMENTS" | grep -qi "changsanjiao\|长三角" || grep -qi "changsanjiao\|长三角" AGENTS.md 2>/dev/null; then
-
-    echo "Using changsanjiao template"
-
-    [ -d "$TMPL_BASE/changsanjiao" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/changsanjiao/（入库位置 skills/comp-paper-zh/_templates/changsanjiao/，请检查执行目录与 TMPL_BASE）"; exit 1; }
-    cp "$TMPL_BASE/changsanjiao/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/changsanjiao/ -> paper/"; exit 1; }
-
-elif echo "$ARGUMENTS" | grep -qi "huashu\|华数杯" || grep -qi "huashu\|华数杯" AGENTS.md 2>/dev/null; then
-
-    echo "Using huashubei template"
-
-    [ -d "$TMPL_BASE/huashubei" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/huashubei/（入库位置 skills/comp-paper-zh/_templates/huashubei/，请检查执行目录与 TMPL_BASE）"; exit 1; }
-    cp "$TMPL_BASE/huashubei/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/huashubei/ -> paper/"; exit 1; }
-
-elif echo "$ARGUMENTS" | grep -qi "diangong\|电工杯" || grep -qi "diangong\|电工杯" AGENTS.md 2>/dev/null; then
-
-    echo "Using diangongbei template"
-
-    [ -d "$TMPL_BASE/diangongbei" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/diangongbei/（入库位置 skills/comp-paper-zh/_templates/diangongbei/，请检查执行目录与 TMPL_BASE）"; exit 1; }
-    cp "$TMPL_BASE/diangongbei/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/diangongbei/ -> paper/"; exit 1; }
-
-elif echo "$ARGUMENTS" | grep -qi "dongsansheng\|东三省\|辽宁" || grep -qi "dongsansheng\|东三省\|辽宁" AGENTS.md 2>/dev/null; then
-
-    echo "Using dongsansheng template"
-
-    [ -d "$TMPL_BASE/dongsansheng" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/dongsansheng/（入库位置 skills/comp-paper-zh/_templates/dongsansheng/，请检查执行目录与 TMPL_BASE）"; exit 1; }
-    cp "$TMPL_BASE/dongsansheng/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/dongsansheng/ -> paper/"; exit 1; }
-
-elif echo "$ARGUMENTS" | grep -qi "shuwei\|数维杯" || grep -qi "shuwei\|数维杯" AGENTS.md 2>/dev/null; then
-
-    echo "Using shuweibei template"
-
-    [ -d "$TMPL_BASE/shuweibei" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/shuweibei/（入库位置 skills/comp-paper-zh/_templates/shuweibei/，请检查执行目录与 TMPL_BASE）"; exit 1; }
-    cp "$TMPL_BASE/shuweibei/"* paper/ || { echo "❌ 模板复制失败：$TMPL_BASE/shuweibei/ -> paper/"; exit 1; }
-
-else
-
-    echo "Using default template"
-
-    cp "$TMPL_BASE/default/"* paper/ 2>/dev/null
-
+# ⛔ 模板选择只认执行会话 contest_profile.contest_id 下发的规范 comp_* ID（逐字转录）。
+# 禁止从 $ARGUMENTS / AGENTS.md / 文件名 / 子串猜赛事（自由文本与子串曾多次误命中，
+# 如 "apmcm" 含 "mcm" 子串）；未指明赛事时报错停下，绝不默认国赛、绝不默认任何赛事。
+if [ -z "$CONTEST_ID" ]; then
+    echo "⛔ CONTEST_ID 缺失：contest_profile 未下发（contest_profile=null）。本技能只在 comp_* 赛事工作流内运行，拒绝猜测。" >&2
+    exit 1
 fi
+case "$CONTEST_ID" in
+    comp_cumcm)      TMPL="cumcm" ;;        # 档案 template_cls: cumcmthesis
+    comp_huazhong)   TMPL="cumcm" ;;        # 档案 template_cls: cumcmthesis（withoutpreface，复用 _templates/cumcm/）
+    comp_wuyi)       TMPL="wuyi" ;;         # cumcmthesis 同源 cls + 封面
+    comp_huawei)     TMPL="huawei" ;;       # gmcmthesis
+    comp_mathorcup)  TMPL="mathorcup" ;;    # mathorcup_main.tex（ctexart 基）
+    comp_apmcm_zh)   TMPL="apmcm_zh" ;;     # MathorCupmodeling.cls
+    comp_stats)      TMPL="stats" ;;
+    comp_yangtze)    TMPL="changsanjiao" ;; # 长三角
+    comp_huashu)     TMPL="huashubei" ;;
+    comp_diangong)   TMPL="diangongbei" ;;
+    comp_liaoning)   TMPL="dongsansheng" ;; # 辽宁/东三省联赛
+    comp_shuwei)     TMPL="shuweibei" ;;
+    comp_teddy|comp_certcup|comp_zhongqing|comp_tianfu|comp_shenzhen|comp_huadong)
+        # 档案 template_cls: ctexart，暂无专用目录 → 通用 ctexart 骨架（_templates/default/）。
+        # 这是档案指定文档类对应的通用骨架，不是跨赛事套用；专用模板入库后改回专属目录。
+        TMPL="default" ;;
+    *)
+        echo "⛔ 未知赛事 ID: '$CONTEST_ID'（须为 comp_rules.json 顶层键的 comp_* 规范 ID）。拒绝猜测、不回退国赛。" >&2
+        exit 1 ;;
+esac
+
+[ -d "$TMPL_BASE/$TMPL" ] || { echo "❌ 模板目录缺失：$TMPL_BASE/$TMPL/（入库位置 skills/comp-paper-zh/_templates/$TMPL/）。报能力缺口并停止，不得改用其他赛事模板。"; exit 1; }
+# 按 .tex/.cls/.sty 逐文件复制：模板库中的子目录（如华为杯 official_docx/ 参考资料指针）
+# 不是骨架组成，整体 glob 复制会因目录报错中断——这里只取骨架文件，逐文件显式失败
+for _f in "$TMPL_BASE/$TMPL/"*.tex "$TMPL_BASE/$TMPL/"*.cls "$TMPL_BASE/$TMPL/"*.sty; do
+    [ -e "$_f" ] || continue
+    cp "$_f" paper/ || { echo "❌ 模板复制失败：$_f -> paper/"; exit 1; }
+done
+echo "Template source: $CONTEST_ID -> $TMPL_BASE/$TMPL"
+
+# ⛔ 同文档类复用核对（复制后立即执行）：复用骨架不携带另一赛事的封面、队号或声明。
+# 逐项核对 paper/main.tex：源骨架注释口径、封面/标题占位、队号/编号设置、赛事声明——
+# 一律替换/移除为本赛事当届口径；把源赛事专属元素留在交付物里属合规失败。
 
 # ⛔ 模板落地断言：防止模板缺失时 cp 静默跳过、拖到编译阶段才炸——
 #   此处硬性断言 cls/sty 已就位，否则立即失败并给出补救路径。
@@ -641,15 +558,32 @@ Use the template as-is. Only modify:
 
 7. **华中杯模板验证**：检查 `\documentclass[withoutpreface,bwprint]{cumcmthesis}` 未被修改，摘要使用 `\begin{abstract}...\keywords{}\end{abstract}` 环境，参考文献使用 `\begin{thebibliography}{99}...\end{thebibliography}`，附录使用 `\begin{appendices}...\end{appendices}`，不要自己加 `\usepackage{geometry}`。
 
+**⛔ 华为杯官方格式硬约束（版式 / 摘要 / 引用 / 提交）** —— 完整证据见
+[`references/huawei-official-format.md`](references/huawei-official-format.md)，
+机检字段同步在 `engine/modex-core/comp_rules.json` → `comp_huawei.compliance`。
+写作完成后**逐项自检**：
+
+| 项 | 硬约束 | 自检命令/位置 |
+|---|---|---|
+| 页边距 | 上下左右各 **≥ 2.5 cm**（模板默认 22.5mm **不合规**） | `grep -n "geometry" paper/main.tex` / `gmcmthesis.cls` |
+| 页眉 | **禁止有页眉** | PDF 顶部 50pt 区无文字 |
+| 页码 | 自**摘要页**起、页脚中部、阿拉伯数字从 1 连续 | PDF 逐页页脚 |
+| 首页 | 封皮不可删，4 logo 不可替换；**除首页外不得出现单位/姓名/队号**（否则论文无效） | 全文检索校名/姓名/队号 |
+| 摘要 | **≤ 2 页**、**无需英文**、必须含 **建模思路/主要方法/模型/结果与结论/创新点/关键词** 六要素 | 摘要页 PDF 提取 |
+| 字体 | 题目三号黑体、一级标题四号黑体（均居中）、其余小四宋体、单倍行距 | cls 设置 |
+| 参考文献 | 方括号编号、**按正文引用次序**；书籍/期刊/网络三种表述；**引用程序须注明来源**（未标注且雷同按抄袭认定） | 文末 + 正文引用处 |
+| 承诺书 | 官方模板**无承诺书页**（校级材料，不入论文） | 前 3 页不得命中「承诺书」 |
+| 页数 | 正文 ≤ 50 页（附录不计） | `quick_gates --compliance-profile comp_huawei` |
+
 8. **⛔ 华为杯专属：模板与标题约束（gmcmthesis，只对华为杯生效）**：
 
    下面这段自检脚本**仅在华为杯工作流执行**（用 grep huawei 包住，其他竞赛跳过保持原本行为）：
 
    ```bash
 
-   # 仅华为杯触发以下标题检查（其他竞赛跳过）
+   # 仅华为杯触发以下标题检查（其他竞赛跳过）；判据=下发的规范赛事 ID，非文本猜测
 
-   if grep -qi "huawei\|华为杯" AGENTS.md 2>/dev/null; then
+   if [ "$CONTEST_ID" = "comp_huawei" ]; then
 
        title_line=$(grep -oE '\\title\{[^}]+\}' paper/main.tex | head -1)
 
@@ -1145,17 +1079,17 @@ PY
 
 **⛔⛔ 丰满模式摘要标准（华为杯默认 / 任意竞赛开启丰满模式时生效，1500-2200 字，跨两页）**：
 
-⛔ **触发条件**：若 `AGENTS.md` 含以下任一关键词，本节规范覆盖通用 600-800 字规则：
+⛔ **触发条件**（赛事判据=下发的 `CONTEST_ID`；用户开关才读 AGENTS.md，不用文本猜赛事）：
 
-- `huawei` / `华为杯` — 华为杯默认走丰满模式
+- `CONTEST_ID = comp_huawei` — 华为杯默认走丰满模式
 
-- `丰满模式` / `rich_mode` — 任意竞赛通过前端"丰满模式"开关启用
+- `丰满模式` / `rich_mode` — 任意竞赛通过前端"丰满模式"开关启用（用户开关，读 AGENTS.md 合法）
 
 **自检命令**：
 
 ```bash
 
-if grep -qiE "huawei|华为杯|丰满模式|rich_mode" AGENTS.md 2>/dev/null; then
+if [ "$CONTEST_ID" = "comp_huawei" ] || grep -qiE "丰满模式|rich_mode" AGENTS.md 2>/dev/null; then
 
     echo "[丰满模式触发] 摘要按 1500-2200 字 + 6 项要素 + 5 段骨架写"
 
@@ -2361,7 +2295,7 @@ Also check:
 
 ```bash
 
-source .env_skill 2>/dev/null || true  # 加载 MAX_PAGES 等数值参数
+source .env_skill 2>/dev/null || true  # 页数上限以 contest_profile 下发的 PAGE_CAP 为准，不读环境默认
 
 echo "=== 各章节字符数 ==="
 
@@ -2423,13 +2357,17 @@ Read PROBLEM_ANALYSIS.md (or the original problem statement in user_data/) and c
 
 **⛔ Page count pre-check (MUST pass before finishing — do NOT leave this to compile step):**
 
-> ⛔ **MAX_PAGES 指正文页数**（章节 1 - 结论，含图表），**不含**摘要 / 目录 / 参考文献 / **附录代码**。
+> ⛔ 上限取 **PAGE_CAP**（`contest_profile.gate_page_cap`，本任务 operative 门禁口径）；计哪些页由 **PAGE_SCOPE**（`gate_page_scope`：`body`/`total`）决定——正文/总页数分开统计，不混成一个数。
 
-> 检查只统计 `paper/sections/*.tex`，附录代码归 `paper/appendix/*.tex`，单独不限页数。
+> `PAGE_SCOPE=body`（如 `comp_cumcm`/`comp_huawei`）：上限只计正文（章节 1 - 结论，含图表），**不含**摘要 / 目录 / 参考文献 / **附录代码**；检查只统计 `paper/sections/*.tex`，附录代码归 `paper/appendix/*.tex`，单独不限页数。
+
+> `PAGE_SCOPE=total`（如 `comp_mcm`，25 页按整本计）：对照**全文估算**检查，不拿正文估算充数（正文口径会静默少算）。
+
+> **PAGE_CAP_STATUS**（`page_cap_status`）必须随数值一起上报：`unverified` = 来源未核验——**不产生默认硬页限**、不得当作已证官方规则，未知只使对应合规结论保持阻塞；仅 `official_verified` 或单独标识的显式任务授权（`task_override`）才按硬上限执行，禁止包装混充。
 
 ```bash
 
-source .env_skill 2>/dev/null || true  # 加载 MAX_PAGES 等数值参数
+source .env_skill 2>/dev/null || true  # 页数上限以 contest_profile 下发的 PAGE_CAP 为准，不读环境默认
 
 echo "=== 正文页数预检（只查 paper/sections/，不含附录代码）==="
 
@@ -2475,7 +2413,11 @@ done
 
 est_pages=$((total_chars / 900))
 
-echo "正文字符: $total_chars, 估算页数: ~$est_pages 页, 目标: ≥ ${MAX_PAGES:-30} 页"
+if [ -n "$PAGE_CAP" ]; then
+    echo "正文字符: $total_chars (est ~$est_pages 页); 上限: <= $PAGE_CAP 页, 口径: $PAGE_SCOPE, 性质: ${PAGE_CAP_STATUS:-未上报}"
+else
+    echo "⛔ PAGE_CAP 缺失：contest_profile.gate_page_cap 未下发（该赛事无 operative 页数合同或历史裁决不继承）——页数上限未知（待核实），禁止编默认值。"
+fi
 
 # 3. 附录单独统计（仅信息）
 
@@ -2493,23 +2435,13 @@ if [ -d paper/appendix ]; then
 
     appendix_pages=$((appendix_chars / 900))
 
-    echo "（附录字符: $appendix_chars, 估算 ~$appendix_pages 页，不计入 MAX_PAGES 检查）"
-
-fi
-
-if [ -n "$MAX_PAGES" ] && [ "$est_pages" -lt "$((MAX_PAGES * 80 / 100))" ]; then
-
-    echo "⛔ CRITICAL: 正文页数严重不足 ($est_pages < 80% of $MAX_PAGES)"
-
-    echo "必须扩充最薄的章节后再结束（华为杯：每子问题正文 ≥ 8-10 页 + ≥ 6-8 张图表 + ≥ 8-15 个公式）"
-
-    echo "扩展方向：补公式推导（每步可解释）/ 增过程图（建模/算法流程）/ 加灵敏度分析 / 充实结果讨论"
+    echo "（附录字符: $appendix_chars, 估算 ~$appendix_pages 页，不计入页数上限检查）"
 
 fi
 
 ```
 
-If estimated pages < 80% of MAX_PAGES, you MUST expand the thinnest 2-3 chapters before finishing. Read MODELING_REPORT.md and RESULTS.md for additional content to add (more derivation, more result analysis, more parameter discussion).
+不为凑任何页数目标扩写充数；章节完整性由写作合同保证（每个子问题覆盖、论断有证据支撑），篇幅随建模与论证需要自然形成。
 
 ⛔ **正文 vs 附录归档约束**：
 
@@ -2759,9 +2691,9 @@ grep -q 'appendices\|\\\\appendix' paper/main.tex && { echo "✅ 附录"; TMPL_O
 
 grep -q 'superscript\|\\@cite\|setcitestyle.*super' paper/main.tex && { echo "✅ 上标引用"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 缺少上标引用定义"; TMPL_FAIL=$((TMPL_FAIL+1)); }
 
-# 五一杯特有检查
+# 五一杯特有检查（判据=规范赛事 ID）
 
-if grep -qi 'wuyi\|五一杯' AGENTS.md 2>/dev/null; then
+if [ "$CONTEST_ID" = "comp_wuyi" ]; then
 
     grep -q '承诺书' paper/main.tex && { echo "✅ 五一杯承诺书页"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 五一杯缺少承诺书页"; TMPL_FAIL=$((TMPL_FAIL+1)); }
 
@@ -2771,9 +2703,9 @@ if grep -qi 'wuyi\|五一杯' AGENTS.md 2>/dev/null; then
 
 fi
 
-# MathorCup 特有检查
+# MathorCup 特有检查（判据=规范赛事 ID）
 
-if grep -qi 'mathorcup' AGENTS.md 2>/dev/null; then
+if [ "$CONTEST_ID" = "comp_mathorcup" ]; then
 
     grep -q 'MathorCupmodeling' paper/main.tex && { echo "✅ MathorCup cls"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ MathorCup 未使用正确 cls"; TMPL_FAIL=$((TMPL_FAIL+1)); }
 
@@ -2781,9 +2713,9 @@ if grep -qi 'mathorcup' AGENTS.md 2>/dev/null; then
 
 fi
 
-# 亚太赛中文 (APMCM) 特有检查 — 复用 MathorCupmodeling 文档类
+# 亚太赛中文 (APMCM) 特有检查 — 复用 MathorCupmodeling 文档类（判据=规范赛事 ID）
 
-if grep -qi 'apmcm_zh\|亚太.*中文\|亚太赛中文' AGENTS.md 2>/dev/null; then
+if [ "$CONTEST_ID" = "comp_apmcm_zh" ]; then
 
     grep -q 'MathorCupmodeling' paper/main.tex && { echo "✅ APMCM(中文) cls"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ APMCM(中文) 未使用正确 cls (应为 MathorCupmodeling)"; TMPL_FAIL=$((TMPL_FAIL+1)); }
 
@@ -2791,9 +2723,9 @@ if grep -qi 'apmcm_zh\|亚太.*中文\|亚太赛中文' AGENTS.md 2>/dev/null; t
 
 fi
 
-# 华中杯特有检查
+# 华中杯特有检查（判据=规范赛事 ID）
 
-if grep -qi 'huazhong\|华中杯' AGENTS.md 2>/dev/null; then
+if [ "$CONTEST_ID" = "comp_huazhong" ]; then
 
     grep -q 'cumcmthesis' paper/main.tex && { echo "✅ 华中杯 cls"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 华中杯未使用 cumcmthesis"; TMPL_FAIL=$((TMPL_FAIL+1)); }
 
@@ -2814,11 +2746,8 @@ echo "模板检查: $TMPL_OK 通过, $TMPL_FAIL 失败"
 统计建模: sections/ by academic structure (1_introduction.tex, 2_data_method.tex...)
 
 
-## STEP_MANIFEST 产出声明
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
 
-建议额外记录：论文模板版本、TeX Live 版本、引用条目数。
 
 ## Key Rules
 
@@ -2834,7 +2763,7 @@ echo "模板检查: $TMPL_OK 通过, $TMPL_FAIL 失败"
 
 - No `\hypersetup{colorlinks=true}` — conflicts with hidelinks
 
-- Body pages ≥ MAX_PAGES (can exceed, must not fall short)
+- 正文页数不超过引擎下发的赛事档案页数上限（无下限，不为凑页扩写）
 
 - No team info — use placeholders
 

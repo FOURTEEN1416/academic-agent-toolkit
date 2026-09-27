@@ -14,6 +14,8 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 # 课程报告大纲规划
 
+使用当前执行会话完成本步；路径按步骤合同，运行清单和证据由程序生成，模型负责实质成果。
+
 
 
 为以下项目规划课程报告：**$ARGUMENTS**
@@ -168,23 +170,8 @@ echo "跳过架构图: ${SKIP_DRAWIO:-否}"
 
 
 
-⛔ **结束前必跑产出验证**：
 
-```bash
-
-PASS=true
-
-[ -f OUTLINE.md ] && SZ=$(wc -c < OUTLINE.md) || SZ=0
-
-[ "$SZ" -ge 800 ] && echo "✅ OUTLINE.md ($SZ)" || { echo "❌ OUTLINE.md 缺失或过小"; PASS=false; }
-
-[ -f PROJECT_FACTS.md ] && PSZ=$(wc -c < PROJECT_FACTS.md) || PSZ=0
-
-[ "$PSZ" -ge 300 ] && echo "✅ PROJECT_FACTS.md ($PSZ)" || { echo "❌ PROJECT_FACTS.md 缺失"; PASS=false; }
-
-[ "$PASS" != true ] && echo "⛔ 产出验证失败 — 必须补全后重新跑验证, 不要结束本步骤"
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 
 
@@ -466,11 +453,8 @@ PASS=true
 
 ## 输出文件命名规范
 
-## STEP_MANIFEST 产出声明
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
 
-建议额外记录：输入材料来源哈希、模板版本。
 - 数据图：figures/fig_*.png（Word 模式只用 PNG，DPI 350）
 
 - 架构图：figures/fig_*.drawio + figures/fig_*.png（Word 模式不输出 PDF）

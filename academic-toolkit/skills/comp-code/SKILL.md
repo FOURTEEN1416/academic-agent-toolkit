@@ -102,45 +102,8 @@ echo "FAST_MODE=$FAST_MODE"
 
 **本步骤必须产出 `RESULTS.md`（≥ 1KB）+ `code/main.py`（≥ 500 字节）+ 至少 1 个 `figures/*.json`**。
 
-⛔ **结束前必跑产出验证**：
 
-```bash
-
-PASS=true
-
-[ -f RESULTS.md ] && SZ=$(wc -c < RESULTS.md) || SZ=0
-
-[ "$SZ" -ge 1024 ] && echo "✅ RESULTS.md ($SZ)" || { echo "❌ RESULTS.md 缺失或过小"; PASS=false; }
-
-[ -f code/main.py ] && CSZ=$(wc -c < code/main.py) || CSZ=0
-
-[ "$CSZ" -ge 500 ] && echo "✅ code/main.py ($CSZ)" || { echo "❌ code/main.py 缺失"; PASS=false; }
-
-JSON_COUNT=$(ls figures/*.json 2>/dev/null | wc -l)
-
-[ "$JSON_COUNT" -ge 1 ] && echo "✅ figures/*.json ($JSON_COUNT)" || { echo "❌ figures/*.json 缺失"; PASS=false; }
-
-# 子问题数对照: 建模报告里有几问, code/ 和 figures/ 就要有几份对应产出
-
-# 统一口径（调 _utils/count_subproblems.sh，与 comp-modeling / comp-paper-zh 完全一致）
-
-EXPECTED_PROBS=$(bash _utils/count_subproblems.sh MODELING_REPORT.md)
-
-ACTUAL_CODE=$(ls code/problem*.py 2>/dev/null | wc -l)
-
-ACTUAL_JSON=$(ls figures/problem_*_results.json 2>/dev/null | wc -l)
-
-[ "$EXPECTED_PROBS" -gt 0 ] && {
-
-  [ "$ACTUAL_CODE" -ge "$EXPECTED_PROBS" ] || { echo "❌ 建模报告 $EXPECTED_PROBS 问, 但只有 $ACTUAL_CODE 个 problem*.py"; PASS=false; }
-
-  [ "$ACTUAL_JSON" -ge "$EXPECTED_PROBS" ] || { echo "❌ 建模报告 $EXPECTED_PROBS 问, 但只有 $ACTUAL_JSON 个 problem_*_results.json"; PASS=false; }
-
-}
-
-[ "$PASS" != true ] && echo "⛔ 产出验证失败 — 必须补全所有缺失项后重新跑验证, 禁止 end_turn 结束本步骤"
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 ## 工作流程
 
@@ -1187,9 +1150,9 @@ CAPA=$?   # 0=全达标 1=有未达标/缺结论(阻断) 2=无清单跳过
 > - ⛔ **天花板（诚实认知）**：本闸核不出"清单里根本没列的能力"——清单完备性取决于 comp-problem-analysis 阶段拆得全不全；semantic 判定靠考官 AI，与答题同源、有共同盲区。它**显著降低降维/漏做的漏网率，但不是万无一失**。清单尽量拆全、严格模式认真判，是它有效的前提。
 
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：依赖清单、求解器、运行时长、退出码。
 

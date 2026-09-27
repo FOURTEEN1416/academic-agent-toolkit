@@ -68,7 +68,7 @@ python bin/make_cvd_sheet_v6.py          # -> references/cvd_check_v6.png
 
 > 依赖：仅 `numpy` + `matplotlib`（画图板需要）；`design_palette_v6` / `palette_cvd_check_v6` 核心仅标准库。
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
 | 产出 | 类型 | 说明 |
 |---|---|---|

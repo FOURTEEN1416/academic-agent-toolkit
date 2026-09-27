@@ -237,18 +237,7 @@ Write a structured report to `IDEA_REPORT.md` in the project root:
 - Include eliminated ideas in the report — they save future time by documenting dead ends.
 - **If the user's direction is too broad (e.g., "NLP", "computer vision", "reinforcement learning"), STOP and ask them to narrow it.** A good direction is 1-2 sentences specifying the problem, domain, and constraint — e.g., "factorized gap in discrete diffusion LMs" or "sample efficiency of offline RL with image observations". Without sufficient specificity, generated ideas will be too vague to run experiments on.
 
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-[ -f IDEA_REPORT.md ] && SZ=$(wc -c < IDEA_REPORT.md) || SZ=0
-if [ "$SZ" -ge 1500 ]; then
-    echo "✅ IDEA_REPORT.md ($SZ bytes)"
-else
-    echo "❌ IDEA_REPORT.md missing or too small ($SZ bytes) — use Write tool to create it NOW"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must write report before ending step"
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 ## Composing with Other Skills
 
@@ -262,8 +251,8 @@ run-experiment               → deploy to GPU
 auto-review-loop             → iterate until submission-ready
 ```
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：搜索词、源 API、结果数、fallback 链。

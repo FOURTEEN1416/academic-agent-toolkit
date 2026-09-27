@@ -78,38 +78,11 @@ code/
 - **仅 fullstack** 类型：`schema.sql` 必须存在且含至少一条 `CREATE TABLE`（前端/CLI/脚本不需要）。
 - API/接口 设计要覆盖 REQUIREMENTS 的接口清单。
 
-⛔ **结束前必跑产出验证**（按类型自适应）：
-```bash
-echo "=== 系统设计产出验证 ==="
-PASS=true
-PTYPE=$(grep -oE "project_type[:=] *(fullstack|frontend|cli|script)" AGENTS.md 2>/dev/null | grep -oE "(fullstack|frontend|cli|script)" | head -1)
-PTYPE=${PTYPE:-fullstack}
-echo "项目类型: $PTYPE"
-[ -f DESIGN.md ] && SZ=$(wc -c < DESIGN.md) || SZ=0
-if [ "$SZ" -ge 2000 ]; then echo "OK DESIGN.md ($SZ bytes)"; else echo "FAIL DESIGN.md 过小 ($SZ)"; PASS=false; fi
-# 所有类型都要的核心小节
-for sec in "## 技术架构" "## 模块划分" "## 目录结构"; do
-  grep -qF "$sec" DESIGN.md 2>/dev/null && echo "OK 小节: $sec" || { echo "FAIL 缺小节: $sec"; PASS=false; }
-done
-# 数据库设计/API 设计: 全栈和前端(可能有API对接)要, CLI/脚本可省(或写"无")
-if [ "$PTYPE" = "fullstack" ] || [ "$PTYPE" = "frontend" ]; then
-  for sec in "## 数据库设计" "## API 设计"; do
-    grep -qF "$sec" DESIGN.md 2>/dev/null && echo "OK 小节: $sec" || { echo "FAIL 缺小节: $sec"; PASS=false; }
-  done
-else
-  echo "OK $PTYPE 类型, 数据库/API 设计小节可省"
-fi
-if [ "$PTYPE" = "fullstack" ]; then
-  if [ -f schema.sql ] && grep -qi "CREATE TABLE" schema.sql; then echo "OK schema.sql"; else echo "FAIL 全栈项目 schema.sql 缺失或无建表"; PASS=false; fi
-else
-  echo "OK 非全栈, 跳过 schema.sql 检查"
-fi
-[ "$PASS" != true ] && echo "产出验证失败 — 必须补全后重跑, 不要结束本步骤"
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 验证失败就继续补全，不要 end_turn。
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
-建议额外记录：输入材料来源哈希、模板版本。
+保留实际输入来源与模板信息；其内容摘要由程序记录。

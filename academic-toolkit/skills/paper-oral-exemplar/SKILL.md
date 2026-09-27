@@ -33,11 +33,11 @@ description: "对照优秀论文范例改稿件与复盘：883 篇顶会 Oral �
 | 资源支持的研究 | 数据/代码可用性 | 附录（代码/数据可复现说明） |
 | 有边界的认识 | 结论 | 结论与推广（读者能带走什么、何时不适用） |
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
 - artifacts: 对照建议（≤3 条六要素）或复盘练习 + 所用做法清单
 - gates: 来源溯源三件套（论文+链接+阅读层级）；输出模式与用户请求匹配；无录取预测/评分
-- evidence: 建议清单即执行证据，落盘至工作区 .engine/evidence/
+- 执行记录：实际读写操作经执行会话完成，清单与证据由程序自动采集；不手工落盘证据文件
 # Oral Paper Skill
 
 Turn useful practices from exemplary papers into concrete revisions and focused learning. Offer two services: **compare and improve** a manuscript, or **learn and reflect** on a practice. Preserve the author's research purpose and judgment.

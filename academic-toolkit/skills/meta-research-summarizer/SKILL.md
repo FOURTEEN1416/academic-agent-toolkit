@@ -50,6 +50,8 @@ If the user has a document and wants structured understanding → this skill app
 
 ## Workflow
 
+When dispatched by the engine, write the brief to the current action's declared outputs (for `deep_research`: `RESEARCH_SUMMARY.md`). Do not invent a different filename or repeat the earlier literature-search step. Source citations and limitations remain required.
+
 ### Workflow 1 — Single Source Summary
 
 1. **Identify source type**

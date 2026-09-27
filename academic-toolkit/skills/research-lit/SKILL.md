@@ -7,16 +7,13 @@ allowed-tools: Bash(*), Read, Glob, Grep, WebSearch, WebFetch, Write, Agent, mcp
 
 # Research Literature Review
 
+使用当前执行会话完成本步；路径按步骤合同，运行清单和证据由程序生成，模型负责实质成果。
+
 Research topic: $ARGUMENTS
 
-## CRITICAL: Progress Output Rules
+## 来源与执行
 
-**You MUST print progress messages to stdout frequently** — at least once every 2 minutes. The system monitors stdout activity and will **kill the process if no output is detected for 5 minutes**. This means:
-
-- Before EVERY WebSearch call, print: `echo ">>> Searching: [query]"`
-- Before EVERY WebFetch call, print: `echo ">>> Fetching: [url]"`
-- After processing each paper, print: `echo ">>> Processed: [paper title]"`
-- If a WebSearch/WebFetch call fails or times out, **skip it immediately** and move on. Do NOT retry failed network calls.
+搜索、读取和来源核验是领域工作；通过实际可用的工具执行并保留来源信息。进度直接向用户说明，不额外启动shell打印心跳。超时或来源缺席按实际错误处理，禁止把缺少输出猜测为宿主强杀，也不能把失败搜索记录为成功。
 
 ## Constants
 
@@ -198,7 +195,7 @@ For each relevant paper (from all sources), extract:
 - If Obsidian notes exist, incorporate the user's own insights into the synthesis
 
 ### Step 4: Output
-Save the results to **`literature_review.md`** in the project root. Present as a structured literature table:
+Write the current step's declared output files. The standard survey is **`literature_review.md`** plus **`references.bib`**. When the action also declares `LIT_EVIDENCE.json` and `search_evidence/`, record the actual query/source/retrieval outcome and save source responses or excerpts with provenance there; never fabricate records to satisfy the contract. Present the survey as a structured literature table:
 
 ```
 | Paper | Venue | Method | Key Result | Relevance to Us | Source |
@@ -226,21 +223,4 @@ If Zotero BibTeX was exported, include a `references.bib` snippet for direct use
 - **Never fail because a MCP server is not configured** — always fall back gracefully to the next data source
 - Zotero/Obsidian tools may have different names depending on how the user configured the MCP server (e.g., `mcp__zotero__search` or `mcp__zotero-mcp__search_items`). Try the most common patterns and adapt.
 
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-[ -f literature_review.md ] && SZ=$(wc -c < literature_review.md) || SZ=0
-if [ "$SZ" -ge 1500 ]; then
-    echo "✅ literature_review.md ($SZ bytes)"
-else
-    echo "❌ literature_review.md missing or too small ($SZ bytes) — use Write tool to create it NOW"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must write report before ending step"
-
-## STEP_MANIFEST 产出声明
-
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
-
-建议额外记录：搜索词、源 API、结果数、fallback 链。
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。

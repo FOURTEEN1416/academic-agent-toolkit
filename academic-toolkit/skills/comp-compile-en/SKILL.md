@@ -21,9 +21,9 @@ Compile and validate: **$ARGUMENTS**
 
 - **PAPER_DIR = `paper/`**
 
-- **MAX_PAGES** — Default 25.
+- **PAGE_CAP / PAGE_SCOPE / PAGE_CAP_STATUS** — This step consumes the **same bound contest snapshot** as the writing and packaging steps: `gate_page_cap` (this task's operative cap) with `gate_page_scope` (`body` / `total` — two distinct counting bases, never folded into one number) and `page_cap_status` (its provenance). Transcribed verbatim from the dispatched `contest_profile`; no default, no floor; do **not** read raw archive page fields directly and do not guess the effective value or its counting scope.
 
-- **COMPETITION** — From Additional Parameters.
+- **CONTEST_ID** — Transcribed verbatim from `contest_profile.contest_id` (canonical `comp_*` key; never guessed from free text or filenames).
 
 ## Workflow
 
@@ -249,7 +249,7 @@ The script checks: PDF existence/size, undefined references, overfull hbox, TOC,
 
 Check items:
 
-1. **Page count**: body = Summary Sheet through Conclusions, excluding References/Appendix. Must be ≥ MAX_PAGES (**MAX_PAGES is a floor/target, NOT a ceiling**; pages may exceed it, must not fall short. Only compress pages if the competition states a hard page limit)
+1. **Page count**: the binding cap and its **counting scope** come from the same bound contest snapshot the writing step consumed — `gate_page_cap` with `gate_page_scope` (`body` = Summary Sheet through Conclusions excluding References/Appendix; `total` = whole PDF). The two scopes are never folded into one number, and this step never reads raw archive fields or guesses the effective value. Pages **must not exceed the cap when its status is `official_verified` or an explicit task authorization**; an `unverified` cap does not create a default hard limit — report cap, scope, and status as dispatched, and if nothing is dispatched report the gap instead of inventing one. **There is no page floor and no padding to reach a target.**
 
 2. **Summary Sheet exists** (MCM/ICM critical)
 
@@ -265,53 +265,9 @@ Check items:
 
 <page_diagnosis>
 
-#### Page count diagnosis (when insufficient)
+#### Page count principles
 
-If body pages < 80% of MAX_PAGES:
-
-```bash
-
-source .env_skill 2>/dev/null || true  # Load MAX_PAGES from engine
-
-echo "=== Page count diagnosis ==="
-
-echo "Target: ≥ ${MAX_PAGES:-25} pages"
-
-echo ""
-
-echo "=== Section character counts ==="
-
-for f in paper/sections/*.tex; do
-
-    chars=$(wc -c < "$f")
-
-    echo "  $(basename $f): $chars chars (~$(echo "scale=1; $chars/2200" | bc) pages)"
-
-done
-
-echo ""
-
-echo "=== Sections needing expansion (3 smallest) ==="
-
-for f in $(ls -S paper/sections/*.tex | tail -3); do
-
-    chars=$(wc -c < "$f")
-
-    echo "  ⚠ $(basename $f): only $chars chars"
-
-done
-
-```
-
-Mark as CRITICAL with specific recommendations:
-
-- Which sections are thinnest
-
-- What content to add (more derivation? more result analysis? more literature?)
-
-- Estimated chars needed
-
-If pages < 80% of MAX_PAGES, attempt to expand thinnest 1-2 sections from MODELING_REPORT.md and RESULTS.md, then recompile.
+**There is no page floor: a low page count is not a compliance failure, and no content is padded to reach a target.** Section completeness is owned by the writing steps' own contracts; this step only slims down when pages exceed the competition-archive ceiling (see page_overflow).
 
 </page_diagnosis>
 
@@ -319,9 +275,9 @@ If pages < 80% of MAX_PAGES, attempt to expand thinnest 1-2 sections from MODELI
 
 #### ⛔⛔ Hard rule when pages OVERFLOW (root cause of "figures too small")
 
-**Background**: the compiler once misread `MAX_PAGES` as a hard ceiling and, to fit under it, shrank figure widths to `0.46~0.48\textwidth` and injected a global `\small` on the body — producing tiny, unreadable figures. This is a serious error. This block is a hard constraint.
+**Background**: the compiler once distorted figures for a page target — shrinking widths to `0.46~0.48\textwidth` and injecting a global `\small` on the body — producing tiny, unreadable figures. The real rule: the page ceiling comes from the competition archive, and figures are never distorted for any page target (whether padding up to a floor or squeezing under a ceiling). This block is a hard constraint.
 
-**⚠ Reminder: `MAX_PAGES` is a floor/target, NOT a ceiling.** Unless the competition brief explicitly states a hard page limit (noted in Additional Parameters), overflowing is fine and you must NOT proactively cut pages. **Never invent a ceiling like "≤30 pages" and then shrink figures to meet it** — most competitions (e.g. CUMCM) have no hard page cap.
+**⚠ The page ceiling and its counting scope are dispatched with the same bound contest snapshot this step already consumes** (`gate_page_cap` + `gate_page_scope` + `page_cap_status` — see Constants). Never invent a ceiling like "≤30 pages" that the dispatch does not state, and never ignore the one it does.
 
 **Figure size is decided solely by the writing rules + `compile_utils.sh` fallback: a single figure is always `width=0.85\textwidth` (side-by-side uses `0.48`), height fallback is `height=0.9\textheight` (to stop a single figure owning a whole page). The compiler must NEVER change figure width OR shrink figure height to save space.**
 
@@ -602,9 +558,9 @@ python _utils/pdf_snapshot_report.py check paper/main.pdf --report COMPILE_REPOR
 Never copy a page count from an earlier round. Any later change to `paper/main.pdf` invalidates the report and requires a fresh snapshot.
 
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：LaTeX 引擎版本、页数、编译警告数。
 
@@ -618,7 +574,7 @@ Never copy a page count from an earlier round. Any later change to `paper/main.p
 
 - APMCM: commitment letter must not be in PDF
 
-- Body pages ≥ MAX_PAGES
+- Body pages within the engine-dispatched competition page ceiling (comp_rules archive; no floor)
 
 - Primary output: `paper/main.pdf`, temp files: `_tmp/`
 

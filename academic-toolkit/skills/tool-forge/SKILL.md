@@ -47,7 +47,7 @@ status: active
    python tools/<name>.py --json
    python -m pytest -q   # 若改了 catalog/skills（仓库根全套件）
    ```
-   将 forge 命令与产物路径写入 execution_evidence.commands/outputs
+   通过当前执行会话运行forge命令并声明真实输入输出；命令回执和内容摘要由程序记录。
 
 ## 输出契约
 

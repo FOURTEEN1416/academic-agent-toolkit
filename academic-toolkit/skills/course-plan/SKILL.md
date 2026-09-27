@@ -14,6 +14,8 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 # 课程论文大纲规划
 
+使用当前执行会话完成本步；路径按步骤合同，运行清单和证据由程序生成，模型负责实质成果。
+
 
 
 为以下主题规划课程论文：**$ARGUMENTS**
@@ -158,43 +160,8 @@ echo "用户跳过图表: ${SKIP_FIGURES:-否}"
 
 
 
-⛔ **结束前必跑 PASS 阻断验证**（只 echo "❌" 不算，必须显式判定）：
 
-```bash
-
-PASS=true
-
-[ -f OUTLINE.md ] && SZ_O=$(wc -c < OUTLINE.md) || SZ_O=0
-
-[ -f PAPER_PLAN.md ] && SZ_P=$(wc -c < PAPER_PLAN.md) || SZ_P=0
-
-if [ "$SZ_O" -ge 800 ]; then
-
-    echo "✅ OUTLINE.md ($SZ_O bytes)"
-
-else
-
-    echo "❌ OUTLINE.md 缺失或过小 ($SZ_O bytes) — 立即用 Write 工具产出, 不要 end_turn"
-
-    PASS=false
-
-fi
-
-if [ "$SZ_P" -ge 1024 ]; then
-
-    echo "✅ PAPER_PLAN.md ($SZ_P bytes)"
-
-else
-
-    echo "❌ PAPER_PLAN.md 缺失或过小 ($SZ_P bytes) — 立即用 Write 工具产出, 不要 end_turn"
-
-    PASS=false
-
-fi
-
-[ "$PASS" != true ] && echo "⛔ 验证未通过 — 必须修复后再结束本步骤"
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 
 
@@ -470,11 +437,8 @@ done
 
 ## 输出文件命名规范
 
-## STEP_MANIFEST 产出声明
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
 
-建议额外记录：输入材料来源哈希、模板版本。
 所有 fig_ 同时输出 PDF 和 PNG（PNG 用于 Word 导出）：
 
 - figures/fig_xxx.pdf

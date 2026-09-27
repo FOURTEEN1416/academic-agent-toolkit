@@ -5,186 +5,32 @@ argument-hint: [research-direction]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent, Skill
 ---
 
-# Full Research Pipeline: Idea → Experiments → Submission
+# 研究全流程入口
 
-End-to-end autonomous research workflow for: **$ARGUMENTS**
+## 职责
 
-## Constants
+将用户的研究方向、已有资产与交付目标映射到 `full_pipeline`。本技能不另外维护阶段状态、自动批准开关或重复调度器；唯一的步骤状态来自工作流引擎。
 
-- **AUTO_PROCEED = true** — When `true`, Gate 1 auto-selects the top-ranked idea (highest pilot signal + novelty confirmed) and continues to implementation. When `false`, always waits for explicit user confirmation before proceeding.
-- **ARXIV_DOWNLOAD = false** — When `true`, `/research-lit` downloads the top relevant arXiv PDFs during literature survey. When `false` (default), only fetches metadata via arXiv API. Passed through to `/idea-discovery` → `/research-lit`.
-- **HUMAN_CHECKPOINT = false** — When `true`, the auto-review loops (Stage 4) pause after each round's review to let you see the score and provide custom modification instructions before fixes are implemented. When `false` (default), loops run fully autonomously. Passed through to `/auto-review-loop`.
+## 输入
 
-> 💡 Override via argument, e.g., `/research-pipeline "topic" — AUTO_PROCEED: false, human checkpoint: true`.
+明确研究问题、可用数据、允许的计算资源、时间与费用约束、已完成成果、目标论文及格式要求。已有工作流 ID 时先恢复，不能因新窗口接管重做整条研究。
 
-## Overview
+## 执行
 
-This skill chains the entire research lifecycle into a single pipeline:
+1. 创建或恢复 `full_pipeline`，业务参数保存目标和预算，不保存密钥。
+2. 用 `next` 获取当前步骤的执行会话、主技能、产物和验收约束。
+3. 当前 Agent 完成该步的实质工作：检索与证据、想法生成、创新核查、评审、实验规划与实施、论证及论文写作。用执行会话调用工具和保存真实内容。
+4. `finish` 由程序采集证据、统一校验并推进；质量问题留在当前步骤返修，不要求模型重复整理机械回执。
+5. 人工检查点、远程资源使用和额外费用必须遵守实际授权。没有回复不能当作批准；没有运行结果不能进入结果解释。
 
-```
-/idea-discovery → implement → /run-experiment → /auto-review-loop → submission-ready
-├── Workflow 1 ──┤            ├────────── Workflow 2 ──────────────┤
-```
+## 研究质量
 
-It orchestrates two major workflows plus the implementation bridge between them.
+- 论断必须有来源、实验或推导支持；没有证据就缩小论断或补实验，不补写假结果。
+- 实验输入、代码、参数及输出关联留存；纯计算复用只适用于完整依赖已声明的操作。
+- 评审者与执行者上下文独立；每轮评审针对明确产物版本，修改后不得直接沿用旧结论。
+- 资源预算属于实际约束；不可按固定多GPU示例自动使用外部计算资源。
+- 写作和绘图服务于研究论证；不将图数量、文件字节数或门禁全绿当作科学贡献。
 
-## Pipeline
+## 交付
 
-### Stage 1: Idea Discovery (Workflow 1)
-
-Invoke the idea discovery pipeline:
-
-```
-/idea-discovery "$ARGUMENTS"
-```
-
-This internally runs: `/research-lit` → `/idea-creator` → `/novelty-check` → `/research-review`
-
-**Output:** `IDEA_REPORT.md` with ranked, validated, pilot-tested ideas.
-
-**🚦 Gate 1 — Human Checkpoint:**
-
-After `IDEA_REPORT.md` is generated, **pause and present the top ideas to the user**:
-
-```
-📋 Idea Discovery complete. Top ideas:
-
-1. [Idea 1 title] — Pilot: POSITIVE (+X%), Novelty: CONFIRMED
-2. [Idea 2 title] — Pilot: WEAK POSITIVE (+Y%), Novelty: CONFIRMED
-3. [Idea 3 title] — Pilot: NEGATIVE, eliminated
-
-Recommended: Idea 1. Shall I proceed with implementation?
-```
-
-**If AUTO_PROCEED=false:** Wait for user confirmation before continuing. The user may:
-- **Approve an idea** → proceed to Stage 2.
-- **Pick a different idea** → proceed with their choice.
-- **Request changes** (e.g., "combine Idea 1 and 3", "focus more on X") → update the idea prompt with user feedback, re-run `/idea-discovery` with refined constraints, and present again.
-- **Reject all ideas** → collect feedback on what's missing, re-run Stage 1 with adjusted research direction. Max 2 re-runs; after that, select the best available idea and proceed.
-- **Stop here** → save current state to `IDEA_REPORT.md` for future reference.
-
-**If AUTO_PROCEED=true:** Auto-select the #1 ranked idea (highest pilot signal + novelty confirmed) and proceed to Stage 2 immediately. Log: `"AUTO_PROCEED: selected Idea 1 — [title]"`.
-
-> ⚠️ **This gate waits for user confirmation when AUTO_PROCEED=false.** When `true`, it auto-selects the top idea after presenting results. The rest of the pipeline (Stages 2-4) is expensive (GPU time + multiple review rounds), so set `AUTO_PROCEED=false` if you want to manually choose which idea to pursue.
-
-### Stage 2: Implementation
-
-Once the user confirms which idea to pursue:
-
-1. **Read the idea details** from `IDEA_REPORT.md` (hypothesis, experimental design, pilot code)
-
-2. **Implement the full experiment**:
-   - Extend pilot code to full scale (multi-seed, full dataset, proper baselines)
-   - Add proper evaluation metrics and logging (wandb if configured)
-   - Write clean, reproducible experiment scripts
-   - Follow existing codebase conventions
-
-3. **Code review**: Before deploying, do a self-review:
-   - Are all hyperparameters configurable via argparse?
-   - Is the random seed fixed and controllable?
-   - Are results saved to JSON/CSV for later analysis?
-   - Is there proper logging for debugging?
-
-### Stage 3: Deploy Experiments (Workflow 2 — Part 1)
-
-Deploy the full-scale experiments:
-
-```
-/run-experiment [experiment command]
-```
-
-**What this does:**
-- Check GPU availability on configured servers
-- Sync code to remote server
-- Launch experiments in screen sessions with proper CUDA_VISIBLE_DEVICES
-- Verify experiments started successfully
-
-**Monitor progress:**
-
-```
-/monitor-experiment [server]
-```
-
-Wait for experiments to complete. Collect results.
-
-### Stage 4: Auto Review Loop (Workflow 2 — Part 2)
-
-Once initial results are in, start the autonomous improvement loop:
-
-```
-/auto-review-loop "$ARGUMENTS — [chosen idea title]"
-```
-
-**What this does (up to 4 rounds):**
-1. The external reviewer reviews the work (score, weaknesses, minimum fixes)
-2. 由执行 Agent 落实修改 (code changes, new experiments, reframing)
-3. Deploy fixes, collect new results
-4. Re-review → repeat until score ≥ 6/10 or 4 rounds reached
-
-**Output:** `AUTO_REVIEW.md` with full review history and final assessment.
-
-### Stage 5: Final Summary
-
-After the auto-review loop completes, write a final status report:
-
-```markdown
-# Research Pipeline Report
-
-**Direction**: $ARGUMENTS
-**Chosen Idea**: [title]
-**Date**: [start] → [end]
-**Pipeline**: idea-discovery → implement → run-experiment → auto-review-loop
-
-## Journey Summary
-- Ideas generated: X → filtered to Y → piloted Z → chose 1
-- Implementation: [brief description of what was built]
-- Experiments: [number of GPU experiments, total compute time]
-- Review rounds: N/4, final score: X/10
-
-## Final Status
-- [ ] Ready for submission / [ ] Needs manual follow-up
-
-## Remaining TODOs (if any)
-- [items flagged by reviewer that weren't addressed]
-
-## Files Changed
-- [list of key files created/modified]
-```
-
-## Key Rules
-
-⛔ **File writing strategy (prevent both failure modes):**
-- For short content (<150 lines): use the **Write tool** directly (atomic, reliable)
-- For long content (>150 lines): use **Write** for the first section (ensures file exists on disk), then append remaining sections with `cat << 'EOF' >> IDEA_REPORT.md`
-- **NEVER `end_turn` without producing `IDEA_REPORT.md`** — even if upstream steps had issues, write what you have
-
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-[ -f IDEA_REPORT.md ] && SZ=$(wc -c < IDEA_REPORT.md) || SZ=0
-if [ "$SZ" -ge 500 ]; then
-    echo "✅ IDEA_REPORT.md ($SZ bytes)"
-else
-    echo "❌ IDEA_REPORT.md missing or too small ($SZ bytes) — write it NOW before ending"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must produce output before ending step"
-```
-
-- **Human checkpoint after Stage 1 is controlled by AUTO_PROCEED.** When `false`, do not proceed without user confirmation. When `true`, auto-select the top idea after presenting results.
-- **Stages 2-4 can run autonomously** once the user confirms the idea. This is the "sleep and wake up to results" part.
-- **If Stage 4 ends at round 4 without positive assessment**, stop and report remaining issues. Do not loop forever.
-- **Budget awareness**: Track total GPU-hours across the pipeline. Flag if approaching user-defined limits.
-- **Documentation**: Every stage updates its own output file. The full history should be self-contained.
-- **Fail gracefully**: If any stage fails (no good ideas, experiments crash, review loop stuck), report clearly and suggest alternatives rather than forcing forward.
-
-## Typical Timeline
-
-| Stage | Duration | Can sleep? |
-|-------|----------|------------|
-| 1. Idea Discovery | 30-60 min | Yes if AUTO_PROCEED=true |
-| 2. Implementation | 15-60 min | Yes (autonomous after Gate 1) |
-| 3. Deploy | 5 min + experiment time | Yes ✅ |
-| 4. Auto Review | 1-4 hours (depends on experiments) | Yes ✅ |
-
-**Sweet spot**: Run Stage 1-2 in the evening, launch Stage 3-4 before bed, wake up to a reviewed paper.
+读取引擎的步骤完成状态和最终产物，给出研究结论、证据位置、可运行方法、稿件及明确剩余问题。不能仅因存在IDEA_REPORT或PDF就宣布全流程已完成。执行日志、内容指纹、清单和状态由程序维护，历史科研成果不得为清理流程而删除。

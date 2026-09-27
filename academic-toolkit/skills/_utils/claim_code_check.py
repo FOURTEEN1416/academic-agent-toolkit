@@ -44,6 +44,16 @@ def _load_code(codedir: Path) -> str:
     if not codedir.is_dir():
         return ""
     for f in sorted(codedir.rglob("*.py")):
+        # scratch/缓存整段排除：codedir 之下任一路径段（含文件名）以 `_` 开头即跳过
+        # （_tmp/、__pycache__/、_scratch.py 等，不写死名字；只判 codedir 相对段，
+        # 防上级目录名误伤全量）——非产品实现不参与合同核对（2026-09-25 huawei2026d
+        # M7 实锤：code/_tmp/w4_full_solve.py 的 mean( 命中 forbid，属 scratch 假 FAIL）。
+        try:
+            rel_parts = f.relative_to(codedir).parts
+        except ValueError:
+            rel_parts = f.parts
+        if any(part.startswith("_") for part in rel_parts):
+            continue
         for line in _read(f).splitlines():
             s = line.strip()
             if s.startswith("#"):        # 整行注释跳过（防注释里写 poisson 骗过检测）
@@ -123,7 +133,10 @@ def _parse_contract(claim_text: str):
         line = line.strip()
         if not line or line.startswith("#"):
             continue
-        parts = [p.strip() for p in line.split("|")]
+        # 按"两侧带空白的竖线"分段：合同列分隔符必然是 ` | `，而建模者写的正则
+        # 里合法含裸交替竖线（如 (dist|hypot)），用 line.split("|") 会把正则
+        # 从中间截断成永不匹配的字面量 "(dist" → 假 FAIL（2026-09-25 huawei2026d 实锤）。
+        parts = [p.strip() for p in re.split(r"\s+\|\s+", line)]
         cid = parts[0] if parts else "?"
         must, forbid = [], []
         for seg in parts[1:]:

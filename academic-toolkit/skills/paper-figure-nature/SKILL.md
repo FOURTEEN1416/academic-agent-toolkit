@@ -452,50 +452,11 @@ Include all figures with `[H]` float specifier and English captions.
 
 **PAPER_PLAN.md 里规划了几张数据图，本步骤就必须产出几张。** 防止 context 中途爆掉只画了 1-2 张就退出的死循环 bug。
 
-```bash
-echo "=== FIGURE_MANIFEST 对账 ==="
-PLAN_FILE=""
-for f in PAPER_PLAN.md PROBLEM_ANALYSIS.md TOPIC_PLAN.md; do
-  [ -f "$f" ] && grep -q "<!-- BEGIN FIGURE_MANIFEST -->" "$f" && { PLAN_FILE="$f"; break; }
-done
-PASS=true
-if [ -n "$PLAN_FILE" ]; then
-    START=$(grep -n "<!-- BEGIN FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
-    END=$(grep -n "<!-- END FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
-    # ⛔ 只对账「数据图」章节: 按 manifest 的粗体章节标题归类(权威), 不靠文件名前缀。
-    #    这样 fig_data_pipeline/fig_model_arch 这类「关键词在中间」的架构图不会被误纳入
-    #    数据图对账(它们归 DrawIO 章节, 由 paper-figure-drawio 负责); TikZ 章节也跳过。
-    EXPECTED=$(sed -n "${START},${END}p" "$PLAN_FILE" \
-        | awk '
-            /^[[:space:]]*\*\*/ {
-                if ($0 ~ /数据图/ || tolower($0) ~ /matplotlib|gen_fig/) cap=1; else cap=0;
-                next
-            }
-            cap && match($0, /^[[:space:]]*-[[:space:]]+fig_[a-zA-Z0-9_]+/) {
-                s=substr($0, RSTART, RLENGTH); sub(/^[[:space:]]*-[[:space:]]*/, "", s); print s
-            }')
-    miss=0
-    for name in $EXPECTED; do
-        if ! ls figures/${name}.pdf figures/${name}.png 2>/dev/null | head -1 | grep -q .; then
-            echo "❌ 缺失数据图: $name"
-            miss=$((miss + 1))
-        fi
-    done
-    if [ "$miss" -gt 0 ]; then
-        echo "⛔ FIGURE_MANIFEST 对账失败: 缺 $miss 张数据图，必须全部画出来再结束本步骤"
-        PASS=false
-    else
-        echo "✅ 数据图全部产出"
-    fi
-else
-    echo "(规划文档无 FIGURE_MANIFEST, 跳过对账)"
-fi
-[ "$PASS" != true ] && echo "⛔ 验证未通过 — 必须补齐缺失图表后再结束"
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：每张图的数据源、生成脚本、colormap、参数。图表溯源门禁 figure_provenance 要求图有来源证据。
 

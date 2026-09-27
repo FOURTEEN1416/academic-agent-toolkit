@@ -17,7 +17,7 @@ Use this skill when the user does not want to stop at a refined method. The goal
 - a detailed experiment roadmap tied to the paper's claims
 - a compact pipeline summary that says what to run next
 
-This skill composes two existing workflows:
+This skill is one engine step; within this single step it applies the methods of two sibling skills (no second workflow is started, and step status stays with the engine):
 
 1. `research-refine` for method refinement
 2. `experiment-plan` for claim-driven validation planning
@@ -52,7 +52,7 @@ Do not plan a large experiment suite on top of an unstable method. First stabili
 
 ### Phase 1: Method Refinement Stage
 
-Run the `research-refine` workflow and keep its V3 philosophy intact:
+Apply the `research-refine` method here in this step, keeping its V3 philosophy intact:
 
 - preserve the Problem Anchor
 - prefer the smallest adequate mechanism
@@ -83,7 +83,7 @@ If these answers are not crisp, tighten the final proposal first.
 
 ### Phase 3: Experiment Planning Stage
 
-Run the `experiment-plan` workflow grounded in:
+Apply the `experiment-plan` method here in this step, grounded in:
 
 - `refine-logs/FINAL_PROPOSAL.md`
 - `refine-logs/REVIEW_SUMMARY.md`
@@ -163,18 +163,7 @@ Best next step:
 - For long content (>150 lines): use **Write** for the first section (ensures file exists on disk), then append remaining sections with `cat << 'EOF' >> refine-logs/FINAL_PROPOSAL.md`
 - **NEVER `end_turn` without producing `refine-logs/FINAL_PROPOSAL.md`** — even if upstream steps had issues, write what you have
 
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-[ -f refine-logs/FINAL_PROPOSAL.md ] && SZ=$(wc -c < refine-logs/FINAL_PROPOSAL.md) || SZ=0
-if [ "$SZ" -ge 500 ]; then
-    echo "✅ refine-logs/FINAL_PROPOSAL.md ($SZ bytes)"
-else
-    echo "❌ refine-logs/FINAL_PROPOSAL.md missing or too small ($SZ bytes) — write it NOW before ending"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must produce output before ending step"
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 - Do not let the experiment plan override the Problem Anchor.
 - Do not widen the paper story after method refinement unless a missing validation block is truly necessary.

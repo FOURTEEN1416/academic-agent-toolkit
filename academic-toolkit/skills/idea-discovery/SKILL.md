@@ -1,241 +1,30 @@
 ---
 name: idea-discovery
-description: "找研究方向全流程编排：文献检索、创意生成、新颖性核查、评审四步，把宽泛方向变成经试点验证的选题。触发词：找idea全流程、idea discovery pipeline、从零开始找方向。"
+description: "找研究方向/深度调研入口：按目标选择 idea_discovery（选题到提案与实验计划）或 deep_research（多源证据汇总与独立评审的调研报告）工作流；文献、创意、新颖性、评审、精炼由引擎分派到单步技能。触发词：找idea全流程、idea discovery pipeline、深度调研、从零开始找方向。"
 argument-hint: [research-direction]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent, Skill
 ---
 
-# Workflow 1: Idea Discovery Pipeline
+# 研究方向发现入口
 
-Orchestrate a complete idea discovery workflow for: **$ARGUMENTS**
+本技能只选择并恢复工作流，不执行业务步骤。按交付目标选模板：要经评审精炼的最终选题提案与实验计划，选 `idea_discovery`；要面向某个研究问题的多源证据汇总与独立评审的调研报告，选 `deep_research`。文献、创意、新颖性、评审、方法精炼由引擎分派到相应单步技能；不得在某一步里重启整个流程。
 
-## Overview
+## 输入与范围
 
-This skill chains sub-skills into a single automated pipeline:
+明确研究问题、已有知识、数据可用性、计算预算、验证条件和用户不能接受的风险。已有工作流则从其当前状态恢复；缺少预算时不默认消耗多张GPU或部署远程实验。
 
-```
-/research-lit → /idea-creator → /novelty-check → /research-review → /research-refine-pipeline
-  (survey)      (brainstorm)    (verify novel)    (critical feedback)  (refine method + plan experiments)
-```
+## 路由与执行
 
-Each phase builds on the previous one's output. The final deliverables are a validated `IDEA_REPORT.md` with ranked ideas, plus a refined proposal (`refine-logs/FINAL_PROPOSAL.md`) and experiment plan (`refine-logs/EXPERIMENT_PLAN.md`) for the top idea.
+1. 没有现有流程时创建 `idea_discovery` 模板工作流，把任务目标和资源约束保存为业务参数。
+2. `next` 领取当前步骤及执行会话，只加载该步要求的知识；其他技能和参考资产按任务检索。
+3. 用真实文献来源、实际试点结果和已收到的评审意见形成阶段产物。没有试点就明确未验证，不预填 positive、novelty confirmed 或 reviewer score。
+4. 通过会话 `finish` 提交真实工作；返修依据集中诊断处理。流程是否前进由引擎状态决定，不另设自动通过开关。
+5. 遇到人工批准点等待真实决定，不把无回复、超时或推荐排序当作用户批准。
 
-## Constants
+## 领域质量
 
-- **PILOT_MAX_HOURS = 2** — Skip any pilot experiment estimated to take > 2 hours per GPU. Flag as "needs manual pilot" in the report.
-- **PILOT_TIMEOUT_HOURS = 3** — Hard timeout: kill any running pilot that exceeds 3 hours. Collect partial results if available.
-- **MAX_PILOT_IDEAS = 3** — Run pilots for at most 3 top ideas in parallel. Additional ideas are validated on paper only.
-- **MAX_TOTAL_GPU_HOURS = 8** — Total GPU budget across all pilots. If exceeded, skip remaining pilots and note in report.
-- **AUTO_PROCEED = true** — If user doesn't respond at a checkpoint, automatically proceed with the best option after presenting results. Set to `false` to always wait for explicit user confirmation.
-- **REVIEWER_MODEL = 外部评审模型** — Model used via external reviewer. Configured in reviewer settings. Passed to sub-skills.
-- **ARXIV_DOWNLOAD = false** — When `true`, `/research-lit` downloads the top relevant arXiv PDFs during Phase 1. When `false` (default), only fetches metadata. Passed through to `/research-lit`.
+研究想法必须可检验。比较最接近的已有工作，记录支持与反证，说明创新边界和最小验证实验。负结果及被否定的想法同样保留为研究依据；不为了继续流程编造新颖性、数据或成功实验。
 
-> 💡 These are defaults. Override by telling the skill, e.g., `/idea-discovery "topic" — pilot budget: 4h per idea, 20h total` or `/idea-discovery "topic" — arxiv download: true`.
+## 交付
 
-## Pipeline
-
-### Phase 1: Literature Survey
-
-Invoke `/research-lit` to map the research landscape:
-
-```
-/research-lit "$ARGUMENTS"
-```
-
-**What this does:**
-- Search arXiv, Google Scholar, Semantic Scholar for recent papers
-- Build a landscape map: sub-directions, approaches, open problems
-- Identify structural gaps and recurring limitations
-- Output a literature summary (saved to working notes)
-
-**🚦 Checkpoint:** Present the landscape summary to the user. Ask:
-
-```
-📚 Literature survey complete. Here's what I found:
-- [key findings, gaps, open problems]
-
-Does this match your understanding? Should I adjust the scope before generating ideas?
-(If no response, I'll proceed with the top-ranked direction.)
-```
-
-- **User approves** (or no response + AUTO_PROCEED=true) → proceed to Phase 2 with best direction.
-- **User requests changes** (e.g., "focus more on X", "ignore Y", "too broad") → refine the search with updated queries, re-run the literature search with adjusted scope, and present again. Max 2 re-runs; after that, proceed with the best available results.
-
-### Phase 2: Idea Generation + Filtering + Pilots
-
-Invoke `/idea-creator` with the landscape context:
-
-```
-/idea-creator "$ARGUMENTS"
-```
-
-**What this does:**
-- Brainstorm 8-12 concrete ideas via external reviewer
-- Filter by feasibility, compute cost, quick novelty search
-- Deep validate top ideas (full novelty check + devil's advocate)
-- Run parallel pilot experiments on available GPUs (top 2-3 ideas)
-- Rank by empirical signal
-- Output `IDEA_REPORT.md`
-
-**🚦 Checkpoint:** Present `IDEA_REPORT.md` ranked ideas to the user. Ask:
-
-```
-💡 Generated X ideas, filtered to Y, piloted Z. Top results:
-
-1. [Idea 1] — Pilot: POSITIVE (+X%)
-2. [Idea 2] — Pilot: WEAK POSITIVE (+Y%)
-3. [Idea 3] — Pilot: NEGATIVE, eliminated
-
-Which ideas should I validate further? Or should I regenerate with different constraints?
-(If no response, I'll proceed with the top-ranked ideas.)
-```
-
-- **User picks ideas** (or no response + AUTO_PROCEED=true) → proceed to Phase 3 with top-ranked ideas.
-- **User unhappy with all ideas** → collect feedback ("what's missing?", "what direction do you prefer?"), update the prompt with user's constraints, and re-run Phase 2 (idea generation). Max 2 re-runs; after that, select the best available idea and proceed.
-- **User wants to adjust scope** → go back to Phase 1 with refined direction (counts toward the Phase 1 re-run limit).
-
-### Phase 3: Deep Novelty Verification
-
-For each top idea (positive pilot signal), run a thorough novelty check:
-
-```
-/novelty-check "[top idea 1 description]"
-/novelty-check "[top idea 2 description]"
-```
-
-**What this does:**
-- Multi-source literature search (arXiv, Scholar, Semantic Scholar)
-- Cross-verify with external reviewer
-- Check for concurrent work (last 3-6 months)
-- Identify closest existing work and differentiation points
-
-**Update `IDEA_REPORT.md`** with deep novelty results. Eliminate any idea that turns out to be already published.
-
-### Phase 4: External Critical Review
-
-For the surviving top idea(s), get brutal feedback:
-
-```
-/research-review "[top idea with hypothesis + pilot results]"
-```
-
-**What this does:**
-- External reviewer acts as a senior reviewer (NeurIPS/ICML level)
-- Scores the idea, identifies weaknesses, suggests minimum viable improvements
-- Provides concrete feedback on experimental design
-
-**Update `IDEA_REPORT.md`** with reviewer feedback and revised plan.
-
-### Phase 4.5: Method Refinement + Experiment Planning
-
-After review, refine the top idea into a concrete proposal and plan experiments:
-
-```
-/research-refine-pipeline "[top idea description + pilot results + reviewer feedback]"
-```
-
-**What this does:**
-- Freeze a **Problem Anchor** to prevent scope drift
-- Iteratively refine the method via external reviewer (up to 5 rounds, until score ≥ 9)
-- Generate a claim-driven experiment roadmap with ablations, budgets, and run order
-- Output: `refine-logs/FINAL_PROPOSAL.md`, `refine-logs/EXPERIMENT_PLAN.md`, `refine-logs/EXPERIMENT_TRACKER.md`
-
-**🚦 Checkpoint:** Present the refined proposal summary:
-
-```
-🔬 Method refined and experiment plan ready:
-- Problem anchor: [anchored problem]
-- Method thesis: [one sentence]
-- Dominant contribution: [what's new]
-- Must-run experiments: [N blocks]
-- First 3 runs to launch: [list]
-
-Proceed to implementation? Or adjust the proposal?
-```
-
-- **User approves** (or AUTO_PROCEED=true) → proceed to Final Report.
-- **User requests changes** → pass feedback to `/research-refine` for another round.
-- **Lite mode:** If reviewer score < 6 or pilot was weak, run `/research-refine` only (skip `/experiment-plan`) and note remaining risks in the report.
-
-### Phase 5: Final Report
-
-Finalize `IDEA_REPORT.md` with all accumulated information:
-
-```markdown
-# Idea Discovery Report
-
-**Direction**: $ARGUMENTS
-**Date**: [today]
-**Pipeline**: research-lit → idea-creator → novelty-check → research-review → research-refine-pipeline
-
-## Executive Summary
-[2-3 sentences: best idea, key evidence, recommended next step]
-
-## Literature Landscape
-[from Phase 1]
-
-## Ranked Ideas
-[from Phase 2, updated with Phase 3-4 results]
-
-### 🏆 Idea 1: [title] — RECOMMENDED
-- Pilot: POSITIVE (+X%)
-- Novelty: CONFIRMED (closest: [paper], differentiation: [what's different])
-- Reviewer score: X/10
-- Next step: implement full experiment → /auto-review-loop
-
-### Idea 2: [title] — BACKUP
-...
-
-## Eliminated Ideas
-[ideas killed at each phase, with reasons]
-
-## Refined Proposal
-- Proposal: `refine-logs/FINAL_PROPOSAL.md`
-- Experiment plan: `refine-logs/EXPERIMENT_PLAN.md`
-- Tracker: `refine-logs/EXPERIMENT_TRACKER.md`
-
-## Next Steps
-- [ ] /run-experiment to deploy experiments from the plan
-- [ ] /auto-review-loop to iterate until submission-ready
-- [ ] Or invoke /research-pipeline for the complete end-to-end flow
-```
-
-## Key Rules
-
-⛔ **File writing strategy (prevent both failure modes):**
-- For short content (<150 lines): use the **Write tool** directly (atomic, reliable)
-- For long content (>150 lines): use **Write** for the first section (ensures file exists on disk), then append remaining sections with `cat << 'EOF' >> IDEA_REPORT.md`
-- **NEVER `end_turn` without producing `IDEA_REPORT.md`** — even if upstream steps had issues, write what you have
-
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-[ -f IDEA_REPORT.md ] && SZ=$(wc -c < IDEA_REPORT.md) || SZ=0
-if [ "$SZ" -ge 500 ]; then
-    echo "✅ IDEA_REPORT.md ($SZ bytes)"
-else
-    echo "❌ IDEA_REPORT.md missing or too small ($SZ bytes) — write it NOW before ending"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must produce output before ending step"
-```
-
-- **Don't skip phases.** Each phase filters and validates — skipping leads to wasted effort later.
-- **Checkpoint between phases.** Briefly summarize what was found before moving on.
-- **Kill ideas early.** It's better to kill 10 bad ideas in Phase 3 than to implement one and fail.
-- **Empirical signal > theoretical appeal.** An idea with a positive pilot outranks a "sounds great" idea without evidence.
-- **Document everything.** Dead ends are just as valuable as successes for future reference.
-- **Be honest with the reviewer.** Include negative results and failed pilots in the review prompt.
-- **Feishu notifications are optional.** 若 `~/.acat/feishu.json`存在, send `checkpoint` at each phase transition and `pipeline_done` at final report. If absent/off, skip silently.
-
-## Composing with Workflow 2
-
-After this pipeline produces a validated top idea:
-
-```
-/idea-discovery "direction"         ← you are here (Workflow 1, includes method refinement + experiment planning)
-/run-experiment                     ← deploy experiments from the plan
-/auto-review-loop "top idea"        ← Workflow 2: iterate until submission-ready
-
-Or use /research-pipeline for the full end-to-end flow.
-```
+以各步骤合同给出的实际路径组织文献综述、候选方案、新颖性结论、评审发现、最终研究提案和实验计划。阶段完成不等于方法已获科学验证。清单、内容摘要和证据账由程序生成，不让模型重复填报。

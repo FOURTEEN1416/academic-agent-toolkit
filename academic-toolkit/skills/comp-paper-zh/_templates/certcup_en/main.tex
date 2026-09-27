@@ -1,0 +1,63 @@
+\documentclass[11pt]{article}
+% comp_certcup_en standalone skeleton (archive comp_certcup_en: template_cls =
+% article; rules: English only, Summary on a standalone page, structure follows
+% the US-style outline, pdflatex, <= 25 pages advisory). This skeleton belongs
+% to this contest only: it carries no other contest's cover, control number, or
+% declaration. Standalone since 2026-09-27 (dispatcher-authorized cleanup of a
+% reused-skeleton contamination; see C-window REPORT_ROUND6).
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{newtxtext}
+
+% === Extra packages ===
+\usepackage{algorithm2e}
+\usepackage{float}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage[section]{placeins}
+\usepackage{needspace}
+
+% === TikZ ===
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+
+\begin{document}
+
+% === Summary page (archive rule: Summary must be a standalone page) ===
+\begin{center}
+    {\LARGE\bfseries [Paper Title]}
+\end{center}
+
+\vspace{1.5em}
+
+\begin{center}
+    {\large\bfseries Summary}
+\end{center}
+
+\noindent [Summary: 300--400 words on one page; one paragraph per sub-problem with a named method and verified numerical result; use \textbf{} for 1--3 concise method/result anchors per sub-problem]
+
+\vspace{1.5em}
+\noindent\textbf{Keywords:} [Keyword1]; [Keyword2]; [Keyword3]
+
+\newpage
+% ⛔ No table-of-contents page: contest papers do not carry one.
+%   The \newpage above keeps the Summary page standalone before the body.
+
+% === Body ===
+\input{sections/1_introduction}
+\input{sections/2_assumptions}
+\input{sections/3_model_design}
+\input{sections/4_solution}
+\input{sections/5_sensitivity}
+\input{sections/6_strengths_weaknesses}
+\input{sections/7_conclusions}
+
+% === References ===
+\begin{thebibliography}{99}
+% \bibitem{ref1} Author. Title[J]. Journal, Year.
+\end{thebibliography}
+
+% === Appendix ===
+\appendix
+\input{sections/A_code}
+
+\end{document}

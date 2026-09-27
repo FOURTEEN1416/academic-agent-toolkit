@@ -58,173 +58,8 @@ CAP=$?   # 0=结构合格 1=结构非法/漏拆子问题(必修) 2=无清单
 
 > `CAP=1`（漏拆子问题、machine 项没挂闸、字段非法）必须先修再结束本步骤——能力清单是下游"题型无关验收"的契约，结构不合格 comp-code 的语义校验器就没法逐项验收，题目要的能力会被悄悄降维。`CAP=2`（无清单）：除非纯建模题确实无可拆能力项，否则必须补出清单。
 
-⛔ **结束前必跑产出验证**：
 
-```bash
-
-PASS=true
-
-# 1. 文件大小
-
-[ -f PROBLEM_ANALYSIS.md ] && SZ=$(wc -c < PROBLEM_ANALYSIS.md) || SZ=0
-
-if [ "$SZ" -ge 1500 ]; then
-
-    echo "✅ PROBLEM_ANALYSIS.md ($SZ bytes)"
-
-else
-
-    echo "❌ PROBLEM_ANALYSIS.md 缺失或过小 ($SZ bytes) — 必须补全后重新跑验证, 不要结束本步骤"
-
-    PASS=false
-
-fi
-
-# 2. ⛔ FIGURE_MANIFEST 区块必须存在 (下游 paper-figure / paper-figure-drawio 按它对账)
-
-# 不写就会让用户踩"画了 1 张就跳过"的死循环 bug
-
-if grep -q '<!-- BEGIN FIGURE_MANIFEST -->' PROBLEM_ANALYSIS.md 2>/dev/null \
-
-    && grep -q '<!-- END FIGURE_MANIFEST -->' PROBLEM_ANALYSIS.md 2>/dev/null; then
-
-    # 数下规划了几张图
-
-    START=$(grep -n '<!-- BEGIN FIGURE_MANIFEST -->' PROBLEM_ANALYSIS.md | head -1 | cut -d: -f1)
-
-    END=$(grep -n '<!-- END FIGURE_MANIFEST -->' PROBLEM_ANALYSIS.md | head -1 | cut -d: -f1)
-
-    MANIFEST_CONTENT=$(sed -n "${START},${END}p" PROBLEM_ANALYSIS.md)
-
-    # 总图数（数据图 + DrawIO 流程图 + TikZ + GPT Image 合计）— 仅供参考
-
-    TOTAL_COUNT=$(echo "$MANIFEST_CONTENT" | grep -cE '^[[:space:]]*-[[:space:]]+(fig_[a-zA-Z0-9_]+|tikz_[a-zA-Z0-9_]+)')
-
-    # ⛔ 前缀合规硬校验：没前缀的图名（image2/图2/chart1）会被下游对账静默漏掉、图不生成 → 硬阻塞
-
-    BAD_NAMES=$(echo "$MANIFEST_CONTENT" | grep -E '^[[:space:]]*-[[:space:]]+' | grep -vE '^[[:space:]]*-[[:space:]]+(fig_|tikz_)' | sed -E 's/^[[:space:]]*-[[:space:]]*//')
-
-    if [ -n "$BAD_NAMES" ]; then
-
-        echo "❌ FIGURE_MANIFEST 有图名缺少 fig_/tikz_ 前缀，会被下游对账漏掉、导致图静默不生成，必须改名（如 image2 → fig_q1_xxx）："
-
-        echo "$BAD_NAMES" | sed 's/^/    · /'
-
-        PASS=false
-
-    fi
-
-    # ⛔ 数据图（DATA 类，matplotlib 产出的 .png/.pdf）单独计数
-
-    #    12-20 张阈值【只针对数据图】，流程图（DrawIO）/ 推导示意（TikZ）不计入此阈值
-
-    #    优先从 FIGURE_MANIFEST 末尾的 "**总数：DATA=N, ...**" 标记提取
-
-    DATA_COUNT=$(echo "$MANIFEST_CONTENT" | grep -oE 'DATA=[0-9]+' | head -1 | grep -oE '[0-9]+')
-
-    # Fallback：DATA= 标记缺失时，用 awk 在 "**数据图**" 章节内数 - fig_ 行
-
-    if [ -z "$DATA_COUNT" ]; then
-
-        DATA_COUNT=$(echo "$MANIFEST_CONTENT" | awk '
-
-            /^\*\*数据图/ { f=1; next }
-
-            /^\*\*/       { f=0 }
-
-            f && /^[[:space:]]*-[[:space:]]+fig_/ { c++ }
-
-            END           { print c+0 }
-
-        ')
-
-    fi
-
-    DATA_COUNT=${DATA_COUNT:-0}
-
-    # ⛔ 检查策略（区分硬阻塞和软引导）：
-
-    #   1. 真"非空"硬底线 ≥3 张（少于这个 = 工作严重不完整，硬阻塞）
-
-    #   2. 用户在「高级选项」显式指定 MIN_FIGURES > 0 → 硬阻塞达不到（用户硬要求）
-
-    #   3. 其他情况 → 仅软引导（参考值 12-20 张，AI 按赛题复杂度自由规划）
-
-    source .env_skill 2>/dev/null || true
-
-    HARD_FLOOR=3
-
-    SOFT_REF_LOW=12
-
-    SOFT_REF_HIGH=20
-
-    USER_REQ=""
-
-    if [ -n "$MIN_FIGURES" ] && [ "$MIN_FIGURES" -gt 0 ] 2>/dev/null; then
-
-        USER_REQ="$MIN_FIGURES"
-
-    fi
-
-    if [ "$DATA_COUNT" -lt "$HARD_FLOOR" ]; then
-
-        # 真"非空"硬底线 — 数据图少于 3 张工作严重不完整
-
-        echo "❌ FIGURE_MANIFEST 数据图(DATA 类) 只 $DATA_COUNT 张, 低于最低底线 $HARD_FLOOR 张"
-
-        echo "   (总图含流程图/示意 = $TOTAL_COUNT 张) — 工作严重不完整，必须扩展数据图后重新验证"
-
-        PASS=false
-
-    elif [ -n "$USER_REQ" ] && [ "$DATA_COUNT" -lt "$USER_REQ" ]; then
-
-        # 用户显式指定硬目标
-
-        echo "❌ FIGURE_MANIFEST 数据图(DATA 类) $DATA_COUNT 张 < 用户在前端「高级选项」指定的 MIN_FIGURES=$USER_REQ"
-
-        echo "   (总图含流程图/示意 = $TOTAL_COUNT 张) — 必须扩展数据图到 >= $USER_REQ 张后重新验证"
-
-        PASS=false
-
-    else
-
-        # 通过：根据是否达到参考区间给不同语气提示（不阻塞）
-
-        if [ "$DATA_COUNT" -lt "$SOFT_REF_LOW" ]; then
-
-            echo "✅ FIGURE_MANIFEST 数据图 $DATA_COUNT 张(总图 $TOTAL_COUNT) — 通过底线"
-
-            echo "   ⚠ 参考值: 竞赛论文标准 $SOFT_REF_LOW-$SOFT_REF_HIGH 张数据图, 当前略少"
-
-            echo "   ℹ 是否扩展由你根据赛题复杂度决定 — 不强制，但 $DATA_COUNT 张数据图对 30 页论文偏稀"
-
-            echo "   📊 如需扩展可考虑(每个子问题 2-3 张): 趋势/对比/分布/热力/灵敏度/Pareto/SHAP 等"
-
-            echo "   🔄 流程图/推导示意(DRAWIO/TIKZ)按需另算, 不计入数据图参考值"
-
-        elif [ "$DATA_COUNT" -le "$SOFT_REF_HIGH" ]; then
-
-            echo "✅ FIGURE_MANIFEST 数据图 $DATA_COUNT 张(总图 $TOTAL_COUNT) — 落在推荐区间 $SOFT_REF_LOW-$SOFT_REF_HIGH 张"
-
-        else
-
-            echo "✅ FIGURE_MANIFEST 数据图 $DATA_COUNT 张(总图 $TOTAL_COUNT) — 超过推荐上限 $SOFT_REF_HIGH, 富余度高"
-
-        fi
-
-    fi
-
-else
-
-    echo "❌ PROBLEM_ANALYSIS.md 缺少 FIGURE_MANIFEST 区块 — 必须按本 SKILL 「图表预规划」一节追加完整的 <!-- BEGIN/END FIGURE_MANIFEST --> 区块"
-
-    PASS=false
-
-fi
-
-[ "$PASS" != true ] && echo "⛔ 验证未通过 — 必须修复后重新跑验证, 不要结束本步骤"
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 ### ⛔ 参数密集型题目额外门槛（题面参数 ≥ 20 时必跑）
 
@@ -988,73 +823,7 @@ GPT Image 场景示意图（仅物理/工程类赛题）：
 
 - **数量必须跟上面三类图清单完全一致**（一一对应）
 
-- 写完后跑这个自检确认格式 OK：
-
-```bash
-
-START=$(grep -n '<!-- BEGIN FIGURE_MANIFEST -->' PROBLEM_ANALYSIS.md | head -1 | cut -d: -f1)
-
-END=$(grep -n '<!-- END FIGURE_MANIFEST -->' PROBLEM_ANALYSIS.md | head -1 | cut -d: -f1)
-
-if [ -z "$START" ] || [ -z "$END" ]; then
-
-  echo "❌ FIGURE_MANIFEST 区块缺失, 必须补"
-
-else
-
-  MANIFEST=$(sed -n "${START},${END}p" PROBLEM_ANALYSIS.md)
-
-  N_DRAWIO=$(echo "$MANIFEST" | grep -cE '^[[:space:]]*-[[:space:]]+fig_(roadmap|flow_|pipeline|index_|gantt|network|framework|model_decision)')
-
-  N_GPTIMG=$(echo "$MANIFEST" | grep -cE '^[[:space:]]*-[[:space:]]+fig_scene')
-
-  N_TIKZ=$(echo "$MANIFEST" | grep -cE '^[[:space:]]*-[[:space:]]+tikz_')
-
-  # ⛔ 数据图计数口径必须与「完成铁律」块(本文件开头 PASS 块)完全一致：优先取 DATA=N 标记，
-
-  #    取不到再数 "**数据图**" 章节内的 - fig_ 行。之前这里用 ALL_FIGS-N_DRAWIO-N_GPTIMG 的减法
-
-  #    白名单口径，DrawIO 图若命名不在白名单(如 fig_solve_q1)会被误算进数据图 → 与完成铁律块
-
-  #    给出不同张数 → AI 反复回查。统一到标记法后两处口径一致，消除矛盾。
-
-  N_DATA=$(echo "$MANIFEST" | grep -oE 'DATA=[0-9]+' | head -1 | grep -oE '[0-9]+')
-
-  if [ -z "$N_DATA" ]; then
-
-    N_DATA=$(echo "$MANIFEST" | awk '/^\*\*数据图/{f=1;next} /^\*\*/{f=0} f&&/^[[:space:]]*-[[:space:]]+fig_/{c++} END{print c+0}')
-
-  fi
-
-  N_DATA=${N_DATA:-0}
-
-  TOTAL_LINE=$(echo "$MANIFEST" | grep -E '总数:|ALL=')
-
-  echo "✅ FIGURE_MANIFEST: data=$N_DATA, drawio=$N_DRAWIO, tikz=$N_TIKZ, gptimg=$N_GPTIMG（data 口径同完成铁律块）"
-
-  echo "  $TOTAL_LINE"
-
-  # ⛔ 前缀合规校验：抓 BEGIN..END 之间的列表项，凡不以 fig_/tikz_ 开头的报警
-
-  #   （image2、图2、chart1 这类没前缀的会被下游对账静默漏掉、导致图不生成）
-
-  BAD=$(echo "$MANIFEST" | grep -E '^[[:space:]]*-[[:space:]]+' | grep -vE '^[[:space:]]*-[[:space:]]+(fig_|tikz_)' | sed -E 's/^[[:space:]]*-[[:space:]]*//')
-
-  if [ -n "$BAD" ]; then
-
-    echo "❌ 以下图名缺少 fig_/tikz_ 前缀，会被下游对账漏掉、导致图静默不生成，必须改名（如 image2 → fig_q1_xxx）："
-
-    echo "$BAD" | sed 's/^/    · /'
-
-  else
-
-    echo "✅ 所有图名前缀合规（fig_/tikz_）"
-
-  fi
-
-fi
-
-```
+写完后格式对齐由程序负责：引擎在 `finish` 按 `output_contract.figure_manifest` 合同校验（区块完整、图名 `fig_`/`tikz_` 前缀合规、ALL 计数与条目一致，违规即验收失败并列出具体问题）。模型不复制 shell 自检脚本，修 `finish` 返回的具体问题即可。
 
 ### Step 5.6: ⛔ 赛题分析自检协议（逐句扫描，通用防遗漏）
 
@@ -1452,6 +1221,9 @@ cat << 'EOF' >> PROBLEM_ANALYSIS.md
 
 ---
 
+```bash
+cat << 'EOF' >> PROBLEM_ANALYSIS.md
+
 ## 六、图表预规划
 
 ...
@@ -1473,11 +1245,9 @@ EOF
 **⛔ 禁止一次性用 Write 工具写完整个文件。** 如果内容超过 150 行，必须用多次 `cat << 'EOF' >> file` 追加。一次性写太长会导致输出 token 截断，触发空工具调用循环。
 
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
-
-建议额外记录：题面文件 SHA-256、分析工具版本。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。题面文件指纹与分析工具版本由会话读取/运行时自动记录，不手工计算或转抄哈希。
 
 ## 关键规则
 

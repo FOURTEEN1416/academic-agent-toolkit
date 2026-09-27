@@ -147,7 +147,7 @@ ls paper/*.tex paper/sections/*.tex 2>/dev/null | head -1 | grep -q . && { echo 
 
 
 
-[ "$PASS" != true ] && echo "⛔ verification FAILED — fix and re-run before ending"
+if [ "$PASS" != true ]; then echo "⛔ verification FAILED — fix and re-run before ending"; exit 1; fi
 
 ```
 

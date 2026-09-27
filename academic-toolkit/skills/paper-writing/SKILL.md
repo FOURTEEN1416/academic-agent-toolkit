@@ -1,314 +1,37 @@
 ---
 name: paper-writing
-description: "论文写作全流程编排：串起 paper-plan、paper-figure、paper-write、paper-compile、auto-paper-improvement-loop 五步，从叙述式报告走到可投稿 PDF。"
+description: "论文写作入口：按语言与目标选择 paper_writing / paper_writing_zh / nature_writing / paper_from_assets 工作流，由引擎分派规划、分析、绘图、写作、编译与改进循环各步，从叙述式报告走到可投稿 PDF。"
 argument-hint: [narrative-report-path-or-topic]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, Skill
 ---
 
-# Workflow 3: Paper Writing Pipeline
+# 论文写作入口
 
-Orchestrate a complete paper writing workflow for: **$ARGUMENTS**
+本技能负责把用户目标映射到现有工作流，不自行调度第二套步骤。
 
-## Overview
+## 输入
 
-This skill chains five sub-skills into a single automated pipeline:
+读取研究叙述、已有结果、目标期刊/会议、语言和交付格式。缺少真实实验或引用证据时先定位缺口，不把未知结果补成论文结论。
 
-```
-/paper-plan → /paper-figure → /paper-write → /paper-compile → /auto-paper-improvement-loop
-  (outline)     (plots)        (LaTeX)        (build PDF)       (review & polish ×2)
-```
+## 路由
 
-Each phase builds on the previous one's output. The final deliverable is a polished, reviewed `paper/` directory with LaTeX source and compiled PDF.
+- 英文研究论文：`paper_writing`。
+- 中文研究论文：`paper_writing_zh`。
+- Nature 风格论文：`nature_writing`。
+- 从现有资料起步：`paper_from_assets`。
 
-In this hybrid pack, the pipeline itself is unchanged, but `paper-plan` and `paper-write` use Orchestra-adapted shared references for stronger story framing and prose guidance.
+若任务已有工作流 ID，恢复该工作流，不重复创建。没有工作流时，用 `python -m engine.workflow_cli start --template <模板> --workspace <工作区> --params <业务参数JSON>` 创建，再用 `next` 领取当前步骤。
 
-## Constants
+## 执行边界
 
-- **VENUE = `ICLR`** — Target venue. Options: `ICLR`, `NeurIPS`, `ICML`. Affects style file, page limit, citation format.
-- **MAX_IMPROVEMENT_ROUNDS = 2** — Number of review→fix→recompile rounds in the improvement loop.
-- **REVIEWER_MODEL = `gpt-5.4`** — 评审模型经评审桥配置（模型可换、不绑定特定宿主 MCP），用于 plan review, figure review, writing review, and improvement loop.
-- **AUTO_PROCEED = true** — Auto-continue between phases. Set `false` to pause and wait for user approval after each phase.
-- **HUMAN_CHECKPOINT = false** — When `true`, the improvement loop (Phase 5) pauses after each round's review to let you see the score and provide custom modification instructions. When `false` (default), the loop runs fully autonomously. Passed through to `/auto-paper-improvement-loop`.
-- **ILLUSTRATION = `gemini`** — AI illustration mode: `gemini` (default, needs `GEMINI_API_KEY`), `mermaid` (free, no API key), or `false` (skip, manual only).
+`next` 提供当前步骤的目标、产物、必要技能及执行会话。仅执行当前步骤，不提前调用后续写作、编译或评审。业务产出用会话的 `read/write/edit/run` 完成，`finish` 自动记录与验收并给下一步。
 
-> Override inline: `/paper-writing "NARRATIVE_REPORT.md" — venue: NeurIPS, illustration: mermaid, human checkpoint: true`
+- 论文大纲须把论断与证据对应，不能以图表数量代替研究内容。
+- 语言、页数、格式、图表与引用约束来自本次目标和模板，不固定成某个会议或模型。
+- 人工检查点必须等待真实批准；无人回复不等于同意。
+- 编译、审稿、返修是不同的业务步骤；不得通过入口技能再排一套隐式循环。
+- 评审需要独立上下文；不能以自审或读取技能冒充已完成独立审稿。
 
-## Inputs
+## 交付
 
-This pipeline accepts one of:
-
-1. **`NARRATIVE_REPORT.md`** (best) — structured research narrative with claims, experiments, results, figures
-2. **Research direction + experiment results** — the skill will help draft the narrative first
-3. **Existing `PAPER_PLAN.md`** — skip Phase 1, start from Phase 2
-
-The more detailed the input (especially figure descriptions and quantitative results), the better the output.
-
-## Pipeline
-
-### Phase 1: Paper Plan
-
-Invoke `/paper-plan` to create the structural outline:
-
-```
-/paper-plan "$ARGUMENTS"
-```
-
-**What this does:**
-- Parse NARRATIVE_REPORT.md for claims, evidence, and figure descriptions
-- Build a **Claims-Evidence Matrix** — every claim maps to evidence, every experiment supports a claim
-- Design section structure (5-8 sections depending on paper type)
-- Plan figure/table placement with data sources
-- Scaffold citation structure
-- The external reviewer reviews the plan for completeness
-
-**Output:** `PAPER_PLAN.md` with section plan, figure plan, citation scaffolding.
-
-**Checkpoint:** Present the plan summary to the user.
-
-```
-📐 Paper plan complete:
-- Title: [proposed title]
-- Sections: [N] ([list])
-- Figures: [N] auto-generated + [M] manual
-- Target: [VENUE], [PAGE_LIMIT] pages
-
-Shall I proceed with figure generation?
-```
-
-- **User approves** (or AUTO_PROCEED=true) → proceed to Phase 2.
-- **User requests changes** → adjust plan and re-present.
-
-### Phase 2: Figure Generation
-
-Invoke `/paper-figure` to generate data-driven plots and tables:
-
-```
-/paper-figure "PAPER_PLAN.md"
-```
-
-**What this does:**
-- Read figure plan from PAPER_PLAN.md
-- Generate matplotlib/seaborn plots from JSON/CSV data
-- Generate LaTeX comparison tables
-- Create `figures/latex_includes.tex` for easy insertion
-- The external reviewer reviews figure quality and captions
-
-**Output:** `figures/` directory with PDFs, generation scripts, and LaTeX snippets.
-
-#### Phase 2b: AI Illustration Generation
-
-**Skip this step entirely if `illustration` is `false`.**
-
-If the paper plan includes architecture diagrams, pipeline figures, or method illustrations:
-
-**When `illustration: gemini`** (default) — invoke `/paper-illustration`:
-```
-/paper-illustration "[method description from PAPER_PLAN.md or NARRATIVE_REPORT.md]"
-```
-- 执行 Agent plans → Gemini optimizes → Nano Banana Pro renders → 执行 Agent reviews (score ≥ 9)
-- Output: `figures/ai_generated/*.png`
-- Requires `GEMINI_API_KEY` environment variable
-
-**When `illustration: mermaid`** — invoke `/mermaid-diagram`:
-```
-/mermaid-diagram "[method description from PAPER_PLAN.md]"
-```
-- Generates Mermaid syntax diagrams (flowchart, sequence, class, etc.)
-- Output: `figures/*.mmd` + `figures/*.png`
-- Free, no API key needed
-
-**When `illustration: false`** — skip entirely. Architecture diagrams must be created manually (draw.io, Figma, TikZ).
-
-**Checkpoint:** List generated vs manual figures.
-
-```
-📊 Figures complete:
-- Data plots (auto): [list]
-- AI illustrations (auto): [list, if illustration ≠ false]
-- Manual (need your input): [list]
-- LaTeX snippets: figures/latex_includes.tex
-
-[If manual figures needed]: Please add them to figures/ before I proceed.
-[If all auto]: Shall I proceed with LaTeX writing?
-```
-
-### Phase 3: LaTeX Writing
-
-Invoke `/paper-write` to generate section-by-section LaTeX:
-
-```
-/paper-write "PAPER_PLAN.md"
-```
-
-**What this does:**
-- Write each section following the plan, with proper LaTeX formatting
-- Insert figure/table references from `figures/latex_includes.tex`
-- Build `references.bib` from citation scaffolding
-- Clean stale files from previous section structures
-- Automated bib cleaning (remove uncited entries)
-- De-AI polish (remove "delve", "pivotal", "landscape"...)
-- The external reviewer reviews each section for quality
-
-**Output:** `paper/` directory with `main.tex`, `sections/*.tex`, `references.bib`, `math_commands.tex`.
-
-**Checkpoint:** Report section completion.
-
-```
-✍️ LaTeX writing complete:
-- Sections: [N] written ([list])
-- Citations: [N] unique keys in references.bib
-- Stale files cleaned: [list, if any]
-
-Shall I proceed with compilation?
-```
-
-### Phase 4: Compilation
-
-Invoke `/paper-compile` to build the PDF:
-
-```
-/paper-compile "paper/"
-```
-
-**What this does:**
-- Run `_utils/compile_utils.sh` for pre-compile cleanup (special chars, path fix, hidelinks)
-- Manual step-by-step compilation (pdflatex/xelatex → bibtex → pdflatex/xelatex × 2)
-- Auto-fix common errors (missing packages, undefined refs, BibTeX syntax)
-- Up to 3 compilation attempts
-- Post-compilation checks: undefined refs, page count, font embedding
-
-**Output:** `paper/main.pdf`
-
-**Checkpoint:** Report compilation results.
-
-```
-🔨 Compilation complete:
-- Status: SUCCESS
-- Pages: [X] (main body) + [Y] (references) + [Z] (appendix)
-- Within page limit: YES/NO
-- Undefined references: 0
-- Undefined citations: 0
-
-Shall I proceed with the improvement loop?
-```
-
-### Phase 5: Auto Improvement Loop
-
-Invoke `/auto-paper-improvement-loop` to polish the paper:
-
-```
-/auto-paper-improvement-loop "paper/"
-```
-
-**What this does (2 rounds):**
-
-**Round 1:** The external reviewer reviews the full paper → identifies CRITICAL/MAJOR/MINOR issues → 由执行 Agent 落实修改 → recompile → save `main_round1.pdf`
-
-**Round 2:** The external reviewer re-reviews with conversation context → identifies remaining issues → 由执行 Agent 落实修改 → recompile → save `main_round2.pdf`
-
-**Typical improvements:**
-- Fix assumption-model mismatches
-- Soften overclaims to match evidence
-- Add missing interpretations and notation
-- Strengthen limitations section
-- Add theory-aligned experiments if needed
-
-**Output:** Three PDFs for comparison + `PAPER_IMPROVEMENT_LOG.md`.
-
-**Format check** (included in improvement loop Step 8): After final recompilation, auto-detect and fix overfull hboxes (content exceeding margins), verify page count vs venue limit, and ensure compact formatting. Any overfull > 10pt is fixed before generating the final PDF.
-
-### Phase 6: Final Report
-
-```markdown
-# Paper Writing Pipeline Report
-
-**Input**: [NARRATIVE_REPORT.md or topic]
-**Venue**: [ICLR/NeurIPS/ICML]
-**Date**: [today]
-
-## Pipeline Summary
-
-| Phase | Status | Output |
-|-------|--------|--------|
-| 1. Paper Plan | ✅ | PAPER_PLAN.md |
-| 2. Figures | ✅ | figures/ ([N] auto + [M] manual) |
-| 3. LaTeX Writing | ✅ | paper/sections/*.tex ([N] sections, [M] citations) |
-| 4. Compilation | ✅ | paper/main.pdf ([X] pages) |
-| 5. Improvement | ✅ | [score0]/10 → [score2]/10 |
-
-## Improvement Scores
-| Round | Score | Key Changes |
-|-------|-------|-------------|
-| Round 0 | X/10 | Baseline |
-| Round 1 | Y/10 | [summary] |
-| Round 2 | Z/10 | [summary] |
-
-## Deliverables
-- paper/main.pdf — Final polished paper
-- paper/main_round0_original.pdf — Before improvement
-- paper/main_round1.pdf — After round 1
-- paper/main_round2.pdf — After round 2
-- paper/PAPER_IMPROVEMENT_LOG.md — Full review log
-
-## Remaining Issues (if any)
-- [items from final review that weren't addressed]
-
-## Next Steps
-- [ ] Visual inspection of PDF
-- [ ] Add any missing manual figures
-- [ ] Submit to [venue] via OpenReview / CMT / HotCRP
-```
-
-## Key Rules
-
-⛔ **File writing strategy (prevent both failure modes):**
-- For long reports, use **Write** for the first section (ensures the file exists on disk), then append with `cat << 'EOF' >> <file>`. For short content, a single Write call is safer.
-- **NEVER `end_turn` without producing the final `paper/main.pdf`** — this pipeline's deliverable is the compiled paper, not an intermediate report
-
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-# 本工作流最终交付物是编译好的 paper/main.pdf
-[ -f paper/main.pdf ] && SZ=$(wc -c < paper/main.pdf) || SZ=0
-if [ "$SZ" -ge 100000 ]; then
-    echo "✅ paper/main.pdf ($SZ bytes)"
-else
-    echo "❌ paper/main.pdf missing or too small ($SZ bytes) — must compile the paper before ending"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must produce the compiled paper before ending"
-```
-
-- **Don't skip phases.** Each phase builds on the previous one — skipping leads to errors.
-- **Checkpoint between phases** when AUTO_PROCEED=false. Present results and wait for approval.
-- **Manual figures first.** If the paper needs architecture diagrams or qualitative results, the user must provide them before Phase 3.
-- **Compilation must succeed** before entering the improvement loop. Fix all errors first.
-- **Preserve all PDFs.** The user needs round0/round1/round2 for comparison.
-- **Document everything.** The pipeline report should be self-contained.
-- **Respect page limits.** If the paper exceeds the venue limit, suggest specific cuts before the improvement loop.
-
-## Composing with Other Workflows
-
-```
-/idea-discovery "direction"         ← Workflow 1: find ideas
-implement                           ← write code
-/run-experiment                     ← deploy experiments
-/auto-review-loop "paper topic"     ← Workflow 2: iterate research
-/paper-writing "NARRATIVE_REPORT.md"  ← Workflow 3: you are here
-                                         submit! 🎉
-
-Or use /research-pipeline for the Workflow 1+2 end-to-end flow,
-then /paper-writing for the final writing step.
-```
-
-## Typical Timeline
-
-| Phase | Duration | Can sleep? |
-|-------|----------|------------|
-| 1. Paper Plan | 5-10 min | No |
-| 2. Figures | 5-15 min | No |
-| 3. LaTeX Writing | 15-30 min | Yes ✅ |
-| 4. Compilation | 2-5 min | No |
-| 5. Improvement | 15-30 min | Yes ✅ |
-
-**Total: ~45-90 min** for a full paper from narrative report to polished PDF.
+以工作流当前合同和最终质量结论为准交付正文、源文件、参考文献、编译结果及修改记录。说明证据缺口和未完成事项，不把生成 PDF 等同达到投稿质量。执行清单、指纹和状态由程序维护，不要求模型另写机械回执。

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "meta": {
     "title": "统一配色方案注册表（多场景）",
-    "updated": "2026-09-19",
+    "updated": "2026-09-26",
     "human_readable": "skills/paper-figure-palette/references/scenarios.md",
     "local_palette_source": "skills/paper-figure-palette/assets/palette_v6.json",
     "checker": "python academic-toolkit/skills/paper-figure-palette/scripts/palette_kit.py registry-verify",
@@ -507,6 +507,51 @@
       ],
       "note": "顶刊海报配色候选（T 细胞表型，lock-hue 提亮后）；类别区分须叠线型/标记第二编码；scene 引用前须过 palette_kit registry-verify。",
       "status": "candidate"
+    },
+    "aqing-teal-cat": {
+      "kind": "categorical",
+      "role": "line_fill_balanced",
+      "cvd_mode": "secondary_encoding",
+      "requires_secondary_encoding": true,
+      "provenance": "复刻自 2026-09-26 默默指定参考论文（A题提交/论文.pdf, 99 页）实测色板：高饱和采样直方图 + PDF 矢量描边色（#307697/#A35B31/#C74C53 实测原值），个别中间调由实测簇保色相增亮（notes 逐项标注）。类别区分沿用 R4 第二编码（hatch/marker）。",
+      "colors": [
+        "#1890B4",
+        "#C09060",
+        "#4C9C6E",
+        "#7ACCF0",
+        "#E4A8A8",
+        "#C74C53",
+        "#FCD89C",
+        "#186078"
+      ],
+      "color_roles": [
+        "主系列青蓝（实测 #1890B4/#24A8D8 簇）",
+        "基线暖驼（实测填充簇 #C09060）",
+        "正向绿（实测 #286848 保色相增亮）",
+        "置信带亮青（实测 #78CCF0/#84D0F0 簇）",
+        "浅玫（实测 #E4A8A8/#F0CCCC 簇）",
+        "界限朱红（实测描边原值 #C74C53）",
+        "高亮暖杏（实测 #FCD89C，全图至多 1 处）",
+        "结构深青（实测 #186078/#307697）"
+      ],
+      "notes": "深浅两档配套：线/符号用中深档（#1890B4/#C09060/#4C9C6E/#C74C53/#186078），填充/置信带用浅档（#7ACCF0/#E4A8A8/#FCD89C）并要求叠加 hatch/线型第二编码。"
+    },
+    "aqing-teal-ramp": {
+      "kind": "sequential",
+      "role": "ramp",
+      "monotonic": true,
+      "provenance": "同上参考论文冷族色域复刻：#F4FAFE→#186078 明度单调下降，深端为实测结构深青（替代 cividis 的 #00224E 近黑深端——用户 2026-09-26 判其过深）。",
+      "stops": [
+        "#F4FAFE",
+        "#D8F0FC",
+        "#A8DCF8",
+        "#6CCCF0",
+        "#28A8D8",
+        "#1890B4",
+        "#307697",
+        "#186078"
+      ],
+      "notes": "R5 明度单调（浅→深）；深端 L*≈33 的青色而非近黑，热图低值区不再读作实心黑块。"
     }
   },
   "forbidden": [

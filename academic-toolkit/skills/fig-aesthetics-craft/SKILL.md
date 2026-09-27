@@ -65,7 +65,6 @@ Origin Learning Center 官方模板覆盖 19 类图型（3D 柱状/3D 曲面/面
   与方法论 `references/palette-extraction-method.md`（已入 git）；原海报图与 HTML 对比查看器在
   `参考图/科研配色方案/`（仅本地）。调色值作候选输入，用前仍须过 paper-figure 色觉/打印校验。
 
-## 六、STEP_MANIFEST 提示
+## 六、执行与产出
 
-被编排为引擎步骤时，按仓规 `engine.step_manifest.write_manifest` 登记 backend/inputFiles/
-outputFiles（SHA-256）/commands；图件另受 figure_provenance 门禁约束。
+被编排为步骤时，用当前执行会话运行真实工具并声明任务输入输出。执行清单、返回码和内容摘要由程序记录；图件仍受figure_provenance检查，模型负责视觉表达而不重复填报。

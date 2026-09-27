@@ -68,7 +68,7 @@ Persist state to `slides/SLIDES_STATE.json` after each phase:
 }
 ```
 
-**On startup**: if `SLIDES_STATE.json` exists with `"status": "in_progress"` and within 24h → resume. Otherwise → fresh start.
+**On startup**: recovery obeys engine facts, and the program owns reconciliation — step status, input version, and actual deliverables are checked by the session/runtime, not hand-audited here. Work on the task the engine dispatches; act only on the business conflicts the program returns. If the program reports this step as already completed, report the finished state and stop — there is no restart path, and a new round begins only when the user explicitly issues a new task or confirms a redo. Otherwise `SLIDES_STATE.json` is only a phase accelerator written by earlier passes of this same step: when it exists, resume (a stale timestamp is never a reason to reset); when it is missing, carry out the dispatched task from phase 0 — a missing file is not a restart decision, and nothing the engine tracks is lost. If the program returns a reconciliation conflict (recorded phases disagree with deliverables or the record), resolve the specific conflict named; supersede the old file by renaming (`SLIDES_STATE.archived_<timestamp>.json`), never delete. The state file does not decide the engine's step status, and no second scheduler is maintained here.
 
 ## Workflow
 
@@ -549,19 +549,7 @@ Next steps:
 - For long content (>150 lines): use **Write** for the first section (ensures file exists on disk), then append remaining sections with `cat << 'EOF' >> slides/SLIDE_OUTLINE.md`
 - **NEVER `end_turn` without producing the final `slides/main.pdf`** — even if upstream steps had issues, keep the compiled slides
 
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-# 最终交付物是编译好的 slides/main.pdf
-[ -f slides/main.pdf ] && SZ=$(wc -c < slides/main.pdf) || SZ=0
-if [ "$SZ" -ge 50000 ]; then
-    echo "✅ slides/main.pdf ($SZ bytes)"
-else
-    echo "❌ slides/main.pdf missing or too small ($SZ bytes) — must compile the slides before ending"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must produce output before ending step"
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 - **One message per slide.** If a slide has two ideas, split it into two slides.
 - **Do NOT fabricate data.** All numbers must come from `paper/sections/*.tex`.

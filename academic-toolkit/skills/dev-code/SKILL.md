@@ -66,34 +66,11 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 3. **写完每个文件用 `wc -l 文件` 确认行数符合预期**（验证没被截断）。
 4. 一个文件写完就落盘，再写下一个，不要囤在上下文里。
 
-⛔ **结束前必跑产出验证**（按类型自适应）：
-```bash
-echo "=== 编码产出验证 ==="
-PASS=true
-PTYPE=$(grep -oE "project_type[:=] *(fullstack|frontend|cli|script)" AGENTS.md 2>/dev/null | grep -oE "(fullstack|frontend|cli|script)" | head -1)
-PTYPE=${PTYPE:-fullstack}
-echo "项目类型: $PTYPE"
-[ -f RUN.md ] && echo "OK RUN.md" || { echo "FAIL 缺 RUN.md"; PASS=false; }
-[ -f code/README.md ] && echo "OK code/README.md" || { echo "FAIL 缺 code/README.md"; PASS=false; }
-if [ "$PTYPE" = "fullstack" ]; then
-  if [ -f code/backend/main.py ]; then echo "OK backend/main.py"; else echo "FAIL 缺 code/backend/main.py"; PASS=false; fi
-  { [ -f code/backend/requirements.txt ] || [ -f code/backend/package.json ]; } && echo "OK 后端依赖清单" || { echo "FAIL 缺后端依赖清单"; PASS=false; }
-  [ -d code/frontend ] && echo "OK code/frontend/" || { echo "FAIL 缺 code/frontend/"; PASS=false; }
-else
-  # 前端/CLI/脚本: code/ 下要有至少一个主源码文件
-  N=$(find code -maxdepth 3 -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" -o -name "*.html" \) 2>/dev/null | wc -l)
-  if [ "$N" -ge 1 ]; then echo "OK code/ 下有 $N 个源码文件"; else echo "FAIL code/ 无源码文件"; PASS=false; fi
-  # ⛔ 纯前端/静态 HTML: 若有 .html 散页但无 index.html + 无 package.json, 预览起不来 → 必须补 index.html
-  if [ "$PTYPE" = "frontend" ] && ! [ -f code/package.json ] && ! [ -f code/index.html ] && find code -name "*.html" 2>/dev/null | grep -q .; then
-    echo "FAIL 纯前端有 .html 页面但缺 index.html 入口, 预览起不来 —— 必须补一个 index.html(首页/导航)"; PASS=false
-  fi
-fi
-[ "$PASS" != true ] && echo "产出验证失败 — 必须补全后重跑, 不要结束本步骤"
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 验证失败就继续补全，不要 end_turn。
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
-建议额外记录：输入材料来源哈希、模板版本。
+保留实际输入来源与模板信息；其内容摘要由程序记录。

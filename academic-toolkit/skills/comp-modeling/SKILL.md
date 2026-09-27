@@ -81,29 +81,8 @@ echo "FAST_MODE=$FAST_MODE"
 
 - AGENTS.md 已列出所有上传文件清单 + 字数，**优先用清单 + Read 局部，不要全量 cat**。
 
-⛔ **结束前必跑 PASS 阻断验证**（只 echo "❌" 不算，必须显式判定）：
 
-```bash
-
-PASS=true
-
-[ -f MODELING_REPORT.md ] && SZ=$(wc -c < MODELING_REPORT.md) || SZ=0
-
-if [ "$SZ" -ge 1500 ]; then
-
-    echo "✅ MODELING_REPORT.md ($SZ bytes)"
-
-else
-
-    echo "❌ MODELING_REPORT.md 缺失或过小 ($SZ bytes) — 立即用 Write 工具产出, 不要 end_turn"
-
-    PASS=false
-
-fi
-
-[ "$PASS" != true ] && echo "⛔ 验证未通过 — 必须修复后再结束本步骤"
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 ⛔⛔ **建模覆盖核对（承接赛题分析的合同，结束前必跑，零额度两模式都跑）**：赛题分析阶段产出的 `CAPABILITY_CHECKLIST.json` 是贯穿全链的合同。建模报告**必须为每条能力项给出对应建模方案**，并在该处标注其能力 id（如『针对能力 P1-C1 事件五元组抽取，采用序列标注 BERT-CRF……』）：
 
@@ -804,9 +783,9 @@ echo "<!-- MODELING_OK facts_traced=N rules_covered=M source=PROBLEM_FACTS.json 
 **为什么 Step 2 也要跑审计**：MODELING_REPORT.md 引用 facts 数值时，AI 可能凭印象写错（例如把 facts.weapons[0].targets[0].p_detect=0.95 写成 0.9）。Step 2 不抓 = 错误数值流到 Step 3 建模实现，污染整个 code。
 
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：求解器及版本、求解参数、输入数据哈希。
 

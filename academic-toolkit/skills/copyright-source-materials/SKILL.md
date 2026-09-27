@@ -23,8 +23,8 @@ python tools/codesucker_bridge.py --config <workspace>/source-materials.config.j
 ```
 
 4. 读取 `source-materials/audit.json`。任何 `fail` 必须修复配置、文件选择或真实源码问题后重跑；不得将 fail 解释为通过。
-5. 调用 `QualityGate(workspace).check_source_materials()`，并检查声明产物 manifest。
-6. 在 `complete_step()` 中申报 `source-materials/`、`SOURCE_MATERIALS_REPORT.md`、配置、stdout/stderr 日志及 execution evidence。证据必须记录 core commit、规则版本、配置/核心/输出哈希、实际命令及退出码。
+5. 使用执行会话运行真实CodeSucker命令，声明当前步骤合同规定的产物；`finish` 自动调用source_materials检查并保留工具原始manifest。
+6. 程序记录core commit、规则版本、配置/核心/输出摘要和真实返回码，模型不复制这些字段到另一份回执。报告路径为 `source-materials/SOURCE_MATERIALS_REPORT.md`，不另造根目录同名报告。
 
 ## 输出契约
 

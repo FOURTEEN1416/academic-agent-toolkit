@@ -22,7 +22,9 @@ Compile and validate: **$ARGUMENTS**
 
 - **PAPER_DIR = `paper/`**
 
-- **MAX_PAGES** / **COMPETITION** — From Additional Parameters.
+- **PAGE_CAP / PAGE_SCOPE / PAGE_CAP_STATUS** — 与写作步、打包步消费**同一份 bound 赛事快照**：`gate_page_cap`（本任务 operative 口径）+ `gate_page_scope`（`body`/`total` 两种计数口径，绝不折叠成一个数）+ `page_cap_status`（来源性质）。逐字转录自下发的 `contest_profile`；无默认、无下限；**不直读档案原始页数字段**、不自行猜生效值与计数范围。
+
+- **CONTEST_ID** — 逐字转录自 `contest_profile.contest_id`（规范 `comp_*` 键；不从自由文本或文件名猜）。
 
 ## Workflow
 
@@ -484,7 +486,7 @@ Additionally check:
 
 echo "=== 模板格式验证 ==="
 
-if grep -q 'stats\|统计建模' paper/main.tex 2>/dev/null || [ "$COMPETITION" = "stats" ]; then
+if [ "$CONTEST_ID" = "comp_stats" ]; then
 
     # Check page margins (should be 2.54cm top/bottom, 3.17cm left/right)
 
@@ -526,7 +528,7 @@ If any format checks fail, 执行 Agent should fix main.tex to match the templat
 
 Check items:
 
-1. **Page count**: body = chapter 1 through conclusion, excluding 摘要/目录/参考文献/附录. Must be ≥ MAX_PAGES (**MAX_PAGES 是页数下限/目标，不是天花板**；页数可以超，不能少。竞赛若有硬性页数上限会另行注明，没注明就不要主动压页)
+1. **Page count**: 上限与**计数口径**来自与写作步消费的同一份 bound 赛事快照——`gate_page_cap` + `gate_page_scope`（`body` = 章节 1 至结论、不含摘要/目录/参考文献/附录；`total` = 整本 PDF 计）。两种口径绝不折叠成一个数，本步不直读档案原始字段、不猜生效值。状态为 `official_verified` 或显式任务授权时**不得超过该上限**；`unverified` 口径不产生默认硬页限——如实上报数值、口径与性质；没有下发时如实报告缺口，不自行设限。**没有页数下限，不为凑页数扩写。**
 
 2. **Anonymous**: no team info (队号, 队员, 指导老师)
 
@@ -540,73 +542,23 @@ Check items:
 
 <page_diagnosis>
 
-#### Page count diagnosis (when insufficient)
+#### Page count principles
 
-If body pages < 80% of MAX_PAGES:
-
-```bash
-
-echo "=== 页数不足诊断 ==="
-
-echo "目标: ≥ MAX_PAGES 页"
-
-echo ""
-
-echo "=== 各章节字符数（找出最薄的章节）==="
-
-for f in paper/sections/*.tex; do
-
-    chars=$(wc -c < "$f")
-
-    echo "  $(basename $f): $chars 字符 (~$(echo "scale=1; $chars/900" | bc) 页)"
-
-done
-
-echo ""
-
-echo "=== 建议扩充的章节（字符数最少的 3 个）==="
-
-for f in $(ls -S paper/sections/*.tex | tail -3); do
-
-    chars=$(wc -c < "$f")
-
-    echo "  ⚠ $(basename $f): 仅 $chars 字符"
-
-done
-
-```
-
-Mark as CRITICAL with specific recommendations:
-
-- Which chapters are thinnest
-
-- What content to add (more derivation? more result analysis? more literature discussion?)
-
-- Estimated chars needed to reach target
-
-If pages < 80% of MAX_PAGES, attempt to expand the thinnest 1-2 chapters:
-
-- Read MODELING_REPORT.md and RESULTS.md for detailed content
-
-- Add unexpanded derivations, result analysis, parameter discussions
-
-- Recompile after expansion
+**没有页数下限：页数少不是合规失败，不为凑页扩写。** 章节内容完整性由写作步骤自身的合同保证；编译步只对「超出赛事档案上限」负责瘦身（见 page_overflow），不对「未达某个目标页数」做任何扩写或充数。
 
 </page_diagnosis>
 
 <page_overflow>
 
-#### ⛔⛔ 页数超限时的铁律（本次要根治的"图小"根因）
+#### ⛔⛔ 页数超限时的铁律（图小问题的根治约束）
 
-**背景**：曾出现编译期把 `MAX_PAGES` 误当天花板，为凑页数用「压缩图宽 + 注入全局 `\small`」把图压到 `0.46~0.48\textwidth`、正文字号整体缩小 —— 结果图小到看不清、版面敷衍。这是**严重错误**，本段是硬约束。
-
-**⚠ 再次强调：`MAX_PAGES` 是页数下限/目标，不是天花板。** 除非竞赛简章白纸黑字写了硬性页数上限（会在 Additional Parameters 里另行注明），否则**页数超了完全没问题，绝不能主动压页**。**严禁自己臆想一个「≤30 页」之类的上限再去压图**——国赛（CUMCM）等多数竞赛并无硬性页数上限。
+**页数上限来自赛事档案**（`comp_rules.json` compliance 页数字段，由引擎下发），不是本步自造的目标。历史教训的实质是「为页数目标而压图变形」：无论是把上限当凑页目标反向压图，还是为塞进超限内容压图，都是同一类错误。本段是硬约束。
 
 **图的尺寸由写作规则 + `compile_utils.sh` 兜底唯一决定：单图恒 `width=0.85\textwidth`（并排双栏才 `0.48`），高度兜底为 `height=0.9\textheight`（防单图独占整页）。编译期绝不许因为页数去改图宽或压小图高。**
 
-**⛔ 特别警告——压小 `height` 是最隐蔽的凑页手段：** 给图加 `height=0.20\textheight` 这类小限高，在 `keepaspectratio` 下会先于 width 生效，把近方图/竖图卡成一小块（图又小又挤成一堆）。这和压图宽同样恶劣，同样禁止。`compile_utils.sh` 会自动剥离 `<0.5\textheight` 的限高并补回 `0.9\textheight`，编译期不得反向再压。
+**⛔ 特别警告——压小 `height` 是最隐蔽的压页手段：** 给图加 `height=0.20\textheight` 这类小限高，在 `keepaspectratio` 下会先于 width 生效，把近方图/竖图卡成一小块（图又小又挤成一堆）。这和压图宽同样恶劣，同样禁止。`compile_utils.sh` 会自动剥离 `<0.5\textheight` 的限高并补回 `0.9\textheight`，编译期不得反向再压。
 
-超页（且竞赛确有硬性上限）时，**只能**按下列优先级瘦身，**从上往下试，图和正文字号永远不动**：
+页数超出赛事档案上限时，**只能**按下列优先级瘦身，**从上往下试，图和正文字号永远不动**：
 
 1. 精简附录代码（节选核心片段、删冗余注释），附录不计正文页数但占篇幅；
 
@@ -723,7 +675,7 @@ for f in paper/sections/*.tex; do [ -f "$f" ] || continue; c=$(wc -c < "$f"); PA
 
 PAGE_EST=$((PAGE_EST / 900))
 
-echo "  Page estimate: ~$PAGE_EST pages (target: ≥ MAX_PAGES)"
+echo "  Page estimate: ~$PAGE_EST pages (ceiling: engine-dispatched competition page limit)"
 
 # 8. Template integrity — compare preamble against original template
 
@@ -1385,9 +1337,9 @@ echo "=========================================="
 Competition name, status, PDF path, total pages, body pages, compliance pass/fail.
 
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：LaTeX 引擎版本、页数、编译警告数。
 
@@ -1401,7 +1353,7 @@ Competition name, status, PDF path, total pages, body pages, compliance pass/fai
 
 - Figure paths auto-corrected by compile_utils.sh: `figures/` → `../figures/`
 
-- Body pages ≥ MAX_PAGES (can exceed, must not fall short)
+- 正文页数不超过引擎下发的赛事档案页数上限（无下限，不为凑页扩写）
 
 - Anonymous: no team info in body
 
@@ -1429,29 +1381,8 @@ Competition name, status, PDF path, total pages, body pages, compliance pass/fai
    - `__pycache__` 目录
    - 任何包含真实竞赛题面的文件（题面由组委会单独分发）
 
-⛔ **结束前必跑 PASS 阻断验证**：
 
-```bash
-
-PASS=true
-
-[ -f paper/main.pdf ] && SZ=$(wc -c < paper/main.pdf) || SZ=0
-
-if [ "$SZ" -ge 100000 ]; then
-
-    echo "✅ paper/main.pdf ($SZ bytes)"
-
-else
-
-    echo "❌ paper/main.pdf 缺失或过小 ($SZ bytes) — 必须编译成功后再结束"
-
-    PASS=false
-
-fi
-
-[ "$PASS" != true ] && echo "⛔ 验证未通过 — 必须修复后再结束本步骤"
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 ## 退出判据（Verification）
 

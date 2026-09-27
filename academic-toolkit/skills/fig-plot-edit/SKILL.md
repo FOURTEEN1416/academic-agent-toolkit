@@ -30,7 +30,7 @@ description: "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实
 
 1. **启动器路径**：一律 `vendor/forks/editaplot/editaplot.cmd`（相对仓库根；脚本内用绝对路径时按当前检出解析）。不要求用户选 Python 解释器，不直接调 `scripts/editaplot.py`。
 2. **产物去向**：默认沿用上游规则——源数据同目录自动建 `<源文件名>_EditaPlot_YYYYMMDD_HHMMSS/`；不重定向到仓库、技能目录或全局共享目录。若任务走工作流引擎（StepAction 指定 workspace），将产物**复制登记**到该 workspace 并在 evidence 中注明两处路径。
-3. **complete_step 协议**：被引擎工作流调用时，完成步骤必须回报 `complete_step` 并附 execution_evidence：`skill_sha256`＝本文件 SHA-256；`commands`＝实际执行的 editaplot.cmd 命令与返回码；`outputs`＝OPJU/PNG/PDF/TIF 与校验产物路径。引擎只编排不代执行，无证据＝未执行。
+3. **执行会话协议**：被引擎工作流调用时，实际命令经执行会话 `run` 下发（声明命令、依赖与产物路径），真实返回码、输入输出与内容指纹由程序采集；完成后 `session finish` 统一验收并推进。模型不手填 execution_evidence、返回码或哈希；无真实运行记录＝未执行。
 4. **宿主中立**：references 副本中残留的 Codex 字样一律按本节规则替换理解，不再逐文件修改（避免与上游 diff 失真）。
 5. **语言**：与用户交流用中文；命令、字段名、错误码保留原文。
 

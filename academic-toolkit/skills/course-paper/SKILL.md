@@ -101,29 +101,8 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 
 
-⛔ **结束前必跑 PASS 阻断验证**（只 echo "❌" 不算，必须显式判定）：
 
-```bash
-
-PASS=true
-
-[ -f COURSE_PAPER.md ] && SZ=$(wc -c < COURSE_PAPER.md) || SZ=0
-
-if [ "$SZ" -ge 5120 ]; then
-
-    echo "✅ COURSE_PAPER.md ($SZ bytes)"
-
-else
-
-    echo "❌ COURSE_PAPER.md 缺失或过小 ($SZ bytes) — 立即用 Write 工具产出, 不要 end_turn"
-
-    PASS=false
-
-fi
-
-[ "$PASS" != true ] && echo "⛔ 验证未通过 — 必须修复后再结束本步骤"
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 
 
@@ -933,11 +912,11 @@ grep -nE '\*\*[^*]+\*\*|^___' COURSE_PAPER.md | head -10
 
 
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
-建议额外记录：输入材料来源哈希、模板版本。
+保留实际输入来源与模板信息；其内容摘要由程序记录。
 - `references_pool.md` — 文献候选池（中间产物）
 
 - `COURSE_PAPER.md` — 最终课程论文（**主产出**，含图片嵌入和参考文献）

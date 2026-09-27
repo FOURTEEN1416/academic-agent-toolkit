@@ -18,13 +18,13 @@ import argparse
 import hashlib
 import json
 import sys
+from importlib.metadata import distribution
 from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
-import scienceplots  # noqa: F401  激活 'science' 样式族
 
 SKILLS_DIR = Path(__file__).resolve().parents[2]
 PALETTE_CATALOG = SKILLS_DIR / "fig-plot-edit" / "assets" / "palettes" / "palette-catalog.json"
@@ -38,6 +38,19 @@ def sha256_file(p: Path) -> str:
 
 def load_palettes() -> dict:
     return json.loads(PALETTE_CATALOG.read_text(encoding="utf-8"))["palettes"]
+
+
+def science_style_files() -> list[Path]:
+    """直接复用依赖包的原样式，不执行其弃用的全局样式注册。"""
+    package = distribution("SciencePlots")
+    paths = [Path(package.locate_file(name)) for name in (
+        "scienceplots/styles/science.mplstyle",
+        "scienceplots/styles/misc/no-latex.mplstyle",
+    )]
+    missing = [str(path) for path in paths if not path.is_file()]
+    if missing:
+        raise FileNotFoundError(f"SciencePlots 样式资源缺失: {missing}")
+    return paths
 
 
 def classify_columns(df: pd.DataFrame) -> dict:
@@ -116,7 +129,7 @@ def render(csv: Path, confirm: dict) -> dict:
     xcol = next(c for c, r in mapping.items() if r == "x_axis")
 
     width_cm = SINGLE_COL_CM if len(plot_cols) <= 2 else DOUBLE_COL_CM
-    plt.style.use(["science", "no-latex"])
+    plt.style.use(science_style_files())
     plt.rcParams.update({
         "font.family": ["Arial", "Microsoft YaHei"],  # 直接给字体链才有逐字回退（Arial 缺 CJK 字形时落雅黑）
         "font.sans-serif": ["Arial", "Microsoft YaHei"],

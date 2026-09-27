@@ -83,11 +83,7 @@ DOT=$(command -v dot || echo "/c/Program Files/Graphviz/bin/dot.exe")
 
 ## 产出契约
 
-本步骤完成后必须经 `engine.step_manifest.write_manifest`（或 bridge/common 等价入口）
-在工作区根目录写入 `STEP_MANIFEST.json`：stepName、backend（含 graphviz 版本 `dot -V`）、
-config、inputFiles、outputFiles（含 SHA-256）、commands、dependencies 缺一不可，
-否则步骤门禁不通过。DOT 源文件本身列入 outputFiles；图件须有来源证据
-（figure_provenance 要求），建议把渲染命令原样记进 commands 字段。
+通过执行会话运行Graphviz，声明DOT源、渲染产物及实际依赖版本。程序记录真实命令、返回码、内容摘要和执行清单；DOT源也作为交付物保存。图件必须有来源证据并通过figure_provenance，模型不另手填清单。
 
 ## Related Files
 

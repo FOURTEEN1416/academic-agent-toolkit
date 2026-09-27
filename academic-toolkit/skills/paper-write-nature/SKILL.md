@@ -359,39 +359,16 @@ Remove or replace these AI-typical words:
 
 
 
-⛔ **MUST run output verification before ending the step**:
 
-```bash
-
-MODE=$(grep -q "Word（.docx）\|docx mode" AGENTS.md 2>/dev/null && echo docx || echo pdf)
-
-PASS=true
-
-if [ "$MODE" = "docx" ]; then
-
-    [ -f paper/main.md ] && SZ=$(wc -c < paper/main.md) || SZ=0
-
-    [ "$SZ" -ge 5120 ] && echo "✅ paper/main.md ($SZ)" || { echo "❌ paper/main.md missing"; PASS=false; }
-
-else
-
-    [ -f paper/main.tex ] && SZ=$(wc -c < paper/main.tex) || SZ=0
-
-    [ "$SZ" -ge 5120 ] && echo "✅ paper/main.tex ($SZ)" || { echo "❌ paper/main.tex missing"; PASS=false; }
-
-fi
-
-[ "$PASS" != true ] && echo "⛔ Output verification FAILED — must complete before ending"
-
-```
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
 **If verification fails, complete the missing files instead of exiting**.
 
 
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
-本步骤完成后，必须调用 `engine.step_manifest.write_manifest`（或经 bridge/common 等价入口）在工作区根目录写入 `STEP_MANIFEST.json`，至少包含：stepName / backend（含版本）/ config / inputFiles / outputFiles（含 SHA-256）/ commands / dependencies。质量门禁 `step_manifest` 将校验其存在性与完整性；缺失或无效将导致本步骤无法通过（fail）。
+使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：模板来源哈希、BibTeX 条目数、引用格式。
 

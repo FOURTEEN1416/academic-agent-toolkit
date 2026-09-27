@@ -192,8 +192,8 @@ For deep paper planning, add:
 4. Moderate-uncertainty note: if candidates differ by more than 0.05 but no more than 0.20, state that the lead is not decisive unless decisive criteria have written evidence.
 
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
 - artifacts: 选题输出（12/9/4 段编号结构）、score_topics.py 产出的 report.md 排名表与警告、Method Route Card 17 字段 JSON
 - gates: 工程 7 问门禁全过；同质化 13 条零命中；fallback 三元结构完整；评分 JSON 按 schema 分键
-- evidence: score_topics.py 脚本产出 + 评分 JSON 落盘 .engine/evidence/
+- 执行记录：score_topics.py 经执行会话 `run` 下发，脚本产出与评分 JSON 由程序自动登记；不手工落盘 .engine/evidence/

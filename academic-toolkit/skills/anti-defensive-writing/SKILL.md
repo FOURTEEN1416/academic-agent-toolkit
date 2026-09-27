@@ -203,8 +203,8 @@ Stronger:
 Before producing the final answer, remove any sentence that exists mainly to protect against a hypothetical objection rather than to advance the text. Deliver text that is concise, direct, confident, logically organized, and free of unnecessary disclaimers.
 
 
-## STEP_MANIFEST 产出声明
+## 执行与产出
 
 - artifacts: 改写后文本（diff/整段）、六类防御句分类清单、保留限定理由表
 - gates: 输出契约三件套完整性；Preserve Necessary Precision 五项必要条件逐条核对
-- evidence: 分类清单即执行证据，落盘至工作区 .engine/evidence/
+- 执行记录：实际读写操作经执行会话完成，清单与证据由程序自动采集；不手工落盘证据文件

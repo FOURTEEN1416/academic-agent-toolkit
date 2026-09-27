@@ -22,6 +22,10 @@ Read `COMP_REVIEW_VERDICT.json`, `VISUAL_REVIEW_VERDICT.json`, the associated ma
 
 Write `EDITOR_CHANGELOG.md`. For every reviewed finding ID, record the disposition (`fixed`, `unresolved`, or `not_applicable`), changed files, a concise description of the edit, the validation command or manual check, and the reason for any unresolved item. Do not claim the paper is delivery-ready; only `comp-final-review` and `comp-final-audit` may make that decision.
 
+以当前 `StepAction.output_files` 与 `required_checks` 为完整验收合同，不只交变更日志。新建的 `comp_cumcm` / `comp_huawei` 工作流会继承前置写作、编译、一致性步骤的输出与检查：修改论文后，重新执行受影响的一致性检查与编译，提交当前论文源文件、PDF、日志和一致性报告；无修改时也须验收当前版本，不能伪造一次重新编译。执行清单覆盖本步完整输出集合，保留真实输入、命令、后端与依赖。旧工作流使用创建时保存的合同，不静默迁移。继承编译合同的编辑步骤还会重新检查当前 PDF 页数，不能沿用修改前的页数通过记录。
+
+编辑完成不等于获准交付。终审预审 `eligible` 不是 `ready`；最终完成或人类批准后，以当前 `DELIVERY_REPORT.json` 为准。报告发布失败时保留 `pending`，通过 `next` 或显式指定工作区、数据库和工作流的 `final-audit` 恢复，不能重写已验收的预审报告。
+
 ## 退出判据（Verification）
 
 本步完成前逐项自检（不达标即视为未完成）：
