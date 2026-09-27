@@ -43,6 +43,6 @@
 
 ## 相关技能
 
-- `nature-figure`：把统计信息落实到图件和 source data。
-- `nature-response`：回应统计类审稿意见。
-- `nature-polishing`：润色统计描述的英文表达。
+- `paper-figure-nature`（原 nature-figure，改名重映射）：把统计信息落实到图件和 source data。
+- `paper-rebuttal-nature`（原 nature-response，改名重映射）：回应统计类审稿意见。
+- `paper-polish-nature`（原 nature-polishing，改名重映射）：润色统计描述的英文表达。

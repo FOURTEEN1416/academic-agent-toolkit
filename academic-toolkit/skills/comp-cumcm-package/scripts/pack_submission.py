@@ -359,7 +359,7 @@ def main() -> int:
     ap.add_argument("--compliance-profile", required=True, metavar="COMP_KEY",
                     help="（必填）按赛事取合规口径（comp_rules.json 顶层键）："
                          "comp_cumcm（国赛：首页摘要、禁承诺书页）/ comp_huawei（华为杯："
-                         "承诺书页必含、首页非摘要判据不适用）等。无默认值——"
+                         "承诺书页不入论文（官方模板无此页）、首页为封皮非摘要判据）等。无默认值——"
                          "未指明赛事不得静默套用任何一族口径")
     ap.add_argument("--out", default=None, help="--zip 时的输出目录（默认 <workspace>/_submit）")
     ap.add_argument("--zip", action="store_true", help="另生成沙演 .zip（正式提交仍需 WinRAR 压 RAR）")

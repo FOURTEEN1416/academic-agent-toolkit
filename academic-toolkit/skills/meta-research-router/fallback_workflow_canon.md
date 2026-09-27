@@ -14,7 +14,7 @@ Break the research question into 3–5 sub-questions. Use the framework: **what 
 
 **Failure mode:** decomposing into too many sub-questions (>5) wastes search budget on diminishing returns. Cap at 5.
 
-**Tooling:** `scripts/fallback_decomposer.py` returns a deterministic starting point. Override + refine before searching.
+**Tooling:** `fallback_decomposer.py` returns a deterministic starting point. Override + refine before searching.
 
 ### Step 2: Source Selection
 

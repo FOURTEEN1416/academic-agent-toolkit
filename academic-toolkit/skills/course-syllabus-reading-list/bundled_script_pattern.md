@@ -15,7 +15,7 @@ Inlining 300 lines of mechanical layout code in SKILL.md means:
 - Layout changes require editing the skill prompt (high-risk)
 - The skill body has to re-derive the same logic each run
 
-Bundling the logic in `scripts/generate_reading_list.js` means:
+Bundling the logic in `generate_reading_list.js` means:
 - The skill body is ~200 lines lighter (token-efficient)
 - Layout changes are isolated to one file
 - The skill orchestrates; the script executes mechanically
@@ -39,7 +39,7 @@ Bundling the logic in `scripts/generate_reading_list.js` means:
 
 ## The Pattern Used Here
 
-`scripts/generate_reading_list.js`:
+`generate_reading_list.js`:
 
 1. **Accepts JSON input + output path as CLI args**
    ```bash
@@ -124,7 +124,7 @@ Cross-skill dependencies break the per-skill self-contained discipline (a core a
 
 ## Operational Checklist
 
-- [ ] `scripts/generate_reading_list.js` exists in syllabus's scripts/ folder
+- [ ] `generate_reading_list.js` exists in syllabus's scripts/ folder
 - [ ] Script accepts `--input <json>` + `--output <docx>` CLI args
 - [ ] Script handles `docx` require with multi-location fallback
 - [ ] Script validates input (missing fields → graceful error)

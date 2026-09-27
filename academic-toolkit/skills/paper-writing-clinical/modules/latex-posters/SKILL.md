@@ -362,10 +362,10 @@ Helper scripts available in `scripts/` directory:
 
 Ready-to-use poster templates in `assets/` directory:
 
-- beamerposter templates (classic, modern, colorful)
-- tikzposter templates (default, rays, wave, envelope)
-- baposter templates (portrait, landscape, minimal)
-- Example posters from various scientific disciplines
-- Color scheme definitions and institutional templates
+- beamerposter template (1 file, bundled)
+- tikzposter template (1 file, bundled)
+- baposter template (1 file, bundled)
+- poster_quality_checklist.md（质量自查清单）
+（上游多风格模板族与示例海报未随本仓集成）
 
 Load these templates and customize for your specific research and conference requirements.

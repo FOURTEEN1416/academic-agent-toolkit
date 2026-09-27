@@ -1,3 +1,8 @@
+> 2026-09-28 注：文中点名的 tools/verify_paper_audits.sh、tools/research_wiki.py、
+> tools/verify_wiki_coverage.sh、save_trace.sh、paper_illustration_image2、
+> experiment_queue 等为上游 legacy helper，未随本仓集成；本仓等效闸见
+> academic-toolkit/tools/ 与 skills/_utils/quality_gate_contract.md。
+
 # Integration Contract
 
 <!-- modex-3 同源吸收 P3（2026-09-22）：自上游共享参考收编为本技能 references/，补齐 SKILL.md 悬空指针；内容保持上游原样（无宿主专有引用）。 -->

@@ -52,3 +52,13 @@
 - `related_skills` 路由目标 `academic-paper`（上游供稿 / 下游修订模式）——上游 ARS 适配残留，本仓替代：评审修订链回 paper-write 族
 - `related_skills` 路由目标 `academic-pipeline`（orchestrator Stage 3 编排依赖）——上游 ARS 适配残留，本仓替代：评审修订链回 paper-write 族
 - `related_skills` 路由目标 `tw-hei-intelligence`（高教数据核验依赖）——上游 ARS 适配残留，本仓替代：评审修订链回 paper-write 族
+
+## 补登（2026-09-28 第二轮：nature-shared 与 docs/design 漏项）
+
+- `references/nature-shared/`（nature-statistics/SKILL.md 第6步与 manifest.yaml 引用的
+  NMI 图注统计/跨节数值一致性两份 checklist 所在目录，未随本仓集成）
+- `scripts/check_reviewer_sprint_prompt_sync.py`
+- `docs/design/2026-04-23-ars-v3.6.2-sprint-contract-design.md`
+- `docs/design/2026-04-27-ars-v3.6.6-generator-evaluator-contract-design.md`
+- `docs/design/2026-05-18-ars-v3.9.2-phase-boundary-spec.md`
+- `docs/design/2026-08-02-610-statistical-recompute-baseline-spec.md`

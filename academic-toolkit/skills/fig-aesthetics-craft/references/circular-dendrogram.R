@@ -15,12 +15,12 @@ output_svg <- "KEGG_circular_dendrogram.svg"
 
 # --- 1.1 自定义配色（6 个 class）---
 class_colors <- c(
-  "Metabolism" = "#80d52b",                             # 紫色
-  "Genetic Information Processing" = "#427f02",          # 绿色
-  "Environmental Information Processing" = "#83c2e6",    # 金黄
-  "Cellular Processes" = "#557bc7",                      # 珊瑚红
-  "Organismal Systems" = "#e12afa",                      # 粉红
-  "Human Diseases" = "#fa0aa1"                           # 青绿
+  "Metabolism" = "#80d52b",                             # 黄绿
+  "Genetic Information Processing" = "#427f02",          # 深绿
+  "Environmental Information Processing" = "#83c2e6",    # 浅蓝
+  "Cellular Processes" = "#557bc7",                      # 蓝
+  "Organismal Systems" = "#e12afa",                      # 品红
+  "Human Diseases" = "#fa0aa1"                           # 桃红
 )
 root_color <- "#cbf2a8"          # 中心根节点颜色
 size_min <- 2

@@ -103,6 +103,8 @@ def action_record_search(name: str, query: str, classification: str) -> Dict[str
 
 
 def action_record_received(name: str, count: int) -> Dict[str, Any]:
+    if count is None:
+        raise ValueError("--count 缺失（action=received 时必填）")
     data = load_session(name)
     data["received_log"].append({"count": count, "at": now_iso()})
     data["counts"]["received_total"] += count
@@ -154,7 +156,7 @@ def action_close(name: str) -> Dict[str, Any]:
 
 
 def compute_verdict(data: Dict[str, Any]) -> str:
-    """Tier-weighted verdict from cited evidence."""
+    """Verdict from cited-evidence tally（层级加权未实现：per-tier 与 per-classification 总量未交叉）."""
     c = data["counts"]
     # Tier weights: primary=3, secondary=2, tertiary=1
     # But we only have per-tier totals + per-classification totals (not crossed)
@@ -209,7 +211,7 @@ def render_status_human(data: Dict[str, Any]) -> str:
     out.append(f"                      disconfirming: {c['cited_disconfirming']}")
     out.append(f"                      inconclusive:  {c['cited_inconclusive']}")
     out.append("")
-    out.append(f"Verdict (tier-weighted):  **{compute_verdict(data)}**")
+    out.append(f"Verdict (cited-evidence tally):  **{compute_verdict(data)}**")
     out.append("")
     out.append("Audit block for DOCX Section 9:")
     out.append(

@@ -48,7 +48,7 @@ The three counts make the funnel visible:
 
 When `cited` is very low relative to `received`, the synthesis was selective. When `received` is low relative to `sent`, the searches were broad-but-shallow. When `cited > received` (should never happen), source discipline broke.
 
-The `scripts/citation_tracker.py` enforces this deterministically. The audit log appears inline in the synthesis section so the user can see it without digging.
+The `citation_tracker.py` enforces this deterministically. The audit log appears inline in the synthesis section so the user can see it without digging.
 
 ### Rule 4: Retry-once-after-3s + stop-after-3-consecutive-failures
 
@@ -104,5 +104,5 @@ When building a new research-pack skill, verify each rule is preserved verbatim:
 - [ ] "retry once" + "wait 3s" / "after 3s" appears in failure-handling
 - [ ] "3 consecutive failures" appears in the stop condition
 - [ ] "source discipline" appears (or the equivalent phrase "cite only session-call results")
-- [ ] `scripts/citation_tracker.py` (or equivalent) exists for the three-count
+- [ ] `citation_tracker.py` (or equivalent) exists for the three-count
 - [ ] Parallel-across-independent-sources is explicitly stated for skills with multiple sources

@@ -43,6 +43,6 @@
 
 ## Related Skills
 
-- `nature-figure`: put statistical information into figures and source data.
-- `nature-response`: respond to statistical reviewer comments.
-- `nature-polishing`: polish the English wording of statistical descriptions.
+- `paper-figure-nature`（原 nature-figure，改名重映射）: put statistical information into figures and source data.
+- `paper-rebuttal-nature`（原 nature-response，改名重映射）: respond to statistical reviewer comments.
+- `paper-polish-nature`（原 nature-polishing，改名重映射）: polish the English wording of statistical descriptions.

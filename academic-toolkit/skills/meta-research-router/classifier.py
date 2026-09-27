@@ -119,9 +119,8 @@ def classify(question: str) -> dict:
 
 
 def _pick_highest_priority(candidates: list, scores: dict) -> str:
-    """When max(score) is tied across specialists, prefer the one with the
-    most specific signals (longest matched phrase across SIGNALS map). This is
-    a tie-breaker; in practice ties at ≥2 are rare."""
+    """Tie-breaker when max(score) ties across specialists: deterministic
+    lexicographic pick（specificity/最长短语排序未实现；实践中 ≥2 分并列罕见）。"""
     return sorted(candidates)[0]
 
 

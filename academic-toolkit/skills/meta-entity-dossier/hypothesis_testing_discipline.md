@@ -41,7 +41,7 @@ For every Phase 4 search, classify it:
 - **Supporting** — would confirm the hypothesis if results favorable
 - **Disconfirming** — would refute the hypothesis if results favorable
 
-Then verify (via `scripts/disconfirming_evidence_balance.py`):
+Then verify (via `disconfirming_evidence_balance.py`):
 
 ```
 disconfirming_ratio = disconfirming_queries / total_queries

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 将 Markdown 转为 Word（.docx），按标题层级映射为 Word 内置「标题 1–9」样式，
 便于交底书交付代理人或所内流程。
 
@@ -386,7 +386,7 @@ def _maybe_render_math_md(md_text: str, base_dir: Path) -> str:
         from math_render import render_markdown_math
     except ImportError:
         print(
-            "[md_to_docx] 未安装 matplotlib，公式将按原文写入 Word",
+            "[md_to_docx] math_render 不可用（公式渲染依赖缺失），公式将按原文写入 Word",
             file=sys.stderr,
         )
         return md_text

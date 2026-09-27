@@ -58,7 +58,6 @@ trace_path is load-bearing for any mandatory audit emitting
 `trace_path` in its artifact (see assurance-contract
 §"Required Audit Artifact Schema"). Every FAILED attempt in a round
 gets its own numbered pair, same as successes.
-```
 
 The helper, when present, handles directory creation, run numbering, file
 writing, and provenance classification. For a successful `copilot-native`

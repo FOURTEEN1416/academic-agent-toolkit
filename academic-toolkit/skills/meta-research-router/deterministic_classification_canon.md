@@ -136,7 +136,7 @@ When removing a signal:
 
 ## Tooling
 
-`scripts/classifier.py` implements the deterministic SIGNALS-matching algorithm. Use it; don't re-implement. It returns:
+`classifier.py` implements the deterministic SIGNALS-matching algorithm. Use it; don't re-implement. It returns:
 
 - `route_to`: specialist name OR "fallback"
 - `confidence`: "high (N signals)" OR "weak (1 signal, single specialist)" OR "ambiguous"

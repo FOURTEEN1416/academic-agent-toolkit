@@ -184,7 +184,9 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 \RequirePackage{hyperref}
 %% Document Layout
 % 页面布局
-\geometry{top=30.0mm,bottom=25.0mm,left=22.5mm,right=22.5mm,headsep=8mm}
+% 2026-09-28: left/right 22.5mm→25mm（官方页边距 >=2.5cm，见 references/huawei-official-format.md；
+% 22.5mm 默认曾在 huawei2026d_zcode 实测命中违规）
+\geometry{top=30.0mm,bottom=25.0mm,left=25mm,right=25mm,headsep=8mm}
 % \geometry{top=30.0mm,bottom=25.0mm,left=31.7mm,right=31.7mm,headsep=8mm}
 \renewcommand*{\baselinestretch}{1.38}
 % \renewcommand*{\baselinestretch}{1}

@@ -44,5 +44,5 @@
 
 ## 相关技能
 
-- `nature-data`：把实验数据整理成投稿用 Data Availability 与 FAIR 清单。
-- `nature-figure`：把实验数据或图像进一步做成投稿级图件。
+- `paper-data-availability`（原 nature-data，改名重映射）：把实验数据整理成投稿用 Data Availability 与 FAIR 清单。
+- `paper-figure-nature`（原 nature-figure，改名重映射）：把实验数据或图像进一步做成投稿级图件。

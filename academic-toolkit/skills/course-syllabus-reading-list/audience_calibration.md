@@ -99,7 +99,7 @@ Use Bloom's revised taxonomy (Anderson & Krathwohl 2001):
 
 ## Discussion Question Validator
 
-`scripts/discussion_question_validator.py` flags:
+`discussion_question_validator.py` flags:
 
 - **Recall-only questions** (any audience): "what did authors find?", "summarize", "describe"
 - **Below-audience questions**: undergrad-intro questions in grad course → flag

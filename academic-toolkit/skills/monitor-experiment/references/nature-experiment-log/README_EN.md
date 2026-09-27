@@ -44,5 +44,5 @@
 
 ## Related Skills
 
-- `nature-data`: turn experiment data into Data Availability and FAIR checklists.
-- `nature-figure`: turn experiment data or images into submission-grade figures.
+- `paper-data-availability`（原 nature-data，改名重映射）: turn experiment data into Data Availability and FAIR checklists.
+- `paper-figure-nature`（原 nature-figure，改名重映射）: turn experiment data or images into submission-grade figures.

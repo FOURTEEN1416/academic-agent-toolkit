@@ -124,7 +124,9 @@ def render(csv: Path, confirm: dict) -> dict:
     plot_cols = [c for c, r in mapping.items() if r == "main_evidence"]
     if not plot_cols:
         raise SystemExit("[reject] 无主证据列，无图可画")
-    pal = next(p for p in load_palettes() if p["palette_id"] == confirm["palette_id"])
+    pal = next((p for p in load_palettes() if p["palette_id"] == confirm["palette_id"]), None)
+    if pal is None:
+        raise SystemExit(f"[reject] 未知 palette_id: {confirm['palette_id']}（候选见 list）")
     colors = check_palette(pal, confirm["chart"], len(plot_cols))
     xcol = next(c for c, r in mapping.items() if r == "x_axis")
 
@@ -151,7 +153,7 @@ def render(csv: Path, confirm: dict) -> dict:
     ax.legend(frameon=False, loc="best")  # 合同：图例默认无框
     fig.tight_layout()
 
-    out_dir = csv.parent / f"{csv.stem}_lite_{confirm['rendered_at']}"
+    out_dir = csv.parent / f"{csv.stem}_lite_{confirm.get('rendered_at') or 'session'}"
     out_dir.mkdir(exist_ok=True)
     outputs = {}
     for ext, kw in {"png": {"dpi": 300}, "pdf": {}, "svg": {}}.items():
