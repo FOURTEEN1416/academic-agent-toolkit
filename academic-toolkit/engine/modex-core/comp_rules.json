@@ -1,338 +1,2513 @@
 {
-"comp_cumcm": {
-    "name": "全国大学生数学建模竞赛 (CUMCM)",
-    "language": "zh",
-    "max_pages": 30,
-    "page_scope": "body",
-    "body_start_pdf_page": 4,
-    "appendix_unlimited": true,
-    "official_rule_url": "https://www.mcm.edu.cn/html_cn/node/4cd596519c9eb9fbd866398f6df0caa3.html",
-    "template_cls": "cumcmthesis",
-    "compliance": {
-      "pledge_page": "forbidden_in_electronic",
-      "pledge_markers": ["承诺书", "保证书", "编号专用页"],
-      "preface_scan_pages": 3,
-      "max_body_pages": 30,
-      "source": "skills/_utils/cumcm_2026_format.md:10-16（纸质第1页承诺书；电子版不含承诺书和编号页，摘要为第1页）；正文 ≤30 页见本条目 max_pages"
+  "schema_version": 2,
+  "artifact_status": "production",
+  "field_contract": "MIGRATION.md",
+  "generated_at": "2026-09-27",
+  "generated_by": "E窗 E-MERGE-01 合并（merge_emerge01.py；输入=draft/candidate 两线候选，快照 archive_pre_merge_EMERGE01/）",
+  "schema_notes": [
+    "contests 按 comp_* ID 索引；profiles 按 edition(明确年份)/submission_form(electronic|paper)（必要时 region/submit_stage）区分；无档案赛事 profiles=[] 且必有 evidence_summary。",
+    "约束三态：verified=官方原文已核验（至少一份 full_text/full_text_image 来源）；unknown=依据未建立（value 恒 null，不等于无要求）；not_applicable=明确不适用（本轮未出现，保留枚举位）。",
+    "原 attested/missing_evidence 证据不丢：来源质量见 sources.kind/verification 与约束 evidence.grade；缺证原因见 evidence.reason；快照/旧届值材料存 evidence.material 与 historical_notes，均非机检。",
+    "来源统一顶层 sources 登记表；constraint.source_ids 逐项重连；来源可达不等于支持具体结论（未被引用的登记来源合法）。同一来源不同版本分条登记，不误合并。",
+    "页限 value.basis 区分 body/total 不得折叠；任务 80 只留 migration_evidence，运行时走step.metadata.quick_gates_max_pages 既有通道（MIGRATION.md M4）。",
+    "经验配额只在 guidance；旧届快照/复制污染/v1 历史值隔离在赛事级 historical_notes，不进 constraints/guidance；文件格式（PDF/DOCX/大小）是约束（file_format/file_size 等），不在 submission_form 取值里。"
+  ],
+  "sources": {
+    "SRC-004": {
+      "kind": "official_direct",
+      "title": "关于暂停举办2026年“深圳杯”数学建模挑战赛的通知",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://www.cmathc.org.cn/mcm/tz/488.html",
+      "located": "全文，E窗 2026-09-27 直接抓取",
+      "excerpt": "深圳杯数学建模挑战赛组委会秘书处 2026-05-09：「2026年度‘深圳杯’数学建模挑战赛暂停举办」「受不可抗力影响」"
     },
-    "rules": [
-      "电子版第 1 页保证书、第 2 页评阅编号、第 3 页题目摘要，**第 4 页开始正文**（不含目录）；**正文不超过 30 页**，正文之后附录页数不限（2026 年修订稿）",
-      "必须有摘要项（约 1 页），含关键词",
-      "⛔ 只需要中文摘要，不要英文摘要（国赛不要求英文摘要）",
-      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 模型检验 → 模型评价与推广 → 参考文献 → 附录",
-      "附录中必须包含完整代码",
-      "使用 cumcmthesis 文档类，XeLaTeX 编译"
-    ]
+    "SRC-005": {
+      "kind": "official_direct",
+      "title": "五一杯（五一数学建模竞赛）第23届赛题与论文要求页（中国矿业大学官网）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://51mcm.cumt.edu.cn/92/4b/c14143a692811/page.htm",
+      "located": "页面整体；论文格式规范正文在附件 2026-51MCM-Problems.rar 内，未拆包（只读取证不下载压缩包）",
+      "excerpt": "「请参考格式规范使用模板撰写论文，并在2026年5月4日中午12:00（北京时间）前参考论文提交说明提交论文」"
+    },
+    "SRC-006": {
+      "kind": "official_direct",
+      "title": "数维杯大学生数学建模挑战赛官网首页",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://www.nmmcm.org.cn/",
+      "located": "首页可见信息，E窗 2026-09-27 直接抓取",
+      "excerpt": "「作品提交阶段 提交截止时间 2026年11月24日10:00」（秋季赛）；规则/格式规范文档未见直接链接"
+    },
+    "SRC-007": {
+      "kind": "official_direct",
+      "title": "MathorCup 数学应用挑战赛竞赛章程页（2026 第七届·大数据竞赛）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://www.mathorcup.org/detail/2495",
+      "located": "页面整体；章程正文在附件 PDF 内，未直读",
+      "excerpt": "页面仅含标题与「MathorCup数学应用挑战赛——大数据竞赛报名通知.pdf」附件链接"
+    },
+    "SRC-008": {
+      "kind": "official_portal_snapshot",
+      "title": "COMAP MCM/ICM 官方说明（Procedures/Tips 与 instructions.php）",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "https://www.contest.comap.com（instructions: comap.com/undergraduate/contests/mcm/instructions.php）",
+      "located": "官方域检索快照：Summary Sheet 起始 + 全文 25 页上限；instructions.php URL 已定位未直读",
+      "excerpt": "「solution reports have a maximum length of 25 pages」「no more than 25 total pages: One-page Summary Sheet, Table of Contents, complete solution, References list」"
+    },
+    "SRC-009": {
+      "kind": "official_portal_snapshot",
+      "title": "2026年第二十八届华东杯大学生数学建模邀请赛通知（含论文格式规范）",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "https://www.cmathc.org.cn（华东杯通知）",
+      "located": "官方门户检索快照（2026-04-11 发布），原文页未直读",
+      "excerpt": "「论文页面为A4纸纵向，上下左右各留出2.5厘米的页边距」「论文题目和摘要写在第一页（第一页不写页码）」「论文和报名表发送至指定邮箱，命名：题号+参赛队号」"
+    },
+    "SRC-010": {
+      "kind": "official_portal_snapshot",
+      "title": "“中国电机工程学会杯”全国大学生电工数学建模竞赛论文规范（东北电力大学官网，2026-03-21）",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "https://shumo.neepu.edu.cn",
+      "located": "官方院校站检索快照，原文页未直读",
+      "excerpt": "「论文面页设置为A4纸，上下左右各留出2.5厘米的页边距，正文字体为宋体小四号字」「论文第一页为封面页，填写报名序号及论文题目」"
+    },
+    "SRC-011": {
+      "kind": "official_portal_snapshot",
+      "title": "第十八届“中国电机工程学会杯”全国大学生电工数学建模竞赛通知",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "https://www.cmathc.org.cn（电工杯18届通知）",
+      "located": "官方门户检索快照，原文未直读",
+      "excerpt": "「论文以PDF文件格式上传，大小不超过20M」「文件命名：4位报名序号+题号（A或B）」"
+    },
+    "SRC-012": {
+      "kind": "official_portal_snapshot",
+      "title": "“华中杯”大学生数学建模挑战赛论文格式规范（官网 hzbmmc.com，2021）",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "http://www.hzbmmc.com",
+      "located": "官方域检索快照（2021-03-19），直读失败（站点证书过期）",
+      "excerpt": "「第一页为摘要页，摘要内容（含标题和关键词，无需翻译成英文）不能超过一页；第二页为目录；第三页开始是正文内容（尽量控制在20页左右）」；附录页数不限"
+    },
+    "SRC-013": {
+      "kind": "official_portal_snapshot",
+      "title": "2022年APMCM亚太地区大学生数学建模竞赛参赛规则（官网）",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "https://www.apmcm.org",
+      "located": "官方域检索快照（2022-10-12），原文未直读",
+      "excerpt": "「PDF格式的论文（不包含附件和承诺书）…正文不超过25页」「论文命名格式：题号+参赛编号」"
+    },
+    "SRC-014": {
+      "kind": "official_portal_snapshot",
+      "title": "APMCM 论文提交规范/模板/承诺书发布（官网 2023-11-22 及 2025 同类）",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "https://www.apmcm.org",
+      "located": "官方域检索快照，原文未直读",
+      "excerpt": "「论文模板仅供参考不做强制要求」「控制页即承诺书（Control Sheet）」"
+    },
+    "SRC-015": {
+      "kind": "university_repost",
+      "title": "2025年（第十一届）全国大学生统计建模大赛通知（多所院校官网一致转载）",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "https://www.seiguan.com / https://jjxy.yeu.edu.cn（等多源）",
+      "located": "院校官网转载快照（seiguan.com 大赛平台、jjxy.yeu.edu.cn 等≥3独立来源一致），组委会原始附件未直读",
+      "excerpt": "「论文正文字符数（计空格）不得超过16000字」「知网查重率不得超过20%」；论文八要素：封面页/摘要与关键词/章节目录/表格插图清单/正文/参考文献/附录/致谢"
+    },
+    "SRC-016": {
+      "kind": "official_portal_snapshot",
+      "title": "2026年第八届中青杯全国大学生数学建模竞赛论文提交流程（官网）",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "http://www.cycmcm.com/news.php?id=46",
+      "located": "官方域检索快照，直读失败（SSL 握手失败）",
+      "excerpt": "「请务必勾选【我已查看承诺书并同意】」后上传；页数条款未见"
+    },
+    "SRC-017": {
+      "kind": "official_portal_snapshot",
+      "title": "2026年第十九届“认证杯”数学中国数学建模网络挑战赛竞赛规则",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "http://www.tzmcm.cn/gz.html",
+      "located": "官方域检索快照，原文未直读",
+      "excerpt": "「每阶段开始前三天，认证中心会在网上公布论文格式、要求及论文提交办法」（分两阶段）"
+    },
+    "SRC-018": {
+      "kind": "official_portal_snapshot",
+      "title": "第十四届“认证杯”数学中国数学建模国际赛（小美赛）官网（2025）",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "http://mcm.tzmcm.cn/index.html",
+      "located": "官方域检索快照，原文未直读",
+      "excerpt": "官方称「和美国大学生数学建模竞赛（MCM/ICM）的要求完全相同」"
+    },
+    "SRC-019": {
+      "kind": "platform_official_snapshot",
+      "title": "2026年第七届华数杯大学生数学建模竞赛【AI使用说明及提交规范】（赛氪，官方发布渠道）",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "https://m.saikr.com（华数杯2026提交规范页）",
+      "located": "平台检索快照：《华数杯数学建模竞赛论文格式规范与提交说明.pdf》+论文模板和承诺书附件存在；PDF 未直读"
+    },
+    "SRC-020": {
+      "kind": "platform_official_snapshot",
+      "title": "2025年第五届天府杯全国大学生数学建模竞赛（赛氪，官方发布渠道）",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "https://m.saikr.com（天府杯2025页）",
+      "located": "平台检索快照：【论文模板及承诺书】(2025-08-14)存在；内容未直读；国际赛（第四届）仅需英文论文"
+    },
+    "SRC-021": {
+      "kind": "platform_official_snapshot",
+      "title": "2025年第五届长三角高校数学建模竞赛（赛氪，官方发布渠道）",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "https://new.saikr.com（长三角2025页）",
+      "located": "平台检索快照：【重要Tips、论文格式规范、论文提交方法、论文模板、承诺书】存在；内容未直读；第三方转述官方规范：A4、页边距2厘米、附竞赛诚信承诺书"
+    },
+    "SRC-022": {
+      "kind": "official_portal_snapshot",
+      "title": "“泰迪杯”数据挖掘挑战赛官网与章程",
+      "retrieved_at": "2026-09-27",
+      "verification": "snapshot",
+      "url": "https://www.tipdmcup.cn（章程 /jszc/index.jhtml）",
+      "located": "官方域检索快照，原文未直读",
+      "excerpt": "「提交一篇论文及对应材料」；页数条款未见"
+    },
+    "SRC-031": {
+      "kind": "repo_artifact",
+      "title": "git 提交 36934e5（G1 S14 合规口径数据驱动分支）",
+      "retrieved_at": "2026-09-27",
+      "verification": "metadata_only",
+      "path": "git:36934e5（G1 S14 合规口径数据驱动分支）",
+      "located": "提交信息：comp_rules 两族 compliance 块（华为承诺书必在/50页 vs 国赛电子禁入/30页）——50页曾以官方口径入库"
+    },
+    "SRC-034": {
+      "kind": "repo_artifact",
+      "title": "skills/_utils/figure_exemplars.md",
+      "retrieved_at": "2026-09-27",
+      "verification": "local_inspection",
+      "path": "academic-toolkit/skills/_utils/figure_exemplars.md",
+      "located": "自述「比例和数量仅供参考，根据具体内容自主调整」——图表数量区间为经验口径"
+    },
+    "SRC-035": {
+      "kind": "repo_artifact",
+      "title": "skills/comp-paper-zh/references/huawei-official-format.md（伪官方主张待修订）",
+      "retrieved_at": "2026-09-27",
+      "verification": "local_inspection",
+      "path": "academic-toolkit/skills/comp-paper-zh/references/huawei-official-format.md",
+      "located": ":63「正文（不含附录）上限50页」——被 SRC-002 证伪（23届规范全文无页数条款）；IR-E-C2 已立案"
+    },
+    "apmcm-faq": {
+      "kind": "official_direct",
+      "title": "APMCM竞赛资讯丨竞赛常见问题解答（2025-10-15）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://www.apmcm.org/detail/2497",
+      "located": "1-12 条全文；无页数/AI 条款",
+      "applicable_scope": "官网公开 FAQ（跨届通用口径）"
+    },
+    "apmcm16-charter": {
+      "kind": "official_direct",
+      "title": "APMCM亚太地区大学生数学建模竞赛章程（2020年修订，亚太赛[2020]01号）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://www.apmcm.org/list/regulation",
+      "located": "第一至十八条全文；无论文页数条款、无 AI 条款（组织性章程）",
+      "applicable_scope": "章程层面（2020-07 起执行），非当届论文格式文件"
+    },
+    "apmcm16-notice": {
+      "kind": "official_direct",
+      "title": "2026年第十六届APMCM亚太地区大学生数学建模竞赛报名通知（2026-09-15，组委会三公章图片件）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text_image",
+      "url": "https://www.apmcm.org/detail/2512",
+      "path": "evidence/apmcm16_notice_20260915.png（本地证据，含 10 段切片）",
+      "located": "第 6 条「竞赛只需要提交电子版论文，不需要邮寄纸质版论文；所有参赛队必须提交英文版论文」；第 1-9 条全文（时间 2026-11-26 06:00 至 11-30 09:00、1-3 人、研究生/本科/专科组、A/B/C 三题、集体报名、赛题公布渠道）",
+      "applicable_scope": "第 16 届（2026）主赛项当届",
+      "note": "官方通知全文为图片，2026-09-27 下载后逐段读图转录取证；第 1-9 条均无页数上限条款、无 AI 使用条款；第 9 条指「其它事项见官网通知文件」"
+    },
+    "apmcm16zh-notice": {
+      "kind": "official_direct",
+      "title": "【报名通知】2026年第十六届APMCM亚太地区大学生数学建模竞赛（中文赛项）（2026-05-28，图片件）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text_image",
+      "url": "https://www.apmcm.org/detail/2508",
+      "path": "evidence/apmcm16zh_notice.png（本地证据，含 7 段切片）",
+      "located": "第 7 条「竞赛只需要提交电子版论文，不需要邮寄纸质版论文；所有参赛队必须提交中文版论文」；第 1-10 条全文（时间 2026-06-12 18:00 至 06-15 20:00、A/B 两题、分组与奖励比例）",
+      "applicable_scope": "第 16 届中文赛项（2026-06 已赛毕；下一届以新通知为准）",
+      "note": "2026-09-27 下载逐段读图；全文无页数上限条款、无 AI 使用条款"
+    },
+    "cumcm-format-md": {
+      "kind": "repo_artifact",
+      "title": "skills/_utils/cumcm_2026_format.md（2026-09-11 对照官方修订稿逐条核验的仓库摘要）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "path": "academic-toolkit/skills/_utils/cumcm_2026_format.md:9-20",
+      "located": "页边距≥2.5cm/页码页脚中部/摘要原则上1页/无身份信息/正文与支撑材料各≤20MB/官方未统一规定字号字体行距",
+      "applicable_scope": "同官方修订稿，电子提交口径",
+      "merged_from": [
+        "SRC-036"
+      ]
+    },
+    "cumcm-moe-2026": {
+      "kind": "official_direct",
+      "title": "全国大学生数学建模竞赛论文格式规范（2026年修订稿）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://dxs.moe.gov.cn/zx/a/hd_sxjm_gsyw/260702/2046411.shtml",
+      "located": "「论文第一页为承诺书，第二页为编号专用页」「论文第三页为摘要专用页」「论文从第四页开始是正文内容（不要目录，不超过30页）」「论文附录（页数不限）」「承诺书和编号专用页不要放在电子版论文中，即电子版论文的第一页必须为摘要专用页」",
+      "applicable_scope": "2026 年修订稿，全国统一（纸质/电子两轨分述）",
+      "note": "2026-09-27 官方页直接抓取复核（Phase-1 E窗）+ 2026-09-11 仓库逐条核验",
+      "merged_from": [
+        "SRC-001"
+      ]
+    },
+    "hw23-announce": {
+      "kind": "official_direct",
+      "title": "“华为杯”第二十三届中国研究生数学建模竞赛开赛公告（2026-09-16）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://cpipc.acge.org.cn/cw/contestNews/detail/4/2c90801ca06f016101a0a47e06b77d9b?page=0",
+      "located": "四（一）格式要求 1-4（PDF 不压缩/命名/首页封皮 4 logo/统一摘要页≤2页六要素）；四（二）提交要求（MD5→PDF→附件三步、附件≤50M）；五 3（AI 仅辅助、引用注明、查重违规）",
+      "applicable_scope": "第 23 届（2026）当届",
+      "note": "2026-09-27 官方平台全文抓取；论文要求段无页数上限条款；candidate 线同文档渠道 cmathc.org.cn/cpmcm/news/642.html 并入本条",
+      "merged_from": [
+        "SRC-003"
+      ]
+    },
+    "hw23-att1-manual": {
+      "kind": "official_direct",
+      "title": "附件1：第二十三届下载试题及上传论文操作手册（16 页 PDF）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://cpipc.acge.org.cn/sysFile/downFile.do?fileId=1cb884ee3d3f4707a28b2fe0129ec627",
+      "path": "evidence/hw23_att1_manual.pdf",
+      "located": "2.5 编写论文（模板/PDF/命名/MD5 工具 FileMD5.exe/生成后禁改）；2.6 提交识别码；2.7 上传论文（MD5 一致性校验）；2.8 上传附件（非必要环节，≤50M）",
+      "applicable_scope": "第 23 届当届",
+      "note": "pypdf 全文提取；页限关键词（页数/不超过 N 页/页以内/上限）0 命中"
+    },
+    "hw23-att3-template": {
+      "kind": "official_direct",
+      "title": "附件3：第二十三届论文模板（.doc）",
+      "retrieved_at": "2026-09-27",
+      "verification": "binary_scan",
+      "url": "https://cpipc.acge.org.cn/sysFile/downFile.do?fileId=a730b312331e492baad17b248bad6b51",
+      "path": "evidence/hw23_att3_template.doc",
+      "located": "二进制关键词扫描（UTF-16LE/GBK）未命中页限字样",
+      "applicable_scope": "第 23 届当届",
+      "note": "老式 OLE 二进制，未做全文核实——证据力弱，不支撑 verified 结论"
+    },
+    "hw23-att4-ai": {
+      "kind": "official_direct",
+      "title": "附件4：第二十三届人工智能工具及输出使用规定（2026-09-16）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://cpipc.acge.org.cn/sysFile/downFile.do?fileId=4fc024f7a1504abb87fc056440c64a28",
+      "path": "evidence/hw23_att4_ai_regulation.docx",
+      "located": "条款 1-9：AI 仅辅助不可替代独立思考；输出须消化后自述；模型/公式来源标注+参考文献列 AI 工具名称/版本/机构/日期；数据分析注释；编程注释声明；违规取消评奖资格",
+      "applicable_scope": "第 23 届当届"
+    },
+    "hw23-format-spec": {
+      "kind": "official_direct",
+      "title": "附件2：第二十三届论文格式规范（官方附件 docx 版，专家委员会 2026-09-16）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://cpipc.acge.org.cn/sysFile/downFile.do?fileId=97a93e3a9e074738aea95eea986508f2",
+      "path": "evidence/hw23_att2_format_spec.docx",
+      "located": "全文 10 段：摘要页下一页起正文；页码自摘要页起页脚中部阿拉伯从 1；不能有页眉；不得出现身份标志；字体字号行距；参考文献书籍/期刊/网络三格式；摘要≤2页六要素无需英文；计算结果与源程序按题要求限时上传",
+      "applicable_scope": "第 23 届当届",
+      "note": "docx 全文提取；全文唯一「不超过」= 摘要≤2页；与 cmathc.org.cn/cpmcm/news/644.html 网络版（Phase-1 已核）逐条一致，出处升级为官方平台附件原件；同文三渠道合并（E-MERGE-01）：官方平台附件 docx 原件（本条）+ cmathc.org.cn/cpmcm/news/644.html 网络版全文（draft 线 hw23-format-mirror 与 candidate 线 SRC-002，2026-09-27 抓取，逐条一致）。",
+      "merged_from": [
+        "hw23-format-mirror",
+        "SRC-002"
+      ]
+    },
+    "hw23-reminder": {
+      "kind": "official_direct",
+      "title": "关于第二十三届赛题下载及提交作品的重要提醒（2026-09-21）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://cpipc.acge.org.cn/cw/contestNews/detail/4/2c908017a0c0f0a801a0c30c2ee41707?page=0",
+      "located": "第 3 条（首页封面不可删/4 LOGO 不可换/首页外禁身份信息含附件/首页摘要页正文页顺序不能变）；第 5 条（MD5 一致性，提交后禁改禁重新生成）",
+      "applicable_scope": "第 23 届当届",
+      "note": "无页数条款"
+    },
+    "hw23-task-ruling-80": {
+      "kind": "task_ruling",
+      "title": "【历史任务裁决·仅可追溯材料】华为杯页数门禁 80（2026-09-25 用户裁决）",
+      "retrieved_at": "2026-09-27",
+      "verification": "legacy_config",
+      "path": "workspaces/huawei2026d_zcode（2026-09-25 未提交 diff：max_pages 50→80 及自由文本页数备注，『S9 压缩延后』）+ dev-docs/LOG.md 续75",
+      "located": "git diff HEAD -- academic-toolkit/engine/modex-core/comp_rules.json（2026-09-25 现场）",
+      "applicable_scope": "仅 2026 第 23 届 D 题本轮投稿；非官方约束；后续轮次不得静默继承",
+      "note": "新裁决：80 不进全局官方/合规层（旧测试钉定不构成保留理由）；运行时由任务级覆盖承载（workflow step.metadata.quick_gates_max_pages=80 既有通道，workflow_runner.py:326），本数据文件不含该值；工作流数据库未改动",
+      "merged_from": [
+        "SRC-032"
+      ]
+    },
+    "hw23-template-21st": {
+      "kind": "repo_artifact",
+      "title": "第 21 届官方论文模板 PDF（4 页，gitignored 本地件）",
+      "retrieved_at": "2026-09-25",
+      "verification": "local_inspection",
+      "path": "academic-toolkit/skills/comp-paper-zh/_templates/huawei/official_docx/huabei-21st-official-paper-template.pdf",
+      "located": "全 4 页无承诺书页（2026-09-25 HAS_PLEDGE=False 实测，dev-docs/LOG.md 续75 §一）",
+      "applicable_scope": "第 21 届模板（辅助印证：论文内无承诺书）",
+      "merged_from": [
+        "SRC-033"
+      ]
+    },
+    "legacy-comp-rules-20260927": {
+      "kind": "legacy_config",
+      "title": "生产真源字节级备份（v1，含 2026-09-25 未提交 80 页 diff 在场）",
+      "retrieved_at": "2026-09-27",
+      "verification": "legacy_config",
+      "path": "backup_comp_rules_20260927.json",
+      "located": "各条目 max_pages / rules[] / compliance 块",
+      "applicable_scope": "历史配置记录，非官方证据",
+      "merged_from": [
+        "SRC-030"
+      ]
+    },
+    "mcm-comap-instructions-2027": {
+      "kind": "official_direct",
+      "title": "MCM/ICM Contest Rules, Registration and Instructions（2027 届，2027-01-28 至 02-01）",
+      "retrieved_at": "2026-09-27",
+      "verification": "full_text",
+      "url": "https://contest.comap.com/undergraduate/contests/mcm/instructions.php",
+      "located": "§III Changes for 2027「The MCM/ICM Contest now have a 25 page limit. The 25 page limit applies to the entire submission including the Summary Sheet, Solution, Reference List, Table of Contents, Notes, Appendices, Code and any problem specific requirements.」；§IV Rule 10「Papers must be within the 25 page limit.」；Use of AI Tools 节「append the Report on Use of AI … after your 25-page solution. This new section has no page limit and will not be counted as part of the 25-page solution.」；Preparing a Solution Document §4「A Table of Contents is encouraged and does count toward the page limit. Reference list … and any appendices count toward the page limit」；Submission §C「The attachment must be less than 25MB」",
+      "applicable_scope": "2027 届 MCM（A/B/C）与 ICM（D/E/F）通用（官方声明 All rules and instructions apply to both）",
+      "note": "2026-09-27 官方页在线全文抓取（firecrawl 实时）；v1「论文建议不超过25页」系官方硬上限被降格为建议，已修正"
+    }
   },
-  "comp_mcm": {
-    "name": "MCM/ICM (COMAP)",
-    "language": "en",
-    "max_pages": 25,
-    "template_cls": "mcmthesis",
-    "rules": [
-      "Summary Sheet (摘要页) 必须是第一印象，决定一票否决权",
-      "论文结构：Summary → Introduction → Problem Analysis → Model Design → Solution → Sensitivity Analysis → Strengths & Weaknesses → Conclusions → References → Appendix",
-      "Summary 必须独立成页，包含 team control number",
-      "全英文撰写，使用 mcmthesis 文档类，pdflatex 编译",
-      "论文建议不超过 25 页"
-    ]
-  },
-  "comp_huawei": {
-    "name": "华为杯全国研究生数学建模竞赛",
-    "language": "zh",
-    "max_pages": 50,
-    "page_scope": "body",
-    "body_start_pdf_page": 2,
-    "appendix_unlimited": true,
-    "template_cls": "gmcmthesis",
-  "compliance": {
-    "pledge_page": "required",
-    "pledge_markers": ["承诺书"],
-    "preface_scan_pages": 3,
-    "max_body_pages": 50,
-    "figure_total_range": [30, 46],
-    "source": "third_party/docx-style-profiles/covers/huawei.json（参赛承诺书封面页）+ skills/comp-paper-zh/_templates/huawei/gmcmthesis.cls:8 承诺书节 + 本条目 max_pages=50；图表 30-46 见 skills/_utils/figure_exemplars.md"
-  },
-    "rules": [
-      "使用 gmcmthesis 文档类，XeLaTeX 编译",
-      "⛔ **MAX_PAGES 指正文页数**（章节 1 - 结论，含图表）— 不含 摘要 / 目录 / 参考文献 / **附录代码**。附录代码单独计 70-100 页（华为杯允许，是正式产出但不算正文）。实测出现过 AI 把附录代码算进正文目标，导致正文只写 36 页就以为达标了 → 必须区分",
-      "封面需包含 4 个 Logo（组委会提供）",
-      "论文格式有严格要求（参见规程、评审标准）",
-      "⛔ 正文目标 40-60 页区间（一等奖通常 55-65 页正文，二等奖 50-60 页正文）。短于 36 页 = 分析单薄高风险（实测出现过 36 页交稿被判薄弱）。目标 50 页左右（充分但不灌水）；写完不到 40 页必须扩展推导/补图/加灵敏度",
-      "⛔ 华为杯重点考察推导过程深度 — 每个子问题正文 ≥ 8-10 页 + ≥ 6-8 张图表 + ≥ 8-15 个公式（逐式编号 (n)）。结构应是：建模假设 → 公式推导（每一步可解释）→ 算法步骤 → 结果讨论 → 验证。不能「列模型，给结果」，必须展示每个关键步骤怎么来的",
-      "⛔ 鼓励过程图表化 — 不只画结果图，更要画过程图：建模流程图 / 算法流程图 / 数据预处理流程 / 推导路径图 / 决策树形图 / 参数空间搜索路径 / 优化迭代示意 / 仿真步骤快照 / 求解器分支图等都算正文图表。过程图表能直观展现「如何做的」，比一堆结果图更能体现工作量",
-      "⛔ 图表硬性下限：30-46 张图表总数（A/B 工程优化 40-46 / C/D 数据分析 33-39 / E/F 综合建模 35-41，详见 _utils/figure_exemplars.md）— 含 8-12 张数据图 + 6-12 张过程/架构图（TikZ）+ 8-12 张表。鼓励多面板组合图 [2-panel] / [4-panel] 提高信息密度，远多于国赛 24 个图表",
-      "⛔ **章节文件归类约束**：paper/sections/ 只放正文章节（绪论/方法/结果/讨论/结论），**严禁把代码、长数据表、求解日志放到 sections/** — 这些必须放 paper/appendix/。页数预检脚本仅统计 sections/，sections 含代码会让页数虚高但正文实际单薄",
-      "⛔ 只需要中文摘要，不要英文摘要（华为杯是中文竞赛）",
-      "灵敏度分析与模型推广 4-5 页（不能少于 3 页，要有 3+ 张图）",
-      "附录 70-100 页：完整代码 + 关键数据 + 公式补充推导 + 算法伪代码（附录算正式产出，不是凑数，但**不计入正文页数**）"
-    ]
-  },
-  "comp_mathorcup": {
-    "name": "MathorCup 数学建模挑战赛",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "ctexart",
-    "rules": [
-      "论文不超过 30 页",
-      "必须有目录页",
-      "页面顶部必须有队伍编号+题号表格（使用 mathorcup_main.tex 模板）",
-      "论文结构：摘要 → 目录 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 模型评价 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要（MathorCup 不要求英文摘要）",
-      "使用 mathorcup_main.tex 模板（基于 ctexart），XeLaTeX 编译"
-    ]
-  },
-  "comp_apmcm": {
-    "name": "亚太地区数学建模竞赛 (APMCM)",
-    "language": "en",
-    "max_pages": 25,
-    "template_cls": "apmcmthesis",
-    "rules": [
-      "按照官网上传的 PDF 模板格式提交",
-      "全英文撰写",
-      "论文结构参考美赛：Summary → Introduction → Model → Solution → Conclusions",
-      "使用 apmcmthesis 或通用模板，pdflatex 编译"
-    ]
-  },
-  "comp_apmcm_zh": {
-    "name": "亚太地区数学建模竞赛中文赛项 (APMCM 中文)",
-    "language": "zh",
-    "max_pages": 25,
-    "template_cls": "MathorCupmodeling",
-    "rules": [
-      "按照官网上传的 PDF 模板格式提交（亚太赛中文赛项）",
-      "中文撰写，封面含参赛队号、参赛队员",
-      "论文结构：摘要 → 关键词 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 灵敏度分析 → 模型评价 → 参考文献 → 附录",
-      "需要中文摘要 + 关键词（一般 3-5 个）",
-      "使用 MathorCupmodeling 文档类（\\bianhao/\\tihao/\\timu 设置队伍信息，\\keyword 设置关键词），XeLaTeX 编译"
-    ]
-  },
-  "comp_stats": {
-    "name": "全国大学生统计建模大赛",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "ctexart",
-    "rules": [
-      "自主选题（官方只给选题方向，不给具体题目）",
-      "必须自行采集真实数据（标注数据来源：国家统计局、Wind、CSMAR、Kaggle 等）",
-      "论文结构：摘要 → 引言 → 文献综述 → 数据与方法 → 实证分析 → 结论与建议 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要（统计建模大赛不要求英文摘要）",
-      "注重统计分析的规范性（必须报告 p 值、置信区间、显著性注释、水平、回归诊断、模型比较）",
-      "鼓励使用描述性统计、推断统计、回归分析等经典方法",
-      "准备答辩展示材料（PPT）",
-      "注重数据质量，不能抄袭已有研究",
-      "使用 ctexart 文档类，XeLaTeX 编译"
-    ]
-  },
-  "comp_teddy": {
-    "name": "泰迪杯数据挖掘挑战赛",
-    "language": "zh",
-    "max_pages": 40,
-    "template_cls": "ctexart",
-    "rules": [
-      "赛程约 13 天，侧重数据挖掘与机器学习方向",
-      "论文结构：摘要 → 问题重述 → 数据预处理 → 特征工程 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "必须包含完整的数据预处理和特征工程描述",
-      "代码附录需包含关键算法实现",
-      "使用 ctexart 文档类，XeLaTeX 编译"
-    ]
-  },
-  "comp_certcup": {
-    "name": "认证杯数学建模（第一/二阶段）",
-    "language": "zh",
-    "max_pages": 35,
-    "template_cls": "ctexart",
-    "rules": [
-      "分两阶段：第一阶段提交初步方案，第二阶段提交完整论文",
-      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 模型建立与求解 → 结果分析 → 模型评价 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "使用 ctexart 文档类，XeLaTeX 编译"
-    ]
-  },
-  "comp_huazhong": {
-    "name": "华中杯数学建模邀请赛",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "cumcmthesis",
-    "rules": [
-      "论文不超过 30 页",
-      "使用 cumcmthesis 文档类（withoutpreface 选项去掉封面），XeLaTeX 编译",
-      "论文结构：摘要 → 目录 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 模型检验 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "使用 huazhong_main.tex 模板"
-    ]
-  },
-  "comp_huadong": {
-    "name": "华东杯数学建模邀请赛",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "ctexart",
-    "rules": [
-      "论文不超过 30 页",
-      "赛程较长（7月中旬至9月上旬）",
-      "侧重电气工程与能源方向的建模问题",
-      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "使用 ctexart 文档类，XeLaTeX 编译"
-    ]
-  },
-  "comp_shuwei": {
-    "name": "数维杯数学建模（国内赛）",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "ctexart",
-    "rules": [
-      "论文不超过 30 页",
-      "赛程较长（7月中旬至9月上旬）",
-      "侧重电气工程与能源方向的建模问题",
-      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "使用 ctexart 文档类，XeLaTeX 编译"
-    ]
-  },
-  "comp_zhongqing": {
-    "name": "中青杯数学建模竞赛",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "ctexart",
-    "rules": [
-      "论文不超过 30 页",
-      "赛程较长（7月中旬至9月上旬）",
-      "侧重电气工程与能源方向的建模问题",
-      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "使用 ctexart 文档类，XeLaTeX 编译"
-    ]
-  },
-  "comp_yangtze": {
-    "name": "长三角高校数学建模竞赛",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "ctexart",
-    "rules": [
-      "论文不超过 30 页",
-      "赛程较长（7月中旬至9月上旬）",
-      "侧重电气工程与能源方向的建模问题",
-      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "使用 ctexart 文档类，XeLaTeX 编译"
-    ]
-  },
-  "comp_diangong": {
-    "name": "电工杯数学建模竞赛",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "ctexart",
-    "rules": [
-      "论文不超过 30 页",
-      "赛程较长（7月中旬至9月上旬）",
-      "侧重电气工程与能源方向的建模问题",
-      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "使用 ctexart 文档类，XeLaTeX 编译"
-    ]
-  },
-  "comp_shenzhen": {
-    "name": "深圳杯数学建模竞赛",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "ctexart",
-    "rules": [
-      "论文不超过 30 页",
-      "赛程较长（7月中旬至9月上旬）",
-      "侧重电气工程与能源方向的建模问题",
-      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "使用 ctexart 文档类，XeLaTeX 编译"
-    ]
-  },
-  "comp_huashu": {
-    "name": "华数杯数学建模竞赛",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "ctexart",
-    "rules": [
-      "论文不超过 30 页",
-      "赛程较长（7月中旬至9月上旬）",
-      "侧重电气工程与能源方向的建模问题",
-      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "使用 ctexart 文档类，XeLaTeX 编译"
-    ]
-  },
-  "comp_tianfu": {
-    "name": "天府杯数学建模竞赛",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "ctexart",
-    "rules": [
-      "论文不超过 30 页",
-      "赛程较长（7月中旬至9月上旬）",
-      "侧重电气工程与能源方向的建模问题",
-      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "使用 ctexart 文档类，XeLaTeX 编译"
-    ]
-  },
-  "comp_liaoning": {
-    "name": "辽宁省大学生数学建模/东三省数学建模联赛",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "ctexart",
-    "rules": [
-      "论文不超过 30 页",
-      "赛程较长（7月中旬至9月上旬）",
-      "侧重电气工程与能源方向的建模问题",
-      "论文结构：摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 模型建立与求解 → 结果分析 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "使用 ctexart 文档类，XeLaTeX 编译"
-    ]
-  },
-  "comp_wuyi": {
-    "name": "五一杯数学建模竞赛",
-    "language": "zh",
-    "max_pages": 30,
-    "template_cls": "cumcmthesis",
-    "rules": [
-      "论文不超过 30 页",
-      "使用 cumcmthesis 文档类（withoutpreface 选项），XeLaTeX 编译",
-      "论文第一页为承诺书（模板已包含，不要删除）",
-      "第二页为封面（题目+关键词+摘要，手动排版格式）",
-      "论文结构：承诺书 → 封面(题目+关键词+摘要) → 目录 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 各问题建模与求解 → 模型评价 → 参考文献 → 附录",
-      "⛔ 只需要中文摘要，不要英文摘要",
-      "附录第一节为文件列表表格",
-      "参考文献使用 gbt7714-numerical 样式",
-      "使用 wuyi_main.tex 模板",
-      "⛔ 不要加 \\usepackage{cite}（和 natbib 冲突导致编译错误）",
-      "⛔ 不要重复加载 subcaption 和 float（cls 已包含）",
-      "⛔ 禁止使用 subfigure 并排图片，每张图独占一个 figure 环境，宽度 ≥ 0.85\\textwidth",
-      "⛔ 不要加 \\maketitle（五一杯用手写承诺书页）"
-    ]
-  },
-  "comp_certcup_en": {
-    "name": "认证杯国际赛 (小美赛)",
-    "language": "en",
-    "max_pages": 25,
-    "template_cls": "article",
-    "rules": [
-      "全英文撰写",
-      "论文结构参考美赛：Summary → Introduction → Model → Solution → Conclusions → References → Appendix",
-      "Summary 必须独立成页",
-      "使用 article 或 mcmthesis 文档类，pdflatex 编译",
-      "论文建议不超过 25 页"
-    ]
-  },
-  "comp_shuwei_en": {
-    "name": "数维杯国际赛 (ISTIC)",
-    "language": "en",
-    "max_pages": 25,
-    "template_cls": "article",
-    "rules": [
-      "全英文撰写",
-      "论文结构参考美赛：Summary → Introduction → Model → Solution → Conclusions → References → Appendix",
-      "使用 article 文档类，pdflatex 编译",
-      "论文建议不超过 25 页"
-    ]
+  "contests": {
+    "comp_cumcm": {
+      "contest_id": "comp_cumcm",
+      "name": "全国大学生数学建模竞赛 (CUMCM)",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "cumcmthesis",
+        "compiler": "XeLaTeX",
+        "note": "官方不指定模板，模板默认值不得宣称官方标准"
+      },
+      "profiles": [
+        {
+          "profile_id": "comp_cumcm_2026_electronic",
+          "edition": "2026",
+          "submission_form": "electronic",
+          "rules_revision": "2026年修订稿（2026-07 发布）",
+          "constraints": [
+            {
+              "id": "cumcm-e-page-limit",
+              "kind": "page_limit",
+              "status": "verified",
+              "value": {
+                "basis": "body",
+                "limit": 30,
+                "body_starts": "page_2_after_abstract_page",
+                "toc": false
+              },
+              "scope": "正文（电子版自摘要专用页后第 2 页起算；不生成目录；附录不计入）",
+              "source_ids": [
+                "cumcm-moe-2026"
+              ],
+              "note": "机检映射：v1 max_pages=30 + page_scope=body",
+              "locator": "官方原文「论文从第四页开始是正文内容（不要目录，不超过30页）」系纸质装订语境；电子版条款「电子版论文的第一页必须为摘要专用页」——电子版正文自第 2 页起（E-MERGE-01 裁决 7：电子版 scope 文字须与电子版页序一致）"
+            },
+            {
+              "id": "cumcm-e-page-order",
+              "kind": "page_order",
+              "status": "verified",
+              "value": {
+                "sequence": [
+                  "abstract_page"
+                ],
+                "excluded": [
+                  "pledge_page",
+                  "numbering_page"
+                ]
+              },
+              "scope": "电子版提交件",
+              "source_ids": [
+                "cumcm-moe-2026"
+              ],
+              "note": "2025 及以前旧口径把纸质页序误标电子版，已按官方原文修正（v1 rules[0] 与同源页序起始死字段已删除，零代码消费）",
+              "locator": "「承诺书和编号专用页不要放在电子版论文中，即电子版论文的第一页必须为摘要专用页」"
+            },
+            {
+              "id": "cumcm-e-pledge",
+              "kind": "pledge_page",
+              "status": "verified",
+              "value": {
+                "presence": "forbidden"
+              },
+              "scope": "电子版提交件",
+              "source_ids": [
+                "cumcm-moe-2026"
+              ],
+              "note": "机检映射：v1 compliance.pledge_page=forbidden_in_electronic（quick_gates._pledge_verdict 消费）"
+            },
+            {
+              "id": "cumcm-e-abstract",
+              "kind": "abstract_page",
+              "status": "verified",
+              "value": {
+                "elements": [
+                  "标题",
+                  "中文摘要",
+                  "关键词"
+                ],
+                "english": "not_required",
+                "max_pages": 1,
+                "max_pages_qualifier": "原则上"
+              },
+              "scope": "摘要专用页（电子版第1页）",
+              "source_ids": [
+                "cumcm-moe-2026",
+                "cumcm-format-md"
+              ]
+            },
+            {
+              "id": "cumcm-e-appendix",
+              "kind": "appendix_limit",
+              "status": "verified",
+              "value": {
+                "limit": null,
+                "rule": "unlimited",
+                "must_contain": [
+                  "支撑材料文件清单",
+                  "全部完整可运行源程序"
+                ]
+              },
+              "scope": "正文之后附录",
+              "source_ids": [
+                "cumcm-moe-2026"
+              ],
+              "locator": "「论文附录（页数不限）」"
+            },
+            {
+              "id": "cumcm-e-numbering",
+              "kind": "page_numbering",
+              "status": "verified",
+              "value": {
+                "start": "abstract_page",
+                "position": "footer_center",
+                "style": "arabic_sequential"
+              },
+              "scope": "电子版全文",
+              "source_ids": [
+                "cumcm-format-md"
+              ]
+            },
+            {
+              "id": "cumcm-e-margins",
+              "kind": "format_typography",
+              "status": "verified",
+              "value": {
+                "paper": "A4",
+                "margin_min_mm": 25,
+                "binding": "left",
+                "font_rule": "官方未统一规定字号字体行距"
+              },
+              "scope": "提交论文",
+              "source_ids": [
+                "cumcm-format-md"
+              ]
+            },
+            {
+              "id": "cumcm-e-anonymity",
+              "kind": "identity_anonymity",
+              "status": "verified",
+              "value": {
+                "identity_info": "forbidden"
+              },
+              "scope": "电子版提交件",
+              "source_ids": [
+                "cumcm-format-md"
+              ]
+            },
+            {
+              "id": "cumcm-e-filesize",
+              "kind": "file_size",
+              "status": "verified",
+              "value": {
+                "max_mb": 20,
+                "applies_to": [
+                  "正文论文",
+                  "支撑材料"
+                ],
+                "support_material": "RAR/ZIP ≤20MB",
+                "no_support_note": "无支撑材料须在附录注明"
+              },
+              "scope": "电子提交",
+              "source_ids": [
+                "cumcm-format-md"
+              ]
+            }
+          ],
+          "guidance": [
+            {
+              "topic": "structure",
+              "text": "论文结构链：摘要→问题重述→问题分析→模型假设→符号说明→建模求解→检验→评价推广→参考文献→附录",
+              "basis": "历轮获奖论文惯例",
+              "nature": "experience"
+            }
+          ]
+        },
+        {
+          "profile_id": "comp_cumcm_2026_paper",
+          "edition": "2026",
+          "submission_form": "paper",
+          "rules_revision": "2026年修订稿（2026-07 发布）",
+          "constraints": [
+            {
+              "id": "cumcm-p-page-limit",
+              "kind": "page_limit",
+              "status": "verified",
+              "value": {
+                "basis": "body",
+                "limit": 30
+              },
+              "scope": "正文（第4页起；不生成目录；附录不计入）",
+              "source_ids": [
+                "cumcm-moe-2026"
+              ]
+            },
+            {
+              "id": "cumcm-p-page-order",
+              "kind": "page_order",
+              "status": "verified",
+              "value": {
+                "sequence": [
+                  "pledge_page",
+                  "numbering_page",
+                  "abstract_page",
+                  "body_from_p4"
+                ]
+              },
+              "scope": "纸质版装订顺序",
+              "source_ids": [
+                "cumcm-moe-2026"
+              ]
+            },
+            {
+              "id": "cumcm-p-pledge",
+              "kind": "pledge_page",
+              "status": "verified",
+              "value": {
+                "presence": "required",
+                "position": "page_1"
+              },
+              "scope": "纸质版",
+              "source_ids": [
+                "cumcm-moe-2026"
+              ]
+            },
+            {
+              "id": "cumcm-p-abstract",
+              "kind": "abstract_page",
+              "status": "verified",
+              "value": {
+                "elements": [
+                  "标题",
+                  "中文摘要",
+                  "关键词"
+                ],
+                "english": "not_required",
+                "max_pages": 1,
+                "max_pages_qualifier": "原则上",
+                "position": "page_3"
+              },
+              "scope": "摘要专用页（纸质第3页）",
+              "source_ids": [
+                "cumcm-moe-2026"
+              ]
+            },
+            {
+              "id": "cumcm-p-appendix",
+              "kind": "appendix_limit",
+              "status": "verified",
+              "value": {
+                "limit": null,
+                "rule": "unlimited"
+              },
+              "scope": "正文之后附录",
+              "source_ids": [
+                "cumcm-moe-2026"
+              ]
+            },
+            {
+              "id": "cumcm-p-margins",
+              "kind": "format_typography",
+              "status": "verified",
+              "value": {
+                "paper": "A4",
+                "margin_min_mm": 25,
+                "binding": "left"
+              },
+              "scope": "纸质打印",
+              "source_ids": [
+                "cumcm-format-md"
+              ]
+            }
+          ],
+          "guidance": [
+            {
+              "topic": "structure",
+              "text": "论文结构链：摘要→问题重述→问题分析→模型假设→符号说明→建模求解→检验→评价推广→参考文献→附录",
+              "basis": "历轮获奖论文惯例",
+              "nature": "experience"
+            }
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27",
+        "current_edition": "2026"
+      },
+      "migration_evidence": [
+        {
+          "legacy": "max_pages=30（page_scope=body）",
+          "disposition": "值保留为 2026 电子版 profile 约束（verified），机器消费方式待 B 适配",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "legacy": "正文起始页死字段=4",
+          "disposition": "删除——语义错误（纸质页序套电子版），且零代码消费",
+          "sources": [
+            "legacy-comp-rules-20260927",
+            "cumcm-moe-2026"
+          ]
+        },
+        {
+          "legacy": "旧 rules[0]『电子版第1页保证书/第2页评阅编号/第3页摘要/第4页正文』",
+          "disposition": "删除——纸质页序误标电子版的矛盾文本（E-01 定案），逐字留备份",
+          "sources": [
+            "legacy-comp-rules-20260927",
+            "cumcm-moe-2026"
+          ]
+        }
+      ]
+    },
+    "comp_mcm": {
+      "contest_id": "comp_mcm",
+      "name": "MCM/ICM (COMAP)",
+      "language": "en",
+      "tooling": {
+        "template_cls": "mcmthesis",
+        "compiler": "pdflatex"
+      },
+      "profiles": [
+        {
+          "profile_id": "comp_mcm_2027_electronic",
+          "edition": "2027",
+          "submission_form": "electronic",
+          "rules_revision": "2027 届规则（含 Changes for 2027；2026-09-27 抓取时点）",
+          "constraints": [
+            {
+              "id": "mcm-page-limit",
+              "kind": "page_limit",
+              "status": "verified",
+              "value": {
+                "basis": "total",
+                "limit": 25
+              },
+              "scope": "整份提交（Summary Sheet、目录、正文、参考文献、注释、附录、代码全部计入）",
+              "source_ids": [
+                "mcm-comap-instructions-2027"
+              ],
+              "note": "机检映射：v1 max_pages=25 无 page_scope → 引擎全 PDF 计，与 total 口径一致"
+            },
+            {
+              "id": "mcm-ai-declaration",
+              "kind": "ai_declaration",
+              "status": "verified",
+              "value": {
+                "report": "Report on Use of AI",
+                "required_when": "使用了 AI 工具（使用才须附）",
+                "placement": "附于 25 页正文之后",
+                "counted_in_page_limit": false,
+                "section_page_limit": null,
+                "inline_citation": true,
+                "reference_listing": true,
+                "accuracy_verification": "队内须核验 AI 生成内容与引文"
+              },
+              "scope": "全部参赛队（未用 AI 则无需附报告，但主报告仍限 25 页）",
+              "source_ids": [
+                "mcm-comap-instructions-2027"
+              ]
+            },
+            {
+              "id": "mcm-page-order",
+              "kind": "page_order",
+              "status": "verified",
+              "value": {
+                "first_page": "summary_sheet",
+                "followed_by": [
+                  "solution",
+                  "references",
+                  "appendices"
+                ]
+              },
+              "scope": "提交 PDF",
+              "source_ids": [
+                "mcm-comap-instructions-2027"
+              ]
+            },
+            {
+              "id": "mcm-summary-sheet",
+              "kind": "summary_sheet",
+              "status": "verified",
+              "value": {
+                "independent_page": true,
+                "contains": [
+                  "team control number"
+                ]
+              },
+              "scope": "Summary Sheet",
+              "source_ids": [
+                "mcm-comap-instructions-2027"
+              ]
+            },
+            {
+              "id": "mcm-page-header",
+              "kind": "page_header",
+              "status": "verified",
+              "value": {
+                "template": "Team # 0000000, Page 6 of 25",
+                "every_page": true
+              },
+              "scope": "每页页眉",
+              "source_ids": [
+                "mcm-comap-instructions-2027"
+              ]
+            },
+            {
+              "id": "mcm-anonymity",
+              "kind": "identity_anonymity",
+              "status": "verified",
+              "value": {
+                "names_institution": "forbidden",
+                "only_control_number_allowed": true
+              },
+              "scope": "全文任何页",
+              "source_ids": [
+                "mcm-comap-instructions-2027"
+              ]
+            },
+            {
+              "id": "mcm-file-format",
+              "kind": "file_format",
+              "status": "verified",
+              "value": {
+                "format": "pdf",
+                "language": "English",
+                "font_min_pt": 12,
+                "single_file": true,
+                "file_naming": "队号.pdf",
+                "attachment_max_mb": 25,
+                "no_extra_files": "数据/程序不随附"
+              },
+              "scope": "在线提交",
+              "source_ids": [
+                "mcm-comap-instructions-2027"
+              ]
+            }
+          ],
+          "guidance": [
+            {
+              "topic": "structure",
+              "text": "结构链 Summary→Introduction→…→References→Appendix",
+              "basis": "官方建议结构+惯例",
+              "nature": "experience"
+            }
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27",
+        "current_edition": "2027届（规则已发布，2027-01-28 至 02-01）"
+      },
+      "historical_notes": [
+        {
+          "kind": "superseded_edition",
+          "edition": "2026",
+          "note": "2026 届 COMAP 说明（官方域快照，instructions.php 定位未直读）：全文 25 页上限（Summary Sheet+目录+正文+参考文献计入）——快照级证据；2027 届已直读升 verified，本条仅留史，不用于当届",
+          "material": {
+            "page_limit": {
+              "max": 25,
+              "counted": "total"
+            },
+            "summary_sheet": "独立首页"
+          },
+          "source_ids": [
+            "SRC-008"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "『论文建议不超过25页』",
+          "disposition": "定性修正：官方为硬上限（total 口径）且目录计入——旧文本把硬约束降格为建议；引擎无 page_scope 时按全 PDF 计，与 total 口径恰好一致（巧合正确，留档说明）",
+          "sources": [
+            "SRC-008",
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ]
+    },
+    "comp_huawei": {
+      "contest_id": "comp_huawei",
+      "name": "华为杯全国研究生数学建模竞赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "gmcmthesis",
+        "compiler": "XeLaTeX",
+        "note": "官方模板指针 skills/comp-paper-zh/_templates/huawei/official_docx/（gitignored）"
+      },
+      "profiles": [
+        {
+          "profile_id": "comp_huawei_2026_electronic",
+          "edition": "2026",
+          "submission_form": "electronic",
+          "rules_revision": "第23届（开赛公告 2026-09-16 + 附件1-4 + 提醒 2026-09-21）",
+          "constraints": [
+            {
+              "id": "hw-page-limit",
+              "kind": "page_limit",
+              "status": "unknown",
+              "value": null,
+              "scope": "第 23 届当届公开文件集（开赛公告+附件1/2/3/4+09-21提醒）",
+              "source_ids": [
+                "hw23-announce",
+                "hw23-att1-manual",
+                "hw23-format-spec",
+                "hw23-att3-template",
+                "hw23-att4-ai",
+                "hw23-reminder"
+              ],
+              "note": "公告论文要求段、附件1全文（页限关键词 0 命中）、附件2全文（唯一「不超过」=摘要≤2页）、附件4全文、09-21 提醒均无页数上限条款；附件3模板仅二进制弱扫描。不能据此断言「当届全部文件无页限」——unknown 不等于无要求；历轮配置值与历史任务口径见 migration_evidence，运行时走任务级覆盖通道（MIGRATION.md M4）",
+              "locator": "负面证据收窄口径：23 届《论文格式规范》与《开赛公告》两件官方全文均无页数/篇幅上限条款；章程等其他官方件未检索；往届伪官方页数上限主张的证伪记录见 sources 与 migration_evidence",
+              "evidence": {
+                "grade": "searched_no_clause",
+                "reason": "5 份当届官方文件全文级核查无页限条款；附件3仅二进制弱扫描；章程层未查——已核当届公开文件集无页数上限条款 ≠ 当届无页限"
+              }
+            },
+            {
+              "id": "hw-page-order",
+              "kind": "page_order",
+              "status": "verified",
+              "value": {
+                "sequence": [
+                  "cover",
+                  "abstract_page",
+                  "body"
+                ],
+                "order_immutable": true
+              },
+              "scope": "提交 PDF",
+              "source_ids": [
+                "hw23-announce",
+                "hw23-reminder"
+              ]
+            },
+            {
+              "id": "hw-first-page",
+              "kind": "first_page",
+              "status": "verified",
+              "value": {
+                "cover_immutable": true,
+                "logos_count": 4,
+                "logos_replaceable": false,
+                "contains": "团队相关信息"
+              },
+              "scope": "首页封皮",
+              "source_ids": [
+                "hw23-announce",
+                "hw23-reminder"
+              ],
+              "note": "机检映射：v1 compliance.first_page=cover_with_logos_immutable（pack_submission 消费）"
+            },
+            {
+              "id": "hw-anonymity",
+              "kind": "identity_anonymity",
+              "status": "verified",
+              "value": {
+                "identity_forbidden_outside_first_page": true,
+                "forbidden_items": [
+                  "单位",
+                  "参赛人员姓名",
+                  "队伍编号",
+                  "高校代码",
+                  "学号"
+                ],
+                "violation": "论文无效"
+              },
+              "scope": "除首页外全部页面（含附件）",
+              "source_ids": [
+                "hw23-announce",
+                "hw23-reminder"
+              ]
+            },
+            {
+              "id": "hw-pledge",
+              "kind": "pledge_page",
+              "status": "unknown",
+              "value": null,
+              "scope": "论文提交件是否含承诺书（23 届当届口径）",
+              "source_ids": [
+                "hw23-format-spec",
+                "hw23-template-21st"
+              ],
+              "note": "v1 机器口径 absent_in_official_template 的 23 届适用性未建立；判定语义移交 B 适配",
+              "evidence": {
+                "grade": "searched_no_clause",
+                "reason": "23 届格式规范全文与开赛公告全文均无承诺书条款；第 21 届官方模板无承诺书页仅辅助印证——旧届模板不证明新届禁令（E-MERGE-01 裁决 4：按 unknown）"
+              }
+            },
+            {
+              "id": "hw-abstract",
+              "kind": "abstract_page",
+              "status": "verified",
+              "value": {
+                "elements": [
+                  "建模思路",
+                  "主要方法",
+                  "模型",
+                  "结果与结论",
+                  "创新点",
+                  "关键词"
+                ],
+                "max_pages": 2,
+                "max_pages_qualifier": "一般不超过",
+                "english": "not_required",
+                "template": "统一摘要页（附件3）"
+              },
+              "scope": "摘要页",
+              "source_ids": [
+                "hw23-announce",
+                "hw23-format-spec"
+              ]
+            },
+            {
+              "id": "hw-numbering",
+              "kind": "page_numbering",
+              "status": "verified",
+              "value": {
+                "start": "abstract_page",
+                "position": "footer_center",
+                "style": "arabic_from_1",
+                "header": "forbidden"
+              },
+              "scope": "全文（自摘要页起算）",
+              "source_ids": [
+                "hw23-format-spec"
+              ]
+            },
+            {
+              "id": "hw-typography",
+              "kind": "format_typography",
+              "status": "verified",
+              "value": {
+                "title": "三号黑体居中",
+                "heading1": "四号黑体居中",
+                "body": "小四号宋体",
+                "line_spacing": "单倍行距"
+              },
+              "scope": "论文排版",
+              "source_ids": [
+                "hw23-format-spec"
+              ]
+            },
+            {
+              "id": "hw-references",
+              "kind": "reference_styles",
+              "status": "verified",
+              "value": {
+                "formats": [
+                  "书籍",
+                  "期刊",
+                  "网络"
+                ],
+                "order": "按正文引用次序",
+                "in_text": "方括号标号",
+                "book_page_numbers": true
+              },
+              "scope": "参考文献",
+              "source_ids": [
+                "hw23-format-spec"
+              ]
+            },
+            {
+              "id": "hw-file-naming",
+              "kind": "file_naming",
+              "status": "verified",
+              "value": {
+                "paper": "试题编号+队伍编号.pdf",
+                "attachment": "试题编号+队伍编号.rar",
+                "example": "D26000010001"
+              },
+              "scope": "提交文件",
+              "source_ids": [
+                "hw23-announce",
+                "hw23-reminder"
+              ]
+            },
+            {
+              "id": "hw-submission",
+              "kind": "submission_process",
+              "status": "verified",
+              "value": {
+                "steps": [
+                  "md5_recognition_code",
+                  "pdf_upload",
+                  "attachment_optional"
+                ],
+                "md5_freeze": "提交后论文禁止任何改动，否则无法上传",
+                "pdf_not_compressed": true,
+                "attachment_max_mb": 50,
+                "attachment_optional": "赛题要求或自认为有利于评审时；论文中注明已上传",
+                "submit_button": "必须点击【提交】"
+              },
+              "scope": "竞赛系统三步分时段提交",
+              "source_ids": [
+                "hw23-announce",
+                "hw23-att1-manual",
+                "hw23-reminder"
+              ]
+            },
+            {
+              "id": "hw-ai",
+              "kind": "ai_declaration",
+              "status": "verified",
+              "value": {
+                "usage": "auxiliary_only",
+                "cannot_replace": "独立思考与答题主体工作",
+                "annotation": [
+                  "模型/公式来源标注",
+                  "数据分析注释注明 AI 输出",
+                  "程序前注释声明 AI 辅助"
+                ],
+                "reference_listing": "参考文献列出 AI 工具名称/版本型号/开发机构/发布日期",
+                "unverifiable_source_models": "无推导无引用一律不予认可（有不被评阅认可风险）",
+                "violation": "取消评奖资格"
+              },
+              "scope": "全部参赛队",
+              "source_ids": [
+                "hw23-announce",
+                "hw23-att4-ai"
+              ]
+            },
+            {
+              "id": "hw-results-upload",
+              "kind": "results_upload",
+              "status": "verified",
+              "value": {
+                "when": "题目有要求时",
+                "deadline": "规定时间内上传竞赛系统以备检查"
+              },
+              "scope": "计算结果与编程源程序",
+              "source_ids": [
+                "hw23-format-spec"
+              ]
+            },
+            {
+              "id": "hw-plagiarism",
+              "kind": "plagiarism",
+              "status": "verified",
+              "value": {
+                "rule": "重复率高于专家委员会阈值一般直接判定违规论文"
+              },
+              "scope": "纪律（全文查重）",
+              "source_ids": [
+                "hw23-announce"
+              ]
+            },
+            {
+              "id": "hw-margins",
+              "kind": "margins",
+              "status": "unknown",
+              "value": null,
+              "scope": "页边距",
+              "source_ids": [
+                "hw23-format-spec"
+              ],
+              "evidence": {
+                "grade": "searched_no_clause",
+                "reason": "23 届规范与公告均无页边距条款；仓库 2.5cm 主张出自往届来源文档且未对照 23 届原文"
+              }
+            }
+          ],
+          "guidance": [
+            {
+              "topic": "length_target",
+              "text": "正文目标 40-60 页；一等奖通常 55-65、二等奖 50-60；短于 36 页分析单薄高风险（实测 36 页交稿被判薄弱）",
+              "basis": "历轮获奖论文分布+实测教训",
+              "nature": "experience"
+            },
+            {
+              "topic": "per_subquestion_quota",
+              "text": "每个子问题正文 ≥8-10 页 + ≥6-8 张图表 + ≥8-15 个公式（逐式编号）",
+              "basis": "内部经验配额（v1 rules ⛔ 条目迁入）",
+              "nature": "experience"
+            },
+            {
+              "topic": "figure_quota",
+              "text": "图表总量参考区间 30-46（A/B 40-46、C/D 33-39、E/F 35-41）；数据图 8-12 + 过程图 6-12 + 表 8-12；鼓励多面板组合",
+              "basis": "skills/_utils/figure_exemplars.md（自述仅供参考）；v1 合规块图表区间字段已迁出机器块（零代码消费）",
+              "nature": "experience",
+              "note": "按题按赛事运行实例声明，不进静态合同（承接 C窗第2轮口径）"
+            },
+            {
+              "topic": "process_figures",
+              "text": "过程图表化：建模/算法/预处理/推导路径/决策树等流程图比结果图更体现工作量",
+              "basis": "内部经验",
+              "nature": "experience"
+            },
+            {
+              "topic": "appendix_target",
+              "text": "灵敏度分析与模型推广 4-5 页（≥3 页+3 图）；附录 70-100 页（完整代码+关键数据+补充推导），附录不计正文页数",
+              "basis": "内部经验配置",
+              "nature": "experience"
+            },
+            {
+              "topic": "sections_hygiene",
+              "text": "paper/sections/ 只放正文章节，代码/长数据表/求解日志放 paper/appendix/（页数预检仅统计 sections/）",
+              "basis": "工程约定",
+              "nature": "practice"
+            }
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27",
+        "current_edition": "第23届（2026）"
+      },
+      "migration_evidence": [
+        {
+          "ruling": "2026-09-25 用户裁决（S9 压缩延后）：本轮投稿口径 80 页",
+          "value": 80,
+          "scope": "仅 huawei2026d_zcode 本轮投稿；非官方约束",
+          "disposition": "按 E-02 移出全局有效规则；当前任务口径由 B 设计任务快照/显式覆盖承接，E窗不修改真实工作流数据库",
+          "sources": [
+            "hw23-task-ruling-80"
+          ],
+          "runtime_channel": "workflow step.metadata.quick_gates_max_pages（workflow_runner.py:326/1162 既有通道）+ quick_gates --max-pages 显式参数；新任务不得静默继承本值"
+        },
+        {
+          "legacy": "max_pages=50 为历轮配置基线；git 36934e5 曾以官方口径写入 compliance",
+          "value": 50,
+          "disposition": "不回拨（无官方依据，官方原文无页数条款——收窄口径：两件官方文档未规定）；记录后弃用",
+          "sources": [
+            "SRC-031",
+            "hw23-format-spec"
+          ]
+        },
+        {
+          "legacy": "engine/quality_gates.py:369 COMP_PAGES 硬编码 comp_huawei:50",
+          "disposition": "引擎写域，IR-E-B1 已立案（E窗不改）",
+          "sources": [
+            "SRC-031"
+          ]
+        },
+        {
+          "legacy": "pledge_page: required→absent_in_official_template（2026-09-25 勘误，依据21届模板）",
+          "disposition": "23届适用性 unknown（收窄口径）；判定语义移交 B 适配",
+          "sources": [
+            "hw23-template-21st"
+          ]
+        },
+        {
+          "legacy": "compliance 内 图表总量区间字段[30,46]/typography/reference_styles 等文档键",
+          "disposition": "移出机器块：图表区间入 guidance（经验），其余经23届原文核验后入 constraints",
+          "sources": [
+            "SRC-034",
+            "hw23-format-spec"
+          ]
+        }
+      ]
+    },
+    "comp_apmcm": {
+      "contest_id": "comp_apmcm",
+      "name": "亚太地区大学生数学建模竞赛 (APMCM)",
+      "language": "en",
+      "tooling": {
+        "template_cls": "apmcmthesis",
+        "compiler": "pdflatex",
+        "note": "迁移期保留（v1），去留见 MIGRATION.md M7"
+      },
+      "profiles": [
+        {
+          "profile_id": "comp_apmcm_2026_electronic",
+          "edition": "2026",
+          "submission_form": "electronic",
+          "rules_revision": "第16届报名通知（2026-09-15）+ 章程（2020修订）+ FAQ（2025-10-15）",
+          "constraints": [
+            {
+              "id": "apmcm-submission",
+              "kind": "submission_language",
+              "status": "verified",
+              "value": {
+                "paper": "electronic_only",
+                "language": "english",
+                "paper_mail": "not_required"
+              },
+              "scope": "第16届主赛项",
+              "source_ids": [
+                "apmcm16-notice"
+              ],
+              "note": "v1 name 为亚太（英文赛）；中文赛项独立条目 comp_apmcm_zh"
+            },
+            {
+              "id": "apmcm-page-limit",
+              "kind": "page_limit",
+              "status": "unknown",
+              "value": null,
+              "scope": "第 16 届当届（通知/章程/FAQ 均无页数条款）",
+              "source_ids": [
+                "apmcm16-notice",
+                "apmcm16-charter",
+                "apmcm-faq"
+              ],
+              "note": "当届如发布论文格式规范应回填；历史值见 historical_notes",
+              "evidence": {
+                "grade": "searched_no_clause",
+                "reason": "已核当届公开文件集（图片通知全文/章程/FAQ）无页数上限条款；不据此推断当届无要求（unknown≠无要求）；v1 配置值与 2022 届快照值均不作为当届口径"
+              }
+            },
+            {
+              "id": "apmcm-ai",
+              "kind": "ai_declaration",
+              "status": "unknown",
+              "value": null,
+              "scope": "第16届可见官方材料（通知1-9条/章程/FAQ）未规定 AI 使用声明要求",
+              "source_ids": [
+                "apmcm16-notice",
+                "apmcm16-charter",
+                "apmcm-faq"
+              ],
+              "note": "不臆造存在或不存在的 AI 条款；如当届有补充通知（第9条所指）应回填"
+            }
+          ],
+          "guidance": [
+            {
+              "topic": "structure",
+              "text": "论文结构参考美赛：Summary→Introduction→Model→Solution→Conclusions",
+              "basis": "v1 历史配置（未核验）",
+              "nature": "historical_config"
+            }
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27",
+        "current_edition": "第16届（2026-11-26 至 11-30）"
+      },
+      "historical_notes": [
+        {
+          "kind": "superseded_edition",
+          "edition": "2022",
+          "note": "2022 届参赛规则（官网快照）：正文不超过 25 页（不含附件和承诺书）、命名题号+参赛编号——旧届口径，当届不适用（E-MERGE-01 裁决 4：旧届快照保留历史，不用于当届）",
+          "material": {
+            "page_limit": {
+              "max": 25,
+              "counted": "body",
+              "excludes": [
+                "附件(附录)",
+                "承诺书"
+              ]
+            },
+            "file_naming": "题号+参赛编号"
+          },
+          "source_ids": [
+            "SRC-013"
+          ]
+        },
+        {
+          "kind": "superseded_edition",
+          "edition": "2023-2025",
+          "note": "2023/2025 提交规范：论文模板仅供参考不做强制；控制页即承诺书（官方快照）——历史口径",
+          "source_ids": [
+            "SRC-014"
+          ]
+        },
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=25（无口径说明，未核验）",
+          "material": {
+            "v1_max_pages": 25
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "max_pages=25 无口径说明",
+          "disposition": "25 与 2022 官方规则一致但口径应为 body（不含附录/承诺书）——旧配置语义含糊；当届规则未核验",
+          "sources": [
+            "SRC-013",
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ]
+    },
+    "comp_apmcm_zh": {
+      "contest_id": "comp_apmcm_zh",
+      "name": "亚太地区大学生数学建模竞赛中文赛项 (APMCM 中文)",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "MathorCupmodeling",
+        "compiler": "XeLaTeX",
+        "note": "迁移期保留（v1），去留见 MIGRATION.md M7"
+      },
+      "profiles": [
+        {
+          "profile_id": "comp_apmcm_zh_2026_electronic",
+          "edition": "2026",
+          "submission_form": "electronic",
+          "rules_revision": "第16届中文赛项报名通知（2026-05-28）",
+          "constraints": [
+            {
+              "id": "apmcmzh-submission",
+              "kind": "submission_language",
+              "status": "verified",
+              "value": {
+                "paper": "electronic_only",
+                "language": "chinese",
+                "paper_mail": "not_required"
+              },
+              "scope": "第16届中文赛项",
+              "source_ids": [
+                "apmcm16zh-notice"
+              ]
+            },
+            {
+              "id": "apmcmzh-page-limit",
+              "kind": "page_limit",
+              "status": "unknown",
+              "value": null,
+              "scope": "第 16 届中文赛项当届（通知全文无页数条款）",
+              "source_ids": [
+                "apmcm16zh-notice"
+              ],
+              "note": "历史值见 historical_notes",
+              "evidence": {
+                "grade": "searched_no_clause",
+                "reason": "当届通知全文无页数上限条款；不据此推断无要求（unknown≠无要求）；v1 值不作为当届口径"
+              }
+            },
+            {
+              "id": "apmcmzh-ai",
+              "kind": "ai_declaration",
+              "status": "unknown",
+              "value": null,
+              "scope": "第16届中文赛项通知全文未规定 AI 使用声明要求",
+              "source_ids": [
+                "apmcm16zh-notice"
+              ],
+              "note": "不臆造条款"
+            }
+          ],
+          "guidance": [
+            {
+              "topic": "structure",
+              "text": "摘要+关键词（3-5 个）→…→附录（v1 历史配置文本）",
+              "basis": "v1 历史配置（未核验）",
+              "nature": "historical_config"
+            }
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27",
+        "current_edition": "第16届中文赛项（2026-06-12 至 06-15 已赛毕；下一届以新通知为准）"
+      },
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=25（未核验）；第三方称 2025 届中文赛项正文≤20 页（candidate 线检索，非官方原文）",
+          "material": {
+            "v1_max_pages": 25
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ]
+    },
+    "comp_mathorcup": {
+      "contest_id": "comp_mathorcup",
+      "name": "MathorCup 数学建模挑战赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：v1 rules：不超过30页/目录页/队号题号表格/中文摘要（均未核验）",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=30（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "官网（mathorcup.org）2026 第七届章程页直读：正文条款在附件 PDF 内未直读；第六届规范仅第三方转载（称承诺书+编号专用页、A4、2.5cm）",
+        "search_log": [
+          "官网 detail/2495 直读（2026-09-27）：条款在 PDF 附件",
+          "检索『MathorCup 论文格式规范 页数』：第六届规范仅 scribd 第三方转载"
+        ],
+        "open_questions": [
+          "当届章程 PDF 内容（页数/承诺书/提交形式）",
+          "第六届规范第三方转载的官方性确认"
+        ]
+      }
+    },
+    "comp_stats": {
+      "contest_id": "comp_stats",
+      "name": "全国大学生统计建模大赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：v1 rules：自主选题/自行采集真实数据/答辩PPT/统计规范性（均未核验）",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "kind": "superseded_edition",
+          "edition": "2025",
+          "note": "2025 年（第十一届）组委会通知（院校官方渠道≥3 独立来源一致转载，组委会原件未直读）：官方约束形式是正文字符数不是页数——字数制 ≤16000（计空格）、知网查重 ≤20%（>40% 视为学术不端）、论文八要素。2026（第十二届）是否延续字数制：待当届通知（E-MERGE-01 裁决 5：吸收 candidate 线字数制发现，原快照强度不升级）",
+          "material": {
+            "word_limit": {
+              "max_chars": 16000,
+              "counting": "正文字符数（计空格）"
+            },
+            "plagiarism": {
+              "max_rate": "20%",
+              "over_40": "视为学术不端"
+            },
+            "structure_parts": [
+              "封面页",
+              "摘要与关键词",
+              "章节目录",
+              "表格和插图清单",
+              "论文正文",
+              "参考文献",
+              "附录",
+              "致谢"
+            ]
+          },
+          "source_ids": [
+            "SRC-015"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=30（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "2026（第十二届）当届要求未核验；2025（第十一届）官方约束形式为正文字符数 ≤16000（快照级，见 historical_notes），页数口径无官方出处",
+        "search_log": [
+          "检索「统计建模 论文 格式 页数」：第十一届通知经 ≥3 院校官方渠道一致转载；第十二届通知未获"
+        ],
+        "open_questions": [
+          "当届（第十二届）通知原文",
+          "字数制（≤16000 字符）是否延续到 2026"
+        ]
+      }
+    },
+    "comp_teddy": {
+      "contest_id": "comp_teddy",
+      "name": "泰迪杯数据挖掘挑战赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=40（无官方出处，未核验）；历史文本：v1 rules：赛程约13天/数据挖掘方向（均未核验）",
+          "material": {
+            "v1_max_pages": 40
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=40（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "官网 tipdmcup.cn 章程快照：仅「提交一篇论文及对应材料」；历次检索未见页数条款；规范随当届通知附件",
+        "search_log": [
+          "检索×3（页数/格式/规范 site:tipdmcup.cn）：无页数条款命中；资讯列表页抓取失败（并发限）"
+        ],
+        "open_questions": [
+          "当届通知附件中的论文格式规范原文"
+        ]
+      }
+    },
+    "comp_certcup": {
+      "contest_id": "comp_certcup",
+      "name": "认证杯数学建模（第一/二阶段）",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=35（无官方出处，未核验）；历史文本：v1 rules：两阶段提交（未核验）",
+          "material": {
+            "v1_max_pages": 35
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=35（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27",
+        "detail": "2026年第十九届"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "官网 tzmcm.cn/gz.html 快照：分两阶段，每阶段开始前三天另行公布论文格式与提交办法——格式要求为动态发布，须按阶段取用",
+        "search_log": [
+          "检索『认证杯 论文格式 页数』：规则页仅见『阶段前三天公布』机制"
+        ],
+        "open_questions": [
+          "各阶段实际公布的论文格式与提交办法（赛前动态获取）"
+        ]
+      }
+    },
+    "comp_huazhong": {
+      "contest_id": "comp_huazhong",
+      "name": "华中杯数学建模邀请赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "cumcmthesis",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：v1 rules：不超过30页/withoutpreface（均未核验）",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "kind": "superseded_edition",
+          "edition": "2021",
+          "note": "2021 届官网论文格式规范（官方域快照，站点证书过期未直读）：摘要页第一页≤1页、目录第二页、正文自第三页「尽量控制在20页左右」（软措辞）、附录不限——旧届口径；v1 的 30 页与之不一致且无出处",
+          "material": {
+            "abstract": {
+              "first_page": true,
+              "max_pages": 1
+            },
+            "toc_page": 2,
+            "page_limit": {
+              "soft_max": 20,
+              "wording": "尽量控制在20页左右"
+            },
+            "appendix": "unlimited"
+          },
+          "source_ids": [
+            "SRC-012"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=30（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "第15届（2026，通知已发布）当届规范缺证：官网 hzbmmc.com 证书过期无法直读；最近一次官方口径为 2021 届规范快照（见 historical_notes，不用于当届）",
+        "search_log": [
+          "官网直读失败（站点证书过期）",
+          "官方域检索快照：2021-03-19 论文格式规范（摘要页1页/目录第2页/正文20页左右软措辞）"
+        ],
+        "open_questions": [
+          "当届（第15届）论文格式规范原文",
+          "2021 届「正文 20 页左右」软目标是否延续"
+        ]
+      }
+    },
+    "comp_huadong": {
+      "contest_id": "comp_huadong",
+      "name": "华东杯数学建模邀请赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [
+        {
+          "profile_id": "comp_huadong_2026_electronic",
+          "edition": "2026",
+          "submission_form": "electronic",
+          "rules_revision": "第28届通知所附论文格式规范（官方门户快照）",
+          "constraints": [
+            {
+              "id": "huadong-2026-page-setup",
+              "kind": "page_setup",
+              "status": "unknown",
+              "value": null,
+              "scope": "论文",
+              "source_ids": [
+                "SRC-009"
+              ],
+              "evidence": {
+                "grade": "official_portal_snapshot",
+                "reason": "官方渠道检索快照一致，通知/规范原文未直读，不满足 verified 原文级口径（E-MERGE-01 裁决 1/5：转来源质量，原证据强度不升级）",
+                "material": {
+                  "paper": "A4纵向",
+                  "margins_cm": 2.5
+                }
+              }
+            },
+            {
+              "id": "huadong-2026-abstract-page",
+              "kind": "abstract_page",
+              "status": "unknown",
+              "value": null,
+              "scope": "第一页",
+              "source_ids": [
+                "SRC-009"
+              ],
+              "evidence": {
+                "grade": "official_portal_snapshot",
+                "reason": "官方渠道检索快照一致，通知/规范原文未直读，不满足 verified 原文级口径（E-MERGE-01 裁决 1/5：转来源质量，原证据强度不升级）",
+                "material": {
+                  "first_page": true,
+                  "page_number_on_first_page": false
+                }
+              },
+              "locator": "「论文题目和摘要写在第一页（第一页不写页码）」"
+            },
+            {
+              "id": "huadong-2026-submission",
+              "kind": "submission_flow",
+              "status": "unknown",
+              "value": null,
+              "scope": "提交环节",
+              "source_ids": [
+                "SRC-009"
+              ],
+              "evidence": {
+                "grade": "official_portal_snapshot",
+                "reason": "官方渠道检索快照一致，通知/规范原文未直读，不满足 verified 原文级口径（E-MERGE-01 裁决 1/5：转来源质量，原证据强度不升级）",
+                "material": {
+                  "channel": "email至指定邮箱",
+                  "naming": "题号+参赛队号"
+                }
+              }
+            },
+            {
+              "id": "huadong-2026-page-limit",
+              "kind": "page_limit",
+              "status": "unknown",
+              "value": null,
+              "scope": "论文页数",
+              "source_ids": [
+                "SRC-009"
+              ],
+              "locator": "检索快照未见页数条款；通知原文未直读"
+            }
+          ],
+          "guidance": []
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27",
+        "current_edition": "第28届（2026-04）"
+      },
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：复制污染（copy_artifact）：以下两条与 comp_shuwei、comp_zhongqing、comp_yangtze、comp_diangong、comp_shenzhen、comp_huashu、comp_tianfu、comp_liaoning 逐字相同、无出处——赛程较长（7月中旬至9月上旬）；侧重电气工程与能源方向的建模问题",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "kind": "copy_artifact",
+          "note": "v1 赛程/领域描述与多个赛事逐字复制且零出处（E-01 定案 copy_artifact，共 9 条目），不得作为本赛事事实；逐字见 backup",
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "「赛程较长（7月中旬至9月上旬）」「侧重电气工程与能源方向的建模问题」（与8个赛事逐字复制）",
+          "disposition": "copy_artifact：华东杯实为复旦等主办、4月底-5月初举行、2026届通知经官方门户发布——两条复制描述与实证相悖，弃用；领域描述不构成规则",
+          "sources": [
+            "legacy-comp-rules-20260927",
+            "SRC-009"
+          ]
+        },
+        {
+          "legacy": "max_pages=30",
+          "disposition": "无官方依据，不入有效规则；留档",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ]
+    },
+    "comp_shuwei": {
+      "contest_id": "comp_shuwei",
+      "name": "数维杯数学建模（国内赛）",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：复制污染（copy_artifact）：以下两条与 comp_huadong、comp_zhongqing、comp_yangtze、comp_diangong、comp_shenzhen、comp_huashu、comp_tianfu、comp_liaoning 逐字相同、无出处——赛程较长（7月中旬至9月上旬）；侧重电气工程与能源方向的建模问题",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "kind": "copy_artifact",
+          "note": "v1 赛程/领域描述与多个赛事逐字复制且零出处（E-01 定案 copy_artifact，共 9 条目），不得作为本赛事事实；逐字见 backup",
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=30（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "官网首页直读：2026 秋季赛提交截止 2026-11-24；官网存在《参赛规则(2026年修订稿)》与《论文格式规范》（快照），正文未直读；PDF 命名快照称『题号XSWBMCM+队伍编号.pdf』",
+        "search_log": [
+          "官网首页直读（2026-09-27）：无规则文档链接",
+          "检索『数维杯 论文格式 页数』：nmmcm.org.cn 规则快照，正文未获"
+        ],
+        "open_questions": [
+          "论文格式规范原文（页数/承诺书/摘要）"
+        ]
+      }
+    },
+    "comp_zhongqing": {
+      "contest_id": "comp_zhongqing",
+      "name": "中青杯数学建模竞赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：复制污染（copy_artifact）：以下两条与 comp_huadong、comp_shuwei、comp_yangtze、comp_diangong、comp_shenzhen、comp_huashu、comp_tianfu、comp_liaoning 逐字相同、无出处——赛程较长（7月中旬至9月上旬）；侧重电气工程与能源方向的建模问题",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "kind": "copy_artifact",
+          "note": "v1 赛程/领域描述与多个赛事逐字复制且零出处（E-01 定案 copy_artifact，共 9 条目），不得作为本赛事事实；逐字见 backup",
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=30（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "官网 cycmcm.com 2026 第八届存活；提交流程快照：上传须勾选【我已查看承诺书并同意】；直读失败（SSL 握手失败）；页数条款未见",
+        "search_log": [
+          "检索×3：仅获提交流程快照与承诺书勾选机制",
+          "官网直读失败（ERR_SSL_SSLV3_ALERT_HANDSHAKE_FAILURE）"
+        ],
+        "open_questions": [
+          "当届论文格式规范原文（页数/格式）"
+        ]
+      }
+    },
+    "comp_yangtze": {
+      "contest_id": "comp_yangtze",
+      "name": "长三角高校数学建模竞赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：复制污染（copy_artifact）：以下两条与 comp_huadong、comp_shuwei、comp_zhongqing、comp_diangong、comp_shenzhen、comp_huashu、comp_tianfu、comp_liaoning 逐字相同、无出处——赛程较长（7月中旬至9月上旬）；侧重电气工程与能源方向的建模问题",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "kind": "copy_artifact",
+          "note": "v1 赛程/领域描述与多个赛事逐字复制且零出处（E-01 定案 copy_artifact，共 9 条目），不得作为本赛事事实；逐字见 backup",
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=30（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "赛氪（官方发布渠道）2025 第五届：Tips/论文格式规范/模板/承诺书附件存在未直读；2026 第六届通知已发布；第三方转述官方规范：A4、页边距2厘米、附竞赛诚信承诺书",
+        "search_log": [
+          "检索『长三角 数学建模 论文格式 页数』：规范在平台附件内"
+        ],
+        "open_questions": [
+          "当届规范原文（页数/承诺书/边距——第三方转述的 2cm 边距待原文确认）"
+        ]
+      }
+    },
+    "comp_diangong": {
+      "contest_id": "comp_diangong",
+      "name": "电工杯数学建模竞赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [
+        {
+          "profile_id": "comp_diangong_2026_electronic",
+          "edition": "2026",
+          "submission_form": "electronic",
+          "rules_revision": "官方论文规范（东北电力大学 2026-03-21）",
+          "constraints": [
+            {
+              "id": "diangong-2026-page-setup",
+              "kind": "page_setup",
+              "status": "unknown",
+              "value": null,
+              "scope": "论文",
+              "source_ids": [
+                "SRC-010"
+              ],
+              "evidence": {
+                "grade": "official_portal_snapshot",
+                "reason": "官方渠道检索快照一致，通知/规范原文未直读，不满足 verified 原文级口径（E-MERGE-01 裁决 1/5：转来源质量，原证据强度不升级）",
+                "material": {
+                  "paper": "A4",
+                  "margins_cm": 2.5,
+                  "body_font": "宋体小四"
+                }
+              }
+            },
+            {
+              "id": "diangong-2026-first-page",
+              "kind": "first_page",
+              "status": "unknown",
+              "value": null,
+              "scope": "第一页",
+              "source_ids": [
+                "SRC-010"
+              ],
+              "evidence": {
+                "grade": "official_portal_snapshot",
+                "reason": "官方渠道检索快照一致，通知/规范原文未直读，不满足 verified 原文级口径（E-MERGE-01 裁决 1/5：转来源质量，原证据强度不升级）",
+                "material": {
+                  "type": "封面页",
+                  "content": [
+                    "报名序号",
+                    "论文题目"
+                  ],
+                  "note": "题目不用自拟，直接使用赛题题目"
+                }
+              }
+            },
+            {
+              "id": "diangong-2026-submission",
+              "kind": "submission_flow",
+              "status": "unknown",
+              "value": null,
+              "scope": "提交环节",
+              "source_ids": [
+                "SRC-011"
+              ],
+              "evidence": {
+                "grade": "official_portal_snapshot",
+                "reason": "官方渠道检索快照一致，通知/规范原文未直读，不满足 verified 原文级口径（E-MERGE-01 裁决 1/5：转来源质量，原证据强度不升级）",
+                "material": {
+                  "format": "PDF ≤20MB",
+                  "naming": "4位报名序号+题号（A或B）"
+                }
+              }
+            },
+            {
+              "id": "diangong-2026-page-limit",
+              "kind": "page_limit",
+              "status": "unknown",
+              "value": null,
+              "scope": "论文页数",
+              "source_ids": [
+                "SRC-010",
+                "SRC-011"
+              ],
+              "locator": "检索快照未见页数条款；规范原文未直读"
+            }
+          ],
+          "guidance": []
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27",
+        "current_edition": "第18届（2026）"
+      },
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：领域描述（电气能源）与赛事名相合但仍无出处；复制污染（copy_artifact）：以下两条与 comp_huadong、comp_shuwei、comp_zhongqing、comp_yangtze、comp_shenzhen、comp_huashu、comp_tianfu、comp_liaoning 逐字相同、无出处——赛程较长（7月中旬至9月上旬）；侧重电气工程与能源方向的建模问题",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "kind": "copy_artifact",
+          "note": "v1 赛程/领域描述与多个赛事逐字复制且零出处（E-01 定案 copy_artifact，共 9 条目），不得作为本赛事事实；逐字见 backup",
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "「赛程较长（7月中旬至9月上旬）」「侧重电气工程与能源方向」（9条目复制块之一）",
+          "disposition": "copy_artifact 弃用；主办为东北电力大学，领域与赛事名相合但属题源性质、非格式规则",
+          "sources": [
+            "legacy-comp-rules-20260927",
+            "SRC-010"
+          ]
+        },
+        {
+          "legacy": "max_pages=30",
+          "disposition": "无官方依据，不入有效规则；留档",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ]
+    },
+    "comp_shenzhen": {
+      "contest_id": "comp_shenzhen",
+      "name": "深圳杯数学建模竞赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：复制污染（copy_artifact）：以下两条与 comp_huadong、comp_shuwei、comp_zhongqing、comp_yangtze、comp_diangong、comp_huashu、comp_tianfu、comp_liaoning 逐字相同、无出处——赛程较长（7月中旬至9月上旬）；侧重电气工程与能源方向的建模问题",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "kind": "copy_artifact",
+          "note": "v1 赛程/领域描述与多个赛事逐字复制且零出处（E-01 定案 copy_artifact，共 9 条目），不得作为本赛事事实；逐字见 backup",
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=30（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "suspended",
+        "checked_at": "2026-09-27",
+        "detail": "2026年度暂停举办（组委会秘书处 2026-05-09 通知，不可抗力；官方直读）"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "官方直读（cmathc 488）：2026 年度暂停举办（组委会秘书处 2026-05-09，不可抗力）；历史规范未入库，第三方称沿用国赛规范（未证实）",
+        "search_log": [
+          "官网 m2ct.org 与 cmathc 通知；暂停通知直读",
+          "历史格式规范：仅第三方汇总"
+        ],
+        "open_questions": [
+          "复办后当届规范（暂停期间无从核验）"
+        ]
+      }
+    },
+    "comp_huashu": {
+      "contest_id": "comp_huashu",
+      "name": "华数杯数学建模竞赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：复制污染（copy_artifact）：以下两条与 comp_huadong、comp_shuwei、comp_zhongqing、comp_yangtze、comp_diangong、comp_shenzhen、comp_tianfu、comp_liaoning 逐字相同、无出处——赛程较长（7月中旬至9月上旬）；侧重电气工程与能源方向的建模问题",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "kind": "copy_artifact",
+          "note": "v1 赛程/领域描述与多个赛事逐字复制且零出处（E-01 定案 copy_artifact，共 9 条目），不得作为本赛事事实；逐字见 backup",
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=30（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "赛氪（官方发布渠道）2026 第七届：《华数杯数学建模竞赛论文格式规范与提交说明.pdf》+论文模板+承诺书附件存在，未直读；第三方（TeXPage 模板注）称『建议尽量控制在20页以内（超页一般不影响）』——非官方原文",
+        "search_log": [
+          "检索×2：规范 PDF 在赛氪平台附件"
+        ],
+        "open_questions": [
+          "当届规范 PDF 原文（页数/承诺书/提交）"
+        ]
+      }
+    },
+    "comp_tianfu": {
+      "contest_id": "comp_tianfu",
+      "name": "天府杯数学建模竞赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：复制污染（copy_artifact）：以下两条与 comp_huadong、comp_shuwei、comp_zhongqing、comp_yangtze、comp_diangong、comp_shenzhen、comp_huashu、comp_liaoning 逐字相同、无出处——赛程较长（7月中旬至9月上旬）；侧重电气工程与能源方向的建模问题",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "kind": "copy_artifact",
+          "note": "v1 赛程/领域描述与多个赛事逐字复制且零出处（E-01 定案 copy_artifact，共 9 条目），不得作为本赛事事实；逐字见 backup",
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=30（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "赛氪（官方发布渠道）2025 第五届：论文模板及承诺书（2025-08-14）存在未直读；国际赛（第四届）仅需英文论文、不按天府杯模板",
+        "search_log": [
+          "检索×2（含重试）：规范在平台附件"
+        ],
+        "open_questions": [
+          "当届规范原文"
+        ]
+      }
+    },
+    "comp_liaoning": {
+      "contest_id": "comp_liaoning",
+      "name": "辽宁省大学生数学建模/东三省数学建模联赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：复制污染（copy_artifact）：以下两条与 comp_huadong、comp_shuwei、comp_zhongqing、comp_yangtze、comp_diangong、comp_shenzhen、comp_huashu、comp_tianfu 逐字相同、无出处——赛程较长（7月中旬至9月上旬）；侧重电气工程与能源方向的建模问题",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "kind": "copy_artifact",
+          "note": "v1 赛程/领域描述与多个赛事逐字复制且零出处（E-01 定案 copy_artifact，共 9 条目），不得作为本赛事事实；逐字见 backup",
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=30（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "unverified",
+        "checked_at": "2026-09-27",
+        "detail": "赛事本体与名称口径待澄清（辽宁省锦标赛/东三省联赛），检索零官方线索"
+      },
+      "evidence_summary": {
+        "status": "unknown",
+        "summary": "检索请求连续失败（检索工具并发限制），未获得任何官方渠道线索；赛事名称存在『辽宁省锦标赛』与『东三省联赛』两个口径，规范ID 与实际赛事的对应关系本身待澄清",
+        "search_log": [
+          "检索×1：工具错误（contentFilter/并发限），无结果"
+        ],
+        "open_questions": [
+          "赛事本体与主办方确认",
+          "当届规范原文"
+        ]
+      }
+    },
+    "comp_wuyi": {
+      "contest_id": "comp_wuyi",
+      "name": "五一杯数学建模竞赛",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "cumcmthesis",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=30（无官方出处，未核验）；历史文本：v1 rules：第一页承诺书为模板行为（wuyi_main.tex），官方要求未核验；机检缺口：v1 无 compliance 块→承诺书不受机检（缺口保持记录）",
+          "material": {
+            "v1_max_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        },
+        {
+          "kind": "conflict_record",
+          "note": "页数口径冲突（E-MERGE-01 裁决 5：吸收 candidate 线格式冲突发现）：2024 规范第三方转载称正文不超过 20 页 vs 仓库 v1 旧配置 30 页——两说均未获官方原文，待 23 届 RAR 内规范裁决（官网直读仅见「请参考格式规范使用模板撰写论文」）",
+          "material": {
+            "claim_2024_third_party_pages": 20,
+            "v1_config_pages": 30
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927",
+            "SRC-005"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=30（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "官网（中国矿业大学 51mcm.cumt.edu.cn）第23届（2026）赛题页直读：『请参考格式规范使用模板撰写论文』——规范与提交说明在附件 2026-51MCM-Problems.rar 内（只读取证不下载压缩包）；2024 规范第三方转载称『正文不超过20页』+承诺书第一页，与仓库旧配置 30 页冲突",
+        "search_log": [
+          "官网 23 届页直读×2（重试一次）：条款在 RAR 附件",
+          "检索×4：2024 规范仅 scribd 第三方转载"
+        ],
+        "open_questions": [
+          "23 届规范原文（RAR 内；待授权下载拆包或人工提供）",
+          "20页（2024转载）与30页（旧配置）冲突的官方裁决"
+        ]
+      }
+    },
+    "comp_certcup_en": {
+      "contest_id": "comp_certcup_en",
+      "name": "认证杯国际赛 (小美赛)",
+      "language": "en",
+      "tooling": {
+        "template_cls": "article",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=25（无官方出处，未核验）；历史文本：v1 rules：Summary独立成页/建议不超过25页（均未核验）",
+          "material": {
+            "v1_max_pages": 25
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=25（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "官网 mcm.tzmcm.cn 快照：第14届（2025）官方称「和美国大学生数学建模竞赛（MCM/ICM）的要求完全相同」——数字口径随 MCM 当届规则，未获小美赛自身规范原文",
+        "search_log": [
+          "检索『小美赛 论文格式 页数』：仅官方域快照的『与美赛完全相同』声明；25页等具体数值系检索工具综合、非逐字原文"
+        ],
+        "open_questions": [
+          "小美赛当届规则原文（含与美赛对应关系及例外）"
+        ]
+      }
+    },
+    "comp_shuwei_en": {
+      "contest_id": "comp_shuwei_en",
+      "name": "数维杯国际赛 (ISTIC)",
+      "language": "en",
+      "tooling": {
+        "template_cls": "article",
+        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+      },
+      "profiles": [],
+      "historical_notes": [
+        {
+          "kind": "legacy_config",
+          "note": "v1 历史配置 max_pages=25（无官方出处，未核验）；历史文本：v1 rules：建议不超过25页（未核验）",
+          "material": {
+            "v1_max_pages": 25
+          },
+          "source_ids": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "migration_evidence": [
+        {
+          "legacy": "v1 max_pages=25（无官方出处）",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "sources": [
+            "legacy-comp-rules-20260927"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-09-27"
+      },
+      "evidence_summary": {
+        "status": "missing_evidence",
+        "summary": "官网口径：数维杯分春季（国际赛，5月）/秋季（11月）两场；国际赛规范未直读",
+        "search_log": [
+          "检索『数维杯国际赛 论文格式』：未见独立规范原文"
+        ],
+        "open_questions": [
+          "春季赛（国际赛）当届规范原文"
+        ]
+      }
+    }
   }
 }
