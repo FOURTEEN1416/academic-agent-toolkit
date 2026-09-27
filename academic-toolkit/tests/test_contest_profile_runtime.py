@@ -115,9 +115,8 @@ def test_task_page_preference_scoped_and_capped():
 
 # ── B-02：profiles 维度选择（届次/形态选真正对应规则，不是覆盖标签） ──────────
 
-def _fixture_file(data: dict) -> Path:
-    import tempfile
-    path = Path(tempfile.mkdtemp()) / "comp_rules.json"
+def _fixture_file(data: dict, tmp_path: Path) -> Path:
+    path = tmp_path / "comp_rules.json"
     path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     return path
 
@@ -137,8 +136,8 @@ _PROFILED = {
 }
 
 
-def test_profiles_dimension_selects_real_corresponding_rules():
-    fx = _fixture_file(_PROFILED)
+def test_profiles_dimension_selects_real_corresponding_rules(tmp_path: Path):
+    fx = _fixture_file(_PROFILED, tmp_path)
     p23 = resolve_profile("comp_fx", {"contest": {"edition": "23", "submission_form": "electronic"}}, rules_file=fx)
     assert p23.profile_id == "comp_fx@23@electronic" and p23.rules_revision == "rev-23"
     assert p23.gate_page_cap == 50 and p23.compliance["pledge_page"] == "absent_in_official_template"
@@ -147,13 +146,13 @@ def test_profiles_dimension_selects_real_corresponding_rules():
     assert p22.compliance["pledge_page"] == "required", "不同届次/形态必须命中各自规则"
 
 
-def test_profiles_dimension_request_without_match_fails_loudly():
-    fx = _fixture_file(_PROFILED)
+def test_profiles_dimension_request_without_match_fails_loudly(tmp_path: Path):
+    fx = _fixture_file(_PROFILED, tmp_path)
     with pytest.raises(ContestProfileError, match="无匹配"):
         resolve_profile("comp_fx", {"contest": {"edition": "24"}}, rules_file=fx)
     with pytest.raises(ContestProfileError):
         resolve_profile("comp_fx", {"contest": {"edition": "23", "submission_form": "paper"}},
-                        rules_file=fx), "形态不匹配也不回退"
+                        rules_file=fx)
 
 
 def test_selection_request_without_dimension_is_pending_not_label():
@@ -183,7 +182,7 @@ def test_unverified_caps_are_not_upgraded_and_guidance_separate():
     assert bare.constraints == () and bare.guidance == ()
 
 
-def test_e_candidate_bands_drive_status_and_non_inheritance():
+def test_e_candidate_bands_drive_status_and_non_inheritance(tmp_path: Path):
     """E 候选形态：task_override 带口径不继承给新任务；official_verified 驱动结论。"""
     fx = _fixture_file({"comp_hw_next": {
         "name": "华为杯", "language": "zh",
@@ -198,7 +197,7 @@ def test_e_candidate_bands_drive_status_and_non_inheritance():
                           "task_override": [
                               {"key": "max_pages / compliance.max_body_pages", "value": 80,
                                "ruling": "2026-09-25 用户裁决", "scope": "仅本轮投稿"}]},
-                      }]}})
+                      }]}}, tmp_path)
     fresh = resolve_profile("comp_hw_next", {}, rules_file=fx)
     assert fresh.operative["cap"] is None, "新任务不继承单次80页"
     assert fresh.non_inherited_overrides and "2026-09-25" in fresh.non_inherited_overrides[0]["ruling"]
@@ -429,23 +428,22 @@ def test_step_profile_conflicting_with_bound_identity_is_rejected(tmp_path):
     store.close()
 
 
-# ── v2 候选消费验证（总调度收口 2026-09-27）：profiles 选择为唯一消费路径 ──────
-# 生产真源仍 v1（切换是 E 窗的活、须总调度放行）；本段把 COMP_RULES_PATH 指向
-# v2 合并候选，验证 B 消费端在候选上的选择/三态/快照绑定/非继承语义。
+# ── v2 生产真源消费验证（2026-09-27 M5 切生产后收口）：profiles 选择为唯一消费路径 ──
+# comp_rules.json 已是 v2 生产（22 赛事 / 8 profiles / 51 约束）；默认对生产真源跑，
+# 可用环境变量 COMP_RULES_PATH 指向任意等 schema 副本（如 E 窗协作区草稿）。
 
 import os  # noqa: E402
 
-V2_CANDIDATE = Path(os.environ.get(
-    "COMP_RULES_PATH",
-    "D:/Desktop/优化分析工程/outputs/collaboration/E/draft_comp_rules_v2.json"))
+V2_RULES_FILE = Path(os.environ.get(
+    "COMP_RULES_PATH", str(ROOT / "engine" / "modex-core" / "comp_rules.json")))
 
-_v2_on_disk = pytest.mark.skipif(not V2_CANDIDATE.is_file(),
-                                 reason="v2 合并候选不在盘上（E 窗产物）")
+_v2_on_disk = pytest.mark.skipif(not V2_RULES_FILE.is_file(),
+                                 reason="v2 规则真源不在盘上")
 
 
 @_v2_on_disk
 def test_v2_candidate_unwraps_contests_and_has_22_ids():
-    ids = cp.known_contest_ids(V2_CANDIDATE)
+    ids = cp.known_contest_ids(V2_RULES_FILE)
     assert len(ids) == 22, f"候选赛事数漂移: {len(ids)}"
     assert "comp_cumcm" in ids and "comp_huawei" in ids
     assert "contests" not in ids and "sources" not in ids, "包裹键不得当作赛事ID"
@@ -455,7 +453,7 @@ def test_v2_candidate_unwraps_contests_and_has_22_ids():
 def test_v2_profiles_selection_picks_real_corresponding_rules():
     elec = cp.resolve_profile("comp_cumcm", {"contest": {"edition": "2026",
                                                          "submission_form": "electronic"}},
-                              rules_file=V2_CANDIDATE)
+                              rules_file=V2_RULES_FILE)
     assert elec.profile_id == "comp_cumcm_2026_electronic"
     assert elec.max_body_pages == 30 and elec.max_total_pages is None
     assert elec.gate_page_cap == 30 and elec.gate_page_scope == "body"
@@ -463,25 +461,25 @@ def test_v2_profiles_selection_picks_real_corresponding_rules():
     assert elec.compliance.get("pledge_page") == "forbidden_in_electronic", \
         "v2 承诺书约束须映射为脚本消费者的等效 compliance 视图"
     paper = cp.resolve_profile("comp_cumcm", {"contest": {"submission_form": "paper"}},
-                               rules_file=V2_CANDIDATE)
+                               rules_file=V2_RULES_FILE)
     assert paper.profile_id == "comp_cumcm_2026_paper", "电子/纸质是两个真实规则档，不共用"
 
 
 @_v2_on_disk
 def test_v2_profiles_selection_never_falls_back():
     with pytest.raises(ContestProfileError):
-        cp.resolve_profile("comp_cumcm", {"contest": {"edition": "2025"}}, rules_file=V2_CANDIDATE)
+        cp.resolve_profile("comp_cumcm", {"contest": {"edition": "2025"}}, rules_file=V2_RULES_FILE)
     with pytest.raises(ContestProfileError):
-        cp.resolve_profile("comp_cumcm", {}, rules_file=V2_CANDIDATE), \
-            "双 profile 无请求须要求精确化，不得静默取第一条"
+        cp.resolve_profile("comp_cumcm", {}, rules_file=V2_RULES_FILE)
+    # 双 profile 无请求必须报错要求精确化，不得静默取第一条
 
 
 @_v2_on_disk
 def test_v2_constraint_band_triple_state_closed_and_sourced():
-    raw = json.loads(V2_CANDIDATE.read_text(encoding="utf-8"))
+    raw = json.loads(V2_RULES_FILE.read_text(encoding="utf-8"))
     sources = set(raw["sources"].keys())
     prof = cp.resolve_profile("comp_cumcm", {"contest": {"submission_form": "electronic"}},
-                              rules_file=V2_CANDIDATE)
+                              rules_file=V2_RULES_FILE)
     assert prof.constraints, "v2 选中的 profile 须携带约束带"
     for c in prof.constraints:
         assert c["status"] in {"verified", "unknown", "not_applicable"}, \
@@ -494,7 +492,7 @@ def test_v2_constraint_band_triple_state_closed_and_sourced():
 
 @_v2_on_disk
 def test_v2_snapshot_binds_explicit_rules_revision():
-    prof = cp.resolve_profile("comp_mcm", {}, rules_file=V2_CANDIDATE)
+    prof = cp.resolve_profile("comp_mcm", {}, rules_file=V2_RULES_FILE)
     assert prof.profile_id == "comp_mcm_2027_electronic"
     assert prof.max_total_pages == 25 and prof.max_body_pages is None, "MCM 2027 是全PDF计"
     assert prof.gate_page_cap == 25 and prof.gate_page_scope == "total"
@@ -508,14 +506,14 @@ def test_v2_snapshot_binds_explicit_rules_revision():
 
 @_v2_on_disk
 def test_v2_task_ruling_not_inherited_by_new_tasks():
-    huawei = cp.resolve_profile("comp_huawei", {}, rules_file=V2_CANDIDATE)
+    huawei = cp.resolve_profile("comp_huawei", {}, rules_file=V2_RULES_FILE)
     assert huawei.operative["cap"] is None, "migration_evidence 的任务 80 不得成为新任务默认口径"
     assert huawei.operative["status"] == "task_override"
     assert huawei.non_inherited_overrides, "非继承必须留痕披露"
     ov = huawei.non_inherited_overrides[0]
     assert ov["value"] == 80 and "80" in ov["ruling"]
     declared = cp.resolve_profile("comp_huawei", {"contest": {"page_cap": 80}},
-                                  rules_file=V2_CANDIDATE)
+                                  rules_file=V2_RULES_FILE)
     assert declared.operative["cap"] == 80 and declared.operative["status"] == "explicit_task", \
         "在途链显式声明 80 仍可用（任务口径只影响当前任务）"
 
@@ -523,7 +521,7 @@ def test_v2_task_ruling_not_inherited_by_new_tasks():
 @_v2_on_disk
 def test_v2_script_loader_without_selection_degrades_honestly():
     """脚本消费者 load_entry（无请求维度）不选 profile：无口径即无口径，不猜不兜底。"""
-    entry = cp.load_entry("comp_huawei", V2_CANDIDATE)
+    entry = cp.load_entry("comp_huawei", V2_RULES_FILE)
     contract = cp.page_cap_contract(entry)
     assert contract["max_body_pages"] is None and contract["max_total_pages"] is None
     op = cp.resolve_operative_cap(contract, None)

@@ -7,8 +7,7 @@
     "execution",
     "tools",
     "hooks",
-    "tests",
-    "repo:tests"
+    "tests"
   ],
   "total": 0,
   "by_rule": {},

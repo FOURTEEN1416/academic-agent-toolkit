@@ -33,8 +33,9 @@ def test_normalize_scope_entry_bare_name_unchanged():
 
 
 def test_baseline_scope_is_portable():
-    """tracked 基线内不得再出现本机绝对路径。"""
+    """tracked 基线内不得再出现本机绝对路径；scope 条目必须真实在盘（不守灵）。"""
     baseline = lint_ratchet._load_baseline()
     for entry in baseline.get("scope", []):
         assert not Path(entry).is_absolute(), f"基线 scope 仍含绝对路径: {entry}"
-    assert "repo:tests" in baseline["scope"], "仓库根 tests 未以 repo: 形态登记"
+        resolved = lint_ratchet.resolve_scope(entry)
+        assert resolved.is_dir(), f"基线 scope 指向不存在的目录: {entry} -> {resolved}"

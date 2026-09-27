@@ -14,6 +14,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 TOOLS = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS))
 
@@ -44,19 +46,25 @@ def test_new_hit_fails_scan(tmp_path: Path) -> None:
     assert any(pat == "~/.claude" for _, pat in fails)
 
 
-def test_stale_exemption_is_reported(tmp_path: Path) -> None:
-    exemptions = [
-        ("never/exists.md", "~/.claude", "虚构条目用于测试 stale 报告"),
-    ]
-    # 复用 scan 的 stale 判定逻辑：豁免条目不在任何目标文件中出现（seen 为空）→ 全 stale
-    seen: set[tuple[str, str]] = set()
-    _ = seen
-    stale = [
-        {"file": f, "pattern": pat, "reason": reason}
-        for f, pat, reason in exemptions
-        if (f, pat) not in seen
-    ]
-    assert len(stale) == 1 and stale[0]["file"] == "never/exists.md"
+def test_stale_exemption_is_reported(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """豁免条目指向真实在盘文件但 pattern 零命中 → 真实 scan() 必须报 stale。
+
+    （历史版本在此手搓 seen 空集自证恒真、未调用任何生产判定，"过期即报"
+    这道门禁实际零覆盖；现改为临时豁免清单 + monkeypatch 走完整生产路径。）
+    """
+    exemptions = {"schema_version": 1, "exemptions": [
+        {"file": "skills/agent-bootstrap/SKILL.md", "pattern": "~/.claude",
+         "reason": "虚构条目用于测试 stale 报告"},
+    ]}
+    fake = tmp_path / "host_dep_exemptions.json"
+    fake.write_text(json.dumps(exemptions, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(hds, "EXEMPTIONS_PATH", fake)
+
+    res = hds.scan()
+    stale = res["stale_exemptions"]
+    assert len(stale) == 1, stale
+    assert stale[0]["file"] == "skills/agent-bootstrap/SKILL.md"
+    assert stale[0]["pattern"] == "~/.claude"
 
 
 def test_exemption_registry_schema_valid() -> None:

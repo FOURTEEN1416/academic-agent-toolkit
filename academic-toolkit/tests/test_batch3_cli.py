@@ -51,7 +51,11 @@ def _run_log(workspace: Path, workflow_id: str) -> list[dict]:
 # ---------- B3-1 RunLogger 落盘链路 ----------
 
 def test_start_persists_run_log_via_subprocess(tmp_path):
-    """B3-1 验收口径：tmp workspace 走 CLI 子进程，断言 run_*.json 真落盘且非空。"""
+    """B3-1 验收口径：tmp workspace 走 CLI 子进程，断言 run_*.json 真落盘且非空。
+
+    ⚠️ 仅限串行执行：本例是全测试面唯一不改道的用例，子进程会真实写仓库根
+    .engine/workflow-index.json（engine 侧无 env 改道钩子）；引入 pytest-xdist
+    前须先给 WORKFLOW_INDEX 加 env 覆盖。"""
     workspace = tmp_path / "ws"
     registry = TOOLBOX / ".engine" / "workflow-index.json"
     existed_before = registry.is_file()
