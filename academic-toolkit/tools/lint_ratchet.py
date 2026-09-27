@@ -42,7 +42,7 @@ BASELINE_PATH = TOOLBOX_ROOT / "data" / "lint_baseline.json"
 # 原 "repo:tests"（仓库根门禁测试）已随 2026-09-23 根级门禁退役移除——
 # 向不存在路径传参会被 ruff 计 E902，棘轮从此假性 +1。
 SCOPE: tuple[str, ...] = (
-    "engine", "tools", "hooks", "tests",          # 相对 TOOLBOX_ROOT
+    "engine", "execution", "tools", "hooks", "tests",          # 相对 TOOLBOX_ROOT
 )
 SCOPE_REPO_PREFIX = "repo:"
 

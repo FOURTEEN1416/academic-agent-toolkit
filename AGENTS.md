@@ -11,13 +11,13 @@
 2. `cd academic-toolkit && python -m engine.workflow_cli boot` 取得契约
 3. `python -m engine.workflow_cli probe` 探测能力与 TOOL_GAP
 4. 缺工具时 `python -m engine.workflow_cli forge --tool/--skill ...`
-5. 多步流程：`start` → `next` → 按 StepAction 执行 → `complete`（evidence.agent 自报你的工具名）
+5. 多步流程：`start` → `next`（自动给执行会话及技能正文）→ `session run/write`（自动记录）→ `session finish`（一次验收/推进）；旧 `complete --evidence` 仅兼容外部集成
 6. 单技能任务：按 `academic-toolkit/AGENTS.md` §三 路由表直接读 SKILL.md
 
 **主控 = 当前驱动本项目的 Agent。** 同一时刻只有一个主控；引擎（engine/）只编排不执行；
 不存在「调用另一个 agent runtime」的逻辑。
 
-**硬规则**：无证据＝未执行 · TOOL_GAP 不伪造通过 · 三振升级 · complete_step 必须附真实 evidence。
+**硬规则**：无证据＝未执行 · TOOL_GAP 不伪造通过 · 三振升级 · 执行操作自动留痕，finish统一核验，人工批准不可代替。
 
 自举技能：`academic-toolkit/skills/agent-bootstrap/` · 铸造技能：`academic-toolkit/skills/tool-forge/`
 
@@ -53,7 +53,7 @@ L1 拦截式审计在无宿主 hook 时记为
 
 | 路径 | 性质 |
 |------|------|
-| `academic-toolkit/` | 产品主体：skills/engine/tools/tests/hooks/data |
+| `academic-toolkit/` | 产品主体：skills/execution/engine/tools/tests/hooks/data |
 | `capabilities/catalog.json` | 能力目录（技能须全部映射；一致性由工具箱 asset 系门禁 + `check_asset_utilization --strict` 守护） |
 | `dev-docs/` | 内部真源根（gitignored 私有，公开仓不分发）：**操作日志 `dev-docs/LOG.md`（唯一记账真源）· 任务计划 `dev-docs/task_plan.md` · 审计报告** |
 | `releases/`（本地 dated 快照，不入库）、`SECURITY.md`、`CHANGELOG.md` | 发布快照 / 安全策略 / 公开版本记录 |
@@ -62,7 +62,7 @@ L1 拦截式审计在无宿主 hook 时记为
 ## 硬性规则（冲突时以主控文档为准）
 
 1. 引擎（engine/）只编排不执行；执行者是当前驱动 Agent。
-2. 完成步骤必须回报 `complete_step` 并附 execution_evidence，禁止伪造审核产物。
+2. 完成步骤使用执行会话 `finish`，由引擎从实际操作构造证据；禁止伪造审核产物。
 3. 改代码后跑 `python -m pytest -q`（仓库根）+ `python academic-toolkit/tools/check_provenance.py`。
 4. `dev-docs/` 是内部真源根，默认私有；`vendor/` 不入 git。
 5. 文档治理遵守 `meta-doc-governance`：全文读完、污染必清。
@@ -73,8 +73,8 @@ L1 拦截式审计在无宿主 hook 时记为
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `academic-toolkit/tests` | **773 passed / 0 failed**（另 3 skipped：私有资料区缺位语义 skip 2 + 适配器元数据缺席 skip 1；collect-only 776。2026-09-24 审计批实测口径，含 host_dep_scan 四重钉） | 仓库级回归 |
-| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **773 passed / 0 failed**（与仓库根同口径） | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `academic-toolkit/tests` | **1005 collected**（2026-09-27 D窗 collect-only 独立收集；本轮未重跑全仓，最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言） | 仓库级回归 |
+| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **1005 collected**（相同 tests 收集范围；实跑结果见唯一真源 `pytest.ini`） | 技能验收基线（硬规则 3 口径） |
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准 | 门禁 |
 
 - catalog 一致性由工具箱 asset 系测试 + `check_asset_utilization --strict` 守护。

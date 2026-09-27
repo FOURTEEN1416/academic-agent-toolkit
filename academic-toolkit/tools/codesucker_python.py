@@ -201,7 +201,6 @@ def clean_file(entry: FileEntry, raw_text: str, opts: CleanOptions) -> CleanedFi
     in_triple_quote = False
     
     for line in lines:
-        original = line
         
         # Handle block comments
         if in_block_comment:

@@ -122,7 +122,6 @@ def main():
 
     errors = [i for i in issues if i['severity'] == 'error']
     warnings = [i for i in issues if i['severity'] == 'warning']
-    infos = [i for i in issues if i['severity'] == 'info']
 
     if args.json:
         print(json.dumps({

@@ -131,15 +131,10 @@ def upgrade(templates_path: Path) -> dict:
                 if check not in registered:
                     unknown.append(f"{template_name}/{step.get('display_name', skill)}: {check}")
 
-    # 写入（2026-09-19 修复两处，均由 CI 首次实测暴露）：
-    #  1) **幂等**：仅当内容真的变化时才回写。此前无条件写回，使"满足规范的文件"
-    #     也被重写（test_template_upgrade_idempotent 的字节级断言因此失败）。
-    #  2) **行尾确定**：显式 newline="\n"。write_text 默认 newline=None 会把 \n 转成
-    #     os.linesep，Windows 下产出 CRLF，与本仓 .gitattributes(eol=lf) 及
-    #     "逐字节自证"契约冲突。比较时用 read_text 的 universal newline，
-    #     使行尾形态不参与"是否需要回写"的判定（行尾统一交给 .gitattributes）。
-    after_text = json.dumps(catalog, ensure_ascii=False, indent=2) + "\n"
-    if after_text != templates_path.read_text(encoding="utf-8"):
+    # 无语义变更就不写文件，原缩进、换行和字节版本保持不变。
+    # 真正迁移时统一输出 LF；序列化格式差异不是迁移理由。
+    if changed_steps:
+        after_text = json.dumps(catalog, ensure_ascii=False, indent=2) + "\n"
         templates_path.write_text(after_text, encoding="utf-8", newline="\n")
     return {
         "templates": len(catalog),

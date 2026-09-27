@@ -7,7 +7,7 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v2.0.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-773_passing-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
+[![Tests](https://img.shields.io/badge/tests-1005_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-313-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-250_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
@@ -119,7 +119,7 @@ python -m engine.workflow_cli probe
 1. 读仓库根 `AGENTS.md` 与 `academic-toolkit/AGENTS.md`
 2. `boot` 取得驱动契约；`probe` 查看能力与 TOOL_GAP
 3. 缺工具时 `python -m engine.workflow_cli forge --tool <name> --purpose "..."`
-4. 竞赛/长流程：`start --template comp_cumcm` → `next` → 执行 → `complete`
+4. 竞赛/长流程：`start --template comp_cumcm` → `next`（自动给本步技能正文与会话）→ `session run --session FILE --plan PLAN --finish`（真实执行自动留证、依赖复用、一次验收与推进；需批准时仍暂停）
 5. 单技能：按路由表读 `skills/<name>/SKILL.md`
 
 自举：`academic-toolkit/skills/agent-bootstrap/` · 铸造：`academic-toolkit/skills/tool-forge/`
@@ -163,9 +163,9 @@ python academic-toolkit/tools/plotting_env_check.py
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-# 口径一（仓库根，回归门禁口径）：773 passed / 0 failed（与口径二同值）
+# 口径一（仓库根，回归门禁口径）：1005 collected（2026-09-27 D窗 collect-only 独立收集；本轮未重跑全仓，最近实跑记录见 pytest.ini；本轮临时目录保留）
 python -m pytest -q
-# 口径二（工具箱内，技能验收基线口径）：773 passed / 0 failed
+# 口径二（工具箱内，技能验收基线口径）：同一 tests 范围，实跑结果见 pytest.ini
 cd academic-toolkit && python -m pytest -q
 python tools/check_provenance.py             # → 117/117 UPSTREAM+vendor 台账通过
 ```
@@ -178,7 +178,7 @@ python tools/check_provenance.py             # → 117/117 UPSTREAM+vendor 台�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）117/117 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **私有基准层** | 真实竞赛题面基准仅本地私有，不入库、不随仓库分发 |
-| ✅ **测试基线** | 仓库根 **773 passed / 0 failed**（另 3 skipped：私有资料区缺位语义 skip 2 + 适配器元数据缺席 skip 1；collect-only 776；仓库根与工具箱内同口径）。**唯一真源 = `pytest.ini` 注释**；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
+| ✅ **测试基线** | 仓库根 **1005 collected**（2026-09-27 D窗 collect-only 独立收集；本轮未重跑全仓，最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言；收集数不等于通过数）。**唯一真源 = `pytest.ini` 注释**；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
 | 🧬 **逐技能 C2 覆盖** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
 | 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + 宿主适配器（可选）+ TOOL_GAP→工具铸造 |
 

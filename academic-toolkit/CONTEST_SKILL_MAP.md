@@ -49,7 +49,7 @@
 | 11 视觉审查 | fig-critique, fig-spec | 外部图审视角清单/图规格说明 |
 | 12 编辑 | anti-defensive-writing | 修订删 hedge/免责/过度解释（该技能唯一正确档位，S8 写作期不适用） |
 | 13 终审 | paper-self-review | 外部审稿人视角批判清单（参考用，不替代独立审稿通道） |
-| 14 交付审计 | citation-check, quality-check | 引用终检+产出质量终检（按本步 `metadata.compliance_profile` 挂 `engine/modex-core/comp_rules.json` 对应族 compliance 块逐条核验：国赛 cumcm_2026_format 口径，华为杯承诺书必在、正文≤50） |
+| 14 交付审计 | citation-check, quality-check | 引用终检+产出质量终检（按本步 `metadata.compliance_profile` 挂 `engine/modex-core/comp_rules.json` 对应族 compliance 块逐条核验：国赛 cumcm_2026_format 口径，华为杯官方模板无承诺书页（出现即违规）、正文页口径按 compliance.max_body_pages 机读值） |
 
 **赛后/场外情境推荐**（不在 14 步内）：`contest-retrospective`（赛后复盘与经验沉淀——留痕取证→场景/坑/清单三分类→每条归因仓库内真实强制点→双写经验库→机检闭环；**每个赛事周期结束后应跑一次**）、`paper-slides`/`paper-poster`/`doc-poster-latex`（答辩幻灯与海报）、`team-coordination`（三人分工时）、`feishu-notify`（进度通知）、`rebuttal`（答辩质询应答结构）。
 
@@ -58,7 +58,7 @@
 `paper-writing-clinical`（通用科学写作）、`paper-plan`/`paper-analysis`/`assets-inventory`（科研链资产管线，有既有材料时）、`paper-write-zh`/`paper-write-zh-docx`（Markdown 路线写文）、`paper-writing`/`paper-writing-paragraph-standards`（科研写作方法论参考）、`training-check`（产出训练自检）、`editor-agent`/`experiment-agent`（代理执行模式）、`lit-citation-manage`（引用管理方法论）、`latex-pdf-accessible`/`latex-cleanup`/`paper-presubmit-checks`（PDF 可及性/LaTeX 清理/预提交检查——投稿向但方法通用）、`novelty-check`（新颖性论证参考）、`idea-creator`（创意法参考）、`auto-paper-improvement-loop`（改进循环，第 12 步后可选）、`paper-writing-paragraphs`（科学写作规范）、
 `palette-health-check`（配色「去灰提彩」体检——把"发灰/发闷/太深"翻译成可机检的 C*/C*max 去灰指标、`deepen` 替代 `darken`、色带入带序单调性复核；S5 出图后或 S11 视觉审查时按需加载，脚本在 `skills/palette-health-check/bin/`）。
 `comp-cumcm-disclosure`（CUMCM AI 工具使用申报双件套入口与门禁——生成/校验《AI工具使用详情.pdf》与正文 AI 使用声明、声明↔详情口径一致双硬闸；配套确定性脚本 `skills/_utils/build_ai_disclosure.py` 与唯一真源 `ai_disclosure_rules.md`，S14 终审前后按需加载）、
-`comp-cumcm-package`（提交打包沙演与合规终审——支撑材料语料/身份扫描（文件名/目录名/PDF 文档属性）/论文与包各 ≤20MB/MD5/`--zip` 沙演防呆闸，人工项见其 `references/submission_checklist.md`，S14 后上传前使用；**两族通用**：华为杯链跑 `--compliance-profile comp_huawei`（承诺书页必含、首页摘要判据停用、页限 50 人工项），口径真源 `engine/modex-core/comp_rules.json`）、
+`comp-cumcm-package`（提交打包沙演与合规终审——支撑材料语料/身份扫描（文件名/目录名/PDF 文档属性）/论文与包各 ≤20MB/MD5/`--zip` 沙演防呆闸，人工项见其 `references/submission_checklist.md`，S14 后上传前使用；**两族通用**：华为杯链跑 `--compliance-profile comp_huawei`（官方模板无承诺书页、首页摘要判据停用、页限 80 人工项），口径真源 `engine/modex-core/comp_rules.json`）、
 `paper-figure-palette`（**统一配色体系（多场景）**——先按数据类型选分类/顺序/发散，再按场景（竞赛/期刊投稿/学位与课程/幻灯海报/Office 内嵌）落地；真源 `assets/palette_registry.json`（9 套色板）+ `references/scenarios.md`（三步选色法/10 条规范/禁用清单），机检 `palette_kit.py registry-verify`；本地 8 色板「夏日海滩」同源，与 `palette-health-check` 配套，绘图/视觉审查按需加载）。
 
 **§二修剪移入（41 个）**——被步骤推荐清单移出的结构性冗余/低频技能，
@@ -177,14 +177,14 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 
 | 维度 | 国赛 comp_cumcm | 华为杯 comp_huawei |
 |------|----------------|-------------------|
-| 正文页数口径 | ≤30 页 | 50 页上限，目标 40-60（一等奖 55-65）；D3 快检 `--max-pages 50`（metadata.quick_gates_max_pages） |
+| 正文页数口径 | ≤30 页 | 80 页上限（⚠️ 2026-09-25 用户裁决“压缩延后”，原基线 50）；D3 快检页口径经 workflow_runner→quality_gates 回落链取 bound 快照 compliance 块（共享模板不承载页限默认，quick_gates_max_pages 键已删）；显式任务口径经 `--max-pages 80` 下发 |
 | 图表量 | ~24 张 | 30-46 张硬下限（A/B 40-46 / C/D 33-39 / E/F 35-41），真源 `_utils/figure_exemplars.md`（S5/S6 资产挂载） |
 | 深度要求 | 常规 | 每子问题 ≥8-10 页 + 8-15 个编号公式，推导过程必展示 |
 | 灵敏度/推广 | 常规 | 4-5 页（≥3 页 + 3 图） |
 | 附录 | 不限 | 70-100 页正式产出（代码/关键数据/补充推导），不计正文 |
 | 模板 | cumcmthesis（`_templates/cumcm/`） | gmcmthesis（`_templates/huawei/`：cls+骨架+封面 logo/title）；标题照抄赛题官方原文 |
 | 摘要 | 仅中文摘要 | 仅中文摘要（无英文） |
-| 赛事规则真源 | comp_rules.json `comp_cumcm` | comp_rules.json `comp_huawei`（引擎 L2 页门禁按 COMP_PAGES=50 自动感知） |
+| 赛事规则真源 | comp_rules.json `comp_cumcm` | comp_rules.json `comp_huawei`（引擎 L2 页门禁按 bound 快照 compliance 块感知；旧 COMP_PAGES 第二真源已删除） |
 
 步骤骨架、技能绑定（skill_binding）、产出规格（output_specs）与资产挂载同 §一/§二 口径，
 差异仅上表；赛时驱动方式不变：`start --template comp_huawei` → `next` 逐步执行。

@@ -93,68 +93,117 @@ def _declaration_stats(value, used_key: str) -> tuple[list[str], list[str]]:
     """从申报对象取 (used, skipped_names)；格式异常一律记 used/skipped 为空并返回。"""
     if not isinstance(value, dict):
         return [], []
-    used = [u for u in value.get("used", []) if isinstance(u, str)]
+    raw_used = value.get("used", [])
+    used = [u for u in raw_used if isinstance(u, str)] if isinstance(raw_used, list) else []
     skipped = []
-    for s in value.get("skipped", []):
+    raw_skipped = value.get("skipped", [])
+    for s in raw_skipped if isinstance(raw_skipped, list) else []:
         if isinstance(s, dict) and str(s.get(used_key, "")).strip():
             skipped.append(str(s[used_key]))
     return used, skipped
 
 
-def scan_evidence(workspaces_root: Path) -> dict:
-    """扫 workspaces/*/.engine/evidence/*.json 的申报账本，汇总利用率。"""
-    companion = {}  # skill -> {recommended, used, skipped}
-    assets = {}     # asset name -> {offered, used, skipped}
-    workflows = []  # per-workspace 汇总
+def scan_evidence(workspaces_root: Path, *, workflow_databases: dict[str, Path] | None = None) -> dict:
+    """Count offered resources, not just declared ones; keep evidence levels honest."""
+    companion, assets, workflows, coverage, additional = {}, {}, [], [], []
     if not workspaces_root.is_dir():
         return {"workflows": [], "companion": {}, "assets": {}, "totals": {}}
+    inferred = unreferenced = 0
     for ws in sorted(p for p in workspaces_root.iterdir() if p.is_dir()):
         ev_dir = ws / ".engine" / "evidence"
         if not ev_dir.is_dir():
             continue
-        steps_declared = steps_used = steps_skipped = 0
+        # A receipt file alone is not a committed completion. When a local DB is
+        # present, only event-referenced evidence counts (crash leftovers excluded).
+        explicit_db = (workflow_databases or {}).get(str(ws.resolve()))
+        referenced = set() if explicit_db is not None else None
+        db = Path(explicit_db) if explicit_db is not None else ws / ".engine" / "workflow.sqlite"
+        if db.exists() or explicit_db is not None:
+            import sqlite3
+            try:
+                con = sqlite3.connect(db.resolve().as_uri() + "?mode=ro", uri=True)
+                try:
+                    current_refs = {}
+                    rows = con.execute("SELECT e.workflow_id, c.step_id, e.event_type, e.payload, w.metadata FROM events e "
+                        "JOIN checkpoints c ON c.id = e.checkpoint_id JOIN workflows w ON w.id = e.workflow_id "
+                        "ORDER BY e.created_at, e.rowid")
+                    for wf_id, step_id, event_type, raw, metadata in rows:
+                        if Path(json.loads(metadata).get("workspace", "")).resolve() != ws.resolve():
+                            continue
+                        payload = json.loads(raw)
+                        key = (wf_id, step_id)
+                        if event_type in {"step_failed", "step_retry"}:
+                            current_refs.pop(key, None)
+                        elif event_type in {"step_completed", "step_backfilled"}:
+                            current_refs[key] = [payload[k] for k in ("evidence_path", "binding_evidence_path") if payload.get(k)]
+                    referenced = {(ws / path).resolve() for paths in current_refs.values() for path in paths}
+                finally:
+                    con.close()
+            except (OSError, ValueError, sqlite3.Error):
+                referenced = set()  # unreadable ledger is not verified usage
+        steps_declared = steps_used = steps_skipped = offered_count = offered_used = 0
         for ev_file in sorted(ev_dir.glob("*.json")):
+            if referenced is not None and ev_file.resolve() not in referenced:
+                unreferenced += 1
+                continue
             try:
                 ev = json.loads(ev_file.read_text(encoding="utf-8"))
-            except Exception:
+            except (OSError, ValueError):
                 continue
             if not isinstance(ev, dict):
                 continue
-            # 证据文件为 {"action", "evidence", "manifest", "schema_version"} 包装结构，
-            # 申报字段在 evidence 内层；兼容历史裸 evidence 形态。
             inner = ev.get("evidence") if isinstance(ev.get("evidence"), dict) else ev
-            skill_name = str(inner.get("skill_name") or (ev.get("action") or {}).get("skill_name", "")).strip()
+            action = ev.get("action") if isinstance(ev.get("action"), dict) else {}
+            usage = ev.get("resource_usage") if isinstance(ev.get("resource_usage"), dict) else {}
+            offered = usage.get("offered") if isinstance(usage.get("offered"), dict) else {}
             comp_used, comp_skipped = _declaration_stats(inner.get("companion_skills"), "skill")
             a_used, a_skipped = _declaration_stats(inner.get("assets"), "name")
-            if not (comp_used or comp_skipped or a_used or a_skipped):
+            known_skills = "skills" in offered or "companion_skills" in action
+            known_assets = "assets" in offered or "assets" in action
+            skills_list = offered.get("skills", action.get("companion_skills", []))
+            asset_list = offered.get("assets", action.get("assets", []))
+            recommended = {s for s in skills_list if isinstance(s, str)} if isinstance(skills_list, list) else set()
+            resource_names = {str(a.get("name")) for a in asset_list if isinstance(a, dict) and a.get("name")} if isinstance(asset_list, list) else set()
+            if not known_skills:
+                recommended = set(comp_used) | set(comp_skipped)
+            if not known_assets:
+                resource_names = set(a_used) | set(a_skipped)
+            if not (recommended or resource_names or comp_used or a_used):
                 continue
+            inferred += int(not known_skills or not known_assets)
             steps_declared += 1
-            steps_used += len(comp_used) + len(a_used)
-            steps_skipped += len(comp_skipped) + len(a_skipped)
-            # companion 统计口径：used+skipped 即该步实际申报的推荐清单覆盖数
-            touched = set(comp_used) | set(comp_skipped)
-            for name in touched:
-                slot = companion.setdefault(name, {"recommended": 0, "used": 0, "skipped": 0})
-                slot["recommended"] += 1
-                slot["used"] += 1 if name in comp_used else 0
-                slot["skipped"] += 1 if name in comp_skipped else 0
-            for name in set(a_used) | set(a_skipped):
-                slot = assets.setdefault(name, {"offered": 0, "used": 0, "skipped": 0})
-                slot["offered"] += 1
-                slot["used"] += 1 if name in a_used else 0
-                slot["skipped"] += 1 if name in a_skipped else 0
+            steps_used += len(set(comp_used)) + len(set(a_used))
+            steps_skipped += len(set(comp_skipped)) + len(set(a_skipped))
+            offered_count += len(recommended) + len(resource_names)
+            offered_used += len(recommended & set(comp_used)) + len(resource_names & set(a_used))
+            for stats, names, used, skipped, count_key in (
+                (companion, recommended, comp_used, comp_skipped, "recommended"),
+                (assets, resource_names, a_used, a_skipped, "offered"),
+            ):
+                for name in names:
+                    slot = stats.setdefault(name, {count_key: 0, "used": 0, "skipped": 0})
+                    slot[count_key] += 1
+                    slot["used"] += int(name in used)
+                    slot["skipped"] += int(name in skipped)
+            coverage.append({"workspace": ws.name, "evidence": ev_file.name,
+                "offered_source": "action" if known_skills and known_assets else "legacy_inferred",
+                "undeclared_skills": sorted(recommended - set(comp_used) - set(comp_skipped)),
+                "undeclared_assets": sorted(resource_names - set(a_used) - set(a_skipped)),
+                "unoffered_declarations": sorted((set(comp_used) - recommended) | (set(a_used) - resource_names))})
+            for item in inner.get("additional_skills", []) if isinstance(inner.get("additional_skills"), list) else []:
+                if isinstance(item, dict):
+                    additional.append({"workspace": ws.name, **item, "verified": False})
         if steps_declared:
             workflows.append({"workspace": ws.name, "steps_declared": steps_declared,
-                              "used": steps_used, "skipped": steps_skipped})
-    totals = {
-        "workflows_with_evidence": len(workflows),
-        "steps_declared": sum(w["steps_declared"] for w in workflows),
-        "used": sum(w["used"] for w in workflows),
-        "skipped": sum(w["skipped"] for w in workflows),
-    }
-    totals["use_rate"] = round(totals["used"] / (totals["used"] + totals["skipped"]), 4) \
-        if (totals["used"] + totals["skipped"]) else None
-    return {"workflows": workflows, "companion": companion, "assets": assets, "totals": totals}
+                              "used": steps_used, "skipped": steps_skipped,
+                              "offered": offered_count, "offered_used": offered_used})
+    totals = {"workflows_with_evidence": len(workflows), **{
+        key: sum(w[key] for w in workflows) for key in ("steps_declared", "used", "skipped", "offered", "offered_used")}}
+    totals["use_rate"] = round(totals["offered_used"] / totals["offered"], 4) if totals["offered"] else None
+    totals.update(legacy_inferred_steps=inferred, unreferenced_evidence=unreferenced)
+    return {"workflows": workflows, "companion": companion, "assets": assets, "totals": totals,
+            "coverage": coverage, "additional_skills": additional,
+            "verification_level": "declared usage; applied/semantic contribution not independently verified"}
 
 
 def dead_recommendations(companion_stats: dict) -> list[dict]:
@@ -436,6 +485,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="资产利用率审计（账本/地图对账/资产在位）")
     parser.add_argument("--repo", default=str(REPO_ROOT), help="仓库根（资产路径与 workspaces 的解析基准）")
     parser.add_argument("--workspaces", default=None, help="工作区根目录（默认 <repo>/workspaces）")
+    parser.add_argument("--workflow-db", action="append", default=[], metavar="WORKSPACE=DB",
+                        help="外置数据库映射，可重复；只统计各步骤当前已接受的回执")
     parser.add_argument("--json", action="store_true", dest="as_json", help="输出机读 JSON")
     parser.add_argument("--strict", action="store_true", help="地图漏网或资产失联时 exit 1")
     args = parser.parse_args(argv)
@@ -447,7 +498,13 @@ def main(argv: list[str] | None = None) -> int:
 
     cov = load_map_coverage(TOOLBOX_ROOT / "CONTEST_SKILL_MAP.md", skill_names)
     cov["skills_total"] = len(skill_names)
-    util = scan_evidence(workspaces_root)
+    databases = {}
+    for mapping in args.workflow_db:
+        workspace, separator, database = mapping.partition("=")
+        if not separator or not workspace or not database:
+            parser.error("--workflow-db 应为 WORKSPACE=DB")
+        databases[str(Path(workspace).resolve())] = Path(database)
+    util = scan_evidence(workspaces_root, workflow_databases=databases)
     tpl = check_template_assets(TOOLBOX_ROOT / "engine" / "modex-core" / "templates.json", repo)
     dead_slots = companion_dead_slots(TOOLBOX_ROOT / "engine" / "modex-core" / "templates.json")
     dispositions = catalog_dispositions(repo / "capabilities" / "catalog.json")

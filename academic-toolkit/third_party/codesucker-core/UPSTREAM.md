@@ -19,6 +19,20 @@ this file is updated with the exact file, reason, and regression test.
 The output hash map intentionally excludes the manifest file itself to avoid a
 self-referential digest; the manifest hashes all other source-materials files.
 
+## 2026-09-26 local publication hardening
+
+- File: `codesucker-cli.mjs` (local adapter only; upstream core algorithms unchanged).
+- Reason: an independent full regression observed Windows `EPERM` on the final
+  temporary-directory rename after all nine material files had been written.
+- Change: retry only the final rename for Windows `EPERM` / `EACCES` / `EBUSY`,
+  up to five retries (25/50/100/200/400 ms). Never regenerate materials or suppress
+  a permanent error; keep the temporary output on failure and refuse a conflicting
+  destination. The existing generation and validation contract is unchanged.
+- Regression: `tests/test_codesucker_materials.py::test_directory_publication_retries_only_transient_windows_locks`
+  covers normal publication, three transient codes, exhaustion, other errors,
+  non-Windows behavior and a competing destination. CLI import no longer executes
+  its entrypoint, allowing direct tests of the same publication function.
+
 ## Upgrade rule
 
 An upgrade must pin a commit, refresh this file and the license audit, then run

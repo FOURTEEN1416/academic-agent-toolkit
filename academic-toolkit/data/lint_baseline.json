@@ -4,15 +4,14 @@
   "select": "F,E9,W605",
   "scope": [
     "engine",
+    "execution",
     "tools",
     "hooks",
     "tests",
     "repo:tests"
   ],
-  "total": 8,
-  "by_rule": {
-    "F841": 8
-  },
-  "updated": "2026-09-20",
-  "note": "棘轮基线：total/by_rule 只降不升；收紧请走独立清理 + --update"
+  "total": 0,
+  "by_rule": {},
+  "updated": "2026-09-26",
+  "note": "棘轮基线：total/by_rule 只降不升；收紧请走独立清理 + --update；scope 禁写本机绝对路径（repo: 前缀 = 仓库根相对）"
 }

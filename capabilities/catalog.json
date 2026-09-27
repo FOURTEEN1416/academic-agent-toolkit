@@ -203,7 +203,7 @@
       "capability_id": "comp_mcm_icm",
       "name": "MCM/ICM 英文竞赛流程",
       "domain": "math_modeling_competition",
-      "description": "英文论文撰写、pdflatex编译、COMAP格式合规、Summary Sheet制作",
+      "description": "英文论文撰写（comp_mcm/comp_apmcm/comp_certcup_en）、pdflatex编译、COMAP格式合规、Summary Sheet制作",
       "input_contract": "建模报告、求解结果、图表集",
       "output_contract": "paper/main.tex、final.pdf",
       "status": "正式",
@@ -524,7 +524,7 @@
       "capability_id": "comp-paper-en",
       "name": "comp-paper-en",
       "domain": "math_modeling_competition",
-      "description": "Mathematical modeling competition paper writing in English (MCM/ICM/APMCM). Generate complete LaTeX paper following COMAP format. Use when user says \"write MCM paper\", \"美赛论文\", \"English competition paper\".",
+      "description": "Mathematical modeling competition paper writing in English. Contests (canonical comp_rules IDs): comp_mcm (MCM/ICM), comp_apmcm, comp_certcup_en; comp_shuwei_en is a declared template capability gap. Generate complete LaTeX paper. Use when user says \"write MCM paper\", \"美赛论文\", \"English competition paper\".",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -545,7 +545,7 @@
       "capability_id": "comp-paper-en-docx",
       "name": "comp-paper-en-docx",
       "domain": "math_modeling_competition",
-      "description": "Mathematical modeling competition paper in English (MCM/ICM/APMCM) — Word docx mode. docx-mode counterpart of comp-paper-en — keeps COMAP structure but produces paper/main.md only.",
+      "description": "English competition paper docx mode (comp_mcm/comp_apmcm/comp_certcup_en). docx-mode counterpart of comp-paper-en — produces paper/main.md only.",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -608,7 +608,7 @@
       "capability_id": "comp-pipeline",
       "name": "comp-pipeline",
       "domain": "math_modeling_competition",
-      "description": "数学建模竞赛全流程编排器：问题分析→文献→建模→求解→结果→论文→编译→审查。Use when 用户要完成一个完整的数模竞赛题目。",
+      "description": "数学建模竞赛全流程入口：按赛事选择 comp_cumcm / comp_huawei / comp_* 等引擎模板并恢复工作流，由引擎分派步骤；不再维护手动阶段编排。Use when 用户要完成一个完整的数模竞赛题目。",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -3078,7 +3078,7 @@
       "capability_id": "idea-discovery",
       "name": "idea-discovery",
       "domain": "literature_research",
-      "description": "Workflow 1: Full idea discovery pipeline. Orchestrates research-lit → idea-creator → novelty-check → research-review to go from a broad research direction to validated, pilot-tested ideas. Use when user says \"找idea全流程\", \"idea discovery pipeline\", \"从零开始找方向\", or wants the complete idea exploration workflow.",
+      "description": "找研究方向/深度调研入口：按目标选择 idea_discovery（选题→提案与实验计划）或 deep_research（多源证据汇总与独立评审调研报告）工作流。Use when user says \"找idea全流程\", \"深度调研\", \"从零开始找方向\".",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [

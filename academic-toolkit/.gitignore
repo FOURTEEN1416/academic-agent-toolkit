@@ -33,3 +33,8 @@ tools/_rep.md
 tools/_*.md
 tools/_*.docx
 tools/_*.out
+
+# 多窗协作快照/证据/视觉审查临时件（2026-09-27 赛事隔离收仓）
+_snapshots/
+_evidence_*.json
+visual_review_tasks/

@@ -1,332 +1,136 @@
 # academic-toolkit — 全学术 Agent 系统（宿主无关）
 
-> 这是一套**完整academic-toolkit**（全学术 Agent 工具箱，6 大能力域：数模竞赛、学术论文、文献与研究、
-> 课程与研究材料、知识产权材料、图表与文档生产）。
-> 数模竞赛（CUMCM）是验证场景之一，不是产品边界。
-> **主控 = 当前驱动本项目的 Agent**：任意能读文件、能调用 `python -m engine.workflow_cli`
-> 的智能体（Claude Code / Cursor / Gemini CLI / MiMo Desktop / OpenCode / ZCode / 自写脚本）。
-> 同一时刻只有一个主控 Agent，不并行双控。
-> 引擎（engine/）只负责状态记忆、编排、质量门禁和审计，绝不代执行。
-> 本系统完全独立，不依赖任何特定商业宿主。
->
-> **宿主适配（可选，非驱动前提）**：OpenCode（`opencode.json`，subagent 角色内联）与
-> ZCode（`.zcode/skills` 本地联结）保留为可选适配器。
-> 无适配器时协议与 L2/L3 审计完整可用。
+**主控 = 当前驱动本项目的 Agent**。同一时刻只有一个主控；不存在「调用另一个 agent runtime」的逻辑。
+本仓库服务六大领域：数模竞赛、学术论文、文献与研究、课程与研究材料、知识产权材料、图表与文档生产。绘图不是系统边界。
 
----
+## 一、架构与所有权
 
-## 定位（重要）
+| 层 | 唯一职责 | 位置 |
+|---|---|---|
+| 当前Agent | 理解任务、领域推理、方法选择、内容与结果解释 | 当前宿主 |
+| 技能 | 当前单步的专业作业方法，不重复排整条流程 | `skills/` |
+| 执行侧 | 资源读取、文件编辑、真实工具运行、依赖复用、评审收发 | `execution/` |
+| 引擎 | 合同解析、状态、唯一验收、检查点与审计 | `engine/` |
+| 工具 | 检索、求解、编译、格式化等具体操作 | `tools/` |
+| 目录与资产 | 能力、技能索引、数据和参考材料 | `capabilities/`、`data/`、`assets-local/` |
 
-**执行者 = 当前驱动本项目的 Agent（你）。**
-引擎不是执行者，只是"记忆和编排"：
-- `workflow_store` — 记录谁做了什么、做到哪、卡在哪（SQLite）
-- `workflow_runner` — 告诉你下一步做什么（next_action）
-- `quality_gates` / `run_logger` / `audit_store` — 验收标准 + 审计记录 + 操作审计报告
+引擎只编排不执行Agent。执行侧不决定研究结论，也不自行批准。工作流SQLite是状态真源，操作表记录真实执行；没有证据不能写成成功。
 
-**不存在「调用另一个 agent runtime」的逻辑。** 你读到 `StepAction` 后直接执行技能，
-完成后调用 `complete_step` 回报结果。
+执行步骤动作走宿主无关的 `StepAction.workspace`（与 `skills/`、宿主无关协议、`workflow_cli` 同口径）：步骤产出与编辑以工作区相对路径登记，不绑定任何宿主私有路径或宿主专属 API。
 
-## 自举与自适应
+## 二、启动与执行
 
-| 能力 | 命令/技能 |
-|------|-----------|
-| 驱动契约 | `python -m engine.workflow_cli boot` |
-| 能力探测 | `python -m engine.workflow_cli probe` |
-| 工具/技能铸造 | `python -m engine.workflow_cli forge --tool/--skill/--adapter` |
-| 自举技能 | `skills/agent-bootstrap/` |
-| 铸造技能 | `skills/tool-forge/` |
-
-**TOOL_GAP → 铸造**：探测到缺工具/缺技能时，按 tool-forge 协议生成骨架并登记 catalog；
-环境类缺口（缺包/缺 CLI）不伪造安装，按 probe hint 配置或改用替代路径。
-
-## 审计体系（三层）
-
-| 层 | 机制 | 记录内容 | 写入位置 | 可否绕过 |
-|---|------|---------|---------|---------|
-| **L1 拦截式** | **可选**宿主 hook/插件（OpenCode plugin；ZCode `hooks/zcode_audit_l1.py`）。无宿主 hook 时记为 `unavailable`，不阻断 | 工具调用/文件编辑等 | `.engine/audit/operations.jsonl` | 宿主提供时不可绕过；缺席时如实降级 |
-| **L2 编排式** | `WorkflowRunner` 引擎侧写入 | workflow 启动/步骤完成/checkpoint | 同一 `operations.jsonl` | 仅当走 runner 流程时 |
-| **L3 申报式** | `complete_step()` 的 execution_evidence | skill 哈希、命令、产物 manifest | 工作区 `.engine/evidence/*.json` | 依赖 agent 主动申报（硬门禁） |
-
-> **审计日志卫生**：`operations.jsonl` 不得记录该文件自身的写入事件（历史噪声曾达 98.6%）。
-
-**防绕过检测**：`python -m engine.workflow_cli audit --workspace <工作区>` 生成
-`OPERATION_AUDIT_REPORT.json`（操作审计，不覆盖竞赛交付的 `AUDIT_REPORT.json`）。
-
-## 一、系统架构
-
-```
-仓库根/
-├── AGENTS.md              ← 宿主无关驱动协议入口
-├── academic-toolkit/
-│   ├── AGENTS.md          ← 你在这里（路由 + 门禁 + 引擎用法）
-│   ├── skills/            ← 技能库（每个技能一个 SKILL.md）
-│   ├── tools/             ← 工具链（独立可执行脚本）
-│   ├── engine/            ← 状态库 + 编排 + 门禁 + 审计（不执行）
-│   ├── data/              ← 参考数据
-│   └── .env               ← 本地 API 配置（gitignored）
-└── capabilities/catalog.json ← 能力目录（技能全量映射）
-```
-
-## 二、核心原则
-
-1. **技能即知识**：每个 `skills/<name>/SKILL.md` 描述"如何做一件事"
-2. **Agent 即执行者**：当前 Agent 读取 SKILL.md 后自主执行，无需外部调度器
-3. **工具即手脚**：`tools/*.py` 是独立可执行脚本（单一 `.py` 真源）；缺口可 forge
-4. **门禁即质量**：每步产出后检查质量，不达标则重做
-5. **Agent 定角色**：executor / reviewer / editor
-6. **工程原则**：**TOOL_GAP** / **三振升级** / **决策点≠批准** / **无证据＝未执行** —— 见 `skills/_utils/anti_rationalization.md`
-
-## 三、入口路由规则（P3 核心）
-
-### 数模竞赛
-
-| 用户意图 | 路由到 | 自动接续 |
-|---------|--------|---------|
-| "我要参加国赛/美赛/CUMCM" | `workflow_cli start --template comp_cumcm` | 完整 14 步流程 |
-| "帮我分析这个题目" | `skills/comp-problem-analysis/` | → comp-modeling |
-| "建立数学模型" | `skills/comp-modeling/` | → comp-code |
-| "写求解代码" | `skills/comp-code/` | → comp-review |
-| "写竞赛论文" | `skills/comp-paper-zh/` 或 `comp-paper-en/` | → comp-compile |
-| "审查我的论文" | `skills/comp-review/` | loop-until-clean |
-| "统计建模/数分" | `skills/comp-statistics-topic/` | → comp-code |
-| "竞赛主链其余步骤" | CONTEST_SKILL_MAP §一 / 模板 `comp_cumcm` | 完整 14 步流程 |
-
-**快速模式开关（可选，竞赛项目级）**：在竞赛项目工作区根的 `AGENTS.md`（项目宪法）中写入一行
-`MH_FAST_MODE=1`，12 个主链技能（comp-problem-analysis / comp-modeling / comp-code / comp-review /
-paper-figure / paper-figure-drawio / paper-figure-html / paper-figure-nature / comp-paper-zh / comp-paper-en
-及两 docx 变体）的流程开头即自动进入快速模式——跳过可选重步骤、省 AI 额度；
-确定性闸（logic_audit / cross_problem_check 等）仍兜底。不写则默认全量质量路径。
-各技能内以 `grep -q 'MH_FAST_MODE=1' AGENTS.md` 探测（宿主中性，`test_host_neutral_ratchet.py` 钉住）。
-
-**AI 使用声明开关（CUMCM 2026，竞赛项目级）**：在竞赛项目工作区根的 `AGENTS.md`（项目宪法）中写入
-`MH_AI_DISCLOSURE=used`（真实使用了 AI 工具）或 `MH_AI_DISCLOSURE=none`（全程未使用），comp-cumcm-disclosure
-步骤才会执行 AI 工具使用声明与《AI工具使用详情.pdf》生成；不写则该步完全跳过。写入 `MH_AI_DISCLOSURE=invalid`
-表示记录未经用户确认，该步立即停止并要求重新确认，不得猜测生成。探测方式与快速模式一致：
-`grep -q 'MH_AI_DISCLOSURE=' AGENTS.md`（宿主中性；规则正文见
-`skills/_utils/ai_disclosure_rules.md` 与 `skills/shared-scripts/ai_disclosure_rules.md`）。
-
-### 科研论文
-
-| 用户意图 | 路由到 |
-|---------|--------|
-| "我要做科研/写论文" | `skills/paper-writing/` 或 `paper-write-zh/` |
-| "做文献综述" | `skills/literature-review/` |
-| "找研究方向" | `skills/idea-discovery/` |
-| "写中文 LaTeX 论文" | `skills/paper-write-zh/` |
-| "写 Nature 论文" | `skills/paper-write-nature/` |
-| "画论文图表" | `skills/paper-figure/` 或 `paper-figure-drawio/` |
-| "不知道用什么图/这数据怎么画" | `skills/fig-visualization-advisor/` |
-| "CNS/Nature/Cell 级投稿图" | `skills/fig-academic/` |
-| "照着这张图复现" | `skills/plot-from-image/` |
-| "用 XX 论文那种风格画" | `skills/plot-from-data/` |
-| "重建这张 Visio 图" | `skills/visio-image-rebuilder/` |
-| "用 Origin 画可编辑图/导师要 OPJU/材料光谱专用图（XPS/XRD/FTIR/NMR/DSC/EIS）" | `skills/fig-plot-edit/`（需本机 Origin 2021+，无则如实降级） |
-| "没装 Origin 也要出版级数据图/CSV 可复现出图（matplotlib 路线）" | `skills/fig-plot-edit-lite/`（继承 fig-plot-edit 纪律：propose→逐列确认→render，PNG+PDF+SVG+校验报告） |
-| "论文方法框架图多方案" | `skills/paper-framework-figure-studio-pro/` |
-| "找参考图再动手" | `skills/agent-figure-gallery/` |
-| "编译论文 PDF" | `skills/paper-compile/` 或 `paper-compile-zh/` |
-| "自动审稿" | `skills/auto-review-loop/` |
-| "对照优秀论文改进/论文复盘" | `skills/paper-oral-exemplar/`（与 anti-defensive-writing 删-hedge 互补，修订轮先后用） |
-
-### 其他
-
-| 用户意图 | 路由到 |
-|---------|--------|
-| "写课程论文/报告" | `skills/course-paper/` 或 `course-report/` |
-| "写开题报告" | `skills/thesis-proposal/` |
-| "写基金申请书" | `skills/grant-proposal/` |
-| "写专利/软著" | `skills/patent-draft/` 或 `copyright-draft/` |
-| "一句话生成项目" | 管线模板 `grad_project` |
-| "已有资产写论文" | 管线模板 `paper_from_assets` |
-| "PDF 合并/拆分/OCR/填表（非竞赛域）" | `skills/pdf-toolkit/` |
-| "Markdown 论文导出 Word" | `skills/docx-export/` |
-| "写返修回复/审稿答复" | `skills/rebuttal/` |
-| "做会议演讲幻灯/逐页 PPT" | `skills/paper-slides/`（单页海报用 `paper-poster/`） |
-| "分析实验结果/对比解读" | `skills/analyze-results/` |
-| "赛后复盘/经验沉淀" | `skills/contest-retrospective/` |
-| "简历/海报/幻灯片/格式转换" | `skills/latex-document/` |
-| **"如何驱动本项目/自举"** | **`skills/agent-bootstrap/`** |
-| **"缺工具/造工具/自适应"** | **`skills/tool-forge/`** |
-
-### 资产直查（非技能资源）
-
-> 完整台账：`data/asset_catalog.json`（45 条，含 when_to_use/owner_skills/local_only）；
-> boot 契约 `paths.asset_catalog` 与 probe 输出 `asset_catalog` 字段同源。
-> `local_only` 条目在私有资料区（`assets-local/` 等，gitignored）：本机有则用，公开 clone 缺席属语义缺位。
-
-| 需要什么 | 直接用 |
-|---------|--------|
-| 历年真题/题型规律 | `data/historical_problems.json` + `data/case_patterns.md` |
-| 赛中避坑/交付硬闸 | `data/contest_lessons.md` |
-| 出图选色 | `skills/paper-figure-palette/assets/palette_registry.json` |
-| 赛事 LaTeX 模板 | `skills/comp-paper-zh/_templates/`（16 赛事族） |
-| 获奖论文范文与统计 | `assets-local/award-papers/`（使用指南 → 摘要/配色/风格报告 → 25 篇优先清单） |
-| 提交前 287 项自查 | `assets-local/award-papers/论文自查表_287项.md` |
-| 审美/构图视觉参照 | `assets-local/reference-figures/` |
-| 板块写作提示词（docx） | `assets-local/cumcm-templates/论文模板/` |
-| 专利交底书原件 | `assets-local/ip-materials/` |
-
-
-## 四、技能执行协议
-
-```markdown
-1. 读取 skills/<name>/SKILL.md
-2. 理解：输入契约 / 执行步骤 / 输出契约 / 质量铁律
-3. 按步骤执行，每步调用 tools/（缺口则 forge）
-4. 产出文件到 StepAction.workspace 或用户指定目录
-5. 检查点（has_checkpoint）→ 暂停等用户确认
-6. 产出后按质量铁律自检
-7. 若有 skill_binding → 先读绑定技能并把命令记入 evidence
-```
-
-**动手前扫一眼**：`skills/_utils/anti_rationalization.md`
-
-**审稿/评审类步骤**：凡技能要求外部审稿 API（`reviewer_client.py` 等），一律按统一
-《独立评审操作手册》`skills/_utils/independent_review_manual.md` 执行——评审任务卡 →
-独立上下文评审（独立子代理/会话/窗口/另一模型均可）→ 缺席降级自审。零 APIKey 零网络。
-
-## 可选宿主配置（非协议前提）
-
-OpenCode：根 `opencode.json` 扫描 `./academic-toolkit/skills`，加载本文件为指令；
-agent 定义内联于 `opencode.json`。变更后需重启 OpenCode。
-
-MCP：tracked 配置用占位符 `${DOCSEARCH_MCP_SERVER}` / `${DOCSEARCH_ROOTS}`；
-本机绝对路径放未提交本地覆盖。
-
-## 安全注意
-
-- `tools/` 全部工具为单一 `.py` 真源，零 `.pyc`（`test_tool_reliability` 棘轮钉住）
-- `.env` gitignored，不入库
-- `python tools/secret_scan.py --strict` 扫 tracked 面
-
-## 上游资产收编规程（2026-09-24 起改写融入为默认工序）
-
-1. **改写融入是默认形态，原样整采是例外**：上游技能/参考入库时，SKILL.md 与正文按本仓语境
-   改写（宿主中性、AGENTS.md 驱动协议、本仓工具链引用），不再接受"原样复制+事后打补丁"。
-   例外（原样保留）仅限：无 License 冻结件、上游脚本运行时快照（UPSTREAM.md 注明）。
-2. **宿主中性化是收编的一道工序**：收编时即清除宿主私有路径安装教学与宿主绑定探测；
-   `python tools/host_dep_scan.py --strict` 必须绿——skills/ 内宿主特征词命中只允许
-   `tools/data/host_dep_exemptions.json` 登记条目（逐条理由；新增豁免须经用户裁决，
-   豁免命中归零时收缩清单）。
-3. **溯源义务不随改写消失**：UPSTREAM.md 保留 Upstream / Pinned commit / License 三字段；
-   改写件注明"改写融入+日期"，clean-room 件按 `skills/graphviz/references/UPSTREAM.md`
-   先例出具独立创作声明。台账明细在 `dev-docs/vendor-asset-index.md`（内部私有）。
-4. **存量收敛方向**：历史原样整采件按批改写融入（2026-09-24 用户裁决），批次计划见
-   `dev-docs/vendor-asset-index.md` §6；未改写件保持 UPSTREAM.md 如实登记。
-
-## 五、工具链调用规范
-
-### 检索/搜索（先检索，再动手）
-
-| 工具 | 用途 | 调用方式 |
-|------|------|---------|
-| `tools/scholar_fetch.py` | 学术文献五源 fallback | `python tools/scholar_fetch.py search "关键词"` |
-| `tools/arxiv_miner.py` | arXiv + DDG | `python tools/arxiv_miner.py --query "..."` |
-| `tools/citation_checker.py` | 引用核验 | `python tools/citation_checker.py <文件>` |
-| `tools/case_fetcher.py` | 国赛真题 | `python tools/case_fetcher.py <题目>` |
-| 宿主 webfetch/websearch | 网页与网络搜索 | 若宿主提供 |
-
-### 文档读取（防漏读嵌入图片）
+在 `academic-toolkit/` 中：
 
 ```bash
-python tools/doc_reader.py 作品提交说明.docx --out report.md
-python tools/doc_reader.py 题目.pdf --no-vision
-```
-
-### 驱动与治理
-
-| 工具 | 用途 | 调用方式 |
-|------|------|---------|
-| `engine.workflow_cli boot/probe/forge` | 协议/探测/铸造 | 见上文 |
-| `tools/gpt_image.py` | 科研插图 | `python tools/gpt_image.py --prompt "..." --output fig.png` |
-| `tools/reviewer_client.py` | 外部 LLM 审查 | `python tools/reviewer_client.py --prompt "..."` |
-| `tools/project_health_check.py` | 统一健康检查 | `python tools/project_health_check.py --strict` |
-| `tools/secret_scan.py` | 密钥/路径卫生 | `python tools/secret_scan.py --strict` |
-| `tools/build_skill_index.py` | 技能分层索引 | `python tools/build_skill_index.py [--check\|--emit]` |
-| `tools/check_asset_utilization.py` | 资产/地图对账 | `python tools/check_asset_utilization.py [--strict]` |
-
-（其余图表工具能力以 skills/tools 实存为准。）
-
-## 六、质量门禁（P4 核心）
-
-`engine/quality_gates.py`：最小大小 / 伴随文件 / 论文页数 / 图表健康 / named gates。
-模型配置解析（宿主中立）：contest_models.json → agents/adapters/*/models.json → 可选宿主 agent 目录。
-
-| 技能 | 最小大小 |
-|------|---------|
-| comp-problem-analysis | 1500 字节 |
-| comp-modeling | 2000 字节 |
-| comp-code | 1000 字节 |
-| comp-review | 40 字节 |
-| comp-paper-zh / en | 10000 字节 |
-| paper-write / paper-write-zh | 15000 字节 |
-
-伴随文件示例：comp-code 必须产出 `code/main.py`, `figures/all_results.json`。
-
-## 七、多角色 Agent
-
-| 角色 | 方式 | 用途 |
-|------|------|------|
-| **executor** | 整套 skills | 建模/写作/代码 |
-| **reviewer** | `tools/reviewer_client.py` 或宿主子智能体 | 审查产出 |
-| **editor** | 润色 skills | 按审查意见修改 |
-
-流程：executor → reviewer → editor → reviewer（最多 3 轮）。
-
-## 八、视觉能力
-
-`tools/tikz_vision_check.py` / `drawio_vision_check.py` / `data_fig_vision_check.py`；
-宿主开不出独立视觉窗口时走人工复核降级路径（见 quality_gates 人工复核校验）。
-
-## 九、入口提示词
-
-```
-用户需求：{需求}
-
-我将按以下流程处理：
-1. 读协议并 probe（若尚未自举）
-2. 路由到技能：{技能名} 或 workflow template
-3. 读取技能说明
-4. 调用工具执行（缺口则 forge）
-5. 产出文件到 {工作区}
-6. 质量门禁检查
-7. complete_step + evidence（agent={我的标识}）
-
-现在开始，请提供 {需要的输入}
-```
-
-## 十、生产工作流引擎
-
-引擎只负责持久化编排、检查点、产物证据和质量门禁。它不启动第二个 Agent 进程，
-也不会把未执行的步骤标记为完成。
-
-```powershell
-cd academic-toolkit
 python -m engine.workflow_cli boot
 python -m engine.workflow_cli probe
-python -m engine.workflow_cli caps
-python -m engine.workflow_cli start --template comp_cumcm --workspace workspaces\cumcm-demo --params '{"language":"zh","agent":"acat-agent"}'
-python -m engine.workflow_cli next --wf <workflow_id>
-python -m engine.workflow_cli complete --wf <workflow_id> --ok true --artifacts "PROBLEM_ANALYSIS.md" --evidence '{
-  "schema_version": 1,
-  "agent": "acat-agent",
-  "step_id": "<next 返回的 step_id>",
-  "skill_name": "comp-problem-analysis",
-  "skill_sha256": "<该步 SKILL.md 的 SHA-256>",
-  "commands": [{"command": "python scripts/build_analysis.py", "returncode": 0, "cwd": "."}],
-  "inputs": [],
-  "outputs": ["PROBLEM_ANALYSIS.md"],
-  "companion_skills": {"used": ["comp-problem-analysis"], "skipped": []}
-}'
+python -m engine.workflow_cli start --template <模板> --workspace <工作区> --params <业务参数JSON>
+python -m engine.workflow_cli next --wf <工作流ID> --db <数据库>
 ```
 
-evidence.agent 为**自由非空字符串**（你的工具名）；schema/哈希/命令/门禁校验不变。
+已存在工作流则恢复，不重建。`next` 返回当前任务、合同和执行会话；真实主技能与必用技能正文直接提供。入口技能负责选模板，不能嵌套成单个业务步骤。
 
-**技能强制绑定（P4）**：模板 `metadata.skill_binding`；`main_required` 须留真实读取痕迹；
-`mandatory` 必用且须命令级痕迹。L1 缺席时审计层 `unavailable` 降级，不判通过。
+## 三、任务路由
 
-**竞赛解题入口**：CUMCM 等解题任务**一律经工作流引擎启动**后再使用技能——
-绕开会丢失审计链。非竞赛任务可按路由表自由加载技能。
+| 用户任务 | 模板或单步能力 |
+|---|---|
+| 国赛完整解题 | `comp_cumcm` |
+| 华为杯完整解题 | `comp_huawei` |
+| 其他数模赛事 | `engine/modex-core/templates.json` 中对应 `comp_*` |
+| 找研究方向 | `idea_discovery` |
+| 研究到论文 | `full_pipeline` |
+| 深度研究综合 | `deep_research` |
+| 文献综述 | `literature_review` |
+| 英文/中文/Nature论文 | `paper_writing` / `paper_writing_zh` / `nature_writing` |
+| 既有资产写论文 | `paper_from_assets` |
+| 审稿与返修 | `auto_review` / `paper_submission`；单项用 `paper-rebuttal-nature` |
+| 课程论文/报告/人文论文 | `course_paper` / `course_report` / `humanities_paper` |
+| 课程教学材料 | `course_teaching` |
+| 开题报告 | `thesis_proposal` |
+| 基金申请 | `grant_proposal` |
+| 毕业设计 | `grad_project` |
+| 软著/源程序材料 | `copyright_material` / `copyright_source_materials` |
+| 专利交底书 | `patent_disclosure` |
+| 学术海报与演示 | `academic_outputs` |
+| 科研绘图 | `scientific_plotting` / `scientific_figure_suite` |
 
-**模型配置仓库不预设**：填 `engine/modex-core/contest_models.json` 或
-`agents/adapters/*/models.json`，仅供工具脚本与 strict 门禁比对。
+单技能按真实任务选取，跨步骤任务使用模板。不要为了使用更多技能而堆调用；候选、实际读取、实际运行与语义贡献分别记录。
+
+### 按需能力与资产
+
+- 完整技能描述：`data/skill_routing_index.json`，运行时按查询返回小候选集，不全量灌入正文。
+- 资产台账：`data/asset_catalog.json`，按用途/所属步骤查资料、工具、模型与范文。
+- 历史题型：`data/historical_problems.json`、`data/case_patterns.md`。
+- 赛事规范：`engine/modex-core/comp_rules.json` 与对应官方格式摘要。
+- 写作参考、获奖论文、板块提示与专利原件：`assets-local/`，公开仓不交付的资料缺席须如实说明。
+- 图形细分能力：`fig-visualization-advisor`、`fig-academic`、`fig-plot-edit`、`fig-plot-edit-lite`、`paper-framework-figure-studio-pro`、`agent-figure-gallery`。
+- 论文改进参考：`paper-oral-exemplar`、`anti-defensive-writing`；PDF等单项工具按实际技能路由。
+
+## 四、唯一执行协议
+
+所有操作经 `python -m engine.workflow_cli session <操作>`，`--session` 使用当前会话文件：
+
+| 操作 | 领域工作 | 程序负责 |
+|---|---|---|
+| `read --kind workspace --name PATH` | 阅读任务材料 | 内容版本与写作依赖 |
+| `read --kind skill/asset --name NAME` | 按需咨询资源 | 真实读取记录 |
+| `write --path PATH --stdin` | 保存真实内容 | 原子发布与输出来源 |
+| `edit --path PATH --stdin` | 提供唯一old/new修改 | 匹配、并发变化检查、版本留痕 |
+| `run --plan PLAN` | 指定实际命令、依赖和产物 | 返回码、时长、摘要、依赖版本 |
+| `finish` | 宣告本步工作已准备完成 | 自动证据、统一验收、推进或集中诊断 |
+
+PLAN 的 `nodes` 声明 `id/argv/inputs/outputs`，`depends_on` 指定依赖。模型不手填哈希、返回码、attempt、revision、清单或execution_evidence。
+
+- 原地改稿/代码修复：同路径明确列入 `mutates`，记录before/after且不缓存。
+- 无产物核查：`mode=check`、具名id、真实inputs；不生成假文件，内容改变后旧结论失效。
+- 只有 `pure=true` 且 `complete_inputs=true` 的确定性节点可复用。输入、代码、程序、环境摘要、依赖版本、合同或输出变化都会失效；这不是操作系统沙箱，不适用于网络和隐藏依赖。
+- `needs_work` 保持当前身份修正，一次解决诊断再finish，不为补字段反复retry。
+- 工具已有producer manifest由程序保存，保留原输入、后端、依赖和配置；不得复制旧摘要冒充重跑。
+- 业务产出结构由模板 `output_contract` 与named gates自动检查；技能描述保留领域要求，不再附手工清单和重复shell验证。
+
+## 五、评审与批准
+
+`session review-request` 指定实际输入、输出和rubric，生成版本绑定任务。宿主提供独立上下文执行，只评不改。`session review-receive` 接收真实原文、评审者和实际宿主调用标识；稿件版本变化必须重新评审。
+
+收发记录证明收到什么、针对哪个版本；不能声称独立认证了模型身份。没有独立上下文则明确缺席，不冒用主控自己做的裁定。研究内部的评审-修订可循环，但不重启整条工作流。
+
+`has_checkpoint` 必须等待真实批准：`workflow_cli approve --checkpoint ID --by <批准人> --db DB`。无回复、非交互模式、FAST_MODE和默认设置都不是批准。不得凭名字自动完成真实竞赛终审；仅明确 `machine_audit_only=true` 的纯机器聚合可自动接续。
+
+## 六、质量与恢复
+
+- `engine/quality_gates.py` 与 `output_contracts.py` 是确定性检查实现；返回具体问题，不以打印PASS代表通过。
+- `AUDIT_REPORT.json` 的eligible为预审；当前 `DELIVERY_REPORT.json` 的ready才是机器交付结论。机器结论不等于科学质量获认可。
+- `status` 查看真实事实；只有确认进程已停，才能 `recover --operation-id ID --reason REASON --confirm-stopped`，不自动杀进程或清历史。
+- `retry` 用于真实失败/批准后版本更新，旧attempt不能写入新步骤。未经验证的历史补录不当作交付成功。
+- 程序检查字节，不把mtime当成内容真值；目录检查保留成员集合，不能漏掉新增、删除或兄弟文件变动。
+- 宿主原生工具未接入执行侧时，使用真实集成证据接口，不能凭空补返回码或会话。`complete/preflight/backfill`属于集成与历史恢复接口，不是模型日常填写流程。
+
+## 七、审计与安全
+
+| 来源 | 含义 |
+|---|---|
+| L1 | 可选宿主hook的实际工具事件；缺席标unavailable，不伪造 |
+| L2 | 引擎状态、检查点、事务与提交事件 |
+| 执行事实 | `execution_operations` 的真实资源/写入/命令/评审记录 |
+| L3 | 引擎从事实或外部集成证据生成的已接受回执 |
+
+原始数据、历史证据和科研成果不是清理对象。密钥不写入tracked配置、任务正文、命令参数或产物；只通过执行环境使用。全仓同一主控，代码和数据库不由两个状态所有者同时维护。
+
+## 八、宿主与集成
+
+可选宿主适配器只提供资源发现与L1，不是驱动前提。OpenCode的`opencode.json`、ZCode的`.zcode/skills`按本地需要配置；不使用的宿主不创建空壳。统一数据模型为 `engine.agent_bridge`。
+
+新增能力必须同时具备：专业技能正文、明确输入输出、真实执行入口、必要业务检查、来源许可及验收证据。可复用就复用；没有工具报告TOOL_GAP，不写“已完成”。旧调用迁移后删除无用实现，活跃正文直接改正，不用“以新规则为准”保留矛盾。
+
+## 九、开发验证
+
+更改后运行实际受影响业务链，再运行仓库回归与溯源检查。测试计数以根 `pytest.ini` 为真源；全绿测试不能替代科研质量、外部来源或全业务验收。
+
+```bash
+python -m pytest -q
+python tools/check_provenance.py
+python tools/project_health_check.py --strict
+```
+
+内部操作与技术决策写 `dev-docs/LOG.md`；任务计划为 `dev-docs/task_plan.md`。保留原始历史记录，但它们不参与当前执行契约。

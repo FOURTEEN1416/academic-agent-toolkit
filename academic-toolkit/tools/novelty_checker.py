@@ -67,7 +67,6 @@ def calculate_novelty(method: str) -> dict:
 
     # 检查是否在常见国一方法中
     common_methods = COMMON_NSF_METHODS[category]
-    is_in_list = any(m.lower() in method.lower() or method.lower() in m.lower() for m in common_methods)
 
     # 基于"包含多少个常见方法"打分
     hits = sum(1 for m in common_methods if m.lower() in method.lower())

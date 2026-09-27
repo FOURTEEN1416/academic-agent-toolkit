@@ -44,6 +44,23 @@ function writeJson(file, value) {
   fs.writeFileSync(file, `${JSON.stringify(stable(value), null, 2)}\n`, 'utf8');
 }
 
+export async function publishDirectory(temp, outputDir) {
+  // Windows 上短暂的共享占用可使完整产物的发布失败；只重试发布，不重跑生成。
+  const delays = [25, 50, 100, 200, 400];
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      fs.renameSync(temp, outputDir);
+      return;
+    } catch (error) {
+      if (process.platform !== 'win32' || !['EPERM', 'EACCES', 'EBUSY'].includes(error.code)
+          || attempt >= delays.length || !fs.existsSync(temp) || fs.existsSync(outputDir)) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delays[attempt]));
+    }
+  }
+}
+
 async function main() {
   const args = parseArgs(process.argv);
   const configPath = path.resolve(args.config);
@@ -126,11 +143,13 @@ async function main() {
   writeJson(path.join(temp, 'SOURCE_MATERIALS_MANIFEST.json'), manifest);
   fs.writeFileSync(path.join(temp, 'SOURCE_MATERIALS_REPORT.md'), `# 源程序材料报告\n\n- backend: ${manifest.backend}\n- core: ${manifest.coreVersion}\n- rules: ${manifest.rulesVersion}\n- files: ${result.stats.totalFiles}\n- pages: ${result.stats.estimatedPages}\n- audit: ${result.auditItems.map((x) => x.status).join(', ')}\n`, 'utf8');
   fs.rmSync(outputDir, { recursive: true, force: true });
-  fs.renameSync(temp, outputDir);
+  await publishDirectory(temp, outputDir);
   process.stdout.write(`${JSON.stringify({ ok: true, manifest: path.join('source-materials', 'SOURCE_MATERIALS_MANIFEST.json') })}\n`);
 }
 
-main().catch((error) => {
-  process.stderr.write(`${error instanceof Error ? error.stack || error.message : String(error)}\n`);
-  process.exitCode = 1;
-});
+if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
+  main().catch((error) => {
+    process.stderr.write(`${error instanceof Error ? error.stack || error.message : String(error)}\n`);
+    process.exitCode = 1;
+  });
+}

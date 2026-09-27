@@ -1204,7 +1204,6 @@ def _render_markdown(doc: Document, lines: list[str], profile: dict, workspace: 
 
     def flush_table():
         if not table_lines:
-            in_table = False
             return
         parsed_rows = []
         for tl in table_lines:

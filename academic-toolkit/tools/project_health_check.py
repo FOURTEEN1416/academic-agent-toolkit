@@ -65,15 +65,15 @@ CHECKS: tuple[tuple[str, list[str], bool], ...] = (
 #      快照/已失效"横幅）。命中这些横幅的行**跳过**——否则每次口径更替都会把合规的
 #      历史留痕误报为漂移，检测器就会因噪声而失去意义（同"狼来了"教训）。
 DRIFT_SOURCES: tuple[tuple[str, str, str], ...] = (
-    ("README.md", r"badge/tests-(\d+)_passing", "tests"),
-    ("README.md", r"仓库根 \*\*(\d+) passed / 0 failed\*\*", "tests"),
+    ("README.md", r"badge/tests-(\d+)_(?:passing|collected)", "tests"),
+    ("README.md", r"仓库根 \*\*(\d+) (?:collected|passed / 0 failed)\*\*", "tests"),
     ("README.md", r"badge/skills-(\d+)_tracked", "skills"),
     ("README.md", r"(\d+) 个随仓技能", "skills"),
     ("README.md", r"badge/capabilities-(\d+)-", "capabilities"),
-    ("AGENTS.md", r"仓库根[^\n]{0,240}?\*\*(\d+) passed / 0 failed\*\*", "tests"),
-    ("pytest.ini", r"本机完整仓 \*\*(\d+) passed / 0 failed\*\*", "tests"),
+    ("AGENTS.md", r"仓库根[^\n]{0,240}?\*\*(\d+) (?:collected|passed / 0 failed)\*\*", "tests"),
+    ("pytest.ini", r"本机完整仓 \*\*(\d+) (?:collected|passed / 0 failed)\*\*", "tests"),
     ("dev-docs/truth-index.md",
-     r"本机完整仓\*\* `pytest -q` = \*\*(\d+) passed / 0 failed\*\*", "tests"),
+     r"本机完整仓\*\* `pytest -q` = \*\*(\d+) (?:collected|passed / 0 failed)\*\*", "tests"),
 )
 
 # 历史横幅标记：命中即视为"合规的历史留痕"，不参与漂移判定

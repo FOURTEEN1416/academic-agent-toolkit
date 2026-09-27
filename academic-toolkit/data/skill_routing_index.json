@@ -15,8 +15,8 @@
   "counts": {
     "core": 52,
     "ondemand": 203,
-    "resident_chars": 30941,
-    "full_chars": 64734
+    "resident_chars": 31104,
+    "full_chars": 64881
   },
   "skills": {
     "ablation-planner": {
@@ -254,8 +254,8 @@
     "comp-paper-en": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Mathematical modeling competition paper writing in English (MCM/ICM/APMCM). Generate complete LaTeX paper following。区别于 comp-compile-en：本技能只写正文并产出 LaTeX 源，不负责编译。",
-      "full_description": "Mathematical modeling competition paper writing in English (MCM/ICM/APMCM). Generate complete LaTeX paper following。区别于 comp-compile-en：本技能只写正文并产出 LaTeX 源，不负责编译。",
+      "resident_description": "Mathematical modeling competition paper writing in English. Supported contests (canonical comp_rules IDs): comp_mcm (MCM/ICM), comp_apmcm, comp_certcup_en; comp_shuwei_en is a declared template capability gap. Generate complete LaTeX paper following COMAP-style format. 区别于 comp-compile-en：本技能只写正文并产出 LaTeX 源，不负责编译。",
+      "full_description": "Mathematical modeling competition paper writing in English. Supported contests (canonical comp_rules IDs): comp_mcm (MCM/ICM), comp_apmcm, comp_certcup_en; comp_shuwei_en is a declared template capability gap. Generate complete LaTeX paper following COMAP-style format. 区别于 comp-compile-en：本技能只写正文并产出 LaTeX 源，不负责编译。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-paper-en/SKILL.md"
     },
@@ -286,8 +286,8 @@
     "comp-pipeline": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "数学建模竞赛全流程编排器（轻量变体）。引擎标准流程为国赛/华为杯同构 14 步（workflow_cli --template comp_cumcm / comp_huawei）；本技能是无引擎场景下的手动串联编排：串起问题分析、文献、建模",
-      "full_description": "数学建模竞赛全流程编排器（轻量变体）。引擎标准流程为国赛/华为杯同构 14 步（workflow_cli --template comp_cumcm / comp_huawei）；本技能是无引擎场景下的手动串联编排：串起问题分析、文献、建模、求解、结果、论文、编译、审查八个阶段。触发词：数模全流程、完整做一道竞赛题、comp-pipeline、从读题到交付。",
+      "resident_description": "数学建模竞赛全流程入口：把竞赛任务映射到引擎工作流模板（国赛 comp_cumcm、华为杯 comp_huawei、其他赛事对应 comp_*），由引擎分派各步骤并独占流程状态；本技能不再维护并行编排或手动阶段面板。",
+      "full_description": "数学建模竞赛全流程入口：把竞赛任务映射到引擎工作流模板（国赛 comp_cumcm、华为杯 comp_huawei、其他赛事对应 comp_*），由引擎分派各步骤并独占流程状态；本技能不再维护并行编排或手动阶段面板。触发词：数模全流程、完整做一道竞赛题、comp-pipeline、从读题到交付。",
       "description_compacted": true,
       "path": "academic-toolkit/skills/comp-pipeline/SKILL.md"
     },
@@ -862,9 +862,9 @@
     "idea-discovery": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "找研究方向全流程编排：文献检索、创意生成、新颖性核查、评审四步，把宽泛方向变成经试点验证的选题。触发词：找idea全流程、idea discovery pipeline、从零开始找方向。",
-      "full_description": "找研究方向全流程编排：文献检索、创意生成、新颖性核查、评审四步，把宽泛方向变成经试点验证的选题。触发词：找idea全流程、idea discovery pipeline、从零开始找方向。",
-      "description_compacted": false,
+      "resident_description": "找研究方向/深度调研入口：按目标选择 idea_discovery（选题到提案与实验计划）或 deep_research（多源证据汇总与独立评审的调研报告）工作流；文献、创意、新颖性、评审、精炼由引擎分派到单步技能。",
+      "full_description": "找研究方向/深度调研入口：按目标选择 idea_discovery（选题到提案与实验计划）或 deep_research（多源证据汇总与独立评审的调研报告）工作流；文献、创意、新颖性、评审、精炼由引擎分派到单步技能。触发词：找idea全流程、idea discovery pipeline、深度调研、从零开始找方向。",
+      "description_compacted": true,
       "path": "academic-toolkit/skills/idea-discovery/SKILL.md"
     },
     "idea-discovery-robotics": {
@@ -1678,8 +1678,8 @@
     "paper-writing": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "论文写作全流程编排：串起 paper-plan、paper-figure、paper-write、paper-compile、auto-paper-improvement-loop 五步，从叙述式报告走到可投稿 PDF。",
-      "full_description": "论文写作全流程编排：串起 paper-plan、paper-figure、paper-write、paper-compile、auto-paper-improvement-loop 五步，从叙述式报告走到可投稿 PDF。触发词：写论文全流程、write paper pipeline、从报告到PDF、paper writing、完整论文生成流程。",
+      "resident_description": "论文写作入口：按语言与目标选择 paper_writing / paper_writing_zh / nature_writing / paper_from_assets 工作流，由引擎分派规划、分析、绘图、写作、编译与改进循环各步",
+      "full_description": "论文写作入口：按语言与目标选择 paper_writing / paper_writing_zh / nature_writing / paper_from_assets 工作流，由引擎分派规划、分析、绘图、写作、编译与改进循环各步，从叙述式报告走到可投稿 PDF。",
       "description_compacted": true,
       "path": "academic-toolkit/skills/paper-writing/SKILL.md"
     },

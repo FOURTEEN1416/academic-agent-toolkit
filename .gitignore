@@ -176,3 +176,8 @@ academic-toolkit/skills/comp-paper-zh/_templates/huawei/official_docx/
 *.whl
 .tmp_audit_*
 .tmp_*
+
+# 多窗协作快照/本地助手层（2026-09-27 赛事隔离收仓）
+.snapshots/
+.workbuddy-ai/
+.zcodeignore
