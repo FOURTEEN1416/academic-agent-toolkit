@@ -5,7 +5,7 @@
 ## [v2.1.0] - 2026-09-27 —— 赛事档案 v2 隔离（跨赛事规则不再混用）
 
 > 定版范围：2026-09-27 赛事隔离主线（comp_rules v1→v2 + 规则选档接口 + 技能/模板对齐 + 文档基线 1005）。
-> 未打 tag；打 tag 与 Release notes 待公开发布时执行。
+> tag v2.1.0 已打在 fb87e99（2026-09-27）；GitHub Release notes 待公开发布时补。
 
 ### Added
 
@@ -69,7 +69,7 @@
 ### 迁移指引
 
 - 下游引用 `科研工具箱/` → `academic-toolkit/`；`fork/` → `vendor/forks/`；根级 `参考论文/` 等 → `assets-local/` 对应子目录。
-- 旧技能名可用 `academic-toolkit/data/skill_rename_map.json`（renames + merges 全量映射）反查新名。
+- 旧技能名可用 `academic-toolkit/data/skill_rename_map.json`（renames + merges 全量映射，2026-09-27 起随公开仓分发）反查新名。
 - 本机 ZCode 用户重建 skills 联结：`cmd /c mklink /J .zcode\skills academic-toolkit\skills`。
 
 ## [v1.3.0] - 2026-09-22

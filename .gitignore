@@ -85,12 +85,9 @@ node_modules/
 # assets-local/（英文子目录 award-papers / reference-figures / cumcm-templates），
 # 整区一条规则隔离；子目录内容不改名（第三方原件保持原貌）。
 assets-local/
-参考论文使用指南.md
 附件*.pdf
-赛前试炼任务/
 CUMCM2026Problems/
 extracted_images/
-screenshots/
 
 # Real practice/validation workspaces
 workspaces/
@@ -132,6 +129,9 @@ academic-toolkit/data/*
 !academic-toolkit/data/cumcm_section_prompts.json
 !academic-toolkit/data/secret_scan_allowlist.json
 !academic-toolkit/data/duplicate_assets_registry.json
+# 2026-09-27 放行：v2.0 迁移技能改名反查表（CHANGELOG 迁移指引公开引用；
+# 纯 renames+merges 映射，无路径无敏感，公开 clone 缺它则指引死链）
+!academic-toolkit/data/skill_rename_map.json
 # ⚠️ 2026-09-22 修正（照上方 data/ 同款模板）：原为整目录规则 `academic-toolkit/baseline/`，
 #    整目录规则有静默陷阱——已 tracked 的老文件**免疫 ignore**（照常入库），但新增的
 #    交付件会**无声消失**（git status 里根本不出现），导致本地全绿、公开 clone 缺件。

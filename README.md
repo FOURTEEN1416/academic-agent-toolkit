@@ -6,7 +6,7 @@
 
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
-[![Release](https://img.shields.io/badge/release-v2.0.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
+[![Release](https://img.shields.io/badge/release-v2.1.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-1005_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-313-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-250_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
@@ -75,7 +75,7 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 |----|------|----------|
 | 期刊规范 | `scientific-visualization` | 多面板布局 · 误差棒 · 显著性标注 · 色盲安全 · PDF/EPS/TIFF 导出 |
 | 绘图库 | `matplotlib` `seaborn` `plotly` | 底层定制 · 统计图形 · 交互式图表 |
-| 确定性图 | `fig-spec` `graphviz` `mermaid` | JSON→SVG 架构图 · 依赖图 · 流程图 |
+| 确定性图 | `fig-spec` `graphviz` `mermaid-diagram` | JSON→SVG 架构图 · 依赖图 · 流程图 |
 | 编辑级图 | `diagram-design` | 39 类品牌图（Sankey/鱼骨/Wardley/UML/ER…）· 重绘 drawio/mermaid 源 · MIT |
 | 视觉论证 | `excalidraw-diagram` `infographics` `scientific-schematics` | 手绘风论证图 · 信息图 · 科学示意图 |
 | 既有沉淀 | `paper-figure-nature` + 62 篇获奖论文实证规范 | Nature 级排版与配色 |
@@ -149,7 +149,7 @@ python -m engine.workflow_cli probe
 | 必装 | TeX Live / XeLaTeX | 论文编译类能力 | texlive.org |
 | 推荐 | Graphviz（`dot`） | `graphviz` 技能 | `winget install --id Graphviz.Graphviz -e` |
 | 推荐 | mermaid-cli（`mmdc`） | `mermaid-diagram` 技能 | `PUPPETEER_SKIP_DOWNLOAD=true bun install -g @mermaid-js/mermaid-cli`（用系统 Edge/Chrome 需写 puppeteer 配置，见技能内说明） |
-| 可选 | **多模态 LLM 图像生成后端** | `infographics`、`scientific-schematics` 两个 AI 绘图专属技能 | `export OPENROUTER_API_KEY=sk-...` 或宿主原生 `generate_image` 后端；质量评审模型已按 2026-09-10 用户裁定配置（`engine/modex-core/contest_models.json`，四角色 agnes/agnes-2.5-flash） |
+| 可选 | **多模态 LLM 图像生成后端** | `infographics`、`scientific-schematics` 两个 AI 绘图专属技能 | `export OPENROUTER_API_KEY=sk-...` 或宿主原生 `generate_image` 后端；质量评审四角色已按 2026-09-26 用户裁定改配宿主窗口/视觉通道（`engine/modex-core/contest_models.json`，外部 Agnes 通道 2026-09-23 退役） |
 
 > [!IMPORTANT]
 > **AI 绘图技能（infographics / scientific-schematics）必须有多模态 LLM 图像生成后端**——技能内置 Step 0 强制检测，缺后端会明确报错并给指引，不会用占位图冒充。其余绘图技能全部本地运行、零 API。
@@ -197,6 +197,8 @@ academic-agent-toolkit/
 <summary><b>🔖 版本与许可证</b></summary>
 
 <br>
+
+**v2.1.0（2026-09-27）** —— 赛事档案 v2 隔离：`comp_rules.json` 升级 schema v2 并切生产（22 赛事 / 8 profile / 51 约束 = 36 verified + 15 unknown）· 规则选档接口（`contests[id].profiles[]` 按 edition/submission_form + region/stage 精确选择，禁用模糊回落）· `contest_profile.py` v2 解析器与 execution 受控缓存 · 命令环境注入 `CONTEST_ID`/`PAGE_CAP`/`PAGE_SCOPE`/`PAGE_CAP_STATUS`/`EDITION`（智能体不再转录）· 技能正文与模板对齐（`certcup_en` 独立骨架、三族分支 fail-fast、`claim_code_check` 双副本同步、移除共享 `quick_gates_max_pages`）· 研赛/华为杯分型入库骨架。修复跨赛事规则混用与 P1 假绿。文档基线 **1005 collected**；详见 [CHANGELOG.md](./CHANGELOG.md)。
 
 **v2.0.0（2026-09-23）** —— 整仓彻底重构：套件目录 `科研工具箱/`→`academic-toolkit/` · 技能命名法（139 件改名 + 9 对真重复合并，264→255）· 资产激活机制（asset_catalog 台账 + boot/probe/bootstrap 资产暴露 + 三方对账）· 私有资料区统一 `assets-local/` · 第三方子项目独立 `third_party/` · 上游 fork `vendor/forks/` · 内容融入（287 自查表 / 范文包 / 板块提示词 / 88 色板）· 新增 `award-paper-mining`。**破坏性变更**，迁移指引见 [CHANGELOG.md](./CHANGELOG.md)。（后续技能清洗与 GPL 件 clean-room 收编，现行 tracked 口径 **250**，见上方徽章。）
 

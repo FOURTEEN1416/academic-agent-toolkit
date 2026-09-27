@@ -24,9 +24,9 @@ jobs:
     name: pytest + provenance + gates
     # runner 选择：tracked 面已于 2026-09-23 v2.0 整仓英化——0 中文路径、无 NTFS
     # 联结（本地 junction 不入库）、runtime_adapter 双候选（.exe/无后缀）、无 Windows
-    # 专属 API 硬依赖，ubuntu-latest 技术上已可行。仍留 windows-latest：pyc 工具的
-    # 原生路径依赖 .venv311（Windows 布局 Scripts/python.exe），ubuntu 侧将全程走
-    # marshal 回退——该路径尚未在真实 runner 验证，待一次 ubuntu 双跑确认后再切换。
+    # 专属 API 硬依赖；pyc 真源码亦已退役（tools/ 零 .pyc，棘轮钉住），原"pyc 工具
+    # 依赖 .venv311 Windows 布局"的留任理由已消亡。仍留 windows-latest 属保守选择：
+    # 历史红点均在 Windows 形态暴露，切 ubuntu 前须一次 ubuntu 双跑对照确认。
     runs-on: windows-latest
     timeout-minutes: 25
 
@@ -66,8 +66,9 @@ jobs:
         run: npm ci
 
       - name: Repository-root test suite
-        # 当前口径（2026-09-27 本机完整仓实跑）：1005 collected / 1005 passed / 0 failed / 0 skipped。
-        # 基线唯一真源 = pytest.ini 注释（公开 clone / CI 侧以本步实测为准）。
+        # 口径：1005 collected（基线锚点）。唯一真源 = pytest.ini 注释——那里区分
+        # collect 锚点与最近一次全仓实跑；本注释不钉 passed 数字，避免双真源漂移
+        # （2026-09-27 修正：旧注释"1005 passed 实跑"与真源口径矛盾）。
         # 公开侧与本机差异来自：gitignored 私有资产缺席时相关用例按语义 SKIP（理由随 -rs 输出）
         # 与并行窗尚未提交的新测试；两侧收集总数应一致。
         run: python -m pytest -q -rs

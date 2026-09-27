@@ -34,6 +34,6 @@ pytest academic-toolkit/tests/test_contest_lessons.py -q
 
 ## 维护说明
 
-- 比赛结束后，可把新的真题与优秀论文登记进 `historical_papers.json`；
-- 重跑 `python academic-toolkit/tools/data_init.py` 可重置（**注意：会覆盖本目录数据文件**，
-  经验库 `contest_lessons.*` 属人工累积资产，重置前先备份）。
+- 比赛结束后，可把新的真题与优秀论文登记进 `historical_papers.md`（结构化题型在 `historical_problems.json`，由 `tools/case_fetcher.py` 生成）；
+- `python academic-toolkit/tools/data_init.py` 默认只补缺失文件、不覆盖已有数据
+  （重置须显式 `--force` 并先备份；经验库 `contest_lessons.*` 属人工累积资产）。

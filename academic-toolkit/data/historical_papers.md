@@ -134,5 +134,5 @@
 
 ## 维护说明
 
-- 比赛结束后可补充 `historical_papers.json`（每道题 Top 3 论文链接）
+- 比赛结束后可补充本文件（每道题 Top 3 论文链接）；结构化题型数据在 `historical_problems.json`
 - 2025 年评奖结果 2026 年 1-3 月公布，届时补充
