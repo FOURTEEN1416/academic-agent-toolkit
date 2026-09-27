@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from engine import workflow_cli
-from engine.opencode_bridge import StepResult
+from engine.agent_bridge import StepResult
 from engine.workflow_runner import WorkflowRunner
 from engine.workflow_store import WorkflowStore
 
@@ -55,7 +55,8 @@ def complete_ok(runner, wf_id):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("x" * 3000, encoding="utf-8")
     return runner.complete_step(wf_id, StepResult(
-        ok=True, artifacts=list(action.output_files),
+        ok=True, artifacts=list(action.output_files), step_id=action.step_id,
+        attempt_id=action.attempt_id, expected_revision=action.expected_revision,
         metadata={"execution_evidence": {
             "schema_version": 1, "agent": "OpenCode Desktop",
             "step_id": action.step_id, "skill_name": action.skill_name,
@@ -81,8 +82,9 @@ def test_retry_after_failure_then_complete_succeeds(tmp_path):
     """complete 失败→next 阻断→retry→重新 complete 成功，事件库有 step_retry 记录。"""
     store, runner, wf = setup_runner(tmp_path)
     # 1. 步骤失败
-    runner.next_action(wf)
-    fail = runner.complete_step(wf, StepResult(ok=False, stderr="error: model not found"))
+    action = runner.next_action(wf).action
+    fail = runner.complete_step(wf, StepResult(ok=False, stderr="error: model not found",
+        step_id=action.step_id, attempt_id=action.attempt_id, expected_revision=action.expected_revision))
     assert fail.status == "failed"
     # 2. next 被永久阻断（修复前的死锁态）
     blocked = runner.next_action(wf)
@@ -116,8 +118,9 @@ def test_retry_records_audit_engine_event(tmp_path):
     """step_retry 也写入引擎侧操作审计（恢复行为纳入审计链）。"""
     import tempfile
     _store, runner, wf = setup_runner(tmp_path)
-    runner.next_action(wf)
-    runner.complete_step(wf, StepResult(ok=False, stderr="boom"))
+    action = runner.next_action(wf).action
+    runner.complete_step(wf, StepResult(ok=False, stderr="boom", step_id=action.step_id,
+        attempt_id=action.attempt_id, expected_revision=action.expected_revision))
     audit_root = Path(tempfile.mkdtemp())
     from engine.audit_store import AuditStore
     runner._audit = AuditStore(audit_root)
@@ -170,7 +173,8 @@ def test_cli_retry_end_to_end_with_step_retry_event(cli_env, monkeypatch, capsys
     ws = cli_env / "ws"
     db = cli_env / "workflow.sqlite"
     rc, started = _run_cli(monkeypatch, capsys, "start", "--template", "comp_cumcm",
-                           "--workspace", str(ws), "--db", str(db))
+                           "--workspace", str(ws), "--db", str(db),
+                           "--params", '{"contest": {"edition": "2026", "submission_form": "electronic"}}')
     assert rc == 0
     wf = started["workflow_id"]
 
@@ -181,7 +185,10 @@ def test_cli_retry_end_to_end_with_step_retry_event(cli_env, monkeypatch, capsys
     assert nxt["action"]["step_number_manual"] == 1
 
     rc, failed = _run_cli(monkeypatch, capsys, "complete", "--wf", wf,
-                          "--ok", "false", "--stderr", "boom", "--db", str(db))
+                          "--ok", "false", "--stderr", "boom", "--db", str(db),
+                          "--step-id", nxt["action"]["step_id"],
+                          "--attempt-id", nxt["action"]["attempt_id"],
+                          "--expected-revision", str(nxt["action"]["expected_revision"]))
     assert rc == 1 and failed["status"] == "failed"
 
     rc, blocked = _run_cli(monkeypatch, capsys, "next", "--wf", wf, "--db", str(db))
@@ -278,7 +285,8 @@ def test_cli_complete_waiting_checkpoint_output_contains_checkpoint_id(cli_env, 
     ws = cli_env / "ws"
     db = cli_env / "workflow.sqlite"
     rc, started = _run_cli(monkeypatch, capsys, "start", "--template", "comp_cumcm",
-                           "--workspace", str(ws), "--db", str(db))
+                           "--workspace", str(ws), "--db", str(db),
+                           "--params", '{"contest": {"edition": "2026", "submission_form": "electronic"}}')
     assert rc == 0
     wf = started["workflow_id"]
 
@@ -298,7 +306,8 @@ def test_cli_complete_waiting_checkpoint_output_contains_checkpoint_id(cli_env, 
         "2. 假设干燥介质温度在腔体内均匀。\n\n## 三、建模与求解思路\n问题1建立一维传热**模型**，"
         "问题2引入对流边界，问题3把边界条件改为连续事件的**求解**，问题4做参数灵敏度分析。\n"
     )
-    path.write_text(body * 12, encoding="utf-8")
+    manifest = "\n<!-- BEGIN FIGURE_MANIFEST -->\n**数据图**\n- fig_problem_structure\n**总数：DATA=1, ALL=1**\n<!-- END FIGURE_MANIFEST -->\n"
+    path.write_text(body * 12 + manifest, encoding="utf-8")
     skill_sha = hashlib.sha256(Path(action["skill_path"]).read_bytes()).hexdigest()
     evidence = {
         "schema_version": 1, "agent": "OpenCode Desktop",

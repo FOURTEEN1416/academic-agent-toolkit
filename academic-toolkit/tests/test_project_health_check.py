@@ -72,6 +72,21 @@ def test_drift_detects_mismatch(tmp_path: Path, monkeypatch) -> None:
     assert out["mismatches"][0]["line"] == 1
 
 
+def test_collected_baseline_drift_is_detected_in_all_authoritative_docs(tmp_path, monkeypatch):
+    (tmp_path / "dev-docs").mkdir()
+    fixtures = {
+        "README.md": "badge/tests-999_collected\n仓库根 **999 collected**",
+        "AGENTS.md": "仓库根 `pytest -q` | **999 collected**",
+        "pytest.ini": "# 本机完整仓 **999 collected**",
+        "dev-docs/truth-index.md": "**本机完整仓** `pytest -q` = **999 collected**",
+    }
+    for name, text in fixtures.items():
+        (tmp_path / name).write_text(text, encoding="utf-8")
+    monkeypatch.setattr(phc, "REPO_ROOT", tmp_path)
+    out = phc._drift({"available": True, "count": 100, "reason": ""})
+    assert {m["file"] for m in out["mismatches"]} == set(fixtures)
+
+
 def test_drift_passes_on_agreement(tmp_path: Path, monkeypatch) -> None:
     (tmp_path / "README.md").write_text("badge/tests-527_passing", encoding="utf-8")
     monkeypatch.setattr(phc, "REPO_ROOT", tmp_path)

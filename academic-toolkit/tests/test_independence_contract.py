@@ -31,8 +31,6 @@ def test_engine_modules_do_not_require_opencode_runtime():
         text = path.read_text(encoding="utf-8")
         assert "Popen" not in text or "opencode" not in text.lower(), path
         # 仅禁止“调用另一个 opencode”的委派语义出现在实现中作为真源依赖
-        if path.name == "opencode_bridge.py":
-            assert "re-export" in text or "agent_bridge" in text
         for needle in forbidden_substrings + ("spawn_opencode", "run_opencode_process"):
             assert needle not in text, path
 

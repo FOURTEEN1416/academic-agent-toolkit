@@ -25,59 +25,61 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import time
+from uuid import uuid4
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from .artifact_manifest import FingerprintSession
 
 
 # 当前 schema 版本
 SCHEMA_VERSION = 1
 
+# Windows 下杀毒/索引器会短暂锁定新落盘文件（发布EPERM实证），有界重试；
+# 永久错误（目标被长期占用、父目录缺失等）在末次尝试后原样抛出。
+_REPLACE_ATTEMPTS = 5
+
+
+def durable_replace(staged: Path, target: Path) -> None:
+    """os.replace with bounded backoff for transient Windows sharing violations."""
+    delay = 0.05
+    for attempt in range(_REPLACE_ATTEMPTS):
+        try:
+            os.replace(staged, target)
+            return
+        except PermissionError:
+            if attempt == _REPLACE_ATTEMPTS - 1:
+                raise
+            time.sleep(delay)
+            delay *= 2
+
 
 def _sha256(path: Path) -> str:
-    """计算文件或目录 SHA-256，路径不存在时返回空字符串。"""
-    if not path.exists():
-        return ""
-    digest = hashlib.sha256()
-    if path.is_dir():
-        files = sorted(item for item in path.rglob("*") if item.is_file())
-        if not files:
-            return ""
-        for item in files:
-            rel = item.relative_to(path).as_posix().encode("utf-8")
-            digest.update(len(rel).to_bytes(8, "big"))
-            digest.update(rel)
-            digest.update(item.read_bytes())
-        return digest.hexdigest()
-    if path.is_file():
-        return hashlib.sha256(path.read_bytes()).hexdigest()
-    return ""
+    """Stream content through the same safe fingerprint implementation."""
+    path = Path(path).absolute()
+    return FingerprintSession(path.parent).fingerprint(path).sha256
 
 
-def _path_metadata(workspace: Path, path: Path) -> dict[str, Any]:
-    abs_path = path.resolve() if not path.is_absolute() else path.resolve()
+def _path_metadata(workspace: Path, path: Path, session: FingerprintSession | None = None) -> dict[str, Any]:
+    abs_path = (workspace / path).resolve() if not path.is_absolute() else path.resolve()
     try:
         rel = abs_path.relative_to(workspace.resolve()).as_posix()
     except ValueError:
         raise ValueError(f"路径超出工作区: {path}")
-    exists = abs_path.exists()
-    if abs_path.is_dir():
-        size = sum(item.stat().st_size for item in abs_path.rglob("*") if item.is_file())
-        kind = "directory"
-    elif abs_path.is_file():
-        size = abs_path.stat().st_size
-        kind = "file"
-    else:
-        size = 0
-        kind = "missing"
-    return {"path": rel, "sha256": _sha256(abs_path), "exists": exists, "size": size, "kind": kind}
+    artifact = (session or FingerprintSession(workspace)).fingerprint(path)
+    kind = "directory" if abs_path.is_dir() else ("file" if artifact.exists else "missing")
+    return {"path": rel, "sha256": artifact.sha256, "exists": artifact.exists,
+            "size": artifact.size, "kind": kind}
 
 
-def _resolve_paths(workspace: Path, paths: list[Path]) -> list[dict[str, Any]]:
+def _resolve_paths(workspace: Path, paths: list[Path], session: FingerprintSession | None = None) -> list[dict[str, Any]]:
     """将路径列表解析为相对路径 + SHA-256 + 元数据的字典列表。"""
     resolved = []
     for p in paths:
-        resolved.append(_path_metadata(workspace, p))
+        resolved.append(_path_metadata(workspace, p, session))
     return resolved
 
 
@@ -95,7 +97,7 @@ def _manifest_entry_path(workspace: Path, declared_path: str) -> Path | None:
     return resolved
 
 
-def write_manifest(
+def build_manifest(
     workspace: Path,
     step_name: str,
     config: dict[str, Any] | None = None,
@@ -105,8 +107,9 @@ def write_manifest(
     commands: list[dict[str, Any]] | None = None,
     dependencies: dict[str, str] | None = None,
     extra: dict[str, Any] | None = None,
-) -> Path:
-    """写入 STEP_MANIFEST.json 到工作区根目录。
+    session: FingerprintSession | None = None,
+) -> dict[str, Any]:
+    """在内存构建执行清单；不创建目录、不写文件，供预检与落盘共同使用。
 
     Args:
         workspace: 工作区路径
@@ -120,10 +123,9 @@ def write_manifest(
         extra: 额外自定义字段
 
     Returns:
-        manifest_path: 生成的 manifest 文件路径
+        manifest: 未落盘的执行清单字典
     """
     workspace = Path(workspace).resolve()
-    workspace.mkdir(parents=True, exist_ok=True)
 
     manifest: dict[str, Any] = {
         "schemaVersion": SCHEMA_VERSION,
@@ -131,8 +133,8 @@ def write_manifest(
         "executedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "backend": backend,
         "config": config or {},
-        "inputFiles": _resolve_paths(workspace, inputs or []),
-        "outputFiles": _resolve_paths(workspace, outputs or []),
+        "inputFiles": _resolve_paths(workspace, inputs or [], session),
+        "outputFiles": _resolve_paths(workspace, outputs or [], session),
         "commands": commands or [],
         "dependencies": dependencies or {},
     }
@@ -143,15 +145,39 @@ def write_manifest(
     if extra:
         manifest.update(extra)
 
-    manifest_path = workspace / "STEP_MANIFEST.json"
-    manifest_path.write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    return manifest_path
+    return manifest
 
 
-def validate_manifest(workspace: Path, manifest_path: str | Path | None = None) -> dict[str, Any]:
+def atomic_write_json(path: Path, data: Any) -> None:
+    """Publish complete JSON with a same-directory atomic replace.
+
+    Failed staging files retain a unique .tmp suffix and are never evidence.
+    Database rollback does not roll back files; only committed references count.
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    staged = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
+    with staged.open("x", encoding="utf-8", newline="\n") as handle:
+        json.dump(data, handle, ensure_ascii=False, indent=2)
+        handle.flush()
+        os.fsync(handle.fileno())
+    durable_replace(staged, path)
+
+
+def write_manifest(workspace: Path, step_name: str, config=None, inputs=None, outputs=None,
+                   backend: str = "", commands=None, dependencies=None, extra=None,
+                   session: FingerprintSession | None = None) -> Path:
+    """Persist execution facts; build_manifest is the write-free counterpart."""
+    manifest = build_manifest(workspace, step_name, config, inputs, outputs, backend,
+                              commands, dependencies, extra, session)
+    path = Path(workspace).resolve() / "STEP_MANIFEST.json"
+    atomic_write_json(path, manifest)
+    return path
+
+
+def validate_manifest(workspace: Path, manifest_path: str | Path | None = None,
+                      session: FingerprintSession | None = None,
+                      manifest_data: dict[str, Any] | None = None) -> dict[str, Any]:
     """验证 STEP_MANIFEST.json 的存在性、schema 版本、必填字段完整性。
 
     Args:
@@ -177,13 +203,15 @@ def validate_manifest(workspace: Path, manifest_path: str | Path | None = None) 
 
     errors: list[str] = []
 
-    if not manifest_path.is_file():
-        return {"ok": False, "errors": [f"STEP_MANIFEST.json 不存在: {manifest_path}"], "manifest": None}
-
-    try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        return {"ok": False, "errors": [f"STEP_MANIFEST.json 不是有效 JSON: {exc}"], "manifest": None}
+    if manifest_data is not None:
+        manifest = manifest_data
+    else:
+        if not manifest_path.is_file():
+            return {"ok": False, "errors": [f"STEP_MANIFEST.json 不存在: {manifest_path}"], "manifest": None}
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            return {"ok": False, "errors": [f"STEP_MANIFEST.json 不是有效 JSON: {exc}"], "manifest": None}
 
     if not isinstance(manifest, dict):
         return {"ok": False, "errors": ["STEP_MANIFEST.json 不是字典"], "manifest": None}
@@ -211,6 +239,12 @@ def validate_manifest(workspace: Path, manifest_path: str | Path | None = None) 
     if manifest.get("configSha256") != expected_config_hash:
         errors.append("configSha256 不匹配")
 
+    session = session or FingerprintSession(workspace)
+    # Malformed entries are diagnostics, not unhandled exceptions.
+    for field in ("inputFiles", "outputFiles"):
+        entries = manifest.get(field, [])
+        if not isinstance(entries, list) or any(not isinstance(e, dict) for e in entries):
+            return {"ok": False, "errors": errors + [f"字段类型错误: {field} entries 应为 dict"], "manifest": manifest}
     # 校验输入文件存在性
     for inp in manifest.get("inputFiles", []):
         path = inp.get("path", "")
@@ -222,7 +256,11 @@ def validate_manifest(workspace: Path, manifest_path: str | Path | None = None) 
             if not full_path.exists():
                 errors.append(f"输入文件不存在: {path}")
             else:
-                actual_sha = _sha256(full_path)
+                try:
+                    actual_sha = session.fingerprint(full_path).sha256
+                except (OSError, ValueError) as exc:
+                    errors.append(str(exc))
+                    continue
                 declared_sha = inp.get("sha256", "")
                 if declared_sha and actual_sha and actual_sha != declared_sha:
                     errors.append(f"输入文件 SHA-256 不匹配: {path}")
@@ -238,7 +276,11 @@ def validate_manifest(workspace: Path, manifest_path: str | Path | None = None) 
             if not full_path.exists():
                 errors.append(f"输出文件不存在: {path}")
             else:
-                actual_sha = _sha256(full_path)
+                try:
+                    actual_sha = session.fingerprint(full_path).sha256
+                except (OSError, ValueError) as exc:
+                    errors.append(str(exc))
+                    continue
                 declared_sha = out.get("sha256", "")
                 if declared_sha and actual_sha and actual_sha != declared_sha:
                     errors.append(f"输出文件 SHA-256 不匹配: {path}")

@@ -20,7 +20,7 @@ from engine.execution_protocol import (
     _looks_like_descriptive_command,
     validate_execution_evidence,
 )
-from engine.opencode_bridge import StepAction, StepResult
+from engine.agent_bridge import StepAction, StepResult
 
 
 # ── 实杀案例 ①：引号包裹的 grep 模式（含 "-->"）必须放行 ──────────────────

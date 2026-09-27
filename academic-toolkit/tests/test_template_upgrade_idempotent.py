@@ -40,10 +40,13 @@ def test_template_upgrade_is_idempotent(upgrade_module, tmp_path):
     assert result["unknown_checks"] == [], f"存在未注册门禁: {result['unknown_checks']}"
 
 
-def test_template_upgrade_does_not_modify_file_when_satisfied(upgrade_module, tmp_path):
-    """幂等性：满足规范时文件内容应完全不变（字节级）。"""
+@pytest.mark.parametrize("newline,indent", [("\n", 2), ("\r\n", 4)])
+def test_template_upgrade_does_not_modify_file_when_satisfied(upgrade_module, tmp_path, newline, indent):
+    """语义已满足规则时，缩进与换行不能触发无意义重写。"""
+    import json
     target = tmp_path / "templates.json"
-    target.write_bytes(TEMPLATES.read_bytes())
+    text = json.dumps(json.loads(TEMPLATES.read_bytes()), ensure_ascii=False, indent=indent) + "\n"
+    target.write_bytes(text.replace("\n", newline).encode("utf-8"))
     before = target.read_bytes()
 
     upgrade_module.upgrade(target)

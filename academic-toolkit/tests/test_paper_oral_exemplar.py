@@ -33,7 +33,7 @@ def test_skill_md_adapter_block_structure() -> None:
         "输出契约（两模式二选一，按用户请求）",
         "质量铁律（上游纪律，本仓强化）",
         "数模/通用桥接表",
-        "STEP_MANIFEST 产出声明",
+        "执行与产出",
     ):
         assert marker in text, f"适配块缺段: {marker}"
     assert "# Oral Paper Skill" in text, "上游原文起点标题丢失"

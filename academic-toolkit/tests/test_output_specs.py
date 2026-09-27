@@ -18,7 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from engine.opencode_bridge import StepResult
+from engine.agent_bridge import StepResult
 from engine.workflow_runner import WorkflowRunner
 from engine.workflow_store import WorkflowStore
 

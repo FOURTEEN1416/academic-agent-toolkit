@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from engine.execution_protocol import validate_execution_evidence, write_execution_evidence
-from engine.opencode_bridge import StepAction, StepResult
+from engine.agent_bridge import StepAction, StepResult
 
 
 def make_action(tmp_path):
@@ -33,6 +33,32 @@ def evidence(action, **overrides):
     }
     payload.update(overrides)
     return payload
+
+
+def test_bridge_native_receipt_normalizes_without_fabricating_success(tmp_path):
+    action = make_action(tmp_path)
+    command = {"command": ["python", "solve.py", "a b"], "exitCode": 0,
+               "cwd": str(action.workspace), "stdout": "done", "stderr": ""}
+    payload = evidence(action, commands=[command])
+    result = StepResult(ok=True, artifacts=["out.txt"], metadata={"execution_evidence": payload})
+    actual = validate_execution_evidence(action.workspace, action, result)["commands"][0]
+    assert actual["argv"] == command["command"]
+    assert actual["returncode"] == 0 and actual["stdout"] == "done" and actual["cwd"] == "."
+    command["exitCode"] = 2
+    with pytest.raises(ValueError, match="returncode 0"):
+        validate_execution_evidence(action.workspace, action, result)
+
+
+def test_bridge_conflicting_return_codes_and_external_cwd_rejected(tmp_path):
+    action = make_action(tmp_path)
+    for command in [
+        {"command": ["python", "solve.py"], "exitCode": 1, "returncode": 0},
+        {"command": "python solve.py", "returncode": 0, "cwd": str(tmp_path)},
+        {"command": "python solve.py", "returncode": True},
+    ]:
+        with pytest.raises(ValueError):
+            validate_execution_evidence(action.workspace, action, StepResult(ok=True, artifacts=["out.txt"],
+                metadata={"execution_evidence": evidence(action, commands=[command])}))
 
 
 def test_validate_execution_evidence_accepts_versioned_workspace_relative_records(tmp_path):
@@ -138,3 +164,31 @@ def test_validate_execution_evidence_accepts_real_executable_commands(tmp_path, 
     )
 
     assert validated["commands"][0]["command"] == real
+
+
+def test_execution_contract_separates_execution_semantics_from_quality_rules(tmp_path):
+    """B窗收口1：合同只绑执行语义面（skill/params）。纯质量规则（metadata 质量字段、
+    modex-core 规则文件）变化不改变合同——已执行命令不因规则更新而要求重跑。"""
+    from engine.execution_protocol import execution_contract, legacy_execution_contract
+
+    action = make_action(tmp_path)
+    rules = tmp_path / "rules"
+    rules.mkdir()
+    (rules / "comp_rules.json").write_text('{"page_cap": 30}', encoding="utf-8")
+    metadata = {"required_checks": ["literature"], "output_specs": {"out.txt": {"min_bytes": 10}}}
+    params = {"comp": "cumcm"}
+    base = execution_contract(action, metadata, params, rules)
+
+    # 纯质量规则变化：metadata 质量字段与规则文件内容都变 → 合同不变
+    (rules / "comp_rules.json").write_text('{"page_cap": 80}', encoding="utf-8")
+    metadata_changed = {"required_checks": ["literature", "review"], "quick_gates": True,
+                        "output_specs": {"out.txt": {"min_bytes": 999}}}
+    assert execution_contract(action, metadata_changed, params, rules) == base
+
+    # 影响执行的变化：params 或技能正文变化 → 合同变化
+    assert execution_contract(action, metadata_changed, {"comp": "huawei"}, rules) != base
+    action.skill_path.write_text("altered contract", encoding="utf-8")
+    assert execution_contract(action, metadata_changed, params, rules) != base
+
+    # 历史口径函数保留用于对账，且与当前口径值不同
+    assert legacy_execution_contract(action, metadata, params, rules) != base

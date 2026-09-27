@@ -8,6 +8,7 @@ gate_outcomes 对应 named check fail + delivery_decision=blocked；
 check_final_audit_report 增加对应 named check 输出教学性原因。
 """
 import json
+import hashlib
 import sqlite3
 import sys
 from pathlib import Path
@@ -25,7 +26,7 @@ from engine.workflow_store import WorkflowStore
 
 PASSING_GATES = {"checks": {"literature": {"ok": True}, "review": {"ok": True},
                             "consistency": {"ok": True}, "final_audit": {"ok": True}}}
-PASSING_MANIFEST = {"artifacts": [{"path": "paper/main.pdf", "sha256": "a" * 64}]}
+PASSING_MANIFEST = {"artifacts": [{"path": "paper/main.pdf", "sha256": hashlib.sha256(b"fake pdf bytes").hexdigest()}]}
 
 
 def _make_workflow(tmp_path, steps_metadata):
@@ -47,7 +48,26 @@ def _make_workflow(tmp_path, steps_metadata):
         ])
         ids.append(workflow.id)
         ids.extend(s.id for s in steps)
+        workflow_id = workflow.id
+    _bind_contest_snapshot(db, workflow_id)
     return workspace, project_root, db, ids
+
+
+def _bind_contest_snapshot(db, workflow_id):
+    """v2（总调度 2026-09-27）：直建工作流补 bound 快照——赛事工作流无快照即
+    pending_binding → contest_compliance unknown → delivery blocked（不冒充 ready）。
+    本组测试考的是审计一致性，合规口径按 cumcm 电子版真实档案绑定。"""
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from engine.contest_profile import resolve_profile
+    snap = resolve_profile("comp_cumcm", {"contest": {"edition": "2026",
+                                                      "submission_form": "electronic"}}).to_snapshot()
+    with WorkflowStore(db) as store:
+        meta = store.get_workflow(workflow_id).metadata
+        meta["contest_profile_snapshot"] = snap
+        store._connection.execute(
+            "UPDATE workflows SET metadata = ? WHERE id = ?", (json.dumps(meta), workflow_id))
+        store._connection.commit()
 
 
 def _complete_with_event(db, workflow_id, step_id, event_type="step_completed",

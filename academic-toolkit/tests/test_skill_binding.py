@@ -19,7 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from engine.opencode_bridge import StepAction, StepResult  # noqa: E402
+from engine.agent_bridge import StepAction, StepResult  # noqa: E402
 from engine.workflow_runner import WorkflowRunner  # noqa: E402
 from engine.workflow_store import WorkflowStore  # noqa: E402
 
@@ -273,6 +273,56 @@ def test_verify_bindings_ok_when_no_binding_declared(tmp_path):
     _write_evidence(ws, "s1", "demo-main", {})
     res = verify_skill_bindings(ws, tmp_path / "project")
     assert res["verdict"] == "ok" and res["steps_checked"] == 0
+
+
+def _seed_window_db(ws: Path, created_at: str) -> None:
+    import sqlite3
+    (ws / ".engine").mkdir(parents=True, exist_ok=True)
+    con = sqlite3.connect(ws / ".engine" / "workflow.sqlite")
+    con.execute("CREATE TABLE workflows (id TEXT, created_at TEXT)")
+    con.execute("INSERT INTO workflows VALUES ('w', ?)", (created_at,))
+    con.execute("CREATE TABLE events (event_type TEXT, payload TEXT)")
+    con.execute("INSERT INTO events VALUES (?, ?)", ("step_completed", json.dumps({
+        "evidence_path": ".engine/evidence/s1.json"})))
+    con.commit()
+    con.close()
+
+
+def _seed_l1_event(project: Path, ts: str) -> None:
+    audit_dir = project / ".engine" / "audit"
+    audit_dir.mkdir(parents=True, exist_ok=True)
+    (audit_dir / "operations.jsonl").write_text(json.dumps(
+        {"ts": ts, "type": "tool_call", "tool": "bash",
+         "detail": {"command": "python scripts/gen.py"}}, ensure_ascii=False) + "\n",
+        encoding="utf-8")
+
+
+def test_verify_bindings_window_ignores_stale_host_logs(tmp_path):
+    """窗口归属修复（2026-09-26）：L1 日志若只剩旧宿主/旧赛事（早于本工作区
+    workflow 创建时刻）的宿主事件，当窗口内视为 L1 未启用 ⇒ unavailable，不判 warning。"""
+    from engine.audit_store import verify_skill_bindings
+    ws = tmp_path / "ws"
+    project = tmp_path / "project"
+    _write_evidence(ws, "s1", "demo-main", {"main_required": True})
+    _seed_l1_event(project, "2026-01-01T00:00:00+00:00")
+    _seed_window_db(ws, "2026-09-24T02:49:38.045362+00:00")
+    res = verify_skill_bindings(ws, project)
+    assert res["verdict"] == "unavailable", res
+    assert "窗口" in res["unavailable_reason"]
+    assert res["unverified"] == []
+
+
+def test_verify_bindings_window_keeps_in_window_warning(tmp_path):
+    """窗口内确有宿主事件但无绑定痕迹 → 仍 warning（窗口过滤不是一刀切豁免）。"""
+    from engine.audit_store import verify_skill_bindings
+    ws = tmp_path / "ws"
+    project = tmp_path / "project"
+    _write_evidence(ws, "s1", "demo-main", {"main_required": True})
+    _seed_l1_event(project, "2026-09-25T00:00:00+00:00")
+    _seed_window_db(ws, "2026-09-24T02:49:38.045362+00:00")
+    res = verify_skill_bindings(ws, project)
+    assert res["verdict"] == "warning", res
+    assert res["unverified"][0]["missing"] == ["demo-main"]
 
 
 def test_evidence_payload_persists_binding(tmp_path):

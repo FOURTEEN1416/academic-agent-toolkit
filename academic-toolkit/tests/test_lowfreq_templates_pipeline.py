@@ -76,14 +76,24 @@ def test_lowfreq_assets_all_exist():
 
 
 def test_skill_md_branch_fail_fast_no_silent_cp():
-    """SKILL.md 三族分支：cp 前显式目录断言，cp 行不再 2>/dev/null 吞错。"""
+    """SKILL.md 三族分支（2026-09-27 起为通用 $TMPL 分派 + 逐文件复制）：
+    三族各有 TMPL="{族目录}" case 分支；复制前有目录存在性断言；
+    逐文件 cp 带 || { … exit 1; } 显式失败，不再 2>/dev/null 吞错。"""
+    # 三族 case 分支仍在（映射到 _templates/<族>/ 目录）
     for _fam, (d, _cls) in FAMILIES.items():
-        cp_re = re.compile(r'^[ \t]*cp "\$TMPL_BASE/' + re.escape(d)
-                           + r'/"\* paper/( \|\| \{ [^\n]*exit 1; \})?[ \t]*$', re.M)
-        m = cp_re.search(SKILL_MD)
-        assert m, f"未找到无吞错的 cp _templates/{d}/ 行（可能仍是 2>/dev/null 式静默）"
-        guard = SKILL_MD[max(0, m.start() - 400):m.start()]
-        assert f'[ -d "$TMPL_BASE/{d}" ]' in guard, f"{d} 分支缺目录存在性断言"
+        branch_re = re.compile(r'TMPL="' + re.escape(d) + r'"')
+        assert branch_re.search(SKILL_MD), f"case 分支缺 TMPL=\"{d}\" 映射"
+    # 逐文件复制循环：cp "$_f" paper/ || { … exit 1; }（无 2>/dev/null 吞错）
+    loop_re = re.compile(
+        r'for _f in "\$TMPL_BASE/\$TMPL/"\*\.tex[^\n]*\n'
+        r'[^\n]*\[ -e "\$_f" \] \|\| continue\n'
+        r'[ \t]*cp "\$_f" paper/ \|\| \{ [^\n]*exit 1; \}')
+    m = loop_re.search(SKILL_MD)
+    assert m, "未找到无吞错的逐文件 cp 循环（可能仍是整目录 glob 或 2>/dev/null 式静默）"
+    assert "2>/dev/null" not in m.group(0), "复制循环不得 2>/dev/null 吞错"
+    # 复制前的目录存在性断言（守护语义：模板目录缺失须显式失败）
+    guard = SKILL_MD[max(0, m.start() - 400):m.start()]
+    assert '[ -d "$TMPL_BASE/$TMPL" ]' in guard, "复制循环前缺目录存在性断言"
 
 
 def test_skill_md_doc_no_stale_missing_claim():

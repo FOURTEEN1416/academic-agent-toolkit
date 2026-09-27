@@ -12,15 +12,19 @@ def test_source_materials_gate_accepts_standard_output(tmp_path):
     assert result["ok"], result
 
 
-def test_source_materials_gate_requires_cleaned_json_and_report(tmp_path):
+def test_source_materials_gate_requires_cleaned_json_and_report(tmp_path, monkeypatch):
     project = tmp_path / "project"
     project.mkdir()
     (project / "main.py").write_text("print('ok')\n" * 50, encoding="utf-8")
     workspace = tmp_path / "workspace"
     run_source_materials({"root": str(project), "title": "测试软件 V1.0", "extensions": ["py"]}, workspace)
 
-    (workspace / "source-materials" / "cleaned.json").unlink()
-    (workspace / "source-materials" / "SOURCE_MATERIALS_REPORT.md").unlink()
+    # Keep generated fixtures intact; model just these two missing files.
+    from pathlib import Path
+    missing = {workspace / "source-materials" / name for name in
+               ("cleaned.json", "SOURCE_MATERIALS_REPORT.md")}
+    original_is_file = Path.is_file
+    monkeypatch.setattr(Path, "is_file", lambda path: False if path in missing else original_is_file(path))
 
     result = QualityGate(workspace).check_source_materials()
 

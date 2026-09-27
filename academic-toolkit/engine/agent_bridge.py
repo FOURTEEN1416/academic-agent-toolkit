@@ -37,15 +37,27 @@ class StepAction:
     # D3 门禁前移（2026-09-13）：本步完成后必须先跑 quick_gates 轻检（页数/图字号/泄漏），
     # 由模板步骤 metadata.quick_gates=true 声明，设计挂 step 5（出图后）与 step 8（成文后）。
     quick_gates: bool = False
-    # quick_gates 页数上限覆盖（2026-09-22）：缺省 None = 脚本自带 30（CUMCM 口径）；
-    # 华为杯等正文上限不同的赛事由 metadata.quick_gates_max_pages 声明（如 50），
-    # 渲染成 --max-pages N，避免 50 页正文被 30 页默认值误判 FAIL。
+    # quick_gates 页数上限的任务/步骤级显式覆盖通道（2026-09-22 引入；B-CLOSE-01 语义更新）：
+    # 本字段是唯一的显式覆盖入口——仅当模板步骤 metadata 或任务参数显式给出页数时才有值，
+    # 有值时按任务显式口径执行（workflow_runner 侧 status=explicit_task）并渲染成 --max-pages N。
+    # 缺省 None = 引擎无任何内建默认赛事口径（共享模板不再承载默认页限，原
+    # templates.json 的 quick_gates_max_pages=80 已于 2026-09-27 删除）：页数口径回落
+    # 工作流 bound 快照（contest_profile_snapshot.operative，经 contest_profile.
+    # resolve_operative_cap 解析，引擎 finish 验收消费同一份）；两者皆无时页检 SKIP，
+    # 不默认任何赛事。
     quick_gates_max_pages: int | None = None
     # P4 技能强制绑定（2026-09-19）：本步显式绑定技能的声明，由模板步骤 metadata.skill_binding
     # 给出。结构 {"main": 技能名, "main_required": bool, "mandatory": [技能名...]}；缺省为 {}，
     # 即退回"仅按 C1/M5 既有机制"的行为（向后兼容）。
     skill_binding: dict[str, Any] = field(default_factory=dict)
     params: dict[str, Any] = field(default_factory=dict)
+    attempt_id: str = ""
+    expected_revision: int = 0
+    required_checks: list[str] = field(default_factory=list)
+    output_specs: dict[str, Any] = field(default_factory=dict)
+    requires_subagent: bool = False
+    skill_sha256: str = ""
+    review_scope: str = ""
 
     def binding_requirements(self) -> list[str]:
         """把绑定声明渲染成人类可读的强制要求行（供指令与错误信息复用）。"""
@@ -74,6 +86,10 @@ class StepAction:
             f"  技能文件: {self.skill_path}",
             f"  产出文件: {', '.join(self.output_files) if self.output_files else '(按技能说明)'}",
             f"  主产出: {self.primary_output or '(无)'}",
+            f"  回报目标: step_id={self.step_id}, attempt_id={self.attempt_id}, expected_revision={self.expected_revision}",
+            "  优先使用 tools/workflow_session.py：context取得本步正文，run/write自动记录，finish一次核验并推进。",
+            "  无需手填哈希/返回码/证据JSON；兼容旧接入时仍可preflight/complete。质量返修保持当前步骤。",
+            "  额外技能用 additional_skills 记录 skill/reason/contribution/output；读取痕迹不等于贡献已验证。",
         ]
         for requirement in self.binding_requirements():
             lines.append(f"  ⛔ 技能绑定（强制，complete 时校验）: {requirement}")
@@ -109,3 +125,7 @@ class StepResult:
     duration_seconds: float = 0.0
     metadata: dict[str, Any] = field(default_factory=dict)
     evidence_path: str | None = None
+    step_id: str = ""
+    attempt_id: str = ""
+    expected_revision: int | None = None
+    request_id: str = ""

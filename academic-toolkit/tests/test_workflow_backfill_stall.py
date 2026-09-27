@@ -5,8 +5,8 @@
 绕开 runner 手工完成——引擎无告警、事件库零记录，溯源断档。本文件覆盖：
 
 - detect_stalled：RUNNING 超时 / checkpoint 等批悬置 / 新工作流静默；
-- backfill_step：PENDING/BLOCKED/RUNNING 三态补录、产物缺失拒绝、
-  COMPLETED 拒绝、事件 step_backfilled 落账、全补录后工作流收尾；
+- backfill_step：PENDING/RUNNING 补录、BLOCKED 禁止代批、产物缺失拒绝、
+  COMPLETED 拒绝、事件 step_backfilled 落账、全补录后同事务收尾并派生交付结论；
 - CLI：stall / backfill 冒烟（真实模板 comp_cumcm 端到端）。
 """
 import hashlib
@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from engine import workflow_cli
-from engine.opencode_bridge import StepResult
+from engine.agent_bridge import StepResult
 from engine.workflow_runner import WorkflowRunner
 from engine.workflow_store import WorkflowStore
 
@@ -228,22 +228,26 @@ def test_backfill_all_steps_completes_workflow(tmp_path):
     for name in ("REPORT.md", "MODEL.md"):
         (ws / name).write_text("x" * 3000, encoding="utf-8")
     runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"], by="tester")
-    runner.backfill_step(wf, "comp-modeling", ["MODEL.md"], by="tester")
+    (ws / "AUDIT_REPORT.json").write_text("{}", encoding="utf-8")
+    result = runner.backfill_step(wf, "comp-modeling", ["MODEL.md"], by="tester")
     row = store._connection.execute(
         "SELECT status FROM workflows WHERE id = ?", (wf,)).fetchone()
     assert row["status"] == "completed"
+    assert result.diagnostics["delivery"]["decision"] == "blocked"
+    report = json.loads((ws / "DELIVERY_REPORT.json").read_text(encoding="utf-8"))
+    assert report["delivery_decision"] == "blocked", "未验证历史补录不能冒充 ready"
 
 
-def test_backfill_blocked_step_allowed(tmp_path):
-    """BLOCKED（等批悬置）步骤可补录——对应'批准后 agent 绕开 runner'场景。"""
+def test_backfill_cannot_bypass_blocked_checkpoint(tmp_path):
+    """补录不得代替人工批准或解除待批检查点。"""
     store, runner, wf = setup_runner(tmp_path, first_checkpoint=True)
     complete_ok(runner, wf)  # 第一步 BLOCKED（waiting_checkpoint）
     (tmp_path / "workspace" / "REPORT.md").write_text("x" * 3000, encoding="utf-8")
     result = runner.backfill_step(wf, "comp-problem-analysis", ["REPORT.md"], by="tester")
-    assert result.status == "advanced", result.message
+    assert result.status == "blocked", result.message
     row = store._connection.execute(
         "SELECT status FROM workflow_steps WHERE name = 'comp-problem-analysis'").fetchone()
-    assert row["status"] == "completed"
+    assert row["status"] == "blocked"
 
 
 def test_backfill_rejects_missing_artifact(tmp_path):
@@ -348,12 +352,39 @@ def test_backfill_full_evidence_verified_path(tmp_path):
     assert _status_of(store, "comp-problem-analysis") == "completed"
     events = _events(store, wf, "step_backfilled")
     assert events[0]["binding_check"] == "verified"
-    ev_file = ws / ".engine" / "evidence" / f"{_step_id(store, wf, 'comp-problem-analysis')}.json"
+    ev_file = ws / events[0]["binding_evidence_path"]
     assert ev_file.is_file(), "verified 补录必须与 complete_step 同构落证据文件"
     # STEP_MANIFEST 的命令在缺 --command 时从证据回退（不丢溯源）
     manifest = json.loads((ws / "STEP_MANIFEST.json").read_text(encoding="utf-8"))
     assert any("comp_problem_analysis" in c.get("command", "").replace("-", "_")
                for c in manifest["commands"] or [])
+
+
+def test_verified_backfill_persists_all_validated_outputs_not_only_reported_subset(tmp_path):
+    from engine.audit_store import build_final_audit_report
+    skills = tmp_path / "skills/fixture"
+    skills.mkdir(parents=True)
+    (skills / "SKILL.md").write_text("fixture skill", encoding="utf-8")
+    with WorkflowStore(tmp_path / "workflow.sqlite") as store:
+        runner = WorkflowRunner(store, {"demo": {"sub_steps": [{
+            "skill_name": "fixture", "output_files": ["a.txt", "b.txt"], "primary_output": "a.txt"}]}}, skills.parent)
+        wf = runner.start("demo", tmp_path / "workspace", {})
+        action = runner.next_action(wf.id).action
+        for name in action.output_files:
+            (action.workspace / name).write_text("original result\n" * 100, encoding="utf-8")
+        evidence = {"schema_version": 1, "agent": "fixture", "step_id": action.step_id,
+            "attempt_id": action.attempt_id, "expected_revision": action.expected_revision,
+            "skill_name": action.skill_name, "skill_sha256": action.skill_sha256,
+            "commands": [{"command": "python generate.py", "returncode": 0, "cwd": "."}],
+            "inputs": [], "outputs": ["a.txt"]}
+        result = runner.backfill_step(wf.id, action.skill_name, ["a.txt"], evidence=evidence)
+        assert result.status == "advanced", result.diagnostics
+        event = _events(store, wf.id, "step_backfilled")[-1]
+        assert {a["path"] for a in event["manifest"]["artifacts"]} == {"a.txt", "b.txt"}
+        (action.workspace / "b.txt").write_text("changed", encoding="utf-8")
+        report = build_final_audit_report(action.workspace, tmp_path, Path(store.db_path), workflow_id=wf.id)
+        assert report["delivery_decision"] == "blocked"
+        assert "b.txt" in report["artifact_integrity_detail"]["invalid"]
 
 
 def test_backfill_forged_evidence_rejected(tmp_path):
@@ -393,6 +424,41 @@ def test_backfill_no_binding_step_unaffected(tmp_path):
     assert _events(store, wf, "step_backfilled")[0]["binding_check"] == "no_binding"
 
 
+@pytest.mark.parametrize("stale", ["attempt_id", "expected_revision", "missing_identity"])
+def test_backfill_rejects_old_retry_identity_without_mutation(tmp_path, stale):
+    store, runner, wf = setup_runner(tmp_path)
+    old = runner.next_action(wf).action
+    runner.complete_step(wf, StepResult(ok=False, step_id=old.step_id, stderr="fixture failure"))
+    new = runner.retry_last_failed(wf).action
+    (new.workspace / "REPORT.md").write_text("x" * 3000, encoding="utf-8")
+    evidence = _valid_backfill_evidence(runner.skills_root, store, wf, old.skill_name, ["REPORT.md"])
+    evidence.update(attempt_id=new.attempt_id, expected_revision=new.expected_revision)
+    if stale == "missing_identity":
+        evidence.pop("attempt_id")
+        evidence.pop("expected_revision")
+    else:
+        evidence[stale] = getattr(old, stale)
+    before = store.workflow_timeline(wf)
+    files = {p: p.read_bytes() for p in new.workspace.rglob("*") if p.is_file()}
+    result = runner.backfill_step(wf, old.skill_name, ["REPORT.md"], evidence=evidence)
+    assert result.status == "failed"
+    assert store.workflow_timeline(wf) == before
+    assert files == {p: p.read_bytes() for p in new.workspace.rglob("*") if p.is_file()}
+    evidence.update(attempt_id=new.attempt_id, expected_revision=new.expected_revision)
+    assert runner.backfill_step(wf, old.skill_name, ["REPORT.md"], evidence=evidence).status == "advanced"
+
+
+def test_backfill_failed_step_requires_explicit_retry(tmp_path):
+    store, runner, wf = setup_runner(tmp_path)
+    action = runner.next_action(wf).action
+    runner.complete_step(wf, StepResult(ok=False, step_id=action.step_id))
+    (action.workspace / "REPORT.md").write_text("x" * 3000, encoding="utf-8")
+    before = store.workflow_timeline(wf)
+    result = runner.backfill_step(wf, action.skill_name, ["REPORT.md"])
+    assert result.status == "failed" and "retry" in result.message
+    assert store.workflow_timeline(wf) == before
+
+
 # ── CLI 层：stall / backfill 冒烟（真实模板 comp_cumcm） ────────────────
 
 @pytest.fixture()
@@ -415,6 +481,7 @@ def test_cli_backfill_end_to_end(cli_env, monkeypatch, capsys):
     ws = cli_env / "ws"
     db = cli_env / "workflow.sqlite"
     rc, started = _run_cli(monkeypatch, capsys, "start", "--template", "comp_cumcm",
+                           "--params", '{"contest": {"edition": "2026", "submission_form": "electronic"}}',
                            "--workspace", str(ws), "--db", str(db))
     assert rc == 0
     wf = started["workflow_id"]
@@ -442,19 +509,14 @@ def test_cli_backfill_end_to_end(cli_env, monkeypatch, capsys):
                         "--note", "断链补录演练", "--by", "cli-tester",
                         "--waive-binding", "--waive-reason", "断链期纯手工完成，命令级证据不可复原",
                         "--db", str(db))
-    assert rc == 0, json.dumps(done, ensure_ascii=False)
-    assert done["status"] == "advanced"
-
+    assert rc == 1, json.dumps(done, ensure_ascii=False)
+    assert done["status"] == "failed"
+    assert "检查点步骤" in done["message"]
     connection = sqlite3.connect(db)
     rows = connection.execute(
         "SELECT payload FROM events WHERE event_type = 'step_backfilled'").fetchall()
     connection.close()
-    assert len(rows) == 1
-    payload = json.loads(rows[0][0])
-    assert payload["by"] == "cli-tester"
-    assert payload["skill_name"] == "comp-problem-analysis"
-    assert payload["binding_check"] == "waived"
-    assert "断链期纯手工完成" in payload["waive_reason"]
+    assert rows == []
 
 
 def test_cli_backfill_evidence_invalid_json_rejected(cli_env, monkeypatch, capsys):
@@ -462,6 +524,7 @@ def test_cli_backfill_evidence_invalid_json_rejected(cli_env, monkeypatch, capsy
     ws = cli_env / "ws"
     db = cli_env / "workflow.sqlite"
     rc, started = _run_cli(monkeypatch, capsys, "start", "--template", "comp_cumcm",
+                           "--params", '{"contest": {"edition": "2026", "submission_form": "electronic"}}',
                            "--workspace", str(ws), "--db", str(db))
     assert rc == 0
     (ws / "PROBLEM_ANALYSIS.md").write_text("x" * 3000, encoding="utf-8")
@@ -476,6 +539,7 @@ def test_cli_stall_quiet_exit_zero(cli_env, monkeypatch, capsys):
     """fresh 工作流 stall 无告警 → 输出 alert=false 且退出码 0。"""
     db = cli_env / "workflow.sqlite"
     rc, started = _run_cli(monkeypatch, capsys, "start", "--template", "comp_cumcm",
+                           "--params", '{"contest": {"edition": "2026", "submission_form": "electronic"}}',
                            "--workspace", str(cli_env / "ws"), "--db", str(db))
     assert rc == 0
     wf = started["workflow_id"]

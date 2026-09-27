@@ -68,8 +68,13 @@ def test_skip_flag_excludes_check(tmp_path):
 
 
 def test_page_check_missing_pdf_skips(tmp_path):
-    """--paper-pdf 指向不存在文件 → SKIP（不算失败）。"""
-    status, detail = quick_gates._page_check(tmp_path, tmp_path / "paper" / "main.pdf", 30)
+    """--paper-pdf 指向不存在文件 → SKIP（不算失败）。
+
+    2026-09-27 收口迁移：_page_check 第三参从裸 int 上限改为口径合同 dict
+    （cap/scope/status，唯一裁决点 contest_profile.resolve_operative_cap），
+    旧 int 签名随"默认国赛30"一并废除。"""
+    contract = {"cap": 30, "scope": "total", "status": "unverified", "reason": ""}
+    status, detail = quick_gates._page_check(tmp_path, tmp_path / "paper" / "main.pdf", contract)
     assert status == "SKIP"
     assert "未找到" in detail or "pypdf" in detail
 
@@ -78,16 +83,30 @@ def test_page_check_bad_pdf_errors_without_raising(tmp_path):
     """损坏 PDF → ERROR 状态（编排器不炸，退出码不受影响）。"""
     bad = tmp_path / "broken.pdf"
     bad.write_bytes(b"%PDF-1.4 not really a pdf")
-    status, detail = quick_gates._page_check(tmp_path, bad, 30)
+    status, detail = quick_gates._page_check(
+        tmp_path, bad, {"cap": 30, "scope": "total", "status": "unverified", "reason": ""})
     assert status == "ERROR"
     assert "PDF 解析失败" in detail
+
+
+def test_page_check_without_cap_skips_and_states_no_default(tmp_path):
+    """无口径（cap=None）→ SKIP 并明示原因，不默认任何赛事。
+
+    棘轮：quick_gates DEFAULT_MAX_PAGES=30 已删（B-02 第二真源清零）；
+    若有人回填默认上限，本测试立即报警。"""
+    status, detail = quick_gates._page_check(
+        tmp_path, tmp_path / "paper" / "main.pdf",
+        {"cap": None, "scope": "total", "status": "unconfigured",
+         "reason": "未配置页数合规口径"})
+    assert status == "SKIP"
+    assert "未配置页数合规口径" in detail
 
 
 # ── 引擎挂载：StepAction.quick_gates 透传与指令下发 ─────────────────────
 
 def test_step_action_quick_gates_instruction_line():
     """quick_gates=True 的 StepAction，instructions 必含轻检命令提示行。"""
-    from engine.opencode_bridge import StepAction
+    from engine.agent_bridge import StepAction
     action = StepAction(
         workflow_id="w", step_id="s", position=4, skill_name="paper-figure",
         display_name="图表生成", workspace=Path("D:/ws"), skill_path=Path("D:/ws/skill.md"),
@@ -105,7 +124,7 @@ def test_step_action_without_quick_gates_has_no_gate_line():
     （comp_cumcm 仅 paper-figure / comp-paper-zh）；若实现误将门禁
     注入所有步骤，等价于全流程强制轻检，回归此测试立即报警。
     """
-    from engine.opencode_bridge import StepAction
+    from engine.agent_bridge import StepAction
     action = StepAction(
         workflow_id="w", step_id="s", position=2, skill_name="comp-modeling",
         display_name="建模实现", workspace=Path("D:/ws"), skill_path=Path("D:/ws/skill.md"),
@@ -124,7 +143,9 @@ def test_real_template_flags_quick_gates_steps(tmp_path):
         (ROOT / "engine" / "modex-core" / "templates.json").read_text(encoding="utf-8"))
     store = WorkflowStore(tmp_path / "db.sqlite")
     runner = WorkflowRunner(store, catalog, tmp_path / "skills")
-    wf = runner.start("comp_cumcm", tmp_path / "ws", {})
+    # v2（不变式12）：cumcm 双 profile 须维度精确化
+    wf = runner.start("comp_cumcm", tmp_path / "ws",
+                      {"contest": {"edition": "2026", "submission_form": "electronic"}})
     rows = store._connection.execute(
         "SELECT name, metadata FROM workflow_steps WHERE workflow_id = ?",
         (wf.id,)).fetchall()

@@ -365,12 +365,9 @@ DEFAULT_REQUIRED_COMPANIONS = {
     "paper-analysis": ["RESULTS.md", "figures/all_results.json", "code/main.py"],
 }
 
-# 竞赛页数要求
-COMP_PAGES = {
-    "comp_cumcm": 30, "comp_mcm": 25, "comp_huawei": 50,
-    "comp_mathorcup": 30, "comp_apmcm": 25, "comp_teddy": 40,
-    "comp_certcup": 35, "comp_stats": 30,
-}
+# 竞赛页数第二真源 COMP_PAGES 已删除（B窗 B-02，2026-09-27；承接 IR-E-B1）：
+# 页数口径唯一来自 comp_rules.json（经 engine/contest_profile）+ 工作流快照
+# operative 口径；条目缺口径时按"无页数合同"SKIP，不静默吐旧值、不默认国赛。
 
 
 # =====================================================
@@ -543,9 +540,14 @@ def get_required_companions(skill_name: str) -> list:
 
 
 def get_comp_rules(comp_name: str) -> dict:
-    """获取竞赛规则"""
-    rules = _load_json(RULES_FILE, {}) or {}
-    return rules.get(comp_name, {})
+    """获取竞赛规则（B窗 2026-09-27：代理唯一解析器 engine.contest_profile，
+    本文件不再直接读档案文件）。未知名称返回 {}（非赛事步骤不启用赛事检查；
+    显式错误路径由 contest_profile.resolve_profile 承担）。"""
+    from . import contest_profile
+    try:
+        return contest_profile.load_entry(comp_name)
+    except contest_profile.ContestProfileError:
+        return {}
 
 
 # =====================================================
@@ -569,7 +571,43 @@ NAMED_CHECKS_REGISTRY: dict[str, str] = {
     "figure_provenance": "check_figure_provenance",
     "compilation_log": "check_compilation_log",
     "modeling_contract": "check_modeling_contract",
+    "review_rounds": "check_review_rounds",
 }
+
+
+TEX_TARGET_RE = re.compile(r"\\(?:input|include)\{([^}]+)\}")
+
+
+def assembly_faces(main_tex: Path) -> list[Path]:
+    r"""主 tex 之外真正被装配进去的分章文件（体量与引用两道判据共用的同一个计量面）。
+
+    原实现只认 `sections/` 目录约定；扁平布局（`\input{01_xxx}` 与 main.tex 同目录）
+    会让判据只看到装配壳，把合格论文误判为过薄、把有引用的正文误判为无引用。
+    这里按 main.tex 的 \input/\include 实测取文件，阈值不变，只修正计量面。
+    取数限制在主 tex 所在目录子树内：装配面不得被用来读工作区其他位置的文件。
+    """
+    root = Path(main_tex).parent
+    faces: dict[Path, None] = {}
+    try:
+        text = Path(main_tex).read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return []
+    targets = [t.strip().replace("\\", "/") for t in TEX_TARGET_RE.findall(text)]
+    targets += [p.name for p in sorted((root / "sections").glob("*.tex"))]
+    for name in targets:
+        if not name or ".." in Path(name).parts:
+            continue
+        cand = root / (name if name.endswith(".tex") else name + ".tex")
+        try:
+            resolved = cand.resolve()
+            if resolved.is_file():
+                resolved.relative_to(root.resolve())
+            else:
+                continue
+        except (OSError, ValueError):
+            continue
+        faces.setdefault(resolved, None)
+    return list(faces)
 
 
 class QualityGate:
@@ -593,9 +631,8 @@ class QualityGate:
                 # 模块化论文（main.tex + sections/*.tex）：正文体量在分章文件里，
                 # 仅计主文件会把合格论文误判为过薄（阈值不变，只修正计量面）。
                 if output_path.suffix == ".tex":
-                    sections_dir = output_path.parent / "sections"
-                    if sections_dir.is_dir():
-                        size += sum(p.stat().st_size for p in sections_dir.glob("*.tex") if p.is_file())
+                    # 装配面 = main.tex 实测 \input 进来的分章 + sections/*.tex（两条约定并集，去重）
+                    size += sum(p.stat().st_size for p in assembly_faces(output_path))
             ok = size >= min_size
             return {"ok": ok, "size": size, "min": min_size,
                     "reason": f"产出 {primary_output} = {size}B {'✅' if ok else f'❌ 需≥{min_size}B'}"}
@@ -621,18 +658,38 @@ class QualityGate:
         return {"ok": ok, "missing": missing,
                 "reason": "✅ 伴随文件齐全" if ok else f"❌ 缺少: {missing}"}
 
-    def check_paper_pages(self, comp_name: str, paper_dir: str = "paper") -> dict:
-        """Enforce a competition page upper bound, with body-only semantics for CUMCM."""
-        rules = get_comp_rules(comp_name)
-        max_pages = rules.get("max_pages") or COMP_PAGES.get(comp_name)
-        if not max_pages:
-            return {"ok": True, "reason": f"竞赛 {comp_name} 无页数要求"}
+    def check_paper_pages(self, comp_name: str, paper_dir: str = "paper",
+                          page_contract: dict | None = None) -> dict:
+        """Enforce a competition page upper bound, with body-only semantics for CUMCM.
+
+        B-02：口径优先来自工作流快照的 operative 合同（cap/scope/status 单一事实）；
+        无合同时回落档案条目（不启用任何兜底字典）。scope 决定判总页数还是正文页数；
+        性质（verified/unverified/task_override）随结果携带，供终审区分结论与未知。
+        """
+        rules = {}
+        if page_contract is not None:
+            cap = page_contract.get("cap")
+            status = page_contract.get("status") or "unverified"
+            if not cap:
+                return {"ok": True, "skipped": True, "page_cap_status": status,
+                        "reason": page_contract.get("reason") or "该赛事无页数合同（不默认任何口径）"}
+        else:
+            rules = get_comp_rules(comp_name)
+            cap = rules.get("max_pages")
+            status = "unverified"
+            if not cap:
+                return {"ok": True, "skipped": True, "page_cap_status": "none",
+                        "reason": f"竞赛 {comp_name} 无页数合同（不默认任何口径）"}
+        scope = str(page_contract.get("scope")) if page_contract else (rules.get("page_scope") or None)
         pdf = self.workspace / paper_dir / "main.pdf"
         tex = self.workspace / paper_dir / "main.tex"
+        result_scope_tag = {"page_cap_status": status, "page_cap_scope": scope}
         if pdf.exists():
-            if rules.get("page_scope") == "body":
-                return self._check_body_pages(pdf, max_pages)
-            return self._check_total_pdf_pages(pdf, max_pages)
+            if scope == "body":
+                out = self._check_body_pages(pdf, cap)
+            else:
+                out = self._check_total_pdf_pages(pdf, cap)
+            return {**out, **result_scope_tag}
         if tex.exists():
             # M4 FIX: tex 回退按内容量估算页数（与 max_pages 语义一致），
             # 不再用 "section >= 3" 这种与页数无关的判定。
@@ -648,10 +705,10 @@ class QualityGate:
             other_chars = len(re.sub(r"[\u4e00-\u9fff\s]", "", body_text))
             estimated_chars = chinese_chars + other_chars * 0.5  # 半角字符约半宽
             estimated_pages = max(1, int(estimated_chars / 3500) + 1)
-            ok = estimated_pages <= max_pages
-            return {"ok": ok, "estimated_pages": estimated_pages, "max_pages": max_pages,
-                    "reason": f"LaTeX 估算约 {estimated_pages} 页（上限 {max_pages} 页，PDF 未生成）"
-                              f"{'✅' if ok else '❌ 请先编译 PDF 确认页数'}"}
+            ok = estimated_pages <= cap
+            return {**{"ok": ok, "estimated_pages": estimated_pages, "max_pages": cap,
+                       "reason": f"LaTeX 估算约 {estimated_pages} 页（上限 {cap} 页，PDF 未生成）"
+                                 f"{'✅' if ok else '❌ 请先编译 PDF 确认页数'}"}, **result_scope_tag}
         return {"ok": False, "reason": "未找到 paper/main.tex 或 paper/main.pdf"}
 
     def _check_total_pdf_pages(self, pdf: Path, max_pages: int) -> dict:
@@ -700,7 +757,12 @@ class QualityGate:
         # Alternative body-start markers (English / 引言) — allowed only as a
         # real page-count path, never as a silent zero-count pass.
         start_keywords = ("摘要", "Abstract", "ABSTRACT", "引言", "Introduction")
-        end_keywords = ("附录", "Appendix", "APPENDIX")
+        # 2026-09-25 TOOLFIX-C9（终止侧）：裸「附录」子串匹配会命中正文行文
+        # （实证：摘要页「按附录无线传输模型」、正文「按附录3判定」），导致
+        # body_count==0 的 fail-closed 误拦。终止判定改为页首锚定（归一化后
+        # 页面文本以「附录」开头 = 附录标题页）+「附录A/B」式编号标题兜底。
+        end_prefixes = ("附录", "Appendix", "APPENDIX")
+        end_re = re.compile(r"附录[A-ZＡ-Ｚ]|Appendix|APPENDIX")
         try:
             doc = _fitz.open(str(pdf))
         except ImportError:
@@ -711,7 +773,11 @@ class QualityGate:
             body_count = 0
             start_marker = None
             for i in range(pages):
-                text = doc[i].get_text().strip()
+                # 2026-09-25 TOOLFIX-C9：gmcmthesis 等模板把「摘要」排成「摘　要：」
+                # （\qquad 撑开字距），抽取文本中关键词不连续，naive 匹配永远失配 →
+                # fail-closed 误拦（body_pages_unknown_no_abstract）。
+                # 修复：关键词匹配前做空白归一化；fail-closed 语义不变。
+                text = re.sub(r"\s+", "", doc[i].get_text()).strip()
                 if not body_start:
                     for kw in start_keywords:
                         if kw in text:
@@ -719,7 +785,7 @@ class QualityGate:
                             start_marker = kw
                             break
                     continue
-                if any(kw in text for kw in end_keywords):
+                if text.startswith(end_prefixes) or end_re.search(text):
                     break
                 body_count += 1
         finally:
@@ -810,11 +876,10 @@ class QualityGate:
         docx = self.workspace / "paper" / "main.docx"
         if tex.exists():
             content = tex.read_text(encoding="utf-8", errors="ignore")
-            # 模块化论文：引用命令写在 sections/*.tex 分章文件里，拼接后统一识别
-            sections_dir = tex.parent / "sections"
-            if sections_dir.is_dir():
-                for sec in sorted(sections_dir.glob("*.tex")):
-                    content += "\n" + sec.read_text(encoding="utf-8", errors="ignore")
+            # 模块化论文：引用命令写在被装配进去的分章文件里，拼接后统一识别。
+            # 与体量判据共用 assembly_faces，避免两处尺子读到不同的面。
+            for sec in assembly_faces(tex):
+                content += "\n" + sec.read_text(encoding="utf-8", errors="ignore")
             # \upcite 为 cumcmthesis 等模板的上标引用包装（展开为 \cite），计入合法引用
             citations = re.findall(r"\\(?:cite|citep|citet|upcite)\{[^}]+\}", content)
         elif pdf.exists():
@@ -928,6 +993,7 @@ class QualityGate:
             return {"ok": False, "missing": missing, "fatal_count": fatal_count, "mode": mode,
                     "reason": f"缺少审稿证据 ({mode} 模式): {', '.join(missing)}"}
         fatal_count = 0
+        sidecar_roles: dict = {}
         manual_review_notes: list[str] = []
         for name in verdicts:
             try:
@@ -1044,8 +1110,13 @@ class QualityGate:
             reason = f"审稿闭环无 fatal ({mode} 模式)"
         if ok and manual_review_notes:
             reason += "；" + "; ".join(manual_review_notes)
+        # B窗 2026-09-27 收口4：实际调用事实采集状态独立披露。当前只有引擎内置
+        # RoleAgent 通道自动采集；宿主独立评审通道尚无采集源——缺席时交叉核对
+        # 无从执行，model/session 字段停留在申报值。显式记为 absent，不模拟通过。
         return {"ok": ok, "fatal_count": fatal_count, "mode": mode,
-                "reason": reason, "warnings": provenance_warnings}
+                "reason": reason, "warnings": provenance_warnings,
+                "actual_call_capture": "captured" if sidecar_roles else
+                    ("absent" if mode == "full" and not missing else "not_applicable")}
 
     def check_consistency_evidence(self) -> dict:
         """Require a canonical result ledger and a passing code-paper consistency report."""
@@ -1065,6 +1136,9 @@ class QualityGate:
     def check_final_audit_report(self) -> dict:
         """Require a manifest-backed delivery decision, not a presence-only JSON file."""
         path = self.workspace / "AUDIT_REPORT.json"
+        delivery = self.workspace / "DELIVERY_REPORT.json"
+        if not getattr(self, "_active_final_step_id", "") and delivery.is_file():
+            path = delivery
         if not path.is_file():
             return {"ok": False, "reason": "缺少 AUDIT_REPORT.json"}
         try:
@@ -1114,8 +1188,19 @@ class QualityGate:
             return {"ok": False, "failed_gates": failed_gates,
                     "reason": f"最终审计存在未通过门禁: {', '.join(failed_gates)}"}
         if report["delivery_decision"] != "ready":
-            return {"ok": False, "reason": "最终交付决定不是 ready"}
-        return {"ok": True, "artifact_count": len(report["artifacts"]), "reason": "最终审计报告可交付"}
+            active = getattr(self, "_active_final_step_id", "")
+            if not (report["delivery_decision"] == "eligible" and active
+                    and report.get("pre_audit_step_id") == active):
+                return {"ok": False, "reason": "最终交付决定不是 ready（eligible 仅可用于当前最终审计步骤验收）"}
+        directories = report.get("directory_coverage", [])
+        if not isinstance(directories, list):
+            return {"ok": False, "reason": "最终审计目录覆盖字段无效"}
+        verified = ArtifactManifest.validate_coverage(self.workspace, report["artifacts"], directories,
+                                                      session=getattr(self, "_fingerprint_session", None))
+        if not verified["ok"]:
+            return {"ok": False, "reason": "最终审计产物已变化、缺失或越界", "missing": verified["missing"],
+                    "invalid": verified["invalid"]}
+        return {"ok": True, "artifact_count": len(report["artifacts"]), "reason": "最终审计报告产物与验收结论一致"}
 
     def check_source_materials(self) -> dict:
         """Validate the manifest-backed CodeSucker source-materials contract."""
@@ -1248,7 +1333,6 @@ class QualityGate:
         invalid_dois: list[str] = []
         missing_doi_warned = 0
         for etype, key in entries:
-            start = content.find("@", content.find(key))
             block_start = max(0, content.find("{" + key, 0))
             block = content[block_start:block_start + 4000]
             has_title = "title" in block
@@ -1277,7 +1361,8 @@ class QualityGate:
         用于 experiment-bridge 等实验类步骤：环境可复现是闭环前提。
         """
         manifest_path = self.workspace / "STEP_MANIFEST.json"
-        manifest_result = _validate_step_manifest(self.workspace)
+        manifest_result = _validate_step_manifest(self.workspace,
+            session=getattr(self, "_fingerprint_session", None), manifest_data=getattr(self, "_manifest_data", None))
         failures: list[str] = []
         warnings: list[str] = []
         if not manifest_result["ok"]:
@@ -1290,12 +1375,14 @@ class QualityGate:
                 failures.append("manifest 未声明依赖（dependencies 为空）")
             if not commands:
                 failures.append("manifest 未声明命令（commands 为空）")
-        result_files = [
-            f for f in ("RESULTS.md", "EXPERIMENT_REPORT.md", "results.json")
-            if (self.workspace / f).is_file()
-        ]
+        declared = getattr(self, "_declared_outputs", None) or []
+        result_candidates = [str(p.get("path", "") if isinstance(p, dict) else p) for p in declared]
+        if not result_candidates:
+            result_candidates = ["RESULTS.md", "EXPERIMENT_REPORT.md", "results.json", "experiment_results.md", "figures/experiment_data.json"]
+        result_files = [f for f in result_candidates if Path(f).suffix.lower() in {".md", ".json", ".csv"}
+                        and (self.workspace / f).is_file()]
         if not result_files:
-            failures.append("缺少实验结果文件（RESULTS.md / EXPERIMENT_REPORT.md / results.json）")
+            failures.append("缺少当前实验合同声明的结果文件")
         seed_mentioned = False
         if manifest_path.is_file() and manifest_result.get("manifest"):
             cfg = manifest_result["manifest"].get("config", {})
@@ -1347,7 +1434,6 @@ class QualityGate:
             except json.JSONDecodeError:
                 warnings.append("FIGURE_PROVENANCE.json 不是有效 JSON")
         
-        figure_count = len(pngs) + len(tex_includes)
         return {"ok": True, "png_count": len(pngs), "tex_count": len(tex_includes), "warnings": warnings,
                 "reason": f"图表溯源证据齐备（{len(pngs)} 张 PNG, {len(tex_includes)} 个 TEX）"}
 
@@ -1431,25 +1517,154 @@ class QualityGate:
                 "reason": f"生成了 {fig_count} 张图 {'✅' if ok else '❌ 至少 1 张'}"}
 
 
+    def check_early_quality(self, *, max_pages=None, compliance_profile="",
+                            page_contract: dict | None = None,
+                            compliance_block: dict | None = None) -> dict:
+        """复用现有轻检实现，由程序执行；不再让模型手抄同一检查命令。
+
+        B-02：页数口径与合规块优先来自工作流快照（page_contract/compliance_block，
+        单一事实）；旧参数路径回落 comp_rules 条目。任何路径都没有缺省页数——
+        无口径时页检 SKIP 并明示原因，不默认任何赛事（默认国赛30已删除）。
+        """
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("acat_early_quality", PROJECT_ROOT / "skills/_utils/quick_gates.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        if compliance_block is not None:
+            profile = dict(compliance_block)
+            contract = dict(page_contract) if page_contract is not None else None
+        elif compliance_profile:
+            from . import contest_profile as cp_mod
+            try:
+                entry = cp_mod.load_entry(compliance_profile)
+            except cp_mod.ContestProfileError as exc:
+                return {"ok": False, "checks": [{"name": "compliance", "status": "ERROR", "detail": str(exc)}],
+                        "max_pages_effective": None, "reason": f"合规口径不可解析: {exc}"}
+            profile = cp_mod.compliance_profile(entry)
+            contract = dict(page_contract) if page_contract is not None else \
+                cp_mod.resolve_operative_cap(cp_mod.page_cap_contract(entry), max_pages)
+        else:
+            profile = None
+            contract = dict(page_contract) if page_contract is not None else \
+                ({"cap": max_pages, "scope": "body", "status": "explicit_argument", "reason": ""}
+                 if max_pages else
+                 {"cap": None, "scope": "total", "status": "unconfigured",
+                  "reason": "未配置页数合规口径（--max-pages/--compliance-profile 均未提供；不默认任何赛事）"})
+        if contract is None:
+            contract = {"cap": None, "scope": "total", "status": "unconfigured", "reason": "无页数口径合同"}
+        pdf = self.workspace / "paper/main.pdf"
+        jobs = [("page_count", lambda: module._page_check(self.workspace, pdf, contract)),
+                ("figure_font", lambda: module._figure_check(self.workspace)),
+                ("leakage", lambda: module._leakage_check(self.workspace))]
+        if compliance_profile:
+            if profile is not None:
+                jobs.append(("compliance", lambda: module._pledge_check(self.workspace, pdf, profile)))
+            else:
+                # schema v2（E-MERGE-01）：合规口径在 profiles 维度，contest 层条目无顶层
+                # compliance 块；未绑定档案快照的路径无从选择口径——如实 SKIP 不计失败
+                # （不冒充通过、不误报"配置缺失"）。绑定工作流的口径由快照 compliance
+                # 块下发；unknown≠PASS 的交付结论仍由终审 contest_compliance 把关。
+                jobs.append(("compliance", lambda: ("SKIP",
+                    "档案条目无顶层合规口径（schema v2 口径在 profiles 维度，"
+                    "未绑定快照路径未选择届次/提交形态）——合规机检不执行，"
+                    "绑定后由快照口径驱动，人工确认承接")))
+        checks = []
+        for name, check in jobs:
+            try:
+                status, detail = check()
+            except Exception as exc:
+                status, detail = "ERROR", str(exc)
+            checks.append({"name": name, "status": status, "detail": detail})
+        failures = [c for c in checks if c["status"] in {"FAIL", "ERROR"}]
+        return {"ok": not failures, "checks": checks, "max_pages_effective": contract.get("cap"),
+                "page_contract": contract,
+                "reason": "; ".join(c["detail"] for c in failures) if failures else "本步早期检查完成；缺席产物按SKIP记录"}
+
     def check_step_manifest(self) -> dict:
         """验证 STEP_MANIFEST.json 的存在性、schema 版本、必填字段完整性。"""
-        result = _validate_step_manifest(self.workspace)
+        result = _validate_step_manifest(self.workspace, session=getattr(self, "_fingerprint_session", None),
+                                         manifest_data=getattr(self, "_manifest_data", None))
         if result["ok"]:
             return {"ok": True, "stepName": result["stepName"], "backend": result["backend"],
                     "outputCount": result["outputCount"], "reason": "STEP_MANIFEST.json 验证通过"}
         return {"ok": False, "errors": result["errors"],
                 "reason": "STEP_MANIFEST.json 验证失败: " + "; ".join(result["errors"])}
 
+    def check_review_rounds(self) -> dict:
+        """评审轮次对账（B窗 2026-09-27 承接 auto-review-loop 轮次纪律）。
+
+        只读既有产物，不要求模型另填证明：REVIEW_STATE.json 声称完成 N 轮，
+        磁盘就必须有第 1..N 轮的真实任务卡（round_<i>.task.md）与评审原文
+        （round_<i>.verdict.md，非空且含裁定信号）——没有真实评审不能声称完成多轮。
+        MAX_ROUNDS 是上限不是必须做满：status=completed 且轮数未达上限属合法
+        提前结束，不误拒（positive 判定是 loop 自身 stop-condition，不在此重复）。
+        REVIEW_STATE.json 缺席 = 该用法无轮次声称，不启用对账（不误拒）。
+        """
+        state_path = self.workspace / "REVIEW_STATE.json"
+        if not state_path.is_file():
+            return {"ok": True, "skipped": True, "reason": "无 REVIEW_STATE.json（无轮次声称，不对账）"}
+        try:
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            return {"ok": False, "reason": f"REVIEW_STATE.json 不是有效JSON: {exc}"}
+        if not isinstance(state, dict) or "round" not in state:
+            return {"ok": False, "reason": "REVIEW_STATE.json 缺 round 字段（轮次声称不可核对）"}
+        claimed = state.get("round")
+        if not isinstance(claimed, int) or claimed < 1:
+            return {"ok": False, "reason": f"REVIEW_STATE.json round 非法: {claimed!r}"}
+        max_rounds = state.get("max_rounds")
+        if isinstance(max_rounds, int) and max_rounds >= 1 and claimed > max_rounds:
+            return {"ok": False, "reason": f"声称轮数 {claimed} 超过上限 max_rounds={max_rounds}"}
+        task_dir = self.workspace / "review_tasks"
+        problems = []
+        verified_rounds = 0
+        verdict_signals = ("ready", "accept", "not ready", "almost")
+        for i in range(1, claimed + 1):
+            task = task_dir / f"round_{i}.task.md"
+            verdict = task_dir / f"round_{i}.verdict.md"
+            if not task.is_file() or task.stat().st_size == 0:
+                problems.append(f"第{i}轮缺任务卡 review_tasks/round_{i}.task.md")
+                continue
+            if not verdict.is_file() or verdict.stat().st_size == 0:
+                problems.append(f"第{i}轮缺评审原文 review_tasks/round_{i}.verdict.md（无真实返回不能计入该轮）")
+                continue
+            try:
+                verdict_text = verdict.read_text(encoding="utf-8", errors="replace").lower()
+            except OSError:
+                problems.append(f"第{i}轮评审原文不可读")
+                continue
+            if not any(signal in verdict_text for signal in verdict_signals):
+                problems.append(f"第{i}轮评审原文缺少裁定标记（ready/accept/not ready/almost 任一），疑似占位")
+                continue
+            verified_rounds += 1
+        status = str(state.get("status", ""))
+        detail = f"声称 {claimed} 轮，实际可核对 {verified_rounds} 轮"
+        if problems:
+            return {"ok": False, "claimed_rounds": claimed, "verified_rounds": verified_rounds,
+                    "problems": problems, "status": status,
+                    "reason": detail + "；" + "; ".join(problems)}
+        early_stop = "；提前结束合法（MAX_ROUNDS 是上限不是必须做满）" if status == "completed" else ""
+        return {"ok": True, "claimed_rounds": claimed, "verified_rounds": verified_rounds,
+                "status": status, "reason": detail + early_stop}
+
     def run_all(self, skill_name: str, declared_outputs=None, comp_name: str = "", requires_figures: bool = False,
-                required_checks: list[str] | None = None, primary_output=None) -> dict:
+                required_checks: list[str] | None = None, primary_output=None,
+                fingerprint_session=None, manifest_data=None, active_final_step_id: str = "",
+                quick_gates: bool = False, quick_gates_max_pages: int | None = None,
+                compliance_profile: str = "", page_contract: dict | None = None,
+                compliance_block: dict | None = None) -> dict:
         """运行所有门禁检查"""
         # Keep the existing positional ``run_all(skill, comp_name)`` call valid.
         if isinstance(declared_outputs, str) and not comp_name:
             comp_name = declared_outputs
             declared_outputs = None
+        self._declared_outputs = declared_outputs
+        self._fingerprint_session = fingerprint_session
+        self._manifest_data = manifest_data
+        self._active_final_step_id = active_final_step_id
         results = {}
         if declared_outputs is not None:
-            artifact_result = ArtifactManifest.validate(self.workspace, declared_outputs)
+            artifact_result = ArtifactManifest.validate(self.workspace, declared_outputs, session=fingerprint_session)
             results["artifacts"] = {
                 "ok": artifact_result["ok"],
                 "missing": artifact_result["missing"],
@@ -1469,8 +1684,13 @@ class QualityGate:
         results["figures"] = self.check_figure_health() if requires_figures else {
             "ok": True, "skipped": True, "reason": "未声明需要图表检查"
         }
+        # 页数门禁只在「本步确实应携带论文」的步骤执行（comp_name 非空 = 模板声明
+        # revalidate_paper_pages，或本步为 comp-compile-zh/en）；page_contract 仅作为
+        # 口径来源透传（B-02 快照单一事实），**不得**据此把页检扩散到所有步骤——
+        # bound 赛事的 page_contract 对每一步都非 None，扩散会让尚无 paper/ 的早期步骤
+        # （如 comp-problem-analysis）被"未找到 paper/main.tex"判 FAIL 而无法完成。
         if comp_name:
-            results["paper_pages"] = self.check_paper_pages(comp_name)
+            results["paper_pages"] = self.check_paper_pages(comp_name, page_contract=page_contract)
         named_checks = {name: getattr(self, method_name) for name, method_name in NAMED_CHECKS_REGISTRY.items()}
         # M1 FIX: 审核类技能即使模板未声明 required_checks，也必须自动跑 review gate——
         # 否则 comp_mcm 等 21 个无 required_checks 模板的审稿步骤门禁从不执行，
@@ -1479,6 +1699,10 @@ class QualityGate:
         effective_checks = list(required_checks or [])
         if skill_name in review_skills and "review" not in effective_checks:
             effective_checks.append("review")
+        # M1 同款先例（B窗 2026-09-27）：auto-review-loop 的轮次对账不依赖模板声明，
+        # 循环类审核步骤一律对账——"声称N轮必须有N轮真实记录"是程序责任，非模板配置。
+        if skill_name == "auto-review-loop" and "review_rounds" not in effective_checks:
+            effective_checks.append("review_rounds")
         for name in effective_checks:
             if name not in named_checks:
                 results[f"required_{name}"] = {"ok": False, "reason": f"未知质量门禁: {name}"}
@@ -1495,6 +1719,14 @@ class QualityGate:
                     results[name] = self.check_review_evidence(mode=review_mode, strict_model_match=strict)
                 else:
                     results[name] = named_checks[name]()
+        # D3 门禁前移程序化（B窗 2026-09-26 接入）：模板声明 metadata.quick_gates=true 的
+        # 步骤由引擎在验收时直接执行早检，不再依赖模型先跑脚本再回报。参数取真实合同：
+        # max_pages 优先步骤声明（quick_gates_max_pages），缺省回落 compliance 口径；
+        # ERROR（解析失败/编排异常）按失败计入，不得冒充 PASS；SKIP（产物未齐）不阻断。
+        if quick_gates:
+            results["early_quality"] = self.check_early_quality(
+                max_pages=quick_gates_max_pages, compliance_profile=compliance_profile,
+                page_contract=page_contract, compliance_block=compliance_block)
         all_ok = all(r["ok"] for r in results.values())
         return {"ok": all_ok, "checks": results}
 

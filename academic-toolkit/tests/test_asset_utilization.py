@@ -23,28 +23,8 @@ import check_asset_utilization as cau
 #   1) 无 License 上游技能（侵权红线隔离，5 个）
 #   2) 私有资料区 assets-local/（award-papers / reference-figures / cumcm-templates）
 #      与赛时预置区 CUMCM2026Problems（2026-09-23 v2.0 改造统一布局）
-# 下两条"真仓机检"以**完整本地仓**为前提，在公开 clone（含 CI）上必须 skip 而非 fail
-# ——2026-09-19 首次 CI 实测发现（本地 node/资产常驻故从未暴露）。
-LOCAL_ONLY_SKILLS = (
-    "plot-from-data", "plot-from-image", "visio-image-rebuilder",
-    "paper-framework-figure-studio-pro", "eco-community-plots",
-)
-LOCAL_ASSET_ROOTS = ("assets-local", "CUMCM2026Problems")
-
-
-def _skip_reason_without_local_assets():
-    """返回非完整本地仓的缺件说明；完整仓返回 None。"""
-    missing_skills = [n for n in LOCAL_ONLY_SKILLS
-                      if not (ROOT / "skills" / n / "SKILL.md").exists()]
-    missing_assets = [n for n in LOCAL_ASSET_ROOTS if not (ROOT.parent / n).exists()]
-    if not missing_skills and not missing_assets:
-        return None
-    parts = []
-    if missing_skills:
-        parts.append(f"{len(missing_skills)} 个 gitignored 无 License 技能 {missing_skills}")
-    if missing_assets:
-        parts.append(f"{len(missing_assets)} 个 gitignored 私有资料区 {missing_assets}")
-    return "非完整本地仓（公开 clone / CI）缺 " + "；缺 ".join(parts)
+# 只对实际缺席的私有资源记录 unavailable，不能连带跳过现存技能地图和公开资产校验。
+# 分发技能以 git 跟踪清单为真源；本地额外技能只要在盘，同样纳入地图检查。
 
 
 # ---------- 斜杠缩写展开 ----------
@@ -86,14 +66,22 @@ def test_load_map_coverage_reports_missing(tmp_path):
 
 
 def test_real_map_covers_all_skills_zero_missing():
-    """真仓零漏网机检（CONTEST_SKILL_MAP §六 口径的固化版）：255 实存 / 0 漏网。"""
-    reason = _skip_reason_without_local_assets()
-    if reason:
-        pytest.skip(reason)
+    """现存技能全覆盖且已跟踪的分发技能不得缺盘，与赛季私有题目无关。"""
+    import subprocess
+
+    result = subprocess.run(
+        ["git", "-C", str(ROOT.parent), "ls-files", "-z", "--", "academic-toolkit/skills/*/SKILL.md"],
+        capture_output=True, check=True,
+    )
+    tracked = {
+        Path(p.decode("utf-8")).parts[2] for p in result.stdout.split(b"\0")
+        if p and len(Path(p.decode("utf-8")).parts) == 4
+    }
+    assert tracked, "分发技能清单不能为空"
     skills = cau.iter_skill_dirs(ROOT / "skills")
+    assert tracked <= set(skills), f"已跟踪技能缺盘: {sorted(tracked - set(skills))}"
     cov = cau.load_map_coverage(ROOT / "CONTEST_SKILL_MAP.md", skills)
     assert cov["missing"] == [], f"漏网技能: {cov['missing']}"
-    assert len(skills) >= 255
 
 
 def test_iter_skill_dirs_excludes_non_skill_dirs(tmp_path):
@@ -136,6 +124,58 @@ def test_scan_evidence_wrapped_structure_and_stats(tmp_path):
     assert result["assets"]["参考图集"]["skipped"] == 1
 
 
+def test_offered_denominator_includes_unreported_resources(tmp_path):
+    ws = tmp_path / "ws"
+    _write_evidence(ws, "a.json", {"used": ["chosen"]}, None)
+    path = ws / ".engine/evidence/a.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["action"].update(companion_skills=["chosen", "omitted"], assets=[{"name": "dataset"}])
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    result = cau.scan_evidence(tmp_path)
+    assert result["totals"]["offered"] == 3
+    assert result["totals"]["use_rate"] == 0.3333
+    assert result["companion"]["omitted"]["recommended"] == 1
+    assert result["coverage"][0]["undeclared_skills"] == ["omitted"]
+    assert result["coverage"][0]["undeclared_assets"] == ["dataset"]
+    assert "not independently verified" in result["verification_level"]
+
+
+@pytest.mark.parametrize("external", [False, True])
+def test_utilization_counts_only_current_accepted_attempts(tmp_path, external):
+    from engine.workflow_store import WorkflowStore
+    ws = tmp_path / "workspaces/ws"
+    for filename in ("old.json", "new.json", "orphan.json"):
+        _write_evidence(ws, filename, {"used": ["chosen"]}, {})
+    db = tmp_path / "external.sqlite" if external else ws / ".engine/workflow.sqlite"
+    with WorkflowStore(db) as store:
+        wf = store.create_workflow("demo", {"workspace": str(ws)})
+        step = store.add_steps(wf.id, [{"name": "solve"}])[0]
+        store.transition_step(step.id, "running")
+        store.transition_step_with_checkpoint(wf.id, step.id, "blocked", {"status": "waiting_checkpoint"},
+            event={"type": "step_completed", "evidence_path": ".engine/evidence/old.json"})
+        store.transition_step_with_checkpoint(wf.id, step.id, "running", {}, event={"type": "step_retry"})
+        store.transition_step_with_checkpoint(wf.id, step.id, "completed", {},
+            event={"type": "step_completed", "evidence_path": ".engine/evidence/new.json"})
+    result = cau.scan_evidence(tmp_path / "workspaces", workflow_databases={str(ws.resolve()): db})
+    assert result["totals"]["steps_declared"] == 1
+    assert result["totals"]["unreferenced_evidence"] == 2
+    assert result["coverage"][0]["evidence"] == "new.json"
+
+
+def test_explicit_missing_database_cannot_fall_back_to_legacy_usage(tmp_path, capsys):
+    ws = tmp_path / "ws"
+    _write_evidence(ws, "orphan.json", {"used": ["chosen"]}, {})
+    db = tmp_path / "missing.sqlite"
+    result = cau.scan_evidence(tmp_path, workflow_databases={str(ws.resolve()): db})
+    assert result["totals"]["steps_declared"] == 0
+    assert result["totals"]["unreferenced_evidence"] == 1
+    assert not db.exists()
+    assert cau.main(["--workspaces", str(tmp_path), "--workflow-db", f"{ws}={db}", "--json"]) == 0
+    cli = json.loads(capsys.readouterr().out)
+    assert cli["utilization"]["totals"]["steps_declared"] == 0
+    assert not db.exists()
+
+
 def test_dead_recommendations_ordering():
     stats = {"a": {"recommended": 3, "used": 0, "skipped": 3},
              "b": {"recommended": 1, "used": 1, "skipped": 0},
@@ -146,14 +186,23 @@ def test_dead_recommendations_ordering():
 
 # ---------- 模板资产在位（真仓假接线防线） ----------
 
-def test_real_templates_assets_all_exist():
-    reason = _skip_reason_without_local_assets()
-    if reason:
-        pytest.skip(reason)
-    tpl = cau.check_template_assets(ROOT / "engine" / "modex-core" / "templates.json", ROOT.parents[0])
+def test_real_templates_assets_all_exist(record_testsuite_property):
+    """逐条查全部指针；缺席私有根只记缺位，根在位时其子文件不得失联。"""
+    repo = ROOT.parent
+    tpl = cau.check_template_assets(ROOT / "engine" / "modex-core" / "templates.json", repo)
     assert tpl.get("error") is None
     assert tpl["checked"] >= 23
-    assert tpl["missing"] == [], f"失联资产指针: {tpl['missing']}"
+    unavailable, broken = [], []
+    for item in tpl["missing"]:
+        parts = Path(item["path"].replace("\\", "/")).parts
+        private_root = parts[0] if parts else ""
+        if (private_root in cau.LOCAL_ONLY_ASSET_ROOTS and ".." not in parts
+                and not (repo / private_root).exists()):
+            unavailable.append(item)
+        else:
+            broken.append(item)
+    record_testsuite_property("unavailable_private_assets", json.dumps(unavailable, ensure_ascii=False))
+    assert broken == [], f"失联资产指针: {broken}"
 
 
 def test_check_template_assets_detects_missing(tmp_path):

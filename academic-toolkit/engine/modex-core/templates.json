@@ -56,6 +56,14 @@
           "display_name": "文献调研",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "literature_review.md",
+                "min_bytes": 1500
+              }
+            ]
           }
         }
       },
@@ -79,6 +87,14 @@
           "display_name": "Idea 生成",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "IDEA_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
           }
         }
       },
@@ -102,6 +118,14 @@
           "display_name": "新颖性验证",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "novelty_check_report.md",
+                "min_bytes": 800
+              }
+            ]
           }
         }
       },
@@ -120,6 +144,14 @@
           "display_name": "外部评审",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "review_report.md",
+                "min_bytes": 800
+              }
+            ]
           }
         }
       },
@@ -139,6 +171,14 @@
           "display_name": "方法精炼+实验规划",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "refine-logs/FINAL_PROPOSAL.md",
+                "min_bytes": 500
+              }
+            ]
           }
         }
       }
@@ -172,6 +212,23 @@
           "display_name": "实验实现+部署+出图",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "experiment_results.md",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.pdf",
+                  "figures/*.png"
+                ],
+                "min_count": 1
+              }
+            ]
           }
         }
       }
@@ -200,7 +257,15 @@
           "skill_binding": {
             "main_required": true
           },
-          "note": "豁免 review 门禁：其文件名契约（COMP_REVIEW.md / COMP_REVIEW_VERDICT.json 等）属竞赛多角色审稿链，与本技能产物（NARRATIVE_REPORT.md / AUTO_REVIEW.md / REVIEW_STATE.json）零重叠，加入必假失败；审稿证据由技能内置的 AUTO_REVIEW.md 轮次台账 + REVIEW_STATE.json 承载。"
+          "note": "豁免 review 门禁：其文件名契约（COMP_REVIEW.md / COMP_REVIEW_VERDICT.json 等）属竞赛多角色审稿链，与本技能产物（NARRATIVE_REPORT.md / AUTO_REVIEW.md / REVIEW_STATE.json）零重叠，加入必假失败；审稿证据由技能内置的 AUTO_REVIEW.md 轮次台账 + REVIEW_STATE.json 承载。",
+          "output_contract": {
+            "files": [
+              {
+                "path": "NARRATIVE_REPORT.md",
+                "min_bytes": 500
+              }
+            ]
+          }
         },
         "required_checks": [
           "step_manifest"
@@ -232,6 +297,14 @@
           "display_name": "论文大纲",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PAPER_PLAN.md",
+                "min_bytes": 1024
+              }
+            ]
           }
         }
       },
@@ -257,6 +330,22 @@
           "display_name": "代码实现",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ]
           }
         }
       },
@@ -297,7 +386,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -327,6 +419,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -353,6 +448,14 @@
           "display_name": "LaTeX 写作",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -402,6 +505,18 @@
           "display_name": "论文改进循环",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              },
+              {
+                "path": "paper/PAPER_IMPROVEMENT_LOG.md",
+                "min_bytes": 1
+              }
+            ]
           }
         }
       }
@@ -431,6 +546,14 @@
           "display_name": "论文大纲（中文）",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PAPER_PLAN.md",
+                "min_bytes": 1024
+              }
+            ]
           }
         }
       },
@@ -456,6 +579,22 @@
           "display_name": "代码实现",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ]
           }
         }
       },
@@ -496,7 +635,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -526,6 +668,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -552,6 +697,14 @@
           "display_name": "LaTeX 写作（中文）",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -601,6 +754,18 @@
           "display_name": "论文改进循环",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              },
+              {
+                "path": "paper/PAPER_IMPROVEMENT_LOG.md",
+                "min_bytes": 1
+              }
+            ]
           }
         }
       }
@@ -630,6 +795,14 @@
           "display_name": "论文规划",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PAPER_PLAN.md",
+                "min_bytes": 1024
+              }
+            ]
           }
         }
       },
@@ -654,6 +827,22 @@
           "display_name": "数据分析",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ]
           }
         }
       },
@@ -677,6 +866,9 @@
           "display_name": "Nature 图表",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "data"
           }
         }
       },
@@ -707,6 +899,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -733,6 +928,14 @@
           "display_name": "Nature 写作",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -782,6 +985,18 @@
           "display_name": "改进循环",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              },
+              {
+                "path": "paper/PAPER_IMPROVEMENT_LOG.md",
+                "min_bytes": 1
+              }
+            ]
           }
         }
       }
@@ -812,6 +1027,14 @@
           "display_name": "文献调研",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "literature_review.md",
+                "min_bytes": 1500
+              }
+            ]
           }
         }
       },
@@ -835,6 +1058,14 @@
           "display_name": "Idea 生成",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "IDEA_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
           }
         }
       },
@@ -858,6 +1089,14 @@
           "display_name": "新颖性验证",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "novelty_check_report.md",
+                "min_bytes": 800
+              }
+            ]
           }
         }
       },
@@ -876,6 +1115,14 @@
           "display_name": "外部评审",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "review_report.md",
+                "min_bytes": 800
+              }
+            ]
           }
         }
       },
@@ -895,6 +1142,14 @@
           "display_name": "方法精炼+实验规划",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "refine-logs/FINAL_PROPOSAL.md",
+                "min_bytes": 500
+              }
+            ]
           }
         }
       },
@@ -922,6 +1177,23 @@
           "display_name": "实验实现+出图",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "experiment_results.md",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.pdf",
+                  "figures/*.png"
+                ],
+                "min_count": 1
+              }
+            ]
           }
         }
       },
@@ -945,6 +1217,14 @@
           "display_name": "论文大纲",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PAPER_PLAN.md",
+                "min_bytes": 1024
+              }
+            ]
           }
         }
       },
@@ -975,6 +1255,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -1001,6 +1284,14 @@
           "display_name": "LaTeX 写作",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -1050,6 +1341,18 @@
           "display_name": "论文改进循环",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              },
+              {
+                "path": "paper/PAPER_IMPROVEMENT_LOG.md",
+                "min_bytes": 1
+              }
+            ]
           }
         }
       }
@@ -1120,6 +1423,15 @@
               ],
               "rationale": "P5 退出判据：赛题分析必须落到假设/模型/求解三件事，拦'题目复述'式薄产物"
             }
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -1228,6 +1540,14 @@
               ],
               "rationale": "P5 退出判据：建模报告必须含假设推导/模型表述/求解结果/结论，拦只有框架的产物"
             }
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
           }
         }
       },
@@ -1268,6 +1588,27 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
           }
         }
       },
@@ -1321,6 +1662,9 @@
             "mandatory": [
               "paper-figure-palette"
             ]
+          },
+          "output_contract": {
+            "figure_outputs": "data"
           }
         }
       },
@@ -1357,6 +1701,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -1463,6 +1810,14 @@
           "quick_gates": true,
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -1554,6 +1909,14 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       },
@@ -1625,6 +1988,13 @@
           "requires_subagent": false,
           "required_checks": [],
           "display_name": "数模编辑修订",
+          "revalidates_outputs_from": [
+            "comp-paper-zh",
+            "comp-paper-en",
+            "comp-compile-zh",
+            "comp-compile-en",
+            "comp-consistency"
+          ],
           "companion_skills": [
             "anti-defensive-writing"
           ],
@@ -1800,6 +2170,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -1828,7 +2207,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -1855,7 +2242,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -1895,7 +2303,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -1925,6 +2336,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -1981,6 +2395,14 @@
           "display_name": "Paper Writing (English)",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -2075,6 +2497,15 @@
               ],
               "rationale": "P5 退出判据：赛题分析必须落到假设/模型/求解三件事，拦'题目复述'式薄产物"
             }
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -2183,6 +2614,14 @@
               ],
               "rationale": "P5 退出判据：建模报告必须含假设推导/模型表述/求解结果/结论，拦只有框架的产物"
             }
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
           }
         }
       },
@@ -2223,6 +2662,27 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
           }
         }
       },
@@ -2282,7 +2742,9 @@
               "paper-figure-palette"
             ]
           },
-          "quick_gates_max_pages": 50
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -2323,6 +2785,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -2430,7 +2895,14 @@
           "skill_binding": {
             "main_required": true
           },
-          "quick_gates_max_pages": 50
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
+          }
         }
       },
       {
@@ -2521,6 +2993,14 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       },
@@ -2592,6 +3072,13 @@
           "requires_subagent": false,
           "required_checks": [],
           "display_name": "数模编辑修订",
+          "revalidates_outputs_from": [
+            "comp-paper-zh",
+            "comp-paper-en",
+            "comp-compile-zh",
+            "comp-compile-en",
+            "comp-consistency"
+          ],
           "companion_skills": [
             "anti-defensive-writing"
           ],
@@ -2706,7 +3193,7 @@
             {
               "name": "交付合规口径·华为杯(机器真源)",
               "path": "academic-toolkit/engine/modex-core/comp_rules.json",
-              "note": "S14 合规判据取 comp_huawei.compliance：参赛承诺书封面页必须存在（gmcmthesis 首页，勿按国赛『电子版无承诺书』口径误杀）、正文 ≤50 页（勿沿用国赛 30 页）——机检 python skills/_utils/quick_gates.py --workspace <工作区> --compliance-profile comp_huawei"
+              "note": "S14 合规判据取 comp_huawei profiles 维度约束带（schema v2）：承诺书方向按 bound 快照 compliance.pledge_page 机读——华为当前 hw-pledge=unknown（value=null），两向均不硬执行，人工确认后再定；正文页口径 hw-page-limit=unknown（无官方记载，勿沿用国赛 30 页口径），历轮 80/50 只留 migration_evidence 不自动继承，运行时经 step.metadata.quick_gates_max_pages / --max-pages 显式通道——机检 python skills/_utils/quick_gates.py --workspace <工作区> --compliance-profile comp_huawei"
             },
             {
               "name": "提交前自查表·287 项",
@@ -2767,6 +3254,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -2795,7 +3291,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -2822,7 +3326,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -2862,7 +3387,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -2892,6 +3420,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -2955,6 +3486,14 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -2980,6 +3519,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -3016,6 +3563,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -3044,7 +3600,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -3071,7 +3635,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -3111,7 +3696,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -3141,6 +3729,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -3204,6 +3795,14 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -3229,6 +3828,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -3265,6 +3872,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -3293,7 +3909,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -3320,7 +3944,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -3360,7 +4005,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -3390,6 +4038,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -3415,6 +4066,14 @@
           "display_name": "Paper Writing",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -3464,6 +4123,15 @@
           "display_name": "选题与数据规划",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "TOPIC_PLAN.md",
+                "min_bytes": 1024
+              }
+            ],
+            "figure_manifest": "TOPIC_PLAN.md"
           }
         }
       },
@@ -3491,7 +4159,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -3531,7 +4220,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -3561,6 +4253,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -3586,6 +4281,14 @@
           "display_name": "论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -3611,6 +4314,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -3647,6 +4358,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -3675,7 +4395,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -3702,7 +4430,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -3742,7 +4491,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -3772,6 +4524,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -3828,6 +4583,14 @@
           "display_name": "竞赛论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -3853,6 +4616,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -3889,6 +4660,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -3917,7 +4697,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -3944,7 +4732,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -3984,7 +4793,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -4014,6 +4826,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -4070,6 +4885,14 @@
           "display_name": "竞赛论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -4095,6 +4918,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -4131,6 +4962,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -4159,7 +4999,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -4186,7 +5034,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -4226,7 +5095,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -4256,6 +5128,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -4312,6 +5187,14 @@
           "display_name": "竞赛论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -4337,6 +5220,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -4373,6 +5264,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -4401,7 +5301,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -4428,7 +5336,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -4468,7 +5397,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -4498,6 +5430,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -4554,6 +5489,14 @@
           "display_name": "竞赛论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -4579,6 +5522,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -4615,6 +5566,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -4643,7 +5603,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -4670,7 +5638,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -4710,7 +5699,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -4740,6 +5732,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -4803,6 +5798,14 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -4828,6 +5831,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -4864,6 +5875,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -4892,7 +5912,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -4919,7 +5947,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -4959,7 +6008,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -4989,6 +6041,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -5045,6 +6100,14 @@
           "display_name": "竞赛论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -5070,6 +6133,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -5106,6 +6177,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -5134,7 +6214,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -5161,7 +6249,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -5201,7 +6310,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -5231,6 +6343,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -5287,6 +6402,14 @@
           "display_name": "竞赛论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -5312,6 +6435,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -5348,6 +6479,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -5376,7 +6516,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -5403,7 +6551,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -5443,7 +6612,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -5473,6 +6645,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -5529,6 +6704,14 @@
           "display_name": "竞赛论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -5554,6 +6737,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -5590,6 +6781,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -5618,7 +6818,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -5645,7 +6853,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -5685,7 +6914,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -5715,6 +6947,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -5771,6 +7006,14 @@
           "display_name": "竞赛论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -5796,6 +7039,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -5832,6 +7083,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -5860,7 +7120,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -5887,7 +7155,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -5927,7 +7216,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -5957,6 +7249,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -6013,6 +7308,14 @@
           "display_name": "竞赛论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -6038,6 +7341,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -6074,6 +7385,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -6102,7 +7422,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -6129,7 +7457,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -6169,7 +7518,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -6199,6 +7551,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -6255,6 +7610,14 @@
           "display_name": "竞赛论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -6280,6 +7643,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -6316,6 +7687,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -6344,7 +7724,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -6371,7 +7759,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -6411,7 +7820,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -6441,6 +7853,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -6497,6 +7912,14 @@
           "display_name": "竞赛论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -6522,6 +7945,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -6558,6 +7989,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -6586,7 +8026,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -6613,7 +8061,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -6653,7 +8122,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -6683,6 +8155,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -6739,6 +8214,14 @@
           "display_name": "竞赛论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -6764,6 +8247,14 @@
           "display_name": "编译与合规检查",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
           }
         }
       }
@@ -6800,6 +8291,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -6828,7 +8328,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -6855,7 +8363,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -6895,7 +8424,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -6925,6 +8457,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -6981,6 +8516,14 @@
           "display_name": "Paper Writing (English)",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -7042,6 +8585,15 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
           }
         }
       },
@@ -7070,7 +8622,15 @@
           },
           "companion_skills": [
             "sympy"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
         }
       },
       {
@@ -7097,7 +8657,28 @@
           },
           "companion_skills": [
             "data-statistics-report"
-          ]
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
         }
       },
       {
@@ -7137,7 +8718,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -7167,6 +8751,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -7223,6 +8810,14 @@
           "display_name": "Paper Writing (English)",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -7278,6 +8873,14 @@
           "display_name": "文献调研与开题撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROPOSAL.md",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -7308,6 +8911,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -7358,6 +8964,14 @@
           "display_name": "文献检索与综述撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "LITERATURE_REVIEW.md",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -7406,6 +9020,18 @@
           "display_name": "大纲与图表规划",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "OUTLINE.md",
+                "min_bytes": 800
+              },
+              {
+                "path": "PAPER_PLAN.md",
+                "min_bytes": 1024
+              }
+            ]
           }
         }
       },
@@ -7431,6 +9057,22 @@
           "display_name": "数据分析",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ]
           }
         }
       },
@@ -7471,7 +9113,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -7501,6 +9146,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -7524,6 +9172,14 @@
           "display_name": "课程论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "COURSE_PAPER.md",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -7573,6 +9229,18 @@
           "display_name": "事实提取与大纲规划",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "OUTLINE.md",
+                "min_bytes": 800
+              },
+              {
+                "path": "PROJECT_FACTS.md",
+                "min_bytes": 300
+              }
+            ]
           }
         }
       },
@@ -7598,6 +9266,22 @@
           "display_name": "数据分析",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ]
           }
         }
       },
@@ -7638,7 +9322,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -7668,6 +9355,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -7691,6 +9381,14 @@
           "display_name": "课程报告撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "COURSE_REPORT.md",
+                "min_bytes": 3072
+              }
+            ]
           }
         }
       },
@@ -7739,6 +9437,18 @@
           "display_name": "选题与结构规划",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "OUTLINE.md",
+                "min_bytes": 800
+              },
+              {
+                "path": "PAPER_PLAN.md",
+                "min_bytes": 800
+              }
+            ]
           }
         }
       },
@@ -7764,6 +9474,22 @@
           "display_name": "数据分析（可选）",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ]
           }
         }
       },
@@ -7804,7 +9530,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -7834,6 +9563,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -7857,6 +9589,14 @@
           "display_name": "论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "HUMANITIES_PAPER.md",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -7915,6 +9655,18 @@
               "min_bytes": 1024,
               "rationale": "course-plan 完成铁律：PAPER_PLAN.md ≥1KB 含图表规划"
             }
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "OUTLINE.md",
+                "min_bytes": 800
+              },
+              {
+                "path": "PAPER_PLAN.md",
+                "min_bytes": 1024
+              }
+            ]
           }
         }
       },
@@ -7938,6 +9690,14 @@
           "display_name": "课程论文正文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "COURSE_PAPER.md",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -7974,7 +9734,19 @@
               "rationale": "course-report-plan 完成铁律：报告线 OUTLINE.md ≥800B"
             }
           },
-          "note": "本步会以报告线版本覆盖 OUTLINE.md/PAPER_PLAN.md（技能产物名硬编码所致）。链序已保证论文线正文 COURSE_PAPER.md 在本步之前落盘，不受覆盖影响；禁止在本步之后重跑 course-paper。"
+          "note": "本步会以报告线版本覆盖 OUTLINE.md/PAPER_PLAN.md（技能产物名硬编码所致）。链序已保证论文线正文 COURSE_PAPER.md 在本步之前落盘，不受覆盖影响；禁止在本步之后重跑 course-paper。",
+          "output_contract": {
+            "files": [
+              {
+                "path": "OUTLINE.md",
+                "min_bytes": 800
+              },
+              {
+                "path": "PROJECT_FACTS.md",
+                "min_bytes": 300
+              }
+            ]
+          }
         }
       },
       {
@@ -7997,6 +9769,14 @@
           "display_name": "课程报告正文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "COURSE_REPORT.md",
+                "min_bytes": 3072
+              }
+            ]
           }
         }
       },
@@ -8075,6 +9855,14 @@
           "display_name": "论文规划",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PAPER_PLAN.md",
+                "min_bytes": 1024
+              }
+            ]
           }
         }
       },
@@ -8100,6 +9888,22 @@
           "display_name": "缺口补全(代码/结果)",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ]
           }
         }
       },
@@ -8140,7 +9944,10 @@
             "fig-plot-edit-lite",
             "fig-aesthetics-craft",
             "paper-figure-palette"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         }
       },
       {
@@ -8170,6 +9977,9 @@
           ],
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
           }
         }
       },
@@ -8196,6 +10006,14 @@
           "display_name": "论文撰写",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120
+              }
+            ]
           }
         }
       },
@@ -8250,6 +10068,22 @@
           "display_name": "需求分析",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "REQUIREMENTS.md",
+                "min_bytes": 1500,
+                "contains": [
+                  "## 项目概述",
+                  "## 用户角色",
+                  "## 功能清单",
+                  "## 页面清单",
+                  "## 接口清单",
+                  "## 非功能需求"
+                ]
+              }
+            ]
           }
         }
       },
@@ -8274,6 +10108,20 @@
           "display_name": "系统设计",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "DESIGN.md",
+                "min_bytes": 2000,
+                "contains": [
+                  "## 技术架构",
+                  "## 模块划分",
+                  "## 目录结构"
+                ]
+              }
+            ],
+            "project_contract": "design"
           }
         }
       },
@@ -8298,6 +10146,9 @@
           "display_name": "编码实现",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "project_contract": "code"
           }
         }
       },
@@ -8321,6 +10172,21 @@
           "display_name": "自测验证",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "TEST_REPORT.md",
+                "min_bytes": 500,
+                "contains": [
+                  "## 依赖安装",
+                  "## 服务启动",
+                  "## 功能验证",
+                  "## 修复记录",
+                  "## 已知问题"
+                ]
+              }
+            ]
           }
         }
       }
@@ -8521,7 +10387,10 @@
           },
           "companion_skills": [
             "fig-plot-edit-lite"
-          ]
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
         },
         "has_checkpoint": false,
         "checkpoint_type": null
@@ -8586,7 +10455,8 @@
               "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
               "path": "academic-toolkit/skills/_utils/anti_rationalization.md"
             }
-          ]
+          ],
+          "review_scope": "scientific_plotting"
         },
         "has_checkpoint": false,
         "checkpoint_type": null,
@@ -8842,7 +10712,8 @@
               "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
               "path": "academic-toolkit/skills/_utils/anti_rationalization.md"
             }
-          ]
+          ],
+          "review_scope": "paper_submission"
         },
         "requires_subagent": true
       }
@@ -8883,7 +10754,15 @@
               "rationale": "paper-poster 技能内置 Output Verification 契约（≥50000B 才算编译完成），拦\"只写 tex 未编译\"薄产物"
             }
           },
-          "note": "编译日志门禁 compilation_log 的候选路径（paper/main.log / latex_bridge.log / compile.log）不含 poster/ 子目录，故本步用 output_specs 兜底 PDF 产出而不用 compilation_log。"
+          "note": "编译日志门禁 compilation_log 的候选路径（paper/main.log / latex_bridge.log / compile.log）不含 poster/ 子目录，故本步用 output_specs 兜底 PDF 产出而不用 compilation_log。",
+          "output_contract": {
+            "files": [
+              {
+                "path": "poster/main.pdf",
+                "min_bytes": 50000
+              }
+            ]
+          }
         }
       },
       {
@@ -8918,7 +10797,15 @@
               "rationale": "paper-slides 技能内置 Output Verification 契约（≥50000B 才算编译完成），拦\"只写 tex 未编译\"薄产物"
             }
           },
-          "note": "compilation_log 候选路径不含 slides/ 子目录，同 poster 步以 output_specs 兜底。"
+          "note": "compilation_log 候选路径不含 slides/ 子目录，同 poster 步以 output_specs 兜底。",
+          "output_contract": {
+            "files": [
+              {
+                "path": "slides/main.pdf",
+                "min_bytes": 50000
+              }
+            ]
+          }
         }
       },
       {
@@ -8950,13 +10837,15 @@
     "display_name": "深度调研管线（选题发现→文献检索→证据汇总→调研报告→独立评审）",
     "sub_steps": [
       {
-        "skill_name": "idea-discovery",
-        "display_name": "选题发现与可行性评估",
+        "skill_name": "research-lit",
+        "display_name": "文献调研",
         "output_files": [
-          "IDEA_DISCOVERY.md",
-          "NOVELTY_CHECK.json"
+          "literature_review.md",
+          "references.bib",
+          "LIT_EVIDENCE.json",
+          "search_evidence/"
         ],
-        "primary_output": "IDEA_DISCOVERY.md",
+        "primary_output": "literature_review.md",
         "has_checkpoint": false,
         "checkpoint_type": null,
         "required_checks": [
@@ -8967,20 +10856,27 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "选题发现与可行性评估",
+          "display_name": "文献调研",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "literature_review.md",
+                "min_bytes": 1500
+              }
+            ]
           }
         }
       },
       {
-        "skill_name": "research-lit",
-        "display_name": "文献检索与证据登记（防编造）",
+        "skill_name": "idea-creator",
+        "display_name": "Idea 生成",
         "output_files": [
-          "LIT_EVIDENCE.json",
-          "search_evidence/"
+          "IDEA_REPORT.md"
         ],
-        "primary_output": "LIT_EVIDENCE.json",
+        "primary_output": "IDEA_REPORT.md",
         "has_checkpoint": false,
         "checkpoint_type": null,
         "required_checks": [
@@ -8991,9 +10887,48 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "文献检索与证据登记（防编造）",
+          "display_name": "Idea 生成",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "IDEA_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
+        }
+      },
+      {
+        "skill_name": "novelty-check",
+        "display_name": "新颖性验证",
+        "output_files": [
+          "novelty_check_report.md"
+        ],
+        "primary_output": "novelty_check_report.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "新颖性验证",
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "novelty_check_report.md",
+                "min_bytes": 800
+              }
+            ]
           }
         }
       },
@@ -9050,7 +10985,8 @@
               "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
               "path": "academic-toolkit/skills/_utils/anti_rationalization.md"
             }
-          ]
+          ],
+          "review_scope": "deep_research"
         },
         "requires_subagent": true
       }
@@ -9061,13 +10997,15 @@
     "display_name": "基金申请书全流程（选题发现→证据登记→申请书撰写→独立评审）",
     "sub_steps": [
       {
-        "skill_name": "idea-discovery",
-        "display_name": "选题发现与可行性评估",
+        "skill_name": "research-lit",
+        "display_name": "文献调研",
         "output_files": [
-          "IDEA_DISCOVERY.md",
-          "NOVELTY_CHECK.json"
+          "literature_review.md",
+          "references.bib",
+          "LIT_EVIDENCE.json",
+          "search_evidence/"
         ],
-        "primary_output": "IDEA_DISCOVERY.md",
+        "primary_output": "literature_review.md",
         "has_checkpoint": false,
         "checkpoint_type": null,
         "required_checks": [
@@ -9078,20 +11016,27 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "选题发现与可行性评估",
+          "display_name": "文献调研",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "literature_review.md",
+                "min_bytes": 1500
+              }
+            ]
           }
         }
       },
       {
-        "skill_name": "research-lit",
-        "display_name": "文献检索与证据登记（防编造）",
+        "skill_name": "idea-creator",
+        "display_name": "Idea 生成",
         "output_files": [
-          "LIT_EVIDENCE.json",
-          "search_evidence/"
+          "IDEA_REPORT.md"
         ],
-        "primary_output": "LIT_EVIDENCE.json",
+        "primary_output": "IDEA_REPORT.md",
         "has_checkpoint": false,
         "checkpoint_type": null,
         "required_checks": [
@@ -9102,9 +11047,48 @@
           "required_checks": [
             "step_manifest"
           ],
-          "display_name": "文献检索与证据登记（防编造）",
+          "display_name": "Idea 生成",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "IDEA_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
+        }
+      },
+      {
+        "skill_name": "novelty-check",
+        "display_name": "新颖性验证",
+        "output_files": [
+          "novelty_check_report.md"
+        ],
+        "primary_output": "novelty_check_report.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "新颖性验证",
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "novelty_check_report.md",
+                "min_bytes": 800
+              }
+            ]
           }
         }
       },
@@ -9128,6 +11112,14 @@
           "display_name": "基金申请书撰写（NSFC/NSF/KAKENHI/ERC 等格式）",
           "skill_binding": {
             "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "GRANT_PROPOSAL.md",
+                "min_bytes": 500
+              }
+            ]
           }
         }
       },
@@ -9161,7 +11153,8 @@
               "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
               "path": "academic-toolkit/skills/_utils/anti_rationalization.md"
             }
-          ]
+          ],
+          "review_scope": "grant_proposal"
         },
         "requires_subagent": true
       }

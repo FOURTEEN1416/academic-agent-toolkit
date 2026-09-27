@@ -21,17 +21,17 @@ def _cap(cap_id):
 def test_grant_proposal_template_contract():
     t = TPL["grant_proposal"]
     names = [s["skill_name"] for s in t["sub_steps"]]
-    assert names == ["idea-discovery", "research-lit", "grant-proposal", "comp-review"]
+    assert names == ["research-lit", "idea-creator", "novelty-check", "grant-proposal", "comp-review"]
     # 独立评审门禁：requires_subagent + review 检查（防伪造审核）
     review = t["sub_steps"][-1]
     assert review["metadata"]["requires_subagent"] is True
     assert review["required_checks"] == ["step_manifest", "review"]
     # 核心执行步骤产出申请书
-    core = t["sub_steps"][2]
+    core = next(s for s in t["sub_steps"] if s["skill_name"] == "grant-proposal")
     assert core["primary_output"] == "GRANT_PROPOSAL.md"
     # 证据登记步骤产出防编造层
-    lit = t["sub_steps"][1]
-    assert set(lit["output_files"]) == {"LIT_EVIDENCE.json", "search_evidence/"}
+    lit = next(s for s in t["sub_steps"] if s["skill_name"] == "research-lit")
+    assert set(lit["output_files"]) == {"literature_review.md", "references.bib", "LIT_EVIDENCE.json", "search_evidence/"}
 
 
 def test_grant_proposal_catalog_contract_complete():
@@ -56,7 +56,7 @@ def test_grant_proposal_pipeline_skills_exist():
 def test_grant_proposal_anti_fabrication_gate_config():
     """证据登记与评审步骤的产出契约必须支撑防编造体系（P2/P3 教训）。"""
     t = TPL["grant_proposal"]
-    lit = t["sub_steps"][1]
+    lit = next(s for s in t["sub_steps"] if s["skill_name"] == "research-lit")
     review = t["sub_steps"][-1]
     assert "step_manifest" in lit["required_checks"]
     assert "step_manifest" in review["required_checks"]

@@ -6,10 +6,13 @@ import hashlib
 import json
 import os
 import re
+import shlex
+import subprocess
 from pathlib import Path
 from typing import Any
 
 from .agent_bridge import StepAction, StepResult
+from .step_manifest import atomic_write_json
 
 
 SCHEMA_VERSION = 1
@@ -17,14 +20,6 @@ _REQUIRED_FIELDS = {
     "schema_version", "agent", "step_id", "skill_name", "skill_sha256",
     "commands", "inputs", "outputs",
 }
-
-# 描述性伪命令检测：真正的 shell 命令应以可执行程序/解释器开头。
-# 例如 "python tools/x.py --flag" 合法；"python workbook inspection for ..." 是描述文本。
-_COMMAND_EXECUTABLE_RE = (
-    r"^\s*(?P<exe>[A-Za-z0-9_./\\-]+(?:\.[Ee][Xx][Ee])?)\s+"
-    r"(?:-[A-Za-z]|--[A-Za-z]|[/\w.-])"
-)
-_SHELL_TOKEN_RE = re.compile(r"^\s*[A-Za-z0-9_./\\-]+(?:\.[Ee][Xx][Ee])?(\s+.*)?$")
 
 # Windows 盘符（C:\、C:/）——冒号是路径语法不是描述性分隔符（A5 误杀②修复：
 # `C:/Program Files/draw.io/draw.io.EXE -x ...` 曾被 ':' 规则误杀）
@@ -148,7 +143,7 @@ def _relative_path(workspace: Path, value: Any) -> str:
         resolved.relative_to(root)
     except ValueError as exc:
         raise ValueError(f"evidence path escapes workspace: {value}") from exc
-    return candidate.as_posix()
+    return resolved.relative_to(root).as_posix()
 
 
 def _file_sha256(path: Path) -> str:
@@ -159,8 +154,33 @@ def _file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def normalize_command_record(command: dict[str, Any], workspace: Path) -> dict[str, Any]:
+    """Adapt real bridge receipts without inventing execution or success."""
+    normalized = dict(command)
+    raw = command.get("command")
+    if isinstance(raw, list):
+        if not raw or any(not isinstance(v, str) for v in raw):
+            raise ValueError("command argv must be a non-empty string list")
+        normalized["argv"] = list(raw)
+        normalized["command"] = subprocess.list2cmdline(raw) if os.name == "nt" else shlex.join(raw)
+    if "returncode" not in normalized and "exitCode" in command:
+        normalized["returncode"] = command["exitCode"]
+    elif "exitCode" in command and command["exitCode"] != normalized.get("returncode"):
+        raise ValueError("conflicting returncode and exitCode")
+    cwd = command.get("cwd", ".")
+    if not isinstance(cwd, str):
+        raise ValueError("command cwd must be a string")
+    if Path(cwd).is_absolute():
+        try:
+            cwd = Path(cwd).resolve().relative_to(Path(workspace).resolve()).as_posix()
+        except ValueError as exc:
+            raise ValueError("command cwd escapes workspace") from exc
+    normalized["cwd"] = _relative_path(Path(workspace), cwd)
+    return normalized
+
+
 def validate_execution_evidence(
-    workspace: Path, action: StepAction, result: StepResult
+    workspace: Path, action: StepAction, result: StepResult, *, store=None, fingerprint_session=None
 ) -> dict[str, Any]:
     """Validate and normalize version 1 evidence reported by the executing agent."""
     evidence = result.metadata.get("execution_evidence")
@@ -179,6 +199,11 @@ def validate_execution_evidence(
         raise ValueError("execution evidence skill_sha256 does not match the skill file")
 
     normalized = dict(evidence)
+    collection = evidence.get("collection")
+    if collection is not None:
+        _validate_collected_operations(workspace, action, evidence, store, fingerprint_session)
+    elif evidence.get("resource_reads"):
+        raise ValueError("resource_reads requires a persisted execution collection")
     for field in ("inputs", "outputs"):
         paths = evidence[field]
         if not isinstance(paths, list):
@@ -190,12 +215,13 @@ def validate_execution_evidence(
         raise ValueError("execution evidence outputs must match claimed artifacts")
 
     commands = evidence["commands"]
-    if not isinstance(commands, list) or not commands:
+    if not isinstance(commands, list) or (not commands and not collection):
         raise ValueError("execution evidence commands must be a non-empty list")
     normalized_commands = []
     for command in commands:
         if not isinstance(command, dict):
             raise ValueError("execution evidence command records must be objects")
+        command = normalize_command_record(command, Path(workspace))
         if not isinstance(command.get("command"), str) or not command["command"].strip():
             raise ValueError("execution evidence command record requires command")
         if _looks_like_descriptive_command(command["command"]):
@@ -203,7 +229,7 @@ def validate_execution_evidence(
                 f"execution evidence command is descriptive text, not an executable command: "
                 f"{command['command'][:120]!r}"
             )
-        if not isinstance(command.get("returncode"), int):
+        if type(command.get("returncode")) is not int:
             raise ValueError("execution evidence command record requires integer returncode")
         if command["returncode"] != 0:
             raise ValueError("successful execution evidence commands must have returncode 0")
@@ -214,21 +240,210 @@ def validate_execution_evidence(
     return normalized
 
 
+def execution_contract(action, step_metadata, workflow_params, rules_root: Path) -> str:
+    """执行语义合同（scope 2）：只绑定"改变即影响执行"的要素。
+
+    B窗 2026-09-27 分流（总调度收口1）：技能契约与 params 是执行语义输入——
+    变化即须重跑；required_checks/companion_skills/output_specs/quick_gates 等
+    步骤 metadata 质量字段与 modex-core 规则文件是纯质量规则——变化只在验收时
+    由 quality_gates/output_contracts 按当前规则实时重验适用检查，不要求模型
+    重跑命令刷新合同，也不回写历史操作记录。
+    兼容：历史/在途记录携带的是 scope 1（全量）合同，对账走 legacy_execution_contract。
+    """
+    body = {"contract_scope": 2,
+            "params": workflow_params,
+            "skill": _file_sha256(action.skill_path),
+            "session_protocol": 1}
+    return hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=True).encode()).hexdigest()
+
+
+def legacy_execution_contract(action, step_metadata, workflow_params, rules_root: Path) -> str:
+    """scope 1 全量合同（历史口径）：仅用于对账既有操作记录，不再新发。"""
+    body = {"metadata": step_metadata, "params": workflow_params,
+            "skill": _file_sha256(action.skill_path),
+            "rules": {p.name: _file_sha256(p) for p in rules_root.glob("*.json")},
+            "session_protocol": 1}
+    return hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=True).encode()).hexdigest()
+
+
+def collect_execution_evidence(store, workflow, action, *, subagent_session="") -> dict[str, Any]:
+    """从当前操作事实机械组装提交对象；只有执行协议拥有这份映射。"""
+    rows = store.current_operations(action.step_id, action.attempt_id)
+    pending = [row for row in rows if row["status"] not in {"succeeded", "reused"}]
+    if pending:
+        raise ValueError("尚有失败/中断操作，修复后重跑相应任务: " + ", ".join(row["node_key"] for row in pending))
+    resources = [row["payload"] for row in rows if row["kind"] == "resource"]
+    consulted = {r["name"] for r in resources if r["kind"] == "skill"}
+    all_assets = {r["name"] for r in resources if r["kind"] == "asset"}
+    used_assets = all_assets & {a["name"] for a in action.assets}
+    outputs = list(action.output_files or dict.fromkeys(
+        path for row in rows for path in row["payload"].get("outputs_snapshot", {})))
+    extra = sorted(consulted - set(action.companion_skills) - {action.skill_name})
+    evidence = {"schema_version": SCHEMA_VERSION,
+        "agent": workflow.metadata.get("params", {}).get("agent", "execution-session"),
+        "step_id": action.step_id, "attempt_id": action.attempt_id,
+        "expected_revision": action.expected_revision, "skill_name": action.skill_name,
+        "skill_sha256": action.skill_sha256,
+        "commands": [row["payload"]["command_record"] for row in rows if row["kind"] == "command"],
+        "inputs": list(dict.fromkeys(path for row in rows for path in row["payload"].get("inputs_snapshot", {}))),
+        "outputs": outputs, "resource_reads": resources,
+        "additional_assets": sorted(all_assets - used_assets),
+        "collection": {"source": "execution-session-v1", "operation_ids": [row["id"] for row in rows]},
+        "companion_skills": {"used": sorted(set(action.companion_skills) & consulted),
+            "skipped": [{"skill": name, "reason": "本轮未选择；自动记录，不等同不适用判断"}
+                        for name in action.companion_skills if name not in consulted]},
+        "assets": {"used": sorted(used_assets), "skipped": [
+            {"name": a["name"], "reason": "本轮未选择；自动记录，不等同不适用判断"}
+            for a in action.assets if a["name"] not in used_assets]},
+        "additional_skills": [{"skill": name, "reason": "执行者按任务主动加载",
+            "contribution": "已提供上下文，实质贡献待成果审查", "output": outputs[0] if outputs else ""} for name in extra]}
+    dependencies = {}
+    for row in rows:
+        for name, version in row["payload"].get("dependencies", {}).items():
+            if name in dependencies and dependencies[name] != version:
+                raise ValueError(f"操作之间依赖版本不一致: {name}")
+            dependencies[name] = version
+    evidence["producer_manifests"] = [row["payload"]["producer_manifest"] for row in rows if row["payload"].get("producer_manifest")]
+    if len(evidence["producer_manifests"]) == 1:
+        path = action.workspace / evidence["producer_manifests"][0]
+        producer = json.loads(path.read_text(encoding="utf-8"))
+        producer_outputs = {entry["path"].rstrip("/") for entry in producer.get("outputFiles", [])}
+        if {name.rstrip("/") for name in outputs} <= producer_outputs:
+            evidence["execution_manifest"] = evidence["producer_manifests"][0]
+    evidence["dependencies"] = dependencies
+    evidence["backend"] = "recorded-execution"
+    evidence["execution_config"] = {row["payload"].get("node", row["id"]): row["payload"].get("execution_config", {})
+                                    for row in rows if row["kind"] == "command"}
+    reviews = [row["payload"] for row in rows if row["kind"] == "review"]
+    if reviews:
+        evidence["review_receipts"] = reviews
+        evidence["subagent_session"] = reviews[-1]["host_call_id"]
+    elif subagent_session:
+        evidence["subagent_session"] = subagent_session
+    return evidence
+
+
+def _validate_collected_operations(workspace, action, evidence, store, fingerprint_session):
+    """机器采集证据必须逐条绑定当前attempt的持久事实，不信任Agent自报resource/hash。"""
+    collection = evidence.get("collection")
+    if store is None or not isinstance(collection, dict) or collection.get("source") != "execution-session-v1":
+        raise ValueError("execution collection requires the workflow store")
+    rows = store.current_operations(action.step_id, action.attempt_id)
+    if not rows or any(r["status"] not in {"succeeded", "reused"} for r in rows):
+        raise ValueError("execution collection contains missing, failed or interrupted operations")
+    ids = collection.get("operation_ids")
+    if not isinstance(ids, list) or set(ids) != {r["id"] for r in rows} or len(ids) != len(rows):
+        raise ValueError("execution collection operation set mismatch")
+    workflow_row = store._connection.execute("SELECT metadata FROM workflows WHERE id=?", (action.workflow_id,)).fetchone()
+    workflow = {"metadata": json.loads(workflow_row[0])}
+    rules_root = action.skill_path.parents[2] / "engine/modex-core"
+    current_contract = execution_contract(action, store.get_step(action.step_id).metadata,
+        workflow["metadata"].get("params", {}), rules_root)
+    # 双口径对账：scope 2（执行语义面）为当前基线；历史/在途记录携带的 scope 1
+    # 全量合同按 legacy 口径重算核对——不回写历史操作记录。纯质量规则变化
+    # （scope 2 不含的 metadata 质量字段/规则文件）不再触发"合同变化要求重跑"。
+    legacy_contract = legacy_execution_contract(action, store.get_step(action.step_id).metadata,
+        workflow["metadata"].get("params", {}), rules_root)
+    if any(r["kind"] == "command" and r["payload"].get("contract") not in {current_contract, legacy_contract}
+           for r in rows):
+        raise ValueError("execution collection contract changed")
+    commands = [r["payload"]["command_record"] for r in rows if r["kind"] == "command"]
+    reads = [r["payload"] for r in rows if r["kind"] == "resource"]
+    reviews = [r["payload"] for r in rows if r["kind"] == "review"]
+    if evidence.get("review_receipts", []) != reviews:
+        raise ValueError("review receipts do not match persisted response records")
+    if action.requires_subagent and not reviews:
+        raise ValueError("独立评审步骤必须有版本绑定的实际返回记录，单个session字符串不能代替评审")
+    if evidence.get("commands") != commands or evidence.get("resource_reads") != reads:
+        raise ValueError("execution collection facts do not match persisted records")
+    machine_only = (action.skill_name == "comp-final-audit"
+                    and store.get_step(action.step_id).metadata.get("machine_audit_only") is True)
+    if not machine_only and not any(r["kind"] in {"command", "write", "review"} for r in rows):
+        raise ValueError("resource consultation alone is not task execution")
+    from .artifact_manifest import FingerprintSession
+    fingerprints = fingerprint_session or FingerprintSession(Path(workspace))
+    current_versions = {}
+    produced_paths = set()
+    for row in rows:
+        payload = row["payload"]
+        if row["kind"] == "review":
+            for reviewed_path, reviewed_hash in payload.get("outputs_snapshot", {}).items():
+                if fingerprints.fingerprint(reviewed_path).sha256 != reviewed_hash:
+                    raise ValueError("独立评审原文被后续操作覆盖；必须接收新的独立评审，不能改写裁定")
+        # 每个命令的输入仍须匹配；上游重算后，不能用新的上游摘要掩盖旧下游。
+        mutations = set(payload.get("mutates", []))
+        if not mutations <= (set(payload.get("inputs_snapshot", {})) & set(payload.get("outputs_snapshot", {}))):
+            raise ValueError("collected mutation must bind both pre-execution input and post-execution output")
+        for name, expected in {**payload.get("lineage_inputs", {}), **payload.get("inputs_snapshot", {})}.items():
+            # 明确原地修订保存before→after，不要求修订后的文件仍等于旧输入。
+            # 其他命令（编译/核查等）仍按当前输入对账，旧下游结果不会被新修订掩盖。
+            if name not in mutations and fingerprints.fingerprint(name).sha256 != expected:
+                raise ValueError(f"execution dependency changed; rerun affected node {row['node_key']}: {name}")
+        current_versions.update(payload.get("outputs_snapshot", {}))
+        produced_paths.update(payload.get("outputs_snapshot", {}))
+    for name, expected in current_versions.items():
+        if fingerprints.fingerprint(name).sha256 != expected:
+            raise ValueError(f"execution collection bytes changed: {name}")
+    consulted = {read["name"] for read in reads if read.get("kind") == "skill"}
+    if not {action.skill_name, *action.skill_binding.get("mandatory", [])} <= consulted:
+        raise ValueError("collected execution must receive current main/mandatory skill content")
+    for read in reads:
+        path = Path(read["path"])
+        suite = action.skill_path.parents[2]
+        if read.get("kind") == "skill":
+            expected_path = (suite / "skills" / read.get("name", "") / "SKILL.md").resolve()
+            if path.resolve() != expected_path or not expected_path.is_relative_to((suite / "skills").resolve()):
+                raise ValueError("collected skill resource path mismatch")
+        elif not path.resolve().is_relative_to(suite.parent.resolve()):
+            raise ValueError("collected asset resource escapes repository")
+        if not path.is_file() or _file_sha256(path) != read["sha256"]:
+            raise ValueError(f"consulted resource changed: {read['name']}")
+    for declared in evidence.get("outputs", []):
+        if action.skill_name == "comp-final-audit" and declared == "AUDIT_REPORT.json":
+            continue  # 真正报告由final-audit生成且随后实时完整验收。
+        canonical = _relative_path(Path(workspace), declared)
+        if not any(canonical == p or canonical.startswith(p.rstrip("/") + "/") for p in produced_paths):
+            raise ValueError(f"output has no collected producer: {declared}")
+    expected_inputs = list(dict.fromkeys(p for r in rows for p in r["payload"].get("inputs_snapshot", {})))
+    if evidence.get("inputs") != expected_inputs:
+        raise ValueError("execution collection inputs mismatch")
+    fingerprints.assert_unchanged()
+
+
 def write_execution_evidence(
-    workspace: Path, action: StepAction, evidence: dict[str, Any], manifest: dict[str, Any]
+    workspace: Path, action: StepAction, evidence: dict[str, Any], manifest: dict[str, Any],
+    *, submission_id: str = "",
 ) -> str:
     """Write validated evidence and its declared-artifact manifest under the workspace."""
     root = Path(workspace).resolve()
     directory = root / ".engine" / "evidence"
+    if not directory.resolve().is_relative_to(root):
+        raise ValueError("evidence directory escapes workspace")
     directory.mkdir(parents=True, exist_ok=True)
-    path = directory / f"{action.step_id}.json"
+    suffix = f"_{action.attempt_id}" if action.attempt_id else ""
+    if submission_id:
+        if not re.fullmatch(r"[a-zA-Z0-9_-]+", submission_id):
+            raise ValueError("invalid submission_id")
+        suffix += "_" + submission_id
+    path = directory / f"{action.step_id}{suffix}.json"
+    if not path.resolve().is_relative_to(root):
+        raise ValueError("evidence directory escapes workspace")
     payload = {"schema_version": SCHEMA_VERSION, "action": {
         "workflow_id": action.workflow_id,
         "step_id": action.step_id,
         "skill_name": action.skill_name,
+        "attempt_id": action.attempt_id,
+        "expected_revision": action.expected_revision,
         # P4：把本步的技能绑定随证据落盘，使审计层（audit_store.verify_skill_bindings）
         # 无需回查模板/SQLite 即可对账"声明绑定 vs L1 实际操作"。
         "skill_binding": dict(getattr(action, "skill_binding", None) or {}),
-    }, "evidence": evidence, "manifest": manifest}
-    path.write_text(json.dumps(payload, ensure_ascii=True, indent=2, sort_keys=True), encoding="utf-8")
+        "companion_skills": list(action.companion_skills),
+        "assets": list(action.assets),
+    }, "evidence": evidence, "manifest": manifest,
+       "resource_usage": {
+           "offered": {"skills": list(action.companion_skills), "assets": list(action.assets)},
+           "declared": {key: evidence.get(key, {}) for key in ("companion_skills", "assets", "additional_skills")},
+           "verification_level": "declaration_and_trace; semantic contribution requires review",
+       }}
+    atomic_write_json(path, payload)
     return path.relative_to(root).as_posix()

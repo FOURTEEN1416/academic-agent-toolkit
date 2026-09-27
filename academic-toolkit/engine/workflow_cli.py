@@ -238,7 +238,17 @@ def _read_json_input(inline: str, file_path: str, option: str) -> Any:
 def _action_payload(action) -> dict:
     """StepAction 的 CLI JSON 序列化（next/retry 共用，保持输出风格一致）。"""
     return {
+        "workflow_id": action.workflow_id,
         "step_id": action.step_id,
+        "attempt_id": action.attempt_id,
+        "expected_revision": action.expected_revision,
+        "skill_sha256": action.skill_sha256,
+        "required_checks": action.required_checks,
+        "output_specs": action.output_specs,
+        "requires_subagent": action.requires_subagent,
+        "review_scope": action.review_scope,
+        "skill_binding": action.skill_binding,
+        "quick_gates_max_pages": action.quick_gates_max_pages,
         "position": action.position,
         # 手册口径步号（1 起始）：消除 next 输出 position=0 与手册 1-14 的错位困惑
         # （A5 摩擦日志 ②；仅 CLI 输出层字段，不改 StepAction schema）
@@ -290,6 +300,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # 能力检测（旧）
     sub.add_parser("caps")
+    from execution.cli import register_parser
+    register_parser(sub)
 
     # 完整能力探测 + TOOL_GAP
     sub.add_parser("probe")
@@ -340,6 +352,16 @@ def _build_parser() -> argparse.ArgumentParser:
     complete.add_argument("--evidence-file", default="",
                           help="从 JSON 文件读取 execution evidence（与 --evidence 二选一）")
     complete.add_argument("--db", default="")
+    complete.add_argument("--step-id", default="", help="next 返回的 step_id，失败回报也必须指定")
+    complete.add_argument("--attempt-id", default="")
+    complete.add_argument("--expected-revision", type=int, default=None)
+    complete.add_argument("--request-id", default="", help="同一提交重发使用同一标识")
+    preflight = sub.add_parser("preflight", help="只读批量验收，不推进工作流")
+    preflight.add_argument("--wf", required=True)
+    preflight.add_argument("--db", default="")
+    preflight.add_argument("--artifacts", default="")
+    preflight.add_argument("--evidence", default="{}")
+    preflight.add_argument("--evidence-file", default="")
 
     # 重试失败步骤（A2 审计修复：FAILED 后此前无带内恢复路径，恢复被迫手改 SQLite）
     retry = sub.add_parser("retry")
@@ -368,6 +390,8 @@ def _build_parser() -> argparse.ArgumentParser:
                           help="与 complete_step 同构的 execution_evidence JSON（字符串）。"
                                "步骤声明绑定（skill_binding/companion_skills/assets）时必填，"
                                "否则须 --waive-binding；含真实 skill_sha256 绑定签名，走同一校验链")
+    backfill.add_argument("--evidence-file", default="",
+                          help="从文件读取真实补录证据，与 --evidence 二选一")
     backfill.add_argument("--waive-binding", action="store_true", dest="waive_binding",
                           help="显式豁免补录的绑定校验（必须配 --waive-reason；"
                                "产生 backfill_binding_waived 审计事件，禁止静默旁路）")
@@ -392,7 +416,10 @@ def _build_parser() -> argparse.ArgumentParser:
     final_audit = sub.add_parser("final-audit")
     final_audit.add_argument("--workspace", required=True)
     final_audit.add_argument("--db", default="")
+    final_audit.add_argument("--wf", default="", help="绑定指定工作流；缺省按工作区选择")
     final_audit.add_argument("--out", default="")
+    final_audit.add_argument("--evidence-file", default="",
+                             help="当前最终步骤的真实候选 evidence；仅预审对账，不接受产物、不推进状态")
 
     # 操作审计（读取 plugin 的 operations.jsonl + SQLite + evidence）
     audit = sub.add_parser("audit")
@@ -404,6 +431,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _run_command(args, parser) -> int:
+    if args.command == "session":
+        return args.session_handler(args)
     if args.command == "boot":
         print(json.dumps(agent_bootstrap(ROOT), ensure_ascii=False, indent=2))
         return 0
@@ -462,7 +491,7 @@ def _run_command(args, parser) -> int:
         db = Path(args.db)
     elif workspace_for_db is not None:
         db = default_workflow_db(workspace_for_db)
-    elif args.command in {"next", "complete", "retry", "report", "stall", "backfill"}:
+    elif args.command in {"next", "complete", "preflight", "retry", "report", "stall", "backfill"}:
         try:
             db = resolve_workflow_db(args.wf)
         except KeyError as exc:
@@ -470,7 +499,8 @@ def _run_command(args, parser) -> int:
             db = _probe_workflow_db(args.wf)
             if db is None:
                 raise WorkflowCliError(_keyerror_message(exc)) from None
-            register_workflow_database(args.wf, db)
+            if args.command != "preflight":
+                register_workflow_database(args.wf, db)
     elif args.command == "approve":
         try:
             db = resolve_checkpoint_db(args.checkpoint)
@@ -478,16 +508,19 @@ def _run_command(args, parser) -> int:
             raise WorkflowCliError(_keyerror_message(exc)) from None
     else:
         db = STATE_ROOT / "workflow.sqlite"
-    db.parent.mkdir(parents=True, exist_ok=True)
+    if args.command != "preflight":
+        db.parent.mkdir(parents=True, exist_ok=True)
     try:
         catalog = json.loads((ROOT / "engine" / "modex-core" / "templates.json").read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         raise WorkflowCliError(f"templates.json 解析失败: {exc}") from None
 
-    with WorkflowStore(db) as store:
-        runner = WorkflowRunner(store, catalog, ROOT / "skills", audit_root=ROOT.parent)
-        # B3-1：CLI 每命令一进程，惰性重建 RunLogger 并在 return 前落盘
-        _attach_run_logger(runner, store, args)
+    with WorkflowStore(db, read_only=args.command == "preflight") as store:
+        runner = WorkflowRunner(store, catalog, ROOT / "skills",
+                                audit_root=None if args.command == "preflight" else ROOT.parent)
+        # Read-only preflight must not create logs or migrate the DB.
+        if args.command != "preflight":
+            _attach_run_logger(runner, store, args)
 
         if args.command == "start":
             try:
@@ -514,26 +547,37 @@ def _run_command(args, parser) -> int:
             output = {
                 "status": result.status,
                 "message": result.message,
+                "diagnostics": result.diagnostics,
             }
             if result.action:
                 output["action"] = _action_payload(result.action)
+                # 默认下发可执行上下文；不让Agent重复计算hash或手建证据。
+                from execution.session import ExecutionSession
+                from execution.presentation import user_view
+                output["execution"] = user_view(ExecutionSession(runner, args.wf, result.action).context())
             if result.checkpoint_id:
                 # A5 ⑦ 修复：blocked 时直接给出待批 checkpoint UUID
                 output["checkpoint_id"] = result.checkpoint_id
             print(json.dumps(output, ensure_ascii=False, indent=2))
             return 0 if result.status in ("advanced", "completed") else 1
 
-        if args.command == "complete":
+        if args.command in {"complete", "preflight"}:
             evidence = _read_json_input(args.evidence, str(getattr(args, "evidence_file", "") or ""),
                                         "--evidence-file")
             if not isinstance(evidence, dict):
                 raise WorkflowCliError("execution evidence 必须是 JSON 对象")
             step_result = StepResult(
-                ok=args.ok.lower() == "true",
+                ok=str(getattr(args, "ok", "true")).lower() == "true",
                 artifacts=[a.strip() for a in args.artifacts.split(",") if a.strip()],
-                stderr=args.stderr,
+                stderr=getattr(args, "stderr", ""),
                 metadata={"execution_evidence": evidence},
+                step_id=getattr(args, "step_id", ""), attempt_id=getattr(args, "attempt_id", ""),
+                expected_revision=getattr(args, "expected_revision", None), request_id=getattr(args, "request_id", ""),
             )
+            if args.command == "preflight":
+                report = runner.validate_step(args.wf, step_result)
+                print(json.dumps(report, ensure_ascii=False, indent=2))
+                return 0 if report["ok"] else 1
             result = runner.complete_step(args.wf, step_result)
             _save_run_log(runner, args.wf)
             output = {
@@ -541,6 +585,8 @@ def _run_command(args, parser) -> int:
                 "step_id": result.step_id,
                 "message": result.message,
             }
+            output["diagnostics"] = result.diagnostics
+            output["replayed"] = result.replayed
             if result.checkpoint_id:
                 # A5 ⑦ 修复：waiting_checkpoint 时直接给出待批 checkpoint UUID
                 output["checkpoint_id"] = result.checkpoint_id
@@ -554,6 +600,7 @@ def _run_command(args, parser) -> int:
                 "status": result.status,
                 "step_id": result.step_id,
                 "message": result.message,
+                "diagnostics": result.diagnostics,
             }
             if result.action:
                 output["action"] = _action_payload(result.action)
@@ -569,7 +616,11 @@ def _run_command(args, parser) -> int:
 
         if args.command == "backfill":
             backfill_evidence = None
-            if str(getattr(args, "evidence", "") or "").strip():
+            if args.evidence_file:
+                backfill_evidence = _read_json_input(args.evidence, args.evidence_file, "--evidence-file")
+                if not isinstance(backfill_evidence, dict):
+                    raise WorkflowCliError("execution evidence 必须是 JSON 对象")
+            elif str(getattr(args, "evidence", "") or "").strip():
                 try:
                     backfill_evidence = json.loads(args.evidence)
                 except json.JSONDecodeError as exc:
@@ -591,9 +642,11 @@ def _run_command(args, parser) -> int:
                 "status": result.status,
                 "step_id": result.step_id,
                 "message": result.message,
+                "diagnostics": result.diagnostics,
+                "checkpoint_id": result.checkpoint_id,
             }
             print(json.dumps(output, ensure_ascii=False, indent=2))
-            return 0 if result.status in ("advanced", "completed") else 1
+            return 0 if result.status in ("advanced", "completed", "waiting_checkpoint") else 1
 
         if args.command == "approve":
             by = str(getattr(args, "by", "") or "").strip()
@@ -610,13 +663,9 @@ def _run_command(args, parser) -> int:
             _save_run_log(runner, _checkpoint_workflow_id(store, args.checkpoint))
             output = {"status": result.status, "message": result.message}
             if result.action:
-                output["action"] = {
-                    "skill_name": result.action.skill_name,
-                    "workspace": str(result.action.workspace),
-                    "instructions": result.action.execution_instructions(),
-                }
+                output["action"] = _action_payload(result.action)
             print(json.dumps(output, ensure_ascii=False, indent=2))
-            return 0
+            return 0 if result.status in ("advanced", "completed") else 1
 
         if args.command == "report":
             # B3-2：读侧命令顺带清理指向已消失数据库的孤儿注册
@@ -631,10 +680,23 @@ def _run_command(args, parser) -> int:
         if args.command == "final-audit":
             from .audit_store import write_final_audit_report
             workspace = Path(args.workspace)
-            out = Path(args.out) if args.out else workspace / "AUDIT_REPORT.json"
-            target = write_final_audit_report(workspace, ROOT.parent, out, workflow_db=db)
-            print(f"最终审计报告已保存: {target}")
-            return 0
+            out = Path(args.out) if args.out else None
+            candidate = None
+            if args.evidence_file:
+                if not args.wf:
+                    raise WorkflowCliError("候选预审必须通过 --wf 指定工作流")
+                evidence = _read_json_input("", args.evidence_file, "--evidence-file")
+                if not isinstance(evidence, dict):
+                    raise WorkflowCliError("execution evidence 必须是 JSON 对象")
+                try:
+                    candidate = runner.final_audit_candidate(args.wf, evidence)
+                except ValueError as exc:
+                    raise WorkflowCliError(f"候选预审证据无效: {exc}") from None
+            target = write_final_audit_report(workspace, ROOT.parent, out, workflow_db=db,
+                                             workflow_id=args.wf or None, candidate=candidate)
+            decision = json.loads(target.read_text(encoding="utf-8"))["delivery_decision"]
+            print(f"最终审计报告已保存: {target}（{decision}）")
+            return 0 if decision in {"eligible", "ready"} else 1
 
         if args.command == "audit":
             from .audit_store import write_audit_report

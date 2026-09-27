@@ -24,7 +24,10 @@ def test_pdf_page_gate_uses_pdfinfo_page_count(tmp_path):
     with patch("engine.quality_gates.subprocess.run") as run:
         run.return_value.stdout = "Pages:           22\n"
         run.return_value.returncode = 0
-        result = gate.check_paper_pages("comp_mcm")
+        # v2：档案条目不再顶层 max_pages，直调路径补 page_contract（bound 快照同构）
+        result = gate.check_paper_pages(
+            "comp_mcm", page_contract={"cap": 25, "scope": "total",
+                                       "status": "official_verified"})
 
     assert result["ok"] is True
     assert result["pages"] == 22
@@ -57,7 +60,9 @@ def test_cumcm_page_gate_excludes_summary_and_unlimited_appendix(tmp_path):
 
     with patch("engine.quality_gates.subprocess.run", side_effect=FileNotFoundError), \
             patch("engine.quality_gates._fitz.open", return_value=Document(page_texts)):
-        result = QualityGate(tmp_path).check_paper_pages("comp_cumcm")
+        result = QualityGate(tmp_path).check_paper_pages(
+            "comp_cumcm", page_contract={"cap": 30, "scope": "body",
+                                         "status": "official_verified"})
 
     assert result["ok"] is True
     assert result["body_pages"] == 30
@@ -91,7 +96,9 @@ def test_cumcm_page_gate_rejects_more_than_thirty_body_pages(tmp_path):
 
     with patch("engine.quality_gates.subprocess.run", side_effect=FileNotFoundError), \
             patch("engine.quality_gates._fitz.open", return_value=Document(page_texts)):
-        result = QualityGate(tmp_path).check_paper_pages("comp_cumcm")
+        result = QualityGate(tmp_path).check_paper_pages(
+            "comp_cumcm", page_contract={"cap": 30, "scope": "body",
+                                         "status": "official_verified"})
 
     assert result["ok"] is False
     assert result["body_pages"] == 31
@@ -126,7 +133,9 @@ def test_cumcm_body_pages_fail_closed_when_no_abstract_keyword(tmp_path):
 
     with patch("engine.quality_gates.subprocess.run", side_effect=FileNotFoundError), \
             patch("engine.quality_gates._fitz.open", return_value=Document(page_texts)):
-        result = QualityGate(tmp_path).check_paper_pages("comp_cumcm")
+        result = QualityGate(tmp_path).check_paper_pages(
+            "comp_cumcm", page_contract={"cap": 30, "scope": "body",
+                                         "status": "official_verified"})
 
     assert result["ok"] is False
     assert result["reason"] == "body_pages_unknown_no_abstract"
@@ -162,7 +171,9 @@ def test_cumcm_body_pages_uses_english_abstract_as_alternative_start(tmp_path):
 
     with patch("engine.quality_gates.subprocess.run", side_effect=FileNotFoundError), \
             patch("engine.quality_gates._fitz.open", return_value=Document(page_texts)):
-        result = QualityGate(tmp_path).check_paper_pages("comp_cumcm")
+        result = QualityGate(tmp_path).check_paper_pages(
+            "comp_cumcm", page_contract={"cap": 30, "scope": "body",
+                                         "status": "official_verified"})
 
     assert result["ok"] is True
     assert result["body_pages"] == 5
@@ -197,7 +208,9 @@ def test_cumcm_body_pages_fail_closed_when_zero_body_after_marker(tmp_path):
 
     with patch("engine.quality_gates.subprocess.run", side_effect=FileNotFoundError), \
             patch("engine.quality_gates._fitz.open", return_value=Document(page_texts)):
-        result = QualityGate(tmp_path).check_paper_pages("comp_cumcm")
+        result = QualityGate(tmp_path).check_paper_pages(
+            "comp_cumcm", page_contract={"cap": 30, "scope": "body",
+                                         "status": "official_verified"})
 
     assert result["ok"] is False
     assert result["reason"] == "body_pages_unknown_no_abstract"
@@ -300,9 +313,11 @@ def test_final_audit_gate_rejects_presence_only_report(tmp_path):
 
 
 def test_final_audit_gate_accepts_ready_manifest_backed_decision(tmp_path):
+    (tmp_path / "paper").mkdir()
+    (tmp_path / "paper/main.pdf").write_bytes(b"fixture paper")
     report = {
         "workflow_id": "wf-1",
-        "artifacts": [{"path": "paper/main.pdf", "sha256": "a" * 64}],
+        "artifacts": [{"path": "paper/main.pdf", "sha256": hashlib.sha256(b"fixture paper").hexdigest()}],
         "gate_outcomes": {"literature": "pass", "review": "pass", "consistency": "pass"},
         "waivers": [],
         "delivery_decision": "ready",

@@ -101,6 +101,70 @@ def test_validate_step_manifest_with_explicit_relative_path(tmp_path):
     assert result["outputCount"] == 1
 
 
+def test_fingerprint_child_then_parent_rejects_changed_child(tmp_path):
+    import pytest
+    from engine.artifact_manifest import FingerprintSession
+    directory = tmp_path / "figures"
+    directory.mkdir()
+    child = directory / "plot.txt"
+    child.write_text("old", encoding="utf-8")
+    session = FingerprintSession(tmp_path)
+    session.fingerprint("figures/plot.txt")
+    child.write_text("new content", encoding="utf-8")
+    with pytest.raises(ValueError, match="changed during validation"):
+        session.fingerprint("figures/")
+
+
+def test_fingerprint_overlapping_paths_preserve_first_stamps(tmp_path):
+    from engine.artifact_manifest import FingerprintSession
+    directory = tmp_path / "figures"
+    directory.mkdir()
+    child = directory / "plot.txt"
+    child.write_text("same", encoding="utf-8")
+    session = FingerprintSession(tmp_path)
+    first = session.fingerprint("figures/plot.txt")
+    stamps = dict(session._stats)
+    assert session.fingerprint("figures/").exists
+    assert all(session._stats[p] == stamp for p, stamp in stamps.items())
+    assert session.fingerprint(child) == first
+
+
+def test_directory_receipt_captures_members_and_reuses_child_reads(tmp_path, monkeypatch):
+    import hashlib
+    from engine.artifact_manifest import ArtifactManifest, FingerprintSession
+    directory = tmp_path / "figures"
+    directory.mkdir()
+    child = directory / "plot.txt"
+    child.write_bytes(b"plot")
+    reads = []
+    original = Path.open
+    def track(path, mode="r", *args, **kwargs):
+        if path == child and mode == "rb":
+            reads.append(path)
+        return original(path, mode, *args, **kwargs)
+    monkeypatch.setattr(Path, "open", track)
+    session = FingerprintSession(tmp_path)
+    artifacts = ArtifactManifest.scan(tmp_path, ["figures/", "figures/plot.txt"], session)
+    assert artifacts[0].members == {"figures/plot.txt": hashlib.sha256(b"plot").hexdigest()}
+    assert artifacts[1].sha256 == artifacts[0].members["figures/plot.txt"]
+    assert len(reads) == 1
+
+
+def test_atomic_json_failure_preserves_existing_publication(tmp_path, monkeypatch):
+    import pytest
+    import engine.step_manifest as module
+    target = tmp_path / "receipt.json"
+    target.write_text('{"original": true}', encoding="utf-8")
+    before = target.read_bytes()
+    def fail_replace(*args):
+        raise OSError("injected publication failure")
+    monkeypatch.setattr(module.os, "replace", fail_replace)
+    with pytest.raises(OSError, match="publication failure"):
+        module.atomic_write_json(target, {"new": True})
+    assert target.read_bytes() == before
+    assert list(tmp_path.glob("*.json")) == [target]
+
+
 def test_validate_step_manifest_rejects_path_outside_workspace(tmp_path):
     outside = tmp_path.parent / "outside_STEP_MANIFEST.json"
     outside.write_text("{}", encoding="utf-8")

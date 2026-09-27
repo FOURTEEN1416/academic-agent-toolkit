@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from engine.template_resolver import resolve_template
-from engine.opencode_bridge import StepAction, StepResult
+from engine.agent_bridge import StepAction, StepResult
 
 
 def test_cumcm_template_requires_literature_and_review_closure_by_default():
@@ -71,7 +71,10 @@ def test_cumcm_closure_steps_declare_verdict_and_audit_outputs():
 
     assert steps["comp-review"]["output_files"] == ["COMP_REVIEW.md", "COMP_REVIEW_VERDICT.json"]
     assert steps["comp-visual-review"]["output_files"] == ["VISUAL_REVIEW.md", "VISUAL_REVIEW_VERDICT.json"]
-    assert steps["comp-editor"]["output_files"] == ["EDITOR_CHANGELOG.md"]
+    assert steps["comp-editor"]["output_files"] == [
+        "EDITOR_CHANGELOG.md", "paper/main.tex", "CONSISTENCY_REPORT.json", "paper/main.pdf"
+    ]
+    assert steps["comp-editor"]["revalidate_paper_pages"] is True
     assert steps["comp-final-review"]["output_files"] == [
         "FINAL_REVIEW.md", "FINAL_REVIEW_VERDICT.json", "REVIEW_EXECUTION_EVIDENCE.json"
     ]

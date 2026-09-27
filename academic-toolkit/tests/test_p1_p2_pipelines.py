@@ -34,7 +34,8 @@ def test_paper_submission_template_contract():
 def test_deep_research_template_contract():
     t = TPL["deep_research"]
     names = [s["skill_name"] for s in t["sub_steps"]]
-    assert names == ["idea-discovery", "research-lit", "meta-research-summarizer", "comp-review"]
+    assert names == ["research-lit", "idea-creator", "novelty-check", "meta-research-summarizer", "comp-review"]
+    assert "idea-discovery" not in names, "入口路由不得嵌套进单步执行"
     assert t["sub_steps"][-1]["metadata"]["requires_subagent"] is True
 
 

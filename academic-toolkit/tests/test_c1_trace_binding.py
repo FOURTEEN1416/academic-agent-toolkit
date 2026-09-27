@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from engine.opencode_bridge import StepResult
+from engine.agent_bridge import StepResult
 from engine.workflow_runner import WorkflowRunner
 from engine.workflow_store import WorkflowStore
 
@@ -76,8 +76,8 @@ def test_used_with_command_trace_passes(tmp_path):
     assert result.status in ("advanced", "completed"), result.message
 
 
-def test_used_with_path_trace_passes(tmp_path):
-    """used 技能名出现在 declared output 路径中（路径大小写形态不同也归一匹配）→ 有痕，过闸。"""
+def test_output_name_alone_is_not_skill_usage(tmp_path):
+    """产物文件名碰巧包含技能名，不构成读取或使用技能的证据。"""
     _store, runner, wf = _setup(tmp_path, output_files=("Problem_Analysis/REPORT.md",))
     result = _complete(
         runner, wf,
@@ -85,7 +85,8 @@ def test_used_with_path_trace_passes(tmp_path):
         outputs=("Problem_Analysis/REPORT.md",),
         companion={"used": ["problem-analysis"], "skipped": []},
     )
-    assert result.status in ("advanced", "completed"), result.message
+    assert result.status == "failed"
+    assert "零使用痕迹" in result.message
 
 
 def test_used_without_trace_rejected_with_teaching(tmp_path):

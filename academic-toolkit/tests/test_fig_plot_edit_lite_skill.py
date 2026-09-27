@@ -36,7 +36,10 @@ def _load_module():
 
 @pytest.fixture(scope="module")
 def lite():
-    return _load_module()
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", matplotlib.MatplotlibDeprecationWarning)
+        return _load_module()
 
 
 def _make_confirm(mod, csv_path, **overrides):
@@ -88,8 +91,13 @@ def test_render_happy_path_outputs_and_report(lite, tmp_path):
     work_csv = tmp_path / "demo.csv"
     shutil.copy(EXAMPLE, work_csv)
     confirm = _make_confirm(lite, work_csv)
-    with matplotlib.rc_context():
+    import warnings
+    with matplotlib.rc_context(), warnings.catch_warnings():
+        warnings.simplefilter("error", matplotlib.MatplotlibDeprecationWarning)
         report = lite.render(work_csv, confirm)
+        assert matplotlib.rcParams["xtick.direction"] == "in"
+        assert matplotlib.rcParams["axes.linewidth"] == 0.5
+        assert matplotlib.rcParams["text.usetex"] is False
     assert report["success"] is True
     assert all(report["checks"].values())
     assert set(report["outputs"]) == {"png", "pdf", "svg"}

@@ -9,6 +9,7 @@
 """
 import sqlite3
 import sys
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,7 +21,7 @@ from engine.workflow_store import WorkflowStore
 
 PASSING_GATES = {"checks": {"literature": {"ok": True}, "review": {"ok": True},
                             "consistency": {"ok": True}, "final_audit": {"ok": True}}}
-PASSING_MANIFEST = {"artifacts": [{"path": "paper/main.pdf", "sha256": "a" * 64}]}
+PASSING_MANIFEST = {"artifacts": [{"path": "paper/main.pdf", "sha256": __import__("hashlib").sha256(b"fake pdf bytes").hexdigest()}]}
 
 
 def _make_workspace(tmp_path):
@@ -32,6 +33,23 @@ def _make_workspace(tmp_path):
     paper.mkdir()
     (paper / "main.pdf").write_bytes(b"fake pdf bytes")
     return workspace, project_root
+
+
+def _bind_contest_snapshot(db, workflow_id):
+    """v2（总调度 2026-09-27）：直建工作流补 bound 快照——无快照即 pending_binding
+    → contest_compliance unknown → delivery blocked（不冒充 ready）；本测试考多工作流
+    一致性，合规口径按 cumcm 电子版真实档案绑定。"""
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from engine.contest_profile import resolve_profile
+    snap = resolve_profile("comp_cumcm", {"contest": {"edition": "2026",
+                                                      "submission_form": "electronic"}}).to_snapshot()
+    with WorkflowStore(db) as store:
+        meta = store.get_workflow(workflow_id).metadata
+        meta["contest_profile_snapshot"] = snap
+        store._connection.execute(
+            "UPDATE workflows SET metadata = ? WHERE id = ?", (json.dumps(meta), workflow_id))
+        store._connection.commit()
 
 
 def _complete_with_event(db, workflow_id, step_id):
@@ -96,10 +114,12 @@ def test_multiple_clean_workflows_still_pass(tmp_path):
     with WorkflowStore(db) as store:
         wf_1 = store.create_workflow("comp_cumcm", {"workspace": str(workspace), "params": {}})
         steps_1 = store.add_steps(wf_1.id, [{"name": "step-1", "metadata": {"output_files": []}}])
+    _bind_contest_snapshot(db, wf_1.id)
     _complete_with_event(db, wf_1.id, steps_1[0].id)
     with WorkflowStore(db) as store:
         wf_2 = store.create_workflow("comp_cumcm", {"workspace": str(workspace), "params": {}})
         steps_2 = store.add_steps(wf_2.id, [{"name": "step-2", "metadata": {"output_files": []}}])
+    _bind_contest_snapshot(db, wf_2.id)
     _complete_with_event(db, wf_2.id, steps_2[0].id)
 
     report = build_final_audit_report(workspace, project_root, workflow_db=db)

@@ -30,7 +30,6 @@ VENDORED_MARKER = "codesucker-core"  # vendored node 项目内嵌 py 不属本�
 # 【裸跑型豁免】（"无参数即执行"形态，不允许在测试中触发）：
 #   case_fetcher / codesucker_end_to_end_demo / pdf_ocr / markdown_utils
 #     —— 历史豁免（2026-09-20 实测会写文件/重生成数据）；
-#   run_cumcm_e2e —— --help 被无视，直接在 Temp 起工作流跑 E2E（批次三实测）；
 #   fix_bare_latex_in_md —— 无 --help 契约，位置参数缺省把 "--help" 当文件名（pyc 包装器）。
 # 【契约破损豁免】：
 #   assets_codesucker_adapter —— 脚本形态 `python tools/xxx.py --help` 即 ModuleNotFoundError
@@ -52,7 +51,7 @@ CLI_HELP_TOOLS = (
     "docx_precheck.py", "docx_template_analyze.py", "paper_data_check.py",
     "humanities_review.py", "count_chapter_words.py", "arxiv_fetch.py",
     "screenshot_capture.py", "check_codesucker_licenses.py",
-    "fix_skill_manifest_placement.py", "sync_codesucker_core.py",
+    "sync_codesucker_core.py",
     # —— 2026-09-22 主窗收编：批次一 B1-9 合并后收编暂缓件（1）——
     "plotting_env_check.py",
 )

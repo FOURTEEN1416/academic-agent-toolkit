@@ -1,6 +1,7 @@
 """审计系统测试：AuditStore 读写、报告生成、未申报操作检测（防绕过）。"""
 import json
 import sys
+import pytest
 from pathlib import Path
 
 
@@ -99,6 +100,45 @@ def test_detect_unreported_bash_commands(tmp_path):
     assert "python hack.py" in result["unreported_bash"]
 
 
+@pytest.mark.parametrize("variant,classified", [
+    ("plain", True), ("compound", False), ("redirect", False),
+    ("wrong-workflow", False), ("wrong-db", False), ("wrong-output", False),
+    ("duplicate-option", False), ("truncated", False), ("wrapper", False),
+])
+def test_control_call_classification_is_narrow_and_visible(tmp_path, variant, classified):
+    ws = tmp_path / "workspace"
+    ws.mkdir()
+    db = tmp_path / "workflow.sqlite"
+    command = f'python -m engine.workflow_cli final-audit --workspace "{ws}" --db "{db}" --wf wf-1'
+    suffixes = {"compound": " && python mutate.py", "redirect": " > paper.txt",
+                "wrong-output": f' --out "{ws / "paper.txt"}"',
+                "duplicate-option": " --wf wf-1", "truncated": "...[TRUNC]"}
+    command += suffixes.get(variant, "")
+    if variant == "wrong-workflow":
+        command = command.replace("wf-1", "wf-other")
+    elif variant == "wrong-db":
+        command = command.replace(str(db), str(tmp_path / "other.sqlite"))
+    elif variant == "wrapper":
+        command = "echo " + command
+    AuditStore(tmp_path).record({"type": "tool_call", "tool": "bash", "detail": {"command": command}})
+    result = detect_unreported_operations(ws, tmp_path, evidence_paths=set(),
+        control_scope={"database": db, "workflow_id": "wf-1", "checkpoint_ids": set()})
+    assert bool(result["workflow_control_calls"]) is classified
+    assert result["actual_bash_count"] == 1
+    assert (result["verdict"] == "ok") is classified
+    if classified:
+        assert result["workflow_control_calls"][0]["execution_status"] == "not_attested"
+        # A declared long prefix cannot hide a compound tail outside classification.
+        compound = command + " && python mutate.py"
+        AuditStore(tmp_path).record({"type": "tool_call", "tool": "bash", "detail": {"command": compound}})
+        again = detect_unreported_operations(ws, tmp_path, evidence_paths=set(),
+            candidate_evidence={"commands": [{"command": command}], "outputs": [], "inputs": []},
+            control_scope={"database": db, "workflow_id": "wf-1", "checkpoint_ids": set()})
+        assert compound in again["unreported_bash"]
+    else:
+        assert result["unreported_bash"] == [command]
+
+
 def test_detect_unreported_edits(tmp_path):
     """防绕过：编辑了未申报的文件 → warning。"""
     project_root = tmp_path / "project"
@@ -185,7 +225,9 @@ def test_build_and_write_final_audit_report(tmp_path):
     from engine.workflow_store import WorkflowStore
 
     with WorkflowStore(db) as store:
-        workflow = store.create_workflow("comp_cumcm", {"workspace": str(workspace), "params": {}})
+        # 非赛事合成工作流（contest_compliance=not_applicable 计 pass）；
+        # 赛事待绑定/未核验 → blocked 的语义由 test_contest_profile_runtime 覆盖
+        workflow = store.create_workflow("demo_tpl", {"workspace": str(workspace), "params": {}})
         step = store.add_steps(workflow.id, [{
             "name": "comp-final-audit",
             "metadata": {
@@ -202,8 +244,8 @@ def test_build_and_write_final_audit_report(tmp_path):
             workflow.id,
             step.id,
             "completed",
-            {"status": "completed", "manifest": {"artifacts": [{"path": "paper/main.pdf", "sha256": "a" * 64}]}, "quality_gates": {"checks": {"literature": {"ok": True}, "review": {"ok": True}, "consistency": {"ok": True}, "final_audit": {"ok": True}}}},
-            event={"type": "step_completed", "quality_gates": {"checks": {"literature": {"ok": True}, "review": {"ok": True}, "consistency": {"ok": True}, "final_audit": {"ok": True}}}, "manifest": {"artifacts": [{"path": "paper/main.pdf", "sha256": "a" * 64}]}}
+            {"status": "completed", "manifest": {"artifacts": [{"path": "paper/main.pdf", "sha256": __import__("hashlib").sha256(b"fake pdf bytes").hexdigest()}]}, "quality_gates": {"checks": {"literature": {"ok": True}, "review": {"ok": True}, "consistency": {"ok": True}, "final_audit": {"ok": True}}}},
+            event={"type": "step_completed", "quality_gates": {"checks": {"literature": {"ok": True}, "review": {"ok": True}, "consistency": {"ok": True}, "final_audit": {"ok": True}}}, "manifest": {"artifacts": [{"path": "paper/main.pdf", "sha256": __import__("hashlib").sha256(b"fake pdf bytes").hexdigest()}]}}
         )
 
     report = build_final_audit_report(workspace, project_root, workflow_db=db)
@@ -215,6 +257,183 @@ def test_build_and_write_final_audit_report(tmp_path):
     assert out.exists()
     saved = json.loads(out.read_text(encoding="utf-8"))
     assert saved["workflow_id"] == report["workflow_id"]
+
+
+def test_pending_workflow_with_fallback_paper_is_not_ready(tmp_path):
+    from engine.workflow_store import WorkflowStore
+    workspace = tmp_path / "ws"
+    (workspace / "paper").mkdir(parents=True)
+    (workspace / "paper/main.pdf").write_bytes(b"paper")
+    db = tmp_path / "workflow.sqlite"
+    with WorkflowStore(db) as store:
+        wf = store.create_workflow("demo", {"workspace": str(workspace)})
+        store.add_steps(wf.id, [{"name": "unfinished"}])
+    report = build_final_audit_report(workspace, tmp_path, db)
+    assert report["delivery_decision"] == "blocked"
+    assert report["gate_outcomes"]["workflow_steps"] == "fail"
+
+
+def test_latest_failure_is_not_masked_by_previous_pass(tmp_path):
+    from engine.workflow_store import WorkflowStore
+    import hashlib
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+    (workspace / "paper.txt").write_bytes(b"paper")
+    manifest = {"artifacts": [{"path": "paper.txt", "sha256": hashlib.sha256(b"paper").hexdigest()}]}
+    db = tmp_path / "workflow.sqlite"
+    with WorkflowStore(db) as store:
+        wf = store.create_workflow("demo", {"workspace": str(workspace)})
+        step = store.add_steps(wf.id, [{"name": "solve"}])[0]
+        store.transition_step(step.id, "running")
+        store.create_checkpoint(wf.id, step.id, {}, event={"type": "step_completed", "manifest": manifest,
+            "quality_gates": {"checks": {"math": {"ok": True}}}})
+        store.transition_step_with_checkpoint(wf.id, step.id, "failed", {"status": "failed"},
+            event={"type": "step_failed", "quality_gates": {"checks": {"math": {"ok": False}}}})
+    report = build_final_audit_report(workspace, tmp_path, db)
+    assert report["delivery_decision"] == "blocked"
+    assert report["gate_outcomes"]["math"] == "fail"
+
+
+def test_final_report_revalidates_actual_content(tmp_path):
+    import hashlib
+    from engine.quality_gates import QualityGate
+    path = tmp_path / "paper.txt"
+    path.write_bytes(b"original")
+    report = {"workflow_id": "wf", "artifacts": [{"path": "paper.txt",
+        "sha256": hashlib.sha256(b"original").hexdigest()}], "gate_outcomes": {"math": "pass"},
+        "waivers": [], "delivery_decision": "ready"}
+    (tmp_path / "AUDIT_REPORT.json").write_text(json.dumps(report), encoding="utf-8")
+    assert QualityGate(tmp_path).check_final_audit_report()["ok"]
+    path.write_bytes(b"modified")
+    assert not QualityGate(tmp_path).check_final_audit_report()["ok"]
+
+
+def test_delivery_keeps_pdf_and_package_when_last_step_only_writes_review(tmp_path):
+    import hashlib
+    from engine.workflow_store import WorkflowStore
+    ws = tmp_path / "ws"
+    (ws / "paper").mkdir(parents=True)
+    files = {"paper/main.pdf": b"accepted pdf", "submission.zip": b"accepted package", "FINAL_REVIEW.md": b"review"}
+    db = tmp_path / "workflow.sqlite"
+    with WorkflowStore(db) as store:
+        wf = store.create_workflow("demo", {"workspace": str(ws)})
+        steps = store.add_steps(wf.id, [{"name": name} for name in ("compile", "package", "review")])
+        for step, (rel, content) in zip(steps, files.items()):
+            (ws / rel).write_bytes(content)
+            store.transition_step(step.id, "running")
+            manifest = {"artifacts": [{"path": rel, "sha256": hashlib.sha256(content).hexdigest()}]}
+            store.transition_step_with_checkpoint(wf.id, step.id, "completed", {"manifest": manifest},
+                event={"type": "step_completed", "manifest": manifest, "quality_gates": {"checks": {"fixture": {"ok": True}}}})
+        store.complete_workflow(wf.id)
+    report = build_final_audit_report(ws, tmp_path, db)
+    assert report["delivery_decision"] == "ready", report
+    assert {a["path"] for a in report["artifacts"]} == set(files)
+    pdf = ws / "paper/main.pdf"
+    pdf.write_bytes(b"changed pdf")
+    assert build_final_audit_report(ws, tmp_path, db)["delivery_decision"] == "blocked"
+    pdf.write_bytes(files["paper/main.pdf"])
+    package = ws / "submission.zip"
+    package.rename(ws / "missing-package.fixture")
+    assert build_final_audit_report(ws, tmp_path, db)["delivery_decision"] == "blocked"
+
+
+def test_orphan_evidence_cannot_manufacture_delivery_or_declared_operations(tmp_path):
+    import hashlib
+    from engine.workflow_store import WorkflowStore
+    from engine.audit_store import _evidence_files
+    ws = tmp_path / "ws"
+    (ws / ".engine/evidence").mkdir(parents=True)
+    (ws / "paper.pdf").write_bytes(b"unaccepted")
+    db = ws / ".engine/workflow.sqlite"
+    with WorkflowStore(db) as store:
+        wf = store.create_workflow("demo", {"workspace": str(ws)})
+        step = store.add_steps(wf.id, [{"name": "solve"}])[0]
+        store.transition_step(step.id, "running")
+        store.transition_step_with_checkpoint(wf.id, step.id, "completed", {},
+            event={"type": "step_completed", "quality_gates": {"checks": {"fixture": {"ok": True}}}})
+        store.complete_workflow(wf.id)
+    (ws / ".engine/evidence/orphan.json").write_text(json.dumps({
+        "evidence": {"commands": [{"command": "python uncommitted.py"}]},
+        "manifest": {"artifacts": [{"path": "paper.pdf", "sha256": hashlib.sha256(b"unaccepted").hexdigest()}]}}), encoding="utf-8")
+    assert _evidence_files(ws) == []
+    assert detect_unreported_operations(ws, tmp_path)["declared_command_count"] == 0
+    report = build_final_audit_report(ws, tmp_path, db)
+    assert report["delivery_decision"] == "blocked" and report["artifacts"] == []
+
+
+@pytest.mark.parametrize("direction", ["parent-child", "child-parent", "parent-subdir", "legacy"])
+def test_hierarchical_accepted_outputs_keep_siblings_and_closed_membership(tmp_path, direction):
+    from engine.workflow_runner import _manifest_payload
+    from engine.artifact_manifest import ArtifactManifest
+    from engine.workflow_store import WorkflowStore
+    from engine.quality_gates import QualityGate
+    ws = tmp_path / "ws"
+    figures = ws / "figures"
+    (figures / "sub").mkdir(parents=True)
+    child = figures / "sub/plot.txt"
+    sibling = figures / "sibling.txt"
+    child.write_bytes(b"old")
+    sibling.write_bytes(b"untouched")
+    db = tmp_path / "workflow.sqlite"
+    with WorkflowStore(db) as store:
+        wf = store.create_workflow("hierarchy", {"workspace": str(ws)})
+        steps = store.add_steps(wf.id, [{"name": "first"}, {"name": "second"}])
+        def accept(step, outputs, legacy=False):
+            manifest = _manifest_payload(ArtifactManifest.validate(ws, outputs))
+            if legacy:
+                for a in manifest["artifacts"]:
+                    a.pop("members", None)
+            store.transition_step(step.id, "running")
+            store.transition_step_with_checkpoint(wf.id, step.id, "completed", {"manifest": manifest},
+                event={"type": "step_completed", "manifest": manifest,
+                       "quality_gates": {"checks": {"fixture": {"ok": True}}}})
+        accept(steps[0], ["figures/sub/plot.txt"] if direction == "child-parent" else ["figures/"],
+               legacy=direction == "legacy")
+        child.write_bytes(b"new")
+        if direction == "child-parent":
+            sibling.write_bytes(b"fully revalidated")
+        accept(steps[1], ["figures/"] if direction == "child-parent" else
+               ["figures/sub/"] if direction == "parent-subdir" else ["figures/sub/plot.txt"])
+        store.complete_workflow(wf.id)
+        # Deliberately force equal event timestamps: insertion order is authoritative.
+        store._connection.execute("UPDATE events SET created_at = '2026-09-26T00:00:00+00:00'")
+        store._connection.commit()
+    report = build_final_audit_report(ws, tmp_path, db)
+    if direction == "legacy":
+        assert report["delivery_decision"] == "blocked"
+        assert report["gate_outcomes"]["artifact_integrity"] == "fail"
+        return
+    assert report["delivery_decision"] == "ready", report
+    assert {a["path"] for a in report["artifacts"]} == {"figures/sub/plot.txt", "figures/sibling.txt"}
+    (ws / "DELIVERY_REPORT.json").write_text(json.dumps(report), encoding="utf-8")
+    assert QualityGate(ws).check_final_audit_report()["ok"]
+    accepted_sibling = sibling.read_bytes()
+    sibling.write_bytes(b"unaccepted change")
+    assert build_final_audit_report(ws, tmp_path, db)["delivery_decision"] == "blocked"
+    sibling.write_bytes(accepted_sibling)
+    sibling.rename(ws / "removed.fixture")
+    assert build_final_audit_report(ws, tmp_path, db)["delivery_decision"] == "blocked"
+    (ws / "removed.fixture").rename(sibling)
+    (figures / "rogue.txt").write_bytes(b"not accepted")
+    assert build_final_audit_report(ws, tmp_path, db)["delivery_decision"] == "blocked"
+    assert not QualityGate(ws).check_final_audit_report()["ok"]
+
+
+def test_accepted_new_child_extends_directory_without_accepting_other_files(tmp_path):
+    from engine.audit_store import _accepted_coverage
+    from engine.artifact_manifest import ArtifactManifest
+    from engine.workflow_runner import _manifest_payload
+    directory = tmp_path / "figures"
+    directory.mkdir()
+    (directory / "old.txt").write_bytes(b"old")
+    old = _manifest_payload(ArtifactManifest.validate(tmp_path, ["figures/"]))["artifacts"]
+    (directory / "new.txt").write_bytes(b"new")
+    new = _manifest_payload(ArtifactManifest.validate(tmp_path, ["./figures/new.txt"]))["artifacts"]
+    leaves, coverage, errors = _accepted_coverage(tmp_path, [old, new])
+    assert not errors
+    assert ArtifactManifest.validate_coverage(tmp_path, list(leaves.values()), coverage)["ok"]
+    (directory / "unknown.txt").write_bytes(b"unknown")
+    assert not ArtifactManifest.validate_coverage(tmp_path, list(leaves.values()), coverage)["ok"]
 
 
 def test_official_logger_paths_and_events(tmp_path):

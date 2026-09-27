@@ -3,7 +3,7 @@
 17 个零覆盖工具分档（任务包 2026-09-22 B3-9）：
   - 本文件：bridge_common / audit_core / docx_export 三个公共件的 tmp_path 最小 happy path；
   - test_tool_smoke.py：docx 链与修复器等 10 件并入 --help 契约名单（批次三扩容 11 → 33）；
-  - 豁免：run_cumcm_e2e / fix_bare_latex_in_md / assets_codesucker_adapter
+  - 豁免：fix_bare_latex_in_md / assets_codesucker_adapter
     （裸跑型或契约破损，理由见 test_tool_smoke.py 名单注释）；
   - 缺陷钉住：docx_template_fill（见文件尾 skip 说明与 batch3-report.md 顺带发现 #4）。
 """
@@ -87,7 +87,7 @@ def test_audit_core_runs_self_contained_audit():
 
 def test_docx_export_converts_minimal_markdown(tmp_path):
     source = tmp_path / "paper.md"
-    source.write_text("# 测试论文\n\n## 一、引言\n\n这是用于冒烟测试的正文段落。\n", encoding="utf-8")
+    source.write_text("# 测试论文\n\n## 引言\n\n这是用于冒烟测试的正文段落。\n", encoding="utf-8", newline="\n")
     output = tmp_path / "paper.docx"
 
     proc = subprocess.run(

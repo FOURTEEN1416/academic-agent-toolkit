@@ -1,4 +1,4 @@
-"""补充核心模块测试：template_resolver / opencode_bridge / artifact_manifest 独立覆盖。"""
+"""补充核心模块测试：template_resolver / agent_bridge / artifact_manifest 独立覆盖。"""
 import sys
 from pathlib import Path
 
@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from engine.artifact_manifest import ArtifactManifest
-from engine.opencode_bridge import StepAction, StepResult
+from engine.agent_bridge import StepAction, StepResult
 from engine.template_resolver import resolve_template
 
 
@@ -57,7 +57,7 @@ def test_resolve_docx_output_appends_export_step():
     assert any(s["skill_name"] == "docx-export" for s in steps)
 
 
-# ============ opencode_bridge ============
+# ============ agent_bridge ============
 
 def _action(tmp_path):
     return StepAction(

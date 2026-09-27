@@ -16,7 +16,6 @@ from engine.agent_protocol import (  # noqa: E402
     bootstrap,
     default_agent_label,
 )
-from engine import opencode_bridge  # noqa: E402
 from engine.capability_probe import probe  # noqa: E402
 from engine.tool_forge import (  # noqa: E402
     forge_adapter,
@@ -27,9 +26,10 @@ from engine.tool_forge import (  # noqa: E402
 )
 
 
-def test_opencode_bridge_is_compat_shim():
-    assert opencode_bridge.StepAction is StepAction
-    assert opencode_bridge.StepResult is StepResult
+def test_agent_bridge_has_single_canonical_model():
+    assert StepAction.__module__ == "engine.agent_bridge"
+    assert StepResult.__module__ == "engine.agent_bridge"
+    assert not (ROOT / "engine" / ("opencode" + "_bridge.py")).exists()
 
 
 def test_bootstrap_contract_is_host_agnostic():
@@ -46,6 +46,12 @@ def test_bootstrap_contract_is_host_agnostic():
     assert "无证据" in joined
     # 不得把某宿主写成唯一驱动前提
     assert "必须 OpenCode" not in json.dumps(contract, ensure_ascii=False)
+    completion = contract["completion_contract"]
+    assert completion["target"] == ["step_id", "attempt_id", "expected_revision"]
+    assert "pending" in completion["delivery_recovery"]
+    assert "--wf" in completion["delivery_recovery"]
+    assert "evidence.execution_manifest" in completion["execution_manifest"]
+    assert "--workflow-db WORKSPACE=DB" in completion["resource_statistics"]
 
 
 def test_default_agent_label_prefers_hint(monkeypatch):

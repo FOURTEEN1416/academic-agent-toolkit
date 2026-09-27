@@ -10,19 +10,23 @@ Agent（当前驱动本项目的 Agent）按 StepAction 执行，然后调用 co
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+import hashlib
+import re
+import sqlite3
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from .agent_bridge import StepAction, StepResult
-from .artifact_manifest import ArtifactManifest
+from .artifact_manifest import ArtifactManifest, FingerprintSession
 from .execution_protocol import validate_execution_evidence, write_execution_evidence
 from .quality_gates import QualityGate, _agent_self_reference_hit
 from .run_logger import RunLogger
 from .template_resolver import resolve_template
 from .workflow_store import StepStatus, Workflow, WorkflowStore
-from .step_manifest import write_manifest as write_step_manifest
+from .step_manifest import atomic_write_json, build_manifest, get_step_manifest
 
 
 def _norm_skill_token(name: str) -> str:
@@ -40,6 +44,8 @@ class RunResult:
     action: StepAction | None = None
     # A5 ⑦ 修复：checkpoint UUID 直接随结果输出（此前只能从 report JSON/SQLite 捞）
     checkpoint_id: str | None = None
+    diagnostics: dict[str, Any] = field(default_factory=dict)
+    replayed: bool = False
 
 
 class WorkflowRunner:
@@ -48,6 +54,7 @@ class WorkflowRunner:
         self.store = store
         self.catalog = catalog
         self.skills_root = Path(skills_root)
+        self.audit_root = Path(audit_root) if audit_root is not None else self.skills_root.parent.parent
         self.logger = logger
         # 操作审计（共享根 .engine/audit，与 plugin 同库）——引擎侧主动记录，
         # 与 plugin 拦截式记录互补：plugin 记"实际调用"，引擎记"编排决策"。
@@ -70,16 +77,31 @@ class WorkflowRunner:
                 pass
 
     def start(self, template: str, workspace: Path, params: dict[str, Any]) -> Workflow:
-        """创建持久化工作流；调用 next_action() 获取第一个 StepAction。"""
+        """创建持久化工作流；调用 next_action() 获取第一个 StepAction。
+
+        B-02：启动即把有效赛事档案冻结进 metadata（contest_profile_snapshot），
+        此后全部消费者读同一份快照；显式声明错误（身份冲突/未知ID/届次无匹配）
+        在此直接失败，不创建带错误身份的工作流。
+        """
         self.start_params = params
         steps = resolve_template(template, params, self.catalog)
         workspace = Path(workspace).resolve()
         workspace.mkdir(parents=True, exist_ok=True)
-        workflow = self.store.create_workflow(template, {
+        metadata: dict[str, Any] = {
             "workspace": str(workspace),
             "params": params,
             "template": template,
-        })
+        }
+        from .contest_profile import resolve_profile
+        profile = resolve_profile(template, params)  # 显式错误直接抛，不静默
+        if profile is not None:
+            metadata["contest_profile_snapshot"] = profile.to_snapshot()
+        workflow = self.store.create_workflow(template, metadata)
+        if profile is not None:
+            # C→B 接口（B-CLOSE-01，2026-09-27）：bound 快照的机械字段由程序注入
+            # 执行环境（.engine/contest_env），LLM 不转录；pending_binding 与非赛事
+            # 工作流不注入（无 bound 快照即无口径可注）。
+            self._write_contest_env(workspace, profile)
         # 默认在工作区 .engine/logs 下建立运行日志（审计闭环）
         if self.logger is None:
             self.logger = RunLogger(workspace / ".engine" / "logs")
@@ -104,7 +126,7 @@ class WorkflowRunner:
         """返回下一个要执行的 StepAction，或告知工作流已完成/失败。"""
         running = self._last_running_step(workflow_id)
         if running is not None:
-            workflow = self._workflow(workflow_id)
+            workflow = self.store.get_workflow(workflow_id)
             return RunResult(
                 workflow_id, "advanced", running.id,
                 message=f"步骤 {running.name} 正在执行，重发当前动作",
@@ -133,306 +155,342 @@ class WorkflowRunner:
             failed = self._has_failed_steps(workflow_id)
             if failed:
                 return RunResult(workflow_id, "failed", message=f"步骤 {failed} 已失败")
-            return RunResult(workflow_id, "completed", message="所有步骤已完成")
+            delivery = self._refresh_delivery(workflow_id)
+            return RunResult(workflow_id, "completed", message="所有步骤已完成",
+                             diagnostics={"delivery": delivery} if delivery else {})
 
-        workflow = self._workflow(workflow_id)
-        workspace = Path(workflow.metadata["workspace"])
-        skill_path = self.skills_root / step.name / "SKILL.md"
-
-        self.store.transition_step(step.id, StepStatus.RUNNING)
+        workflow = self.store.get_workflow(workflow_id)
+        step = self.store.transition_step(step.id, StepStatus.RUNNING)
         self._log(workflow_id, step.id, step.name, "started",
                   f"开始执行 {step.name}", agent=self._agent_label(workflow))
+        return RunResult(workflow_id, "advanced", step.id,
+                         action=self._action_for_step(workflow, step))
 
-        action = StepAction(
-            workflow_id=workflow_id,
-            step_id=step.id,
-            position=step.position,
-            skill_name=step.name,
-            display_name=step.metadata.get("display_name", step.name),
-            workspace=workspace,
-            skill_path=skill_path,
-            output_files=step.metadata.get("output_files", []),
-            primary_output=step.metadata.get("primary_output", ""),
-            has_checkpoint=step.metadata.get("has_checkpoint", False),
-            checkpoint_type=step.metadata.get("checkpoint_type"),
-            companion_skills=step.metadata.get("companion_skills", []),
-            assets=step.metadata.get("assets", []),
-            quick_gates=bool(step.metadata.get("quick_gates", False)),
-            quick_gates_max_pages=step.metadata.get("quick_gates_max_pages"),
-            skill_binding=dict(step.metadata.get("skill_binding") or {}),
-            params=workflow.metadata.get("params", {}),
-        )
-        return RunResult(workflow_id, "advanced", step.id, action=action)
+    def _result_target(self, workflow_id: str, result: StepResult):
+        raw = result.metadata.get("execution_evidence", {})
+        raw = raw if isinstance(raw, dict) else {}
+        target = result.step_id or raw.get("step_id")
+        if not target:
+            raise ValueError("execution evidence/step_id required; refusing to guess the active step")
+        step = self.store.get_step(str(target))
+        if step.workflow_id != workflow_id or step.status != StepStatus.RUNNING:
+            raise ValueError("stale completion: target is not a RUNNING step in this workflow")
+        attempt = result.attempt_id or raw.get("attempt_id")
+        revision = result.expected_revision if result.expected_revision is not None else raw.get("expected_revision")
+        if attempt and attempt != step.attempt_id:
+            raise ValueError("stale completion attempt_id")
+        if revision is not None and revision != step.revision:
+            raise ValueError("stale completion expected_revision")
+        # Legacy v1 reports remain usable on a first attempt, but cannot identify a retry.
+        if step.revision > 1 and (not attempt or revision is None):
+            raise ValueError("retry completion requires attempt_id and expected_revision from next/retry")
+        if raw.get("step_id") and raw["step_id"] != step.id:
+            raise ValueError("conflicting step_id in execution evidence")
+        if raw.get("attempt_id") and raw["attempt_id"] != step.attempt_id:
+            raise ValueError("conflicting attempt_id in execution evidence")
+        if raw.get("expected_revision") is not None and raw["expected_revision"] != step.revision:
+            raise ValueError("conflicting expected_revision in execution evidence")
+        return step
 
-    def complete_step(self, workflow_id: str, result: StepResult) -> RunResult:
-        """agent 执行完一个步骤后调用此方法回报结果。"""
-        workflow = self._workflow(workflow_id)
-        # 从 RUNNING 状态中找最新的步骤
-        step = self._last_running_step(workflow_id)
-        if step is None:
-            return RunResult(workflow_id, "failed", message="没有正在执行的步骤")
-
-        if not result.ok:
-            self.store.transition_step_with_checkpoint(
-                workflow_id, step.id, StepStatus.FAILED,
-                {"status": "failed", "error": result.stderr},
-                artifacts=[{"name": a, "path": a} for a in result.artifacts],
-                event={"type": "step_failed", "stderr": result.stderr},
-            )
-            self._log(workflow_id, step.id, step.name, "failed",
-                      f"步骤 {step.name} 失败: {result.stderr[:200]}", agent=self._agent_label(workflow))
-            return RunResult(workflow_id, "failed", step.id, result.stderr)
-
-        # 检查执行证据：技能必须有产出文件作为执行证据
-        declared_outputs = step.metadata.get("output_files", [])
-        has_evidence = bool(result.artifacts) or bool(declared_outputs and any(
-            (Path(workflow.metadata["workspace"]) / o).exists()
-            for o in declared_outputs
-        ))
-        if not has_evidence:
-            self.store.transition_step_with_checkpoint(
-                workflow_id, step.id, StepStatus.FAILED,
-                {"status": "failed", "error": "no execution evidence"},
-                event={"type": "step_failed", "stderr": "no execution evidence: agent claimed success but produced no artifacts"},
-            )
-            return RunResult(workflow_id, "failed", step.id,
-                             "no execution evidence: agent claimed success but produced no artifacts")
-
+    def validate_step(self, workflow_id: str, result: StepResult) -> dict[str, Any]:
+        """Write-free preflight. Report every independent failure, without advancing state."""
+        workflow = self.store.get_workflow(workflow_id)
         try:
-            evidence = validate_execution_evidence(workflow.metadata["workspace"], self._action_for_step(workflow, step), result)
-        except ValueError as exc:
-            message = f"invalid execution evidence: {exc}"
-            self.store.transition_step_with_checkpoint(
-                workflow_id, step.id, StepStatus.FAILED,
-                {"status": "failed", "error": message},
-                artifacts=[{"name": a, "path": a} for a in result.artifacts],
-                event={"type": "step_failed", "stderr": message},
-            )
-            return RunResult(workflow_id, "failed", step.id, message)
+            step = self._result_target(workflow_id, result)
+        except (ValueError, KeyError) as exc:
+            return {"ok": False, "checks": {"target": {"ok": False, "reason": str(exc)}}}
+        return self._validate_step(workflow, step, result, FingerprintSession(Path(workflow.metadata["workspace"])))[0]
 
-        # ⛔ M5: 审核独立视角强制（防伪造审核——LESSONS 教训 1）
-        # 模板步骤标记 requires_subagent=true（审核类：comp-review/comp-visual-review/comp-final-review 等）
-        # 时，执行证据必须包含真实只读子智能体会话 ID（subagent_session）。
-        # 主 Agent 不得直接提交手写审核产物冒充独立审查。
-        # ⛔ P1: 审核步骤的 commands 必须含真实工具调用（tools/ 下脚本），
-        # 防 "echo done" 伪命令冒充实际执行。
-        if step.metadata.get("requires_subagent"):
-            subagent_session = str(result.metadata.get("execution_evidence", {}).get("subagent_session", "")).strip()
-            if not subagent_session:
-                message = ("invalid execution evidence: 该步骤要求由只读子智能体执行（requires_subagent），"
-                           "执行证据缺少 subagent_session（真实子智能体会话 ID）。主 Agent 不得直接提交审核产物。")
-                self.store.transition_step_with_checkpoint(
-                    workflow_id, step.id, StepStatus.FAILED,
-                    {"status": "failed", "error": message},
-                    artifacts=[{"name": a, "path": a} for a in result.artifacts],
-                    event={"type": "step_failed", "stderr": message},
-                )
-                return RunResult(workflow_id, "failed", step.id, message)
-            # P1: commands 必须含真实工具调用（tools/ 或 skills/_utils 下脚本）
-            commands = result.metadata.get("execution_evidence", {}).get("commands", [])
-            has_tool_call = any(
-                isinstance(c, dict) and ("tools/" in str(c.get("command", "")) or "_utils/" in str(c.get("command", "")))
-                for c in commands
-            )
-            if not has_tool_call:
-                message = ("invalid execution evidence: 审核步骤（requires_subagent）的 commands 必须包含"
-                           "真实工具调用（tools/ 或 skills/_utils 下脚本），禁止用 echo 等伪命令冒充实际执行。")
-                self.store.transition_step_with_checkpoint(
-                    workflow_id, step.id, StepStatus.FAILED,
-                    {"status": "failed", "error": message},
-                    artifacts=[{"name": a, "path": a} for a in result.artifacts],
-                    event={"type": "step_failed", "stderr": message},
-                )
-                return RunResult(workflow_id, "failed", step.id, message)
+    @staticmethod
+    def _final_candidate(action, evidence):
+        return {"action": {"workflow_id": action.workflow_id, "step_id": action.step_id,
+                           "skill_name": action.skill_name, "attempt_id": action.attempt_id,
+                           "expected_revision": action.expected_revision,
+                           "skill_binding": action.skill_binding}, "evidence": evidence}
 
-        # ⛔ C1 / P4 / C2 三道申报-痕迹门禁（2026-09-11 C1、2026-09-19 P4、
-        # 2026-09-12 C2 的校验逻辑，语义与文案不变）。P4 资产激活批次 B
-        #（2026-09-22）把三道闸从 complete_step 内联体抽成 _*_gate_message
-        # 复用件：backfill_step 补录路径调用同一组校验，堵死"产物存在即完成"
-        # 的旁路（此前补录零校验，绑定链可被静默绕开）。
-        exec_ev = result.metadata.get("execution_evidence", {})
-        message = self._companion_gate_message(step, evidence, exec_ev)
-        if message:
-            return self._gate_reject(workflow_id, step, result, message)
-
-        binding = step.metadata.get("skill_binding") or {}
-        message = self._binding_gate_message(workflow, step, evidence, exec_ev)
-        if message:
-            return self._gate_reject(workflow_id, step, result, message)
-        if isinstance(binding, dict) and binding:
-            main_skill = str(binding.get("main") or step.name).strip()
-            mandatory = [str(s).strip() for s in (binding.get("mandatory") or []) if str(s).strip()]
-            self._audit_record(type="engine_event", event="skill_binding_ok", workflow_id=workflow_id,
-                               step_id=step.id, skill_name=step.name,
-                               main=main_skill if binding.get("main_required", True) else None,
-                               mandatory=mandatory)
-
-        message = self._asset_gate_message(step, evidence, exec_ev)
-        if message:
-            return self._gate_reject(workflow_id, step, result, message)
-
-        workspace = Path(workflow.metadata["workspace"])
-        declared_outputs = list(step.metadata.get("output_files", []))
-        claimed = set(result.artifacts)
-        undeclared = sorted(claimed - set(declared_outputs))
-        manifest = ArtifactManifest.validate(workspace, declared_outputs)
-        if undeclared or not manifest["ok"]:
-            details = []
-            if undeclared:
-                details.append(f"undeclared artifacts: {', '.join(undeclared)}")
-            if manifest["missing"]:
-                details.append(f"missing declared outputs: {', '.join(manifest['missing'])}")
-            if manifest["invalid"]:
-                details.append(f"invalid declared outputs: {', '.join(manifest['invalid'])}")
-            message = "declared outputs validation failed: " + "; ".join(details)
-            self.store.transition_step_with_checkpoint(
-                workflow_id, step.id, StepStatus.FAILED,
-                {"status": "failed", "error": message, "manifest": _manifest_payload(manifest)},
-                event={"type": "step_failed", "stderr": message},
-            )
-            return RunResult(workflow_id, "failed", step.id, message)
-
-        # ⛔ D7: 中间产物最低内容规格（2026-09-13 原仓库缺陷修复建议 D7 落地）
-        # 背景：Step 2/4 曾产出 5.7KB/2.9KB "目录级" LITERATURE.md/RESULTS.md——
-        # 产物存在（manifest 过闸）但信息密度近零，"走完了"的形式合规掩盖
-        # "走透了"的实质缺位。步骤 metadata.output_specs =
-        # {文件名: {min_bytes, require_any, rationale}} 时逐项校验：
-        #   - min_bytes：产物字节数下限（拦纯目录清单）；
-        #   - require_any：实质内容特征词（任一命中即过，UTF-8 忽略错误解码）；
-        #   - rationale：失败信息引用，教学为何被拦。
-        # 未声明 output_specs 的步骤零影响（向后兼容）；规格是下限不是完备审查。
-        specs = {k: v for k, v in (step.metadata.get("output_specs") or {}).items()
-                 if isinstance(v, dict)}
-        if specs:
-            spec_failures = []
-            for spec_name, spec in specs.items():
-                rel = next((o for o in declared_outputs
-                            if Path(o).name == spec_name or o == spec_name), None)
-                if rel is None:
-                    continue  # 该文件不在本步声明产物清单中，规格不激活
-                spec_path = workspace / rel
-                if not spec_path.exists():
-                    spec_failures.append(f"{spec_name}: 文件不存在")
-                    continue
-                size = spec_path.stat().st_size
-                min_bytes = int(spec.get("min_bytes", 0))
-                if min_bytes and size < min_bytes:
-                    spec_failures.append(
-                        f"{spec_name}: {size}B < 最低规格 {min_bytes}B"
-                        f"（{spec.get('rationale', '产物规格下限')}）")
-                    continue
-                require_any = [str(kw) for kw in (spec.get("require_any") or []) if str(kw).strip()]
-                if require_any:
-                    try:
-                        text = spec_path.read_text(encoding="utf-8", errors="ignore").lower()
-                    except OSError:
-                        text = ""
-                    if not any(kw.lower() in text for kw in require_any):
-                        spec_failures.append(
-                            f"{spec_name}: 未含任何实质内容特征词 {require_any}"
-                            f"（{spec.get('rationale', '产物规格下限')}）")
-            if spec_failures:
-                message = ("declared outputs content spec failed (D7 产物规格下限): "
-                           + "; ".join(spec_failures)
-                           + "。请补足实质内容（台账/证据/数值快照）后重报，而非仅罗列目录。")
-                self.store.transition_step_with_checkpoint(
-                    workflow_id, step.id, StepStatus.FAILED,
-                    {"status": "failed", "error": message},
-                    artifacts=[{"name": a, "path": a} for a in result.artifacts],
-                    event={"type": "step_failed", "stderr": message},
-                )
-                return RunResult(workflow_id, "failed", step.id, message)
-
+    def final_audit_candidate(self, workflow_id: str, evidence: dict[str, Any]):
+        """Validate a candidate declaration without accepting or executing it."""
+        workflow = self.store.get_workflow(workflow_id)
+        outputs = evidence.get("outputs")
+        if not isinstance(outputs, list) or not all(isinstance(p, str) for p in outputs):
+            raise ValueError("candidate outputs must be a list of paths")
+        result = StepResult(ok=True, artifacts=list(outputs),
+                            metadata={"execution_evidence": evidence})
+        step = self._result_target(workflow_id, result)
+        if step.name != "comp-final-audit":
+            raise ValueError("candidate evidence requires the current final-audit step")
         action = self._action_for_step(workflow, step)
-        evidence_path = write_execution_evidence(workspace, action, evidence, _manifest_payload(manifest))
-        self._audit_record(type="engine_event", event="step_completed", workflow_id=workflow_id,
-                           step_id=step.id, skill_name=step.name, evidence_path=evidence_path,
-                           agent=self._agent_label(workflow),
-                           declared_commands=[c.get("command", "") for c in evidence.get("commands", [])])
+        normalized = validate_execution_evidence(Path(workflow.metadata["workspace"]), action, result, store=self.store)
+        return self._final_candidate(action, normalized)
 
-        # S1 FIX: STEP_MANIFEST 无条件强制执行
-        # 所有声明了 output_files 的步骤必须产出 STEP_MANIFEST.json
-        # 这不再是可选的 required_checks，而是步骤完成的硬闸
-        declared_outputs = step.metadata.get("output_files", [])
-        if declared_outputs:
-            # 检查是否已有 step_manifest 检查，若无则强制添加
-            required_checks = list(step.metadata.get("required_checks") or [])
-            if "step_manifest" not in required_checks:
-                required_checks.append("step_manifest")
+    def _validate_step(self, workflow, step, result, session):
+        workspace = Path(workflow.metadata["workspace"])
+        action = self._action_for_step(workflow, step)
+        checks: dict[str, Any] = {}
+        evidence: dict[str, Any] = {}
+        try:
+            evidence = validate_execution_evidence(workspace, action, result, store=self.store, fingerprint_session=session)
+            checks["protocol"] = {"ok": True}
+        except (ValueError, OSError, TypeError) as exc:
+            checks["protocol"] = {"ok": False, "reason": f"invalid execution evidence: {exc}"}
+        raw = result.metadata.get("execution_evidence", {})
+        raw = raw if isinstance(raw, dict) else {}
+        for name, validator in (
+            ("companion", lambda: self._companion_gate_message(step, evidence, raw)),
+            ("binding", lambda: self._binding_gate_message(workflow, step, evidence, raw)),
+            ("assets_usage", lambda: self._asset_gate_message(step, evidence, raw)),
+        ):
+            try:
+                message = validator()
+                checks[name] = {"ok": not message, "reason": message or ""}
+            except (TypeError, ValueError, AttributeError) as exc:
+                checks[name] = {"ok": False, "reason": f"invalid {name} declaration: {exc}"}
+        # 空输出合同表示由执行者按需求申报；固定合同仍禁止越界新增产物。
+        declared = list(action.output_files or result.artifacts)
+        extra = raw.get("additional_skills", [])
+        errors = []
+        if not isinstance(extra, list):
+            errors.append("additional_skills must be a list")
         else:
-            required_checks = list(step.metadata.get("required_checks") or [])
-
-        self._write_step_manifest(workflow, step, evidence, declared_outputs)
-
-        gate_result = QualityGate(workspace).run_all(
-            step.name,
-            declared_outputs=declared_outputs,
-            comp_name=workflow.name if step.name in {"comp-compile-zh", "comp-compile-en"} else "",
-            requires_figures=step.name.startswith("paper-figure"),
-            required_checks=required_checks,
-            primary_output=step.metadata.get("primary_output"),
-        )
-        if not gate_result["ok"]:
-            message = "quality gates failed"
-            self.store.transition_step_with_checkpoint(
-                workflow_id, step.id, StepStatus.FAILED,
-                {"status": "failed", "error": message, "quality_gates": gate_result},
-                event={"type": "step_failed", "stderr": message, "quality_gates": gate_result},
+            for use in extra:
+                if not isinstance(use, dict) or not isinstance(use.get("skill"), str):
+                    errors.append("additional skill requires skill/reason/contribution/output")
+                    continue
+                name = use["skill"]
+                path = (self.skills_root / name / "SKILL.md").resolve()
+                if (not path.is_relative_to(self.skills_root.resolve()) or not path.is_file()
+                        or not str(use.get("reason", "")).strip()
+                        or not str(use.get("contribution", "")).strip()
+                        or use.get("output") not in declared):
+                    errors.append(f"invalid additional skill contribution: {name}")
+        checks["additional_skills"] = {"ok": not errors, "reason": "; ".join(errors)}
+        if action.requires_subagent:
+            commands = evidence.get("commands", [])
+            has_tool = any("tools/" in c["command"] or "_utils/" in c["command"] for c in commands)
+            recorded_review = bool(evidence.get("review_receipts")) and bool(evidence.get("collection"))
+            ok = bool(str(raw.get("subagent_session", "")).strip()) and (
+                recorded_review if raw.get("collection") else has_tool)
+            checks["independent_review"] = {"ok": ok, "reason": "" if ok else
+                "requires_subagent: 需要真实 subagent_session 和 tools/ 或 skills/_utils 真实工具调用"}
+        manifest = ArtifactManifest.validate(workspace, declared, session=session)
+        undeclared = sorted(set(result.artifacts) - set(declared))
+        checks["declared_outputs"] = {
+            "ok": manifest["ok"] and not undeclared and bool(declared),
+            "reason": "declared outputs validation: " + json.dumps({
+                "missing": manifest["missing"], "invalid": manifest["invalid"], "undeclared": undeclared}, ensure_ascii=False),
+        }
+        for name, spec in action.output_specs.items():
+            if not isinstance(spec, dict):
+                continue
+            rel = next((o for o in declared if o == name or Path(o).name == name), None)
+            if rel is None:
+                continue
+            path = ArtifactManifest._path(workspace, rel)
+            errors = []
+            if path is None or not path.is_file():
+                errors.append("文件不存在或路径无效")
+            else:
+                if path.stat().st_size < int(spec.get("min_bytes", 0)):
+                    errors.append(f"低于最低规格 {spec['min_bytes']}B（{spec.get('rationale', '目录级薄产物不可验收')}）")
+                words = spec.get("require_any", [])
+                if words and not any(str(w).lower() in path.read_text(encoding="utf-8", errors="ignore").lower() for w in words):
+                    errors.append(f"未含任何实质内容特征词 {words}")
+            checks[f"output_spec:{name}"] = {"ok": not errors, "reason": "D7 产物规格下限: " + "; ".join(errors)}
+        if step.metadata.get("output_contract"):
+            from .output_contracts import check_output_contract
+            checks["business_outputs"] = check_output_contract(workspace, step.metadata["output_contract"],
+                primary_output=action.primary_output or "", params=workflow.metadata.get("params", {}))
+        manifest_data = None
+        try:
+            if manifest["ok"]:
+                manifest_data = self._prepare_step_manifest(workflow, step, evidence, declared, session)
+            if step.name == "comp-final-audit":
+                from .audit_store import build_final_audit_report
+                current_audit = build_final_audit_report(workspace, self.audit_root,
+                                                        workflow_db=Path(self.store.db_path),
+                                                        workflow_id=workflow.id, fingerprint_session=session,
+                                                        candidate=self._final_candidate(action, evidence)
+                                                        if checks["protocol"]["ok"] else None)
+                saved_audit = json.loads((workspace / "AUDIT_REPORT.json").read_text(encoding="utf-8"))
+                checks["final_audit_binding"] = {"ok": isinstance(saved_audit, dict)
+                    and saved_audit.get("workflow_id") == workflow.id
+                    and saved_audit.get("artifacts") == current_audit["artifacts"],
+                    "reason": "预审必须绑定当前 workflow 与当前验收产物集合"}
+                checks["final_audit_live_state"] = {
+                    "ok": current_audit["delivery_decision"] in {"eligible", "ready"},
+                    "reason": "当前工作流与全部前置门禁的实时验收", "gate_outcomes": current_audit["gate_outcomes"]}
+            # D3 门禁前移程序化 + B-02 端到端隔离：合规口径只来自 workflow metadata
+            # 里冻结的档案快照（单一事实）——早检与编译页检消费同一份，不再双源
+            # （早检解析 profile、编译传 workflow.name 的旧分裂已移除）。
+            # 无 bound 快照的既有任务显式待绑定：不冒用现盘规则，赛事口径不下发。
+            snapshot = workflow.metadata.get("contest_profile_snapshot")
+            bound = isinstance(snapshot, dict) and snapshot.get("status") == "bound"
+            contest_id = str(snapshot.get("contest_id")) if bound else ""
+            page_contract = dict(snapshot.get("operative") or {}) if bound else None
+            quick_gates_profile = str(step.metadata.get("compliance_profile") or "")
+            if quick_gates_profile and bound and quick_gates_profile != contest_id:
+                checks["contest_identity"] = {"ok": False, "reason":
+                    f"步骤显式合规口径 {quick_gates_profile!r} 与工作流绑定赛事身份 {contest_id!r} 冲突——"
+                    "身份冲突必须拒绝，不以步骤配置改写赛事"}
+            elif step.metadata.get("quick_gates") and not quick_gates_profile and bound \
+                    and snapshot.get("compliance"):
+                quick_gates_profile = contest_id
+            explicit_cap = step.metadata.get("quick_gates_max_pages")
+            if explicit_cap is None and bound:
+                explicit_cap = (snapshot.get("task_preferences") or {}).get("page_cap")
+            if explicit_cap is not None and page_contract is not None:
+                page_contract = {**page_contract, "cap": int(explicit_cap), "scope": "body",
+                                 "status": "explicit_task",
+                                 "reason": "任务/步骤显式口径（只影响当前任务）"}
+            gate = QualityGate(workspace).run_all(
+                step.name, declared_outputs=declared,
+                comp_name=contest_id if (step.metadata.get("revalidate_paper_pages")
+                    or step.name in {"comp-compile-zh", "comp-compile-en"}) else "",
+                page_contract=page_contract,
+                requires_figures=step.name.startswith("paper-figure"),
+                required_checks=action.required_checks, primary_output=action.primary_output,
+                fingerprint_session=session, manifest_data=manifest_data,
+                active_final_step_id=step.id if step.name == "comp-final-audit" else "",
+                quick_gates=bool(step.metadata.get("quick_gates")),
+                quick_gates_max_pages=step.metadata.get("quick_gates_max_pages"),
+                compliance_profile=quick_gates_profile,
+                compliance_block=dict(snapshot.get("compliance") or {}) if bound else None,
             )
-            self._log(workflow_id, step.id, step.name, "failed",
-                      f"步骤 {step.name} 质量门禁失败", agent=self._agent_label(workflow))
-            return RunResult(workflow_id, "failed", step.id, message)
+            checks.update({f"quality:{k}": v for k, v in gate["checks"].items()})
+            session.assert_unchanged()
+        except (ValueError, OSError, TypeError) as exc:
+            gate = {"ok": False, "checks": {"validation": {"ok": False, "reason": str(exc)}}}
+            checks["validation"] = gate["checks"]["validation"]
+        report = {"ok": all(c.get("ok") is True for c in checks.values()), "checks": checks,
+                  "step_id": step.id, "attempt_id": step.attempt_id, "expected_revision": step.revision}
+        return report, evidence, manifest, gate, manifest_data
 
-        # 检查是否需要检查点
-        has_checkpoint = step.metadata.get("has_checkpoint", False)
-        if has_checkpoint:
-            checkpoint_type = step.metadata.get("checkpoint_type", "approve")
-            _step_after, checkpoint = self.store.transition_step_with_checkpoint(
-                workflow_id, step.id, StepStatus.BLOCKED,
-                {"status": "waiting_checkpoint", "type": checkpoint_type},
-                artifacts=_manifest_artifacts(manifest),
-                event={"type": "step_completed", "evidence_path": evidence_path, "manifest": _manifest_payload(manifest), "quality_gates": gate_result},
+    def complete_recorded_step(self, workflow_id: str, step_id: str, attempt_id: str,
+                               revision: int, *, subagent_session: str = "") -> RunResult:
+        """执行者只交操作身份；证据构造、终审生成与唯一验收链均由引擎拥有。"""
+        from .execution_protocol import collect_execution_evidence
+        workflow = self.store.get_workflow(workflow_id)
+        target = StepResult(ok=True, step_id=step_id, attempt_id=attempt_id, expected_revision=revision)
+        step = self._result_target(workflow_id, target)
+        action = self._action_for_step(workflow, step)
+        evidence = collect_execution_evidence(self.store, workflow, action, subagent_session=subagent_session)
+        if step.name == "comp-final-audit":
+            from .audit_store import write_final_audit_report
+            candidate = self.final_audit_candidate(workflow_id, evidence)
+            write_final_audit_report(action.workspace, self.audit_root,
+                workflow_db=Path(self.store.db_path), workflow_id=workflow_id, candidate=candidate)
+        request_id = hashlib.sha256(json.dumps(evidence, sort_keys=True, ensure_ascii=True).encode()).hexdigest()
+        return self.complete_step(workflow_id, StepResult(ok=True, artifacts=evidence["outputs"],
+            step_id=step_id, attempt_id=attempt_id, expected_revision=revision,
+            request_id=request_id, metadata={"execution_evidence": evidence}),
+            keep_running_on_validation_error=True)
+
+    def complete_step(self, workflow_id: str, result: StepResult, *,
+                      keep_running_on_validation_error: bool = False) -> RunResult:
+        """Validate once and atomically commit a target-bound completion receipt."""
+        workflow = self.store.get_workflow(workflow_id)
+        raw = result.metadata.get("execution_evidence", {})
+        raw = raw if isinstance(raw, dict) else {}
+        payload_hash = hashlib.sha256(json.dumps({
+            "ok": result.ok, "stderr": result.stderr, "artifacts": result.artifacts,
+            "metadata": result.metadata, "step_id": result.step_id, "attempt_id": result.attempt_id,
+            "expected_revision": result.expected_revision,
+        }, sort_keys=True, ensure_ascii=True).encode()).hexdigest()
+        request_id = result.request_id or str(raw.get("request_id") or payload_hash)
+        try:
+            cached = self.store.completion_receipt(workflow_id, request_id, payload_hash)
+            if cached is not None:
+                delivery = self._refresh_delivery(workflow_id)
+                if delivery:
+                    cached["diagnostics"] = {**cached.get("diagnostics", {}), "delivery": delivery}
+                return RunResult(workflow_id, **cached, replayed=True)
+            step = self._result_target(workflow_id, result)
+        except (ValueError, KeyError) as exc:
+            return RunResult(workflow_id, "failed", message=str(exc), diagnostics={"target": str(exc)})
+        workspace = Path(workflow.metadata["workspace"])
+        session = FingerprintSession(workspace)
+        if result.ok:
+            report, evidence, manifest, gate, manifest_data = self._validate_step(workflow, step, result, session)
+        else:
+            report = {"ok": False, "checks": {"execution": {"ok": False, "reason": result.stderr}}}
+            evidence, manifest, gate, manifest_data = {}, {"artifacts": []}, {}, None
+        good = report["ok"]
+        if not good and keep_running_on_validation_error:
+            # 单入口自动核验：产物仍可返修，不制造FAILED -> retry -> 新attempt的填表循环。
+            return RunResult(workflow_id, "needs_work", step.id,
+                "尚未验收，当前步骤保持可编辑；一次修复所有diagnostics后再次finish",
+                diagnostics=report)
+        waiting = good and bool(step.metadata.get("has_checkpoint"))
+        other_incomplete = self.store._connection.execute(
+            "SELECT COUNT(*) FROM workflow_steps WHERE workflow_id = ? AND id != ? AND status != 'completed'",
+            (workflow_id, step.id),
+        ).fetchone()[0]
+        status = "failed" if not good else ("waiting_checkpoint" if waiting else ("advanced" if other_incomplete else "completed"))
+        message = (f"步骤 {step.name} 完成，等待用户确认" if waiting else f"步骤 {step.name} 完成") if good else "; ".join(
+            f"{name}: {check.get('reason', 'failed')}" for name, check in report["checks"].items() if check.get("ok") is not True)
+        response = {"status": status, "step_id": step.id, "message": message, "diagnostics": report}
+        state = {"status": status, "attempt_id": step.attempt_id, "validation": report, "quality_gates": gate}
+        event = {"type": "step_completed" if good else "step_failed", "quality_gates": gate,
+                 "attempt_id": step.attempt_id, "validation": report, "stderr": "" if good else message}
+        def prepare_evidence():
+            session.assert_unchanged()
+            collection = evidence.get("collection")
+            if collection:
+                current_ops = self.store.current_operations(step.id, step.attempt_id)
+                if (set(collection["operation_ids"]) != {op["id"] for op in current_ops}
+                        or any(op["status"] not in {"succeeded", "reused"} for op in current_ops)):
+                    raise ValueError("execution collection changed during completion")
+            submission = uuid4().hex
+            receipt_path = workspace / ".engine" / "manifests" / f"{step.id}_{step.attempt_id}_{submission}.json"
+            if not receipt_path.resolve().is_relative_to(workspace.resolve()):
+                raise ValueError("manifest directory escapes workspace")
+            receipt_path.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write_json(receipt_path, manifest_data)
+            evidence_path = write_execution_evidence(workspace, self._action_for_step(workflow, step),
+                                                     evidence, _manifest_payload(manifest), submission_id=submission)
+            state.update(evidence_path=evidence_path, manifest=_manifest_payload(manifest),
+                         execution_manifest=receipt_path.relative_to(workspace).as_posix())
+            event.update(evidence_path=evidence_path, manifest=_manifest_payload(manifest),
+                         execution_manifest=state["execution_manifest"])
+        try:
+            _, checkpoint = self.store.transition_step_with_checkpoint(
+                workflow_id, step.id,
+                StepStatus.FAILED if not good else (StepStatus.BLOCKED if waiting else StepStatus.COMPLETED),
+                state, artifacts=_manifest_artifacts(manifest) if good else [], event=event,
+                expected_revision=step.revision,
+                receipt={"request_id": request_id, "payload_hash": payload_hash, "response": response},
+                prepare_evidence=prepare_evidence if good else None,
             )
-            self._log(workflow_id, step.id, step.name, "checkpoint",
-                      f"步骤 {step.name} 完成，等待用户确认", agent=self._agent_label(workflow))
-            # A5 ⑦ 修复：checkpoint UUID 直接随 complete 结果输出，agent 不用再捞 report/SQLite
-            # 返回下一个动作（如果有），但标记为 waiting_checkpoint
-            next_action = self._next_pending_step(workflow_id)
-            if next_action:
-                return RunResult(workflow_id, "waiting_checkpoint", step.id,
-                                 message=f"步骤 {step.name} 完成，等待用户确认"
-                                         f"（checkpoint_id: {checkpoint.id}，批准: workflow_cli approve --checkpoint {checkpoint.id} --by <批准人>）",
-                                 checkpoint_id=checkpoint.id)
-            return RunResult(workflow_id, "waiting_checkpoint", step.id,
-                             message=f"所有步骤完成，等待最后检查点确认"
-                                     f"（checkpoint_id: {checkpoint.id}，批准: workflow_cli approve --checkpoint {checkpoint.id} --by <批准人>）",
-                             checkpoint_id=checkpoint.id)
-
-        self.store.transition_step_with_checkpoint(
-            workflow_id, step.id, StepStatus.COMPLETED,
-            {"status": "completed", "evidence_path": evidence_path, "manifest": _manifest_payload(manifest), "quality_gates": gate_result},
-            artifacts=_manifest_artifacts(manifest),
-            event={"type": "step_completed", "evidence_path": evidence_path, "manifest": _manifest_payload(manifest), "quality_gates": gate_result},
-        )
-        self._log(workflow_id, step.id, step.name, "completed",
-                  f"步骤 {step.name} 完成，证据: {evidence_path}", agent=self._agent_label(workflow),
-                  evidence_path=evidence_path)
-        # 每步完成后即时落盘日志（固定文件名覆盖），中断/崩溃也不丢审计链
+        except (ValueError, OSError, sqlite3.Error) as exc:
+            try:
+                cached = self.store.completion_receipt(workflow_id, request_id, payload_hash)
+            except ValueError:
+                cached = None
+            if cached is not None:
+                delivery = self._refresh_delivery(workflow_id)
+                if delivery:
+                    cached["diagnostics"] = {**cached.get("diagnostics", {}), "delivery": delivery}
+                return RunResult(workflow_id, **cached, replayed=True)
+            return RunResult(workflow_id, "failed", step.id, str(exc))
+        if good:
+            self._publish_manifest_view(workflow_id, workspace, manifest_data)
+        self._log(workflow_id, step.id, step.name,
+                  "checkpoint" if waiting else ("completed" if good else "failed"),
+                  message, agent=self._agent_label(workflow))
+        self._audit_record(type="engine_event", event=event["type"], workflow_id=workflow_id,
+                           step_id=step.id, skill_name=step.name, attempt_id=step.attempt_id,
+                           agent=self._agent_label(workflow), evidence_path=event.get("evidence_path", ""),
+                           declared_commands=[c.get("command", "") for c in evidence.get("commands", [])])
         if self.logger is not None:
             try:
                 self.logger.save(workflow_id, f"run_{workflow_id}.json")
-            except Exception:
+            except OSError:
                 pass
-
-        # 检查是否还有下一步
-        next_step = self._next_pending_step(workflow_id)
-        if next_step is None:
-            self.store.complete_workflow(workflow_id)
-            self._log(workflow_id, None, None, "completed", "所有步骤完成", agent=self._agent_label(workflow))
-            return RunResult(workflow_id, "completed", step.id, "所有步骤完成")
-
-        return RunResult(workflow_id, "advanced", step.id,
-                         message=f"步骤 {step.name} 完成，继续下一步")
+        if status == "completed":
+            delivery = self._refresh_delivery(workflow_id)
+            if delivery:
+                response["diagnostics"] = {**response["diagnostics"], "delivery": delivery}
+        return RunResult(workflow_id, **response, checkpoint_id=checkpoint.id)
 
     # ── 申报-痕迹门禁复用件（C1 companion / P4 binding / C2 assets） ──────
     # 三道闸的校验语义与教学文案原样保留（2026-09-22 P4 资产激活批次 B 抽出），
@@ -440,29 +498,31 @@ class WorkflowRunner:
     # 返回 None = 无违规；返回 str = 完整失败消息（含"invalid execution evidence:"
     # 前缀与教学文案），调用方负责转 FAILED。
 
-    def _gate_reject(self, workflow_id: str, step: Any, result: StepResult, message: str) -> RunResult:
-        """门禁违规的统一落账：步骤转 FAILED + step_failed 事件，返回 failed。"""
-        self.store.transition_step_with_checkpoint(
-            workflow_id, step.id, StepStatus.FAILED,
-            {"status": "failed", "error": message},
-            artifacts=[{"name": a, "path": a} for a in result.artifacts],
-            event={"type": "step_failed", "stderr": message},
-        )
-        return RunResult(workflow_id, "failed", step.id, message)
+    @staticmethod
+    def _effective_commands(evidence: dict) -> list[str]:
+        """Discard pure string-printing declarations; traces are not semantic proof."""
+        # 该列表仅用于资源痕迹匹配，不伪造命令记录或returncode。
+        commands = [str(r.get("path", "")) for r in evidence.get("resource_reads", [])
+                    if isinstance(r, dict)]
+        for record in evidence.get("commands", []):
+            if not isinstance(record, dict):
+                continue
+            command = str(record.get("command", "")).strip()
+            if re.match(r"(?i)^(echo|printf|write-output|write-host)(?:\s|$)", command):
+                continue
+            commands.append(command)
+        return commands
 
     @staticmethod
     def _trace_blobs(evidence: dict) -> tuple[str, str]:
         """(trace_blob, command_blob)——trace 覆盖命令+产物/输入路径，command 只含命令串；
         归一化口径与抽取前一致（小写、'-'↔'_' 等价；trace 不分路径分隔符）。"""
         parts = (
-            [str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)]
-            + [str(p) for p in evidence.get("outputs", []) or []]
+            WorkflowRunner._effective_commands(evidence)
             + [str(p) for p in evidence.get("inputs", []) or []]
         )
         trace_blob = " ".join(parts).lower().replace("-", "_")
-        command_blob = " ".join(
-            str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)
-        ).lower().replace("-", "_")
+        command_blob = " ".join(WorkflowRunner._effective_commands(evidence)).lower().replace("-", "_")
         return trace_blob, command_blob
 
     def _companion_gate_message(self, step: Any, evidence: dict, exec_ev: dict) -> str | None:
@@ -499,7 +559,7 @@ class WorkflowRunner:
         unknown = sorted(declared - set(recommended))
         missing = sorted(set(recommended) - declared)
         if unknown:
-            return _reject(f"申报了本步未推荐的技能 {unknown}（本步推荐清单: {recommended}）")
+            return _reject(f"额外技能请通过 additional_skills 申报，不混入推荐清单: {unknown}")
         if missing:
             return _reject(f"推荐技能未逐一申报使用或跳过: {missing}")
         # ⛔ C1 申报自洽（A2 minor 审计修复）：used 与 skipped 不得重叠——同一技能
@@ -632,8 +692,7 @@ class WorkflowRunner:
         # commands/outputs/inputs 任一串中即有痕。路径按仓库根相对形态匹配，
         # 绝对路径命令天然包含该子串。
         asset_trace_blob = " ".join(
-            [str(c.get("command", "")) for c in evidence.get("commands", []) if isinstance(c, dict)]
-            + [str(p) for p in evidence.get("outputs", []) or []]
+            self._effective_commands(evidence)
             + [str(p) for p in evidence.get("inputs", []) or []]
         ).lower().replace("\\", "/")
         for asset in required_assets:
@@ -673,6 +732,28 @@ class WorkflowRunner:
         if not candidates:
             raise KeyError(f"unknown checkpoint: {checkpoint_id}")
         candidate = candidates[0]
+        current = self.store.get_step(candidate.step_id)
+        approval_workspace = Path(self.store.get_workflow(candidate.workflow_id).metadata["workspace"])
+        approval_session = FingerprintSession(approval_workspace)
+        if (current.status != StepStatus.BLOCKED
+                or self._latest_checkpoint_id(current.id) != checkpoint_id
+                or candidate.checkpoint.state.get("status") != "waiting_checkpoint"):
+            return RunResult(candidate.workflow_id, "blocked", current.id,
+                             "批准被拒：过期检查点或当前步骤并非等待批准")
+        # Revalidate content at the approval boundary. A same-size/mtime rewrite
+        # must not reuse the fingerprints captured by complete_step.
+        if current.metadata.get("output_files"):
+            state = candidate.checkpoint.state
+            entries = state.get("manifest", {}).get("artifacts", [])
+            declared = current.metadata["output_files"]
+            if ({a.get("path") for a in entries if isinstance(a, dict)} != set(declared)
+                    or state.get("validation", {}).get("ok") is not True):
+                return RunResult(candidate.workflow_id, "blocked", current.id,
+                                 "批准被拒：检查点缺少已验收的产物版本，请重新验收")
+            fresh = ArtifactManifest.validate(approval_workspace, entries, session=approval_session)
+            if not fresh["ok"]:
+                return RunResult(candidate.workflow_id, "blocked", current.id,
+                                 "批准被拒：验收后产物发生变化或缺失", diagnostics=_manifest_payload(fresh))
 
         if response.get("approved") is not True:
             return RunResult(candidate.workflow_id, "blocked", candidate.step_id,
@@ -693,60 +774,71 @@ class WorkflowRunner:
                              "人类确认检查点禁止 agent 自批（视同伪造审核证据）。"
                              "请由操作者本人（如 默默）执行 approve")
 
+        if current.name == "comp-final-audit":
+            from .audit_store import build_final_audit_report
+            live = build_final_audit_report(
+                Path(self.store.get_workflow(candidate.workflow_id).metadata["workspace"]), self.audit_root,
+                workflow_db=Path(self.store.db_path), workflow_id=candidate.workflow_id,
+                fingerprint_session=approval_session)
+            if live["delivery_decision"] != "eligible":
+                return RunResult(candidate.workflow_id, "blocked", current.id,
+                                 "批准被拒：前置产物或审计状态已变化", diagnostics=live)
+
         # M3 FIX: 批准记录 + 步骤完成合并为一次原子事务（transition_step_with_checkpoint），
         # 避免两次独立 transition_step 中途失败导致状态不一致（BLOCKED→RUNNING→COMPLETED 非原子）。
         # approve 检查点会附带一次 checkpoint_approved 事件，步骤直接原子转为 COMPLETED。
-        step, _ = self.store.transition_step_with_checkpoint(
-            candidate.workflow_id, candidate.step_id, StepStatus.COMPLETED,
-            {"status": "approved", "response": {**response, "approved_by": approved_by}},
-            event={"type": "checkpoint_approved", "approved_by": approved_by},
-        )
+        try:
+            step, _ = self.store.transition_step_with_checkpoint(
+                candidate.workflow_id, candidate.step_id, StepStatus.COMPLETED,
+                {"status": "approved", "response": {**response, "approved_by": approved_by},
+                 "approved_checkpoint_id": checkpoint_id, "attempt_id": current.attempt_id},
+                event={"type": "checkpoint_approved", "approved_by": approved_by,
+                       "approved_checkpoint_id": checkpoint_id},
+                expected_revision=current.revision, expected_checkpoint_id=checkpoint_id,
+                prepare_evidence=approval_session.assert_unchanged, finalize_if_complete=True,
+            )
+        except (ValueError, OSError, sqlite3.Error) as exc:
+            return RunResult(candidate.workflow_id, "blocked", current.id, f"批准被拒：{exc}")
         self._log(candidate.workflow_id, candidate.step_id, step.name, "checkpoint",
                   "用户批准检查点", agent=approved_by)
         self._audit_record(type="engine_event", event="checkpoint_approved", workflow_id=candidate.workflow_id,
                            step_id=candidate.step_id, approved_by=approved_by)
 
-        # 返回下一个动作，并在工作流完成时落盘
-        next_step = self._next_pending_step(candidate.workflow_id)
-        if next_step is None:
-            self.store.complete_workflow(candidate.workflow_id)
-            return RunResult(candidate.workflow_id, "completed", candidate.step_id,
-                             "所有步骤完成")
-
-        # F1 FIX: 即使还有后续步骤，也检查是否所有步骤实际上已完成（无 pending 步骤）
-        # 如果没有 pending 步骤，标记工作流完成；否则继续下一步
-        all_pending = self._has_pending_steps(candidate.workflow_id)
-        if not all_pending:
-            self.store.complete_workflow(candidate.workflow_id)
-            return RunResult(candidate.workflow_id, "completed", candidate.step_id,
-                             "所有步骤完成")
-
+        # 最后一个步骤的批准与工作流收尾已在同一事务落账。
+        # 尚有 RUNNING/FAILED/BLOCKED 时交由 next_action 返回真实状态。
         return self.next_action(candidate.workflow_id)
 
     def retry_last_failed(self, workflow_id: str, by: str = "") -> RunResult:
-        """FAILED 步骤的带内恢复路径（A2 minor 审计修复）。
+        """FAILED 或 BLOCKED 步骤的显式重新验收路径。
 
         FAILED→RUNNING 在 _TRANSITIONS 中合法但此前引擎不可达（CLI 无 retry 命令），
         恢复被迫手改 SQLite（未审计通道）。本方法经引擎走合法转移，落 step_retry
         审计事件（含 step_id、by），把恢复行为纳入审计链。
         """
-        workflow = self._workflow(workflow_id)
+        workflow = self.store.get_workflow(workflow_id)
         row = self.store._connection.execute(
-            "SELECT * FROM workflow_steps WHERE workflow_id = ? AND status = 'failed' "
+            "SELECT * FROM workflow_steps WHERE workflow_id = ? AND status IN ('failed', 'blocked') "
             "ORDER BY updated_at DESC, position DESC LIMIT 1",
             (workflow_id,),
         ).fetchone()
         if row is None:
             return RunResult(workflow_id, "failed",
-                             message="没有 FAILED 步骤可重试（retry 仅用于失败步骤的带内恢复；"
-                                     "正常推进请用 next）")
+                             message="没有 FAILED 步骤或 BLOCKED 检查点可重新验收；正常推进请用 next")
         failed_step = self.store._step_from_row(row)
-        step, _checkpoint = self.store.transition_step_with_checkpoint(
-            workflow_id, failed_step.id, StepStatus.RUNNING,
-            {"status": "retrying", "by": by},
-            event={"type": "step_retry", "step_id": failed_step.id,
-                   "skill_name": failed_step.name, "by": by},
-        )
+        if self._last_running_step(workflow_id) is not None:
+            return RunResult(workflow_id, "blocked", message="已有 RUNNING 步骤，不能并行重试另一任务")
+        try:
+            step, _checkpoint = self.store.transition_step_with_checkpoint(
+                workflow_id, failed_step.id, StepStatus.RUNNING,
+                {"status": "retrying", "by": by},
+                event={"type": "step_retry", "step_id": failed_step.id,
+                       "skill_name": failed_step.name, "by": by},
+                expected_revision=failed_step.revision,
+                expected_checkpoint_id=self._latest_checkpoint_id(failed_step.id)
+                    if failed_step.status == StepStatus.BLOCKED else None,
+            )
+        except ValueError as exc:
+            return RunResult(workflow_id, "blocked", failed_step.id, str(exc))
         self._log(workflow_id, step.id, step.name, "retry",
                   f"步骤 {step.name} 重试（FAILED→RUNNING 带内恢复）",
                   agent=by or self._agent_label(workflow))
@@ -823,7 +915,7 @@ class WorkflowRunner:
         """手工补录绕开 runner 完成的步骤（D1 溯源链闭合）。
 
         把手工步骤的真实产物哈希与命令补进事件库与 STEP_MANIFEST，走带内
-        转移（PENDING/BLOCKED→RUNNING→COMPLETED），不新增状态机边、不绕过
+        转移（PENDING→RUNNING→COMPLETED，RUNNING 须匹配当前 attempt），不绕过
         审计。事件类型记 ``step_backfilled``（区别于 step_completed，复审时
         可区分"在环执行"与"人工补录"）。产物不存在即拒绝（backfill 只补
         真实存在的产物，防伪造溯源）。
@@ -838,7 +930,7 @@ class WorkflowRunner:
            放行，但写 ``backfill_binding_waived`` 审计事件 + 运行日志 +
            step_backfilled 事件 payload 三处留痕，复审可逐条追问豁免理由。
         """
-        workflow = self._workflow(workflow_id)
+        workflow = self.store.get_workflow(workflow_id)
         row = self.store._connection.execute(
             "SELECT * FROM workflow_steps WHERE workflow_id = ? AND name = ? "
             "ORDER BY position LIMIT 1",
@@ -851,8 +943,26 @@ class WorkflowRunner:
         if step.status == StepStatus.COMPLETED:
             return RunResult(workflow_id, "failed", step.id,
                              f"步骤 {skill_name} 已 COMPLETED，无需补录")
+        if step.status == StepStatus.BLOCKED:
+            return RunResult(workflow_id, "blocked", step.id,
+                             "补录不能代替检查点批准；请先由操作者 approve 当前检查点")
+        if step.status == StepStatus.FAILED:
+            return RunResult(workflow_id, "failed", step.id,
+                             "失败步骤请先 retry，补录不能复用旧 attempt")
+        if step.status == StepStatus.PENDING and step.name == "comp-final-audit":
+            return RunResult(workflow_id, "blocked", step.id,
+                             "终审补录须先 next 领取当前 step/attempt/revision，再生成候选预审并 backfill；"
+                             "PENDING 终审不接受预验收，也不自动代替批准")
+        if step.status == StepStatus.RUNNING:
+            try:
+                self._result_target(workflow_id, StepResult(
+                    ok=True, step_id=step.id, artifacts=list(artifacts),
+                    metadata={"execution_evidence": evidence or {}}))
+            except (ValueError, KeyError) as exc:
+                return RunResult(workflow_id, "failed", step.id, str(exc))
         workspace = Path(workflow.metadata["workspace"])
-        missing = [a for a in artifacts if not (workspace / a).exists()]
+        missing = [a for a in artifacts if ArtifactManifest._path(workspace, a) is None
+                   or not (workspace / a).exists()]
         if missing:
             return RunResult(workflow_id, "failed", step.id,
                              "补录产物在工作区不存在: " + ", ".join(missing)
@@ -895,61 +1005,77 @@ class WorkflowRunner:
                     if message:
                         return RunResult(workflow_id, "failed", step.id, message)
                 binding_state = "verified"
-                # 与 complete_step 同构的证据落盘（audit_store/账本可同口径对账）
-                manifest_preview = ArtifactManifest.validate(workspace, artifacts)
-                ev_path = write_execution_evidence(workspace, action, ev,
-                                                   _manifest_payload(manifest_preview))
                 if not commands:
                     commands = [str(c.get("command", "")) for c in ev.get("commands", [])
                                 if isinstance(c, dict) and str(c.get("command", "")).strip()]
 
-        # 带内转移 1：→ RUNNING（PENDING/BLOCKED 合法；已在 RUNNING 则不动）
-        if step.status != StepStatus.RUNNING:
-            self.store.transition_step(step.id, StepStatus.RUNNING)
-        # 产物哈希（复用 ArtifactManifest，与 complete_step 同一产物账本口径）
-        manifest = ArtifactManifest.validate(workspace, artifacts)
-        if not manifest.get("ok"):
+        # Verified backfills use exactly the same quality validation as complete.
+        # Legacy prose-only backfills remain explicitly unverified and cannot make
+        # final delivery ready; they never invent exitCode=0.
+        gate = {}
+        session = FingerprintSession(workspace)
+        validation = {"ok": False, "checks": {"historical_execution": {
+            "ok": False, "reason": "unverified historical declaration"}}}
+        if isinstance(evidence, dict) and not waive_binding:
+            candidate_result = StepResult(ok=True, artifacts=list(artifacts), metadata={"execution_evidence": evidence})
+            validation, ev, _manifest, gate, _execution_manifest = self._validate_step(
+                workflow, step, candidate_result, session)
+            if not validation["ok"]:
+                return RunResult(workflow_id, "failed", step.id, "补录验收未通过", diagnostics=validation)
+            binding_state = "verified"
+        elif step.metadata.get("requires_subagent") or step.metadata.get("has_checkpoint"):
             return RunResult(workflow_id, "failed", step.id,
-                             "产物校验失败: " + "; ".join(
-                                 [f"missing: {', '.join(manifest['missing'])}" if manifest.get("missing") else "",
-                                  f"invalid: {', '.join(manifest['invalid'])}" if manifest.get("invalid") else "",
-                                 ]).strip("; "))
-        config = {
-            "workflow_id": workflow.id,
-            "step_name": step.name,
-            "backfill": True,
-            "by": by,
-            "note": note,
-            "params": workflow.metadata.get("params", {}),
-        }
-        manifest_path = write_step_manifest(
-            workspace=workspace,
-            step_name=step.name,
-            config=config,
-            inputs=[],
-            outputs=[workspace / a for a in artifacts],
-            backend="manual-backfill",
-            commands=[{"command": c, "exitCode": 0} for c in (commands or [])],
-            dependencies={},
-        )
-        # 带内转移 2：RUNNING → COMPLETED，产物哈希进 artifacts 表 + 事件 payload
-        self.store.transition_step_with_checkpoint(
-            workflow_id, step.id, StepStatus.COMPLETED,
-            {"status": "backfilled", "by": by, "note": note,
-             "binding_check": binding_state,
-             "manifest": _manifest_payload(manifest)},
-            artifacts=[{"name": Path(a).name, "path": a,
-                        "metadata": {"sha256": art.sha256, "size": art.size}}
-                       for a, art in zip(artifacts, manifest["artifacts"])],
-            event={"type": "step_backfilled", "skill_name": step.name, "by": by,
-                   "note": note, "artifacts": list(artifacts),
-                   "commands": list(commands or []),
-                   "binding_check": binding_state,
-                   "binding_obligations": obligations,
-                   "binding_evidence_path": ev_path,
-                   "waive_reason": str(waive_reason or "") if binding_state == "waived" else "",
-                   "manifest_path": str(manifest_path)},
-        )
+                             "审核/检查点步骤补录必须提供完整真实 execution_evidence，不能用豁免代替验收")
+        manifest = _manifest if binding_state == "verified" else ArtifactManifest.validate(workspace, artifacts, session=session)
+        if not manifest.get("ok"):
+            return RunResult(workflow_id, "failed", step.id, "补录产物无效", diagnostics=_manifest_payload(manifest))
+        if binding_state != "verified":
+            _execution_manifest = build_manifest(
+                workspace=workspace, step_name=step.name,
+                config={"workflow_id": workflow.id, "step_name": step.name, "backfill": True,
+                        "by": by, "note": note, "params": workflow.metadata.get("params", {})},
+                inputs=[], outputs=[workspace / a for a in artifacts], backend="manual-backfill",
+                commands=[{"command": c, "verification": "unverified", "exitCode": None}
+                          for c in (commands or [])], dependencies={}, session=session)
+        if step.status != StepStatus.RUNNING:
+            try:
+                step = self.store.transition_step(step.id, StepStatus.RUNNING)
+            except ValueError as exc:
+                return RunResult(workflow_id, "failed", step.id, str(exc))
+        waiting = bool(step.metadata.get("has_checkpoint"))
+        state = {"status": "waiting_checkpoint" if waiting else "backfilled", "by": by, "note": note,
+                 "binding_check": binding_state, "validation": validation, "quality_gates": gate,
+                 "manifest": _manifest_payload(manifest)}
+        event = {"type": "step_backfilled", "skill_name": step.name, "by": by,
+                 "note": note, "artifacts": list(artifacts), "commands": list(commands or []),
+                 "binding_check": binding_state, "binding_obligations": obligations,
+                 "waive_reason": str(waive_reason or "") if binding_state == "waived" else "",
+                 "validation": validation, "quality_gates": gate, "manifest": _manifest_payload(manifest)}
+        def prepare_backfill():
+            nonlocal ev_path
+            session.assert_unchanged()
+            submission = uuid4().hex
+            manifest_path = workspace / ".engine" / "manifests" / f"{step.id}_{step.attempt_id}_{submission}.json"
+            root_manifest = workspace / "STEP_MANIFEST.json"
+            if any(not p.resolve().is_relative_to(workspace.resolve()) for p in (manifest_path, root_manifest)):
+                raise ValueError("manifest path escapes workspace")
+            manifest_path.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write_json(manifest_path, _execution_manifest)
+            if binding_state == "verified":
+                ev_path = write_execution_evidence(workspace, self._action_for_step(workflow, step),
+                    ev, _manifest_payload(manifest), submission_id=submission)
+            event.update(binding_evidence_path=ev_path, manifest_path=str(manifest_path),
+                         execution_manifest=manifest_path.relative_to(workspace).as_posix())
+            state.update(evidence_path=ev_path, execution_manifest=event["execution_manifest"])
+        try:
+            _, checkpoint = self.store.transition_step_with_checkpoint(
+                workflow_id, step.id, StepStatus.BLOCKED if waiting else StepStatus.COMPLETED,
+                state, artifacts=_manifest_artifacts(manifest), event=event,
+                expected_revision=step.revision, prepare_evidence=prepare_backfill,
+                finalize_if_complete=True)
+        except (ValueError, OSError, sqlite3.Error) as exc:
+            return RunResult(workflow_id, "failed", step.id, str(exc))
+        self._publish_manifest_view(workflow_id, workspace, _execution_manifest)
         _binding_label = {"no_binding": "无绑定义务", "verified": "绑定证据已验",
                           "waived": f"绑定豁免（理由：{str(waive_reason).strip()}）"}[binding_state]
         self._log(workflow_id, step.id, step.name, "backfill",
@@ -975,21 +1101,21 @@ class WorkflowRunner:
                                skill_name=step.name, by=by,
                                obligations=obligations, evidence_path=ev_path)
 
-        # 补录后若无 pending/blocked/failed 步骤，正常收尾工作流
-        if (not self._has_pending_steps(workflow_id)
-                and self._first_blocked_step(workflow_id) is None
-                and self._has_failed_steps(workflow_id) is None):
-            self.store.complete_workflow(workflow_id)
+        # 最后一个补录步骤与工作流收尾同事务，报告是可恢复的派生视图。
+        if self.store.get_workflow(workflow_id).status == "completed":
             self._log(workflow_id, None, None, "completed",
                       "所有步骤完成（含手工补录）", agent=self._agent_label(workflow))
-        return RunResult(workflow_id, "advanced", step.id,
-                         message=f"步骤 {step.name} 补录完成（step_backfilled 事件已落账，"
-                                 f"STEP_MANIFEST 已更新）")
+            delivery = self._refresh_delivery(workflow_id)
+            if delivery:
+                validation = {**validation, "delivery": delivery}
+        return RunResult(workflow_id, "waiting_checkpoint" if waiting else "advanced", step.id,
+                         message=f"步骤 {step.name} 补录已落账（验收状态：{binding_state}）",
+                         checkpoint_id=checkpoint.id, diagnostics=validation)
 
     def _latest_checkpoint_id(self, step_id: str) -> str | None:
         """返回步骤最近一次 checkpoint 的 ID（供 next blocked 输出，A5 ⑦ 修复）。"""
         row = self.store._connection.execute(
-            "SELECT id FROM checkpoints WHERE step_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+            "SELECT id FROM checkpoints WHERE step_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1",
             (step_id,),
         ).fetchone()
         return row[0] if row else None
@@ -1001,17 +1127,6 @@ class WorkflowRunner:
             (workflow_id,),
         ).fetchone()
         return row[0] > 0 if row else False
-
-    def _workflow(self, workflow_id: str) -> Workflow:
-        row = self.store._connection.execute(
-            "SELECT * FROM workflows WHERE id = ?", (workflow_id,)
-        ).fetchone()
-        if row is None:
-            raise KeyError(workflow_id)
-        return Workflow(
-            row["id"], row["name"], row["status"],
-            json.loads(row["metadata"]), row["created_at"], row["updated_at"],
-        )
 
     def _agent_label(self, workflow: Workflow) -> str:
         """返回当前步骤的执行 agent 标签（宿主中立默认值；驱动方可经 params.agent 覆盖）。"""
@@ -1064,6 +1179,42 @@ class WorkflowRunner:
             return None
         return self.store._step_from_row(row)
 
+    def _write_contest_env(self, workspace: Path, profile: Any) -> None:
+        """把 bound 快照的五字段机械口径写入工作区执行环境文件。
+
+        消费者（quick_gates 等）程序读取，优先级低于调用方显式 --max-pages；
+        cap 缺席（口径 None）也如实落空值——读取侧据此 SKIP，不回退默认页限。
+        """
+        env_dir = workspace / ".engine"
+        env_dir.mkdir(parents=True, exist_ok=True)
+        operative = profile.operative or {}
+        lines = [
+            "# contest_env — 引擎自 bound 档案快照程序注入（B-CLOSE-01）；勿手改，口径以本文件为准",
+            f"# rules_revision: {profile.rules_revision}",
+            f"CONTEST_ID={profile.contest_id}",
+            f"PAGE_CAP={operative.get('cap') if operative.get('cap') is not None else ''}",
+            f"PAGE_SCOPE={profile.gate_page_scope}",
+            f"PAGE_CAP_STATUS={operative.get('status', '')}",
+            f"EDITION={profile.edition or ''}",
+        ]
+        (env_dir / "contest_env").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    def _dispatch_quick_gates_cap(self, workflow: Workflow, step: Any) -> int | None:
+        """派发侧 --max-pages 渲染值（B-CLOSE-01）：步骤显式声明 > bound 快照
+        gate_page_cap > None（不渲染旗标，页检 SKIP——不回退默认 30/80）。
+
+        快照 operative 已含任务显式口径（resolve_operative_cap 折入），
+        故快照回落不会放大口径范围。"""
+        cap = step.metadata.get("quick_gates_max_pages")
+        if cap is not None:
+            return cap
+        snapshot = workflow.metadata.get("contest_profile_snapshot")
+        if isinstance(snapshot, dict) and snapshot.get("status") == "bound":
+            cap = (snapshot.get("operative") or {}).get("cap")
+            if cap is not None:
+                return int(cap)
+        return None
+
     def _action_for_step(self, workflow: Workflow, step: Any) -> StepAction:
         return StepAction(
             workflow_id=workflow.id, step_id=step.id, position=step.position, skill_name=step.name,
@@ -1074,35 +1225,99 @@ class WorkflowRunner:
             companion_skills=step.metadata.get("companion_skills", []),
             assets=step.metadata.get("assets", []),
             quick_gates=bool(step.metadata.get("quick_gates", False)),
-            quick_gates_max_pages=step.metadata.get("quick_gates_max_pages"),
+            quick_gates_max_pages=self._dispatch_quick_gates_cap(workflow, step),
             skill_binding=dict(step.metadata.get("skill_binding") or {}),
             params=workflow.metadata.get("params", {}),
+            attempt_id=step.attempt_id,
+            expected_revision=step.revision,
+            required_checks=list(dict.fromkeys(
+                list(step.metadata.get("required_checks") or [])
+                + (["step_manifest"] if step.metadata.get("output_files") else [])
+                + (["review"] if step.name in {"comp-review", "comp-visual-review", "comp-final-review"} else []))),
+            output_specs=dict(step.metadata.get("output_specs") or {}),
+            requires_subagent=bool(step.metadata.get("requires_subagent")),
+            review_scope=str(step.metadata.get("review_scope") or workflow.name),
+            skill_sha256=hashlib.sha256((self.skills_root / step.name / "SKILL.md").read_bytes()).hexdigest()
+                if (self.skills_root / step.name / "SKILL.md").is_file() else "",
         )
 
-    def _write_step_manifest(self, workflow: Workflow, step: Any, evidence: dict[str, Any], declared_outputs: list[str]) -> None:
+    def _prepare_step_manifest(self, workflow, step, evidence, declared_outputs, session):
         workspace = Path(workflow.metadata["workspace"])
-        step_meta = dict(step.metadata) if step.metadata else {}
-        backend = str(step_meta.get("backend") or "workflow-runner")
-        dependencies = dict(step_meta.get("dependencies") or {})
-        if step.name == "copyright-source-materials":
-            backend = "vendored-codesucker-core 0.4.4"
-            dependencies.setdefault("codesucker-core", "0.4.4")
-        commands = evidence.get("commands", [])
-        manifest_outputs = [workspace / output for output in declared_outputs]
-        config = dict(step_meta.get("manifest_config") or {})
-        config.setdefault("workflow_id", workflow.id)
-        config.setdefault("step_name", step.name)
-        config.setdefault("params", workflow.metadata.get("params", {}))
-        write_step_manifest(
-            workspace=workspace,
-            step_name=step.name,
-            config=config,
-            inputs=[],
-            outputs=manifest_outputs,
-            backend=backend,
-            commands=commands,
-            dependencies=dependencies,
+        source_manifest = evidence.get("execution_manifest")
+        if source_manifest:
+            source = ArtifactManifest._path(workspace, str(source_manifest))
+            if source is None or not source.is_file():
+                raise ValueError("execution_manifest must be an existing workspace-relative file")
+            session.fingerprint(source_manifest)
+            existing = json.loads(source.read_text(encoding="utf-8"))
+            if not isinstance(existing, dict):
+                raise ValueError("execution_manifest must contain a JSON object")
+        else:
+            existing = get_step_manifest(workspace)
+            # 自动生成的根清单只是上次提交的视图，不能约束新 attempt 的产物。
+            # 工具原始清单仍严格复验；显式引用旧清单也不得静默重建。
+            if (isinstance(existing, dict) and existing.get("backend") in {"workflow-runner", "recorded-execution"}
+                    and (existing.get("workflowId") != workflow.id
+                         or existing.get("attemptId") != step.attempt_id)):
+                existing = None
+        if isinstance(existing, dict) and (source_manifest or existing.get("stepName") == step.name):
+            def canonical(value):
+                path = ArtifactManifest._path(workspace, str(value))
+                if path is None:
+                    raise ValueError("execution manifest output escapes workspace")
+                return path.relative_to(workspace.resolve()).as_posix()
+            declared = {canonical(o.get("path", "")) for o in existing.get("outputFiles", []) if isinstance(o, dict)}
+            required = {canonical(value) for value in declared_outputs}
+            matches = required <= declared if source_manifest else required == declared
+            if not matches:
+                raise ValueError("execution manifest outputs do not match the active step")
+            return existing
+        return build_manifest(
+            workspace, step.name,
+            config={**dict(step.metadata.get("manifest_config") or {}),
+                    "workflow_id": workflow.id, "step_name": step.name,
+                    "params": workflow.metadata.get("params", {}),
+                    "execution": evidence.get("execution_config", {})},
+            inputs=[workspace / p for p in evidence.get("inputs", [])],
+            outputs=[workspace / p for p in declared_outputs],
+            backend=str(step.metadata.get("backend") or evidence.get("backend") or "workflow-runner"),
+            commands=evidence.get("commands", []),
+            dependencies={**dict(evidence.get("dependencies") or {}), **dict(step.metadata.get("dependencies") or {})},
+            extra={"attemptId": step.attempt_id, "workflowId": workflow.id}, session=session,
         )
+
+    def _publish_manifest_view(self, workflow_id, workspace, manifest_data) -> None:
+        """Best-effort convenience view, published only after DB commit.
+
+        Accepted versions live in immutable event-referenced manifests, not here.
+        A view failure cannot undo or misreport a successful database commit.
+        """
+        try:
+            root = workspace / "STEP_MANIFEST.json"
+            if not root.resolve().is_relative_to(workspace.resolve()):
+                raise ValueError("execution manifest escapes workspace")
+            if get_step_manifest(workspace) != manifest_data:
+                atomic_write_json(root, manifest_data)
+        except (OSError, ValueError) as exc:
+            self._log(workflow_id, None, None, "manifest_view_pending", str(exc))
+
+    def _refresh_delivery(self, workflow_id: str) -> dict[str, Any]:
+        """A failed derived report is recoverable; never pretend the commit failed."""
+        workflow = self.store.get_workflow(workflow_id)
+        if workflow.status != "completed":
+            return {}
+        from .audit_store import write_final_audit_report
+        workspace = Path(workflow.metadata["workspace"])
+        if not (workspace / "AUDIT_REPORT.json").is_file():
+            return {}
+        try:
+            path = write_final_audit_report(workspace, self.audit_root,
+                out=workspace / "DELIVERY_REPORT.json", workflow_db=Path(self.store.db_path),
+                workflow_id=workflow_id)
+            return {"report": path.name, "decision": json.loads(path.read_text(encoding="utf-8"))["delivery_decision"]}
+        except (OSError, ValueError, sqlite3.Error) as exc:
+            return {"decision": "pending", "reason": str(exc),
+                    "recovery": "重发 complete / next 或执行 final-audit；不得视为 ready"}
 
 
 def _manifest_payload(manifest: dict[str, Any]) -> dict[str, Any]:
@@ -1116,6 +1331,7 @@ def _manifest_payload(manifest: dict[str, Any]) -> dict[str, Any]:
                 "sha256": artifact.sha256,
                 "exists": artifact.exists,
                 "mime_type": artifact.mime_type,
+                **({"members": artifact.members} if artifact.members is not None else {}),
             }
             for artifact in manifest["artifacts"]
         ],
@@ -1125,6 +1341,7 @@ def _manifest_payload(manifest: dict[str, Any]) -> dict[str, Any]:
 def _manifest_artifacts(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     return [
         {"name": Path(artifact.path).name, "path": artifact.path,
-         "metadata": {"sha256": artifact.sha256, "size": artifact.size, "mime_type": artifact.mime_type}}
+         "metadata": {"sha256": artifact.sha256, "size": artifact.size, "mime_type": artifact.mime_type,
+                      **({"members": artifact.members} if artifact.members is not None else {})}}
         for artifact in manifest["artifacts"]
     ]

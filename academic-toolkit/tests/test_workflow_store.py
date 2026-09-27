@@ -74,6 +74,82 @@ def test_resume_candidates_only_include_incomplete_workflows(tmp_path):
     assert [candidate.workflow_id for candidate in candidates] == [incomplete.id]
 
 
+def test_revision_cas_rejects_stale_completion_without_checkpoint(tmp_path):
+    with WorkflowStore(tmp_path / "workflow.sqlite") as store:
+        wf = store.create_workflow("demo")
+        step = store.add_steps(wf.id, [{"name": "solve"}])[0]
+        running = store.transition_step(step.id, StepStatus.RUNNING)
+        assert running.attempt_id and running.revision == 1
+        with pytest.raises(ValueError, match="stale step revision"):
+            store.transition_step_with_checkpoint(wf.id, step.id, StepStatus.COMPLETED, {}, expected_revision=0)
+        assert store.get_step(step.id).status == StepStatus.RUNNING
+        assert store.workflow_timeline(wf.id)["checkpoints"] == []
+        with pytest.raises(ValueError, match="incomplete"):
+            store.complete_workflow(wf.id)
+
+
+def test_receipt_failure_rolls_back_state_event_and_workflow(tmp_path):
+    with WorkflowStore(tmp_path / "workflow.sqlite") as store:
+        wf = store.create_workflow("demo")
+        step = store.add_steps(wf.id, [{"name": "solve"}])[0]
+        running = store.transition_step(step.id, StepStatus.RUNNING)
+        with pytest.raises(KeyError):
+            store.transition_step_with_checkpoint(wf.id, step.id, StepStatus.COMPLETED, {},
+                event={"type": "step_completed"}, expected_revision=running.revision,
+                receipt={"response": {"status": "completed"}})
+        assert store.get_step(step.id).status == StepStatus.RUNNING
+        timeline = store.workflow_timeline(wf.id)
+        assert not timeline["events"] and not timeline["checkpoints"]
+        assert timeline["workflow"]["status"] == "active"
+
+
+@pytest.mark.parametrize("pending_other", [False, True])
+def test_finalize_with_checkpoint_is_atomic_and_requires_all_steps(tmp_path, pending_other):
+    import sqlite3
+    with WorkflowStore(tmp_path / "workflow.sqlite") as store:
+        wf = store.create_workflow("demo")
+        step = store.add_steps(wf.id, [{"name": "solve"}])[0]
+        if pending_other:
+            store.add_steps(wf.id, [{"name": "later", "position": 2}])
+        running = store.transition_step(step.id, StepStatus.RUNNING)
+        store._connection.execute(
+            "CREATE TRIGGER reject_finalization BEFORE UPDATE ON workflows "
+            "BEGIN SELECT RAISE(ABORT, 'injected finalization failure'); END")
+        store._connection.commit()
+        if not pending_other:
+            before = store.workflow_timeline(wf.id)
+            with pytest.raises(sqlite3.IntegrityError, match="finalization failure"):
+                store.transition_step_with_checkpoint(wf.id, step.id, StepStatus.COMPLETED, {},
+                    event={"type": "step_backfilled"}, expected_revision=running.revision,
+                    finalize_if_complete=True)
+            assert store.workflow_timeline(wf.id) == before
+            assert store.get_step(step.id).status == StepStatus.RUNNING
+        store._connection.execute("DROP TRIGGER reject_finalization")
+        store._connection.commit()
+        store.transition_step_with_checkpoint(wf.id, step.id, StepStatus.COMPLETED, {},
+            event={"type": "step_backfilled"}, expected_revision=running.revision,
+            finalize_if_complete=True)
+        assert store.workflow_timeline(wf.id)["workflow"]["status"] == (
+            "active" if pending_other else "completed")
+
+
+def test_timeline_same_timestamp_uses_commit_order_not_random_identifiers(tmp_path, monkeypatch):
+    import engine.workflow_store as module
+    with WorkflowStore(tmp_path / "workflow.sqlite") as store:
+        wf = store.create_workflow("demo")
+        step = store.add_steps(wf.id, [{"name": "run"}])[0]
+        ids = iter(["z-checkpoint", "z-event", "a-checkpoint", "a-event"])
+        monkeypatch.setattr(module, "uuid4", lambda: next(ids))
+        first = store.create_checkpoint(wf.id, step.id, {}, event={"type": "first"})
+        second = store.create_checkpoint(wf.id, step.id, {}, event={"type": "second"})
+        store._connection.execute("UPDATE checkpoints SET created_at = 'same'")
+        store._connection.execute("UPDATE events SET created_at = 'same'")
+        store._connection.commit()
+        timeline = store.workflow_timeline(wf.id)
+        assert [c["id"] for c in timeline["checkpoints"]] == [first.id, second.id]
+        assert [e["type"] for e in timeline["events"]] == ["first", "second"]
+
+
 def test_store_enables_wal_and_busy_timeout(tmp_path):
     with WorkflowStore(tmp_path / "workflow.sqlite3") as store:
         journal_mode = store._connection.execute("PRAGMA journal_mode").fetchone()[0]

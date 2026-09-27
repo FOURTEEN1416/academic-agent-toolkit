@@ -84,3 +84,42 @@ def test_nested_metadata_works_with_skip_literature_pruning():
     step = steps[0]
 
     assert step["required_checks"] == ["final_audit"]
+
+
+def test_competition_editors_revalidate_declared_paper_and_pdf_versions():
+    import json
+    catalog = json.loads((ROOT / "engine/modex-core/templates.json").read_text(encoding="utf-8"))
+    for name in ("comp_cumcm", "comp_huawei"):
+        steps = resolve_template(name, {}, catalog)
+        editor = next(s for s in steps if s["skill_name"] == "comp-editor")
+        assert "paper/main.pdf" in editor["output_files"]
+        assert "paper/main.tex" in editor["output_files"]
+        assert "CONSISTENCY_REPORT.json" in editor["output_files"]
+        assert editor["revalidate_paper_pages"] is True
+        assert {"consistency", "compilation_log", "step_manifest"} <= set(editor["required_checks"])
+        assert catalog[name]["sub_steps"][steps.index(editor)]["output_files"] == ["EDITOR_CHANGELOG.md"]
+        with_export = resolve_template(name, {"output_format": "docx"}, catalog)
+        names = [s["skill_name"] for s in with_export]
+        assert names.index("comp-editor") < names.index("docx-export") < names.index("comp-final-review")
+        assert names[-1] == "comp-final-audit"
+        assert names.count("docx-export") == 1
+
+
+def test_paper_improvement_revalidates_changed_sources_and_compile_outputs():
+    import json
+    catalog = json.loads((ROOT / "engine/modex-core/templates.json").read_text(encoding="utf-8"))
+    checked = 0
+    for template in catalog:
+        steps = resolve_template(template, {}, catalog)
+        for i, step in enumerate(steps):
+            if step["skill_name"] != "auto-paper-improvement-loop":
+                continue
+            checked += 1
+            producers = [s for s in steps[:i] if s["skill_name"] in
+                         {"paper-write", "paper-write-zh", "paper-write-nature", "paper-compile", "paper-compile-zh"}]
+            outputs = {p for s in producers for p in s.get("output_files", [])}
+            checks = {c for s in producers for c in s.get("required_checks", [])}
+            assert outputs <= set(step["output_files"])
+            assert checks <= set(step["required_checks"])
+            assert "paper/main.tex" in step["output_files"]
+    assert checked == 4

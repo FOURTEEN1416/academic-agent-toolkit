@@ -25,7 +25,10 @@ def test_tex_fallback_estimates_pages_for_short_paper(tmp_path):
     # 约 3000 字符 ≈ 1 页
     content = "\\section{问题重述}\n" + ("中文正文内容占位。" * 400) + "\n"
     _write_tex(tmp_path, content)
-    result = QualityGate(tmp_path).check_paper_pages("comp_cumcm")
+    # v2：档案条目不再顶层 max_pages，直调路径补 page_contract（bound 快照同构）
+    result = QualityGate(tmp_path).check_paper_pages(
+        "comp_cumcm", page_contract={"cap": 30, "scope": "body",
+                                     "status": "official_verified"})
     assert result["ok"] is True, f"短论文应放行: {result}"
     assert "estimated_pages" in result, f"应返回 estimated_pages: {result}"
     assert result["estimated_pages"] <= 30
@@ -38,7 +41,10 @@ def test_tex_fallback_rejects_very_long_paper(tmp_path):
         f"\\section{{{i}}}" + ("中文正文内容占位。" * 100) for i in range(200)
     )
     _write_tex(tmp_path, content)
-    result = QualityGate(tmp_path).check_paper_pages("comp_cumcm")
+    # v2：档案条目不再顶层 max_pages，直调路径补 page_contract（bound 快照同构）
+    result = QualityGate(tmp_path).check_paper_pages(
+        "comp_cumcm", page_contract={"cap": 30, "scope": "body",
+                                     "status": "official_verified"})
     assert result["ok"] is False, f"超长论文应被拒绝: {result}"
     assert result["estimated_pages"] > 30
 
@@ -48,7 +54,10 @@ def test_tex_fallback_uses_estimated_pages_not_section_count(tmp_path):
     # 1 个 section 但内容量 200000 字符（超长，约 58 页）
     content = "\\section{唯一章节}\n" + ("中文正文内容占位。" * 25000) + "\n"
     _write_tex(tmp_path, content)
-    result = QualityGate(tmp_path).check_paper_pages("comp_cumcm")
+    # v2：档案条目不再顶层 max_pages，直调路径补 page_contract（bound 快照同构）
+    result = QualityGate(tmp_path).check_paper_pages(
+        "comp_cumcm", page_contract={"cap": 30, "scope": "body",
+                                     "status": "official_verified"})
     # 旧逻辑 sections=1 < 3 → 拒绝；新逻辑估算页数 > 30 → 拒绝（但原因不同）
     assert result["ok"] is False
     assert result["estimated_pages"] > 30

@@ -102,9 +102,11 @@ def test_complete_failure_persists_run_log(tmp_path, monkeypatch):
         "workflow_cli", "next", "--wf", workflow_id, "--db", str(db),
     ])
     assert workflow_cli.main() == 0
+    with WorkflowStore(db) as store:
+        step_id = store._connection.execute("SELECT id FROM workflow_steps WHERE workflow_id = ? AND status = 'running'", (workflow_id,)).fetchone()[0]
     monkeypatch.setattr(sys, "argv", [
         "workflow_cli", "complete", "--wf", workflow_id, "--db", str(db),
-        "--ok", "false", "--stderr", "batch3 test failure",
+        "--ok", "false", "--stderr", "batch3 test failure", "--step-id", step_id,
     ])
     assert workflow_cli.main() == 1
 
@@ -209,10 +211,12 @@ def test_complete_evidence_file_is_read(tmp_path, monkeypatch, capsys):
         "workflow_cli", "next", "--wf", workflow_id, "--db", str(db),
     ])
     assert workflow_cli.main() == 0
-    capsys.readouterr()  # 消费 next 输出
+    action = json.loads(capsys.readouterr().out)["action"]
 
     evidence_file = tmp_path / "evidence.json"
-    evidence_file.write_text(json.dumps({"schema_version": 1, "agent": "batch3-test"}), encoding="utf-8")
+    evidence_file.write_text(json.dumps({"schema_version": 1, "agent": "batch3-test",
+        "step_id": action["step_id"], "attempt_id": action["attempt_id"],
+        "expected_revision": action["expected_revision"]}), encoding="utf-8")
     monkeypatch.setattr(sys, "argv", [
         "workflow_cli", "complete", "--wf", workflow_id, "--db", str(db),
         "--ok", "false", "--evidence-file", str(evidence_file),

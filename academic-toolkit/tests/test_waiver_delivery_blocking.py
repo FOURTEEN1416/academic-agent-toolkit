@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from engine.audit_store import build_final_audit_report, write_final_audit_report
-from engine.opencode_bridge import StepResult
+from engine.agent_bridge import StepResult
 from engine.quality_gates import QualityGate
 from engine.workflow_runner import WorkflowRunner
 from engine.workflow_store import WorkflowStore

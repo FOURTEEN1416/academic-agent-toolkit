@@ -214,13 +214,15 @@ def forge_adapter(
         }
     purpose_text = (purpose or "").strip() or f"可选适配器 {adapter_name}"
     path.parent.mkdir(parents=True, exist_ok=True)
-    # 使用普通 dict + json.dump，避免模板字符串转义问题
+    # 内建宿主复用探测器的单一真源；未知宿主仍是待补配置的骨架。
+    from .capability_probe import ADAPTER_MARKERS
+    markers = next((paths for key, paths, _note in ADAPTER_MARKERS if key == adapter_name), ())
     payload = {
         "adapter_id": adapter_name,
         "status": "optional",
         "kind": "host_config",
-        "required_for_drive": False,
-        "config_paths": [],
+        "required_for_drive": adapter_name == "generic",
+        "config_paths": list(markers),
         "l1_audit": "none",
         "skill_discovery": "protocol (AGENTS.md + skills/)",
         "notes": purpose_text,
