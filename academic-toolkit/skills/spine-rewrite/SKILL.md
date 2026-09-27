@@ -1,6 +1,6 @@
 ---
 name: spine-rewrite
-description: "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal"
+description: "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal /paperspine step)"
 ---
 
 

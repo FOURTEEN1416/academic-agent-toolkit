@@ -45,7 +45,7 @@ echo "模板目录 TPL_DIR=$TPL_DIR"
 
 # 出图工具（screenshot_capture.py，后端复制进 _utils/）
 CAPTURE=""
-for f in tools/screenshot_capture.py tools/screenshot_capture.py; do
+for f in _utils/screenshot_capture.py tools/screenshot_capture.py; do
   [ -f "$f" ] && { CAPTURE="$f"; break; }
 done
 echo "出图工具 CAPTURE=$CAPTURE"
@@ -84,7 +84,7 @@ echo "TikZ 自检 TIKZ_CHECK=${TIKZ_CHECK:-（不可用，将跳过结构自检�
 #    （后端注入的发布包 tools/ 路径，_utils 复制失败时兜底）→ tools/（开发态相对路径）。
 #    少了 $MH_TOOLS_DIR 时：一旦 _utils/ 未建/复制失败，html 侧会误判脚本缺失而跳过自检。
 TIKZ_VISION=""
-for f in tools/tikz_vision_check.py "${MH_TOOLS_DIR}/tikz_vision_check.py" tools/tikz_vision_check.py; do
+for f in _utils/tikz_vision_check.py "${MH_TOOLS_DIR}/tikz_vision_check.py" tools/tikz_vision_check.py; do
   [ -n "$f" ] && [ -f "$f" ] && { TIKZ_VISION="$f"; break; }
 done
 echo "TikZ 视觉自检 TIKZ_VISION=${TIKZ_VISION:-（不可用，将跳过）}"
@@ -1082,6 +1082,8 @@ ALL COMPLETE — paper-figure-html step finished successfully
 
 ### B 配色配方（⛔ 从种子 H0 用 HSL 推导，示例数值不得照抄）
 
+> ⛔ 本节口径已被下方（约 :1649 起）"用户锁定"节取代（2026-09-28 口径统一）；执行一律按新节。
+
 Step 1 已算出主色相 `H0`（0–359 的整数）。**按下表用 HSL 推导整套色板**，每张图开头写成 `:root` CSS 变量。同一篇论文所有图共用同一 `H0`，所以色板自动统一。
 
 ⛔⛔ **核心原则（本次改造：去"全彩 AI 感"）**：**节点主体一律走黑白灰**，`H0` 推导的彩色**只用于三处**——①全图唯一焦点 ②语义连线/判断分支（是/否、回流）③描边档(TONE 1)的类型边框。**绝不给每个节点填不同颜色**（那正是"太像 AI/PPT 模板"的根源）。一张图里彩色占比目测 ≤15%，其余全是灰阶。
@@ -1185,8 +1187,8 @@ Step 1 的 `TONE`（0/1/2）决定全篇统一的造型档，**三档都以黑�
 6. **（D.1 高级感）**字重层次拉开了吗？连线语义化了吗？每个节点有副标题吗？全图有且只有一个焦点吗？——五条齐了才算高级。
 7. 与本篇已生成的图相比：配色/造型统一，但结构因逻辑而不同？
 8. **（造型旋钮 + LAYOUT 拓扑）** 圆角/连线/强调条/分区框是否按本篇 `RADIUS`/`ARROW`/`NODEACC`/`SECT` 落实、全篇一致？**且：这张图逻辑若有多个等价范式，我是否按 `LAYOUT % 候选数` 选的骨架、而非随手挑？**（若逻辑只有唯一贴合范式则不适用。）没套上等于又回到"千篇一律的默认长相"。
-10. **（风格族 G 节）** 字体族对不对（A/C 衬线 / B 无衬线）？A 族有没有混进灰底/圆角>2px/副标题/阴影（有就拉成 B 了）？B 族有没有残留柔和阴影或满屏副标题？**C 族有没有残留任何彩色（`hsl`/`--ac` 都不该有，焦点靠粗黑边+字重）**？A/B 族的 `--ac`/`--acbg` 是否由本篇 `H0` 代入、没写死示例色？——全篇所有图必须同一 `STYLE_FAMILY`。
-9. ⛔ **（D.1 ④ 对齐硬纪律）眯眼看整张图：并列节点等大吗？行列对齐成线吗？边缘齐吗？箭头接在中轴吗？间距均匀吗？** 只要有一处参差/错位/大小不一 = 丑，回去用 `grid`+`1fr`/`stretch` 强制对齐，别靠手写 width 或 margin 硬凑。**"像用尺子摆过"才算过。**
+9. **（风格族 G 节）** 字体族对不对（A/C 衬线 / B 无衬线）？A 族有没有混进灰底/圆角>2px/副标题/阴影（有就拉成 B 了）？B 族有没有残留柔和阴影或满屏副标题？**C 族有没有残留任何彩色（`hsl`/`--ac` 都不该有，焦点靠粗黑边+字重）**？A/B 族的 `--ac`/`--acbg` 是否由本篇 `H0` 代入、没写死示例色？——全篇所有图必须同一 `STYLE_FAMILY`。
+10. ⛔ **（D.1 ④ 对齐硬纪律）眯眼看整张图：并列节点等大吗？行列对齐成线吗？边缘齐吗？箭头接在中轴吗？间距均匀吗？** 只要有一处参差/错位/大小不一 = 丑，回去用 `grid`+`1fr`/`stretch` 强制对齐，别靠手写 width 或 margin 硬凑。**"像用尺子摆过"才算过。**
 
 ### F 造型旋钮落 CSS（⛔ 按 Step 1 种子值选一档，全篇统一；全是黑白造型、不加颜色）
 
@@ -1276,24 +1278,6 @@ html,body{margin:0;padding:0;width:fit-content;height:fit-content;background:tra
   display:flex;flex-direction:column;gap:9px}                     /* 浅灰实线圆角分组框 */
 ```
 
-**G.4 C 纯黑白线稿 · `:root` 与基础节点骨架**（照抄，⛔ 全程零彩色、无 `--ac`）：
-
-```css
-html,body{margin:0;padding:0;width:fit-content;height:fit-content;background:transparent}
-.fig,.fig *{font-family:"Times New Roman","SimSun","Songti SC","Microsoft YaHei",serif;
-  -webkit-font-smoothing:antialiased;box-sizing:border-box}
-.fig{width:fit-content;padding:26px 30px;background:transparent;
-  --edge:#1a1a1a; --txt:#111; --line:#333}                       /* ⛔ 无 --ac/--acbg：纯黑白 */
-.n{border:1px solid var(--edge);background:#fff;color:var(--txt);
-  padding:9px 14px;font-size:14px;font-weight:600;text-align:center;
-  border-radius:0;line-height:1.4}                               /* 直角、白底、纯黑边、无阴影 */
-.n.focus{border:1.8px solid #000;font-weight:800}                /* 焦点：最粗黑边+字重800，⛔ 不加彩底 */
-.grp{border:1.2px dashed var(--edge);border-radius:0;padding:11px 13px;
-  display:flex;flex-direction:column;gap:9px;align-items:center} /* 黑虚线直角分组框 */
-```
-
-⛔ **C 族判定/分支/回边也全用黑**：把 G.3 里的 `var(--ac)`/`var(--no)` 一律换成 `#1a1a1a`（判定节点 `.dec` 用 `border:1.6px solid #1a1a1a`；是/否标签 `.lbl`/`.lbl.no` 都用 `color:#1a1a1a`；回边虚线 `.loopback` 边框用 `#1a1a1a`）。层次全靠**边框粗细 + 字重**，不靠颜色。
-
 **G.3 三族共用的连线 / 判定 / 循环回边**（不分族，都照 A 节铁律：判定用圆角矩形不用菱形、回边用虚线示意）：
 
 ```css
@@ -1316,6 +1300,24 @@ html,body{margin:0;padding:0;width:fit-content;height:fit-content;background:tra
 ```
 
 ⛔ **G.3 竖排回边文字禁塞公式**（`\(P_{t+1}\)` 之类）：KaTeX 渲染后会撑高被裁（真实翻车过）。回边文字用纯中文短语（如"↑ 产生下一代种群"），公式留给横排节点。
+
+**G.4 C 纯黑白线稿 · `:root` 与基础节点骨架**（照抄，⛔ 全程零彩色、无 `--ac`）：
+
+```css
+html,body{margin:0;padding:0;width:fit-content;height:fit-content;background:transparent}
+.fig,.fig *{font-family:"Times New Roman","SimSun","Songti SC","Microsoft YaHei",serif;
+  -webkit-font-smoothing:antialiased;box-sizing:border-box}
+.fig{width:fit-content;padding:26px 30px;background:transparent;
+  --edge:#1a1a1a; --txt:#111; --line:#333}                       /* ⛔ 无 --ac/--acbg：纯黑白 */
+.n{border:1px solid var(--edge);background:#fff;color:var(--txt);
+  padding:9px 14px;font-size:14px;font-weight:600;text-align:center;
+  border-radius:0;line-height:1.4}                               /* 直角、白底、纯黑边、无阴影 */
+.n.focus{border:1.8px solid #000;font-weight:800}                /* 焦点：最粗黑边+字重800，⛔ 不加彩底 */
+.grp{border:1.2px dashed var(--edge);border-radius:0;padding:11px 13px;
+  display:flex;flex-direction:column;gap:9px;align-items:center} /* 黑虚线直角分组框 */
+```
+
+⛔ **C 族判定/分支/回边也全用黑**：把 G.3 里的 `var(--ac)`/`var(--no)` 一律换成 `#1a1a1a`（判定节点 `.dec` 用 `border:1.6px solid #1a1a1a`；是/否标签 `.lbl`/`.lbl.no` 都用 `color:#1a1a1a`；回边虚线 `.loopback` 边框用 `#1a1a1a`）。层次全靠**边框粗细 + 字重**，不靠颜色。
 
 **G.5 对齐骨架（⛔ 三族通用，防"参差/错位/大小不一"——照抄，别手写 width）**
 
@@ -1391,10 +1393,10 @@ html,body{margin:0;padding:0;width:fit-content;height:fit-content;background:tra
 |---|---|---|---|
 | 0 | **零灰纯线稿** | 线宽 `0.5px` | 线宽 `2.4px` |
 | 1 | **虚线弱化** | `0.9px dashed`（虚线读作轻） | 硬投影 `box-shadow:3px 3px 0 #000` |
-| 2 | **斜线底纹** | 45° 纯黑细斜线，⛔ **只铺在无文字的窄条/色条**上（0.4 节）；文字盒改用  | 粗实线 |
+| 2 | **斜线底纹** | 45° 纯黑细斜线，⛔ **只铺在无文字的窄条/色条**上（0.4 节）；文字盒改用边框档 | 粗实线 |
 | 3 | **单侧强调线** | 普通节点统一细线 | 唯一焦点用 2px 顶线或左线，禁止黑底白字 |
 | 4 | **双线弱化** | `3px double`（双细线视觉更轻） | 单粗线 `2.6px` |
-| 5 | **点阵底纹** | 纯黑点阵，⛔ **只铺在无文字的窄条/色条**上（0.4 节）；文字盒改用  | 粗实线 |
+| 5 | **点阵底纹** | 纯黑点阵，⛔ **只铺在无文字的窄条/色条**上（0.4 节）；文字盒改用边框档 | 粗实线 |
 
 ```bash
 INK=$(( (SEED / 113) % 6 ))   # ⛔ 全篇统一；六档都零中间灰
@@ -1480,7 +1482,7 @@ INK=$(( (SEED / 113) % 6 ))   # ⛔ 全篇统一；六档都零中间灰
 
 > ⛔ **这一项和 0.1/0.2 是并列的硬约束，不是"文字润色建议"**。图能看清、颜色也对，但文字读不通，图照样交不出去。
 >
-> 判据本身可自测：`$PYTHON "$CAPTURE" --self-test`（跑内置对抗用例，不起 Electron，几十毫秒）。⛔ 改动词表后必跑，防判据退化。
+> 判据无内置对抗用例可跑（工具无 `--self-test` 旗标）；图面自检走实有闸：`$PYTHON "$CAPTURE" --geom-check figures/fig_xxx.html`（量文字溢出/越界/块重叠；需 Electron，不可用则跳过不阻塞）。⛔ 出图前必跑。
 ### 0.4 可读性：底纹与描边（⛔ 硬约束，这是"图丑"的第一位真因）
 
 **⛔⛔ 底纹（斜线/点阵/任何 `background-image`）只许铺在【无文字】的窄条或色块上。文字所在的盒子一律纯白底。**

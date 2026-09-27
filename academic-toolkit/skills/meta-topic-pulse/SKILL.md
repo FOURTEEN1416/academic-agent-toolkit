@@ -1,6 +1,6 @@
 ---
 name: meta-topic-pulse
-description: "Multi-source recency research skill that takes the pulse of any topic across Reddit, Hacker News, the open web, and"
+description: "Multi-source pulse of a topic across Reddit, Hacker News, web, and X within a time window. Use for recency or buzz checks."
 license: MIT
 metadata:
   source_spec: "megaprompts/01-pulse-megaprompt.md"

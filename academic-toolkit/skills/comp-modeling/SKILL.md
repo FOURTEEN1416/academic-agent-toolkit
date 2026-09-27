@@ -764,7 +764,7 @@ echo "假设参数化标记数: $PARAM_COUNT"
 
 python3 _utils/facts_audit.py --stage modeling 2>&1 | tee AUDIT_REPORT.md
 
-RC=$?
+RC=${PIPESTATUS[0]}
 
 if [ $RC -eq 1 ]; then
 

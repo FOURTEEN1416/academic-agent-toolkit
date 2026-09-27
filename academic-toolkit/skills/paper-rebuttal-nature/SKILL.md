@@ -1,6 +1,6 @@
 ---
 name: paper-rebuttal-nature
-description: "Use when responding to journal or conference reviewer comments and you need a structured author response, aligned"
+description: "Use when responding to reviewer comments: structured author response, point-to-change mapping, editor-verifiable revisions."
 ---
 
 # Rebuttal Response

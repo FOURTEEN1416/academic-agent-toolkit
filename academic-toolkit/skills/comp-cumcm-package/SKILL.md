@@ -1,6 +1,6 @@
 ---
 name: comp-cumcm-package
-description: ">- 竞赛提交阶段打包沙演与合规终审入口（口径必须显式选择：国赛 comp_cumcm / 华为杯 --compliance-profile comp_huawei，口径数据驱动自 comp_rules.json；赛事身份取 contest_profile 的规范 comp_* ID，不按文本猜赛事）。"
+description: "竞赛提交打包沙演与合规终审入口；口径必须显式选择（国赛 comp_cumcm / 华为杯 comp_huawei），不按文本猜赛事。触发词：竞赛打包、合规终审、提交沙演。"
 ---
 
 # 竞赛提交打包沙演（comp-cumcm-package）

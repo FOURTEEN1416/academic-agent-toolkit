@@ -111,16 +111,16 @@ if [[ "$DETAILED" == true ]]; then
     echo "==================="
 
     # Count figures
-    FIGURE_COUNT=$(grep -c '\\begin{figure}' "$TEX_FILE" 2>/dev/null || echo "0")
+    FIGURE_COUNT=$(grep -c '\\begin{figure}' "$TEX_FILE" 2>/dev/null)
     echo "Figures: $FIGURE_COUNT"
 
     # Count tables
-    TABLE_COUNT=$(grep -c '\\begin{table}' "$TEX_FILE" 2>/dev/null || echo "0")
+    TABLE_COUNT=$(grep -c '\\begin{table}' "$TEX_FILE" 2>/dev/null)
     echo "Tables: $TABLE_COUNT"
 
     # Count equations (equation environment + align environment)
-    EQUATION_COUNT=$(grep -c '\\begin{equation}' "$TEX_FILE" 2>/dev/null || echo "0")
-    ALIGN_COUNT=$(grep -c '\\begin{align' "$TEX_FILE" 2>/dev/null || echo "0")
+    EQUATION_COUNT=$(grep -c '\\begin{equation}' "$TEX_FILE" 2>/dev/null)
+    ALIGN_COUNT=$(grep -c '\\begin{align' "$TEX_FILE" 2>/dev/null)
     TOTAL_EQUATIONS=$((EQUATION_COUNT + ALIGN_COUNT))
     echo "Equations: $TOTAL_EQUATIONS"
 
@@ -129,8 +129,8 @@ if [[ "$DETAILED" == true ]]; then
     echo "Citations: $CITATION_COUNT"
 
     # Count sections
-    SECTION_COUNT=$(grep -c '^\\section{' "$TEX_FILE" 2>/dev/null || echo "0")
-    SUBSECTION_COUNT=$(grep -c '^\\subsection{' "$TEX_FILE" 2>/dev/null || echo "0")
+    SECTION_COUNT=$(grep -c '^\\section{' "$TEX_FILE" 2>/dev/null)
+    SUBSECTION_COUNT=$(grep -c '^\\subsection{' "$TEX_FILE" 2>/dev/null)
     echo ""
     echo "Structure:"
     echo "  Sections: $SECTION_COUNT"

@@ -1,6 +1,6 @@
 ---
 name: paper-figure-nature
-description: "Generate publication-ready matplotlib figures matching Nature journal standards. Use when user says 'Nature figure',"
+description: "Generate publication-ready matplotlib figures matching Nature journal standards. Use when user says 'Nature figure', 'publication figure', or asks for journal-grade plots."
 argument-hint: [figure-plan-or-data-path]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 ---

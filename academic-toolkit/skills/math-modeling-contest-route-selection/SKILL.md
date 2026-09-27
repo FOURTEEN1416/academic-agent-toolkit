@@ -1,6 +1,6 @@
 ---
 name: math-modeling-contest-route-selection
-description: "Select superior mathematical modeling contest problems and modeling-solution routes for CUMCM A/B/C, MCM, ICM, and"
+description: "Select superior mathematical modeling contest problems and modeling-solution routes for CUMCM A/B/C, MCM, ICM, and more, with a reproducible scoring script."
 ---
 <!-- ==================== 本仓适配块（Academic Agent Toolkit, 2026-09-03） ==================== -->
 <!-- 上游: y3519712124-ui/math-modeling-contest-route-selection (MIT, pinned 2026-09-03); 正文为上游原文，仅头部/尾部适配 -->

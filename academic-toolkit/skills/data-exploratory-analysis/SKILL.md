@@ -1,6 +1,6 @@
 ---
 name: data-exploratory-analysis
-description: "Perform comprehensive exploratory data analysis on scientific data files across 200+ file formats. This skill should be"
+description: "Perform comprehensive exploratory data analysis on scientific data files across 200+ file formats, with format detection, quality assessment, and markdown reports."
 license: MIT license
 metadata:
   version: "1.0"

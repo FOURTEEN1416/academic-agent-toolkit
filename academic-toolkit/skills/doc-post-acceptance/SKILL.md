@@ -1,6 +1,6 @@
 ---
 name: doc-post-acceptance
-description: "This skill should be used when the user asks to ”prepare conference presentation”, ”create presentation slides”, ”design"
+description: "Use after paper acceptance for ”conference presentation”, ”presentation slides”, or ”conference poster” requests."
 version: 0.1.0
 ---
 

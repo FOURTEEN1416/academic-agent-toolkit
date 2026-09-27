@@ -1,6 +1,6 @@
 ---
 name: dev-verification-loop
-description: "This skill should be used when the user asks to ”verify code”, ”run verification”, ”check quality”, ”validate changes”,"
+description: "Use when the user asks to ”verify code”, ”run verification”, ”check quality”, or ”validate changes” before a PR."
 version: 1.0.0
 ---
 

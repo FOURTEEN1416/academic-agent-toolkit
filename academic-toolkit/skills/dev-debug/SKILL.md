@@ -1,6 +1,6 @@
 ---
 name: dev-debug
-description: "This skill should be used when the user asks to ”debug this”, ”fix this error”, ”investigate this bug”, ”troubleshoot"
+description: "Use when the user asks to ”debug this”, ”fix this error”, ”investigate this bug”, or ”troubleshoot a failure”."
 version: 0.1.0
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: lit-daily-digest
-description: "Use when the user asks to generate daily paper digests on a general topic. This skill supports both arXiv and bioRxiv"
+description: "Use when the user asks to generate daily paper digests on a general topic. This skill supports both arXiv and bioRxiv sources."
 version: 0.5.1
 ---
 

@@ -371,9 +371,9 @@ DC=$?   # 0=通过 1=HARD FAIL(有裸 read_excel,必修) 2=无 code 跳过
 
    python3 _utils/facts_audit.py --stage code 2>&1 | tee AUDIT_REPORT.md
 
-   RC=$?
+   RC=${PIPESTATUS[0]}
 
-   n_suspicious=$(grep -cE '^- (⛔|⚠)' AUDIT_REPORT.md || echo 0)
+   n_suspicious=$(grep -cE '^- (⛔|⚠)' AUDIT_REPORT.md 2>/dev/null)
 
    # 凭证里加 n_suspicious_numbers 字段（写稿阶段拦截非零）
 

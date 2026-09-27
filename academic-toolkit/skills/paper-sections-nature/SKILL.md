@@ -1,6 +1,6 @@
 ---
 name: paper-sections-nature
-description: "Draft, restructure, or plan Nature-style manuscript sections from author-provided claims, results, figures, notes, or"
+description: "Drafts or restructures Nature-style manuscript sections from claims, results, figures, or notes. Use when drafting sections."
 version: 0.2.0
 author: Community contribution based on curated Nature/Nature Communications writing patterns and open research-writing notes
 ---

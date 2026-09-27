@@ -1,7 +1,7 @@
 ---
 name: paper-presubmit-checks
 user_invocable: true
-description: "Pre-submission checklist for LaTeX papers. Runs several checks in parallel — references, LaTeX cleanup, build, and front"
+description: "Pre-submission checklist for LaTeX papers. Runs several checks in parallel — references, LaTeX cleanup, build, and front matter."
 ---
 
 # presubmit-checks — Paper Pre-Submission Checklist

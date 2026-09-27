@@ -1,6 +1,6 @@
 ---
 name: meta-mcp-integration
-description: "This skill should be used when the user asks to ”add MCP server”, ”integrate MCP”, ”configure MCP in plugin”, ”use"
+description: "This skill should be used when the user asks to ”add MCP server”, ”integrate MCP”, ”configure MCP in plugin”, or ”use MCP tools”."
 version: 0.1.0
 ---
 

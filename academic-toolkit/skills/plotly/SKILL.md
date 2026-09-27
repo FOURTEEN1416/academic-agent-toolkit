@@ -1,6 +1,6 @@
 ---
 name: plotly
-description: "Interactive visualization library. Use when you need hover info, zoom, pan, or web-embeddable charts. Best for"
+description: "Interactive visualization library. Use when you need hover info, zoom, pan, or web-embeddable charts. Best for dashboards and interactive exploration."
 category: visualization
 license: MIT license
 metadata:

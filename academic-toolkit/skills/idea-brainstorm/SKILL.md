@@ -1,6 +1,6 @@
 ---
 name: idea-brainstorm
-description: "This skill should be used when the user asks to ”brainstorm research ideas”, ”use 5W1H framework”, ”identify research"
+description: "Use when the user asks to ”brainstorm research ideas”, ”use 5W1H framework”, or ”identify research questions”."
 version: 0.1.0
 ---
 

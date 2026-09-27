@@ -1,6 +1,6 @@
 ---
 name: kaggle-learner
-description: "This skill should be used when the user asks to ”learn from Kaggle”, ”study Kaggle solutions”, ”analyze Kaggle"
+description: "Use when the user asks to ”learn from Kaggle”, ”study Kaggle solutions”, or ”analyze Kaggle winners”."
 version: 0.1.0
 ---
 

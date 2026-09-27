@@ -59,6 +59,10 @@ KNOWN_LEXICAL_LIMITS: tuple[tuple[str, str, str], ...] = (
      "同为 docx 变体，仅风格/语言前缀不同；靠判别句与 StepAction 绑定区分"),
     ("paper-write-docx", "paper-write-nature-docx",
      "同上：判别句互引的风格名（Nature）会进入对方词表，属判别句固有代价"),
+    ("comp-compile-en", "comp-paper-en-docx",
+     "英文竞赛编译与 docx 写作词法重叠：前者只编译既有 .tex 不做创作，后者 docx 模式写作；描述层已互带改用判别句"),
+    ("latex-paper-collab-breadth", "latex-paper-collab-depth",
+     "同族广度/深度协作者：breadth 管方向发散、depth 管逐点深挖；描述层已互带只用于/改用判别句"),
 )
 
 # ── 词法可分的歧义对（必须给出"判别查询"并验证能正确排序） ──────────────────

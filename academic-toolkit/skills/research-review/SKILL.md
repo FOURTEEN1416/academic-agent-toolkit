@@ -1,6 +1,6 @@
 ---
 name: research-review
-description: "Get a deep critical review of research via external reviewer. Use when user says ”review my research”, ”help me review”,"
+description: "Get a deep critical review of research via external reviewer. Use when user says ”review my research”, ”help me review”, or needs an independent critique."
 argument-hint: [topic-or-scope]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent
 ---

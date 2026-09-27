@@ -2,7 +2,7 @@
 
 name: comp-compile-en
 
-description: "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says ”compile MCM paper”,。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。"
+description: "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says ”compile MCM paper”。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。"
 argument-hint: [paper-directory]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
@@ -211,9 +211,9 @@ After each compilation, check `main.log` for CRITICAL errors. **You MUST fix ALL
 
 ```bash
 
-MATH_ERR=$(grep -c 'Bad math environment delimiter\|Missing \$ inserted\|begin{document} ended by' paper/main.log 2>/dev/null || echo 0)
+MATH_ERR=$(grep -c 'Bad math environment delimiter\|Missing \$ inserted\|begin{document} ended by' paper/main.log 2>/dev/null)
 
-LR_ERR=$(grep -c 'Not allowed in LR mode' paper/main.log 2>/dev/null || echo 0)
+LR_ERR=$(grep -c 'Not allowed in LR mode' paper/main.log 2>/dev/null)
 
 echo "Math errors: $MATH_ERR, LR mode errors: $LR_ERR"
 
@@ -369,13 +369,13 @@ GATE_FAIL=0
 
 [ -f paper/main.pdf ] && [ $(wc -c < paper/main.pdf) -gt 100000 ] && echo "✅ PDF exists" || { echo "❌ PDF missing/small"; GATE_FAIL=$((GATE_FAIL+1)); }
 
-MATH_ERR=$(grep -c 'Bad math.*delimiter\|Missing \$ inserted' paper/main.log 2>/dev/null || echo 0)
+MATH_ERR=$(grep -c 'Bad math.*delimiter\|Missing \$ inserted' paper/main.log 2>/dev/null)
 
-LR_ERR=$(grep -c 'Not allowed in LR mode' paper/main.log 2>/dev/null || echo 0)
+LR_ERR=$(grep -c 'Not allowed in LR mode' paper/main.log 2>/dev/null)
 
 [ "$((MATH_ERR+LR_ERR))" -eq 0 ] && echo "✅ No LaTeX errors" || { echo "❌ $MATH_ERR math + $LR_ERR LR errors"; GATE_FAIL=$((GATE_FAIL+1)); }
 
-BBL=$(grep -c '\\bibitem' paper/main.bbl 2>/dev/null || echo 0)
+BBL=$(grep -c '\\bibitem' paper/main.bbl 2>/dev/null)
 
 [ "$BBL" -gt 0 ] && echo "✅ Bib: $BBL entries" || { echo "❌ Bib empty"; GATE_FAIL=$((GATE_FAIL+1)); }
 
@@ -393,15 +393,15 @@ PLACEHOLDERS=$(grep -rl 'PLACEHOLDER\|待补充\|TODO\|\[论文标题\]' paper/s
 
 # --- WARNING ---
 
-VBOX=$(grep -c 'Overfull.*vbox' paper/main.log 2>/dev/null || echo 0); [ "$VBOX" -eq 0 ] && echo "✅ No overflow" || { echo "❌ $VBOX overfull vbox"; GATE_FAIL=$((GATE_FAIL+1)); }
+VBOX=$(grep -c 'Overfull.*vbox' paper/main.log 2>/dev/null); [ "$VBOX" -eq 0 ] && echo "✅ No overflow" || { echo "❌ $VBOX overfull vbox"; GATE_FAIL=$((GATE_FAIL+1)); }
 
-HBOX=$(grep -c 'Overfull.*hbox' paper/main.log 2>/dev/null || echo 0); [ "$HBOX" -lt 5 ] && echo "✅ Hbox: $HBOX" || { echo "❌ $HBOX overfull hbox"; GATE_FAIL=$((GATE_FAIL+1)); }
+HBOX=$(grep -c 'Overfull.*hbox' paper/main.log 2>/dev/null); [ "$HBOX" -lt 5 ] && echo "✅ Hbox: $HBOX" || { echo "❌ $HBOX overfull hbox"; GATE_FAIL=$((GATE_FAIL+1)); }
 
-AI=0; for f in paper/sections/*.tex; do [ -f "$f" ] || continue; echo "$(basename $f)" | grep -qi 'appendix' && continue; c=$(grep -c '\\begin{itemize}' "$f" 2>/dev/null || echo 0); AI=$((AI+c)); done
+AI=0; for f in paper/sections/*.tex; do [ -f "$f" ] || continue; echo "$(basename $f)" | grep -qi 'appendix' && continue; c=$(grep -c '\\begin{itemize}' "$f" 2>/dev/null); AI=$((AI+c)); done
 
 [ "$AI" -eq 0 ] && echo "✅ No bullet lists" || { echo "❌ $AI itemize — convert to prose"; GATE_FAIL=$((GATE_FAIL+1)); }
 
-UNDEF_REFS=$(grep -c 'LaTeX Warning.*Reference.*undefined' paper/main.log 2>/dev/null || echo 0)
+UNDEF_REFS=$(grep -c 'LaTeX Warning.*Reference.*undefined' paper/main.log 2>/dev/null)
 
 [ "$UNDEF_REFS" -eq 0 ] && echo "✅ No undefined refs" || { echo "❌ $UNDEF_REFS undefined refs"; GATE_FAIL=$((GATE_FAIL+1)); }
 

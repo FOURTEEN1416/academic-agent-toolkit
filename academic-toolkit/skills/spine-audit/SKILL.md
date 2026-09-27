@@ -1,6 +1,6 @@
 ---
 name: spine-audit
-description: "Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation"
+description: "Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation completeness before calling work done."
 ---
 
 

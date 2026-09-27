@@ -1,6 +1,6 @@
 ---
 name: seaborn
-description: "Statistical visualization with pandas integration. Use for quick exploration of distributions, relationships, and"
+description: "Statistical visualization with pandas integration. Use for quick exploration of distributions, relationships, and statistical patterns in DataFrames."
 license: BSD-3-Clause license
 allowed-tools: Read Write Edit Bash
 compatibility: Requires Python 3.8+ and seaborn 0.13.2-compatible dependencies. Install with uv pip install seaborn==0.13.2; use seaborn[stats]==0.13.2 when advanced regression or clustering examples need scipy/statsmodels.

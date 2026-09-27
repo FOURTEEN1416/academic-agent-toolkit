@@ -1,6 +1,6 @@
 ---
 name: ip-patent-search
-description: "Patent prior-art and landscape intelligence skill — not generic patent help. Commits to one of five sub-use-cases via"
+description: "Patent prior-art and landscape intelligence, not generic patent help. Use for patent prior-art or landscape searches."
 license: MIT
 metadata:
   source_spec: "megaprompts/11-patent-megaprompt.md"

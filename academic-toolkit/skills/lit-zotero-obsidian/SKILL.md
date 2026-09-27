@@ -1,6 +1,6 @@
 ---
 name: lit-zotero-obsidian
-description: "Use this skill when Zotero is the literature source of truth and the project KB should receive source notes under"
+description: "Use this skill when Zotero is the literature source of truth and the project KB should receive source notes under Sources/Papers/."
 version: 0.3.0
 ---
 

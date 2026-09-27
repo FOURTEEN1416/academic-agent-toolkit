@@ -1,6 +1,6 @@
 ---
 name: lit-review-communications
-description: "Communications-domain literature review 以知识库优先检索（knowledge-base-first）进行文献综述. Use when the task is about"
+description: "Literature review for wireless communications (5G/6G, satellite, Wi-Fi). Use only for communications-domain reviews."
 allowed-tools: Bash(*), Read, Glob, Grep, WebSearch, WebFetch, Write, Agent, mcp__zotero__*, mcp__obsidian-vault__*
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: lit-orientation
-description: "Academic literature orientation skill: searches papers via free keyless APIs (PubMed E-utilities + OpenAlex) by default,"
+description: "Searches papers via keyless APIs (PubMed, OpenAlex) to orient you in an unfamiliar field. Use when exploring a new field."
 license: MIT
 metadata:
   source_spec: "megaprompts/09-litreview-megaprompt.md"

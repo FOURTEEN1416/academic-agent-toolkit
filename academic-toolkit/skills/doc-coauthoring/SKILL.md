@@ -1,6 +1,6 @@
 ---
 name: doc-coauthoring
-description: "This skill should be used when the user asks to co-author documentation, draft a proposal, write a technical spec,"
+description: "Use when co-authoring docs: drafting proposals, technical specs, or refining documentation through guided collaboration."
 version: 0.1.0
 ---
 

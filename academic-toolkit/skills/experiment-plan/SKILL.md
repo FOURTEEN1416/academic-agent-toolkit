@@ -1,6 +1,6 @@
 ---
 name: experiment-plan
-description: "'Turn a refined research proposal or method idea into a detailed, claim-driven experiment roadmap. Use after"
+description: "Turn a refined research proposal or method idea into a detailed, claim-driven experiment roadmap. Use after the method is stable enough to defend the paper."
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent
 ---
 

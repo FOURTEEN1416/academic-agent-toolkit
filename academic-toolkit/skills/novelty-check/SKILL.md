@@ -1,6 +1,6 @@
 ---
 name: novelty-check
-description: "Verify research idea novelty against recent literature. Use when user says ”查新”, ”novelty check”, ”有没有人做过”, ”check"
+description: "Verify research idea novelty against recent literature. Use when user says ”查新”, ”novelty check”, ”有没有人做过”, or ”check if done”."
 argument-hint: [method-or-idea-description]
 allowed-tools: Bash(*), Read, Write, Glob, Grep, WebSearch, WebFetch
 ---

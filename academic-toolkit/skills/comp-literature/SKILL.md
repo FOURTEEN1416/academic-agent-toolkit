@@ -1,6 +1,6 @@
 ---
 name: comp-literature
-description: Use when a mathematical modeling competition workflow needs verified literature research, citation provenance, or a reproducible reference ledger before modeling or paper writing.
+description: "Use when a math modeling competition workflow needs verified literature research, citation provenance, or a reference ledger."
 ---
 
 # Competition Literature Evidence

@@ -1,6 +1,6 @@
 ---
 name: paper-results-revision
-description: "Use when revising a scientific manuscript Results section whose figures, evidence, and main claims are mostly fixed, but"
+description: "Use when revising a Results section whose figures and claims are fixed but subsection flow and argument need repair."
 ---
 
 # Results Section Revision

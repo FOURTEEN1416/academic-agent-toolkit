@@ -1,14 +1,20 @@
 # ASSET-GAP 资产缺口声明 — dev-ml-registry-pattern
 
 > 上游不可得：galaxy 系技能包未公开发布（GitHub 全网搜索无命中，2026-09-09 溯源），本仓库仅存集成时的 SKILL.md 孤本。以下引用所指资产在可得的任何上游渠道均不存在。
+> 2026-09-28 深读批补登，上游资产未随本仓集成：新增条目均为 SKILL.md 正文实际引用、盘上缺失、且未经内联标记/登记册棘轮/本清单三渠道豁免者。
 
-## 缺失资产清单（5 项，2026-09-09 审计）
+## 缺失资产清单（共 10 项：2026-09-09 审计 5 项 + 2026-09-28 补登 5 项）
 
 - `references/auto_import.md`
 - `references/code_style.md`
 - `references/factory_pattern.md`
 - `references/registry_pattern.md`
 - `references/structure.md`
+- `examples/custom_dataset.py`
+- `examples/custom_model.py`
+- `examples/augmentation_example.py`
+- `examples/config_example.yaml`
+- `examples/pipeline_example.sh`
 
 ## 处置口径
 

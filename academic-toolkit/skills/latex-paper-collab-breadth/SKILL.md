@@ -1,6 +1,6 @@
 ---
 name: latex-paper-collab-breadth
-description: "> Use the Gemini CLI as a breadth-exploration co-pilot for paper-from-zero. Primary role: candidate direction expansion,"
+description: "Use the Gemini CLI as a breadth-exploration co-pilot for paper-from-zero. Primary role: candidate direction expansion and idea divergence (breadth over depth). 只用于选题/方向发散；逐点深挖与论证收敛场景改用 latex-paper-collab-depth. Optional collaborator, skips when CLI absent."
 metadata:
   short-description: Breadth co-pilot (Gemini) for paper-from-zero
 ---

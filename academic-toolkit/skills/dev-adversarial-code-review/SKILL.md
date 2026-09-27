@@ -1,6 +1,6 @@
 ---
 name: dev-adversarial-code-review
-description: "Adversarial code review that breaks the self-review monoculture. Use when you want a genuinely critical review of recent"
+description: "Adversarial code review from hostile reviewer personas. Use when a genuinely critical review must break self-review blind spots."
 tier: "STANDARD"
 category: "Engineering / Code Quality"
 dependencies: "None (prompt-only, no external tools required)"

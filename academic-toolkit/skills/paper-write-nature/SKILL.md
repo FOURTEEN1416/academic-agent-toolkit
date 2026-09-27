@@ -35,6 +35,8 @@ Draft a Nature-quality LaTeX paper based on: **$ARGUMENTS**
 
 - **REVIEWER_SCRIPT** — External reviewer script.
 
+- **SCHOLAR_SCRIPT = `tools/scholar_fetch.py`** — Scholar fetch client for real BibTeX retrieval (AMiner/Semantic Scholar/DBLP/CrossRef/OpenAlex).
+
 
 
 ## Inputs
@@ -355,7 +357,7 @@ Remove or replace these AI-typical words:
 
 - **PDF mode**: `paper/main.tex` (≥ 5KB) + `paper/sections/*.tex` + `paper/references.bib`
 
-- **docx mode**: `paper/main.md` (single file, ≥ 5KB). Do NOT create `paper/main.tex`
+- **docx mode**: `paper/main.md` (single file, ≥ 5KB). Do NOT create `paper/main.tex`. docx 模式请改用 paper-write-nature-docx。
 
 
 
@@ -522,6 +524,8 @@ restore it to search keywords and fetch real BibTeX via `$SCHOLAR_SCRIPT` (AMine
 Scholar + DBLP + CrossRef + OpenAlex), e.g.:
 
 ```bash
+
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
 
 # extract cited keys → _tmp/_cited_keys.txt, then:
 
@@ -745,9 +749,11 @@ Before finishing writing / compiling, run the universal audit. Works without `PR
 
 # Falls back to simplified mode if no PROBLEM_FACTS.json (general academic / course / humanities).
 
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+
 if [ -f _utils/facts_audit.py ]; then
 
-    python3 _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
+    $PYTHON _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
 
     PRC=$?
 

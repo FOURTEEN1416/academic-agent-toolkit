@@ -2,7 +2,7 @@
 
 name: paper-write-docx
 
-description: "Draft an English academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'. Mirrors paper-write writing rules (ICLR/NeurIPS/ICML) but produces paper/main.md only. 区别于 paper-write-zh-docx：本技能只用于英文论文的 docx 模式；中文论文改用 paper-write-zh-docx。"
+description: "Draft an English academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'，produces main.md only；中文论文改用 paper-write-zh-docx。"
 argument-hint: [venue-or-section]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch
@@ -33,7 +33,7 @@ Draft an English academic paper as Markdown: **$ARGUMENTS**
 
 - **TARGET_VENUE = `ICLR`** — Supported: ICLR, NeurIPS, ICML. Override via Additional Parameters.
 
-- **MAX_PAGES = 9** — Body length target ≥ MAX_PAGES (~800 words/page).
+- **MAX_PAGES = 9** — Body length target ≥ MAX_PAGES (~600 words/page).
 
 - **ANONYMOUS = true**
 
@@ -336,9 +336,11 @@ fi
 
 ```bash
 
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+
 [ -f RESULTS.md ] && cat RESULTS.md
 
-python3 - <<'PY'
+$PYTHON - <<'PY'
 
 import json, os, glob
 
@@ -376,7 +378,7 @@ PY
 
 ```
 
-Every scalar you need is in `RESULTS.md` or the range/sample above. If one scalar isn't fully shown, fetch just that value with `python3 -c "import json;d=json.load(open('figures/all_results.json'));print(d['key'])"` — still never read the whole file.
+Every scalar you need is in `RESULTS.md` or the range/sample above. If one scalar isn't fully shown, fetch just that value with `$PYTHON -c "import json;d=json.load(open('figures/all_results.json'));print(d['key'])"` — still never read the whole file.
 
 
 
@@ -500,7 +502,7 @@ Save everything in **`paper/main.md`** (single file). Suggested skeleton:
 
 
 
-$$ \mathcal{L}(\theta) = \mathbb{E}_{x \sim \mathcal{D}} [\ell(f_\theta(x), y)] \quad (1) $$
+$$ \mathcal{L}(\theta) = \mathbb{E}_{x \sim \mathcal{D}} [\ell(f_\theta(x), y)] \tag{1} $$
 
 
 
@@ -846,9 +848,7 @@ Extract topic sentences from each paragraph → read them in sequence → check 
 
 # Extract first sentence of every paragraph (paragraphs separated by blank line)
 
-awk 'BEGIN{RS=""} {print substr($0, 1, index($0,"\n")?index($0,"\n")-1:length($0)) }' paper/main.md \
-
-  | grep -v '^#' | grep -v '^!' | grep -v '^|' | head -50
+awk 'BEGIN{RS=""} {print substr($0, 1, index($0,"\n")?index($0,"\n")-1:length($0)) }' paper/main.md | grep -v '^#' | grep -v '^!' | grep -v '^|' | head -50
 
 ```
 
@@ -1104,9 +1104,11 @@ Before finishing writing / compiling, run the universal audit. Works without `PR
 
 # Falls back to simplified mode if no PROBLEM_FACTS.json (general academic / course / humanities).
 
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+
 if [ -f _utils/facts_audit.py ]; then
 
-    python3 _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
+    $PYTHON _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
 
     PRC=$?
 

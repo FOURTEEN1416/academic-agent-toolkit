@@ -1,6 +1,6 @@
 ---
 name: proof-writer
-description: "Writes rigorous mathematical proofs for ML/AI theory. Use when asked to prove a theorem, lemma, proposition, or"
+description: "Writes rigorous mathematical proofs for ML/AI theory. Use when asked to prove a theorem, lemma, proposition, or corollary."
 argument-hint: [theorem-statement-and-assumptions]
 allowed-tools: Read, Write, Edit, Grep, Glob
 ---

@@ -1,6 +1,6 @@
 ---
 name: meta-task-reporting
-description: "This skill should be used when the user asks for efficient communication, task reports, file-operation summaries,"
+description: "Use when the user asks for task reports, file-operation summaries, or concise progress updates."
 ---
 
 # Expression Skill

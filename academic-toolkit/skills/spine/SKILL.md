@@ -1,6 +1,6 @@
 ---
 name: spine
-description: "Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end, then output"
+description: "Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end. PaperSpine suite entrypoint routing to intake, research, rewrite, build, and audit branches."
 ---
 
 

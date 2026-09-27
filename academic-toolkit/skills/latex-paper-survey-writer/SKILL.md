@@ -1,6 +1,6 @@
 ---
 name: latex-paper-survey-writer
-description: "> Writes ML/AI review and survey papers for arXiv using the IEEEtran LaTeX template with verified BibTeX citations."
+description: "Writes ML/AI review and survey papers for arXiv using the IEEEtran LaTeX template with verified BibTeX citations."
 ---
 
 

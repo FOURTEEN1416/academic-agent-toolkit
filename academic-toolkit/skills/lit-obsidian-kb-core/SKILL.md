@@ -1,6 +1,6 @@
 ---
 name: lit-obsidian-kb-core
-description: "Use this as the main Claude Scholar skill for a vault-first, project-scoped Obsidian research knowledge base rooted at"
+description: "Main entry for a vault-first, project-scoped Obsidian research knowledge base at Research/{project-slug}/. Use as the KB core."
 ---
 
 # Obsidian Project KB Core

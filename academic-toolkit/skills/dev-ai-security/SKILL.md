@@ -1,6 +1,6 @@
 ---
 name: dev-ai-security
-description: "Use when assessing AI/ML systems for prompt injection, jailbreak vulnerabilities, model inversion risk, data poisoning"
+description: "Use when assessing AI/ML systems for prompt injection, jailbreak, model inversion, data poisoning, or agent tool abuse."
 ---
 
 # AI Security

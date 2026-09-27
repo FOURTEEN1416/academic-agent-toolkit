@@ -1,6 +1,6 @@
 ---
 name: spine-humanize
-description: "Reduces AI detection rates via tiered stylistic constraints mapped to real AIGC detection dimensions. Produces a"
+description: "Reduces AI detection rates via tiered stylistic constraints mapped to real AIGC detection dimensions. Produces a teaching matrix of applied constraints."
 ---
 
 

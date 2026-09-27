@@ -1,6 +1,6 @@
 ---
 name: meta-command-development
-description: "This skill should be used when the user asks to ”create a slash command”, ”add a command”, ”write a custom command”,"
+description: "Use when the user asks to ”create a slash command”, ”add a command”, or ”write a custom command” for Claude Code."
 version: 0.2.0
 ---
 

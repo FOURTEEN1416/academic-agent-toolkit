@@ -1520,7 +1520,7 @@ if __name__ == '__main__':
   3. 自动从 OCR 文件抽出所有数字集合（regex 抓 `\d+\.\d+|\d+`），与 PROBLEM_FACTS.json 数值字段集合比对
   4. **facts ∖ OCR ≠ ∅** → 拒绝（facts 含 OCR 原文没有的数字 = AI 虚构）
   5. **OCR ∖ facts > 50** → 警告（可能漏抄）
-- **AI 想绕过的难度**：要么改 OCR 文件（hash 立刻变，被抓）、要么改 audit 脚本（脚本是加密分发的 `.enc`，每次 comp-code 启动从 `_utils/` 重新解密，AI 改了也没用）、要么同时虚构 + 修改原文（hash 守恒），三选一都做不到。
+- **AI 想绕过的难度**：要么改 OCR 文件（hash 立刻变，被抓）、要么改 audit 脚本（`_utils/facts_audit.py` 为明文脚本且是唯一入口，受 git 与 provenance 留痕追踪，改动必被发现）、要么同时虚构 + 修改原文（hash 守恒），三选一都做不到。
 - **辅助防护（双源对比）**：仍保留 `PARAMS_RAW.md` + `raw_quote` 字段作为辅助证据，让 AI 想伪造时要让"原文 + facts + 自然语言摘录"三方同时一致，难度极大。
 
 ### 漏洞 2：派生值虚构

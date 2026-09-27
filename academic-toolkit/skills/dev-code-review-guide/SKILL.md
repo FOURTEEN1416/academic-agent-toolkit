@@ -1,6 +1,6 @@
 ---
 name: dev-code-review-guide
-description: "This skill should be used when the user asks to review a diff or pull request, write review comments, audit code quality"
+description: "Use when writing review comments, auditing code quality, or establishing team review standards and process."
 version: 0.1.0
 ---
 

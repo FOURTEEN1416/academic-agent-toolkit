@@ -1,7 +1,7 @@
 ---
 name: latex-bib-doi-toggle
 user_invocable: true
-description: "Toggle DOI/URL display in the compiled bibliography of a biblatex-based LaTeX paper. Default-on for review/writing"
+description: "Toggles DOI/URL display in a biblatex bibliography; default on, off only when a venue strips them. Use for DOI/URL toggling."
 ---
 
 # bib-doi-toggle — Toggle clickable DOI/URL refs

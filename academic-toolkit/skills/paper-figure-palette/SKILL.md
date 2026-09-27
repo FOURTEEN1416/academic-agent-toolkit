@@ -1,6 +1,6 @@
 ---
 name: paper-figure-palette
-description: "统一配色体系（多场景）：先按数据类型选分类/顺序/发散色板，再按场景（中文竞赛论文 / 英文期刊投稿 / 学位论文与课程报告 / 答辩幻灯与海报 / Word-PPT-Excel 内嵌）落地，含 9 套色板色值真源、10 条使用规范、5 项禁用清单。触发词：配色、色板、palette、上色、协调、色带、colormap、墨色、图表美化、figure color、色盲友好、colorblind、CVD、灰度打印、无障碍、Okabe-Ito、Paul Tol、viridis、cividis、RdBu、期刊投稿图配色、黑白打印可读、配色移到 Word/PPT/Excel、jet 色带能不能用。合规（灰度/色盲可分）与美观冲突时以合规为准。"
+description: "统一配色体系：按数据类型与场景选色板落地。触发词：配色、色板、palette、上色、协调、色带、colormap、墨色、图表美化、figure color、色盲友好、colorblind、CVD、灰度打印、无障碍、Okabe-Ito、Paul Tol、viridis、cividis、RdBu、期刊投稿图配色、黑白打印可读、配色移到 Word/PPT/Excel、jet 色带能不能用。"
 agent_created: true
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: comp-review
-description: "数学建模竞赛·逻辑对抗复核。在编程实现后、论文撰写前，用独立视角挑'方向反/重复计量/外推过硬/漏变量/跨问矛盾'这类自查看不见的硬错。触发词：逻辑复核、对抗审查、模型审查、方向反/漏变量/跨问矛盾排查。Use between comp-code and comp-paper."
+description: "数学建模竞赛逻辑对抗复核：编程实现后、论文撰写前，用独立视角挑方向反/重复计量/外推过硬/漏变量/跨问矛盾等硬错。触发词：逻辑复核、对抗审查、模型审查。Use between comp-code and comp-paper。"
 argument-hint: [problem-context]
 allowed-tools: Bash(*), Read, Grep, Glob, Agent
 ---

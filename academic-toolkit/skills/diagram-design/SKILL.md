@@ -1,6 +1,6 @@
 ---
 name: diagram-design
-description: "Create branded architecture, IT current-state, flowchart, sequence, state machine, ER/data model, timeline, swimlane,"
+description: "Create branded architecture, IT current-state, flowchart, sequence, state machine, ER/data model, timeline, swimlane, and more as self-contained HTML with inline SVG."
 license: MIT
 metadata:
   version: "2.6"

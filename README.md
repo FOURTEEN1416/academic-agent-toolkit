@@ -7,7 +7,7 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v2.1.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-1005_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
+[![Tests](https://img.shields.io/badge/tests-1007_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-313-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-250_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)

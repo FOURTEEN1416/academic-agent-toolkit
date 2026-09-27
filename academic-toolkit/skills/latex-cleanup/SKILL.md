@@ -1,7 +1,7 @@
 ---
 name: latex-cleanup
 user_invocable: true
-description: "Review LaTeX documents for common issues, style consistency, typography, cross-references, draft artifacts, and"
+description: "Reviews LaTeX docs for style, typography, cross-references, artifacts, and compile-breaking leftovers. Use when cleaning up LaTeX."
 ---
 
 # latex-cleanup — LaTeX Document Review

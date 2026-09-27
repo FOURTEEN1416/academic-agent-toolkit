@@ -1,6 +1,6 @@
 ---
 name: meta-research-summarizer
-description: "Structured research summarization agent skill for non-dev users. Handles academic papers, web articles, reports, and"
+description: "Summarizes papers, web articles, reports, and dense sources into citable briefs. Use when summarizing research material."
 license: MIT
 metadata:
   version: 1.0.0

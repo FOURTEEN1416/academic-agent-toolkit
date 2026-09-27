@@ -2,7 +2,7 @@
 
 name: comp-paper-zh-docx
 
-description: "数模竞赛/统计建模中文论文撰写（Word docx 模式）。docx-mode counterpart of comp-paper-zh — keeps competition chapter structure but produces paper/main.md only."
+description: "数模竞赛/统计建模中文论文撰写（Word docx 模式），comp-paper-zh 的 docx 对应版，只产出 paper/main.md。"
 argument-hint: [competition-type]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch
@@ -1110,6 +1110,8 @@ echo "参考文献条目: $ref_count"
 
 PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
 
+SCHOLAR_SCRIPT="tools/scholar_fetch.py"
+
 mkdir -p _tmp
 
 
@@ -1225,6 +1227,8 @@ REVIEW_EOF
 cat paper/main.md >> _tmp/_review_prompt.txt
 
 PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+
+REVIEWER_SCRIPT="tools/reviewer_client.py"
 
 $PYTHON "$REVIEWER_SCRIPT" --prompt-file _tmp/_review_prompt.txt --thread-file _tmp/_reviewer_thread.json 2>&1 | tee _tmp/_cross_review.txt
 

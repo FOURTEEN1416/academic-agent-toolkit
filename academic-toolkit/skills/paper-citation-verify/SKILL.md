@@ -1,6 +1,6 @@
 ---
 name: paper-citation-verify
-description: "Use when checking manuscript citations, bibliography hygiene, DOI or PMID completeness, placeholder references, or"
+description: "Use when checking manuscript citations: bibliography hygiene, DOI/PMID completeness, placeholders, BibTeX key mismatches."
 ---
 
 # Citation Verifier

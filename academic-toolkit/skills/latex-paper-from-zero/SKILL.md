@@ -1,6 +1,6 @@
 ---
 name: latex-paper-from-zero
-description: "> Route a fixed research topic into a rigorous paper-generation workflow. Handles active literature search, innovation"
+description: "Route a fixed research topic into a rigorous paper-generation workflow. Handles active literature search, innovation framing, evidence planning, and draft-ready output."
 metadata:
   short-description: Research-to-paper router for review and empirical papers
 ---

@@ -1,6 +1,6 @@
 ---
 name: doc-notebooklm-control
-description: "Browser automation skill for controlling Google's NotebookLM. Use when the user wants anything done in NotebookLM (e.g.,"
+description: "Browser automation for NotebookLM. Use when the user wants anything done in NotebookLM (notebooks, sources, Studio outputs)."
 license: MIT
 metadata:
   source_spec: "megaprompts/03-notebooklm-megaprompt.md"

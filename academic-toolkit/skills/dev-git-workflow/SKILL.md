@@ -1,6 +1,6 @@
 ---
 name: dev-git-workflow
-description: "This skill should be used when the user asks to ”create git commit”, ”manage branches”, ”follow git workflow”, ”use"
+description: "Use when the user asks to ”create git commit”, ”manage branches”, ”follow git workflow”, or ”use conventional commits”."
 version: 1.2.0
 ---
 

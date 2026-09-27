@@ -1,6 +1,6 @@
 ---
 name: dev-frontend-design
-description: "Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to"
+description: "Create production-grade frontend interfaces. Use when the user asks to build or redesign a web UI, page, or component."
 license: Complete terms in LICENSE.txt
 version: 0.1.0
 ---

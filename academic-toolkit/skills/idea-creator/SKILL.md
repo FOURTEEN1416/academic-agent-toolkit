@@ -1,6 +1,6 @@
 ---
 name: idea-creator
-description: "Generate and rank research ideas given a broad direction. Use when user says ”找idea”, ”brainstorm ideas”, ”generate"
+description: "Generate and rank research ideas given a broad direction. Use when user says ”找idea”, ”brainstorm ideas”, or ”generate research ideas”."
 argument-hint: [research-direction]
 allowed-tools: Bash(*), Read, Write, Grep, Glob, WebSearch, WebFetch, Agent
 ---

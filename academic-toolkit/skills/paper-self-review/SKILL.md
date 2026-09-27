@@ -1,6 +1,6 @@
 ---
 name: paper-self-review
-description: "This skill should be used when the user asks to ”review paper quality”, ”check paper completeness”, ”validate paper"
+description: "Use when the user asks to ”review paper quality”, ”check paper completeness”, or ”validate paper structure”."
 version: 0.1.0
 ---
 

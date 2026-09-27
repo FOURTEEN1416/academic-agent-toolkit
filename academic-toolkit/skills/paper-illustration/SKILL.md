@@ -1,6 +1,6 @@
 ---
 name: paper-illustration
-description: "Generate publication-quality AI illustrations for academic papers using Gemini image generation. Creates architecture"
+description: "Generate publication-quality AI illustrations for academic papers using Gemini image generation. Creates architecture schematics and concept figures with agent-supervised review."
 argument-hint: [description-or-method-file]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch
 ---
@@ -276,6 +276,9 @@ VERIFY: Each arrow must point to the CORRECT target!
 
 set -e
 
+# Python 解析（与 paper-figure-html 同口径：优先 MH_PYTHON，python3 可能触发 Windows Store 存根）
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+
 OUTPUT_DIR="figures/ai_generated"
 mkdir -p "$OUTPUT_DIR"
 
@@ -302,7 +305,7 @@ Provide:
 Output a DETAILED layout specification that will be used for rendering."
 
 # Build JSON payload
-python3 << PYTHON
+$PYTHON << PYTHON
 import json
 payload = {
     "contents": [{"parts": [{"text": '''$LAYOUT_REQUEST'''}]}]
@@ -319,7 +322,7 @@ RESPONSE=$(curl -s --max-time 90 \
   -d @/tmp/gemini_layout_request.json)
 
 # Extract layout description
-LAYOUT_DESCRIPTION=$(echo "$RESPONSE" | python3 -c "
+LAYOUT_DESCRIPTION=$(echo "$RESPONSE" | $PYTHON -c "
 import sys, json
 data = json.load(sys.stdin)
 try:
@@ -340,6 +343,9 @@ echo "$LAYOUT_DESCRIPTION" > "$OUTPUT_DIR/layout_description.txt"
 ```bash
 #!/bin/bash
 # Step 3: Verify and enhance style compliance using Gemini gemini-3-pro
+
+# Python 解析（与 paper-figure-html 同口径：优先 MH_PYTHON，python3 可能触发 Windows Store 存根）
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
 
 API_KEY="${GEMINI_API_KEY}"
 URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent?key=$API_KEY"
@@ -365,7 +371,7 @@ Ensure compliance with:
 Output an ENHANCED figure specification with explicit style instructions for rendering."
 
 # Build JSON payload
-python3 << PYTHON
+$PYTHON << PYTHON
 import json
 payload = {
     "contents": [{"parts": [{"text": '''$STYLE_REQUEST'''}]}]
@@ -382,7 +388,7 @@ RESPONSE=$(curl -s --max-time 90 \
   -d @/tmp/gemini_style_request.json)
 
 # Extract style-enhanced specification
-STYLE_SPEC=$(echo "$RESPONSE" | python3 -c "
+STYLE_SPEC=$(echo "$RESPONSE" | $PYTHON -c "
 import sys, json
 data = json.load(sys.stdin)
 try:
@@ -408,6 +414,9 @@ echo "$STYLE_SPEC" > "figures/ai_generated/style_spec.txt"
 
 set -e
 
+# Python 解析（与 paper-figure-html 同口径：优先 MH_PYTHON，python3 可能触发 Windows Store 存根）
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+
 OUTPUT_DIR="figures/ai_generated"
 mkdir -p "$OUTPUT_DIR"
 
@@ -429,7 +438,7 @@ RENDERING REQUIREMENTS:
 - The diagram should be immediately understandable at a glance"
 
 # Build JSON payload using Python for proper escaping
-python3 << PYTHON
+$PYTHON << PYTHON
 import json
 payload = {
     "contents": [{"parts": [{"text": '''$RENDER_PROMPT'''}]}],
@@ -449,21 +458,30 @@ RESPONSE=$(curl -s --max-time 180 \
 # Check for error
 if echo "$RESPONSE" | grep -q '"error"'; then
     echo "API Error:"
-    echo "$RESPONSE" | python3 -m json.tool 2>/dev/null || echo "$RESPONSE"
+    echo "$RESPONSE" | $PYTHON -m json.tool 2>/dev/null || echo "$RESPONSE"
     exit 1
 fi
 
 # Extract and save image
-echo "$RESPONSE" | python3 << 'PYTHON'
-import sys, json, base64
+# ⛔ 不用管道喂 heredoc：`cmd | $PYTHON << EOF` 中 heredoc 重定向会覆盖管道 stdin，json.load 永远 EOF。
+# 先把响应落盘临时文件，再以 argv 传入。
+TMP_JSON=$(mktemp)
+printf '%s' "$RESPONSE" > "$TMP_JSON"
+$PYTHON - "$TMP_JSON" << 'PYTHON'
+import sys, json, base64, glob, re
 from pathlib import Path
 
 output_dir = Path("figures/ai_generated")
-data = json.load(sys.stdin)
+with open(sys.argv[1]) as f:
+    data = json.load(f)
 
 try:
     parts = data['candidates'][0]['content']['parts']
-    iteration = 1  # 执行 Agent 每轮递增
+    # 扫描既有 figure_v*.png，版本号取 max+1（执行 Agent 无需手工递增）
+    existing = [int(m.group(1))
+                for p in glob.glob(str(output_dir / "figure_v*.png"))
+                for m in [re.search(r"figure_v(\d+)\.png$", p)] if m]
+    iteration = max(existing, default=0) + 1
 
     for part in parts:
         if 'text' in part:
@@ -475,11 +493,13 @@ try:
                 f.write(img_data)
             print(f"\n✅ Image saved: {img_path}")
             print(f"   Size: {len(img_data)/1024:.1f} KB")
+            iteration += 1
 
 except Exception as e:
     print(f"Parse error: {e}")
     print(f"Raw response: {str(data)[:500]}")
 PYTHON
+rm -f "$TMP_JSON"
 ```
 
 ### Step 5: 执行 Agent STRICT Visual Review & Scoring (MANDATORY)

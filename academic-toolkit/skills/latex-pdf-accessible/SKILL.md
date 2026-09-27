@@ -1,7 +1,7 @@
 ---
 name: latex-pdf-accessible
 user_invocable: true
-description: "Make a LaTeX document produce accessible tagged PDFs (PDF/UA-1, PDF/A-2b). Creates a non-destructive copy and Makefile"
+description: "Make a LaTeX document produce accessible tagged PDFs (PDF/UA-1, PDF/A-2b). Creates a non-destructive copy and Makefile target."
 ---
 
 # accessible-pdf — Accessible PDF from LaTeX

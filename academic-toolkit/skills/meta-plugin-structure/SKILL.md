@@ -1,6 +1,6 @@
 ---
 name: meta-plugin-structure
-description: "This skill should be used when the user asks to ”create a plugin”, ”scaffold a plugin”, ”understand plugin structure”,"
+description: "Use when the user asks to ”create a plugin”, ”scaffold a plugin”, or ”understand plugin structure” for Claude Code."
 version: 0.1.0
 ---
 

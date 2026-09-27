@@ -1,6 +1,6 @@
 ---
 name: meta-agent-harness
-description: "Turn any domain folder of skills into a bounded agentic loop: compile a goal into a verifiable task plan, execute tasks"
+description: "Use when a goal needs a bounded agentic loop: compile a verifiable plan, execute one task at a time until checks pass."
 ---
 
 # Agent Harness

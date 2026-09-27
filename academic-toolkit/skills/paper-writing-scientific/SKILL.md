@@ -1,6 +1,6 @@
 ---
 name: paper-writing-scientific
-description: "Use when writing or revising scientific manuscripts, abstracts, figures, or references for journal submission and you"
+description: "Use when writing or revising scientific manuscripts, abstracts, figures, or references for journal submission and you need journal-grade, standards-aligned prose."
 ---
 
 

@@ -1,6 +1,6 @@
 ---
 name: research-refine
-description: "'Turn a vague research direction into a problem-anchored, elegant, frontier-aware, implementation-oriented method plan"
+description: "Turn a vague research direction into a problem-anchored, elegant, frontier-aware, implementation-oriented method plan. Use when the problem is visible but the technical route is still fuzzy."
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent
 ---
 
@@ -40,6 +40,7 @@ User input (PROBLEM + vague APPROACH)
 - **MAX_CORE_EXPERIMENTS = 3** — Default cap for core validation blocks inside this skill.
 - **MAX_PRIMARY_CLAIMS = 2** — Soft cap for paper-level claims. Prefer one dominant claim plus one supporting claim.
 - **MAX_NEW_TRAINABLE_COMPONENTS = 2** — Soft cap for genuinely new trainable pieces. Exceed only if the paper breaks otherwise.
+- **REVIEWER_SCRIPT = `tools/reviewer_client.py`** — External reviewer client script (resolved from skill source dir; used by the review calls in Phase 2+).
 
 > Override via argument if needed, e.g. `/research-refine "problem | approach" -- max rounds: 3, threshold: 9`.
 
@@ -642,7 +643,7 @@ else
     echo "❌ refine-logs/FINAL_PROPOSAL.md missing or too small ($SZ bytes) — write it NOW before ending"
     PASS=false
 fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must produce output before ending step"
+[ "$PASS" != true ] && { echo "⛔ Verification failed — must produce output before ending step"; exit 1; }
 ```
 
 - **Anchor first, every round.** Always carry forward the same Problem Anchor.

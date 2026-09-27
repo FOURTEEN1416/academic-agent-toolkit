@@ -1,6 +1,6 @@
 ---
 name: latex-paper-collab-depth
-description: "> Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression,"
+description: "Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression and deep evidence analysis (depth over breadth). 只用于逐点深挖/论证收敛；方向发散与选题扩展场景改用 latex-paper-collab-breadth. Optional collaborator, skips when CLI absent."
 metadata:
   short-description: Depth co-pilot (Claude) for paper-from-zero
 ---

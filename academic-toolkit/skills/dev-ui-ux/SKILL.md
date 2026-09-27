@@ -1,6 +1,6 @@
 ---
 name: dev-ui-ux
-description: "This skill should be used when the user asks to design or review a UI, create a landing page or dashboard, choose colors"
+description: "Use when the user asks to design or review a UI, build landing pages or dashboards, or pick colors, typography, design systems."
 version: 0.2.0
 ---
 

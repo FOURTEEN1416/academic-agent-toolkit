@@ -1,13 +1,15 @@
 # ASSET-GAP 资产缺口声明 — meta-agent-config
 
 > 上游不可得：galaxy 系技能包未公开发布（GitHub 全网搜索无命中，2026-09-09 溯源），本仓库仅存集成时的 SKILL.md 孤本。以下引用所指资产在可得的任何上游渠道均不存在。
+> 2026-09-28 深读批补登，上游资产未随本仓集成：新增条目均为 SKILL.md 正文实际引用、盘上缺失、且未经内联标记/登记册棘轮/本清单三渠道豁免者（`agents/agent-name.md` 为用户侧保存位置占位符，非本技能资产，不列）。
 
-## 缺失资产清单（4 项，2026-09-09 审计）
+## 缺失资产清单（共 5 项：2026-09-09 审计 4 项 + 2026-09-28 补登 1 项）
 
 - `references/agent-creation-system-prompt.md`
 - `references/system-prompt-design.md`
 - `references/triggering-examples.md`
 - `scripts/validate-agent.sh`
+- `examples/agent-creation-prompt.md`
 
 ## 处置口径
 

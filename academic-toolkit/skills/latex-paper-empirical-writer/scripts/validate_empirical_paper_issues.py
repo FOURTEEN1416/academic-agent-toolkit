@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Validate empirical paper issues CSV schema and required fields."""
 
 from __future__ import annotations

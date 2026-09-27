@@ -1,7 +1,7 @@
 ---
 name: lit-citation-verify-latex
 user_invocable: true
-description: "Verify citation references in a LaTeX paper. Checks that all cited papers exist in academic databases, flags suspicious"
+description: "Verifies citations in a LaTeX paper: checks cited works exist, flags fabricated references. Use for LaTeX bibliographies."
 ---
 
 # check-refs — Citation Reference Check

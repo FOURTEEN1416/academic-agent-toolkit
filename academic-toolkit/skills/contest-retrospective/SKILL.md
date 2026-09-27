@@ -1,6 +1,6 @@
 ---
 name: contest-retrospective
-description: "赛后/项目后复盘与经验沉淀：先从留痕取证（不信任自述），再分类为典型场景、踩坑（P0-P2）与交付清单，并为每条归因一个仓库内真实强制点，最后双写经验库真源并机检闭环，可迁移结论回灌对应技能与模板。触发词：复盘、赛后总结、经验沉淀、教训清单、事故归因、post-mortem、retrospective、把教训写进项目、避免下届重踩、lessons learned、根因分析、强制点归因。不负责赛事成绩申诉与论文内容修改。"
+description: "赛后/项目后复盘与经验沉淀：从留痕取证分类典型场景、踩坑与交付清单，归因真实强制点，双写经验库并机检闭环。触发词：复盘、赛后总结、经验沉淀、教训清单、事故归因、post-mortem、retrospective、把教训写进项目、避免下届重踩、lessons learned、根因分析、强制点归因。"
 agent_created: true
 ---
 

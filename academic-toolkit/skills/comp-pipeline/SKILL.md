@@ -1,6 +1,6 @@
 ---
 name: comp-pipeline
-description: "数学建模竞赛全流程入口：把竞赛任务映射到引擎工作流模板（国赛 comp_cumcm、华为杯 comp_huawei、其他赛事对应 comp_*），由引擎分派各步骤并独占流程状态；本技能不再维护并行编排或手动阶段面板。触发词：数模全流程、完整做一道竞赛题、comp-pipeline、从读题到交付。"
+description: "数学建模竞赛全流程入口：竞赛任务映射到引擎工作流模板（comp_cumcm、comp_huawei 等），引擎分派步骤并独占流程状态。触发词：数模全流程、完整做一道竞赛题、comp-pipeline、从读题到交付。"
 allowed-tools: [Read, Write, Edit, Bash(python:*), WebFetch, WebSearch]
 ---
 

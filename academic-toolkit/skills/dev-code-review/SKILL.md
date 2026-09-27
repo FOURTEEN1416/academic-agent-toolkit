@@ -1,6 +1,6 @@
 ---
 name: dev-code-review
-description: "Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin, C#, .NET, Java, C, C++, Rust, Ruby, PHP,"
+description: "Automated multi-language code review; detects issues and generates review reports. Use when reviewing code changes."
 ---
 
 # Code Reviewer

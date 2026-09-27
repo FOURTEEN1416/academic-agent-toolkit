@@ -15,8 +15,8 @@
   "counts": {
     "core": 52,
     "ondemand": 203,
-    "resident_chars": 31062,
-    "full_chars": 64839
+    "resident_chars": 29736,
+    "full_chars": 63654
   },
   "skills": {
     "ablation-planner": {
@@ -134,8 +134,8 @@
     "citation-check": {
       "tier": "core",
       "reason": "主链步骤的推荐/必用位",
-      "resident_description": "引用检查（Citation Check for CUMCM）——国赛论文参考文献质量检查工具。覆盖：格式一致性、GB/T 7714 规范性、引用完整性、来源可信度评估。触发词：引用检查、参考文献格式、GB/T 7714 规范、citation check；在 comp-literature / comp-final-audit 步骤与交付前引用终检时使用。",
-      "full_description": "引用检查（Citation Check for CUMCM）——国赛论文参考文献质量检查工具。覆盖：格式一致性、GB/T 7714 规范性、引用完整性、来源可信度评估。触发词：引用检查、参考文献格式、GB/T 7714 规范、citation check；在 comp-literature / comp-final-audit 步骤与交付前引用终检时使用。",
+      "resident_description": "引用检查（CUMCM 参考文献质量检查）：格式一致性、GB/T 7714 规范性、引用完整性、来源可信度。触发词：引用检查、参考文献格式、GB/T 7714 规范、citation check；交付前引用终检时使用。",
+      "full_description": "引用检查（CUMCM 参考文献质量检查）：格式一致性、GB/T 7714 规范性、引用完整性、来源可信度。触发词：引用检查、参考文献格式、GB/T 7714 规范、citation check；交付前引用终检时使用。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/citation-check/SKILL.md"
     },
@@ -150,8 +150,8 @@
     "comp-compile-en": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says ”compile MCM paper”,。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。",
-      "full_description": "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says ”compile MCM paper”,。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。",
+      "resident_description": "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says ”compile MCM paper”。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。",
+      "full_description": "Compile English competition paper (MCM/ICM/APMCM) and run compliance checks. Use when user says ”compile MCM paper”。只负责编译既有 .tex，不做内容创作；要从零写英文竞赛论文改用 comp-paper-en。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-compile-en/SKILL.md"
     },
@@ -166,8 +166,8 @@
     "comp-consistency": {
       "tier": "core",
       "reason": "comp_cumcm 主链步骤",
-      "resident_description": "Use when a mathematical modeling competition paper must be checked against its canonical results JSON, code outputs, figures, and reported headline metrics before compilation.",
-      "full_description": "Use when a mathematical modeling competition paper must be checked against its canonical results JSON, code outputs, figures, and reported headline metrics before compilation.",
+      "resident_description": "Use when a competition paper must be checked against canonical results JSON, code outputs, figures, and headline metrics.",
+      "full_description": "Use when a competition paper must be checked against canonical results JSON, code outputs, figures, and headline metrics.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-consistency/SKILL.md"
     },
@@ -182,8 +182,8 @@
     "comp-cumcm-disclosure": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "CUMCM AI 工具使用申报双件套的入口与检查：生成/校验《AI工具使用详情》PDF 与论文正文 AI 使用声明，并核对声明措辞与详情用途口径一致。触发词：AI 申报、AI工具使用详情、AI 使用声明、disclosure、人工智能工具使用规定、申报四节。两条硬约束：详情不得由语言模型自由编写，正文与详情必须口径一致。",
-      "full_description": "CUMCM AI 工具使用申报双件套的入口与检查：生成/校验《AI工具使用详情》PDF 与论文正文 AI 使用声明，并核对声明措辞与详情用途口径一致。触发词：AI 申报、AI工具使用详情、AI 使用声明、disclosure、人工智能工具使用规定、申报四节。两条硬约束：详情不得由语言模型自由编写，正文与详情必须口径一致。",
+      "resident_description": "CUMCM AI 工具使用申报双件套入口：生成/校验《AI工具使用详情》PDF 与正文 AI 使用声明，核对口径一致。触发词：AI 申报、AI工具使用详情、AI 使用声明、disclosure、人工智能工具使用规定、申报四节。",
+      "full_description": "CUMCM AI 工具使用申报双件套入口：生成/校验《AI工具使用详情》PDF 与正文 AI 使用声明，核对口径一致。触发词：AI 申报、AI工具使用详情、AI 使用声明、disclosure、人工智能工具使用规定、申报四节。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-cumcm-disclosure/SKILL.md"
     },
@@ -230,8 +230,8 @@
     "comp-literature": {
       "tier": "core",
       "reason": "comp_cumcm 主链步骤",
-      "resident_description": "Use when a mathematical modeling competition workflow needs verified literature research, citation provenance, or a reproducible reference ledger before modeling or paper writing.",
-      "full_description": "Use when a mathematical modeling competition workflow needs verified literature research, citation provenance, or a reproducible reference ledger before modeling or paper writing.",
+      "resident_description": "Use when a math modeling competition workflow needs verified literature research, citation provenance, or a reference ledger.",
+      "full_description": "Use when a math modeling competition workflow needs verified literature research, citation provenance, or a reference ledger.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-literature/SKILL.md"
     },
@@ -262,8 +262,8 @@
     "comp-paper-en-docx": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Mathematical modeling competition paper in English (MCM/ICM/APMCM) — Word docx mode. docx-mode counterpart of comp-paper-en — keeps COMAP structure but produces paper/main.md only. 区别于 comp-paper-zh-docx：本技能只用于英文 MCM/ICM/APMCM，中文竞赛论文改用 comp-paper-zh-docx。触发词：英文竞赛论文 docx、Word 模式、comp-paper-en-docx。",
-      "full_description": "Mathematical modeling competition paper in English (MCM/ICM/APMCM) — Word docx mode. docx-mode counterpart of comp-paper-en — keeps COMAP structure but produces paper/main.md only. 区别于 comp-paper-zh-docx：本技能只用于英文 MCM/ICM/APMCM，中文竞赛论文改用 comp-paper-zh-docx。触发词：英文竞赛论文 docx、Word 模式、comp-paper-en-docx。",
+      "resident_description": "English competition paper (MCM/ICM/APMCM), Word docx mode; docx counterpart of comp-paper-en, produces main.md. 区别于 comp-paper-zh-docx：中文竞赛论文改用 comp-paper-zh-docx。触发词：英文竞赛论文 docx。",
+      "full_description": "English competition paper (MCM/ICM/APMCM), Word docx mode; docx counterpart of comp-paper-en, produces main.md. 区别于 comp-paper-zh-docx：中文竞赛论文改用 comp-paper-zh-docx。触发词：英文竞赛论文 docx。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-paper-en-docx/SKILL.md"
     },
@@ -278,8 +278,8 @@
     "comp-paper-zh-docx": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "数模竞赛/统计建模中文论文撰写（Word docx 模式）。docx-mode counterpart of comp-paper-zh — keeps competition chapter structure but produces paper/main.md only.",
-      "full_description": "数模竞赛/统计建模中文论文撰写（Word docx 模式）。docx-mode counterpart of comp-paper-zh — keeps competition chapter structure but produces paper/main.md only.",
+      "resident_description": "数模竞赛/统计建模中文论文撰写（Word docx 模式），comp-paper-zh 的 docx 对应版，只产出 paper/main.md。",
+      "full_description": "数模竞赛/统计建模中文论文撰写（Word docx 模式），comp-paper-zh 的 docx 对应版，只产出 paper/main.md。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-paper-zh-docx/SKILL.md"
     },
@@ -302,8 +302,8 @@
     "comp-review": {
       "tier": "core",
       "reason": "comp_cumcm 主链步骤",
-      "resident_description": "数学建模竞赛·逻辑对抗复核。在编程实现后、论文撰写前，用独立视角挑'方向反/重复计量/外推过硬/漏变量/跨问矛盾'这类自查看不见的硬错。触发词：逻辑复核、对抗审查、模型审查、方向反/漏变量/跨问矛盾排查。Use between comp-code and comp-paper.",
-      "full_description": "数学建模竞赛·逻辑对抗复核。在编程实现后、论文撰写前，用独立视角挑'方向反/重复计量/外推过硬/漏变量/跨问矛盾'这类自查看不见的硬错。触发词：逻辑复核、对抗审查、模型审查、方向反/漏变量/跨问矛盾排查。Use between comp-code and comp-paper.",
+      "resident_description": "数学建模竞赛逻辑对抗复核：编程实现后、论文撰写前，用独立视角挑方向反/重复计量/外推过硬/漏变量/跨问矛盾等硬错。触发词：逻辑复核、对抗审查、模型审查。Use between comp-code and comp-paper。",
+      "full_description": "数学建模竞赛逻辑对抗复核：编程实现后、论文撰写前，用独立视角挑方向反/重复计量/外推过硬/漏变量/跨问矛盾等硬错。触发词：逻辑复核、对抗审查、模型审查。Use between comp-code and comp-paper。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-review/SKILL.md"
     },
@@ -318,16 +318,16 @@
     "comp-visual-review": {
       "tier": "core",
       "reason": "comp_cumcm 主链步骤",
-      "resident_description": "Use when a mathematical modeling competition paper or its figures need dedicated visual review for readability, clipping, labels, units, and export quality.",
-      "full_description": "Use when a mathematical modeling competition paper or its figures need dedicated visual review for readability, clipping, labels, units, and export quality.",
+      "resident_description": "Use when a competition paper or its figures need visual review for readability, clipping, labels, units, and export quality.",
+      "full_description": "Use when a competition paper or its figures need visual review for readability, clipping, labels, units, and export quality.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-visual-review/SKILL.md"
     },
     "contest-retrospective": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "赛后/项目后复盘与经验沉淀：先从留痕取证（不信任自述），再分类为典型场景、踩坑（P0-P2）与交付清单，并为每条归因一个仓库内真实强制点，最后双写经验库真源并机检闭环，可迁移结论回灌对应技能与模板。触发词：复盘、赛后总结、经验沉淀、教训清单、事故归因、post-mortem、retrospective、把教训写进项目、避免下届重踩、lessons learned、根因分析、强制点归因。不负责赛事成绩申诉与论文内容修改。",
-      "full_description": "赛后/项目后复盘与经验沉淀：先从留痕取证（不信任自述），再分类为典型场景、踩坑（P0-P2）与交付清单，并为每条归因一个仓库内真实强制点，最后双写经验库真源并机检闭环，可迁移结论回灌对应技能与模板。触发词：复盘、赛后总结、经验沉淀、教训清单、事故归因、post-mortem、retrospective、把教训写进项目、避免下届重踩、lessons learned、根因分析、强制点归因。不负责赛事成绩申诉与论文内容修改。",
+      "resident_description": "赛后/项目后复盘与经验沉淀：从留痕取证分类典型场景、踩坑与交付清单，归因真实强制点，双写经验库并机检闭环。触发词：复盘、赛后总结、经验沉淀、教训清单、事故归因、post-mortem、retrospective、把教训写进项目、避免下届重踩、lessons learned、根因分析、强制点归因。",
+      "full_description": "赛后/项目后复盘与经验沉淀：从留痕取证分类典型场景、踩坑与交付清单，归因真实强制点，双写经验库并机检闭环。触发词：复盘、赛后总结、经验沉淀、教训清单、事故归因、post-mortem、retrospective、把教训写进项目、避免下届重踩、lessons learned、根因分析、强制点归因。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/contest-retrospective/SKILL.md"
     },
@@ -687,7 +687,7 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Create Excalidraw diagram JSON files that make visual arguments. Use when the user wants to visualize workflows,",
-      "full_description": "Create Excalidraw diagram JSON files that make visual arguments. Use when the user wants to visualize workflows, architectures, or concepts.",
+      "full_description": "Create Excalidraw diagram JSON files that make visual arguments. Use when the user wants to visualize workflows, decisions, or system behavior as editable .excalidraw files.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/excalidraw-diagram/SKILL.md"
     },
@@ -734,16 +734,16 @@
     "fig-aesthetics-craft": {
       "tier": "core",
       "reason": "主链步骤的推荐/必用位",
-      "resident_description": "图形质感技法集（来自科研绘图文章精编，2026-09-11 批次）：渐变色的合法语义与滥用边界、树图/网络图边色继承（免图例层级图）、AI 绘图代理的五条纪律与逐图提示模板、19 类顶刊构图参照片。触发词：更有质感、渐变色、边色继承、免图例、绘图纪律、审美、网络图边怎么配色、环形树图、桑基/维恩/背景条带。",
-      "full_description": "图形质感技法集（来自科研绘图文章精编，2026-09-11 批次）：渐变色的合法语义与滥用边界、树图/网络图边色继承（免图例层级图）、AI 绘图代理的五条纪律与逐图提示模板、19 类顶刊构图参照片。触发词：更有质感、渐变色、边色继承、免图例、绘图纪律、审美、网络图边怎么配色、环形树图、桑基/维恩/背景条带。",
+      "resident_description": "图形质感技法集：渐变色合法语义与滥用边界、树图/网络图边色继承、AI 绘图纪律与逐图提示模板、顶刊构图参照。触发词：更有质感、渐变色、边色继承、免图例、绘图纪律、审美、网络图边怎么配色、环形树图、桑基/维恩/背景条带。",
+      "full_description": "图形质感技法集：渐变色合法语义与滥用边界、树图/网络图边色继承、AI 绘图纪律与逐图提示模板、顶刊构图参照。触发词：更有质感、渐变色、边色继承、免图例、绘图纪律、审美、网络图边怎么配色、环形树图、桑基/维恩/背景条带。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/fig-aesthetics-craft/SKILL.md"
     },
     "fig-critique": {
       "tier": "core",
       "reason": "主链步骤的推荐/必用位",
-      "resident_description": "Critique academic figures for format, colorblind safety, legibility, overplotting, and category count. Use when reviewing figures before submission.",
-      "full_description": "Critique academic figures for format, colorblind safety, legibility, overplotting, and category count. Use when reviewing figures before submission.",
+      "resident_description": "Critique academic figures for format, colorblind safety, legibility, overplotting, and category count. Use when reviewing figures.",
+      "full_description": "Critique academic figures for format, colorblind safety, legibility, overplotting, and category count. Use when reviewing figures.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/fig-critique/SKILL.md"
     },
@@ -830,16 +830,16 @@
     "humanities-write": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "人文社科论文撰写。基于 OUTLINE.md（含 Claims-Evidence Matrix）撰写完整正文：文本细读 + 理论分析 + 历史语境 + 递进论证，用 $SCHOLAR_SCRIPT 真实检索文献（禁编造），产出 HUMANITIES_PAPER.md。严格遵守反 AI 痕迹与引用闭环自检。Use when continuing a humanities/social-science paper workflow.。只产出 Markdown（HUMANITIES_PAPER.md）；需 LaTeX/PDF 交付时改用 humanities-write-latex。",
-      "full_description": "人文社科论文撰写。基于 OUTLINE.md（含 Claims-Evidence Matrix）撰写完整正文：文本细读 + 理论分析 + 历史语境 + 递进论证，用 $SCHOLAR_SCRIPT 真实检索文献（禁编造），产出 HUMANITIES_PAPER.md。严格遵守反 AI 痕迹与引用闭环自检。Use when continuing a humanities/social-science paper workflow.。只产出 Markdown（HUMANITIES_PAPER.md）；需 LaTeX/PDF 交付时改用 humanities-write-latex。",
+      "resident_description": "人文社科论文撰写：基于 OUTLINE.md 撰写正文，真实检索文献，产出 HUMANITIES_PAPER.md，含反 AI 痕迹与引用闭环自检。Use when continuing a humanities/social-science paper workflow；只产出 Markdown，需 LaTeX/PDF 改用 humanities-write-latex。",
+      "full_description": "人文社科论文撰写：基于 OUTLINE.md 撰写正文，真实检索文献，产出 HUMANITIES_PAPER.md，含反 AI 痕迹与引用闭环自检。Use when continuing a humanities/social-science paper workflow；只产出 Markdown，需 LaTeX/PDF 改用 humanities-write-latex。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/humanities-write/SKILL.md"
     },
     "humanities-write-latex": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "人文社科论文撰写（LaTeX/PDF 版）。基于 OUTLINE.md（含 Claims-Evidence Matrix）撰写完整正文：文本细读 + 理论分析 + 历史语境 + 递进论证，用 $SCHOLAR_SCRIPT 真实检索文献（禁编造），产出 paper/main.tex（ctexart）+ paper/references.bib，交 paper-compile-zh 编译 PDF。严格遵守反 AI 痕迹与引用闭环自检。Use when continuing a humanities/social-science paper workflow in LaTeX/PDF mode.。区别于 humanities-write（仅 Markdown 产出）：本技能只交 paper/main.tex 与 references.bib 并交 paper-compile-zh 编译。",
-      "full_description": "人文社科论文撰写（LaTeX/PDF 版）。基于 OUTLINE.md（含 Claims-Evidence Matrix）撰写完整正文：文本细读 + 理论分析 + 历史语境 + 递进论证，用 $SCHOLAR_SCRIPT 真实检索文献（禁编造），产出 paper/main.tex（ctexart）+ paper/references.bib，交 paper-compile-zh 编译 PDF。严格遵守反 AI 痕迹与引用闭环自检。Use when continuing a humanities/social-science paper workflow in LaTeX/PDF mode.。区别于 humanities-write（仅 Markdown 产出）：本技能只交 paper/main.tex 与 references.bib 并交 paper-compile-zh 编译。",
+      "resident_description": "人文社科论文撰写（LaTeX/PDF 版）：基于 OUTLINE.md 撰写正文，真实检索文献，产出 main.tex + references.bib 交 paper-compile-zh 编译。Use when continuing a humanities paper in LaTeX/PDF mode；区别于 humanities-write（仅 Markdown 产出）。",
+      "full_description": "人文社科论文撰写（LaTeX/PDF 版）：基于 OUTLINE.md 撰写正文，真实检索文献，产出 main.tex + references.bib 交 paper-compile-zh 编译。Use when continuing a humanities paper in LaTeX/PDF mode；区别于 humanities-write（仅 Markdown 产出）。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/humanities-write-latex/SKILL.md"
     },
@@ -942,16 +942,16 @@
     "latex-paper-collab-check": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "> Verify that Gemini CLI and Claude Code CLI are installed, authenticated, and API-reachable before starting",
-      "full_description": "> Verify that Gemini CLI and Claude Code CLI are installed, authenticated, and API-reachable before starting collaboration workflows.",
+      "resident_description": "Verify that Gemini CLI and Claude Code CLI are installed, authenticated, and API-reachable before starting a",
+      "full_description": "Verify that Gemini CLI and Claude Code CLI are installed, authenticated, and API-reachable before starting a collaboration workflow; missing CLIs only skip that phase.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/latex-paper-collab-check/SKILL.md"
     },
     "latex-paper-collab-depth": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "> Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression,",
-      "full_description": "> Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression, logical hole detection, evidence sufficiency audit, and review/empirical routing judgment. Also supports generic code collaboration as fallback.",
+      "resident_description": "Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression and deep",
+      "full_description": "Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression and deep evidence analysis (depth over breadth). 只用于逐点深挖/论证收敛；方向发散与选题扩展场景改用 latex-paper-collab-breadth. Optional collaborator, skips when CLI absent.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/latex-paper-collab-depth/SKILL.md"
     },
@@ -1430,8 +1430,8 @@
     "paper-figure-palette": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "统一配色体系（多场景）：先按数据类型选分类/顺序/发散色板，再按场景（中文竞赛论文 / 英文期刊投稿 / 学位论文与课程报告 / 答辩幻灯与海报 / Word-PPT-Excel 内嵌）落地，含 9 套色板色值真源、10 条使用规范、5 项禁用清单。触发词：配色、色板、palette、上色、协调、色带、colormap、墨色、图表美化、figure color、色盲友好、colorblind、CVD、灰度打印、无障碍、Okabe-Ito、Paul Tol、viridis、cividis、RdBu、期刊投稿图配色、黑白打印可读、配色移到 Word/PPT/Excel、jet 色带能不能用。合规（灰度/色盲可分）与美观冲突时以合规为准。",
-      "full_description": "统一配色体系（多场景）：先按数据类型选分类/顺序/发散色板，再按场景（中文竞赛论文 / 英文期刊投稿 / 学位论文与课程报告 / 答辩幻灯与海报 / Word-PPT-Excel 内嵌）落地，含 9 套色板色值真源、10 条使用规范、5 项禁用清单。触发词：配色、色板、palette、上色、协调、色带、colormap、墨色、图表美化、figure color、色盲友好、colorblind、CVD、灰度打印、无障碍、Okabe-Ito、Paul Tol、viridis、cividis、RdBu、期刊投稿图配色、黑白打印可读、配色移到 Word/PPT/Excel、jet 色带能不能用。合规（灰度/色盲可分）与美观冲突时以合规为准。",
+      "resident_description": "统一配色体系：按数据类型与场景选色板落地。触发词：配色、色板、palette、上色、协调、色带、colormap、墨色、图表美化、figure color、色盲友好、colorblind、CVD、灰度打印、无障碍、Okabe-Ito、Paul Tol、viridis、cividis、RdBu、期刊投稿图配色、黑白打印可读、配色移到 Word/PPT/Excel、jet 色带能不能用。",
+      "full_description": "统一配色体系：按数据类型与场景选色板落地。触发词：配色、色板、palette、上色、协调、色带、colormap、墨色、图表美化、figure color、色盲友好、colorblind、CVD、灰度打印、无障碍、Okabe-Ito、Paul Tol、viridis、cividis、RdBu、期刊投稿图配色、黑白打印可读、配色移到 Word/PPT/Excel、jet 色带能不能用。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-figure-palette/SKILL.md"
     },
@@ -1510,8 +1510,8 @@
     "paper-plan-zh": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Generate a structured Chinese paper outline. Use when user says \\\"中文大纲\\\", \\\"中文论文规划\\\", \\\"Chinese paper outline\\\", or wants to create a Chinese academic paper plan.",
-      "full_description": "Generate a structured Chinese paper outline. Use when user says \\\"中文大纲\\\", \\\"中文论文规划\\\", \\\"Chinese paper outline\\\", or wants to create a Chinese academic paper plan.",
+      "resident_description": "Generate a structured Chinese paper outline. Use when user says ”中文大纲”, ”中文论文规划”, or ”Chinese paper outline”.",
+      "full_description": "Generate a structured Chinese paper outline. Use when user says ”中文大纲”, ”中文论文规划”, or ”Chinese paper outline”.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-plan-zh/SKILL.md"
     },
@@ -1590,8 +1590,8 @@
     "paper-self-review": {
       "tier": "core",
       "reason": "主链步骤的推荐/必用位",
-      "resident_description": "This skill should be used when the user asks to ”review paper quality”, ”check paper completeness”, ”validate paper",
-      "full_description": "This skill should be used when the user asks to ”review paper quality”, ”check paper completeness”, ”validate paper",
+      "resident_description": "Use when the user asks to ”review paper quality”, ”check paper completeness”, or ”validate paper structure”.",
+      "full_description": "Use when the user asks to ”review paper quality”, ”check paper completeness”, or ”validate paper structure”.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-self-review/SKILL.md"
     },
@@ -1623,7 +1623,7 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Use when deciding which paper-related skill to use or how to sequence manuscript work from project setup through",
-      "full_description": "Use when deciding which paper-related skill to use or how to sequence manuscript work from project setup through submission and rebuttal.",
+      "full_description": "Use when deciding which paper-related skill to use or how to sequence manuscript work from project setup through planning, writing, revision, and submission.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/paper-workflow-router/SKILL.md"
     },
@@ -1638,8 +1638,8 @@
     "paper-write-docx": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Draft an English academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'. Mirrors paper-write writing rules (ICLR/NeurIPS/ICML) but produces paper/main.md only. 区别于 paper-write-zh-docx：本技能只用于英文论文的 docx 模式；中文论文改用 paper-write-zh-docx。",
-      "full_description": "Draft an English academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'. Mirrors paper-write writing rules (ICLR/NeurIPS/ICML) but produces paper/main.md only. 区别于 paper-write-zh-docx：本技能只用于英文论文的 docx 模式；中文论文改用 paper-write-zh-docx。",
+      "resident_description": "Draft an English academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'，produces main.md only；中文论文改用 paper-write-zh-docx。",
+      "full_description": "Draft an English academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'，produces main.md only；中文论文改用 paper-write-zh-docx。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-write-docx/SKILL.md"
     },
@@ -1654,8 +1654,8 @@
     "paper-write-nature-docx": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Draft a Nature-style paper as Markdown for Word (docx) export. Use when params.output_format == 'docx' for。区别于 paper-write-docx 与 paper-write-zh-docx：本技能只用于 Nature 风格稿的 docx 模式。",
-      "full_description": "Draft a Nature-style paper as Markdown for Word (docx) export. Use when params.output_format == 'docx' for。区别于 paper-write-docx 与 paper-write-zh-docx：本技能只用于 Nature 风格稿的 docx 模式。",
+      "resident_description": "Draft a Nature-style paper as Markdown for Word export. Use when params.output_format == 'docx'；区别于 paper-write-docx：只用于 Nature 风格 docx 模式。",
+      "full_description": "Draft a Nature-style paper as Markdown for Word export. Use when params.output_format == 'docx'；区别于 paper-write-docx：只用于 Nature 风格 docx 模式。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-write-nature-docx/SKILL.md"
     },
@@ -1670,8 +1670,8 @@
     "paper-write-zh-docx": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Draft a Chinese academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'. Mirrors paper-write-zh writing rules but produces paper/main.md only. 区别于 paper-write-docx：本技能只用于中文论文的 docx 模式；英文论文改用 paper-write-docx。",
-      "full_description": "Draft a Chinese academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'. Mirrors paper-write-zh writing rules but produces paper/main.md only. 区别于 paper-write-docx：本技能只用于中文论文的 docx 模式；英文论文改用 paper-write-docx。",
+      "resident_description": "Draft a Chinese academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'，produces main.md only；英文论文改用 paper-write-docx。",
+      "full_description": "Draft a Chinese academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'，produces main.md only；英文论文改用 paper-write-docx。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-write-zh-docx/SKILL.md"
     },
@@ -1902,8 +1902,8 @@
     "spine": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end, then output",
-      "full_description": "Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end, then output LaTeX/PDF/Word. The main PaperSpine entry point that orchestrates every step.",
+      "resident_description": "Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end. PaperSpine",
+      "full_description": "Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end. PaperSpine suite entrypoint routing to intake, research, rewrite, build, and audit branches.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/spine/SKILL.md"
     },
@@ -1911,7 +1911,7 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation",
-      "full_description": "Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation coverage. (internal /paperspine step)",
+      "full_description": "Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation completeness before calling work done.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/spine-audit/SKILL.md"
     },
@@ -1951,16 +1951,16 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine",
-      "full_description": "Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine",
-      "description_compacted": false,
+      "full_description": "Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine step)",
+      "description_compacted": true,
       "path": "academic-toolkit/skills/spine-intake/SKILL.md"
     },
     "spine-latex": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Handles LaTeX project assembly, figure placement, citations, labels, and compile-safe cleanup. (internal /paperspine",
-      "full_description": "Handles LaTeX project assembly, figure placement, citations, labels, and compile-safe cleanup. (internal /paperspine",
-      "description_compacted": false,
+      "full_description": "Handles LaTeX project assembly, figure placement, citations, labels, and compile-safe cleanup. (internal /paperspine step)",
+      "description_compacted": true,
       "path": "academic-toolkit/skills/spine-latex/SKILL.md"
     },
     "spine-research": {
@@ -1975,8 +1975,8 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal",
-      "full_description": "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal",
-      "description_compacted": false,
+      "full_description": "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal /paperspine step)",
+      "description_compacted": true,
       "path": "academic-toolkit/skills/spine-rewrite/SKILL.md"
     },
     "spine-translate-zh": {
@@ -1991,8 +1991,8 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Checks and updates PaperSpine from GitHub while preserving global config; use for upgrades, latest-version checks, or",
-      "full_description": "Checks and updates PaperSpine from GitHub while preserving global config; use for upgrades, latest-version checks, or",
-      "description_compacted": false,
+      "full_description": "Checks and updates PaperSpine from GitHub while preserving global config; use for upgrades, latest-version checks, or local suite reinstall.",
+      "description_compacted": true,
       "path": "academic-toolkit/skills/spine-update/SKILL.md"
     },
     "sympy": {

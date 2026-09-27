@@ -1,6 +1,6 @@
 ---
 name: pixel-art
-description: "Generate pixel art SVG illustrations for READMEs, docs, or slides. Use when user says ”画像素图”, ”pixel art”, ”make an SVG"
+description: "Generate pixel art SVG illustrations for READMEs, docs, or slides. Use when user says ”画像素图”, ”pixel art”, or ”make an SVG pixel icon”."
 argument-hint: [description of what to draw]
 allowed-tools: Write, Edit, Read, Bash(open *)
 ---

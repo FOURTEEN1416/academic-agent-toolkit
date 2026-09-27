@@ -1,6 +1,6 @@
 ---
 name: paper-results-report
-description: "This skill should be used when the user asks to ”write an experiment report”, ”summarize experimental results”, ”do"
+description: "Use when the user asks to ”write an experiment report”, ”summarize experimental results”, or a post-experiment summary."
 version: 0.1.0
 tags: [Research, Reporting, Experiments, Obsidian]
 ---

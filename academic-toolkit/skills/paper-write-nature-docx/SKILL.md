@@ -2,7 +2,7 @@
 
 name: paper-write-nature-docx
 
-description: "Draft a Nature-style paper as Markdown for Word (docx) export. Use when params.output_format == 'docx' for。区别于 paper-write-docx 与 paper-write-zh-docx：本技能只用于 Nature 风格稿的 docx 模式。"
+description: "Draft a Nature-style paper as Markdown for Word export. Use when params.output_format == 'docx'；区别于 paper-write-docx：只用于 Nature 风格 docx 模式。"
 argument-hint: [venue-or-section]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch
@@ -33,7 +33,7 @@ Draft a Nature-quality paper as Markdown: **$ARGUMENTS**
 
 - **TARGET_VENUE = `Nature`** — Override via Additional Parameters.
 
-- **MAX_PAGES** — Nature Article: ~5 pages main + Methods (override via Additional Parameters).
+- **MAX_PAGES** — Nature Article: ~5 pages main + Methods (override via Additional Parameters). (enforced via word-budget check below)
 
 - **ANONYMOUS = false**
 
@@ -383,7 +383,7 @@ ls paper/*.tex paper/sections/*.tex 2>/dev/null | head -1 | grep -q . && { echo 
 
 
 
-[ "$PASS" != true ] && echo "⛔ verification FAILED"
+[ "$PASS" != true ] && { echo "⛔ verification FAILED"; exit 1; }
 
 ```
 
@@ -403,7 +403,7 @@ ls paper/*.tex paper/sections/*.tex 2>/dev/null | head -1 | grep -q . && { echo 
 
 - `## References` triggers hanging-indent for `[N] ...` lines
 
-- Math: `$inline$`, `$$display$$`, append ` (1)` for numbering
+- Math: `$inline$`, `$$display$$`. **公式编号一律写进公式内部 `\tag{n}`（如 `$$ ... \tag{1}$$`）；⛔ 禁止在闭合分隔线行尾加编号（`$$ (1)` 这种）**——编号带尾巴时引擎认不出闭合行，会吞掉后续正文与图片（事故记录见 paper-write-docx:209-218）。
 
 - Figures: `![Figure 1: caption](figures/fig.png)`
 
@@ -627,7 +627,7 @@ After Results, write Intro with hourglass:
 
 
 
-- Title: ≤ 15 words, contribution-driven (not "A Study of...")
+- Title: ≤ 75 characters, contribution-driven (not "A Study of...")
 
 - Discussion: widen back. Connect findings to broader literature. State boundaries.
 
@@ -861,9 +861,11 @@ Re-run the Output Contract block. All ✅ before ending.
 
 ```bash
 
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+
 [ -f RESULTS.md ] && cat RESULTS.md
 
-python3 - <<'PY'
+$PYTHON - <<'PY'
 
 import json, os, glob
 
@@ -901,7 +903,7 @@ PY
 
 ```
 
-Every scalar you need is in `RESULTS.md` or the range/sample above. If one scalar isn't fully shown, fetch just that value with `python3 -c "import json;d=json.load(open('figures/all_results.json'));print(d['key'])"` — still never read the whole file. Copy exact numbers. No memory-based estimation.
+Every scalar you need is in `RESULTS.md` or the range/sample above. If one scalar isn't fully shown, fetch just that value with `$PYTHON -c "import json;d=json.load(open('figures/all_results.json'));print(d['key'])"` — still never read the whole file. Copy exact numbers. No memory-based estimation.
 
 
 
@@ -1101,9 +1103,11 @@ Before finishing writing / compiling, run the universal audit. Works without `PR
 
 # Falls back to simplified mode if no PROBLEM_FACTS.json (general academic / course / humanities).
 
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+
 if [ -f _utils/facts_audit.py ]; then
 
-    python3 _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
+    $PYTHON _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
 
     PRC=$?
 

@@ -29,7 +29,7 @@ A lightweight orchestrator that manages the complete academic pipeline from rese
 
 > **Routing discipline (v3.9.2):** see `AGENTS.md` "Routing Discipline (v3.9.2)" + `shared/references/intent_clarification_protocol.md` for cross-skill routing rules. This skill assumes routing has already settled — ambiguous cross-phase materials should have been clarified upstream.
 
-**v3.6.3 (opt-in):** Set `ARS_PASSPORT_RESET=1` to promote FULL checkpoints to context-reset boundaries. Use `resume_from_passport=<hash>` in a fresh session to continue from the recorded stage. See [`references/passport_as_reset_boundary.md`](references/passport_as_reset_boundary.md).
+**v3.6.3 (opt-in):** Set `ARS_PASSPORT_RESET=1` to promote FULL checkpoints to context-reset boundaries. Use `resume_from_passport=<hash>` in a fresh session to continue from the recorded stage. See [`references/passport_as_reset_boundary.md`](merged-ars-academic-pipeline/references/passport_as_reset_boundary.md).
 
 **v3.8 (opt-in):** Set `ARS_CLAIM_AUDIT=1` to enable the L3 claim-faithfulness audit gate at the Stage 4 → Stage 5 transition. When the flag is set, the orchestrator dispatches `claim_ref_alignment_audit_agent` after the v3.7.1 Cite-Time Provenance Finalizer and before `formatter_agent`'s hard gate. The audit emits `claim_audit_results[]` + `uncited_assertions[]` + `claim_drifts[]` + `constraint_violations[]` + `audit_sampling_summaries[]` aggregates per the 8-row matrix; HIGH-WARN classes gate-refuse output via the formatter REFUSE rules 6-10. Default OFF for v3.8.0 — ramp-on plan deferred to post-calibration evidence (spec §5 mode flag rationale). See `agents/claim_ref_alignment_audit_agent.md` and the orchestrator §3.6 prose.
 
@@ -70,7 +70,7 @@ resume_from_passport=<hash> [stage=<n>] [mode=<m>]
 - **Gate (resume)**: No flag required. Any session can invoke `resume_from_passport=<hash>` against a passport that carries a valid boundary entry matching the hash.
 - **Intent**: 在*全新会话*中启动下一阶段（宿主无关）。 Resuming within the same session that emitted the boundary provides no token savings and may drop still-live in-session context.
 - **Stage**: Any. Resumes at whatever stage the routing rules above determine.
-- **Reference**: [`references/passport_as_reset_boundary.md`](references/passport_as_reset_boundary.md) — see §"`resume_from_passport` mode contract".
+- **Reference**: [`references/passport_as_reset_boundary.md`](merged-ars-academic-pipeline/references/passport_as_reset_boundary.md) — see §"`resume_from_passport` mode contract".
 
 **Execution flow:**
 1. Detect the user's current stage and available materials

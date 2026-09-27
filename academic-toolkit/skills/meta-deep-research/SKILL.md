@@ -1,6 +1,6 @@
 ---
 name: meta-deep-research
-description: "Run a disciplined, multi-source research investigation for a high-stakes question or decision — fan-out web search"
+description: "Multi-source research for high-stakes questions: fan-out search, verified claims, auditable folder. Use for such decisions."
 ---
 
 # Deep Research — Disciplined Meta-Research

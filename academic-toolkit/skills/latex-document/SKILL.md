@@ -1,6 +1,6 @@
 ---
 name: latex-document
-description: "> 【中文触发】创建/编译/转换任何 LaTeX 文档：简历、报告、幻灯片(Beamer)、海报、小抄、公式卡、信函、发票、书籍、论文、填表表单、格式转换(Markdown/DOCX/HTML↔LaTeX)"
+description: "【中文触发】创建/编译/转换任何 LaTeX 文档：简历、报告、幻灯片(Beamer)、海报、小抄、公式卡、信函、发票、书籍、论文、填表表单、格式转换(Markdown/DOCX/HTML↔LaTeX)"
 ---
 
 

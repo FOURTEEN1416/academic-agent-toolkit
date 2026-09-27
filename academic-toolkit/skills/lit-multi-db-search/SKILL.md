@@ -1,6 +1,6 @@
 ---
 name: lit-multi-db-search
-description: "Search 10 academic paper databases via REST APIs for research papers, preprints, and scholarly articles. Covers PubMed,"
+description: "Search 10 academic paper databases via REST APIs for research papers, preprints, and scholarly articles. Covers PubMed, OpenAlex, arXiv, Semantic Scholar, and more."
 metadata:
   version: "1.0"
   skill-author: K-Dense Inc.

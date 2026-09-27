@@ -1,6 +1,6 @@
 ---
 name: paper-figure-planner
-description: "Use when designing, restructuring, or auditing manuscript figures and you need to define one main claim per figure,"
+description: "Use when designing or auditing manuscript figures: one main claim per figure, coherent panels, legend-results agreement."
 ---
 
 # Figure Planner

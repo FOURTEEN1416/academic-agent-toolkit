@@ -2,7 +2,7 @@
 
 name: paper-write-zh-docx
 
-description: "Draft a Chinese academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'. Mirrors paper-write-zh writing rules but produces paper/main.md only. 区别于 paper-write-docx：本技能只用于中文论文的 docx 模式；英文论文改用 paper-write-docx。"
+description: "Draft a Chinese academic paper as Markdown for Word (docx) export. Use when params.output_format == 'docx'，produces main.md only；英文论文改用 paper-write-docx。"
 argument-hint: [topic]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch
@@ -454,9 +454,11 @@ $UPSTREAM_OK || echo "⚠ 部分上游文件不完整，继续执行但结果可
 
 ```bash
 
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+
 [ -f RESULTS.md ] && cat RESULTS.md
 
-python3 - <<'PY'
+$PYTHON - <<'PY'
 
 import json, os, glob
 
@@ -494,7 +496,7 @@ PY
 
 ```
 
-论文要引的标量都在 `RESULTS.md` 和上面摘要的 range/sample 里；若某个标量摘要没显示全，用 `python3 -c "import json;d=json.load(open('figures/all_results.json'));print(d['键名'])"` 定点取那一个值，仍然不要整读。原样复制数字填入论文。**不要凭记忆估算、四舍五入或编造数值。**
+论文要引的标量都在 `RESULTS.md` 和上面摘要的 range/sample 里；若某个标量摘要没显示全，用 `$PYTHON -c "import json;d=json.load(open('figures/all_results.json'));print(d['键名'])"` 定点取那一个值，仍然不要整读。原样复制数字填入论文。**不要凭记忆估算、四舍五入或编造数值。**
 
 
 
@@ -708,7 +710,7 @@ mkdir -p _tmp
 
 
 
-$$y = f(x; \theta) + \varepsilon \quad (1)$$
+$$y = f(x; \theta) + \varepsilon \tag{1}$$
 
 
 
@@ -1170,6 +1172,8 @@ echo "未嵌入图数量: $missing_img"
 
 echo "--- 引用编号检查 ---"
 
+# 注：此处 max_cited 目前在全文件范围抓 [N]（仅排除标题行），未以参考文献区为界；
+#     以参考文献区为界的正文统计待改进——不影响下方"条目数 < 最大编号"的兜底判断。
 max_cited=$(grep -oE '\[[0-9]+\]' paper/main.md | grep -v '^## ' | tr -d '[]' | sort -n | tail -1)
 
 ref_lines=$(awk '/^## 参考文献|^## References/,0' paper/main.md | grep -cE '^\[[0-9]+\]')
@@ -1474,9 +1478,11 @@ fi
 
 # 即使没 PROBLEM_FACTS.json（普通学术 / 课程论文 / 人文社科），也会以"简化模式"跑独立审计。
 
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+
 if [ -f _utils/facts_audit.py ]; then
 
-    python3 _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
+    $PYTHON _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
 
     PRC=$?
 

@@ -1,6 +1,6 @@
 ---
 name: fig-visualization-advisor
-description: ">- SciPilot Skills 家族成员，负责科研数据可视化——但定位不是”画图工具”， 而是”可视化顾问”。"
+description: "SciPilot Skills 家族成员，负责科研数据可视化——定位不是画图工具，而是可视化顾问：先判断该用什么图讲清结论，再指导绘制出版级成图。"
 ---
 
 # fig-visualization-advisor — 科研数据可视化顾问

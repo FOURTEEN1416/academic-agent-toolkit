@@ -1,6 +1,6 @@
 ---
 name: latex-paper-collab-check
-description: "> Verify that Gemini CLI and Claude Code CLI are installed, authenticated, and API-reachable before starting"
+description: "Verify that Gemini CLI and Claude Code CLI are installed, authenticated, and API-reachable before starting a collaboration workflow; missing CLIs only skip that phase."
 metadata:
   short-description: Collaborator CLI health check
 ---

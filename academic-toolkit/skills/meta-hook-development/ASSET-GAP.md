@@ -1,14 +1,18 @@
 # ASSET-GAP 资产缺口声明 — meta-hook-development
 
 > 上游不可得：galaxy 系技能包未公开发布（GitHub 全网搜索无命中，2026-09-09 溯源），本仓库仅存集成时的 SKILL.md 孤本。以下引用所指资产在可得的任何上游渠道均不存在。
+> 2026-09-28 深读批补登，上游资产未随本仓集成：新增条目均为 SKILL.md 正文实际引用、盘上缺失、且未经内联标记/登记册棘轮/本清单三渠道豁免者（`academic-toolkit/hooks/zcode_audit_l1.py` 自仓库根可解析且实际存在，不列）。
 
-## 缺失资产清单（5 项，2026-09-09 审计）
+## 缺失资产清单（共 8 项：2026-09-09 审计 5 项 + 2026-09-28 补登 3 项）
 
 - `references/advanced.md`
 - `references/migration.md`
 - `references/patterns.md`
 - `scripts/test-hook.sh`
 - `scripts/validate-hook-schema.sh`
+- `examples/load-context.sh`
+- `examples/validate-write.sh`
+- `examples/validate-bash.sh`
 
 ## 处置口径
 

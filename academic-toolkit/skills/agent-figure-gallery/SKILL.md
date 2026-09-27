@@ -1,6 +1,6 @@
 ---
 name: agent-figure-gallery
-description: "Query visual scientific figure references, show candidates for human preference selection, export selected reference"
+description: "Query the AgentFigureGallery visual reference KB, show candidates for human preference selection, and export selected references for figure tasks."
 ---
 
 # Agent Figure Gallery

@@ -1,6 +1,6 @@
 ---
 name: meta-skill-review
-description: "This skill should be used when the user asks to ”analyze skill quality”, ”evaluate this skill”, ”review skill quality”,"
+description: "Use when the user asks to ”analyze skill quality”, ”evaluate this skill”, or ”review skill quality”."
 version: 0.1.0
 ---
 

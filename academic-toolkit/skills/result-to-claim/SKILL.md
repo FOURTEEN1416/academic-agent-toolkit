@@ -1,6 +1,6 @@
 ---
 name: result-to-claim
-description: "Use when experiments complete to judge what claims the results support, what they don't, and what evidence is still"
+description: "Use when experiments complete to judge what claims the results support, what they don't, and what evidence is still missing before paper planning."
 argument-hint: [experiment-description-or-wandb-run]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit
 ---

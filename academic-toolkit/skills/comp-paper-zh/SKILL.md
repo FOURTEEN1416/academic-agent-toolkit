@@ -2229,6 +2229,8 @@ echo "引用 key 数量: $(wc -l < _tmp/_cited_keys.txt)"
 
 PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
 
+SCHOLAR_SCRIPT="tools/scholar_fetch.py"
+
 while IFS= read -r key; do
 
     query=$(echo "$key" | sed 's/^TODO__//; s/_/ /g')
@@ -2535,7 +2537,11 @@ fi
 
 # 仅在本轮发生了章节扩展后执行；未扩展则跳过（Step 7 --stage paper 权威兜底）
 
-cd $WORKSPACE_DIR
+# WORKSPACE_DIR = academic-toolkit 根目录（_utils/facts_audit.py 所在处）；按实际部署路径修改
+
+WORKSPACE_DIR="<academic-toolkit 根目录路径>"
+
+cd "$WORKSPACE_DIR"
 
 python3 _utils/facts_audit.py paper  # 重检 [13][14][15][16] 数字溯源 / 事件源 / 约束闭环
 
@@ -2831,7 +2837,7 @@ if [ -f _utils/facts_audit.py ]; then
 
     python3 _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
 
-    PAPER_RC=$?
+    PAPER_RC=${PIPESTATUS[0]}
 
     if [ $PAPER_RC -eq 1 ]; then
 

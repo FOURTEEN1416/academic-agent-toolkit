@@ -1,6 +1,6 @@
 ---
 name: paper-submission-audit
-description: "Use when a manuscript is close to submission or resubmission and you need a preflight audit for claim support,"
+description: "Use when a manuscript nears submission: preflight audit for claim support, figure-legend consistency, and venue expectations."
 ---
 
 # Submission Audit

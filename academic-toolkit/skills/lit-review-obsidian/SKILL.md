@@ -1,6 +1,6 @@
 ---
 name: lit-review-obsidian
-description: "Use this skill for project-scoped literature review built on Sources/Papers, with synthesis landing in Knowledge,"
+description: "Project-scoped literature review over Sources/Papers; synthesis in Knowledge, deliverables in Outputs. Use for KB-based reviews."
 version: 1.0.0
 ---
 

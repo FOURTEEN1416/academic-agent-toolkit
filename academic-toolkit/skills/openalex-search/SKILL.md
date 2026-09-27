@@ -1,7 +1,7 @@
 ---
 name: openalex-search
 user_invocable: true
-description: "Query and analyze scholarly literature using the OpenAlex API (240M+ works). Use for literature searches, finding papers"
+description: "Query scholarly literature via the OpenAlex API: papers, authors, institutions, citations. Use for literature searches."
 ---
 
 # openalex — Scholarly Literature Search

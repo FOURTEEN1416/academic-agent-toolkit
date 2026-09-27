@@ -1,6 +1,6 @@
 ---
 name: lit-citation-verify
-description: "This skill provides reference guidance for citation verification in academic writing. Use when the user asks about"
+description: "Citation-verification principles and canonical sources. Use when asked how to verify references (guidance, not batch checking)."
 tags: [Research, Academic, Citation, Reference]
 version: 0.1.0
 ---

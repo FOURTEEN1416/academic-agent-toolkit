@@ -1,6 +1,6 @@
 ---
 name: dev-uv-package
-description: "Master the uv package manager for fast Python dependency management, virtual environments, and modern Python project"
+description: "Master the uv package manager for Python dependency management, virtualenvs, and project workflows. Use for uv tasks."
 version: 0.1.0
 ---
 

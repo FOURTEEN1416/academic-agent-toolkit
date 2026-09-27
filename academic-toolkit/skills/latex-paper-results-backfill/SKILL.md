@@ -1,6 +1,6 @@
 ---
 name: latex-paper-results-backfill
-description: "> Back-fill verified experiment results into an existing empirical paper draft. Resolves placeholders, upgrades"
+description: "Back-fill verified experiment results into an existing empirical paper draft. Resolves placeholders, upgrades weak claims, and syncs numbers and figures."
 metadata:
   short-description: Post-experiment paper completion from verified results
 ---

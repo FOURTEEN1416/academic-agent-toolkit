@@ -1,6 +1,6 @@
 ---
 name: paper-data-availability
-description: "Use when drafting, auditing, or revising Data Availability statements, repository plans, accession-number placement,"
+description: "Use when drafting, auditing, or revising Data Availability statements, repository plans, accession-number placement, or source-data mapping."
 ---
 
 

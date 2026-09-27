@@ -1,6 +1,6 @@
 ---
 name: meta-skill-development
-description: "This skill should be used when the user asks to create a new skill, repair an existing skill, improve trigger"
+description: "Use when the user asks to create a new skill, repair an existing one, or restructure SKILL.md content."
 version: 0.2.0
 ---
 

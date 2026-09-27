@@ -1,6 +1,6 @@
 ---
 name: dev-webapp-testing
-description: "Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend"
+description: "Tests local web applications with Playwright: verifies frontend behavior, manages server lifecycle. Use when testing web apps."
 license: Complete terms in LICENSE.txt
 version: 0.1.0
 ---

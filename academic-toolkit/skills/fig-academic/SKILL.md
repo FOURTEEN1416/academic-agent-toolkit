@@ -1,6 +1,6 @@
 ---
 name: fig-academic
-description: "Academic-grade scientific figure creation for Nature/Cell/Science journals. Use when the user asks to create, polish,"
+description: "Academic-grade scientific figure creation for Nature/Cell/Science journals. Use when the user asks to create, polish, or review a publication-grade scientific figure."
 ---
 
 # Academic Figure Skill Hub

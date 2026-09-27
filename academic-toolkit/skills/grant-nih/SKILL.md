@@ -1,6 +1,6 @@
 ---
 name: grant-nih
-description: "NIH grant research skill for clinical researchers. Grill-me intake (research idea + career stage + preliminary data +"
+description: "NIH grant research for clinical researchers: grant discovery, funding overview. Use when pursuing NIH funding."
 license: MIT
 metadata:
   source_spec: "megaprompts/08-grants-megaprompt.md"

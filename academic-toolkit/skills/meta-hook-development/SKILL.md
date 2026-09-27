@@ -1,6 +1,6 @@
 ---
 name: meta-hook-development
-description: "This skill should be used when the user asks to ”create a hook”, ”add a PreToolUse/PostToolUse/Stop hook”, ”validate"
+description: "Use when the user asks to ”create a hook”, ”add a PreToolUse/PostToolUse/Stop hook”, or ”validate hooks”."
 version: 0.1.0
 ---
 

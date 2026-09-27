@@ -1,6 +1,6 @@
 ---
 name: meta-design-space-exploration
-description: "Autonomous design space exploration loop for computer architecture and EDA. Runs a program, analyzes results, tunes"
+description: "Autonomous design space exploration loop for computer architecture and EDA. Runs a program, analyzes results, tunes parameters, and repeats until objective or timeout."
 argument-hint: [task-description — include program, parameters, objective, and timeout]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent
 ---

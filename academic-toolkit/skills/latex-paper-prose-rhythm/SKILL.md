@@ -1,6 +1,6 @@
 ---
 name: latex-paper-prose-rhythm
-description: "> Post-process LaTeX project prose to improve readability through varied sentence and paragraph lengths. Removes filler"
+description: "Post-process LaTeX project prose to improve readability through varied sentence and paragraph lengths. Removes filler words and monotonous patterns."
 ---
 
 

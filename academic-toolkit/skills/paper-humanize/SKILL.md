@@ -1,6 +1,6 @@
 ---
 name: paper-humanize
-description: "This skill should be used when the user asks to ”remove AI writing patterns”, ”humanize this text”, ”make this sound"
+description: "Use when the user asks to ”remove AI writing patterns”, ”humanize this text”, or ”make this sound natural and human-written”."
 version: 1.0.0
 author: gaoruizhang
 license: MIT

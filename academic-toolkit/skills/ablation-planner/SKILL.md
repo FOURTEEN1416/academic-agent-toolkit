@@ -1,6 +1,6 @@
 ---
 name: ablation-planner
-description: "Use when main results pass result-to-claim (claim_supported=yes or partial) and ablation studies are needed for paper"
+description: "Use when main results pass result-to-claim (claim_supported=yes or partial) and ablation studies are needed to answer reviewer questions."
 argument-hint: [method-description-or-claim]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit
 ---

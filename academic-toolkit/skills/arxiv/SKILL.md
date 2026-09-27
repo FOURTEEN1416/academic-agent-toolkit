@@ -1,6 +1,6 @@
 ---
 name: arxiv
-description: "Search, download, and summarize academic papers from arXiv. Use when user says ”search arxiv”, ”download paper”, ”fetch"
+description: "Search, download, and summarize academic papers from arXiv. Use when user says ”search arxiv”, ”download paper”, or ”fetch papers”."
 argument-hint: [query-or-arxiv-id]
 allowed-tools: Bash(*), Read, Write
 ---

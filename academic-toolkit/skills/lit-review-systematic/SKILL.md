@@ -1,6 +1,6 @@
 ---
 name: lit-review-systematic
-description: "Conduct comprehensive, systematic literature reviews using multiple academic databases (PubMed, arXiv, bioRxiv, Semantic"
+description: "Conduct comprehensive, systematic literature reviews using multiple academic databases (PubMed, arXiv, bioRxiv, Semantic Scholar), with thematic synthesis and verified citations."
 allowed-tools: Read Write Edit Bash
 license: MIT license
 metadata:

@@ -255,8 +255,14 @@ XMLEOF
 
 **⛔ 生成技术路线图前必须执行：**
 ```bash
+PYTHON=""
+for _cand in "$MH_PYTHON" python python3 "py -3"; do
+    [ -z "$_cand" ] && continue
+    if $_cand -c "import sys" >/dev/null 2>&1; then PYTHON="$_cand"; break; fi
+done
+[ -z "$PYTHON" ] && PYTHON=python
 echo "=== 随机选择技术路线图模板（4 选 1，确保不同论文风格有差异）==="
-TEMPLATE=$(python3 -c "import random; print(random.choice(['B','B-warm','C','C-cool']))" 2>/dev/null || echo "C")
+TEMPLATE=$($PYTHON -c "import random; print(random.choice(['B','B-warm','C','C-cool']))" 2>/dev/null || echo "C")
 echo "本次使用模板: $TEMPLATE"
 case "$TEMPLATE" in
   B)      FILE=example_roadmap_stats.drawio ;;
@@ -458,7 +464,7 @@ done
 [ -z "$PYTHON" ] && PYTHON=python
 # ⛔ FAST_MODE 代码级门控（与 Step 7.5 一致，不靠散文让 AI 自行判断）：
 #   快速模式 → 清空待审列表，循环一次不进 = 跳过 DrawIO vision 多轮修复（省 API）。
-#   安全性：结构自检 drawio_check.py 已在 Step 5.5 执行（纯结构/几何，说重叠就是真重叠）→ 真翻车照样挡；
+#   安全性：结构自检 drawio_check.py 已在 Step 5 执行（纯结构/几何，说重叠就是真重叠）→ 真翻车照样挡；
 #   本步 vision 只是审美加分项、本就"不阻塞"，跳过不影响最终 gate 结算。
 # ⛔ 块内自检 FAST_MODE（不依赖开头块的变量继承——本 skill 每个块都独立 detect PYTHON，
 #    说明块间不共享变量；FAST_MODE 若只在开头 detect，到这里会是空 → 门控失效、快速模式白设）。
@@ -766,7 +772,7 @@ imgs[0].save('_tmp/${bn}_vcheck.png', 'PNG')
         # 工具原始目录 $MH_TOOLS_DIR（后端注入，指向发布包 tools/）。⛔ 不依赖单一位置，
         # 免得"复制到 _utils/ 没触发"就静默跳过视觉自检（真实翻车：图裸奔到成品）。
         VCHECK=""
-        for _cand in "tools/tikz_vision_check.py" "${MH_TOOLS_DIR}/tikz_vision_check.py" "tools/tikz_vision_check.py"; do
+        for _cand in "_utils/tikz_vision_check.py" "${MH_TOOLS_DIR}/tikz_vision_check.py" "tools/tikz_vision_check.py"; do
             [ -n "$_cand" ] && [ -f "$_cand" ] && { VCHECK="$_cand"; break; }
         done
         if [ -z "$VCHECK" ]; then

@@ -1,6 +1,6 @@
 ---
 name: meta-entity-dossier
-description: "Decision-grade entity research skill — produces a hypothesis-tested dossier on a specific company, person, nonprofit, or"
+description: "Hypothesis-tested dossier on a specific entity (company, person), hypothesis forced upfront. Use for deep entity research."
 license: MIT
 metadata:
   source_spec: "megaprompts/12-dossier-megaprompt.md"

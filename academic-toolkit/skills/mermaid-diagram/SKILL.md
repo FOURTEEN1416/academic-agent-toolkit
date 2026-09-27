@@ -1,6 +1,6 @@
 ---
 name: mermaid-diagram
-description: "Generate Mermaid diagrams from user requirements. Saves .mmd and .md files to figures/ directory with syntax"
+description: "Generate Mermaid diagrams from user requirements. Saves .mmd and .md files to figures/ directory with syntax validation."
 argument-hint: [diagram description or requirements]
 allowed-tools: Bash(*), Read, Write, Edit, Glob, Grep
 ---

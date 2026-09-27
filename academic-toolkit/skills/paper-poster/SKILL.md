@@ -24,6 +24,7 @@ Unlike papers (dense prose, 8-15 pages), posters are **visual-first**: one page,
 - **PAPER_DIR = `paper/`** — Directory containing the compiled paper (main.tex + figures/).
 - **OUTPUT_DIR = `poster/`** — Output directory for all poster files.
 - **REVIEWER_MODEL = `外部评审模型`** — Model used via external reviewer for poster review.
+- **REVIEWER_SCRIPT = `tools/reviewer_client.py`** — External reviewer client script (resolved from skill source dir; see Phase 6).
 - **AUTO_PROCEED = false** — At each checkpoint, **always wait for explicit user confirmation**. Set `true` only if user explicitly requests fully autonomous mode.
 - **COMPILER = `latexmk`** — LaTeX build tool.
 - **ENGINE = `pdflatex`** — LaTeX engine. Use `xelatex` for CJK text.
@@ -376,9 +377,10 @@ Similarly, `\rowcolor` in tables should use 15% intensity: `\rowcolor{primary!15
 
 6. **Convert PDF figures to PNG** for PPTX embedding:
    ```bash
-   python3 -c "import pdf2image" 2>/dev/null || pip install pdf2image
+   PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+   $PYTHON -c "import pdf2image" 2>/dev/null || pip install pdf2image
    # For each figure:
-   python3 -c "
+   $PYTHON -c "
    from pdf2image import convert_from_path
    for name in ['paradigm', 'architecture', 'results', 'hallucination']:
        imgs = convert_from_path(f'poster/figures/{name}.pdf', dpi=300)
@@ -407,7 +409,7 @@ Read each section from `paper/sections/*.tex` and extract poster-appropriate con
 | Conclusion | 3-4 key findings + 2-3 next steps | 60-80 words |
 | Related Work | **Skip entirely** — no space on poster | 0 |
 
-**Total target: 400-700 words** (excluding figure captions and stat callout numbers).
+**Total target: 300-500 words** (excluding figure captions and stat callout numbers).
 
 > ⚠️ **No abstract paragraph on poster.** Replace with a stat banner: 3-4 large-number callout boxes showing headline results. This is the single highest-impact change for 60-second comprehension.
 
@@ -772,7 +774,7 @@ Review this academic conference poster for [VENUE].
 Evaluate using these criteria (score 1-5 each):
 
 1. **Information hierarchy** — Can someone understand the contribution in 60 seconds?
-2. **Text density** — Is it concise enough? (Target: 400-700 words total, bullet points only, NO abstract paragraph)
+2. **Text density** — Is it concise enough? (Target: 300-500 words total, bullet points only, NO abstract paragraph)
 3. **Figure prominence** — Are key results visually dominant? (Target: figures occupy 40-50% of area)
 4. **Column balance** — Are columns roughly equal height?
 5. **Readability** — Font sizes appropriate for 1.5m distance? (Title ≥90pt, body ≥34pt)
@@ -798,18 +800,19 @@ Apply CRITICAL and MAJOR fixes to `poster/main.tex`. Recompile if changes were m
 
 Save review to `poster/POSTER_REVIEW.md`.
 
-> ⚠️ **Important**: After applying review fixes, proceed to Phase 6 only when the poster is finalized. PPTX and SVG must be generated from the **final** LaTeX/PDF — never from an intermediate version.
+> ⚠️ **Important**: After applying review fixes, proceed to Phase 7 only when the poster is finalized. PPTX and SVG must be generated from the **final** LaTeX/PDF — never from an intermediate version.
 
 ### Phase 7: Editable Format Export
 
 > ⚠️ **Generate PPTX and SVG only AFTER all revisions are complete.** This phase runs last (after review fixes) to ensure all formats contain identical content.
 
-#### 6.1 PowerPoint (.pptx)
+#### 7.1 PowerPoint (.pptx)
 
 Generate a native PPTX using `python-pptx` (not pandoc — pandoc conversion is lossy):
 
 ```bash
-python3 -c "import pptx" 2>/dev/null || pip install python-pptx
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+$PYTHON -c "import pptx" 2>/dev/null || pip install python-pptx
 ```
 
 Write a Python script `poster/generate_pptx.py` that:
@@ -837,18 +840,19 @@ def add_image(left, top, w, filename):
 ```
 
 ```bash
-cd poster && python3 generate_pptx.py
+cd poster && "$PYTHON" generate_pptx.py
 # Output: poster/poster.pptx
 ```
 
-#### 6.2 SVG (for Adobe Illustrator)
+#### 7.2 SVG (for Adobe Illustrator)
 
 Convert the compiled PDF to editable SVG. **Preferred method: PyMuPDF** (always available via pip, no brew/system install needed):
 
-```python
+```bash
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
 # Preferred: PyMuPDF (pip install pymupdf) — always works, no system deps
-python3 -c "import fitz" 2>/dev/null || pip install pymupdf
-python3 -c "
+$PYTHON -c "import fitz" 2>/dev/null || pip install pymupdf
+$PYTHON -c "
 import fitz
 doc = fitz.open('poster/main.pdf')
 page = doc[0]
@@ -876,9 +880,9 @@ which inkscape && inkscape poster/main.pdf --export-type=svg --export-filename=p
 > pix.save('poster/poster_preview.png')
 > ```
 
-#### 6.3 Component-based PPTX (Recommended — PDF→independent shapes)
+#### 7.3 Component-based PPTX (Recommended — PDF→independent shapes)
 
-> ⚠️ **This is the recommended PPTX export method.** It produces pixel-perfect output (from PDF) while keeping each poster card as an independent, movable/resizable shape in PowerPoint. The python-pptx rebuild (6.1) loses card styles, shadows, and colorboxes; the full-page image (single PNG) cannot be manipulated at all. This method is the best of both worlds.
+> ⚠️ **This is the recommended PPTX export method.** It produces pixel-perfect output (from PDF) while keeping each poster card as an independent, movable/resizable shape in PowerPoint. The python-pptx rebuild (7.1) loses card styles, shadows, and colorboxes; the full-page image (single PNG) cannot be manipulated at all. This method is the best of both worlds.
 
 **How it works**: Crop each posterbox region from the compiled PDF at 300 DPI, then embed each crop as a separate picture shape in PPTX at its exact grid position. Result: 10-15 independent shapes that can be individually selected, moved, resized, or deleted in PowerPoint.
 

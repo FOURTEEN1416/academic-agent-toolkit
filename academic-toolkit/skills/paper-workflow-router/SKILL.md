@@ -1,6 +1,6 @@
 ---
 name: paper-workflow-router
-description: "Use when deciding which paper-related skill to use or how to sequence manuscript work from project setup through"
+description: "Use when deciding which paper skill to use or how to sequence manuscript work from setup to submission."
 ---
 
 # Paper Workflow

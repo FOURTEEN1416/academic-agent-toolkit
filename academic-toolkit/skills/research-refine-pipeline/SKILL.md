@@ -1,6 +1,6 @@
 ---
 name: research-refine-pipeline
-description: "'Run an end-to-end workflow that chains `research-refine` and `experiment-plan`. Use when the user wants a one-shot"
+description: "Run an end-to-end workflow that chains `research-refine` and `experiment-plan`. Use when the user wants a one-shot package from refined method to experiment plan."
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent
 ---
 

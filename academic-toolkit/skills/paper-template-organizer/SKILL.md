@@ -1,6 +1,6 @@
 ---
 name: paper-template-organizer
-description: "Organize messy conference LaTeX template .zip files into clean Overleaf-ready structure. Use when the user asks to"
+description: "Organizes conference LaTeX template zips into an Overleaf-ready structure. Use when cleaning a downloaded template for Overleaf."
 version: 0.1.0
 ---
 
@@ -19,21 +19,19 @@ Transform messy conference LaTeX template .zip files into clean, Overleaf-ready 
 ```
 Receive .zip file
     ↓
-1. Extract and analyze file structure
+1. Extract and analyze file structure (identify main file and dependencies)
     ↓
-2. Identify main file and dependencies
+2. Diagnose issues (present to user)
     ↓
-3. Diagnose issues (present to user)
+3. Ask for conference info (link/name)
     ↓
-4. Ask for conference info (link/name)
+4. Present cleanup plan and wait for user confirmation
     ↓
-5. Wait for user confirmation of cleanup plan
+5. Execute cleanup, create output directory
     ↓
-6. Execute cleanup, create output directory
+6. Generate README (with official website info)
     ↓
-7. Generate README (with official website info)
-    ↓
-8. Output complete
+7. Cleanup and output complete
 ```
 
 ## Step 1: Extract and Analyze
@@ -230,7 +228,7 @@ For KDD 2026 (using ACM acmart template), add the `nonacm` option to the documen
 \acmDOI{}                         % Clear DOI
 
 %% Content to restore for camera-ready version:
-%% \acmConference[KDD '26]{Proceedings of the 30th ACM SIGKDD Conference on Knowledge Discovery and Data Mining}{August 09--13, 2026}{Jeju, Korea}
+%% \acmConference[KDD '26]{Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining}{August 09--13, 2026}{Jeju, Korea}
 %% \acmISBN{978-1-4503-XXXX-X/26/08}
 %% \acmDOI{10.1145/nnnnnnn.nnnnnnn}
 ```
@@ -270,7 +268,7 @@ Create independent .tex files for each section, **containing only section conten
 ```
 
 **Important notes:**
-- **Abstract** should be placed in main.tex preamble (before `\begin{document}`), after `\maketitle`
+- **Abstract** should be placed in main.tex preamble (before `\begin{document}`), before `\maketitle`
 - **Files in text/ contain only sections**, starting with `\section{...}`
 - Do not include `\begin{document}` or other wrappers in text/ files
 
@@ -455,9 +453,9 @@ echo "Please upload the output/ directory to Overleaf to test compilation."
 | **KDD (ACM SIGKDD)** | `acmart` | **Anonymous submission requires `nonacm` option to remove footnotes** |
 | ACM Conferences | `acmart` | Requires anonymous mode `\acmReview{anonymous}` |
 | CVPR/ICCV | `cvpr` | Two-column, strict page limits |
-| NeurIPS | `neurips_2025` | Anonymous review, no page limit |
-| ICLR | `iclr2025_conference` | Two-column, requires session info |
-| AAAI | `aaai25` | Two-column, 8 pages + references |
+| NeurIPS | `neurips_2025`（按当年模板名替换） | Anonymous review, no page limit |
+| ICLR | `iclr2025_conference`（按当年模板名替换） | Two-column, requires session info |
+| AAAI | `aaai25`（按当年模板名替换） | Two-column, 8 pages + references |
 
 ### KDD Anonymous Submission Configuration Notes
 

@@ -1,6 +1,6 @@
 ---
 name: networkx
-description: "Comprehensive toolkit for creating, analyzing, and visualizing complex networks and graphs in Python. Use when working"
+description: "Comprehensive toolkit for creating, analyzing, and visualizing complex networks and graphs in Python. Use when working with network or relational data."
 license: 3-clause BSD license
 metadata:
   version: "1.0"

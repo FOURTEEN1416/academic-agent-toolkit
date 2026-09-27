@@ -1,6 +1,6 @@
 ---
 name: experiment-bridge
-description: "Implement experiments, run code, collect results, and generate publication-quality figures. Accepts an experiment plan,"
+description: "Implement experiments, run code, collect results, and generate publication-quality figures. Accepts an experiment plan from research-refine or experiment-plan."
 argument-hint: [experiment-plan-path-or-topic]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, Skill
 ---

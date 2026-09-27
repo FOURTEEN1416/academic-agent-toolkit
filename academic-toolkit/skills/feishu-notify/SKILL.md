@@ -1,6 +1,6 @@
 ---
 name: feishu-notify
-description: "Send notifications to Feishu/Lark. Internal utility used by other skills, or manually via /feishu-notify. Supports"
+description: "Send notifications to Feishu/Lark. Internal utility used by other skills, or manually via /feishu-notify. Supports bot webhook push with rich card messages."
 argument-hint: [message-text]
 allowed-tools: Bash(curl *), Bash(cat *), Read, Glob
 ---

@@ -1,6 +1,6 @@
 ---
 name: matplotlib
-description: "Low-level plotting library for full customization. Use when you need fine-grained control over every plot element,"
+description: "Low-level plotting library for full customization. Use when you need fine-grained control over every plot element, axes, and layout."
 allowed-tools: Read Write Bash
 license: https://github.com/matplotlib/matplotlib/tree/main/LICENSE
 compatibility: Requires Python 3.10+ and Matplotlib 3.10.x. Use `uv add matplotlib` in projects; interactive Jupyter widgets require `ipympl`.

@@ -1,11 +1,13 @@
 # ASSET-GAP 资产缺口声明 — dev-verification-loop
 
 > 上游不可得：galaxy 系技能包未公开发布（GitHub 全网搜索无命中，2026-09-09 溯源），本仓库仅存集成时的 SKILL.md 孤本。以下引用所指资产在可得的任何上游渠道均不存在。
+> 2026-09-28 深读批补登，上游资产未随本仓集成：新增条目均为 SKILL.md 正文实际引用、盘上缺失、且未经内联标记/登记册棘轮/本清单三渠道豁免者。
 
-## 缺失资产清单（2 项，2026-09-09 审计）
+## 缺失资产清单（共 3 项：2026-09-09 审计 2 项 + 2026-09-28 补登 1 项）
 
 - `references/REPORT-TEMPLATE.md`
 - `references/STACK-DETECTION.md`
+- `examples/example-verification-report.md`
 
 ## 处置口径
 

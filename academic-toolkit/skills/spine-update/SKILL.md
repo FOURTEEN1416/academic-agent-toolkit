@@ -1,6 +1,6 @@
 ---
 name: spine-update
-description: "Checks and updates PaperSpine from GitHub while preserving global config; use for upgrades, latest-version checks, or"
+description: "Checks and updates PaperSpine from GitHub, preserving global config. Use for upgrades, version checks, or suite reinstall."
 ---
 
 # PaperSpine Update

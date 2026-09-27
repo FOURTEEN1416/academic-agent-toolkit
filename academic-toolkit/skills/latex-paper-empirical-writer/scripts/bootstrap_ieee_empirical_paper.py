@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Bootstrap an IEEE empirical paper project (scaffold + plan/issues)."""
 
 from __future__ import annotations

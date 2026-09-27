@@ -359,6 +359,8 @@ Word 输出最常被识别为「AI 写的」就是因为下面这 6 条没遵守
 
 PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
 
+SCHOLAR_SCRIPT="tools/scholar_fetch.py"
+
 $PYTHON "$SCHOLAR_SCRIPT" bibtex "项目相关技术关键词" --max 10
 
 ```
@@ -916,7 +918,7 @@ if [ -f _utils/facts_audit.py ]; then
 
     python3 _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
 
-    PRC=$?
+    PRC=${PIPESTATUS[0]}
 
     if [ "$PRC" = "1" ]; then
 

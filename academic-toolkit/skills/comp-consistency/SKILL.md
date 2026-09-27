@@ -1,6 +1,6 @@
 ---
 name: comp-consistency
-description: Use when a mathematical modeling competition paper must be checked against its canonical results JSON, code outputs, figures, and reported headline metrics before compilation.
+description: "Use when a competition paper must be checked against canonical results JSON, code outputs, figures, and headline metrics."
 ---
 
 # Competition Code-Paper Consistency

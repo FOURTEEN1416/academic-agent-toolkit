@@ -322,9 +322,9 @@ if [[ -d "$INPUT_PATH" ]]; then
         output_file="$INPUT_PATH/${filename}.$FORMAT"
 
         if convert_file "$puml_file" "$output_file"; then
-            ((success_count++))
+            ((success_count+=1))
         else
-            ((fail_count++))
+            ((fail_count+=1))
         fi
     done
 

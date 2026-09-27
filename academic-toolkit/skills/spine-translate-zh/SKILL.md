@@ -1,6 +1,6 @@
 ---
 name: spine-translate-zh
-description: "Produces the complete translation_zh/ package with row-by-row translation of all required artifacts and full-paper"
+description: "Produces the complete translation_zh/ package with row-by-row translation of all required artifacts and full-paper consistency checks."
 ---
 
 

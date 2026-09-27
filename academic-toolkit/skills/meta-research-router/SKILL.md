@@ -1,6 +1,6 @@
 ---
 name: meta-research-router
-description: "Default entry point for any research request — a hybrid router that classifies the question deterministically and either"
+description: "Default research router: classifies requests, then delegates to a specialist skill or runs search-synthesize-cite workflow."
 ---
 
 # Research — Hybrid Router + Fallback

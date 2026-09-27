@@ -1,6 +1,6 @@
 ---
 name: experiment-agent
-description: "Experiment executor and monitor for academic research. 2-agent system covering code experiments (ML training,"
+description: "Runs and monitors code experiments (ML training, simulations) with reproducibility checks. Use when executing experiments."
 metadata:
   version: "1.1.0"
   last_updated: "2026-05-02"

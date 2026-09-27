@@ -1,6 +1,6 @@
 ---
 name: lit-obsidian-artifacts
-description: "Use this skill for Obsidian-native formatting and derived artifacts such as Markdown formatting, wikilinks, registry"
+description: "Obsidian-native formatting and derived artifacts: wikilinks, embeds, registry entries. Use when formatting KB artifacts."
 ---
 
 # Obsidian KB Artifacts

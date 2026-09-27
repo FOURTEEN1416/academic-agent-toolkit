@@ -19,12 +19,13 @@ Unlike posters (single page, visual-first), slides tell a **temporal story**: ea
 
 - **VENUE = `NeurIPS`** — Target venue, determines color scheme. Supported: `NeurIPS`, `ICML`, `ICLR`, `AAAI`, `ACL`, `EMNLP`, `CVPR`, `ECCV`, `GENERIC`. Override via argument.
 - **TALK_TYPE = `spotlight`** — Talk format. Options: `oral` (15-20 min), `spotlight` (5-8 min), `poster-talk` (3-5 min), `invited` (30-45 min). Determines slide count and content depth.
-- **TALK_MINUTES = 15** — Talk duration in minutes. Auto-adjusts slide count (~1 slide/minute for oral, ~1.5 slides/minute for spotlight). Override explicitly if needed.
+- **TALK_MINUTES = 8** — Talk duration in minutes. Auto-adjusts slide count (~1 slide/minute for oral, ~1.5 slides/minute for spotlight). Override explicitly if needed.
 - **ASPECT_RATIO = `16:9`** — Slide aspect ratio. Options: `16:9` (default, modern projectors), `4:3` (legacy).
 - **SPEAKER_NOTES = true** — Generate `\note{}` blocks in beamer and corresponding PPTX notes. Set `false` for clean slides without notes.
 - **PAPER_DIR = `paper/`** — Directory containing the compiled paper.
 - **OUTPUT_DIR = `slides/`** — Output directory for all slide files.
 - **REVIEWER_MODEL = `外部评审模型`** — Model used via external reviewer for slide review.
+- **REVIEWER_SCRIPT = `tools/reviewer_client.py`** — External reviewer client script (resolved from skill source dir; see Phase 6).
 - **AUTO_PROCEED = false** — At each checkpoint, **always wait for explicit user confirmation**.
 - **COMPILER = `latexmk`** — LaTeX build tool.
 - **ENGINE = `pdflatex`** — LaTeX engine. Use `xelatex` for CJK text.
@@ -44,9 +45,11 @@ Unlike posters (single page, visual-first), slides tell a **temporal story**: ea
 
 Same as `/paper-poster`:
 
+> Authoritative palette: /paper-poster（本表与其冲突处以 poster 为准）
+
 | Venue | Primary | Accent | Background | Text |
 |-------|---------|--------|------------|------|
-| NeurIPS | `#8B5CF6` | `#2563EB` | `#FFFFFF` | `#1E1E1E` |
+| NeurIPS | `#4C1D95` | `#2563EB` | `#FFFFFF` | `#1E1E1E` |
 | ICML | `#DC2626` | `#1D4ED8` | `#FFFFFF` | `#1E1E1E` |
 | ICLR | `#059669` | `#0284C7` | `#FFFFFF` | `#1E1E1E` |
 | CVPR | `#2563EB` | `#7C3AED` | `#FFFFFF` | `#1E1E1E` |
@@ -279,10 +282,10 @@ Code: [URL or QR placeholder]
 \end{document}
 ```
 
-**Symlink figures**:
+**Copy figures** (never symlink — pdflatex cannot reliably follow symlinks, align with poster rule):
 ```bash
-ln -sf ../paper/figures/*.pdf slides/figures/ 2>/dev/null
-ln -sf ../paper/figures/*.png slides/figures/ 2>/dev/null
+cp ../paper/figures/*.pdf slides/figures/ 2>/dev/null
+cp ../paper/figures/*.png slides/figures/ 2>/dev/null
 ```
 
 **Key formatting rules**:
@@ -392,7 +395,8 @@ Also generate `slides/speaker_notes.md` as a standalone backup:
 Generate an editable PPTX using `python-pptx`:
 
 ```bash
-python3 -c "import pptx" 2>/dev/null || pip install python-pptx
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+$PYTHON -c "import pptx" 2>/dev/null || pip install python-pptx
 ```
 
 Write `slides/generate_pptx.py` that:
@@ -409,7 +413,8 @@ Write `slides/generate_pptx.py` that:
 5. Applies venue color scheme throughout
 
 ```bash
-cd slides && python3 generate_pptx.py
+PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+cd slides && "$PYTHON" generate_pptx.py
 # Output: slides/presentation.pptx
 ```
 

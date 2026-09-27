@@ -1,7 +1,7 @@
 ---
 name: doi-bibtex
 user_invocable: true
-description: "Fetch BibTeX citation from DOI and add to .bib file. Use when user provides a DOI and needs BibTeX entry added to their"
+description: "Fetches BibTeX from a DOI and adds it to a .bib file. Use when the user provides a DOI needing a bibliography entry."
 ---
 
 # DOI to BibTeX

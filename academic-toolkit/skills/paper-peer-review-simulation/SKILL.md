@@ -1,6 +1,6 @@
 ---
 name: paper-peer-review-simulation
-description: "Multi-perspective academic paper review with dynamic reviewer personas. Simulates 5 independent reviewers (EIC + 3 peer"
+description: "Multi-perspective academic paper review with dynamic reviewer personas. Simulates 5 independent reviewers (EIC + 3 peer reviewers + Devil's Advocate) and outputs an editorial decision."
 metadata:
   version: "1.10.0"
   last_updated: "2026-06-01"

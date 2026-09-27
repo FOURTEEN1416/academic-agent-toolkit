@@ -1,6 +1,6 @@
 ---
 name: excalidraw-diagram
-description: "Create Excalidraw diagram JSON files that make visual arguments. Use when the user wants to visualize workflows,"
+description: "Create Excalidraw diagram JSON files that make visual arguments. Use when the user wants to visualize workflows, decisions, or system behavior as editable .excalidraw files."
 ---
 
 # Excalidraw Diagram Creator

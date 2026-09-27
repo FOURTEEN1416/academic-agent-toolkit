@@ -1,6 +1,6 @@
 ---
 name: meta-experiment-design
-description: "Use when planning product experiments, writing testable hypotheses, estimating sample size, prioritizing tests, or"
+description: "Use when planning product experiments: testable hypotheses, sample size, test prioritization, defensible evaluation."
 ---
 
 # Experiment Designer

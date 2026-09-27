@@ -1,6 +1,6 @@
 ---
 name: fig-publication-chart
-description: "This skill should be used when the user asks for a publication-quality scientific figure or table, wants help choosing"
+description: "Use when the user asks for a publication-quality scientific figure or table, chart-type advice, or end-to-end figure production."
 version: 0.2.0
 ---
 

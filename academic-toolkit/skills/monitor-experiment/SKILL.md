@@ -1,6 +1,6 @@
 ---
 name: monitor-experiment
-description: "Monitor running experiments, check progress, collect results. Use when user says ”check results”, ”is it done”,"
+description: "Monitor running experiments, check progress, collect results. Use when user says ”check results”, ”is it done”, or ”check experiment progress”."
 argument-hint: [server-alias or screen-name]
 allowed-tools: Bash(ssh *), Bash(echo *), Read, Write, Edit
 ---

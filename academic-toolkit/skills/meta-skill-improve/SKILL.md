@@ -1,6 +1,6 @@
 ---
 name: meta-skill-improve
-description: "This skill should be used when the user asks to ”apply skill improvements”, ”update skill from plan”, ”execute"
+description: "Use when the user asks to ”apply skill improvements”, ”update skill from plan”, or ”execute improvement plan”."
 version: 1.0.0
 ---
 

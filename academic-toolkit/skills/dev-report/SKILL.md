@@ -143,7 +143,7 @@ ls figures/shot_*.png 2>/dev/null && echo "→ 上面这些直接引用进'系�
 
 - 报告内容必须基于项目**真实产物**（需求/设计/代码/测试都是现成的），不编造功能。
 - 代码说明引用真实文件路径和关键片段，不虚构。
-- 参考文献用 `$SCHOLAR_SCRIPT` 查真实文献，禁止编造。
+- 参考文献用 `tools/scholar_fetch.py` 查真实文献，禁止编造。
 - 界面截图**优先引用 figures/shot_*.png**（自测已截的真图）、架构图引用 figures/fig_*.pdf|png；都不存在才退占位符（`[此处插入登录界面截图]`）。
 - PDF 模式正文 ≥ 8KB；docx 模式 `paper/main.md` ≥ 8KB。
 

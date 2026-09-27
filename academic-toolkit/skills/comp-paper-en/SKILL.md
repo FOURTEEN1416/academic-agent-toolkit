@@ -737,6 +737,8 @@ echo "Cited keys: $(wc -l < _tmp/_cited_keys.txt)"
 
 PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
 
+SCHOLAR_SCRIPT="tools/scholar_fetch.py"
+
 while IFS= read -r key; do
 
     query=$(echo "$key" | sed 's/^TODO__//; s/_/ /g')
@@ -1291,7 +1293,7 @@ if [ -f _utils/facts_audit.py ]; then
 
     python3 _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
 
-    PRC=$?
+    PRC=${PIPESTATUS[0]}
 
     if [ "$PRC" = "1" ]; then
 

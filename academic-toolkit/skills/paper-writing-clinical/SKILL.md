@@ -1,6 +1,6 @@
 ---
 name: paper-writing-clinical
-description: "Comprehensive scientific writing toolkit with 15 modules for academic and clinical authorship. Use whenever the user"
+description: "Comprehensive scientific writing toolkit with 15 modules for academic and clinical authorship. Use whenever the user needs drafting, review, citation, or clinical documentation support."
 license: "MIT"
 ---
 

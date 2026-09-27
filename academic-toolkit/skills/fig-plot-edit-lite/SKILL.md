@@ -1,6 +1,6 @@
 ---
 name: fig-plot-edit-lite
-description: "无 Origin 的出版级数据图路线：继承 fig-plot-edit 科学绘图纪律（逐列角色确认、方案冻结、官方配色目录、出版图形合同），用 matplotlib+SciencePlots 把 CSV/TXT 实验表格画成 PNG+PDF+SVG 并附校验报告；先提案逐列用途、经用户确认后渲染；源数据不可变，不确定列拒画，产物如实称 publication-informed lite，不冒充 Origin OPJU。"
+description: "无 Origin 的出版级数据图路线：继承 fig-plot-edit 纪律，把 CSV/TXT 表格画成 PNG/PDF/SVG；提案确认后渲染，源数据不可变。触发词：无 Origin 绘图、出版级数据图。"
 ---
 
 # EditaPlot Lite · 艾迪图轻量版（无 Origin 的 matplotlib 出版级路线）

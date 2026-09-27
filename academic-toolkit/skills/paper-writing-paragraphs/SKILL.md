@@ -1,6 +1,6 @@
 ---
 name: paper-writing-paragraphs
-description: "Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraphs (never bullet"
+description: "Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraphs (never bullet points) backed by verified citations."
 allowed-tools: Read Write Edit Bash
 license: MIT license
 metadata:

@@ -1,6 +1,6 @@
 ---
 name: course-syllabus-reading-list
-description: "Generates a curated supplementary reading list from any course syllabus using Consensus academic search. Grill-me intake"
+description: "Builds a supplementary reading list from a course syllabus (Consensus search, .docx output). Use when expanding a syllabus."
 license: MIT
 metadata:
   source_spec: "megaprompts/10-syllabus-megaprompt.md"

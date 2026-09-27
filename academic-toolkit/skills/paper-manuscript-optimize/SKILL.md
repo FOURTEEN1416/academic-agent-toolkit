@@ -1,6 +1,6 @@
 ---
 name: paper-manuscript-optimize
-description: "Use when reviewing or revising an academic manuscript whose central claim, evidence chain, figures, terminology, and"
+description: "Use when a manuscript claim, evidence chain, figures, and prose need top-down realignment during review or revision."
 ---
 
 # Manuscript Optimizer

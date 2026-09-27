@@ -1,6 +1,6 @@
 ---
 name: dev-web-design-review
-description: "'This skill enables visual inspection of websites running locally or remotely to identify and fix design issues."
+description: "This skill enables visual inspection of websites running locally or remotely to identify and fix design issues."
 version: 0.1.0
 ---
 

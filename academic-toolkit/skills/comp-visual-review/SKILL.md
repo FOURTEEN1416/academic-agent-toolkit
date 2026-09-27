@@ -1,6 +1,6 @@
 ---
 name: comp-visual-review
-description: Use when a mathematical modeling competition paper or its figures need dedicated visual review for readability, clipping, labels, units, and export quality.
+description: "Use when a competition paper or its figures need visual review for readability, clipping, labels, units, and export quality."
 ---
 
 # Competition Visual Review

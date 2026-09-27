@@ -336,11 +336,11 @@ After each compilation, check `main.log` for CRITICAL errors. **You MUST fix ALL
 
 # Count critical errors
 
-MATH_ERR=$(grep -c 'Bad math environment delimiter\|Missing \$ inserted\|begin{document} ended by' paper/main.log 2>/dev/null || echo 0)
+MATH_ERR=$(grep -c 'Bad math environment delimiter\|Missing \$ inserted\|begin{document} ended by' paper/main.log 2>/dev/null)
 
-LR_ERR=$(grep -c 'Not allowed in LR mode' paper/main.log 2>/dev/null || echo 0)
+LR_ERR=$(grep -c 'Not allowed in LR mode' paper/main.log 2>/dev/null)
 
-UNDEF_CS=$(grep -c 'Undefined control sequence' paper/main.log 2>/dev/null || echo 0)
+UNDEF_CS=$(grep -c 'Undefined control sequence' paper/main.log 2>/dev/null)
 
 TOTAL_ERR=$((MATH_ERR + LR_ERR))
 
@@ -410,7 +410,7 @@ cd ..
 
 # Recheck
 
-MATH_ERR=$(grep -c 'Bad math environment delimiter\|Missing \$ inserted' paper/main.log 2>/dev/null || echo 0)
+MATH_ERR=$(grep -c 'Bad math environment delimiter\|Missing \$ inserted' paper/main.log 2>/dev/null)
 
 echo "Remaining math errors: $MATH_ERR"
 

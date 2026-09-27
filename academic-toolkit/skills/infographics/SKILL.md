@@ -1,6 +1,6 @@
 ---
 name: infographics
-description: "Create professional infographics using Nano Banana Pro AI with smart iterative refinement. Uses Gemini 3.6 Flash for"
+description: "Create professional infographics using Nano Banana Pro AI with smart iterative refinement. Uses Gemini 3.6 Flash for quality review; requires an image-generation backend."
 allowed-tools: Read Write Edit Bash
 metadata:
   requires: multimodal-llm-image-generation

@@ -1,6 +1,6 @@
 ---
 name: lit-citation-manage
-description: "Comprehensive citation management for academic research. Search Google Scholar and PubMed for papers, extract accurate"
+description: "Comprehensive citation management for academic research. Search Google Scholar and PubMed for papers, extract accurate metadata, validate entries, and generate BibTeX."
 allowed-tools: Read Write Edit Bash
 license: MIT License
 metadata:

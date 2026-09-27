@@ -1,6 +1,6 @@
 ---
 name: paper-polish-nature
-description: "Polish, restructure, or translate academic prose into Nature-leaning English using writing-strategy principles, curated"
+description: "Polishes or translates academic prose into Nature-leaning English. Use when polishing or translating manuscript language."
 version: 5.0.2
 author: Yuan1z skill rebuilt from course notes plus Academic Phrasebank
 ---

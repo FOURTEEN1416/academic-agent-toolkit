@@ -2,7 +2,7 @@
 
 name: comp-paper-en-docx
 
-description: "Mathematical modeling competition paper in English (MCM/ICM/APMCM) — Word docx mode. docx-mode counterpart of comp-paper-en — keeps COMAP structure but produces paper/main.md only. 区别于 comp-paper-zh-docx：本技能只用于英文 MCM/ICM/APMCM，中文竞赛论文改用 comp-paper-zh-docx。触发词：英文竞赛论文 docx、Word 模式、comp-paper-en-docx。"
+description: "English competition paper (MCM/ICM/APMCM), Word docx mode; docx counterpart of comp-paper-en, produces main.md. 区别于 comp-paper-zh-docx：中文竞赛论文改用 comp-paper-zh-docx。触发词：英文竞赛论文 docx。"
 argument-hint: [competition-type]
 
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetch
@@ -835,6 +835,8 @@ After drafting, verify each citation:
 
 PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
 
+SCHOLAR_SCRIPT="tools/scholar_fetch.py"
+
 mkdir -p _tmp
 
 # Place descriptive keys in _tmp/_topics.txt (one per line)
@@ -948,6 +950,8 @@ EOF
 cat paper/main.md >> _tmp/_review_prompt.txt
 
 PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+
+REVIEWER_SCRIPT="tools/reviewer_client.py"
 
 $PYTHON "$REVIEWER_SCRIPT" --prompt-file _tmp/_review_prompt.txt --thread-file _tmp/_reviewer_thread.json 2>&1 | tee _tmp/_cross_review.txt
 
@@ -1599,7 +1603,7 @@ if [ -f _utils/facts_audit.py ]; then
 
     python3 _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
 
-    PRC=$?
+    PRC=${PIPESTATUS[0]}
 
     if [ "$PRC" = "1" ]; then
 

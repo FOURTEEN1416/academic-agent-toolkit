@@ -1,6 +1,6 @@
 ---
 name: lit-obsidian-ingest
-description: "Use this skill to ingest external materials into the current project-scoped Obsidian KB as source notes under"
+description: "Ingests external materials into the Obsidian KB as source notes under Sources/. Use when adding papers or web sources."
 ---
 
 # Obsidian Source Ingestion

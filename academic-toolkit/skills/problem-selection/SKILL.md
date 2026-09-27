@@ -1,7 +1,7 @@
 ---
 name: problem-selection
 version: 1.0.0
-description: "> 数学建模竞赛 选题决策专家。拿到 6 道题后 30 分钟内给出 TOP3 排序 + 每题利弊清单 + 推荐模型方向。 基于 5 维客观打分（数据可得性/创新空间/工作量/历史获奖率/卡壳风险）。"
+description: "数学建模竞赛 选题决策专家。拿到 6 道题后 30 分钟内给出 TOP3 排序 + 每题利弊清单 + 推荐模型方向。 基于 5 维客观打分（数据可得性/创新空间/工作量/历史获奖率/卡壳风险）。"
 tools:
   - filesystem
   - sequential-thinking

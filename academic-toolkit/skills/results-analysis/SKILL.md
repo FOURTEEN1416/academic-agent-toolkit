@@ -1,6 +1,6 @@
 ---
 name: results-analysis
-description: "This skill should be used when the user asks to ”analyze experimental results”, ”run strict statistical analysis”,"
+description: "Use when the user asks to ”analyze experimental results” or ”run strict statistical analysis”; yields an evidence-first bundle."
 tags: [Research, Analysis, Statistics, Visualization, Scientific Reporting]
 version: 0.2.0
 ---

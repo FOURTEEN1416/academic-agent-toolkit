@@ -1,6 +1,6 @@
 ---
 name: latex-paper-empirical-writer
-description: "> Draft IEEE-style empirical ML/AI papers from a structured research contract. Builds experiment plans, section"
+description: "Draft IEEE-style empirical ML/AI papers from a structured research contract. Builds experiment plans, section drafts, and the LaTeX project skeleton."
 metadata:
   short-description: Experimental paper executor with evidence-first safeguards
 ---

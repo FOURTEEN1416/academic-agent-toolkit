@@ -1,6 +1,6 @@
 ---
 name: rebuttal
-description: "Workflow 4: Submission rebuttal pipeline. Parses external reviews, enforces coverage and grounding, drafts a safe"
+description: "Workflow 4: Submission rebuttal pipeline. Parses external reviews, enforces coverage and grounding, drafts a safe venue-compliant rebuttal."
 argument-hint: [paper-path-or-review-bundle]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent, Skill
 ---

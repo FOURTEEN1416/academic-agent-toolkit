@@ -1,6 +1,6 @@
 ---
 name: paper-project-bootstrap
-description: "Use when starting a new manuscript project or cleaning up an existing paper directory and you need a standard structure,"
+description: "Use when starting a manuscript project or cleaning a paper directory: standard structure, source-of-truth layout, venue framing."
 ---
 
 # Paper Bootstrap

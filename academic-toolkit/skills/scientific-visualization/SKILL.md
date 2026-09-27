@@ -1,6 +1,6 @@
 ---
 name: scientific-visualization
-description: "Create publication figures with matplotlib/seaborn/plotly. Multi-panel layouts, error bars, significance markers,"
+description: "Create publication figures with matplotlib/seaborn/plotly. Multi-panel layouts, error bars, significance markers, and colormap choices with figure provenance."
 ---
 
 # Scientific Visualization

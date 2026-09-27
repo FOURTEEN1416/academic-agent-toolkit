@@ -1,6 +1,6 @@
 ---
 name: paper-journal-selection
-description: "Use when choosing among Nature, Nature Methods, or Nature Biotechnology, or when preparing a Nature Portfolio"
+description: "Use when choosing among Nature, Nature Methods, or Nature Biotechnology, or preparing a Nature Portfolio submission."
 ---
 
 # Nature Portfolio Playbook

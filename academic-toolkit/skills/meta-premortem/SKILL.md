@@ -1,6 +1,6 @@
 ---
 name: meta-premortem
-description: "Pre-mortem plan analysis. Imagine the plan failed 12 months from now and work backwards to find the weaknesses. Surfaces"
+description: "Pre-mortem: imagine the plan failed, work backwards to surface weaknesses before execution. Use for plan risk review."
 ---
 
 # /em:challenge — Pre-Mortem Plan Analysis
