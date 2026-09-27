@@ -78,7 +78,7 @@ Each generation produces a JSON review log:
 
 ## Command-Line Reference
 
-```bash
+```
 python skills/infographics/scripts/generate_infographic.py [OPTIONS] PROMPT
 
 Arguments:

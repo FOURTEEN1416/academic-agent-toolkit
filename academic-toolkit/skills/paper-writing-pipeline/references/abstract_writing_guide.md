@@ -20,7 +20,7 @@ Longer (500-1,000 words), used for conference submissions. May include brief lit
 ## English Abstract Guidelines
 
 ### Word Count
-- Standard: 150-250 words (check journal requirements)
+- Standard: 150-300 words (check journal requirements)
 - Conference: 200-500 words (check CFP)
 - Dissertation: up to 350 words
 

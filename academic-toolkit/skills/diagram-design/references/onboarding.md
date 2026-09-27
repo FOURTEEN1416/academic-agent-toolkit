@@ -137,7 +137,7 @@ Show the user what will change in `style-guide.md`. Only the tokens table — ev
 +| `accent` | `#c73a2b` | `#e05440` |
 ```
 
-Also regenerate the dark variant via the inversion rule (`rgba(11,13,11, X)` → `rgba(ink-rgb, X)`).
+Also regenerate the dark variant via the inversion rule (`rgba(45,49,66, X)` → `rgba(245,245,245, X)`，与 style-guide token 表一致).
 
 Include a compact **brand fidelity receipt** with the preview:
 

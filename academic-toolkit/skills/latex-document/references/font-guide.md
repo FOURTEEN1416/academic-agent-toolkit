@@ -1355,7 +1355,7 @@ Fast lookup table for common fonts and their LaTeX packages.
 
 ### Font Package Installation Commands
 
-```bash
+```text
 # TeX Live (Linux/macOS)
 tlmgr install <package-name>
 tlmgr install collection-fontsrecommended

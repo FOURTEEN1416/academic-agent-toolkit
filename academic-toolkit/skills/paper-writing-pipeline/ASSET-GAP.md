@@ -88,3 +88,16 @@ docs/（2 件，上游版式路径）：
 （policy_anchor_table.md、policy_anchor_disclosure_protocol.md、committee_correspondence_protocol.md、
 citation_styles.md、imrad_structure.md、reporting_guidelines.md、vlm_figure_verification.md 各自指向的
 其余 scripts/* 未在深读中逐一定名，收编时按正文逐文件核对补列。）
+
+## 补登（2026-09-28 逐行轮：references/ 内部引用的上游 scripts）
+
+- `scripts/ars_anchorize_draft.py`（revision_patch_protocol.md）
+- `scripts/ars_apply_revision_patch.py`（同上）
+- `scripts/_block_parser.py`（同上）
+- `scripts/revision_roadmap.py`（同上）
+- `scripts/verify_submission_package.py`（同上 :164）
+- `scripts/check_policy_anchor_table.py` 及其 test（policy_anchor_table.md:8）
+- `scripts/policy_anchor_disclosure_referee.py`（policy_anchor_disclosure_protocol.md）
+- `scripts/check_policy_anchor_protocol.py`（同上 :199-200）
+- `scripts/test_policy_anchor_disclosure.py`（同上）
+- `scripts/check_committee_correspondence.py`（committee_correspondence_protocol.md:11,156）

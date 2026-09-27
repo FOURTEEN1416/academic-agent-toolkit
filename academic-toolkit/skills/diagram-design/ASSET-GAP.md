@@ -20,3 +20,15 @@ mermaid_extract.py、self_check.py）：
 - `scripts/verify-mermaid-import.py`
 - `scripts/verify-plugin-package.py`
 - `scripts/lint-skin.py`
+
+## 补登（2026-09-28 逐行轮：第三批漏项）
+
+- `scripts/verify-geometry.py`（SKILL.md:295,488）
+- `scripts/test-verify-motion.py`（references/animation.md:119）
+- `scripts/test-verify-dumbbell.py`（references/type-bar.md:100）
+- `scripts/test-verify-ridgeline.py`（references/type-line.md:189）
+- `scripts/fixtures/sample-architecture.drawio`（references/import-drawio.md:121）
+- `scripts/fixtures/sample-flowchart.mmd`（references/import-mermaid.md:81）
+- `assets/example-data-flow-extended*.html` ×3（references/type-data-flow.md:369-374）
+- `assets/example-process-extended*.html` ×3（references/type-process.md:493-495）
+- 图标目录缺 `prometheus` / `grafana` 条目（references/type-high-level.md §1 YAML 引用）

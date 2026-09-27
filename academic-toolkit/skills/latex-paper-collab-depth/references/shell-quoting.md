@@ -7,6 +7,8 @@ When invoking `claude_bridge.py`, be careful: your *shell* parses the command li
 Markdown inline code uses backticks (`` `like/this` ``). In bash/zsh, backticks mean **command substitution**, even inside double quotes, so this breaks:
 
 ```bash
+> ⛔ `.codex/` 宿主私有路径未随本仓集成（示例性质，经宿主适配层等效实现）：
+
 python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py \
   --cd "." \
   --PROMPT "Analyze `tmp/eth_dev_news_raw.json` and summarize."

@@ -116,14 +116,6 @@
       "references/statistics-reference.md",
       "scripts/sample_size_calculator.py"
     ],
-    "grant-nih": [
-      "references/docx_9_sections.md",
-      "references/nih_mechanism_matching.md",
-      "references/reporter_post_patterns.md",
-      "scripts/citation_tracker.py",
-      "scripts/fiscal_year_calculator.py",
-      "scripts/mechanism_matcher.py"
-    ],
     "lit-orientation": [
       "references/docx_8_sections.md",
       "references/framework_selection.md",
@@ -140,14 +132,6 @@
       "scripts/action_router.py",
       "scripts/async_action_classifier.py",
       "scripts/custom_prompt_template_generator.py"
-    ],
-    "ip-patent-search": [
-      "references/cpc_classification_canon.md",
-      "references/legal_disclaimer_discipline.md",
-      "references/sub_use_case_routing.md",
-      "scripts/citation_tracker.py",
-      "scripts/family_resolver.py",
-      "scripts/sub_use_case_router.py"
     ],
     "meta-topic-pulse": [
       "references/cross_platform_synthesis.md",

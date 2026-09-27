@@ -336,7 +336,7 @@ Before emitting SVG, verify **every** item:
 - **More than one focal tier** — focal exists to mark the central analytical surface; >1 erases the signal.
 - **Cold styling on a non-archive tier** — the dashed fog look is reserved for retention/archive tiers.
 - **Bidirectional promotion arrows** — promotions always flow left → right. Backflow (e.g., an aggregate writing back to raw) is wrong for this type; use a different diagram.
-- **Custom-colored arrows** — connectors are topology-driven; color on a tier never spreads to its edges.
+- **Custom-colored arrows without tier backing** — connectors are topology-driven; a tier color may only reach the promotion arrow that explicitly inherits it (§3/§4.3), never as a free-form color choice.
 - **Path cards explaining tier semantics** — paths describe *write methods* (how data moves between tiers), not what each tier holds. If you find yourself writing "Raw stores …" in a path card, that content belongs in the Raw tier's fields.
 - **Missing `example_label` content** — every tier should show a concrete example payload (quarterly survey rows, customer records, claims, …). Without it the diagram becomes abstract and stops earning its space.
 - **Promotion arrow label longer than the tier-gap label mask** — keep labels to ≤ 14 chars in the uppercase `arrow-label` role. Long verbs ("CALCULATE & SUMMARIZE") break the rhythm; shorten to "AGGREGATE" or split into two diagrams.

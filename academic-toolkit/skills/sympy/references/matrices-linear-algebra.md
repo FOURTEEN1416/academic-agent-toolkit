@@ -164,8 +164,13 @@ M_inv = M.inv()
 # Verify
 M * M_inv  # Returns identity matrix
 
-# Check if invertible
-M.is_invertible()  # True or False
+# Check if invertible (SymPy has no is_invertible; attempt the inversion)
+from sympy.matrices.exceptions import NonInvertibleMatrixError
+try:
+    M.inv()
+    invertible = True
+except NonInvertibleMatrixError:
+    invertible = False
 ```
 
 ## Advanced Linear Algebra
@@ -500,10 +505,10 @@ v_new = P_inv * v
 ### Pattern 3: Matrix Condition Number
 
 ```python
-# Estimate condition number (ratio of largest to smallest singular value)
+# Condition number (ratio of largest to smallest singular value)
 M = Matrix([[1, 2], [3, 4]])
-eigenvals = M.eigenvals()
-cond = max(eigenvals.keys()) / min(eigenvals.keys())
+svals = M.singular_values()
+cond = max(svals) / min(svals)
 ```
 
 ### Pattern 4: Projection Matrices

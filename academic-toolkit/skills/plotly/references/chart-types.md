@@ -334,7 +334,7 @@ fig = go.Figure(data=[go.Mesh3d(
     k=k_indices,
     intensity=intensity_values,
     colorscale='Viridis'
-)]
+)])
 ```
 
 ### 3D Cone (Vector Field)

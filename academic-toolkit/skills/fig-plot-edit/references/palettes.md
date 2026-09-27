@@ -6,6 +6,8 @@
 python scripts/editaplot.py palettes --engine-home <root>
 ```
 
+> ⛔ 本仓适配（fig-plot-edit/SKILL.md 规则 1）：勿直调 scripts/editaplot.py，一律经 editaplot.cmd；上游直调命令仅存档。
+
 向中文用户展示 `assets/palettes/palette-selector-public.zh-CN.png`，让用户回复稳定的
 `palette_id`。需要完整目录时才运行 `palettes --all` 并展示
 `assets/palettes/palette-selector-all.zh-CN.png`。

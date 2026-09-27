@@ -63,7 +63,7 @@ All quantitative research papers **must** report the following items. Check each
 | A priori power analysis | State target power (typically >= .80), assumed effect size, alpha, required sample size | Power analysis completely absent |
 | Effect size source | Based on prior research, pilot study, or theoretical expectation | Using Cohen's convention without explanation |
 | Tool | Use G*Power, pwr package, etc. | Tool not specified |
-| Post-hoc power | Report observed power for non-significant results | Type II error risk not discussed for non-significant results |
+| Post-hoc power | Do **not** report observed power (circular and uninformative; Hoenig & Heisey 2001) — discuss Type II error risk and report CI / minimum detectable effect instead | Citing low observed power as evidence the effect is absent |
 | Sensitivity analysis | Report the minimum detectable effect size given *N* | Sensitivity analysis not conducted |
 
 ### 1.6 Missing Data Handling

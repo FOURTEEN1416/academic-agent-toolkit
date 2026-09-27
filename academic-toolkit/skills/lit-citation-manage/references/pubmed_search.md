@@ -495,7 +495,7 @@ time.sleep(0.11)  # ~10 requests/second with API key
 ```
 
 **Store securely**:
-```bash
+```
 # In environment variable
 export NCBI_API_KEY="your_key_here"
 

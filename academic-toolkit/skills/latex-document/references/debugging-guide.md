@@ -237,7 +237,8 @@ a & b & c & d & e       % 5 columns used
 
 % Right:
 \begin{bmatrix}
-1 & 2 & 3 & 4  % Matrices infer column count from first row
+1 & 2 & 3 \\
+4 & 5 & 6  % every row has the same column count (3), inferred from row 1
 \end{bmatrix}
 ```
 

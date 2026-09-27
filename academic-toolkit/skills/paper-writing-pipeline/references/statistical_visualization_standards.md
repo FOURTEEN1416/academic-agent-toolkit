@@ -11,7 +11,7 @@ Reference guide for the `visualization_agent`. Covers APA 7.0 figure guidelines,
 1. **Every figure must add value** — do not visualize data that is better expressed in a sentence or table
 2. **Figures are numbered sequentially** (Figure 1, Figure 2, ...) in order of first mention
 3. **Every figure must be cited in text** ("As shown in Figure 1, ...")
-4. **Captions appear below the figure** (unlike table notes which appear above)
+4. **Figure number and title appear above the figure; the Note appears below it** (APA 7. For tables the mirror applies: number/title above, table note below)
 5. **Figures must be interpretable without reading the text** — include all necessary context in the caption
 
 ### Caption Format
@@ -287,7 +287,7 @@ y_line = slope * x_line + intercept
 fig, ax = plt.subplots(figsize=(6.9, 5.5))
 ax.scatter(x, y, color='#0077BB', alpha=0.6, edgecolors='black', linewidth=0.3, s=30)
 ax.plot(x_line, y_line, color='#CC3311', linewidth=1.5,
-        label=f'y = {slope:.2f}x + {intercept:.2f}, r = {r:.2f}, p < .001')
+        label=f'y = {slope:.2f}x + {intercept:.2f}, r = {r:.2f}, p = {p_value:.2g}')  # p_value 来自实际检验输出，禁止硬编码
 ax.set_xlabel('Faculty-Student Ratio')
 ax.set_ylabel('Student Satisfaction Score')
 ax.legend(frameon=False, loc='lower right')

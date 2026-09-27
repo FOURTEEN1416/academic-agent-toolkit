@@ -13,13 +13,13 @@ references/adapters/overview.md：
 - `../../../scripts/adapters`
 
 references/literature_corpus_consumers.md：
-- `../../docs/design/2026-04-26-ars-v3.7.0-literature-corpus-design.md`
+- `../../docs/design/2026-04-26-ars-v3.6.5-consumer-integration-design.md`
 - `../../comp-contest-research/agents/bibliography_agent.md`
 - `../../academic-paper/agents/literature_strategist_agent.md`
 
 references/passport_as_reset_boundary.md：
 - `../../docs/PERFORMANCE.md`
-- `../../docs/design/2026-04-30-ars-v3.8.0-passport-reset-design.md`
+- `../../docs/design/2026-04-30-ars-v3.6.7-step-6-orchestrator-hooks-spec.md`
 - `../../shared/handoff_schemas.md`
 - `../../shared/contracts/passport/literature_corpus_entry.schema.json`
 - `../../shared/contracts/passport/rejection_log.schema.json`

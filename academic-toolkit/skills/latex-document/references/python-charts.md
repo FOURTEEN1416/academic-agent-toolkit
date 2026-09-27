@@ -626,7 +626,7 @@ data = [np.random.normal(100, 10, 200),
 
 fig, ax = plt.subplots(figsize=(8, 5))
 
-bp = ax.boxplot(data, labels=['Method A', 'Method B', 'Method C', 'Method D'],
+bp = ax.boxplot(data, tick_labels=['Method A', 'Method B', 'Method C', 'Method D'],
                 patch_artist=True, notch=True, showmeans=True)
 
 # Color boxes

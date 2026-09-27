@@ -397,7 +397,7 @@ When `dark: true`, swap these tokens:
 
 | Token | Light | Dark |
 |---|---|---|
-| Page paper | `#f5f5f5` | `#1c1f2e` |
+| Page paper | `#f5f5f5` | `#2d3142` |
 | Ink | `#2d3142` | `#f5f5f5` |
 | Muted text | `#4f5d75` | `rgba(245,245,245,0.65)` |
 | Chevron dark fill | `#2d3142` | `#3d4460` |

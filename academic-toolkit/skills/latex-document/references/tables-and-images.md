@@ -396,7 +396,7 @@ Carol,25,92
 
 Filtering rows:
 ```latex
-\csvreader[filter expr={\value{score}>90}]{data.csv}{name=\name,score=\score}
+\csvreader[filter expr={\score>90}]{data.csv}{name=\name,score=\score}
 {\name & \score \\}
 ```
 

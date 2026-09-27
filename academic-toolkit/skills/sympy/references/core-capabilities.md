@@ -156,7 +156,7 @@ integrate(sin(x), (x, 0, pi))  # 2
 
 **Multiple integrals:**
 ```python
-integrate(x*y, (x, 0, 1), (y, 0, x))  # 1/12
+integrate(x*y, (y, 0, 1), (x, 0, 2))  # 1
 ```
 
 **Numerical integration (when symbolic fails):**

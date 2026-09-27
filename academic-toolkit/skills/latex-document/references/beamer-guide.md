@@ -163,8 +163,8 @@ Beamer comes with numerous built-in themes. Here are the most commonly used:
 |-------|------|----------|------------|-------|
 | `default` | Minimal, clean white | Quick presentations, minimalist style | None | Very basic |
 | `Madrid` | Blue header, rounded boxes | Business, formal lectures | Minimal top nav | Professional, polished |
-| `Boadilla` | Compact sidebar | Academic seminars | Sidebar | Space-efficient |
-| `CambridgeUS` | Red/navy theme | Formal presentations | Tree navigation | Traditional academic |
+| `Boadilla` | Minimal footline, no sidebar | Academic seminars | Footline only | Space-efficient |
+| `CambridgeUS` | Red/navy theme | Formal presentations | Footline | Traditional academic |
 | `Singapore` | Clean, modern minimal | Tech, data science | Minimal | Very clean |
 | `Copenhagen` | Blue with sidebar | Structured talks | Sidebar tree | Good for long talks |
 | `Berlin` | Blue with top navigation | Conference talks | Top tree nav | Clear structure |
