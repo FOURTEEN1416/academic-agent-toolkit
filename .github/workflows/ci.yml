@@ -66,18 +66,15 @@ jobs:
         run: npm ci
 
       - name: Repository-root test suite
-        # 当前口径（2026-09-22 收官回填，本机完整仓）：717 passed / 0 failed
-        # （= 工具箱自有 696 + 根级门禁 21；另 1 skipped 系 docx_template_fill pyc
-        # 缺陷钉住，collect-only 718）。基线唯一真源 = pytest.ini 注释。
-        # 公开 clone 侧现行实测（2026-09-22 run 35711171875 = 713 passed + 5 skipped，
-        # 收集总数与本机一致 718；历史 run 35425878920 = 600+3 保留作时点快照）。
-        # 基线唯一真源 = pytest.ini 注释。
-        # 公开侧与本机差异来自：gitignored 私有资产（test_asset_utilization 的
-        # "真仓机检"缺其时按语义 skip，理由随 -rs 输出）与并行窗尚未提交的新测试。
+        # 当前口径（2026-09-27 本机完整仓实跑）：1005 collected / 1005 passed / 0 failed / 0 skipped。
+        # 基线唯一真源 = pytest.ini 注释（公开 clone / CI 侧以本步实测为准）。
+        # 公开侧与本机差异来自：gitignored 私有资产缺席时相关用例按语义 SKIP（理由随 -rs 输出）
+        # 与并行窗尚未提交的新测试；两侧收集总数应一致。
         run: python -m pytest -q -rs
 
       - name: Provenance ledger
-        # 期望：66/66 通过（UPSTREAM.md 台账 + vendor pinned commit）
+        # 期望：117/117 通过（UPSTREAM.md 台账 + vendor pinned commit）
+        # 2026-09-27 本机实测：Provenance 审计 117/117 通过（SKIP 0）。
         run: python academic-toolkit/tools/check_provenance.py
 
       - name: Secret & path hygiene scan

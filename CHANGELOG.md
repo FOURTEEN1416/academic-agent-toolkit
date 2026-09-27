@@ -2,6 +2,31 @@
 
 本项目所有显著变更记录于此，格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循语义化版本。更早的分节操作日志存于项目内部文档（2026-09-23 起移出公开仓，不随仓库分发）。
 
+## [v2.1.0] - 2026-09-27 —— 赛事档案 v2 隔离（跨赛事规则不再混用）
+
+> 定版范围：2026-09-27 赛事隔离主线（comp_rules v1→v2 + 规则选档接口 + 技能/模板对齐 + 文档基线 1005）。
+> 未打 tag；打 tag 与 Release notes 待公开发布时执行。
+
+### Added
+
+- **`academic-toolkit/engine/modex-core/comp_rules.json` 升级 schema v2 并切生产**（`schema_version=2` / `artifact_status=production`）：22 赛事 · 8 个有效 profile · 51 条约束（36 `verified` + 15 `unknown`）· 15 个无档案赛事（`profiles=[]` + 证据摘要 + 历史备注）。v1 数据留作回滚点。契约测试落位 `tests/test_contest_rule_data.py`。
+- **规则选档接口**：`contests[id].profiles[]` 按 `edition` / `submission_form`（必要时 `region` / `stage`）精确选档，`profile_id` + `rules_revision` 随档冻结；逐条约束带 `status` / `value` / `scope` / `source_ids`，`sources` 统一顶层 ID 登记表。多 profile 同 `edition` 时拒绝模糊匹配。
+- **`contest_profile.py` v2 解析器** + execution 受控缓存（命令复用资格先判定、受控环境白名单），输出合同与命令环境注入：`CONTEST_ID` / `PAGE_CAP` / `PAGE_SCOPE` / `PAGE_CAP_STATUS` / `EDITION` 由绑定快照注入，智能体不再逐字转录；无口径即 SKIP，不回退默认页数。
+- **研赛/华为杯分型入库骨架**（`5b714bd`）：`data/award_paper_exemplars.json` 增 `graduate_contest` 分型（国赛既有 62 篇 / priority_25 / A-E 学习路径一字未动，新容器缺省为空、未编造条目）；`data/cumcm_section_prompts.json` 增 `huawei-cover-identity` / `huawei-abstract` / `huawei-references` / `huawei-format-page` 四板块（字段同构国赛 9 板块，逐条带 `source_level` + `provenance`，经验口径显式标 `internal_empirical`）。
+- `comp-paper-zh/_templates/certcup_en/` **独立骨架**（不再复用 mcm 骨架，Summary 独立成页）；`comp-paper-zh/references/huawei-official-format.md` 增下游接线表与来源层级声明。
+
+### Changed
+
+- **竞赛技能正文与模板对齐 v2 档案**（95 文件）：移除共享模板 `quick_gates_max_pages` 默认与旧 `max_pages` 直读，统一 `gate_page_cap` / `scope` / `page_cap_status`；页数语义 `body` / `total` 不折叠；官方 `verified` 与经验/工具建议分离，任务级覆盖仅限当前工作流参数，未知赛事不回落国赛。
+- 文档基线统一 **1005 collected**（`README.md` / `AGENTS.md` / `pytest.ini` 同口径，唯一真源 = `pytest.ini` 注释）；lint scope 补 `repo:tests`；技能索引快照重生成；清理废弃脚本（`fix_skill_manifest_placement`、`run_cumcm_e2e`）。
+
+### Fixed
+
+- **跨赛事混用根因修复**：MCM/APMCM 路由精确化（不再模糊命中美赛分支）；单任务页数覆盖不污染其他任务；承诺书 electronic/paper 形态区分；国赛 AI 声明不误入其他赛事；旧工作流不静默迁移合同，无档任务显式待绑定而非按现盘标为历史。
+- **P1 假绿修复**：打包承诺书检查静默消失仍报"✅通过" → 改为显式 SKIP；`quality_gates` pending_binding 合规分支 ERROR → 诚实 SKIP；快检无口径不再冒充通过。
+- **迁移债收尾**：v1→v2 消费路径测试迁移（`test_active_skill_contracts` / `test_workflow_backfill_stall` / `test_contest_profile_runtime` / `test_g2_package_gmcm` / `test_huawei_pipeline`）；`test_old_task_does_not_drift_when_global_rules_change` 改为 `tmp_path` 副本 + 显式 `rules_file` 传参，不再读写生产真源。
+- 双副本一致性：`claim_code_check.py` 两副本字节一致；三族分支 fail-fast。
+
 ## [v2.0.0] - 2026-09-23 —— 整仓彻底重构（框架到文件名）
 
 > **破坏性变更**：套件目录更名、技能大面积改名与合并、私有资料区重新布局。公开 clone 与下游引用须按下方迁移指引更新。

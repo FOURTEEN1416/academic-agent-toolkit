@@ -38,3 +38,6 @@ tools/_*.out
 _snapshots/
 _evidence_*.json
 visual_review_tasks/
+
+# 引擎/技能工作区临时目录（2026-09-27 GitHub 同步前收口：工具运行期产物不入库）
+_tmp/
