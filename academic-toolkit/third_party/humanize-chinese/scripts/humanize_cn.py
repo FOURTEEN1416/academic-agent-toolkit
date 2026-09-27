@@ -1029,7 +1029,7 @@ def main():
             
             try:
                 proc = subprocess.run(
-                    ['python3', style_script, tmp_path, '--style', args.style],
+                    [sys.executable, style_script, tmp_path, '--style', args.style],
                     capture_output=True, text=True, encoding='utf-8'
                 )
                 if proc.returncode == 0 and proc.stdout.strip():

@@ -15,7 +15,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 def run_detect(text, as_json=True):
     """Run detect_cn.py and get results"""
     detect_script = os.path.join(SCRIPT_DIR, 'detect_cn.py')
-    cmd = ['python3', detect_script]
+    cmd = [sys.executable, detect_script]
     if as_json:
         cmd.append('-j')
     
@@ -33,7 +33,7 @@ def run_detect(text, as_json=True):
 def run_humanize(text, scene='general', aggressive=False, style=None):
     """Run humanize_cn.py and get result"""
     humanize_script = os.path.join(SCRIPT_DIR, 'humanize_cn.py')
-    cmd = ['python3', humanize_script, '--scene', scene]
+    cmd = [sys.executable, humanize_script, '--scene', scene]
     if aggressive:
         cmd.append('-a')
     if style:
