@@ -28,7 +28,7 @@ VENDORED_MARKER = "codesucker-core"  # vendored node 项目内嵌 py 不属本�
 # + git 面无副作用），实测记录见 dev-docs/board/reports/batch3-report.md。
 #
 # 【裸跑型豁免】（"无参数即执行"形态，不允许在测试中触发）：
-#   case_fetcher / codesucker_end_to_end_demo / pdf_ocr / markdown_utils
+#   case_fetcher / pdf_ocr / markdown_utils（codesucker_end_to_end_demo 已于 2026-09-28 清除）
 #     —— 历史豁免（2026-09-20 实测会写文件/重生成数据）；
 #   fix_bare_latex_in_md —— 无 --help 契约，位置参数缺省把 "--help" 当文件名（pyc 包装器）。
 # 【契约破损豁免】：
