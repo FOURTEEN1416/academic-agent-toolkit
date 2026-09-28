@@ -1,0 +1,68 @@
+{
+  "adapter_id": "opencode",
+  "closure_level": "preview-managed",
+  "install_mode": "preview-guidance",
+  "check_mode": "preview-guidance",
+  "bootstrap_mode": "preview-guidance",
+  "repo_managed_payload": [
+    "runtime core payload",
+    "OpenCode command wrappers under commands/** and command/**",
+    "OpenCode agent wrappers under agents/** and agent/**",
+    "OpenCode preview config example under opencode.json.example",
+    ".vibeskills/host-closure.json",
+    ".vibeskills/bin/**"
+  ],
+  "host_state_written": [
+    "skills/**",
+    "commands/**",
+    "command/**",
+    "agents/**",
+    "agent/**",
+    "opencode.json.example",
+    ".vibeskills/host-closure.json",
+    ".vibeskills/bin/**"
+  ],
+  "host_managed_boundaries": [
+    "final opencode.json ownership",
+    "plugin provisioning",
+    "MCP registration",
+    "provider credentials",
+    "runtime model/provider selection"
+  ],
+  "uninstall_contract": {
+    "contract_version": 1,
+    "ledger_first": true,
+    "install_ledger_path": ".vibeskills/install-ledger.json",
+    "owned_payload": [
+      "runtime core payload",
+      "OpenCode command wrappers under commands/** and command/**",
+      "OpenCode agent wrappers under agents/** and agent/**",
+      "OpenCode preview config example under opencode.json.example",
+      ".vibeskills/host-closure.json",
+      ".vibeskills/bin/**"
+    ],
+    "shared_json_targets": [],
+    "legacy_compatibility": [
+      ".vibeskills/host-closure.json",
+      ".vibeskills/bin/**"
+    ],
+    "host_state_written": [
+      "skills/**",
+      "commands/**",
+      "command/**",
+      "agents/**",
+      "agent/**",
+      "opencode.json.example",
+      ".vibeskills/host-closure.json",
+      ".vibeskills/bin/**"
+    ],
+    "documentation_reference": "docs/uninstall-governance.md"
+  },
+  "verification_contract": [
+    "runtime freshness gate",
+    "runtime BOM/frontmatter gate",
+    "runtime coherence gate",
+    "OpenCode preview smoke gate",
+    "host closure presence check"
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "id": "B02",
+  "requirements": "A credible constraint-based E. coli acetate-overflow phase-plane study that loads a validated BIGG model, sets glucose and oxygen medium bounds, sweeps a two-dimensional nutrient grid, reports growth and by-product secretion, and interprets the acetate overflow boundary.",
+  "judging_note": "Score biological substance and quantitative reproducibility over exact thresholds. iJO1366, iAF1260, or a comparable curated E. coli GSMM are acceptable.",
+  "weight": 1,
+  "sub_tasks": [
+    {
+      "id": "b02-code",
+      "requirements": "The COBRApy implementation defines the model, medium, phase-plane grid, FBA/pFBA runs, and secretion extraction.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b02-code-model",
+          "requirements": "Loads a validated E. coli BIGG model, explicitly sets glucose and oxygen exchange bounds, and names the biomass objective.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "b02-code-grid",
+          "requirements": "Constructs a two-dimensional glucose-by-oxygen grid with at least 8 values per axis and restores model state between conditions.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Experimental Setup"
+        },
+        {
+          "id": "b02-code-products",
+          "requirements": "Extracts biomass plus acetate, ethanol, lactate, succinate, CO2, and O2/glucose exchange fluxes where present.",
+          "weight": 5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "b02-code-pfba",
+          "requirements": "Runs pFBA on the full grid or a justified representative subset and records total absolute flux.",
+          "weight": 4,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b02-exec",
+      "requirements": "Execution produces stable phase-plane artifacts without infeasible or missing-condition failures dominating the study.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b02-exec-status",
+          "requirements": "At least 90% of grid points solve to optimal or biologically expected zero-growth status with explicit handling.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b02-exec-physics",
+          "requirements": "Mass-balance check passes for the loaded model; no non-physical secretion fluxes appear under aerobic conditions without explicit justification (e.g. acetate secretion is zero under high-oxygen/low-glucose conditions in the reference FBA); biomass flux is positive under aerobic glucose reference. This is the biology-validity gate equivalent to physics-validity checks in the physics rubric.",
+          "weight": 7.0,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b02-exec-artifacts",
+          "requirements": "Writes results.json and a CSV/TSV phase-plane table with nutrient bounds, growth, and secretion fluxes.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b02-results",
+      "requirements": "The analysis identifies and explains acetate-overflow regimes with figures and quantitative criteria.",
+      "weight": 3,
+      "sub_tasks": [
+        {
+          "id": "b02-result-h1",
+          "requirements": "Reports reference aerobic glucose growth and confirms model feasibility and positive biomass production. Score 100% if a positive finite biomass flux is reported for aerobic glucose with optimal solver status; 67% if growth is positive but solver status is not verified; 33% if only feasibility is stated without a numeric growth value; 0% otherwise.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b02-result-h2",
+          "requirements": "Quantifies an acetate secretion boundary or threshold across oxygen/glucose regimes and distinguishes respiratory vs overflow conditions. Score 100% if an acetate-overflow boundary is quantified (O2 or glucose uptake threshold stated) with ≥2 distinct secretion regimes visible in the phase-plane table; 67% if overflow is identified without a quantified boundary; 33% if only one secretion regime is described; 0% otherwise.",
+          "weight": 12,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b02-result-h3",
+          "requirements": "Compares FBA and pFBA growth/secretion regimes and explains where they agree or differ. Score 100% if FBA and pFBA growth rates are numerically compared and total flux norms are reported for both; 67% if only growth rates are compared without flux-norm comparison; 33% if pFBA was run but not compared to FBA; 0% otherwise.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b02-result-figure",
+          "requirements": "Produces at least one labelled heatmap or contour plot for growth and acetate secretion with units.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b02-result-writeup",
+          "requirements": "The README or results writeup discusses each hypothesis outcome, characterises the acetate-overflow regime boundary with quantitative support, and gives a one-paragraph mechanistic interpretation of why E. coli shifts from respiratory to acetate-secreting overflow metabolism at the identified nutrient threshold.",
+          "weight": 6.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b02-repro",
+      "requirements": "The model ID, medium, grid values, solver, and thresholds are recorded for rerun reproducibility.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b02-repro-model",
+          "requirements": "The loaded E. coli GSMM is either persisted (models/<model_id>.json) or pinned by BIGG model ID and source URL in the writeup; a downstream user can locate the exact model object used.",
+          "weight": 5.0,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        },
+        {
+          "id": "b02-repro-config",
+          "requirements": "Saves model ID, objective reaction, nutrient grid, and secretion threshold in config or results metadata.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        },
+        {
+          "id": "b02-repro-solver",
+          "requirements": "Records solver backend, tolerance, COBRApy version, and rerun consistency for the aerobic reference point.",
+          "weight": 5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    }
+  ],
+  "task_category": null,
+  "finegrained_task_category": null
+}

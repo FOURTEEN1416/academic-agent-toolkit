@@ -1,0 +1,21 @@
+# Small always-on Python validation surface for CI and local gate-parity runs.
+# Keep this list to one or two anchors per default capability plus policy contracts.
+
+# Default install lifecycle.
+tests/runtime_neutral/test_install_profile_differentiation.py
+
+# Default runtime entry truth.
+tests/runtime_neutral/test_governed_runtime_bridge.py
+tests/runtime_neutral/test_runtime_delivery_acceptance.py
+
+# Default routing mainline.
+tests/runtime_neutral/test_custom_admission_bridge.py
+tests/runtime_neutral/test_router_authority_safe_fallback.py
+
+# Executable live-document and shared run-artifact contracts.
+tests/runtime_neutral/test_live_document_contract_gate.py
+tests/integration/test_shared_run_artifact_contract.py
+
+# Validation contract coverage.
+tests/runtime_neutral/test_test_baseline_audit.py
+tests/runtime_neutral/test_python_validation_contract.py

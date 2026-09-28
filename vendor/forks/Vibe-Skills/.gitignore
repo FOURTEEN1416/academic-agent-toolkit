@@ -1,0 +1,60 @@
+# Runtime outputs
+# Only the legacy allowlisted tracked outputs declared in `config/outputs-boundary-policy.json` may remain tracked.
+# Everything else under `outputs/**` is generated and must stay untracked.
+outputs/
+**/outputs/
+**/telemetry/
+
+# Local operator noise
+.serena/
+.tmp/
+.vibeskills/
+.worktrees/
+!scripts/verify/fixtures/document-cleanup-safety/**/.tmp/
+!scripts/verify/fixtures/document-cleanup-safety/**/.tmp/**
+third_party/vco-ecosystem-mirror/
+
+# MCP local machine config (keep templates tracked)
+mcp/servers.json
+mcp/servers.local.json
+mcp/servers.private.json
+mcp/servers.*.local.json
+mcp/profiles/*.local.json
+mcp/profiles/*.private.json
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage/
+
+# Generated example render outputs
+bundled/skills/timesfm-forecasting/examples/**/output/*.png
+bundled/skills/timesfm-forecasting/examples/**/output/*.gif
+bundled/skills/timesfm-forecasting/examples/**/output/*.html
+
+# Node
+node_modules/
+
+# Logs
+logs/
+*.log
+!references/proof-bundles/linux-full-authoritative-candidate/**/*.log
+!bundled/skills/vibe/references/proof-bundles/linux-full-authoritative-candidate/**/*.log
+!bundled/skills/vibe/bundled/skills/vibe/references/proof-bundles/linux-full-authoritative-candidate/**/*.log
+
+# Local env files
+.env
+.env.*

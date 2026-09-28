@@ -1,0 +1,191 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-02-13T00:00:00Z",
+
+  "known_mcp_servers": {
+    "puppeteer": {
+      "package": "@anthropic-ai/mcp-server-puppeteer",
+      "install_command": "npx -y @anthropic-ai/mcp-server-puppeteer",
+      "description": "Browser automation - navigate, click, type, screenshot",
+      "capabilities": ["browser_automation", "screenshot", "form_filling", "javascript_execution", "web_scraping"],
+      "tools": [
+        "mcp__puppeteer_navigate",
+        "mcp__puppeteer_click",
+        "mcp__puppeteer_type",
+        "mcp__puppeteer_screenshot",
+        "mcp__puppeteer_evaluate",
+        "mcp__puppeteer_fill",
+        "mcp__puppeteer_select",
+        "mcp__puppeteer_hover",
+        "mcp__puppeteer_wait"
+      ],
+      "priority": "high",
+      "use_cases": ["web_testing", "form_automation", "screenshot", "web_scraping"]
+    },
+
+    "filesystem": {
+      "package": "@anthropic-ai/mcp-server-filesystem",
+      "install_command": "npx -y @anthropic-ai/mcp-server-filesystem --path {{PROJECT_DIR}}",
+      "description": "File system operations",
+      "capabilities": ["file_operations", "directory_operations", "file_search"],
+      "tools": [
+        "mcp__filesystem_read",
+        "mcp__filesystem_write",
+        "mcp__filesystem_list",
+        "mcp__filesystem_mkdir",
+        "mcp__filesystem_delete",
+        "mcp__filesystem_move",
+        "mcp__filesystem_copy",
+        "mcp__filesystem_search"
+      ],
+      "priority": "critical",
+      "use_cases": ["file_management", "project_setup"]
+    },
+
+    "desktop": {
+      "package": "@anthropic-ai/mcp-server-desktop",
+      "install_command": "npx -y @anthropic-ai/mcp-server-desktop",
+      "description": "Desktop automation - mouse, keyboard, screen capture",
+      "capabilities": ["desktop_control", "mouse_control", "keyboard_control", "screen_capture", "window_management"],
+      "tools": [
+        "mcp__desktop_screenshot",
+        "mcp__desktop_mouse_move",
+        "mcp__desktop_click",
+        "mcp__desktop_type",
+        "mcp__desktop_hotkey",
+        "mcp__desktop_window_list",
+        "mcp__desktop_window_focus"
+      ],
+      "priority": "medium",
+      "use_cases": ["desktop_automation", "gui_testing", "screen_capture"]
+    },
+
+    "sqlite": {
+      "package": "@anthropic-ai/mcp-server-sqlite",
+      "install_command": "npx -y @anthropic-ai/mcp-server-sqlite --db-path {{PROJECT_DIR}}/data.db",
+      "description": "SQLite database operations",
+      "capabilities": ["database", "sql_query", "data_manipulation"],
+      "tools": [
+        "mcp__sqlite_query",
+        "mcp__sqlite_execute",
+        "mcp__sqlite_list_tables",
+        "mcp__sqlite_describe_table"
+      ],
+      "priority": "low",
+      "use_cases": ["database_operations", "data_analysis"]
+    },
+
+    "postgres": {
+      "package": "@anthropic-ai/mcp-server-postgres",
+      "install_command": "npx -y @anthropic-ai/mcp-server-postgres",
+      "description": "PostgreSQL database operations",
+      "capabilities": ["database", "sql_query", "data_manipulation"],
+      "tools": [
+        "mcp__postgres_query",
+        "mcp__postgres_execute",
+        "mcp__postgres_list_tables"
+      ],
+      "priority": "low",
+      "use_cases": ["database_operations", "data_analysis"]
+    },
+
+    "github": {
+      "package": "@anthropic-ai/mcp-server-github",
+      "install_command": "npx -y @anthropic-ai/mcp-server-github",
+      "description": "GitHub operations - repos, issues, PRs",
+      "capabilities": ["git_operations", "issue_management", "pr_management", "repo_management"],
+      "tools": [
+        "mcp__github_create_issue",
+        "mcp__github_create_pr",
+        "mcp__github_list_issues",
+        "mcp__github_list_prs",
+        "mcp__github_get_repo"
+      ],
+      "priority": "medium",
+      "use_cases": ["git_workflow", "project_management"]
+    },
+
+    "brave-search": {
+      "package": "@anthropic-ai/mcp-server-brave-search",
+      "install_command": "npx -y @anthropic-ai/mcp-server-brave-search",
+      "description": "Web search via Brave Search API",
+      "capabilities": ["web_search", "information_retrieval"],
+      "tools": [
+        "mcp__brave-search_search"
+      ],
+      "priority": "medium",
+      "use_cases": ["research", "documentation_lookup"]
+    },
+
+    "fetch": {
+      "package": "@anthropic-ai/mcp-server-fetch",
+      "install_command": "npx -y @anthropic-ai/mcp-server-fetch",
+      "description": "HTTP requests and web fetching",
+      "capabilities": ["http_requests", "api_calls", "web_fetching"],
+      "tools": [
+        "mcp__fetch_get",
+        "mcp__fetch_post",
+        "mcp__fetch_put",
+        "mcp__fetch_delete"
+      ],
+      "priority": "medium",
+      "use_cases": ["api_testing", "web_fetching"]
+    },
+
+    "memory": {
+      "package": "@anthropic-ai/mcp-server-memory",
+      "install_command": "npx -y @anthropic-ai/mcp-server-memory",
+      "description": "Persistent memory across sessions",
+      "capabilities": ["memory_storage", "context_persistence"],
+      "tools": [
+        "mcp__memory_store",
+        "mcp__memory_retrieve",
+        "mcp__memory_list"
+      ],
+      "priority": "low",
+      "use_cases": ["context_persistence", "knowledge_management"]
+    }
+  },
+
+  "task_to_mcp_mapping": {
+    "web_testing": {
+      "required": ["puppeteer"],
+      "optional": ["filesystem"],
+      "workflow": ["navigate", "interact", "verify", "screenshot"]
+    },
+    "api_testing": {
+      "required": ["fetch"],
+      "optional": ["puppeteer"],
+      "workflow": ["request", "validate", "report"]
+    },
+    "desktop_automation": {
+      "required": ["desktop"],
+      "optional": [],
+      "workflow": ["screenshot", "analyze", "interact", "verify"]
+    },
+    "database_work": {
+      "required": ["sqlite", "postgres"],
+      "optional": [],
+      "workflow": ["connect", "query", "modify", "verify"]
+    },
+    "git_workflow": {
+      "required": ["github"],
+      "optional": [],
+      "workflow": ["status", "commit", "push", "pr"]
+    },
+    "research": {
+      "required": ["brave-search", "fetch"],
+      "optional": ["puppeteer"],
+      "workflow": ["search", "fetch", "analyze", "summarize"]
+    }
+  },
+
+  "capability_detection_patterns": {
+    "browser_automation": ["open website", "click button", "fill form", "navigate to", "web page", "screenshot"],
+    "desktop_control": ["control mouse", "press key", "desktop app", "gui automation", "screen capture"],
+    "database": ["sql query", "database", "table", "insert data", "select from"],
+    "api_calls": ["api request", "http get", "http post", "rest api", "fetch url"],
+    "web_search": ["search web", "find online", "look up", "google", "research"],
+    "git_operations": ["create pr", "github issue", "merge request", "push code"]
+  }
+}

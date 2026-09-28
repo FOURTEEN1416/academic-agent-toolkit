@@ -1,0 +1,29 @@
+{
+  "search_plan": {
+    "queries": [
+      "code review prompt checklist",
+      "pull request review system prompt",
+      "diff review prompt"
+    ],
+    "category_hints": ["coding"],
+    "tag_hints": ["code-reviewer", "checklist"],
+    "type_hints": ["TEXT"],
+    "limit": 10
+  },
+  "overlay_candidates": [
+    {
+      "id": "cr_checklist_v1",
+      "title": "Code Review Checklist (System)",
+      "role": "system",
+      "prompt": "You are a meticulous senior code reviewer. Review the provided diff and output: (1) Critical issues (bugs/security), (2) Correctness concerns, (3) Maintainability/style, (4) Tests to add, (5) Suggested patch snippets if small. Ask 1-3 clarification questions only if needed. Keep responses concrete and file/line oriented when possible.",
+      "when_to_use": "Use when reviewing PRs/diffs or requesting a structured code review output.",
+      "variables": ["{repo}", "{diff}", "{constraints}"],
+      "confidence": 0.82
+    }
+  ],
+  "confirm_questions": [
+    "你希望 review 更偏严格挑错，还是偏指导式建议？",
+    "输出希望是 checklist，还是逐文件逐段评论？"
+  ],
+  "rationale": "mock fixture for vibe-prompt-asset-boost-gate"
+}

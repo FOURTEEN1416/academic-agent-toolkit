@@ -1,0 +1,13 @@
+{
+  "version": "2026-07-31.1",
+  "files": {
+    "suite": {
+      "path": "suite.json",
+      "sha256": "dce6adc9217ae013971beda015b6585180d34c03f4f7ef9991bb627db941b94d"
+    },
+    "rubric": {
+      "path": "rubric.json",
+      "sha256": "0e8aa3499e1470315fe475b93f0a96bcb5840fb90ff49e8f170c234d3670a4c6"
+    }
+  }
+}

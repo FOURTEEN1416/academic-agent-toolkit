@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "default_adapter_id": "codex",
+  "discoverable_entry_surface": "config/vibe-entry-surfaces.json",
+  "aliases": {
+    "claude": "claude-code"
+  },
+  "adapters": [
+    {
+      "id": "codex",
+      "status": "supported-with-constraints",
+      "install_mode": "governed",
+      "check_mode": "governed",
+      "bootstrap_mode": "governed",
+      "bootstrap_summary": "strongest governed lane",
+      "canonical_vibe": {
+        "entry_mode": "direct_runtime",
+        "fallback_policy": "blocked",
+        "proof_required": true,
+        "allow_skill_doc_fallback": false,
+        "launcher_kind": "native_command",
+        "supports_bounded_stop": true
+      },
+      "default_target_root": {
+        "env": "VIBE_AGENTS_HOME",
+        "rel": ".agents",
+        "kind": "shared-home"
+      },
+      "discoverable_entries": {
+        "shared_source": "config/vibe-entry-surfaces.json",
+        "authority_owner": "vibe",
+        "projection_mode": "generated_wrapper_entries",
+        "host_visible_surface": "commands"
+      },
+      "host_profile": "adapters/codex/host-profile.json",
+      "settings_map": "adapters/codex/settings-map.json",
+      "closure": "adapters/codex/closure.json",
+      "manifest": "dist/host-codex/manifest.json"
+    },
+    {
+      "id": "claude-code",
+      "status": "supported-with-constraints",
+      "install_mode": "preview-guidance",
+      "check_mode": "preview-guidance",
+      "bootstrap_mode": "preview-guidance",
+      "bootstrap_summary": "supported install/use path",
+      "canonical_vibe": {
+        "entry_mode": "bridged_runtime",
+        "fallback_policy": "blocked",
+        "proof_required": true,
+        "allow_skill_doc_fallback": false,
+        "launcher_kind": "managed_bridge",
+        "supports_bounded_stop": true
+      },
+      "default_target_root": {
+        "env": "VIBE_AGENTS_HOME",
+        "rel": ".agents",
+        "kind": "shared-home"
+      },
+      "discoverable_entries": {
+        "shared_source": "config/vibe-entry-surfaces.json",
+        "authority_owner": "vibe",
+        "projection_mode": "generated_wrapper_entries",
+        "host_visible_surface": "managed-launchers"
+      },
+      "host_profile": "adapters/claude-code/host-profile.json",
+      "settings_map": "adapters/claude-code/settings-map.json",
+      "closure": "adapters/claude-code/closure.json",
+      "manifest": "dist/host-claude-code/manifest.json"
+    },
+    {
+      "id": "cursor",
+      "status": "preview",
+      "install_mode": "preview-guidance",
+      "check_mode": "preview-guidance",
+      "bootstrap_mode": "preview-guidance",
+      "bootstrap_summary": "supported install/use path",
+      "canonical_vibe": {
+        "entry_mode": "bridged_runtime",
+        "fallback_policy": "blocked",
+        "proof_required": true,
+        "allow_skill_doc_fallback": false,
+        "launcher_kind": "preview_launcher",
+        "supports_bounded_stop": true
+      },
+      "default_target_root": {
+        "env": "VIBE_AGENTS_HOME",
+        "rel": ".agents",
+        "kind": "shared-home"
+      },
+      "discoverable_entries": {
+        "shared_source": "config/vibe-entry-surfaces.json",
+        "authority_owner": "vibe",
+        "projection_mode": "generated_wrapper_entries",
+        "host_visible_surface": "preview-launchers"
+      },
+      "host_profile": "adapters/cursor/host-profile.json",
+      "settings_map": "adapters/cursor/settings-map.json",
+      "closure": "adapters/cursor/closure.json",
+      "manifest": "dist/host-cursor/manifest.json"
+    },
+    {
+      "id": "windsurf",
+      "status": "preview",
+      "install_mode": "runtime-core",
+      "check_mode": "runtime-core",
+      "bootstrap_mode": "runtime-core",
+      "bootstrap_summary": "supported path + runtime adapter",
+      "canonical_vibe": {
+        "entry_mode": "bridged_runtime",
+        "fallback_policy": "blocked",
+        "proof_required": true,
+        "allow_skill_doc_fallback": false,
+        "launcher_kind": "runtime_core_launcher",
+        "supports_bounded_stop": true
+      },
+      "default_target_root": {
+        "env": "VIBE_AGENTS_HOME",
+        "rel": ".agents",
+        "kind": "shared-home"
+      },
+      "discoverable_entries": {
+        "shared_source": "config/vibe-entry-surfaces.json",
+        "authority_owner": "vibe",
+        "projection_mode": "generated_wrapper_entries",
+        "host_visible_surface": "runtime-core-launchers"
+      },
+      "host_profile": "adapters/windsurf/host-profile.json",
+      "settings_map": "adapters/windsurf/settings-map.json",
+      "closure": "adapters/windsurf/closure.json",
+      "manifest": "dist/host-windsurf/manifest.json"
+    },
+    {
+      "id": "openclaw",
+      "status": "preview",
+      "install_mode": "runtime-core",
+      "check_mode": "runtime-core",
+      "bootstrap_mode": "runtime-core",
+      "bootstrap_summary": "preview runtime-core adapter",
+      "canonical_vibe": {
+        "entry_mode": "bridged_runtime",
+        "fallback_policy": "blocked",
+        "proof_required": true,
+        "allow_skill_doc_fallback": false,
+        "launcher_kind": "runtime_core_launcher",
+        "supports_bounded_stop": true
+      },
+      "default_target_root": {
+        "env": "VIBE_AGENTS_HOME",
+        "rel": ".agents",
+        "kind": "shared-home"
+      },
+      "discoverable_entries": {
+        "shared_source": "config/vibe-entry-surfaces.json",
+        "authority_owner": "vibe",
+        "projection_mode": "generated_wrapper_entries",
+        "host_visible_surface": "runtime-core-launchers"
+      },
+      "host_profile": "adapters/openclaw/host-profile.json",
+      "settings_map": "adapters/openclaw/settings-map.json",
+      "closure": "adapters/openclaw/closure.json",
+      "manifest": "dist/host-openclaw/manifest.json"
+    },
+    {
+      "id": "opencode",
+      "status": "preview",
+      "install_mode": "preview-guidance",
+      "check_mode": "preview-guidance",
+      "bootstrap_mode": "preview-guidance",
+      "bootstrap_summary": "preview guidance adapter",
+      "canonical_vibe": {
+        "entry_mode": "bridged_runtime",
+        "fallback_policy": "blocked",
+        "proof_required": true,
+        "allow_skill_doc_fallback": false,
+        "launcher_kind": "managed_bridge",
+        "supports_bounded_stop": true
+      },
+      "default_target_root": {
+        "env": "VIBE_AGENTS_HOME",
+        "rel": ".agents",
+        "kind": "shared-home"
+      },
+      "discoverable_entries": {
+        "shared_source": "config/vibe-entry-surfaces.json",
+        "authority_owner": "vibe",
+        "projection_mode": "generated_wrapper_entries",
+        "host_visible_surface": "commands-and-agents"
+      },
+      "host_profile": "adapters/opencode/host-profile.json",
+      "settings_map": "adapters/opencode/settings-map.json",
+      "closure": "adapters/opencode/closure.json",
+      "manifest": "dist/host-opencode/manifest.json"
+    }
+  ]
+}

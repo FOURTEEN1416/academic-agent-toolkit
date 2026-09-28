@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-03-13T10:51:51Z",
+  "gate_result": "PASS",
+  "release": {
+    "version": "2.3.34",
+    "updated": "2026-03-13"
+  },
+  "target_root": "/tmp/vco-linux-proof-run2/target-root",
+  "installed_root": "/tmp/vco-linux-proof-run2/target-root/skills/vibe",
+  "receipt_version": 1
+}

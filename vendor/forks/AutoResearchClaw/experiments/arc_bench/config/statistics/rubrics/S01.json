@@ -1,0 +1,133 @@
+{
+  "id": "s01-root",
+  "requirements": "A credible simulation study evaluating whether bootstrap confidence interval choice affects empirical coverage under light-tailed, skewed, and heavy-tailed data. The submission should implement multiple CI methods, simulate several data-generating distributions and sample sizes, report coverage and interval width over repeated trials, and connect the numeric findings to the three hypotheses.",
+  "judging_note": "Score on statistical substance, correct simulation design, and directional correctness of evidence. Do not require exact repetition counts if the submission is computationally reasonable. Partial but well-motivated simulations deserve partial credit; rigid naming differences should not penalize a substantively correct experiment.",
+  "weight": 1,
+  "sub_tasks": [
+    {
+      "id": "s01-code",
+      "requirements": "The bootstrap simulation code implements meaningful confidence interval comparisons across relevant distributional regimes.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "s01-code-ci-methods",
+          "requirements": "The submission implements at least two bootstrap confidence interval methods, typically percentile bootstrap and studentized/bootstrap-t or another justified alternative. Methods should be implemented as distinct code paths rather than cosmetic options.",
+          "weight": 10.0,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "s01-code-robust-estimator",
+          "requirements": "The submission includes a robust location estimator, such as median or trimmed mean, and compares it against the ordinary sample mean under heavy-tailed or contaminated data.",
+          "weight": 7.5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "s01-code-dgps",
+          "requirements": "The submission simulates multiple data-generating processes covering at least light-tailed and heavy-tailed cases, with skewed data such as lognormal or contaminated data receiving additional credit.",
+          "weight": 7.5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Dataset and Model Acquisition"
+        },
+        {
+          "id": "s01-code-sample-sizes",
+          "requirements": "The simulation evaluates more than one sample size so that finite-sample behavior can be distinguished from asymptotic behavior.",
+          "weight": 5.0,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Experimental Setup"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "s01-exec",
+      "requirements": "Execution produces coverage and interval-quality metrics adequate to evaluate bootstrap CI behavior.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "s01-exec-metrics",
+          "requirements": "Execution produces a machine-readable metrics artifact, such as results/metrics.json, containing numeric empirical coverage and interval width by condition, distribution, and sample size. Coverage error or failure rate may supplement these metrics.",
+          "weight": 15.0,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "s01-exec-repetitions",
+          "requirements": "Reported metrics are based on repeated Monte Carlo trials and bootstrap resampling. The exact number of repetitions need not match the topic file, but it should be large enough to make coverage comparisons meaningful and should be honestly reported.",
+          "weight": 10.0,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "s01-exec-truth",
+          "requirements": "The simulation correctly defines the true estimand for each data-generating process, such as the true mean or true robust location target, and checks whether confidence intervals contain that estimand.",
+          "weight": 10.0,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "s01-paper",
+      "requirements": "The final paper or report addresses the three bootstrap hypotheses with quantitative evidence and a clear statistical narrative.",
+      "weight": 3,
+      "sub_tasks": [
+        {
+          "id": "s01-result-h1",
+          "requirements": "The submission evaluates whether percentile bootstrap confidence intervals achieve near-nominal coverage under light-tailed Gaussian data, especially at moderate or larger sample sizes, and states whether H1 is supported, refuted, or inconclusive.",
+          "weight": 12.5,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s01-result-h2",
+          "requirements": "The submission evaluates whether percentile bootstrap intervals for the sample mean undercover under heavy-tailed data and supports the conclusion with empirical coverage numbers.",
+          "weight": 15.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s01-result-h3",
+          "requirements": "The submission compares robust location estimators against the ordinary sample mean under heavy-tailed or contaminated data and discusses whether robustness improves coverage stability or interval behavior.",
+          "weight": 15.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s01-result-width-tradeoff",
+          "requirements": "The analysis discusses interval-width tradeoffs, recognizing that higher coverage may come from wider intervals and that width should be interpreted jointly with coverage.",
+          "weight": 7.5,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s01-result-writeup",
+          "requirements": "The README or writeup describes the simulation setup, CI methods, data-generating processes, key numeric results, and per-hypothesis outcomes with appropriate caveats on repetition count, bootstrap count, and Monte Carlo uncertainty.",
+          "weight": 10.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    }
+  ],
+  "task_category": null,
+  "finegrained_task_category": null
+}

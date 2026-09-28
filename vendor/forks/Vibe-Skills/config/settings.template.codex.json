@@ -1,0 +1,10 @@
+﻿{
+    "vco":  {
+                "skill_root":  "~/.agents/skills",
+                "rules_root":  "~/.agents/rules"
+            },
+    "env":  {
+                "VCO_PROFILE":  "full",
+                "VCO_CODEX_MODE":  "true"
+            }
+}

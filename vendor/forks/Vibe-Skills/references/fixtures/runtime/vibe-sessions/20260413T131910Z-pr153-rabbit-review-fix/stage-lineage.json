@@ -1,0 +1,38 @@
+[
+  {
+    "stage": "skeleton_check",
+    "status": "completed",
+    "completed_at_utc": "2026-04-13T13:19:10Z",
+    "artifact": "outputs/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/skeleton-receipt.json"
+  },
+  {
+    "stage": "deep_interview",
+    "status": "completed",
+    "completed_at_utc": "2026-04-13T13:19:10Z",
+    "artifact": "outputs/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/intent-contract.json"
+  },
+  {
+    "stage": "requirement_doc",
+    "status": "completed",
+    "completed_at_utc": "2026-04-13T13:19:10Z",
+    "artifact": "docs/requirements/2026-04-13-pr153-rabbit-review-fixes.md"
+  },
+  {
+    "stage": "xl_plan",
+    "status": "completed",
+    "completed_at_utc": "2026-04-13T13:19:10Z",
+    "artifact": "docs/plans/2026-04-13-pr153-rabbit-review-fixes-execution-plan.md"
+  },
+  {
+    "stage": "plan_execute",
+    "status": "completed",
+    "completed_at_utc": "2026-04-13T13:28:53Z",
+    "artifact": "outputs/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/phase-plan-execute.json"
+  },
+  {
+    "stage": "phase_cleanup",
+    "status": "completed",
+    "completed_at_utc": "2026-04-13T13:28:53Z",
+    "artifact": "outputs/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/cleanup-receipt.json"
+  }
+]

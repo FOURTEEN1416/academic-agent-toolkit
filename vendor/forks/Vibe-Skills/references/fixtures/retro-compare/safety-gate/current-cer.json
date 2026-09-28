@@ -1,0 +1,29 @@
+﻿{
+    "report_id":  "CER-SAFETY-CURR",
+    "trigger_signals":  {
+                            "fallback_rate":  0.15,
+                            "context_pressure":  0.63,
+                            "route_stability_pack":  0.85,
+                            "route_stability_skill":  0.82,
+                            "top1_top2_gap":  0.08
+                        },
+    "findings":  [
+                     {
+                         "pattern":  "CF-2"
+                     },
+                     {
+                         "pattern":  "CF-3"
+                     }
+                 ],
+    "comparison":  {
+                       "baseline_report_id":  "CER-SAFETY-BASE",
+                       "pattern_delta":  [
+                                             "added: CF-2",
+                                             "removed: CF-5",
+                                             "common_count: 1"
+                                         ],
+                       "fallback_rate_delta":  -0.11,
+                       "stability_delta":  0.125,
+                       "notes":  "auto-updated by cer-compare.ps1 at 2026-02-24T18:29:48Z"
+                   }
+}

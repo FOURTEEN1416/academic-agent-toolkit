@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>系统架构图</title>
+<style>
+html, body { margin:0; padding:0; width:fit-content; height:fit-content; background:transparent; }
+.fig { width:fit-content; height:fit-content; padding:18px; display:flex; flex-direction:column; gap:14px; }
+.fig-title { font:700 15px/1.4 "Microsoft YaHei","Noto Sans SC","Segoe UI",sans-serif; color:hsl(212,14%,22%); text-align:center; }
+.layer { display:flex; gap:14px; align-items:stretch; }
+.layer-label { writing-mode:vertical-lr; font:700 12px/1.3 "Microsoft YaHei","Noto Sans SC","Segoe UI",sans-serif; color:hsl(212,30%,38%); background:hsl(212,22%,92%); border:0.75px solid hsl(212,38%,54%); border-radius:8px; padding:8px 6px; display:flex; align-items:center; letter-spacing:1px; }
+.nodes { display:flex; gap:14px; flex:1; }
+.node { flex:1; min-width:150px; background:hsl(212,20%,96%); border:0.75px solid hsl(212,38%,54%); border-radius:8px; padding:12px 14px; box-shadow:0 1px 3px rgba(0,0,0,0.06); display:flex; flex-direction:column; gap:6px; }
+.node .t { font:700 13px/1.4 "Microsoft YaHei","Noto Sans SC","Segoe UI",sans-serif; color:hsl(212,14%,22%); }
+.node .sub { font:11px/1.5 "Microsoft YaHei","Noto Sans SC","Segoe UI",sans-serif; color:hsl(212,14%,48%); }
+.node.hot { background:hsl(212,28%,84%); border:1.25px solid hsl(212,38%,44%); }
+.flow-row { display:flex; align-items:center; justify-content:center; gap:8px; font:12px/1.4 "Microsoft YaHei","Noto Sans SC","Segoe UI",sans-serif; color:hsl(212,18%,62%); }
+.arrow { font:700 12px/1 "Microsoft YaHei",sans-serif; color:hsl(212,38%,54%); }
+.caption { font:11px/1.5 "Microsoft YaHei","Noto Sans SC","Segoe UI",sans-serif; color:hsl(212,14%,45%); text-align:center; }
+</style>
+</head>
+<body>
+<div class="fig">
+  <div class="fig-title">基于强化学习的无人机配送调度系统架构</div>
+  <div class="layer">
+    <div class="layer-label">数据接入层</div>
+    <div class="nodes">
+      <div class="node"><div class="t">订单流接入</div><div class="sub">取送点 / 重量 / 时限剩余 r_i</div></div>
+      <div class="node"><div class="t">机队遥测</div><div class="sub">电量 e_j(t) / 位置 / 载重余量</div></div>
+      <div class="node"><div class="t">空域与气象</div><div class="sub">禁飞区多边形 / 风速风向</div></div>
+    </div>
+  </div>
+  <div class="flow-row"><span>清洗 · 时间对齐 · 事件判别（新单/返航/禁飞变更/电量异常）</span><span class="arrow">▼</span></div>
+  <div class="layer">
+    <div class="layer-label">状态编码层</div>
+    <div class="nodes">
+      <div class="node"><div class="t">归一化与图嵌入</div><div class="sub">订单-无人机配对图注意力编码 → 观测向量 s_t</div></div>
+    </div>
+  </div>
+  <div class="flow-row"><span class="arrow">▼</span></div>
+  <div class="layer">
+    <div class="layer-label">决策层</div>
+    <div class="nodes">
+      <div class="node hot"><div class="t">调度策略网络 π_θ</div><div class="sub">图注意力编码 + 2 层 Transformer 解码<br>带掩码 softmax 输出指派-排序联合动作 a_t</div></div>
+      <div class="node"><div class="t">评论家网络 Q_φ</div><div class="sub">优势估计 Â_t → PPO 裁剪目标</div></div>
+      <div class="node"><div class="t">可行性校验与兜底</div><div class="sub">电量/时限/载重/空域逐项校验<br>换机 → 拆单 → 超时降级</div></div>
+    </div>
+  </div>
+  <div class="flow-row"><span class="arrow">▼</span></div>
+  <div class="layer">
+    <div class="layer-label">执行反馈层</div>
+    <div class="nodes">
+      <div class="node"><div class="t">航迹生成</div><div class="sub">A* / Dubins 避障航迹 · 起降时刻表</div></div>
+      <div class="node"><div class="t">执行与回灌</div><div class="sub">实际能耗 / 到达时刻 / 修复事件 → 经验回放池</div></div>
+      <div class="node"><div class="t">在线微调</div><div class="sub">每 200 周期小步长 PPO 更新 · 负样本加权</div></div>
+    </div>
+  </div>
+  <div class="flow-row"><span>调度周期 30 s / 事件触发即时唤醒，循环</span><span class="arrow">↺</span></div>
+  <div class="caption">决策层输出经可行性校验后下发执行；校验不通过由兜底引擎修复，修复事件回灌在线学习</div>
+</div>
+</body>
+</html>

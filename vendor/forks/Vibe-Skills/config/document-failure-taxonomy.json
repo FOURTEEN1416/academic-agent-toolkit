@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "failure_classes": [
+    {
+      "id": "provider_contract_violation",
+      "severity": "high",
+      "requires_failure_object": true
+    },
+    {
+      "id": "ocr_degraded_mode",
+      "severity": "medium",
+      "requires_failure_object": true
+    },
+    {
+      "id": "mime_detection_gap",
+      "severity": "high",
+      "requires_failure_object": true
+    },
+    {
+      "id": "artifact_bundle_gap",
+      "severity": "high",
+      "requires_failure_object": true
+    },
+    {
+      "id": "provenance_gap",
+      "severity": "high",
+      "requires_failure_object": true
+    },
+    {
+      "id": "page_alignment_loss",
+      "severity": "medium",
+      "requires_failure_object": false
+    },
+    {
+      "id": "table_structure_regression",
+      "severity": "medium",
+      "requires_failure_object": false
+    }
+  ],
+  "required_fields": [
+    "artifact_bundle",
+    "provenance",
+    "degraded_mode",
+    "failure_object"
+  ],
+  "fallback_contract": "docling_contract_v2",
+  "apply_policy": "manual_review_required"
+}

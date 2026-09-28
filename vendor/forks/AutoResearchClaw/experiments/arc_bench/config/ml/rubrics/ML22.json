@@ -1,0 +1,117 @@
+{
+    "id": "ml22-root",
+    "requirements": "A credible experiment studying active-learning query strategies (random, uncertainty, margin, QBC, expected error reduction, or equivalents) for logistic regression: strategies are implemented as distinct code paths, execution covers multiple datasets with repeated seeds under a fixed budget, and results address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Alternative acquisition functions or base classifiers that preserve the scientific question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml22-code",
+            "requirements": "Active-learning strategies and shared logistic-regression pipeline are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml22-code-strategies",
+                    "requirements": "The submission implements multiple distinct query conditions \u2014 typically random plus several of {uncertainty, margin, QBC, expected error reduction} \u2014 with genuinely different acquisition logic.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml22-code-loop",
+                    "requirements": "There is a pool-based active-learning loop with an initial labeled seed set, iterative querying, model retraining/update, and stopping at a defined label budget.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "ml22-code-datasets",
+                    "requirements": "The submission uses multiple datasets (sklearn built-ins or comparable) with consistent train/pool/test handling for all strategies.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml22-exec",
+            "requirements": "Execution emits budget-aware performance metrics.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml22-exec-metrics",
+                    "requirements": "Execution produces a machine-readable metrics artifact containing numeric accuracy-at-budget and area-under-learning-curve (or equivalents) for each implemented strategy on at least one dataset.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml22-exec-seeds",
+                    "requirements": "Each reported (strategy, dataset) result is aggregated over multiple random seeds, with a dispersion measure. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml22-exec-budget-curve",
+                    "requirements": "The run logs performance across multiple budget checkpoints so early-budget accuracy and AULC are computable from recorded traces.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml22-results",
+            "requirements": "Quantitative analysis addresses H1/H2/H3 directionally.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml22-result-h1",
+                    "requirements": "The submission compares non-random strategies to random sampling at the final budget and conveys whether informative strategies meaningfully outperform random \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml22-result-h2",
+                    "requirements": "The submission reports per-dataset AULC rankings and conveys whether expected-error-reduction (or a comparable principled strategy) is at least competitive, never falling below random (H2).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml22-result-h3",
+                    "requirements": "The submission compares QBC vs uncertainty sampling at an early-budget checkpoint per dataset and conveys a qualitative verdict (H3).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml22-result-writeup",
+                    "requirements": "The README or report describes setup, reports key numeric outcomes, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations (runtime approximations, seed count, dataset scope, strategy sensitivity). No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

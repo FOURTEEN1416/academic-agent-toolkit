@@ -1,0 +1,85 @@
+id: B06
+title: "E. coli carbon-source robustness and condition-dependent essential genes"
+arxiv_id: null
+venue: "ARC-Bench Biology 2026"
+paper_asset: null
+
+synthesis: |
+  Carbon-source swaps are a direct mfa-agent capability and produce interpretable
+  condition-dependent phenotypes. A credible study loads an E. coli GSMM, defines
+  a base minimal medium, tests multiple single-carbon sources, runs essentiality
+  analysis on a focused gene set under each feasible source, and identifies genes
+  whose essentiality changes with carbon source.
+
+hypotheses:
+  - id: H1
+    statement: "The model predicts positive growth on glucose and at least two additional supported carbon sources."
+    measurable: true
+  - id: H2
+    statement: "Growth rates and secretion profiles differ substantially across carbon sources."
+    measurable: true
+  - id: H3
+    statement: "A focused central-carbon gene set contains condition-dependent essential genes whose deletion effects vary by carbon source."
+    measurable: true
+
+experiment_design:
+  research_question: "Which E. coli metabolic vulnerabilities are carbon-source dependent across glucose, glycerol, acetate, succinate, and fructose-like conditions?"
+  conditions:
+    - name: "carbon_source_panel"
+      description: "Close background carbon uptake, open one carbon source at a time, and run FBA/pFBA."
+    - name: "focused_gene_essentiality_by_carbon"
+      description: "For feasible carbon sources, delete a focused set of central-carbon genes and record growth fractions."
+  baselines:
+    - "Glucose-minimal medium."
+    - "Wild-type growth for each carbon source."
+  metrics:
+    - name: "growth_rate_by_carbon"
+      direction: "characterize"
+      description: "WT biomass flux per carbon source."
+    - name: "major_secretions_by_carbon"
+      direction: "characterize"
+      description: "Positive exchange fluxes under pFBA."
+    - name: "condition_dependent_essential_count"
+      direction: "maximize"
+      description: "Genes essential under one source but not another."
+  datasets:
+    - name: "E. coli GSMM"
+      source: "BIGG iJO1366 or iAF1260 via cobra.io.load_model"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 2400
+
+rubric_path: "experiments/arc_bench/config/biology/rubrics/B06.json"
+
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: "results.json contains carbon-source growth table summary, essentiality counts, hypothesis verdicts, and summary."
+    must_pass: true
+  - id: req_carbon_table
+    type: artifact
+    description: "A carbon-source comparison table exists with source, exchange reaction, status, growth, and secretion profile fields."
+    must_pass: true
+  - id: req_essentiality_matrix
+    type: artifact
+    description: "A gene-by-carbon essentiality/growth-fraction matrix exists for feasible carbon sources."
+    must_pass: true
+  - id: req_heatmap
+    type: artifact
+    description: "A heatmap or clustered plot of condition-dependent gene essentiality exists with labelled axes."
+    must_pass: true
+  - id: req_h1_h2_h3_supported_flags
+    type: discussion
+    description: >
+      Each of hypotheses.h1, hypotheses.h2, hypotheses.h3 in results.json MUST
+      have an explicit `supported` boolean and a `details` string of at least
+      40 characters describing the evidence used to reach that verdict.
+    must_pass: true
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: "Top-3 condition-dependent essential genes are explained mechanistically — why each gene is essential under one carbon source but not another, referencing the metabolic pathway context. Acceptable inside summary, structured_results, or a separate writeup field."
+    must_pass: false  # Optional: nice-to-have, not blocking
+  - id: req_seed_documented
+    type: discussion
+    description: "The solver backend (cobra optlang interface name + version) and COBRApy version are reported in results.json. Required for reproducibility but not for scientific correctness."
+    must_pass: false  # Optional

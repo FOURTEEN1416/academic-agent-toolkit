@@ -1,0 +1,95 @@
+# ============================================================================
+# T18 — Post-hoc probability calibration for sklearn classifiers
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML18
+title: "Post-hoc calibration methods for sklearn classifiers on tabular benchmarks"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Many widely used scikit-learn classifiers optimize discrimination rather
+  than probability quality. Random forests, gradient boosting models, and
+  RBF-kernel SVMs can achieve strong accuracy while output probabilities are
+  miscalibrated, especially on small or moderately imbalanced tabular data.
+  This matters in decision settings where thresholds, risk ranking, or cost-
+  sensitive actions depend on reliable confidence estimates.
+
+  Post-hoc calibration methods are attractive because they can be layered onto
+  existing models without retraining the base learner. Platt scaling fits a
+  sigmoid map, isotonic regression fits a non-parametric monotone map, and
+  temperature scaling applies a single-parameter logit rescaling (implemented
+  for binary tasks via optimization on held-out logits/probabilities). These
+  methods differ in flexibility and overfitting risk, so their relative value
+  may depend on classifier family and dataset size.
+
+  A credible CPU-scale study should compare uncalibrated outputs versus at
+  least three calibrators across multiple sklearn tabular datasets, using a
+  proper train/calibration/test protocol and repeated seeds. Because this is a
+  calibration-centric question, expected calibration error (ECE) and log loss
+  should be primary metrics, with accuracy used as a guardrail to ensure that
+  calibration does not degrade classification utility.
+
+  The goal is not to reproduce a single paper result but to test whether any
+  one calibrator is consistently superior across heterogeneous models and
+  datasets under tight compute constraints. The key uncertainty is whether
+  method ranking is stable enough to justify a default choice.
+
+  *Which post-hoc calibration method (Platt, isotonic, temperature) most reliably improves ECE across RF/GBM/SVM-RBF on small tabular sklearn benchmarks without materially harming accuracy?*
+
+hypotheses:
+  - id: H1
+    statement: "At least one post-hoc calibrator (Platt, isotonic, or temperature) reduces ECE by at least 10% relative to the uncalibrated model for at least 2 of 3 classifiers on at least 2 of 3 datasets, averaged over >=3 seeds."
+    measurable: true
+  - id: H2
+    statement: "Isotonic regression achieves lower mean ECE than Platt scaling on at least 2 of 3 datasets when calibration-set size is >=150 samples."
+    measurable: true
+  - id: H3
+    statement: "Applying post-hoc calibration changes test accuracy by no more than 1.0 absolute percentage point (mean over seeds) for each classifier-dataset pair."
+    measurable: true
+
+experiment_design:
+  research_question: "Which post-hoc calibration method (Platt, isotonic, temperature) most consistently improves probability calibration for RF/GBM/SVM-RBF on sklearn tabular datasets while preserving accuracy?"
+  conditions:
+    - name: "uncalibrated"
+      description: "Base classifier probabilities/decision scores used directly with no calibration."
+    - name: "platt_scaling"
+      description: "Sigmoid calibration fit on a held-out calibration split (CalibratedClassifierCV with method='sigmoid' or equivalent)."
+    - name: "isotonic_regression"
+      description: "Isotonic calibration fit on a held-out calibration split (CalibratedClassifierCV with method='isotonic' or equivalent)."
+    - name: "temperature_scaling"
+      description: "Single temperature parameter optimized on calibration split to minimize NLL; applied to logits/scores before probability mapping."
+  baselines:
+    - "uncalibrated outputs are the primary baseline"
+    - "platt_scaling serves as a classic parametric calibration baseline"
+  metrics:
+    - name: "ece"
+      direction: "minimize"
+      description: "Expected Calibration Error (10-15 bins) on the held-out test split, averaged over seeds."
+    - name: "log_loss"
+      direction: "minimize"
+      description: "Negative log-likelihood on test probabilities."
+    - name: "test_accuracy"
+      direction: "maximize"
+      description: "Classification accuracy on held-out test split to verify discrimination is preserved."
+  datasets:
+    - name: "breast_cancer"
+      source: "sklearn.datasets.load_breast_cancer"
+    - name: "wine"
+      source: "sklearn.datasets.load_wine"
+    - name: "digits_binary"
+      source: "sklearn.datasets.load_digits with target transformed to binary (e.g., digit<5 vs >=5)"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 480
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML18.json"

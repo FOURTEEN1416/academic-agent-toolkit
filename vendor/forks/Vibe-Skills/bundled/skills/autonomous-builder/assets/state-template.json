@@ -1,0 +1,110 @@
+{
+  "project_name": "project-name",
+  "project_type": "web-api|cli|web-app|library|mobile",
+  "description": "Project description",
+  "created_at": "2026-02-13T00:00:00Z",
+  "last_activity": "2026-02-13T00:00:00Z",
+
+  "current_phase": "init",
+  "current_feature": null,
+  "previous_phase": null,
+
+  "tech_stack": {
+    "language": "python|nodejs|go|rust|java|dotnet",
+    "framework": "fastapi|express|django|flask|nestjs|gin|actix",
+    "runtime": "3.11|18.x|1.21",
+    "database": "postgresql|mysql|sqlite|mongodb|redis",
+    "test_framework": "pytest|jest|mocha|go test|cargo test",
+    "package_manager": "pip|npm|yarn|pnpm|cargo|go mod"
+  },
+
+  "directories": {
+    "source": "src/",
+    "tests": "tests/",
+    "docs": "docs/",
+    "config": "config/"
+  },
+
+  "features": {
+    "completed": [],
+    "in_progress": null,
+    "pending": ["feat-001", "feat-002"],
+    "blocked": []
+  },
+
+  "git": {
+    "initialized": false,
+    "current_branch": "main",
+    "last_commit": null,
+    "remote": null
+  },
+
+  "github": {
+    "enabled": false,
+    "repository_url": null,
+    "repository_owner": null,
+    "repository_name": null,
+    "default_branch": "main",
+    "issue_tracking": true,
+    "release_tagging": true,
+    "last_push": null,
+    "last_push_commit": null,
+    "issues": {},
+    "releases": [],
+    "next_release": null,
+    "pending_pushes": [],
+    "push_failures": [],
+    "auth_failure": null
+  },
+
+  "session": {
+    "count": 0,
+    "current_session_id": null,
+    "started_at": null
+  },
+
+  "skill_dispatch": {
+    "guide_loaded": false,
+    "guide_path": "Claude_Skills_中文指南.md",
+    "guide_version": null,
+    "skills_invoked": [],
+    "available_skills": [],
+    "skill_catalog": {},
+    "last_skill_invoked": null
+  },
+
+  "mcp_integration": {
+    "discovery_completed": false,
+    "last_discovery": null,
+    "available_servers": [],
+    "capabilities": {
+      "browser_automation": false,
+      "file_system": false,
+      "code_execution": false,
+      "desktop_control": false,
+      "database": false,
+      "screenshot": false,
+      "form_filling": false,
+      "javascript_execution": false,
+      "web_search": false,
+      "http_requests": false
+    },
+    "custom_servers": [],
+    "tool_invocations": [],
+    "installation_attempts": []
+  },
+
+  "errors": {
+    "total": 0,
+    "resolved": 0,
+    "unresolved": []
+  },
+
+  "checkpoints": [],
+
+  "metadata": {
+    "estimated_completion": null,
+    "priority": "medium",
+    "tags": []
+  }
+}

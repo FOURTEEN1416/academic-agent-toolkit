@@ -1,0 +1,239 @@
+﻿{
+    "version": 1,
+    "updated": "2026-02-25",
+    "enabled": true,
+    "mode": "soft",
+    "preserve_routing_assignment": true,
+    "routing_integration": "post_route_ml_lifecycle_overlay",
+    "task_allow": [
+        "planning",
+        "coding",
+        "review",
+        "research"
+    ],
+    "grade_allow": [
+        "M",
+        "L",
+        "XL"
+    ],
+    "monitor": {
+        "pack_allow": [
+            "data-ml",
+            "ai-llm"
+        ],
+        "skill_allow": [
+            "ml-pipeline-workflow",
+            "scikit-learn",
+            "evaluating-machine-learning-models",
+            "ml-data-leakage-guard",
+            "embedding-strategies",
+            "documentation-lookup"
+        ]
+    },
+    "lifecycle_signal_keywords": [
+        "ml pipeline",
+        "training pipeline",
+        "model training",
+        "model evaluation",
+        "baseline compare",
+        "experiment tracking",
+        "model registry",
+        "serve model",
+        "deploy model",
+        "canary rollout",
+        "continual learning",
+        "drift monitoring",
+        "retraining",
+        "机器学习流水线",
+        "模型训练",
+        "模型评估",
+        "基线对比",
+        "实验追踪",
+        "模型注册",
+        "模型部署",
+        "持续学习",
+        "漂移监控",
+        "再训练"
+    ],
+    "stage_keywords": {
+        "develop": [
+            "feature engineering",
+            "data preprocessing",
+            "train model",
+            "training pipeline",
+            "训练",
+            "特征工程"
+        ],
+        "evaluate": [
+            "evaluation",
+            "metrics",
+            "ablation",
+            "baseline compare",
+            "验证",
+            "评估",
+            "基线"
+        ],
+        "deploy": [
+            "deploy",
+            "serve",
+            "production",
+            "canary",
+            "api service",
+            "上线",
+            "部署",
+            "服务化"
+        ],
+        "iterate": [
+            "drift",
+            "monitoring",
+            "feedback loop",
+            "retraining",
+            "continual learning",
+            "漂移",
+            "监控",
+            "持续学习"
+        ]
+    },
+    "artifact_keywords": {
+        "run_id": [
+            "run_id",
+            "run id",
+            "mlflow run"
+        ],
+        "evaluation_results": [
+            "evaluation report",
+            "evaluation_results",
+            "metrics report",
+            "评估报告"
+        ],
+        "baseline_compare": [
+            "baseline compare",
+            "baseline comparison",
+            "基线对比"
+        ],
+        "data_tests": [
+            "data tests",
+            "great expectations",
+            "数据校验"
+        ],
+        "model_tests": [
+            "model tests",
+            "model validation",
+            "模型测试"
+        ],
+        "service_smoke": [
+            "smoke test",
+            "service smoke",
+            "服务冒烟"
+        ],
+        "monitoring_metrics": [
+            "monitoring metrics",
+            "drift dashboard",
+            "监控指标"
+        ],
+        "retraining_plan": [
+            "retraining plan",
+            "retrain policy",
+            "再训练计划"
+        ],
+        "dataset_version": [
+            "dataset version",
+            "data version",
+            "数据版本"
+        ]
+    },
+    "required_checks_by_stage": {
+        "develop": [
+            "code_tests",
+            "data_tests"
+        ],
+        "evaluate": [
+            "data_tests",
+            "model_tests",
+            "baseline_compare"
+        ],
+        "deploy": [
+            "code_tests",
+            "data_tests",
+            "model_tests",
+            "baseline_compare",
+            "service_smoke"
+        ],
+        "iterate": [
+            "monitoring_metrics",
+            "drift_guard",
+            "retraining_plan"
+        ]
+    },
+    "artifacts_required_by_stage": {
+        "develop": [
+            "dataset_version"
+        ],
+        "evaluate": [
+            "run_id",
+            "evaluation_results",
+            "baseline_compare"
+        ],
+        "deploy": [
+            "run_id",
+            "evaluation_results",
+            "baseline_compare",
+            "service_smoke"
+        ],
+        "iterate": [
+            "monitoring_metrics",
+            "retraining_plan"
+        ]
+    },
+    "suppress_keywords": [
+        "math proof",
+        "paper summary only",
+        "just theory",
+        "only concept",
+        "仅概念",
+        "只要理论",
+        "论文总结"
+    ],
+    "thresholds": {
+        "confirm_signal_score_min": 0.5,
+        "high_signal_score_min": 0.75,
+        "suppress_penalty_weight": 0.28,
+        "min_lifecycle_hits_for_overlay": 1,
+        "missing_artifact_ratio_for_confirm": 0.4
+    },
+    "strict_confirm_scope": {
+        "grades": [
+            "L",
+            "XL"
+        ],
+        "task_types": [
+            "planning",
+            "coding",
+            "review"
+        ],
+        "stages": [
+            "evaluate",
+            "deploy",
+            "iterate"
+        ]
+    },
+    "external_analyzer": {
+        "enabled": true,
+        "command": "mlflow",
+        "invoke_mode": "manual_only",
+        "run_in_modes": [
+            "soft",
+            "strict"
+        ],
+        "signal_score_min": 0.5,
+        "manual_command_hint": "mlflow ui --host 127.0.0.1 --port 5000",
+        "timeout_ms": 4000
+    },
+    "fallback_behavior": {
+        "on_missing_config": "bypass_overlay",
+        "on_tool_unavailable": "continue_advisory",
+        "on_analyzer_failure": "continue_advisory"
+    }
+}
+
+

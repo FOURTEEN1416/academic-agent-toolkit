@@ -1,0 +1,46 @@
+{
+  "project_root": "D:/project",
+  "target": {
+    "venue": "Target journal or conference",
+    "width": "double-column",
+    "formats": ["pdf", "png"],
+    "png_dpi": 300
+  },
+  "figures": [
+    {
+      "id": "fig1",
+      "title": "Architecture and evidence",
+      "scientific_question": "What computation is new and what evidence supports it?",
+      "intended_conclusion": "The architecture contribution is explicit and measured.",
+      "references": [
+        {
+          "path": "D:/project/references/reference-a.png",
+          "citation": "Public paper - venue (year), Fig. 1",
+          "transfer": "architecture-to-evidence reading order"
+        }
+      ],
+      "existing_figures": ["D:/project/figures/fig1-draft.pdf"],
+      "plotting_sources": ["D:/project/scripts/figure1.py"],
+      "data_inputs": ["D:/project/data/results.csv"],
+      "panels": [
+        {
+          "id": "a",
+          "question": "How does the model compute its outputs?",
+          "kind": "architecture",
+          "source": "D:/project/src/model.py",
+          "status": "planned"
+        },
+        {
+          "id": "b",
+          "question": "Does the central component improve task-level results?",
+          "kind": "paired-scatter",
+          "source": "D:/project/data/results.csv",
+          "status": "planned"
+        }
+      ],
+      "outputs": ["D:/project/output/fig1.pdf", "D:/project/output/fig1.png"],
+      "status": "planned"
+    }
+  ]
+}
+

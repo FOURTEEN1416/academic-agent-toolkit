@@ -1,0 +1,14 @@
+﻿{
+  "report_id": "CER-SAFETY-BASE",
+  "trigger_signals": {
+    "fallback_rate": 0.26,
+    "context_pressure": 0.81,
+    "route_stability_pack": 0.74,
+    "route_stability_skill": 0.68,
+    "top1_top2_gap": 0.02
+  },
+  "findings": [
+    { "pattern": "CF-3" },
+    { "pattern": "CF-5" }
+  ]
+}

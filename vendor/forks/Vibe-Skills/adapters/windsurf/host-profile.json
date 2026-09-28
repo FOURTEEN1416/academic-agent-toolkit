@@ -1,0 +1,54 @@
+{
+  "adapter_id": "windsurf",
+  "host_name": "Windsurf",
+  "status": "preview",
+  "runtime_role": "official-runtime-adapter",
+  "source_evidence": [
+    "config/runtime-core-packaging.json",
+    "adapters/windsurf/closure.json",
+    "install.sh",
+    "check.sh"
+  ],
+  "settings_surface": {
+    "path": "~/.codeium/windsurf",
+    "managed_by_repo": true,
+    "notes": "The repository can materialize runtime-core payload and Windsurf host-root assets into the documented global Windsurf root, while host login, model permissions, and undocumented settings remain host-managed."
+  },
+  "discoverable_entries": {
+    "shared_source": "config/vibe-entry-surfaces.json",
+    "authority_owner": "vibe",
+    "presentational_only": true,
+    "projection_mode": "generated_wrapper_entries",
+    "host_visible_surface": "runtime-core-launchers",
+    "notes": "Discoverable Vibe entries are host-facing launch labels only and do not create a second runtime authority."
+  },
+  "host_managed_surfaces": [
+    "login and account state",
+    "model permissions and BYOK boundaries",
+    "plugin provisioning",
+    "provider credentials",
+    "undocumented global rules storage"
+  ],
+  "capabilities": {
+    "fs.read": "expected",
+    "fs.write": "expected",
+    "shell.exec": "expected",
+    "mcp.client": "supported-with-constraints",
+    "settings.materialize": "runtime-core",
+    "plugin.provision": "host-managed",
+    "agent.spawn": "expected",
+    "route.provider_call": "host-managed",
+    "route.offline_fallback": "host-managed",
+    "release.verify": "runtime-core"
+  },
+  "degrade_contract": {
+    "workspace_projection_not_installed": "degraded-but-supported",
+    "host_login_or_model_access_missing": "host-managed",
+    "undocumented_global_surfaces": "preview-only"
+  },
+  "supported_platform_contracts": [
+    "adapters/windsurf/platform-windows.json",
+    "adapters/windsurf/platform-linux.json",
+    "adapters/windsurf/platform-macos.json"
+  ]
+}

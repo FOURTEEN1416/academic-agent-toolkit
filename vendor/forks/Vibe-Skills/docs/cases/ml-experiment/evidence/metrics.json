@@ -1,0 +1,128 @@
+{
+  "schema_version": "experiment_metrics_v1",
+  "positive_label": 1,
+  "positive_class": "malignant",
+  "holdout": {
+    "dummy_stratified": {
+      "roc_auc": 0.5783730158730159,
+      "average_precision": 0.41446639855452583,
+      "balanced_accuracy": 0.5783730158730158,
+      "f1": 0.47058823529411764,
+      "precision": 0.46511627906976744,
+      "sensitivity": 0.47619047619047616,
+      "specificity": 0.6805555555555556,
+      "tn": 49,
+      "fp": 23,
+      "fn": 22,
+      "tp": 20,
+      "n": 114
+    },
+    "scaled_logistic_regression": {
+      "roc_auc": 0.9917328042328042,
+      "average_precision": 0.989010989010989,
+      "balanced_accuracy": 0.9761904761904762,
+      "f1": 0.975609756097561,
+      "precision": 1.0,
+      "sensitivity": 0.9523809523809523,
+      "specificity": 1.0,
+      "tn": 72,
+      "fp": 0,
+      "fn": 2,
+      "tp": 40,
+      "n": 114
+    }
+  },
+  "cross_validation": {
+    "dummy_stratified": {
+      "fold_count": 50,
+      "roc_auc": {
+        "mean": 0.522420020639835,
+        "sample_sd": 0.043794722173273404,
+        "minimum": 0.43085655314757487,
+        "maximum": 0.5952012383900929
+      },
+      "average_precision": {
+        "mean": 0.3872981577246283,
+        "sample_sd": 0.0223989973734021,
+        "minimum": 0.3476405946994182,
+        "maximum": 0.4302763413057531
+      },
+      "balanced_accuracy": {
+        "mean": 0.522420020639835,
+        "sample_sd": 0.04379472217327342,
+        "minimum": 0.43085655314757487,
+        "maximum": 0.5952012383900929
+      },
+      "f1": {
+        "mean": 0.4297297297297298,
+        "sample_sd": 0.050415308328959824,
+        "minimum": 0.32432432432432434,
+        "maximum": 0.5135135135135135
+      },
+      "precision": {
+        "mean": 0.3975,
+        "sample_sd": 0.04663416020428784,
+        "minimum": 0.3,
+        "maximum": 0.475
+      },
+      "sensitivity": {
+        "mean": 0.4676470588235294,
+        "sample_sd": 0.05486371788739746,
+        "minimum": 0.35294117647058826,
+        "maximum": 0.5588235294117647
+      },
+      "specificity": {
+        "mean": 0.5771929824561404,
+        "sample_sd": 0.03272572645914936,
+        "minimum": 0.5087719298245614,
+        "maximum": 0.631578947368421
+      }
+    },
+    "scaled_logistic_regression": {
+      "fold_count": 50,
+      "roc_auc": {
+        "mean": 0.995531475748194,
+        "sample_sd": 0.005230671096867828,
+        "minimum": 0.9819401444788443,
+        "maximum": 1.0
+      },
+      "average_precision": {
+        "mean": 0.9945462837060333,
+        "sample_sd": 0.0054075989523627395,
+        "minimum": 0.9806464077950336,
+        "maximum": 1.0
+      },
+      "balanced_accuracy": {
+        "mean": 0.9723993808049535,
+        "sample_sd": 0.014044392731073729,
+        "minimum": 0.9442724458204335,
+        "maximum": 1.0
+      },
+      "f1": {
+        "mean": 0.9668173353538855,
+        "sample_sd": 0.016774170671739114,
+        "minimum": 0.927536231884058,
+        "maximum": 1.0
+      },
+      "precision": {
+        "mean": 0.9738903106697225,
+        "sample_sd": 0.024472123273861567,
+        "minimum": 0.9142857142857143,
+        "maximum": 1.0
+      },
+      "sensitivity": {
+        "mean": 0.9605882352941176,
+        "sample_sd": 0.026313392120758287,
+        "minimum": 0.9117647058823529,
+        "maximum": 1.0
+      },
+      "specificity": {
+        "mean": 0.9842105263157894,
+        "sample_sd": 0.015141661621045839,
+        "minimum": 0.9473684210526315,
+        "maximum": 1.0
+      }
+    }
+  },
+  "interpretation_boundary": "Performance estimates describe this fixed public demonstration only."
+}

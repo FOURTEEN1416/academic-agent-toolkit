@@ -1,0 +1,96 @@
+# ============================================================================
+# T14 — Comparing conformal prediction procedures on heteroscedastic regression
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML14
+title: "Comparing split-conformal, Mondrian conformal, and CQR-style intervals on heteroscedastic regression"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Conformal prediction provides finite-sample coverage guarantees with minimal
+  assumptions, making it attractive for uncertainty quantification in practical
+  regression. However, standard split-conformal intervals are often globally
+  calibrated and can be inefficient when noise is heteroscedastic: they may
+  over-cover low-noise regions and under-cover high-noise regions. This
+  motivates conditional variants such as Mondrian conformal (group-conditional
+  calibration) and CQR-style approaches that adapt interval width through
+  quantile modeling before conformal correction.
+
+  In small, CPU-only settings, one can still run a meaningful comparison by
+  using sklearn-compatible regressors and synthetic data where heteroscedastic
+  structure is controlled. A rigorous setup should evaluate not only marginal
+  coverage but also efficiency (mean interval width) and conditional behavior
+  (coverage gap across strata of predicted difficulty or input regions). These
+  diagnostics reveal when methods achieve nominal coverage by producing overly
+  wide intervals versus genuinely adapting to varying noise.
+
+  A credible benchmark should include at least one homoscedastic control and at
+  least one heteroscedastic dataset, then compare split-conformal, a Mondrian
+  variant (binning by an auxiliary score such as |x| or predicted scale), and a
+  CQR-style method based on lower/upper quantile regressors plus conformal
+  adjustment. Repeated random splits (multiple seeds) are needed because
+  conformal procedures can vary with calibration sample composition.
+
+  The key question is whether adaptive procedures can reduce conditional
+  miscoverage while maintaining near-target marginal coverage and reasonable
+  interval width under strict runtime constraints.
+
+  *Do Mondrian and CQR-style conformal procedures achieve lower conditional coverage error than vanilla split-conformal at comparable marginal coverage on heteroscedastic regression tasks?*
+
+hypotheses:
+  - id: H1
+    statement: "On heteroscedastic datasets, at least one adaptive method (Mondrian or CQR-style) attains a lower absolute coverage gap to the 90% target than split-conformal by at least 0.02 on at least 2 of 3 datasets, averaged over \u22655 seeds."
+    measurable: true
+  - id: H2
+    statement: "At matched target 90% coverage, CQR-style conformal yields mean interval width no larger than split-conformal on at least 2 of 3 datasets (difference \u2264 0.00)."
+    measurable: true
+  - id: H3
+    statement: "Mondrian conformal reduces worst-bin conditional miscoverage (max over 4 bins of |bin_coverage-0.90|) by at least 0.03 versus split-conformal on at least 2 of 3 datasets."
+    measurable: true
+
+experiment_design:
+  research_question: "Do adaptive conformal procedures (Mondrian, CQR-style) improve coverage quality and efficiency over split-conformal for heteroscedastic regression under a fixed 90% target coverage?"
+  conditions:
+    - name: "split_conformal_rf"
+      description: "Vanilla split-conformal regression using RandomForestRegressor point predictor and absolute residual conformity scores on a held-out calibration split."
+    - name: "mondrian_conformal_rf_4bins"
+      description: "Mondrian split-conformal with the same base predictor, calibration and test points partitioned into 4 bins by an auxiliary score (e.g., fitted value or |x0| proxy), with per-bin quantiles."
+    - name: "cqr_gbr"
+      description: "CQR-style method using GradientBoostingRegressor quantile models (alpha=0.05, 0.95) and split-conformal correction on calibration residuals of quantile bands."
+    - name: "naive_quantile_no_conformal"
+      description: "Non-conformal baseline using raw quantile regression interval [q0.05, q0.95] without conformal adjustment."
+  baselines:
+    - "split_conformal_rf is the primary conformal baseline"
+    - "naive_quantile_no_conformal is the non-conformal baseline"
+  metrics:
+    - name: "coverage_gap"
+      direction: "minimize"
+      description: "Absolute difference between empirical marginal coverage and target 0.90 on the test split, averaged over seeds."
+    - name: "mean_interval_width"
+      direction: "minimize"
+      description: "Average prediction interval width on test samples, averaged over seeds."
+    - name: "worst_bin_miscoverage"
+      direction: "minimize"
+      description: "Maximum across 4 bins of absolute deviation between bin coverage and 0.90, measuring conditional coverage disparity."
+  datasets:
+    - name: "hetero_sine"
+      source: "synthetic: y = sin(2\u03c0x) + (0.1 + 0.5|x|)\u03b5, x~Uniform(-1,1), n\u22482000"
+    - name: "hetero_friedman1"
+      source: "synthetic: sklearn.datasets.make_friedman1 with multiplicative noise scale depending on x0"
+    - name: "diabetes"
+      source: "sklearn.datasets.load_diabetes (tabular regression benchmark)"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 420
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML14.json"

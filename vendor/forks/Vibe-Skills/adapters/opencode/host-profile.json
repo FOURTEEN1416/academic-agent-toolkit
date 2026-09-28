@@ -1,0 +1,73 @@
+{
+  "adapter_id": "opencode",
+  "host_name": "OpenCode",
+  "status": "preview",
+  "runtime_role": "host-adapter-preview",
+  "source_evidence": [
+    "config/opencode/commands/vibe.md",
+    "config/opencode/agents/vibe-plan.md",
+    "config/opencode/opencode.json.example",
+    "adapters/opencode/closure.json",
+    "install.ps1",
+    "check.ps1"
+  ],
+  "settings_surface": {
+    "path": "~/.config/opencode/opencode.json",
+    "managed_by_repo": false,
+    "notes": "The repository installs skills, commands, agents, host-closure metadata, and an opencode.json.example scaffold; the real opencode.json stays host-managed."
+  },
+  "global_instruction_surface": {
+    "relpath": "AGENTS.md",
+    "documented_path": "~/.config/opencode/AGENTS.md",
+    "format": "markdown-rules",
+    "managed_block_id": "global-vibe-bootstrap",
+    "merge_policy": "managed-block-only",
+    "overwrite_policy": "forbidden",
+    "trigger_tokens": [
+      "$vibe",
+      "/vibe"
+    ],
+    "authority_owner": "vibe",
+    "bootstrap_only": true,
+    "template_relpath": "config/global-bootstrap/opencode-vibe-bootstrap.md",
+    "template_version": 1
+  },
+  "discoverable_entries": {
+    "shared_source": "config/vibe-entry-surfaces.json",
+    "authority_owner": "vibe",
+    "presentational_only": true,
+    "projection_mode": "generated_wrapper_entries",
+    "host_visible_surface": "commands-and-agents",
+    "notes": "Discoverable Vibe entries are host-facing launch labels only and do not create a second runtime authority."
+  },
+  "host_managed_surfaces": [
+    "final permission policy",
+    "provider credentials",
+    "plugin provisioning",
+    "MCP registration",
+    "model/provider selection"
+  ],
+  "capabilities": {
+    "fs.read": "expected",
+    "fs.write": "expected",
+    "shell.exec": "expected",
+    "mcp.client": "supported-with-constraints",
+    "settings.materialize": "host-managed-example-only",
+    "plugin.provision": "manual-host-managed",
+    "agent.spawn": "expected",
+    "route.provider_call": "supported-with-constraints",
+    "route.offline_fallback": "not-yet-proven",
+    "release.verify": "preview-guidance"
+  },
+  "degrade_contract": {
+    "missing_provider_credentials": "configured_offline_unready",
+    "missing_user_permission_policy": "configured_offline_unready",
+    "unverified_platform_lane": "not-yet-proven",
+    "skill_debug_surface_diverges_from_docs": "preview-guidance-only"
+  },
+  "supported_platform_contracts": [
+    "adapters/opencode/platform-windows.json",
+    "adapters/opencode/platform-linux.json",
+    "adapters/opencode/platform-macos.json"
+  ]
+}

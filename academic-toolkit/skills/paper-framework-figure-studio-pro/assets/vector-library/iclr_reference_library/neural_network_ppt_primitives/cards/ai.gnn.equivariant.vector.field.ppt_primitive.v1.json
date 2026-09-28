@@ -1,0 +1,78 @@
+{
+  "primitive_id": "ai.gnn.equivariant.vector.field",
+  "primitive_card_id": "ai.gnn.equivariant.vector.field.ppt_primitive.v1",
+  "title": "Equivariant vector field",
+  "aliases": [
+    "equivariant GNN",
+    "vector field"
+  ],
+  "family": "gnn_geometric_reasoning",
+  "tags": [
+    "gnn",
+    "graph",
+    "geometric",
+    "reasoning",
+    "editable_ppt"
+  ],
+  "viewBox": [
+    0,
+    0,
+    240,
+    160
+  ],
+  "recommended_use": [
+    "PPT neural-network diagram",
+    "architecture stencil",
+    "scene_spec object prototype"
+  ],
+  "avoid_use": [
+    "paper-specific factual claim",
+    "metric value",
+    "dataset result"
+  ],
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "feedback": [
+      0.5,
+      1
+    ],
+    "control": [
+      0.5,
+      0
+    ]
+  },
+  "files": {
+    "raw_svg": "neural_network_ppt_primitives/raw/ai.gnn.equivariant.vector.field.ppt_primitive.v1.svg",
+    "ppt_safe_svg": "neural_network_ppt_primitives/ppt_safe/ai.gnn.equivariant.vector.field.ppt_primitive.v1.svg"
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "editable_shape_primitives": true,
+    "sha1": "e6feadedec04e89d44b7d82935589f74b6eaf5bf"
+  },
+  "source_lineage": {
+    "source": "generated_neural_network_ppt_primitives",
+    "import_mode": "generated_project_vector_stencil",
+    "generated_at": "2026-05-24T08:42:08.090Z",
+    "template": "equivariant_field"
+  },
+  "transfer_boundary": "Generic visual primitive only; no reference-paper facts are encoded."
+}

@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "updated": "2026-04-10",
+  "plane_id": "memory-runtime-v3",
+  "wave_range": {
+    "from": 64,
+    "to": 66
+  },
+  "enabled": true,
+  "mode": "shadow",
+  "current_stage": "shadow",
+  "target_candidate_stage": "soft_candidate",
+  "control_plane_owner": "vco",
+  "routing_contract": "advisory_first_post_route_only",
+  "inherits": {
+    "memory_governance": "config/memory-governance.json",
+    "tier_router": "config/memory-tier-router.json",
+    "workspace_memory_plane": "config/workspace-memory-plane.json",
+    "disclosure_policy": "config/memory-disclosure-policy.json",
+    "ingest_policy": "config/memory-ingest-policy.json",
+    "mem0_policy": "config/mem0-backend-policy.json",
+    "letta_contract": "config/letta-governance-contract.json"
+  },
+  "canonical_owners": {
+    "session": "state_store",
+    "project_decision": "serena",
+    "short_term_semantic": "ruflo",
+    "long_term_graph": "cognee"
+  },
+  "shared_plane_contract": {
+    "workspace_identity_source": ".vibeskills/project.json",
+    "progressive_disclosure_mode": "capsule_progressive_disclosure",
+    "write_admission_mode": "signal_gated"
+  },
+  "extension_planes": {
+    "mem0": {
+      "role": "external_preference_backend",
+      "source_config": "config/mem0-backend-policy.json",
+      "write_admission_contract": "references/mem0-write-admission-contract.md",
+      "allowed_modes": [
+        "shadow",
+        "soft"
+      ],
+      "soft_requires_operator_opt_in": true,
+      "preserve_core_truth_sources": true,
+      "cannot_be_primary": true
+    },
+    "letta": {
+      "role": "policy_contract_source",
+      "source_config": "config/letta-governance-contract.json",
+      "conformance_doc": "docs/letta-policy-conformance.md",
+      "memory_block_contract": "references/memory-block-contract.md",
+      "tool_rule_contract": "references/tool-rule-contract.md",
+      "token_pressure_contract_key": "token_pressure_policy",
+      "cannot_take_runtime_ownership": true
+    }
+  },
+  "invariants": {
+    "single_control_plane_only": true,
+    "preserve_routing_assignment": true,
+    "preserve_canonical_memory_truth_sources": true,
+    "forbid_second_orchestrator": true,
+    "forbid_authority_transfer": true,
+    "advice_first": true,
+    "rollback_first": true,
+    "promotion_requires_gate_replay_rollback": true
+  },
+  "required_gates": [
+    "vibe-memory-runtime-v3-gate",
+    "vibe-mem0-softrollout-gate",
+    "vibe-letta-policy-conformance-gate"
+  ],
+  "fallback": {
+    "revert_to_stage": "shadow",
+    "keep_core_owners": true,
+    "disable_external_writes_first": true,
+    "operator_review_required_on_conflict": true
+  }
+}

@@ -1,0 +1,790 @@
+import { describe, expect, spyOn, test } from "bun:test"
+import path from "path"
+import crypto from "node:crypto"
+import * as fs from "fs/promises"
+import { ApplyPatchTool } from "../../src/tool/apply_patch"
+import { Instance } from "../../src/project/instance"
+import { tmpdir } from "../fixture/fixture"
+import { FileTrash } from "../../src/file/trash"
+import { Session } from "../../src/session"
+import { SessionFilesystem } from "../../src/session/filesystem"
+
+const baseCtx = {
+  sessionID: "test",
+  messageID: "",
+  callID: "",
+  agent: "research",
+  abort: AbortSignal.any([]),
+  messages: [],
+  metadata: () => {},
+}
+
+type AskInput = {
+  permission: string
+  patterns: string[]
+  always: string[]
+  metadata: {
+    diff: string
+    filepath: string
+    files: Array<{
+      filePath: string
+      relativePath: string
+      type: "add" | "update" | "delete" | "move"
+      diff: string
+      before: string
+      after: string
+      additions: number
+      deletions: number
+      movePath?: string
+    }>
+  }
+}
+
+type ToolCtx = typeof baseCtx & {
+  ask: (input: AskInput) => Promise<void>
+}
+
+const execute = async (params: { patchText: string }, ctx: ToolCtx) => {
+  const tool = await ApplyPatchTool.init()
+  return tool.execute(params, ctx)
+}
+
+const makeCtx = () => {
+  const calls: AskInput[] = []
+  const ctx: ToolCtx = {
+    ...baseCtx,
+    ask: async (input) => {
+      calls.push(input)
+    },
+  }
+
+  return { ctx, calls }
+}
+
+describe("tool.apply_patch freeform", () => {
+  test("tells the model that multi-file patches are preflighted and rolled back together", async () => {
+    const description = await Bun.file(new URL("../../src/tool/apply_patch.txt", import.meta.url)).text()
+    expect(description).toContain("Multi-file patches are supported in one call")
+    expect(description).toContain("preflights every file before writing")
+    expect(description).toContain("rolls back completed file operations")
+    expect(description).not.toContain(
+      "apply_patch verification failed: multi-file patches are not atomic; submit one file per patch",
+    )
+  })
+
+  test("requires patchText", async () => {
+    const { ctx } = makeCtx()
+    await expect(execute({ patchText: "" }, ctx)).rejects.toThrow("patchText is required")
+  })
+
+  test("rejects invalid patch format", async () => {
+    const { ctx } = makeCtx()
+    await expect(execute({ patchText: "invalid patch" }, ctx)).rejects.toThrow("apply_patch verification failed")
+  })
+
+  test("rejects empty patch", async () => {
+    const { ctx } = makeCtx()
+    const emptyPatch = "*** Begin Patch\n*** End Patch"
+    await expect(execute({ patchText: emptyPatch }, ctx)).rejects.toThrow("patch rejected: empty patch")
+  })
+
+  test("reports the exact failed update hunk and its nearby context", async () => {
+    await using fixture = await tmpdir({ git: true })
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        await fs.writeFile(
+          path.join(fixture.path, "paper.tex"),
+          ["\\usepackage{doi}", "", "The complete methods paragraph stays on one physical line.", ""].join("\n"),
+          "utf8",
+        )
+        const patchText = [
+          "*** Begin Patch",
+          "*** Update File: paper.tex",
+          "@@",
+          "-\\usepackage{doi}",
+          "+\\usepackage{doi}",
+          "+\\usepackage{xurl}",
+          "@@",
+          "-Sample registry fields came from DOI",
+          "+Sample registry fields came from a verified DOI",
+          "*** End Patch",
+        ].join("\n")
+
+        await expect(execute({ patchText }, ctx)).rejects.toThrow(/Failed update hunk: 2/)
+        await expect(execute({ patchText }, ctx)).rejects.toThrow(
+          /The complete methods paragraph stays on one physical line/,
+        )
+      },
+    })
+  })
+
+  test("anchors a completely stale hunk near its deep-file location instead of the file header", async () => {
+    await using fixture = await tmpdir({ git: true })
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const lines = Array.from({ length: 220 }, (_, index) => `unchanged supporting line ${index + 1}`)
+        lines[172] =
+          "Sample registry records are now loaded from the canonical PANGAEA DOI with verified input checksums."
+        await fs.writeFile(path.join(fixture.path, "long-report.tex"), `${lines.join("\n")}\n`, "utf8")
+        const patchText = [
+          "*** Begin Patch",
+          "*** Update File: long-report.tex",
+          "@@",
+          "-Sample registry fields came from the PANGAEA DOI with reported input checksums.",
+          "+Sample registry fields came from the verified source DOI.",
+          "*** End Patch",
+        ].join("\n")
+
+        const failure = await execute({ patchText }, ctx).catch((error: Error) => error)
+        expect(failure).toBeInstanceOf(Error)
+        if (!(failure instanceof Error)) throw new Error("Expected a stale patch failure")
+        expect(failure.message).toContain("Failed update hunk: 1")
+        expect(failure.message).toContain("Current bounded context (lines 169-188)")
+        expect(failure.message).toContain("173: Sample registry records are now loaded")
+        expect(failure.message).not.toMatch(/(?:^|\n)1: unchanged supporting line 1(?:\n|$)/)
+      },
+    })
+  })
+
+  test("applies a fully preflighted multi-file patch in one transaction", async () => {
+    await using fixture = await tmpdir({ git: true })
+    const { ctx, calls } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const modifyPath = path.join(fixture.path, "modify.txt")
+        const deletePath = path.join(fixture.path, "delete.txt")
+        await fs.writeFile(modifyPath, "line1\nline2\n", "utf-8")
+        await fs.writeFile(deletePath, "obsolete\n", "utf-8")
+
+        const patchText =
+          "*** Begin Patch\n*** Add File: nested/new.txt\n+created\n*** Delete File: delete.txt\n*** Update File: modify.txt\n@@\n-line2\n+changed\n*** End Patch"
+
+        const result = await execute({ patchText }, ctx)
+        expect(calls).toHaveLength(1)
+        expect(calls[0]?.metadata.files.map((file) => file.type)).toEqual(["add", "delete", "update"])
+        expect(await fs.readFile(path.join(fixture.path, "nested", "new.txt"), "utf-8")).toBe("created\n")
+        expect(await fs.readFile(modifyPath, "utf-8")).toBe("line1\nchanged\n")
+        await expect(fs.readFile(deletePath, "utf-8")).rejects.toThrow()
+        expect(result.output).toContain("A nested/new.txt")
+        expect(await FileTrash.list(Instance.project.id)).toHaveLength(1)
+      },
+    })
+  })
+
+  test("rolls back earlier files when a later multi-file commit fails", async () => {
+    await using fixture = await tmpdir({ git: true })
+    const { ctx, calls } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const original = path.join(fixture.path, "original.txt")
+        const later = path.join(fixture.path, "later.txt")
+        await fs.writeFile(original, "before\n", "utf8")
+        const realLink = fs.link.bind(fs)
+        const link = spyOn(fs, "link").mockImplementation(async (source, destination) => {
+          if (path.resolve(String(destination)) === later) {
+            throw Object.assign(new Error("injected later-file failure"), { code: "EIO" })
+          }
+          return realLink(source, destination)
+        })
+        try {
+          await expect(
+            execute(
+              {
+                patchText:
+                  "*** Begin Patch\n*** Update File: original.txt\n@@\n-before\n+after\n*** Add File: later.txt\n+later\n*** End Patch",
+              },
+              ctx,
+            ),
+          ).rejects.toThrow("injected later-file failure")
+        } finally {
+          link.mockRestore()
+        }
+
+        expect(calls).toHaveLength(1)
+        expect(await fs.readFile(original, "utf8")).toBe("before\n")
+        await expect(fs.readFile(later)).rejects.toThrow()
+        expect((await fs.readdir(fixture.path)).filter((name) => name.startsWith(".openscience-"))).toEqual([])
+        expect(await FileTrash.list(Instance.project.id)).toEqual([])
+      },
+    })
+  })
+
+  test("deletes one file into recoverable trash", async () => {
+    await using fixture = await tmpdir({ git: true })
+    const { ctx, calls } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "delete.txt")
+        await fs.writeFile(target, "obsolete\n", "utf8")
+        const result = await execute({ patchText: "*** Begin Patch\n*** Delete File: delete.txt\n*** End Patch" }, ctx)
+
+        expect(calls).toHaveLength(1)
+        expect(calls[0]?.metadata.files).toMatchObject([{ type: "delete", before: "obsolete\n", after: "" }])
+        expect(result.metadata.trash).toHaveLength(1)
+        expect(result.output).toContain("Recoverable for 30 days: ftr_")
+        await expect(fs.readFile(target)).rejects.toThrow()
+        expect(await FileTrash.list(Instance.project.id)).toMatchObject([
+          { id: result.metadata.trash[0]?.id, originalPath: target, state: "trash" },
+        ])
+      },
+    })
+  })
+
+  test("permission metadata includes move file info", async () => {
+    await using fixture = await tmpdir({ git: true })
+    const { ctx, calls } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const original = path.join(fixture.path, "old", "name.txt")
+        await fs.mkdir(path.dirname(original), { recursive: true })
+        await fs.writeFile(original, "old content\n", "utf-8")
+
+        const patchText =
+          "*** Begin Patch\n*** Update File: old/name.txt\n*** Move to: renamed/dir/name.txt\n@@\n-old content\n+new content\n*** End Patch"
+
+        await execute({ patchText }, ctx)
+
+        expect(calls.length).toBe(1)
+        const permissionCall = calls[0]
+        expect(permissionCall.metadata.files).toHaveLength(1)
+
+        const moveFile = permissionCall.metadata.files[0]
+        expect(moveFile.type).toBe("move")
+        expect(moveFile.relativePath).toBe("renamed/dir/name.txt")
+        expect(moveFile.movePath).toBe(path.join(fixture.path, "renamed/dir/name.txt"))
+        expect(moveFile.before).toBe("old content\n")
+        expect(moveFile.after).toBe("new content\n")
+        expect(await FileTrash.list(Instance.project.id)).toHaveLength(1)
+      },
+    })
+  })
+
+  test("applies multiple hunks to one file", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "multi.txt")
+        await fs.writeFile(target, "line1\nline2\nline3\nline4\n", "utf-8")
+
+        const patchText =
+          "*** Begin Patch\n*** Update File: multi.txt\n@@\n-line2\n+changed2\n@@\n-line4\n+changed4\n*** End Patch"
+
+        await execute({ patchText }, ctx)
+
+        expect(await fs.readFile(target, "utf-8")).toBe("line1\nchanged2\nline3\nchanged4\n")
+      },
+    })
+  })
+
+  test("inserts lines with insert-only hunk", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "insert_only.txt")
+        await fs.writeFile(target, "alpha\nomega\n", "utf-8")
+
+        const patchText = "*** Begin Patch\n*** Update File: insert_only.txt\n@@\n alpha\n+beta\n omega\n*** End Patch"
+
+        await execute({ patchText }, ctx)
+
+        expect(await fs.readFile(target, "utf-8")).toBe("alpha\nbeta\nomega\n")
+      },
+    })
+  })
+
+  test("appends trailing newline on update", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "no_newline.txt")
+        await fs.writeFile(target, "no newline at end", "utf-8")
+
+        const patchText =
+          "*** Begin Patch\n*** Update File: no_newline.txt\n@@\n-no newline at end\n+first line\n+second line\n*** End Patch"
+
+        await execute({ patchText }, ctx)
+
+        const contents = await fs.readFile(target, "utf-8")
+        expect(contents.endsWith("\n")).toBe(true)
+        expect(contents).toBe("first line\nsecond line\n")
+      },
+    })
+  })
+
+  test("moves file to a new directory", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const original = path.join(fixture.path, "old", "name.txt")
+        await fs.mkdir(path.dirname(original), { recursive: true })
+        await fs.writeFile(original, "old content\n", "utf-8")
+
+        const patchText =
+          "*** Begin Patch\n*** Update File: old/name.txt\n*** Move to: renamed/dir/name.txt\n@@\n-old content\n+new content\n*** End Patch"
+
+        await execute({ patchText }, ctx)
+
+        const moved = path.join(fixture.path, "renamed", "dir", "name.txt")
+        await expect(fs.readFile(original, "utf-8")).rejects.toThrow()
+        expect(await fs.readFile(moved, "utf-8")).toBe("new content\n")
+      },
+    })
+  })
+
+  test("refuses to move over an existing destination", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const original = path.join(fixture.path, "old", "name.txt")
+        const destination = path.join(fixture.path, "renamed", "dir", "name.txt")
+        await fs.mkdir(path.dirname(original), { recursive: true })
+        await fs.mkdir(path.dirname(destination), { recursive: true })
+        await fs.writeFile(original, "from\n", "utf-8")
+        await fs.writeFile(destination, "existing\n", "utf-8")
+
+        const patchText =
+          "*** Begin Patch\n*** Update File: old/name.txt\n*** Move to: renamed/dir/name.txt\n@@\n-from\n+new\n*** End Patch"
+
+        await expect(execute({ patchText }, ctx)).rejects.toThrow("Refusing to overwrite")
+        expect(await fs.readFile(original, "utf-8")).toBe("from\n")
+        expect(await fs.readFile(destination, "utf-8")).toBe("existing\n")
+        expect(await FileTrash.list(Instance.project.id)).toEqual([])
+      },
+    })
+  })
+
+  test("refuses to add over an existing file", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "duplicate.txt")
+        await fs.writeFile(target, "old content\n", "utf-8")
+
+        const patchText = "*** Begin Patch\n*** Add File: duplicate.txt\n+new content\n*** End Patch"
+
+        await expect(execute({ patchText }, ctx)).rejects.toThrow("Refusing to overwrite")
+        expect(await fs.readFile(target, "utf-8")).toBe("old content\n")
+      },
+    })
+  })
+
+  test("refuses an add destination that appears during approval", async () => {
+    await using fixture = await tmpdir()
+    const target = path.join(fixture.path, "appeared.txt")
+    const ctx: ToolCtx = {
+      ...baseCtx,
+      ask: async () => {
+        await fs.writeFile(target, "concurrent owner\n")
+      },
+    }
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const patchText = "*** Begin Patch\n*** Add File: appeared.txt\n+agent bytes\n*** End Patch"
+        await expect(execute({ patchText }, ctx)).rejects.toThrow("Refusing to overwrite")
+        expect(await fs.readFile(target, "utf8")).toBe("concurrent owner\n")
+      },
+    })
+  })
+
+  test("refuses changed bytes after edit approval", async () => {
+    await using fixture = await tmpdir()
+    const target = path.join(fixture.path, "changed.txt")
+    await fs.writeFile(target, "approved\n")
+    const ctx: ToolCtx = {
+      ...baseCtx,
+      ask: async () => {
+        await fs.writeFile(target, "concurrent\n")
+      },
+    }
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const patchText = "*** Begin Patch\n*** Update File: changed.txt\n@@\n-approved\n+agent\n*** End Patch"
+        await expect(execute({ patchText }, ctx)).rejects.toThrow("changed after approval")
+        expect(await fs.readFile(target, "utf8")).toBe("concurrent\n")
+      },
+    })
+  })
+
+  test("does not mutate an external file after its write grant is revoked", async () => {
+    await using project = await tmpdir({ git: true })
+    await using external = await tmpdir({ init: (directory) => Bun.write(path.join(directory, "claim.txt"), "old\n") })
+    await Instance.provide({
+      directory: project.path,
+      fn: async () => {
+        const session = await Session.create({ title: "revoked patch" })
+        try {
+          const grant = await SessionFilesystem.grant({
+            sessionID: session.id,
+            path: external.path,
+            access: "write",
+            scope: "session",
+          })
+          const target = path.join(external.path, "claim.txt")
+          const ctx: ToolCtx = {
+            ...baseCtx,
+            sessionID: session.id,
+            ask: async (input) => {
+              if (input.permission === "edit") await SessionFilesystem.revoke(session.id, grant.id)
+            },
+          }
+          await expect(
+            execute(
+              {
+                patchText: `*** Begin Patch\n*** Update File: ${target}\n@@\n-old\n+new\n*** End Patch`,
+              },
+              ctx,
+            ),
+          ).rejects.toBeInstanceOf(SessionFilesystem.DeniedError)
+          expect(await Bun.file(target).text()).toBe("old\n")
+        } finally {
+          await Session.remove(session.id)
+        }
+      },
+    })
+  })
+
+  test("refuses a replacement inode even when bytes match approval", async () => {
+    await using fixture = await tmpdir()
+    const target = path.join(fixture.path, "identity.txt")
+    await fs.writeFile(target, "approved\n")
+    const ctx: ToolCtx = {
+      ...baseCtx,
+      ask: async () => {
+        const replacement = path.join(fixture.path, "replacement.txt")
+        await fs.writeFile(replacement, "approved\n")
+        await fs.rename(replacement, target)
+      },
+    }
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const patchText = "*** Begin Patch\n*** Update File: identity.txt\n@@\n-approved\n+agent\n*** End Patch"
+        await expect(execute({ patchText }, ctx)).rejects.toThrow("identity changed after approval")
+        expect(await fs.readFile(target, "utf8")).toBe("approved\n")
+      },
+    })
+  })
+
+  test("rejects update when target file is missing", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const patchText = "*** Begin Patch\n*** Update File: missing.txt\n@@\n-nope\n+better\n*** End Patch"
+
+        await expect(execute({ patchText }, ctx)).rejects.toThrow(
+          "apply_patch verification failed: Failed to read file to update",
+        )
+      },
+    })
+  })
+
+  test("rejects delete when file is missing", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const patchText = "*** Begin Patch\n*** Delete File: missing.txt\n*** End Patch"
+
+        await expect(execute({ patchText }, ctx)).rejects.toThrow()
+      },
+    })
+  })
+
+  test("rejects delete when target is a directory", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const dirPath = path.join(fixture.path, "dir")
+        await fs.mkdir(dirPath)
+
+        const patchText = "*** Begin Patch\n*** Delete File: dir\n*** End Patch"
+
+        await expect(execute({ patchText }, ctx)).rejects.toThrow()
+      },
+    })
+  })
+
+  test("rejects invalid hunk header", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const patchText = "*** Begin Patch\n*** Frobnicate File: foo\n*** End Patch"
+
+        await expect(execute({ patchText }, ctx)).rejects.toThrow("apply_patch verification failed")
+      },
+    })
+  })
+
+  test("rejects update with missing context", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "modify.txt")
+        await fs.writeFile(target, "line1\nline2\n", "utf-8")
+
+        const patchText = "*** Begin Patch\n*** Update File: modify.txt\n@@\n-missing\n+changed\n*** End Patch"
+
+        const expectedHash = crypto.createHash("sha256").update("line1\nline2\n").digest("hex")
+        await expect(execute({ patchText }, ctx)).rejects.toThrow(
+          new RegExp(
+            `apply_patch verification failed:[\\s\\S]*Re-read [\\s\\S]*modify\\.txt before retrying;[\\s\\S]*${expectedHash}[\\s\\S]*1: line1[\\s\\S]*2: line2`,
+          ),
+        )
+        expect(await fs.readFile(target, "utf-8")).toBe("line1\nline2\n")
+      },
+    })
+  })
+
+  test("verification failure leaves no side effects", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const patchText =
+          "*** Begin Patch\n*** Add File: created.txt\n+hello\n*** Update File: missing.txt\n@@\n-old\n+new\n*** End Patch"
+
+        await expect(execute({ patchText }, ctx)).rejects.toThrow()
+
+        const createdPath = path.join(fixture.path, "created.txt")
+        await expect(fs.readFile(createdPath, "utf-8")).rejects.toThrow()
+      },
+    })
+  })
+
+  test("supports end of file anchor", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "tail.txt")
+        await fs.writeFile(target, "alpha\nlast\n", "utf-8")
+
+        const patchText = "*** Begin Patch\n*** Update File: tail.txt\n@@\n-last\n+end\n*** End of File\n*** End Patch"
+
+        await execute({ patchText }, ctx)
+        expect(await fs.readFile(target, "utf-8")).toBe("alpha\nend\n")
+      },
+    })
+  })
+
+  test("rejects missing second chunk context", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "two_chunks.txt")
+        await fs.writeFile(target, "a\nb\nc\nd\n", "utf-8")
+
+        const patchText = "*** Begin Patch\n*** Update File: two_chunks.txt\n@@\n-b\n+B\n\n-d\n+D\n*** End Patch"
+
+        await expect(execute({ patchText }, ctx)).rejects.toThrow()
+        expect(await fs.readFile(target, "utf-8")).toBe("a\nb\nc\nd\n")
+      },
+    })
+  })
+
+  test("disambiguates change context with @@ header", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "multi_ctx.txt")
+        await fs.writeFile(target, "fn a\nx=10\ny=2\nfn b\nx=10\ny=20\n", "utf-8")
+
+        const patchText = "*** Begin Patch\n*** Update File: multi_ctx.txt\n@@ fn b\n-x=10\n+x=11\n*** End Patch"
+
+        await execute({ patchText }, ctx)
+        expect(await fs.readFile(target, "utf-8")).toBe("fn a\nx=10\ny=2\nfn b\nx=11\ny=20\n")
+      },
+    })
+  })
+
+  test("EOF anchor matches from end of file first", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "eof_anchor.txt")
+        // File has duplicate "marker" lines - one in middle, one at end
+        await fs.writeFile(target, "start\nmarker\nmiddle\nmarker\nend\n", "utf-8")
+
+        // With EOF anchor, should match the LAST "marker" line, not the first
+        const patchText =
+          "*** Begin Patch\n*** Update File: eof_anchor.txt\n@@\n-marker\n-end\n+marker-changed\n+end\n*** End of File\n*** End Patch"
+
+        await execute({ patchText }, ctx)
+        // First marker unchanged, second marker changed
+        expect(await fs.readFile(target, "utf-8")).toBe("start\nmarker\nmiddle\nmarker-changed\nend\n")
+      },
+    })
+  })
+
+  test("parses heredoc-wrapped patch", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const patchText = `cat <<'EOF'
+*** Begin Patch
+*** Add File: heredoc_test.txt
++heredoc content
+*** End Patch
+EOF`
+
+        await execute({ patchText }, ctx)
+        const content = await fs.readFile(path.join(fixture.path, "heredoc_test.txt"), "utf-8")
+        expect(content).toBe("heredoc content\n")
+      },
+    })
+  })
+
+  test("parses heredoc-wrapped patch without cat", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const patchText = `<<EOF
+*** Begin Patch
+*** Add File: heredoc_no_cat.txt
++no cat prefix
+*** End Patch
+EOF`
+
+        await execute({ patchText }, ctx)
+        const content = await fs.readFile(path.join(fixture.path, "heredoc_no_cat.txt"), "utf-8")
+        expect(content).toBe("no cat prefix\n")
+      },
+    })
+  })
+
+  test("matches with trailing whitespace differences", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "trailing_ws.txt")
+        // File has trailing spaces on some lines
+        await fs.writeFile(target, "line1  \nline2\nline3   \n", "utf-8")
+
+        // Patch doesn't have trailing spaces - should still match via rstrip pass
+        const patchText = "*** Begin Patch\n*** Update File: trailing_ws.txt\n@@\n-line2\n+changed\n*** End Patch"
+
+        await execute({ patchText }, ctx)
+        expect(await fs.readFile(target, "utf-8")).toBe("line1  \nchanged\nline3   \n")
+      },
+    })
+  })
+
+  test("matches with leading whitespace differences", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "leading_ws.txt")
+        // File has leading spaces
+        await fs.writeFile(target, "  line1\nline2\n  line3\n", "utf-8")
+
+        // Patch without leading spaces - should match via trim pass
+        const patchText = "*** Begin Patch\n*** Update File: leading_ws.txt\n@@\n-line2\n+changed\n*** End Patch"
+
+        await execute({ patchText }, ctx)
+        expect(await fs.readFile(target, "utf-8")).toBe("  line1\nchanged\n  line3\n")
+      },
+    })
+  })
+
+  test("matches with Unicode punctuation differences", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "unicode.txt")
+        // File has fancy Unicode quotes (U+201C, U+201D) and em-dash (U+2014)
+        const leftQuote = "\u201C"
+        const rightQuote = "\u201D"
+        const emDash = "\u2014"
+        await fs.writeFile(target, `He said ${leftQuote}hello${rightQuote}\nsome${emDash}dash\nend\n`, "utf-8")
+
+        // Patch uses ASCII equivalents - should match via normalized pass
+        // The replacement uses ASCII quotes from the patch (not preserving Unicode)
+        const patchText =
+          '*** Begin Patch\n*** Update File: unicode.txt\n@@\n-He said "hello"\n+He said "hi"\n*** End Patch'
+
+        await execute({ patchText }, ctx)
+        // Result has ASCII quotes because that's what the patch specifies
+        expect(await fs.readFile(target, "utf-8")).toBe(`He said "hi"\nsome${emDash}dash\nend\n`)
+      },
+    })
+  })
+})

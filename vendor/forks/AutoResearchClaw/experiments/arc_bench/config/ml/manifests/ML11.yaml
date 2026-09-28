@@ -1,0 +1,98 @@
+# ============================================================================
+# T11 — Unsupervised outlier detection on tabular datasets with injected anomalies
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML11
+title: "Benchmarking classical unsupervised outlier detectors under controlled anomaly injection"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Classical unsupervised anomaly-detection methods remain widely used in
+  production tabular pipelines because they are interpretable enough,
+  CPU-efficient, and available in standard libraries. Yet their relative
+  behavior can change sharply as anomaly prevalence and feature scaling vary.
+  IsolationForest is often robust in heterogeneous feature spaces, while
+  distance/density methods like LocalOutlierFactor can be strong when local
+  neighborhoods are informative but may degrade in higher dimensions.
+
+  A practical benchmark should avoid external downloads and still provide
+  realistic control over anomaly rate. One reliable strategy is to start from
+  clean sklearn classification datasets and inject synthetic anomalies into the
+  test split by sampling uniformly beyond feature-wise quantile ranges of the
+  training data. This yields known binary ground truth for evaluation while
+  preserving a realistic inlier distribution.
+
+  A credible CPU-scale study here should compare IsolationForest,
+  LocalOutlierFactor (novelty mode), OneClassSVM, and EllipticEnvelope under a
+  shared preprocessing pipeline (e.g., StandardScaler), evaluate ROC-AUC and
+  PR-AUC across at least two datasets and multiple seeds, and include a simple
+  baseline such as random scoring. Since contamination is rarely known exactly
+  in practice, the benchmark should also probe at least two injected anomaly
+  rates.
+
+  The main decision-relevant question is not whether any method can detect easy
+  anomalies, but which method is consistently best across datasets and
+  contamination levels under strict CPU constraints. A concise, quantitative
+  hypothesis-driven comparison is therefore the goal.
+
+  *Which classical unsupervised outlier detector is most robust across tabular datasets and injected anomaly rates when measured by ROC-AUC and PR-AUC under a single-core CPU budget?*
+
+hypotheses:
+  - id: H1
+    statement: "IsolationForest achieves higher mean ROC-AUC than OneClassSVM on at least 2 of 3 datasets when averaged over anomaly rates {0.05, 0.10} and ≥3 seeds."
+    measurable: true
+  - id: H2
+    statement: "At anomaly rate 0.10, LocalOutlierFactor attains the best PR-AUC (rank 1) on at least 1 of 3 datasets."
+    measurable: true
+  - id: H3
+    statement: "Each implemented detector (IsolationForest, LocalOutlierFactor, OneClassSVM, EllipticEnvelope) outperforms a random-score baseline in ROC-AUC by at least 0.10 on the pooled mean across all evaluated datasets/rates."
+    measurable: true
+
+experiment_design:
+  research_question: "Which among IsolationForest, LocalOutlierFactor, OneClassSVM, and EllipticEnvelope is most robust across datasets and injected anomaly rates for unsupervised outlier detection under CPU constraints?"
+  conditions:
+    - name: "isolation_forest"
+      description: "sklearn IsolationForest with contamination set to injected rate, 200 trees, default feature subsampling."
+    - name: "local_outlier_factor_novelty"
+      description: "sklearn LocalOutlierFactor in novelty=True mode, n_neighbors in [20, 35], contamination set to injected rate."
+    - name: "one_class_svm_rbf"
+      description: "sklearn OneClassSVM with RBF kernel, nu matched to injected rate, gamma='scale'."
+    - name: "elliptic_envelope"
+      description: "sklearn EllipticEnvelope with contamination set to injected rate and robust covariance estimation."
+    - name: "random_score_baseline"
+      description: "Baseline assigning i.i.d. uniform random anomaly scores to test points."
+  baselines:
+    - "random_score_baseline"
+    - "one_class_svm_rbf as a classical margin-based reference"
+  metrics:
+    - name: "roc_auc"
+      direction: "maximize"
+      description: "ROC-AUC of anomaly scores against injected ground-truth labels on the test set, averaged over seeds."
+    - name: "pr_auc"
+      direction: "maximize"
+      description: "Average precision / PR-AUC for anomaly class on the test set, averaged over seeds."
+    - name: "fit_predict_time_sec"
+      direction: "minimize"
+      description: "Wall-clock seconds for model fit plus test scoring per (dataset, rate, seed), reported as mean."
+  datasets:
+    - name: "breast_cancer"
+      source: "sklearn.datasets.load_breast_cancer"
+    - name: "wine"
+      source: "sklearn.datasets.load_wine"
+    - name: "digits"
+      source: "sklearn.datasets.load_digits"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 480
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML11.json"

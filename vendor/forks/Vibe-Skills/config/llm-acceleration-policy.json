@@ -1,0 +1,110 @@
+﻿{
+  "version": 1,
+  "updated": "2026-03-21",
+  "enabled": true,
+  "mode": "soft",
+  "activation": {
+    "explicit_vibe_only": true
+  },
+  "scope": {
+    "grade_allow": ["M", "L", "XL"],
+    "task_allow": ["planning", "coding", "review", "debug", "research"]
+  },
+  "trigger": {
+    "top_k": 5,
+    "always_on_explicit_vibe": true,
+    "max_top1_top2_gap": 0.08,
+    "max_confidence_for_llm": 0.55
+  },
+  "provider": {
+    "type": "openai",
+    "model": "",
+    "model_env": "VCO_INTENT_ADVICE_MODEL",
+    "base_url": "",
+    "base_url_env_candidates": ["VCO_INTENT_ADVICE_BASE_URL"],
+    "api_key_env": "VCO_INTENT_ADVICE_API_KEY",
+    "timeout_ms": 12000,
+    "max_output_tokens": 1600,
+    "temperature": 0.15,
+    "top_p": 1.0,
+    "store": false,
+    "mock_response_path": ""
+  },
+  "enhancements": {
+    "diff_digest": {
+      "enabled": true,
+      "min_diff_chars": 1800,
+      "max_digest_chars": 1200,
+      "model": "",
+      "max_output_tokens": 520,
+      "temperature": 0.1,
+      "timeout_ms": 8000,
+      "replace_diff_in_context": true,
+      "include_raw_diff_in_context": false
+    },
+    "committee": {
+      "enabled": true,
+      "members": 3,
+      "min_success_members": 2,
+      "member_temperatures": [0.15, 0.25, 0.35],
+      "member_max_output_tokens": 1400,
+      "member_timeout_ms": 12000,
+      "judge_enabled": true,
+      "judge_temperature": 0.05,
+      "judge_max_output_tokens": 1600,
+      "judge_timeout_ms": 12000
+    },
+    "confirm_question_booster": {
+      "enabled": true,
+      "only_when_confirm_required": true,
+      "max_questions": 6,
+      "max_output_tokens": 560,
+      "temperature": 0.1,
+      "timeout_ms": 6000
+    }
+  },
+  "context": {
+    "mode": "diff_snippets_ok",
+    "include_git_status": true,
+    "include_git_diff": true,
+    "max_git_status_lines": 80,
+    "max_diff_chars": 6000,
+    "git_diff_task_allow": ["coding", "debug", "review"],
+    "vector_diff": {
+      "enabled": true,
+      "embedding_model": "",
+      "embedding_model_env": "VCO_VECTOR_DIFF_MODEL",
+      "embedding_provider": {
+        "type": "openai-compatible",
+        "base_url": "",
+        "base_url_env_candidates": ["VCO_VECTOR_DIFF_BASE_URL"],
+        "endpoint_path": "",
+        "api_key_env": "VCO_VECTOR_DIFF_API_KEY",
+        "timeout_ms": 6000
+      },
+      "min_diff_chars_for_vector": 6000,
+      "max_chunks": 12,
+      "chunk_max_chars": 1400,
+      "max_selected_chunks": 3,
+      "cache_relpath": "outputs/runtime/llm-accel-vector-cache.jsonl",
+      "max_cache_entries": 250,
+      "max_cache_file_kb": 8192
+    }
+  },
+  "safety": {
+    "fallback_on_error": true,
+    "require_candidate_in_top_k": true,
+    "min_override_confidence": 0.75,
+    "allow_confirm_escalation": true,
+    "allow_route_override": false
+  },
+  "rollout": {
+    "apply_in_modes": ["soft", "strict"],
+    "max_live_apply_rate": 1.0
+  }
+}
+
+
+
+
+

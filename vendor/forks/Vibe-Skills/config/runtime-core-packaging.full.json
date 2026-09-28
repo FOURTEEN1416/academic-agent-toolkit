@@ -1,0 +1,118 @@
+{
+  "schema_version": 4,
+  "package_id": "runtime-core-full",
+  "summary": "Governed runtime payload with the canonical Vibe controller exposed. Specialist skills come only from host-declared local skill roots.",
+  "profile_manifests": {
+    "minimal": "config/runtime-core-packaging.minimal.json",
+    "full": "config/runtime-core-packaging.full.json"
+  },
+  "directories": [
+    "skills",
+    "commands",
+    "config"
+  ],
+  "copy_files": [
+    {
+      "source": "config/adapter-registry.json",
+      "target": "config/adapter-registry.json",
+      "optional": false
+    },
+    {
+      "source": "config/upstream-lock.json",
+      "target": "config/upstream-lock.json",
+      "optional": false
+    },
+    {
+      "source": "config/powershell-host-policy.json",
+      "target": "config/powershell-host-policy.json",
+      "optional": false
+    }
+  ],
+  "canonical_vibe_payload": {
+    "enabled": true,
+    "target_relpath": "skills/vibe"
+  },
+  "payload_roles": {
+    "target_directories": {
+      "runtime_targets": [
+        "skills",
+        "config"
+      ],
+      "command_targets": [
+        "commands"
+      ]
+    },
+    "copy_files": {
+      "required_lockfiles": [
+        {
+          "source": "config/upstream-lock.json",
+          "target": "config/upstream-lock.json",
+          "optional": false
+        }
+      ],
+      "optional_lockfiles": [],
+      "required_runtime_config": [
+        {
+          "source": "config/adapter-registry.json",
+          "target": "config/adapter-registry.json",
+          "optional": false
+        },
+        {
+          "source": "config/powershell-host-policy.json",
+          "target": "config/powershell-host-policy.json",
+          "optional": false
+        }
+      ]
+    },
+    "notes": {
+      "flat_projection_contract": "Resolved profile packaging fields remain the compatibility projection consumed by installer implementations.",
+      "delivery_boundary_rule": "Base manifest owns shared delivery semantics; profile overlays own profile-specific copy and inventory differences; generated profile manifests are compatibility projections only."
+    },
+    "copy_directories": {
+      "active_sources": [
+        {
+          "source": "commands",
+          "target": "commands"
+        }
+      ]
+    }
+  },
+  "profile": "full",
+  "copy_directories": [
+    {
+      "source": "commands",
+      "target": "commands"
+    }
+  ],
+  "public_skill_surface": {
+    "mode": "discoverable_wrapper_projection",
+    "canonical_vibe_target_relpath": "skills/vibe",
+    "discoverable_entry_surface": "config/vibe-entry-surfaces.json",
+    "projected_skill_names": [
+      "vibe"
+    ]
+  },
+  "internal_skill_corpus": {
+    "enabled": false,
+    "resident_skill_names": [],
+    "resolver_roots": []
+  },
+  "compatibility_skill_projections": {
+    "mode": "explicit_projection_only",
+    "target_root": "skills",
+    "projected_skill_names": [],
+    "host_allowlist": [
+      "codex"
+    ],
+    "resolver_roots": [
+      "skills"
+    ]
+  },
+  "managed_skill_inventory": {
+    "public_entry_skills": [
+      "vibe"
+    ],
+    "starter_skill_names": [],
+    "optional_skill_names": []
+  }
+}

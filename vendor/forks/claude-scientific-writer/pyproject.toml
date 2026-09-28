@@ -1,0 +1,171 @@
+[project]
+name = "scientific-writer"
+version = "2.21.0"
+description = "Deep research and writing tool - combines AI-driven deep research with well-formatted written outputs. Generates publication-ready scientific documents with verified citations."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "K-Dense Inc.", email = "contact@k-dense.ai" },
+]
+keywords = ["scientific-writing", "research", "latex", "citations", "claude"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    # The code imports the 0.2.x hook/types surface (StopHookInput, HookContext);
+    # cap below 0.3 since the SDK API is still evolving pre-1.0.
+    "claude-agent-sdk>=0.2.126,<0.3",
+    "python-dotenv>=1.0.0",
+    # requests and pymupdf are not imported by scientific_writer itself, but the
+    # bundled skill scripts (web lookup, pdf_to_images) rely on them at runtime.
+    "requests>=2.31.0",
+    "pymupdf>=1.24.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/K-Dense-AI/claude-scientific-writer"
+Repository = "https://github.com/K-Dense-AI/claude-scientific-writer"
+Issues = "https://github.com/K-Dense-AI/claude-scientific-writer/issues"
+Changelog = "https://github.com/K-Dense-AI/claude-scientific-writer/blob/main/CHANGELOG.md"
+
+# System Dependencies (must be installed separately):
+# 
+# LaTeX Distribution (required for PDF compilation):
+#   - macOS: MacTeX (https://www.tug.org/mactex/) or BasicTeX
+#     Install: brew install --cask mactex-no-gui
+#   - Linux: TeX Live
+#     Install: sudo apt-get install texlive-full (Ubuntu/Debian)
+#              sudo dnf install texlive-scheme-full (Fedora)
+#   - Windows: MiKTeX (https://miktex.org/) or TeX Live
+#
+# Required LaTeX packages (usually included in full distributions):
+#   - pdflatex, bibtex, latexmk
+#   - Common packages: amsmath, graphicx, hyperref, natbib, geometry
+#
+# PDF to Image Conversion:
+#   PyMuPDF is included as a dependency - no external software needed!
+#   PDF to image conversion works out of the box.
+#
+# Optional but recommended:
+#   - Ghostscript (for PDF manipulation)
+#   - ImageMagick (for image processing)
+#   - LibreOffice (for Office rendering and recalculation helpers)
+#   - FFmpeg (for audio/video conversion through MarkItDown)
+
+[project.scripts]
+scientific-writer = "scientific_writer.cli:cli_main"
+
+[project.optional-dependencies]
+analysis = [
+    "lifelines>=0.30.0",
+    "matplotlib>=3.10.9",
+    "numpy>=2.2.6",
+    "pandas>=2.3.3",
+    "scipy>=1.15.3",
+]
+office = [
+    "defusedxml>=0.7.1",
+    # 0.1.6 currently requires an unavailable Azure prerelease on a supported split.
+    "markitdown[all]>=0.1.5,!=0.1.6",
+    "openai>=2.47.0",
+    "openpyxl>=3.1.5",
+    "pillow>=12.3.0",
+]
+
+[build-system]
+requires = ["hatchling>=1.31,<2"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scientific_writer"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/.claude",
+    "/docs/examples",
+    "/extensions",
+    "/skills",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "codespell>=2.4.3",
+    "pre-commit>=4.6.1",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+# The bundled/mirrored skill trees and vendored extensions carry their own scripts;
+# lint only the package, scripts, and tests.
+extend-exclude = [
+    "skills",
+    ".claude",
+    "scientific_writer/.claude",
+    "extensions",
+    "templates",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["scientific_writer"]
+exclude = "scientific_writer/\\.claude"
+ignore_missing_imports = true
+
+
+[tool.codespell]
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+skip = '.git,.gitignore,.gitattributes,.claude,skills,scientific_writer/.claude,extensions,docs/examples,*.pdf,*.svg,*.css,*.xsd'
+check-hidden = true
+# Ignore camelCase/PascalCase identifiers, and word fragments from bold formatting
+# (**S**pecific, \textbf{F}requency, etc.)
+ignore-regex = '\b[a-z]+[A-Z]\w*\b|\b[A-Z][a-z]+[A-Z]\w*\b|\*\*.\*\*\w+|\\textbf\{.\}\w+'
+# Domain-specific terms:
+#  theses - plural of thesis (BibTeX entry type)
+#  infarction - medical term (myocardial infarction)
+#  ser - XML series element
+#  pres - presentation abbreviation
+#  commun - as in "Nature Communications" journal
+#  stard - STARD reporting guideline (Standards for Reporting Diagnostic Accuracy)
+#  ehr - Electronic Health Record
+#  anc - Absolute Neutrophil Count
+#  ot - Occupational Therapy
+#  som - Serviceable Obtainable Market
+#  caf/cafs - Cancer-Associated Fibroblasts
+#  promis - PROMIS patient-reported outcome measures
+#  slac - SLAC National Accelerator Laboratory
+#  als - Amyotrophic Lateral Sclerosis / Advanced Light Source
+#  abd - abbreviation for abdomen/abdominal
+#  rouge - ROUGE metric (NLP evaluation)
+#  nd - shorthand for 2nd
+#  reacher - Functional Reach test (rehabilitation)
+#  fallow - Gutenberg diagram layout term (fallow area)
+#  trough - Gartner Hype Cycle term (Trough of Disillusionment)
+#  childs - surname
+#  recuse - legitimate word (to recuse oneself)
+#  inh - medical abbreviation (inhalation)
+#  ois - Optimal Information Size (statistics)
+#  re-use - valid hyphenation
+#  edn - abbreviation for "edition" (Nature citation style: "10th edn")
+#  bu - Business Unit abbreviation
+#  vermillion - valid alternate spelling of vermilion
+ignore-words-list = 'theses,infarction,ser,pres,commun,stard,ehr,anc,ot,som,caf,cafs,promis,slac,als,abd,rouge,nd,reacher,fallow,trough,childs,recuse,inh,ois,re-use,edn,bu,vermillion'

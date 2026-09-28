@@ -1,0 +1,98 @@
+# ============================================================================
+# T10 — Cross-validation strategy effects on small-sample model selection
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML10
+title: "Cross-validation strategy reliability for small-sample model selection"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  With small datasets, model selection can become highly sensitive to the
+  validation protocol. Practitioners often choose among k-fold,
+  stratified k-fold, repeated k-fold, and leave-one-out cross-validation
+  (LOOCV), but these strategies trade off bias, variance, and compute in
+  different ways. A method that appears best under one CV scheme may not be
+  best under another, especially when class balance is imperfect and sample
+  counts are low.
+
+  This topic studies CV strategy as the independent variable while keeping
+  candidate models fixed and lightweight. The key quantity is estimation bias:
+  the gap between CV-estimated score used for model selection and the realized
+  test score of the selected model on a held-out test set. In small-sample
+  settings, minimizing this gap is often more important than maximizing raw CV
+  score, because over-optimistic selection can produce brittle deployments.
+
+  A credible CPU-scale experiment should evaluate multiple sklearn datasets
+  reduced to small training sizes, run several random seeds, and compare at
+  least four CV strategies under the same model grid and scoring rule. The
+  study should report not only estimation bias but also variance across seeds
+  and model-selection stability. Baselines should include standard k-fold and
+  stratified k-fold; repeated stratified k-fold and LOOCV serve as contrasting
+  alternatives with different variance/compute characteristics.
+
+  The goal is not to prove one universally superior protocol, but to quantify
+  when more elaborate CV schemes improve reliability enough to justify their
+  cost under strict CPU budgets.
+
+  *Which cross-validation strategy yields the lowest and most stable model-selection estimation bias for small-sample classification tasks under a fixed candidate-model grid?*
+
+hypotheses:
+  - id: H1
+    statement: "RepeatedStratifiedKFold (5 folds × 3 repeats) achieves lower mean absolute estimation bias than plain KFold (5 folds) on at least 2 of 3 evaluated small-sample datasets, averaged over ≥5 random seeds."
+    measurable: true
+  - id: H2
+    statement: "StratifiedKFold (5 folds) yields lower across-seed standard deviation of selected-model test accuracy than plain KFold (5 folds) on at least 2 of 3 datasets."
+    measurable: true
+  - id: H3
+    statement: "LOOCV does not outperform RepeatedStratifiedKFold in mean absolute estimation bias by more than 0.01 absolute score on any dataset, while requiring greater wall-clock time."
+    measurable: true
+
+experiment_design:
+  research_question: "For small-sample classification model selection, how do KFold, StratifiedKFold, RepeatedStratifiedKFold, and LOOCV compare in estimation bias, stability, and compute cost?"
+  conditions:
+    - name: "kfold_5"
+      description: "Model selection via 5-fold KFold (shuffle=True) on the training split."
+    - name: "stratified_kfold_5"
+      description: "Model selection via 5-fold StratifiedKFold (shuffle=True) on the training split."
+    - name: "repeated_stratified_5x3"
+      description: "Model selection via RepeatedStratifiedKFold with 5 folds and 3 repeats."
+    - name: "loocv"
+      description: "Model selection via Leave-One-Out cross-validation on the training split."
+  baselines:
+    - "kfold_5 as the non-stratified baseline"
+    - "stratified_kfold_5 as the standard small-sample baseline"
+  metrics:
+    - name: "estimation_bias"
+      direction: "minimize"
+      description: "Absolute difference between best CV mean score and held-out test score of the selected model, aggregated over seeds."
+    - name: "selected_model_test_accuracy"
+      direction: "maximize"
+      description: "Held-out test accuracy of the model selected by each CV strategy, mean over seeds."
+    - name: "selection_stability"
+      direction: "maximize"
+      description: "Fraction of seeds selecting the modal hyperparameter configuration (higher = more stable)."
+    - name: "wall_clock_sec"
+      direction: "minimize"
+      description: "Runtime per CV strategy over all seeds and datasets on CPU."
+  datasets:
+    - name: "breast_cancer_small"
+      source: "sklearn.datasets.load_breast_cancer (subsample training set to n<=120)"
+    - name: "wine_small"
+      source: "sklearn.datasets.load_wine (subsample training set to n<=100)"
+    - name: "synthetic_imbalanced_small"
+      source: "sklearn.datasets.make_classification (n_samples=160, weights=[0.75,0.25], class_sep tuned for moderate difficulty)"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 600
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML10.json"

@@ -1,0 +1,166 @@
+{
+    "id": "p09-root",
+    "requirements": "A credible HEP collider study reproducing the published reference figure for $U_1$ vector-LQ angular shape in $\\mu^+\\mu^- \\to b\\bar b$ at 3 TeV muon collider. The agent must (a) implement the BSM Lagrangian, (b) generate Monte Carlo events for the specified process with appropriate PDFs and generation cuts, (c) run the necessary detector / shower simulation if required, (d) reconstruct the diagnostic kinematic distribution, and (e) compare against the published reference figure with quantitative residuals tied to H1, H2, H3.",
+    "judging_note": "Physics topics are scored on whether the agent (i) assembles a working HEP MC pipeline AND (ii) reproduces the published numbers within stated tolerance. Partial credit is allowed; the agent may use analytic shortcuts in place of MadGraph for cases where it is overkill, as long as the answer matches the published reference within the per-leaf tolerance. Quantitative result leaves are scored on a graded scale: 100% if relative error < 3%, 67% if < 10%, 33% if < 30%, 0% otherwise.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "p09-code",
+            "requirements": "Code-development bucket: BSM model + process card + PDF/cuts + full pipeline are wired correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "p09-code-lagrangian",
+                    "requirements": "BSM Lagrangian implemented (FeynRules .fr file + UFO output, or equivalent analytic Python module): $U_1$ vector LQ in $(\\mathbf{3},\\mathbf{1},2/3)$ rep with $\\kappa_U=\\tilde\\kappa_U=0$; only $\\beta_L^{32}$ (b-quark to muon) non-zero; $g_U=1$.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "p09-code-process",
+                    "requirements": "MadGraph generate-process card or analytic process module matches the paper's process string: $\\mu^+\\mu^- \\to b\\bar b$ at $\\sqrt{s}=3$ TeV via SM $s$-channel and $U_1$ $t$-channel exchange, parton level.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "p09-code-pdfcuts",
+                    "requirements": "PDF set and generation-level cuts match the paper exactly: Lepton-collider beams (no PDF); 1 SM run (500k events with $\\beta_L^{32}=0$, $m_\\mathrm{LQ}=10^5$ GeV) + 4 LQ signal runs ($\\beta_L^{32}\\in\\{1.0, 0.1\\}$ x $m_\\mathrm{LQ}\\in\\{1, 10\\}$ TeV, 50k events each).",
+                    "weight": 4.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "p09-code-pipeline",
+                    "requirements": "Full HEP chain wired together (model -> events -> [shower -> detector] -> reconstruction -> analysis -> figure). For analytic shortcuts the chain may be simpler but must still terminate in the diagnostic figure.",
+                    "weight": 4.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "p09-exec",
+            "requirements": "Execution-validity bucket: MC sample passes nevents threshold, physics-validity gates clear, MC stats are sufficient.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "p09-exec-events",
+                    "requirements": "MC sample(s) generated successfully with at least the requested number of events per cell (or a documented partial count if compute-limited), with no fatal MadGraph or downstream errors.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "p09-exec-physics",
+                    "requirements": "Physics-validity gate: no negative cross sections; gauge invariance / unitarity sanity checks pass; mass spectrum and decay widths printed by MadGraph match the input parameter card; no obviously unphysical kinematics in the generated events.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "p09-exec-statistics",
+                    "requirements": "MC statistics are sufficient: relative MC error in the signal region is < 10% OR at least 3 random seeds are run with std reported across them.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "p09-results",
+            "requirements": "Results bucket: quantitative comparison of three hypothesis-driven observables to the published figure, plus a reproduced figure artifact and a per-hypothesis writeup.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "p09-result-h1-quant",
+                    "requirements": "Quantitative test of H1 \u2014 At $\\beta_L^{32}=1.0$, $m_\\mathrm{LQ}=1$ TeV, central-bin $|\\eta|<0.1$ normalized fraction exceeds SM by $\\geq 50\\%$.",
+                    "weight": 12.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "p09-result-h2-quant",
+                    "requirements": "Quantitative test of H2 \u2014 At $\\beta_L^{32}=0.1$, normalized $|\\eta|$ shape differs from SM by $\\leq 10\\%$ in every bin. Use the same graded relative-error scale as H1.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "p09-result-h3-quant",
+                    "requirements": "Quantitative test of H3 \u2014 At $\\beta_L^{32}=1.0$, $m_\\mathrm{LQ}=10$ TeV shape lies between SM and $m_\\mathrm{LQ}=1$ TeV (decoupling). Use the same graded relative-error scale as H1.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "p09-result-figure",
+                    "requirements": "A reproduced figure exists in artifacts (PDF or PNG) with axes, units, ranges, and legend matching the published reference: Two side-by-side panels (left: $\\beta_L^{32}=1.0$, right: $\\beta_L^{32}=0.1$); each panel has SM gray bar histogram + $m_\\mathrm{LQ}=1$ TeV blue dashed + $m_\\mathrm{LQ}=10$ TeV orange dashed; 13 bins from 0 to 2.5 (narrow [0,0.1] first); $14\\times 6$ figure size; y in [0, 0.20].",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "p09-result-writeup",
+                    "requirements": "Writeup discusses the outcome of each hypothesis (supported / refuted / inconclusive) tied to numeric residuals, identifies the dominant systematic uncertainty (PDF set, scale variation, k-factor, Delphes card, statistical MC error), and states explicitly any analytic shortcuts taken in place of full MC.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "p09-repro",
+            "requirements": "Reproducibility bucket (new for physics topics; absent in T-rubrics): the artifacts contain everything needed to rerun the analysis from scratch.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "p09-repro-model",
+                    "requirements": "UFO model directory (or analytic model Python module) is checked into the artifacts and is loadable by MadGraph (or directly importable for analytic models).",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Reproducibility"
+                },
+                {
+                    "id": "p09-repro-runcards",
+                    "requirements": "MadGraph run_card / param_card, Pythia8 settings, Delphes card, and MadAnalysis5 (or equivalent analysis) cards are saved alongside the run with explicit parameter values per cell.",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Reproducibility"
+                },
+                {
+                    "id": "p09-repro-seeds",
+                    "requirements": "RNG seeds are documented; rerunning the run from saved seeds should give matching central values within the reported MC error. For analytic shortcuts, the seed requirement is replaced by an explicit list of input numerical parameters.",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Reproducibility"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

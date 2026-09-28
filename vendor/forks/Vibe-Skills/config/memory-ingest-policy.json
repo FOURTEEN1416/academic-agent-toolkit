@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "updated": "2026-04-10",
+  "policy_id": "memory-ingest-admission-v1",
+  "enabled": true,
+  "control_plane_owner": "vco",
+  "write_admission": {
+    "require_workspace_identity": true,
+    "require_owner_binding": true,
+    "minimum_signal_score": 0.35
+  },
+  "noise_suppression": {
+    "drop_path_patterns": [
+      ".tmp/",
+      "outputs/runtime/vibe-sessions/"
+    ],
+    "downgrade_artifact_kinds": [
+      "heartbeat",
+      "debug_trace",
+      "ephemeral_tooling_note"
+    ],
+    "drop_empty_payloads": true
+  },
+  "owner_write_rules": {
+    "state_store": {
+      "allow": [
+        "session_state",
+        "execution_progress",
+        "memory_fold"
+      ]
+    },
+    "serena": {
+      "allow": [
+        "project_decision_gate",
+        "architecture_decision"
+      ]
+    },
+    "ruflo": {
+      "allow": [
+        "handoff_card",
+        "short_term_semantic_context"
+      ]
+    },
+    "cognee": {
+      "allow": [
+        "entity_relation_ingest",
+        "long_term_graph_context"
+      ]
+    }
+  },
+  "invariants": {
+    "forbid_unscoped_bulk_ingest": true,
+    "forbid_owner_semantic_drift": true
+  }
+}

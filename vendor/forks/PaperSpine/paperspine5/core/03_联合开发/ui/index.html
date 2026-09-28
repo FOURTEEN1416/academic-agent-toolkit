@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PaperSpine5 · 论文工作区</title>
+  <link rel="stylesheet" href="/styles.css?v=20260823-publication-cycle">
+</head>
+<body>
+  <!--
+    Direction B iteration: a five-stage paper and publication-cycle workspace.
+    Assumptions: configuration mirrors the supported PaperSpine terminal wizard;
+    semantic confirmation remains an AI–human gate; figures are reviewed as complete
+    candidates; deliverables are shown only from the real final_paper directory.
+    Visual motif: one manuscript moving from a run card to a signed argument,
+    then to complete figures, a canonical paper, and a locally verified target package.
+  -->
+  <div class="app-shell" data-stage="connecting" data-view="configuration">
+    <header class="titlebar">
+        <div class="brand">PaperSpine5</div>
+      <div class="breadcrumb"><span id="paper-id">新论文任务</span><span aria-hidden="true">/</span><strong id="view-name">工作配置</strong></div>
+      <div class="state-indicator"><span class="state-dot" aria-hidden="true"></span><strong id="stage">正在连接任务</strong></div>
+    </header>
+
+    <aside class="workflow-sidebar" aria-label="论文工作链">
+      <section class="project-card">
+        <span class="section-label">论文生产工作区</span>
+        <strong id="project-name">尚未命名的任务</strong>
+        <small>PaperSpine 写作主线 · PaperFigure 图件支线</small>
+      </section>
+
+      <p class="section-label workflow-label">从任务到投稿循环</p>
+      <nav class="workflow-steps">
+        <button class="workflow-step active" data-view-target="configuration" type="button">
+          <span class="step-number">1</span><span class="step-copy"><strong>工作配置</strong><small>定义任务与运行方式</small></span>
+        </button>
+        <button class="workflow-step" data-view-target="anchoring" type="button">
+          <span class="step-number">2</span><span class="step-copy"><strong>论文定锚</strong><small>确认贡献、动机与边界</small></span>
+        </button>
+        <button class="workflow-step" data-view-target="figures" type="button">
+          <span class="step-number">3</span><span class="step-copy"><strong>科研图件</strong><small>生成、审阅与整图确认</small></span>
+        </button>
+        <button class="workflow-step" data-view-target="deliverables" type="button">
+          <span class="step-number">4</span><span class="step-copy"><strong>规范主稿</strong><small>成稿、图件与五维审计</small></span>
+        </button>
+        <button class="workflow-step" data-view-target="publication" type="button">
+          <span class="step-number">5</span><span class="step-copy"><strong>投稿循环</strong><small>目标包、返修与转投</small></span>
+        </button>
+      </nav>
+
+      <div class="sidebar-actions">
+        <button id="advance" class="secondary-action" type="button" disabled>等待任务连接</button>
+        <a id="rich-review" class="secondary-link hidden" target="_blank" rel="noreferrer">打开 FigMirror 深度审阅</a>
+      </div>
+
+      <div class="state-file">
+        <span>权威进度</span>
+        <code id="stage-code">stage: connecting</code>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <section id="view-configuration" class="workspace-view active" data-view="configuration">
+        <article class="paper-sheet configuration-sheet">
+          <header class="paper-header configuration-header">
+            <div>
+              <p class="eyebrow">01 · RUN SETUP</p>
+              <h1>先把任务说清楚，再让 AI 开始写。</h1>
+              <p class="paper-subtitle">这里是 PaperSpine 终端配置向导的网页表达：不要求用户手写 JSON，只收集决定论文路线的必要信息。</p>
+            </div>
+            <span id="config-status" class="review-mode">尚未保存</span>
+          </header>
+
+          <form id="config-form" class="config-form">
+            <section class="config-section">
+              <div class="config-section-heading">
+                <span>01</span><div><h2>任务路线</h2><p>决定 PaperSpine 从哪里开始、为哪种交稿场景服务。</p></div>
+              </div>
+              <div class="field-grid two-columns">
+                <label class="field"><span>工作方式</span><select name="workflow" required><option value="rewrite_existing">改进已有初稿</option><option value="build_from_materials">从素材构筑新稿</option></select></label>
+                <label class="field"><span>目标场景</span><select name="scene" required><option value="journal">期刊论文</option><option value="conference">会议论文</option><option value="report_review">报告或综述</option><option value="competition">竞赛论文</option></select></label>
+                <label class="field wide"><span>目标名称</span><input name="target_name" type="text" required placeholder="例如：Nature Medicine / 全国大学生统计建模大赛"></label>
+              </div>
+            </section>
+
+            <section class="config-section">
+              <div class="config-section-heading">
+                <span>02</span><div><h2>材料入口</h2><p>已有初稿和素材可以同时提供；AI 会按选定工作方式确定主入口。</p></div>
+              </div>
+              <div class="field-grid">
+                <label class="field wide"><span>初稿路径</span><input name="draft_path" type="text" placeholder="留空表示没有初稿"></label>
+                <label class="field wide"><span>素材文件夹</span><input name="materials_dir" type="text" placeholder="论文、数据、模板与笔记所在目录"></label>
+                <label class="field wide"><span>初始动机假设</span><textarea name="user_motivation" rows="3" placeholder="可以为空；PaperSpine 会研究后提出可确认的贡献与动机候选。"></textarea></label>
+              </div>
+            </section>
+
+            <section class="config-section compact-section">
+              <div class="config-section-heading">
+                <span>03</span><div><h2>研究与输出</h2><p>这些选项直接对应终端向导中的调研、引用和交付设置。</p></div>
+              </div>
+              <div class="field-grid three-columns">
+                <label class="field"><span>调研深度</span><select name="tier"><option value="flash">轻量调研</option><option value="pro">深度调研</option></select></label>
+                <label class="field"><span>文献入口</span><select name="reference_mode"><option value="local_first">本地优先</option><option value="specified_paths">指定路径</option><option value="web">网络检索</option></select></label>
+                <label class="field"><span>引用目标数</span><input name="citation_target_count" type="number" min="1" max="500" value="20"></label>
+                <label class="field"><span>最终语言</span><select name="output_language"><option value="zh">中文</option><option value="en">英文</option></select></label>
+                <label class="field"><span>Word 版本</span><select name="word_output"><option value="docx">生成 DOCX</option><option value="none">不生成</option></select></label>
+                <label class="field"><span>降 AI 痕迹</span><select name="humanize_tier"><option value="none">不处理</option><option value="light">轻度</option><option value="medium" selected>中度</option><option value="heavy">强度</option></select></label>
+              </div>
+              <details class="advanced-config">
+                <summary>展开高级设置</summary>
+                <div class="field-grid two-columns advanced-grid">
+                  <label class="field"><span>目标检测平台</span><select name="detection_platform"><option value="general">通用</option><option value="cnki">知网</option><option value="weipu">维普</option></select></label>
+                  <label class="field"><span>中文翻译包</span><select name="translation_package"><option value="none">不生成</option><option value="zh">生成</option></select></label>
+                  <label class="field wide"><span>参考路径（每行一个）</span><textarea name="reference_paths" rows="2">.</textarea></label>
+                  <label class="field wide"><span>官方链接（每行一个）</span><textarea name="official_urls" rows="2"></textarea></label>
+                  <label class="field wide"><span>特殊要求（每行一条）</span><textarea name="special_requirements" rows="2"></textarea></label>
+                </div>
+              </details>
+            </section>
+
+            <div class="config-submit-row">
+              <p><strong>保存后生成：</strong><code>paper_spine_config.json</code> 与可读配置摘要。</p>
+              <button id="save-config" class="primary-action" type="submit">保存配置</button>
+            </div>
+            <input type="hidden" name="ui_language" value="zh">
+          </form>
+
+          <section class="terminal-card" aria-label="PaperSpine 命令行入口">
+            <div class="terminal-bar"><span>PaperSpine 入口</span><small>Codex / Claude Code</small></div>
+            <div class="terminal-body"><span class="prompt">PS&nbsp;›</span><code id="entry-command">/paperspine</code><button id="copy-command" type="button">复制</button></div>
+            <p>网页配置与终端向导使用同一组字段；需要继续 AI 写作时，在宿主中运行这个入口。</p>
+          </section>
+        </article>
+      </section>
+
+      <section id="view-anchoring" class="workspace-view" data-view="anchoring" hidden>
+        <article class="paper-sheet anchoring-sheet">
+          <header class="paper-header">
+            <div><p class="eyebrow">02 · SEMANTIC ANCHOR</p><h1>论文定锚</h1><p class="paper-subtitle">AI 先给出可审阅的贡献与研究动机；用户确认后，这两项才成为下游结构、写作和图件的共同约束。</p></div>
+            <span id="anchor-status" class="review-mode">等待定锚</span>
+          </header>
+          <section class="anchor-principle"><span>认证，不是登录</span><strong>这里确认的是论文“为什么值得写、具体贡献什么”，而不是账号身份。</strong></section>
+          <div class="anchor-grid">
+            <article class="anchor-document"><header><span>01</span><div><p>CONTRIBUTION</p><h2>核心贡献</h2></div><strong id="contribution-state">待确认</strong></header><div id="contribution-main" class="anchor-copy muted">等待 PaperSpine 生成贡献候选。</div></article>
+            <article class="anchor-document"><header><span>02</span><div><p>MOTIVATION</p><h2>研究动机</h2></div><strong id="motivation-state">待确认</strong></header><div id="motivation-main" class="anchor-copy muted">等待 PaperSpine 生成与贡献对齐的动机候选。</div></article>
+          </div>
+          <section class="handoff-note"><div><span>通过标准</span><strong>贡献已确认 · 动机与贡献一致 · 目标场景明确 · 图件请求可追溯</strong></div><p>具体修改与确认仍在 AI 对话中进行；本页负责汇总权威产物，不用聊天文本冒充状态。</p></section>
+        </article>
+      </section>
+
+      <section id="view-figures" class="workspace-view" data-view="figures" hidden>
+        <article class="paper-sheet figure-sheet">
+          <header class="paper-header">
+            <div><p class="eyebrow" id="review-eyebrow">03 · FIGURE WORKSPACE</p><h1>科研图件</h1><p class="paper-subtitle">每张图都是承接论文主张的完整方案；候选通过 FigMirror 门禁后，由用户逐图确认。</p></div>
+            <span id="review-mode" class="review-mode">等待候选</span>
+          </header>
+          <section class="claim-banner"><span>当前任务</span><strong id="next">正在读取下一步操作。</strong></section>
+          <section id="figures" class="figure-list" aria-live="polite"><div class="loading-state"><span class="loading-line"></span><span class="loading-line short"></span><p>正在载入候选整图…</p></div></section>
+        </article>
+      </section>
+
+      <section id="view-deliverables" class="workspace-view" data-view="deliverables" hidden>
+        <article class="paper-sheet deliverable-sheet">
+          <header class="paper-header">
+            <div><p class="eyebrow">04 · CANONICAL PAPER</p><h1>规范主稿</h1><p class="paper-subtitle">论文、图件与五维审计完成后，这里展示可继续适配不同目标的规范主稿。目标投稿包在下一阶段生成。</p></div>
+            <span id="deliverable-status" class="review-mode">尚未完成</span>
+          </header>
+          <section id="package-hero" class="package-hero pending">
+            <div class="folder-mark" aria-hidden="true"><span></span></div>
+            <div><p>FINAL PAPER</p><h2 id="package-name">final_paper</h2><strong id="package-path">等待装配完成后显示交付目录。</strong></div>
+          </section>
+          <div class="package-grid">
+            <section class="package-summary"><span>交付定义</span><h2>打开文件夹，就能找到投稿需要的全部成品。</h2><ul><li>论文主稿与可提交版本</li><li>已确认科研图及可编辑导出</li><li>图件装配清单与来源记录</li><li>最终检查和审计报告</li></ul></section>
+            <section class="file-manifest"><header><div><span>文件清单</span><h2 id="file-count">0 个文件</h2></div><small>来自真实目录</small></header><div id="deliverable-files" class="deliverable-files"><p class="muted">工作流完成后自动读取，不展示虚构文件。</p></div></section>
+          </div>
+        </article>
+      </section>
+
+      <section id="view-publication" class="workspace-view" data-view="publication" hidden>
+        <article class="paper-sheet publication-sheet">
+          <header class="paper-header">
+            <div><p class="eyebrow">05 · PUBLICATION CYCLE</p><h1>投稿循环</h1><p class="paper-subtitle">使用 PaperSpine 的稳定接口完成目标核验、投稿包装配、返修材料和转投重建计划。所有操作只生成或验证本地成果。</p></div>
+            <span id="publication-status" class="review-mode">等待规范主稿</span>
+          </header>
+          <section class="authority-banner"><strong>权限边界</strong><p>这里没有自动投稿按钮。提交、重投、费用与许可接受始终需要用户另行授权。</p></section>
+          <form id="publication-form" class="publication-form">
+            <div class="publication-inputs">
+              <label class="field"><span>目标期刊配置 profile</span><input name="profile" type="text" placeholder="相对项目根目录的 JSON 路径"></label>
+              <label class="field"><span>投稿计划 plan</span><input name="plan" type="text" placeholder="相对项目根目录的 JSON 路径"></label>
+              <label class="field"><span>返修轮次 review_round</span><input name="review_round" type="text" placeholder="相对项目根目录的 JSON 路径"></label>
+              <label class="field"><span>原目标配置 origin_profile</span><input name="origin_profile" type="text" placeholder="转投时使用"></label>
+              <label class="field"><span>新目标配置 destination_profile</span><input name="destination_profile" type="text" placeholder="转投时使用"></label>
+              <label class="field"><span>转投请求 transfer_request</span><input name="transfer_request" type="text" placeholder="相对项目根目录的 JSON 路径"></label>
+              <label class="field wide"><span>输出目录（可留空，由系统生成不可变目录）</span><input name="output_directory" type="text" placeholder="相对项目根目录"></label>
+            </div>
+            <div class="publication-actions" aria-label="Publication Cycle 操作">
+              <button type="button" data-publication-operation="profile_check"><strong>核验目标配置</strong><span>profile_check</span></button>
+              <button type="button" data-publication-operation="assemble"><strong>装配投稿包</strong><span>assemble</span></button>
+              <button type="button" data-publication-operation="rebuttal_check"><strong>核验返修信</strong><span>rebuttal_check</span></button>
+              <button type="button" data-publication-operation="rebuttal_render"><strong>生成返修材料</strong><span>rebuttal_render</span></button>
+              <button type="button" data-publication-operation="transfer_plan"><strong>生成转投计划</strong><span>transfer_plan</span></button>
+            </div>
+          </form>
+          <section class="publication-result"><div><span>最近操作</span><strong id="publication-latest">尚未执行</strong></div><pre id="publication-result">规范主稿完成后可运行五个本地操作。</pre></section>
+        </article>
+      </section>
+    </main>
+
+    <aside class="evidence-inspector" aria-label="当前阶段信息">
+      <div class="inspector-title"><span id="inspector-kicker">STAGE 01</span><h2 id="inspector-title">配置说明</h2></div>
+
+      <div class="inspector-view active" data-inspector="configuration">
+        <section class="inspector-section"><h3>与命令行的关系</h3><p class="prose">字段与 <code>intake_wizard.py</code> 对齐，网页只改变交互表达，不改变 PaperSpine 的配置契约。</p></section>
+        <section class="inspector-section"><h3>配置文件</h3><div class="path-box" id="config-path">等待任务服务连接后显示保存位置。</div></section>
+        <section class="inspector-section"><h3>下一次人工确认</h3><p class="prose">AI 完成目标场景研究后，会先提交“核心贡献”，再提交与之对齐的“研究动机”。</p></section>
+      </div>
+
+      <div class="inspector-view" data-inspector="anchoring" hidden>
+        <section class="inspector-section"><h3>为什么做</h3><div id="motivation" class="prose muted">等待 PaperSpine 已确认产物。</div></section>
+        <section class="inspector-section"><h3>贡献什么</h3><div id="contribution" class="prose muted">等待 PaperSpine 已确认产物。</div></section>
+        <section class="inspector-section"><h3>AI 下一步</h3><pre id="host-next">正在读取下一步指令…</pre></section>
+      </div>
+
+      <div class="inspector-view" data-inspector="figures" hidden>
+        <section class="inspector-section"><div class="inspector-heading"><h3>选择进度</h3><span id="selection-progress">0 / 0</span></div><div id="selection-summary" class="selection-summary"><p class="muted">候选图载入后可逐张选择。</p></div></section>
+        <section class="inspector-section"><h3>当前候选</h3><div id="candidate-detail" class="candidate-detail muted">选择候选后显示布局与面板信息。</div></section>
+        <div class="confirmation-panel"><button id="confirm" class="primary-action" type="button" disabled>先完成全部整图选择</button></div>
+      </div>
+
+      <div class="inspector-view" data-inspector="deliverables" hidden>
+        <section class="inspector-section"><h3>交付目录</h3><div class="path-box" id="deliverable-path">尚未生成。</div></section>
+        <section class="inspector-section"><h3>装配证据</h3><div id="assembly-evidence" class="prose muted">工作流完成后显示装配清单与报告。</div></section>
+        <section class="inspector-section"><h3>交稿原则</h3><p class="prose">只把最终稿、正式图件、必要源文件与审计证据带入交付目录；候选和临时渲染留在工作目录。</p></section>
+      </div>
+
+      <div class="inspector-view" data-inspector="publication" hidden>
+        <section class="inspector-section"><h3>当前阶段</h3><div id="publication-stage" class="path-box">等待规范主稿。</div></section>
+        <section class="inspector-section"><h3>本地就绪信号</h3><div id="publication-signals" class="prose muted">尚无 Publication Cycle 回执。</div></section>
+        <section class="inspector-section"><h3>外部权限</h3><p id="publication-authority" class="prose">external_action_authorized = false</p></section>
+      </div>
+
+      <p id="message" class="global-message" role="status" aria-live="polite"></p>
+    </aside>
+  </div>
+  <script src="/app.js?v=20260823-publication-cycle" defer></script>
+</body>
+</html>

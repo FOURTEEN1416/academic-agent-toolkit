@@ -1,0 +1,18 @@
+# Generated Visio outputs
+*.vsdx
+!*.skill.vsdx
+*.backup-*.vsdx
+
+# Optional exports and previews
+*.png
+*.svg
+*.pdf
+*.pptx
+
+# Local work directories
+outputs/
+exports/
+work/
+tmp/
+temp/
+

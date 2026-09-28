@@ -1,0 +1,36 @@
+{
+  "schema_version": "replay.promotion.openclaw-preview.v1",
+  "generated_at": "2026-03-25",
+  "lane_id": "openclaw/runtime-core-preview",
+  "adapter_id": "openclaw",
+  "current_status": "preview",
+  "allowed_statuses_now": [
+    "preview"
+  ],
+  "maximum_status_without_new_fresh_machine_proof": "preview",
+  "disallowed_promotions_without_new_evidence": [
+    "supported-with-constraints",
+    "full-authoritative"
+  ],
+  "decision": {
+    "result": "blocked",
+    "reason": "no-fresh-machine-proof-bundle",
+    "required_disclosure": "OpenClaw remains preview in replay truth."
+  },
+  "required_evidence_classes": [
+    "contract",
+    "route-replay",
+    "degrade-replay",
+    "install-isolation-replay",
+    "proof-bundle",
+    "fresh-machine-install-proof"
+  ],
+  "promotion_bundle_manifest": "references/proof-bundles/openclaw-runtime-core-preview-candidate/manifest.json",
+  "no_overclaim": {
+    "preview_is_not_official_runtime_closure": true,
+    "preview_is_not_host_native_plugin_closure": true,
+    "preview_is_not_cross_platform_parity": true,
+    "preview_is_not_supported_with_constraints": true
+  },
+  "notes": "This fixture encodes a promotion ceiling for the OpenClaw runtime-core-preview lane. It prevents docs-first or adapter-only promotion without new evidence."
+}

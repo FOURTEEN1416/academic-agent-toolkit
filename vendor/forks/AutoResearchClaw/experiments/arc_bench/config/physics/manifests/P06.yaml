@@ -1,0 +1,169 @@
+# ============================================================================
+# P06 — $U_1$ vector leptoquark $m_T$ recast in $pp \to \tau\nu$ (ATLAS+CMS)
+# ----------------------------------------------------------------------------
+# Adapts ColliderAgent paper-reproduction prompt:
+#   /path/to/ColliderAgent/paper-reproduction/1811.07920/prompt_figure_3.md
+# Source: arXiv:1811.07920 — vector leptoquark $U_1$ as resolution of
+# $R_{D^{(*)}}$ anomaly; recast of ATLAS + CMS $\tau\nu$ searches.
+# ============================================================================
+
+id: P06
+title: "Reproducing $U_1$ vector-leptoquark $\\sqrt{|g_c^* g_b|}$ vs $M_{U_1}$ exclusion from ATLAS+CMS $pp \\to \\tau\\nu$"
+arxiv_id: "1811.07920"
+venue: "ARC-Bench Physics 2026"
+paper_asset: null
+
+synthesis: |
+  Reproducing the LHC sensitivity to a $U_1$ vector leptoquark from the
+  $pp \to \tau\nu$ channel via $bc \to U_1 \to \tau\nu$ exchange,
+  combining ATLAS + CMS searches in a binned profile-likelihood, as a
+  benchmark of the agent's ability to (i) generate LQ events with
+  bottom-quark and charm-quark initial-state partons, (ii) run two
+  parallel detector-card simulations (Delphes ATLAS card vs CMS card),
+  (iii) recast experimental data into a profile-likelihood fit. The
+  Lagrangian couples $U_1$ to $(\bar c \gamma^\mu P_L \nu_\tau)$ and
+  $(\bar b \gamma^\mu P_L \tau)$ with couplings $g_c, g_b$, and the
+  diagnostic figure is the 2$\sigma$ exclusion contour in the
+  $(\sqrt{|g_c^* g_b|}, M_{U_1})$ plane along with the LH and RH
+  $R_{D^{(*)}}$ flavor-anomaly bands.
+
+  A credible study (a) implements the $U_1$ Lagrangian (FeynRules .fr +
+  UFO), (b) runs MadGraph + Pythia8 + Delphes for $M_{U_1} \in \{750,
+  1000, 1250, 1500, 2000, 2500, 3000, 4000, 5000\}$ GeV with both ATLAS
+  and CMS cards (LHCO output), (c) applies the published ATLAS and CMS
+  $\tau$-channel selections (lepton veto, hadronic-$\tau$ requirement,
+  $E_T^\mathrm{miss}$ cut, $m_T$ cut), (d) builds a binned signal
+  template that scales as $g^4$ and runs the per-bin profile likelihood
+  with nuisance parameters $\theta_i$, (e) combines ATLAS + CMS, finds
+  the 2$\sigma$ exclusion via $-2\Delta\ln\mathcal{L} = 4$, and (f)
+  overlays the analytic LH band $g_\mathrm{LH}(M) = (M/v)\sqrt{2 V_{cb}\,
+  \epsilon_L}$ with $\epsilon_L = 0.11 \pm 0.02$ and the analogous RH band.
+  Research question: *does the agent reproduce the $(\sqrt{|g_c^* g_b|},
+  M_{U_1})$ exclusion contour and the $R_{D^{(*)}}$ overlay bands of
+  Figure 3 of arXiv:1811.07920?*
+
+hypotheses:
+  - id: H1
+    statement: "The combined ATLAS+CMS 2$\\sigma$ exclusion at $M_{U_1} = 1$ TeV gives $\\sqrt{|g_c^* g_b|} \\in [0.3, 1.5]$, matching the published value within 30%."
+    measurable: true
+  - id: H2
+    statement: "The reconstructed exclusion contour intersects the LH $R_{D^{(*)}}$ band ($\\epsilon_L = 0.11$) at an excluded mass $M_{U_1}^* \\in [1.0, 2.5]$ TeV."
+    measurable: true
+  - id: H3
+    statement: "Selection efficiency on signal events is $\\geq 5\\%$ at $M_{U_1}=1$ TeV in both ATLAS and CMS analyses (gauge of pipeline working end-to-end through Delphes)."
+    measurable: true
+
+experiment_design:
+  research_question: "Does the agent reproduce the 2$\\sigma$ exclusion contour for the $U_1$ vector leptoquark in the $(\\sqrt{|g_c^* g_b|}, M_{U_1})$ plane from combined ATLAS+CMS $pp \\to \\tau\\nu$ recast (Figure 3 of arXiv:1811.07920)?"
+  conditions:
+    - name: "atlas_recast"
+      description: "Mass scan $M_{U_1} \\in \\{750, 1000, 1250, 1500, 2000, 2500, 3000, 4000, 5000\\}$ GeV at $\\sqrt{s}=13$ TeV, 10k events each, Pythia8 shower, Delphes ATLAS card, LHCO output. Selection: lepton veto, hadronic-$\\tau$ $p_T > 80$ GeV, $|\\eta_\\tau| < 2.3$, $E_T^\\mathrm{miss} > 150$ GeV, $m_T > 250$ GeV."
+    - name: "cms_recast"
+      description: "Same mass scan with Delphes CMS card; selection: lepton veto, $\\tau$ $p_T>80$ GeV, $|\\eta|<2.1$, $E_T^\\mathrm{miss}>200$ GeV, $0.7 < p_T^\\tau / E_T^\\mathrm{miss} < 1.3$, $\\Delta\\phi(\\tau, E_T^\\mathrm{miss}) > 2.4$, $m_T > 320$ GeV."
+  baselines:
+    - "Published ATLAS background table (22 bins, 250-3200 GeV log-spaced) and CMS background table (3 bins) act as the SM-only null hypothesis"
+  metrics:
+    - name: "exclusion_coupling_at_1tev"
+      direction: "match_reference"
+      description: "$\\sqrt{|g_c^* g_b|}$ at the 2$\\sigma$ exclusion boundary at $M_{U_1}=1$ TeV from combined fit."
+    - name: "selection_efficiency"
+      direction: "match_reference"
+      description: "Fraction of generated signal events passing the ATLAS or CMS selection at $M_{U_1}=1$ TeV."
+    - name: "rdstar_band_intersection_tev"
+      direction: "match_reference"
+      description: "Mass at which the LH $R_{D^{(*)}}$ band crosses the exclusion contour."
+  datasets:
+    - process_id: "pp_to_taunu_via_U1"
+      sqrt_s_TeV: 13
+      description: "$pp \\to \\tau\\nu$ via $bc \\to U_1$ exchange. Two detector simulations (Delphes ATLAS, Delphes CMS)."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 3600
+
+rubric_path: "experiments/arc_bench/config/physics/rubrics/P06.json"
+
+# ---------------------------------------------------------------------------
+# Agent-mode requirements (consumed by researchclaw.pipeline.requirements_judge
+# at stage 15 RESEARCH_DECISION). Schema mirrors B01.yaml:
+#   id          — stable identifier
+#   type        — advisory hint to the LLM judge (numeric | artifact | discussion)
+#   description — natural-language statement of what must be true post-run
+#   must_pass   — true → unmet ⇒ rerun (1 retry max); false → optional
+#
+# The five generic must_pass items apply uniformly across P01-P10; the sixth
+# is topic-specific (mirrors this manifest's H1).  The two must_pass=false
+# items reward mechanistic interpretation and MC-reproducibility metadata
+# without blocking proceed-vs-rerun on them.
+# ---------------------------------------------------------------------------
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: >-
+      A canonical results.json file exists at the workspace root with at least
+      the keys: primary_metric (number), metric_key (string), metrics (object
+      with numeric keys), hypotheses (object with h1/h2/h3 entries each
+      carrying a `supported` boolean), summary (non-empty string).
+    must_pass: true
+
+  - id: req_metrics_numeric
+    type: numeric
+    description: >-
+      results.json metrics MUST contain at least 3 numeric (non-null, finite)
+      values directly relevant to the headline physics observable named in
+      the experiment_design.metrics list above — these are the numbers the
+      paper will report in its Results section.
+    must_pass: true
+
+  - id: req_hypotheses_supported_flags
+    type: discussion
+    description: >-
+      results.json hypotheses.h1/h2/h3 each MUST have an explicit `supported`
+      boolean AND a `details` string ≥ 40 characters quoting the numerical
+      evidence (specific values + their source artifact) used to reach the
+      verdict.
+    must_pass: true
+
+  - id: req_publication_figure
+    type: artifact
+    description: >-
+      At least one publication-quality figure file (PDF or PNG, ≥150 DPI for
+      raster) exists under figures/ or output/figures/ with axes labeled in
+      physical units (GeV / pb / fb / dimensionless) and a legend if multiple
+      series are plotted.  The figure must directly support a hypothesis
+      verdict.
+    must_pass: true
+
+  - id: req_model_implementation
+    type: artifact
+    description: >-
+      The BSM Lagrangian is implemented either as a FeynRules .fr file
+      (models/*.fr) with a matching UFO directory (models/*_UFO/ containing
+      at least particles.py, parameters.py, couplings.py, vertices.py), OR
+      as analytic Python code that explicitly computes the cross sections
+      from the Lagrangian terms.  A pure SM baseline with no BSM piece is
+      NOT sufficient.
+    must_pass: true
+
+  - id: req_lq_coupling_band
+    type: numeric
+    description: >-
+      results.json metrics MUST report the 2σ combined ATLAS+CMS √(g_c* g_b) exclusion band at M_U1=1 TeV; the band lower edge must be in [0.21, 0.39] and the upper edge in [1.05, 1.95] (published [0.3, 1.5] ±30%).
+    must_pass: true
+
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: >-
+      The summary or structured_results section provides a one-paragraph
+      mechanistic interpretation of WHY the headline observable comes out the
+      way it does (which interference / propagator structure / cut effect
+      drives the result).  Nice-to-have, not blocking proceed.
+    must_pass: false
+
+  - id: req_mc_reproducibility
+    type: discussion
+    description: >-
+      results.json or a sibling reproducibility section names: (a) the
+      MadGraph5_aMC@NLO version, (b) the PDF set used (if applicable), (c)
+      at least one explicit random seed.  Required for full reproducibility
+      but not for scientific correctness.
+    must_pass: false

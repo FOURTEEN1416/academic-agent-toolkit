@@ -1,0 +1,486 @@
+{
+  "schema_version": "readme_case_manifest_v1",
+  "generated_at": "2026-07-18T05:31:55Z",
+  "case_id": "case-01-ml-experiment",
+  "case_status": "artifact_package_verified_awaiting_canonical_acceptance",
+  "publishable_as_readme_success": false,
+  "runtime": {
+    "execution_run_id": "20260718T041559Z-51996499",
+    "workflow_level": "L",
+    "module_count": 9,
+    "work_unit_count": 10,
+    "module_execution_state": "not_yet_submitted",
+    "delivery_acceptance_state": "not_yet_available"
+  },
+  "selected_skill_ids": [
+    "exploratory-data-analysis",
+    "presentations",
+    "scientific-critical-thinking",
+    "scientific-visualization",
+    "scikit-learn",
+    "sciwrite",
+    "statistical-analysis"
+  ],
+  "modules": [
+    {
+      "module_id": "environment_setup",
+      "execution_mode": "agent_direct",
+      "skill_ids": [],
+      "write_scope": "deliverables/00-environment/**",
+      "expected_output_patterns": [
+        "deliverables/00-environment/.venv/Scripts/python.exe",
+        "deliverables/00-environment/requirements.lock",
+        "deliverables/00-environment/environment.json",
+        "deliverables/00-environment/reproduce.ps1"
+      ],
+      "resolved_outputs": [
+        "deliverables/00-environment/.venv/Scripts/python.exe",
+        "deliverables/00-environment/environment.json",
+        "deliverables/00-environment/reproduce.ps1",
+        "deliverables/00-environment/requirements.lock"
+      ],
+      "missing_outputs": [],
+      "artifact_state": "produced"
+    },
+    {
+      "module_id": "data_audit",
+      "execution_mode": "skill_assigned",
+      "skill_ids": [
+        "exploratory-data-analysis"
+      ],
+      "write_scope": "deliverables/01-data-audit/**",
+      "expected_output_patterns": [
+        "deliverables/01-data-audit/wisconsin-breast-cancer.csv",
+        "deliverables/01-data-audit/dataset-metadata.json",
+        "deliverables/01-data-audit/target-distribution.csv",
+        "deliverables/01-data-audit/data-audit.md"
+      ],
+      "resolved_outputs": [
+        "deliverables/01-data-audit/data-audit.md",
+        "deliverables/01-data-audit/dataset-metadata.json",
+        "deliverables/01-data-audit/target-distribution.csv",
+        "deliverables/01-data-audit/wisconsin-breast-cancer.csv"
+      ],
+      "missing_outputs": [],
+      "artifact_state": "produced"
+    },
+    {
+      "module_id": "baseline_experiment",
+      "execution_mode": "skill_assigned",
+      "skill_ids": [
+        "scikit-learn"
+      ],
+      "write_scope": "deliverables/02-baseline/**",
+      "expected_output_patterns": [
+        "deliverables/02-baseline/run_experiment.py",
+        "deliverables/02-baseline/experiment-config.json",
+        "deliverables/02-baseline/metrics.json",
+        "deliverables/02-baseline/fold-metrics.csv",
+        "deliverables/02-baseline/holdout-predictions.csv",
+        "deliverables/02-baseline/reproduction-check.json"
+      ],
+      "resolved_outputs": [
+        "deliverables/02-baseline/experiment-config.json",
+        "deliverables/02-baseline/fold-metrics.csv",
+        "deliverables/02-baseline/holdout-predictions.csv",
+        "deliverables/02-baseline/metrics.json",
+        "deliverables/02-baseline/reproduction-check.json",
+        "deliverables/02-baseline/run_experiment.py"
+      ],
+      "missing_outputs": [],
+      "artifact_state": "produced"
+    },
+    {
+      "module_id": "statistical_method_review",
+      "execution_mode": "skill_assigned",
+      "skill_ids": [
+        "scientific-critical-thinking",
+        "statistical-analysis"
+      ],
+      "write_scope": "deliverables/03-statistical-review/**",
+      "expected_output_patterns": [
+        "deliverables/03-statistical-review/statistics/uncertainty.json",
+        "deliverables/03-statistical-review/statistics/statistical-review.md",
+        "deliverables/03-statistical-review/method-review/method-and-claims-review.md"
+      ],
+      "resolved_outputs": [
+        "deliverables/03-statistical-review/method-review/method-and-claims-review.md",
+        "deliverables/03-statistical-review/statistics/statistical-review.md",
+        "deliverables/03-statistical-review/statistics/uncertainty.json"
+      ],
+      "missing_outputs": [],
+      "artifact_state": "produced"
+    },
+    {
+      "module_id": "result_figures",
+      "execution_mode": "skill_assigned",
+      "skill_ids": [
+        "scientific-visualization"
+      ],
+      "write_scope": "deliverables/04-figures/**",
+      "expected_output_patterns": [
+        "deliverables/04-figures/class-balance.png",
+        "deliverables/04-figures/roc-and-pr-curves.png",
+        "deliverables/04-figures/cv-performance-distribution.png",
+        "deliverables/04-figures/confusion-matrix.png",
+        "deliverables/04-figures/vector/*.svg",
+        "deliverables/04-figures/figure-index.json"
+      ],
+      "resolved_outputs": [
+        "deliverables/04-figures/class-balance.png",
+        "deliverables/04-figures/confusion-matrix.png",
+        "deliverables/04-figures/cv-performance-distribution.png",
+        "deliverables/04-figures/figure-index.json",
+        "deliverables/04-figures/roc-and-pr-curves.png",
+        "deliverables/04-figures/vector/class-balance.svg",
+        "deliverables/04-figures/vector/confusion-matrix.svg",
+        "deliverables/04-figures/vector/cv-performance-distribution.svg",
+        "deliverables/04-figures/vector/roc-and-pr-curves.svg"
+      ],
+      "missing_outputs": [],
+      "artifact_state": "produced"
+    },
+    {
+      "module_id": "report_draft",
+      "execution_mode": "agent_direct",
+      "skill_ids": [],
+      "write_scope": "deliverables/05-report/draft/**",
+      "expected_output_patterns": [
+        "deliverables/05-report/draft/scientific-report-draft.md",
+        "deliverables/05-report/draft/report-source-map.json"
+      ],
+      "resolved_outputs": [
+        "deliverables/05-report/draft/report-source-map.json",
+        "deliverables/05-report/draft/scientific-report-draft.md"
+      ],
+      "missing_outputs": [],
+      "artifact_state": "produced"
+    },
+    {
+      "module_id": "report_review",
+      "execution_mode": "skill_assigned",
+      "skill_ids": [
+        "sciwrite"
+      ],
+      "write_scope": "deliverables/05-report/final/**",
+      "expected_output_patterns": [
+        "deliverables/05-report/final/scientific-report.md",
+        "deliverables/05-report/final/writing-review.md"
+      ],
+      "resolved_outputs": [
+        "deliverables/05-report/final/scientific-report.md",
+        "deliverables/05-report/final/writing-review.md"
+      ],
+      "missing_outputs": [],
+      "artifact_state": "produced"
+    },
+    {
+      "module_id": "group_meeting_slides",
+      "execution_mode": "skill_assigned",
+      "skill_ids": [
+        "presentations"
+      ],
+      "write_scope": "deliverables/06-slides/**",
+      "expected_output_patterns": [
+        "deliverables/06-slides/group-meeting-slides.pptx",
+        "deliverables/06-slides/rendered/slide-*.png",
+        "deliverables/06-slides/slides-montage.png",
+        "deliverables/06-slides/slides-qa.txt",
+        "deliverables/06-slides/slide-source-map.json"
+      ],
+      "resolved_outputs": [
+        "deliverables/06-slides/group-meeting-slides.pptx",
+        "deliverables/06-slides/rendered/slide-1.png",
+        "deliverables/06-slides/rendered/slide-2.png",
+        "deliverables/06-slides/rendered/slide-3.png",
+        "deliverables/06-slides/rendered/slide-4.png",
+        "deliverables/06-slides/rendered/slide-5.png",
+        "deliverables/06-slides/rendered/slide-6.png",
+        "deliverables/06-slides/rendered/slide-7.png",
+        "deliverables/06-slides/slide-source-map.json",
+        "deliverables/06-slides/slides-montage.png",
+        "deliverables/06-slides/slides-qa.txt"
+      ],
+      "missing_outputs": [],
+      "artifact_state": "produced"
+    },
+    {
+      "module_id": "case_package_and_consistency",
+      "execution_mode": "agent_direct",
+      "skill_ids": [],
+      "write_scope": "deliverables/07-case-package/**",
+      "expected_output_patterns": [
+        "deliverables/07-case-package/summary-en.md",
+        "deliverables/07-case-package/summary-zh.md",
+        "deliverables/07-case-package/visual-materials.md",
+        "deliverables/07-case-package/case-manifest.json",
+        "deliverables/07-case-package/verify_consistency.py",
+        "deliverables/07-case-package/consistency-check.json",
+        "deliverables/07-case-package/consistency-check.md"
+      ],
+      "resolved_outputs": [
+        "deliverables/07-case-package/case-manifest.json",
+        "deliverables/07-case-package/consistency-check.json",
+        "deliverables/07-case-package/consistency-check.md",
+        "deliverables/07-case-package/summary-en.md",
+        "deliverables/07-case-package/summary-zh.md",
+        "deliverables/07-case-package/verify_consistency.py",
+        "deliverables/07-case-package/visual-materials.md"
+      ],
+      "missing_outputs": [],
+      "artifact_state": "produced"
+    }
+  ],
+  "primary_artifacts": [
+    {
+      "path": "deliverables/00-environment/.venv/Scripts/python.exe",
+      "bytes": 262144,
+      "sha256": "6967464e985d361f7c42c236c999fb99c3692388c12474b7d698c7ee8f3a5355"
+    },
+    {
+      "path": "deliverables/00-environment/environment.json",
+      "bytes": 719,
+      "sha256": "32b9e5747b25254ccc807435bbef1b43db907215eb8c2af5b3d2ce322138c24e"
+    },
+    {
+      "path": "deliverables/00-environment/reproduce.ps1",
+      "bytes": 617,
+      "sha256": "379a32fb2f603c6ad5eff013fa82e0818d44ee80e6180d433e48131f88e658f7"
+    },
+    {
+      "path": "deliverables/00-environment/requirements.lock",
+      "bytes": 304,
+      "sha256": "56e611d649503b7bc5ed9d1716430943eaea7c1e661af4f8a6ded77b03acf0cd"
+    },
+    {
+      "path": "deliverables/01-data-audit/create_data_audit.py",
+      "bytes": 7177,
+      "sha256": "1fa4d1e11eb30499844e4e559bda0a7dedb08b5cce0585d135a81335ebcdb254"
+    },
+    {
+      "path": "deliverables/01-data-audit/data-audit.md",
+      "bytes": 3143,
+      "sha256": "9daf275044fb0ed3a8d893bf1e2badb6cfe39ee7dab9aaee8a20f35fadd4c4e3"
+    },
+    {
+      "path": "deliverables/01-data-audit/dataset-metadata.json",
+      "bytes": 1968,
+      "sha256": "2014613e35b7f25cf031d9f43ed7abc52b44764059470b355dc4ca49249324d1"
+    },
+    {
+      "path": "deliverables/01-data-audit/target-distribution.csv",
+      "bytes": 112,
+      "sha256": "b034fa27ca95160cfa78c9b45d80a987f451cae1a4aa503a7c0ca93fb18978d7"
+    },
+    {
+      "path": "deliverables/01-data-audit/wisconsin-breast-cancer.csv",
+      "bytes": 128200,
+      "sha256": "f857c287b0c6ebd31cc0a0950c12bddda3a9be2730b3b774f62bf2b2916af9b0"
+    },
+    {
+      "path": "deliverables/02-baseline/experiment-config.json",
+      "bytes": 8274,
+      "sha256": "9048c57d423e0e1c320224ea9ff18c22506aa316a57732cb33950baf32d01dfd"
+    },
+    {
+      "path": "deliverables/02-baseline/fold-metrics.csv",
+      "bytes": 14235,
+      "sha256": "df0fb209666f8f95aa45f53bd0fe5b9120e98ea8fd59e5dbd5ac8c2c8e641e5d"
+    },
+    {
+      "path": "deliverables/02-baseline/holdout-predictions.csv",
+      "bytes": 3397,
+      "sha256": "fc547ba1cd2cd5e6fbf483056d5714a8fc77cd37c635b86d25e50bef248badbd"
+    },
+    {
+      "path": "deliverables/02-baseline/metrics.json",
+      "bytes": 3749,
+      "sha256": "01b74246f2a164b9b6a0e4e8363935317cf6f929e55383af895c80a7d082335e"
+    },
+    {
+      "path": "deliverables/02-baseline/reproduction-check.json",
+      "bytes": 957,
+      "sha256": "84f5d57ffdb9e59cc16595338f12100db16eae15f69f61c2839775ca774948cf"
+    },
+    {
+      "path": "deliverables/02-baseline/run_experiment.py",
+      "bytes": 12002,
+      "sha256": "834c69b02bcfb532322725c6f083a6aa121336848ccc084709512bc4af03dbb9"
+    },
+    {
+      "path": "deliverables/03-statistical-review/method-review/method-and-claims-review.md",
+      "bytes": 5606,
+      "sha256": "28f9a561f2e9e1d578c664e9d5177b5ff641310541613c38ad6167a498ea4251"
+    },
+    {
+      "path": "deliverables/03-statistical-review/statistics/compute_uncertainty.py",
+      "bytes": 13993,
+      "sha256": "428a7045593f8a40e711c975a78209a72519c009afa602eeee1679f1a31f8145"
+    },
+    {
+      "path": "deliverables/03-statistical-review/statistics/statistical-review.md",
+      "bytes": 3141,
+      "sha256": "d45a2864cd8dfdcc66b529b23c94844c9169ed6e2b34e0f55d7ec420138ce2de"
+    },
+    {
+      "path": "deliverables/03-statistical-review/statistics/uncertainty.json",
+      "bytes": 6309,
+      "sha256": "4ebbd260d16c2d045aca9cbfdd1ef7ecef0f31c10d1fd919e464276cdd8b7775"
+    },
+    {
+      "path": "deliverables/04-figures/class-balance.png",
+      "bytes": 77044,
+      "sha256": "f470bf6ecb5ebab9a0a2c6f19d344b8de04005a3cdaf92f98c2c0818498f79c6"
+    },
+    {
+      "path": "deliverables/04-figures/confusion-matrix.png",
+      "bytes": 163693,
+      "sha256": "9c38309f4b23b1311c093afd2ed8e9a9de35430a377c8627540e8b115dbfab22"
+    },
+    {
+      "path": "deliverables/04-figures/cv-performance-distribution.png",
+      "bytes": 131720,
+      "sha256": "ba726dc8f907e9933ceb11903ba97fb76fabab3a543ecc7cb809d628f8c5701e"
+    },
+    {
+      "path": "deliverables/04-figures/figure-index.json",
+      "bytes": 7052,
+      "sha256": "73046a57b3cc49ccb5841eccef14a0f208c8a98f37967aca3a0f387357df4730"
+    },
+    {
+      "path": "deliverables/04-figures/make_figures.py",
+      "bytes": 15748,
+      "sha256": "7dd517f4cb59417ddebd62d50288ecdaa914418a86541f4d272f6ce236ec410d"
+    },
+    {
+      "path": "deliverables/04-figures/roc-and-pr-curves.png",
+      "bytes": 199061,
+      "sha256": "1275f003b61dc4375e06c7f9a25506b1fdde3dbd56ebbca233c336d6208b8114"
+    },
+    {
+      "path": "deliverables/04-figures/vector/class-balance.svg",
+      "bytes": 48720,
+      "sha256": "92bb901a4a70fea3d65b7f421f8e672ba92862851003370dc70524cd9167fab0"
+    },
+    {
+      "path": "deliverables/04-figures/vector/confusion-matrix.svg",
+      "bytes": 86850,
+      "sha256": "9b164411c1e5ff97537db3a8d85eb26475b75588647b8c59d038b7c86496b2b2"
+    },
+    {
+      "path": "deliverables/04-figures/vector/cv-performance-distribution.svg",
+      "bytes": 120947,
+      "sha256": "fd97762087732430620f8f64a0e12a1cee68a71545a99ad0542ba3fce6225429"
+    },
+    {
+      "path": "deliverables/04-figures/vector/roc-and-pr-curves.svg",
+      "bytes": 87478,
+      "sha256": "37109af45cd7b60a0e1316d53ebb7236a60f491cc2faa55cdfdd8769c6364005"
+    },
+    {
+      "path": "deliverables/05-report/draft/report-source-map.json",
+      "bytes": 7573,
+      "sha256": "0df2a19a6b6cb13b6ce6a3487129b567ea92e8f644a5be0cf5d167098961ac5f"
+    },
+    {
+      "path": "deliverables/05-report/draft/scientific-report-draft.md",
+      "bytes": 6356,
+      "sha256": "a4e18ed57371715e881d30be270aa4ee7ddbc0dacf5cc74c192fe7f20645a88a"
+    },
+    {
+      "path": "deliverables/05-report/final/scientific-report.md",
+      "bytes": 6357,
+      "sha256": "2ecbcb32ccb72298dd9a544b24c1516bbcdf48bab776c5ec354ed847c6729b14"
+    },
+    {
+      "path": "deliverables/05-report/final/writing-review.md",
+      "bytes": 4802,
+      "sha256": "d312891a1e10cd726f2480863fb280be0b9d54d21e5b5c2fb8ebfd6a70b8523b"
+    },
+    {
+      "path": "deliverables/06-slides/group-meeting-slides.pptx",
+      "bytes": 392813,
+      "sha256": "d08ece43018b8f60574016966a93edd0cbe6d17dd1d5247618961dfec8f90112"
+    },
+    {
+      "path": "deliverables/06-slides/group-meeting-slides.pptx.inspect.ndjson",
+      "bytes": 19397,
+      "sha256": "42042de455bb4e69db7c893cf12196971a03714ae6cdb9e0498fcff5ebb21403"
+    },
+    {
+      "path": "deliverables/06-slides/rendered/slide-1.png",
+      "bytes": 73681,
+      "sha256": "39c3b38b26120ebb44f72544b94d92ed0646893908279b1409b5a2f217a209fe"
+    },
+    {
+      "path": "deliverables/06-slides/rendered/slide-2.png",
+      "bytes": 85060,
+      "sha256": "249b7a176f15c2207768c553e5493337523c5b14de26c9ec9c7dff81ccfa6251"
+    },
+    {
+      "path": "deliverables/06-slides/rendered/slide-3.png",
+      "bytes": 126955,
+      "sha256": "fffaf51cb1d2b7b5451882cb49ff7034393da4b9d7af4e5c35b6f7c8a6163cfd"
+    },
+    {
+      "path": "deliverables/06-slides/rendered/slide-4.png",
+      "bytes": 145906,
+      "sha256": "501d5a6861b6c71d7910c531ffa5c3c0b1b94118bd0de89a4935d802126a4095"
+    },
+    {
+      "path": "deliverables/06-slides/rendered/slide-5.png",
+      "bytes": 113423,
+      "sha256": "94b88df63e4d5a5e5936334005fd1a81f70310e249ac3667c0ef0ed50984085a"
+    },
+    {
+      "path": "deliverables/06-slides/rendered/slide-6.png",
+      "bytes": 103519,
+      "sha256": "01a39f01a9775dccd1df92dced87d078939992b296b212fbbf6f9cae8df83624"
+    },
+    {
+      "path": "deliverables/06-slides/rendered/slide-7.png",
+      "bytes": 142767,
+      "sha256": "f8d6021961b7262aafff00a4a53d648e7ad5e687f391c7d6aae7fb292205a4ac"
+    },
+    {
+      "path": "deliverables/06-slides/slide-source-map.json",
+      "bytes": 3811,
+      "sha256": "13bfd8397e6c05601d1aabd40f5bf03955de606c094f196764482baaf4dbaa95"
+    },
+    {
+      "path": "deliverables/06-slides/slides-montage.png",
+      "bytes": 244375,
+      "sha256": "f6cd9fa974521dbfc54e74b9d80789c80369327172da02f3051c1e4c63709901"
+    },
+    {
+      "path": "deliverables/06-slides/slides-qa.txt",
+      "bytes": 2691,
+      "sha256": "f56be3cda2d13924cef1028e278a08dcf4e4e13f7c0d5403cb6acb3fce408650"
+    },
+    {
+      "path": "deliverables/07-case-package/summary-en.md",
+      "bytes": 953,
+      "sha256": "65c3311597256e567bdf54517bf50964634cab946007d4363229617671773eff"
+    },
+    {
+      "path": "deliverables/07-case-package/summary-zh.md",
+      "bytes": 969,
+      "sha256": "aa8aff5fba26ce8e1bf99e755d6436d0e8ef1ecf8bb2d4d74bbfe5939666e96e"
+    },
+    {
+      "path": "deliverables/07-case-package/verify_consistency.py",
+      "bytes": 26271,
+      "sha256": "c295643abb24e162402290a3c1ef2628654c46b25af24f53a08ec8f4b0267a8b"
+    },
+    {
+      "path": "deliverables/07-case-package/visual-materials.md",
+      "bytes": 2278,
+      "sha256": "e8990ec24f95e7d7218cacef46aa401e209e37006c049710336a9133413b88b4"
+    }
+  ],
+  "verification_outputs": [
+    "deliverables/07-case-package/consistency-check.json",
+    "deliverables/07-case-package/consistency-check.md"
+  ],
+  "claim_boundary": "Public reproducibility demonstration only; not for clinical use. Canonical delivery acceptance must pass before README success language is allowed."
+}

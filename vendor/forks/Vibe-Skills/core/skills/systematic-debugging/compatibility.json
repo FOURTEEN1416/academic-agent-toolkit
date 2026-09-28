@@ -1,0 +1,19 @@
+{
+  "skill_id": "systematic-debugging",
+  "required_capabilities": [
+    "fs.read",
+    "shell.exec"
+  ],
+  "optional_capabilities": [
+    "log.capture",
+    "test.runner"
+  ],
+  "degrade_rules": [
+    {
+      "when_missing": "log.capture",
+      "state": "degraded-but-supported",
+      "behavior": "manual evidence capture is required"
+    }
+  ]
+}
+

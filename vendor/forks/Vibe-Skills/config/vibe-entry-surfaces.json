@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "canonical_runtime_skill": "vibe",
+  "entries": [
+    {
+      "id": "vibe",
+      "display_name": "Vibe",
+      "requested_stage_stop": "phase_cleanup",
+      "progressive_stage_stops": [
+        "requirement_doc",
+        "xl_plan",
+        "phase_cleanup"
+      ],
+      "allow_grade_flags": true,
+      "publicly_exposed": true
+    }
+  ],
+  "grade_flags": [
+    "--l",
+    "--xl"
+  ],
+  "grade_flag_map": {
+    "--l": "L",
+    "--xl": "XL"
+  },
+  "forbid_stage_grade_matrix": true
+}

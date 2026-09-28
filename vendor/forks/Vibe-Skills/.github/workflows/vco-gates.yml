@@ -1,0 +1,182 @@
+﻿name: vco-gates
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+jobs:
+  python-validation:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python_bin="$(bash scripts/common/python_helpers.sh --print-supported-python 'Canonical python validation surface')"
+          "${python_bin}" -m pip install --upgrade pip pytest
+
+      - name: Run canonical python validation surface
+        id: python-validation
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python_bin="$(bash scripts/common/python_helpers.sh --print-supported-python 'Canonical python validation surface')"
+          mapfile -t targets < <(grep -v '^[[:space:]]*#' config/python-validation-targets.txt | sed '/^[[:space:]]*$/d')
+          if [ "${#targets[@]}" -eq 0 ]; then
+            echo "canonical python validation target list is empty" >&2
+            exit 1
+          fi
+          "${python_bin}" scripts/verify/publish-proof.py run \
+            --repo-root . \
+            --output outputs/proof/python-validation.json \
+            --artifact config/live-document-contract.json \
+            --label canonical-python-validation \
+            -- "${python_bin}" -B -m pytest -q "${targets[@]}"
+
+      - name: Validate live document changes
+        id: live-document-contract
+        continue-on-error: true
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python_bin="$(bash scripts/common/python_helpers.sh --print-supported-python 'Live document contract gate')"
+          gate_args=(--repo-root .)
+          if [[ -n "${BASE_SHA}" && ! "${BASE_SHA}" =~ ^0+$ ]]; then
+            if git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+              gate_args+=(--base-ref "${BASE_SHA}" --head-ref "${HEAD_SHA}")
+            else
+              echo "base SHA ${BASE_SHA} is unavailable; running workspace-only validation" >&2
+            fi
+          fi
+          "${python_bin}" scripts/verify/publish-proof.py run \
+            --repo-root . \
+            --output outputs/proof/live-document-contract.json \
+            --artifact config/live-document-contract.json \
+            --label live-document-contract \
+            -- "${python_bin}" scripts/verify/live-document-gate.py "${gate_args[@]}"
+
+      - name: Validate stable contributor entry
+        id: developer-entry
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python_bin="$(bash scripts/common/python_helpers.sh --print-supported-python 'Developer entry contract gate')"
+          "${python_bin}" scripts/verify/publish-proof.py run \
+            --repo-root . \
+            --output outputs/proof/developer-entry.json \
+            --artifact references/developer-entry-contract.md \
+            --artifact CONTRIBUTING.md \
+            --label developer-entry-contract \
+            -- pwsh -NoProfile -File scripts/verify/vibe-developer-entry-gate.ps1
+
+      - name: Generate proof bundle and current state
+        if: always()
+        shell: bash
+        run: |
+          python scripts/verify/publish-proof.py aggregate \
+            --repo-root . \
+            --proof outputs/proof/python-validation.json \
+            --proof outputs/proof/live-document-contract.json \
+            --proof outputs/proof/developer-entry.json \
+            --artifact config/live-document-contract.json \
+            --output-directory outputs/proof
+
+      - name: Upload Python proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vco-python-proof-${{ github.run_id }}-${{ github.run_attempt }}
+          path: outputs/proof
+          retention-days: ${{ github.event_name == 'pull_request' && 30 || 90 }}
+
+      - name: Enforce Python gate results
+        if: always()
+        shell: bash
+        run: |
+          if [[ "${{ steps.python-validation.outcome }}" != "success" || \
+                "${{ steps.live-document-contract.outcome }}" != "success" || \
+                "${{ steps.developer-entry.outcome }}" != "success" ]]; then
+            exit 1
+          fi
+
+  host-boundary:
+    runs-on: windows-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python -m pip install --upgrade pip pytest
+
+      - name: Run focused host-boundary smoke
+        id: host-boundary-proof
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python .\scripts\verify\publish-proof.py run `
+            --repo-root . `
+            --output outputs\proof\host-boundary.json `
+            --artifact config\live-document-contract.json `
+            --label host-boundary `
+            -- python .\scripts\verify\test-baseline-audit.py --run-layer integration_host_boundary
+
+      - name: Generate host-boundary proof bundle
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python .\scripts\verify\publish-proof.py aggregate `
+            --repo-root . `
+            --proof outputs\proof\host-boundary.json `
+            --artifact config\live-document-contract.json `
+            --output-directory outputs\proof
+
+      - name: Upload host-boundary proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vco-host-boundary-proof-${{ github.run_id }}-${{ github.run_attempt }}
+          path: outputs/proof
+          retention-days: ${{ github.event_name == 'pull_request' && 30 || 90 }}
+
+      - name: Enforce host-boundary result
+        if: always() && steps.host-boundary-proof.outcome != 'success'
+        shell: pwsh
+        run: exit 1

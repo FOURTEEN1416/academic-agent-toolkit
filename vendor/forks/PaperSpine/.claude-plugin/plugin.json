@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "paper-spine",
+  "version": "4.0.0",
+  "description": "Contribution-first, reviewer-aware academic paper and report writing system for Claude Code.",
+  "author": {
+    "name": "WUBING2023",
+    "url": "https://github.com/WUBING2023"
+  },
+  "repository": "https://github.com/WUBING2023/PaperSpine",
+  "license": "MIT",
+  "keywords": [
+    "academic-writing",
+    "paper-writing",
+    "latex",
+    "research",
+    "reports",
+    "competition-writing"
+  ]
+}

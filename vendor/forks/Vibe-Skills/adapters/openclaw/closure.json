@@ -1,0 +1,62 @@
+{
+  "adapter_id": "openclaw",
+  "closure_level": "runtime-core-preview",
+  "install_mode": "runtime-core",
+  "check_mode": "runtime-core",
+  "bootstrap_mode": "runtime-core",
+  "repo_managed_payload": [
+    "skills/**",
+    "commands/**",
+    "config/upstream-lock.json",
+    "canonical vibe mirror under skills/vibe/**",
+    "host-root global_workflows/** when commands exist",
+    "host-root .vibeskills/host-closure.json",
+    "host-root .vibeskills/bin/**"
+  ],
+  "host_state_written": [
+    "skills/**",
+    "skills/vibe/**",
+    "global_workflows/** when commands exist",
+    ".vibeskills/host-closure.json",
+    ".vibeskills/bin/**"
+  ],
+  "host_managed_boundaries": [
+    "login and account state",
+    "model permissions and provider access",
+    "plugin provisioning",
+    "provider credentials",
+    "workspace projection and editor-specific settings surfaces"
+  ],
+  "uninstall_contract": {
+    "contract_version": 1,
+    "ledger_first": true,
+    "install_ledger_path": ".vibeskills/install-ledger.json",
+    "owned_payload": [
+      "skills/**",
+      "commands/**",
+      "config/upstream-lock.json",
+      "canonical vibe mirror under skills/vibe/**",
+      "host-root global_workflows/** when commands exist"
+    ],
+    "shared_json_targets": [],
+    "legacy_compatibility": [
+      ".vibeskills/host-closure.json",
+      ".vibeskills/bin/**"
+    ],
+    "host_state_written": [
+      "skills/**",
+      "skills/vibe/**",
+      "global_workflows/** when commands exist",
+      ".vibeskills/host-closure.json",
+      ".vibeskills/bin/**"
+    ],
+    "documentation_reference": "docs/uninstall-governance.md"
+  },
+  "verification_contract": [
+    "runtime freshness gate",
+    "runtime BOM/frontmatter gate",
+    "runtime coherence gate",
+    "runtime-core presence check",
+    "host closure presence check"
+  ]
+}

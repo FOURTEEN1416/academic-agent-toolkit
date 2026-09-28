@@ -1,0 +1,285 @@
+.folder-access-chip {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
+  height: 2rem;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 32%, transparent);
+  border-radius: var(--radius-md);
+  padding: 0 0.7rem;
+  background: color-mix(in srgb, var(--color-warning) 9%, transparent);
+  color: color-mix(in srgb, var(--color-warning) 62%, var(--text-strong));
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    transform 120ms ease;
+}
+
+.folder-access-chip:hover {
+  border-color: color-mix(in srgb, var(--color-warning) 48%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--text-strong);
+}
+
+.folder-access-chip:active {
+  transform: translateY(1px);
+}
+
+.folder-access-chip:focus-visible {
+  outline: 1px solid var(--text-strong);
+  outline-offset: 2px;
+}
+
+.folder-access-chip__dot,
+.folder-access-status__dot {
+  flex: none;
+  border-radius: 999px;
+  background: var(--color-warning);
+}
+
+.folder-access-chip__dot {
+  width: 0.4rem;
+  height: 0.4rem;
+}
+
+[data-component="dialog"] [data-slot="dialog-content"].folder-access-dialog {
+  width: min(100%, 30rem);
+  min-height: 0;
+  max-height: min(calc(100dvh - 2rem), 34rem);
+  align-self: center;
+}
+
+.folder-access-dialog [data-slot="dialog-header"] {
+  padding: 1.25rem 1.35rem 0.65rem;
+}
+
+.folder-access-dialog [data-slot="dialog-title"] {
+  text-wrap: balance;
+}
+
+.folder-access-dialog [data-slot="dialog-description"] {
+  max-width: 62ch;
+  margin-left: 0 !important;
+  padding: 0 1.35rem 1.1rem;
+  color: var(--text-base);
+  font-size: var(--font-size-small);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.folder-access-dialog [data-slot="dialog-body"] {
+  overflow: auto;
+  padding: 0 1.35rem 1.35rem;
+}
+
+.folder-access-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.folder-access-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 22%, var(--border-weak-base));
+  border-radius: var(--atlas-radius-lg);
+  padding: 0.8rem 0.9rem;
+  background: color-mix(in srgb, var(--color-warning) 6%, var(--surface-base));
+}
+
+.folder-access-status__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-top: 0.28rem;
+}
+
+.folder-access-status span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.folder-access-status strong {
+  color: var(--text-strong);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.35;
+}
+
+.folder-access-status small {
+  color: var(--text-weak);
+  font-family: var(--font-family-sans);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.folder-access-steps {
+  display: flex;
+  margin: 0;
+  counter-reset: access-step;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0;
+  list-style: none;
+}
+
+.folder-access-steps li {
+  display: grid;
+  counter-increment: access-step;
+  grid-template-columns: 1.45rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.65rem;
+  color: var(--text-base);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-small);
+  line-height: 1.5;
+}
+
+.folder-access-steps li::before {
+  display: inline-flex;
+  width: 1.45rem;
+  height: 1.45rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-weak-base);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised-base);
+  color: var(--text-weak);
+  content: counter(access-step);
+  font-family: var(--font-family-mono);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.folder-access-steps code {
+  border: 1px solid var(--border-weak-base);
+  border-radius: var(--radius-sm);
+  padding: 0.08rem 0.3rem;
+  background: var(--surface-raised-base);
+  color: var(--text-strong);
+  font-family: var(--font-family-mono);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.folder-access-actions {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 0.55rem;
+  padding-top: 0.15rem;
+}
+
+.folder-access-action {
+  box-sizing: border-box;
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 0.4rem 0.7rem;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    transform 120ms ease;
+}
+
+.folder-access-action:not(:disabled) {
+  cursor: pointer;
+}
+
+.folder-access-action:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.folder-access-action:focus-visible {
+  outline: 1px solid var(--text-strong);
+  outline-offset: 2px;
+}
+
+.folder-access-action--primary {
+  border-color: var(--border-weak-base);
+  background: var(--button-primary-base);
+  color: var(--icon-invert-base);
+}
+
+.folder-access-action--primary:hover {
+  background: var(--icon-strong-hover);
+}
+
+.folder-access-action--secondary {
+  background: var(--button-secondary-base);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-xs-border);
+}
+
+.folder-access-action--secondary:hover:not(:disabled) {
+  background: var(--button-secondary-hover);
+}
+
+.folder-access-action--secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.folder-access-action--dismiss {
+  justify-self: end;
+  background: transparent;
+  color: var(--text-weak);
+}
+
+.folder-access-action--dismiss:hover {
+  background: var(--surface-raised-base-hover);
+  color: var(--text-strong);
+}
+
+@media (max-width: 34rem) {
+  [data-component="dialog"] [data-slot="dialog-content"].folder-access-dialog {
+    width: min(100%, calc(100vw - 1rem));
+  }
+
+  .folder-access-dialog [data-slot="dialog-header"] {
+    padding-inline: 1rem;
+  }
+
+  .folder-access-dialog [data-slot="dialog-description"],
+  .folder-access-dialog [data-slot="dialog-body"] {
+    padding-inline: 1rem;
+  }
+
+  .folder-access-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .folder-access-action--dismiss {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folder-access-chip,
+  .folder-access-action {
+    transition: none;
+  }
+}

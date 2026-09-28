@@ -1,0 +1,17 @@
+{
+  "adapter_id": "openclaw",
+  "template": null,
+  "target": "~/.openclaw",
+  "semantics": {
+    "vco.host_root": "~/.openclaw",
+    "vco.skill_roots.global": [
+      "~/.openclaw/skills"
+    ],
+    "vco.command_root": "~/.openclaw/commands",
+    "vco.workspace_surface": ".openclaw/"
+  },
+  "notes": [
+    "OpenClaw mapping currently declares runtime-core host-root surfaces only.",
+    "Editor-native workspace projection and provider-specific settings remain host-managed in preview."
+  ]
+}

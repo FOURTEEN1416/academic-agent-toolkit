@@ -1,0 +1,166 @@
+# ============================================================================
+# P01 — Kaluza-Klein graviton dimuon resonances at e+e- collider (RS model)
+# ----------------------------------------------------------------------------
+# Adapts ColliderAgent paper-reproduction prompt:
+#   /path/to/ColliderAgent/paper-reproduction/9909255/prompt_figure_2.md
+# Source: arXiv:hep-ph/9909255 (Davoudiasl, Hewett, Rizzo) — Randall-Sundrum
+# warped extra dimension phenomenology at lepton colliders.
+# ============================================================================
+
+id: P01
+title: "Reproducing the Randall-Sundrum KK-graviton resonance pattern in $e^+e^- \\to \\mu^+\\mu^-$"
+arxiv_id: "hep-ph/9909255"
+venue: "ARC-Bench Physics 2026"
+paper_asset: null
+
+synthesis: |
+  Reproducing the cross-section vs $\sqrt{s}$ scan of $e^+e^- \to \mu^+\mu^-$
+  in the Randall-Sundrum warped extra dimension scenario as a benchmark of
+  the agent's ability to assemble a full Lagrangian -> MC -> analysis
+  pipeline. The model adds a tower of massive spin-2 KK gravitons
+  $h^{(n)}_{\alpha\beta}$ ($n=1,\ldots,5$) coupled to the SM
+  energy-momentum tensor with strength $1/\Lambda_\pi$, on top of the
+  massless zero-mode coupled with $1/\bar M_{Pl}$. The diagnostic
+  observable is $\sigma(e^+e^- \to \mu^+\mu^-)$ scanned over
+  $\sqrt{s}\in\{200,300,\ldots,1200\}$ GeV, which exhibits sharp
+  resonance peaks at the KK masses $m_n = \{600, 1098, 1592, 2086, 2580\}$
+  GeV where they sit in the scan window, and an off-resonance continuum
+  enhancement above SM Drell-Yan elsewhere.
+
+  A credible study (a) implements the spin-2 graviton-stress-tensor
+  Lagrangian (FeynRules + UFO or an equivalent analytic propagator),
+  (b) generates parton-level events at each of the 11 energy points with
+  proper handling of the unitary-gauge graviton propagator,
+  (c) extracts $\sigma(\sqrt{s})$ from the MadGraph banner for each run,
+  (d) plots $\sigma$ vs $\sqrt{s}$ on a log-y axis over [50, 1500] GeV with
+  range $[400, 5\times 10^6]$ fb, and (e) compares the resonance positions
+  and continuum heights against the published Figure 2. Research question:
+  *to what extent does an autonomous HEP pipeline reproduce the RS
+  KK-graviton resonance spectrum imprinted on dilepton production at a
+  500 GeV-1 TeV $e^+e^-$ collider?*
+
+hypotheses:
+  - id: H1
+    statement: "The first KK resonance $m_1 = 600$ GeV produces a peak in $\\sigma(e^+e^- \\to \\mu^+\\mu^-)$ at $\\sqrt{s} = 600$ GeV that lies within 5% of the input mass."
+    measurable: true
+  - id: H2
+    statement: "Off-resonance cross sections at $\\sqrt{s}=200$ and $\\sqrt{s}=400$ GeV agree with the published Figure 2 values within 30%, demonstrating correct continuum (zero-mode + virtual KK) interference."
+    measurable: true
+  - id: H3
+    statement: "At least 2 of the 5 KK resonances within the [50,1500] GeV scan window ($m_1=600$, $m_2=1098$ GeV) are visible as $\\geq 1$-decade enhancements above the SM Drell-Yan baseline at $\\sqrt{s}=m_n$."
+    measurable: true
+
+experiment_design:
+  research_question: "Does the agent reproduce the Randall-Sundrum KK-graviton resonance pattern in $e^+e^- \\to \\mu^+\\mu^-$ across the $\\sqrt{s}=200$-$1200$ GeV scan, matching the published positions and continuum heights of Figure 2 of arXiv:hep-ph/9909255?"
+  conditions:
+    - name: "sqrt_s_scan"
+      description: "Scan $\\sqrt{s} \\in \\{200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200\\}$ GeV with $E^+ = E^- = \\sqrt{s}/2$, 100 events per energy point. KK masses fixed at $m_n = \\{600, 1098, 1592, 2086, 2580\\}$ GeV; $\\Lambda_\\pi = 522$ GeV; $\\bar M_{Pl} = 2.4 \\times 10^{18}$ GeV."
+    - name: "sm_only_baseline"
+      description: "Same energy scan with all KK gravitons decoupled ($1/\\Lambda_\\pi \\to 0$) to obtain the pure SM $\\gamma^*/Z$ Drell-Yan baseline for resonance-significance comparison."
+  baselines:
+    - "Pure SM $e^+e^- \\to \\mu^+\\mu^-$ (Drell-Yan via $\\gamma^*/Z$) at the same energy points"
+  metrics:
+    - name: "cross_section_pb"
+      direction: "match_reference"
+      description: "Total $\\sigma(e^+e^- \\to \\mu^+\\mu^-)$ in pb at each of the 11 $\\sqrt{s}$ points."
+    - name: "peak_position_gev"
+      direction: "match_reference"
+      description: "Reconstructed $\\sqrt{s}$ at which the first KK resonance peaks; target = $600 \\pm 30$ GeV."
+    - name: "resonance_to_continuum_ratio"
+      direction: "match_reference"
+      description: "Ratio $\\sigma(\\sqrt{s}=m_1) / \\sigma(\\sqrt{s}=m_1 - 200\\,\\mathrm{GeV})$; should exceed $\\sim 10$."
+  datasets:
+    - process_id: "ee_to_mumu_RS"
+      sqrt_s_TeV: 1.2
+      description: "$e^+e^- \\to \\mu^+\\mu^-$ in the RS warped-graviton model."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 3600
+
+rubric_path: "experiments/arc_bench/config/physics/rubrics/P01.json"
+
+# ---------------------------------------------------------------------------
+# Agent-mode requirements (consumed by researchclaw.pipeline.requirements_judge
+# at stage 15 RESEARCH_DECISION). Schema mirrors B01.yaml:
+#   id          — stable identifier
+#   type        — advisory hint to the LLM judge (numeric | artifact | discussion)
+#   description — natural-language statement of what must be true post-run
+#   must_pass   — true → unmet ⇒ rerun (1 retry max); false → optional
+#
+# The five generic must_pass items apply uniformly across P01-P10; the sixth
+# is topic-specific (mirrors this manifest's H1).  The two must_pass=false
+# items reward mechanistic interpretation and MC-reproducibility metadata
+# without blocking proceed-vs-rerun on them.
+# ---------------------------------------------------------------------------
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: >-
+      A canonical results.json file exists at the workspace root with at least
+      the keys: primary_metric (number), metric_key (string), metrics (object
+      with numeric keys), hypotheses (object with h1/h2/h3 entries each
+      carrying a `supported` boolean), summary (non-empty string).
+    must_pass: true
+
+  - id: req_metrics_numeric
+    type: numeric
+    description: >-
+      results.json metrics MUST contain at least 3 numeric (non-null, finite)
+      values directly relevant to the headline physics observable named in
+      the experiment_design.metrics list above — these are the numbers the
+      paper will report in its Results section.
+    must_pass: true
+
+  - id: req_hypotheses_supported_flags
+    type: discussion
+    description: >-
+      results.json hypotheses.h1/h2/h3 each MUST have an explicit `supported`
+      boolean AND a `details` string ≥ 40 characters quoting the numerical
+      evidence (specific values + their source artifact) used to reach the
+      verdict.
+    must_pass: true
+
+  - id: req_publication_figure
+    type: artifact
+    description: >-
+      At least one publication-quality figure file (PDF or PNG, ≥150 DPI for
+      raster) exists under figures/ or output/figures/ with axes labeled in
+      physical units (GeV / pb / fb / dimensionless) and a legend if multiple
+      series are plotted.  The figure must directly support a hypothesis
+      verdict.
+    must_pass: true
+
+  - id: req_model_implementation
+    type: artifact
+    description: >-
+      The BSM Lagrangian is implemented either as a FeynRules .fr file
+      (models/*.fr) with a matching UFO directory (models/*_UFO/ containing
+      at least particles.py, parameters.py, couplings.py, vertices.py), OR
+      as analytic Python code that explicitly computes the cross sections
+      from the Lagrangian terms.  A pure SM baseline with no BSM piece is
+      NOT sufficient.
+    must_pass: true
+
+  - id: req_kk1_peak_position
+    type: numeric
+    description: >-
+      results.json metrics MUST report a numeric `peak_position_gev` (or equivalent first-KK-resonance position) within ±5% of 600 GeV — i.e. in the interval [570, 630] GeV — after the RS scan over √s ∈ {200..1200} GeV.
+    must_pass: true
+
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: >-
+      The summary or structured_results section provides a one-paragraph
+      mechanistic interpretation of WHY the headline observable comes out the
+      way it does (which interference / propagator structure / cut effect
+      drives the result).  Nice-to-have, not blocking proceed.
+    must_pass: false
+
+  - id: req_mc_reproducibility
+    type: discussion
+    description: >-
+      results.json or a sibling reproducibility section names: (a) the
+      MadGraph5_aMC@NLO version, (b) the PDF set used (if applicable), (c)
+      at least one explicit random seed.  Required for full reproducibility
+      but not for scientific correctness.
+    must_pass: false

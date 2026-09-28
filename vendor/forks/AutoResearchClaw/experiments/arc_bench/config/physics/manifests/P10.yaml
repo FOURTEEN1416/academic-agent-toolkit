@@ -1,0 +1,174 @@
+# ============================================================================
+# P10 — $U_1$ leptoquark exclusion + discovery contours at 3+14 TeV muon collider
+# ----------------------------------------------------------------------------
+# Adapts ColliderAgent paper-reproduction prompt:
+#   /path/to/ColliderAgent/paper-reproduction/2104.05720/prompt_figure_12.md
+# Source: arXiv:2104.05720 — same $U_1$ LQ as P09 but the diagnostic
+# figure is $\beta_L^{32}$ vs $m_\mathrm{LQ}$ exclusion + discovery from
+# binned likelihood ratio at two muon-collider energies.
+# ============================================================================
+
+id: P10
+title: "Reproducing $\\beta_L^{32}$-vs-$m_\\mathrm{LQ}$ exclusion + 5$\\sigma$ discovery contours for $U_1$ at 3 TeV (1 ab$^{-1}$) and 14 TeV (20 ab$^{-1}$) muon colliders"
+arxiv_id: "2104.05720"
+venue: "ARC-Bench Physics 2026"
+paper_asset: null
+
+synthesis: |
+  Reproducing the muon-collider sensitivity to a $U_1$ vector
+  leptoquark in the coupling-vs-mass plane via a binned-likelihood
+  recast of $\mu^+\mu^- \to b\bar b$, as a benchmark of the agent's
+  ability to combine MC parameter scans with statistical recasting
+  spanning two orders of magnitude in mass and four orders in coupling.
+  The same $U_1$ Lagrangian as P09 (only $\beta_L^{32}$ non-zero),
+  but here the per-bin cross section is parameterized as
+  $\sigma_i(m, \beta) = b_i + \beta^2 I_i(m) + \beta^4 J_i(m)$, with
+  $I_i(m), J_i(m)$ extracted by solving a $2\times 2$ linear system from
+  two reference $\beta$ values. The diagnostic figure shows 95% CL
+  exclusion (dashed) and 5$\sigma$ discovery (solid) contours in
+  ($m_\mathrm{LQ}$, $\beta_L^{32}$) at $\sqrt{s}=3$ TeV (1 ab$^{-1}$,
+  red) and $\sqrt{s}=14$ TeV (20 ab$^{-1}$, purple).
+
+  A credible study (a) implements the $U_1$ Lagrangian (FeynRules + UFO),
+  (b) runs SM baselines (100k events at 3 and 14 TeV) plus 4 LQ signal
+  scans ($\sqrt{s}\in\{3,14\}$ TeV x $\beta_L^{32}\in\{1.0, 2.0\}$) over
+  17 mass points $m_\mathrm{LQ} \in \{1.0, 1.5, 2.0, 3.0, 4.0, 5.0,
+  6.0, 7.0, 8.0, 10, 15, 20, 30, 40, 50, 60, 70\}$ TeV with 50k events
+  each, (c) bins each run in 10 equal-width $|\eta|$ bins, (d) extracts
+  $I_i, J_i$ per (mass, $\sqrt{s}$), (e) computes the binned
+  log-likelihood ratio for both the exclusion null hypothesis ($n_i
+  = b_i^\mathrm{events}$) and the discovery null ($n_i = \mu_i$),
+  (f) finds the $\beta$ where $-2\log\lambda$ crosses $\chi^2(10,
+  0.95) = 18.307$ (exclusion) or 48.2 (5$\sigma$ discovery), and
+  (g) plots the four contours on log-log axes ($m_\mathrm{LQ}\in
+  [1, 75]$ TeV, $\beta\in[10^{-3}, 2]$). Research question: *does the
+  agent reproduce the muon-collider $U_1$ exclusion + discovery
+  contours from Figure 12 of arXiv:2104.05720?*
+
+hypotheses:
+  - id: H1
+    statement: "At $\\sqrt{s}=14$ TeV with 20 ab$^{-1}$, the 95% CL exclusion contour reaches $\\beta_L^{32} \\leq 0.01$ at $m_\\mathrm{LQ} = 10$ TeV (matching the published value within a factor of 2)."
+    measurable: true
+  - id: H2
+    statement: "The 14 TeV exclusion contour extends to higher $m_\\mathrm{LQ}$ than the 3 TeV exclusion contour at every fixed $\\beta_L^{32}$ in $[10^{-2}, 1]$ (higher energy + luminosity gives more reach)."
+    measurable: true
+  - id: H3
+    statement: "5$\\sigma$ discovery contours always lie above the corresponding exclusion contours in $\\beta_L^{32}$ at every mass (discovery requires stronger signal than exclusion)."
+    measurable: true
+
+experiment_design:
+  research_question: "Does the agent reproduce the 95% CL exclusion and 5$\\sigma$ discovery contours for the $U_1$ leptoquark in the $(m_\\mathrm{LQ}, \\beta_L^{32})$ plane at 3 TeV (1 ab$^{-1}$) and 14 TeV (20 ab$^{-1}$) muon colliders (Figure 12 of arXiv:2104.05720)?"
+  conditions:
+    - name: "sm_baselines"
+      description: "Two SM-only runs (100k events each) at $\\sqrt{s}\\in\\{3, 14\\}$ TeV, $\\beta_L^{ij}=0$. Define per-bin SM cross section $b_i$ in 10 $|\\eta|$ bins."
+    - name: "lq_signal_3tev"
+      description: "Mass scan over 17 points $m_\\mathrm{LQ} \\in [1, 70]$ TeV at $\\sqrt{s}=3$ TeV, with $\\beta_L^{32}\\in\\{1.0, 2.0\\}$, 50k events each."
+    - name: "lq_signal_14tev"
+      description: "Same mass scan at $\\sqrt{s}=14$ TeV with $\\beta_L^{32}\\in\\{1.0, 2.0\\}$, 50k events each."
+  baselines:
+    - "SM $\\mu^+\\mu^- \\to \\gamma^*/Z^* \\to b\\bar b$ at $\\sqrt{s} = 3$ TeV and 14 TeV"
+  metrics:
+    - name: "exclusion_beta_at_10tev_14tev"
+      direction: "match_reference"
+      description: "$\\beta_L^{32}$ at the 95% CL exclusion contour at $m_\\mathrm{LQ}=10$ TeV, $\\sqrt{s}=14$ TeV."
+    - name: "discovery_beta_at_10tev_14tev"
+      direction: "match_reference"
+      description: "$\\beta_L^{32}$ at the 5$\\sigma$ discovery contour at $m_\\mathrm{LQ}=10$ TeV, $\\sqrt{s}=14$ TeV."
+    - name: "I_J_coefficients_per_mass"
+      direction: "match_reference"
+      description: "$(I_i, J_i)$ per $|\\eta|$ bin and mass point, extracted from the $\\beta\\in\\{1, 2\\}$ runs; positive-definite check on $J_i$."
+  datasets:
+    - process_id: "mumu_to_bbbar_U1_3and14tev"
+      sqrt_s_TeV: 14
+      description: "$\\mu^+\\mu^- \\to b\\bar b$ via SM + $U_1$ exchange at muon colliders, two energy points."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 3600
+
+rubric_path: "experiments/arc_bench/config/physics/rubrics/P10.json"
+
+# ---------------------------------------------------------------------------
+# Agent-mode requirements (consumed by researchclaw.pipeline.requirements_judge
+# at stage 15 RESEARCH_DECISION). Schema mirrors B01.yaml:
+#   id          — stable identifier
+#   type        — advisory hint to the LLM judge (numeric | artifact | discussion)
+#   description — natural-language statement of what must be true post-run
+#   must_pass   — true → unmet ⇒ rerun (1 retry max); false → optional
+#
+# The five generic must_pass items apply uniformly across P01-P10; the sixth
+# is topic-specific (mirrors this manifest's H1).  The two must_pass=false
+# items reward mechanistic interpretation and MC-reproducibility metadata
+# without blocking proceed-vs-rerun on them.
+# ---------------------------------------------------------------------------
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: >-
+      A canonical results.json file exists at the workspace root with at least
+      the keys: primary_metric (number), metric_key (string), metrics (object
+      with numeric keys), hypotheses (object with h1/h2/h3 entries each
+      carrying a `supported` boolean), summary (non-empty string).
+    must_pass: true
+
+  - id: req_metrics_numeric
+    type: numeric
+    description: >-
+      results.json metrics MUST contain at least 3 numeric (non-null, finite)
+      values directly relevant to the headline physics observable named in
+      the experiment_design.metrics list above — these are the numbers the
+      paper will report in its Results section.
+    must_pass: true
+
+  - id: req_hypotheses_supported_flags
+    type: discussion
+    description: >-
+      results.json hypotheses.h1/h2/h3 each MUST have an explicit `supported`
+      boolean AND a `details` string ≥ 40 characters quoting the numerical
+      evidence (specific values + their source artifact) used to reach the
+      verdict.
+    must_pass: true
+
+  - id: req_publication_figure
+    type: artifact
+    description: >-
+      At least one publication-quality figure file (PDF or PNG, ≥150 DPI for
+      raster) exists under figures/ or output/figures/ with axes labeled in
+      physical units (GeV / pb / fb / dimensionless) and a legend if multiple
+      series are plotted.  The figure must directly support a hypothesis
+      verdict.
+    must_pass: true
+
+  - id: req_model_implementation
+    type: artifact
+    description: >-
+      The BSM Lagrangian is implemented either as a FeynRules .fr file
+      (models/*.fr) with a matching UFO directory (models/*_UFO/ containing
+      at least particles.py, parameters.py, couplings.py, vertices.py), OR
+      as analytic Python code that explicitly computes the cross sections
+      from the Lagrangian terms.  A pure SM baseline with no BSM piece is
+      NOT sufficient.
+    must_pass: true
+
+  - id: req_14tev_excl_reach
+    type: numeric
+    description: >-
+      results.json metrics MUST report the 95% CL exclusion β_L^32 reach at m_LQ=10 TeV, √s=14 TeV, 20 ab^-1; the value MUST be ≤ 0.02 (published ≤0.01 within a factor of 2).
+    must_pass: true
+
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: >-
+      The summary or structured_results section provides a one-paragraph
+      mechanistic interpretation of WHY the headline observable comes out the
+      way it does (which interference / propagator structure / cut effect
+      drives the result).  Nice-to-have, not blocking proceed.
+    must_pass: false
+
+  - id: req_mc_reproducibility
+    type: discussion
+    description: >-
+      results.json or a sibling reproducibility section names: (a) the
+      MadGraph5_aMC@NLO version, (b) the PDF set used (if applicable), (c)
+      at least one explicit random seed.  Required for full reproducibility
+      but not for scientific correctness.
+    must_pass: false

@@ -1,0 +1,164 @@
+# ============================================================================
+# P08 — General Z' dimuon cross section vs mass: SSM vs E6-ψ at 13 TeV LHC
+# ----------------------------------------------------------------------------
+# Adapts ColliderAgent paper-reproduction prompt:
+#   /path/to/ColliderAgent/paper-reproduction/2103.02708/prompt_figure_4.md
+# Source: arXiv:2103.02708 — general Z' phenomenology, comparison of the
+# Sequential Standard Model (SSM) and E6-derived $Z'_\psi$ benchmarks.
+# ============================================================================
+
+id: P08
+title: "Reproducing $\\sigma(pp \\to Z' \\to \\mu^+\\mu^-)$ vs $M_{Z'}$ for SSM and E6-$\\psi$ scenarios at $\\sqrt{s}=13$ TeV"
+arxiv_id: "2103.02708"
+venue: "ARC-Bench Physics 2026"
+paper_asset: null
+
+synthesis: |
+  Reproducing the dimuon production cross section $\sigma(pp \to Z' \to
+  \mu^+\mu^-)$ as a function of $M_{Z'}$ for two canonical $Z'$ benchmarks
+  - the Sequential Standard Model (SSM) where the $Z'$ inherits SM
+  electroweak couplings, and the $E_6$-derived $Z'_\psi$ with universal
+  coupling $g_\psi = 0.0942$. The general Lagrangian
+  $\mathcal{L}_{NP} \supset -Z'_\mu \sum_f \bar f \gamma^\mu (g_{Lf} P_L
+  + g_{Rf} P_R) f$ has 7 free chiral couplings $g_{Lu}, g_{Ru}, g_{Ld},
+  g_{Rd}, g_{Le}, g_{Re}, g_{Lv}$, fixed differently in each benchmark.
+  The diagnostic observable is the dimuon production cross section
+  scanned over $M_{Z'} \in \{200, 400, 600, \ldots, 5500\}$ GeV at
+  $\sqrt{s}=13$ TeV.
+
+  A credible study (a) implements the general $Z'$ model (FeynRules + UFO)
+  with the 7 couplings as inputs, (b) sets up two parameter cards
+  encoding the SSM and $E_6$-$\psi$ coupling tables, (c) scans 14 mass
+  points per benchmark with auto-computed $\Gamma_{Z'}$ (two-body decays
+  only), (d) extracts the cross section per (mass, scenario) cell, and
+  (e) plots two curves (SSM = green dotted, $Z'_\psi$ = blue solid) on
+  log-y over $M_{Z'} \in [200, 5500]$ GeV, $\sigma \in [5\times 10^{-6},
+  5\times 10^{-1}]$ pb. Research question: *does the agent reproduce the
+  cross-section curves and the well-known SSM $\gtrsim Z'_\psi$ ordering
+  in dilepton production from Figure 4 of arXiv:2103.02708?*
+
+hypotheses:
+  - id: H1
+    statement: "$\\sigma_\\mathrm{SSM}(M_{Z'}=2\\,\\mathrm{TeV}) > \\sigma_\\psi(M_{Z'}=2\\,\\mathrm{TeV})$ by a factor in $[3, 30]$ at $\\sqrt{s}=13$ TeV (SSM has larger couplings)."
+    measurable: true
+  - id: H2
+    statement: "$\\sigma_\\mathrm{SSM}(M_{Z'}=1\\,\\mathrm{TeV})$ falls within $\\pm 30\\%$ of the published reference value."
+    measurable: true
+  - id: H3
+    statement: "The SSM cross section drops by $\\geq 4$ orders of magnitude between $M_{Z'}=200$ GeV and $M_{Z'}=5500$ GeV (PDF + propagator suppression)."
+    measurable: true
+
+experiment_design:
+  research_question: "Does the agent reproduce $\\sigma(pp \\to Z' \\to \\mu^+\\mu^-)$ vs $M_{Z'}$ for the SSM ($Z'_\\mathrm{SSM}$) and $E_6$-derived $Z'_\\psi$ benchmarks at the 13 TeV LHC (Figure 4 of arXiv:2103.02708)?"
+  conditions:
+    - name: "ssm_mass_scan"
+      description: "$Z'_\\mathrm{SSM}$ with electroweak couplings $g_{Lu} = (e/s_W c_W)(1/2 - 2 s_W^2/3)$, etc. (SM-like). Scan $M_{Z'} \\in \\{200, 400, 600, 800, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500\\}$ GeV at $\\sqrt{s}=13$ TeV."
+    - name: "e6psi_mass_scan"
+      description: "$Z'_\\psi$ from $E_6$ with universal coupling $g_\\psi = 0.0942$ for all SM fermions. Same mass scan."
+  baselines:
+    - "Internal cross-check: SSM/E6-$\\psi$ ratio should be approximately mass-independent (set by the ratio of squared couplings) far from mass thresholds"
+  metrics:
+    - name: "cross_section_pb"
+      direction: "match_reference"
+      description: "$\\sigma(pp \\to Z' \\to \\mu^+\\mu^-)$ in pb at each (mass, benchmark) cell."
+    - name: "ssm_to_e6_ratio_at_2tev"
+      direction: "match_reference"
+      description: "$\\sigma_\\mathrm{SSM}/\\sigma_\\psi$ at $M_{Z'}=2$ TeV."
+    - name: "mass_dropoff_factor_ssm"
+      direction: "match_reference"
+      description: "$\\sigma_\\mathrm{SSM}(M=200)/\\sigma_\\mathrm{SSM}(M=5500)$."
+  datasets:
+    - process_id: "pp_to_Zprime_to_mumu_general"
+      sqrt_s_TeV: 13
+      description: "$pp \\to Z' \\to \\mu^+\\mu^-$ in the general 7-coupling $Z'$ model. Two benchmark coupling tables: SSM and $E_6$-$\\psi$."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 3600
+
+rubric_path: "experiments/arc_bench/config/physics/rubrics/P08.json"
+
+# ---------------------------------------------------------------------------
+# Agent-mode requirements (consumed by researchclaw.pipeline.requirements_judge
+# at stage 15 RESEARCH_DECISION). Schema mirrors B01.yaml:
+#   id          — stable identifier
+#   type        — advisory hint to the LLM judge (numeric | artifact | discussion)
+#   description — natural-language statement of what must be true post-run
+#   must_pass   — true → unmet ⇒ rerun (1 retry max); false → optional
+#
+# The five generic must_pass items apply uniformly across P01-P10; the sixth
+# is topic-specific (mirrors this manifest's H1).  The two must_pass=false
+# items reward mechanistic interpretation and MC-reproducibility metadata
+# without blocking proceed-vs-rerun on them.
+# ---------------------------------------------------------------------------
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: >-
+      A canonical results.json file exists at the workspace root with at least
+      the keys: primary_metric (number), metric_key (string), metrics (object
+      with numeric keys), hypotheses (object with h1/h2/h3 entries each
+      carrying a `supported` boolean), summary (non-empty string).
+    must_pass: true
+
+  - id: req_metrics_numeric
+    type: numeric
+    description: >-
+      results.json metrics MUST contain at least 3 numeric (non-null, finite)
+      values directly relevant to the headline physics observable named in
+      the experiment_design.metrics list above — these are the numbers the
+      paper will report in its Results section.
+    must_pass: true
+
+  - id: req_hypotheses_supported_flags
+    type: discussion
+    description: >-
+      results.json hypotheses.h1/h2/h3 each MUST have an explicit `supported`
+      boolean AND a `details` string ≥ 40 characters quoting the numerical
+      evidence (specific values + their source artifact) used to reach the
+      verdict.
+    must_pass: true
+
+  - id: req_publication_figure
+    type: artifact
+    description: >-
+      At least one publication-quality figure file (PDF or PNG, ≥150 DPI for
+      raster) exists under figures/ or output/figures/ with axes labeled in
+      physical units (GeV / pb / fb / dimensionless) and a legend if multiple
+      series are plotted.  The figure must directly support a hypothesis
+      verdict.
+    must_pass: true
+
+  - id: req_model_implementation
+    type: artifact
+    description: >-
+      The BSM Lagrangian is implemented either as a FeynRules .fr file
+      (models/*.fr) with a matching UFO directory (models/*_UFO/ containing
+      at least particles.py, parameters.py, couplings.py, vertices.py), OR
+      as analytic Python code that explicitly computes the cross sections
+      from the Lagrangian terms.  A pure SM baseline with no BSM piece is
+      NOT sufficient.
+    must_pass: true
+
+  - id: req_ssm_psi_ratio
+    type: numeric
+    description: >-
+      results.json metrics MUST report the ratio σ_SSM/σ_ψ at M_Z'=2 TeV, √s=13 TeV, and that ratio MUST be in [3, 30].
+    must_pass: true
+
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: >-
+      The summary or structured_results section provides a one-paragraph
+      mechanistic interpretation of WHY the headline observable comes out the
+      way it does (which interference / propagator structure / cut effect
+      drives the result).  Nice-to-have, not blocking proceed.
+    must_pass: false
+
+  - id: req_mc_reproducibility
+    type: discussion
+    description: >-
+      results.json or a sibling reproducibility section names: (a) the
+      MadGraph5_aMC@NLO version, (b) the PDF set used (if applicable), (c)
+      at least one explicit random seed.  Required for full reproducibility
+      but not for scientific correctness.
+    must_pass: false

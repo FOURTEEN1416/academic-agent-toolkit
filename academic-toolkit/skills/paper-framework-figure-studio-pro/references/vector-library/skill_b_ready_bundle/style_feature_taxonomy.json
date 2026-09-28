@@ -1,0 +1,143 @@
+{
+  "generated_at": "2026-05-24T08:42:36.670Z",
+  "style_token_id": "iclr_clean_flat_modular_v1",
+  "density": [
+    {
+      "key": "low",
+      "count": 1418
+    },
+    {
+      "key": "high",
+      "count": 982
+    },
+    {
+      "key": "medium",
+      "count": 405
+    }
+  ],
+  "formula_symbol_level": [
+    {
+      "key": "none_or_caption_only",
+      "count": 2442
+    },
+    {
+      "key": "low",
+      "count": 238
+    },
+    {
+      "key": "medium",
+      "count": 125
+    }
+  ],
+  "source_format": [
+    {
+      "key": "png",
+      "count": 1413
+    },
+    {
+      "key": "pdf",
+      "count": 1295
+    },
+    {
+      "key": "jpg",
+      "count": 86
+    },
+    {
+      "key": "jpeg",
+      "count": 8
+    },
+    {
+      "key": "unknown",
+      "count": 2
+    },
+    {
+      "key": "svg",
+      "count": 1
+    }
+  ],
+  "vector_buildability_score": [
+    {
+      "key": "0.52",
+      "count": 1507
+    },
+    {
+      "key": "0.82",
+      "count": 1296
+    },
+    {
+      "key": "0.4",
+      "count": 2
+    }
+  ],
+  "borrowable_design_patterns": [
+    {
+      "key": "caption anchors that separate visual strategy from paper-specific facts",
+      "count": 2805
+    },
+    {
+      "key": "reviewer-first grouping and reading order",
+      "count": 2805
+    },
+    {
+      "key": "layout:small_multiples_or_chart_panel",
+      "count": 1180
+    },
+    {
+      "key": "evidence placement",
+      "count": 1180
+    },
+    {
+      "key": "small-multiple comparison rhythm",
+      "count": 1180
+    },
+    {
+      "key": "claim-to-chart captioning",
+      "count": 1180
+    },
+    {
+      "key": "layout:node_edge_graph_layout",
+      "count": 1100
+    },
+    {
+      "key": "module grouping",
+      "count": 218
+    },
+    {
+      "key": "stage-output chips",
+      "count": 218
+    },
+    {
+      "key": "typed arrows for data/control flow",
+      "count": 218
+    },
+    {
+      "key": "layout:query_context_retrieval_answer_flow",
+      "count": 185
+    },
+    {
+      "key": "layout:example_grid_or_before_after_panel",
+      "count": 164
+    },
+    {
+      "key": "layout:map_or_distribution_panel",
+      "count": 143
+    },
+    {
+      "key": "distribution overview",
+      "count": 143
+    },
+    {
+      "key": "legend strategy",
+      "count": 143
+    },
+    {
+      "key": "semantic grouping",
+      "count": 143
+    },
+    {
+      "key": "layout:left_to_right_modular_pipeline",
+      "count": 33
+    }
+  ],
+  "style_boundary": "Learned features are layout/visual strategy features, not source-paper facts."
+}

@@ -1,0 +1,126 @@
+{
+  "version": 2,
+  "updated_at": "2026-03-07",
+  "control_plane": {
+    "owner": "vco_route",
+    "forbid_second_orchestrator": true,
+    "forbid_second_default_execution_owner": true,
+    "forbid_second_canonical_truth_source": true
+  },
+  "arbitration_order": [
+    {
+      "rank": 1,
+      "plane_id": "user_explicit",
+      "scope": "explicit user instruction"
+    },
+    {
+      "rank": 2,
+      "plane_id": "vco_route",
+      "scope": "grade, route, selected pack, selected skill"
+    },
+    {
+      "rank": 3,
+      "plane_id": "verification_gate",
+      "scope": "safety, security, quality hard gate"
+    },
+    {
+      "rank": 4,
+      "plane_id": "memory-runtime-v2",
+      "scope": "memory contract and preference backend boundary"
+    },
+    {
+      "rank": 5,
+      "plane_id": "prompt-intelligence",
+      "scope": "prompt asset injection and risk advice"
+    },
+    {
+      "rank": 6,
+      "plane_id": "browserops-provider",
+      "scope": "browser provider suggestion and confirm-required bias"
+    },
+    {
+      "rank": 7,
+      "plane_id": "desktopops-shadow",
+      "scope": "desktop shadow contract and open-world checklist"
+    }
+  ],
+  "plane_rules": {
+    "memory-runtime-v2": {
+      "role": "memory_contract",
+      "allowed_outputs": [
+        "memory_contract",
+        "preference_backend_advice",
+        "policy_contract"
+      ],
+      "forbid_override": [
+        "route_selection",
+        "execution_owner",
+        "canonical_truth_source"
+      ]
+    },
+    "prompt-intelligence": {
+      "role": "prompt_asset_advice",
+      "allowed_outputs": [
+        "pattern_cards",
+        "risk_checklist",
+        "quality_metadata"
+      ],
+      "forbid_override": [
+        "selected_pack",
+        "selected_skill",
+        "router_decision"
+      ]
+    },
+    "browserops-provider": {
+      "role": "provider_advice",
+      "allowed_outputs": [
+        "provider_recommendation",
+        "confirm_required_hint",
+        "fallback_hint"
+      ],
+      "forbid_override": [
+        "route_selection",
+        "execution_owner",
+        "second_orchestrator"
+      ]
+    },
+    "desktopops-shadow": {
+      "role": "desktop_shadow_contract",
+      "allowed_outputs": [
+        "aci_contract",
+        "openworld_checklist",
+        "fallback_plan"
+      ],
+      "forbid_override": [
+        "default_execution_owner",
+        "route_selection",
+        "second_orchestrator"
+      ]
+    }
+  },
+  "conflict_resolution": {
+    "authority_overlap": {
+      "action": "freeze_to_shadow",
+      "winner": "higher_precedence_plane",
+      "manual_review_required": true
+    },
+    "contract_contradiction": {
+      "action": "prefer_higher_precedence_and_record_conflict",
+      "manual_review_required": true
+    },
+    "confirmation_mismatch": {
+      "action": "confirm_required_wins",
+      "manual_review_required": false
+    },
+    "promotion_mismatch": {
+      "action": "block_promotion_and_revert_to_candidate_state",
+      "manual_review_required": true
+    }
+  },
+  "rollout_guards": {
+    "freeze_promotion_on_conflict": true,
+    "fallback_stage": "shadow",
+    "require_manual_review_for_cross_plane_conflict": true,
+    "advice_first_only_when_conflict_exists": true
+  }
+}

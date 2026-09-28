@@ -1,0 +1,100 @@
+import type { Context } from "hono"
+import { WEB_ASSETS, WEB_INDEX } from "./assets"
+
+const MIME: Record<string, string> = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+  ".mjs": "application/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".map": "application/json; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".ico": "image/x-icon",
+  ".webp": "image/webp",
+  ".avif": "image/avif",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".ttf": "font/ttf",
+  ".otf": "font/otf",
+  ".wasm": "application/wasm",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
+  ".txt": "text/plain; charset=utf-8",
+  ".xml": "application/xml; charset=utf-8",
+}
+
+function contentType(reqPath: string): string {
+  const dot = reqPath.lastIndexOf(".")
+  if (dot === -1) return "application/octet-stream"
+  return MIME[reqPath.slice(dot).toLowerCase()] ?? "application/octet-stream"
+}
+
+/**
+ * True when a request is an API/data call (expects JSON), not a browser
+ * navigation (expects an HTML page). The catch-all uses this to choose a JSON
+ * 404 over the SPA index.html fallback — SPA-falling-back a data call makes the
+ * client JSON.parse `<!doctype html>` and crash (#180/#197/#189).
+ */
+export function wantsJson(accept: string | null, contentTypeHeader: string | null): boolean {
+  if (contentTypeHeader?.includes("application/json")) return true
+  const a = accept ?? ""
+  return a.includes("application/json") && !a.includes("text/html")
+}
+
+const IMMUTABLE_CACHE = "public, max-age=31536000, immutable"
+const REVALIDATE_CACHE = "no-cache"
+const CONTENT_HASHED_ASSET = /^\/assets\/(?:[^/]+\/)*[^/]+-[A-Za-z0-9_-]{8,}\.[^/]+$/
+
+function cacheControl(reqPath: string) {
+  return CONTENT_HASHED_ASSET.test(reqPath) ? IMMUTABLE_CACHE : REVALIDATE_CACHE
+}
+
+export interface WebAssetSource {
+  assets: Record<string, string>
+  index?: string
+}
+
+const embedded: WebAssetSource = {
+  assets: WEB_ASSETS,
+  index: WEB_INDEX,
+}
+
+export async function serveWebAsset(c: Context, source: WebAssetSource = embedded): Promise<Response | undefined> {
+  if (!source.index) return undefined
+
+  let reqPath = c.req.path
+  if (reqPath === "/") reqPath = "/index.html"
+
+  const direct = source.assets[reqPath]
+  if (direct) {
+    return new Response(Bun.file(direct), {
+      headers: {
+        "Content-Type": contentType(reqPath),
+        "Cache-Control": cacheControl(reqPath),
+      },
+    })
+  }
+
+  // Never SPA-fallback for API-shaped paths. If a /api/* route isn't matched
+  // by an explicit Hono handler upstream, returning index.html would cause
+  // the SPA's JSON.parse to fail with "Unexpected token '<'" — caller should
+  // surface a real 404 instead.
+  if (reqPath.startsWith("/api/")) return undefined
+
+  // SPA fallback: anything that looks like a client route → index.html.
+  // Anything with a file extension that's not a known asset → 404.
+  if (reqPath.includes(".") && !reqPath.endsWith(".html")) {
+    return c.notFound()
+  }
+
+  return new Response(Bun.file(source.index), {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": REVALIDATE_CACHE,
+    },
+  })
+}

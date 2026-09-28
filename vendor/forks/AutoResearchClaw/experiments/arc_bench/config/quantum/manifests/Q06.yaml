@@ -1,0 +1,122 @@
+# ============================================================================
+# Q06 — Neural-network warm-start for QAOA-MaxCut
+# ----------------------------------------------------------------------------
+# Open research question. Train an MLP offline to predict good initial
+# (beta, gamma) parameters for QAOA-MaxCut at p=1, given graph features
+# as input. Compare against random initialization and the Brandao
+# concentration "fixed init" (beta=gamma=pi/4). Test both in-distribution
+# graphs (matched to training set) and out-of-distribution graphs to probe
+# generalization.
+# ============================================================================
+
+id: Q06
+title: "Neural-network warm-start for QAOA-MaxCut initialization"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+synthesis: |
+  The Quantum Approximate Optimization Algorithm (QAOA) prepares a
+  parameterized quantum state to approximate the maximum cut of a graph.
+  At depth p=1 the state depends on two real parameters (beta, gamma),
+  and the algorithm proceeds by classical optimization of those two
+  parameters against the average cut size sampled from measurements of
+  the prepared state. The bottleneck for practical QAOA is the initial
+  parameter guess. Random initialization frequently falls into the
+  barren-plateau region or onto sub-optimal local minima, requiring many
+  classical iterations to escape. Brandao et al. 2018 showed
+  theoretically that the optimal (beta, gamma) values concentrate
+  around a problem-independent point on certain graph ensembles, so a
+  fixed initialization like (pi/4, pi/4) is a strong default.
+
+  Beyond concentration, a richer strategy is to train a classical
+  neural network offline to predict the optimal (beta, gamma) given
+  features of the input graph. Verdon et al. 2019 introduced the idea
+  as quantum-aware meta-learning. Jain et al. (Quantum 2022, "Graph
+  neural network initialisation of QAOA") showed that a graph neural
+  network trained on a few thousand small graphs can predict initial
+  parameters that reduce the number of subsequent classical
+  optimization iterations by 5-10x compared to random initialization,
+  with measurable transfer to out-of-distribution graph families.
+
+  The empirical question this topic addresses is whether the MLP-warm-start
+  strategy actually generalizes off-distribution: a model trained on
+  Erdős-Rényi graphs of one density should ideally retain its advantage
+  on regular graphs of a different size. We also want to verify whether
+  the simpler "fixed init at (pi/4, pi/4)" baseline (from Brandao 2018)
+  is competitive with the MLP-predicted init at p=1, since the
+  concentration result suggests that simple defaults may be hard to
+  beat in the low-depth regime.
+
+  Implementation guidance is provided by the quantum-qiskit skill at
+  stage 10. Implement QAOA on the qiskit AerSimulator statevector
+  backend; the small graph sizes (n=6 to n=8) make exact statevector
+  simulation cheap. The MLP is sklearn.neural_network.MLPRegressor
+  trained offline on a precomputed set of (graph_features, optimal_beta,
+  optimal_gamma) tuples obtained by grid search on 200 training
+  graphs. Optimization at test time uses COBYLA with a hard cap of 20
+  iterations.
+
+  Experimental protocol. Two graph families serve as the test bed.
+  In-distribution: Erdős-Rényi G(n=6, p=0.5) graphs (matched to the MLP
+  training distribution). Out-of-distribution: 3-regular graphs at n=8
+  (different size and edge density). Four conditions cover the
+  initialization strategies: random init, fixed init (beta=gamma=pi/4),
+  MLP-init evaluated in-distribution, and MLP-init evaluated
+  out-of-distribution. (MLP-init has 2 conditions because the model
+  trained on Erdős-Rényi G(n=6, p=0.5) is evaluated on both graph
+  families to test transfer.) Each (condition, graph family) cell is
+  averaged over 3 different random graph instances drawn within that
+  family. Total cells: 4 conditions x 2 graph families x 3 seeds = 24
+  cells.
+
+  Research question: *Does a small MLP trained to predict QAOA-MaxCut
+  initial parameters from graph features (degree distribution, edge
+  density, spectral gap) provide a faster warm-start than random
+  initialization or the Brandao 2018 fixed (pi/4, pi/4) initialization,
+  and does the advantage transfer to graphs from a different
+  distribution than the MLP was trained on?*
+
+hypotheses:
+  - id: H1
+    statement: "On in-distribution Erdős-Rényi graphs at n=6, the MLP-predicted initialization reaches approximation ratio 0.9 in at most 10 COBYLA iterations on average (3-graph mean), while random initialization requires at least 18 iterations to reach the same target."
+    measurable: true
+  - id: H2
+    statement: "On out-of-distribution 3-regular graphs at n=8, MLP-predicted initialization still beats random initialization by at least 20 percent in iteration count (3-graph median), demonstrating partial transfer of the learned initialization heuristic."
+    measurable: true
+  - id: H3
+    statement: "At p=1 the fixed initialization (beta=gamma=pi/4) is competitive with MLP-predicted initialization: the gap in 3-graph-median iteration count between fixed init and MLP-init is at most 30 percent on in-distribution graphs, consistent with the Brandao 2018 concentration prediction that QAOA-1 parameters concentrate around a problem-independent point."
+    measurable: true
+
+experiment_design:
+  research_question: "Does an MLP trained on small Erdős-Rényi graph features predict QAOA-MaxCut initial parameters that reduce COBYLA iteration count compared to random and fixed init, and does the advantage transfer to graphs of a different distribution than the MLP was trained on?"
+  conditions:
+    - name: "mlp_init_in_distribution"
+      description: "Proposed method evaluated in-distribution. sklearn.neural_network.MLPRegressor(hidden_layer_sizes=(32, 16), activation='relu', max_iter=2000, random_state=seed) trained offline on 200 Erdős-Rényi G(n=6, p=0.5) graphs with (degree_mean, degree_var, edge_density, n_edges) as features and grid-searched (beta_optimal, gamma_optimal) as targets. At test time, predict initial (beta, gamma) for a fresh in-distribution graph, then run COBYLA QAOA optimization starting from that initialization."
+    - name: "mlp_init_out_of_distribution"
+      description: "Proposed method evaluated out-of-distribution. Same MLP as mlp_init_in_distribution (trained on Erdős-Rényi G(n=6, p=0.5)). At test time, evaluated on 3-regular graphs at n=8: predict initial (beta, gamma) using the same feature extractor, then run COBYLA QAOA optimization."
+  baselines:
+    - "random_init: classical baseline. Initial (beta, gamma) drawn from Uniform[0, pi/2] x Uniform[0, pi/2] using a per-graph seed independent of optimization seed. Then COBYLA QAOA from that point."
+    - "fixed_init_pi_over_4: classical baseline from Brandao 2018. Initial (beta, gamma) = (pi/4, pi/4). Then COBYLA QAOA. Tests whether the concentration prediction holds in practice at p=1."
+  metrics:
+    - name: "iterations_to_target_ratio"
+      direction: "minimize"
+      description: "Number of COBYLA iterations required to reach approximation ratio (cut_size / optimal_cut_size) >= 0.9 on each graph, with a hard cap at 20 iterations (cells that don't reach 0.9 within 20 iterations report 20 and success=False). Primary metric. 3-graph median per condition x graph_family cell."
+    - name: "final_approximation_ratio"
+      direction: "maximize"
+      description: "approximation ratio (cut_size / optimal_cut_size) achieved after exactly 20 COBYLA iterations, regardless of whether the target threshold was met. 3-graph mean."
+    - name: "success_rate"
+      direction: "maximize"
+      description: "Fraction of the 3 random graph instances in a cell that reached approximation ratio 0.9 within the 20-iteration budget."
+  datasets:
+    - name: "erdos_renyi_n6_p05"
+      source: "networkx.erdos_renyi_graph(n=6, p=0.5, seed=graph_instance_seed)"
+      description: "In-distribution test set. 3 fresh random Erdős-Rényi graphs G(n=6, p=0.5), distinct from the 200 graphs used for MLP training. Optimal MaxCut value computed by brute-force enumeration over the 2^6 cuts. QAOA p=1 on AerSimulator statevector backend."
+    - name: "regular_3_n8"
+      source: "networkx.random_regular_graph(d=3, n=8, seed=graph_instance_seed)"
+      description: "Out-of-distribution test set. 3 random 3-regular graphs at n=8 (different size and edge density than the n=6 ER training distribution). Optimal MaxCut value by brute-force enumeration over 2^8 cuts. QAOA p=1 on AerSimulator statevector backend."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1200
+
+rubric_path: "experiments/arc_bench/config/quantum/rubrics/Q06.json"

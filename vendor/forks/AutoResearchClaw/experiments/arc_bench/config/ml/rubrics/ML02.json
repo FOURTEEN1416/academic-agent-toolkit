@@ -1,0 +1,109 @@
+{
+    "id": "ml02-root",
+    "requirements": "A credible experiment studying bagging vs boosting vs stacking for noisy non-linear regression: the main ensemble families are implemented, execution covers multiple regression datasets with reasonable seed coverage, and the analysis addresses H1/H2/H3 using RMSE-centered evidence.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact threshold satisfaction. Condition-name variants (e.g., 'RandomForest' vs 'bagging_random_forest') should not be penalized when the underlying method is clearly the intended one.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml02-code",
+            "requirements": "The regression ensemble conditions and datasets are implemented in a way that supports a fair comparison.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml02-code-conditions",
+                    "requirements": "The submission implements the main ensemble families relevant to the hypotheses \u2014 a bagging-style model (e.g., RandomForestRegressor), a boosting-style model (e.g., GradientBoostingRegressor), and a stacking-style model (e.g., StackingRegressor) \u2014 alongside a non-ensemble baseline such as a single DecisionTreeRegressor. Equivalent well-motivated choices are acceptable.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml02-code-datasets",
+                    "requirements": "The submission uses multiple regression datasets that allow a noise-robustness comparison \u2014 for example, friedman1 at varying noise levels and/or diabetes from sklearn \u2014 with a reasonable train/test split.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml02-code-setup",
+                    "requirements": "The pipeline uses a consistent preprocessing and evaluation setup across conditions, with controlled random-state handling and no obvious test-set leakage into training or stacking meta-features.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml02-exec",
+            "requirements": "Execution logs the core metrics needed to evaluate the hypotheses.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml02-exec-metrics",
+                    "requirements": "Execution produces a machine-readable metrics artifact containing numeric RMSE for the implemented (dataset, condition) cells, plus at least one complementary error metric (MAE or R\u00b2). Complete coverage is preferred; partial coverage should be scored proportional to how much of the hypothesis-relevant grid is populated.",
+                    "weight": 16.6667,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml02-exec-seeds",
+                    "requirements": "Reported dataset-condition results are aggregated over multiple random seeds with some form of dispersion reporting (std, stderr, CI, or min/max). More seeds are better, but an honest small-seed run with reported variance is preferable to a single deterministic run.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml02-results",
+            "requirements": "Results analysis addresses all three hypotheses with quantitative evidence.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml02-result-h1",
+                    "requirements": "The submission compares bagging (e.g., Random Forest) vs boosting (e.g., GBRT) on RMSE in a high-noise regression regime and conveys whether bagging is clearly better, clearly worse, or comparable \u2014 judge directionally against H1.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml02-result-h2",
+                    "requirements": "The submission conveys whether ensembles deliver a meaningful RMSE improvement over the single-tree baseline on most of the evaluated datasets. Exact percentage thresholds are not required; a clear comparison grounded in the reported numbers suffices.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml02-result-h3",
+                    "requirements": "The submission ranks ensemble and baseline conditions by RMSE across the evaluated datasets and discusses whether stacking is competitive (best or near-best on some datasets, not systematically worst) \u2014 judge directionally against H3.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml02-result-writeup",
+                    "requirements": "The README or writeup describes the methods and setup, presents the key RMSE/MAE/R\u00b2 findings, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations. No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

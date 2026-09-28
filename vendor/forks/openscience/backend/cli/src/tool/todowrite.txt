@@ -1,0 +1,3 @@
+Maintain a visible task list for work with three or more meaningful steps, multiple user requirements, or when the user explicitly asks for a plan or todo list. Skip it for a single short action, a trivial request, or purely conversational work.
+
+Send the complete current list on every update and keep item IDs stable. Use concrete, actionable items with `pending`, `in_progress`, `completed`, or `cancelled` status and `high`, `medium`, or `low` priority. Keep at most one item `in_progress`. Mark finished work `completed` immediately before advancing, retain unfinished items, and mark obsolete items `cancelled` rather than silently removing them. Keep the list concise so tracking does not become work of its own.

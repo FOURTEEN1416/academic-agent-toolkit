@@ -1,0 +1,109 @@
+{
+    "id": "ml15-root",
+    "requirements": "A credible experiment studying filter-based feature selection (mutual information, chi-square, ANOVA F) versus embedded L1-logistic selection under injected irrelevant features: conditions are implemented, runs cover multiple datasets with multiple seeds and injection levels, and results address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Alternative filter methods or embedded selectors (e.g., tree-based importance) that test the same scientific question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml15-code",
+            "requirements": "Feature-selection conditions and the noise-injection pipeline are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml15-code-conditions",
+                    "requirements": "The submission implements multiple distinct selection conditions \u2014 typically including mutual information, chi-square, ANOVA F, and L1-logistic (or a comparable embedded method) \u2014 rather than reusing one selector for all conditions.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml15-code-injection",
+                    "requirements": "The pipeline injects synthetic irrelevant features at one or more defined levels (including a no-injection baseline and a higher-injection case) and tracks which columns are injected so a noise-selection rate can be computed.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "ml15-code-datasets",
+                    "requirements": "The submission uses multiple datasets (sklearn built-ins or comparable) and a reasonable train/test split.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml15-exec",
+            "requirements": "Execution produces metrics across selectors and injection levels.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml15-exec-metrics",
+                    "requirements": "Execution outputs a structured metrics artifact containing numeric test accuracy and a noise-selection-rate style measure for each implemented condition on at least one dataset with at least two injection levels.",
+                    "weight": 16.6667,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml15-exec-seeds",
+                    "requirements": "Reported metrics are aggregated over multiple random seeds per (dataset, condition, injection level) cell with a dispersion measure. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Hyperparameter Tuning"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml15-results",
+            "requirements": "Results address H1/H2/H3 directionally with a clear narrative.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml15-result-h1",
+                    "requirements": "The submission compares mean test accuracy at the higher injection level between the embedded L1-logistic method and each filter method per dataset and conveys whether L1 tends to be better \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml15-result-h2",
+                    "requirements": "The submission reports the noise-selection rate for each method and conveys whether the embedded method selects fewer irrelevant features than the filter-method average on most datasets (H2).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml15-result-h3",
+                    "requirements": "The submission reports the accuracy drop from low-injection to high-injection for the embedded method and conveys whether the drop is small on most datasets (H3).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml15-result-writeup",
+                    "requirements": "The README or writeup describes the experimental setup, reports key metric tables, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations such as synthetic-noise realism, k-choice, classifier dependence, and seed/dataset scope. No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

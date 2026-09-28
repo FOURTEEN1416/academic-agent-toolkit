@@ -1,0 +1,52 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+
+# Runtime state
+outputs/
+sessions/
+preferences.local.json
+*.log
+.agentfiguregallery/
+maintenance_records/
+
+# Downloaded assets and caches
+assets/downloads/
+assets/full-reference-pack/
+assets/packs/public-preview/
+assets/packs/source-scripts/
+assets/packs/full-public/
+assets/packs/full-corpus/
+assets/packs/community*/
+assets/packs/**/*.part
+assets/releases/
+repos/
+
+# Community contribution staging should stay lightweight.
+community_pool/packs/**/raw/
+community_pool/packs/**/downloads/
+community_pool/packs/**/*.part
+community_pool/packs/**/*.tar
+community_pool/packs/**/*.tar.gz
+community_pool/packs/**/*.zip
+
+# Large generated preview/cache files should be shipped as release assets.
+data/reference_candidate_index.full.json
+data/reference_candidate_index.full.csv
+data/reference_candidate_previews/
+
+# Local full-public KB payload unpacked by `agentfiguregallery setup`.
+# Keep these available locally, but do not include them in normal repo commits.
+AGENT_QUERY_PROTOCOL.md
+REFERENCE_SESSION_PROTOCOL.md
+PLOT_TYPE_DESIGN_CARDS.md
+PLOT_TYPE_PLAYBOOK.md
+templates/

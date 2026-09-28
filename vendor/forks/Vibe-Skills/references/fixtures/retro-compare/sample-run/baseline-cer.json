@@ -1,0 +1,15 @@
+﻿{
+  "schema_version": "1.0.0",
+  "report_id": "CER-BASELINE-001",
+  "trigger_signals": {
+    "fallback_rate": 0.27,
+    "context_pressure": 0.79,
+    "route_stability_pack": 0.73,
+    "route_stability_skill": 0.69,
+    "top1_top2_gap": 0.02
+  },
+  "findings": [
+    { "pattern": "CF-3" },
+    { "pattern": "CF-5" }
+  ]
+}

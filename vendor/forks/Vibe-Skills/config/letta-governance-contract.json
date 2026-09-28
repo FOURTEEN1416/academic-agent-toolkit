@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "enabled": true,
+  "mode": "shadow",
+  "role": "contract_source_only",
+  "contracts": {
+    "memory_block_mapping": true,
+    "archival_search_contract": true,
+    "tool_rule_contract": true,
+    "token_pressure_policy": true
+  },
+  "forbid_runtime_takeover": true,
+  "forbid_second_orchestrator": true,
+  "forbid_route_mutation": true
+}

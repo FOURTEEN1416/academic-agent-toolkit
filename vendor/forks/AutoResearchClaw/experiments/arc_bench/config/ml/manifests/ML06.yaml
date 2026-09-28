@@ -1,0 +1,100 @@
+# ============================================================================
+# T06 — Adaptive learning-rate schedules for logistic-regression convergence
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML06
+title: "Adaptive learning-rate schedules for logistic-regression convergence on binary classification"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Logistic regression is often treated as a solved baseline, yet its practical
+  training behavior still depends strongly on optimization details. In
+  first-order methods, the learning-rate schedule can dominate time-to-quality:
+  a constant step size may converge slowly or oscillate, while adaptive
+  schedules can accelerate early progress or stabilize late optimization.
+  Because logistic regression has a smooth convex objective, it offers a clean
+  setting to compare schedules without confounds from deep-network
+  non-convexity.
+
+  This topic studies four schedule families in a unified mini-batch gradient
+  descent implementation: step decay, exponential decay, cosine annealing, and
+  cosine warm restarts. The focus is not raw final accuracy alone, but
+  optimization efficiency measured by epochs needed to reach a predefined
+  validation-loss threshold, plus robustness across datasets and random seeds.
+  A fixed-learning-rate baseline is required so any claimed speedup is
+  attributable to schedule design.
+
+  A credible CPU-scale experiment should run on multiple binary classification
+  datasets from sklearn, with feature standardization, identical model
+  parameterization, and synchronized stopping criteria. Reporting should include
+  convergence epochs, final validation log loss, and test ROC-AUC so that faster
+  convergence is not achieved at the expense of generalization. Since warm
+  restarts can re-increase the learning rate, trajectory logging is important to
+  verify that restart behavior is actually implemented.
+
+  The key decision criterion is whether adaptive schedules reduce optimization
+  effort in a consistent, measurable way. The study should conclude with clear
+  per-hypothesis verdicts and practical limitations (dataset size, threshold
+  choice, and sensitivity to initial learning rate).
+
+  *Do adaptive learning-rate schedules (especially cosine variants) reduce logistic-regression convergence epochs versus fixed/monotone decay schedules while maintaining comparable binary-classification performance?*
+
+hypotheses:
+  - id: H1
+    statement: "Cosine annealing or cosine warm restarts achieves at least 20% lower mean convergence_epochs than fixed learning rate on at least 2 of 3 evaluated binary datasets, averaged over >=5 seeds."
+    measurable: true
+  - id: H2
+    statement: "Among adaptive schedules (step decay, exponential decay, cosine annealing, warm restarts), the best schedule's final validation log loss is no worse than 0.01 absolute compared with the worst schedule on each dataset (i.e., speed differences exceed quality differences)."
+    measurable: true
+  - id: H3
+    statement: "Warm restarts reaches convergence in fewer epochs than monotone exponential decay on at least 2 of 3 datasets, without reducing test ROC-AUC by more than 0.01 absolute on those datasets."
+    measurable: true
+
+experiment_design:
+  research_question: "Which learning-rate schedule yields the fastest convergence for mini-batch logistic regression on binary sklearn tasks, and do faster schedules preserve validation/test performance?"
+  conditions:
+    - name: "fixed_lr"
+      description: "Mini-batch logistic regression trained with constant learning rate (baseline)."
+    - name: "step_decay"
+      description: "Learning rate multiplied by gamma at fixed epoch milestones (e.g., every 20 epochs)."
+    - name: "exponential_decay"
+      description: "Learning rate updated each epoch as lr_t = lr0 * exp(-k * t)."
+    - name: "cosine_annealing"
+      description: "Learning rate follows cosine decay from lr0 to lr_min over total epochs without restarts."
+    - name: "cosine_warm_restarts"
+      description: "Cosine schedule with periodic restarts (SGDR-style) resetting to higher learning rate at restart boundaries."
+  baselines:
+    - "fixed_lr is the primary optimization baseline"
+    - "exponential_decay is a monotone adaptive baseline for comparison to warm restarts"
+  metrics:
+    - name: "convergence_epochs"
+      direction: "minimize"
+      description: "Epoch index at which validation log loss first drops below a preset threshold (or max_epochs if never reached), averaged over seeds."
+    - name: "val_log_loss"
+      direction: "minimize"
+      description: "Final validation logistic loss after training, mean over seeds."
+    - name: "test_roc_auc"
+      direction: "maximize"
+      description: "ROC-AUC on held-out test set, mean over seeds."
+  datasets:
+    - name: "breast_cancer"
+      source: "sklearn.datasets.load_breast_cancer"
+    - name: "synthetic_binary_medium"
+      source: "sklearn.datasets.make_classification (n_samples=2000, n_features=30, n_informative=12, class_sep=1.0)"
+    - name: "synthetic_binary_noisy"
+      source: "sklearn.datasets.make_classification (n_samples=2500, n_features=40, n_informative=10, flip_y=0.08, class_sep=0.7)"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 420
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML06.json"

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-13",
+  "policy": "router-provider-layer-defaults",
+  "canonical_router_owner": "scripts/router/resolve-pack-route.ps1",
+  "runtime_states": [
+    "provider-assisted",
+    "heuristic-only",
+    "offline-frozen",
+    "unsupported"
+  ],
+  "default_runtime_state": "heuristic-only",
+  "default_provider_mode": "heuristic-only",
+  "fallback_provider_mode": "heuristic-only",
+  "offline_frozen_mode": {
+    "enabled": true,
+    "state": "offline-frozen",
+    "behavior": "run canonical router without live provider assistance and preserve deterministic replay semantics"
+  },
+  "hard_rules": {
+    "single_router_authority": true,
+    "no_second_router": true,
+    "provider_cannot_override_explicit_commands": true,
+    "provider_absence_must_be_labeled": true
+  }
+}

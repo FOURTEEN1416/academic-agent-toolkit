@@ -1,0 +1,32 @@
+{
+  "run_id": "20260413T131910Z-pr153-rabbit-review-fix",
+  "stage": "plan_execute",
+  "status": "completed",
+  "completed_at_utc": "2026-04-13T13:28:53Z",
+  "commands": [
+    "python3 -m pytest -q tests/runtime_neutral/test_release_cut_operator.py -k tolerates_sync_script_without_preview_or_prune_parameters",
+    "python3 -m pytest -q tests/runtime_neutral/test_release_cut_operator.py",
+    "pwsh -NoProfile -File scripts/verify/vibe-wave64-82-closure-gate.ps1 -WriteArtifacts",
+    "pwsh -NoProfile -File scripts/verify/vibe-wave83-100-closure-gate.ps1 -WriteArtifacts",
+    "pwsh -NoProfile -File scripts/verify/vibe-output-artifact-boundary-gate.ps1",
+    "pwsh -NoProfile -File scripts/verify/vibe-capability-catalog-gate.ps1 -WriteArtifacts",
+    "pwsh -NoProfile -File scripts/verify/vibe-release-notes-quality-gate.ps1",
+    "git diff --check"
+  ],
+  "confirmed_findings": [
+    "release-cut.ps1 unconditionally passed Preview/PreviewOutputPath/PruneBundledExtras into sync-bundled-vibe.ps1, which breaks legacy or slimmer sync contracts",
+    "config/wave64-82-planning-board.json shipped question-mark corruption in every primary_goal entry",
+    "config/wave83-100-gate-manifest.json validated references/release-evidence-bundle-contract.md without declaring it in required_assets",
+    "release/governance docs still contained duplicate wording, stale updated_at metadata, or placeholder release-note references"
+  ],
+  "rejected_findings": [
+    "The docs/frontmatter-bom-governance.md style path references in wave boards are deliberate compatibility entrypoints, not broken paths",
+    "The hard-coded runtime-session path in the frozen v3.0.2 requirement/plan artifacts was left intact because those docs are run-specific evidence, not reusable templates",
+    "The Agent-S display-name wording was left intact because the repository still intentionally mixes upstream display names and canonical slugs in human-facing governance text and keyword checks"
+  ],
+  "outcome_summary": [
+    "Added a regression test that proves release-cut must not leak undeclared sync arguments into legacy sync-bundled-vibe contracts, watched it fail, then repaired the script with parameter guards.",
+    "Restored readable UTF-8 planning-board goals for Wave64-82 and repaired the wave83-100 release-evidence manifest declaration.",
+    "Cleaned up release/governance evidence surfaces only where the review findings were concrete and verification-backed."
+  ]
+}

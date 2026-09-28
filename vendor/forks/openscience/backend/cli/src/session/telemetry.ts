@@ -1,0 +1,154 @@
+import { BusEvent } from "@/bus/bus-event"
+import { Bus } from "@/bus"
+import { Log } from "@/util/log"
+import { MessageV2 } from "./message-v2"
+import z from "zod"
+
+// Context-management telemetry (spec P0). Every metric is a bus event so it lands in the
+// streamed event contract for free — tests subscribe in-process, the TUI/web client
+// receives it over the event channel, and a future `/context` panel can render it with
+// no new plumbing. Emission is always on; the paired log line is at DEBUG so it stays
+// quiet by default and appears only when debug logging is enabled.
+export namespace SessionTelemetry {
+  const log = Log.create({ service: "session.telemetry" })
+  export interface ContextBudget {
+    total: number
+    newest: number
+    history: number
+    usable: number
+    soft: number
+    hard: number
+  }
+  export interface ContextSnapshot extends ContextBudget {
+    composition: MessageV2.Composition
+    recordedAt: number
+  }
+  const latest = new Map<string, ContextSnapshot>()
+  const LATEST_LIMIT = 256
+
+  export const Event = {
+    // Per-turn breakdown of the working context by content type, emitted right before the
+    // model call. Makes "what is filling the window" measurable so later phases can show
+    // their effect.
+    Context: BusEvent.define(
+      "session.context",
+      z.object({
+        sessionID: z.string(),
+        tokens: z.object({
+          system: z.number(),
+          text: z.number(),
+          reasoning: z.number(),
+          tool: z.number(),
+          skills: z.number(),
+          image: z.number(),
+        }),
+        images: z.number(),
+        total: z.number(),
+        budget: z
+          .object({
+            total: z.number(),
+            newest: z.number(),
+            history: z.number(),
+            usable: z.number(),
+            soft: z.number(),
+            hard: z.number(),
+          })
+          .optional(),
+      }),
+    ),
+    // One event per reclaim mechanism (prune vs LLM summary), tagged with what triggered
+    // it and how much it reclaimed — so cheap deterministic reduction (levels 2-3) is
+    // attributable separately from the expensive LLM summary (level 4).
+    Compaction: BusEvent.define(
+      "session.compaction",
+      z.object({
+        sessionID: z.string(),
+        trigger: z.enum(["proactive", "overflow", "manual"]),
+        mechanism: z.enum(["prune", "summary"]),
+        before: z.number().optional(),
+        after: z.number().optional(),
+        reclaimed: z.number(),
+      }),
+    ),
+  }
+
+  export function recordContext(input: {
+    sessionID: string
+    composition: MessageV2.Composition
+    budget?: ContextBudget
+  }) {
+    const c = input.composition
+    if (input.budget) {
+      if (!latest.has(input.sessionID) && latest.size >= LATEST_LIMIT) {
+        const oldest = latest.keys().next()
+        if (!oldest.done) latest.delete(oldest.value)
+      }
+      latest.set(input.sessionID, { ...input.budget, composition: c, recordedAt: Date.now() })
+    }
+    log.debug("context", {
+      sessionID: input.sessionID,
+      total: c.total,
+      system: c.system,
+      text: c.text,
+      tool: c.tool,
+      image: c.image,
+      reasoning: c.reasoning,
+      skills: c.skills,
+      images: c.images,
+    })
+    // Fire-and-forget: callers don't await this. Bus.publish rejects if any subscriber
+    // throws, so swallow it here — telemetry must never crash the session loop it observes.
+    return Bus.publish(Event.Context, {
+      sessionID: input.sessionID,
+      tokens: {
+        system: c.system,
+        text: c.text,
+        reasoning: c.reasoning,
+        tool: c.tool,
+        skills: c.skills,
+        image: c.image,
+      },
+      images: c.images,
+      total: c.total,
+      budget: input.budget,
+    }).catch((error) => log.debug("context telemetry publish failed", { error: `${error}` }))
+  }
+
+  /** Last exact safe-input preflight recorded immediately before a provider call. */
+  export function context(sessionID: string) {
+    return latest.get(sessionID)
+  }
+
+  export function recordCompaction(input: {
+    sessionID: string
+    trigger: "proactive" | "overflow" | "manual"
+    mechanism: "prune" | "summary"
+    reclaimed: number
+    before?: number
+    after?: number
+  }) {
+    // When the caller knows only the reclaimed amount (the prune path returns just that),
+    // derive `after` from `before` so consumers always get a consistent before/after/delta.
+    // Clamp at 0: `before` (real provider tokens) and `reclaimed` (a local estimate over the
+    // pruned history) use different bases, so the estimate can exceed `before` — a context
+    // size is never negative.
+    const rawAfter = input.after ?? (input.before !== undefined ? input.before - input.reclaimed : undefined)
+    const after = rawAfter !== undefined ? Math.max(0, rawAfter) : undefined
+    log.debug("compaction", {
+      sessionID: input.sessionID,
+      trigger: input.trigger,
+      mechanism: input.mechanism,
+      before: input.before,
+      after,
+      reclaimed: input.reclaimed,
+    })
+    return Bus.publish(Event.Compaction, {
+      sessionID: input.sessionID,
+      trigger: input.trigger,
+      mechanism: input.mechanism,
+      before: input.before,
+      after,
+      reclaimed: input.reclaimed,
+    }).catch((error) => log.debug("compaction telemetry publish failed", { error: `${error}` }))
+  }
+}

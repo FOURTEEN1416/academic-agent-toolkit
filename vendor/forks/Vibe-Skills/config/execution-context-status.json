@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "updated_at": "2026-04-01",
+  "canonical_target_id": "canonical",
+  "sync_source_target_id": "canonical",
+  "report_only": false,
+  "enforce_execution_context": true,
+  "anti_proxy_goal_drift_observability": {
+    "mode": "report_only",
+    "status_surface_summary_required": true,
+    "closure_surface_summary_required": true,
+    "release_bundle_summary_required": true,
+    "warning_codes_are_descriptive_only": true
+  },
+  "mirror_targets": [
+    {
+      "id": "canonical",
+      "path": ".",
+      "role": "canonical"
+    }
+  ],
+  "operator_surface": [
+    "scripts/governance/release-cut.ps1",
+    "scripts/common/vibe-wave-gate-runner.ps1"
+  ]
+}

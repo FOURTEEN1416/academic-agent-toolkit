@@ -1,0 +1,100 @@
+id: B02
+title: "E. coli acetate overflow metabolism phase map under glucose and oxygen limitation"
+arxiv_id: null
+venue: "ARC-Bench Biology 2026"
+paper_asset: null
+
+synthesis: |
+  Overflow acetate secretion in E. coli is a canonical constraint-based
+  modelling phenotype. A credible CPU-scale study loads a validated E. coli
+  genome-scale model, fixes a glucose-minimal medium, sweeps glucose and oxygen
+  uptake bounds, computes growth and major secretion products, and identifies
+  the transition from respiratory growth to overflow/fermentative by-product
+  secretion.
+
+  The research question is: under which glucose and oxygen uptake regimes does
+  E. coli switch from primarily respiratory growth to acetate-secreting overflow
+  metabolism, and how robust is that regime boundary across FBA and pFBA?
+
+hypotheses:
+  - id: H1
+    statement: "The selected E. coli BIGG model grows on aerobic glucose-minimal medium with a positive biomass objective and no infeasible solver status."
+    measurable: true
+  - id: H2
+    statement: "A two-dimensional glucose-vs-oxygen phase plane contains distinct regimes with high oxygen/low acetate and low oxygen/high acetate secretion."
+    measurable: true
+  - id: H3
+    statement: "pFBA reduces total internal flux while preserving the same growth-rate regime boundaries to within a small tolerance."
+    measurable: true
+
+experiment_design:
+  research_question: "Under which glucose and oxygen uptake regimes does E. coli switch from respiratory growth to acetate overflow?"
+  conditions:
+    - name: "aerobic_glucose_reference"
+      description: "Wild-type E. coli iJO1366 or iAF1260 on glucose-minimal medium with oxygen available."
+    - name: "glucose_oxygen_phase_plane"
+      description: "Grid over glucose uptake and oxygen uptake bounds; compute biomass, acetate, ethanol, lactate, succinate, and CO2 exchange fluxes."
+    - name: "pfba_phase_plane_check"
+      description: "Run pFBA on the same grid or a representative subset and compare growth plus secretion regimes."
+  baselines:
+    - "High-oxygen glucose condition is the respiratory baseline."
+    - "Zero-oxygen glucose condition is the fermentative baseline."
+  metrics:
+    - name: "growth_rate_1_per_h"
+      direction: "maximize"
+      description: "Biomass objective flux for each nutrient grid point."
+    - name: "acetate_flux_mmol_gDW_h"
+      direction: "characterize"
+      description: "Acetate exchange secretion flux."
+    - name: "overflow_boundary_o2_bound"
+      direction: "estimate"
+      description: "Approximate oxygen bound below which acetate secretion exceeds a chosen threshold."
+    - name: "pfba_total_flux_norm"
+      direction: "minimize"
+      description: "Total absolute flux under pFBA."
+  datasets:
+    - name: "E. coli GSMM"
+      source: "BIGG iJO1366 or iAF1260 via cobra.io.load_model"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1800
+
+rubric_path: "experiments/arc_bench/config/biology/rubrics/B02.json"
+
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: "A results.json file exists with primary_metric, metrics, hypotheses, summary, and structured_results."
+    must_pass: true
+  - id: req_phase_plane_table
+    type: artifact
+    description: "A machine-readable phase-plane table exists with glucose_bound, oxygen_bound, growth_rate, and acetate_flux columns."
+    must_pass: true
+  - id: req_phase_plane_figure
+    type: artifact
+    description: "A PNG or PDF heatmap/phase-plane figure exists with glucose and oxygen axes and units."
+    must_pass: true
+  - id: req_aerobic_ref_growth
+    type: numeric
+    description: >-
+      results.json metrics MUST contain a numeric value for
+      `aerobic_glucose_growth_rate_1_per_h` (or an equivalent aerobic_growth_*_1_per_h key)
+      that is non-null, finite, and positive. The aerobic reference growth rate must be
+      reported, otherwise H1 cannot be evaluated.
+    must_pass: true
+
+  - id: req_h1_h2_h3_supported_flags
+    type: discussion
+    description: >
+      Each of hypotheses.h1, hypotheses.h2, hypotheses.h3 in results.json MUST
+      have an explicit `supported` boolean and a `details` string of at least
+      40 characters describing the evidence used to reach that verdict.
+    must_pass: true
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: "The overflow boundary and its mechanistic basis are discussed — why E. coli switches to acetate-secreting overflow at the identified nutrient threshold. Acceptable inside summary, phase_plane_interpretation, or a separate writeup field."
+    must_pass: false  # Optional: nice-to-have, not blocking
+  - id: req_seed_documented
+    type: discussion
+    description: "The solver backend (cobra optlang interface name + version) and COBRApy version are reported in results.json. Required for reproducibility but not for scientific correctness."
+    must_pass: false  # Optional

@@ -1,0 +1,25 @@
+{
+  "schema_version": "replay.platform.v1",
+  "generated_at": "2026-03-15",
+  "lane": "linux_without_pwsh",
+  "entry_script": "scripts/router/invoke-pack-route.py",
+  "constraints": {
+    "force_runtime_neutral": true,
+    "requires_powershell_host": false,
+    "required_contract_fields": [
+      "route_mode",
+      "route_reason",
+      "confidence",
+      "top1_top2_gap",
+      "candidate_signal",
+      "candidate_focus",
+      "ranked"
+    ]
+  },
+  "proof_targets": [
+    "tests/replay/route/recovery-wave-curated-prompts.json",
+    "scripts/verify/runtime_neutral/router_bridge_gate.py",
+    "scripts/verify/vibe-linux-router-no-pwsh-gate.ps1"
+  ],
+  "notes": "This fixture documents the supported runtime-neutral Linux lane where no PowerShell host is available and the Python bridge must provide candidate-audit output."
+}

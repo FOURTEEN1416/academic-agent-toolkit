@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "updated": "2026-03-07",
+  "policy_guards": {
+    "selective_harvest_only": true,
+    "raw_import_forbidden": true,
+    "second_skill_runtime_forbidden": true,
+    "manual_review_required": true
+  },
+  "distillation_units": [
+    "pattern_card",
+    "skill_card",
+    "reference_note",
+    "benchmark_case",
+    "wrapper_template"
+  ],
+  "required_fields": [
+    "source_corpus",
+    "harvest_unit",
+    "canonical_destination",
+    "overlap_risk",
+    "explicit_no_go",
+    "owner_lane"
+  ]
+}

@@ -1,0 +1,42 @@
+Slides QA
+Checked at: 2026-07-18T05:21:38Z
+
+Build route
+- Created with the bundled @oai/artifact-tool JavaScript runtime.
+- Final deck: deliverables/06-slides/group-meeting-slides.pptx
+- PPTX SHA-256: d08ece43018b8f60574016966a93edd0cbe6d17dd1d5247618961dfec8f90112
+- Slide source map contains the same PPTX hash: pass.
+
+Render route
+- Rendered with the local Presentations container tool, not a browser.
+- Render count: 7 of 7.
+- Every render is 1920 x 1080 and nonblank.
+- Montage: deliverables/06-slides/slides-montage.png
+
+Automated layout checks
+- Artifact-tool inspect slide count: 7.
+- Objects with reported bounds: 94.
+- Every reported object bound stays inside the 1280 x 720 slide canvas: pass.
+- Every slide title and the cover title are single-line according to artifact-tool inspect: pass.
+- No unresolved placeholder text appears in the final deck: pass.
+
+slides_test.py note
+- The first attempt could not locate the bundled artifact-tool package because HOME was not inherited by the helper process.
+- After HOME was set correctly, slides_test.py rendered through artifact-tool but then failed inside its temporary-directory inspection with FileNotFoundError for slide-1.png.
+- This utility failure is not recorded as a passing check. The required overflow decision was instead made from artifact-tool object bounds plus final 1920 x 1080 renders and individual full-size inspection.
+
+Manual visual inspection
+- Inspected the seven-slide montage for narrative flow and visual consistency.
+- Inspected every final slide individually at full resolution.
+- Initial renders of slides 4, 5, and 7 wrapped their titles. The titles were shortened, the deck was rebuilt, and all seven slides were rendered and inspected again.
+- Final result: no unintended overlap, clipping, incoherent wrapping, blank slide, placeholder, broken visual, or chart-data mismatch found.
+- Figure text, callouts, skill responsibilities, and the non-clinical boundary are readable.
+
+Narrative and evidence checks
+- Seven-slide sequence: governed task -> serial plan -> dataset audit -> holdout evidence -> uncertainty -> Skill ownership -> conclusion and limits.
+- Slide 4 values match metrics.json: ROC AUC 0.992 versus 0.578, balanced accuracy 0.976 versus 0.578, and logistic confusion counts TN=72, FP=0, FN=2, TP=40.
+- Slide 5 values match uncertainty.json: 50 folds per model, 10,000 bootstrap replicates, logistic ROC AUC interval 0.977 to 1.000, and no formal significance test.
+- Slide 6 names the seven selected local Skill IDs and their frozen responsibilities.
+- Slide 7 explicitly forbids README success language before final consistency and canonical acceptance.
+
+Final deck QA status: PASS

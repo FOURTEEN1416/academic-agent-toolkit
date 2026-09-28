@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/assembly-manifest.schema.json",
+  "title": "PaperFigure assembly evidence",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "status", "job_id", "paper_id", "figures", "figure_includes", "main_tex_updated", "body_contract", "body_contract_markdown", "figure_asset_map"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "status": {"const": "PASS"},
+    "job_id": {"type": "string"},
+    "paper_id": {"type": "string"},
+    "figures": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["figure_id", "candidate_id", "format", "destination", "sha256", "caption", "label", "editable_source"], "properties": {"figure_id": {"type": "string"}, "candidate_id": {"enum": ["A", "B", "C"]}, "format": {"enum": ["pdf", "svg", "png"]}, "destination": {"type": "string"}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "caption": {"type": "string"}, "label": {"type": "string"}, "editable_source": {"type": ["object", "null"]}}, "additionalProperties": true}},
+    "figure_includes": {"type": "string"},
+    "main_tex_updated": {"type": "boolean"},
+    "body_contract": {"type": "string"},
+    "body_contract_markdown": {"type": "string"},
+    "figure_asset_map": {"type": "string"}
+  }
+}

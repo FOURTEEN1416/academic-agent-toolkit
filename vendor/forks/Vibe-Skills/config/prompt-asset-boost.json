@@ -1,0 +1,51 @@
+{
+    "version":  1,
+    "updated":  "2026-03-07",
+    "enabled":  false,
+    "mode":  "off",
+    "activation":  {
+                       "explicit_vibe_only":  true
+                   },
+    "scope":  {
+                  "grade_allow":  [
+                                      "M",
+                                      "L",
+                                      "XL"
+                                  ],
+                  "task_allow":  [
+                                     "planning",
+                                     "coding",
+                                     "review",
+                                     "debug",
+                                     "research"
+                                 ]
+              },
+    "trigger":  {
+                    "require_prompt_signal":  true,
+                    "require_explicit_intent":  false,
+                    "max_queries":  3,
+                    "max_candidates":  2
+                },
+    "provider":  {
+                     "type":  "mock",
+                     "model":  "your-model-id",
+                     "base_url":  "https://your-openai-compatible-endpoint/v1",
+                     "mock_response_path":  "scripts/verify/fixtures/prompt-asset-boost.mock.json",
+                     "timeout_ms":  50,
+                     "max_output_tokens":  1200,
+                     "temperature":  0,
+                     "top_p":  1.0,
+                     "store":  false
+                 },
+    "output":  {
+                   "max_prompt_chars_per_candidate":  1200
+               },
+    "safety":  {
+                   "fallback_on_error":  true
+               },
+    "quality_checks":  {
+                           "require_pattern_cards":  true,
+                           "require_risk_checklist":  true,
+                           "forbid_route_override":  true
+                       }
+}

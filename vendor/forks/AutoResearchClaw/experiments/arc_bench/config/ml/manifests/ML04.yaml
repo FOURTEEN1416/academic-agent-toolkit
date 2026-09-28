@@ -1,0 +1,95 @@
+# ============================================================================
+# T04 — Feature scaling choices for k-nearest neighbors under distribution shift
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML04
+title: "Effect of standard, min-max, and robust scaling on KNN classification"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  K-nearest neighbors (KNN) is highly sensitive to feature scale because
+  distance calculations implicitly weight dimensions by their numeric ranges.
+  In practice, preprocessing decisions such as StandardScaler, MinMaxScaler,
+  or RobustScaler can alter neighborhood structure enough to change
+  classification performance as much as model hyperparameters do. Despite this,
+  scaling choice is often treated as a default rather than as an experimental
+  factor.
+
+  The core methodological question is not whether scaling helps versus no
+  scaling (it usually does), but whether specific scaling families are better
+  matched to particular data distributions. Standard scaling assumes roughly
+  Gaussian-like behavior, min-max scaling compresses to bounded ranges and can
+  be strongly affected by extrema, and robust scaling centers/scales by median
+  and IQR to reduce outlier influence.
+
+  A CPU-friendly, credible benchmark should compare these scalers with a fixed
+  KNN classifier across multiple datasets that differ in outlier prevalence and
+  marginal feature distributions, while averaging over multiple train/test
+  splits. Because KNN is lightweight on small-to-medium sklearn datasets, the
+  study can include both predictive quality and stability metrics without
+  exceeding strict runtime constraints.
+
+  The experiment should report test accuracy as the primary outcome, plus
+  macro-F1 and split-to-split variability, and include at least one outlier-
+  heavy synthetic dataset to stress robust scaling behavior. The goal is to
+  produce falsifiable conclusions about when scaler choice materially changes
+  KNN outcomes.
+
+  *How does the choice among standard, min-max, and robust feature scaling change KNN classification performance and stability across datasets with different distribution and outlier characteristics?*
+
+hypotheses:
+  - id: H1
+    statement: "RobustScaler + KNN achieves higher mean test accuracy than StandardScaler + KNN on the outlier-heavy synthetic dataset by at least 0.03 absolute accuracy, averaged over ≥5 random splits."
+    measurable: true
+  - id: H2
+    statement: "Across the evaluated datasets, at least one real dataset shows an absolute test-accuracy gap of ≥0.02 between the best and worst of {StandardScaler, MinMaxScaler, RobustScaler}, indicating scaler choice materially affects KNN performance."
+    measurable: true
+  - id: H3
+    statement: "No_scaling baseline is not the top-accuracy condition on at least 2 of 3 datasets when compared against the three scaling methods with the same KNN hyperparameters."
+    measurable: true
+
+experiment_design:
+  research_question: "How does scaler choice (standard, min-max, robust) affect KNN classification accuracy and stability across datasets with different feature distributions and outlier profiles?"
+  conditions:
+    - name: "no_scaling_knn"
+      description: "KNeighborsClassifier with fixed k and distance metric on raw features; control condition."
+    - name: "standard_scaler_knn"
+      description: "Pipeline(StandardScaler, KNeighborsClassifier) with the same KNN hyperparameters as control."
+    - name: "minmax_scaler_knn"
+      description: "Pipeline(MinMaxScaler, KNeighborsClassifier) with identical KNN settings."
+    - name: "robust_scaler_knn"
+      description: "Pipeline(RobustScaler, KNeighborsClassifier) with identical KNN settings."
+  baselines:
+    - "no_scaling_knn is the preprocessing-free baseline"
+  metrics:
+    - name: "test_accuracy"
+      direction: "maximize"
+      description: "Mean held-out accuracy over at least 5 random stratified splits per dataset."
+    - name: "macro_f1"
+      direction: "maximize"
+      description: "Macro-averaged F1 on held-out data, averaged over splits."
+    - name: "accuracy_std"
+      direction: "minimize"
+      description: "Standard deviation of test accuracy across random splits as a stability indicator."
+  datasets:
+    - name: "wine"
+      source: "sklearn.datasets.load_wine"
+    - name: "breast_cancer"
+      source: "sklearn.datasets.load_breast_cancer"
+    - name: "synthetic_outlier_classification"
+      source: "sklearn.datasets.make_classification with injected feature outliers on a subset of samples"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 180
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML04.json"

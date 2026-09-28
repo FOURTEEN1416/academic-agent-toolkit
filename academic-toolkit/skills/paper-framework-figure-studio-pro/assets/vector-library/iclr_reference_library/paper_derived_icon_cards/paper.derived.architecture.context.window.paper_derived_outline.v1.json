@@ -1,0 +1,374 @@
+{
+  "concept_id": "paper.derived.architecture.context.window",
+  "icon_id": "paper.derived.architecture.context.window.paper_derived_outline.v1",
+  "primary_meaning": "Paper-derived context window assembly",
+  "aliases": [
+    "context window",
+    "context packing"
+  ],
+  "negative_aliases": [
+    "paper-specific module name",
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim",
+    "literal reproduction of source figure"
+  ],
+  "shape_family_id": "paper.derived.context_window",
+  "style_variant": "paper_derived_refined_outline",
+  "domain_tags": [
+    "paper_derived",
+    "framework_figure_motif",
+    "AI",
+    "CS",
+    "paper_figure",
+    "architecture",
+    "context",
+    "window"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot",
+    "visual_layout_reuse"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support",
+    "literal reproduction of source paper figure"
+  ],
+  "source_lineage": {
+    "import_mode": "paper_figure_motif_abstraction",
+    "source": "paper_framework_figure_motif_extraction",
+    "source_path": "final_reference_figure_library.jsonl",
+    "source_figure_count": 10,
+    "source_figures": [
+      {
+        "reference_case_id": "iclr2025/a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models/fig-0001",
+        "paper_title": "A Probabilistic Perspective on Unlearning and Alignment for Large Language Models",
+        "field": "NLP",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/NLP/a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models/figures/pdf_framework_page_001.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models/figures/pdf_framework_page_001.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models:fig-0001",
+          "includegraphics": "iclr2025_collection/papers/NLP/a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models/figures/pdf_framework_page_001.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules/fig-0004",
+        "paper_title": "A Theoretically-Principled Sparse, Connected, and Rigid Graph Representation of Molecules",
+        "field": "Graph",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/Graph/a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules/figures/pdf_framework_page_016.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Graph/a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules/figures/pdf_framework_page_016.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/Graph/a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules/figures/pdf_framework_page_016.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/backtracking-improves-generation-safety/fig-0001",
+        "paper_title": "Backtracking Improves Generation Safety",
+        "field": "NLP",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/figures/framework_01_method.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/sources/arxiv_src/main.tex",
+          "line": 117,
+          "label": "fig:method",
+          "includegraphics": "figures/method.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/block-diffusion-interpolating-between-autoregressive-and-diffusion-language-models/fig-0002",
+        "paper_title": "Block Diffusion: Interpolating Between Autoregressive and Diffusion Language Models",
+        "field": "NLP",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/NLP/block-diffusion-interpolating-between-autoregressive-and-diffusion-language-models/figures/pdf_framework_page_002.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/block-diffusion-interpolating-between-autoregressive-and-diffusion-language-models/figures/pdf_framework_page_002.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:block-diffusion-interpolating-between-autoregressive-and-diffusion-language-models:fig-0002",
+          "includegraphics": "iclr2025_collection/papers/NLP/block-diffusion-interpolating-between-autoregressive-and-diffusion-language-models/figures/pdf_framework_page_002.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/brain-bandit-a-biologically-grounded-neural-network-for-efficient-control-of-exploration/fig-0004",
+        "paper_title": "Brain Bandit: A Biologically Grounded Neural Network for Efficient Control of Exploration",
+        "field": "RL",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/RL/brain-bandit-a-biologically-grounded-neural-network-for-efficient-control-of-exploration/figures/pdf_framework_page_010.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/RL/brain-bandit-a-biologically-grounded-neural-network-for-efficient-control-of-exploration/figures/pdf_framework_page_010.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:brain-bandit-a-biologically-grounded-neural-network-for-efficient-control-of-exploration:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/RL/brain-bandit-a-biologically-grounded-neural-network-for-efficient-control-of-exploration/figures/pdf_framework_page_010.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/can-neural-networks-achieve-optimal-computational-statistical-tradeoff-an-analysis-on-sing/fig-0001",
+        "paper_title": "Can Neural Networks Achieve Optimal Computational-statistical Tradeoff? An Analysis on Single-Index Model",
+        "field": "Optimization",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/Optimization/can-neural-networks-achieve-optimal-computational-statistical-tradeoff-an-analysis-on-sing/figures/pdf_framework_page_001.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Optimization/can-neural-networks-achieve-optimal-computational-statistical-tradeoff-an-analysis-on-sing/figures/pdf_framework_page_001.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:can-neural-networks-achieve-optimal-computational-statistical-tradeoff-an-analysis-on-sing:fig-0001",
+          "includegraphics": "iclr2025_collection/papers/Optimization/can-neural-networks-achieve-optimal-computational-statistical-tradeoff-an-analysis-on-sing/figures/pdf_framework_page_001.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/computationally-efficient-rl-under-linear-bellman-completeness-for-deterministic-dynamics/fig-0005",
+        "paper_title": "Computationally Efficient RL under Linear Bellman Completeness for Deterministic Dynamics",
+        "field": "RL",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/RL/computationally-efficient-rl-under-linear-bellman-completeness-for-deterministic-dynamics/figures/pdf_framework_page_011.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/RL/computationally-efficient-rl-under-linear-bellman-completeness-for-deterministic-dynamics/figures/pdf_framework_page_011.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:computationally-efficient-rl-under-linear-bellman-completeness-for-deterministic-dynamics:fig-0005",
+          "includegraphics": "iclr2025_collection/papers/RL/computationally-efficient-rl-under-linear-bellman-completeness-for-deterministic-dynamics/figures/pdf_framework_page_011.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/connecting-federated-admm-to-bayes/fig-0004",
+        "paper_title": "Connecting Federated ADMM to Bayes",
+        "field": "FL",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/FL/connecting-federated-admm-to-bayes/figures/pdf_framework_page_011.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/FL/connecting-federated-admm-to-bayes/figures/pdf_framework_page_011.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:connecting-federated-admm-to-bayes:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/FL/connecting-federated-admm-to-bayes/figures/pdf_framework_page_011.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r/fig-0003",
+        "paper_title": "Context-Parametric Inversion: Why Instruction Finetuning May Not Actually Improve Context Reliance",
+        "field": "NLP",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/NLP/context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r/figures/pdf_framework_page_003.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r/figures/pdf_framework_page_003.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r:fig-0003",
+          "includegraphics": "iclr2025_collection/papers/NLP/context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r/figures/pdf_framework_page_003.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r/fig-0005",
+        "paper_title": "Context-Parametric Inversion: Why Instruction Finetuning May Not Actually Improve Context Reliance",
+        "field": "NLP",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/NLP/context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r/figures/pdf_framework_page_006.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r/figures/pdf_framework_page_006.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r:fig-0005",
+          "includegraphics": "iclr2025_collection/papers/NLP/context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r/figures/pdf_framework_page_006.png"
+        },
+        "match_score": 8
+      }
+    ],
+    "extraction_basis": [
+      "source-grounded final reference figure records",
+      "figure subtype/layout/topology tags",
+      "caption/source-anchor keyword evidence",
+      "borrowable visual design patterns"
+    ],
+    "abstraction_level": "non_literal_semantic_visual_motif",
+    "imported_at": "2026-05-24T08:42:52.295Z",
+    "modified": true,
+    "modification": "Created as a simplified vector motif from repeated downloaded-paper framework figure patterns; source-paper text, labels, claims, datasets, metrics, and exact visual composition are intentionally not copied.",
+    "refinement": {
+      "status": "refined_semantic_vector_redraw",
+      "semantic_kind": "kv_cache",
+      "workflow": [
+        "contact_sheet_with_padding",
+        "imagegen_prompt_manifest_for_style_exploration",
+        "semantic_cut_slot",
+        "programmatic_svg_redraw",
+        "index_update"
+      ],
+      "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+      "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+      "generated_at": "2026-05-24T09:34:49.711Z"
+    }
+  },
+  "license": {
+    "name": "Paper-derived framework figure motif abstraction",
+    "license": "source-paper-visual-motif-abstraction",
+    "usage_terms": "Internal reusable visual/layout motif. Use for generic figure icon language only; do not treat as source-paper evidence or copy source-paper facts."
+  },
+  "files": {
+    "raw_svg": "icons/raw/paper.derived.architecture.context.window.paper_derived_outline.v1.svg",
+    "tight_svg": "icons/tight/paper.derived.architecture.context.window.paper_derived_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/paper.derived.architecture.context.window.paper_derived_outline.v1.ppt_safe.svg",
+    "semantic_cut_svg": "paper_derived_icon_refinement/cut_svg/paper.derived.architecture.context.window.paper_derived_outline.v1.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": -2.775,
+    "minY": -2.775,
+    "width": 24.55,
+    "height": 20.55,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": -0.083,
+      "top": -0.083,
+      "right": 0.125,
+      "bottom": 0.292
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "refined_from_semantic_contact_sheet": true,
+    "editable_shape_primitives": true,
+    "sha1": "6d58eaab45ae67b7385995f1881cb9bfc3400ae2"
+  },
+  "transfer_contract": {
+    "allowed": [
+      "generic visual icon language",
+      "layout/motif inspiration",
+      "PPT editable stencil use"
+    ],
+    "disallowed": [
+      "source-paper facts",
+      "paper-specific labels",
+      "metrics",
+      "datasets",
+      "claims",
+      "literal source-figure reproduction"
+    ]
+  },
+  "refinement": {
+    "status": "refined_semantic_vector_redraw",
+    "semantic_kind": "kv_cache",
+    "workflow": [
+      "contact_sheet_with_padding",
+      "imagegen_prompt_manifest_for_style_exploration",
+      "semantic_cut_slot",
+      "programmatic_svg_redraw",
+      "index_update"
+    ],
+    "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+    "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+    "generated_at": "2026-05-24T09:34:49.711Z"
+  }
+}

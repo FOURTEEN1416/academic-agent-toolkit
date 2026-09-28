@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vibeskills.dev/schemas/host-capability.schema.json",
+  "title": "Host Capability Profile",
+  "type": "object",
+  "required": [
+    "adapter_id",
+    "host_name",
+    "status",
+    "runtime_role",
+    "capabilities",
+    "degrade_contract"
+  ],
+  "properties": {
+    "adapter_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "host_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "full-authoritative",
+        "supported-with-constraints",
+        "preview",
+        "degraded-but-supported",
+        "not-yet-proven",
+        "advisory-only",
+        "unsupported"
+      ]
+    },
+    "runtime_role": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "degrade_contract": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}
+

@@ -1,0 +1,467 @@
+{
+  "generated_at": "2026-05-24T08:42:08.500Z",
+  "families": [
+    {
+      "family": "encoder_decoder_architectures",
+      "count": 26,
+      "examples": [
+        "ai.encdec.autoencoder.basic.ppt_primitive.v1",
+        "ai.encdec.bart.denoising.ppt_primitive.v1",
+        "ai.encdec.bottleneck.latent.ppt_primitive.v1",
+        "ai.encdec.cross.attention.bridge.ppt_primitive.v1",
+        "ai.encdec.decoder.only.lm.ppt_primitive.v1",
+        "ai.encdec.dual.encoder.ppt_primitive.v1",
+        "ai.encdec.encoder.only.classifier.ppt_primitive.v1",
+        "ai.encdec.generic.encoder.decoder.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "diffusion_model_diagrams",
+      "count": 24,
+      "examples": [
+        "ai.diffusion.classifier.free.guidance.ppt_primitive.v1",
+        "ai.diffusion.consistency.model.ppt_primitive.v1",
+        "ai.diffusion.controlnet.branch.ppt_primitive.v1",
+        "ai.diffusion.ddim.sampler.ppt_primitive.v1",
+        "ai.diffusion.ddpm.forward.reverse.ppt_primitive.v1",
+        "ai.diffusion.denoising.unet.detail.ppt_primitive.v1",
+        "ai.diffusion.diffusion.prior.ppt_primitive.v1",
+        "ai.diffusion.dit.patch.transformer.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "transformer_llm",
+      "count": 20,
+      "examples": [
+        "nn.llm.beam.tree.ppt_primitive.v1",
+        "nn.llm.logits.bars.ppt_primitive.v1",
+        "nn.llm.rag.context.flow.ppt_primitive.v1",
+        "nn.llm.sampling.filter.ppt_primitive.v1",
+        "nn.llm.tokenizer.pipeline.ppt_primitive.v1",
+        "nn.llm.tool.call.loop.ppt_primitive.v1",
+        "nn.transformer.add.norm.ppt_primitive.v1",
+        "nn.transformer.attention.head.detail.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "advanced_rag_memory",
+      "count": 18,
+      "examples": [
+        "ai.rag.agentic.multi.step.ppt_primitive.v1",
+        "ai.rag.answer.verifier.ppt_primitive.v1",
+        "ai.rag.cache.hierarchy.ppt_primitive.v1",
+        "ai.rag.chunking.pipeline.ppt_primitive.v1",
+        "ai.rag.citation.grounding.ppt_primitive.v1",
+        "ai.rag.context.packing.ppt_primitive.v1",
+        "ai.rag.document.compressor.ppt_primitive.v1",
+        "ai.rag.graph.retrieval.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "agent_tool_planning",
+      "count": 18,
+      "examples": [
+        "ai.agent.api.call.slot.ppt_primitive.v1",
+        "ai.agent.browser.tool.ppt_primitive.v1",
+        "ai.agent.code.interpreter.ppt_primitive.v1",
+        "ai.agent.critic.reflection.loop.ppt_primitive.v1",
+        "ai.agent.debate.panel.ppt_primitive.v1",
+        "ai.agent.guardrail.gateway.ppt_primitive.v1",
+        "ai.agent.handoff.chain.ppt_primitive.v1",
+        "ai.agent.memory.read.write.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "attention_context_kv",
+      "count": 18,
+      "examples": [
+        "ai.attention.alibi.slopes.ppt_primitive.v1",
+        "ai.attention.block.causal.mask.ppt_primitive.v1",
+        "ai.attention.cross.modal.grid.ppt_primitive.v1",
+        "ai.attention.entropy.panel.ppt_primitive.v1",
+        "ai.attention.flash.block.tiles.ppt_primitive.v1",
+        "ai.attention.head.importance.ppt_primitive.v1",
+        "ai.attention.ring.sequence.ppt_primitive.v1",
+        "ai.attention.rollout.map.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "loss_metric_curves",
+      "count": 18,
+      "examples": [
+        "ai.curve.ablation.lines.ppt_primitive.v1",
+        "ai.curve.accuracy.metric.ppt_primitive.v1",
+        "ai.curve.benchmark.bars.ppt_primitive.v1",
+        "ai.curve.calibration.error.ppt_primitive.v1",
+        "ai.curve.compute.optimal.frontier.ppt_primitive.v1",
+        "ai.curve.cosine.schedule.ppt_primitive.v1",
+        "ai.curve.curriculum.schedule.ppt_primitive.v1",
+        "ai.curve.early.stopping.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "probability_distribution_plots",
+      "count": 18,
+      "examples": [
+        "ai.plot.calibration.reliability.ppt_primitive.v1",
+        "ai.plot.class.clusters.ppt_primitive.v1",
+        "ai.plot.confidence.interval.ppt_primitive.v1",
+        "ai.plot.domain.shift.arrow.ppt_primitive.v1",
+        "ai.plot.epistemic.aleatoric.ppt_primitive.v1",
+        "ai.plot.histogram.density.ppt_primitive.v1",
+        "ai.plot.manifold.projection.ppt_primitive.v1",
+        "ai.plot.mixture.prior.posterior.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "state_space_recurrent",
+      "count": 18,
+      "examples": [
+        "ai.rnn.bidirectional.ppt_primitive.v1",
+        "ai.rnn.gru.cell.gates.ppt_primitive.v1",
+        "ai.rnn.liquid.state.ppt_primitive.v1",
+        "ai.rnn.lstm.cell.gates.ppt_primitive.v1",
+        "ai.rnn.sequence.pooling.ppt_primitive.v1",
+        "ai.rnn.temporal.convolution.ppt_primitive.v1",
+        "ai.rnn.vanilla.unroll.ppt_primitive.v1",
+        "ai.sequence.gated.state.transition.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "tensor_and_matrix",
+      "count": 18,
+      "examples": [
+        "nn.tensor.3d.block.ppt_primitive.v1",
+        "nn.tensor.attention.map.ppt_primitive.v1",
+        "nn.tensor.broadcast.operation.ppt_primitive.v1",
+        "nn.tensor.causal.mask.ppt_primitive.v1",
+        "nn.tensor.channel.stack.ppt_primitive.v1",
+        "nn.tensor.concat.flow.ppt_primitive.v1",
+        "nn.tensor.confusion.matrix.ppt_primitive.v1",
+        "nn.tensor.einsum.contract.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "vlm_vla_robotics",
+      "count": 18,
+      "examples": [
+        "ai.vla.3d.grounding.ppt_primitive.v1",
+        "ai.vla.action.chunking.ppt_primitive.v1",
+        "ai.vla.camera.proprioception.fusion.ppt_primitive.v1",
+        "ai.vla.embodied.memory.ppt_primitive.v1",
+        "ai.vla.gripper.action.head.ppt_primitive.v1",
+        "ai.vla.language.conditioned.policy.ppt_primitive.v1",
+        "ai.vla.observation.action.loop.ppt_primitive.v1",
+        "ai.vla.plan.to.motion.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "atomic_nn_parts",
+      "count": 16,
+      "examples": [
+        "nn.atomic.activation.curve.ppt_primitive.v1",
+        "nn.atomic.dropout.mask.ppt_primitive.v1",
+        "nn.atomic.gate.switch.ppt_primitive.v1",
+        "nn.atomic.kernel.tile.ppt_primitive.v1",
+        "nn.atomic.latent.circle.ppt_primitive.v1",
+        "nn.atomic.mask.tile.ppt_primitive.v1",
+        "nn.atomic.memory.slot.ppt_primitive.v1",
+        "nn.atomic.multiply.node.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "llm_reasoning_decoding",
+      "count": 16,
+      "examples": [
+        "ai.llm.chain.of.thought.trace.ppt_primitive.v1",
+        "ai.llm.citation.grounding.ppt_primitive.v1",
+        "ai.llm.constrained.decoding.ppt_primitive.v1",
+        "ai.llm.context.distillation.ppt_primitive.v1",
+        "ai.llm.contrastive.decoding.ppt_primitive.v1",
+        "ai.llm.debate.judge.ppt_primitive.v1",
+        "ai.llm.grammar.decoding.ppt_primitive.v1",
+        "ai.llm.hallucination.check.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "model_compression_serving",
+      "count": 16,
+      "examples": [
+        "ai.compress.distillation.teacher.student.ppt_primitive.v1",
+        "ai.compress.low.precision.matmul.ppt_primitive.v1",
+        "ai.compress.pruning.mask.ppt_primitive.v1",
+        "ai.compress.quantization.bins.ppt_primitive.v1",
+        "ai.serving.adapter.hotswap.ppt_primitive.v1",
+        "ai.serving.autoscale.panel.ppt_primitive.v1",
+        "ai.serving.batch.merge.split.ppt_primitive.v1",
+        "ai.serving.batch.scheduler.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "cnn_and_vision",
+      "count": 15,
+      "examples": [
+        "nn.cnn.conv2d.window.ppt_primitive.v1",
+        "nn.cnn.conv3d.volume.ppt_primitive.v1",
+        "nn.cnn.deconv.block.ppt_primitive.v1",
+        "nn.cnn.depthwise.pointwise.ppt_primitive.v1",
+        "nn.cnn.dilated.kernel.ppt_primitive.v1",
+        "nn.cnn.feature.pyramid.ppt_primitive.v1",
+        "nn.cnn.pool.downsample.ppt_primitive.v1",
+        "nn.cnn.unet.full.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "frequency_probability",
+      "count": 15,
+      "examples": [
+        "nn.freq.filter.low.high.band.ppt_primitive.v1",
+        "nn.freq.fno.block.ppt_primitive.v1",
+        "nn.freq.fourier.transform.panel.ppt_primitive.v1",
+        "nn.freq.inverse.fourier.panel.ppt_primitive.v1",
+        "nn.freq.spectrogram.tile.ppt_primitive.v1",
+        "nn.freq.spectrum.bars.ppt_primitive.v1",
+        "nn.freq.wavelet.bank.ppt_primitive.v1",
+        "nn.prob.decision.boundary.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "neural_skeleton",
+      "count": 15,
+      "examples": [
+        "nn.layer.bottleneck.hourglass.ppt_primitive.v1",
+        "nn.layer.branch.merge.ppt_primitive.v1",
+        "nn.layer.dense.connected.ppt_primitive.v1",
+        "nn.layer.fanin.ppt_primitive.v1",
+        "nn.layer.fanout.ppt_primitive.v1",
+        "nn.layer.gated.block.ppt_primitive.v1",
+        "nn.layer.highway.gate.ppt_primitive.v1",
+        "nn.layer.memory.cell.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "ppt_connectors_annotations",
+      "count": 15,
+      "examples": [
+        "ppt.annotation.brace.horizontal.ppt_primitive.v1",
+        "ppt.annotation.brace.vertical.ppt_primitive.v1",
+        "ppt.annotation.callout.pointer.ppt_primitive.v1",
+        "ppt.annotation.zoom.inset.ppt_primitive.v1",
+        "ppt.connector.bidirectional.ppt_primitive.v1",
+        "ppt.connector.curved.arrow.ppt_primitive.v1",
+        "ppt.connector.elbow.arrow.ppt_primitive.v1",
+        "ppt.connector.feedback.loop.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "training_systems",
+      "count": 15,
+      "examples": [
+        "nn.system.all.reduce.ring.ppt_primitive.v1",
+        "nn.system.data.parallel.ppt_primitive.v1",
+        "nn.system.federated.clients.ppt_primitive.v1",
+        "nn.system.parameter.shards.ppt_primitive.v1",
+        "nn.system.pipeline.parallel.ppt_primitive.v1",
+        "nn.system.server.aggregator.ppt_primitive.v1",
+        "nn.system.tensor.parallel.ppt_primitive.v1",
+        "nn.train.contrastive.pairs.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "generative_world_models",
+      "count": 14,
+      "examples": [
+        "ai.gen.autoregressive.image.tokens.ppt_primitive.v1",
+        "ai.gen.consistency.distillation.ppt_primitive.v1",
+        "ai.gen.controlnet.side.branch.ppt_primitive.v1",
+        "ai.gen.diffusion.transformer.ppt_primitive.v1",
+        "ai.gen.flow.matching.path.ppt_primitive.v1",
+        "ai.gen.gan.discriminator.loop.ppt_primitive.v1",
+        "ai.gen.inpaint.mask.ppt_primitive.v1",
+        "ai.gen.latent.diffusion.pipeline.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "gnn_geometric_reasoning",
+      "count": 14,
+      "examples": [
+        "ai.gnn.equivariant.vector.field.ppt_primitive.v1",
+        "ai.gnn.graph.diffusion.ppt_primitive.v1",
+        "ai.gnn.graph.readout.ppt_primitive.v1",
+        "ai.gnn.graph.transformer.ppt_primitive.v1",
+        "ai.gnn.heterogeneous.graph.ppt_primitive.v1",
+        "ai.gnn.knowledge.triples.ppt_primitive.v1",
+        "ai.gnn.mesh.message.passing.ppt_primitive.v1",
+        "ai.gnn.molecule.graph.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "multimodal_fusion_advanced",
+      "count": 14,
+      "examples": [
+        "ai.mm.audio.spectrogram.encoder.ppt_primitive.v1",
+        "ai.mm.cross.modal.coattention.ppt_primitive.v1",
+        "ai.mm.cross.modal.memory.ppt_primitive.v1",
+        "ai.mm.depth.rgb.fusion.ppt_primitive.v1",
+        "ai.mm.gated.fusion.ppt_primitive.v1",
+        "ai.mm.late.score.ensemble.ppt_primitive.v1",
+        "ai.mm.lidar.camera.fusion.ppt_primitive.v1",
+        "ai.mm.modality.dropout.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "vision_foundation_models",
+      "count": 14,
+      "examples": [
+        "ai.vision.clip.image.encoder.ppt_primitive.v1",
+        "ai.vision.depth.estimation.ppt_primitive.v1",
+        "ai.vision.detr.object.queries.ppt_primitive.v1",
+        "ai.vision.diffusion.unet.blocks.ppt_primitive.v1",
+        "ai.vision.dino.self.supervised.ppt_primitive.v1",
+        "ai.vision.feature.pyramid.neck.ppt_primitive.v1",
+        "ai.vision.image.captioner.ppt_primitive.v1",
+        "ai.vision.image.retrieval.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "attention_variants",
+      "count": 12,
+      "examples": [
+        "nn.attention.axial.row.column.ppt_primitive.v1",
+        "nn.attention.block.sparse.ppt_primitive.v1",
+        "nn.attention.flash.tile.ppt_primitive.v1",
+        "nn.attention.global.tokens.ppt_primitive.v1",
+        "nn.attention.grouped.query.ppt_primitive.v1",
+        "nn.attention.head.pruning.ppt_primitive.v1",
+        "nn.attention.linear.kernel.ppt_primitive.v1",
+        "nn.attention.local.window.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "data_preprocessing_labeling",
+      "count": 12,
+      "examples": [
+        "ai.data.active.learning.loop.ppt_primitive.v1",
+        "ai.data.augmentation.branch.ppt_primitive.v1",
+        "ai.data.augmentation.grid.ppt_primitive.v1",
+        "ai.data.class.imbalance.ppt_primitive.v1",
+        "ai.data.curation.funnel.ppt_primitive.v1",
+        "ai.data.hard.negative.mining.ppt_primitive.v1",
+        "ai.data.label.smoothing.ppt_primitive.v1",
+        "ai.data.loader.pipeline.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "safety_alignment_eval",
+      "count": 12,
+      "examples": [
+        "ai.align.constitutional.critique.ppt_primitive.v1",
+        "ai.align.dpo.pairwise.ppt_primitive.v1",
+        "ai.align.preference.model.ppt_primitive.v1",
+        "ai.align.rlhf.pipeline.ppt_primitive.v1",
+        "ai.eval.hallucination.citation.check.ppt_primitive.v1",
+        "ai.eval.uncertainty.abstain.ppt_primitive.v1",
+        "ai.safety.bias.audit.matrix.ppt_primitive.v1",
+        "ai.safety.classifier.gateway.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "scientific_ai_operators",
+      "count": 12,
+      "examples": [
+        "ai.science.boundary.condition.ppt_primitive.v1",
+        "ai.science.equation.residual.ppt_primitive.v1",
+        "ai.science.graph.force.field.ppt_primitive.v1",
+        "ai.science.inverse.problem.loop.ppt_primitive.v1",
+        "ai.science.mesh.to.field.ppt_primitive.v1",
+        "ai.science.molecular.diffusion.ppt_primitive.v1",
+        "ai.science.neural.operator.ppt_primitive.v1",
+        "ai.science.pde.operator.block.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "diffusion_generative",
+      "count": 10,
+      "examples": [
+        "nn.diffusion.denoise.ladder.ppt_primitive.v1",
+        "nn.diffusion.guidance.branch.ppt_primitive.v1",
+        "nn.diffusion.noise.ladder.ppt_primitive.v1",
+        "nn.diffusion.score.field.ppt_primitive.v1",
+        "nn.diffusion.time.embedding.ppt_primitive.v1",
+        "nn.diffusion.unet.conditioned.ppt_primitive.v1",
+        "nn.generative.autoencoder.ppt_primitive.v1",
+        "nn.generative.flow.coupling.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "graph_geometric",
+      "count": 10,
+      "examples": [
+        "nn.geometry.mesh.surface.ppt_primitive.v1",
+        "nn.geometry.point.cloud.ppt_primitive.v1",
+        "nn.geometry.voxel.grid.ppt_primitive.v1",
+        "nn.graph.adjacency.to.nodes.ppt_primitive.v1",
+        "nn.graph.attention.ppt_primitive.v1",
+        "nn.graph.bipartite.ppt_primitive.v1",
+        "nn.graph.hypergraph.ppt_primitive.v1",
+        "nn.graph.message.passing.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "multimodal_fusion",
+      "count": 10,
+      "examples": [
+        "nn.mm.audio.text.fusion.ppt_primitive.v1",
+        "nn.mm.contrastive.alignment.ppt_primitive.v1",
+        "nn.mm.cross.modal.attention.ppt_primitive.v1",
+        "nn.mm.early.fusion.ppt_primitive.v1",
+        "nn.mm.late.fusion.ppt_primitive.v1",
+        "nn.mm.modality.tokens.ppt_primitive.v1",
+        "nn.mm.shared.embedding.space.ppt_primitive.v1",
+        "nn.mm.text.image.fusion.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "peft_adapter_modules",
+      "count": 10,
+      "examples": [
+        "nn.peft.adapter.bottleneck.ppt_primitive.v1",
+        "nn.peft.adapter.merge.ppt_primitive.v1",
+        "nn.peft.delta.weights.ppt_primitive.v1",
+        "nn.peft.frozen.backbone.ppt_primitive.v1",
+        "nn.peft.ia3.gates.ppt_primitive.v1",
+        "nn.peft.lora.insert.ppt_primitive.v1",
+        "nn.peft.lora.rank.path.ppt_primitive.v1",
+        "nn.peft.prefix.tokens.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "rl_agent_primitives",
+      "count": 10,
+      "examples": [
+        "nn.rl.actor.critic.ppt_primitive.v1",
+        "nn.rl.environment.loop.ppt_primitive.v1",
+        "nn.rl.mcts.tree.ppt_primitive.v1",
+        "nn.rl.policy.head.ppt_primitive.v1",
+        "nn.rl.preference.pairs.ppt_primitive.v1",
+        "nn.rl.q.value.table.ppt_primitive.v1",
+        "nn.rl.reward.model.ppt_primitive.v1",
+        "nn.rl.rollout.buffer.ppt_primitive.v1"
+      ]
+    },
+    {
+      "family": "training_eval_panels",
+      "count": 10,
+      "examples": [
+        "nn.eval.ablation.grid.ppt_primitive.v1",
+        "nn.eval.before.after.examples.ppt_primitive.v1",
+        "nn.eval.compute.memory.tradeoff.ppt_primitive.v1",
+        "nn.eval.confidence.calibration.ppt_primitive.v1",
+        "nn.eval.error.taxonomy.matrix.ppt_primitive.v1",
+        "nn.eval.failure.case.grid.ppt_primitive.v1",
+        "nn.eval.human.preference.panel.ppt_primitive.v1",
+        "nn.eval.latency.throughput.panel.ppt_primitive.v1"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+# CER Report: {{topic}}
+
+## Metadata
+- `report_id`: `{{report_id}}`
+- `date`: `{{date}}`
+- `task_id`: `{{task_id}}`
+- `grade`: `{{grade}}`
+- `task_type`: `{{task_type}}`
+- `analyzer`: `Context Retro Advisor`
+- `schema_version`: `1.2.0`
+- `governance_mode`: `report_only`
+- `anti_proxy_goal_drift_tier`: `{{anti_proxy_goal_drift_tier}}`
+- `completion_state`: `{{completion_state}}`
+- `abstraction_layer_target`: `{{abstraction_layer_target}}`
+
+## Objective Protection
+- `primary_objective`: `{{primary_objective}}`
+- `non_objective_proxy_signals`: `{{non_objective_proxy_signals}}`
+- `validation_material_role`: `{{validation_material_role}}`
+- `intended_scope`: `{{intended_scope}}`
+- `specialization_assessment`: `{{specialization_assessment}}`
+- `generalization_evidence_bundle`: `{{generalization_evidence_bundle}}`
+- `report_only_warning_codes`: `{{report_only_warning_codes}}`
+- `completion_honesty_notes`: `{{completion_honesty_notes}}`
+
+## Trigger Signals
+- `retry_count_10m`: `{{retry_count_10m}}`
+- `fallback_rate`: `{{fallback_rate}}`
+- `context_pressure`: `{{context_pressure}}`
+- `route_stability_pack`: `{{route_stability_pack}}`
+- `route_stability_skill`: `{{route_stability_skill}}`
+- `top1_top2_gap`: `{{top1_top2_gap}}`
+- `triggered_reasons`: `{{triggered_reasons}}`
+
+## Findings
+
+### Finding 1
+1. `Pattern`: `{{pattern_1}}`
+2. `Evidence`: `{{evidence_1}}`
+3. `Root Cause`: `{{root_cause_1}}`
+4. `Intervention`: `{{intervention_1}}`
+5. `Guardrail`: `{{guardrail_1}}`
+6. `Confidence`: `{{confidence_1}}`
+
+### Finding 2
+1. `Pattern`: `{{pattern_2}}`
+2. `Evidence`: `{{evidence_2}}`
+3. `Root Cause`: `{{root_cause_2}}`
+4. `Intervention`: `{{intervention_2}}`
+5. `Guardrail`: `{{guardrail_2}}`
+6. `Confidence`: `{{confidence_2}}`
+
+## Actions
+- `approved_actions`: `{{approved_actions}}`
+- `deferred_actions`: `{{deferred_actions}}`
+- `owners`: `{{owners}}`
+- `due_dates`: `{{due_dates}}`
+
+## Comparison Baseline
+- `baseline_report_id`: `{{baseline_report_id}}`
+- `pattern_delta`: `{{pattern_delta}}`
+- `fallback_rate_delta`: `{{fallback_rate_delta}}`
+- `stability_delta`: `{{stability_delta}}`
+- `notes`: `{{comparison_notes}}`

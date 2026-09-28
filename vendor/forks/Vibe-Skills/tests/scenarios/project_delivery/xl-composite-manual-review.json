@@ -1,0 +1,64 @@
+{
+  "scenario_id": "xl-composite-manual-review",
+  "task_class": "xl_composite_module_delivery",
+  "runtime": {
+    "status": "completed",
+    "readiness_state": "ready"
+  },
+  "truths": {
+    "governance_truth": {
+      "state": "passing",
+      "evidence": [
+        "root-owned requirement and plan remain canonical"
+      ]
+    },
+    "engineering_verification_truth": {
+      "state": "passing",
+      "evidence": [
+        "automation suite passes",
+        "module outputs are structurally valid"
+      ]
+    },
+    "module_acceptance_truth": {
+      "state": "passing",
+      "evidence": [
+        "module-work-plan.json and agent-execution-handoff.json agree on dependency-ready waves",
+        "module-execution.json records every required module as completed"
+      ]
+    },
+    "workflow_completion_truth": {
+      "state": "passing",
+      "evidence": [
+        "all dependency-ready waves reconcile through module-execution.json",
+        "required outputs emitted"
+      ]
+    },
+    "code_task_tdd_evidence_truth": {
+      "state": "passing",
+      "evidence": [
+        "implementation lane captured failing-first and green verification evidence before handoff"
+      ]
+    },
+    "artifact_review_truth": {
+      "state": "manual_review_required",
+      "evidence": [
+        "final scientific artifact still requires direct expert review"
+      ],
+      "notes": "Artifact exists, but the required domain review has not been closed."
+    },
+    "product_acceptance_truth": {
+      "state": "manual_review_required",
+      "evidence": [
+        "automated checks pass but final downstream judgment still needs a domain expert"
+      ],
+      "notes": "Scientific output quality still requires bounded manual review."
+    }
+  },
+  "manual_spot_checks": [
+    "Review the scientific writing section for methodological honesty.",
+    "Review the domain-specific analysis output for plausibility."
+  ],
+  "residual_risks": [
+    "Automated acceptance does not fully establish domain correctness."
+  ]
+}

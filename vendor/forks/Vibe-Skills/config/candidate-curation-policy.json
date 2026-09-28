@@ -1,0 +1,570 @@
+﻿{
+    "version":  3,
+    "updated":  "2026-03-06",
+    "purpose":  "Advice-first ecosystem candidate scoring for freeze/watch/retire governance. Scores are reporting-only and never mutate routing defaults or candidate availability.",
+    "candidate_root":  "third_party/vco-ecosystem-mirror",
+    "output_defaults":  {
+                            "output_directory":  "outputs/governance/candidate-curation",
+                            "leaderboard_json":  "candidate-curation-leaderboard.json",
+                            "leaderboard_markdown":  "candidate-curation-leaderboard.md"
+                        },
+    "governance_board":  {
+                             "scoreboard":  {
+                                                "output_directory":  "outputs/governance/scoreboard",
+                                                "scoreboard_json":  "governance-scoreboard.json",
+                                                "scoreboard_markdown":  "governance-scoreboard.md"
+                                            },
+                             "cadence":  {
+                                             "monthly":  {
+                                                             "label":  "monthly-governance-board",
+                                                             "review_within_days":  35,
+                                                             "required_reviews":  [
+                                                                                      "scoreboard-refresh",
+                                                                                      "promotion-queue-triage",
+                                                                                      "watch-expiry-check",
+                                                                                      "release-packet-blockers"
+                                                                                  ]
+                                                         },
+                                             "quarterly":  {
+                                                               "label":  "quarterly-portfolio-review",
+                                                               "review_within_days":  100,
+                                                               "required_reviews":  [
+                                                                                        "active-revalidation",
+                                                                                        "watch-decision",
+                                                                                        "freeze-thaw-review",
+                                                                                        "retire-reentry-review",
+                                                                                        "threshold-change-proposals"
+                                                                                    ]
+                                                           },
+                                             "incident":  {
+                                                              "label":  "rollback-and-retro-board",
+                                                              "response_within_hours":  24,
+                                                              "required_reviews":  [
+                                                                                       "rollback-audit",
+                                                                                       "degraded-mode-check",
+                                                                                       "post-promotion-retro-scheduling"
+                                                                                   ]
+                                                          }
+                                         },
+                             "owner_roles":  {
+                                                 "board_chair":  "governance-board-chair",
+                                                 "release_steward":  "release-steward",
+                                                 "rollback_owner":  "rollback-owner",
+                                                 "cluster_owner_by_cluster":  {
+                                                                                  "tool-governance":  "tool-plane-owner",
+                                                                                  "skill-metadata":  "skill-supply-owner",
+                                                                                  "workflow-governance":  "workflow-owner",
+                                                                                  "team-discipline":  "team-plane-owner",
+                                                                                  "governance-taxonomy":  "governance-operator",
+                                                                                  "prompt-governance":  "prompt-plane-owner"
+                                                                              }
+                                             },
+                             "states":  {
+                                            "active":  {
+                                                           "owner_role":  "cluster_owner",
+                                                           "review_cadence":  "monthly+quarterly",
+                                                           "allowed_actions":  [
+                                                                                   "hold",
+                                                                                   "freeze",
+                                                                                   "retire",
+                                                                                   "promote-downstream-behavior"
+                                                                               ],
+                                                           "release_packet_required_for":  [
+                                                                                               "default-surface-expansion",
+                                                                                               "pack-candidate-promotion"
+                                                                                           ]
+                                                       },
+                                            "watch":  {
+                                                          "owner_role":  "cluster_owner",
+                                                          "review_cadence":  "monthly",
+                                                          "max_quarters_without_decision":  2,
+                                                          "allowed_actions":  [
+                                                                                  "hold",
+                                                                                  "promote",
+                                                                                  "freeze",
+                                                                                  "retire"
+                                                                              ],
+                                                          "release_packet_required_for":  [
+                                                                                              "watch-to-active",
+                                                                                              "default-surface-expansion"
+                                                                                          ]
+                                                      },
+                                            "freeze":  {
+                                                           "owner_role":  "board_chair",
+                                                           "review_cadence":  "quarterly",
+                                                           "allowed_actions":  [
+                                                                                   "remain-frozen",
+                                                                                   "thaw-to-watch",
+                                                                                   "thaw-to-active",
+                                                                                   "retire"
+                                                                               ],
+                                                           "thaw_requires":  [
+                                                                                 "fresh-scoreboard",
+                                                                                 "promotion-review-template",
+                                                                                 "release-packet"
+                                                                             ]
+                                                       },
+                                            "retire":  {
+                                                           "owner_role":  "board_chair",
+                                                           "review_cadence":  "quarterly",
+                                                           "allowed_actions":  [
+                                                                                   "remain-retired",
+                                                                                   "re-enter-watch",
+                                                                                   "exceptional-reopen"
+                                                                               ],
+                                                           "reentry_requires":  [
+                                                                                    "new-intake-evidence",
+                                                                                    "fresh-scoreboard",
+                                                                                    "promotion-review-template",
+                                                                                    "release-packet"
+                                                                                ]
+                                                       }
+                                        },
+                             "promotion_requirements":  {
+                                                            "required_gate_artifacts":  [
+                                                                                            "prompt-regression-gate",
+                                                                                            "prompt-intelligence-gate",
+                                                                                            "tool-governance-gate",
+                                                                                            "skill-metadata-gate",
+                                                                                            "team-contract-gate",
+                                                                                            "candidate-curation-leaderboard",
+                                                                                            "candidate-curation-gate"
+                                                                                        ],
+                                                            "allow_warning_only_gates":  [
+                                                                                             "prompt-intelligence-gate",
+                                                                                             "tool-governance-gate",
+                                                                                             "skill-metadata-gate"
+                                                                                         ],
+                                                            "block_on_missing":  [
+                                                                                     "prompt-regression-gate",
+                                                                                     "candidate-curation-leaderboard",
+                                                                                     "candidate-curation-gate"
+                                                                                 ],
+                                                            "required_release_packet_sections":  [
+                                                                                                     "change-summary",
+                                                                                                     "evidence",
+                                                                                                     "gate-results",
+                                                                                                     "owner-and-landing-zone",
+                                                                                                     "degraded-mode",
+                                                                                                     "rollback-plan",
+                                                                                                     "retro-trigger"
+                                                                                                 ]
+                                                        },
+                             "approved_states":  {
+                                                     "docling":  "active",
+                                                     "awesome-mcp-servers":  "watch",
+                                                     "activepieces":  "watch",
+                                                     "composio":  "watch",
+                                                     "claude-skills":  "active",
+                                                     "awesome-agent-skills":  "watch",
+                                                     "awesome-claude-code-subagents":  "active",
+                                                     "antigravity-awesome-skills":  "active",
+                                                     "awesome-claude-skills-composio":  "watch",
+                                                     "awesome-vibe-coding":  "watch",
+                                                     "vibe-coding-cn":  "active",
+                                                     "agent-squad":  "active",
+                                                     "awesome-ai-tools":  "watch",
+                                                     "prompt-engineering-guide":  "active",
+                                                     "awesome-ai-agents-e2b":  "watch"
+                                                 }
+                         },
+    "local_evidence":  {
+                           "include_roots":  [
+                                                 "docs",
+                                                 "references",
+                                                 "protocols",
+                                                 "config",
+                                                 "scripts"
+                                             ],
+                           "include_extensions":  [
+                                                      ".md",
+                                                      ".json",
+                                                      ".ps1"
+                                                  ],
+                           "exclude_roots":  [
+                                                 "third_party",
+                                                 "bundled",
+                                                 "outputs"
+                                             ],
+                           "exclude_files":  [
+                                                 "docs/evaluation-and-drift-governance.md",
+                                                 "docs/governance-promotion-board.md",
+                                                 "references/eval-axes.md",
+                                                 "references/promotion-review-template.md",
+                                                 "references/release-packet-checklist.md",
+                                                 "config/candidate-curation-policy.json",
+                                                 "config/prompt-regression-cases.json",
+                                                 "scripts/research/build-governance-scoreboard.ps1",
+                                                 "scripts/research/score-ecosystem-candidates.ps1",
+                                                 "scripts/verify/prompt-regression-gate.ps1",
+                                                 "docs/archive/root-docs/watch-portfolio-rationalization.md",
+                                                 "docs/eval-slicing-operationalization.md",
+                                                 "docs/design/xl-operator-playbook.md",
+                                                 "docs/archive/root-docs/wave15-18-execution-backlog.md",
+                                                 "docs/archive/root-docs/watch-lane-remaining-value-cases.md",
+                                                 "docs/archive/root-docs/wave15-18-verification-spec.md",
+                                                 "docs/archive/releases/wave15-18-release-packet.md",
+                                                 "references/eval-slicing-taxonomy.md",
+                                                 "references/promotion-memos/wave15-18-promotion-prep.md",
+                                                 "references/candidate-case-files/remaining-value-case-matrix.md",
+                                                 "config/candidate-watch-decisions.json",
+                                                 "config/eval-slicing-policy.json",
+                                                 "config/skill-intake-priority.json",
+                                                 "docs/archive/config/xl-operator-checkpoints.json",
+                                                 "config/watch-lane-priority-bands.json",
+                                                 "scripts/research/build-watch-portfolio-review.ps1",
+                                                 "scripts/research/build-eval-slicing-catalog.ps1",
+                                                 "scripts/research/build-xl-operator-checklist.ps1",
+                                                 "scripts/verify/watch-portfolio-gate.ps1",
+                                                 "scripts/verify/wave15-18-consistency-gate.ps1",
+                                                 "..\\\\docs\\\\watch-portfolio-rationalization.md",
+                                                 "..\\\\docs\\\\eval-slicing-operationalization.md",
+                                                 "..\\\\docs\\\\xl-operator-playbook.md",
+                                                 "..\\\\docs\\\\wave15-18-execution-backlog.md",
+                                                 "..\\\\docs\\\\watch-lane-remaining-value-cases.md",
+                                                 "..\\\\docs\\\\wave15-18-verification-spec.md",
+                                                 "..\\\\docs\\\\archive\\\\releases\\\\wave15-18-release-packet.md",
+                                                 "..\\\\references\\\\eval-slicing-taxonomy.md",
+                                                 "..\\\\references\\\\promotion-memos\\\\wave15-18-promotion-prep.md",
+                                                 "..\\\\references\\\\candidate-case-files\\\\remaining-value-case-matrix.md",
+                                                 "..\\\\config\\\\candidate-watch-decisions.json",
+                                                 "..\\\\config\\\\eval-slicing-policy.json",
+                                                 "..\\\\config\\\\skill-intake-priority.json",
+                                                 "..\\\\docs\\\\archive\\\\config\\\\xl-operator-checkpoints.json",
+                                                 "..\\\\config\\\\watch-lane-priority-bands.json",
+                                                 "..\\\\scripts\\\\research\\\\build-watch-portfolio-review.ps1",
+                                                 "..\\\\scripts\\\\research\\\\build-eval-slicing-catalog.ps1",
+                                                 "..\\\\scripts\\\\research\\\\build-xl-operator-checklist.ps1",
+                                                 "..\\\\scripts\\\\verify\\\\watch-portfolio-gate.ps1",
+                                                 "..\\\\scripts\\\\verify\\\\wave15-18-consistency-gate.ps1"
+                                             ]
+                       },
+    "surface":  {
+                    "script_extensions":  [
+                                              ".ps1",
+                                              ".py",
+                                              ".ts",
+                                              ".js",
+                                              ".sh"
+                                          ],
+                    "config_extensions":  [
+                                              ".json",
+                                              ".yaml",
+                                              ".yml",
+                                              ".toml"
+                                          ],
+                    "doc_extensions":  [
+                                           ".md"
+                                       ],
+                    "freshness_bands":  {
+                                            "fresh_days":  30,
+                                            "active_days":  90,
+                                            "aging_days":  180,
+                                            "stale_days":  365
+                                        }
+                },
+    "scoring":  {
+                    "value_weights":  {
+                                          "strategic_fit":  0.28,
+                                          "governance_fit":  0.18,
+                                          "local_adoption_evidence":  0.24,
+                                          "artifact_reuse_surface":  0.18,
+                                          "freshness":  0.12
+                                      },
+                    "freeze_weights":  {
+                                           "overlap_risk":  0.4,
+                                           "execution_risk":  0.25,
+                                           "governance_fit_inverse":  0.15,
+                                           "local_adoption_inverse":  0.1,
+                                           "freeze_bias":  0.1
+                                       },
+                    "retire_weights":  {
+                                           "overlap_risk":  0.25,
+                                           "stale_signal":  0.25,
+                                           "local_adoption_inverse":  0.2,
+                                           "artifact_surface_inverse":  0.15,
+                                           "retire_bias":  0.15
+                                       }
+                },
+    "thresholds":  {
+                       "active":  {
+                                      "min_value_score":  70,
+                                      "max_freeze_score":  45,
+                                      "max_retire_score":  35
+                                  },
+                       "watch":  {
+                                     "min_value_score":  45,
+                                     "max_freeze_score":  65,
+                                     "max_retire_score":  60,
+                                     "fallback_when_no_other_match":  true
+                                 },
+                       "freeze":  {
+                                      "min_freeze_score":  60,
+                                      "max_retire_score":  70
+                                  },
+                       "retire":  {
+                                      "min_retire_score":  70
+                                  }
+                   },
+    "candidates":  [
+                       {
+                           "id":  "docling",
+                           "path":  "docling",
+                           "cluster":  "tool-governance",
+                           "aliases":  [
+                                           "docling",
+                                           "docling-project",
+                                           "document conversion",
+                                           "document parsing"
+                                       ],
+                           "strategic_fit":  72,
+                           "governance_fit":  78,
+                           "execution_risk":  25,
+                           "overlap_risk":  20,
+                           "freeze_bias":  10,
+                           "retire_bias":  5,
+                           "notes":  "Document ingestion/reference plane; mostly integration template value, not default routing value."
+                       },
+                       {
+                           "id":  "awesome-mcp-servers",
+                           "path":  "awesome-mcp-servers",
+                           "cluster":  "tool-governance",
+                           "aliases":  [
+                                           "awesome-mcp-servers",
+                                           "mcp servers",
+                                           "model context protocol servers"
+                                       ],
+                           "strategic_fit":  55,
+                           "governance_fit":  65,
+                           "execution_risk":  50,
+                           "overlap_risk":  45,
+                           "freeze_bias":  35,
+                           "retire_bias":  10,
+                           "notes":  "Discovery surface is valuable, but direct absorption risk is high without tighter admission filters."
+                       },
+                       {
+                           "id":  "activepieces",
+                           "path":  "activepieces",
+                           "cluster":  "tool-governance",
+                           "aliases":  [
+                                           "activepieces",
+                                           "piece",
+                                           "workflow automation"
+                                       ],
+                           "strategic_fit":  48,
+                           "governance_fit":  58,
+                           "execution_risk":  62,
+                           "overlap_risk":  55,
+                           "freeze_bias":  40,
+                           "retire_bias":  20,
+                           "notes":  "Automation catalog remains useful as pattern input, but runtime overlap with MCP/skills is material."
+                       },
+                       {
+                           "id":  "composio",
+                           "path":  "composio",
+                           "cluster":  "tool-governance",
+                           "aliases":  [
+                                           "composio",
+                                           "composiohq",
+                                           "rube",
+                                           "tool bridge"
+                                       ],
+                           "strategic_fit":  58,
+                           "governance_fit":  65,
+                           "execution_risk":  60,
+                           "overlap_risk":  60,
+                           "freeze_bias":  45,
+                           "retire_bias":  20,
+                           "notes":  "Still useful for connector patterns, but high overlap and ops burden argue for gated/watch handling."
+                       },
+                       {
+                           "id":  "claude-skills",
+                           "path":  "claude-skills",
+                           "cluster":  "skill-metadata",
+                           "aliases":  [
+                                           "claude-skills",
+                                           "claude skills",
+                                           "skill metadata"
+                                       ],
+                           "strategic_fit":  78,
+                           "governance_fit":  82,
+                           "execution_risk":  30,
+                           "overlap_risk":  35,
+                           "freeze_bias":  12,
+                           "retire_bias":  8,
+                           "notes":  "Strong metadata and packaging reference value for skill governance and bundle hygiene."
+                       },
+                       {
+                           "id":  "awesome-agent-skills",
+                           "path":  "awesome-agent-skills",
+                           "cluster":  "skill-metadata",
+                           "aliases":  [
+                                           "awesome-agent-skills",
+                                           "agent skills",
+                                           "awesome skills"
+                                       ],
+                           "strategic_fit":  74,
+                           "governance_fit":  76,
+                           "execution_risk":  38,
+                           "overlap_risk":  50,
+                           "freeze_bias":  20,
+                           "retire_bias":  15,
+                           "notes":  "Useful breadth reference, but watch overlap growth against the bundled skill estate."
+                       },
+                       {
+                           "id":  "awesome-claude-code-subagents",
+                           "path":  "awesome-claude-code-subagents",
+                           "cluster":  "skill-metadata",
+                           "aliases":  [
+                                           "awesome-claude-code-subagents",
+                                           "claude code subagents",
+                                           "subagents"
+                                       ],
+                           "strategic_fit":  68,
+                           "governance_fit":  74,
+                           "execution_risk":  40,
+                           "overlap_risk":  48,
+                           "freeze_bias":  24,
+                           "retire_bias":  15,
+                           "notes":  "Useful comparison set for subagent/task-contract ideas, but should not widen default routing."
+                       },
+                       {
+                           "id":  "antigravity-awesome-skills",
+                           "path":  "antigravity-awesome-skills",
+                           "cluster":  "skill-metadata",
+                           "aliases":  [
+                                           "antigravity-awesome-skills",
+                                           "antigravity",
+                                           "awesome skills mirror"
+                                       ],
+                           "strategic_fit":  84,
+                           "governance_fit":  70,
+                           "execution_risk":  42,
+                           "overlap_risk":  65,
+                           "freeze_bias":  30,
+                           "retire_bias":  18,
+                           "notes":  "High idea yield, but already partially absorbed; overlap should be tracked explicitly."
+                       },
+                       {
+                           "id":  "awesome-claude-skills-composio",
+                           "path":  "awesome-claude-skills-composio",
+                           "cluster":  "skill-metadata",
+                           "aliases":  [
+                                           "awesome-claude-skills-composio",
+                                           "claude skills composio",
+                                           "composio skills"
+                                       ],
+                           "strategic_fit":  62,
+                           "governance_fit":  63,
+                           "execution_risk":  55,
+                           "overlap_risk":  68,
+                           "freeze_bias":  38,
+                           "retire_bias":  24,
+                           "notes":  "Connector-heavy skill mirror with notable overlap and maintenance drag; advisory scoring is important here."
+                       },
+                       {
+                           "id":  "awesome-vibe-coding",
+                           "path":  "awesome-vibe-coding",
+                           "cluster":  "workflow-governance",
+                           "aliases":  [
+                                           "awesome-vibe-coding",
+                                           "vibe coding",
+                                           "vibe workflow"
+                                       ],
+                           "strategic_fit":  57,
+                           "governance_fit":  60,
+                           "execution_risk":  35,
+                           "overlap_risk":  58,
+                           "freeze_bias":  28,
+                           "retire_bias":  18,
+                           "notes":  "Useful as ecosystem scan input, but should stay advisory to avoid duplicate orchestration surfaces."
+                       },
+                       {
+                           "id":  "vibe-coding-cn",
+                           "path":  "vibe-coding-cn",
+                           "cluster":  "workflow-governance",
+                           "aliases":  [
+                                           "vibe-coding-cn",
+                                           "vibe coding cn",
+                                           "vibe-coding"
+                                       ],
+                           "strategic_fit":  60,
+                           "governance_fit":  62,
+                           "execution_risk":  35,
+                           "overlap_risk":  52,
+                           "freeze_bias":  26,
+                           "retire_bias":  16,
+                           "notes":  "Chinese-language workflow ideas remain useful, but default routing must stay consolidated in VCO."
+                       },
+                       {
+                           "id":  "agent-squad",
+                           "path":  "agent-squad",
+                           "cluster":  "team-discipline",
+                           "aliases":  [
+                                           "agent-squad",
+                                           "agent squad",
+                                           "supervisor",
+                                           "scatter-gather"
+                                       ],
+                           "strategic_fit":  82,
+                           "governance_fit":  86,
+                           "execution_risk":  28,
+                           "overlap_risk":  30,
+                           "freeze_bias":  10,
+                           "retire_bias":  6,
+                           "notes":  "Team execution discipline source with already-demonstrated governance value and low redundancy risk."
+                       },
+                       {
+                           "id":  "awesome-ai-tools",
+                           "path":  "awesome-ai-tools",
+                           "cluster":  "governance-taxonomy",
+                           "aliases":  [
+                                           "awesome-ai-tools",
+                                           "ai tools",
+                                           "tool taxonomy"
+                                       ],
+                           "strategic_fit":  70,
+                           "governance_fit":  79,
+                           "execution_risk":  34,
+                           "overlap_risk":  40,
+                           "freeze_bias":  18,
+                           "retire_bias":  10,
+                           "notes":  "Taxonomy and risk-tier framing remain useful for governance references and eval slicing."
+                       },
+                       {
+                           "id":  "prompt-engineering-guide",
+                           "path":  "prompt-engineering-guide",
+                           "cluster":  "prompt-governance",
+                           "aliases":  [
+                                           "prompt-engineering-guide",
+                                           "prompt engineering guide",
+                                           "prompt patterns",
+                                           "prompts guide"
+                                       ],
+                           "strategic_fit":  88,
+                           "governance_fit":  80,
+                           "execution_risk":  24,
+                           "overlap_risk":  32,
+                           "freeze_bias":  8,
+                           "retire_bias":  6,
+                           "notes":  "Primary source for prompt pattern cards and prompt risk checklist; strong continued governance value."
+                       },
+                       {
+                           "id":  "awesome-ai-agents-e2b",
+                           "path":  "awesome-ai-agents-e2b",
+                           "cluster":  "workflow-governance",
+                           "aliases":  [
+                                           "awesome-ai-agents-e2b",
+                                           "e2b agents",
+                                           "agent workflows"
+                                       ],
+                           "strategic_fit":  45,
+                           "governance_fit":  52,
+                           "execution_risk":  58,
+                           "overlap_risk":  50,
+                           "freeze_bias":  35,
+                           "retire_bias":  22,
+                           "notes":  "Broad agent examples remain reference material, but current VCO absorption need is comparatively low."
+                       }
+                   ]
+}

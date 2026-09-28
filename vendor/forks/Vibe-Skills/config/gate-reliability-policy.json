@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "goal": "gate_reliability_and_keyword_alias_governance",
+  "encoding_policy": {
+    "utf8_no_bom_required": true,
+    "yaml_frontmatter_byte0_rule": true,
+    "writer": "Write-VgoUtf8NoBomText"
+  },
+  "alias_policy": {
+    "source_of_truth": "config/skill-alias-map.json",
+    "canonical_name_required": true,
+    "wrapper_gates_allowed": true,
+    "keyword_aliases_are_evidence_only": true
+  },
+  "shell_policy": {
+    "powershell_5_1_compatible": true,
+    "no_pwsh_requirement": true,
+    "execution_context_lock_required": true
+  },
+  "release_policy": {
+    "must_be_listed_in_release_readme": true,
+    "must_be_listed_in_release_cut": true,
+    "manual_review_required": true
+  },
+  "apply_policy": "manual_review_required"
+}

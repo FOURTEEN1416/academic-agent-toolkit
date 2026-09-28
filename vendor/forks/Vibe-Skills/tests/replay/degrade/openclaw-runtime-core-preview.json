@@ -1,0 +1,35 @@
+{
+  "schema_version": "replay.degrade.v1",
+  "generated_at": "2026-03-25",
+  "host": "openclaw",
+  "status_lock": "preview",
+  "degrade_contract": [
+    {
+      "id": "runtime_core_only_install",
+      "trigger": "workspace projection and host-native extensions are not provisioned",
+      "expected_state": "degraded-but-supported",
+      "reason_code": "runtime_core_preview_scope",
+      "required_disclosure": "runtime-core preview does not include host-native closure"
+    },
+    {
+      "id": "host_login_or_model_access_missing",
+      "trigger": "host login/account/model access is unavailable",
+      "expected_state": "host-managed",
+      "reason_code": "host_managed_login_or_model_access",
+      "required_disclosure": "login/account/provider access stays on the host side"
+    },
+    {
+      "id": "plugin_provisioning_missing",
+      "trigger": "OpenClaw plugin provisioning is not complete",
+      "expected_state": "host-managed",
+      "reason_code": "host_managed_plugin_surface",
+      "required_disclosure": "plugin provisioning is outside repo-managed runtime-core scope"
+    }
+  ],
+  "truth_guards": {
+    "no_silent_success_on_missing_host_state": true,
+    "no_full_closure_claim_when_host_managed_state_missing": true,
+    "no_promotion_from_degrade_fixture": true
+  },
+  "notes": "This fixture encodes explicit abstain/degrade semantics for OpenClaw preview lanes and blocks overclaiming support level."
+}

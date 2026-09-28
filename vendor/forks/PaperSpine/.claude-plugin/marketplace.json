@@ -1,0 +1,22 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "paperspine-marketplace",
+  "description": "Marketplace manifest for the PaperSpine Claude Code plugin.",
+  "owner": {
+    "name": "WUBING2023",
+    "url": "https://github.com/WUBING2023"
+  },
+  "plugins": [
+    {
+      "name": "paper-spine",
+      "description": "Contribution-first, reviewer-aware academic paper and report writing system.",
+      "source": "./",
+      "version": "4.0.0",
+      "category": "writing",
+      "homepage": "https://github.com/WUBING2023/PaperSpine",
+      "skills": [
+        "./dist/claude/skills/paper-spine"
+      ]
+    }
+  ]
+}

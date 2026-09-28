@@ -1,0 +1,117 @@
+{
+    "id": "ml01-root",
+    "requirements": "A credible experiment studying whether dropout-variant choice affects calibration more than accuracy on tabular classification: the main dropout variants are implemented, evaluation covers multiple sklearn benchmarks with reasonable seed coverage, and the writeup ties the numeric findings to the three hypotheses in direction and magnitude.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact threshold satisfaction. Partial but well-motivated evidence deserves partial credit; rigid wording or name mismatches should not penalize a substantively correct experiment.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml01-code",
+            "requirements": "The dropout conditions are implemented in a way that allows a meaningful calibration comparison.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml01-code-variants",
+                    "requirements": "The submission implements the main dropout variants relevant to the hypotheses \u2014 typically a no-dropout baseline, a standard element-wise dropout at one or more rates, and at least one stochastic-test-time / MC-style dropout variant \u2014 as distinct code paths within a shared MLP architecture.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml01-code-mlp",
+                    "requirements": "The model is a shallow tabular MLP (a small number of hidden layers at modest width) trained with a standard supervised classification objective, appropriate for the sklearn benchmarks used.",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "ml01-code-datasets",
+                    "requirements": "The submission loads multiple tabular sklearn datasets (e.g., from {breast_cancer, wine, digits} or comparable benchmarks) and uses a reasonable train/test split.",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml01-code-mc-pass",
+                    "requirements": "The MC-dropout-style condition performs several stochastic forward passes at test time and averages the predicted probabilities, rather than collapsing to a single deterministic forward pass.",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml01-exec",
+            "requirements": "Execution produces accuracy and calibration numbers per condition that are adequate to evaluate the hypotheses.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml01-exec-metrics",
+                    "requirements": "Execution produces a machine-readable metrics artifact (e.g., results/metrics.json or stage-14/experiment_summary.json) with numeric accuracy and a calibration metric such as ECE, covering the implemented conditions on at least one dataset. Other calibration metrics (NLL, Brier) may substitute or supplement ECE.",
+                    "weight": 16.6667,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml01-exec-seeds",
+                    "requirements": "Reported metrics are aggregated over multiple random seeds per (condition, dataset) cell with some form of dispersion reporting (std, stderr, CI, or min/max across seeds). More seeds are better, but a small-but-honest seed count with reported variance is preferable to a single deterministic run.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml01-results",
+            "requirements": "The results analysis addresses the three hypotheses with quantitative evidence and a clear narrative.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml01-result-h1",
+                    "requirements": "The submission compares calibration (ECE or analogous metric) between an MC/variational-style dropout and a standard dropout across the evaluated datasets, and conveys whether MC-style calibration tends to be better \u2014 judge whether the evidence is consistent with H1, refutes it, or is inconclusive, based on the reported numbers.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml01-result-h2",
+                    "requirements": "The submission discusses whether accuracy differences among dropout variants are small on datasets where all methods achieve high accuracy \u2014 i.e., whether calibration is the discriminative axis rather than accuracy. Exact percentage-point thresholds are not required; a qualitative comparison grounded in the reported numbers suffices.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml01-result-h3",
+                    "requirements": "The submission compares the no-dropout baseline against at least one dropout variant on calibration and conveys whether the baseline is clearly worse, comparable, or better.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml01-result-writeup",
+                    "requirements": "The README or writeup describes the method and setup, presents the key accuracy and calibration numbers, and conveys per-hypothesis outcomes (supported / refuted / inconclusive) with appropriate caveats on seed count, dataset scope, or calibration-metric choice. No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

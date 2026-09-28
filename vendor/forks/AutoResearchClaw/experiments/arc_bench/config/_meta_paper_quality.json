@@ -1,0 +1,211 @@
+{
+    "id": "meta-paper-quality-root",
+    "requirements": "Paper-quality meta-rubric applied to ALL ARC-Bench topics (ML / P / B). Grades the final deliverables — paper_final.md, charts/*, code/*, submission/README.md — for paper writing quality, code orchestration, visual layout, and content accuracy. This rubric is SEPARATE from the per-topic science rubric and is graded MANUALLY by a Claude Code agent invoked via experiments/arc_bench/scripts/judge_paper_manual.sh. The bench pipeline does NOT auto-run this gate. The combined overall score = (per-topic-science × 100 + meta-paper-quality × 86) / (100 + 86) ≈ 54% science + 46% meta.",
+    "judging_note": "Score on substance, not surface polish. A 750-word abstract with shallow content is worse than a 200-word abstract with a clear claim+method+result. Penalize fabrication (numbers in writeup not in artifacts) heavily, hedge claims to match evidence, and credit modular code even if it could be shorter. For figures, the test is communicative function: can a reader understand the message from the figure alone? When ambiguous, assign partial credit (0.33 / 0.5 / 0.67) rather than forcing binary 0/1.",
+    "weight": 1,
+    "scoring_target": "deliverables",
+    "input_artifacts": [
+        "stage-22/paper_final.md",
+        "stage-19/paper_revised.md",
+        "stage-17/paper_draft.md",
+        "deliverables/paper_final.md",
+        "deliverables/charts/",
+        "deliverables/code/",
+        "submission/README.md",
+        "submission/code/",
+        "stage-14/charts/",
+        "stage-14/experiment_summary.json"
+    ],
+    "sub_tasks": [
+        {
+            "id": "meta-paper-content",
+            "requirements": "Paper writing quality across the IMRAD structure (Introduction / Methods / Results / Discussion). Grades clarity, structure, faithfulness to results, and academic conventions — NOT surface polish or word count.",
+            "weight": 5,
+            "sub_tasks": [
+                {
+                    "id": "mpq-abstract",
+                    "requirements": "Abstract captures the four required moves: (1) what problem/question, (2) what method/approach was taken, (3) what was found numerically, (4) what the contribution is. Length 150-300 words. NO numbers should appear in the abstract that don't appear in the results section. Subscore 1.0 if all four moves present and grounded; 0.67 if 3 of 4; 0.33 if 2 of 4; 0 otherwise.",
+                    "weight": 4,
+                    "sub_tasks": [],
+                    "task_category": "Paper Quality",
+                    "finegrained_task_category": "Writing - Abstract"
+                },
+                {
+                    "id": "mpq-introduction",
+                    "requirements": "Introduction situates the work: prior approaches, the specific gap addressed, and the contribution. Avoids 'in this paper we' boilerplate without substance. Cites real prior work (≥3 citations) relevant to the topic. Subscore on coherence of the motivation chain — can a reader who knows the field tell what's new vs prior art?",
+                    "weight": 4,
+                    "sub_tasks": [],
+                    "task_category": "Paper Quality",
+                    "finegrained_task_category": "Writing - Introduction"
+                },
+                {
+                    "id": "mpq-method-clarity",
+                    "requirements": "Methods section enables independent reproduction by someone with domain knowledge but no prior context. Names: (a) datasets / models used with versions or sources, (b) algorithms / settings / hyperparameters in numbers, (c) evaluation protocol (seeds, splits, metrics). Acceptable: equations, pseudocode, or precise prose. Unacceptable: 'we used standard techniques' without specifics.",
+                    "weight": 6,
+                    "sub_tasks": [],
+                    "task_category": "Paper Quality",
+                    "finegrained_task_category": "Writing - Methods"
+                },
+                {
+                    "id": "mpq-results-grounded",
+                    "requirements": "Every numeric claim in the Results section is traceable to a value in the artifacts (experiment_summary.json, results.json, CSV outputs). No invented numbers. Comparisons (X > Y, A improves over B) are backed by stated differences and uncertainty. Tables and figures are referenced from the prose. Subscore: count the numeric claims, mark how many are traceable; subscore = traceable / total.",
+                    "weight": 8,
+                    "sub_tasks": [],
+                    "task_category": "Paper Quality",
+                    "finegrained_task_category": "Writing - Results"
+                },
+                {
+                    "id": "mpq-discussion",
+                    "requirements": "Discussion section addresses: (a) what the results imply / mechanistic interpretation, (b) at least one threat to validity or limitation honestly stated (small N, seed variance, dataset bias, methodological caveat), (c) suggested follow-up work. Penalize 'no limitations' or generic 'future work' boilerplate.",
+                    "weight": 4,
+                    "sub_tasks": [],
+                    "task_category": "Paper Quality",
+                    "finegrained_task_category": "Writing - Discussion"
+                },
+                {
+                    "id": "mpq-citations",
+                    "requirements": "Citations are valid (real DOIs / arXiv IDs / venue names) and formatted consistently. Verify against references.bib: every cited key resolves, no hallucinated authors or titles. Sample 3-5 citations and check existence (a quick web lookup or arXiv ID validation). Bibliography format is internally consistent (all entries follow the same style).",
+                    "weight": 4,
+                    "sub_tasks": [],
+                    "task_category": "Paper Quality",
+                    "finegrained_task_category": "Writing - References"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "meta-code-orchestration",
+            "requirements": "Code orchestration quality of the experiment package. Looks at stage-22/code/ or submission/code/ — how the actual experimental code is organized, documented, and made reusable. Distinct from the science rubric's code leaves (which check whether the method is implemented at all).",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "mco-modular",
+                    "requirements": "Code is split into logical modules with clear responsibilities (data loading, model definition, training/inference, evaluation, plotting), NOT a single monolithic main.py. Each module is <500 lines. Imports are explicit (no `from X import *`). Subscore: 1.0 if cleanly split into ≥3 named modules; 0.67 if 2 modules; 0.33 if monolithic but reasonable internal structure; 0 if spaghetti.",
+                    "weight": 5,
+                    "sub_tasks": [],
+                    "task_category": "Code Orchestration",
+                    "finegrained_task_category": "Code Quality - Modularity"
+                },
+                {
+                    "id": "mco-reproducible",
+                    "requirements": "A reader could run the experiment from the code package alone. Means: (a) a README or main.py docstring explains the entry point, (b) dependencies are listed (requirements.txt, setup.py, or imports clearly inferable), (c) random seeds are settable / documented, (d) data sources are specified (sklearn datasets, BIGG model id, etc.). NO hardcoded absolute paths to the original author's machine.",
+                    "weight": 6,
+                    "sub_tasks": [],
+                    "task_category": "Code Orchestration",
+                    "finegrained_task_category": "Code Quality - Reproducibility"
+                },
+                {
+                    "id": "mco-readable",
+                    "requirements": "Identifier names communicate intent (no `x1`, `tmp`, `foo`). Function/class docstrings explain purpose for non-trivial code. Public API has type hints for at least the function signatures. Limited inline comments (only WHY when non-obvious), NOT line-by-line narration. Mix of these signals → 0.0 to 1.0.",
+                    "weight": 4,
+                    "sub_tasks": [],
+                    "task_category": "Code Orchestration",
+                    "finegrained_task_category": "Code Quality - Readability"
+                },
+                {
+                    "id": "mco-no-dead-code",
+                    "requirements": "No commented-out code blocks (more than 3 contiguous commented lines). No unused imports. No functions/classes defined but never called. No TODO/FIXME markers without ownership. Penalize 'kitchen-sink' files that import and define dozens of things to use only a few.",
+                    "weight": 3,
+                    "sub_tasks": [],
+                    "task_category": "Code Orchestration",
+                    "finegrained_task_category": "Code Quality - Hygiene"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "meta-visual-layout",
+            "requirements": "Figure quality of the deliverable charts (stage-22/deliverables/charts/, submission/code/*.png|*.pdf). Grades whether each figure communicates its message effectively to a reader who has not read the prose.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "mvl-axes-labeled",
+                    "requirements": "Every figure has both axes labeled with quantity + unit (e.g., 'Growth rate (1/h)', 'Cross section (pb)', 'Accuracy (%)'). Tick labels are readable at the figure's printed size. Subscore: fraction of figures (in the deliverable charts dir) that pass.",
+                    "weight": 4,
+                    "sub_tasks": [],
+                    "task_category": "Visual Layout",
+                    "finegrained_task_category": "Figure - Axes"
+                },
+                {
+                    "id": "mvl-legend-present",
+                    "requirements": "Multi-series figures (≥2 lines, bars, or categories) have a legend that identifies each series. Single-series figures do NOT need a legend. Legend placement does not occlude data. Color choices distinguishable by colorblind readers (avoid pure red+green together without a marker shape difference).",
+                    "weight": 3,
+                    "sub_tasks": [],
+                    "task_category": "Visual Layout",
+                    "finegrained_task_category": "Figure - Legend"
+                },
+                {
+                    "id": "mvl-caption-quality",
+                    "requirements": "Each figure has a caption that (a) names what is plotted, (b) names the dataset / condition / model used, (c) states the key takeaway in one sentence. A caption that just says 'Figure 1: results' is insufficient. Captions are in the paper text near the figure reference.",
+                    "weight": 4,
+                    "sub_tasks": [],
+                    "task_category": "Visual Layout",
+                    "finegrained_task_category": "Figure - Caption"
+                },
+                {
+                    "id": "mvl-figure-relevance",
+                    "requirements": "Each figure earns its place — it shows information that supports a claim in the paper. No decorative figures, no figures duplicated across stages (the same chart appearing twice from different stage outputs), no figures showing trivially obvious results without value. Subscore on the fraction of figures that pass this 'earned place' test.",
+                    "weight": 4,
+                    "sub_tasks": [],
+                    "task_category": "Visual Layout",
+                    "finegrained_task_category": "Figure - Relevance"
+                },
+                {
+                    "id": "mvl-color-accessibility",
+                    "requirements": "Color palette is colorblind-safe (avoid red+green only); important distinctions are reinforced by shape, line style, or hatching in addition to color. Background does not interfere with foreground (no dark text on dark background). Resolution is at least 150 DPI for raster figures.",
+                    "weight": 2,
+                    "sub_tasks": [],
+                    "task_category": "Visual Layout",
+                    "finegrained_task_category": "Figure - Accessibility"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "meta-content-accuracy",
+            "requirements": "Faithfulness of the writeup to the underlying artifacts. The single biggest fabrication risk in autonomous paper generation is invented numbers; this bucket carries the largest weight.",
+            "weight": 4,
+            "sub_tasks": [
+                {
+                    "id": "mca-no-fabrication",
+                    "requirements": "STRICT: every numeric value in the paper (abstract, methods, results, tables) must trace to a value in the artifacts (results.json, experiment_summary.json, CSV outputs, figure data). Sample 5-10 numbers across the paper; mark each as traceable / not-traceable; subscore = traceable_count / sampled_count. Any single invented number for a key metric (e.g. final accuracy, final growth rate) caps the leaf at 0.5 regardless of other traceable numbers.",
+                    "weight": 8,
+                    "sub_tasks": [],
+                    "task_category": "Content Accuracy",
+                    "finegrained_task_category": "Faithfulness - Numbers"
+                },
+                {
+                    "id": "mca-correct-units",
+                    "requirements": "Units are consistent and physically correct throughout. ML: percentages stay as percent vs fractions consistently; runtime in seconds vs minutes consistently. HEP: GeV vs MeV not mixed, cross sections in pb vs fb consistent. Biology: mmol/gDW/h is the standard; do not mix with mM. Penalize 'unit-less' numbers where a unit is needed.",
+                    "weight": 4,
+                    "sub_tasks": [],
+                    "task_category": "Content Accuracy",
+                    "finegrained_task_category": "Faithfulness - Units"
+                },
+                {
+                    "id": "mca-claim-strength",
+                    "requirements": "Strength of claims matches strength of evidence. 'X significantly outperforms Y' requires a statistical test result; 'X tends to be better than Y' requires a directional difference; 'X may be useful' requires only intuition. Penalize uncalibrated 'state of the art', 'novel', 'first to show' without specific support. Hedging language ('appears', 'suggests', 'is consistent with') should appear when the evidence is suggestive.",
+                    "weight": 5,
+                    "sub_tasks": [],
+                    "task_category": "Content Accuracy",
+                    "finegrained_task_category": "Faithfulness - Claim Calibration"
+                },
+                {
+                    "id": "mca-internal-consistency",
+                    "requirements": "The same number / claim appears identically across the paper. Abstract says 'accuracy 92.3%'; Results says 'accuracy 92.3%' (not 92.5%); Conclusion says 'achieved 92.3%'. Tables match prose. Figure captions match figure content. Penalize ANY internal contradiction even if both versions might be 'plausible'.",
+                    "weight": 4,
+                    "sub_tasks": [],
+                    "task_category": "Content Accuracy",
+                    "finegrained_task_category": "Faithfulness - Internal Consistency"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

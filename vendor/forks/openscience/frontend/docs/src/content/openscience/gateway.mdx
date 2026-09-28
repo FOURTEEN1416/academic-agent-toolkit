@@ -1,0 +1,82 @@
+---
+title: "Connect Synthetic Sciences"
+description: "Connect the free account OpenScience uses for identity, trace ownership, settings sync, and optional pay-as-you-go model and search credits."
+icon: "link"
+---
+
+OpenScience requires a free **Synthetic Sciences account** for installation identity, session and settings continuity, and account-bound trace controls. No paid plan is required: local models, your own provider keys, eligible ChatGPT/Codex access, scientific tools, Python/R, and direct downloads continue without Ace. Pay-as-you-go credits remain optional.
+
+## What the account and Ace add
+
+- **One purchased-credit wallet.** Use supported models without configuring a provider key and spend the same balance on enhanced research search.
+- **OpenRouter model routing.** Managed LLM calls use the curated OpenRouter catalog; your own provider keys still call providers directly.
+- **Private research graphs.** Sync durable claims, runs, evidence, and decisions that are visible only to owners and explicitly invited collaborators.
+- **Synced service credentials.** Store supported service keys on your account and pull them to another signed-in machine.
+
+## Link your account
+
+<Steps>
+  <Step title="Log in">
+    ```bash
+    openscience login
+    ```
+    Opens your browser to approve the device. On a headless machine, use `--no-browser`, or pass `--key thk_...` with a key created at `app.syntheticsciences.ai/cli`.
+  </Step>
+  <Step title="Verify">
+    ```bash
+    openscience status
+    ```
+    Shows the connected user, credit balance, synced services, and recent managed usage.
+  </Step>
+  <Step title="Sync credentials">
+    ```bash
+    openscience sync
+    ```
+    Refreshes supported credentials after you change them in Synthetic Sciences.
+  </Step>
+</Steps>
+
+## Pay as you go
+
+**20 credits add $20 to your wallet.** One credit is $1 of wallet value shared by managed model calls and enhanced research search. Usage is debited at the underlying provider cost plus a 2% service margin. The payment-processing fee is shown separately before checkout.
+
+Ace is one on/off authorization, not a scheduled monthly plan. Turning it on funds only the gap needed to bring the purchased wallet to 20 credits. While Ace is on, a balance below 2 is restored only to 20; it never stacks another 20 on top. Turning Ace off stops future charges and leaves the remaining balance available. There is no separate auto-reload control.
+
+## Routing and billing
+
+Managed credits are independent of local, BYOK, and ChatGPT/Codex-backed models.
+
+| Path | What runs where | Billing |
+| --- | --- | --- |
+| Local | OpenScience calls a local endpoint. | No wallet debit. |
+| BYOK | OpenScience calls your provider directly. | Your provider account; no wallet debit. |
+| ChatGPT/Codex | OpenScience uses the eligible signed-in route. | Your ChatGPT subscription; no wallet debit. |
+| Synthetic Sciences | Managed LLM calls route through OpenRouter; enhanced search uses the managed search service. | Shared pay-as-you-go credits. |
+
+Basic research search remains available without managed credits. Enhanced search debits the same wallet as managed model calls; if the managed service or balance is unavailable, OpenScience keeps basic search and non-managed model routes working.
+
+## Privacy
+
+**Use my data** is on by default for connected accounts. It shares a redacted complete research trajectory: prompts, model and assistant responses, tool inputs and results, searches, artifacts, retries, errors, and session lifecycle events. Known credentials and secret values are removed before upload, and Synthetic Sciences applies a second redaction pass before retention. Turn the setting off anytime in Settings to stop new trace uploads and clear pending events without disabling OpenScience or Ace. See [Security](/openscience/security) for the exact boundary.
+
+## Account commands
+
+| Command | Use |
+| --- | --- |
+| `openscience login` | Authenticate this device. |
+| `openscience status` | Inspect connection, credits, and recent usage. |
+| `openscience wallet` | Inspect the wallet balance and open Billing. |
+| `openscience sync` | Refresh synced supported credentials. |
+| `openscience devices` | List authenticated devices. |
+| `openscience logout` | Disconnect this machine; sign in again before running OpenScience. |
+
+## What's next
+
+<Columns cols={2}>
+  <Card title="Models" icon="package-check" href="/openscience/models">
+    Choose local, BYOK, ChatGPT/Codex, or managed routing.
+  </Card>
+  <Card title="Security" icon="shield-check" href="/openscience/security">
+    Review execution, credentials, telemetry, and managed-service boundaries.
+  </Card>
+</Columns>

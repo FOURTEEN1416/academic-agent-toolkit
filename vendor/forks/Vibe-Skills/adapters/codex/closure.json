@@ -1,0 +1,64 @@
+{
+  "adapter_id": "codex",
+  "closure_level": "governed-with-constraints",
+  "install_mode": "governed",
+  "check_mode": "governed",
+  "bootstrap_mode": "governed",
+  "repo_managed_payload": [
+    "skills/**",
+    "commands/**",
+    "rules/**",
+    "agents/templates/**",
+    "mcp/**",
+    "config/plugins-manifest.codex.json",
+    "config/upstream-lock.json",
+    "settings.json from config/settings.template.codex.json if absent",
+    "canonical vibe mirror under skills/vibe/**"
+  ],
+  "host_state_written": [
+    "settings.json",
+    "rules/**",
+    "agents/templates/**",
+    "mcp/**"
+  ],
+  "host_managed_boundaries": [
+    "hook installation",
+    "plugin provisioning",
+    "provider credentials",
+    "external CLI availability"
+  ],
+  "uninstall_contract": {
+    "contract_version": 1,
+    "ledger_first": true,
+    "install_ledger_path": ".vibeskills/install-ledger.json",
+    "owned_payload": [
+      "skills/**",
+      "commands/**",
+      "rules/**",
+      "agents/templates/**",
+      "mcp/**",
+      "config/plugins-manifest.codex.json",
+      "config/upstream-lock.json",
+      "canonical vibe mirror under skills/vibe/**"
+    ],
+    "shared_json_targets": [
+      "settings.json vibeskills stanza from config/settings.template.codex.json"
+    ],
+    "legacy_compatibility": [
+      ".vibeskills/host-closure.json"
+    ],
+    "host_state_written": [
+      "settings.json",
+      "rules/**",
+      "agents/templates/**",
+      "mcp/**"
+    ],
+    "documentation_reference": "docs/uninstall-governance.md"
+  },
+  "verification_contract": [
+    "runtime freshness gate",
+    "runtime BOM/frontmatter gate",
+    "runtime coherence gate",
+    "deep doctor gate"
+  ]
+}

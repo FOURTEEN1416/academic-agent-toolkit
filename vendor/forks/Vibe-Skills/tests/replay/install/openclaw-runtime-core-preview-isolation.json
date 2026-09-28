@@ -1,0 +1,37 @@
+{
+  "schema_version": "replay.install_isolation.v1",
+  "generated_at": "2026-03-25",
+  "host": "openclaw",
+  "status_lock": "preview",
+  "allowed_write_roots": [
+    "outputs/runtime",
+    "outputs/verify"
+  ],
+  "forbidden_paths": [
+    "node_modules",
+    ".venv",
+    "venv",
+    ".mcp.json"
+  ],
+  "actions": [
+    {
+      "id": "openclaw_preview_runtime_state_isolated_under_outputs",
+      "script": "scripts/router/resolve-pack-route.ps1",
+      "args": {
+        "Prompt": "OpenClaw runtime-core-preview isolation replay",
+        "RequestedSkill": "vibe",
+        "Grade": "M",
+        "TaskType": "planning"
+      },
+      "must_exist_after": [
+        "outputs/runtime/confirm-ui-state.json"
+      ]
+    }
+  ],
+  "truth_guards": {
+    "no_repo_root_pollution": true,
+    "no_host_native_settings_takeover_claim": true,
+    "status_must_remain_preview": true
+  },
+  "notes": "This fixture does not perform real host installation. It validates replay isolation and preserves runtime-core-preview support boundaries for OpenClaw."
+}

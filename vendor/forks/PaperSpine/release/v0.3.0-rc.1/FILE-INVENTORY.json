@@ -1,0 +1,3791 @@
+{
+  "schema_version": "1.0",
+  "version": "0.3.0-rc.1",
+  "build_id": "paperspine5-0.3.0-rc.1-build.20260823.1",
+  "packages": [
+    {
+      "kind": "universal-skill",
+      "root": "paperspine5-skill-0.3.0-rc.1",
+      "files": [
+        {
+          "path": "CORE-SHA256",
+          "bytes": 65,
+          "sha256": "92d302c1657fb2ab4cca4aeb6d0b9e153aa42285e46d1eb2823a4a4bad14695a"
+        },
+        {
+          "path": "INSTALL.md",
+          "bytes": 331,
+          "sha256": "85eed0f5511f6b1477a97ec297c9f5af381758b606baf7a1d4e69ba6e7547026"
+        },
+        {
+          "path": "README.md",
+          "bytes": 719,
+          "sha256": "bc8f2e329459d148758732cd9cfad1e942adcf26f6a14c591c21f657cc06968a"
+        },
+        {
+          "path": "SKILL.md",
+          "bytes": 2119,
+          "sha256": "36f7507f794ce30883ccd865c5ab133df1bd0b59312642db4eacf122fc046b79"
+        },
+        {
+          "path": "UNINSTALL.md",
+          "bytes": 244,
+          "sha256": "dbc84e23a78e6e82381362b5a58d3039cbf65bd3c4b1fe69cd2212cfc749a29a"
+        },
+        {
+          "path": "UPDATE.md",
+          "bytes": 221,
+          "sha256": "b5689a1883b0e43440220a02629be910be624a93c9101655d5b18f7e1226a07b"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/adapters/claude/commands/paperspine.md",
+          "bytes": 2877,
+          "sha256": "7fa72733dd4eb7aefed1f598f97aa8c32f50bc2cd94021ef7de405d728dc4c54"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/adapters/codex/prompts/paperspine.md",
+          "bytes": 3738,
+          "sha256": "3da7a2bb22c5f5387013db64a5b6aac2a4a6eff4e9162a7647713ae537bf42c8"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/adapters/hermes/frontmatter.yaml",
+          "bytes": 803,
+          "sha256": "ec9c53543edffc95ff1ae49b066c32679c48a8e1eb6bf61d38a3439e0a02c2d0"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/_paper_spine_utils.py",
+          "bytes": 8131,
+          "sha256": "0833b58634fc324b28c7f4dfda02cfaf7bcae03e4c66379bb1424bf1e12259ec"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/artifact_check.py",
+          "bytes": 48258,
+          "sha256": "552bb9369bff1af791ed7263e9b7546a7436e3cdb25918eb47b01e62be222e93"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/citation_bank_check.py",
+          "bytes": 10734,
+          "sha256": "edb4e570c0973d1f456d73023be206ac50bc6a9d1b8c3d775f898bc25bd61493"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/citation_quality_audit.py",
+          "bytes": 30582,
+          "sha256": "4d2f1717ddc19e06eb0f490d808e6ad9253d242b004eb2048ad47685196e3963"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/citation_verification_en.py",
+          "bytes": 26358,
+          "sha256": "c535ca653b793dd29a08982cba044b04bfd0f4332be7da33e35fdf8944f9863a"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/citation_verification_zh.py",
+          "bytes": 6770,
+          "sha256": "49bb921f0f41ed21e2363109b886d2524c95758c9a7a95f0bd018603a7451402"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/contribution_check.py",
+          "bytes": 10347,
+          "sha256": "38190989d1f79f6eadf12cdc7dd28561c2eaf0f178b1630cb6f0fd2bf1492d92"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/figure_story_check.py",
+          "bytes": 12518,
+          "sha256": "9f78ba6326239f3da73bf7553f33e2911e055c92b7dda05b6a83032ab5f6a387"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/humanize_check.py",
+          "bytes": 44590,
+          "sha256": "4b2d45f61a7f128e1b824b5226e076bad467ec4c79c5f696e4d4577ea4f330e6"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/intake_wizard.py",
+          "bytes": 47427,
+          "sha256": "d7f2504053f429cf2fd4a13ad5809c521409003b4a08ef59a511a2732b26520c"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/integrity_audit.py",
+          "bytes": 34819,
+          "sha256": "ef616e546b7dfed85aed35b1c31ca6a8e0a0302962ca745f62f452a818eb12fd"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/latex_guard.py",
+          "bytes": 16514,
+          "sha256": "43ed37ac95ff99f6b89404536cbe7adb950781447d8846d8530f3a11d1e7b387"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/launch_paperspine_ui.ps1",
+          "bytes": 1278,
+          "sha256": "c905ac841e2d28c31fc99ee49fba16630b62d159e44b952c85aeb5608f2c10b0"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/launch_paperspine_ui.sh",
+          "bytes": 1673,
+          "sha256": "583341da746929b85575db209765d429df052d220bc7cf88ff45bf4121062741"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/material_inventory.py",
+          "bytes": 4206,
+          "sha256": "c69b0168be2fe7c93f3af45ae51d3c3077ef2c906e4f412ff8c5bd510f113f64"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/metadata_readiness_check.py",
+          "bytes": 3977,
+          "sha256": "3139c1c34b341224c908c8a582634047787c56daf645431ea1fcff01cb488d12"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/paperspine_update.py",
+          "bytes": 27734,
+          "sha256": "022259b737f19a98fc46e0a2f7c60cd7cdc915d19cbce0b149de12c3a972fb31"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/progress_check.py",
+          "bytes": 43781,
+          "sha256": "4be36e4aaefd925c07b672994a752d4d62fbd1b163acd83ca9e4b83df11f44c0"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/publication_cycle.py",
+          "bytes": 71422,
+          "sha256": "055efb68e1af5f49b5b0ce6f1d5f2ee26fb6894b706acb6f22ff3822ce02c92f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/publication_surface_check.py",
+          "bytes": 3184,
+          "sha256": "ff172c6b8343d075946c8606abeec6a3f926421f9ff9277c9f013a75d471a33a"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/reference_inventory.py",
+          "bytes": 4603,
+          "sha256": "99e7578869a1a3fab72dc249d5c9806465fd7d020946d86596496a01f8ae4ee6"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/respond_check.py",
+          "bytes": 14775,
+          "sha256": "4f1ae97df1ab21e269a7676b83c09763911b45231453cbbcccf115ec074a4c5a"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/results_validation_check.py",
+          "bytes": 6580,
+          "sha256": "f977562f3edfc990a6a9bd95cb11c7278cf4bb194668a2b139db7d70ffe23195"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/reviewer_audit_check.py",
+          "bytes": 10665,
+          "sha256": "8e4a49e73edc541aecd34d7a3dc7a31c2d695abed360acbe2ae8d9c9e366a56d"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/revision_audit.py",
+          "bytes": 8007,
+          "sha256": "2984e0cc25f851a41bee6c98d3fd05646d1181bc78d2dfeea27efe7831730e3e"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/scientific_evidence_check.py",
+          "bytes": 8292,
+          "sha256": "5dfc1c2a40021a9da056e35188423c869e724205fcd2949e63105aa15ae693e6"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/section_economy_check.py",
+          "bytes": 6256,
+          "sha256": "4c48b7aa1d72e2678c1cd5928b49e336275dd6816bfa668bebd74010f71323ed"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/structured_review.py",
+          "bytes": 39360,
+          "sha256": "6f75016adef5da297be3bbe3fd3c9f8191c55e2b9584badf26c2dfcf1d8ee970"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/style_metrics.py",
+          "bytes": 12488,
+          "sha256": "5025b9587508082abe806c38dbebaf2d7413fb305b35df8541de4179789c05e8"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/submission_check.py",
+          "bytes": 22044,
+          "sha256": "312d2e3e149f53dc97548af16f11f0d5058f9f109665e8bb9290306328899355"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/sync_local_installs.py",
+          "bytes": 8888,
+          "sha256": "e429ff4923c2ef29fcac925942afc50b6a10a2367058b622d2026598bcb55108"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/translate_guard.py",
+          "bytes": 31019,
+          "sha256": "67ac8b5b6b675ebe38578bf03465f854ad18450246596d566858e33ca3335da5"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/usage_ledger.py",
+          "bytes": 5469,
+          "sha256": "f50bf49d35cdbd0992b88b6b6188d19c43256f28d7ac0aa2ed6ba6aac40e76b6"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/visual_readiness_check.py",
+          "bytes": 16673,
+          "sha256": "3579b08104224403875e14296a65438e634784f7e0d495d4b1a385a2ca3f76f6"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/word_guard.py",
+          "bytes": 40891,
+          "sha256": "47f69d07ace08221b6d3129452ef2e19f0f9c2c7f674e5d246198de59a55142a"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/SKILL.md",
+          "bytes": 36978,
+          "sha256": "886ef4d3210591fe6fffebc82667301e9442fd399ed38e96c1c8c9db5ead9711"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/openai.yaml",
+          "bytes": 290,
+          "sha256": "1ec573016e3618f57518fc1c35d3f1c654b3c5c6c917ca027282df50416f2eff"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/research-exemplar.md",
+          "bytes": 607,
+          "sha256": "2f0f3d53c06a152617f7953b5b08f16b482e53337510d82b59e036933fe54d79"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/research-scene.md",
+          "bytes": 552,
+          "sha256": "1aef33be845b9c2e3ec013c693e21ba3b947d905dd528679b54b7e26032e95ae"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/research-sota.md",
+          "bytes": 448,
+          "sha256": "81f4e0886113765561450ba0bdbbb32b97a1511c1547c440ce1d68367c88b7ac"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/reviewer-evidence.md",
+          "bytes": 710,
+          "sha256": "401ebe0f37b8878b3da8dd93c441469646d96f3e471f22f9e8da38a076b46266"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/reviewer-method.md",
+          "bytes": 665,
+          "sha256": "c1d2e77f042338c300e17d5989a930adcb74246f4c75982f0af7cb844b111c24"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/reviewer-writing.md",
+          "bytes": 1042,
+          "sha256": "912dcec4205bdfc9c807c12568723300fa367fad64ac8bab047cecdb5e209c5a"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/assertive-scientific-writing.md",
+          "bytes": 1501,
+          "sha256": "f8d9e71953821d4f1afc69715b6ecc4d6972604dc178a770ad77b3261de6bcfc"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/audit.md",
+          "bytes": 11057,
+          "sha256": "0fce29f0f81aab0900618e07155939f331cbe7da6f2d0d2dbab541c1c510637c"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/build.md",
+          "bytes": 4433,
+          "sha256": "5827be78039c70e8f3fbf15b9f32780a51e30778d9311b5bf3027a6fc09bc08e"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/citation-support-bank.md",
+          "bytes": 4464,
+          "sha256": "546b46f944405913c073c8a85cbd84075bcae3f0772c177b179b70c5b3a5af17"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/citation.md",
+          "bytes": 4555,
+          "sha256": "db2f9b1a64c830c7a8921c43cd84e760816efd7cb675723347feb85f3df652af"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/contracts/publication-cycle-invocation.schema.json",
+          "bytes": 2713,
+          "sha256": "0831888460f3b511d9b9774eabf91ceb71c4840d4d537e468267630801ae2da7"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/contracts/publication-cycle-result.schema.json",
+          "bytes": 3624,
+          "sha256": "4a4d0afe0bc4b23a4a3cf55c96dcd3976a5f3389176935bae070a4bb372651fd"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/contribution.md",
+          "bytes": 10521,
+          "sha256": "5bd1b67b953d3bd491d6f48fc1f5a13e6d353c8ab01fb12c05ecde115b329c63"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/deep-imitation-protocol.md",
+          "bytes": 5819,
+          "sha256": "6352f53ed5ec9c8227bacd21e717860bddfd2c14b8a4d3e7f4c66e2390394f51"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/deep-reading.md",
+          "bytes": 10765,
+          "sha256": "a55ddce7eea804e997e3394c197f23bb17583ef441ee81f91d7be10b6a53be92"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/editorial-completeness.md",
+          "bytes": 3915,
+          "sha256": "6ce5744f85bca2125c03ae7a3cf7f1c6b3a8b5274610839fc47aa49568867c24"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/exemplar-learning-dossier.md",
+          "bytes": 5224,
+          "sha256": "1110f5fb6a2c0e3a8605d736f0a9d25160a2926c437ec21c92d1f6b867e29ed2"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/figure-story.md",
+          "bytes": 8154,
+          "sha256": "101cefbad6c8fae7dde1bd13d786a8a3b7b0868a13f80aa90621e4cd3dc79832"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/humanize-calibration.md",
+          "bytes": 1876,
+          "sha256": "8628e277b7d35ef44e8ea272b72031db25f71068a221b1cf32a64261dc63bd84"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/humanize.md",
+          "bytes": 3612,
+          "sha256": "99a1974da862fffaa5720fe5c6214ffa5d2950fe1f3a5246e09f14832218da34"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/intake.md",
+          "bytes": 2047,
+          "sha256": "49749d5d66d8662037c275975bc5ac8756d0c3d365c32efb9805b12e1bc2bafe"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/interactive-intake.md",
+          "bytes": 3131,
+          "sha256": "bbfd0f1efcfc3593ee7fe9d3a6a755af6d434a115d47999c8ea5a84cd611e2aa"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/journal-style-analysis.md",
+          "bytes": 4015,
+          "sha256": "a203e17edb8ab090b142c5a74fa0c871f822c31eb7f5f03083e13a23a68f4d63"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/journal-transfer.md",
+          "bytes": 3510,
+          "sha256": "86b27c174b6524a3a658a8570b36562013c5a793b5f9512f0c8d71b9fde5af19"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/latex-source-control.md",
+          "bytes": 3665,
+          "sha256": "6aeab455bb43dd28ac273a473c8721e1889e56a25ab87f0af417162975733f2f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/latex.md",
+          "bytes": 7841,
+          "sha256": "d838d6ba6759f35c056d2220e0854565f39edb466cb066a9fde31d4d3637d62f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/local-reference-ingestion.md",
+          "bytes": 1754,
+          "sha256": "234ab3b7c3bca954044922d06803a7cf2f85bad39cf99d2ffaa0907a08bf32d5"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/logic-transfer-audit.md",
+          "bytes": 7039,
+          "sha256": "67cab61e93355065c7669ff17718cdac4bb2b3d3009a28348c79600d656039aa"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/motivation-thread-writing.md",
+          "bytes": 9784,
+          "sha256": "1fd599254571ea03574cfe3b6af1636f19fbec46c922ea77621d4809a14a8fee"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/orchestrator-branch-map.md",
+          "bytes": 6312,
+          "sha256": "c35f47ae66cf6aa96972fc0af2571b1403de29ec7f3589f806dac890412b27dd"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/phase-contracts.md",
+          "bytes": 1736,
+          "sha256": "1bc4f77bb2e66c20b678c441d60ed4b22736d12e74baa46f71d4607f83ceb6fa"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/platform-cnki.md",
+          "bytes": 2838,
+          "sha256": "2a421bbfdb8accbe99f45b22c55cded1fbff4f9afae4f5f975af3dec8656db7f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/platform-general.md",
+          "bytes": 2463,
+          "sha256": "376d7341d0bb8d3de6539c83a284330c061257b6c2377ad577ff573e92a84702"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/platform-weipu.md",
+          "bytes": 2161,
+          "sha256": "7b05e5f15dd841bab478c5c86cb901b1890d8fdb077a1d5df14ca7fa6d74c15d"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/publication-cycle-contracts.md",
+          "bytes": 7583,
+          "sha256": "1187e4636875fadf933b9f9863537aca7052a941c5a21a160a14dc82b5ae6180"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/publication-cycle-interface.md",
+          "bytes": 6454,
+          "sha256": "d2e0b752cf22bd2eec07e75c3f360d66b3ab9a709bfea1de77834d1e88e6390f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/publication-cycle.md",
+          "bytes": 3029,
+          "sha256": "8198fce89e83e0d0dce7968178a989601d08469e35ac8412c0070d951165ee31"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/publication-surface.md",
+          "bytes": 1197,
+          "sha256": "ee9e1a0d0ce8a7406da693d98ea366e9e682bfeb0e06c7cfe9ab3fbb1d2b2934"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/publication-target-profile.md",
+          "bytes": 3895,
+          "sha256": "24650cc24d5e94f087f5e41bda7ebd57a70ee3e7cd75fc1b00b08324d460520c"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/research.md",
+          "bytes": 3361,
+          "sha256": "5be8aabf483e96d871de22c7f807e52e11338e3fc1a6ef9881b701def78023c0"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/respond.md",
+          "bytes": 3790,
+          "sha256": "2d97e04fe3dd1c6de69406c5c40334698409e6e403ef3f58a60c6cf83f0b854c"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/results-validation.md",
+          "bytes": 5841,
+          "sha256": "e92a04fdd2951f3c49e7365c8bff9b161a3f2b0b3fcbaee08e7986d1d85d421c"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/resume.md",
+          "bytes": 5711,
+          "sha256": "134eab56debe8008f549cc76912c406cc9fb39fc881fc9a6ad37c0e717d52520"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/review-policy.md",
+          "bytes": 2933,
+          "sha256": "3c9b4095fc9f0af879457ca5f4bf0e2b59d94ed92ea2b37c8c782e08280f7b8f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/reviewer-audit.md",
+          "bytes": 8278,
+          "sha256": "a81da84d9902e714c4565686cde642d805270568ec0e119d4a93ad9ee6972efe"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/rewrite-matrix.md",
+          "bytes": 8397,
+          "sha256": "a1a5cba4668bce238f537448351f2269e39594419e70231fd170d5d39bba9961"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/rewrite.md",
+          "bytes": 4386,
+          "sha256": "08e6189b8fb8fc7afd7c276278119c8530c5068b439165fceaf65d834d1ce8c5"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/round1-literature-revision.md",
+          "bytes": 6045,
+          "sha256": "02bcb3f70cc9c0c3c31900d4d2a7d7a562ec2f57d6db4f17c5ae3e10247f61d9"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/round2-journal-revision.md",
+          "bytes": 3930,
+          "sha256": "c1a7b84ffe5557e0f1377d79bc800f233f919d0520c56cd567db412fef267c35"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/round3-latex-polish.md",
+          "bytes": 6181,
+          "sha256": "914be4a901839ebaa0b9e4c23f2128fea0220dc469c2c3ee466460a05fdac466"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/round4-template-integration.md",
+          "bytes": 4032,
+          "sha256": "58465c80092624fdd7e9ae8fea30cc64512a6ebf24cea3dcdc5b9e10b9422b9d"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/scenario-competition.md",
+          "bytes": 816,
+          "sha256": "4ab7683206683c7d82219fea719a44e7785433d85ca6fb5a36e43ded70c7f430"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/scenario-conference.md",
+          "bytes": 591,
+          "sha256": "867ddf2a294f38e238c2c4b073c36f10a15d52b64e828f101c3a7b394768dd42"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/scenario-journal.md",
+          "bytes": 1078,
+          "sha256": "9da6f812b761320d61a42a9652380963b6d29ca640e18eea3cafa9f04aa59596"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/scenario-report-review.md",
+          "bytes": 825,
+          "sha256": "ca2056e7f978c760468b15d13c0d6f95341e1f967365f0200c639b4a506fa103"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/scientific-evidence-ledger.md",
+          "bytes": 3633,
+          "sha256": "3184d20c4e822e9fce7bd62bfcdf3bd2778a9770d3460d44993d91822e6e168f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/semantic-confirmation.md",
+          "bytes": 2777,
+          "sha256": "3e253fae3007faf26c1eb79a21cf35b5e4d027a52034a114dec1e043a91fce36"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/style-learning-workflow.md",
+          "bytes": 6253,
+          "sha256": "ccb5f3544404bc64fa5d0f802a630fb3521803fa019c26074f093e224740af90"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/submission-metadata.md",
+          "bytes": 998,
+          "sha256": "650ce8489e693e7721a6c5f32932929a508e06371ddfed4162b7341500e0e76d"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/submission.md",
+          "bytes": 4629,
+          "sha256": "a7b3b7292439f696eb4c4f80df50f903d1304459fe2cea2542e417f33ff4dfc6"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/suite-map.md",
+          "bytes": 3088,
+          "sha256": "6c3cc4760c7511d9ef7234d7726d858f35941f4ee1d1a107ba7246bdef95a545"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/target-journal-research.md",
+          "bytes": 4142,
+          "sha256": "e269bb6e0f7683c9be5c5b442ca42f265e0763f60baa3f049388c5f358b333c8"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/task-genre-research.md",
+          "bytes": 3820,
+          "sha256": "c2e908a2534e6cb0f221f4a3f583c2ae9f1c4a6d361ed217b40d987f97208de2"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/translate.md",
+          "bytes": 3537,
+          "sha256": "53640bd5ca3cb3ba9f2f51b89e6224c1de4b1c83577bf510484df918c0d101c1"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/translation-package.md",
+          "bytes": 3117,
+          "sha256": "4de1e43a1421c94d07d2e75a99bde01c6f70a0136db6530cfc6ba71bec09333a"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/update.md",
+          "bytes": 4687,
+          "sha256": "9f14a1f372b076e4e4deba2357509368f07936646a82023e4f6a6eea11dfe7d2"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/usage-telemetry.md",
+          "bytes": 1292,
+          "sha256": "c4d66ca05ec58e899cd19ff3f664ce487291c4abc9b6d9bc6afddd873676d688"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/version-requirements.md",
+          "bytes": 2029,
+          "sha256": "8d3814caf8539436bccf2f1c0e43a81a80e121a78ab325b5c69469c262cce6f8"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/visual-readiness-gate.md",
+          "bytes": 2756,
+          "sha256": "4fc5d4d1c5db03591cff2acbc868fdc784d8881a6943abd1915f7c654acb9df5"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/writing-rationale-matrix.md",
+          "bytes": 9435,
+          "sha256": "b8e82b2cc596d2a56d3d8e4b9f391b940d646d858979851c29a331702f4bd4ee"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/__init__.py",
+          "bytes": 2683,
+          "sha256": "00097861ecc06043dee78339bc739d544d521a034d376ec8835428a97a524230"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/config.py",
+          "bytes": 22381,
+          "sha256": "937399461e5e5a9e56670c9eb21ec908ba036601ffee2c18360726cf02f2f78d"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/data.py",
+          "bytes": 2408,
+          "sha256": "9ba340bef9f26e37c7bdf8462de7146f756c622ea7f150f9a65d530d69ba4b0d"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/data_analysis.py",
+          "bytes": 41519,
+          "sha256": "668452f92ca8e514d660bc47c1d4b01e73465b597a973f2b5199f09341460e6b"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/evidence_bridge.py",
+          "bytes": 29585,
+          "sha256": "f2c99070b2277132b638246982cce65969e5bda7d5ad4812d032d7b9bb985f07"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/figure_spec.py",
+          "bytes": 73027,
+          "sha256": "2f0beed4a138ed902f798ddb0135e796bb2e317a92e1e83a42556179cadaed2d"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/generation.py",
+          "bytes": 46848,
+          "sha256": "653eb5dd9d996f030ef5b4ee6cfda3ce68eb9644dbe930e513357c23aeb17eed"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/img2ppt_pipeline.py",
+          "bytes": 18126,
+          "sha256": "2836471b56b1902dcca0681b4ba8610118c1e2ebf5ad6d6ab65da112f246ced6"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/overlay.py",
+          "bytes": 3149,
+          "sha256": "0596479c0cade4fa2312ef0cf2f0333451a1126e6ca3d9864e05d9388fad8ba8"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/panels.py",
+          "bytes": 6980,
+          "sha256": "2022620cc1e9c4069ac273aacabd6885aa4a739630457215a1c20b0651274f01"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/ranking.py",
+          "bytes": 17263,
+          "sha256": "67da19679920291234cab892256d865cb04c4c1a724e190f78bd325b3ca1808c"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/raster_schematic.py",
+          "bytes": 34698,
+          "sha256": "fc26f929997a6946303ace1f80aece74fc166a581d04538eaa3a94accf671dea"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/review.py",
+          "bytes": 40159,
+          "sha256": "07c1788d9388834f37d9ff8c0fb0f6f7c4b3e3b2e676110905e75bc5e94142b3"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/review_server.py",
+          "bytes": 1934,
+          "sha256": "36aa017e44c506c25256dead0ab05c76aa4b4427ba0697b19fd668323992a188"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/svg.py",
+          "bytes": 10470,
+          "sha256": "40fc2df31c9937e0f75b096d15d701e92a85cafbd81ac3b7a6d08d4d6ce6bc3b"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/vector_blueprint.py",
+          "bytes": 19488,
+          "sha256": "dd15d41f746d7001c9b812c7be483c0580460dcd9e6cd12a1ed58e6e8808c4df"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/vectorization.py",
+          "bytes": 20763,
+          "sha256": "5dcb6b7aa128f446c4dc21e6e0d5d7eb8e21195ec53525a66570fe33c050aded"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror.py",
+          "bytes": 13238,
+          "sha256": "936db3e72face5d8a11db2815a92562ca2722b3c5dd559cf2d01f1017d6744ab"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror_check.py",
+          "bytes": 11759,
+          "sha256": "8f7788ec1250f22a7e0389480c0bf45db2b790bfada0b049cb0b32b5dfaff43b"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror_docx.py",
+          "bytes": 10036,
+          "sha256": "f1c0bd005a8208ce472f8aebcc717215c7f6fd55c0201caa0feb8b7897d75a6e"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror_inventory.py",
+          "bytes": 12022,
+          "sha256": "a18eb79a31fac60715f77f9d2e62fe03352a429159ef62655c69d7a141ec8f5a"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/SKILL.md",
+          "bytes": 10020,
+          "sha256": "bd477f5bb207afecffe5b437d61ba686753d125ac02a77e4fb9d4ddbc10ee2bc"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/agents/openai.yaml",
+          "bytes": 342,
+          "sha256": "248c70e12f87e4130f0d3c2fda656147c6cc6664ff5ffee47eb2ed0c4bf5c7bb"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/assets/comparison_atlas_builder.py",
+          "bytes": 4036,
+          "sha256": "e62d61fe91526596f1626a72023afc54b57f41d5a8dc0ec9214de5709d4ca68a"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/assets/comparison_atlas_config.example.json",
+          "bytes": 797,
+          "sha256": "d243aaefc0d9297d20c1e6edcf8ae77bee543af8f1d541e7feec8d580cf3dc20"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/assets/design_brief.example.md",
+          "bytes": 1239,
+          "sha256": "d6a4515a0e37f6b4510657786cbd330a0fc5114f0cc75656ab5a2925aefb5f9b"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/assets/figure_manifest.example.json",
+          "bytes": 1453,
+          "sha256": "6b66975cda2e3a10cf60d2f733a9490500ad943557318b6e14091cb67b831764"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/assets/style_palette.example.json",
+          "bytes": 353,
+          "sha256": "c852fe35036513410307196582d16976b528824427b5c100dbd21ff9e2709c56"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/references/architecture-and-multipanel-design.md",
+          "bytes": 2899,
+          "sha256": "f46d5dddab3f47afc7d26fbd334064e368151b9d4a13ca90ea545441ce5ae439"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/references/reference-deconstruction.md",
+          "bytes": 2488,
+          "sha256": "a99a1120749738874a9ccd16fc1b2ce0ce6e1531d92bacd1f08ac7dde2d05e7f"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/references/research-figure-process.md",
+          "bytes": 4559,
+          "sha256": "8a1a15774aab96e147ac96f4419b980af7ab321830de8791bb70f7cf762ef88f"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/references/scientific-visual-qa.md",
+          "bytes": 3317,
+          "sha256": "c3e9def504a23d725dd983190db5e0e7c38f0cd2227f4f845fff9123476f4ff9"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/scripts/inspect_figure_project.py",
+          "bytes": 6102,
+          "sha256": "3f5dc2d7da58d2e1ff2743220849090fc493d7de046240570c4a58ec03ea6205"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/scripts/validate_research_figures.py",
+          "bytes": 6866,
+          "sha256": "fe1864fda11e2f967217e75800ba05da010ad0fefd523505d62fd3d995d7c860"
+        },
+        {
+          "path": "core/03_联合开发/FIGURE_LIFECYCLE.md",
+          "bytes": 1938,
+          "sha256": "e6508023f794156be55095e535e4d029a8a0db1ea27f43b5e7667893f28c9fec"
+        },
+        {
+          "path": "core/03_联合开发/PAPERFIGURE_BODY_INTERFACE.md",
+          "bytes": 4333,
+          "sha256": "8d6474923aebe7d84a44f3091003c1f4fffccaf9ff3699c5fc930cb9fca2913e"
+        },
+        {
+          "path": "core/03_联合开发/PUBLICATION_CYCLE_INTEGRATION.md",
+          "bytes": 3203,
+          "sha256": "23b4b72f0e32456ce316241bb951240bac5f5bcc9b02fa6584eca86bd34af99b"
+        },
+        {
+          "path": "core/03_联合开发/README.md",
+          "bytes": 8132,
+          "sha256": "37247db3c0cf24b1cf88870841ce2f2bfb180bb22664a5fce8b361cca4676936"
+        },
+        {
+          "path": "core/03_联合开发/contracts/agent-signal.schema.json",
+          "bytes": 660,
+          "sha256": "8716f2ed769fffd23db1eff23792fac5070c1f5c0e40c08acd8550f758c2d106"
+        },
+        {
+          "path": "core/03_联合开发/contracts/assembly-manifest.schema.json",
+          "bytes": 1367,
+          "sha256": "f46c2759cb3e00c4b967377e9fe8cec6ff0c3385e5355c03d30b1ccf3acfb7ba"
+        },
+        {
+          "path": "core/03_联合开发/contracts/figure-body-contract.schema.json",
+          "bytes": 3426,
+          "sha256": "420f1ad7380bd4e63e96f273c97de216c52dd1c9683d19c312d79c4ba320db19"
+        },
+        {
+          "path": "core/03_联合开发/contracts/figure-requests.schema.json",
+          "bytes": 4156,
+          "sha256": "075aa8541c1b22c16b6d7f258ff70b4331d4d46b6a93aa88c600ad8ca4db1895"
+        },
+        {
+          "path": "core/03_联合开发/contracts/figure-workflow.schema.json",
+          "bytes": 2242,
+          "sha256": "b66305696b9b85371d7d0f84da5d6722bb84538f730348e616d7e753e5669592"
+        },
+        {
+          "path": "core/03_联合开发/contracts/integration-job.schema.json",
+          "bytes": 2591,
+          "sha256": "50983ce5bc25edce6216528a5c0fb6bc13777f028d48b81f7f093503325fc22c"
+        },
+        {
+          "path": "core/03_联合开发/contracts/integration-state.schema.json",
+          "bytes": 1005,
+          "sha256": "eb2da654c2eed972c7d09447ca7dd08248b8b1401333a3b050db1e4d701d9137"
+        },
+        {
+          "path": "core/03_联合开发/contracts/review-decision.schema.json",
+          "bytes": 1367,
+          "sha256": "9ffccf6445cb12cc2b22621600cce1109a2467cb4a96c43d80a04d6e4072cf90"
+        },
+        {
+          "path": "core/03_联合开发/scripts/paperspine_figure.py",
+          "bytes": 412,
+          "sha256": "f41416e334c0ca02220ae6f2d4b4ca9d6de59c1ef722d67c5ae4a417cfab3fd6"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/__init__.py",
+          "bytes": 526,
+          "sha256": "d629ed5c38afddef66a38584728972924e88234ec44243a5e5fedb643261d640"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/adapters.py",
+          "bytes": 4606,
+          "sha256": "80911cbf72f3f6472606253e20e6fe498cbb226f96d7656a45d5becad646a5f8"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/assembly.py",
+          "bytes": 9679,
+          "sha256": "c4d98b72257c83f34320a88e109e476b9fee67bb58cb0725b65be29d961fbe2f"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/body_integration.py",
+          "bytes": 13821,
+          "sha256": "1499894005517900112557e651b6d59d774639929aa327f7cb4c567854115a7e"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/bridges.py",
+          "bytes": 17057,
+          "sha256": "a48eb6a8e73df4ddaaff240c2afa3fa90e30c25587cba989a5d01f2b815e14f0"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/cli.py",
+          "bytes": 3861,
+          "sha256": "90f1f10e305607f2dae7a6acc406360b80065a816d68d9b60400541bdaaaf3f1"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/contracts.py",
+          "bytes": 20341,
+          "sha256": "2c06074d03026540f6fcae9ad8e19c15df7a71be1dc2ebb71392cadd01a44666"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/coordinator.py",
+          "bytes": 40092,
+          "sha256": "700b692293c5e49e8753b045ba0f9557b7dba019b317ad413b3faa6b27a5c5f3"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/ui_server.py",
+          "bytes": 10519,
+          "sha256": "ce23848800592e85503e195e512aa27758e6a592b6a23b577dc45f614e47a3ac"
+        },
+        {
+          "path": "core/03_联合开发/ui/app.js",
+          "bytes": 25973,
+          "sha256": "4398f023093e1721e9a2389bb9a023fccc9e53935e05d90446d49072bb2f394b"
+        },
+        {
+          "path": "core/03_联合开发/ui/index.html",
+          "bytes": 20707,
+          "sha256": "363d9c252839c6ca00962ac1dd06c0af5439d6abe8a8ecf150ea461032f58b42"
+        },
+        {
+          "path": "core/03_联合开发/ui/styles.css",
+          "bytes": 28525,
+          "sha256": "ed3cf031c01598e7d8cac0c454dd7e29c36337d6aaa91a7d6a153021c2f87868"
+        },
+        {
+          "path": "core/06_插件化/contracts/host-bridge.schema.json",
+          "bytes": 1304,
+          "sha256": "7a696229315959600eddf68445a65e63f23f477d3f806b439b33adb6ddd810e8"
+        },
+        {
+          "path": "core/release.json",
+          "bytes": 960,
+          "sha256": "fb2935c0a8fb0435bac708406bd77948d7a9a8a8b5852c5df73e30eb4b019ab7"
+        },
+        {
+          "path": "core/requirements.txt",
+          "bytes": 145,
+          "sha256": "b2148900e76ee2393f2e9c34bc648461c83b54d7f6aa5d280e791c8a2e70096d"
+        },
+        {
+          "path": "core/runtime/README.md",
+          "bytes": 595,
+          "sha256": "9bf890ddd325f278b56dd8ed8c4e00d0d2796555877b03000f3055c6f3c2c689"
+        },
+        {
+          "path": "core/runtime/paperspine5_runtime.py",
+          "bytes": 14897,
+          "sha256": "c8f891b2da74719cf733ddf5f42dc6d945909cbed45e1eb408c7d228919b3cdb"
+        },
+        {
+          "path": "core/runtime/test_runtime.py",
+          "bytes": 4593,
+          "sha256": "fab3b2eac42651c59298256826bd17caa105e394dc36e24c4f6a8e406abd18e1"
+        },
+        {
+          "path": "install.ps1",
+          "bytes": 865,
+          "sha256": "235e69735109eb6698910bf8051b537d9d3edcc66013baee2df2bdf09ec4a7b6"
+        },
+        {
+          "path": "install.sh",
+          "bytes": 619,
+          "sha256": "32ed09837c980f9803431165beb533d89faa630f533a12a023de05af1ebc7d82"
+        }
+      ]
+    },
+    {
+      "kind": "codex-plugin",
+      "root": "paperspine5-codex-plugin-0.3.0-rc.1",
+      "files": [
+        {
+          "path": ".agents/plugins/marketplace.json",
+          "bytes": 448,
+          "sha256": "d99ea8b6e3ede61dd3210d10029faace31df2a10e81d17edd245bef8053d6f46"
+        },
+        {
+          "path": "CORE-SHA256",
+          "bytes": 65,
+          "sha256": "92d302c1657fb2ab4cca4aeb6d0b9e153aa42285e46d1eb2823a4a4bad14695a"
+        },
+        {
+          "path": "INSTALL.md",
+          "bytes": 267,
+          "sha256": "f7d657c7f1c9b9fae835a08fc27ac5b3d15a89bd29a0f60ee1b18d8bfed4169a"
+        },
+        {
+          "path": "README.md",
+          "bytes": 731,
+          "sha256": "9d80f230ef652fac3937548235f1a84d0d5e0de646248c27684a2eed00f29319"
+        },
+        {
+          "path": "UNINSTALL.md",
+          "bytes": 184,
+          "sha256": "a91d95ec32eec6f58712ed28322f4263b628119b3f75bad2743b187a62cd165c"
+        },
+        {
+          "path": "UPDATE.md",
+          "bytes": 224,
+          "sha256": "66fa16de8e7f333152e883f1e3f30a5c9abcd95e8c17cdec6e9212883b065310"
+        },
+        {
+          "path": "plugins/paperspine5/.codex-plugin/plugin.json",
+          "bytes": 1254,
+          "sha256": "d4535af13cc1da33ced184f84d5a90c2e1d6ab553c3e4d5901bb367106370111"
+        },
+        {
+          "path": "plugins/paperspine5/.mcp.json",
+          "bytes": 346,
+          "sha256": "519808f42b2e732df1eaa10b114ec30a45b9d06d7e54c1ad1874d1e05b1c5fa2"
+        },
+        {
+          "path": "plugins/paperspine5/CORE-SHA256",
+          "bytes": 65,
+          "sha256": "92d302c1657fb2ab4cca4aeb6d0b9e153aa42285e46d1eb2823a4a4bad14695a"
+        },
+        {
+          "path": "plugins/paperspine5/INSTALL.md",
+          "bytes": 267,
+          "sha256": "f7d657c7f1c9b9fae835a08fc27ac5b3d15a89bd29a0f60ee1b18d8bfed4169a"
+        },
+        {
+          "path": "plugins/paperspine5/README.md",
+          "bytes": 719,
+          "sha256": "b9bb302e41f86aeaeb2c6bedee2e04bcb1b56d733d946e56f1f6b34a3d9da6a4"
+        },
+        {
+          "path": "plugins/paperspine5/UNINSTALL.md",
+          "bytes": 184,
+          "sha256": "a91d95ec32eec6f58712ed28322f4263b628119b3f75bad2743b187a62cd165c"
+        },
+        {
+          "path": "plugins/paperspine5/UPDATE.md",
+          "bytes": 224,
+          "sha256": "66fa16de8e7f333152e883f1e3f30a5c9abcd95e8c17cdec6e9212883b065310"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/adapters/claude/commands/paperspine.md",
+          "bytes": 2877,
+          "sha256": "7fa72733dd4eb7aefed1f598f97aa8c32f50bc2cd94021ef7de405d728dc4c54"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/adapters/codex/prompts/paperspine.md",
+          "bytes": 3738,
+          "sha256": "3da7a2bb22c5f5387013db64a5b6aac2a4a6eff4e9162a7647713ae537bf42c8"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/adapters/hermes/frontmatter.yaml",
+          "bytes": 803,
+          "sha256": "ec9c53543edffc95ff1ae49b066c32679c48a8e1eb6bf61d38a3439e0a02c2d0"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/_paper_spine_utils.py",
+          "bytes": 8131,
+          "sha256": "0833b58634fc324b28c7f4dfda02cfaf7bcae03e4c66379bb1424bf1e12259ec"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/artifact_check.py",
+          "bytes": 48258,
+          "sha256": "552bb9369bff1af791ed7263e9b7546a7436e3cdb25918eb47b01e62be222e93"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/citation_bank_check.py",
+          "bytes": 10734,
+          "sha256": "edb4e570c0973d1f456d73023be206ac50bc6a9d1b8c3d775f898bc25bd61493"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/citation_quality_audit.py",
+          "bytes": 30582,
+          "sha256": "4d2f1717ddc19e06eb0f490d808e6ad9253d242b004eb2048ad47685196e3963"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/citation_verification_en.py",
+          "bytes": 26358,
+          "sha256": "c535ca653b793dd29a08982cba044b04bfd0f4332be7da33e35fdf8944f9863a"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/citation_verification_zh.py",
+          "bytes": 6770,
+          "sha256": "49bb921f0f41ed21e2363109b886d2524c95758c9a7a95f0bd018603a7451402"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/contribution_check.py",
+          "bytes": 10347,
+          "sha256": "38190989d1f79f6eadf12cdc7dd28561c2eaf0f178b1630cb6f0fd2bf1492d92"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/figure_story_check.py",
+          "bytes": 12518,
+          "sha256": "9f78ba6326239f3da73bf7553f33e2911e055c92b7dda05b6a83032ab5f6a387"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/humanize_check.py",
+          "bytes": 44590,
+          "sha256": "4b2d45f61a7f128e1b824b5226e076bad467ec4c79c5f696e4d4577ea4f330e6"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/intake_wizard.py",
+          "bytes": 47427,
+          "sha256": "d7f2504053f429cf2fd4a13ad5809c521409003b4a08ef59a511a2732b26520c"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/integrity_audit.py",
+          "bytes": 34819,
+          "sha256": "ef616e546b7dfed85aed35b1c31ca6a8e0a0302962ca745f62f452a818eb12fd"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/latex_guard.py",
+          "bytes": 16514,
+          "sha256": "43ed37ac95ff99f6b89404536cbe7adb950781447d8846d8530f3a11d1e7b387"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/launch_paperspine_ui.ps1",
+          "bytes": 1278,
+          "sha256": "c905ac841e2d28c31fc99ee49fba16630b62d159e44b952c85aeb5608f2c10b0"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/launch_paperspine_ui.sh",
+          "bytes": 1673,
+          "sha256": "583341da746929b85575db209765d429df052d220bc7cf88ff45bf4121062741"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/material_inventory.py",
+          "bytes": 4206,
+          "sha256": "c69b0168be2fe7c93f3af45ae51d3c3077ef2c906e4f412ff8c5bd510f113f64"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/metadata_readiness_check.py",
+          "bytes": 3977,
+          "sha256": "3139c1c34b341224c908c8a582634047787c56daf645431ea1fcff01cb488d12"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/paperspine_update.py",
+          "bytes": 27734,
+          "sha256": "022259b737f19a98fc46e0a2f7c60cd7cdc915d19cbce0b149de12c3a972fb31"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/progress_check.py",
+          "bytes": 43781,
+          "sha256": "4be36e4aaefd925c07b672994a752d4d62fbd1b163acd83ca9e4b83df11f44c0"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/publication_cycle.py",
+          "bytes": 71422,
+          "sha256": "055efb68e1af5f49b5b0ce6f1d5f2ee26fb6894b706acb6f22ff3822ce02c92f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/publication_surface_check.py",
+          "bytes": 3184,
+          "sha256": "ff172c6b8343d075946c8606abeec6a3f926421f9ff9277c9f013a75d471a33a"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/reference_inventory.py",
+          "bytes": 4603,
+          "sha256": "99e7578869a1a3fab72dc249d5c9806465fd7d020946d86596496a01f8ae4ee6"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/respond_check.py",
+          "bytes": 14775,
+          "sha256": "4f1ae97df1ab21e269a7676b83c09763911b45231453cbbcccf115ec074a4c5a"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/results_validation_check.py",
+          "bytes": 6580,
+          "sha256": "f977562f3edfc990a6a9bd95cb11c7278cf4bb194668a2b139db7d70ffe23195"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/reviewer_audit_check.py",
+          "bytes": 10665,
+          "sha256": "8e4a49e73edc541aecd34d7a3dc7a31c2d695abed360acbe2ae8d9c9e366a56d"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/revision_audit.py",
+          "bytes": 8007,
+          "sha256": "2984e0cc25f851a41bee6c98d3fd05646d1181bc78d2dfeea27efe7831730e3e"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/scientific_evidence_check.py",
+          "bytes": 8292,
+          "sha256": "5dfc1c2a40021a9da056e35188423c869e724205fcd2949e63105aa15ae693e6"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/section_economy_check.py",
+          "bytes": 6256,
+          "sha256": "4c48b7aa1d72e2678c1cd5928b49e336275dd6816bfa668bebd74010f71323ed"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/structured_review.py",
+          "bytes": 39360,
+          "sha256": "6f75016adef5da297be3bbe3fd3c9f8191c55e2b9584badf26c2dfcf1d8ee970"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/style_metrics.py",
+          "bytes": 12488,
+          "sha256": "5025b9587508082abe806c38dbebaf2d7413fb305b35df8541de4179789c05e8"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/submission_check.py",
+          "bytes": 22044,
+          "sha256": "312d2e3e149f53dc97548af16f11f0d5058f9f109665e8bb9290306328899355"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/sync_local_installs.py",
+          "bytes": 8888,
+          "sha256": "e429ff4923c2ef29fcac925942afc50b6a10a2367058b622d2026598bcb55108"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/translate_guard.py",
+          "bytes": 31019,
+          "sha256": "67ac8b5b6b675ebe38578bf03465f854ad18450246596d566858e33ca3335da5"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/usage_ledger.py",
+          "bytes": 5469,
+          "sha256": "f50bf49d35cdbd0992b88b6b6188d19c43256f28d7ac0aa2ed6ba6aac40e76b6"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/visual_readiness_check.py",
+          "bytes": 16673,
+          "sha256": "3579b08104224403875e14296a65438e634784f7e0d495d4b1a385a2ca3f76f6"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/word_guard.py",
+          "bytes": 40891,
+          "sha256": "47f69d07ace08221b6d3129452ef2e19f0f9c2c7f674e5d246198de59a55142a"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/SKILL.md",
+          "bytes": 36978,
+          "sha256": "886ef4d3210591fe6fffebc82667301e9442fd399ed38e96c1c8c9db5ead9711"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/openai.yaml",
+          "bytes": 290,
+          "sha256": "1ec573016e3618f57518fc1c35d3f1c654b3c5c6c917ca027282df50416f2eff"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/research-exemplar.md",
+          "bytes": 607,
+          "sha256": "2f0f3d53c06a152617f7953b5b08f16b482e53337510d82b59e036933fe54d79"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/research-scene.md",
+          "bytes": 552,
+          "sha256": "1aef33be845b9c2e3ec013c693e21ba3b947d905dd528679b54b7e26032e95ae"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/research-sota.md",
+          "bytes": 448,
+          "sha256": "81f4e0886113765561450ba0bdbbb32b97a1511c1547c440ce1d68367c88b7ac"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/reviewer-evidence.md",
+          "bytes": 710,
+          "sha256": "401ebe0f37b8878b3da8dd93c441469646d96f3e471f22f9e8da38a076b46266"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/reviewer-method.md",
+          "bytes": 665,
+          "sha256": "c1d2e77f042338c300e17d5989a930adcb74246f4c75982f0af7cb844b111c24"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/reviewer-writing.md",
+          "bytes": 1042,
+          "sha256": "912dcec4205bdfc9c807c12568723300fa367fad64ac8bab047cecdb5e209c5a"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/assertive-scientific-writing.md",
+          "bytes": 1501,
+          "sha256": "f8d9e71953821d4f1afc69715b6ecc4d6972604dc178a770ad77b3261de6bcfc"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/audit.md",
+          "bytes": 11057,
+          "sha256": "0fce29f0f81aab0900618e07155939f331cbe7da6f2d0d2dbab541c1c510637c"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/build.md",
+          "bytes": 4433,
+          "sha256": "5827be78039c70e8f3fbf15b9f32780a51e30778d9311b5bf3027a6fc09bc08e"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/citation-support-bank.md",
+          "bytes": 4464,
+          "sha256": "546b46f944405913c073c8a85cbd84075bcae3f0772c177b179b70c5b3a5af17"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/citation.md",
+          "bytes": 4555,
+          "sha256": "db2f9b1a64c830c7a8921c43cd84e760816efd7cb675723347feb85f3df652af"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/contracts/publication-cycle-invocation.schema.json",
+          "bytes": 2713,
+          "sha256": "0831888460f3b511d9b9774eabf91ceb71c4840d4d537e468267630801ae2da7"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/contracts/publication-cycle-result.schema.json",
+          "bytes": 3624,
+          "sha256": "4a4d0afe0bc4b23a4a3cf55c96dcd3976a5f3389176935bae070a4bb372651fd"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/contribution.md",
+          "bytes": 10521,
+          "sha256": "5bd1b67b953d3bd491d6f48fc1f5a13e6d353c8ab01fb12c05ecde115b329c63"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/deep-imitation-protocol.md",
+          "bytes": 5819,
+          "sha256": "6352f53ed5ec9c8227bacd21e717860bddfd2c14b8a4d3e7f4c66e2390394f51"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/deep-reading.md",
+          "bytes": 10765,
+          "sha256": "a55ddce7eea804e997e3394c197f23bb17583ef441ee81f91d7be10b6a53be92"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/editorial-completeness.md",
+          "bytes": 3915,
+          "sha256": "6ce5744f85bca2125c03ae7a3cf7f1c6b3a8b5274610839fc47aa49568867c24"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/exemplar-learning-dossier.md",
+          "bytes": 5224,
+          "sha256": "1110f5fb6a2c0e3a8605d736f0a9d25160a2926c437ec21c92d1f6b867e29ed2"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/figure-story.md",
+          "bytes": 8154,
+          "sha256": "101cefbad6c8fae7dde1bd13d786a8a3b7b0868a13f80aa90621e4cd3dc79832"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/humanize-calibration.md",
+          "bytes": 1876,
+          "sha256": "8628e277b7d35ef44e8ea272b72031db25f71068a221b1cf32a64261dc63bd84"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/humanize.md",
+          "bytes": 3612,
+          "sha256": "99a1974da862fffaa5720fe5c6214ffa5d2950fe1f3a5246e09f14832218da34"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/intake.md",
+          "bytes": 2047,
+          "sha256": "49749d5d66d8662037c275975bc5ac8756d0c3d365c32efb9805b12e1bc2bafe"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/interactive-intake.md",
+          "bytes": 3131,
+          "sha256": "bbfd0f1efcfc3593ee7fe9d3a6a755af6d434a115d47999c8ea5a84cd611e2aa"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/journal-style-analysis.md",
+          "bytes": 4015,
+          "sha256": "a203e17edb8ab090b142c5a74fa0c871f822c31eb7f5f03083e13a23a68f4d63"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/journal-transfer.md",
+          "bytes": 3510,
+          "sha256": "86b27c174b6524a3a658a8570b36562013c5a793b5f9512f0c8d71b9fde5af19"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/latex-source-control.md",
+          "bytes": 3665,
+          "sha256": "6aeab455bb43dd28ac273a473c8721e1889e56a25ab87f0af417162975733f2f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/latex.md",
+          "bytes": 7841,
+          "sha256": "d838d6ba6759f35c056d2220e0854565f39edb466cb066a9fde31d4d3637d62f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/local-reference-ingestion.md",
+          "bytes": 1754,
+          "sha256": "234ab3b7c3bca954044922d06803a7cf2f85bad39cf99d2ffaa0907a08bf32d5"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/logic-transfer-audit.md",
+          "bytes": 7039,
+          "sha256": "67cab61e93355065c7669ff17718cdac4bb2b3d3009a28348c79600d656039aa"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/motivation-thread-writing.md",
+          "bytes": 9784,
+          "sha256": "1fd599254571ea03574cfe3b6af1636f19fbec46c922ea77621d4809a14a8fee"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/orchestrator-branch-map.md",
+          "bytes": 6312,
+          "sha256": "c35f47ae66cf6aa96972fc0af2571b1403de29ec7f3589f806dac890412b27dd"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/phase-contracts.md",
+          "bytes": 1736,
+          "sha256": "1bc4f77bb2e66c20b678c441d60ed4b22736d12e74baa46f71d4607f83ceb6fa"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/platform-cnki.md",
+          "bytes": 2838,
+          "sha256": "2a421bbfdb8accbe99f45b22c55cded1fbff4f9afae4f5f975af3dec8656db7f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/platform-general.md",
+          "bytes": 2463,
+          "sha256": "376d7341d0bb8d3de6539c83a284330c061257b6c2377ad577ff573e92a84702"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/platform-weipu.md",
+          "bytes": 2161,
+          "sha256": "7b05e5f15dd841bab478c5c86cb901b1890d8fdb077a1d5df14ca7fa6d74c15d"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/publication-cycle-contracts.md",
+          "bytes": 7583,
+          "sha256": "1187e4636875fadf933b9f9863537aca7052a941c5a21a160a14dc82b5ae6180"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/publication-cycle-interface.md",
+          "bytes": 6454,
+          "sha256": "d2e0b752cf22bd2eec07e75c3f360d66b3ab9a709bfea1de77834d1e88e6390f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/publication-cycle.md",
+          "bytes": 3029,
+          "sha256": "8198fce89e83e0d0dce7968178a989601d08469e35ac8412c0070d951165ee31"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/publication-surface.md",
+          "bytes": 1197,
+          "sha256": "ee9e1a0d0ce8a7406da693d98ea366e9e682bfeb0e06c7cfe9ab3fbb1d2b2934"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/publication-target-profile.md",
+          "bytes": 3895,
+          "sha256": "24650cc24d5e94f087f5e41bda7ebd57a70ee3e7cd75fc1b00b08324d460520c"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/research.md",
+          "bytes": 3361,
+          "sha256": "5be8aabf483e96d871de22c7f807e52e11338e3fc1a6ef9881b701def78023c0"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/respond.md",
+          "bytes": 3790,
+          "sha256": "2d97e04fe3dd1c6de69406c5c40334698409e6e403ef3f58a60c6cf83f0b854c"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/results-validation.md",
+          "bytes": 5841,
+          "sha256": "e92a04fdd2951f3c49e7365c8bff9b161a3f2b0b3fcbaee08e7986d1d85d421c"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/resume.md",
+          "bytes": 5711,
+          "sha256": "134eab56debe8008f549cc76912c406cc9fb39fc881fc9a6ad37c0e717d52520"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/review-policy.md",
+          "bytes": 2933,
+          "sha256": "3c9b4095fc9f0af879457ca5f4bf0e2b59d94ed92ea2b37c8c782e08280f7b8f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/reviewer-audit.md",
+          "bytes": 8278,
+          "sha256": "a81da84d9902e714c4565686cde642d805270568ec0e119d4a93ad9ee6972efe"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/rewrite-matrix.md",
+          "bytes": 8397,
+          "sha256": "a1a5cba4668bce238f537448351f2269e39594419e70231fd170d5d39bba9961"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/rewrite.md",
+          "bytes": 4386,
+          "sha256": "08e6189b8fb8fc7afd7c276278119c8530c5068b439165fceaf65d834d1ce8c5"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/round1-literature-revision.md",
+          "bytes": 6045,
+          "sha256": "02bcb3f70cc9c0c3c31900d4d2a7d7a562ec2f57d6db4f17c5ae3e10247f61d9"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/round2-journal-revision.md",
+          "bytes": 3930,
+          "sha256": "c1a7b84ffe5557e0f1377d79bc800f233f919d0520c56cd567db412fef267c35"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/round3-latex-polish.md",
+          "bytes": 6181,
+          "sha256": "914be4a901839ebaa0b9e4c23f2128fea0220dc469c2c3ee466460a05fdac466"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/round4-template-integration.md",
+          "bytes": 4032,
+          "sha256": "58465c80092624fdd7e9ae8fea30cc64512a6ebf24cea3dcdc5b9e10b9422b9d"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/scenario-competition.md",
+          "bytes": 816,
+          "sha256": "4ab7683206683c7d82219fea719a44e7785433d85ca6fb5a36e43ded70c7f430"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/scenario-conference.md",
+          "bytes": 591,
+          "sha256": "867ddf2a294f38e238c2c4b073c36f10a15d52b64e828f101c3a7b394768dd42"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/scenario-journal.md",
+          "bytes": 1078,
+          "sha256": "9da6f812b761320d61a42a9652380963b6d29ca640e18eea3cafa9f04aa59596"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/scenario-report-review.md",
+          "bytes": 825,
+          "sha256": "ca2056e7f978c760468b15d13c0d6f95341e1f967365f0200c639b4a506fa103"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/scientific-evidence-ledger.md",
+          "bytes": 3633,
+          "sha256": "3184d20c4e822e9fce7bd62bfcdf3bd2778a9770d3460d44993d91822e6e168f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/semantic-confirmation.md",
+          "bytes": 2777,
+          "sha256": "3e253fae3007faf26c1eb79a21cf35b5e4d027a52034a114dec1e043a91fce36"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/style-learning-workflow.md",
+          "bytes": 6253,
+          "sha256": "ccb5f3544404bc64fa5d0f802a630fb3521803fa019c26074f093e224740af90"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/submission-metadata.md",
+          "bytes": 998,
+          "sha256": "650ce8489e693e7721a6c5f32932929a508e06371ddfed4162b7341500e0e76d"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/submission.md",
+          "bytes": 4629,
+          "sha256": "a7b3b7292439f696eb4c4f80df50f903d1304459fe2cea2542e417f33ff4dfc6"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/suite-map.md",
+          "bytes": 3088,
+          "sha256": "6c3cc4760c7511d9ef7234d7726d858f35941f4ee1d1a107ba7246bdef95a545"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/target-journal-research.md",
+          "bytes": 4142,
+          "sha256": "e269bb6e0f7683c9be5c5b442ca42f265e0763f60baa3f049388c5f358b333c8"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/task-genre-research.md",
+          "bytes": 3820,
+          "sha256": "c2e908a2534e6cb0f221f4a3f583c2ae9f1c4a6d361ed217b40d987f97208de2"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/translate.md",
+          "bytes": 3537,
+          "sha256": "53640bd5ca3cb3ba9f2f51b89e6224c1de4b1c83577bf510484df918c0d101c1"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/translation-package.md",
+          "bytes": 3117,
+          "sha256": "4de1e43a1421c94d07d2e75a99bde01c6f70a0136db6530cfc6ba71bec09333a"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/update.md",
+          "bytes": 4687,
+          "sha256": "9f14a1f372b076e4e4deba2357509368f07936646a82023e4f6a6eea11dfe7d2"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/usage-telemetry.md",
+          "bytes": 1292,
+          "sha256": "c4d66ca05ec58e899cd19ff3f664ce487291c4abc9b6d9bc6afddd873676d688"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/version-requirements.md",
+          "bytes": 2029,
+          "sha256": "8d3814caf8539436bccf2f1c0e43a81a80e121a78ab325b5c69469c262cce6f8"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/visual-readiness-gate.md",
+          "bytes": 2756,
+          "sha256": "4fc5d4d1c5db03591cff2acbc868fdc784d8881a6943abd1915f7c654acb9df5"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/writing-rationale-matrix.md",
+          "bytes": 9435,
+          "sha256": "b8e82b2cc596d2a56d3d8e4b9f391b940d646d858979851c29a331702f4bd4ee"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/__init__.py",
+          "bytes": 2683,
+          "sha256": "00097861ecc06043dee78339bc739d544d521a034d376ec8835428a97a524230"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/config.py",
+          "bytes": 22381,
+          "sha256": "937399461e5e5a9e56670c9eb21ec908ba036601ffee2c18360726cf02f2f78d"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/data.py",
+          "bytes": 2408,
+          "sha256": "9ba340bef9f26e37c7bdf8462de7146f756c622ea7f150f9a65d530d69ba4b0d"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/data_analysis.py",
+          "bytes": 41519,
+          "sha256": "668452f92ca8e514d660bc47c1d4b01e73465b597a973f2b5199f09341460e6b"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/evidence_bridge.py",
+          "bytes": 29585,
+          "sha256": "f2c99070b2277132b638246982cce65969e5bda7d5ad4812d032d7b9bb985f07"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/figure_spec.py",
+          "bytes": 73027,
+          "sha256": "2f0beed4a138ed902f798ddb0135e796bb2e317a92e1e83a42556179cadaed2d"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/generation.py",
+          "bytes": 46848,
+          "sha256": "653eb5dd9d996f030ef5b4ee6cfda3ce68eb9644dbe930e513357c23aeb17eed"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/img2ppt_pipeline.py",
+          "bytes": 18126,
+          "sha256": "2836471b56b1902dcca0681b4ba8610118c1e2ebf5ad6d6ab65da112f246ced6"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/overlay.py",
+          "bytes": 3149,
+          "sha256": "0596479c0cade4fa2312ef0cf2f0333451a1126e6ca3d9864e05d9388fad8ba8"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/panels.py",
+          "bytes": 6980,
+          "sha256": "2022620cc1e9c4069ac273aacabd6885aa4a739630457215a1c20b0651274f01"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/ranking.py",
+          "bytes": 17263,
+          "sha256": "67da19679920291234cab892256d865cb04c4c1a724e190f78bd325b3ca1808c"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/raster_schematic.py",
+          "bytes": 34698,
+          "sha256": "fc26f929997a6946303ace1f80aece74fc166a581d04538eaa3a94accf671dea"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/review.py",
+          "bytes": 40159,
+          "sha256": "07c1788d9388834f37d9ff8c0fb0f6f7c4b3e3b2e676110905e75bc5e94142b3"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/review_server.py",
+          "bytes": 1934,
+          "sha256": "36aa017e44c506c25256dead0ab05c76aa4b4427ba0697b19fd668323992a188"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/svg.py",
+          "bytes": 10470,
+          "sha256": "40fc2df31c9937e0f75b096d15d701e92a85cafbd81ac3b7a6d08d4d6ce6bc3b"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/vector_blueprint.py",
+          "bytes": 19488,
+          "sha256": "dd15d41f746d7001c9b812c7be483c0580460dcd9e6cd12a1ed58e6e8808c4df"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/vectorization.py",
+          "bytes": 20763,
+          "sha256": "5dcb6b7aa128f446c4dc21e6e0d5d7eb8e21195ec53525a66570fe33c050aded"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror.py",
+          "bytes": 13238,
+          "sha256": "936db3e72face5d8a11db2815a92562ca2722b3c5dd559cf2d01f1017d6744ab"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror_check.py",
+          "bytes": 11759,
+          "sha256": "8f7788ec1250f22a7e0389480c0bf45db2b790bfada0b049cb0b32b5dfaff43b"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror_docx.py",
+          "bytes": 10036,
+          "sha256": "f1c0bd005a8208ce472f8aebcc717215c7f6fd55c0201caa0feb8b7897d75a6e"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror_inventory.py",
+          "bytes": 12022,
+          "sha256": "a18eb79a31fac60715f77f9d2e62fe03352a429159ef62655c69d7a141ec8f5a"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/SKILL.md",
+          "bytes": 10020,
+          "sha256": "bd477f5bb207afecffe5b437d61ba686753d125ac02a77e4fb9d4ddbc10ee2bc"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/agents/openai.yaml",
+          "bytes": 342,
+          "sha256": "248c70e12f87e4130f0d3c2fda656147c6cc6664ff5ffee47eb2ed0c4bf5c7bb"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/assets/comparison_atlas_builder.py",
+          "bytes": 4036,
+          "sha256": "e62d61fe91526596f1626a72023afc54b57f41d5a8dc0ec9214de5709d4ca68a"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/assets/comparison_atlas_config.example.json",
+          "bytes": 797,
+          "sha256": "d243aaefc0d9297d20c1e6edcf8ae77bee543af8f1d541e7feec8d580cf3dc20"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/assets/design_brief.example.md",
+          "bytes": 1239,
+          "sha256": "d6a4515a0e37f6b4510657786cbd330a0fc5114f0cc75656ab5a2925aefb5f9b"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/assets/figure_manifest.example.json",
+          "bytes": 1453,
+          "sha256": "6b66975cda2e3a10cf60d2f733a9490500ad943557318b6e14091cb67b831764"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/assets/style_palette.example.json",
+          "bytes": 353,
+          "sha256": "c852fe35036513410307196582d16976b528824427b5c100dbd21ff9e2709c56"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/references/architecture-and-multipanel-design.md",
+          "bytes": 2899,
+          "sha256": "f46d5dddab3f47afc7d26fbd334064e368151b9d4a13ca90ea545441ce5ae439"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/references/reference-deconstruction.md",
+          "bytes": 2488,
+          "sha256": "a99a1120749738874a9ccd16fc1b2ce0ce6e1531d92bacd1f08ac7dde2d05e7f"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/references/research-figure-process.md",
+          "bytes": 4559,
+          "sha256": "8a1a15774aab96e147ac96f4419b980af7ab321830de8791bb70f7cf762ef88f"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/references/scientific-visual-qa.md",
+          "bytes": 3317,
+          "sha256": "c3e9def504a23d725dd983190db5e0e7c38f0cd2227f4f845fff9123476f4ff9"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/scripts/inspect_figure_project.py",
+          "bytes": 6102,
+          "sha256": "3f5dc2d7da58d2e1ff2743220849090fc493d7de046240570c4a58ec03ea6205"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/scripts/validate_research_figures.py",
+          "bytes": 6866,
+          "sha256": "fe1864fda11e2f967217e75800ba05da010ad0fefd523505d62fd3d995d7c860"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/FIGURE_LIFECYCLE.md",
+          "bytes": 1938,
+          "sha256": "e6508023f794156be55095e535e4d029a8a0db1ea27f43b5e7667893f28c9fec"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/PAPERFIGURE_BODY_INTERFACE.md",
+          "bytes": 4333,
+          "sha256": "8d6474923aebe7d84a44f3091003c1f4fffccaf9ff3699c5fc930cb9fca2913e"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/PUBLICATION_CYCLE_INTEGRATION.md",
+          "bytes": 3203,
+          "sha256": "23b4b72f0e32456ce316241bb951240bac5f5bcc9b02fa6584eca86bd34af99b"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/README.md",
+          "bytes": 8132,
+          "sha256": "37247db3c0cf24b1cf88870841ce2f2bfb180bb22664a5fce8b361cca4676936"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/agent-signal.schema.json",
+          "bytes": 660,
+          "sha256": "8716f2ed769fffd23db1eff23792fac5070c1f5c0e40c08acd8550f758c2d106"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/assembly-manifest.schema.json",
+          "bytes": 1367,
+          "sha256": "f46c2759cb3e00c4b967377e9fe8cec6ff0c3385e5355c03d30b1ccf3acfb7ba"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/figure-body-contract.schema.json",
+          "bytes": 3426,
+          "sha256": "420f1ad7380bd4e63e96f273c97de216c52dd1c9683d19c312d79c4ba320db19"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/figure-requests.schema.json",
+          "bytes": 4156,
+          "sha256": "075aa8541c1b22c16b6d7f258ff70b4331d4d46b6a93aa88c600ad8ca4db1895"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/figure-workflow.schema.json",
+          "bytes": 2242,
+          "sha256": "b66305696b9b85371d7d0f84da5d6722bb84538f730348e616d7e753e5669592"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/integration-job.schema.json",
+          "bytes": 2591,
+          "sha256": "50983ce5bc25edce6216528a5c0fb6bc13777f028d48b81f7f093503325fc22c"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/integration-state.schema.json",
+          "bytes": 1005,
+          "sha256": "eb2da654c2eed972c7d09447ca7dd08248b8b1401333a3b050db1e4d701d9137"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/review-decision.schema.json",
+          "bytes": 1367,
+          "sha256": "9ffccf6445cb12cc2b22621600cce1109a2467cb4a96c43d80a04d6e4072cf90"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/scripts/paperspine_figure.py",
+          "bytes": 412,
+          "sha256": "f41416e334c0ca02220ae6f2d4b4ca9d6de59c1ef722d67c5ae4a417cfab3fd6"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/__init__.py",
+          "bytes": 526,
+          "sha256": "d629ed5c38afddef66a38584728972924e88234ec44243a5e5fedb643261d640"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/adapters.py",
+          "bytes": 4606,
+          "sha256": "80911cbf72f3f6472606253e20e6fe498cbb226f96d7656a45d5becad646a5f8"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/assembly.py",
+          "bytes": 9679,
+          "sha256": "c4d98b72257c83f34320a88e109e476b9fee67bb58cb0725b65be29d961fbe2f"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/body_integration.py",
+          "bytes": 13821,
+          "sha256": "1499894005517900112557e651b6d59d774639929aa327f7cb4c567854115a7e"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/bridges.py",
+          "bytes": 17057,
+          "sha256": "a48eb6a8e73df4ddaaff240c2afa3fa90e30c25587cba989a5d01f2b815e14f0"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/cli.py",
+          "bytes": 3861,
+          "sha256": "90f1f10e305607f2dae7a6acc406360b80065a816d68d9b60400541bdaaaf3f1"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/contracts.py",
+          "bytes": 20341,
+          "sha256": "2c06074d03026540f6fcae9ad8e19c15df7a71be1dc2ebb71392cadd01a44666"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/coordinator.py",
+          "bytes": 40092,
+          "sha256": "700b692293c5e49e8753b045ba0f9557b7dba019b317ad413b3faa6b27a5c5f3"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/ui_server.py",
+          "bytes": 10519,
+          "sha256": "ce23848800592e85503e195e512aa27758e6a592b6a23b577dc45f614e47a3ac"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/ui/app.js",
+          "bytes": 25973,
+          "sha256": "4398f023093e1721e9a2389bb9a023fccc9e53935e05d90446d49072bb2f394b"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/ui/index.html",
+          "bytes": 20707,
+          "sha256": "363d9c252839c6ca00962ac1dd06c0af5439d6abe8a8ecf150ea461032f58b42"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/ui/styles.css",
+          "bytes": 28525,
+          "sha256": "ed3cf031c01598e7d8cac0c454dd7e29c36337d6aaa91a7d6a153021c2f87868"
+        },
+        {
+          "path": "plugins/paperspine5/core/06_插件化/contracts/host-bridge.schema.json",
+          "bytes": 1304,
+          "sha256": "7a696229315959600eddf68445a65e63f23f477d3f806b439b33adb6ddd810e8"
+        },
+        {
+          "path": "plugins/paperspine5/core/release.json",
+          "bytes": 960,
+          "sha256": "fb2935c0a8fb0435bac708406bd77948d7a9a8a8b5852c5df73e30eb4b019ab7"
+        },
+        {
+          "path": "plugins/paperspine5/core/requirements.txt",
+          "bytes": 145,
+          "sha256": "b2148900e76ee2393f2e9c34bc648461c83b54d7f6aa5d280e791c8a2e70096d"
+        },
+        {
+          "path": "plugins/paperspine5/core/runtime/README.md",
+          "bytes": 595,
+          "sha256": "9bf890ddd325f278b56dd8ed8c4e00d0d2796555877b03000f3055c6f3c2c689"
+        },
+        {
+          "path": "plugins/paperspine5/core/runtime/paperspine5_runtime.py",
+          "bytes": 14897,
+          "sha256": "c8f891b2da74719cf733ddf5f42dc6d945909cbed45e1eb408c7d228919b3cdb"
+        },
+        {
+          "path": "plugins/paperspine5/core/runtime/test_runtime.py",
+          "bytes": 4593,
+          "sha256": "fab3b2eac42651c59298256826bd17caa105e394dc36e24c4f6a8e406abd18e1"
+        },
+        {
+          "path": "plugins/paperspine5/skills/paperspine5/SKILL.md",
+          "bytes": 2143,
+          "sha256": "e5cb75e8f877747a48864f93fd994048daaa35a2742213ac0674238b094db01d"
+        }
+      ]
+    },
+    {
+      "kind": "claude-code-plugin",
+      "root": "paperspine5-claude-code-plugin-0.3.0-rc.1",
+      "files": [
+        {
+          "path": ".claude-plugin/marketplace.json",
+          "bytes": 511,
+          "sha256": "2aab1f7d0526b0db268c5d45bf62d3a6dea25dc42ee4021c1f107845f6c27c3d"
+        },
+        {
+          "path": "CORE-SHA256",
+          "bytes": 65,
+          "sha256": "92d302c1657fb2ab4cca4aeb6d0b9e153aa42285e46d1eb2823a4a4bad14695a"
+        },
+        {
+          "path": "INSTALL.md",
+          "bytes": 206,
+          "sha256": "1510e68a8152d51399d997b0ec9a29cc98397ad398d0e5e46972322da42101b7"
+        },
+        {
+          "path": "README.md",
+          "bytes": 737,
+          "sha256": "a439432f23397829bc54e48f71174b4a776e257914a21981d445e1992b4a6f94"
+        },
+        {
+          "path": "UNINSTALL.md",
+          "bytes": 171,
+          "sha256": "bb5300eadeccc8ce52e0b027eabc805167552cb717409d58f3b088ddff994e7a"
+        },
+        {
+          "path": "UPDATE.md",
+          "bytes": 211,
+          "sha256": "190fcbfa3aba2857fe7719252b8d86181acf4ca18b6a91ef5ffb393bb09e12f3"
+        },
+        {
+          "path": "plugins/paperspine5/.claude-plugin/plugin.json",
+          "bytes": 246,
+          "sha256": "9536b07ff3ac7373bab47039cab85226a11b32525c4efaa2bf8f7ac0bf6f6db0"
+        },
+        {
+          "path": "plugins/paperspine5/.mcp.json",
+          "bytes": 204,
+          "sha256": "45de8a274262e43181d574f08b5cd89f619e9bd95d7e6a273998b84930cf9679"
+        },
+        {
+          "path": "plugins/paperspine5/CORE-SHA256",
+          "bytes": 65,
+          "sha256": "92d302c1657fb2ab4cca4aeb6d0b9e153aa42285e46d1eb2823a4a4bad14695a"
+        },
+        {
+          "path": "plugins/paperspine5/INSTALL.md",
+          "bytes": 206,
+          "sha256": "1510e68a8152d51399d997b0ec9a29cc98397ad398d0e5e46972322da42101b7"
+        },
+        {
+          "path": "plugins/paperspine5/README.md",
+          "bytes": 725,
+          "sha256": "db8a97c41f09433f951e1d6ea0f097d4b7a2fd7aad086b71a9068d3bb1e39bad"
+        },
+        {
+          "path": "plugins/paperspine5/UNINSTALL.md",
+          "bytes": 171,
+          "sha256": "bb5300eadeccc8ce52e0b027eabc805167552cb717409d58f3b088ddff994e7a"
+        },
+        {
+          "path": "plugins/paperspine5/UPDATE.md",
+          "bytes": 211,
+          "sha256": "190fcbfa3aba2857fe7719252b8d86181acf4ca18b6a91ef5ffb393bb09e12f3"
+        },
+        {
+          "path": "plugins/paperspine5/commands/paperspine5.md",
+          "bytes": 524,
+          "sha256": "7a83ea08986cc4c72df148c8a690f9ab2ab3f4bf4b4d37ea7e68bf6d4261af53"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/adapters/claude/commands/paperspine.md",
+          "bytes": 2877,
+          "sha256": "7fa72733dd4eb7aefed1f598f97aa8c32f50bc2cd94021ef7de405d728dc4c54"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/adapters/codex/prompts/paperspine.md",
+          "bytes": 3738,
+          "sha256": "3da7a2bb22c5f5387013db64a5b6aac2a4a6eff4e9162a7647713ae537bf42c8"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/adapters/hermes/frontmatter.yaml",
+          "bytes": 803,
+          "sha256": "ec9c53543edffc95ff1ae49b066c32679c48a8e1eb6bf61d38a3439e0a02c2d0"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/_paper_spine_utils.py",
+          "bytes": 8131,
+          "sha256": "0833b58634fc324b28c7f4dfda02cfaf7bcae03e4c66379bb1424bf1e12259ec"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/artifact_check.py",
+          "bytes": 48258,
+          "sha256": "552bb9369bff1af791ed7263e9b7546a7436e3cdb25918eb47b01e62be222e93"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/citation_bank_check.py",
+          "bytes": 10734,
+          "sha256": "edb4e570c0973d1f456d73023be206ac50bc6a9d1b8c3d775f898bc25bd61493"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/citation_quality_audit.py",
+          "bytes": 30582,
+          "sha256": "4d2f1717ddc19e06eb0f490d808e6ad9253d242b004eb2048ad47685196e3963"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/citation_verification_en.py",
+          "bytes": 26358,
+          "sha256": "c535ca653b793dd29a08982cba044b04bfd0f4332be7da33e35fdf8944f9863a"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/citation_verification_zh.py",
+          "bytes": 6770,
+          "sha256": "49bb921f0f41ed21e2363109b886d2524c95758c9a7a95f0bd018603a7451402"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/contribution_check.py",
+          "bytes": 10347,
+          "sha256": "38190989d1f79f6eadf12cdc7dd28561c2eaf0f178b1630cb6f0fd2bf1492d92"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/figure_story_check.py",
+          "bytes": 12518,
+          "sha256": "9f78ba6326239f3da73bf7553f33e2911e055c92b7dda05b6a83032ab5f6a387"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/humanize_check.py",
+          "bytes": 44590,
+          "sha256": "4b2d45f61a7f128e1b824b5226e076bad467ec4c79c5f696e4d4577ea4f330e6"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/intake_wizard.py",
+          "bytes": 47427,
+          "sha256": "d7f2504053f429cf2fd4a13ad5809c521409003b4a08ef59a511a2732b26520c"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/integrity_audit.py",
+          "bytes": 34819,
+          "sha256": "ef616e546b7dfed85aed35b1c31ca6a8e0a0302962ca745f62f452a818eb12fd"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/latex_guard.py",
+          "bytes": 16514,
+          "sha256": "43ed37ac95ff99f6b89404536cbe7adb950781447d8846d8530f3a11d1e7b387"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/launch_paperspine_ui.ps1",
+          "bytes": 1278,
+          "sha256": "c905ac841e2d28c31fc99ee49fba16630b62d159e44b952c85aeb5608f2c10b0"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/launch_paperspine_ui.sh",
+          "bytes": 1673,
+          "sha256": "583341da746929b85575db209765d429df052d220bc7cf88ff45bf4121062741"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/material_inventory.py",
+          "bytes": 4206,
+          "sha256": "c69b0168be2fe7c93f3af45ae51d3c3077ef2c906e4f412ff8c5bd510f113f64"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/metadata_readiness_check.py",
+          "bytes": 3977,
+          "sha256": "3139c1c34b341224c908c8a582634047787c56daf645431ea1fcff01cb488d12"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/paperspine_update.py",
+          "bytes": 27734,
+          "sha256": "022259b737f19a98fc46e0a2f7c60cd7cdc915d19cbce0b149de12c3a972fb31"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/progress_check.py",
+          "bytes": 43781,
+          "sha256": "4be36e4aaefd925c07b672994a752d4d62fbd1b163acd83ca9e4b83df11f44c0"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/publication_cycle.py",
+          "bytes": 71422,
+          "sha256": "055efb68e1af5f49b5b0ce6f1d5f2ee26fb6894b706acb6f22ff3822ce02c92f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/publication_surface_check.py",
+          "bytes": 3184,
+          "sha256": "ff172c6b8343d075946c8606abeec6a3f926421f9ff9277c9f013a75d471a33a"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/reference_inventory.py",
+          "bytes": 4603,
+          "sha256": "99e7578869a1a3fab72dc249d5c9806465fd7d020946d86596496a01f8ae4ee6"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/respond_check.py",
+          "bytes": 14775,
+          "sha256": "4f1ae97df1ab21e269a7676b83c09763911b45231453cbbcccf115ec074a4c5a"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/results_validation_check.py",
+          "bytes": 6580,
+          "sha256": "f977562f3edfc990a6a9bd95cb11c7278cf4bb194668a2b139db7d70ffe23195"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/reviewer_audit_check.py",
+          "bytes": 10665,
+          "sha256": "8e4a49e73edc541aecd34d7a3dc7a31c2d695abed360acbe2ae8d9c9e366a56d"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/revision_audit.py",
+          "bytes": 8007,
+          "sha256": "2984e0cc25f851a41bee6c98d3fd05646d1181bc78d2dfeea27efe7831730e3e"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/scientific_evidence_check.py",
+          "bytes": 8292,
+          "sha256": "5dfc1c2a40021a9da056e35188423c869e724205fcd2949e63105aa15ae693e6"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/section_economy_check.py",
+          "bytes": 6256,
+          "sha256": "4c48b7aa1d72e2678c1cd5928b49e336275dd6816bfa668bebd74010f71323ed"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/structured_review.py",
+          "bytes": 39360,
+          "sha256": "6f75016adef5da297be3bbe3fd3c9f8191c55e2b9584badf26c2dfcf1d8ee970"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/style_metrics.py",
+          "bytes": 12488,
+          "sha256": "5025b9587508082abe806c38dbebaf2d7413fb305b35df8541de4179789c05e8"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/submission_check.py",
+          "bytes": 22044,
+          "sha256": "312d2e3e149f53dc97548af16f11f0d5058f9f109665e8bb9290306328899355"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/sync_local_installs.py",
+          "bytes": 8888,
+          "sha256": "e429ff4923c2ef29fcac925942afc50b6a10a2367058b622d2026598bcb55108"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/translate_guard.py",
+          "bytes": 31019,
+          "sha256": "67ac8b5b6b675ebe38578bf03465f854ad18450246596d566858e33ca3335da5"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/usage_ledger.py",
+          "bytes": 5469,
+          "sha256": "f50bf49d35cdbd0992b88b6b6188d19c43256f28d7ac0aa2ed6ba6aac40e76b6"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/visual_readiness_check.py",
+          "bytes": 16673,
+          "sha256": "3579b08104224403875e14296a65438e634784f7e0d495d4b1a385a2ca3f76f6"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/scripts/word_guard.py",
+          "bytes": 40891,
+          "sha256": "47f69d07ace08221b6d3129452ef2e19f0f9c2c7f674e5d246198de59a55142a"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/SKILL.md",
+          "bytes": 36978,
+          "sha256": "886ef4d3210591fe6fffebc82667301e9442fd399ed38e96c1c8c9db5ead9711"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/openai.yaml",
+          "bytes": 290,
+          "sha256": "1ec573016e3618f57518fc1c35d3f1c654b3c5c6c917ca027282df50416f2eff"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/research-exemplar.md",
+          "bytes": 607,
+          "sha256": "2f0f3d53c06a152617f7953b5b08f16b482e53337510d82b59e036933fe54d79"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/research-scene.md",
+          "bytes": 552,
+          "sha256": "1aef33be845b9c2e3ec013c693e21ba3b947d905dd528679b54b7e26032e95ae"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/research-sota.md",
+          "bytes": 448,
+          "sha256": "81f4e0886113765561450ba0bdbbb32b97a1511c1547c440ce1d68367c88b7ac"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/reviewer-evidence.md",
+          "bytes": 710,
+          "sha256": "401ebe0f37b8878b3da8dd93c441469646d96f3e471f22f9e8da38a076b46266"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/reviewer-method.md",
+          "bytes": 665,
+          "sha256": "c1d2e77f042338c300e17d5989a930adcb74246f4c75982f0af7cb844b111c24"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/agents/reviewer-writing.md",
+          "bytes": 1042,
+          "sha256": "912dcec4205bdfc9c807c12568723300fa367fad64ac8bab047cecdb5e209c5a"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/assertive-scientific-writing.md",
+          "bytes": 1501,
+          "sha256": "f8d9e71953821d4f1afc69715b6ecc4d6972604dc178a770ad77b3261de6bcfc"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/audit.md",
+          "bytes": 11057,
+          "sha256": "0fce29f0f81aab0900618e07155939f331cbe7da6f2d0d2dbab541c1c510637c"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/build.md",
+          "bytes": 4433,
+          "sha256": "5827be78039c70e8f3fbf15b9f32780a51e30778d9311b5bf3027a6fc09bc08e"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/citation-support-bank.md",
+          "bytes": 4464,
+          "sha256": "546b46f944405913c073c8a85cbd84075bcae3f0772c177b179b70c5b3a5af17"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/citation.md",
+          "bytes": 4555,
+          "sha256": "db2f9b1a64c830c7a8921c43cd84e760816efd7cb675723347feb85f3df652af"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/contracts/publication-cycle-invocation.schema.json",
+          "bytes": 2713,
+          "sha256": "0831888460f3b511d9b9774eabf91ceb71c4840d4d537e468267630801ae2da7"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/contracts/publication-cycle-result.schema.json",
+          "bytes": 3624,
+          "sha256": "4a4d0afe0bc4b23a4a3cf55c96dcd3976a5f3389176935bae070a4bb372651fd"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/contribution.md",
+          "bytes": 10521,
+          "sha256": "5bd1b67b953d3bd491d6f48fc1f5a13e6d353c8ab01fb12c05ecde115b329c63"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/deep-imitation-protocol.md",
+          "bytes": 5819,
+          "sha256": "6352f53ed5ec9c8227bacd21e717860bddfd2c14b8a4d3e7f4c66e2390394f51"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/deep-reading.md",
+          "bytes": 10765,
+          "sha256": "a55ddce7eea804e997e3394c197f23bb17583ef441ee81f91d7be10b6a53be92"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/editorial-completeness.md",
+          "bytes": 3915,
+          "sha256": "6ce5744f85bca2125c03ae7a3cf7f1c6b3a8b5274610839fc47aa49568867c24"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/exemplar-learning-dossier.md",
+          "bytes": 5224,
+          "sha256": "1110f5fb6a2c0e3a8605d736f0a9d25160a2926c437ec21c92d1f6b867e29ed2"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/figure-story.md",
+          "bytes": 8154,
+          "sha256": "101cefbad6c8fae7dde1bd13d786a8a3b7b0868a13f80aa90621e4cd3dc79832"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/humanize-calibration.md",
+          "bytes": 1876,
+          "sha256": "8628e277b7d35ef44e8ea272b72031db25f71068a221b1cf32a64261dc63bd84"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/humanize.md",
+          "bytes": 3612,
+          "sha256": "99a1974da862fffaa5720fe5c6214ffa5d2950fe1f3a5246e09f14832218da34"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/intake.md",
+          "bytes": 2047,
+          "sha256": "49749d5d66d8662037c275975bc5ac8756d0c3d365c32efb9805b12e1bc2bafe"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/interactive-intake.md",
+          "bytes": 3131,
+          "sha256": "bbfd0f1efcfc3593ee7fe9d3a6a755af6d434a115d47999c8ea5a84cd611e2aa"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/journal-style-analysis.md",
+          "bytes": 4015,
+          "sha256": "a203e17edb8ab090b142c5a74fa0c871f822c31eb7f5f03083e13a23a68f4d63"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/journal-transfer.md",
+          "bytes": 3510,
+          "sha256": "86b27c174b6524a3a658a8570b36562013c5a793b5f9512f0c8d71b9fde5af19"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/latex-source-control.md",
+          "bytes": 3665,
+          "sha256": "6aeab455bb43dd28ac273a473c8721e1889e56a25ab87f0af417162975733f2f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/latex.md",
+          "bytes": 7841,
+          "sha256": "d838d6ba6759f35c056d2220e0854565f39edb466cb066a9fde31d4d3637d62f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/local-reference-ingestion.md",
+          "bytes": 1754,
+          "sha256": "234ab3b7c3bca954044922d06803a7cf2f85bad39cf99d2ffaa0907a08bf32d5"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/logic-transfer-audit.md",
+          "bytes": 7039,
+          "sha256": "67cab61e93355065c7669ff17718cdac4bb2b3d3009a28348c79600d656039aa"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/motivation-thread-writing.md",
+          "bytes": 9784,
+          "sha256": "1fd599254571ea03574cfe3b6af1636f19fbec46c922ea77621d4809a14a8fee"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/orchestrator-branch-map.md",
+          "bytes": 6312,
+          "sha256": "c35f47ae66cf6aa96972fc0af2571b1403de29ec7f3589f806dac890412b27dd"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/phase-contracts.md",
+          "bytes": 1736,
+          "sha256": "1bc4f77bb2e66c20b678c441d60ed4b22736d12e74baa46f71d4607f83ceb6fa"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/platform-cnki.md",
+          "bytes": 2838,
+          "sha256": "2a421bbfdb8accbe99f45b22c55cded1fbff4f9afae4f5f975af3dec8656db7f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/platform-general.md",
+          "bytes": 2463,
+          "sha256": "376d7341d0bb8d3de6539c83a284330c061257b6c2377ad577ff573e92a84702"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/platform-weipu.md",
+          "bytes": 2161,
+          "sha256": "7b05e5f15dd841bab478c5c86cb901b1890d8fdb077a1d5df14ca7fa6d74c15d"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/publication-cycle-contracts.md",
+          "bytes": 7583,
+          "sha256": "1187e4636875fadf933b9f9863537aca7052a941c5a21a160a14dc82b5ae6180"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/publication-cycle-interface.md",
+          "bytes": 6454,
+          "sha256": "d2e0b752cf22bd2eec07e75c3f360d66b3ab9a709bfea1de77834d1e88e6390f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/publication-cycle.md",
+          "bytes": 3029,
+          "sha256": "8198fce89e83e0d0dce7968178a989601d08469e35ac8412c0070d951165ee31"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/publication-surface.md",
+          "bytes": 1197,
+          "sha256": "ee9e1a0d0ce8a7406da693d98ea366e9e682bfeb0e06c7cfe9ab3fbb1d2b2934"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/publication-target-profile.md",
+          "bytes": 3895,
+          "sha256": "24650cc24d5e94f087f5e41bda7ebd57a70ee3e7cd75fc1b00b08324d460520c"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/research.md",
+          "bytes": 3361,
+          "sha256": "5be8aabf483e96d871de22c7f807e52e11338e3fc1a6ef9881b701def78023c0"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/respond.md",
+          "bytes": 3790,
+          "sha256": "2d97e04fe3dd1c6de69406c5c40334698409e6e403ef3f58a60c6cf83f0b854c"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/results-validation.md",
+          "bytes": 5841,
+          "sha256": "e92a04fdd2951f3c49e7365c8bff9b161a3f2b0b3fcbaee08e7986d1d85d421c"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/resume.md",
+          "bytes": 5711,
+          "sha256": "134eab56debe8008f549cc76912c406cc9fb39fc881fc9a6ad37c0e717d52520"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/review-policy.md",
+          "bytes": 2933,
+          "sha256": "3c9b4095fc9f0af879457ca5f4bf0e2b59d94ed92ea2b37c8c782e08280f7b8f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/reviewer-audit.md",
+          "bytes": 8278,
+          "sha256": "a81da84d9902e714c4565686cde642d805270568ec0e119d4a93ad9ee6972efe"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/rewrite-matrix.md",
+          "bytes": 8397,
+          "sha256": "a1a5cba4668bce238f537448351f2269e39594419e70231fd170d5d39bba9961"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/rewrite.md",
+          "bytes": 4386,
+          "sha256": "08e6189b8fb8fc7afd7c276278119c8530c5068b439165fceaf65d834d1ce8c5"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/round1-literature-revision.md",
+          "bytes": 6045,
+          "sha256": "02bcb3f70cc9c0c3c31900d4d2a7d7a562ec2f57d6db4f17c5ae3e10247f61d9"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/round2-journal-revision.md",
+          "bytes": 3930,
+          "sha256": "c1a7b84ffe5557e0f1377d79bc800f233f919d0520c56cd567db412fef267c35"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/round3-latex-polish.md",
+          "bytes": 6181,
+          "sha256": "914be4a901839ebaa0b9e4c23f2128fea0220dc469c2c3ee466460a05fdac466"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/round4-template-integration.md",
+          "bytes": 4032,
+          "sha256": "58465c80092624fdd7e9ae8fea30cc64512a6ebf24cea3dcdc5b9e10b9422b9d"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/scenario-competition.md",
+          "bytes": 816,
+          "sha256": "4ab7683206683c7d82219fea719a44e7785433d85ca6fb5a36e43ded70c7f430"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/scenario-conference.md",
+          "bytes": 591,
+          "sha256": "867ddf2a294f38e238c2c4b073c36f10a15d52b64e828f101c3a7b394768dd42"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/scenario-journal.md",
+          "bytes": 1078,
+          "sha256": "9da6f812b761320d61a42a9652380963b6d29ca640e18eea3cafa9f04aa59596"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/scenario-report-review.md",
+          "bytes": 825,
+          "sha256": "ca2056e7f978c760468b15d13c0d6f95341e1f967365f0200c639b4a506fa103"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/scientific-evidence-ledger.md",
+          "bytes": 3633,
+          "sha256": "3184d20c4e822e9fce7bd62bfcdf3bd2778a9770d3460d44993d91822e6e168f"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/semantic-confirmation.md",
+          "bytes": 2777,
+          "sha256": "3e253fae3007faf26c1eb79a21cf35b5e4d027a52034a114dec1e043a91fce36"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/style-learning-workflow.md",
+          "bytes": 6253,
+          "sha256": "ccb5f3544404bc64fa5d0f802a630fb3521803fa019c26074f093e224740af90"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/submission-metadata.md",
+          "bytes": 998,
+          "sha256": "650ce8489e693e7721a6c5f32932929a508e06371ddfed4162b7341500e0e76d"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/submission.md",
+          "bytes": 4629,
+          "sha256": "a7b3b7292439f696eb4c4f80df50f903d1304459fe2cea2542e417f33ff4dfc6"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/suite-map.md",
+          "bytes": 3088,
+          "sha256": "6c3cc4760c7511d9ef7234d7726d858f35941f4ee1d1a107ba7246bdef95a545"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/target-journal-research.md",
+          "bytes": 4142,
+          "sha256": "e269bb6e0f7683c9be5c5b442ca42f265e0763f60baa3f049388c5f358b333c8"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/task-genre-research.md",
+          "bytes": 3820,
+          "sha256": "c2e908a2534e6cb0f221f4a3f583c2ae9f1c4a6d361ed217b40d987f97208de2"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/translate.md",
+          "bytes": 3537,
+          "sha256": "53640bd5ca3cb3ba9f2f51b89e6224c1de4b1c83577bf510484df918c0d101c1"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/translation-package.md",
+          "bytes": 3117,
+          "sha256": "4de1e43a1421c94d07d2e75a99bde01c6f70a0136db6530cfc6ba71bec09333a"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/update.md",
+          "bytes": 4687,
+          "sha256": "9f14a1f372b076e4e4deba2357509368f07936646a82023e4f6a6eea11dfe7d2"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/usage-telemetry.md",
+          "bytes": 1292,
+          "sha256": "c4d66ca05ec58e899cd19ff3f664ce487291c4abc9b6d9bc6afddd873676d688"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/version-requirements.md",
+          "bytes": 2029,
+          "sha256": "8d3814caf8539436bccf2f1c0e43a81a80e121a78ab325b5c69469c262cce6f8"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/visual-readiness-gate.md",
+          "bytes": 2756,
+          "sha256": "4fc5d4d1c5db03591cff2acbc868fdc784d8881a6943abd1915f7c654acb9df5"
+        },
+        {
+          "path": "plugins/paperspine5/core/01_PaperSpine4/src/skill/references/writing-rationale-matrix.md",
+          "bytes": 9435,
+          "sha256": "b8e82b2cc596d2a56d3d8e4b9f391b940d646d858979851c29a331702f4bd4ee"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/__init__.py",
+          "bytes": 2683,
+          "sha256": "00097861ecc06043dee78339bc739d544d521a034d376ec8835428a97a524230"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/config.py",
+          "bytes": 22381,
+          "sha256": "937399461e5e5a9e56670c9eb21ec908ba036601ffee2c18360726cf02f2f78d"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/data.py",
+          "bytes": 2408,
+          "sha256": "9ba340bef9f26e37c7bdf8462de7146f756c622ea7f150f9a65d530d69ba4b0d"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/data_analysis.py",
+          "bytes": 41519,
+          "sha256": "668452f92ca8e514d660bc47c1d4b01e73465b597a973f2b5199f09341460e6b"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/evidence_bridge.py",
+          "bytes": 29585,
+          "sha256": "f2c99070b2277132b638246982cce65969e5bda7d5ad4812d032d7b9bb985f07"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/figure_spec.py",
+          "bytes": 73027,
+          "sha256": "2f0beed4a138ed902f798ddb0135e796bb2e317a92e1e83a42556179cadaed2d"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/generation.py",
+          "bytes": 46848,
+          "sha256": "653eb5dd9d996f030ef5b4ee6cfda3ce68eb9644dbe930e513357c23aeb17eed"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/img2ppt_pipeline.py",
+          "bytes": 18126,
+          "sha256": "2836471b56b1902dcca0681b4ba8610118c1e2ebf5ad6d6ab65da112f246ced6"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/overlay.py",
+          "bytes": 3149,
+          "sha256": "0596479c0cade4fa2312ef0cf2f0333451a1126e6ca3d9864e05d9388fad8ba8"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/panels.py",
+          "bytes": 6980,
+          "sha256": "2022620cc1e9c4069ac273aacabd6885aa4a739630457215a1c20b0651274f01"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/ranking.py",
+          "bytes": 17263,
+          "sha256": "67da19679920291234cab892256d865cb04c4c1a724e190f78bd325b3ca1808c"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/raster_schematic.py",
+          "bytes": 34698,
+          "sha256": "fc26f929997a6946303ace1f80aece74fc166a581d04538eaa3a94accf671dea"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/review.py",
+          "bytes": 40159,
+          "sha256": "07c1788d9388834f37d9ff8c0fb0f6f7c4b3e3b2e676110905e75bc5e94142b3"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/review_server.py",
+          "bytes": 1934,
+          "sha256": "36aa017e44c506c25256dead0ab05c76aa4b4427ba0697b19fd668323992a188"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/svg.py",
+          "bytes": 10470,
+          "sha256": "40fc2df31c9937e0f75b096d15d701e92a85cafbd81ac3b7a6d08d4d6ce6bc3b"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/vector_blueprint.py",
+          "bytes": 19488,
+          "sha256": "dd15d41f746d7001c9b812c7be483c0580460dcd9e6cd12a1ed58e6e8808c4df"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/figmirror/vectorization.py",
+          "bytes": 20763,
+          "sha256": "5dcb6b7aa128f446c4dc21e6e0d5d7eb8e21195ec53525a66570fe33c050aded"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror.py",
+          "bytes": 13238,
+          "sha256": "936db3e72face5d8a11db2815a92562ca2722b3c5dd559cf2d01f1017d6744ab"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror_check.py",
+          "bytes": 11759,
+          "sha256": "8f7788ec1250f22a7e0389480c0bf45db2b790bfada0b049cb0b32b5dfaff43b"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror_docx.py",
+          "bytes": 10036,
+          "sha256": "f1c0bd005a8208ce472f8aebcc717215c7f6fd55c0201caa0feb8b7897d75a6e"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror_inventory.py",
+          "bytes": 12022,
+          "sha256": "a18eb79a31fac60715f77f9d2e62fe03352a429159ef62655c69d7a141ec8f5a"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/SKILL.md",
+          "bytes": 10020,
+          "sha256": "bd477f5bb207afecffe5b437d61ba686753d125ac02a77e4fb9d4ddbc10ee2bc"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/agents/openai.yaml",
+          "bytes": 342,
+          "sha256": "248c70e12f87e4130f0d3c2fda656147c6cc6664ff5ffee47eb2ed0c4bf5c7bb"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/assets/comparison_atlas_builder.py",
+          "bytes": 4036,
+          "sha256": "e62d61fe91526596f1626a72023afc54b57f41d5a8dc0ec9214de5709d4ca68a"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/assets/comparison_atlas_config.example.json",
+          "bytes": 797,
+          "sha256": "d243aaefc0d9297d20c1e6edcf8ae77bee543af8f1d541e7feec8d580cf3dc20"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/assets/design_brief.example.md",
+          "bytes": 1239,
+          "sha256": "d6a4515a0e37f6b4510657786cbd330a0fc5114f0cc75656ab5a2925aefb5f9b"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/assets/figure_manifest.example.json",
+          "bytes": 1453,
+          "sha256": "6b66975cda2e3a10cf60d2f733a9490500ad943557318b6e14091cb67b831764"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/assets/style_palette.example.json",
+          "bytes": 353,
+          "sha256": "c852fe35036513410307196582d16976b528824427b5c100dbd21ff9e2709c56"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/references/architecture-and-multipanel-design.md",
+          "bytes": 2899,
+          "sha256": "f46d5dddab3f47afc7d26fbd334064e368151b9d4a13ca90ea545441ce5ae439"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/references/reference-deconstruction.md",
+          "bytes": 2488,
+          "sha256": "a99a1120749738874a9ccd16fc1b2ce0ce6e1531d92bacd1f08ac7dde2d05e7f"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/references/research-figure-process.md",
+          "bytes": 4559,
+          "sha256": "8a1a15774aab96e147ac96f4419b980af7ab321830de8791bb70f7cf762ef88f"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/references/scientific-visual-qa.md",
+          "bytes": 3317,
+          "sha256": "c3e9def504a23d725dd983190db5e0e7c38f0cd2227f4f845fff9123476f4ff9"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/scripts/inspect_figure_project.py",
+          "bytes": 6102,
+          "sha256": "3f5dc2d7da58d2e1ff2743220849090fc493d7de046240570c4a58ec03ea6205"
+        },
+        {
+          "path": "plugins/paperspine5/core/02_PaperFigure/02_paperFig_skill/scripts/validate_research_figures.py",
+          "bytes": 6866,
+          "sha256": "fe1864fda11e2f967217e75800ba05da010ad0fefd523505d62fd3d995d7c860"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/FIGURE_LIFECYCLE.md",
+          "bytes": 1938,
+          "sha256": "e6508023f794156be55095e535e4d029a8a0db1ea27f43b5e7667893f28c9fec"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/PAPERFIGURE_BODY_INTERFACE.md",
+          "bytes": 4333,
+          "sha256": "8d6474923aebe7d84a44f3091003c1f4fffccaf9ff3699c5fc930cb9fca2913e"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/PUBLICATION_CYCLE_INTEGRATION.md",
+          "bytes": 3203,
+          "sha256": "23b4b72f0e32456ce316241bb951240bac5f5bcc9b02fa6584eca86bd34af99b"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/README.md",
+          "bytes": 8132,
+          "sha256": "37247db3c0cf24b1cf88870841ce2f2bfb180bb22664a5fce8b361cca4676936"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/agent-signal.schema.json",
+          "bytes": 660,
+          "sha256": "8716f2ed769fffd23db1eff23792fac5070c1f5c0e40c08acd8550f758c2d106"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/assembly-manifest.schema.json",
+          "bytes": 1367,
+          "sha256": "f46c2759cb3e00c4b967377e9fe8cec6ff0c3385e5355c03d30b1ccf3acfb7ba"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/figure-body-contract.schema.json",
+          "bytes": 3426,
+          "sha256": "420f1ad7380bd4e63e96f273c97de216c52dd1c9683d19c312d79c4ba320db19"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/figure-requests.schema.json",
+          "bytes": 4156,
+          "sha256": "075aa8541c1b22c16b6d7f258ff70b4331d4d46b6a93aa88c600ad8ca4db1895"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/figure-workflow.schema.json",
+          "bytes": 2242,
+          "sha256": "b66305696b9b85371d7d0f84da5d6722bb84538f730348e616d7e753e5669592"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/integration-job.schema.json",
+          "bytes": 2591,
+          "sha256": "50983ce5bc25edce6216528a5c0fb6bc13777f028d48b81f7f093503325fc22c"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/integration-state.schema.json",
+          "bytes": 1005,
+          "sha256": "eb2da654c2eed972c7d09447ca7dd08248b8b1401333a3b050db1e4d701d9137"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/contracts/review-decision.schema.json",
+          "bytes": 1367,
+          "sha256": "9ffccf6445cb12cc2b22621600cce1109a2467cb4a96c43d80a04d6e4072cf90"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/scripts/paperspine_figure.py",
+          "bytes": 412,
+          "sha256": "f41416e334c0ca02220ae6f2d4b4ca9d6de59c1ef722d67c5ae4a417cfab3fd6"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/__init__.py",
+          "bytes": 526,
+          "sha256": "d629ed5c38afddef66a38584728972924e88234ec44243a5e5fedb643261d640"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/adapters.py",
+          "bytes": 4606,
+          "sha256": "80911cbf72f3f6472606253e20e6fe498cbb226f96d7656a45d5becad646a5f8"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/assembly.py",
+          "bytes": 9679,
+          "sha256": "c4d98b72257c83f34320a88e109e476b9fee67bb58cb0725b65be29d961fbe2f"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/body_integration.py",
+          "bytes": 13821,
+          "sha256": "1499894005517900112557e651b6d59d774639929aa327f7cb4c567854115a7e"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/bridges.py",
+          "bytes": 17057,
+          "sha256": "a48eb6a8e73df4ddaaff240c2afa3fa90e30c25587cba989a5d01f2b815e14f0"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/cli.py",
+          "bytes": 3861,
+          "sha256": "90f1f10e305607f2dae7a6acc406360b80065a816d68d9b60400541bdaaaf3f1"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/contracts.py",
+          "bytes": 20341,
+          "sha256": "2c06074d03026540f6fcae9ad8e19c15df7a71be1dc2ebb71392cadd01a44666"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/coordinator.py",
+          "bytes": 40092,
+          "sha256": "700b692293c5e49e8753b045ba0f9557b7dba019b317ad413b3faa6b27a5c5f3"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/src/paperspine_figure_integration/ui_server.py",
+          "bytes": 10519,
+          "sha256": "ce23848800592e85503e195e512aa27758e6a592b6a23b577dc45f614e47a3ac"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/ui/app.js",
+          "bytes": 25973,
+          "sha256": "4398f023093e1721e9a2389bb9a023fccc9e53935e05d90446d49072bb2f394b"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/ui/index.html",
+          "bytes": 20707,
+          "sha256": "363d9c252839c6ca00962ac1dd06c0af5439d6abe8a8ecf150ea461032f58b42"
+        },
+        {
+          "path": "plugins/paperspine5/core/03_联合开发/ui/styles.css",
+          "bytes": 28525,
+          "sha256": "ed3cf031c01598e7d8cac0c454dd7e29c36337d6aaa91a7d6a153021c2f87868"
+        },
+        {
+          "path": "plugins/paperspine5/core/06_插件化/contracts/host-bridge.schema.json",
+          "bytes": 1304,
+          "sha256": "7a696229315959600eddf68445a65e63f23f477d3f806b439b33adb6ddd810e8"
+        },
+        {
+          "path": "plugins/paperspine5/core/release.json",
+          "bytes": 960,
+          "sha256": "fb2935c0a8fb0435bac708406bd77948d7a9a8a8b5852c5df73e30eb4b019ab7"
+        },
+        {
+          "path": "plugins/paperspine5/core/requirements.txt",
+          "bytes": 145,
+          "sha256": "b2148900e76ee2393f2e9c34bc648461c83b54d7f6aa5d280e791c8a2e70096d"
+        },
+        {
+          "path": "plugins/paperspine5/core/runtime/README.md",
+          "bytes": 595,
+          "sha256": "9bf890ddd325f278b56dd8ed8c4e00d0d2796555877b03000f3055c6f3c2c689"
+        },
+        {
+          "path": "plugins/paperspine5/core/runtime/paperspine5_runtime.py",
+          "bytes": 14897,
+          "sha256": "c8f891b2da74719cf733ddf5f42dc6d945909cbed45e1eb408c7d228919b3cdb"
+        },
+        {
+          "path": "plugins/paperspine5/core/runtime/test_runtime.py",
+          "bytes": 4593,
+          "sha256": "fab3b2eac42651c59298256826bd17caa105e394dc36e24c4f6a8e406abd18e1"
+        },
+        {
+          "path": "plugins/paperspine5/skills/paperspine5/SKILL.md",
+          "bytes": 2143,
+          "sha256": "e5cb75e8f877747a48864f93fd994048daaa35a2742213ac0674238b094db01d"
+        }
+      ]
+    },
+    {
+      "kind": "dsh-plugin",
+      "root": "dsh-paperspine5-0.3.0-rc.1",
+      "files": [
+        {
+          "path": "CORE-SHA256",
+          "bytes": 65,
+          "sha256": "92d302c1657fb2ab4cca4aeb6d0b9e153aa42285e46d1eb2823a4a4bad14695a"
+        },
+        {
+          "path": "INSTALL.md",
+          "bytes": 369,
+          "sha256": "fdfb740c03bcc2eed80d9551cd21632a2a3ba5212bcb03a24b620e7ff2747a61"
+        },
+        {
+          "path": "README.md",
+          "bytes": 717,
+          "sha256": "2b8218d7648be40780444a7adb98a93d6880468a47edf489ec3106a007e12111"
+        },
+        {
+          "path": "UNINSTALL.md",
+          "bytes": 251,
+          "sha256": "e8a02428476187be9ecf54cb6a71193bc558750921fc24580dac39ab1e0b598f"
+        },
+        {
+          "path": "UPDATE.md",
+          "bytes": 255,
+          "sha256": "2309c838df10f0097d53aff84ceca9647b5ade734e66b1c2fe65c166a8027a9c"
+        },
+        {
+          "path": "adapter.json",
+          "bytes": 305,
+          "sha256": "ddabeae338088fa201eb9a7a224453c6b8ac4bc678730f86ad729a79f8ed7f97"
+        },
+        {
+          "path": "configure_dsh.py",
+          "bytes": 1022,
+          "sha256": "2a0748f8a3ef26aabdfc3f5e78d16573798b66ae218c37e752792e3e6ab29177"
+        },
+        {
+          "path": "cordis.patch.yml",
+          "bytes": 609,
+          "sha256": "13cb0e1ebe9d4367d07bfcd3b74f80a359f4a7d6ea86830406dc7568608e5638"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/adapters/claude/commands/paperspine.md",
+          "bytes": 2877,
+          "sha256": "7fa72733dd4eb7aefed1f598f97aa8c32f50bc2cd94021ef7de405d728dc4c54"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/adapters/codex/prompts/paperspine.md",
+          "bytes": 3738,
+          "sha256": "3da7a2bb22c5f5387013db64a5b6aac2a4a6eff4e9162a7647713ae537bf42c8"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/adapters/hermes/frontmatter.yaml",
+          "bytes": 803,
+          "sha256": "ec9c53543edffc95ff1ae49b066c32679c48a8e1eb6bf61d38a3439e0a02c2d0"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/_paper_spine_utils.py",
+          "bytes": 8131,
+          "sha256": "0833b58634fc324b28c7f4dfda02cfaf7bcae03e4c66379bb1424bf1e12259ec"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/artifact_check.py",
+          "bytes": 48258,
+          "sha256": "552bb9369bff1af791ed7263e9b7546a7436e3cdb25918eb47b01e62be222e93"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/citation_bank_check.py",
+          "bytes": 10734,
+          "sha256": "edb4e570c0973d1f456d73023be206ac50bc6a9d1b8c3d775f898bc25bd61493"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/citation_quality_audit.py",
+          "bytes": 30582,
+          "sha256": "4d2f1717ddc19e06eb0f490d808e6ad9253d242b004eb2048ad47685196e3963"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/citation_verification_en.py",
+          "bytes": 26358,
+          "sha256": "c535ca653b793dd29a08982cba044b04bfd0f4332be7da33e35fdf8944f9863a"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/citation_verification_zh.py",
+          "bytes": 6770,
+          "sha256": "49bb921f0f41ed21e2363109b886d2524c95758c9a7a95f0bd018603a7451402"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/contribution_check.py",
+          "bytes": 10347,
+          "sha256": "38190989d1f79f6eadf12cdc7dd28561c2eaf0f178b1630cb6f0fd2bf1492d92"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/figure_story_check.py",
+          "bytes": 12518,
+          "sha256": "9f78ba6326239f3da73bf7553f33e2911e055c92b7dda05b6a83032ab5f6a387"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/humanize_check.py",
+          "bytes": 44590,
+          "sha256": "4b2d45f61a7f128e1b824b5226e076bad467ec4c79c5f696e4d4577ea4f330e6"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/intake_wizard.py",
+          "bytes": 47427,
+          "sha256": "d7f2504053f429cf2fd4a13ad5809c521409003b4a08ef59a511a2732b26520c"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/integrity_audit.py",
+          "bytes": 34819,
+          "sha256": "ef616e546b7dfed85aed35b1c31ca6a8e0a0302962ca745f62f452a818eb12fd"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/latex_guard.py",
+          "bytes": 16514,
+          "sha256": "43ed37ac95ff99f6b89404536cbe7adb950781447d8846d8530f3a11d1e7b387"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/launch_paperspine_ui.ps1",
+          "bytes": 1278,
+          "sha256": "c905ac841e2d28c31fc99ee49fba16630b62d159e44b952c85aeb5608f2c10b0"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/launch_paperspine_ui.sh",
+          "bytes": 1673,
+          "sha256": "583341da746929b85575db209765d429df052d220bc7cf88ff45bf4121062741"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/material_inventory.py",
+          "bytes": 4206,
+          "sha256": "c69b0168be2fe7c93f3af45ae51d3c3077ef2c906e4f412ff8c5bd510f113f64"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/metadata_readiness_check.py",
+          "bytes": 3977,
+          "sha256": "3139c1c34b341224c908c8a582634047787c56daf645431ea1fcff01cb488d12"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/paperspine_update.py",
+          "bytes": 27734,
+          "sha256": "022259b737f19a98fc46e0a2f7c60cd7cdc915d19cbce0b149de12c3a972fb31"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/progress_check.py",
+          "bytes": 43781,
+          "sha256": "4be36e4aaefd925c07b672994a752d4d62fbd1b163acd83ca9e4b83df11f44c0"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/publication_cycle.py",
+          "bytes": 71422,
+          "sha256": "055efb68e1af5f49b5b0ce6f1d5f2ee26fb6894b706acb6f22ff3822ce02c92f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/publication_surface_check.py",
+          "bytes": 3184,
+          "sha256": "ff172c6b8343d075946c8606abeec6a3f926421f9ff9277c9f013a75d471a33a"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/reference_inventory.py",
+          "bytes": 4603,
+          "sha256": "99e7578869a1a3fab72dc249d5c9806465fd7d020946d86596496a01f8ae4ee6"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/respond_check.py",
+          "bytes": 14775,
+          "sha256": "4f1ae97df1ab21e269a7676b83c09763911b45231453cbbcccf115ec074a4c5a"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/results_validation_check.py",
+          "bytes": 6580,
+          "sha256": "f977562f3edfc990a6a9bd95cb11c7278cf4bb194668a2b139db7d70ffe23195"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/reviewer_audit_check.py",
+          "bytes": 10665,
+          "sha256": "8e4a49e73edc541aecd34d7a3dc7a31c2d695abed360acbe2ae8d9c9e366a56d"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/revision_audit.py",
+          "bytes": 8007,
+          "sha256": "2984e0cc25f851a41bee6c98d3fd05646d1181bc78d2dfeea27efe7831730e3e"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/scientific_evidence_check.py",
+          "bytes": 8292,
+          "sha256": "5dfc1c2a40021a9da056e35188423c869e724205fcd2949e63105aa15ae693e6"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/section_economy_check.py",
+          "bytes": 6256,
+          "sha256": "4c48b7aa1d72e2678c1cd5928b49e336275dd6816bfa668bebd74010f71323ed"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/structured_review.py",
+          "bytes": 39360,
+          "sha256": "6f75016adef5da297be3bbe3fd3c9f8191c55e2b9584badf26c2dfcf1d8ee970"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/style_metrics.py",
+          "bytes": 12488,
+          "sha256": "5025b9587508082abe806c38dbebaf2d7413fb305b35df8541de4179789c05e8"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/submission_check.py",
+          "bytes": 22044,
+          "sha256": "312d2e3e149f53dc97548af16f11f0d5058f9f109665e8bb9290306328899355"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/sync_local_installs.py",
+          "bytes": 8888,
+          "sha256": "e429ff4923c2ef29fcac925942afc50b6a10a2367058b622d2026598bcb55108"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/translate_guard.py",
+          "bytes": 31019,
+          "sha256": "67ac8b5b6b675ebe38578bf03465f854ad18450246596d566858e33ca3335da5"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/usage_ledger.py",
+          "bytes": 5469,
+          "sha256": "f50bf49d35cdbd0992b88b6b6188d19c43256f28d7ac0aa2ed6ba6aac40e76b6"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/visual_readiness_check.py",
+          "bytes": 16673,
+          "sha256": "3579b08104224403875e14296a65438e634784f7e0d495d4b1a385a2ca3f76f6"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/scripts/word_guard.py",
+          "bytes": 40891,
+          "sha256": "47f69d07ace08221b6d3129452ef2e19f0f9c2c7f674e5d246198de59a55142a"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/SKILL.md",
+          "bytes": 36978,
+          "sha256": "886ef4d3210591fe6fffebc82667301e9442fd399ed38e96c1c8c9db5ead9711"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/openai.yaml",
+          "bytes": 290,
+          "sha256": "1ec573016e3618f57518fc1c35d3f1c654b3c5c6c917ca027282df50416f2eff"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/research-exemplar.md",
+          "bytes": 607,
+          "sha256": "2f0f3d53c06a152617f7953b5b08f16b482e53337510d82b59e036933fe54d79"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/research-scene.md",
+          "bytes": 552,
+          "sha256": "1aef33be845b9c2e3ec013c693e21ba3b947d905dd528679b54b7e26032e95ae"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/research-sota.md",
+          "bytes": 448,
+          "sha256": "81f4e0886113765561450ba0bdbbb32b97a1511c1547c440ce1d68367c88b7ac"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/reviewer-evidence.md",
+          "bytes": 710,
+          "sha256": "401ebe0f37b8878b3da8dd93c441469646d96f3e471f22f9e8da38a076b46266"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/reviewer-method.md",
+          "bytes": 665,
+          "sha256": "c1d2e77f042338c300e17d5989a930adcb74246f4c75982f0af7cb844b111c24"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/agents/reviewer-writing.md",
+          "bytes": 1042,
+          "sha256": "912dcec4205bdfc9c807c12568723300fa367fad64ac8bab047cecdb5e209c5a"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/assertive-scientific-writing.md",
+          "bytes": 1501,
+          "sha256": "f8d9e71953821d4f1afc69715b6ecc4d6972604dc178a770ad77b3261de6bcfc"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/audit.md",
+          "bytes": 11057,
+          "sha256": "0fce29f0f81aab0900618e07155939f331cbe7da6f2d0d2dbab541c1c510637c"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/build.md",
+          "bytes": 4433,
+          "sha256": "5827be78039c70e8f3fbf15b9f32780a51e30778d9311b5bf3027a6fc09bc08e"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/citation-support-bank.md",
+          "bytes": 4464,
+          "sha256": "546b46f944405913c073c8a85cbd84075bcae3f0772c177b179b70c5b3a5af17"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/citation.md",
+          "bytes": 4555,
+          "sha256": "db2f9b1a64c830c7a8921c43cd84e760816efd7cb675723347feb85f3df652af"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/contracts/publication-cycle-invocation.schema.json",
+          "bytes": 2713,
+          "sha256": "0831888460f3b511d9b9774eabf91ceb71c4840d4d537e468267630801ae2da7"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/contracts/publication-cycle-result.schema.json",
+          "bytes": 3624,
+          "sha256": "4a4d0afe0bc4b23a4a3cf55c96dcd3976a5f3389176935bae070a4bb372651fd"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/contribution.md",
+          "bytes": 10521,
+          "sha256": "5bd1b67b953d3bd491d6f48fc1f5a13e6d353c8ab01fb12c05ecde115b329c63"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/deep-imitation-protocol.md",
+          "bytes": 5819,
+          "sha256": "6352f53ed5ec9c8227bacd21e717860bddfd2c14b8a4d3e7f4c66e2390394f51"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/deep-reading.md",
+          "bytes": 10765,
+          "sha256": "a55ddce7eea804e997e3394c197f23bb17583ef441ee81f91d7be10b6a53be92"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/editorial-completeness.md",
+          "bytes": 3915,
+          "sha256": "6ce5744f85bca2125c03ae7a3cf7f1c6b3a8b5274610839fc47aa49568867c24"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/exemplar-learning-dossier.md",
+          "bytes": 5224,
+          "sha256": "1110f5fb6a2c0e3a8605d736f0a9d25160a2926c437ec21c92d1f6b867e29ed2"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/figure-story.md",
+          "bytes": 8154,
+          "sha256": "101cefbad6c8fae7dde1bd13d786a8a3b7b0868a13f80aa90621e4cd3dc79832"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/humanize-calibration.md",
+          "bytes": 1876,
+          "sha256": "8628e277b7d35ef44e8ea272b72031db25f71068a221b1cf32a64261dc63bd84"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/humanize.md",
+          "bytes": 3612,
+          "sha256": "99a1974da862fffaa5720fe5c6214ffa5d2950fe1f3a5246e09f14832218da34"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/intake.md",
+          "bytes": 2047,
+          "sha256": "49749d5d66d8662037c275975bc5ac8756d0c3d365c32efb9805b12e1bc2bafe"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/interactive-intake.md",
+          "bytes": 3131,
+          "sha256": "bbfd0f1efcfc3593ee7fe9d3a6a755af6d434a115d47999c8ea5a84cd611e2aa"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/journal-style-analysis.md",
+          "bytes": 4015,
+          "sha256": "a203e17edb8ab090b142c5a74fa0c871f822c31eb7f5f03083e13a23a68f4d63"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/journal-transfer.md",
+          "bytes": 3510,
+          "sha256": "86b27c174b6524a3a658a8570b36562013c5a793b5f9512f0c8d71b9fde5af19"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/latex-source-control.md",
+          "bytes": 3665,
+          "sha256": "6aeab455bb43dd28ac273a473c8721e1889e56a25ab87f0af417162975733f2f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/latex.md",
+          "bytes": 7841,
+          "sha256": "d838d6ba6759f35c056d2220e0854565f39edb466cb066a9fde31d4d3637d62f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/local-reference-ingestion.md",
+          "bytes": 1754,
+          "sha256": "234ab3b7c3bca954044922d06803a7cf2f85bad39cf99d2ffaa0907a08bf32d5"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/logic-transfer-audit.md",
+          "bytes": 7039,
+          "sha256": "67cab61e93355065c7669ff17718cdac4bb2b3d3009a28348c79600d656039aa"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/motivation-thread-writing.md",
+          "bytes": 9784,
+          "sha256": "1fd599254571ea03574cfe3b6af1636f19fbec46c922ea77621d4809a14a8fee"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/orchestrator-branch-map.md",
+          "bytes": 6312,
+          "sha256": "c35f47ae66cf6aa96972fc0af2571b1403de29ec7f3589f806dac890412b27dd"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/phase-contracts.md",
+          "bytes": 1736,
+          "sha256": "1bc4f77bb2e66c20b678c441d60ed4b22736d12e74baa46f71d4607f83ceb6fa"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/platform-cnki.md",
+          "bytes": 2838,
+          "sha256": "2a421bbfdb8accbe99f45b22c55cded1fbff4f9afae4f5f975af3dec8656db7f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/platform-general.md",
+          "bytes": 2463,
+          "sha256": "376d7341d0bb8d3de6539c83a284330c061257b6c2377ad577ff573e92a84702"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/platform-weipu.md",
+          "bytes": 2161,
+          "sha256": "7b05e5f15dd841bab478c5c86cb901b1890d8fdb077a1d5df14ca7fa6d74c15d"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/publication-cycle-contracts.md",
+          "bytes": 7583,
+          "sha256": "1187e4636875fadf933b9f9863537aca7052a941c5a21a160a14dc82b5ae6180"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/publication-cycle-interface.md",
+          "bytes": 6454,
+          "sha256": "d2e0b752cf22bd2eec07e75c3f360d66b3ab9a709bfea1de77834d1e88e6390f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/publication-cycle.md",
+          "bytes": 3029,
+          "sha256": "8198fce89e83e0d0dce7968178a989601d08469e35ac8412c0070d951165ee31"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/publication-surface.md",
+          "bytes": 1197,
+          "sha256": "ee9e1a0d0ce8a7406da693d98ea366e9e682bfeb0e06c7cfe9ab3fbb1d2b2934"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/publication-target-profile.md",
+          "bytes": 3895,
+          "sha256": "24650cc24d5e94f087f5e41bda7ebd57a70ee3e7cd75fc1b00b08324d460520c"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/research.md",
+          "bytes": 3361,
+          "sha256": "5be8aabf483e96d871de22c7f807e52e11338e3fc1a6ef9881b701def78023c0"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/respond.md",
+          "bytes": 3790,
+          "sha256": "2d97e04fe3dd1c6de69406c5c40334698409e6e403ef3f58a60c6cf83f0b854c"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/results-validation.md",
+          "bytes": 5841,
+          "sha256": "e92a04fdd2951f3c49e7365c8bff9b161a3f2b0b3fcbaee08e7986d1d85d421c"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/resume.md",
+          "bytes": 5711,
+          "sha256": "134eab56debe8008f549cc76912c406cc9fb39fc881fc9a6ad37c0e717d52520"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/review-policy.md",
+          "bytes": 2933,
+          "sha256": "3c9b4095fc9f0af879457ca5f4bf0e2b59d94ed92ea2b37c8c782e08280f7b8f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/reviewer-audit.md",
+          "bytes": 8278,
+          "sha256": "a81da84d9902e714c4565686cde642d805270568ec0e119d4a93ad9ee6972efe"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/rewrite-matrix.md",
+          "bytes": 8397,
+          "sha256": "a1a5cba4668bce238f537448351f2269e39594419e70231fd170d5d39bba9961"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/rewrite.md",
+          "bytes": 4386,
+          "sha256": "08e6189b8fb8fc7afd7c276278119c8530c5068b439165fceaf65d834d1ce8c5"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/round1-literature-revision.md",
+          "bytes": 6045,
+          "sha256": "02bcb3f70cc9c0c3c31900d4d2a7d7a562ec2f57d6db4f17c5ae3e10247f61d9"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/round2-journal-revision.md",
+          "bytes": 3930,
+          "sha256": "c1a7b84ffe5557e0f1377d79bc800f233f919d0520c56cd567db412fef267c35"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/round3-latex-polish.md",
+          "bytes": 6181,
+          "sha256": "914be4a901839ebaa0b9e4c23f2128fea0220dc469c2c3ee466460a05fdac466"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/round4-template-integration.md",
+          "bytes": 4032,
+          "sha256": "58465c80092624fdd7e9ae8fea30cc64512a6ebf24cea3dcdc5b9e10b9422b9d"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/scenario-competition.md",
+          "bytes": 816,
+          "sha256": "4ab7683206683c7d82219fea719a44e7785433d85ca6fb5a36e43ded70c7f430"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/scenario-conference.md",
+          "bytes": 591,
+          "sha256": "867ddf2a294f38e238c2c4b073c36f10a15d52b64e828f101c3a7b394768dd42"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/scenario-journal.md",
+          "bytes": 1078,
+          "sha256": "9da6f812b761320d61a42a9652380963b6d29ca640e18eea3cafa9f04aa59596"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/scenario-report-review.md",
+          "bytes": 825,
+          "sha256": "ca2056e7f978c760468b15d13c0d6f95341e1f967365f0200c639b4a506fa103"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/scientific-evidence-ledger.md",
+          "bytes": 3633,
+          "sha256": "3184d20c4e822e9fce7bd62bfcdf3bd2778a9770d3460d44993d91822e6e168f"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/semantic-confirmation.md",
+          "bytes": 2777,
+          "sha256": "3e253fae3007faf26c1eb79a21cf35b5e4d027a52034a114dec1e043a91fce36"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/style-learning-workflow.md",
+          "bytes": 6253,
+          "sha256": "ccb5f3544404bc64fa5d0f802a630fb3521803fa019c26074f093e224740af90"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/submission-metadata.md",
+          "bytes": 998,
+          "sha256": "650ce8489e693e7721a6c5f32932929a508e06371ddfed4162b7341500e0e76d"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/submission.md",
+          "bytes": 4629,
+          "sha256": "a7b3b7292439f696eb4c4f80df50f903d1304459fe2cea2542e417f33ff4dfc6"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/suite-map.md",
+          "bytes": 3088,
+          "sha256": "6c3cc4760c7511d9ef7234d7726d858f35941f4ee1d1a107ba7246bdef95a545"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/target-journal-research.md",
+          "bytes": 4142,
+          "sha256": "e269bb6e0f7683c9be5c5b442ca42f265e0763f60baa3f049388c5f358b333c8"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/task-genre-research.md",
+          "bytes": 3820,
+          "sha256": "c2e908a2534e6cb0f221f4a3f583c2ae9f1c4a6d361ed217b40d987f97208de2"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/translate.md",
+          "bytes": 3537,
+          "sha256": "53640bd5ca3cb3ba9f2f51b89e6224c1de4b1c83577bf510484df918c0d101c1"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/translation-package.md",
+          "bytes": 3117,
+          "sha256": "4de1e43a1421c94d07d2e75a99bde01c6f70a0136db6530cfc6ba71bec09333a"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/update.md",
+          "bytes": 4687,
+          "sha256": "9f14a1f372b076e4e4deba2357509368f07936646a82023e4f6a6eea11dfe7d2"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/usage-telemetry.md",
+          "bytes": 1292,
+          "sha256": "c4d66ca05ec58e899cd19ff3f664ce487291c4abc9b6d9bc6afddd873676d688"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/version-requirements.md",
+          "bytes": 2029,
+          "sha256": "8d3814caf8539436bccf2f1c0e43a81a80e121a78ab325b5c69469c262cce6f8"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/visual-readiness-gate.md",
+          "bytes": 2756,
+          "sha256": "4fc5d4d1c5db03591cff2acbc868fdc784d8881a6943abd1915f7c654acb9df5"
+        },
+        {
+          "path": "core/01_PaperSpine4/src/skill/references/writing-rationale-matrix.md",
+          "bytes": 9435,
+          "sha256": "b8e82b2cc596d2a56d3d8e4b9f391b940d646d858979851c29a331702f4bd4ee"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/__init__.py",
+          "bytes": 2683,
+          "sha256": "00097861ecc06043dee78339bc739d544d521a034d376ec8835428a97a524230"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/config.py",
+          "bytes": 22381,
+          "sha256": "937399461e5e5a9e56670c9eb21ec908ba036601ffee2c18360726cf02f2f78d"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/data.py",
+          "bytes": 2408,
+          "sha256": "9ba340bef9f26e37c7bdf8462de7146f756c622ea7f150f9a65d530d69ba4b0d"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/data_analysis.py",
+          "bytes": 41519,
+          "sha256": "668452f92ca8e514d660bc47c1d4b01e73465b597a973f2b5199f09341460e6b"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/evidence_bridge.py",
+          "bytes": 29585,
+          "sha256": "f2c99070b2277132b638246982cce65969e5bda7d5ad4812d032d7b9bb985f07"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/figure_spec.py",
+          "bytes": 73027,
+          "sha256": "2f0beed4a138ed902f798ddb0135e796bb2e317a92e1e83a42556179cadaed2d"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/generation.py",
+          "bytes": 46848,
+          "sha256": "653eb5dd9d996f030ef5b4ee6cfda3ce68eb9644dbe930e513357c23aeb17eed"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/img2ppt_pipeline.py",
+          "bytes": 18126,
+          "sha256": "2836471b56b1902dcca0681b4ba8610118c1e2ebf5ad6d6ab65da112f246ced6"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/overlay.py",
+          "bytes": 3149,
+          "sha256": "0596479c0cade4fa2312ef0cf2f0333451a1126e6ca3d9864e05d9388fad8ba8"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/panels.py",
+          "bytes": 6980,
+          "sha256": "2022620cc1e9c4069ac273aacabd6885aa4a739630457215a1c20b0651274f01"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/ranking.py",
+          "bytes": 17263,
+          "sha256": "67da19679920291234cab892256d865cb04c4c1a724e190f78bd325b3ca1808c"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/raster_schematic.py",
+          "bytes": 34698,
+          "sha256": "fc26f929997a6946303ace1f80aece74fc166a581d04538eaa3a94accf671dea"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/review.py",
+          "bytes": 40159,
+          "sha256": "07c1788d9388834f37d9ff8c0fb0f6f7c4b3e3b2e676110905e75bc5e94142b3"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/review_server.py",
+          "bytes": 1934,
+          "sha256": "36aa017e44c506c25256dead0ab05c76aa4b4427ba0697b19fd668323992a188"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/svg.py",
+          "bytes": 10470,
+          "sha256": "40fc2df31c9937e0f75b096d15d701e92a85cafbd81ac3b7a6d08d4d6ce6bc3b"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/vector_blueprint.py",
+          "bytes": 19488,
+          "sha256": "dd15d41f746d7001c9b812c7be483c0580460dcd9e6cd12a1ed58e6e8808c4df"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/figmirror/vectorization.py",
+          "bytes": 20763,
+          "sha256": "5dcb6b7aa128f446c4dc21e6e0d5d7eb8e21195ec53525a66570fe33c050aded"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror.py",
+          "bytes": 13238,
+          "sha256": "936db3e72face5d8a11db2815a92562ca2722b3c5dd559cf2d01f1017d6744ab"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror_check.py",
+          "bytes": 11759,
+          "sha256": "8f7788ec1250f22a7e0389480c0bf45db2b790bfada0b049cb0b32b5dfaff43b"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror_docx.py",
+          "bytes": 10036,
+          "sha256": "f1c0bd005a8208ce472f8aebcc717215c7f6fd55c0201caa0feb8b7897d75a6e"
+        },
+        {
+          "path": "core/02_PaperFigure/01_FigMirror引擎/src/scripts/figmirror_inventory.py",
+          "bytes": 12022,
+          "sha256": "a18eb79a31fac60715f77f9d2e62fe03352a429159ef62655c69d7a141ec8f5a"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/SKILL.md",
+          "bytes": 10020,
+          "sha256": "bd477f5bb207afecffe5b437d61ba686753d125ac02a77e4fb9d4ddbc10ee2bc"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/agents/openai.yaml",
+          "bytes": 342,
+          "sha256": "248c70e12f87e4130f0d3c2fda656147c6cc6664ff5ffee47eb2ed0c4bf5c7bb"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/assets/comparison_atlas_builder.py",
+          "bytes": 4036,
+          "sha256": "e62d61fe91526596f1626a72023afc54b57f41d5a8dc0ec9214de5709d4ca68a"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/assets/comparison_atlas_config.example.json",
+          "bytes": 797,
+          "sha256": "d243aaefc0d9297d20c1e6edcf8ae77bee543af8f1d541e7feec8d580cf3dc20"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/assets/design_brief.example.md",
+          "bytes": 1239,
+          "sha256": "d6a4515a0e37f6b4510657786cbd330a0fc5114f0cc75656ab5a2925aefb5f9b"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/assets/figure_manifest.example.json",
+          "bytes": 1453,
+          "sha256": "6b66975cda2e3a10cf60d2f733a9490500ad943557318b6e14091cb67b831764"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/assets/style_palette.example.json",
+          "bytes": 353,
+          "sha256": "c852fe35036513410307196582d16976b528824427b5c100dbd21ff9e2709c56"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/references/architecture-and-multipanel-design.md",
+          "bytes": 2899,
+          "sha256": "f46d5dddab3f47afc7d26fbd334064e368151b9d4a13ca90ea545441ce5ae439"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/references/reference-deconstruction.md",
+          "bytes": 2488,
+          "sha256": "a99a1120749738874a9ccd16fc1b2ce0ce6e1531d92bacd1f08ac7dde2d05e7f"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/references/research-figure-process.md",
+          "bytes": 4559,
+          "sha256": "8a1a15774aab96e147ac96f4419b980af7ab321830de8791bb70f7cf762ef88f"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/references/scientific-visual-qa.md",
+          "bytes": 3317,
+          "sha256": "c3e9def504a23d725dd983190db5e0e7c38f0cd2227f4f845fff9123476f4ff9"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/scripts/inspect_figure_project.py",
+          "bytes": 6102,
+          "sha256": "3f5dc2d7da58d2e1ff2743220849090fc493d7de046240570c4a58ec03ea6205"
+        },
+        {
+          "path": "core/02_PaperFigure/02_paperFig_skill/scripts/validate_research_figures.py",
+          "bytes": 6866,
+          "sha256": "fe1864fda11e2f967217e75800ba05da010ad0fefd523505d62fd3d995d7c860"
+        },
+        {
+          "path": "core/03_联合开发/FIGURE_LIFECYCLE.md",
+          "bytes": 1938,
+          "sha256": "e6508023f794156be55095e535e4d029a8a0db1ea27f43b5e7667893f28c9fec"
+        },
+        {
+          "path": "core/03_联合开发/PAPERFIGURE_BODY_INTERFACE.md",
+          "bytes": 4333,
+          "sha256": "8d6474923aebe7d84a44f3091003c1f4fffccaf9ff3699c5fc930cb9fca2913e"
+        },
+        {
+          "path": "core/03_联合开发/PUBLICATION_CYCLE_INTEGRATION.md",
+          "bytes": 3203,
+          "sha256": "23b4b72f0e32456ce316241bb951240bac5f5bcc9b02fa6584eca86bd34af99b"
+        },
+        {
+          "path": "core/03_联合开发/README.md",
+          "bytes": 8132,
+          "sha256": "37247db3c0cf24b1cf88870841ce2f2bfb180bb22664a5fce8b361cca4676936"
+        },
+        {
+          "path": "core/03_联合开发/contracts/agent-signal.schema.json",
+          "bytes": 660,
+          "sha256": "8716f2ed769fffd23db1eff23792fac5070c1f5c0e40c08acd8550f758c2d106"
+        },
+        {
+          "path": "core/03_联合开发/contracts/assembly-manifest.schema.json",
+          "bytes": 1367,
+          "sha256": "f46c2759cb3e00c4b967377e9fe8cec6ff0c3385e5355c03d30b1ccf3acfb7ba"
+        },
+        {
+          "path": "core/03_联合开发/contracts/figure-body-contract.schema.json",
+          "bytes": 3426,
+          "sha256": "420f1ad7380bd4e63e96f273c97de216c52dd1c9683d19c312d79c4ba320db19"
+        },
+        {
+          "path": "core/03_联合开发/contracts/figure-requests.schema.json",
+          "bytes": 4156,
+          "sha256": "075aa8541c1b22c16b6d7f258ff70b4331d4d46b6a93aa88c600ad8ca4db1895"
+        },
+        {
+          "path": "core/03_联合开发/contracts/figure-workflow.schema.json",
+          "bytes": 2242,
+          "sha256": "b66305696b9b85371d7d0f84da5d6722bb84538f730348e616d7e753e5669592"
+        },
+        {
+          "path": "core/03_联合开发/contracts/integration-job.schema.json",
+          "bytes": 2591,
+          "sha256": "50983ce5bc25edce6216528a5c0fb6bc13777f028d48b81f7f093503325fc22c"
+        },
+        {
+          "path": "core/03_联合开发/contracts/integration-state.schema.json",
+          "bytes": 1005,
+          "sha256": "eb2da654c2eed972c7d09447ca7dd08248b8b1401333a3b050db1e4d701d9137"
+        },
+        {
+          "path": "core/03_联合开发/contracts/review-decision.schema.json",
+          "bytes": 1367,
+          "sha256": "9ffccf6445cb12cc2b22621600cce1109a2467cb4a96c43d80a04d6e4072cf90"
+        },
+        {
+          "path": "core/03_联合开发/scripts/paperspine_figure.py",
+          "bytes": 412,
+          "sha256": "f41416e334c0ca02220ae6f2d4b4ca9d6de59c1ef722d67c5ae4a417cfab3fd6"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/__init__.py",
+          "bytes": 526,
+          "sha256": "d629ed5c38afddef66a38584728972924e88234ec44243a5e5fedb643261d640"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/adapters.py",
+          "bytes": 4606,
+          "sha256": "80911cbf72f3f6472606253e20e6fe498cbb226f96d7656a45d5becad646a5f8"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/assembly.py",
+          "bytes": 9679,
+          "sha256": "c4d98b72257c83f34320a88e109e476b9fee67bb58cb0725b65be29d961fbe2f"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/body_integration.py",
+          "bytes": 13821,
+          "sha256": "1499894005517900112557e651b6d59d774639929aa327f7cb4c567854115a7e"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/bridges.py",
+          "bytes": 17057,
+          "sha256": "a48eb6a8e73df4ddaaff240c2afa3fa90e30c25587cba989a5d01f2b815e14f0"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/cli.py",
+          "bytes": 3861,
+          "sha256": "90f1f10e305607f2dae7a6acc406360b80065a816d68d9b60400541bdaaaf3f1"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/contracts.py",
+          "bytes": 20341,
+          "sha256": "2c06074d03026540f6fcae9ad8e19c15df7a71be1dc2ebb71392cadd01a44666"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/coordinator.py",
+          "bytes": 40092,
+          "sha256": "700b692293c5e49e8753b045ba0f9557b7dba019b317ad413b3faa6b27a5c5f3"
+        },
+        {
+          "path": "core/03_联合开发/src/paperspine_figure_integration/ui_server.py",
+          "bytes": 10519,
+          "sha256": "ce23848800592e85503e195e512aa27758e6a592b6a23b577dc45f614e47a3ac"
+        },
+        {
+          "path": "core/03_联合开发/ui/app.js",
+          "bytes": 25973,
+          "sha256": "4398f023093e1721e9a2389bb9a023fccc9e53935e05d90446d49072bb2f394b"
+        },
+        {
+          "path": "core/03_联合开发/ui/index.html",
+          "bytes": 20707,
+          "sha256": "363d9c252839c6ca00962ac1dd06c0af5439d6abe8a8ecf150ea461032f58b42"
+        },
+        {
+          "path": "core/03_联合开发/ui/styles.css",
+          "bytes": 28525,
+          "sha256": "ed3cf031c01598e7d8cac0c454dd7e29c36337d6aaa91a7d6a153021c2f87868"
+        },
+        {
+          "path": "core/06_插件化/contracts/host-bridge.schema.json",
+          "bytes": 1304,
+          "sha256": "7a696229315959600eddf68445a65e63f23f477d3f806b439b33adb6ddd810e8"
+        },
+        {
+          "path": "core/release.json",
+          "bytes": 960,
+          "sha256": "fb2935c0a8fb0435bac708406bd77948d7a9a8a8b5852c5df73e30eb4b019ab7"
+        },
+        {
+          "path": "core/requirements.txt",
+          "bytes": 145,
+          "sha256": "b2148900e76ee2393f2e9c34bc648461c83b54d7f6aa5d280e791c8a2e70096d"
+        },
+        {
+          "path": "core/runtime/README.md",
+          "bytes": 595,
+          "sha256": "9bf890ddd325f278b56dd8ed8c4e00d0d2796555877b03000f3055c6f3c2c689"
+        },
+        {
+          "path": "core/runtime/paperspine5_runtime.py",
+          "bytes": 14897,
+          "sha256": "c8f891b2da74719cf733ddf5f42dc6d945909cbed45e1eb408c7d228919b3cdb"
+        },
+        {
+          "path": "core/runtime/test_runtime.py",
+          "bytes": 4593,
+          "sha256": "fab3b2eac42651c59298256826bd17caa105e394dc36e24c4f6a8e406abd18e1"
+        },
+        {
+          "path": "install.ps1",
+          "bytes": 872,
+          "sha256": "cc1f58f28308b2c9cbfcced66426b4f30361e2469e487d6ebca4294e9137c096"
+        },
+        {
+          "path": "install.sh",
+          "bytes": 615,
+          "sha256": "30c41972ee2563f86321d7761706bf502a6e70ba5c918df14dfa6377b55d181a"
+        },
+        {
+          "path": "package.json",
+          "bytes": 432,
+          "sha256": "8c5592a1dd1fb91ae95602348c1e94da6868c3ebfc40b4474b32c7509945390f"
+        }
+      ]
+    }
+  ]
+}

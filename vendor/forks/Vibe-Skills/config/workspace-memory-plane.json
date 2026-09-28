@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "updated": "2026-04-10",
+  "plane_id": "workspace-shared-memory-v1",
+  "enabled": true,
+  "mode": "shadow",
+  "control_plane_owner": "vco",
+  "workspace_identity": {
+    "descriptor_path": ".vibeskills/project.json",
+    "scope": "workspace",
+    "shared_across_hosts": true
+  },
+  "broker": {
+    "driver_config": "config/memory-backend-adapters.json",
+    "driver_script": "scripts/runtime/memory_backend_driver.py",
+    "transport": "payload_file"
+  },
+  "policies": {
+    "disclosure_policy": "config/memory-disclosure-policy.json",
+    "ingest_policy": "config/memory-ingest-policy.json",
+    "tier_router": "config/memory-tier-router.json"
+  },
+  "canonical_owners": {
+    "session": "state_store",
+    "project_decision": "serena",
+    "short_term_semantic": "ruflo",
+    "long_term_graph": "cognee"
+  },
+  "invariants": {
+    "single_control_plane_only": true,
+    "forbid_second_router": true,
+    "forbid_second_planner": true,
+    "forbid_second_runtime_authority": true
+  }
+}

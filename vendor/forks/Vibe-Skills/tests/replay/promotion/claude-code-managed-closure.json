@@ -1,0 +1,41 @@
+{
+  "schema_version": "replay.promotion.claude-managed-closure.v1",
+  "generated_at": "2026-03-31",
+  "lane_id": "claude-code/managed-with-constraints",
+  "adapter_id": "claude-code",
+  "current_status": "supported-with-constraints",
+  "allowed_statuses_now": [
+    "supported-with-constraints"
+  ],
+  "maximum_status_without_new_platform_proof": "supported-with-constraints",
+  "disallowed_promotions_without_new_evidence": [
+    "full-authoritative"
+  ],
+  "platform_ceiling_now": {
+    "linux": "supported-with-constraints",
+    "windows": "not-yet-proven",
+    "macos": "not-yet-proven"
+  },
+  "decision": {
+    "result": "partially-promoted",
+    "reason": "linux-proof-frozen-windows-and-macos-still-missing",
+    "required_disclosure": "Claude Code host status may stay supported-with-constraints, Linux is promoted only to supported-with-constraints for the bounded managed-closure lane, and Windows/macOS remain not-yet-proven."
+  },
+  "required_evidence_classes": [
+    "contract",
+    "dist-truth-sync",
+    "platform-contract",
+    "proof-bundle",
+    "fresh-machine-install-proof",
+    "fresh-machine-check-proof",
+    "real-host-cli-smoke"
+  ],
+  "promotion_bundle_manifest": "references/proof-bundles/claude-code-managed-closure-candidate/manifest.json",
+  "no_overclaim": {
+    "supported_with_constraints_is_not_official_runtime_closure": true,
+    "supported_with_constraints_is_not_cross_platform_parity": true,
+    "windows_and_macos_are_not_promoted": true,
+    "linux_promotion_is_bounded_managed_closure_only": true
+  },
+  "notes": "This fixture encodes the current promotion ceiling for Claude Code. The repo may keep the bounded host status, may promote only Linux to supported-with-constraints on frozen managed-closure evidence, and may not promote Windows/macOS or claim official-runtime parity without new evidence."
+}

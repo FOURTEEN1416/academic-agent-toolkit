@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-03-31T07:31:45Z",
+  "gate_result": "PASS",
+  "release": {
+    "version": "2.3.55",
+    "updated": "2026-03-30"
+  },
+  "target_root": "<proof-target-root>",
+  "installed_root": "<proof-target-root>/skills/vibe",
+  "receipt_version": 1
+}

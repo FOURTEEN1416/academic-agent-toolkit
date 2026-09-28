@@ -1,0 +1,18 @@
+{
+  "skill_id": "code-reviewer",
+  "name": "code-reviewer",
+  "version": 1,
+  "summary": "Structured review contract for correctness, quality, and actionable feedback.",
+  "instruction_path": "core/skills/code-reviewer/instruction.md",
+  "compatibility_path": "core/skills/code-reviewer/compatibility.json",
+  "source_of_truth": {
+    "kind": "bundled-skill",
+    "path": "bundled/skills/code-reviewer/SKILL.md"
+  },
+  "tags": [
+    "review",
+    "quality",
+    "safety"
+  ]
+}
+

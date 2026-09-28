@@ -1,0 +1,166 @@
+{
+    "id": "p06-root",
+    "requirements": "A credible HEP collider study reproducing the published reference figure for $U_1$ vector-leptoquark recast of LHC $pp \\to \\tau\\nu$ (ATLAS+CMS). The agent must (a) implement the BSM Lagrangian, (b) generate Monte Carlo events for the specified process with appropriate PDFs and generation cuts, (c) run the necessary detector / shower simulation if required, (d) reconstruct the diagnostic kinematic distribution, and (e) compare against the published reference figure with quantitative residuals tied to H1, H2, H3.",
+    "judging_note": "Physics topics are scored on whether the agent (i) assembles a working HEP MC pipeline AND (ii) reproduces the published numbers within stated tolerance. Partial credit is allowed; the agent may use analytic shortcuts in place of MadGraph for cases where it is overkill, as long as the answer matches the published reference within the per-leaf tolerance. Quantitative result leaves are scored on a graded scale: 100% if relative error < 3%, 67% if < 10%, 33% if < 30%, 0% otherwise.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "p06-code",
+            "requirements": "Code-development bucket: BSM model + process card + PDF/cuts + full pipeline are wired correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "p06-code-lagrangian",
+                    "requirements": "BSM Lagrangian implemented (FeynRules .fr file + UFO output, or equivalent analytic Python module): $U_1$ vector LQ in $(\\mathbf{3},\\mathbf{1},2/3)$ rep coupling to $(\\bar c\\gamma^\\mu P_L\\nu_\\tau)$ and $(\\bar b\\gamma^\\mu P_L\\tau)$ with couplings $g_c, g_b$.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "p06-code-process",
+                    "requirements": "MadGraph generate-process card or analytic process module matches the paper's process string: $pp \\to \\tau\\nu$ via $bc \\to U_1 \\to \\tau\\nu$ exchange at $\\sqrt{s}=13$ TeV, mass scan.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "p06-code-pdfcuts",
+                    "requirements": "PDF set and generation-level cuts match the paper exactly: Standard 13 TeV proton PDF; 9 mass points $\\{750,\\ldots,5000\\}$ GeV with $b$ and $c$ parton initial states; 10k events per (mass, detector); Pythia8 shower; Delphes ATLAS card and Delphes CMS card runs in parallel; LHCO output.",
+                    "weight": 4.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "p06-code-pipeline",
+                    "requirements": "Full HEP chain wired together (model -> events -> [shower -> detector] -> reconstruction -> analysis -> figure). For analytic shortcuts the chain may be simpler but must still terminate in the diagnostic figure.",
+                    "weight": 4.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "p06-exec",
+            "requirements": "Execution-validity bucket: MC sample passes nevents threshold, physics-validity gates clear, MC stats are sufficient.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "p06-exec-events",
+                    "requirements": "MC sample(s) generated successfully with at least the requested number of events per cell (or a documented partial count if compute-limited), with no fatal MadGraph or downstream errors.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "p06-exec-physics",
+                    "requirements": "Physics-validity gate: no negative cross sections; gauge invariance / unitarity sanity checks pass; mass spectrum and decay widths printed by MadGraph match the input parameter card; no obviously unphysical kinematics in the generated events.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "p06-exec-statistics",
+                    "requirements": "MC statistics are sufficient: relative MC error in the signal region is < 10% OR at least 3 random seeds are run with std reported across them.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "p06-results",
+            "requirements": "Results bucket: quantitative comparison of three hypothesis-driven observables to the published figure, plus a reproduced figure artifact and a per-hypothesis writeup.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "p06-result-h1-quant",
+                    "requirements": "Quantitative test of H1 \u2014 Combined ATLAS+CMS 2$\\sigma$ exclusion at $M_{U_1}=1$ TeV gives $\\sqrt{|g_c^* g_b|} \\in [0.3, 1.5]$.",
+                    "weight": 12.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "p06-result-h2-quant",
+                    "requirements": "Quantitative test of H2 \u2014 Reconstructed exclusion contour intersects the LH $R_{D^{(*)}}$ band ($\\epsilon_L=0.11$) at excluded mass $M_{U_1}^* \\in [1.0, 2.5]$ TeV. Use the same graded relative-error scale as H1.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "p06-result-h3-quant",
+                    "requirements": "Quantitative test of H3 \u2014 Selection efficiency $\\geq 5\\%$ on signal at $M_{U_1}=1$ TeV in both ATLAS and CMS recasts. Use the same graded relative-error scale as H1.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "p06-result-figure",
+                    "requirements": "A reproduced figure exists in artifacts (PDF or PNG) with axes, units, ranges, and legend matching the published reference: Exclusion contour in $(\\sqrt{|g_c^* g_b|}, M_{U_1})$ plane, 4:3 aspect, x in TeV $[0.8, 5.0]$, y $[0, 4.0]$, with LH band (blue dashed + light-blue band) and RH band (red dashed + light-red band).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "p06-result-writeup",
+                    "requirements": "Writeup discusses the outcome of each hypothesis (supported / refuted / inconclusive) tied to numeric residuals, identifies the dominant systematic uncertainty (PDF set, scale variation, k-factor, Delphes card, statistical MC error), and states explicitly any analytic shortcuts taken in place of full MC.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "p06-repro",
+            "requirements": "Reproducibility bucket (new for physics topics; absent in T-rubrics): the artifacts contain everything needed to rerun the analysis from scratch.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "p06-repro-model",
+                    "requirements": "UFO model directory (or analytic model Python module) is checked into the artifacts and is loadable by MadGraph (or directly importable for analytic models).",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Reproducibility"
+                },
+                {
+                    "id": "p06-repro-runcards",
+                    "requirements": "MadGraph run_card / param_card, Pythia8 settings, Delphes card, and MadAnalysis5 (or equivalent analysis) cards are saved alongside the run with explicit parameter values per cell.",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Reproducibility"
+                },
+                {
+                    "id": "p06-repro-seeds",
+                    "requirements": "RNG seeds are documented; rerunning the run from saved seeds should give matching central values within the reported MC error. For analytic shortcuts, the seed requirement is replaced by an explicit list of input numerical parameters.",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Reproducibility"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

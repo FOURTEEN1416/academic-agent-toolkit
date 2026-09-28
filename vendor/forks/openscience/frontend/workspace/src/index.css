@@ -1,0 +1,92 @@
+@import "@fontsource-variable/inter/wght.css";
+@import "@synsci/ui/styles/tailwind";
+@import "./styles/atlas.css";
+
+/*
+  OpenScience typography.
+
+  The application shell bundles Inter Variable for compact, consistent controls.
+  Computer Modern remains available as the editorial serif for papers, reports,
+  and long-form rendered research.
+*/
+@layer base {
+  html,
+  body {
+    font-family: var(--font-family-sans);
+    font-feature-settings: var(--font-family-sans--font-feature-settings, normal);
+    font-kerning: normal;
+    font-optical-sizing: auto;
+    font-synthesis: none;
+    font-variant-ligatures: common-ligatures contextual;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  :where(a, button, [role="link"]) {
+    text-decoration-skip-ink: auto;
+    text-decoration-thickness: from-font;
+    text-underline-offset: 0.18em;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-family-sans);
+    font-feature-settings: var(--font-family-sans--font-feature-settings, normal);
+    font-optical-sizing: auto;
+    font-weight: var(--font-weight-emphasis);
+    letter-spacing: -0.011em;
+    line-height: 1.18;
+    color: var(--text-strong, var(--color-text));
+    text-wrap: balance;
+  }
+
+  h1 {
+    font-weight: var(--font-weight-emphasis);
+    letter-spacing: -0.016em;
+  }
+}
+
+/*
+  Opt-in editorial prose block for long-form rendered content (papers, run
+  notes, markdown). Airy measure and calm rhythm, paper-like.
+*/
+.prose-editorial {
+  font-family: var(--font-family-serif);
+  font-feature-settings: var(--font-family-serif--font-feature-settings, normal);
+  font-size: var(--font-size-large, 15px);
+  line-height: 1.7;
+  color: var(--text-base, var(--color-text));
+  max-width: 68ch;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  text-wrap: pretty;
+}
+
+.prose-editorial h1,
+.prose-editorial h2,
+.prose-editorial h3 {
+  font-family: var(--font-family-serif);
+  margin-top: 1.6em;
+  margin-bottom: 0.5em;
+}
+
+.prose-editorial p,
+.prose-editorial ul,
+.prose-editorial ol {
+  margin-bottom: 1em;
+}
+
+.prose-editorial code,
+.prose-editorial pre {
+  font-family: var(--font-family-mono);
+  font-feature-settings: var(--font-family-mono--font-feature-settings, normal);
+}

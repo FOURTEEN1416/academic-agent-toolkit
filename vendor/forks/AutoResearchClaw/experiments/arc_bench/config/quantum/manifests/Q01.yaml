@@ -1,0 +1,104 @@
+# ============================================================================
+# Q01 — Quantum data encoding comparison (minimal pilot version)
+# ----------------------------------------------------------------------------
+# Open research question. NOT a paper reproduction. The agent must implement
+# and compare three encoding strategies (angle, amplitude, ZZ feature map)
+# under fixed ansatz / optimizer / simulator settings on ONE 6D binary
+# classification dataset whose classical baseline does NOT saturate accuracy.
+# Scope is intentionally trimmed from the original Q01 design so the pipeline
+# can produce non-trivial quantum results within the autoclaw time budget.
+# ============================================================================
+
+id: Q01
+title: "Comparing quantum data encoding strategies for variational classifiers"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+synthesis: |
+  Quantum data encoding is widely regarded as the bottleneck of variational
+  quantum machine learning. The way classical features are loaded into a
+  quantum state determines what functions the subsequent variational ansatz
+  can express. Three encoding families are compared here: angle encoding
+  (single-qubit rotations only, no input entanglement), amplitude encoding
+  (information-dense state preparation that loads the classical vector as
+  state amplitudes), and the ZZ feature map (Hadamards plus diagonal
+  pairwise phase rotations, injecting entanglement at the input layer).
+
+  The research question is direct. Holding the variational ansatz, the
+  classical optimizer, the simulator backend, and the dataset preprocessing
+  fixed, which encoding produces the best test accuracy on a moderately
+  difficult 6D binary classification task, and does at least one quantum
+  encoding approach the better of two classical baselines (logistic
+  regression and a small MLP)?
+
+  Implementation guidance is provided by the `quantum-qiskit` skill, which
+  is automatically injected into the stage-10 code generation prompt for
+  this topic. Use the skill's reference patterns verbatim: import
+  `ZFeatureMap`, `StatePreparation`, and `ZZFeatureMap` from
+  `qiskit.circuit.library`; use `qiskit_machine_learning.algorithms.VQC`
+  with the reference Sampler primitive for training; never roll a custom
+  optimization loop. Hand-written gate sequences in place of these
+  library classes have been observed to produce degenerate ablations
+  (three encodings collapsing to nearly identical computations) and will
+  fail the rubric.
+
+  Experimental protocol. All three quantum encodings share EfficientSU2
+  reps=1 linear entanglement as the variational ansatz, COBYLA maxiter=200
+  as the optimizer, and the noiseless statevector backend as the simulator.
+  Two classical baselines (LogisticRegression and MLPClassifier) run on
+  the same 6D features. Five random seeds per cell across 5 conditions
+  yields 25 total cells. Each per-seed result is logged to stdout as a
+  single line with the prefix `METRIC_RESULT` followed by a JSON object
+  containing `condition`, `dataset`, `seed`, and `test_accuracy` keys so
+  the autoclaw sandbox parser can collect structured metrics.
+
+  Research question: *On a moderately difficult 6D binary classification
+  task (LogisticRegression baseline expected around 0.65 to 0.80), does
+  the choice of quantum encoding (angle, amplitude, ZZ) measurably change
+  variational classifier accuracy, and does at least one quantum encoding
+  approach the better classical baseline?*
+
+hypotheses:
+  - id: H1
+    statement: "The best of the three quantum encodings (5-seed mean) achieves test_accuracy within 5 absolute percentage points of the BETTER of the two classical baselines (logistic_regression and mlp_classifier, 5-seed means) on synthetic_classification_6d."
+    measurable: true
+  - id: H2
+    statement: "The spread of test_accuracy across the three quantum encodings (max minus min of the 5-seed means) is at least 5 absolute percentage points, demonstrating that encoding choice produces a measurable effect rather than a wash."
+    measurable: true
+  - id: H3
+    statement: "zz_feature_map test_accuracy (5-seed mean) is at least as high as angle_encoding test_accuracy (within 2 absolute percentage points or higher), consistent with the conjecture that entanglement-rich input encoding does not hurt and may help on this task."
+    measurable: true
+
+experiment_design:
+  research_question: "On a moderately difficult 6D binary classification task, does the choice of quantum data encoding (angle, amplitude, ZZ feature map) measurably change variational classifier accuracy, and does at least one encoding approach the classical baseline?"
+  conditions:
+    - name: "angle_encoding"
+      description: "qiskit.circuit.library.ZFeatureMap(feature_dimension=6, reps=1) as the data encoding circuit. Each feature x_i is loaded as H followed by RZ(x_i) on qubit i. No entangling gates in the feature map."
+    - name: "amplitude_encoding"
+      description: "qiskit.circuit.library.StatePreparation on the L2-normalized, zero-padded input vector (length 64 = 2**6) as the data encoding circuit. Implementation: x_normalized = x / ||x||; x_padded = np.concatenate([x_normalized, np.zeros(64 - 6)]); StatePreparation(x_padded). The padded state is unit norm by construction."
+    - name: "zz_feature_map"
+      description: "qiskit.circuit.library.ZZFeatureMap(feature_dimension=6, reps=2, entanglement='linear') as the data encoding circuit. Two repetitions of H + RZ(x_i) on each qubit + RZZ(x_i * x_j) on linear nearest-neighbor pairs."
+  baselines:
+    - "logistic_regression: sklearn.linear_model.LogisticRegression(max_iter=1000) on the same 6D features."
+    - "mlp_classifier: sklearn.neural_network.MLPClassifier(hidden_layer_sizes=(16,), activation='relu', solver='adam', max_iter=500, random_state=seed) on the same 6D features."
+    - "Both baselines reported per seed; both contribute to the H1 comparison (the BETTER of the two is the reference). Neither contributes to the primary quantum_test_accuracy_mean metric."
+  metrics:
+    - name: "quantum_test_accuracy_mean"
+      direction: "maximize"
+      description: "Primary metric. Mean of the 5-seed test_accuracy means across the THREE quantum encodings ONLY. The classical baseline is reported separately and does NOT contribute to this metric. This isolates the refinement signal from the baseline."
+    - name: "test_accuracy"
+      direction: "maximize"
+      description: "Per-condition mean accuracy on the 20% held-out test split, averaged over 5 random seeds. Reported per condition (angle, amplitude, zz_feature_map, logistic_regression)."
+    - name: "best_baseline_accuracy"
+      direction: "maximize"
+      description: "max(logistic_regression_5seed_mean, mlp_classifier_5seed_mean). Used as the reference point in H1 (the stronger of the two classical baselines)."
+  datasets:
+    - name: "synthetic_classification_6d"
+      source: "sklearn.datasets.make_classification"
+      description: "make_classification(n_samples=400, n_features=6, n_informative=4, n_redundant=1, n_repeated=0, n_clusters_per_class=2, class_sep=0.4, flip_y=0.05, random_state=seed). class_sep is set to 0.4 (not 1.0) so the LogisticRegression baseline lands around 0.65-0.80 instead of saturating near 1.0, leaving headroom for the quantum encodings to differ. Apply StandardScaler fit on the train split only. 80/20 train/test split."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1800
+
+rubric_path: "experiments/arc_bench/config/quantum/rubrics/Q01.json"

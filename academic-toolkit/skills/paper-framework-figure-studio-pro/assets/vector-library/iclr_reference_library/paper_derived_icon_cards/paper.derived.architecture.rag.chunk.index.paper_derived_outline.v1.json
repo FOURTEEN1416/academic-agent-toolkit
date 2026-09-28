@@ -1,0 +1,374 @@
+{
+  "concept_id": "paper.derived.architecture.rag.chunk.index",
+  "icon_id": "paper.derived.architecture.rag.chunk.index.paper_derived_outline.v1",
+  "primary_meaning": "Paper-derived chunk-index retrieval",
+  "aliases": [
+    "chunk index",
+    "document chunks"
+  ],
+  "negative_aliases": [
+    "paper-specific module name",
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim",
+    "literal reproduction of source figure"
+  ],
+  "shape_family_id": "paper.derived.chunk_index",
+  "style_variant": "paper_derived_refined_outline",
+  "domain_tags": [
+    "paper_derived",
+    "framework_figure_motif",
+    "AI",
+    "CS",
+    "paper_figure",
+    "architecture",
+    "rag",
+    "chunk"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot",
+    "visual_layout_reuse"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support",
+    "literal reproduction of source paper figure"
+  ],
+  "source_lineage": {
+    "import_mode": "paper_figure_motif_abstraction",
+    "source": "paper_framework_figure_motif_extraction",
+    "source_path": "final_reference_figure_library.jsonl",
+    "source_figure_count": 10,
+    "source_figures": [
+      {
+        "reference_case_id": "iclr2025/a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models/fig-0005",
+        "paper_title": "A Probabilistic Perspective on Unlearning and Alignment for Large Language Models",
+        "field": "NLP",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/NLP/a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models/figures/pdf_framework_page_011.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models/figures/pdf_framework_page_011.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models:fig-0005",
+          "includegraphics": "iclr2025_collection/papers/NLP/a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models/figures/pdf_framework_page_011.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/chartmoe-mixture-of-diversely-aligned-expert-connector-for-chart-understanding/fig-0001",
+        "paper_title": "ChartMoE: Mixture of Diversely Aligned Expert Connector for Chart Understanding",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/chartmoe-mixture-of-diversely-aligned-expert-connector-for-chart-understanding/figures/framework_01_teaser.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/chartmoe-mixture-of-diversely-aligned-expert-connector-for-chart-understanding/sources/arxiv_src/Fig/texs/teaser.tex",
+          "line": 7,
+          "label": "fig_teaser",
+          "includegraphics": "Fig/figs/teaser/teaser.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/flat-reward-in-policy-parameter-space-implies-robust-reinforcement-learning/fig-0003",
+        "paper_title": "Flat Reward in Policy Parameter Space Implies Robust Reinforcement Learning",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "train_infer_split",
+        "source_path": "iclr2025_collection/papers/NLP/flat-reward-in-policy-parameter-space-implies-robust-reinforcement-learning/figures/pdf_framework_page_003.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/flat-reward-in-policy-parameter-space-implies-robust-reinforcement-learning/figures/pdf_framework_page_003.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:flat-reward-in-policy-parameter-space-implies-robust-reinforcement-learning:fig-0003",
+          "includegraphics": "iclr2025_collection/papers/NLP/flat-reward-in-policy-parameter-space-implies-robust-reinforcement-learning/figures/pdf_framework_page_003.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/flat-reward-in-policy-parameter-space-implies-robust-reinforcement-learning/fig-0005",
+        "paper_title": "Flat Reward in Policy Parameter Space Implies Robust Reinforcement Learning",
+        "field": "NLP",
+        "figure_subtype": "method_architecture",
+        "layout_grammar": "left_to_right_modular_pipeline",
+        "topology": "pipeline_or_modular_system",
+        "source_path": "iclr2025_collection/papers/NLP/flat-reward-in-policy-parameter-space-implies-robust-reinforcement-learning/figures/pdf_framework_page_007.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/flat-reward-in-policy-parameter-space-implies-robust-reinforcement-learning/figures/pdf_framework_page_007.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:flat-reward-in-policy-parameter-space-implies-robust-reinforcement-learning:fig-0005",
+          "includegraphics": "iclr2025_collection/papers/NLP/flat-reward-in-policy-parameter-space-implies-robust-reinforcement-learning/figures/pdf_framework_page_007.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/spider-2-0-evaluating-language-models-on-real-world-enterprise-text-to-sql-workflows/fig-0008",
+        "paper_title": "Spider 2.0: Evaluating Language Models on Real-World Enterprise Text-to-SQL Workflows",
+        "field": "NLP",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/NLP/spider-2-0-evaluating-language-models-on-real-world-enterprise-text-to-sql-workflows/figures/framework_08_spider2-main.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/spider-2-0-evaluating-language-models-on-real-world-enterprise-text-to-sql-workflows/sources/arxiv_src/main_text/introduction.tex",
+          "line": 24,
+          "label": "fig:main",
+          "includegraphics": "figures/Spider2_main.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/synthetic-continued-pretraining/fig-0001",
+        "paper_title": "Synthetic continued pretraining",
+        "field": "RAG",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "train_infer_split",
+        "source_path": "iclr2025_collection/papers/RAG/synthetic-continued-pretraining/figures/framework_01_cartoon-figure1.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/RAG/synthetic-continued-pretraining/sources/arxiv_src/body.tex",
+          "line": 44,
+          "label": "fig:entigraph_cartoon",
+          "includegraphics": "figures/cartoon_figure1.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2026/common-corpus-the-largest-collection-of-ethical-data-for-llm-pre-training/fig-0001",
+        "paper_title": "Common Corpus: The Largest Collection of Ethical Data for LLM Pre-Training",
+        "field": "NLP",
+        "figure_subtype": "data_or_embedding_map",
+        "layout_grammar": "map_or_distribution_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2026_collection/papers/NLP/common-corpus-the-largest-collection-of-ethical-data-for-llm-pre-training/figures/framework_01_timeline.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2026_collection/papers/NLP/common-corpus-the-largest-collection-of-ethical-data-for-llm-pre-training/sources/arxiv_src/tex/overview_tab_and_fig.tex",
+          "line": 7,
+          "label": "fig:timeline",
+          "includegraphics": "figures/timeline.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2026/common-corpus-the-largest-collection-of-ethical-data-for-llm-pre-training/fig-0002",
+        "paper_title": "Common Corpus: The Largest Collection of Ethical Data for LLM Pre-Training",
+        "field": "NLP",
+        "figure_subtype": "data_or_embedding_map",
+        "layout_grammar": "map_or_distribution_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2026_collection/papers/NLP/common-corpus-the-largest-collection-of-ethical-data-for-llm-pre-training/figures/framework_02_t-sne-comparison.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2026_collection/papers/NLP/common-corpus-the-largest-collection-of-ethical-data-for-llm-pre-training/sources/arxiv_src/tex/overview_tab_and_fig.tex",
+          "line": 17,
+          "label": "fig:common_corpus_overview",
+          "includegraphics": "figures/t-SNE_comparison.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2026/deploying-models-to-non-participating-clients-in-federated-learning-without-fine-tuning-a/fig-0001",
+        "paper_title": "Deploying Models to Non-participating Clients in Federated Learning without Fine-tuning: A Hypernetwork-based Approach",
+        "field": "FL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "train_infer_split",
+        "source_path": "iclr2026_collection/papers/FL/deploying-models-to-non-participating-clients-in-federated-learning-without-fine-tuning-a/figures/framework_01_main-arch.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2026_collection/papers/FL/deploying-models-to-non-participating-clients-in-federated-learning-without-fine-tuning-a/sources/arxiv_src/anonymous-submission-latex-2026.tex",
+          "line": 315,
+          "label": "fig:main-arch",
+          "includegraphics": "figures/main-arch.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2026/exchangeability-of-gnn-representations-with-applications-to-graph-retrieval/fig-0005",
+        "paper_title": "Exchangeability of GNN Representations  with Applications to Graph Retrieval",
+        "field": "RAG",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2026_collection/papers/RAG/exchangeability-of-gnn-representations-with-applications-to-graph-retrieval/figures/pdf_framework_page_018.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2026_collection/papers/RAG/exchangeability-of-gnn-representations-with-applications-to-graph-retrieval/figures/pdf_framework_page_018.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2026:exchangeability-of-gnn-representations-with-applications-to-graph-retrieval:fig-0005",
+          "includegraphics": "iclr2026_collection/papers/RAG/exchangeability-of-gnn-representations-with-applications-to-graph-retrieval/figures/pdf_framework_page_018.png"
+        },
+        "match_score": 8
+      }
+    ],
+    "extraction_basis": [
+      "source-grounded final reference figure records",
+      "figure subtype/layout/topology tags",
+      "caption/source-anchor keyword evidence",
+      "borrowable visual design patterns"
+    ],
+    "abstraction_level": "non_literal_semantic_visual_motif",
+    "imported_at": "2026-05-24T08:42:51.771Z",
+    "modified": true,
+    "modification": "Created as a simplified vector motif from repeated downloaded-paper framework figure patterns; source-paper text, labels, claims, datasets, metrics, and exact visual composition are intentionally not copied.",
+    "refinement": {
+      "status": "refined_semantic_vector_redraw",
+      "semantic_kind": "rag",
+      "workflow": [
+        "contact_sheet_with_padding",
+        "imagegen_prompt_manifest_for_style_exploration",
+        "semantic_cut_slot",
+        "programmatic_svg_redraw",
+        "index_update"
+      ],
+      "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+      "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+      "generated_at": "2026-05-24T09:34:49.667Z"
+    }
+  },
+  "license": {
+    "name": "Paper-derived framework figure motif abstraction",
+    "license": "source-paper-visual-motif-abstraction",
+    "usage_terms": "Internal reusable visual/layout motif. Use for generic figure icon language only; do not treat as source-paper evidence or copy source-paper facts."
+  },
+  "files": {
+    "raw_svg": "icons/raw/paper.derived.architecture.rag.chunk.index.paper_derived_outline.v1.svg",
+    "tight_svg": "icons/tight/paper.derived.architecture.rag.chunk.index.paper_derived_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/paper.derived.architecture.rag.chunk.index.paper_derived_outline.v1.ppt_safe.svg",
+    "semantic_cut_svg": "paper_derived_icon_refinement/cut_svg/paper.derived.architecture.rag.chunk.index.paper_derived_outline.v1.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": -2.775,
+    "minY": -2.775,
+    "width": 25.55,
+    "height": 21.55,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": -0.083,
+      "top": -0.083,
+      "right": 0.083,
+      "bottom": 0.25
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "refined_from_semantic_contact_sheet": true,
+    "editable_shape_primitives": true,
+    "sha1": "003c37bcf645d7415670029cf932ab5b0f416381"
+  },
+  "transfer_contract": {
+    "allowed": [
+      "generic visual icon language",
+      "layout/motif inspiration",
+      "PPT editable stencil use"
+    ],
+    "disallowed": [
+      "source-paper facts",
+      "paper-specific labels",
+      "metrics",
+      "datasets",
+      "claims",
+      "literal source-figure reproduction"
+    ]
+  },
+  "refinement": {
+    "status": "refined_semantic_vector_redraw",
+    "semantic_kind": "rag",
+    "workflow": [
+      "contact_sheet_with_padding",
+      "imagegen_prompt_manifest_for_style_exploration",
+      "semantic_cut_slot",
+      "programmatic_svg_redraw",
+      "index_update"
+    ],
+    "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+    "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+    "generated_at": "2026-05-24T09:34:49.667Z"
+  }
+}

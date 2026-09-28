@@ -1,0 +1,112 @@
+# ============================================================================
+# Q04 — Data re-uploading depth vs Fourier expressivity for variational regression
+# ----------------------------------------------------------------------------
+# Open research question. Holding qubit count (2), ansatz family (single-qubit
+# re-uploading), optimizer (Adam), and dataset preprocessing fixed, vary the
+# re-uploading depth L and measure (a) regression accuracy on synthetic 1D
+# targets with known bandwidth, (b) the recovered Fourier spectrum overlap
+# with the target spectrum.
+# ============================================================================
+
+id: Q04
+title: "Data re-uploading depth vs Fourier expressivity for variational quantum regression"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+synthesis: |
+  Data re-uploading is a variational quantum circuit pattern in which the
+  classical input x is loaded into the same qubits multiple times,
+  interleaved with trainable rotation layers: the circuit
+  W(theta_L) U(x) W(theta_{L-1}) U(x) ... W(theta_1) U(x) |0> applies L
+  encoding blocks U(x) and L trainable blocks W(theta). Perez-Salinas et al.
+  proved in 2020 that a single qubit with sufficient re-uploading depth is
+  a universal function approximator on bounded intervals. Schuld, Sweke,
+  and Meyer (PRA 2021) then proved the structural reason: a re-uploading
+  circuit's output function is a truncated Fourier series in the input x,
+  with the set of representable frequencies determined by the eigenvalue
+  spectrum of the encoding generators and growing with L.
+
+  The practical question that follows is whether the theoretical
+  expressivity claim translates into empirical fit quality. As L grows we
+  expect (i) more representable frequencies (better fit on high-bandwidth
+  targets), and (ii) more parameters and more risk of overfitting on
+  finite-sample regression with discontinuous targets. Classical kernel
+  regression (RBF) and polynomial regression provide the natural baselines
+  because they too can be interpreted as choosing a basis of functions
+  (Gaussian or polynomial) of fixed expressivity; comparing quantum
+  re-uploading against these classical baselines is the cleanest way to
+  ask "does the Fourier structure imposed by re-uploading give a useful
+  inductive bias on these targets, or do classical models with comparable
+  capacity match it?"
+
+  Implementation guidance is provided by the quantum-qiskit skill, which
+  is automatically injected at stage 10 and contains canonical code for
+  building re-uploading circuits using qiskit.circuit.ParameterVector and
+  rotation gates. Training uses Adam through parameter-shift gradients
+  (do NOT roll your own gradient finite-difference loop). The simulator
+  is fixed to AerSimulator(method='statevector') for noiseless evaluation
+  so the Fourier-spectrum probe is clean.
+
+  Experimental protocol. Four quantum re-uploading depths (L=1, L=3, L=5,
+  L=7) are compared against two classical baselines (RBF kernel ridge
+  regression with bandwidth chosen by cross-validation; polynomial
+  regression of degree 7). All six conditions are evaluated on two 1D
+  regression targets: a sum-of-sinusoids signal with known frequency
+  content, and a step function (tests handling of discontinuities).
+  Each (condition, dataset) cell is averaged over 2 random seeds, giving
+  6 conditions x 2 datasets x 2 seeds = 24 total cells.
+
+  Research question: *On 1D regression with known target bandwidth, does
+  increasing data re-uploading depth L produce monotonically lower test
+  MSE on bandwidth-rich targets (sinusoid mixture), and does the
+  recovered Fourier spectrum overlap with the target spectrum scale
+  predictably with L?*
+
+hypotheses:
+  - id: H1
+    statement: "On the sinusoid-mixture target, the L=5 re-uploading model achieves test MSE at least 4 times lower than the L=1 re-uploading model (2-seed mean), demonstrating that increasing re-uploading depth improves regression accuracy on bandwidth-rich targets."
+    measurable: true
+  - id: H2
+    statement: "On the step-function target, the L=7 re-uploading model exhibits overfitting compared to L=5: L=7 test MSE is at least 15 percent higher than L=5 test MSE (2-seed mean), even though L=7 has more parameters and lower training MSE."
+    measurable: true
+  - id: H3
+    statement: "At L=7 on the sinusoid-mixture target, the recovered Fourier spectrum (FFT of the trained circuit's output sampled on a uniform 256-point grid) has cosine similarity at least 0.7 with the target Fourier spectrum, restricted to the lowest 5 nonzero frequencies."
+    measurable: true
+
+experiment_design:
+  research_question: "On 1D regression with known target bandwidth, does increasing data re-uploading depth L produce monotonically lower test MSE on bandwidth-rich targets, and does the recovered Fourier spectrum overlap with the target spectrum scale predictably with L?"
+  conditions:
+    - name: "reuploading_L1"
+      description: "Single-qubit re-uploading circuit with L=1 encoding block. Encoding: U(x) = RZ(x). Trainable block: W(theta) = RY(theta_0) RZ(theta_1). Output: <Z>. 2 trainable parameters total."
+    - name: "reuploading_L3"
+      description: "Same single-qubit re-uploading template with L=3 encoding blocks. 6 trainable parameters."
+    - name: "reuploading_L5"
+      description: "Same template with L=5 encoding blocks. 10 trainable parameters."
+    - name: "reuploading_L7"
+      description: "Same template with L=7 encoding blocks. 14 trainable parameters."
+  baselines:
+    - "rbf_kernel_ridge: sklearn.kernel_ridge.KernelRidge(kernel='rbf', alpha=1e-3, gamma=tuned_via_grid_search). Strong nonparametric regression baseline."
+    - "polynomial_regression: sklearn.pipeline.make_pipeline(PolynomialFeatures(degree=7), Ridge(alpha=1e-3)). Matched-capacity polynomial basis baseline."
+  metrics:
+    - name: "test_mse"
+      direction: "minimize"
+      description: "Mean squared error on a 200-point held-out test set, averaged over 2 random seeds per (condition, dataset) cell. Primary metric."
+    - name: "train_mse"
+      direction: "minimize"
+      description: "Mean squared error on the 200-point training set after training completes."
+    - name: "fourier_spectrum_cosine"
+      direction: "maximize"
+      description: "Cosine similarity between the FFT of the trained model's output sampled on a uniform 256-point grid over [0, 1] and the FFT of the target function on the same grid, restricted to the lowest 5 nonzero frequency bins. Higher means the model has learned the target's Fourier content."
+  datasets:
+    - name: "sinusoid_mixture_1d"
+      source: "Synthetic generator"
+      description: "Target function f(x) = sum_k a_k * sin(2*pi*k*x) for k in {1, 2, 3, 5, 7} with random amplitudes a_k drawn from Uniform[0.5, 1.0] using a fixed dataset-generation seed (independent of per-cell training seeds). 200 training x-values + 200 test x-values uniformly sampled on [0, 1]. Targets are observed with Gaussian noise N(0, 0.05)."
+    - name: "step_function_1d"
+      source: "Synthetic generator"
+      description: "Target function f(x) = 1.0 if x > 0.5 else 0.0, plus Gaussian noise N(0, 0.05). Tests how the re-uploading model handles a discontinuity (its Fourier series will exhibit Gibbs ringing). 200 training + 200 test samples."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 900
+
+rubric_path: "experiments/arc_bench/config/quantum/rubrics/Q04.json"

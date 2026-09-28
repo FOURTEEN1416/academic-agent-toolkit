@@ -1,0 +1,32 @@
+# ============================================================================
+# ARC-Bench Statistics — CPU-friendly statistical-methodology research topics
+# ----------------------------------------------------------------------------
+# S01+ are open research QUESTIONS (not paper reproductions): the agent designs
+# and runs a competent simulation study addressing the stated question. Each
+# topic stays CPU-executable in minutes with numpy / scipy / pandas / sklearn /
+# statsmodels / matplotlib.
+#
+# Manifests live in   config/statistics/manifests/SNN.yaml
+# Rubrics  live in    config/statistics/rubrics/SNN.json
+#
+# All statistics topics use `metric_key: primary_metric`, matching the
+# biology / physics registries — the manifest's experiment_design.metrics list
+# carries the real per-topic observables (coverage, bias, selection accuracy).
+# ============================================================================
+
+topics:
+  - id: S01
+    topic: "Bootstrap confidence interval coverage under light-tailed, skewed, and heavy-tailed data"
+    domains: ["statistics", "resampling-methods", "simulation-study"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+  - id: S02
+    topic: "Double machine learning for average treatment effect estimation under nonlinear confounding"
+    domains: ["statistics", "causal-inference", "semiparametric-estimation"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+  - id: S03
+    topic: "Reliability of LLM-assisted statistical model selection under assumption violations"
+    domains: ["statistics", "model-selection", "llm-evaluation"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"

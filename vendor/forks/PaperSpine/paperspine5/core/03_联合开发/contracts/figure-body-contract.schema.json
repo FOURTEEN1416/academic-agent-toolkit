@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/figure-body-contract.schema.json",
+  "title": "PaperFigure to PaperSpine body integration contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "contract_type", "status", "job_id", "paper_id", "authority", "figures", "artifacts"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "contract_type": {"const": "paperspine.figure.body"},
+    "status": {"const": "PASS"},
+    "job_id": {"type": "string", "minLength": 1},
+    "paper_id": {"type": "string", "minLength": 1},
+    "authority": {"type": "object"},
+    "figures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["figure_id", "figure_kind", "figure_role", "label", "caption", "scientific_question", "claim", "intended_conclusion", "claim_boundary", "results_units", "hero_panel", "panels", "publication_asset", "editable_source", "latex", "prose_contract"],
+        "properties": {
+          "figure_id": {"type": "string", "minLength": 1},
+          "figure_kind": {"enum": ["data", "schematic"]},
+          "figure_role": {"type": "string", "minLength": 1},
+          "label": {"type": "string", "pattern": "^fig:"},
+          "caption": {"type": "string", "minLength": 4},
+          "scientific_question": {"type": "string", "minLength": 8},
+          "claim": {"type": "string", "minLength": 12},
+          "intended_conclusion": {"type": "string", "minLength": 12},
+          "claim_boundary": {"type": "string", "minLength": 8},
+          "results_units": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "hero_panel": {"type": "string", "minLength": 1},
+          "panels": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+          "publication_asset": {
+            "type": "object",
+            "required": ["path", "format", "sha256", "candidate_id"],
+            "properties": {
+              "path": {"type": "string", "minLength": 1},
+              "format": {"enum": ["pdf", "svg", "png"]},
+              "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+              "candidate_id": {"enum": ["A", "B", "C"]}
+            },
+            "additionalProperties": false
+          },
+          "editable_source": {
+            "oneOf": [
+              {"type": "null"},
+              {
+                "type": "object",
+                "required": ["path", "format", "sha256"],
+                "properties": {
+                  "path": {"type": "string", "minLength": 1},
+                  "format": {"enum": ["svg", "pptx"]},
+                  "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+                },
+                "additionalProperties": false
+              }
+            ]
+          },
+          "latex": {
+            "type": "object",
+            "required": ["insertion_marker", "reference", "display_reference", "includes_file"],
+            "additionalProperties": false
+          },
+          "prose_contract": {
+            "type": "object",
+            "required": ["results_units", "allowed_claim", "intended_conclusion", "claim_boundary", "hero_panel", "evidence_anchors"],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "artifacts": {"type": "object"}
+  }
+}

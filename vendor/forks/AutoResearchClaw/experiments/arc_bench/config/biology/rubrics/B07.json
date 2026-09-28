@@ -1,0 +1,166 @@
+{
+  "id": "B07",
+  "requirements": "A reproducible FBA-method benchmark on E. coli that compares standard FBA, pFBA, loopless FBA when available, and FVA near optimum using consistent medium, metrics, runtime logging, and interpretable figures.",
+  "judging_note": "This is a protocol-quality task. Reward robust implementation, structured outputs, and careful handling of unavailable loopless solvers over biological novelty.",
+  "weight": 1,
+  "sub_tasks": [
+    {
+      "id": "b07-code",
+      "requirements": "The code implements method comparison with consistent model state and metrics.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b07-code-model",
+          "requirements": "Loads E. coli BIGG model, sets medium and biomass objective, and validates reference FBA.",
+          "weight": 7,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "b07-code-methods",
+          "requirements": "Runs standard FBA, pFBA, and loopless FBA or records a justified loopless-unavailable status.",
+          "weight": 7,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "b07-code-fva",
+          "requirements": "Runs FVA at a documented fraction of optimum and computes interval widths and rigid/flexible labels.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "b07-code-metrics",
+          "requirements": "Computes total absolute flux, active reaction count, objective value, solver status, and runtime for each method.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b07-exec",
+      "requirements": "Execution produces complete benchmark artifacts and handles optional method failures explicitly.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b07-exec-status",
+          "requirements": "Standard FBA and pFBA solve optimally; loopless and FVA either solve or have explicit, non-crashing failure records.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b07-exec-physics",
+          "requirements": "Mass-balance check passes for the loaded model under the benchmark medium; FBA, pFBA, and loopless FBA all return non-negative biomass fluxes; no negative flux norms or ill-conditioned solver status appear without explicit logging. This is the biology-validity gate equivalent to physics-validity checks in the physics rubric.",
+          "weight": 7.0,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b07-exec-artifacts",
+          "requirements": "Writes results.json, method comparison table, FVA table, and method flux tables.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b07-results",
+      "requirements": "Results compare objective preservation, parsimony, and reaction variability.",
+      "weight": 3,
+      "sub_tasks": [
+        {
+          "id": "b07-result-h1",
+          "requirements": "Reports objective differences among methods and checks agreement within solver tolerance where methods succeed. Score 100% if FBA and pFBA biomass objectives agree within 1% relative error and any available loopless FBA also agrees within 1%; 67% if FBA and pFBA agree but loopless comparison is missing or failed with explicit explanation; 33% if only qualitative agreement is stated; 0% otherwise.",
+          "weight": 9,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b07-result-h2",
+          "requirements": "Quantifies pFBA parsimony using total flux norm and active reaction count compared with standard FBA. Score 100% if pFBA total absolute flux norm is numerically lower than FBA AND active reaction count is lower under pFBA; 67% if flux norm is lower but active reaction count is not compared; 33% if pFBA parsimony is stated qualitatively without numeric comparison; 0% otherwise.",
+          "weight": 10,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b07-result-h3",
+          "requirements": "Summarizes FVA width distribution and names central-carbon reactions that are rigid or flexible near optimum. Score 100% if FVA interval widths are reported for all model reactions and ≥5 central-carbon reactions are classified as rigid (interval width < 1 mmol/gDW/h) with subsystem identification; 67% if rigid/flexible classification is reported without central-carbon specifics; 33% if FVA results are reported without classification; 0% otherwise.",
+          "weight": 10,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b07-result-figure",
+          "requirements": "Produces labelled method-comparison and/or FVA-width figures with units and clear legends.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b07-result-writeup",
+          "requirements": "The README or results writeup discusses each hypothesis outcome, summarises the method-level comparison (parsimony, variability, runtime), and gives a one-paragraph protocol recommendation stating which method is most suitable for reproducible phenotype prediction and why.",
+          "weight": 6.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b07-repro",
+      "requirements": "The benchmark is reproducible with pinned model, medium, tolerance, solver, and code path.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b07-repro-model",
+          "requirements": "The loaded E. coli GSMM is either persisted (models/<model_id>.json) or pinned by BIGG model ID and source URL in the writeup; a downstream user can locate the exact model object and reproduce the benchmark medium.",
+          "weight": 5.0,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        },
+        {
+          "id": "b07-repro-config",
+          "requirements": "Saves model ID, objective, medium bounds, FVA fraction, active-flux tolerance, and method list.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        },
+        {
+          "id": "b07-repro-version",
+          "requirements": "Records COBRApy, optlang, solver backend/version, and runtime environment.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    }
+  ],
+  "task_category": null,
+  "finegrained_task_category": null
+}

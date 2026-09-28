@@ -1,0 +1,39 @@
+{
+  "case_id": "healthy-managed",
+  "now": "2026-03-11T14:00:00Z",
+  "live_processes": [
+    {
+      "pid": 41001,
+      "parent_pid": 41000,
+      "process_name": "node",
+      "command_line": "node dev-server.js",
+      "working_set_bytes": 104857600,
+      "working_set_mb": 100.0
+    }
+  ],
+  "ledger": {
+    "entries": [
+      {
+        "entry_id": "vgo-node-healthy-41001",
+        "label": "healthy-dev-server",
+        "owner_id": "fixture@test",
+        "pid": 41001,
+        "launcher_pid": 41000,
+        "working_directory": "D:/fixture/project",
+        "command_line": "node dev-server.js",
+        "status": "running",
+        "started_at": "2026-03-11T13:58:30Z",
+        "closed_at": null,
+        "last_heartbeat_at": "2026-03-11T13:59:56Z",
+        "last_seen_alive_at": "2026-03-11T13:59:56Z",
+        "heartbeat_path": "outputs/runtime/process-health/heartbeats/vgo-node-healthy-41001.json",
+        "ownership": "vco-managed",
+        "cleanup_safe": true,
+        "stale_after_sec": 120,
+        "heartbeat_interval_sec": 10,
+        "node_pid_confirmed": true,
+        "target_process_name": "node"
+      }
+    ]
+  }
+}

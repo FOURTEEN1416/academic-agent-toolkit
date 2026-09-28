@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.1",
+  "product": "PaperSpine5",
+  "version": "0.3.0-rc.1",
+  "channel": "prerelease",
+  "build_id": "paperspine5-0.3.0-rc.1-build.20260823.1",
+  "release_state": "published",
+  "published": true,
+  "repository": "https://github.com/WUBING2023/PaperSpine",
+  "tag": "v0.3.0-rc.1",
+  "release_url": "https://github.com/WUBING2023/PaperSpine/releases/tag/v0.3.0-rc.1",
+  "license": "MIT",
+  "core": {
+    "files": 176,
+    "sha256": "9eed412bf2a40b1e00787cd04de2adf696a662055ea31152ebc8f2899e2ba95f"
+  },
+  "accepted_scope": {
+    "paper_spine_tests": 267,
+    "paper_figure_tests": 60,
+    "integration_tests": 19,
+    "ui_stages": 5,
+    "publication_cycle": "1.0",
+    "state_schema": "1.2",
+    "workflow_schema": "1.1",
+    "updates": "manual + explicit opt-in launch preflight; default disabled",
+    "excluded": [
+      "Open Release Beta / 276-test branch"
+    ]
+  },
+  "release_assets": {
+    "manifest_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/manifest.json",
+    "checksums_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/checksums.sha256",
+    "inventory_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/FILE-INVENTORY.json",
+    "core_consistency_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/CORE-CONSISTENCY.json",
+    "validation_report_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/BUILD-VALIDATION-REPORT.md"
+  },
+  "artifacts": [
+    {
+      "kind": "universal-skill",
+      "file": "paperspine5-skill-0.3.0-rc.1.zip",
+      "bytes": 577038,
+      "sha256": "04cf4eefcf467054ab0c6da38bb5fc4cc264c8132efc8d4ccc23c03d0c44766d",
+      "download_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/paperspine5-skill-0.3.0-rc.1.zip",
+      "install_command": "powershell -ExecutionPolicy Bypass -File .\\install.ps1 -Target codex"
+    },
+    {
+      "kind": "codex-plugin",
+      "file": "paperspine5-codex-plugin-0.3.0-rc.1.zip",
+      "bytes": 589272,
+      "sha256": "a5c0553ace8c96e547e2d2e4ec1063c74bab06d78528b8b2db26eeb064875f87",
+      "download_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/paperspine5-codex-plugin-0.3.0-rc.1.zip",
+      "install_command": "codex plugin marketplace add <extracted-marketplace> && codex plugin add paperspine5@paperspine5-release"
+    },
+    {
+      "kind": "claude-code-plugin",
+      "file": "paperspine5-claude-code-plugin-0.3.0-rc.1.zip",
+      "bytes": 591636,
+      "sha256": "ae181ce48e0168b9d3492dd0af3695ab00dad5a002cc8a7dcbe246c857424e29",
+      "download_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/paperspine5-claude-code-plugin-0.3.0-rc.1.zip",
+      "install_command": "claude plugin marketplace add <extracted-marketplace> && claude plugin install paperspine5@paperspine5-release"
+    },
+    {
+      "kind": "dsh-plugin",
+      "file": "dsh-paperspine5-0.3.0-rc.1.zip",
+      "bytes": 577009,
+      "sha256": "57495524d0f81f1b0ea24828e53546ce306a8733e96450528d064921c18c7655",
+      "download_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/dsh-paperspine5-0.3.0-rc.1.zip",
+      "install_command": "powershell -ExecutionPolicy Bypass -File .\\install.ps1 -Profile web"
+    }
+  ],
+  "validation": {
+    "status": "PASS",
+    "checks": 43,
+    "failed": []
+  },
+  "limitations": [
+    "No independent cryptographic signature.",
+    "No second clean-machine validation.",
+    "No macOS or Linux host run for this release candidate.",
+    "No real remote old-version to new-version update and reload validation.",
+    "External paper submission is never authorized by this release."
+  ]
+}

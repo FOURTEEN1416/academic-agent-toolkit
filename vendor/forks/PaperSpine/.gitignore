@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Local and generated manuscript outputs
+paper_rewriting_output/
+tmp_*_artifacts/
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.synctex.gz
+*.toc
+
+# Claude Code local config
+.claude/settings.json
+
+# Auto-generated project files
+AGENTS.md
+TEST_REPORT.md
+
+# Design docs (not for distribution)
+docs/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# User/private manuscripts and large generated exports
+*.docx
+*.pptx
+*.xlsx
+*.pdf
+!tests/fixtures/*.pdf
+paper-spine-promo-video/
+
+# PaperSpine5 release assets are uploaded to GitHub Releases, never committed.
+release-assets/*.zip
+build/
+
+# Reproducible acceptance sample (regenerate via examples/v4_acceptance.py)
+examples/v4_sample_run/

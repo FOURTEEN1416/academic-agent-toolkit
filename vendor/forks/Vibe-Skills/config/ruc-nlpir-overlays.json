@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "top_k": 3,
+  "max_select": 1,
+  "defaults": {
+    "stage": "any",
+    "include_overlay_body_in_menu": false,
+    "overlay_body_max_chars": 1200
+  },
+  "stage_fallbacks": {
+    "think": ["ruc-flashrag-evidence", "ruc-webthinker-deep-research"],
+    "do": ["ruc-flashrag-evidence"],
+    "review": ["ruc-flashrag-evidence"],
+    "research": ["ruc-webthinker-deep-research"],
+    "team": [],
+    "retro": [],
+    "any": []
+  },
+  "overlays": [
+    {
+      "id": "ruc-flashrag-evidence",
+      "name": "FlashRAG 证据平面（本地可引用片段检索）",
+      "description": "把 VCO/vibe 的协议/配置/技能说明当作语料，快速检索“可引用”的本地证据（path:line + snippet），减少拍脑袋与重复翻文件。",
+      "overlay_path": "references/overlays/ruc-nlpir/flashrag-evidence.md",
+      "preferred_stages": ["think", "do", "review", "any"],
+      "keywords": [
+        "flashrag",
+        "evidence plane",
+        "local evidence",
+        "repo evidence",
+        "repo config evidence",
+        "route rule evidence",
+        "where is this defined",
+        "path and line",
+        "file and line",
+        "skill.md",
+        "本地证据",
+        "仓库依据",
+        "配置依据",
+        "路由规则在哪里",
+        "文件和行号",
+        "出处"
+      ],
+      "upstream_refs": ["https://github.com/RUC-NLPIR/FlashRAG"]
+    },
+    {
+      "id": "ruc-webthinker-deep-research",
+      "name": "WebThinker 深度调研（可审计 trace + 报告）",
+      "description": "当需要多跳网页探索与调研报告时，用“search→browse→extract→draft”流程输出 report.md + sources.json + trace.jsonl，保证可复核。",
+      "overlay_path": "references/overlays/ruc-nlpir/webthinker-deep-research.md",
+      "preferred_stages": ["think", "research", "any"],
+      "keywords": [
+        "webthinker",
+        "deep research",
+        "deep research report",
+        "multi-hop",
+        "multi-hop browse",
+        "trace.jsonl",
+        "sources.json",
+        "web source chain",
+        "auditable web research",
+        "深度调研",
+        "多跳浏览",
+        "网页证据链",
+        "保留 trace",
+        "可审计调研"
+      ],
+      "upstream_refs": ["https://github.com/RUC-NLPIR/WebThinker"]
+    }
+  ]
+}

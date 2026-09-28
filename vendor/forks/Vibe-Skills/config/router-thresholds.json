@@ -1,0 +1,10 @@
+﻿{
+    "version":  1,
+    "updated":  "2026-07-11",
+    "thresholds":  {
+                       "candidate_focus":  0.45,
+                       "min_top1_top2_gap":  0.06,
+                       "min_candidate_signal_for_near_match":  0.2,
+                       "min_candidate_signal_for_focus":  0.6
+                   }
+}

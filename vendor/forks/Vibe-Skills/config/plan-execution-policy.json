@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-17",
+  "enabled": true,
+  "artifact_sink": "config/live-document-contract.json",
+  "plan_root": ".vibeskills/runs",
+  "template_path": "templates/plans/governed-execution-plan-template.md",
+  "filename_contract": "{run_id}/plan.md",
+  "execution_grade_policy": {
+    "user_selects_grade": false,
+    "allow_internal_grades": [
+      "M",
+      "L",
+      "XL"
+    ]
+  },
+  "required_plan_sections": [
+    "Execution Summary",
+    "Frozen Inputs",
+    "Anti-Proxy-Goal-Drift Controls",
+    "Internal Grade Decision",
+    "Wave Plan",
+    "Delivery Acceptance Plan",
+    "Completion Language Rules",
+    "Ownership Boundaries",
+    "Verification Commands",
+    "Rollback Plan",
+    "Phase Cleanup Contract"
+  ],
+  "subagent_rules": {
+    "require_vibe_suffix": true,
+    "suffix_text": "$vibe"
+  },
+  "anti_proxy_goal_drift_fields": [
+    "Primary Objective",
+    "Non-Objective Proxy Signals",
+    "Validation Material Role",
+    "Declared Tier",
+    "Intended Scope",
+    "Abstraction Layer Target",
+    "Completion State Target",
+    "Generalization Evidence Plan"
+  ]
+}

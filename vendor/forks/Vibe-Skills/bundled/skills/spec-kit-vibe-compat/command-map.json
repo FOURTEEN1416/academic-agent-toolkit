@@ -1,0 +1,11 @@
+﻿[
+  {"name":"constitution","slash_command":"/speckit.constitution","status":"direct-map","codex_flow":"/vibe governance setup","codex_skills":["vibe"],"notes":"Define project principles before specification."},
+  {"name":"specify","slash_command":"/speckit.specify","status":"direct-map","codex_flow":"/vibe requirement specification","codex_skills":["vibe"],"notes":"Create feature specification from natural language."},
+  {"name":"clarify","slash_command":"/speckit.clarify","status":"direct-map","codex_flow":"/vibe ambiguity clarification","codex_skills":["vibe"],"notes":"Resolve unclear requirements before planning."},
+  {"name":"plan","slash_command":"/speckit.plan","status":"direct-map","codex_flow":"/vibe design and plan","codex_skills":["vibe","planning-with-files"],"notes":"Create implementation plan from approved spec."},
+  {"name":"tasks","slash_command":"/speckit.tasks","status":"direct-map","codex_flow":"/vibe task decomposition","codex_skills":["vibe","planning-with-files"],"notes":"Generate actionable tasks from plan."},
+  {"name":"analyze","slash_command":"/speckit.analyze","status":"direct-map","codex_flow":"/vibe review and consistency analysis","codex_skills":["vibe","code-reviewer"],"notes":"Cross-check spec, plan and tasks consistency."},
+  {"name":"checklist","slash_command":"/speckit.checklist","status":"direct-map","codex_flow":"/vibe quality checklist","codex_skills":["vibe","verification-quality-assurance"],"notes":"Generate quality checklist and validate readiness."},
+  {"name":"implement","slash_command":"/speckit.implement","status":"direct-map","codex_flow":"/vibe implementation","codex_skills":["vibe","test-driven-development","subagent-driven-development"],"notes":"Execute implementation according to tasks."},
+  {"name":"taskstoissues","slash_command":"/speckit.taskstoissues","status":"partial-map","codex_flow":"/vibe issue conversion","codex_skills":["vibe","github"],"notes":"Convert tasks into issues; may require manual gh workflow details."}
+]

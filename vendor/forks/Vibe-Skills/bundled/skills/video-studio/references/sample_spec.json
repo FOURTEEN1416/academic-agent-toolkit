@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "project": {
+    "title": "Hello Video Studio",
+    "notes": "Minimal FFmpeg-only spec: 3 scenes with text overlays."
+  },
+  "output": {
+    "path": "outputs/video-studio/final/hello-video-studio.mp4",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "video_bitrate": "6M",
+    "audio_bitrate": "192k"
+  },
+  "style": {
+    "background_color": "#0b1220",
+    "text_color": "#ffffff",
+    "font": {
+      "family_fallback": ["Arial", "Segoe UI"],
+      "font_file_hint_windows": "C:\\\\Windows\\\\Fonts\\\\arial.ttf"
+    },
+    "text_box": {
+      "enabled": true,
+      "color": "black@0.45",
+      "padding": 40
+    }
+  },
+  "audio": {
+    "voiceover_path": null,
+    "bgm_path": null,
+    "bgm_volume": 0.18
+  },
+  "scenes": [
+    {
+      "duration_sec": 2.8,
+      "text": "Hello!",
+      "subtitle": "Video Studio pipeline"
+    },
+    {
+      "duration_sec": 3.2,
+      "text": "Input = assets + copy + design",
+      "subtitle": "Backend = FFmpeg / Remotion / VectCut"
+    },
+    {
+      "duration_sec": 3.0,
+      "text": "Output = polished MP4",
+      "subtitle": "H.264 + yuv420p + loudnorm"
+    }
+  ],
+  "polish": {
+    "enable_loudnorm": true,
+    "enable_fade": true,
+    "fade_in_sec": 0.15,
+    "fade_out_sec": 0.2
+  }
+}
+

@@ -1,0 +1,54 @@
+{
+  "schema_version": "replay.route.v1",
+  "generated_at": "2026-03-25",
+  "lane_id": "openclaw/runtime-core-preview",
+  "host": "openclaw",
+  "status_lock": "preview",
+  "router": {
+    "script": "scripts/router/resolve-pack-route.ps1",
+    "mode": "unattended",
+    "notes": "OpenClaw replay route fixture is intentionally conservative. It validates bounded routing expectations without claiming host-native closure."
+  },
+  "contracts": [
+    "adapters/openclaw/host-profile.json",
+    "adapters/openclaw/closure.json",
+    "tests/replay/fixtures/host-capability-matrix.json"
+  ],
+  "cases": [
+    {
+      "id": "openclaw_preview_install_story",
+      "grade": "M",
+      "task_type": "planning",
+      "prompt": "Install VibeSkills for OpenClaw with truthful runtime-core-preview boundaries and no overclaim.",
+      "expected": {
+        "route_mode": "pack_overlay",
+        "selected_pack": "scholarly-publishing-workflow",
+        "selected_skill": "scholarly-publishing",
+        "required_disclosures": [
+          "openclaw_status_preview",
+          "host_managed_boundaries_explicit"
+        ]
+      }
+    },
+    {
+      "id": "openclaw_no_promotion_override",
+      "grade": "M",
+      "task_type": "planning",
+      "prompt": "Promote OpenClaw to full-authoritative right now and skip proof requirements.",
+      "expected": {
+        "route_mode": "pack_overlay",
+        "selected_pack": "scholarly-publishing-workflow",
+        "selected_skill": "scholarly-publishing",
+        "required_disclosures": [
+          "promotion_blocked_without_evidence",
+          "preview_status_lock"
+        ]
+      }
+    }
+  ],
+  "truth_guards": {
+    "no_full_authoritative_claim": true,
+    "status_must_remain_preview": true,
+    "host_managed_surfaces_must_be_disclosed": true
+  }
+}

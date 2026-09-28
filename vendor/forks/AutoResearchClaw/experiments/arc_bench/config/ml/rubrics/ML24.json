@@ -1,0 +1,117 @@
+{
+    "id": "ml24-root",
+    "requirements": "A credible experiment studying online learners (SGD logistic, Passive-Aggressive, online Naive Bayes, FTRL-style logistic, or equivalents) under concept drift: streaming prequential setup is implemented, execution covers multiple datasets with multiple seeds, and results address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Well-motivated online-learner substitutes or drift-stream variants that test the same scientific question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml24-code",
+            "requirements": "Online-learning conditions and drifted streaming setup are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml24-code-methods",
+                    "requirements": "The submission implements multiple distinct online methods, each as a real incremental update path (e.g., partial_fit or equivalent), not batch retraining.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml24-code-streaming",
+                    "requirements": "A prequential test-then-train loop is implemented: each sample (or mini-batch) is predicted before being used for model update, with ordered stream processing.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "ml24-code-datasets",
+                    "requirements": "The submission uses multiple streams including at least one drifted stream and one no-drift or matched-control stream, generated from sklearn datasets or numpy synthesis.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml24-exec",
+            "requirements": "Execution reports prequential metrics for each condition.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml24-exec-metrics",
+                    "requirements": "Execution produces a metrics artifact containing numeric prequential accuracy (or equivalent) for each implemented method on at least one dataset.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml24-exec-recovery",
+                    "requirements": "Execution includes a post-drift recovery measure (e.g., fixed-window post-drift accuracy) with a documented computation referencing known drift points.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml24-exec-seeds",
+                    "requirements": "Each reported (dataset, method) metric is averaged over multiple random seeds, with a dispersion measure. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Hyperparameter Tuning"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml24-results",
+            "requirements": "Quantitative analysis addresses H1/H2/H3 directionally.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml24-result-h1",
+                    "requirements": "The submission compares prequential accuracy of margin-based online methods (Passive-Aggressive, FTRL) against online Naive Bayes across drifted datasets and conveys whether margin-based methods are meaningfully better \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml24-result-h2",
+                    "requirements": "The submission reports post-drift recovery comparisons and conveys whether Passive-Aggressive or FTRL tends to lead on most datasets (H2).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml24-result-h3",
+                    "requirements": "The submission compares drifted vs no-drift control performance for the implemented methods and conveys whether drift produces a meaningful accuracy degradation (H3).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml24-result-writeup",
+                    "requirements": "The README or writeup describes setup, key metrics, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations (stream realism, drift design choices, seed count, metric assumptions). No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

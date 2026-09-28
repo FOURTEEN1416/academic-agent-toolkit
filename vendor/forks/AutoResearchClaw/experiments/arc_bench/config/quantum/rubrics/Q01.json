@@ -1,0 +1,109 @@
+{
+    "id": "q01-root",
+    "requirements": "A minimal pilot study comparing three quantum data encoding strategies (angle, amplitude, ZZ feature map) for a variational quantum classifier on ONE moderately difficult 6D binary classification dataset (synthetic_classification_6d with class_sep=0.4). The agent must (a) implement all three encodings as drop-in feature maps for a shared 6-qubit EfficientSU2 ansatz, (b) train each (encoding, seed) cell using qiskit_machine_learning.algorithms.VQC + COBYLA over 5 random seeds, (c) report test accuracy per quantum cell and a classical logistic_regression baseline on the same data, and (d) produce a writeup that assigns supported / refuted / inconclusive verdicts to H1, H2, H3 with numerical evidence.",
+    "judging_note": "Quantum ML pilots are scored on (i) whether all three encodings are implemented per qiskit convention, (ii) whether ansatz / optimizer / simulator are held fixed across encodings so the encoding axis is isolated, (iii) whether the quantum cells produce non-trivial accuracy (not near 0.5 random for all 3 encodings, which would indicate a training bug rather than an encoding-specific effect), and (iv) whether per-hypothesis claims are backed by numerical evidence. Quantitative result leaves are scored on a graded scale: 100% if the hypothesis threshold is cleanly met, 67% if the trend is in the predicted direction but does not clear the numerical threshold, 33% if the trend is ambiguous, 0% if the result contradicts the hypothesis or evidence is missing.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "q01-code",
+            "requirements": "Code-development bucket: all 3 encodings implemented per qiskit convention, shared ansatz + optimizer + simulator + training framework are wired identically across cells, and per-cell metrics are logged in the expected METRIC_RESULT JSON format.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q01-code-encodings",
+                    "requirements": "All three encodings are implemented by IMPORTING and INSTANTIATING the canonical classes from qiskit.circuit.library by name, NOT by hand-writing the gate sequences. Concretely the agent's code MUST contain (grep-verifiable): 'from qiskit.circuit.library import' followed by at least the symbols ZFeatureMap, StatePreparation, and ZZFeatureMap; and the three encoding builders must instantiate exactly those classes (angle_encoding = ZFeatureMap(feature_dimension=6, reps=1); amplitude_encoding wraps StatePreparation on a 64D L2-normalized zero-padded vector; zz_feature_map = ZZFeatureMap(feature_dimension=6, reps=2, entanglement='linear')). Hand-written H/RZ/RZZ loops in place of these library classes FAIL this leaf. Additionally, a sanity check at runtime confirms that the three encodings produce DIFFERENT output statevectors for a fixed non-zero input (if they produce identical statevectors, the dispatch is broken and this leaf scores 0). Class bodies are non-trivial (not 'class X(Base): pass' shells).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q01-code-shared-training",
+                    "requirements": "Training uses qiskit_machine_learning.algorithms.VQC with the reference Sampler primitive. The variational ansatz (EfficientSU2 num_qubits=6 reps=1 entanglement='linear'), the classical optimizer (COBYLA maxiter=200), and the simulator backend (AerSimulator method='statevector') are identical across the 3 quantum encoding cells. Only the feature_map argument is swapped. No hand-rolled training loop in place of VQC.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "q01-code-metric-logging",
+                    "requirements": "Each per-(condition, seed) result is emitted to stdout as a single line beginning with METRIC_RESULT followed by a JSON object whose keys include at minimum: condition (one of angle_encoding / amplitude_encoding / zz_feature_map / logistic_regression / mlp_classifier), dataset (synthetic_classification_6d), seed (integer 0..4), test_accuracy (float in [0,1]). Both classical baselines (LogisticRegression and MLPClassifier) are logged in the same format.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q01-exec",
+            "requirements": "Execution-validity bucket: all cells ran and produced numerically valid outputs.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q01-exec-cells-ran",
+                    "requirements": "At least 25 cells out of 25 expected (5 conditions: 3 quantum encodings + LogisticRegression + MLPClassifier x 1 dataset x 5 seeds) completed without unhandled errors and produced an accuracy value. Missing more than 2 cells (10 percent) without documented justification fails this leaf.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q01-exec-numerical",
+                    "requirements": "Numerical validity: no NaN or Inf in test_accuracy. Every test_accuracy lies in [0, 1]. No quantum cell collapses to a degenerate single-class prediction. At least one quantum encoding achieves test_accuracy strictly greater than 0.55 on at least 1 of 5 seeds (rules out the failure mode where all quantum cells stay near 0.5 random-chance because optimization never actually ran). The 3 quantum encodings MUST NOT produce identical test_accuracy across all 5 seeds (this is the ABLATION FAILURE pattern observed in a prior failed run: if angle/amplitude/zz produce bit-for-bit identical accuracies on every seed, the feature_map argument is being silently ignored by the training code, and this leaf scores 0). Training takes nontrivial wall time per cell (at least a few seconds; sub-1s per cell means VQC.fit was not actually invoked).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q01-results",
+            "requirements": "Results bucket: quantitative tests of H1/H2/H3 plus a per-hypothesis writeup.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "q01-result-h1-quant",
+                    "requirements": "Quantitative test of H1. Does the best of the 3 quantum encodings (5-seed mean) achieve test_accuracy within 5 absolute percentage points of the BETTER classical baseline (max of LogisticRegression and MLPClassifier 5-seed means)? 100% if gap is <= 5pp, 67% if gap is <= 10pp, 33% if gap is <= 20pp, 0% if quantum is more than 20pp worse than the best baseline (or either baseline is missing).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q01-result-h2-quant",
+                    "requirements": "Quantitative test of H2. Is max(encoding 5-seed mean) - min(encoding 5-seed mean) across the 3 quantum encodings at least 5 absolute percentage points? 100% if spread >= 5pp, 67% if spread >= 2pp, 33% if spread > 0, 0% if all three encodings produce identical means (suggests training did not actually depend on the encoding choice).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q01-result-h3-quant",
+                    "requirements": "Quantitative test of H3. Is zz_feature_map test_accuracy (5-seed mean) at least as high as angle_encoding test_accuracy (within 2 absolute pp lower, or higher)? 100% if zz >= angle - 2pp, 67% if zz is 2-5pp below angle, 33% if zz is 5-10pp below, 0% if zz is more than 10pp below angle.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q01-result-writeup",
+                    "requirements": "Writeup of at least 200 words (in submission/README.md ## Agent-produced writeup section) with explicit supported / refuted / inconclusive verdict for each of H1, H2, H3 backed by specific mean accuracies (per encoding plus baseline) and the gap / spread values. Identifies a dominant systematic uncertainty (seed variance, optimizer convergence on the simpler EfficientSU2 reps=1 ansatz, class_sep=0.4 difficulty level). Discusses whether the result would change at higher difficulty or with a deeper ansatz.",
+                    "weight": 12.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

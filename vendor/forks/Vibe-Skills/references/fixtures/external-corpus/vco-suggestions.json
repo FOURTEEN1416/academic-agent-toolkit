@@ -1,0 +1,298 @@
+﻿{
+    "version":  1,
+    "generated_at":  "2026-02-24T19:06:55.1229389Z",
+    "summary":  {
+                    "source_root":  "C:\\Users\\羽裳\\.codex\\.tmp_repo_compare\\system-prompts-and-models-of-ai-tools",
+                    "signal_file":  "C:\\Users\\羽裳\\.codex\\skills\\vibe\\outputs\\external-corpus\\prompt-signals.json",
+                    "corpus_file_count":  102,
+                    "rules_evaluated":  21,
+                    "phrases_accepted":  2,
+                    "skill_keywords_added":  2
+                },
+    "skill_rule_results":  [
+                               {
+                                   "skill":  "vibe",
+                                   "phrase":  "tool selection",
+                                   "regex":  "\\btool selection\\b",
+                                   "hits":  1,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "vibe",
+                                   "phrase":  "task classification",
+                                   "regex":  "\\btask classification\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "vibe",
+                                   "phrase":  "agent orchestration",
+                                   "regex":  "\\bagent orchestration\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "subagent-driven-development",
+                                   "phrase":  "multi-agent workflow",
+                                   "regex":  "\\bmulti-agent workflow\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "subagent-driven-development",
+                                   "phrase":  "parallel agents",
+                                   "regex":  "\\bparallel agents?\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "systematic-debugging",
+                                   "phrase":  "root cause investigation",
+                                   "regex":  "\\broot cause investigation\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "systematic-debugging",
+                                   "phrase":  "failure analysis",
+                                   "regex":  "\\bfailure analysis\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "tdd-guide",
+                                   "phrase":  "red green refactor",
+                                   "regex":  "\\bred green refactor\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  true,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "tdd-guide",
+                                   "phrase":  "test-first development",
+                                   "regex":  "\\btest[- ]first development\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "code-reviewer",
+                                   "phrase":  "risk assessment",
+                                   "regex":  "\\brisk assessment\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "code-reviewer",
+                                   "phrase":  "behavioral regression",
+                                   "regex":  "\\bbehavioral regression\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "security-reviewer",
+                                   "phrase":  "defensive security",
+                                   "regex":  "\\bdefensive security\\b",
+                                   "hits":  4,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "security-reviewer",
+                                   "phrase":  "threat model",
+                                   "regex":  "\\bthreat model\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "mcp-integration",
+                                   "phrase":  "tool schema",
+                                   "regex":  "\\btool schema\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "mcp-integration",
+                                   "phrase":  "input schema",
+                                   "regex":  "\\binput_schema\\b|\\binput schema\\b",
+                                   "hits":  56,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  true
+                               },
+                               {
+                                   "skill":  "openai-docs",
+                                   "phrase":  "codex cli",
+                                   "regex":  "\\bcodex cli\\b",
+                                   "hits":  5,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "openai-docs",
+                                   "phrase":  "chat completions",
+                                   "regex":  "\\bchat completions\\b",
+                                   "hits":  1,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  true,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "openai-knowledge",
+                                   "phrase":  "responses api",
+                                   "regex":  "\\bresponses api\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "documentation-lookup",
+                                   "phrase":  "api reference",
+                                   "regex":  "\\bapi reference\\b",
+                                   "hits":  1,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  true,
+                                   "accepted":  false
+                               },
+                               {
+                                   "skill":  "prompt-lookup",
+                                   "phrase":  "system prompt",
+                                   "regex":  "\\bsystem prompt\\b",
+                                   "hits":  31,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  false,
+                                   "accepted":  true
+                               },
+                               {
+                                   "skill":  "prompt-lookup",
+                                   "phrase":  "prompt template",
+                                   "regex":  "\\bprompt template\\b",
+                                   "hits":  0,
+                                   "exists_in_skill_index":  true,
+                                   "already_present":  true,
+                                   "accepted":  false
+                               }
+                           ],
+    "skill_additions":  [
+                            {
+                                "skill":  "prompt-lookup",
+                                "additions":  [
+                                                  "system prompt"
+                                              ]
+                            },
+                            {
+                                "skill":  "mcp-integration",
+                                "additions":  [
+                                                  "input schema"
+                                              ]
+                            }
+                        ],
+    "pack_suggestions":  [
+                             {
+                                 "pack_id":  "code-quality",
+                                 "advisory_trigger_candidates":  [
+                                                                     "agent",
+                                                                     "model",
+                                                                     "tests",
+                                                                     "mcp",
+                                                                     "testing"
+                                                                 ]
+                             },
+                             {
+                                 "pack_id":  "data-ml",
+                                 "advisory_trigger_candidates":  [
+                                                                     "agent",
+                                                                     "test",
+                                                                     "tests",
+                                                                     "mcp",
+                                                                     "security",
+                                                                     "testing"
+                                                                 ]
+                             },
+                             {
+                                 "pack_id":  "bio-science",
+                                 "advisory_trigger_candidates":  [
+                                                                     "agent",
+                                                                     "model",
+                                                                     "test",
+                                                                     "tests",
+                                                                     "mcp",
+                                                                     "security",
+                                                                     "testing"
+                                                                 ]
+                             },
+                             {
+                                 "pack_id":  "docs-media",
+                                 "advisory_trigger_candidates":  [
+                                                                     "agent",
+                                                                     "model",
+                                                                     "test",
+                                                                     "tests",
+                                                                     "mcp",
+                                                                     "security",
+                                                                     "testing"
+                                                                 ]
+                             },
+                             {
+                                 "pack_id":  "integration-devops",
+                                 "advisory_trigger_candidates":  [
+                                                                     "agent",
+                                                                     "model",
+                                                                     "test",
+                                                                     "tests",
+                                                                     "security",
+                                                                     "testing"
+                                                                 ]
+                             },
+                             {
+                                 "pack_id":  "ai-llm",
+                                 "advisory_trigger_candidates":  [
+                                                                     "model",
+                                                                     "test",
+                                                                     "tests",
+                                                                     "mcp",
+                                                                     "security",
+                                                                     "testing"
+                                                                 ]
+                             },
+                             {
+                                 "pack_id":  "research-design",
+                                 "advisory_trigger_candidates":  [
+                                                                     "agent",
+                                                                     "model",
+                                                                     "test",
+                                                                     "tests",
+                                                                     "mcp",
+                                                                     "security",
+                                                                     "testing"
+                                                                 ]
+                             }
+                         ]
+}

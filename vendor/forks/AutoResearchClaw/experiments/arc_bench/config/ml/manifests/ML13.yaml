@@ -1,0 +1,95 @@
+# ============================================================================
+# T13 — Kernel choice effects for Gaussian Process regression
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML13
+title: "Evaluating kernel choices for Gaussian Process regression on synthetic 1-D and 5-D functions"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Gaussian Process (GP) regression performance depends strongly on the kernel,
+  which encodes assumptions about function smoothness and local structure.
+  Practitioners often default to the RBF kernel because it is easy to optimize
+  and widely available, but this choice can underperform when the target
+  function has roughness patterns that are better matched by Matern families or
+  when polynomial trends dominate part of the signal. Since kernel
+  misspecification can be subtle, a short benchmark should compare predictive
+  uncertainty quality as well as point error.
+
+  A CPU-scale study can be done entirely with sklearn GaussianProcessRegressor
+  on synthetic datasets where the data-generating process is controlled. In 1-D,
+  a mildly nonstationary smooth function with additive Gaussian noise can expose
+  differences in extrapolation and uncertainty tails. In 5-D, a mixed
+  sinusoidal-plus-quadratic target can stress anisotropy and interactions while
+  remaining fast enough for repeated fitting under multiple random seeds.
+
+  To make claims measurable, the experiment should evaluate at least four kernel
+  choices (RBF, polynomial, Matern-3/2, Matern-5/2) under the same train/test
+  splits, optimizer restarts, and noise model assumptions. Because the topic's
+  key metric is negative log-likelihood, uncertainty calibration quality should
+  be primary; RMSE and R^2 provide supporting evidence for point prediction.
+  Seed averaging is important because synthetic splits and optimizer
+  initialization can change marginal likelihood optimization outcomes.
+
+  The core question is whether smoother kernels (RBF, Matern-5/2) consistently
+  outperform rougher or mismatched kernels (Matern-3/2, polynomial) on test NLL
+  across both low- and moderate-dimensional synthetic tasks, and whether ranking
+  by NLL aligns with ranking by RMSE.
+
+  *Which GP kernel among RBF, polynomial, Matern-3/2, and Matern-5/2 yields the best uncertainty-aware generalization (lowest test NLL) on synthetic 1-D and 5-D noisy regression functions?*
+
+hypotheses:
+  - id: H1
+    statement: "Across the two synthetic datasets, at least one of {RBF, Matern-5/2} achieves the lowest mean test NLL on each dataset (averaged over >=5 seeds)."
+    measurable: true
+  - id: H2
+    statement: "The polynomial kernel has mean test NLL at least 10% worse than the best kernel on at least 1 of the 2 datasets."
+    measurable: true
+  - id: H3
+    statement: "Kernel ranking by mean test NLL and by mean RMSE is not identical on at least 1 dataset, indicating uncertainty quality and point error disagree."
+    measurable: true
+
+experiment_design:
+  research_question: "How do RBF, polynomial, Matern-3/2, and Matern-5/2 kernels compare for Gaussian Process regression on synthetic 1-D and 5-D noisy functions when judged primarily by test NLL?"
+  conditions:
+    - name: "gp_rbf"
+      description: "GaussianProcessRegressor with ConstantKernel * RBF + WhiteKernel, hyperparameters optimized by log-marginal-likelihood."
+    - name: "gp_poly_deg2"
+      description: "GaussianProcessRegressor with ConstantKernel * DotProduct^2 (implemented via polynomial feature mapping + DotProduct kernel) + WhiteKernel as a polynomial-trend proxy."
+    - name: "gp_matern32"
+      description: "GaussianProcessRegressor with ConstantKernel * Matern(nu=1.5) + WhiteKernel."
+    - name: "gp_matern52"
+      description: "GaussianProcessRegressor with ConstantKernel * Matern(nu=2.5) + WhiteKernel."
+  baselines:
+    - "gp_rbf as the common default-kernel baseline"
+    - "gp_poly_deg2 as a mismatched-trend baseline"
+  metrics:
+    - name: "test_nll"
+      direction: "minimize"
+      description: "Mean negative log predictive density on held-out test data using GP predictive mean and variance, averaged over seeds."
+    - name: "rmse"
+      direction: "minimize"
+      description: "Root mean squared error on test targets, averaged over seeds."
+    - name: "r2"
+      direction: "maximize"
+      description: "Coefficient of determination on test targets, averaged over seeds."
+  datasets:
+    - name: "synthetic_1d_sinmix"
+      source: "Generated with numpy: x in [-3,3], y = sin(2x) + 0.3x + epsilon, epsilon~N(0, 0.15^2)."
+    - name: "synthetic_5d_mixed"
+      source: "Generated with numpy: X in [-2,2]^5, y = sin(x1) + 0.5*x2^2 - 0.7*x3 + 0.3*x4*x5 + epsilon, epsilon~N(0, 0.2^2)."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 360
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML13.json"

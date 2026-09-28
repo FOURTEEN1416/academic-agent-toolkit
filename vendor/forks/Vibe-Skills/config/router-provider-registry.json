@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-13",
+  "policy": "router-provider-registry",
+  "canonical_router_authority": {
+    "script_relpath": "scripts/router/resolve-pack-route.ps1",
+    "provider_layer_advice_only": true
+  },
+  "providers": [
+    {
+      "id": "openai-compatible",
+      "provider_id": "openai-compatible",
+      "kind": "provider-assisted",
+      "status": "provider-assisted",
+      "module_relpath": "scripts/router/modules/01-openai-responses.ps1",
+      "roles_allowed": [
+        "semantic_extraction",
+        "candidate_rerank",
+        "route_advice",
+        "shadow_evaluation",
+        "route_explainability"
+      ],
+      "roles_forbidden": [
+        "canonical_assignment_owner",
+        "second_router",
+        "live_router_takeover",
+        "explicit_command_override",
+        "release_chain_owner"
+      ],
+      "offline_state": "heuristic-only",
+      "offline_contract": {
+        "abstain_reason": "missing_intent_advice_api_key",
+        "required_env_any": [
+          "VCO_INTENT_ADVICE_API_KEY"
+        ],
+        "no_network_without_credentials": true
+      },
+      "binding_examples": [
+        "scripts/router/modules/01-openai-responses.ps1",
+        "config/settings.template.codex.json",
+        "config/ruc-nlpir-runtime.json"
+      ]
+    },
+    {
+      "id": "heuristic-only",
+      "provider_id": "heuristic-only",
+      "kind": "heuristic-only",
+      "status": "heuristic-only",
+      "module_relpath": "scripts/router/modules/00-core-utils.ps1",
+      "roles_allowed": [
+        "deterministic_router_execution"
+      ],
+      "roles_forbidden": [
+        "canonical_assignment_owner",
+        "second_router",
+        "live_router_takeover",
+        "explicit_command_override",
+        "release_chain_owner"
+      ],
+      "offline_state": "heuristic-only",
+      "offline_contract": {
+        "abstain_reason": "not_applicable"
+      },
+      "binding_examples": [
+        "scripts/router/resolve-pack-route.ps1"
+      ]
+    }
+  ]
+}

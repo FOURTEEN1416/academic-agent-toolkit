@@ -1,0 +1,102 @@
+# ============================================================================
+# T08 — Class-imbalance handling strategies for binary classification
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML08
+title: "Impact of imbalance-handling strategies on sklearn binary classifiers"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Class imbalance is one of the most common practical failure modes in binary
+  classification: a model can achieve high raw accuracy by predicting the
+  majority class while missing the minority class almost entirely. In
+  scikit-learn workflows, practitioners often choose among simple data-level
+  resampling (random oversampling, random undersampling), algorithm-level
+  weighting (class_weight="balanced"), or synthetic methods like SMOTE.
+  However, these strategies trade off minority recall, precision, and overall
+  discrimination differently, and their behavior varies with dataset geometry.
+
+  A compact CPU-friendly study can still be rigorous if it compares multiple
+  imbalance-handling strategies under the same base learner and preprocessing
+  pipeline, evaluates with metrics appropriate for skewed labels (balanced
+  accuracy, F1, PR-AUC), and averages over several random seeds. The focus is
+  not on maximizing one benchmark score but on understanding whether methods
+  that improve minority detection do so consistently across datasets, and at
+  what precision cost.
+
+  To keep implementation feasible in a short autonomous run, the experiment can
+  use sklearn-native datasets and synthetic imbalance generated from a standard
+  source dataset, with a shared train/test protocol and fixed model family
+  (e.g., logistic regression). SMOTE can be implemented in a lightweight way
+  using sklearn.neighbors to interpolate minority-neighbor pairs, avoiding any
+  external dependency.
+
+  The key analytical goal is to test whether weighted learning or synthetic
+  oversampling provides the most reliable gain in balanced accuracy over a
+  no-treatment baseline, and whether naive random oversampling tends to hurt
+  precision-oriented metrics relative to class weighting.
+
+  *Which imbalance-handling strategy (SMOTE, random oversampling, class weights, undersampling) gives the most consistent balanced-accuracy improvement for binary sklearn classification under a fixed model and protocol?*
+
+hypotheses:
+  - id: H1
+    statement: "At least one of {class_weight_balanced, smote} achieves higher balanced_accuracy than no_handling by >=0.03 absolute on at least 2 of 3 datasets (mean over >=5 seeds)."
+    measurable: true
+  - id: H2
+    statement: "Random undersampling yields the highest minority recall among compared strategies on at least 2 of 3 datasets, but does not achieve the best PR-AUC on those same datasets."
+    measurable: true
+  - id: H3
+    statement: "Random oversampling does not outperform class_weight_balanced in balanced_accuracy on more than 1 of 3 datasets (seed-averaged comparison)."
+    measurable: true
+
+experiment_design:
+  research_question: "Which imbalance-handling strategy provides the most consistent gains in balanced accuracy for binary classification with fixed sklearn models under controlled train/test splits?"
+  conditions:
+    - name: "no_handling"
+      description: "Baseline logistic regression trained on imbalanced data with no resampling and default class weights."
+    - name: "class_weight_balanced"
+      description: "Same logistic regression with class_weight='balanced'."
+    - name: "random_oversampling"
+      description: "Training-set minority class randomly oversampled with replacement to match majority count."
+    - name: "random_undersampling"
+      description: "Training-set majority class randomly undersampled without replacement to match minority count."
+    - name: "smote_k5"
+      description: "Training-set minority class augmented with synthetic samples via kNN interpolation (k=5) until class balance is reached."
+  baselines:
+    - "no_handling is the primary baseline"
+    - "class_weight_balanced serves as an algorithm-level baseline against data-level resampling"
+  metrics:
+    - name: "balanced_accuracy"
+      direction: "maximize"
+      description: "Mean of sensitivity and specificity on held-out test split, averaged over seeds."
+    - name: "minority_recall"
+      direction: "maximize"
+      description: "Recall for the positive/minority class on test data."
+    - name: "average_precision"
+      direction: "maximize"
+      description: "Area under precision-recall curve (PR-AUC / AP) on test data."
+    - name: "f1"
+      direction: "maximize"
+      description: "Binary F1 score for the minority class at default threshold 0.5."
+  datasets:
+    - name: "breast_cancer_imbalanced"
+      source: "sklearn.datasets.load_breast_cancer with induced imbalance by downsampling positive class in training folds"
+    - name: "make_classification_90_10"
+      source: "sklearn.datasets.make_classification(n_samples=4000, n_features=20, weights=[0.9,0.1], random_state=seed)"
+    - name: "make_classification_95_05"
+      source: "sklearn.datasets.make_classification(n_samples=5000, n_features=25, weights=[0.95,0.05], class_sep=1.0, random_state=seed)"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 360
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML08.json"

@@ -1,0 +1,431 @@
+﻿{
+    "version":  1,
+    "updated":  "2026-02-24",
+    "selection":  {
+                      "weights":  {
+                                      "keyword_match":  0.85,
+                                      "name_match":  0.15
+                                  },
+                      "fallback_to_first_when_score_below":  0.15
+                  },
+    "skills":  {
+                   "brainstorming":  {
+                                         "keywords":  [
+                                                          "brainstorm",
+                                                          "ideation",
+                                                          "头脑风暴",
+                                                          "方案发散",
+                                                          "创意讨论"
+                                                      ]
+                                     },
+                   "writing-plans":  {
+                                         "keywords":  [
+                                                          "implementation plan",
+                                                          "task breakdown",
+                                                          "计划书",
+                                                          "实施计划",
+                                                          "任务拆解",
+                                                          "里程碑规划",
+                                                          "soft migration",
+                                                          "hard migration",
+                                                          "软迁移",
+                                                          "硬迁移",
+                                                          "canonical alias",
+                                                          "canonical + alias 映射",
+                                                          "迁移计划",
+                                                          "重构迁移",
+                                                          "验证命中稳定",
+                                                          "先做软迁移"
+                                                      ]
+                                     },
+                   "vibe":  {
+                                "keywords":  [
+                                                 "/vibe",
+                                                 "$vibe",
+                                                 "vibe route",
+                                                 "vibe 路由",
+                                                 "vibe内核",
+                                                 "vibe skills",
+                                                 "路由融合",
+                                                 "路由冲突",
+                                                 "命中稳定",
+                                                 "误路由",
+                                                 "权重计算",
+                                                 "阈值计算"
+                                             ]
+                            },
+                   "subagent-driven-development":  {
+                                                       "keywords":  [
+                                                                        "subagent",
+                                                                        "parallel tasks",
+                                                                        "子代理",
+                                                                        "并行执行",
+                                                                        "多任务协作"
+                                                                    ]
+                                                   },
+                   "tdd-guide":  {
+                                     "keywords":  [
+                                                      "tdd",
+                                                      "red green refactor",
+                                                      "测试驱动",
+                                                      "先写测试",
+                                                      "红绿重构"
+                                                  ]
+                                 },
+                   "systematic-debugging":  {
+                                                "keywords":  [
+                                                                 "root cause",
+                                                                 "debugging",
+                                                                 "根因分析",
+                                                                 "系统化调试",
+                                                                 "故障定位"
+                                                             ]
+                                            },
+                   "security-reviewer":  {
+                                             "keywords":  [
+                                                              "security audit",
+                                                              "owasp",
+                                                              "threat",
+                                                              "安全审计",
+                                                              "漏洞排查",
+                                                              "风险评估"
+                                                          ]
+                                         },
+                   "code-reviewer":  {
+                                         "keywords":  [
+                                                          "code review",
+                                                          "review comments",
+                                                          "代码评审",
+                                                          "审查代码",
+                                                          "质量检查"
+                                                      ]
+                                     },
+                   "verification-quality-assurance":  {
+                                                          "keywords":  [
+                                                                           "quality assurance",
+                                                                           "routing audit",
+                                                                           "关键词准确",
+                                                                           "命中范围",
+                                                                           "互不干扰",
+                                                                           "命中稳定性验证",
+                                                                           "误路由检查",
+                                                                           "实践验证"
+                                                                       ]
+                                                      },
+                   "gh-fix-ci":  {
+                                     "keywords":  [
+                                                      "github actions",
+                                                      "ci failure",
+                                                      "check logs",
+                                                      "actions failed",
+                                                      "修复ci",
+                                                      "持续集成失败",
+                                                      "检查流水线日志"
+                                                  ]
+                                 },
+                   "gh-address-comments":  {
+                                               "keywords":  [
+                                                                "pr comments",
+                                                                "review comments",
+                                                                "处理评论",
+                                                                "回复评审意见",
+                                                                "地址评论"
+                                                            ]
+                                           },
+                   "mcp-integration":  {
+                                           "keywords":  [
+                                                            "mcp server",
+                                                            ".mcp.json",
+                                                            "model context protocol",
+                                                            "接入mcp",
+                                                            "配置mcp",
+                                                            "连接mcp服务",
+                                                            "主路由工具可用性",
+                                                            "skills agent mcp",
+                                                            "工具可用性检查",
+                                                            "mcp工具接入",
+                                                            "input schema"
+                                                        ]
+                                       },
+                   "sentry":  {
+                                  "keywords":  [
+                                                   "sentry issue",
+                                                   "production error",
+                                                   "线上报错",
+                                                   "异常事件",
+                                                   "错误追踪"
+                                               ]
+                              },
+                   "vercel-deploy":  {
+                                         "keywords":  [
+                                                          "vercel deploy",
+                                                          "preview deployment",
+                                                          "发布到vercel",
+                                                          "部署到vercel"
+                                                      ]
+                                     },
+                   "netlify-deploy":  {
+                                          "keywords":  [
+                                                           "netlify deploy",
+                                                           "deploy netlify",
+                                                           "发布到netlify",
+                                                           "部署到netlify"
+                                                       ]
+                                      },
+                   "openai-docs":  {
+                                       "keywords":  [
+                                                        "openai docs",
+                                                        "responses api",
+                                                        "chat completions",
+                                                        "openai官方文档",
+                                                        "查询openai文档",
+                                                        "responses接口"
+                                                    ]
+                                   },
+                   "openai-knowledge":  {
+                                            "keywords":  [
+                                                             "openai platform",
+                                                             "model limits",
+                                                             "openai api",
+                                                             "openai平台能力",
+                                                             "模型限制",
+                                                             "api文档解析"
+                                                         ]
+                                        },
+                   "prompt-lookup":  {
+                                         "keywords":  [
+                                                          "prompt template",
+                                                          "prompt library",
+                                                          "prompts.chat",
+                                                          "提示词模板",
+                                                          "提示词库",
+                                                          "检索prompt",
+                                                          "system prompt"
+                                                      ]
+                                     },
+                   "embedding-strategies":  {
+                                                "keywords":  [
+                                                                 "embedding strategy",
+                                                                 "chunking",
+                                                                 "semantic search",
+                                                                 "向量嵌入",
+                                                                 "嵌入策略",
+                                                                 "语义检索"
+                                                             ]
+                                            },
+                   "evaluating-llms-harness":  {
+                                                   "keywords":  [
+                                                                    "mmlu",
+                                                                    "gsm8k",
+                                                                    "truthfulqa",
+                                                                    "llm benchmark",
+                                                                    "大模型评测",
+                                                                    "学术基准评测"
+                                                                ]
+                                               },
+                   "documentation-lookup":  {
+                                                "keywords":  [
+                                                                 "api reference",
+                                                                 "framework docs",
+                                                                 "文档查询",
+                                                                 "接口参考",
+                                                                 "官方文档检索"
+                                                             ]
+                                            },
+                   "scikit-learn":  {
+                                        "keywords":  [
+                                                         "scikit-learn",
+                                                         "sklearn",
+                                                         "cross validation",
+                                                         "scikit学习",
+                                                         "机器学习建模",
+                                                         "交叉验证",
+                                                         "机器学习分析",
+                                                         "模型训练分析",
+                                                         "训练评估"
+                                                     ]
+                                    },
+                   "shap":  {
+                                "keywords":  [
+                                                 "shap",
+                                                 "feature attribution",
+                                                 "beeswarm",
+                                                 "模型解释",
+                                                 "特征归因",
+                                                 "shap图"
+                                             ]
+                            },
+                   "umap-learn":  {
+                                      "keywords":  [
+                                                       "umap",
+                                                       "dimensionality reduction",
+                                                       "manifold",
+                                                       "降维",
+                                                       "流形学习",
+                                                       "umap可视化"
+                                                   ]
+                                  },
+                   "ml-data-leakage-guard":  {
+                                                 "keywords":  [
+                                                                  "data leakage",
+                                                                  "leakage guard",
+                                                                  "防止泄漏",
+                                                                  "数据泄漏检查",
+                                                                  "时序泄漏"
+                                                              ]
+                                             },
+                   "scanpy":  {
+                                  "keywords":  [
+                                                   "scanpy",
+                                                   "single-cell",
+                                                   "scRNA",
+                                                   "单细胞分析",
+                                                   "细胞聚类",
+                                                   "marker基因"
+                                               ]
+                              },
+                   "pydeseq2":  {
+                                    "keywords":  [
+                                                     "deseq2",
+                                                     "differential expression",
+                                                     "差异表达",
+                                                     "de分析",
+                                                     "rna-seq差异"
+                                                 ]
+                                },
+                   "pysam":  {
+                                 "keywords":  [
+                                                  "bam",
+                                                  "sam",
+                                                  "vcf",
+                                                  "cram",
+                                                  "测序比对文件",
+                                                  "变异文件解析"
+                                              ]
+                             },
+                   "biopython":  {
+                                     "keywords":  [
+                                                      "biopython",
+                                                      "fasta",
+                                                      "genbank",
+                                                      "序列解析",
+                                                      "生物序列处理",
+                                                      "生物信息学分析",
+                                                      "生信分析",
+                                                      "基因注释",
+                                                      "序列注释"
+                                                  ]
+                                 },
+                   "xlsx":  {
+                                "keywords":  [
+                                                 "xlsx",
+                                                 "excel file",
+                                                 "workbook",
+                                                 "修改xlsx",
+                                                 "电子表格",
+                                                 "工作簿",
+                                                 "保留公式"
+                                             ]
+                            },
+                   "spreadsheet":  {
+                                       "keywords":  [
+                                                        "spreadsheet",
+                                                        "csv",
+                                                        "tsv",
+                                                        "表格处理",
+                                                        "批量表格",
+                                                        "数据表整理"
+                                                    ]
+                                   },
+                   "pdf":  {
+                               "keywords":  [
+                                                "pdf extract",
+                                                "pdf parse",
+                                                "读取pdf",
+                                                "提取pdf文本",
+                                                "pdf报告处理"
+                                            ]
+                           },
+                   "docx":  {
+                                "keywords":  [
+                                                 "docx",
+                                                 "word document",
+                                                 "word修订",
+                                                 "文档编辑",
+                                                 "word报告"
+                                             ]
+                            },
+                   "speech":  {
+                                  "keywords":  [
+                                                   "text to speech",
+                                                   "tts",
+                                                   "语音合成",
+                                                   "文本转语音",
+                                                   "语音播报"
+                                               ]
+                              },
+                   "transcribe":  {
+                                      "keywords":  [
+                                                       "transcribe",
+                                                       "speech to text",
+                                                       "meeting transcript",
+                                                       "语音转文字",
+                                                       "会议转录",
+                                                       "说话人分离",
+                                                       "会议录音转文字",
+                                                       "区分说话人",
+                                                       "录音转文字"
+                                                   ]
+                                  },
+                   "screenshot":  {
+                                      "keywords":  [
+                                                       "screenshot",
+                                                       "capture screen",
+                                                       "截屏",
+                                                       "截图",
+                                                       "屏幕快照"
+                                                   ]
+                                  },
+                   "scientific-writing":  {
+                                              "keywords":  [
+                                                               "scientific writing",
+                                                               "imrad",
+                                                               "manuscript",
+                                                               "科研写作",
+                                                               "论文写作",
+                                                               "学术稿件"
+                                                           ]
+                                          },
+                   "designing-experiments":  {
+                                                 "keywords":  [
+                                                                  "did",
+                                                                  "its",
+                                                                  "synthetic control",
+                                                                  "实验设计",
+                                                                  "因果实验",
+                                                                  "准实验方法"
+                                                              ]
+                                             },
+                   "figma-implement-design":  {
+                                                  "keywords":  [
+                                                                   "figma to code",
+                                                                   "implement design",
+                                                                   "设计稿还原",
+                                                                   "figma实现",
+                                                                   "按figma开发",
+                                                                   "figma设计稿",
+                                                                   "还原代码",
+                                                                   "设计转代码"
+                                                               ]
+                                              },
+                   "research-lookup":  {
+                                           "keywords":  [
+                                                            "literature search",
+                                                            "paper search",
+                                                            "文献检索",
+                                                            "查找论文",
+                                                            "研究调研"
+                                                        ]
+                                       }
+               }
+}

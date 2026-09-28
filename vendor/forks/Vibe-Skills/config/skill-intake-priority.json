@@ -1,0 +1,60 @@
+﻿{
+  "version": 1,
+  "updated": "2026-03-07",
+  "purpose": "Wave17 skill-intake priority policy for extracting remaining value without inflating overlap. This policy is advisory and queue-oriented only.",
+  "principles": [
+    "intake only after active-lane digestion",
+    "prefer gap-fill over catalog breadth",
+    "promote operational discipline before new default capabilities",
+    "treat overlap as a first-class rejection reason"
+  ],
+  "bands": [
+    {
+      "id": "bridge-core-gap",
+      "priority": 1,
+      "intake_action": "triage-now",
+      "decision_label": "review-ready",
+      "criteria": {
+        "requires_gap_evidence": true,
+        "max_overlap_risk": 45,
+        "min_governance_fit": 70
+      },
+      "examples": ["vibe-coding-cn", "antigravity-awesome-skills"]
+    },
+    {
+      "id": "operator-lift",
+      "priority": 2,
+      "intake_action": "extract-playbook",
+      "decision_label": "review-ready",
+      "criteria": {
+        "requires_runtime_mutation": false,
+        "must_land_in_docs_or_policy": true,
+        "operator_value_first": true
+      },
+      "examples": ["awesome-vibe-coding", "awesome-agent-skills"]
+    },
+    {
+      "id": "niche-pilot",
+      "priority": 3,
+      "intake_action": "pilot-only",
+      "decision_label": "pilot",
+      "criteria": {
+        "requires_project_scope": true,
+        "requires_rollback_plan": true,
+        "write_paths_disallowed_by_default": true
+      },
+      "examples": ["composio", "activepieces"]
+    },
+    {
+      "id": "hold-until-gap",
+      "priority": 4,
+      "intake_action": "do-not-expand",
+      "decision_label": "hold",
+      "criteria": {
+        "requires_new_gap_to_reopen": true,
+        "high_overlap_or_noise": true
+      },
+      "examples": ["awesome-claude-skills-composio", "awesome-agent-skills"]
+    }
+  ]
+}

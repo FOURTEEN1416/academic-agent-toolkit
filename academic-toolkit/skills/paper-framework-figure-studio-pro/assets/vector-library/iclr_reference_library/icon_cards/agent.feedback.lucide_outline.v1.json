@@ -1,0 +1,124 @@
+{
+  "concept_id": "agent.feedback",
+  "icon_id": "agent.feedback.lucide_outline.v1",
+  "primary_meaning": "Human or reward feedback",
+  "aliases": [
+    "feedback",
+    "preference",
+    "thumbs up"
+  ],
+  "negative_aliases": [
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim"
+  ],
+  "shape_family_id": "agent.feedback",
+  "style_variant": "lucide_outline",
+  "domain_tags": [
+    "agent",
+    "feedback",
+    "AI",
+    "CS",
+    "paper_figure"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support"
+  ],
+  "source_lineage": {
+    "import_mode": "import_with_license",
+    "source": "lucide-static",
+    "source_path": "tools/icon_sources/lucide-static-1.16.0/package/icons/thumbs-up.svg",
+    "imported_at": "2026-05-24T08:42:11.211Z",
+    "modified": true,
+    "modification": "raw SVG preserved; tight SVG viewBox cropped to computed visible geometry with stroke bleed; PPT-safe variant uses explicit stroke color."
+  },
+  "license": {
+    "name": "Lucide",
+    "package": "lucide-static",
+    "version": "1.16.0",
+    "license": "ISC",
+    "repository": "https://github.com/lucide-icons/lucide"
+  },
+  "files": {
+    "raw_svg": "icons/raw/agent.feedback.lucide_outline.v1.svg",
+    "tight_svg": "icons/tight/agent.feedback.lucide_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/agent.feedback.lucide_outline.v1.ppt_safe.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": 1,
+    "minY": 1,
+    "width": 21.83,
+    "height": 22,
+    "stroke_bleed": 1,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": 0.083,
+      "top": 0.083,
+      "right": 0.09,
+      "bottom": 0.083
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "sha1": "a31a8c122a7d585ca2771c0451d5d896efbb0365"
+  }
+}

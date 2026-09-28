@@ -1,0 +1,374 @@
+{
+  "concept_id": "paper.derived.evidence.ablation.grid",
+  "icon_id": "paper.derived.evidence.ablation.grid.paper_derived_outline.v1",
+  "primary_meaning": "Paper-derived ablation grid",
+  "aliases": [
+    "ablation grid",
+    "comparison board"
+  ],
+  "negative_aliases": [
+    "paper-specific module name",
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim",
+    "literal reproduction of source figure"
+  ],
+  "shape_family_id": "paper.derived.ablation_grid",
+  "style_variant": "paper_derived_refined_outline",
+  "domain_tags": [
+    "paper_derived",
+    "framework_figure_motif",
+    "AI",
+    "CS",
+    "paper_figure",
+    "evidence",
+    "ablation",
+    "grid"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot",
+    "visual_layout_reuse"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support",
+    "literal reproduction of source paper figure"
+  ],
+  "source_lineage": {
+    "import_mode": "paper_figure_motif_abstraction",
+    "source": "paper_framework_figure_motif_extraction",
+    "source_path": "final_reference_figure_library.jsonl",
+    "source_figure_count": 10,
+    "source_figures": [
+      {
+        "reference_case_id": "iclr2025/a-computational-framework-for-modeling-emergence-of-color-vision-in-the-human-brain/fig-0013",
+        "paper_title": "A Computational Framework for Modeling Emergence of Color Vision in the Human Brain",
+        "field": "CV",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/CV/a-computational-framework-for-modeling-emergence-of-color-vision-in-the-human-brain/figures/framework_13_fig13-1126.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/CV/a-computational-framework-for-modeling-emergence-of-color-vision-in-the-human-brain/sources/arxiv_src/Rebuttal/RS-09-Table_of_Images.tex",
+          "line": 21,
+          "label": "fig:13",
+          "includegraphics": "assets/fig13_1126.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules/fig-0004",
+        "paper_title": "A Theoretically-Principled Sparse, Connected, and Rigid Graph Representation of Molecules",
+        "field": "Graph",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/Graph/a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules/figures/pdf_framework_page_016.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Graph/a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules/figures/pdf_framework_page_016.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/Graph/a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules/figures/pdf_framework_page_016.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/aflow-automating-agentic-workflow-generation/fig-0001",
+        "paper_title": "AFlow: Automating Agentic Workflow Generation",
+        "field": "VLA",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/VLA/aflow-automating-agentic-workflow-generation/figures/framework_01_mcts.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/VLA/aflow-automating-agentic-workflow-generation/sources/arxiv_src/files/3-methodology.tex",
+          "line": 75,
+          "label": "mcts",
+          "includegraphics": "images/MCTS.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/backtracking-improves-generation-safety/fig-0002",
+        "paper_title": "Backtracking Improves Generation Safety",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/figures/framework_02_unsafe.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "caption_or_label_match",
+          "file": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/sources/arxiv_src/main.tex",
+          "line": 277,
+          "label": "fig:tradeoff",
+          "includegraphics": "figures/tps.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/backtracking-improves-generation-safety/fig-0003",
+        "paper_title": "Backtracking Improves Generation Safety",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/figures/framework_03_ttft.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "caption_or_label_match",
+          "file": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/sources/arxiv_src/main.tex",
+          "line": 277,
+          "label": "fig:tradeoff",
+          "includegraphics": "figures/tps.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/backtracking-improves-generation-safety/fig-0004",
+        "paper_title": "Backtracking Improves Generation Safety",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/figures/framework_04_tps.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/sources/arxiv_src/main.tex",
+          "line": 277,
+          "label": "fig:tradeoff",
+          "includegraphics": "figures/tps.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/backtracking-improves-generation-safety/fig-0005",
+        "paper_title": "Backtracking Improves Generation Safety",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/figures/framework_05_oa-rr.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "caption_or_label_match",
+          "file": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/sources/arxiv_src/main.tex",
+          "line": 537,
+          "label": "fig:oa-tradeoff",
+          "includegraphics": "figures/oa-tps.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/backtracking-improves-generation-safety/fig-0006",
+        "paper_title": "Backtracking Improves Generation Safety",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/figures/framework_06_oa-ttft.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "caption_or_label_match",
+          "file": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/sources/arxiv_src/main.tex",
+          "line": 537,
+          "label": "fig:oa-tradeoff",
+          "includegraphics": "figures/oa-tps.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/backtracking-improves-generation-safety/fig-0007",
+        "paper_title": "Backtracking Improves Generation Safety",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/figures/framework_07_oa-tps.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/sources/arxiv_src/main.tex",
+          "line": 541,
+          "label": "appendix:sft-robustness",
+          "includegraphics": "figures/oa-tps.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/bigcodebench-benchmarking-code-generation-with-diverse-function-calls-and-complex-instruct/fig-0001",
+        "paper_title": "BigCodeBench: Benchmarking Code Generation with Diverse Function Calls and Complex Instructions",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/bigcodebench-benchmarking-code-generation-with-diverse-function-calls-and-complex-instruct/figures/framework_01_annotation-pipeline.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/bigcodebench-benchmarking-code-generation-with-diverse-function-calls-and-complex-instruct/sources/arxiv_src/nips_submission.tex",
+          "line": 242,
+          "label": "fig:construction",
+          "includegraphics": "annotation_pipeline.pdf"
+        },
+        "match_score": 8
+      }
+    ],
+    "extraction_basis": [
+      "source-grounded final reference figure records",
+      "figure subtype/layout/topology tags",
+      "caption/source-anchor keyword evidence",
+      "borrowable visual design patterns"
+    ],
+    "abstraction_level": "non_literal_semantic_visual_motif",
+    "imported_at": "2026-05-24T08:42:45.265Z",
+    "modified": true,
+    "modification": "Created as a simplified vector motif from repeated downloaded-paper framework figure patterns; source-paper text, labels, claims, datasets, metrics, and exact visual composition are intentionally not copied.",
+    "refinement": {
+      "status": "refined_semantic_vector_redraw",
+      "semantic_kind": "matrix",
+      "workflow": [
+        "contact_sheet_with_padding",
+        "imagegen_prompt_manifest_for_style_exploration",
+        "semantic_cut_slot",
+        "programmatic_svg_redraw",
+        "index_update"
+      ],
+      "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+      "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+      "generated_at": "2026-05-24T09:34:49.500Z"
+    }
+  },
+  "license": {
+    "name": "Paper-derived framework figure motif abstraction",
+    "license": "source-paper-visual-motif-abstraction",
+    "usage_terms": "Internal reusable visual/layout motif. Use for generic figure icon language only; do not treat as source-paper evidence or copy source-paper facts."
+  },
+  "files": {
+    "raw_svg": "icons/raw/paper.derived.evidence.ablation.grid.paper_derived_outline.v1.svg",
+    "tight_svg": "icons/tight/paper.derived.evidence.ablation.grid.paper_derived_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/paper.derived.evidence.ablation.grid.paper_derived_outline.v1.ppt_safe.svg",
+    "semantic_cut_svg": "paper_derived_icon_refinement/cut_svg/paper.derived.evidence.ablation.grid.paper_derived_outline.v1.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": 2.225,
+    "minY": -3.775,
+    "width": 14.95,
+    "height": 24.55,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": 0.125,
+      "top": -0.125,
+      "right": 0.317,
+      "bottom": 0.167
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "refined_from_semantic_contact_sheet": true,
+    "editable_shape_primitives": true,
+    "sha1": "2a64623f100923c1781119318e23310d209b3dc9"
+  },
+  "transfer_contract": {
+    "allowed": [
+      "generic visual icon language",
+      "layout/motif inspiration",
+      "PPT editable stencil use"
+    ],
+    "disallowed": [
+      "source-paper facts",
+      "paper-specific labels",
+      "metrics",
+      "datasets",
+      "claims",
+      "literal source-figure reproduction"
+    ]
+  },
+  "refinement": {
+    "status": "refined_semantic_vector_redraw",
+    "semantic_kind": "matrix",
+    "workflow": [
+      "contact_sheet_with_padding",
+      "imagegen_prompt_manifest_for_style_exploration",
+      "semantic_cut_slot",
+      "programmatic_svg_redraw",
+      "index_update"
+    ],
+    "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+    "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+    "generated_at": "2026-05-24T09:34:49.500Z"
+  }
+}

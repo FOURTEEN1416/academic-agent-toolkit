@@ -1,0 +1,18 @@
+{
+  "adapter_id": "opencode",
+  "platform": "linux",
+  "status": "not-yet-proven",
+  "install_surface": [
+    "install.sh --host opencode"
+  ],
+  "check_surface": [
+    "check.sh --host opencode"
+  ],
+  "doctor_surface": [
+    "scripts/verify/runtime_neutral/opencode_preview_smoke.py"
+  ],
+  "notes": [
+    "Linux preview payload can be installed into OpenCode roots, but replay-backed platform proof is still incomplete.",
+    "Local OpenCode CLI 1.2.27 shows unresolved skill discovery drift versus official docs, so the lane must remain below supported-with-constraints."
+  ]
+}

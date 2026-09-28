@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "updated_at": "2026-06-21",
+  "enabled": true,
+  "explicit_runtime_skill": "vibe",
+  "default_requested_skill": "vibe",
+  "freeze_before_requirement_doc": true,
+  "shadow_only": true,
+  "required_fields": [
+    "run_id",
+    "governance_scope",
+    "host_adapter",
+    "hierarchy",
+    "task",
+    "runtime_mode",
+    "internal_grade",
+    "agent_skill_organization",
+    "module_assignments",
+    "authority_flags",
+    "provenance"
+  ],
+  "hierarchy_contract": {
+    "default_governance_scope": "root",
+    "governance_artifacts": {
+      "capsule": "governance-capsule.json",
+      "lineage": "stage-lineage.json",
+      "delegation_envelope": "delegation-envelope.json",
+      "delegation_validation": "delegation-validation-receipt.json"
+    },
+    "child_receipt_only_stages": [
+      "requirement_doc",
+      "xl_plan"
+    ],
+    "root_authority_flags": {
+      "allow_requirement_freeze": true,
+      "allow_plan_freeze": true,
+      "allow_global_dispatch": true,
+      "allow_completion_claim": true
+    },
+    "child_authority_flags": {
+      "allow_requirement_freeze": false,
+      "allow_plan_freeze": false,
+      "allow_global_dispatch": false,
+      "allow_completion_claim": false
+    }
+  },
+  "module_skill_contract": {
+    "bounded_role": "module_owner",
+    "must_preserve_workflow": true,
+    "dispatch_phase": "in_execution",
+    "execution_priority": 50,
+    "lane_policy": "inherit_grade",
+    "parallelizable_in_root_xl": true,
+    "write_scope_template": "module:{module_id}",
+    "review_mode": "module_acceptance",
+    "required_inputs": [
+      "approved module work contract",
+      "frozen requirement context",
+      "relevant source files or domain artifacts"
+    ],
+    "expected_outputs": [
+      "bounded module findings or code changes",
+      "verification notes aligned with the assigned Skill and module acceptance criteria"
+    ],
+    "verification_expectation": "Follow the assigned SKILL.md and satisfy the module acceptance criteria."
+  },
+  "child_specialist_suggestion_contract": {
+    "field_name": "local_specialist_suggestions",
+    "escalation_required": true,
+    "approval_owner": "root_vibe",
+    "status": "root_approval_required"
+  },
+  "interactive_skill_execution_disclosure": {
+    "enabled": true,
+    "stage": "plan_execute",
+    "scope": "approved_module_handoff_only",
+    "timing": "with_agent_handoff",
+    "aggregation": "unified_once",
+    "path_source": "skill_md_path",
+    "require_entrypoint_path": true,
+    "include_description": true,
+    "header": "Agent execution handoff:"
+  },
+  "host_phase_decomposition_contract": {
+    "enabled": true,
+    "max_phase_count": 6,
+    "default_stage_type": "implementation",
+    "stage_types": {
+      "discovery": {
+        "dispatch_phase": "pre_execution",
+        "default_stage_label": "Discovery",
+        "default_execution_priority": 10
+      },
+      "implementation": {
+        "dispatch_phase": "in_execution",
+        "default_stage_label": "Implementation",
+        "default_execution_priority": 50
+      },
+      "deliverable": {
+        "dispatch_phase": "post_execution",
+        "default_stage_label": "Deliverable",
+        "default_execution_priority": 70
+      },
+      "verification": {
+        "dispatch_phase": "verification",
+        "default_stage_label": "Verification",
+        "default_execution_priority": 90
+      }
+    }
+  },
+  "host_module_execution_contract": {
+    "enabled": true,
+    "scope": "root_only",
+    "approval_owner": "user",
+    "requires_user_confirmation_for": [
+      "L",
+      "XL"
+    ],
+    "selection_modes": [
+      "inherit_runtime_default",
+      "curated_only"
+    ],
+    "default_selection_mode": "inherit_runtime_default",
+    "user_prompt": "我将会在接下来的工作中使用这些 skills，你觉得 OK 吗？"
+  },
+  "minimum_specialist_recommendation_confidence": 0.2,
+  "include_stage_assistant_recommendations": false,
+  "specialist_recommendation_limit": 6,
+  "bounded_router_task_type_default": "planning"
+}

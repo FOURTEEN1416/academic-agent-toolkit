@@ -1,0 +1,49 @@
+{
+  "schema_version": "vibeskills_public_selected_skills_v1",
+  "source_run_id": "20260718T041559Z-51996499",
+  "selected_count": 7,
+  "skills": [
+    {
+      "skill_id": "exploratory-data-analysis",
+      "entrypoint": "<user-home>\\.agents\\skills\\exploratory-data-analysis\\SKILL.md",
+      "role": "owner",
+      "work": "Materialize the public dataset and audit its structure, quality, balance, duplicates, and leakage risk."
+    },
+    {
+      "skill_id": "scikit-learn",
+      "entrypoint": "<user-home>\\.agents\\skills\\scikit-learn\\SKILL.md",
+      "role": "owner",
+      "work": "Build the frozen comparator and logistic-regression baseline, save metrics, and verify exact replay."
+    },
+    {
+      "skill_id": "statistical-analysis",
+      "entrypoint": "<user-home>\\.agents\\skills\\statistical-analysis\\SKILL.md",
+      "role": "owner",
+      "work": "Calculate variability and justified uncertainty intervals and document their assumptions."
+    },
+    {
+      "skill_id": "scientific-critical-thinking",
+      "entrypoint": "<user-home>\\.agents\\skills\\scientific-critical-thinking\\SKILL.md",
+      "role": "verifier",
+      "work": "Review bias, leakage, generalization, claim boundaries, and the non-clinical scope."
+    },
+    {
+      "skill_id": "scientific-visualization",
+      "entrypoint": "<user-home>\\.agents\\skills\\scientific-visualization\\SKILL.md",
+      "role": "owner",
+      "work": "Create and inspect four source-mapped PNG figures and matching SVG exports."
+    },
+    {
+      "skill_id": "sciwrite",
+      "entrypoint": "<user-home>\\.agents\\skills\\sciwrite\\SKILL.md",
+      "role": "owner",
+      "work": "Review the scientific report in five passes without changing the approved scientific content."
+    },
+    {
+      "skill_id": "presentations",
+      "entrypoint": "<user-home>\\.codex\\plugins\\cache\\openai-primary-runtime\\presentations\\26.715.12143\\skills\\presentations\\SKILL.md",
+      "role": "owner",
+      "work": "Build the seven-slide deck, render every slide, inspect the output, and retain its source map."
+    }
+  ]
+}

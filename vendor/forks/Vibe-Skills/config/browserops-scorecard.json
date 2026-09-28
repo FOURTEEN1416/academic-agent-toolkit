@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "updated_at": "2026-07-13",
+  "plane_id": "browserops-provider-scorecard",
+  "control_plane_owner": "vco",
+  "source_policy": "config/browserops-provider-policy.json",
+  "status_scale": [
+    "baseline",
+    "candidate_soft_only"
+  ],
+  "evaluation_axes": [
+    {
+      "id": "determinism",
+      "meaning": "是否适合作为默认稳定执行面"
+    },
+    {
+      "id": "fallback_readiness",
+      "meaning": "失败时是否存在 canonical fallback_provider"
+    },
+    {
+      "id": "telemetry_readiness",
+      "meaning": "是否能稳定留下 route evidence / outcome evidence"
+    },
+    {
+      "id": "confirm_bias",
+      "meaning": "是否必须默认保留 confirm_required 偏置"
+    },
+    {
+      "id": "takeover_safety",
+      "meaning": "是否明确禁止 second orchestrator / provider takeover"
+    }
+  ],
+  "providers": [
+    {
+      "id": "api",
+      "status": "baseline",
+      "route_role": "structured_interface_provider",
+      "determinism": "high",
+      "fallback_readiness": "browser_host_native_available",
+      "telemetry_readiness": "structured_high",
+      "confirm_bias": "not_required",
+      "takeover_safety": "hard_forbid_takeover",
+      "fallback_provider": "browser-host-native",
+      "manual_confirm_required": false,
+      "takeover_forbidden": true,
+      "soft_rollout_ceiling": "baseline"
+    },
+    {
+      "id": "browser-host-native",
+      "status": "baseline",
+      "route_role": "host_native_browser_capability",
+      "determinism": "high",
+      "fallback_readiness": "api_available",
+      "telemetry_readiness": "structured_high",
+      "confirm_bias": "not_required",
+      "takeover_safety": "hard_forbid_takeover",
+      "fallback_provider": "api",
+      "manual_confirm_required": false,
+      "takeover_forbidden": true,
+      "soft_rollout_ceiling": "baseline"
+    },
+    {
+      "id": "turix-cua",
+      "status": "candidate_soft_only",
+      "route_role": "visual_computer_use_candidate",
+      "determinism": "medium",
+      "fallback_readiness": "browser_host_native_required",
+      "telemetry_readiness": "shadow_evidence_required",
+      "confirm_bias": "required",
+      "takeover_safety": "hard_forbid_takeover",
+      "fallback_provider": "browser-host-native",
+      "manual_confirm_required": true,
+      "takeover_forbidden": true,
+      "soft_rollout_ceiling": "soft_candidate_only"
+    },
+    {
+      "id": "browser-use",
+      "status": "candidate_soft_only",
+      "route_role": "browser_provider_candidate",
+      "determinism": "medium",
+      "fallback_readiness": "browser_host_native_required",
+      "telemetry_readiness": "shadow_evidence_required",
+      "confirm_bias": "required",
+      "takeover_safety": "hard_forbid_takeover",
+      "fallback_provider": "browser-host-native",
+      "manual_confirm_required": true,
+      "takeover_forbidden": true,
+      "soft_rollout_ceiling": "soft_candidate_only"
+    }
+  ],
+  "governance_rules": [
+    "scorecard_is_evidence_not_router",
+    "active_providers_exclude_forbidden_mcp",
+    "browser_use_remains_candidate_only",
+    "candidate_providers_require_confirm_and_fallback",
+    "no_provider_can_become_second_orchestrator"
+  ]
+}

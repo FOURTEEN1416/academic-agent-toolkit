@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "max_live_documents": 30,
+  "governed_roots": [
+    ".",
+    "docs",
+    "references"
+  ],
+  "excluded_paths": [
+    "THIRD_PARTY_LICENSES.md"
+  ],
+  "excluded_prefixes": [
+    "references/provenance/"
+  ],
+  "documents": [
+    {
+      "id": "project-readme",
+      "path": "README.md",
+      "owner": "project-entry",
+      "lifecycle": "live"
+    },
+    {
+      "id": "project-readme-zh",
+      "path": "README.zh.md",
+      "owner": "project-entry",
+      "lifecycle": "live"
+    },
+    {
+      "id": "contributor-entry",
+      "path": "CONTRIBUTING.md",
+      "owner": "contributor-experience",
+      "lifecycle": "live"
+    },
+    {
+      "id": "verification-language",
+      "path": "CONTEXT.md",
+      "owner": "verification",
+      "lifecycle": "live"
+    },
+    {
+      "id": "docs-entry",
+      "path": "docs/README.md",
+      "owner": "project-entry",
+      "lifecycle": "live"
+    },
+    {
+      "id": "governance-entry",
+      "path": "docs/governance/README.md",
+      "owner": "governance",
+      "lifecycle": "live"
+    },
+    {
+      "id": "runtime-field-contract",
+      "path": "docs/governance/current-runtime-field-contract.md",
+      "owner": "runtime-contracts",
+      "lifecycle": "live"
+    },
+    {
+      "id": "routing-contract",
+      "path": "docs/governance/current-routing-contract.md",
+      "owner": "routing",
+      "lifecycle": "live"
+    },
+    {
+      "id": "skill-admission-contract",
+      "path": "docs/governance/skill-admission-hardening.md",
+      "owner": "skill-catalog",
+      "lifecycle": "live"
+    },
+    {
+      "id": "bundled-retention-contract",
+      "path": "docs/governance/bundled-skill-retention-matrix.md",
+      "owner": "skill-catalog",
+      "lifecycle": "live"
+    },
+    {
+      "id": "developer-change-contract",
+      "path": "docs/developer-change-governance.md",
+      "owner": "governance",
+      "lifecycle": "live"
+    },
+    {
+      "id": "governance-history-decision",
+      "path": "docs/adr/0001-externalize-governance-history.md",
+      "owner": "governance",
+      "lifecycle": "retained"
+    },
+    {
+      "id": "contributor-zone-contract",
+      "path": "references/contributor-zone-decision-table.md",
+      "owner": "contributor-experience",
+      "lifecycle": "live"
+    },
+    {
+      "id": "change-proof-contract",
+      "path": "references/change-proof-matrix.md",
+      "owner": "verification",
+      "lifecycle": "live"
+    },
+    {
+      "id": "developer-entry-contract",
+      "path": "references/developer-entry-contract.md",
+      "owner": "contributor-experience",
+      "lifecycle": "live"
+    },
+    {
+      "id": "primary-skill-contract",
+      "path": "SKILL.md",
+      "owner": "runtime-entry",
+      "lifecycle": "live"
+    },
+    {
+      "id": "install-guide-zh",
+      "path": "docs/install/README.md",
+      "owner": "installer",
+      "lifecycle": "live"
+    },
+    {
+      "id": "install-guide-en",
+      "path": "docs/install/README.en.md",
+      "owner": "installer",
+      "lifecycle": "live"
+    },
+    {
+      "id": "troubleshooting-guide",
+      "path": "docs/troubleshooting.md",
+      "owner": "operator-experience",
+      "lifecycle": "live"
+    },
+    {
+      "id": "architecture-entry",
+      "path": "docs/architecture.md",
+      "owner": "runtime-architecture",
+      "lifecycle": "live"
+    },
+    {
+      "id": "documentation-architecture",
+      "path": "docs/docs-information-architecture.md",
+      "owner": "governance",
+      "lifecycle": "live"
+    },
+    {
+      "id": "repository-cleanliness-contract",
+      "path": "docs/repo-cleanliness-governance.md",
+      "owner": "verification",
+      "lifecycle": "live"
+    },
+    {
+      "id": "distribution-contract",
+      "path": "docs/governance/distribution-governance.md",
+      "owner": "distribution",
+      "lifecycle": "live"
+    },
+    {
+      "id": "source-neutral-link-contract",
+      "path": "docs/governance/source-neutral-link-governance.md",
+      "owner": "governance",
+      "lifecycle": "live"
+    },
+    {
+      "id": "observability-contract",
+      "path": "docs/governance/observability-consistency-governance.md",
+      "owner": "verification",
+      "lifecycle": "live"
+    },
+    {
+      "id": "delivery-acceptance-contract",
+      "path": "docs/governance/vibe-governed-project-delivery-acceptance-governance.md",
+      "owner": "runtime-contracts",
+      "lifecycle": "live"
+    },
+    {
+      "id": "origin-provenance-contract",
+      "path": "docs/governance/origin-provenance-policy.md",
+      "owner": "provenance",
+      "lifecycle": "retained"
+    },
+    {
+      "id": "references-entry",
+      "path": "references/index.md",
+      "owner": "contributor-experience",
+      "lifecycle": "live"
+    }
+  ],
+  "stable_entry_links": [
+    {
+      "source": "README.md",
+      "targets": [
+        "README.zh.md",
+        "CONTRIBUTING.md",
+        "docs/README.md"
+      ]
+    },
+    {
+      "source": "README.zh.md",
+      "targets": [
+        "README.md",
+        "CONTRIBUTING.md",
+        "docs/README.md"
+      ]
+    },
+    {
+      "source": "CONTRIBUTING.md",
+      "targets": [
+        "docs/README.md",
+        "docs/developer-change-governance.md",
+        "references/change-proof-matrix.md",
+        "references/developer-entry-contract.md"
+      ]
+    },
+    {
+      "source": "docs/README.md",
+      "targets": [
+        "docs/governance/README.md",
+        "docs/developer-change-governance.md"
+      ]
+    }
+  ],
+  "proof_retention": {
+    "pull_request_days": 30,
+    "main_and_scheduled_days": 90,
+    "formal_release": "github_release"
+  },
+  "artifact_sink": {
+    "schema_version": 1,
+    "root": ".vibeskills/runs",
+    "required_artifacts": [
+      "requirement",
+      "plan",
+      "status",
+      "proof"
+    ],
+    "required_metadata": [
+      "commit_sha",
+      "execution_environment"
+    ],
+    "artifact_paths": {
+      "requirement": "requirement.json",
+      "plan": "plan.json",
+      "status": "status.json",
+      "proof": "proof.json"
+    },
+    "primary_document_paths": {
+      "requirement": "requirement.md",
+      "plan": "plan.md"
+    },
+    "manifest_path": "manifest.json",
+    "legacy_compatibility_path": "legacy-compatibility.json",
+    "session_receipts": {
+      "root": "outputs/runtime/vibe-sessions",
+      "owner": "runtime",
+      "retention": "workspace_local",
+      "copy_to_artifact_sink": true
+    },
+    "legacy_projection_root": "vibe/runs",
+    "legacy_documentation_roots": [
+      "docs/requirements",
+      "docs/plans"
+    ],
+    "legacy_removal_release": "4.1.0",
+    "legacy_write_mode": "disabled"
+  }
+}

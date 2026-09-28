@@ -1,0 +1,87 @@
+id: B04
+title: "S. cerevisiae ethanol yield under oxygen limitation and carbon-source changes"
+arxiv_id: null
+venue: "ARC-Bench Biology 2026"
+paper_asset: null
+
+synthesis: |
+  Yeast ethanol fermentation is a natural extension beyond E. coli while still
+  staying inside BIGG/COBRApy constraint-based modelling. A credible study
+  loads iMM904 or a comparable yeast GSMM, validates growth on glucose, sweeps
+  oxygen availability, compares glucose and alternative carbon sources, and
+  quantifies ethanol secretion and yield.
+
+hypotheses:
+  - id: H1
+    statement: "The yeast model grows on glucose-minimal medium and produces a feasible FBA solution."
+    measurable: true
+  - id: H2
+    statement: "Ethanol secretion/yield increases as oxygen uptake is restricted relative to fully aerobic growth."
+    measurable: true
+  - id: H3
+    statement: "Carbon-source swaps produce distinct growth and ethanol-yield profiles, with glucose supporting stronger fermentation than at least one alternative carbon source."
+    measurable: true
+
+experiment_design:
+  research_question: "How do oxygen limitation and carbon source alter predicted ethanol secretion and yield in S. cerevisiae?"
+  conditions:
+    - name: "yeast_glucose_reference"
+      description: "S. cerevisiae iMM904 or comparable model on glucose-minimal medium."
+    - name: "oxygen_sweep"
+      description: "Sweep oxygen uptake from anaerobic/low oxygen to aerobic while glucose uptake is fixed."
+    - name: "carbon_source_swap"
+      description: "Compare glucose, fructose, galactose, glycerol, and acetate when supported by the model."
+  baselines:
+    - "Aerobic glucose condition."
+    - "Anaerobic or oxygen-limited glucose condition."
+  metrics:
+    - name: "growth_rate_1_per_h"
+      direction: "maximize"
+      description: "Biomass flux."
+    - name: "ethanol_flux_mmol_gDW_h"
+      direction: "maximize"
+      description: "Ethanol exchange secretion flux."
+    - name: "ethanol_yield_per_carbon_uptake"
+      direction: "maximize"
+      description: "Ethanol secretion divided by substrate uptake."
+  datasets:
+    - name: "S. cerevisiae iMM904"
+      source: "BIGG iMM904 via cobra.io.load_model if available, or documented local SBML/JSON yeast model."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1800
+
+rubric_path: "experiments/arc_bench/config/biology/rubrics/B04.json"
+
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: "results.json contains yeast model ID, metrics, hypotheses, and structured oxygen/carbon-source results."
+    must_pass: true
+  - id: req_oxygen_sweep
+    type: artifact
+    description: "A machine-readable oxygen-sweep table exists with oxygen bound, growth, ethanol flux, and yield."
+    must_pass: true
+  - id: req_carbon_source_table
+    type: artifact
+    description: "A carbon-source comparison table exists, including unsupported sources marked explicitly."
+    must_pass: true
+  - id: req_figure
+    type: artifact
+    description: "At least one oxygen-vs-ethanol or carbon-source yield figure exists with units."
+    must_pass: true
+  - id: req_h1_h2_h3_supported_flags
+    type: discussion
+    description: >
+      Each of hypotheses.h1, hypotheses.h2, hypotheses.h3 in results.json MUST
+      have an explicit `supported` boolean and a `details` string of at least
+      40 characters describing the evidence used to reach that verdict.
+    must_pass: true
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: "The ethanol-yield response to oxygen and carbon source is discussed mechanistically — why oxygen restriction increases ethanol yield and how carbon-source metabolism shapes fermentation. Acceptable inside summary, structured_results, or a separate writeup field."
+    must_pass: false  # Optional: nice-to-have, not blocking
+  - id: req_seed_documented
+    type: discussion
+    description: "The solver backend (cobra optlang interface name + version) and COBRApy version are reported in results.json. Required for reproducibility but not for scientific correctness."
+    must_pass: false  # Optional

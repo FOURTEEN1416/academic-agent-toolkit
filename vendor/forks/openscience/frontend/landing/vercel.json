@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  },
+  "framework": "vite",
+  "buildCommand": "bun run build",
+  "installCommand": "bun install",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/docs", "destination": "/docs/index.html" },
+    { "source": "/docs/:path*", "destination": "/docs/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

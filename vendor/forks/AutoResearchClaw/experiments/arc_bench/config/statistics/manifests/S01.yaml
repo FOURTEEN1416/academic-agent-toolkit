@@ -1,0 +1,157 @@
+id: S01
+title: "Bootstrap confidence intervals under non-Gaussian data"
+arxiv_id: null
+venue: "ARC-Bench Statistics 2026"
+paper_asset: null
+
+synthesis: |
+  Bootstrap confidence intervals are widely used when analytic standard errors
+  are inconvenient, but their finite-sample coverage can change substantially
+  with skewness, heavy tails, contamination, and the choice of statistic. A
+  credible study of this topic should simulate data-generating processes with
+  known estimands, compare several bootstrap confidence interval methods, and
+  evaluate empirical coverage and interval width.
+
+  The study should not only report whether nominal 95% intervals contain the
+  truth, but also explain when wider intervals, robust estimators, or
+  studentized intervals improve reliability. The research question is: *how do
+  bootstrap interval choices and estimator choices affect empirical coverage
+  under light-tailed, skewed, and heavy-tailed data?*
+
+hypotheses:
+  - id: H1
+    statement: "Percentile bootstrap intervals for the sample mean achieve near-nominal coverage under light-tailed Gaussian data, especially at moderate sample sizes."
+    measurable: true
+  - id: H2
+    statement: "Percentile bootstrap intervals for the sample mean under-cover under heavy-tailed or contaminated data."
+    measurable: true
+  - id: H3
+    statement: "Robust location estimators, such as the median or trimmed mean, improve coverage stability or interval behavior under heavy-tailed or contaminated data."
+    measurable: true
+
+experiment_design:
+  research_question: "How do bootstrap confidence interval methods behave across light-tailed, skewed, and heavy-tailed distributions?"
+  estimands:
+    - name: "population_mean"
+      description: "The true mean of each simulated data-generating process when it exists."
+    - name: "robust_location"
+      description: "A robust target such as the median or trimmed mean, used when heavy tails or contamination make mean-based inference unstable."
+  conditions:
+    - name: "normal_theory_mean_ci"
+      description: "Classical normal or t-based interval for the sample mean."
+    - name: "percentile_bootstrap_mean"
+      description: "Percentile bootstrap interval for the sample mean."
+    - name: "studentized_bootstrap_mean"
+      description: "Studentized or bootstrap-t interval for the sample mean, or a justified bootstrap alternative."
+    - name: "robust_estimator_bootstrap"
+      description: "Bootstrap interval for a robust estimator such as the median or trimmed mean."
+  data_generating_conditions:
+    - name: "gaussian"
+      description: "Light-tailed data where standard mean inference should work well."
+    - name: "lognormal_skewed"
+      description: "Skewed data where percentile intervals may show asymmetric finite-sample behavior."
+    - name: "student_t_heavy_tailed"
+      description: "Heavy-tailed data with unstable sample means."
+    - name: "contaminated_normal"
+      description: "Mostly normal data with a small fraction of extreme outliers."
+  metrics:
+    - name: "coverage"
+      direction: "target_0.95"
+      description: "Empirical fraction of intervals containing the true estimand."
+    - name: "coverage_error"
+      direction: "minimize_abs"
+      description: "Absolute deviation from nominal 95% coverage."
+    - name: "interval_width"
+      direction: "minimize_given_coverage"
+      description: "Average interval width, interpreted jointly with coverage."
+    - name: "failure_rate"
+      direction: "minimize"
+      description: "Fraction of simulation runs where an interval could not be computed or produced invalid values."
+  simulation_settings:
+    sample_sizes: [30, 100, 500]
+    monte_carlo_repetitions: 500
+    bootstrap_resamples: 1000
+    seeds: [0, 1, 2, 3, 4]
+  expected_artifacts:
+    - path: "src/experiment.py"
+      description: "Executable simulation code implementing confidence interval methods and data-generating processes."
+    - path: "results/metrics.json"
+      description: "Machine-readable coverage, coverage error, interval width, and failure rate by method, distribution, and sample size."
+    - path: "results/figures/"
+      description: "Diagnostic plots comparing coverage and interval width across methods and data-generating conditions."
+    - path: "report/paper.md"
+      description: "Paper-style report explaining the setup, methods, results, limitations, and per-hypothesis conclusions."
+  dependencies:
+    python:
+      - numpy
+      - pandas
+      - scipy
+      - matplotlib
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 300
+
+rubric_path: "experiments/arc_bench/config/statistics/rubrics/S01.json"
+
+# ---------------------------------------------------------------------------
+# Agent-mode requirements (consumed by researchclaw.pipeline.requirements_judge
+# at stage 15 RESEARCH_DECISION). Schema mirrors B02.yaml / P01.yaml:
+#   id          — stable identifier
+#   type        — advisory hint to the LLM judge (numeric | artifact | discussion)
+#   description — natural-language statement of what must be true post-run
+#   must_pass   — true → unmet ⇒ rerun (1 retry max); false → optional
+# ---------------------------------------------------------------------------
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: >-
+      A canonical results.json file exists at the workspace root with at least
+      the keys: primary_metric (number), metric_key (string), metrics (object
+      with numeric keys), hypotheses (object with h1/h2/h3 entries each carrying
+      a `supported` boolean), summary (non-empty string).
+    must_pass: true
+  - id: req_coverage_metrics_table
+    type: artifact
+    description: >-
+      A machine-readable metrics artifact (e.g. results/metrics.json) exists
+      reporting empirical coverage AND interval width broken down by CI method,
+      data-generating distribution, and sample size.
+    must_pass: true
+  - id: req_coverage_numeric
+    type: numeric
+    description: >-
+      results.json metrics MUST contain at least 3 numeric (non-null, finite)
+      empirical coverage values in [0, 1] for distinct (method, distribution)
+      cells, including at least one Gaussian cell and one heavy-tailed or
+      contaminated cell so H1 and H2 can be evaluated.
+    must_pass: true
+  - id: req_hypotheses_supported_flags
+    type: discussion
+    description: >-
+      results.json hypotheses.h1/h2/h3 each MUST have an explicit `supported`
+      boolean AND a `details` string ≥ 40 characters quoting the numerical
+      coverage / interval-width evidence (specific values + their source
+      artifact) used to reach the verdict.
+    must_pass: true
+  - id: req_diagnostic_figure
+    type: artifact
+    description: >-
+      At least one figure file (PNG or PDF, ≥150 DPI for raster) exists under
+      results/figures/ comparing coverage and/or interval width across methods
+      and data-generating conditions, with axes labeled and a legend.
+    must_pass: false
+  - id: req_width_tradeoff_writeup
+    type: discussion
+    description: >-
+      The report discusses the coverage-versus-interval-width tradeoff —
+      recognising that higher coverage may simply come from wider intervals and
+      that width must be read jointly with coverage. Nice-to-have, not blocking.
+    must_pass: false
+  - id: req_seed_documented
+    type: discussion
+    description: >-
+      results.json or a sibling reproducibility section names the Monte Carlo
+      repetition count, bootstrap resample count, and at least one explicit
+      random seed. Required for full reproducibility but not for scientific
+      correctness.
+    must_pass: false

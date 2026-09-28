@@ -1,0 +1,25 @@
+{
+  "description": "Send desktop notifications when Claude Code finishes working or needs user input. Works on macOS and Linux systems.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v osascript >/dev/null 2>&1; then osascript -e 'display notification \"Claude has finished working\" with title \"Claude Code\"'; elif command -v notify-send >/dev/null 2>&1; then notify-send 'Claude Code' \"Claude has finished working\"; fi"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v osascript >/dev/null 2>&1; then osascript -e 'display notification \"Claude needs your input\" with title \"Claude Code\" sound name \"Ping\"'; elif command -v notify-send >/dev/null 2>&1; then notify-send -u critical 'Claude Code' \"Claude needs your input\"; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

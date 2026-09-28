@@ -1,0 +1,109 @@
+{
+    "id": "ml07-root",
+    "requirements": "A credible experiment studying text-feature-extraction trade-offs (count, TF-IDF, hashing) with Naive Bayes and linear SVM for document classification: multiple vectorizer+classifier pipelines are implemented, runs execute on multiple datasets, and results address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact threshold satisfaction. Equivalent vectorizer/classifier substitutes (e.g., SGDClassifier in place of LinearSVC) should be credited when the scientific question is preserved.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml07-code",
+            "requirements": "Feature extractors and classifiers are implemented as distinct pipeline code paths enabling fair comparison.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml07-code-conditions",
+                    "requirements": "The submission implements multiple text-classification pipelines combining a vectorizer (count, TF-IDF, or hashing) with a classifier (Multinomial Naive Bayes or LinearSVC-style linear model) as distinct code paths rather than a single reused model without feature changes.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml07-code-datasets",
+                    "requirements": "The submission uses multiple document datasets (including at least one 20newsgroups subset or comparable) with explicit train/test usage and preprocessing applied consistently across conditions.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml07-code-fairness",
+                    "requirements": "The experiment keeps comparable tokenization / n-gram choices across vectorizers where applicable and uses reasonable, shared hyperparameters (e.g., C for LinearSVC, alpha for MNB) so condition comparisons are fair.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml07-exec",
+            "requirements": "Execution logs predictive-quality and efficiency metrics per condition.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml07-exec-metrics",
+                    "requirements": "Execution produces a machine-readable metrics artifact with numeric macro-F1 (or equivalent) and a wall-clock fit+predict time measure for each implemented (condition, dataset) cell.",
+                    "weight": 16.6667,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml07-exec-repeats",
+                    "requirements": "Execution repeats evaluation where randomness exists (e.g., synthetic-data generation or classifier random_state) across multiple seeds and reports dispersion for macro-F1. Deterministic pipelines may report a single run if no stochasticity is involved.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml07-results",
+            "requirements": "Results directly address H1/H2/H3 with an interpretable narrative of accuracy-efficiency trade-offs.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml07-result-h1",
+                    "requirements": "The submission ranks conditions by macro-F1 per dataset and conveys whether TF-IDF + linear SVM (or equivalent) tends to be the top pipeline \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml07-result-h2",
+                    "requirements": "The submission compares the runtime of hashing-vectorizer-based pipelines vs TF-IDF-based ones and conveys whether hashing yields a meaningful runtime reduction.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml07-result-h3",
+                    "requirements": "The submission compares count + Multinomial NB against TF-IDF + linear SVM on macro-F1 and conveys whether count-MNB is approximately competitive on at least one dataset \u2014 judge directionally against H3.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml07-result-writeup",
+                    "requirements": "The README or writeup describes methods and datasets, reports the key metric numbers, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations such as dataset scope, preprocessing choices, timing noise, and hyperparameter coverage. No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

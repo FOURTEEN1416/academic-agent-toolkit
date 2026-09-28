@@ -1,0 +1,102 @@
+# ============================================================================
+# T20 — Benchmarking classical time-series forecasters on synthetic seasonal series
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML20
+title: "Classical forecaster robustness on synthetic seasonal time series"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Classical univariate forecasting methods remain widely used because they are
+  interpretable and lightweight, yet their comparative behavior can flip under
+  different data-generating regimes. AR models often perform well when dynamics
+  are mostly autoregressive and weakly seasonal; ARIMA can absorb trend and
+  differencing structure; SARIMAX can explicitly represent seasonal lag effects;
+  ETS captures error-trend-seasonal decomposition; and Theta is often a strong
+  low-variance baseline. In small CPU-constrained settings, practitioners need
+  practical guidance about which method is robust to changing signal-to-noise
+  and seasonality strength.
+
+  A synthetic benchmark is appropriate here because we can precisely control
+  trend slope, seasonal amplitude, and observation noise while keeping compute
+  modest. By generating multiple families of monthly-like series with known
+  periodicity (e.g., period 12), we can evaluate whether model rankings are
+  stable or regime-dependent. This avoids overfitting conclusions to one
+  real-world dataset and enables direct stress testing under high-noise versus
+  high-seasonality conditions.
+
+  A credible study should compare at least four of {AR, ARIMA, SARIMAX, ETS,
+  Theta} on 2–3 synthetic dataset families, using rolling-origin or holdout
+  forecasts with a fixed horizon. It should report scale-robust error metrics
+  (especially sMAPE), include at least one baseline (e.g., seasonal naive), and
+  aggregate over multiple random seeds. The analysis should explicitly test
+  whether one method is consistently best overall or whether the best choice
+  depends on data regime.
+
+  The key outcome is actionable selection logic: if seasonal structure is strong
+  and noise is low, do seasonal/state-space methods dominate; and if noise is
+  high, do simpler methods become competitive? These are concrete decisions an
+  autonomous forecasting pipeline can apply when only limited data and CPU are
+  available.
+
+  *How do AR, ARIMA, SARIMAX, ETS, and Theta compare in sMAPE robustness across synthetic seasonal series with controlled trend, seasonality amplitude, and noise levels?*
+
+hypotheses:
+  - id: H1
+    statement: "SARIMAX or ETS achieves the lowest mean sMAPE on at least 2 of 3 synthetic dataset families when seasonality amplitude is high (amplitude >= 8) and noise is low (sigma <= 1.0), averaged over >=5 seeds."
+    measurable: true
+  - id: H2
+    statement: "Under high-noise settings (sigma >= 3.0), the sMAPE gap between the best advanced method (ARIMA/SARIMAX/ETS/Theta) and a seasonal_naive baseline is <= 5 percentage points on at least 2 of 3 dataset families."
+    measurable: true
+  - id: H3
+    statement: "No single method among {AR, ARIMA, SARIMAX, ETS, Theta} ranks first in mean sMAPE on all evaluated dataset families, indicating regime-dependent winners."
+    measurable: true
+
+experiment_design:
+  research_question: "Which classical forecasting method is most robust in sMAPE across controlled synthetic regimes of trend, seasonality amplitude, and noise?"
+  conditions:
+    - name: "ar_lag12"
+      description: "Autoregressive model with lag order selected from {3,6,12} by AIC on training split."
+    - name: "arima_auto_small"
+      description: "Non-seasonal ARIMA with (p,d,q) searched over small grid p,q in [0,2], d in [0,1], selected by AIC."
+    - name: "sarimax_seasonal12"
+      description: "Seasonal ARIMA/SARIMAX with seasonal period 12 and small grid over (p,d,q)x(P,D,Q), selected by AIC."
+    - name: "ets_additive"
+      description: "Exponential smoothing with additive trend/seasonality (period 12), damped trend optional by AIC."
+    - name: "theta"
+      description: "ThetaModel forecast with default theta decomposition for univariate series."
+  baselines:
+    - "seasonal_naive (forecast y_t = y_{t-12}) as a simple seasonal baseline"
+    - "naive_last (random walk) as a non-seasonal baseline"
+  metrics:
+    - name: "smape"
+      direction: "minimize"
+      description: "Symmetric Mean Absolute Percentage Error on forecast horizon, averaged over seeds and series instances."
+    - name: "mae"
+      direction: "minimize"
+      description: "Mean Absolute Error on forecast horizon."
+    - name: "fit_time_sec"
+      direction: "minimize"
+      description: "Per-method wall-clock fit+forecast runtime in seconds."
+  datasets:
+    - name: "syn_low_noise_high_season"
+      source: "Synthetic monthly series: length 180, period 12, trend slope in [0.0,0.2], season amplitude in [8,12], gaussian noise sigma in [0.5,1.0]."
+    - name: "syn_medium_noise_medium_season"
+      source: "Synthetic monthly series: length 180, period 12, trend slope in [0.1,0.4], season amplitude in [4,8], gaussian noise sigma in [1.5,2.5]."
+    - name: "syn_high_noise_low_season"
+      source: "Synthetic monthly series: length 180, period 12, trend slope in [0.0,0.3], season amplitude in [1,4], gaussian noise sigma in [3.0,4.0]."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 720
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML20.json"

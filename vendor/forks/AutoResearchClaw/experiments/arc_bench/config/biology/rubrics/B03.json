@@ -1,0 +1,166 @@
+{
+  "id": "B03",
+  "requirements": "A credible anaerobic E. coli lactate-overproduction study using COBRApy that validates anaerobic growth, computes a lactate production envelope, screens a focused central-carbon/fermentation knockout set, and explains top candidates mechanistically.",
+  "judging_note": "Accept iJO1366, iAF1260, or comparable curated E. coli models. Score coherent anaerobic setup and mechanistic KO interpretation over exact gene names.",
+  "weight": 1,
+  "sub_tasks": [
+    {
+      "id": "b03-code",
+      "requirements": "COBRApy code implements anaerobic medium, lactate objective/envelope, and knockout screening.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b03-code-medium",
+          "requirements": "Loads an E. coli BIGG model, sets glucose uptake, closes oxygen uptake, and names biomass and lactate exchange reactions.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Experimental Setup"
+        },
+        {
+          "id": "b03-code-envelope",
+          "requirements": "Computes biomass-vs-lactate production envelope by constraining biomass fractions and optimizing or FVA-bounding lactate secretion.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "b03-code-ko",
+          "requirements": "Screens a focused set of no more than 100 central-carbon and fermentation genes with model state restored between knockouts.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "b03-code-yield",
+          "requirements": "Computes lactate yield as lactate secretion divided by absolute glucose uptake, separate from flux.",
+          "weight": 4,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b03-exec",
+      "requirements": "Execution produces valid anaerobic WT, envelope, and KO tables.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b03-exec-validity",
+          "requirements": "WT anaerobic FBA is optimal with positive biomass and at least 85% of KO simulations solve or are explicitly labelled infeasible/lethal.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b03-exec-physics",
+          "requirements": "Mass-balance check passes for the loaded anaerobic model; no aerobic by-products (O2 uptake or CO2 via respiration) appear under strictly anaerobic conditions without explanation; biomass flux is positive under anaerobic glucose reference. This is the biology-validity gate equivalent to physics-validity checks in the physics rubric.",
+          "weight": 7.0,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b03-exec-artifacts",
+          "requirements": "Writes results.json plus machine-readable envelope and KO-ranking tables.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b03-results",
+      "requirements": "Results quantify lactate production, growth tradeoffs, and KO mechanisms.",
+      "weight": 3,
+      "sub_tasks": [
+        {
+          "id": "b03-result-h1",
+          "requirements": "Reports anaerobic WT growth and confirms oxygen uptake is zero or bounded closed. Score 100% if positive anaerobic WT biomass flux is reported with O2 exchange confirmed ≤0 mmol/gDW/h; 67% if growth is positive but O2 status is not explicitly confirmed; 33% if anaerobic feasibility is stated without a numeric growth value; 0% otherwise.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b03-result-h2",
+          "requirements": "Shows lactate secretion changes across biomass fractions and identifies whether production is growth-coupled, competing, or partially coupled. Score 100% if lactate secretion flux is non-decreasing as biomass fraction decreases across ≥8 of 10 envelope grid points; 67% if non-decreasing over ≥6 of 10 points; 33% if ≥4 of 10 points; 0% otherwise.",
+          "weight": 10,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b03-result-h3",
+          "requirements": "Top 5 KO list includes growth fraction, lactate flux/yield, and pathway-level rationale for at least top 3 targets. Score 100% if ≥3 of the top-5 KOs disrupt canonical competing by-product pathways (acetate, ethanol, formate, or succinate routes) or include a specific mechanistic explanation; 67% if 2 of 5 meet this criterion; 33% if 1 of 5; 0% otherwise.",
+          "weight": 12,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b03-result-figure",
+          "requirements": "Produces a labelled lactate envelope or KO ranking figure with units.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b03-result-writeup",
+          "requirements": "The README or results writeup discusses each hypothesis outcome, names the top lactate-improving knockouts with their gene/enzyme identity, and gives a one-paragraph mechanistic interpretation (which competing pathways the KOs disable, why this redirects anaerobic flux to lactate).",
+          "weight": 6.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b03-repro",
+      "requirements": "Medium, model, gene set, solver, and thresholds are reproducibly recorded.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b03-repro-model",
+          "requirements": "The loaded E. coli GSMM is either persisted (models/<model_id>.json) or pinned by BIGG model ID and source URL in the writeup; a downstream user can locate the exact model object and reproduce the anaerobic medium setup.",
+          "weight": 5.0,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        },
+        {
+          "id": "b03-repro-runcard",
+          "requirements": "Saves anaerobic medium bounds, biomass threshold, KO gene set, and lactate reaction ID.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        },
+        {
+          "id": "b03-repro-solver",
+          "requirements": "Records COBRApy/solver versions and confirms rerun consistency for WT growth.",
+          "weight": 5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    }
+  ],
+  "task_category": null,
+  "finegrained_task_category": null
+}

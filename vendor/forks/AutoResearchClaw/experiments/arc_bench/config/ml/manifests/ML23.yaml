@@ -1,0 +1,98 @@
+# ============================================================================
+# T23 — Comparing learning-to-rank approaches on synthetic query-document data
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML23
+title: "Pointwise vs pairwise vs listwise learning-to-rank on synthetic query-document benchmarks"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Learning-to-rank (LTR) objectives are often grouped into pointwise, pairwise,
+  and listwise families, each optimizing a different surrogate of retrieval
+  quality. Pointwise methods reduce ranking to regression/classification on
+  individual query-document pairs; pairwise methods optimize relative order
+  between document pairs; listwise methods directly shape permutations or top-k
+  emphasis. In production IR systems, metric alignment (especially with NDCG)
+  is often cited as a reason to prefer pairwise/listwise objectives, but this
+  claim is difficult to test cleanly on public collections with many confounds.
+
+  A compact synthetic benchmark with known latent relevance structure allows a
+  controlled comparison. If query-specific utility functions generate graded
+  relevance labels (0-4), we can produce query groups with explicit train/test
+  splits and evaluate whether objectives aligned with ranking structure obtain
+  better NDCG@10 than a strong linear pointwise baseline. Because the data are
+  synthetic, we can vary noise and query heterogeneity while keeping runtime low
+  enough for single-core CPU execution.
+
+  A credible study should implement three distinct training paradigms in the
+  same feature space: (1) pointwise linear regression on grades, (2) a
+  RankNet-lite pairwise logistic objective over within-query document pairs,
+  and (3) a ListMLE-lite listwise objective using per-query permutations sorted
+  by true grades. Evaluation should report NDCG@10 as primary, plus at least one
+  secondary ranking metric and a sanity metric such as training loss. Results
+  should be averaged across multiple seeds and at least two synthetic dataset
+  regimes.
+
+  The key scientific goal is not reproducing a specific paper, but testing
+  whether increasing objective-level ranking awareness yields measurable gains
+  in top-k ranking quality under controlled conditions and limited compute.
+  
+  *Do pairwise and listwise lightweight objectives consistently outperform a pointwise linear baseline on NDCG@10 across synthetic query-document datasets with graded relevance?*
+
+hypotheses:
+  - id: H1
+    statement: "ListMLE-lite achieves higher mean NDCG@10 than pointwise linear regression on at least 2 of 3 synthetic datasets, with an absolute improvement of at least 0.03 on each winning dataset (averaged over >=3 seeds)."
+    measurable: true
+  - id: H2
+    statement: "At least one of {RankNet-lite, ListMLE-lite} outperforms pointwise linear regression in mean NDCG@10 on all evaluated datasets."
+    measurable: true
+  - id: H3
+    statement: "The best ranking-aware method (max of RankNet-lite and ListMLE-lite per dataset) improves mean MAP@10 over pointwise linear by at least 0.02 on at least 2 of 3 datasets."
+    measurable: true
+
+experiment_design:
+  research_question: "Do pairwise/listwise lightweight ranking objectives provide consistent top-k retrieval gains over a pointwise linear baseline on synthetic grouped query-document data?"
+  conditions:
+    - name: "pointwise_linear"
+      description: "Linear model trained pointwise on query-document feature vectors to predict graded relevance via squared error; ranking by predicted score within each query."
+    - name: "ranknet_lite"
+      description: "Pairwise logistic ranking objective on within-query document pairs using a linear scorer; optimized with mini-batch gradient descent in numpy."
+    - name: "listmle_lite"
+      description: "Listwise ListMLE-style objective with a linear scorer, optimizing likelihood of ground-truth relevance-sorted document permutations per query."
+    - name: "pointwise_ridge_tuned"
+      description: "Pointwise linear baseline with L2 regularization tuned over a small grid to ensure a competitive non-ranking-aware baseline."
+  baselines:
+    - "pointwise_linear is the primary baseline"
+    - "pointwise_ridge_tuned is a strengthened linear baseline"
+  metrics:
+    - name: "ndcg_at_10"
+      direction: "maximize"
+      description: "Mean NDCG@10 across test queries; primary metric."
+    - name: "map_at_10"
+      direction: "maximize"
+      description: "Mean Average Precision@10 across test queries using relevance>=1 as relevant."
+    - name: "pairwise_accuracy"
+      direction: "maximize"
+      description: "Fraction of correctly ordered document pairs within test queries (based on graded relevance order)."
+  datasets:
+    - name: "synth_ltr_easy"
+      source: "Synthetic generator: 80 queries x 25 docs/query, 20 dense features, low noise, relevance grades 0-4 from latent linear utility."
+    - name: "synth_ltr_noisy"
+      source: "Synthetic generator: 100 queries x 30 docs/query, 25 features, higher Gaussian noise and feature corruption, grades 0-4."
+    - name: "synth_ltr_sparse"
+      source: "Synthetic generator: 90 queries x 20 docs/query, 40 features with sparsity mask, query-specific weight drift, grades 0-4."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 480
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML23.json"

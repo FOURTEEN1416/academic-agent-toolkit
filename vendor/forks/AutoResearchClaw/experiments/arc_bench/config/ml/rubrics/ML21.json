@@ -1,0 +1,109 @@
+{
+    "id": "ml21-root",
+    "requirements": "A credible experiment comparing causal structure learning methods (PC, GES, NOTEARS-linear, or equivalents) on small synthetic Gaussian linear-SEM DAGs: methods are implemented, runs cover multiple synthetic regimes with multiple seeds, and results address H1/H2/H3 directionally using SHD-centered evidence.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Alternative structure-learning methods or linear-SEM variants that test the same scientific question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml21-code",
+            "requirements": "Core causal structure learning conditions and synthetic data generation are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml21-code-methods",
+                    "requirements": "The submission implements distinct code paths for multiple structure learning methods \u2014 typically PC, GES, and NOTEARS-linear or equivalents \u2014 rather than reusing one estimator under different names.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml21-code-synth",
+                    "requirements": "A reproducible synthetic linear-Gaussian SEM DAG generator is implemented with moderate node counts, including ground-truth adjacency export and sample generation.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml21-code-hparams",
+                    "requirements": "At least one tunable hyperparameter is exposed and used for the constraint-based method (e.g., PC's alpha) and the continuous-optimization method (e.g., NOTEARS' sparsity weight), with documented default or grid values.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Hyperparameter Tuning"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml21-exec",
+            "requirements": "The benchmark produces comparable metrics across methods/regimes.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml21-exec-coverage",
+                    "requirements": "Execution covers multiple synthetic regimes and reports results for the primary methods at one or more sample sizes.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "ml21-exec-metrics",
+                    "requirements": "A machine-readable results artifact includes numeric SHD for each (method, regime) and at least one additional metric such as edge-F1 or runtime.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml21-exec-seeds",
+                    "requirements": "Each reported cell is averaged over multiple random seeds with a dispersion measure. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml21-results",
+            "requirements": "Results analysis addresses H1/H2/H3 directionally.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml21-result-h1",
+                    "requirements": "The submission compares NOTEARS-linear vs PC at a reasonable sample size and conveys whether NOTEARS achieves meaningfully lower SHD on most regimes \u2014 judge directionally against H1.",
+                    "weight": 25.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml21-result-h2h3",
+                    "requirements": "The submission conveys qualitative verdicts for H2 and H3 using SHD aggregates, including whether larger sample sizes or denser-graph regimes yield meaningful SHD improvements.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml21-result-writeup",
+                    "requirements": "The README or writeup describes setup, reports key SHD/edge-F1/runtime findings, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations (synthetic-only scope, small-node regime, hyperparameter sensitivity, finite seeds). No strict word-count requirement.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

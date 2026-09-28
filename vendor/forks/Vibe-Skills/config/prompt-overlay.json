@@ -1,0 +1,72 @@
+{
+    "version":  1,
+    "updated":  "2026-02-25",
+    "enabled":  true,
+    "mode": "soft",
+    "preserve_routing_assignment":  true,
+    "routing_integration":  "post_route_prompt_asset_overlay",
+    "task_allow":  [
+                       "planning",
+                       "research"
+                   ],
+    "grade_allow":  [
+                        "M",
+                        "L",
+                        "XL"
+                    ],
+    "confirm_scope":  {
+                          "grades":  [
+                                         "L",
+                                         "XL"
+                                     ],
+                          "task_types":  [
+                                             "planning",
+                                             "research"
+                                         ]
+                      },
+    "prompt_signal_keywords":  [
+                                   "prompt",
+                                   "prompts.chat",
+                                   "system prompt",
+                                   "提示词",
+                                   "提示词模板"
+                               ],
+    "doc_surface_keywords":  [
+                                 "api reference",
+                                 "official docs",
+                                 "responses api",
+                                 "chat completions",
+                                 "model limits",
+                                 "官方文档",
+                                 "接口参考"
+                             ],
+    "intent_facets":  {
+                          "template_seek":  [
+                                                "prompt template",
+                                                "prompt library",
+                                                "prompts.chat",
+                                                "提示词模板",
+                                                "提示词库"
+                                            ],
+                          "prompt_refine":  [
+                                                "improve prompt",
+                                                "optimize prompt",
+                                                "prompt engineering",
+                                                "改进提示词",
+                                                "优化提示词",
+                                                "提示词优化"
+                                            ],
+                          "prompt_publish":  [
+                                                 "publish prompt",
+                                                 "save prompt",
+                                                 "分享提示词",
+                                                 "保存提示词",
+                                                 "提示词发布"
+                                             ]
+                      },
+    "fallback_behavior":  {
+                              "on_missing_config":  "bypass_overlay",
+                              "on_ambiguity":  "confirm_required_in_soft_or_strict",
+                              "on_hook_failure":  "continue_core_routing"
+                          }
+}

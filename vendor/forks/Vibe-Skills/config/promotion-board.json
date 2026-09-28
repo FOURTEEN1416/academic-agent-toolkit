@@ -1,0 +1,484 @@
+{
+  "version": 3,
+  "updated_at": "2026-03-07",
+  "board_policy": {
+    "mode": "advice_first",
+    "forbid_unsafe_auto_promote": true,
+    "write_scope": "shadow_to_soft_only_with_explicit_flag",
+    "promote_stage_is_board_decision_only": true,
+    "rollback_first": true,
+    "plane_scorecard_required": true,
+    "ops_cockpit_required_before_release": true,
+    "rollback_drill_required_before_release": true,
+    "runtime_freshness_gate_required": true,
+    "anti_drift_mode": "report_only",
+    "anti_drift_release_summary_required": true,
+    "anti_drift_warning_codes_are_non_blocking_without_independent_failed_gate": true
+  },
+  "allowed_stages": [
+    "off",
+    "shadow",
+    "soft",
+    "strict",
+    "promote"
+  ],
+  "stage_requirements": {
+    "shadow": {
+      "minimum_gate_pass_count": 0,
+      "pilot_required": false,
+      "rollback_required": true,
+      "manual_review_required": false
+    },
+    "soft": {
+      "minimum_gate_pass_count": 0,
+      "pilot_required": true,
+      "rollback_required": true,
+      "cross_plane_clear_required": true,
+      "manual_review_required": true,
+      "scorecard_required": true,
+      "replay_required": true
+    },
+    "strict": {
+      "minimum_gate_pass_count": 0,
+      "pilot_required": true,
+      "rollback_required": true,
+      "cross_plane_clear_required": true,
+      "manual_review_required": true,
+      "scorecard_required": true,
+      "replay_required": true
+    },
+    "promote": {
+      "minimum_gate_pass_count": 0,
+      "pilot_required": true,
+      "rollback_required": true,
+      "cross_plane_clear_required": true,
+      "manual_review_required": true,
+      "script_can_apply": false,
+      "scorecard_required": true,
+      "replay_required": true,
+      "release_evidence_required": true,
+      "anti_drift_release_summary_required": true
+    }
+  },
+  "planes": [
+    {
+      "plane_id": "memory-runtime-v2",
+      "current_stage": "soft",
+      "next_stage": "soft",
+      "required_gates": [
+        "vibe-memory-tier-gate",
+        "vibe-mem0-backend-gate",
+        "vibe-letta-contract-gate",
+        "vibe-cross-plane-conflict-gate",
+        "vibe-pilot-scenarios",
+        "vibe-memory-runtime-v3-gate",
+        "vibe-mem0-softrollout-gate",
+        "vibe-letta-policy-conformance-gate"
+      ],
+      "pilot_fixture": "scripts/verify/fixtures/pilot-memory.json",
+      "pilot_status": "fixture_defined",
+      "evidence": {
+        "artifact_pack_ready": true,
+        "pilot_fixture_ready": true,
+        "cross_plane_conflict_ready": true,
+        "rollback_ready": true,
+        "soft_candidate_ready": true,
+        "strict_candidate_ready": false,
+        "promote_candidate_ready": false,
+        "latest_gate_status": "manual_soft_rollout_written",
+        "scorecard_ready": true,
+        "replay_ready": true,
+        "ops_cockpit_ready": false,
+        "release_train_ready": false
+      },
+      "rollback": {
+        "command": "set memory-related policies back to shadow/off",
+        "owner": "vco-core",
+        "revert_to_stage": "shadow",
+        "max_safe_auto_write_stage": "soft"
+      },
+      "evidence_summary": "memory runtime v3 收束 mem0 / Letta / memory tier router；单一 canonical truth-source 不变。",
+      "owner": "vco-core",
+      "last_reviewed_at": "2026-03-07"
+    },
+    {
+      "plane_id": "prompt-intelligence",
+      "current_stage": "soft",
+      "next_stage": "soft",
+      "required_gates": [
+        "vibe-prompt-overlay-gate",
+        "vibe-prompt-asset-boost-gate",
+        "vibe-prompt-intelligence-assets-gate",
+        "vibe-cross-plane-conflict-gate",
+        "vibe-pilot-scenarios",
+        "vibe-prompt-intelligence-productization-gate"
+      ],
+      "pilot_fixture": "scripts/verify/fixtures/pilot-prompt.json",
+      "pilot_status": "fixture_defined",
+      "evidence": {
+        "artifact_pack_ready": true,
+        "pilot_fixture_ready": true,
+        "cross_plane_conflict_ready": true,
+        "rollback_ready": true,
+        "soft_candidate_ready": true,
+        "strict_candidate_ready": false,
+        "promote_candidate_ready": false,
+        "latest_gate_status": "manual_soft_rollout_written",
+        "scorecard_ready": true,
+        "replay_ready": true,
+        "ops_cockpit_ready": false,
+        "release_train_ready": false
+      },
+      "rollback": {
+        "command": "disable prompt-intelligence policy or revert to shadow",
+        "owner": "vco-core",
+        "revert_to_stage": "shadow",
+        "max_safe_auto_write_stage": "soft"
+      },
+      "evidence_summary": "prompt intelligence 已产品化为 cards / checklist / route hints，仍保持 advisory-first。",
+      "owner": "vco-core",
+      "last_reviewed_at": "2026-03-07"
+    },
+    {
+      "plane_id": "browserops-provider",
+      "current_stage": "soft",
+      "next_stage": "soft",
+      "required_gates": [
+        "vibe-browserops-gate",
+        "vibe-cross-plane-conflict-gate",
+        "vibe-pilot-scenarios",
+        "vibe-browserops-scorecard-gate",
+        "vibe-browserops-softrollout-gate"
+      ],
+      "pilot_fixture": "scripts/verify/fixtures/pilot-browserops.json",
+      "pilot_status": "fixture_defined",
+      "evidence": {
+        "artifact_pack_ready": true,
+        "pilot_fixture_ready": true,
+        "cross_plane_conflict_ready": true,
+        "rollback_ready": true,
+        "soft_candidate_ready": true,
+        "strict_candidate_ready": false,
+        "promote_candidate_ready": false,
+        "latest_gate_status": "manual_soft_rollout_written",
+        "scorecard_ready": true,
+        "replay_ready": true,
+        "ops_cockpit_ready": false,
+        "release_train_ready": false
+      },
+      "rollback": {
+        "command": "set browserops mode to shadow/off and keep playwright baseline",
+        "owner": "vco-core",
+        "revert_to_stage": "shadow",
+        "max_safe_auto_write_stage": "soft"
+      },
+      "evidence_summary": "BrowserOps v2 以 provider scorecard + soft rollout evidence 约束 browser-use candidate posture。",
+      "owner": "vco-core",
+      "last_reviewed_at": "2026-03-07"
+    },
+    {
+      "plane_id": "desktopops-shadow",
+      "current_stage": "soft",
+      "next_stage": "soft",
+      "required_gates": [
+        "vibe-desktopops-shadow-gate",
+        "vibe-cross-plane-conflict-gate",
+        "vibe-pilot-scenarios",
+        "vibe-desktopops-replay-gate",
+        "vibe-desktopops-softrollout-gate"
+      ],
+      "pilot_fixture": "scripts/verify/fixtures/pilot-desktopops.json",
+      "pilot_status": "fixture_defined",
+      "evidence": {
+        "artifact_pack_ready": true,
+        "pilot_fixture_ready": true,
+        "cross_plane_conflict_ready": true,
+        "rollback_ready": true,
+        "soft_candidate_ready": true,
+        "strict_candidate_ready": false,
+        "promote_candidate_ready": false,
+        "latest_gate_status": "manual_soft_rollout_written",
+        "scorecard_ready": true,
+        "replay_ready": true,
+        "ops_cockpit_ready": false,
+        "release_train_ready": false
+      },
+      "rollback": {
+        "command": "set desktopops mode to shadow/off",
+        "owner": "vco-core",
+        "revert_to_stage": "shadow",
+        "max_safe_auto_write_stage": "soft"
+      },
+      "evidence_summary": "DesktopOps 以 replay suite + no-takeover soft candidate 治理 Agent-S 吸收面。",
+      "owner": "vco-core",
+      "last_reviewed_at": "2026-03-07"
+    },
+    {
+      "plane_id": "mirror-topology-governance",
+      "current_stage": "soft",
+      "next_stage": "soft",
+      "required_gates": [
+        "vibe-version-packaging-gate",
+        "vibe-nested-bundled-parity-gate",
+        "vibe-mirror-edit-hygiene-gate",
+        "vibe-release-install-runtime-coherence-gate"
+      ],
+      "pilot_fixture": "scripts/verify/fixtures/pilot-deep-extraction.json",
+      "pilot_status": "fixture_defined",
+      "evidence": {
+        "artifact_pack_ready": true,
+        "pilot_fixture_ready": true,
+        "cross_plane_conflict_ready": false,
+        "rollback_ready": true,
+        "soft_candidate_ready": true,
+        "strict_candidate_ready": false,
+        "promote_candidate_ready": false,
+        "latest_gate_status": "wave31_33_governed"
+      },
+      "rollback": {
+        "command": "restore previous mirror topology contract and disable Wave31-33 rollout gates",
+        "owner": "vco-core",
+        "revert_to_stage": "shadow",
+        "max_safe_auto_write_stage": "soft"
+      },
+      "evidence_summary": "Tracked bundled mirror is retired; legacy gate names now enforce canonical-only repo truth plus install-time generated compatibility and runtime coherence.",
+      "owner": "vco-core",
+      "last_reviewed_at": "2026-04-01"
+    },
+    {
+      "plane_id": "upstream-corpus-governance",
+      "current_stage": "soft",
+      "next_stage": "soft",
+      "required_gates": [
+        "vibe-upstream-corpus-manifest-gate",
+        "vibe-upstream-mirror-freshness-gate",
+        "vibe-deep-extraction-pilot-gate"
+      ],
+      "pilot_fixture": "scripts/verify/fixtures/pilot-deep-extraction.json",
+      "pilot_status": "fixture_defined",
+      "evidence": {
+        "artifact_pack_ready": true,
+        "pilot_fixture_ready": true,
+        "cross_plane_conflict_ready": false,
+        "rollback_ready": true,
+        "soft_candidate_ready": true,
+        "strict_candidate_ready": false,
+        "promote_candidate_ready": false,
+        "latest_gate_status": "wave34_governed"
+      },
+      "rollback": {
+        "command": "revert upstream corpus manifest changes and return board item to shadow",
+        "owner": "vco-core",
+        "revert_to_stage": "shadow",
+        "max_safe_auto_write_stage": "soft"
+      },
+      "evidence_summary": "15 个 upstream 已纳入 manifest / ledger / freshness 基线治理，不再是未登记镜像。",
+      "owner": "vco-core",
+      "last_reviewed_at": "2026-03-07"
+    },
+    {
+      "plane_id": "docling-document-plane",
+      "current_stage": "soft",
+      "next_stage": "soft",
+      "required_gates": [
+        "vibe-docling-contract-gate",
+        "vibe-deep-extraction-pilot-gate",
+        "vibe-docling-contract-v2-gate"
+      ],
+      "pilot_fixture": "scripts/verify/fixtures/pilot-deep-extraction.json",
+      "pilot_status": "fixture_defined",
+      "evidence": {
+        "artifact_pack_ready": true,
+        "pilot_fixture_ready": true,
+        "cross_plane_conflict_ready": false,
+        "rollback_ready": true,
+        "soft_candidate_ready": true,
+        "strict_candidate_ready": false,
+        "promote_candidate_ready": false,
+        "latest_gate_status": "wave35_governed",
+        "scorecard_ready": true,
+        "replay_ready": true,
+        "ops_cockpit_ready": false,
+        "release_train_ready": false
+      },
+      "rollback": {
+        "command": "revert docling provider policy to shadow-only contract mode",
+        "owner": "vco-core",
+        "revert_to_stage": "shadow",
+        "max_safe_auto_write_stage": "soft"
+      },
+      "evidence_summary": "Docling v2 contract + golden corpus evidence 形成 document plane v2 evidence。",
+      "owner": "vco-core",
+      "last_reviewed_at": "2026-03-07"
+    },
+    {
+      "plane_id": "connector-admission-layer",
+      "current_stage": "soft",
+      "next_stage": "soft",
+      "required_gates": [
+        "vibe-connector-admission-gate",
+        "vibe-deep-extraction-pilot-gate",
+        "vibe-connector-scorecard-gate",
+        "vibe-connector-action-ledger-gate"
+      ],
+      "pilot_fixture": "scripts/verify/fixtures/pilot-deep-extraction.json",
+      "pilot_status": "fixture_defined",
+      "evidence": {
+        "artifact_pack_ready": true,
+        "pilot_fixture_ready": true,
+        "cross_plane_conflict_ready": false,
+        "rollback_ready": true,
+        "soft_candidate_ready": true,
+        "strict_candidate_ready": false,
+        "promote_candidate_ready": false,
+        "latest_gate_status": "wave36_governed",
+        "scorecard_ready": true,
+        "replay_ready": true,
+        "ops_cockpit_ready": false,
+        "release_train_ready": false
+      },
+      "rollback": {
+        "command": "set connector admission policy back to shadow-only and disable promotion advice",
+        "owner": "vco-core",
+        "revert_to_stage": "shadow",
+        "max_safe_auto_write_stage": "soft"
+      },
+      "evidence_summary": "Connector layer 已具备 scorecard 与 side-effect ledger，仍禁止 implicit auto-install / route takeover。",
+      "owner": "vco-core",
+      "last_reviewed_at": "2026-03-07"
+    },
+    {
+      "plane_id": "role-pack-distillation",
+      "current_stage": "soft",
+      "next_stage": "soft",
+      "required_gates": [
+        "vibe-role-pack-governance-gate",
+        "vibe-deep-extraction-pilot-gate"
+      ],
+      "pilot_fixture": "scripts/verify/fixtures/pilot-deep-extraction.json",
+      "pilot_status": "fixture_defined",
+      "evidence": {
+        "artifact_pack_ready": true,
+        "pilot_fixture_ready": true,
+        "cross_plane_conflict_ready": false,
+        "rollback_ready": true,
+        "soft_candidate_ready": true,
+        "strict_candidate_ready": false,
+        "promote_candidate_ready": false,
+        "latest_gate_status": "wave37_governed"
+      },
+      "rollback": {
+        "command": "revert role-pack distillation governance to reference-only mode",
+        "owner": "vco-core",
+        "revert_to_stage": "shadow",
+        "max_safe_auto_write_stage": "soft"
+      },
+      "evidence_summary": "role-pack / skill distillation 只进入 VCO-native role cards 与 quality rules，不生成第二 orchestrator。",
+      "owner": "vco-core",
+      "last_reviewed_at": "2026-03-07"
+    },
+    {
+      "plane_id": "capability-catalog-corpus",
+      "current_stage": "soft",
+      "next_stage": "soft",
+      "required_gates": [
+        "vibe-capability-catalog-gate",
+        "vibe-deep-extraction-pilot-gate"
+      ],
+      "pilot_fixture": "scripts/verify/fixtures/pilot-deep-extraction.json",
+      "pilot_status": "fixture_defined",
+      "evidence": {
+        "artifact_pack_ready": true,
+        "pilot_fixture_ready": true,
+        "cross_plane_conflict_ready": false,
+        "rollback_ready": true,
+        "soft_candidate_ready": true,
+        "strict_candidate_ready": false,
+        "promote_candidate_ready": false,
+        "latest_gate_status": "wave38_governed"
+      },
+      "rollback": {
+        "command": "revert capability catalog entries to shadow/reference-only and disable board promotion",
+        "owner": "vco-core",
+        "revert_to_stage": "shadow",
+        "max_safe_auto_write_stage": "soft"
+      },
+      "evidence_summary": "capability catalog / discovery corpus 只作为治理目录与 eval 输入层，不接管 runtime routing。",
+      "owner": "vco-core",
+      "last_reviewed_at": "2026-03-07"
+    },
+    {
+      "plane_id": "cross-plane-runtime",
+      "current_stage": "shadow",
+      "next_stage": "soft",
+      "required_gates": [
+        "vibe-cross-plane-task-contract-gate",
+        "vibe-cross-plane-replay-gate",
+        "vibe-promotion-scorecard-gate"
+      ],
+      "pilot_fixture": "n/a",
+      "pilot_status": "contract_defined",
+      "evidence": {
+        "artifact_pack_ready": true,
+        "pilot_fixture_ready": false,
+        "cross_plane_conflict_ready": true,
+        "rollback_ready": true,
+        "soft_candidate_ready": true,
+        "strict_candidate_ready": false,
+        "promote_candidate_ready": false,
+        "scorecard_ready": true,
+        "replay_ready": true,
+        "ops_cockpit_ready": false,
+        "release_train_ready": false,
+        "latest_gate_status": "wave64-82_contractized"
+      },
+      "rollback": {
+        "command": "disable cross-plane promotion and fall back to plane-local contracts",
+        "owner": "vco-core",
+        "revert_to_stage": "shadow",
+        "max_safe_auto_write_stage": "soft"
+      },
+      "evidence_summary": "跨平面统一任务合同与 replay ledger 已形成，但仍由 VCO 主控制面仲裁。",
+      "owner": "vco-core",
+      "last_reviewed_at": "2026-03-07"
+    },
+    {
+      "plane_id": "operator-release-train",
+      "current_stage": "shadow",
+      "next_stage": "soft",
+      "required_gates": [
+        "vibe-promotion-scorecard-gate",
+        "vibe-ops-cockpit-gate",
+        "vibe-rollback-drill-gate",
+        "vibe-release-train-v2-gate",
+        "vibe-release-truth-consistency-gate",
+        "vibe-wave64-82-closure-gate"
+      ],
+      "pilot_fixture": "n/a",
+      "pilot_status": "ops_playbook_defined",
+      "evidence": {
+        "artifact_pack_ready": true,
+        "pilot_fixture_ready": false,
+        "cross_plane_conflict_ready": true,
+        "rollback_ready": true,
+        "soft_candidate_ready": true,
+        "strict_candidate_ready": false,
+        "promote_candidate_ready": false,
+        "scorecard_ready": true,
+        "replay_ready": true,
+        "ops_cockpit_ready": true,
+        "release_train_ready": true,
+        "latest_gate_status": "wave64-82_release_train_ready"
+      },
+      "rollback": {
+        "command": "stop release promotion and revert to previous governed release train",
+        "owner": "vco-core",
+        "revert_to_stage": "shadow",
+        "max_safe_auto_write_stage": "soft"
+      },
+      "evidence_summary": "operator cockpit / rollback drill / release train v2 已形成收口层，但仍要求显式人工决策。",
+      "owner": "vco-core",
+      "last_reviewed_at": "2026-03-07"
+    }
+  ]
+}

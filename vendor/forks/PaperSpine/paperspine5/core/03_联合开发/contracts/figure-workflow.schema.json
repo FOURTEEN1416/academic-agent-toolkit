@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/figure-workflow.schema.json",
+  "title": "Live PaperSpine and PaperFigure lifecycle snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "job_id", "status", "stage", "figure_counts", "phases", "next_action"],
+  "properties": {
+    "schema_version": {"const": "1.1"},
+    "job_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["in_progress", "blocked", "canonical_paper_ready", "ready_for_external_authorization"]},
+    "stage": {
+      "enum": [
+        "initialized",
+        "awaiting_candidates",
+        "awaiting_review",
+        "figures_confirmed",
+        "awaiting_paper_integration",
+        "canonical_paper_ready",
+        "target_profile_ready",
+        "rebuttal_validated",
+        "rebuttal_materials_ready",
+        "destination_rebuild_ready",
+        "awaiting_external_authorization",
+        "blocked"
+      ]
+    },
+    "figure_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "keep", "generate_or_redesign"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0},
+        "keep": {"type": "integer", "minimum": 0},
+        "generate_or_redesign": {"type": "integer", "minimum": 0}
+      }
+    },
+    "phases": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["phase", "status", "evidence"],
+        "properties": {
+          "phase": {
+            "enum": [
+              "figure_understanding_and_story",
+              "candidate_authoring_and_qa",
+              "whole_figure_review",
+              "assembly_and_body_contract",
+              "manuscript_reference_integration",
+              "final_pixel_and_paper_audit",
+              "canonical_paper_ready",
+              "publication_cycle"
+            ]
+          },
+          "status": {"enum": ["pending", "active", "not_applicable", "complete", "target_bundle_ready"]},
+          "evidence": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "next_action": {"type": ["string", "null"]}
+  }
+}

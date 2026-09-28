@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vibeskills.dev/schemas/router-provider.schema.json",
+  "title": "Router Provider Registry Contract",
+  "type": "object",
+  "required": [
+    "version",
+    "updated_at",
+    "policy",
+    "canonical_router_authority",
+    "providers"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "updated_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy": {
+      "type": "string",
+      "const": "router-provider-registry"
+    },
+    "canonical_router_authority": {
+      "type": "object",
+      "required": [
+        "script_relpath",
+        "provider_layer_advice_only"
+      ],
+      "properties": {
+        "script_relpath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider_layer_advice_only": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "providers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "module_relpath",
+          "offline_state",
+          "offline_contract"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "provider_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "module_relpath": {
+            "type": "string",
+            "minLength": 1
+          },
+          "roles_allowed": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "roles_forbidden": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "offline_state": {
+            "type": "string",
+            "enum": [
+              "heuristic-only",
+              "offline-frozen",
+              "unsupported"
+            ]
+          },
+          "offline_contract": {
+            "type": "object",
+            "required": [
+              "abstain_reason"
+            ],
+            "properties": {
+              "abstain_reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "required_env_any": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "no_network_without_credentials": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": true
+          },
+          "binding_examples": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

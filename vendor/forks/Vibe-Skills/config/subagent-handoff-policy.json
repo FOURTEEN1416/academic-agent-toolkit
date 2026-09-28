@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "required_fields": [
+    "task_id",
+    "upstream_role",
+    "downstream_role",
+    "bounded_write_scope",
+    "input_contract",
+    "expected_outputs",
+    "done_definition",
+    "rollback_owner",
+    "evidence_refs"
+  ],
+  "policy_guards": {
+    "execution_owner_remains_vco": true,
+    "orchestrator_takeover_forbidden": true,
+    "silent_merge_authority": false
+  },
+  "apply_policy": "manual_review_required"
+}

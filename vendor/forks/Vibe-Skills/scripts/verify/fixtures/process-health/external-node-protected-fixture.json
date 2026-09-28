@@ -1,0 +1,17 @@
+{
+  "case_id": "external-node-protected",
+  "now": "2026-03-11T14:00:00Z",
+  "live_processes": [
+    {
+      "pid": 44001,
+      "parent_pid": 44000,
+      "process_name": "node",
+      "command_line": "node external-service.js",
+      "working_set_bytes": 94371840,
+      "working_set_mb": 90.0
+    }
+  ],
+  "ledger": {
+    "entries": []
+  }
+}

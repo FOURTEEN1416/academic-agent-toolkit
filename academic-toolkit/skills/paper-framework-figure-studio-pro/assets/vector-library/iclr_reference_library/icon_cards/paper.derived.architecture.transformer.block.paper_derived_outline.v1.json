@@ -1,0 +1,374 @@
+{
+  "concept_id": "paper.derived.architecture.transformer.block",
+  "icon_id": "paper.derived.architecture.transformer.block.paper_derived_outline.v1",
+  "primary_meaning": "Paper-derived transformer block motif",
+  "aliases": [
+    "transformer block",
+    "attention block"
+  ],
+  "negative_aliases": [
+    "paper-specific module name",
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim",
+    "literal reproduction of source figure"
+  ],
+  "shape_family_id": "paper.derived.transformer",
+  "style_variant": "paper_derived_refined_outline",
+  "domain_tags": [
+    "paper_derived",
+    "framework_figure_motif",
+    "AI",
+    "CS",
+    "paper_figure",
+    "architecture",
+    "transformer",
+    "block"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot",
+    "visual_layout_reuse"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support",
+    "literal reproduction of source paper figure"
+  ],
+  "source_lineage": {
+    "import_mode": "paper_figure_motif_abstraction",
+    "source": "paper_framework_figure_motif_extraction",
+    "source_path": "final_reference_figure_library.jsonl",
+    "source_figure_count": 10,
+    "source_figures": [
+      {
+        "reference_case_id": "iclr2025/ctrl-adapter-an-efficient-and-versatile-framework-for-adapting-diverse-controls-to-any-dif/fig-0008",
+        "paper_title": "Ctrl-Adapter: An Efficient and Versatile Framework for Adapting Diverse Controls to Any Diffusion Model",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/ctrl-adapter-an-efficient-and-versatile-framework-for-adapting-diverse-controls-to-any-dif/figures/framework_08_method-adapter.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/ctrl-adapter-an-efficient-and-versatile-framework-for-adapting-diverse-controls-to-any-dif/sources/arxiv_src/main.tex",
+          "line": 293,
+          "label": "fig:adapter_method",
+          "includegraphics": "img/method_adapter.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/dept-decoupled-embeddings-for-pre-training-language-models/fig-0002",
+        "paper_title": "DEPT: Decoupled Embeddings for Pre-training Language Models",
+        "field": "FL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/FL/dept-decoupled-embeddings-for-pre-training-language-models/figures/framework_02_mclr-pile-act-l2-norms.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/FL/dept-decoupled-embeddings-for-pre-training-language-models/sources/arxiv_src/files/eval.tex",
+          "line": 61,
+          "label": "fig:motivation:pre_train_Activations",
+          "includegraphics": "plots/MCLR_PILE_ACT_l2_norms.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/differential-transformer/fig-0001",
+        "paper_title": "Differential Transformer",
+        "field": "RAG",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/RAG/differential-transformer/figures/framework_01_method.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/RAG/differential-transformer/sources/arxiv_src/main.tex",
+          "line": 171,
+          "label": "fig:method",
+          "includegraphics": "figure/method.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/dynamic-multimodal-evaluation-with-flexible-complexity-by-vision-language-bootstrapping/fig-0001",
+        "paper_title": "Dynamic Multimodal Evaluation with Flexible Complexity by Vision-Language Bootstrapping",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/dynamic-multimodal-evaluation-with-flexible-complexity-by-vision-language-bootstrapping/figures/framework_01_fig-2-method-final-user-action.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/dynamic-multimodal-evaluation-with-flexible-complexity-by-vision-language-bootstrapping/sources/arxiv_src/iclr2025_conference.tex",
+          "line": 277,
+          "label": "fig:method_one_general",
+          "includegraphics": "imgs/fig-2-method-final-user-action.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/embodiedsam-online-segment-any-3d-thing-in-real-time/fig-0001",
+        "paper_title": "EmbodiedSAM: Online Segment Any 3D Thing in Real Time",
+        "field": "VLA",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/VLA/embodiedsam-online-segment-any-3d-thing-in-real-time/figures/framework_01_pipeline.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/VLA/embodiedsam-online-segment-any-3d-thing-in-real-time/sources/arxiv_src/tex/approach.tex",
+          "line": 14,
+          "label": "fig:pipeline",
+          "includegraphics": "figures/pipeline.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/emergence-of-meta-stable-clustering-in-mean-field-transformer-models/fig-0001",
+        "paper_title": "Emergence of meta-stable clustering in mean-field transformer models",
+        "field": "NLP",
+        "figure_subtype": "data_or_embedding_map",
+        "layout_grammar": "map_or_distribution_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2025_collection/papers/NLP/emergence-of-meta-stable-clustering-in-mean-field-transformer-models/figures/pdf_framework_page_001.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/emergence-of-meta-stable-clustering-in-mean-field-transformer-models/figures/pdf_framework_page_001.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:emergence-of-meta-stable-clustering-in-mean-field-transformer-models:fig-0001",
+          "includegraphics": "iclr2025_collection/papers/NLP/emergence-of-meta-stable-clustering-in-mean-field-transformer-models/figures/pdf_framework_page_001.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/emergence-of-meta-stable-clustering-in-mean-field-transformer-models/fig-0002",
+        "paper_title": "Emergence of meta-stable clustering in mean-field transformer models",
+        "field": "NLP",
+        "figure_subtype": "data_or_embedding_map",
+        "layout_grammar": "map_or_distribution_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2025_collection/papers/NLP/emergence-of-meta-stable-clustering-in-mean-field-transformer-models/figures/pdf_framework_page_002.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/emergence-of-meta-stable-clustering-in-mean-field-transformer-models/figures/pdf_framework_page_002.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:emergence-of-meta-stable-clustering-in-mean-field-transformer-models:fig-0002",
+          "includegraphics": "iclr2025_collection/papers/NLP/emergence-of-meta-stable-clustering-in-mean-field-transformer-models/figures/pdf_framework_page_002.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/kinetix-investigating-the-training-of-general-agents-through-open-ended-physics-based-cont/fig-0002",
+        "paper_title": "Kinetix: Investigating the Training of General Agents through Open-Ended Physics-Based Control Tasks",
+        "field": "VLA",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "train_infer_split",
+        "source_path": "iclr2025_collection/papers/VLA/kinetix-investigating-the-training-of-general-agents-through-open-ended-physics-based-cont/figures/framework_02_architecture3.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/VLA/kinetix-investigating-the-training-of-general-agents-through-open-ended-physics-based-cont/sources/arxiv_src/main.tex",
+          "line": 274,
+          "label": "fig:architecture",
+          "includegraphics": "images/architecture3.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/knowing-your-target-target-aware-transformer-makes-better-spatio-temporal-video-grounding/fig-0002",
+        "paper_title": "Knowing Your Target: Target-Aware Transformer Makes Better Spatio-Temporal Video Grounding",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/knowing-your-target-target-aware-transformer-makes-better-spatio-temporal-video-grounding/figures/framework_02_framework.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/knowing-your-target-target-aware-transformer-makes-better-spatio-temporal-video-grounding/sources/arxiv_src/main.tex",
+          "line": 139,
+          "label": "fig:mainnetwork",
+          "includegraphics": "framework.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/knowing-your-target-target-aware-transformer-makes-better-spatio-temporal-video-grounding/fig-0003",
+        "paper_title": "Knowing Your Target: Target-Aware Transformer Makes Better Spatio-Temporal Video Grounding",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/knowing-your-target-target-aware-transformer-makes-better-spatio-temporal-video-grounding/figures/framework_03_module.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/knowing-your-target-target-aware-transformer-makes-better-spatio-temporal-video-grounding/sources/arxiv_src/main.tex",
+          "line": 166,
+          "label": "fig:module",
+          "includegraphics": "module.pdf"
+        },
+        "match_score": 8
+      }
+    ],
+    "extraction_basis": [
+      "source-grounded final reference figure records",
+      "figure subtype/layout/topology tags",
+      "caption/source-anchor keyword evidence",
+      "borrowable visual design patterns"
+    ],
+    "abstraction_level": "non_literal_semantic_visual_motif",
+    "imported_at": "2026-05-24T08:42:38.267Z",
+    "modified": true,
+    "modification": "Created as a simplified vector motif from repeated downloaded-paper framework figure patterns; source-paper text, labels, claims, datasets, metrics, and exact visual composition are intentionally not copied.",
+    "refinement": {
+      "status": "refined_semantic_vector_redraw",
+      "semantic_kind": "transformer",
+      "workflow": [
+        "contact_sheet_with_padding",
+        "imagegen_prompt_manifest_for_style_exploration",
+        "semantic_cut_slot",
+        "programmatic_svg_redraw",
+        "index_update"
+      ],
+      "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+      "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+      "generated_at": "2026-05-24T09:34:49.406Z"
+    }
+  },
+  "license": {
+    "name": "Paper-derived framework figure motif abstraction",
+    "license": "source-paper-visual-motif-abstraction",
+    "usage_terms": "Internal reusable visual/layout motif. Use for generic figure icon language only; do not treat as source-paper evidence or copy source-paper facts."
+  },
+  "files": {
+    "raw_svg": "icons/raw/paper.derived.architecture.transformer.block.paper_derived_outline.v1.svg",
+    "tight_svg": "icons/tight/paper.derived.architecture.transformer.block.paper_derived_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/paper.derived.architecture.transformer.block.paper_derived_outline.v1.ppt_safe.svg",
+    "semantic_cut_svg": "paper_derived_icon_refinement/cut_svg/paper.derived.architecture.transformer.block.paper_derived_outline.v1.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": 2.925,
+    "minY": 2.925,
+    "width": 18.15,
+    "height": 16.15,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": 0.154,
+      "top": 0.154,
+      "right": 0.154,
+      "bottom": 0.237
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "refined_from_semantic_contact_sheet": true,
+    "editable_shape_primitives": true,
+    "sha1": "d5df0fd86b59b957b239f873ac7aa3121355d9d3"
+  },
+  "transfer_contract": {
+    "allowed": [
+      "generic visual icon language",
+      "layout/motif inspiration",
+      "PPT editable stencil use"
+    ],
+    "disallowed": [
+      "source-paper facts",
+      "paper-specific labels",
+      "metrics",
+      "datasets",
+      "claims",
+      "literal source-figure reproduction"
+    ]
+  },
+  "refinement": {
+    "status": "refined_semantic_vector_redraw",
+    "semantic_kind": "transformer",
+    "workflow": [
+      "contact_sheet_with_padding",
+      "imagegen_prompt_manifest_for_style_exploration",
+      "semantic_cut_slot",
+      "programmatic_svg_redraw",
+      "index_update"
+    ],
+    "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+    "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+    "generated_at": "2026-05-24T09:34:49.406Z"
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "updated": "2026-07-13",
+  "enabled": true,
+  "plane": "browserops_provider",
+  "mode": "shadow",
+  "control_plane_owner": "vco",
+  "default_provider": "browser-host-native",
+  "provider_priority": [
+    "api",
+    "browser-host-native",
+    "turix-cua",
+    "browser-use"
+  ],
+  "selection_policy": {
+    "prefer_api_first": true,
+    "prefer_deterministic_baseline": true,
+    "allow_provider_suggestion_only": true,
+    "allow_route_override": false,
+    "allow_provider_takeover": false,
+    "allow_second_orchestrator": false,
+    "require_fallback_provider": true,
+    "require_shadow_first_for_candidates": true
+  },
+  "confirm_required_for": [
+    "turix-cua",
+    "browser-use"
+  ],
+  "high_risk_keywords": [
+    "login",
+    "账号",
+    "密码",
+    "支付",
+    "下单",
+    "删除",
+    "发布",
+    "提交",
+    "发送",
+    "修改"
+  ],
+  "providers": {
+    "api": {
+      "enabled": true,
+      "priority": 1,
+      "role": "structured_interface_provider",
+      "apply_when": [
+        "api_call",
+        "structured_fetch",
+        "service_integration"
+      ],
+      "avoid_when": [
+        "requires_real_browser_session",
+        "visual_ui_workflow"
+      ],
+      "fallback_provider": "browser-host-native",
+      "confirm_required": false
+    },
+    "browser-host-native": {
+      "enabled": true,
+      "priority": 2,
+      "role": "host_native_browser_capability",
+      "apply_when": [
+        "form_fill",
+        "page_navigation",
+        "dom_extraction",
+        "e2e_flow",
+        "network_debug",
+        "console_debug",
+        "performance_diagnosis"
+      ],
+      "avoid_when": [
+        "visual_ui_workflow",
+        "open_web_navigation"
+      ],
+      "fallback_provider": "api",
+      "confirm_required": false
+    },
+    "turix-cua": {
+      "enabled": true,
+      "priority": 3,
+      "role": "visual_computer_use_candidate",
+      "position": "candidate_only",
+      "apply_when": [
+        "visual_ui_workflow",
+        "weakly_structured_page",
+        "gui_interaction"
+      ],
+      "avoid_when": [
+        "api_call",
+        "deterministic_form_fill"
+      ],
+      "fallback_provider": "browser-host-native",
+      "confirm_required": true,
+      "takeover_forbidden": true
+    },
+    "browser-use": {
+      "enabled": true,
+      "priority": 4,
+      "role": "browser_provider_candidate",
+      "position": "candidate_only",
+      "apply_when": [
+        "open_web_navigation",
+        "multi_step_browsing",
+        "research_navigation"
+      ],
+      "avoid_when": [
+        "api_call",
+        "deterministic_form_fill",
+        "provider_takeover"
+      ],
+      "fallback_provider": "browser-host-native",
+      "confirm_required": true,
+      "takeover_forbidden": true,
+      "notes": "browser-use 只允许作为 BrowserOps provider candidate，被 VCO 建议后再显式确认；不得被当作新 orchestrator。"
+    }
+  },
+  "forbidden_actions": [
+    "replace_vco_router",
+    "override_pack_selection",
+    "take_over_task_decomposition",
+    "become_default_execution_owner",
+    "promote_browser_use_to_orchestrator",
+    "recommend_forbidden_mcp_server"
+  ]
+}

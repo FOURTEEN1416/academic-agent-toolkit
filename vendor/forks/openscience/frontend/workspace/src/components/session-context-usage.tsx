@@ -1,0 +1,129 @@
+import { Match, Show, Switch, createMemo } from "solid-js"
+import { Tooltip } from "@synsci/ui/tooltip"
+import { ProgressCircle } from "@synsci/ui/progress-circle"
+import { Button } from "@synsci/ui/button"
+import { useParams } from "@solidjs/router"
+import { AssistantMessage, type UserMessage } from "@synsci/sdk/v2/client"
+import { findLast } from "@synsci/util/array"
+import { TokenUsage } from "@synsci/util/token-usage"
+import { Dialog } from "@synsci/ui/dialog"
+import { useDialog } from "@synsci/ui/context/dialog"
+
+import { useLayout } from "@/context/layout"
+import { useSync } from "@/context/sync"
+import { useLanguage } from "@/context/language"
+import { SessionContextTab } from "@/components/session/session-context-tab"
+
+interface SessionContextUsageProps {
+  variant?: "button" | "indicator"
+}
+
+export function SessionContextUsage(props: SessionContextUsageProps) {
+  const sync = useSync()
+  const params = useParams()
+  const layout = useLayout()
+  const language = useLanguage()
+  const dialog = useDialog()
+
+  const variant = createMemo(() => props.variant ?? "button")
+  const sessionKey = createMemo(() => `${params.dir}${params.id ? "/" + params.id : ""}`)
+  const view = layout.view(sessionKey)
+  const messages = createMemo(() => (params.id ? (sync.data.message[params.id] ?? []) : []))
+  const visibleUserMessages = createMemo(() =>
+    messages().filter((message): message is UserMessage => message.role === "user"),
+  )
+
+  const usd = createMemo(
+    () =>
+      new Intl.NumberFormat(language.locale(), {
+        style: "currency",
+        currency: "USD",
+      }),
+  )
+
+  const cost = createMemo(() => {
+    const total = messages().reduce((sum, x) => sum + (x.role === "assistant" ? x.cost : 0), 0)
+    return usd().format(total)
+  })
+
+  const context = createMemo(() => {
+    const locale = language.locale()
+    const last = findLast(messages(), (x) => {
+      if (x.role !== "assistant") return false
+      return TokenUsage.total(x.tokens) > 0
+    }) as AssistantMessage
+    if (!last) return
+    const total = TokenUsage.total(last.tokens)
+    const model = sync.data.provider.all.find((x) => x.id === last.providerID)?.models[last.modelID]
+    return {
+      tokens: total.toLocaleString(locale),
+      percentage: model?.limit.context ? Math.round((total / model.limit.context) * 100) : null,
+    }
+  })
+
+  const openContext = () => {
+    if (!params.id) return
+    dialog.show(() => (
+      <Dialog title={language.t("session.tab.context")} size="large" transition>
+        <div style={{ width: "min(760px, 82vw)", height: "min(680px, 75vh)", overflow: "hidden" }}>
+          <SessionContextTab
+            messages={messages}
+            visibleUserMessages={visibleUserMessages}
+            view={() => view}
+            info={() => (params.id ? sync.session.get(params.id) : undefined)}
+          />
+        </div>
+      </Dialog>
+    ))
+  }
+
+  const circle = () => (
+    <div class="p-1">
+      <ProgressCircle size={16} strokeWidth={2} percentage={context()?.percentage ?? 0} />
+    </div>
+  )
+
+  const tooltipValue = () => (
+    <div>
+      <Show when={context()}>
+        {(ctx) => (
+          <>
+            <div class="flex items-center gap-2">
+              <span class="text-text-invert-strong">{ctx().tokens}</span>
+              <span class="text-text-invert-base">{language.t("context.usage.tokens")}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-text-invert-strong">{ctx().percentage ?? 0}%</span>
+              <span class="text-text-invert-base">{language.t("context.usage.usage")}</span>
+            </div>
+          </>
+        )}
+      </Show>
+      <div class="flex items-center gap-2">
+        <span class="text-text-invert-strong">{cost()}</span>
+        <span class="text-text-invert-base">{language.t("context.usage.cost")}</span>
+      </div>
+    </div>
+  )
+
+  return (
+    <Show when={params.id}>
+      <Tooltip value={tooltipValue()} placement="top">
+        <Switch>
+          <Match when={variant() === "indicator"}>{circle()}</Match>
+          <Match when={true}>
+            <Button
+              type="button"
+              variant="ghost"
+              class="size-6"
+              onClick={openContext}
+              aria-label={language.t("context.usage.view")}
+            >
+              {circle()}
+            </Button>
+          </Match>
+        </Switch>
+      </Tooltip>
+    </Show>
+  )
+}

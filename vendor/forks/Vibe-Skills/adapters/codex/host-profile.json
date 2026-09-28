@@ -1,0 +1,69 @@
+{
+  "adapter_id": "codex",
+  "host_name": "Codex",
+  "status": "supported-with-constraints",
+  "runtime_role": "official-runtime-adapter",
+  "source_evidence": [
+    "config/settings.template.codex.json",
+    "config/plugins-manifest.codex.json",
+    "install.ps1",
+    "check.ps1"
+  ],
+  "settings_surface": {
+    "path": "~/.agents/settings.json",
+    "managed_by_repo": true,
+    "notes": "The repository can materialize runtime payload and template settings into the shared agents root, while host plugins remain host-managed."
+  },
+  "global_instruction_surface": {
+    "relpath": "AGENTS.md",
+    "documented_path": "~/.agents/AGENTS.md",
+    "format": "markdown-rules",
+    "managed_block_id": "global-vibe-bootstrap",
+    "merge_policy": "managed-block-only",
+    "overwrite_policy": "forbidden",
+    "trigger_tokens": [
+      "$vibe",
+      "/vibe"
+    ],
+    "authority_owner": "vibe",
+    "bootstrap_only": true,
+    "template_relpath": "config/global-bootstrap/codex-vibe-bootstrap.md",
+    "template_version": 1
+  },
+  "discoverable_entries": {
+    "shared_source": "config/vibe-entry-surfaces.json",
+    "authority_owner": "vibe",
+    "presentational_only": true,
+    "projection_mode": "generated_wrapper_entries",
+    "host_visible_surface": "commands",
+    "notes": "Discoverable Vibe entries are host-facing launch labels only and do not create a second runtime authority."
+  },
+  "host_managed_surfaces": [
+    "plugin provisioning",
+    "provider credentials",
+    "external CLI availability",
+    "operator-specific secrets"
+  ],
+  "capabilities": {
+    "fs.read": "full",
+    "fs.write": "full",
+    "shell.exec": "full",
+    "mcp.client": "supported-with-constraints",
+    "settings.materialize": "full",
+    "plugin.provision": "manual-host-managed",
+    "agent.spawn": "full",
+    "route.provider_call": "supported-with-constraints",
+    "route.offline_fallback": "full",
+    "release.verify": "full"
+  },
+  "degrade_contract": {
+    "missing_host_plugins": "degraded-but-supported",
+    "missing_provider_credentials": "degraded-but-supported",
+    "missing_pwsh_on_non_windows_shell": "degraded-but-supported"
+  },
+  "supported_platform_contracts": [
+    "adapters/codex/platform-windows.json",
+    "adapters/codex/platform-linux.json",
+    "adapters/codex/platform-macos.json"
+  ]
+}

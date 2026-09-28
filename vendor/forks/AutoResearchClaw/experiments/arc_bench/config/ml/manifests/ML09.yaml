@@ -1,0 +1,101 @@
+# ============================================================================
+# T09 — Comparing Bayesian optimization vs grid search vs random search for
+# hyperparameter tuning of random forests on UCI benchmark datasets
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML09
+title: "Bayesian optimization vs grid vs random search for random-forest tuning"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Hyperparameter tuning often dominates practical AutoML performance, yet in
+  CPU-limited settings the search strategy itself can matter as much as the
+  model family. For random forests, common tunables (number of trees,
+  max_depth, min_samples_split, min_samples_leaf, max_features) define a mixed
+  discrete-continuous space where exhaustive grids can be wasteful,
+  random search can be surprisingly strong, and Bayesian optimization can use
+  surrogate modeling to focus evaluations on promising regions.
+
+  A concise benchmark can test this tradeoff by fixing a single model class
+  (RandomForestClassifier), fixed CV protocol, and comparable evaluation budget
+  across search methods. Grid search should use a compact but principled grid;
+  random search should sample from the same parameter ranges; Bayesian
+  optimization can be implemented with sklearn's Gaussian-process based
+  optimizer (e.g., BayesSearchCV if available is not allowed here, so a custom
+  lightweight GP + acquisition loop or scipy/sklearn surrogate approach is
+  expected). The key is fairness: equal or near-equal numbers of objective
+  evaluations and identical data splits.
+
+  Since this benchmark must run in under 15 minutes on one CPU core,
+  datasets should be small-to-medium sklearn/UCI-style classification tasks
+  already available in sklearn (e.g., wine, breast_cancer, digits). The
+  analysis should report best cross-validation score, held-out test accuracy,
+  and search efficiency (score gain per evaluation or wall-clock).
+  Multi-seed repeats are desirable to reduce noise, but can be kept modest to
+  remain within runtime limits.
+
+  The experiment should answer whether Bayesian optimization delivers better
+  best-found configurations under tight evaluation budgets, or whether simpler
+  baselines (especially random search) are effectively equivalent for these
+  tabular tasks. Interpretation should explicitly separate optimization quality
+  from compute cost.
+
+  *Under a fixed small evaluation budget, does Bayesian optimization find better random-forest hyperparameters than grid and random search on sklearn UCI-style classification benchmarks?*
+
+hypotheses:
+  - id: H1
+    statement: "With an equal budget of 20 hyperparameter evaluations per dataset, Bayesian optimization achieves higher mean best_cv_score than random search on at least 2 of 3 datasets."
+    measurable: true
+  - id: H2
+    statement: "Random search matches or exceeds grid search in best_cv_score on at least 2 of 3 datasets under the same maximum number of evaluated configurations."
+    measurable: true
+  - id: H3
+    statement: "The mean held-out test accuracy of the best Bayesian-tuned model is at least 0.5 percentage points higher than the best grid-tuned model on at least 1 of 3 datasets."
+    measurable: true
+
+experiment_design:
+  research_question: "Under a fixed evaluation budget, which tuning strategy (Bayesian optimization, grid search, random search) yields the best random-forest cross-validation and test performance on sklearn UCI-style datasets?"
+  conditions:
+    - name: "grid_search_budget20"
+      description: "Grid search over a compact predefined grid for RandomForestClassifier, capped at 20 evaluated configurations per dataset."
+    - name: "random_search_budget20"
+      description: "Random search over matched hyperparameter ranges with 20 sampled configurations per dataset."
+    - name: "bayes_opt_budget20"
+      description: "Bayesian optimization using a Gaussian-process surrogate and acquisition-guided proposals for 20 total evaluations per dataset."
+    - name: "default_rf"
+      description: "Untuned RandomForestClassifier with sklearn default hyperparameters as a reference baseline."
+  baselines:
+    - "default_rf as no-tuning baseline"
+    - "grid_search_budget20 as classical tuning baseline"
+  metrics:
+    - name: "best_cv_score"
+      direction: "maximize"
+      description: "Best mean 3-fold cross-validation accuracy discovered by each search method."
+    - name: "test_accuracy"
+      direction: "maximize"
+      description: "Accuracy on a held-out test split using the best hyperparameters found by each method."
+    - name: "search_time_sec"
+      direction: "minimize"
+      description: "Wall-clock time spent in hyperparameter search per method and dataset."
+  datasets:
+    - name: "wine"
+      source: "sklearn.datasets.load_wine"
+    - name: "breast_cancer"
+      source: "sklearn.datasets.load_breast_cancer"
+    - name: "digits"
+      source: "sklearn.datasets.load_digits"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 780
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML09.json"

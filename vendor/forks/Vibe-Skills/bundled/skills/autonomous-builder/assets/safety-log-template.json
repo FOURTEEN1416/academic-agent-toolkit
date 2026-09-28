@@ -1,0 +1,43 @@
+{
+  "project_name": "project-name",
+  "workspace_root": "/path/to/workspace",
+  "created_at": "2026-02-13T00:00:00Z",
+  "safety_events": [
+    {
+      "id": "safety-001",
+      "timestamp": "2026-02-13T00:00:00Z",
+      "severity": "warning|critical",
+      "event_type": "out_of_workspace_access|destructive_operation|system_config_change|data_loss_risk",
+      "operation": {
+        "type": "read|write|delete|execute",
+        "target_path": "/full/path/to/target",
+        "command": "original command or operation",
+        "is_inside_workspace": false,
+        "workspace_path": "/path/to/workspace"
+      },
+      "risk_assessment": {
+        "potential_impact": "Description of what could go wrong",
+        "affected_files": ["list of files that could be affected"],
+        "reversible": true
+      },
+      "user_interaction": {
+        "warning_shown": true,
+        "warning_message": "Full warning message shown to user",
+        "user_response": "approved|denied|timeout",
+        "response_timestamp": "2026-02-13T00:00:00Z"
+      },
+      "outcome": {
+        "action_taken": "proceeded|aborted|modified",
+        "backup_created": false,
+        "backup_path": null,
+        "rollback_available": false
+      }
+    }
+  ],
+  "statistics": {
+    "total_safety_events": 0,
+    "approved_operations": 0,
+    "blocked_operations": 0,
+    "backups_created": 0
+  }
+}

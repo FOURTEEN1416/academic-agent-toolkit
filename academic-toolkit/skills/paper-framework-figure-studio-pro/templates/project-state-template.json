@@ -1,0 +1,326 @@
+{
+  "project_state_schema_version": 1,
+  "skill_name": "paper-framework-figure-studio-pro",
+  "skill_version": "3.2.15f",
+  "project_id": "PROJECT_ID",
+  "project_title": "Project title",
+  "created_at": "2026-07-06T00:00:00+00:00",
+  "updated_at": "2026-07-06T00:00:00+00:00",
+  "notes": [],
+  "current_step": "S0-PAPER-FOUNDATION",
+  "workflow_plan": [
+    {
+      "step": "S0-PAPER-FOUNDATION",
+      "mode": "TEXT_ONLY",
+      "purpose": "Build the paper/source foundation, runtime state, canvas defaults, readiness state, semantic precision contract, optional author supplement request, and risk register.",
+      "output_dir": "outputs/S0-paper-foundation",
+      "canonical_output": "outputs/S0-paper-foundation/paper-foundation-report.md",
+      "default_next_step": "S1-FIGURE-STRATEGY",
+      "status": "in_progress"
+    },
+    {
+      "step": "S1-FIGURE-STRATEGY",
+      "mode": "TEXT_ONLY_WITH_EMBEDDED_S2_PREPARE",
+      "purpose": "Plan eight complementary style combinations, select four, and prepare C01-C04 S2 prompt packages and prompt-index.",
+      "output_dir": "outputs/S1-figure-strategy",
+      "canonical_output": "outputs/S1-figure-strategy/figure-strategy-brief.md",
+      "default_next_step": "S2-SKETCH-EXPLORE",
+      "status": "pending"
+    },
+    {
+      "step": "S2-SKETCH-EXPLORE",
+      "mode": "IMAGE_GENERATE_ONLY",
+      "purpose": "Generate exactly four first-round raster candidates from S1-prepared C01-C04 prompt packages.",
+      "output_dir": "outputs/S2-sketch-explore",
+      "canonical_output": "outputs/S2-sketch-explore/candidates/C01/image-v01.png",
+      "default_next_step": "S3-DIRECTION-SELECT",
+      "status": "pending"
+    },
+    {
+      "step": "S3-DIRECTION-SELECT",
+      "mode": "TEXT_ONLY_WITH_EMBEDDED_S2_REVIEW_AGGREGATE",
+      "purpose": "Review S2 sketches, aggregate visual signals, record optional first-round preferences, and select direction.",
+      "output_dir": "outputs/S3-direction-select",
+      "canonical_output": "outputs/S3-direction-select/s3-direction-decision.md",
+      "default_next_step": "S4-CANDIDATE-BRIEF",
+      "status": "pending"
+    },
+    {
+      "step": "S4-CANDIDATE-BRIEF",
+      "mode": "TEXT_ONLY_WITH_EMBEDDED_S5_PREPARE",
+      "purpose": "Prepare exactly two F01-F02 S5 formal prompt packages and prompt-index, including row-level S2 reference image inputs.",
+      "output_dir": "outputs/S4-candidate-brief",
+      "canonical_output": "outputs/S4-candidate-brief/formal-candidate-brief.md",
+      "default_next_step": "S5-CANDIDATE-IMAGE",
+      "status": "pending"
+    },
+    {
+      "step": "S5-CANDIDATE-IMAGE",
+      "mode": "IMAGE_GENERATE_ONLY_TERMINAL",
+      "purpose": "Generate exactly two formal raster candidates from S4-prepared F01-F02 prompt packages, using S2 reference images when supported and ignoring them when unsupported.",
+      "output_dir": "outputs/S5-candidate-image",
+      "canonical_output": "outputs/S5-candidate-image/candidates/F01/image-v01.png",
+      "default_next_step": null,
+      "status": "pending"
+    }
+  ],
+  "step_sequence": [
+    "S0-PAPER-FOUNDATION",
+    "S1-FIGURE-STRATEGY",
+    "S2-SKETCH-EXPLORE",
+    "S3-DIRECTION-SELECT",
+    "S4-CANDIDATE-BRIEF",
+    "S5-CANDIDATE-IMAGE"
+  ],
+  "default_next_step_by_step": {
+    "S0-PAPER-FOUNDATION": "S1-FIGURE-STRATEGY",
+    "S1-FIGURE-STRATEGY": "S2-SKETCH-EXPLORE",
+    "S2-SKETCH-EXPLORE": "S3-DIRECTION-SELECT",
+    "S3-DIRECTION-SELECT": "S4-CANDIDATE-BRIEF",
+    "S4-CANDIDATE-BRIEF": "S5-CANDIDATE-IMAGE",
+    "S5-CANDIDATE-IMAGE": null
+  },
+  "terminal_step": "S5-CANDIDATE-IMAGE",
+  "terminal_message": "我的任务已经完成，剩下由人类来决策。",
+  "step_runs": {},
+  "output_root": "figure-studio-runs/PROJECT_ID",
+  "state_file": "state/project-state.json",
+  "path_storage_policy": "all stored paths are project-run relative; host-specific absolute paths are not persisted",
+  "v3215_candidate_id_coherence_policy": {
+    "status": "hard_required",
+    "source_of_truth": "S1/S4 prompt-index candidates[].candidate_id",
+    "s2_default_id_family": "C01-C04",
+    "s5_default_id_family": "F01-F02",
+    "rule": "candidate_id must match prompt_path, target_image_path, registry keys, artifact candidate_id fields, active image paths, and checkpoint image inventories."
+  },
+  "v3215d_style_combination_palette_policy": {
+    "status": "hard_required",
+    "s1_style_combination_pool_count": 8,
+    "s1_selected_s2_candidate_count": 4,
+    "s2_image_count": 4,
+    "s4_s5_prompt_candidate_count": 2,
+    "s5_image_count": 2,
+    "rule": "S1 plans eight complementary style combinations, selects the top four for C01-C04, and records why each selected combination is complementary. S4 prepares only F01-F02. S1/S4 prompts must include human-aesthetic palette fields and reject AI-looking color artifacts.",
+    "required_prompt_palette_fields": [
+      "palette_strategy",
+      "palette_semantic_mapping",
+      "palette_anti_ai_artifact_rules",
+      "human_aesthetic_rationale",
+      "color_accessibility_note"
+    ]
+  },
+  "target_raster_image_generation_policy": {
+    "status": "hard_required",
+    "raster_generation_steps": [
+      "S2-SKETCH-EXPLORE",
+      "S5-CANDIDATE-IMAGE"
+    ],
+    "allowed_generated_image_extensions": [
+      ".jpeg",
+      ".jpg",
+      ".png",
+      ".webp"
+    ],
+    "forbidden_target_image_kinds": [
+      "canvas",
+      "html",
+      "mermaid",
+      "pdf",
+      "pptx",
+      "svg"
+    ],
+    "no_fallback_substitute": "If the required route is unavailable, stop instead of fabricating code-drawn or locally rendered placeholders."
+  },
+  "s5_reference_image_input_policy": {
+    "source_stage": "S2-SKETCH-EXPLORE",
+    "row_field": "reference_image_paths",
+    "required_in_s5_prompt_index_rows": true,
+    "use_when_supported": true,
+    "ignore_when_unsupported": true,
+    "semantic_authority": "S2 reference images are visual exploration/preference signals only; paper/S0/S1/S3/S4 constraints remain authoritative.",
+    "checkpoint_rule": "Listed S2 reference image paths are required existing assets in cumulative S4/S5 checkpoints when their roots are included."
+  },
+  "workflow_boundary_policy": {
+    "terminal_step": "S5-CANDIDATE-IMAGE",
+    "terminal_reply": "我的任务已经完成，剩下由人类来决策。",
+    "one_public_step_per_user_turn": true,
+    "hard_human_wait_barrier": true,
+    "barrier_satisfaction_rule": "After S0-S4, the next public stage requires a later explicit user message or a source-allowed explicit skip/default/automation choice recorded before the barrier.",
+    "not_barrier_satisfaction": [
+      "reviewer_gate",
+      "specialist_completion",
+      "internal_handoff",
+      "checkpoint_success",
+      "silent_default",
+      "copyable_prompt"
+    ],
+    "s1_to_s2_rule": "S1 prepares C01-C04 prompts and stops; S2 image generation requires a new explicit user turn.",
+    "s4_to_s5_rule": "S4 prepares F01-F02 prompts and stops; S5 image generation requires a new explicit user turn."
+  },
+  "image_generation_chunk_policy": {
+    "chatgpt_web_image_chunk_limit": 4,
+    "chatgpt_web_recommended_image_chunk_size": 4,
+    "codex_image_chunk_limit": 4,
+    "default_candidate_count_by_step": {
+      "S2-SKETCH-EXPLORE": 4,
+      "S5-CANDIDATE-IMAGE": 2
+    },
+    "max_candidate_count_by_step": {
+      "S2-SKETCH-EXPLORE": 4,
+      "S5-CANDIDATE-IMAGE": 2
+    }
+  },
+  "artifact_role_registry": {
+    "s0.paper_foundation_report": {
+      "step": "S0-PAPER-FOUNDATION",
+      "kind": "markdown",
+      "relative_path": "outputs/S0-paper-foundation/paper-foundation-report.md"
+    },
+    "s0.framework_figure_risk_register": {
+      "step": "S0-PAPER-FOUNDATION",
+      "kind": "markdown",
+      "relative_path": "outputs/S0-paper-foundation/framework-figure-risk-register.md"
+    },
+    "s0.semantic_precision_contract": {
+      "step": "S0-PAPER-FOUNDATION",
+      "kind": "json",
+      "relative_path": "outputs/S0-paper-foundation/s0-semantic-precision-contract.json"
+    },
+    "s1.figure_strategy": {
+      "step": "S1-FIGURE-STRATEGY",
+      "kind": "markdown",
+      "relative_path": "outputs/S1-figure-strategy/figure-strategy-brief.md"
+    },
+    "s1.s2_prompt_index": {
+      "step": "S1-FIGURE-STRATEGY",
+      "kind": "json",
+      "relative_path": "outputs/S2-sketch-explore/prompt-index.json"
+    },
+    "s2.primary_sketch": {
+      "step": "S2-SKETCH-EXPLORE",
+      "kind": "image",
+      "relative_path": "outputs/S2-sketch-explore/candidates/C01/image-v01.png"
+    },
+    "s3.direction_selection": {
+      "step": "S3-DIRECTION-SELECT",
+      "kind": "markdown",
+      "relative_path": "outputs/S3-direction-select/s3-direction-decision.md"
+    },
+    "s4.candidate_brief": {
+      "step": "S4-CANDIDATE-BRIEF",
+      "kind": "markdown",
+      "relative_path": "outputs/S4-candidate-brief/formal-candidate-brief.md"
+    },
+    "s4.s5_prompt_index": {
+      "step": "S4-CANDIDATE-BRIEF",
+      "kind": "json",
+      "relative_path": "outputs/S5-candidate-image/prompt-index.json"
+    },
+    "s5.primary_candidate": {
+      "step": "S5-CANDIDATE-IMAGE",
+      "kind": "image",
+      "relative_path": "outputs/S5-candidate-image/candidates/F01/image-v01.png"
+    }
+  },
+  "pending_outputs": [
+    {
+      "step": "S0-PAPER-FOUNDATION",
+      "relative_path": "outputs/S0-paper-foundation/paper-foundation-report.md",
+      "artifact_role": "s0.paper_foundation_report"
+    },
+    {
+      "step": "S0-PAPER-FOUNDATION",
+      "relative_path": "outputs/S0-paper-foundation/s0-semantic-precision-contract.json",
+      "artifact_role": "s0.semantic_precision_contract"
+    },
+    {
+      "step": "S1-FIGURE-STRATEGY",
+      "relative_path": "outputs/S2-sketch-explore/prompt-index.json",
+      "artifact_role": "s1.s2_prompt_index"
+    },
+    {
+      "step": "S2-SKETCH-EXPLORE",
+      "relative_path": "outputs/S2-sketch-explore/candidates/C01/image-v01.png",
+      "artifact_role": "s2.primary_sketch"
+    },
+    {
+      "step": "S4-CANDIDATE-BRIEF",
+      "relative_path": "outputs/S5-candidate-image/prompt-index.json",
+      "artifact_role": "s4.s5_prompt_index"
+    },
+    {
+      "step": "S5-CANDIDATE-IMAGE",
+      "relative_path": "outputs/S5-candidate-image/candidates/F01/image-v01.png",
+      "artifact_role": "s5.primary_candidate"
+    }
+  ],
+  "artifacts": [],
+  "candidate_run_registry": {
+    "s2_sketches": {},
+    "s5_candidates": {}
+  },
+  "substage_runs": {},
+  "substage_guidance_registry": {},
+  "next_prompt_registry": {},
+  "checkpoint_bundles": [],
+  "image_generation_events": [],
+  "user_preference_reference_images": [],
+  "user_preference_profile": {
+    "status": "none",
+    "default_s2_sketch_count": 4,
+    "default_s5_candidate_count": 2,
+    "max_total_candidate_count": 4,
+    "first_round_default_style_id": "formal_publication_schematic"
+  },
+  "strict_source_grounded_modular_prompt_contract_policy": {
+    "status": "hard_required",
+    "contract": "references/strict-source-grounded-modular-prompt-contract-policy-v3215a.md",
+    "supporting_contracts": [
+      "references/no-false-relay-data-flow-policy-v3215d.md",
+      "references/public-stage-human-wait-barrier-policy-v3215d.md"
+    ],
+    "applies_to": [
+      "S1-FIGURE-STRATEGY",
+      "S4-CANDIDATE-BRIEF"
+    ],
+    "max_audit_repair_cycles": 5,
+    "required_prompt_records": [
+      "s5_reference_image_input_plan",
+      "edge_support_ledger",
+      "data_consumer_transformer_ledger",
+      "false_relay_data_flow_audit"
+    ],
+    "rule": "S1/S4 prompt packages must not draw a cross-module data-flow relay through a module that does not consume, transform, store, route, evaluate, update, or emit the carried item."
+  },
+  "s0_semantic_precision_policy": {
+    "policy_id": "s0-semantic-precision-and-role-variation-lock-v3215f",
+    "contract_path": "outputs/S0-paper-foundation/s0-semantic-precision-contract.json",
+    "required_before_s1": true,
+    "required_fields": [
+      "ambiguous_directive_normalization",
+      "actor_or_condition_variation_matrix",
+      "role_visual_realization_contract",
+      "process_instance_budget",
+      "forbidden_misimplementation_locks",
+      "downstream_s1_s4_carry_forward"
+    ],
+    "default_rule": "Do not implement repeated roles/actors/conditions as full duplicated workflows unless source evidence proves distinct process instances or explicit comparison lanes."
+  },
+  "v3215f_layout_density_policy": {
+    "status": "hard_required",
+    "contract": "references/layout-density-mainline-balance-policy-v3215f.md",
+    "applies_to": [
+      "S1-FIGURE-STRATEGY",
+      "S3-DIRECTION-SELECT",
+      "S4-CANDIDATE-BRIEF"
+    ],
+    "required_prompt_records": [
+      "layout_information_density_plan",
+      "canvas_area_budget",
+      "context_inset_budget",
+      "mainline_center_of_gravity_gate",
+      "layout_density_audit"
+    ],
+    "rule": "Algorithm/model/method/framework diagrams default to compact-balanced manuscript density: primary method content is central and dominant, background/context stays subordinate, and excessive whitespace, fragmented micro-block scatter, top-heavy context panels, or off-center mainline block prompt handoff unless a source-grounded physical-layout exception is recorded."
+  }
+}

@@ -1,0 +1,19 @@
+<svg viewBox="3.225 0.825 15.55 14.95" fill="none" stroke="#111827" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"  xmlns="http://www.w3.org/2000/svg" data-icon-id="dl.3d.voxel.grid.generated_outline.v1" data-source="generated_deep_learning_svg_icons"><polygon points="4,11 8,11 8,15 4,15"/>
+<polyline points="8,11 10,9.6 10,13.6 8,15"/>
+<polyline points="4,11 6,9.6 10,9.6"/>
+<line x1="6" y1="9.6" x2="6" y2="13.6"/><polygon points="8,11 12,11 12,15 8,15"/>
+<polyline points="12,11 14,9.6 14,13.6 12,15"/>
+<polyline points="8,11 10,9.6 14,9.6"/>
+<line x1="10" y1="9.6" x2="10" y2="13.6"/><polygon points="12,11 16,11 16,15 12,15"/>
+<polyline points="16,11 18,9.6 18,13.6 16,15"/>
+<polyline points="12,11 14,9.6 18,9.6"/>
+<line x1="14" y1="9.6" x2="14" y2="13.6"/><polygon points="6,7 10,7 10,11 6,11"/>
+<polyline points="10,7 12,5.6 12,9.6 10,11"/>
+<polyline points="6,7 8,5.6 12,5.6"/>
+<line x1="8" y1="5.6" x2="8" y2="9.6"/><polygon points="10,7 14,7 14,11 10,11"/>
+<polyline points="14,7 16,5.6 16,9.6 14,11"/>
+<polyline points="10,7 12,5.6 16,5.6"/>
+<line x1="12" y1="5.6" x2="12" y2="9.6"/><polygon points="8,3 12,3 12,7 8,7"/>
+<polyline points="12,3 14,1.6 14,5.6 12,7"/>
+<polyline points="8,3 10,1.6 14,1.6"/>
+<line x1="10" y1="1.6" x2="10" y2="5.6"/></svg>

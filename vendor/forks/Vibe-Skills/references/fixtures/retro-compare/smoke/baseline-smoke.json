@@ -1,0 +1,13 @@
+﻿{
+  "report_id": "CER-SMOKE-BASE",
+  "trigger_signals": {
+    "fallback_rate": 0.30,
+    "context_pressure": 0.85,
+    "route_stability_pack": 0.70,
+    "route_stability_skill": 0.65,
+    "top1_top2_gap": 0.02
+  },
+  "findings": [
+    { "pattern": "CF-3" }
+  ]
+}

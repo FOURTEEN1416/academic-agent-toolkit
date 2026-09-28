@@ -9,7 +9,7 @@
 [![Release](https://img.shields.io/badge/release-v2.1.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-1011_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-313-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-250_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
+[![Skills](https://img.shields.io/badge/skills-255_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始)
 [![Hosts](https://img.shields.io/badge/hosts-Any_Agent-1f2937?style=flat-square)](#快速开始)
@@ -19,7 +19,7 @@
 ---
 
 > [!TIP]
-> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（250 个随仓技能）自主完成
+> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（255 个随仓技能）自主完成
 > 建模 → 编码 → 绘图 → 写作 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯**。
 
 ## ✨ 为什么不是又一个提示词合集
@@ -64,7 +64,7 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 > 域表与 `capabilities/catalog.json` 对齐：37/75/41/83/12/63/2 = **313**（与徽章一致；2026-09-24 复核实测）。
 
 > [!NOTE]
-> **技能计数口径**（唯一）：徽章与正文统一为 `git ls-files` 口径的技能 SKILL.md 数（**clone 即所见**）；另有 5 个无 License 上游隔离件仅存本地、gitignored 不入库，不计入。
+> **技能计数口径**（唯一）：徽章与正文统一为 `git ls-files` 口径的技能 SKILL.md 数（**clone 即所见**）；2026-09-28 起该 5 件经本地化改写（各附 ADAPTATION.md）入库，口径并入 255。
 
 <details>
 <summary><b>📊 科研绘图栈（v1.1 新扩展，9 个上游技能）</b></summary>
@@ -200,7 +200,7 @@ academic-agent-toolkit/
 
 **v2.1.0（2026-09-27）** —— 赛事档案 v2 隔离：`comp_rules.json` 升级 schema v2 并切生产（22 赛事 / 8 profile / 51 约束 = 36 verified + 15 unknown）· 规则选档接口（`contests[id].profiles[]` 按 edition/submission_form + region/stage 精确选择，禁用模糊回落）· `contest_profile.py` v2 解析器与 execution 受控缓存 · 命令环境注入 `CONTEST_ID`/`PAGE_CAP`/`PAGE_SCOPE`/`PAGE_CAP_STATUS`/`EDITION`（智能体不再转录）· 技能正文与模板对齐（`certcup_en` 独立骨架、三族分支 fail-fast、`claim_code_check` 双副本同步、移除共享 `quick_gates_max_pages`）· 研赛/华为杯分型入库骨架。修复跨赛事规则混用与 P1 假绿。文档基线 **1005 collected**；详见 [CHANGELOG.md](./CHANGELOG.md)。
 
-**v2.0.0（2026-09-23）** —— 整仓彻底重构：套件目录 `科研工具箱/`→`academic-toolkit/` · 技能命名法（139 件改名 + 9 对真重复合并，264→255）· 资产激活机制（asset_catalog 台账 + boot/probe/bootstrap 资产暴露 + 三方对账）· 私有资料区统一 `assets-local/` · 第三方子项目独立 `third_party/` · 上游 fork `vendor/forks/` · 内容融入（287 自查表 / 范文包 / 板块提示词 / 88 色板）· 新增 `award-paper-mining`。**破坏性变更**，迁移指引见 [CHANGELOG.md](./CHANGELOG.md)。（后续技能清洗与 GPL 件 clean-room 收编，现行 tracked 口径 **250**，见上方徽章。）
+**v2.0.0（2026-09-23）** —— 整仓彻底重构：套件目录 `科研工具箱/`→`academic-toolkit/` · 技能命名法（139 件改名 + 9 对真重复合并，264→255）· 资产激活机制（asset_catalog 台账 + boot/probe/bootstrap 资产暴露 + 三方对账）· 私有资料区统一 `assets-local/` · 第三方子项目独立 `third_party/` · 上游 fork `vendor/forks/` · 内容融入（287 自查表 / 范文包 / 板块提示词 / 88 色板）· 新增 `award-paper-mining`。**破坏性变更**，迁移指引见 [CHANGELOG.md](./CHANGELOG.md)。（后续技能清洗与 GPL 件 clean-room 收编，当时 tracked 口径 **250**；2026-09-28 起 5 个无 License 件经本地化改写入库，现行 **255**，见上方徽章。）
 
 **v1.3.0（2026-09-22）** —— 宿主无关协议（boot/probe/forge + agents/adapters，旧宿主降为可选适配器）· 基线基础设施加固（secret_scan / lint_ratchet / duplicate_assets / 工具冒烟闸 + CI 加固）· 系统性升级五项（实战经验库 / 统一配色 / 技能触发审计）· 华为杯管线补齐（与国赛同构 14 步）· 四批并行收编。
 

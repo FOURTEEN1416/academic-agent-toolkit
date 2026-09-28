@@ -1,0 +1,96 @@
+# ============================================================================
+# ARC-Bench Physics — 10 high-energy-physics paper-reproduction topics
+# ----------------------------------------------------------------------------
+# P01-P10 adapt ColliderAgent paper-reproduction prompts into the
+# ARC-Bench end-to-end measurement format used for T01-T25 (manifest +
+# weighted rubric). Each topic is a self-contained Lagrangian -> MC ->
+# analysis -> figure pipeline scoped to a published reference figure.
+#
+# Manifests live in   config/physics/manifests/PNN.yaml
+# Rubrics  live in    config/physics/rubrics/PNN.json
+#
+# All physics topics use `metric_key: primary_metric`, which is the
+# ColliderAgentSandbox-emitted figures_produced / (figures_produced +
+# steps_failed) pipeline-completion fraction.
+# ============================================================================
+
+topics:
+  - id: P01
+    topic: "Reproducing warped extra dimension Kaluza-Klein graviton resonance from arXiv:hep-ph/9909255"
+    domains: ["high-energy-physics", "bsm-phenomenology", "extra-dimensions"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    arxiv_id: "hep-ph/9909255"
+    source_prompt: "ColliderAgent/paper-reproduction/9909255/prompt_figure_2.md"
+
+  - id: P02
+    topic: "Reproducing heavy Majorana neutrino production $pp \\to \\mu^\\pm N$ at LHC 7/8/14 TeV from arXiv:1308.2209"
+    domains: ["high-energy-physics", "bsm-phenomenology", "neutrino-physics"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    arxiv_id: "1308.2209"
+    source_prompt: "ColliderAgent/paper-reproduction/1308.2209/prompt_figure_3.md"
+
+  - id: P03
+    topic: "Reproducing 8 TeV LHC dilepton exclusion contours for B-L Z' with kinetic mixing from arXiv:1605.02910"
+    domains: ["high-energy-physics", "bsm-phenomenology", "z-prime", "statistical-recast"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    arxiv_id: "1605.02910"
+    source_prompt: "ColliderAgent/paper-reproduction/1605.02910/prompt_figure_1.md"
+
+  - id: P04
+    topic: "Reproducing $\\sigma(pp \\to Z')$ vs $g_1'$ slices for kinetic-mixing B-L Z' at 13 TeV from arXiv:1605.02910"
+    domains: ["high-energy-physics", "bsm-phenomenology", "z-prime"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    arxiv_id: "1605.02910"
+    source_prompt: "ColliderAgent/paper-reproduction/1605.02910/prompt_figure_10.md"
+
+  - id: P05
+    topic: "Reproducing photophobic ALP EFT $E_T^\\mathrm{miss}$ shape in $pp \\to a W^\\pm \\gamma$ from arXiv:1701.05379"
+    domains: ["high-energy-physics", "bsm-phenomenology", "axion-like-particles", "effective-field-theory"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    arxiv_id: "1701.05379"
+    source_prompt: "ColliderAgent/paper-reproduction/1701.05379/prompt_figure_8.md"
+
+  - id: P06
+    topic: "Reproducing $U_1$ vector leptoquark exclusion from combined ATLAS+CMS $pp \\to \\tau\\nu$ recast from arXiv:1811.07920"
+    domains: ["high-energy-physics", "bsm-phenomenology", "leptoquark", "flavor-anomaly", "statistical-recast"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    arxiv_id: "1811.07920"
+    source_prompt: "ColliderAgent/paper-reproduction/1811.07920/prompt_figure_3.md"
+
+  - id: P07
+    topic: "Reproducing scalar leptoquark $m_{ej}$ resonance via LUXlep proton lepton PDF from arXiv:2005.06475"
+    domains: ["high-energy-physics", "bsm-phenomenology", "leptoquark", "lepton-pdf"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    arxiv_id: "2005.06475"
+    source_prompt: "ColliderAgent/paper-reproduction/2005.06475/prompt_figure_2.md"
+
+  - id: P08
+    topic: "Reproducing SSM and $E_6$-$\\psi$ Z' dimuon cross sections at 13 TeV LHC from arXiv:2103.02708"
+    domains: ["high-energy-physics", "bsm-phenomenology", "z-prime"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    arxiv_id: "2103.02708"
+    source_prompt: "ColliderAgent/paper-reproduction/2103.02708/prompt_figure_4.md"
+
+  - id: P09
+    topic: "Reproducing $U_1$ leptoquark $|\\eta|$ shape in $\\mu^+\\mu^- \\to b\\bar b$ at 3 TeV muon collider from arXiv:2104.05720"
+    domains: ["high-energy-physics", "bsm-phenomenology", "leptoquark", "muon-collider"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    arxiv_id: "2104.05720"
+    source_prompt: "ColliderAgent/paper-reproduction/2104.05720/prompt_figure_11.md"
+
+  - id: P10
+    topic: "Reproducing $U_1$ exclusion + 5$\\sigma$ discovery contours at 3 and 14 TeV muon colliders from arXiv:2104.05720"
+    domains: ["high-energy-physics", "bsm-phenomenology", "leptoquark", "muon-collider", "statistical-recast"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    arxiv_id: "2104.05720"
+    source_prompt: "ColliderAgent/paper-reproduction/2104.05720/prompt_figure_12.md"

@@ -1,0 +1,36 @@
+{
+  "adapter_id": "generic",
+  "host_name": "Generic Host",
+  "status": "advisory-only",
+  "runtime_role": "contract-consumer",
+  "source_evidence": [
+    "config/runtime-core-packaging.json",
+    "adapters/generic/closure.json",
+    "install.ps1",
+    "check.ps1"
+  ],
+  "settings_surface": {
+    "path": "host-defined or neutral target root",
+    "managed_by_repo": false,
+    "notes": "The repository can install a host-neutral runtime-core payload into a neutral target root, but it still makes no host-closure claim for generic consumers."
+  },
+  "host_managed_surfaces": [
+    "all runtime surfaces"
+  ],
+  "capabilities": {
+    "fs.read": "host-defined",
+    "fs.write": "host-defined",
+    "shell.exec": "host-defined",
+    "mcp.client": "host-defined",
+    "settings.materialize": "runtime-core-only",
+    "plugin.provision": "unsupported",
+    "agent.spawn": "host-defined",
+    "route.provider_call": "host-defined",
+    "route.offline_fallback": "host-defined",
+    "release.verify": "runtime-core-only"
+  },
+  "degrade_contract": {
+    "current_state": "advisory-only with repo-provided runtime-core lane"
+  },
+  "supported_platform_contracts": []
+}

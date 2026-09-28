@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "profile": "codex",
+  "core": [],
+  "optional": [
+    {
+      "name": "serena",
+      "install_mode": "manual-codex",
+      "install_hint": "Provision via Codex-native MCP tooling if your Codex host exposes official MCP registration."
+    },
+    {
+      "name": "github",
+      "install_mode": "manual-codex",
+      "install_hint": "Provision via Codex-native MCP tooling if your Codex host exposes official MCP registration."
+    },
+    {
+      "name": "prompts-chat",
+      "install_mode": "manual-codex",
+      "install_hint": "Provision prompts.chat MCP/API integration in Codex runtime; optional, used by prompt-lookup/prompt-overlay."
+    },
+    {
+      "name": "xan",
+      "install_mode": "manual-codex",
+      "install_hint": "Install xan CLI manually (recommended on Windows: scoop install xan) for large CSV acceleration."
+    },
+    {
+      "name": "fuck-u-code",
+      "install_mode": "manual-codex",
+      "install_hint": "Optional quality-debt analyzer for quality-debt-overlay; install manually only if you want external analyzer hints beyond built-in risk scoring."
+    },
+    {
+      "name": "ivy",
+      "install_mode": "manual-codex",
+      "install_hint": "Optional framework-interop backend for framework-interop-overlay; install manually in Python environment (for example: pip install ivy)."
+    },
+    {
+      "name": "leetcuda",
+      "install_mode": "manual-codex",
+      "install_hint": "Optional methodology source for cuda-kernel-overlay; no runtime dependency required. Keep GPL-3.0 boundary: do not vendor upstream code."
+    }
+  ],
+  "notes": "Codex install guidance is limited to officially supportable local settings, MCP registration, and optional CLI tooling. Historical Claude-style plugin and hook surfaces are intentionally excluded from the supported Codex install path."
+}

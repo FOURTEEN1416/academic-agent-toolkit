@@ -1,0 +1,97 @@
+# ============================================================================
+# T17 — Comparing topic models (LDA, NMF, LSA) on 20newsgroups subsets
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML17
+title: "Topic-model comparison on small 20newsgroups subsets: LDA vs NMF vs LSA"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Topic modeling methods are often compared using either intrinsic quality
+  measures (such as topic coherence) or extrinsic utility (such as how well
+  document representations align with known labels), but the two views can
+  disagree. Latent Dirichlet Allocation (LDA), Non-negative Matrix
+  Factorization (NMF), and Latent Semantic Analysis (LSA/SVD) each induce
+  different assumptions over term-document structure and may therefore rank
+  differently depending on metric choice.
+
+  On CPU-constrained benchmarks, a practical study should use a compact text
+  corpus and a controlled preprocessing pipeline so that runtime stays short
+  while still yielding meaningful distinctions. A small subset of
+  20newsgroups is ideal because it has accessible labels for external
+  clustering evaluation and enough lexical diversity for coherence analysis.
+  Using multiple subset difficulties (well-separated vs more confusable
+  categories) helps test robustness of conclusions.
+
+  A credible experiment compares LDA, NMF, and LSA under matched topic counts
+  and vectorization settings, then reports both c_v-like coherence and
+  adjusted rand index (ARI) from document-cluster assignments against true
+  newsgroup labels. Because exact c_v implementations are not native in
+  sklearn, an explicit approximation based on sliding-window co-occurrence
+  and normalized PMI should be documented and applied consistently across
+  methods. Repeated runs for stochastic models are needed to avoid
+  over-interpreting single-seed noise.
+
+  The core question is whether better intrinsic coherence implies better
+  label alignment on small real-world corpora, and which model offers the
+  best trade-off under strict CPU budgets.
+
+  *Do LDA, NMF, and LSA produce different rankings on coherence versus ARI on small 20newsgroups subsets, and does NMF provide the strongest coherence-structure trade-off under CPU limits?*
+
+hypotheses:
+  - id: H1
+    statement: "NMF achieves higher mean coherence_cv than LSA on at least 2 of 3 evaluated 20newsgroups subsets when using the same number of topics and preprocessing pipeline."
+    measurable: true
+  - id: H2
+    statement: "Across the three methods (LDA, NMF, LSA), the method with the highest coherence_cv is also the highest-ARI method on no more than 1 of the 3 subsets, indicating weak metric agreement."
+    measurable: true
+  - id: H3
+    statement: "LDA achieves mean ARI at least 0.03 higher than LSA on at least 2 of 3 subsets when document clusters are obtained by argmax topic assignment."
+    measurable: true
+
+experiment_design:
+  research_question: "How do LDA, NMF, and LSA compare on coherence_cv versus document-cluster ARI over small 20newsgroups subsets, and do intrinsic/extrinsic rankings diverge?"
+  conditions:
+    - name: "lda_k4"
+      description: "LatentDirichletAllocation with n_components=4, max_iter=20, learning_method='batch', CountVectorizer features, repeated over 3 seeds."
+    - name: "nmf_k4"
+      description: "NMF with n_components=4, init='nndsvda', solver='cd', max_iter=300 on TF-IDF features, repeated over 3 seeds."
+    - name: "lsa_k4"
+      description: "TruncatedSVD (LSA) with n_components=4 on TF-IDF features; document-topic embeddings clustered via argmax after non-negative shift or via KMeans(k=4) with fixed seed."
+    - name: "nmf_k6_sensitivity"
+      description: "NMF sensitivity condition with n_components=6 to test topic-count robustness for coherence and ARI trends."
+  baselines:
+    - "lsa_k4 as a linear-algebra baseline without probabilistic topic assumptions"
+    - "lda_k4 as a probabilistic-topic baseline"
+  metrics:
+    - name: "coherence_cv"
+      direction: "maximize"
+      description: "Approximate c_v coherence computed from top words per topic using sliding-window co-occurrence and NPMI aggregation, averaged across topics and seeds."
+    - name: "ari"
+      direction: "maximize"
+      description: "Adjusted Rand Index between predicted document clusters (topic argmax or equivalent) and true newsgroup labels."
+    - name: "runtime_sec"
+      direction: "minimize"
+      description: "Wall-clock training + inference time per condition/dataset cell on single CPU core."
+  datasets:
+    - name: "20ng_easy4"
+      source: "sklearn.datasets.fetch_20newsgroups with categories=['sci.space','rec.autos','comp.graphics','talk.politics.misc']"
+    - name: "20ng_related4"
+      source: "sklearn.datasets.fetch_20newsgroups with categories=['comp.graphics','comp.os.ms-windows.misc','comp.sys.ibm.pc.hardware','comp.sys.mac.hardware']"
+    - name: "20ng_science4"
+      source: "sklearn.datasets.fetch_20newsgroups with categories=['sci.space','sci.med','sci.electronics','sci.crypt']"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 720
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML17.json"

@@ -1,0 +1,20 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="-1 -1 26 26"
+  fill="none"
+  stroke="#111827"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+ 
+ data-icon-id="model.attention.tabler_outline.v1" data-source="@tabler/icons">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M11.5 12a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="#111827" />
+  <path d="M5 12a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+  <path d="M12 3l0 2" />
+  <path d="M3 12l2 0" />
+  <path d="M12 19l0 2" />
+  <path d="M19 12l2 0" />
+</svg>

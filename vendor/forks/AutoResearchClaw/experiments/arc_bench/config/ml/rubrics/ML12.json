@@ -1,0 +1,109 @@
+{
+    "id": "ml12-root",
+    "requirements": "A credible experiment comparing clustering algorithms across synthetic geometric datasets: clustering conditions are implemented, execution covers multiple datasets with repeated seeds and ARI-centric reporting, and the analysis addresses H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Well-motivated algorithm substitutes (e.g., HDBSCAN for DBSCAN) that test the same question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml12-code",
+            "requirements": "The clustering conditions and dataset generators are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml12-code-algos",
+                    "requirements": "The submission implements multiple distinct clustering conditions \u2014 typically k-means, agglomerative, DBSCAN, and/or spectral \u2014 via sklearn APIs with separate code paths and method-specific hyperparameters.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml12-code-data",
+                    "requirements": "The submission generates multiple synthetic datasets with varied geometry (e.g., moons, circles, anisotropic blobs), preserves ground-truth labels, and standardizes features before clustering where appropriate.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml12-code-setup",
+                    "requirements": "The experiment framework includes seed control and a consistent per-dataset protocol for cluster-count-dependent methods.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml12-exec",
+            "requirements": "Execution produces clustering metrics for each condition.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml12-exec-metrics",
+                    "requirements": "Execution outputs a metrics artifact containing numeric adjusted_rand_score (or equivalent) for each implemented condition on at least one dataset.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml12-exec-repeats",
+                    "requirements": "Reported results are aggregated over multiple random seeds per (dataset, condition) with a dispersion estimate. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml12-exec-tuning",
+                    "requirements": "For DBSCAN (or equivalent density-based method), the run documents a reasonable choice of eps/min_samples (either via a small search or a justified fixed value), logged in the artifacts.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Hyperparameter Tuning"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml12-results",
+            "requirements": "Results address H1/H2/H3 directionally with interpretable evidence.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml12-result-h1",
+                    "requirements": "The submission compares ARI of density-based / spectral methods against k-means on nonlinear-geometry datasets and conveys whether they produce meaningfully better cluster assignments \u2014 judge directionally against H1.",
+                    "weight": 25.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml12-result-h2h3",
+                    "requirements": "The submission conveys dataset-wise ARI outcomes \u2014 whether agglomerative-ward is at least competitive with k-means on anisotropic blobs (H2) and whether any single method wins across all datasets (H3).",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml12-result-writeup",
+                    "requirements": "The README or writeup describes setup, key ARI/NMI findings per dataset, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations (synthetic-only scope, hyperparameter sensitivity, seed count, metric dependence). No strict word-count requirement.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

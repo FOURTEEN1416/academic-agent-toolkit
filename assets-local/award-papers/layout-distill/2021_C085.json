@@ -1,0 +1,58 @@
+{
+  "paper_id": "2021_C085",
+  "problem_type": "C",
+  "source": {
+    "pages_dir": "assets-local/award-papers/2021/C085/",
+    "text_layer": "no",
+    "reading_route": "视觉读取抽样 15/40（页面件乱序且非全量：印刷页 1-8 前段大概率缺位，抽得页覆盖印刷 9-14/20/23 与附录 24-48 区段，2026-09-23）",
+    "pages_read": "15/40（抽样）",
+    "caveat": "页面件乱序+疑似缺前段：印刷页 48 而归档仅 40 件且抽样未见摘要页；abstract 字段记 unavailable，待后续窗口拿到完整语料补蒸馏"
+  },
+  "pages_total": 40,
+  "page_count_within_range": false,
+  "abstract": {
+    "page": null,
+    "slots": [],
+    "word_count_range": "unavailable（摘要页不在归档抽样内）",
+    "keywords_count": null
+  },
+  "section_tree": [
+    {"title": "摘要", "level": 0, "page": null, "subsections": 0, "function": "unavailable（归档缺前段）"},
+    {"title": "五（部分）模型的建立与求解", "level": 1, "page": 9, "subsections": 4, "function": "5.2问题二双层随机规划模型的建立与求解（5.2.1供应商选择模型：●确定决策变量/●确定优化目标/●确定约束条件/●随机变量解释 圆点步骤标签；(1)(2)(3)约束枚举；5.2.2订购方案与转运方案；5.3求解：●基于动态权重的离散化贪心和动态规划算法，1、动态权重的贪心算法 2、动态规划算法 3、离散化贪心规划算法 各配Step1~Step5；5.5问题四随机整数规划模型的建立与求解，5.5.1确定决策变量/5.5.2确定优化目标/5.5.3确定约束条件）"},
+    {"title": "六、模型的评价与推广", "level": 1, "page": null, "subsections": null, "function": "inferred（七、参考文献之前章，原页未抽样到，结构按惯例推断不细写）"},
+    {"title": "七、参考文献", "level": 1, "page": 23, "subsections": 0, "function": "[1]-[6] GB/T 7714 完整式（作者.题名[J/D].刊名,年,卷(期):页码）"},
+    {"title": "八、附录", "level": 1, "page": 23, "subsections": 9, "function": "附录N {文件名}.py 灰底标题条+「介绍：输入…输出…」说明行+Python 代码盒；代码内中文注释随行"}
+  ],
+  "standard_sections": {
+    "摘要": "unavailable", "问题重述": "unavailable", "问题分析": "unavailable",
+    "模型假设": "unavailable", "符号说明": "unavailable",
+    "模型建立": true, "模型求解": true,
+    "模型检验/灵敏度": true, "模型评价": "inferred", "参考文献": true, "附录": true
+  },
+  "figures_tables": {
+    "figures": null,
+    "tables": null,
+    "fig_caption_format": "图N：xxx（Arabic+冒号题注，图下方；抽样见 图15：）",
+    "table_caption_format": "表N：xxx（Arabic+冒号题注，表上方；抽样见 表6：问题三比值表）",
+    "table_style": "三线表（周期/比值两行多列比值表）；加粗关键数字于正文",
+    "per_page_density": "unavailable（正文中段未抽样全）",
+    "type_usage": {"柱状图（Excel 风）": "方案效果对比", "公式块群": "规划模型主体", "灰盒代码": "附录"}
+  },
+  "typography": {
+    "heading_levels": "章「中文数字、标题」黑体居中；节「x.y 问题k…模型的建立与求解」黑体左对齐；小节「x.y.z 确定{要素}」黑体左对齐；●实心圆点步骤标签与➢箭头子标签（目测口径）",
+    "body_font": "宋体小四，行距约1.5倍，首行缩进2字符；数学符号斜体、文字性矩阵/集合用粗斜体（目测口径）",
+    "equation_numbering": "(章-节-序号) 三段式编号：(5-3-1)~(5-3-16)、(5-5-1)…——全语料唯一见的章节式公式编号体系",
+    "header_footer": "无页眉；页脚页码居中"
+  },
+  "sentence_patterns": [
+    {"chapter": "模型建立", "slot_template": "由题意易知本问中的决策变量为{描述}，引入{变量类型}表示如下：{定义式}", "seen_pages": [9]},
+    {"chapter": "模型建立", "slot_template": "记{符号}表示{含义}，其{属性}记为{符号2}。{记号约定串}。", "seen_pages": [9]},
+    {"chapter": "模型建立", "slot_template": "（{k}）{约束名}为{描述}，等式如下：{公式}", "seen_pages": [9, 10, 12]},
+    {"chapter": "模型建立", "slot_template": "综上，{模型名}模型为：{目标+约束大括号块}", "seen_pages": [10]},
+    {"chapter": "模型求解", "slot_template": "本文设定了两个规则：（1）{规则一}；（2）{规则二}。在以上两个规则都满足的情况下，选择{选择策略}。", "seen_pages": [13]},
+    {"chapter": "模型求解", "slot_template": "本文为确定{目标}，使用{方法A}和{方法B}的算法进行求解。{k}、{算法名}：{算法思想段落}。{算法名}具体算法步骤为：Step1：{步骤}；Step2：{步骤}；…", "seen_pages": [13, 14]},
+    {"chapter": "结果分析", "slot_template": "由上表可知，{量}在{范围}内波动，平均为{基准}的{数}倍。在{前提}的情况下，认为{结论}。", "seen_pages": [20]},
+    {"chapter": "结果分析", "slot_template": "由结果可见，{对比结论}，由此可以判断{判断}。但比较同时{对比项}，发现{更细结论}。", "seen_pages": [23]}
+  ],
+  "notes": "本卡基于部分归档抽样：摘要/前四类标准章不可核验记 unavailable；可蒸馏的独有价值=①(章-节-序号)三段式公式编号体系（全语料唯一）②●/➢圆点-箭头建模步骤标签③5.x.z『确定决策变量/确定优化目标/确定约束条件』三段式建模骨架④双层随机规划的文字组织（上层规划/下层规划分述）。后续窗口若获完整语料（含印刷页1-8）应补蒸馏摘要与前置章并更新本卡。"
+}

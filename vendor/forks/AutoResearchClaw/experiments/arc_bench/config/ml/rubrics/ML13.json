@@ -1,0 +1,109 @@
+{
+    "id": "ml13-root",
+    "requirements": "A credible experiment studying kernel-choice effects (RBF, polynomial, Matern-3/2, Matern-5/2, or equivalents) for Gaussian Process regression on synthetic noisy functions: conditions are implemented, execution covers multiple datasets with repeated seeds, and results address H1/H2/H3 directionally using test NLL as the primary metric.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Alternative kernels or dataset dimensions that test the same scientific question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml13-code",
+            "requirements": "The GP kernel conditions and synthetic datasets are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml13-code-kernels",
+                    "requirements": "The submission implements multiple kernel conditions \u2014 typically including RBF, a polynomial kernel, and one or more Matern kernels \u2014 as distinct GP configurations with comparable noise handling.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml13-code-datasets",
+                    "requirements": "The submission generates synthetic regression datasets with explicit noise (both a low-dimensional and a higher-dimensional case preferred) and creates train/test splits.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml13-code-setup",
+                    "requirements": "Experimental setup controls are consistent across kernels (same split protocol, seed handling, and optimizer restart policy), enabling fair kernel comparison.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml13-exec",
+            "requirements": "Execution logs primary and secondary metrics for each kernel and dataset.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml13-exec-metrics",
+                    "requirements": "Execution produces a metrics artifact containing numeric test NLL and RMSE (or equivalents) for every implemented (kernel, dataset) pair.",
+                    "weight": 16.6667,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml13-exec-seeds",
+                    "requirements": "Reported metrics are aggregated over multiple random seeds per (kernel, dataset) cell, with a dispersion measure. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Hyperparameter Tuning"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml13-results",
+            "requirements": "Results analysis addresses H1/H2/H3 directionally with quantitative comparisons.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml13-result-h1",
+                    "requirements": "The submission reports per-dataset mean test-NLL ranking and conveys whether smooth kernels (RBF, Matern-5/2) tend to be best \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml13-result-h2",
+                    "requirements": "The submission compares the polynomial-kernel NLL against the best kernel and conveys whether polynomial is meaningfully worse on at least one dataset (H2).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml13-result-h3",
+                    "requirements": "The submission compares kernel rankings by test NLL and RMSE on each dataset and conveys whether rankings can differ between these two metrics (H3).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml13-result-writeup",
+                    "requirements": "The README or writeup describes implementation choices, dataset generation, metric tables, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations (synthetic-only scope, kernel parameterization, seed/compute constraints). No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

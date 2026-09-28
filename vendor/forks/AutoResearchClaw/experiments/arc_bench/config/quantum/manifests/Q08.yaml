@@ -1,0 +1,115 @@
+# ============================================================================
+# Q08 — Layerwise learning vs end-to-end VQC training
+# ----------------------------------------------------------------------------
+# Open research question. Three training strategies for a 4-qubit, reps=5
+# EfficientSU2 variational quantum classifier on binary UCI tasks:
+# (a) layerwise — train reps=1 to convergence, freeze, add reps=2, etc;
+# (b) end-to-end — train all reps=5 layers simultaneously from random init;
+# (c) random-init control — initialize at random and report the untrained
+#     classifier as a floor. Compare against logistic regression and a
+# parameter-matched classical MLP for the ≥2-baseline gate.
+# ============================================================================
+
+id: Q08
+title: "Layerwise learning vs end-to-end training for variational quantum classifiers"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+synthesis: |
+  Variational quantum classifiers (VQCs) at moderate depth (reps >= 5)
+  suffer from barren plateaus: the gradient of the loss with respect to
+  any single parameter is exponentially suppressed when the ansatz is
+  initialized randomly across all layers. Skolik et al. (Quantum 2021,
+  "Layerwise learning for quantum neural networks") proposed a training
+  schedule that avoids this trap by adding ansatz layers incrementally.
+  Concretely, the agent trains a reps=1 ansatz to convergence, freezes
+  its parameters, prepends or appends a fresh reps=1 block initialized
+  to identity, trains only the new block to convergence, and so on
+  until the target depth is reached. Each layer of training sees a much
+  smaller parameter space, so the gradient signal stays well above the
+  barren-plateau floor at every step.
+
+  The empirical question this topic addresses is whether the layerwise
+  schedule actually delivers higher final test accuracy AND faster
+  practical convergence than naive end-to-end training of the full
+  reps=5 ansatz on small UCI binary classification tasks. A
+  parameter-matched classical baseline (sklearn MLPClassifier) and a
+  logistic regression baseline serve as the cross-paradigm controls
+  required by the bench's PROCEED gate; they also calibrate the
+  difficulty of each dataset (logistic regression should fit linear
+  separable cases cleanly).
+
+  Implementation guidance is provided by the quantum-qiskit skill,
+  which is automatically injected at stage 10. Use
+  qiskit.circuit.library.EfficientSU2(num_qubits=4, reps=5,
+  entanglement='linear') as the underlying ansatz family, and use
+  qiskit_machine_learning.algorithms.VQC for training (it works in
+  qiskit 2.x; do NOT use qiskit_algorithms.VQE which is broken). For
+  the layerwise condition, the agent must implement the layer-freezing
+  schedule manually: construct an ansatz with only the first k blocks
+  trainable and previous blocks bound to their converged parameters.
+  The classical baselines train on the same 80/20 train/test split
+  using the same per-seed random_state.
+
+  Experimental protocol. Three quantum conditions compare training
+  schedules at the same final depth (reps=5): layerwise growth from
+  reps=1 to reps=5, end-to-end training of reps=5 from random
+  initialization, and a random-init control (no training, evaluate
+  the randomly initialized reps=5 ansatz). Two classical baselines
+  (logistic regression, MLPClassifier with parameter count matched to
+  the VQC's 40-parameter count) provide the cross-paradigm reference.
+  Each (condition, dataset) cell is averaged over 3 seeds. Total:
+  5 conditions x 2 datasets x 3 seeds = 30 cells.
+
+  Research question: *Does layerwise incremental training of a VQC
+  reach higher test accuracy or faster convergence than end-to-end
+  training of the same final-depth ansatz, and does the layerwise
+  gradient norm at each newly added layer remain above the
+  barren-plateau threshold?*
+
+hypotheses:
+  - id: H1
+    statement: "Layerwise training reaches higher test accuracy than end-to-end training on at least 1 of 2 datasets, with a 3-seed-mean gap of at least 3 absolute percentage points."
+    measurable: true
+  - id: H2
+    statement: "The mean gradient norm during the first 10 optimization steps of the layerwise schedule (averaged across all newly added blocks) is at least 5 times larger than the mean gradient norm during the first 10 steps of end-to-end training (3-seed mean), confirming the Skolik 2021 mechanism."
+    measurable: true
+  - id: H3
+    statement: "Both layerwise and end-to-end VQC outperform the random-init control (no training) by at least 5 absolute percentage points on both datasets (3-seed mean), confirming that training actually contributes — the ansatz itself is not memorizing class structure at initialization."
+    measurable: true
+
+experiment_design:
+  research_question: "Does layerwise incremental training of a 4-qubit reps=5 VQC reach higher test accuracy or faster convergence than end-to-end training of the same ansatz on small UCI binary classification?"
+  conditions:
+    - name: "layerwise_growth"
+      description: "EfficientSU2(num_qubits=4, reps=5, entanglement='linear'). Training schedule: (1) train only the first reps=1 block via VQC.fit() for 80 COBYLA iterations; (2) freeze those parameters, add a fresh reps=1 block initialized to small N(0, 0.01) noise, train only the new block for 80 iterations; repeat until all 5 blocks are trained. Record the gradient norm at the start of each new layer's training."
+    - name: "end_to_end"
+      description: "EfficientSU2(num_qubits=4, reps=5, entanglement='linear'). Single VQC.fit() call training all 40 parameters simultaneously from random N(0, 0.1) initialization for 400 COBYLA iterations (5 x 80, matching the total iteration budget of the layerwise schedule)."
+    - name: "random_init_control"
+      description: "Same EfficientSU2 ansatz, parameters drawn from Uniform[-pi, pi] and NEVER trained. Evaluate predict() directly on the test set. Floor for trainability — any trained model should beat this."
+  baselines:
+    - "logistic_regression: sklearn.linear_model.LogisticRegression(max_iter=1000, random_state=seed). Linear classical baseline."
+    - "mlp_matched: sklearn.neural_network.MLPClassifier(hidden_layer_sizes=(8,), activation='relu', max_iter=500, random_state=seed). Parameter count: 4*8 + 8 + 8*1 + 1 = 49 parameters, within 20 percent of the VQC's 40 parameters."
+  metrics:
+    - name: "test_accuracy"
+      direction: "maximize"
+      description: "Held-out 20 percent test split accuracy, 3-seed mean. Primary metric."
+    - name: "mean_gradient_norm_first10"
+      direction: "maximize"
+      description: "L2 norm of the gradient vector averaged across the first 10 optimization steps. For layerwise, averaged across the first 10 steps of each newly added block. For end-to-end, the first 10 steps of the single training run. Tests the Skolik mechanism."
+    - name: "iterations_to_target_accuracy"
+      direction: "minimize"
+      description: "Number of total COBYLA iterations to reach test accuracy >= 0.8 (or to budget 400 if never reached). Tests practical convergence speed."
+  datasets:
+    - name: "uci_iris_binary_pca4"
+      source: "sklearn.datasets.load_iris + PCA to 4 dimensions"
+      description: "Iris dataset restricted to classes {versicolor=1, virginica=2} (binary, 100 samples). PCA to 4 dimensions on standard-scaled features. 80/20 split. Approximately linearly separable; logistic regression should reach >=85 percent."
+    - name: "breast_cancer_pca4"
+      source: "sklearn.datasets.load_breast_cancer + PCA to 4 dimensions"
+      description: "Wisconsin breast cancer dataset, 569 samples, 30 features reduced to 4 via PCA. 80/20 split. Non-trivially separable; logistic regression reaches around 0.92."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1500
+
+rubric_path: "experiments/arc_bench/config/quantum/rubrics/Q08.json"

@@ -1,0 +1,21 @@
+# ORIGIN
+
+- `canonical_slug`: `<slug>`
+- `upstream_repo`: `<https://github.com/owner/repo>`
+- `upstream_ref`: `<commit-or-branch>`
+- `license_spdx`: `<MIT|Apache-2.0|GPL-3.0|NOASSERTION|...>`
+- `distribution_tier`: `<distributed-local|repo-local-mirror-not-shipped|external-optional|reference-only>`
+- `redistribution_posture`: `<allowed-with-notice|mirror-only-not-shipped|external-service-terms|reference-only>`
+- `integration_mode`: `<bundled-local|methodology-overlay|external-corpus-input|...>`
+- `local_path`: `<vendor/upstreams/slug>`
+- `shipped_by_default`: `<true|false>`
+- `modified_by_vco`: `<true|false>`
+- `refresh_command`: `<pwsh -File scripts/governance/new-origin-record.ps1 ...>`
+- `required_notice_files`: `<NOTICE entries or license file paths>`
+- `trademark_notes`: `<none or notes>`
+- `security_or_compliance_notes`: `<none or notes>`
+
+## Notes
+
+- Describe whether this asset is verbatim, partially adapted, or only used for audit/reference.
+- If the asset is not distributed by default, say so explicitly.

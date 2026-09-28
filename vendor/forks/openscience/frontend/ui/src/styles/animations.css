@@ -1,0 +1,57 @@
+:root {
+  --animate-pulse: pulse-opacity 2s ease-in-out infinite;
+}
+
+@keyframes pulse-opacity {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-opacity-dim {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up-text {
+  animation: fadeUp var(--duration-slow) var(--ease-out-expo) forwards;
+  opacity: 0;
+}
+
+/* Reduced motion: decorative entrances and infinite attention loops become
+   instant/static; functional loaders (spinner) are left alone. Mirrors the
+   pattern the app uses for .atlas-* animations. */
+@media (prefers-reduced-motion: reduce) {
+  .fade-up-text,
+  [data-component="dialog-overlay"],
+  [data-slot="dialog-container"],
+  [data-component="toast"],
+  [data-component="select-content"],
+  [data-component="popover-content"],
+  [data-component="dropdown-menu-content"],
+  [data-component="dropdown-menu-sub-content"],
+  [data-component="hover-card-content"] {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+  }
+}

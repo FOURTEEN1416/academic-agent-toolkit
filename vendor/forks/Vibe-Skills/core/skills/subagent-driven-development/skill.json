@@ -1,0 +1,18 @@
+{
+  "skill_id": "subagent-driven-development",
+  "name": "subagent-driven-development",
+  "version": 1,
+  "summary": "Task-by-task execution pattern using isolated subagents with staged review.",
+  "instruction_path": "core/skills/subagent-driven-development/instruction.md",
+  "compatibility_path": "core/skills/subagent-driven-development/compatibility.json",
+  "source_of_truth": {
+    "kind": "bundled-skill",
+    "path": "bundled/skills/subagent-driven-development/SKILL.md"
+  },
+  "tags": [
+    "subagents",
+    "execution",
+    "review"
+  ]
+}
+

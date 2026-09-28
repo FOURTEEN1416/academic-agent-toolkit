@@ -1,0 +1,270 @@
+{
+ "schema": "layout-distillation:progress-v1",
+ "initialized": "2026-09-23",
+ "updated": "2026-09-24",
+ "corpus_root": "assets-local/award-papers/",
+ "card_dir": "assets-local/award-papers/layout-distill/",
+ "counts": {
+  "total": 62,
+  "done": 8,
+  "failed": 0,
+  "todo": 53,
+  "partial": 1
+ },
+ "batch_plan": {
+  "batch1": "2021(17)",
+  "batch2": "2022+2023(22)",
+  "batch3": "2024(16)",
+  "batch4": "2025(7)+aggregate"
+ },
+ "papers": [
+  {
+   "paper_id": "2021_A028",
+   "status": "done"
+  },
+  {
+   "paper_id": "2021_A115",
+   "status": "done"
+  },
+  {
+   "paper_id": "2021_A217",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2021_B007",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2021_B026",
+   "status": "done"
+  },
+  {
+   "paper_id": "2021_B050",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2021_B160",
+   "status": "done"
+  },
+  {
+   "paper_id": "2021_C066",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2021_C085",
+   "status": "partial"
+  },
+  {
+   "paper_id": "2021_C169",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2021_C283",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2021_D017",
+   "status": "done"
+  },
+  {
+   "paper_id": "2021_D026",
+   "status": "done"
+  },
+  {
+   "paper_id": "2021_D034",
+   "status": "done"
+  },
+  {
+   "paper_id": "2021_E014",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2021_E025",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2021_E037",
+   "status": "done"
+  },
+  {
+   "paper_id": "2022_A001",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2022_A022",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2022_A171",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2022_B030",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2022_B035",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2022_B086",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2022_C155",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2022_D999",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2022_E014",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2022_E029",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2023_A0127",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2023_A0165",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2023_A092",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2023_B226",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2023_B311",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2023_B477",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2023_C050",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2023_C126",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2023_C228",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2023_D039",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2023_E032",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2023_E176",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_A016",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_A053",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_A163",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_A178",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_A242",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_B159",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_B195",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_B196",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_C038",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_C063",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_C094",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_C234",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_D033",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_E010",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_E061",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2024_E218",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2025_A196",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2025_B060",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2025_B157",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2025_C023",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2025_C132",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2025_D037",
+   "status": "todo"
+  },
+  {
+   "paper_id": "2025_E030",
+   "status": "todo"
+  }
+ ]
+}

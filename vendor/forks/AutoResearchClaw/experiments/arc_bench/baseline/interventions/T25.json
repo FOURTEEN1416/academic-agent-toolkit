@@ -1,0 +1,17 @@
+{
+  "topic_id": "T25",
+  "topic": "Reservoir computing vs MLP vs GP for short-horizon Lorenz-63 forecasting",
+  "expert_profile": "chaotic time-series benchmarking and statistical rigor advisor",
+  "interventions": {
+    "10": {
+      "action": "inject",
+      "message": "Halt narrative claims until the full model×N grid is actually executed and internally consistent. Add fail-fast integrity checks so unsupported writeup numbers cannot appear again.",
+      "guidance": ""
+    },
+    "13": {
+      "action": "inject",
+      "message": "Stage-14 analysis must switch from claim-making to evidence auditing unless completeness and consistency checks pass. Prioritize paired uncertainty-aware comparisons and explicit limitations.",
+      "guidance": "- **Pre-analysis gate**: before any hypothesis verdict, verify: full 3×4 grid present, >=5 seeds/cell, no VPT conflicts between logs and summary, and no incomplete conditions. If gate fails, output only pilot/instrumentation conclusions.\n- **Primary analysis table (mandatory)**: for each method×N report `mean±std` over seeds for VPT and one-step RMSE, plus median VPT (robustness) and train time. Include seed count per cell.\n- **Paired comparative analysis**: at each N, report paired seed-wise deltas for VPT: ESN-MLP and ESN-GP with 95% bootstrap CI and corrected p-value (Holm). Avoid unpaired comparisons.\n- **H1 framing**: test ratio criterion directly (`mean VPT_ESN / mean VPT_MLP >= 1.2`) for N=200 and N=500; report ratio with bootstrap CI. If CI crosses 1.2, mark inconclusive.\n- **H2 framing**: two predeclared checks only: competitiveness at N=200 (within ±20%) and dominance at N=2000 (>=2x). Quantify both as ratios and absolute deltas; do not generalize beyond these points.\n- **H3 verification**: explicitly search for rank inversion cases where lower RMSE corresponds to lower VPT. Provide at least one seed-level and one mean-level example, or state none found.\n- **Diagnostics section**: include ceiling/floor checks (VPT saturating at horizon cap or collapsing near 0), zero-variance diagnostics, and seed sensitivity plots/tables. If variance is near-zero, discuss deterministic artifact risk.\n- **Calibration/reliability add-on (for one-step errors)**: bin predicted error magnitudes vs realized absolute errors (reliability-style table) to show whether models are over/under-confident in local error estimates; if unavailable, acknowledge omission.\n- **Narrative reframe rule**: if accuracy metrics conflict with VPT, center conclusions on dynamical usefulness (VPT) and treat RMSE as secondary local metric.\n- **Limitations that must appear**: parameter-matching ambiguity (readout-only vs total ESN capacity), GP scaling and optimizer instability, sensitivity to VPT threshold choice (recommend sensitivity at 0.3/0.4/0.5), and potential trajectory-specific effects from single attractor segment.\n- **Provenance discipline**: every numeric claim in README must cite exact summary key path. If a number lacks a key, remove it.\n- **Final verdict policy**: allow only `supported / not_supported / inconclusive` with explicit evidential basis; use `inconclusive` whenever completeness/statistical gates are not met."
+    }
+  }
+}

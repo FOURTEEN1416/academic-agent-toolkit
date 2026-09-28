@@ -1,0 +1,74 @@
+{
+  "adapter_id": "claude-code",
+  "host_name": "Claude Code",
+  "status": "supported-with-constraints",
+  "runtime_role": "host-adapter-supported",
+  "source_evidence": [
+    "config/settings.template.claude.json",
+    "scripts/bootstrap/scaffold-claude-preview.ps1",
+    "apps/vgo-cli/src/vgo_cli/commands.py",
+    "apps/vgo-cli/src/vgo_cli/core_bridge.py",
+    "packages/installer-core/src/vgo_installer/install_runtime.py",
+    "install.ps1",
+    "check.ps1",
+    "check.sh",
+    "tests/runtime_neutral/test_claude_preview_scaffold.py"
+  ],
+  "settings_surface": {
+    "path": "~/.claude/settings.json",
+    "managed_by_repo": true,
+    "notes": "The repository preserves existing Claude settings while adding a bounded vibeskills-managed stanza."
+  },
+  "global_instruction_surface": {
+    "relpath": "CLAUDE.md",
+    "documented_path": "~/.claude/CLAUDE.md",
+    "format": "markdown-rules",
+    "managed_block_id": "global-vibe-bootstrap",
+    "merge_policy": "managed-block-only",
+    "overwrite_policy": "forbidden",
+    "trigger_tokens": [
+      "$vibe",
+      "/vibe"
+    ],
+    "authority_owner": "vibe",
+    "bootstrap_only": true,
+    "template_relpath": "config/global-bootstrap/claude-code-vibe-bootstrap.md",
+    "template_version": 1
+  },
+  "discoverable_entries": {
+    "shared_source": "config/vibe-entry-surfaces.json",
+    "authority_owner": "vibe",
+    "presentational_only": true,
+    "projection_mode": "generated_wrapper_entries",
+    "host_visible_surface": "managed-launchers",
+    "notes": "Discoverable Vibe entries are host-facing launch labels only and do not create a second runtime authority."
+  },
+  "host_managed_surfaces": [
+    "plugin enablement",
+    "MCP registration",
+    "provider credentials",
+    "broader Claude host behavior outside the managed vibeskills settings surface"
+  ],
+  "capabilities": {
+    "fs.read": "expected",
+    "fs.write": "expected",
+    "shell.exec": "expected",
+    "mcp.client": "supported-with-constraints",
+    "settings.materialize": "managed-with-constraints",
+    "plugin.provision": "manual-host-managed",
+    "agent.spawn": "expected",
+    "route.provider_call": "supported-with-constraints",
+    "route.offline_fallback": "expected",
+    "release.verify": "supported-with-constraints"
+  },
+  "degrade_contract": {
+    "missing_plugins": "degraded-but-supported",
+    "missing_provider_credentials": "configured_offline_unready",
+    "unverified_platform_lane": "not-yet-proven"
+  },
+  "supported_platform_contracts": [
+    "adapters/claude-code/platform-windows.json",
+    "adapters/claude-code/platform-linux.json",
+    "adapters/claude-code/platform-macos.json"
+  ]
+}

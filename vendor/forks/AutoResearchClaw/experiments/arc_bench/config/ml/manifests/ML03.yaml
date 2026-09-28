@@ -1,0 +1,95 @@
+# ============================================================================
+# T03 — Gradient-free optimization on non-convex benchmark functions
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML03
+title: "CPU comparison of Nelder-Mead, Powell, and CMA-ES on non-convex functions"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Gradient-free optimization methods are widely used when derivatives are
+  unavailable, unreliable, or expensive to compute. In low-to-medium
+  dimensional non-convex landscapes, direct-search methods such as
+  Nelder-Mead and Powell are frequently used because they are easy to call
+  through scipy.optimize. Population-based approaches such as CMA-ES can be
+  more robust to local minima and ill-conditioning, but they introduce extra
+  hyperparameters and potentially higher per-iteration cost.
+
+  A CPU-bounded benchmark can clarify practical trade-offs by evaluating these
+  methods under a fixed function-evaluation budget on standard synthetic
+  objective functions with known global minima. Rather than asking which method
+  is universally best, the relevant question is whether one method reaches
+  better objective values more reliably within the same budget and how much
+  runtime overhead that reliability costs.
+
+  A credible experiment should evaluate at least three optimization conditions
+  (Nelder-Mead, Powell, CMA-ES) across multiple non-convex test functions,
+  using repeated random starts and common stopping/budget rules. Reporting only
+  final objective value is incomplete; runtime and success-rate-to-threshold
+  should be included to capture both quality and efficiency. Statistical
+  summaries over seeds are required because single runs are high variance.
+
+  The resulting evidence should produce explicit pass/fail verdicts for each
+  hypothesis: whether CMA-ES improves best-found objective value, whether
+  Powell offers faster wall-clock convergence than CMA-ES at similar budgets,
+  and whether Nelder-Mead underperforms on multimodal landscapes. This keeps
+  the study measurable and feasible within a short single-core runtime window.
+
+  *Under equal function-evaluation budgets on CPU, which gradient-free optimizer (Nelder-Mead, Powell, CMA-ES) gives the best trade-off between final objective quality, runtime, and success rate on non-convex benchmark functions?*
+
+hypotheses:
+  - id: H1
+    statement: "CMA-ES achieves lower mean best objective value than both Nelder-Mead and Powell on at least 2 of 3 benchmark functions, averaged over >=10 random starts with the same evaluation budget."
+    measurable: true
+  - id: H2
+    statement: "Powell has lower median wall-clock runtime than CMA-ES on at least 2 of 3 benchmark functions while finishing within the same function-evaluation cap."
+    measurable: true
+  - id: H3
+    statement: "On the multimodal Rastrigin function, Nelder-Mead attains a lower success rate (fraction of runs reaching f(x) <= 1e-2) than CMA-ES by at least 0.20 absolute."
+    measurable: true
+
+experiment_design:
+  research_question: "Under equal evaluation budgets, how do Nelder-Mead, Powell, and CMA-ES compare on objective quality, runtime, and success probability for non-convex synthetic objectives?"
+  conditions:
+    - name: "nelder_mead"
+      description: "scipy.optimize.minimize with method='Nelder-Mead', random initial point per run, maxfev budget enforced."
+    - name: "powell"
+      description: "scipy.optimize.minimize with method='Powell', same initialization protocol and maxfev cap."
+    - name: "cma_es"
+      description: "CMA-ES implementation (lightweight numpy/scipy variant) with population updates under the same total function-evaluation budget."
+    - name: "random_search_baseline"
+      description: "Uniform random search within bounded domain using the same number of objective evaluations as other methods."
+  baselines:
+    - "random_search_baseline as a budget-matched non-adaptive baseline"
+  metrics:
+    - name: "primary_metric"
+      direction: "minimize"
+      description: "Mean best objective value found at termination (lower is better), aggregated over random starts."
+    - name: "median_runtime_sec"
+      direction: "minimize"
+      description: "Median wall-clock runtime per run in seconds for each (method, function)."
+    - name: "success_rate_eps"
+      direction: "maximize"
+      description: "Fraction of runs reaching objective value <= 1e-2 by termination."
+  datasets:
+    - name: "rastrigin_10d"
+      source: "synthetic numpy implementation of Rastrigin function in 10 dimensions"
+    - name: "rosenbrock_10d"
+      source: "synthetic numpy implementation of Rosenbrock function in 10 dimensions"
+    - name: "ackley_10d"
+      source: "synthetic numpy implementation of Ackley function in 10 dimensions"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 480
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML03.json"

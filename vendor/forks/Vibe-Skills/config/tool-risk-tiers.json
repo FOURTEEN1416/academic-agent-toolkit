@@ -1,0 +1,62 @@
+﻿{
+  "schema_version": 1,
+  "updated": "2026-03-06",
+  "tiers": [
+    {
+      "id": "tier0_read_only",
+      "rank": 0,
+      "description": "Read/query only. No external side effects.",
+      "default_guards": {
+        "requires_confirmation": false,
+        "unattended_allowed": true,
+        "requires_egress_allowlist": false,
+        "requires_contract_tests": false,
+        "production_allowed": true
+      }
+    },
+    {
+      "id": "tier1_bounded_transform",
+      "rank": 1,
+      "description": "Transforms local or user-provided artifacts without open-world writes.",
+      "default_guards": {
+        "requires_confirmation": false,
+        "unattended_allowed": true,
+        "requires_egress_allowlist": false,
+        "requires_contract_tests": false,
+        "production_allowed": false
+      }
+    },
+    {
+      "id": "tier2_guarded_write",
+      "rank": 2,
+      "description": "External writes exist, but the action surface is project/account scoped and contract-testable.",
+      "default_guards": {
+        "requires_confirmation": true,
+        "unattended_allowed": false,
+        "requires_egress_allowlist": true,
+        "requires_contract_tests": true,
+        "production_allowed": false
+      }
+    },
+    {
+      "id": "tier3_open_world_or_high_impact",
+      "rank": 3,
+      "description": "Potentially destructive, open-world, or broad external impact. Strongest confirmation and isolation required.",
+      "default_guards": {
+        "requires_confirmation": true,
+        "unattended_allowed": false,
+        "requires_egress_allowlist": true,
+        "requires_contract_tests": true,
+        "production_allowed": false
+      }
+    }
+  ],
+  "action_type_minimum_tier": {
+    "read": "tier0_read_only",
+    "transform": "tier1_bounded_transform",
+    "write_artifact": "tier1_bounded_transform",
+    "write_external": "tier2_guarded_write",
+    "delete_external": "tier3_open_world_or_high_impact",
+    "open_world": "tier3_open_world_or_high_impact"
+  }
+}

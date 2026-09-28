@@ -1,0 +1,109 @@
+{
+    "id": "q07-root",
+    "requirements": "An empirical study of Matrix Product State (MPS) classifiers vs neural network baselines at matched parameter count on 8x8 downsampled image classification. The agent must (a) build an MPS classifier following Stoudenmire and Schwab 2016 with cos/sin per-pixel feature embedding and bond dimensions chi in {4, 8, 16}, (b) train each MPS via Adam for 50 epochs on 5000 training images, (c) compare against sklearn LogisticRegression and a small PyTorch CNN whose parameter count is within 10 percent of the chi=8 MPS, (d) evaluate test accuracy on a 1000-image held-out set, and (e) score H1/H2/H3 with numerical evidence.",
+    "judging_note": "MPS classifier studies are scored on (i) correctness of the MPS contraction (the per-pixel features cos(pi*x/2), sin(pi*x/2) must enter as a rank-2 tensor at each site, NOT collapsed to a single scalar), (ii) the parameter-count parity between chi=8 MPS and small_cnn_matched within 10 percent (deviation > 10 percent fails q11-code-cnn-parity), (iii) the same train/test split being used across all conditions for a given seed, and (iv) accuracy values being in [0, 1] with non-degenerate predictions. Quantitative result leaves use a graded scale.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "q07-code",
+            "requirements": "Code-development bucket: MPS classifier implemented correctly with proper per-pixel feature embedding, CNN baseline parameter-matched, and training pipeline shared across conditions.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q07-code-mps",
+                    "requirements": "MPS classifier uses pure NumPy or PyTorch tensor contractions. Per-pixel feature embedding is phi(x) = [cos(pi*x/2), sin(pi*x/2)] for grayscale x in [0,1] (Stoudenmire and Schwab 2016 standard). The MPS is a chain of 64 tensors of shape (chi, 2, chi) (interior sites) plus 2 boundary tensors with one chi leg removed, with one site carrying an additional class index of size 10. Trained with Adam (lr=0.01, 50 epochs, batch_size=64). A sanity check confirms that MPS at chi=4 has approximately 64 * 2 * 16 = 2048 trainable parameters within 20 percent.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q07-code-cnn-parity",
+                    "requirements": "small_cnn_matched is implemented in PyTorch as Conv2d(1, K, kernel_size=3, padding=1) + ReLU + Flatten + Linear(K*8*8, 10) with K chosen so total parameter count is within 10 percent of the chi=8 MPS parameter count. K is calculated explicitly and the parameter counts are logged for both. Trained with Adam (same hyperparams as MPS) for 50 epochs.",
+                    "weight": 7.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "q07-code-pipeline",
+                    "requirements": "Nested loop over 5 conditions x 2 datasets x 3 seeds = 30 cells. Each cell uses the same train/test split given a fixed seed (i.e. the per-seed split is computed once and shared across the 5 conditions). MNIST is downsampled to 8x8 via skimage.transform.resize. Per-cell results are logged to stdout as METRIC_RESULT JSON lines containing condition, dataset, seed, test_accuracy, trainable_parameter_count, training_time_sec.",
+                    "weight": 7.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q07-exec",
+            "requirements": "Execution-validity bucket: all 30 cells ran with valid outputs.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q07-exec-cells-ran",
+                    "requirements": "At least 27 cells out of 30 expected (5 conditions x 2 datasets x 3 seeds) completed without unhandled errors and produced a test_accuracy value. Missing more than 3 cells (10 percent) without documented justification fails this leaf.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q07-exec-numerical",
+                    "requirements": "Numerical validity: test_accuracy values are in [0, 1], not equal to 1/n_classes (would mean random predictions, model didn't train), and the 3 MPS chi levels produce different mean test_accuracy on at least one dataset (max - min across chi=4/8/16 mean accuracy on MNIST is at least 0.01). trainable_parameter_count is reported per cell and matches the expected formula within 1 percent.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q07-results",
+            "requirements": "Results bucket: quantitative tests of H1/H2/H3 plus a per-hypothesis writeup.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "q07-result-h1-quant",
+                    "requirements": "Quantitative test of H1. Does the MPS at chi=16 reach test_accuracy >= 92 percent on 8x8 downsampled MNIST (3-seed mean)? 100% if >= 92 percent, 67% if >= 85 percent, 33% if >= 75 percent, 0% otherwise.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q07-result-h2-quant",
+                    "requirements": "Quantitative test of H2. On 8x8 Fashion-MNIST, does the parameter-matched CNN beat chi=16 MPS by at least 5 absolute percentage points (3-seed mean)? 100% if CNN gap >= 5pp, 67% if CNN gap 2-5pp, 33% if CNN gap 0-2pp, 0% if MPS matches or beats CNN.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q07-result-h3-quant",
+                    "requirements": "Quantitative test of H3. On 8x8 MNIST, is the chi=4 to chi=8 accuracy gain greater than the chi=8 to chi=16 accuracy gain (3-seed mean)? Specifically: (acc_chi8 - acc_chi4) > (acc_chi16 - acc_chi8). 100% if cleanly satisfied with difference of differences >= 1pp, 67% if log-linear trend holds with smaller gap, 33% if marginally so, 0% if linear or super-linear scaling observed.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q07-result-writeup",
+                    "requirements": "Writeup of at least 200 words (submission/README.md ## Agent-produced writeup section) with explicit supported / refuted / inconclusive verdict for each of H1/H2/H3 backed by per-(condition, dataset) mean test accuracies and the trainable_parameter_count parity check between chi=8 MPS and small_cnn_matched. References Stoudenmire and Schwab NeurIPS 2016 and discusses whether the observed MNIST vs Fashion-MNIST gap is consistent with the CNN's stronger spatial-bias inductive prior.",
+                    "weight": 12.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

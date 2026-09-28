@@ -1,0 +1,374 @@
+{
+  "concept_id": "paper.derived.architecture.contrastive.pair",
+  "icon_id": "paper.derived.architecture.contrastive.pair.paper_derived_outline.v1",
+  "primary_meaning": "Paper-derived contrastive pair architecture",
+  "aliases": [
+    "contrastive pair",
+    "positive negative"
+  ],
+  "negative_aliases": [
+    "paper-specific module name",
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim",
+    "literal reproduction of source figure"
+  ],
+  "shape_family_id": "paper.derived.contrastive_pair",
+  "style_variant": "paper_derived_refined_outline",
+  "domain_tags": [
+    "paper_derived",
+    "framework_figure_motif",
+    "AI",
+    "CS",
+    "paper_figure",
+    "architecture",
+    "contrastive",
+    "pair"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot",
+    "visual_layout_reuse"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support",
+    "literal reproduction of source paper figure"
+  ],
+  "source_lineage": {
+    "import_mode": "paper_figure_motif_abstraction",
+    "source": "paper_framework_figure_motif_extraction",
+    "source_path": "final_reference_figure_library.jsonl",
+    "source_figure_count": 10,
+    "source_figures": [
+      {
+        "reference_case_id": "iclr2025/a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models/fig-0001",
+        "paper_title": "A Probabilistic Perspective on Unlearning and Alignment for Large Language Models",
+        "field": "NLP",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/NLP/a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models/figures/pdf_framework_page_001.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models/figures/pdf_framework_page_001.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models:fig-0001",
+          "includegraphics": "iclr2025_collection/papers/NLP/a-probabilistic-perspective-on-unlearning-and-alignment-for-large-language-models/figures/pdf_framework_page_001.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules/fig-0004",
+        "paper_title": "A Theoretically-Principled Sparse, Connected, and Rigid Graph Representation of Molecules",
+        "field": "Graph",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/Graph/a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules/figures/pdf_framework_page_016.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Graph/a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules/figures/pdf_framework_page_016.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/Graph/a-theoretically-principled-sparse-connected-and-rigid-graph-representation-of-molecules/figures/pdf_framework_page_016.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/advantage-alignment-algorithms/fig-0002",
+        "paper_title": "Advantage Alignment Algorithms",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/advantage-alignment-algorithms/figures/framework_02_commons-harvest-frame.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/advantage-alignment-algorithms/sources/arxiv_src/iclr2025_conference.tex",
+          "line": 454,
+          "label": "fig:commons_harvest_frames",
+          "includegraphics": "figures/commons_harvest_frame.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/backtracking-improves-generation-safety/fig-0001",
+        "paper_title": "Backtracking Improves Generation Safety",
+        "field": "NLP",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/figures/framework_01_method.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/backtracking-improves-generation-safety/sources/arxiv_src/main.tex",
+          "line": 117,
+          "label": "fig:method",
+          "includegraphics": "figures/method.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/bad-pfl-exploiting-backdoor-attacks-against-personalized-federated-learning/fig-0002",
+        "paper_title": "Bad-PFL: Exploiting Backdoor Attacks against Personalized Federated Learning",
+        "field": "FL",
+        "figure_subtype": "qualitative_example",
+        "layout_grammar": "example_grid_or_before_after_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2025_collection/papers/FL/bad-pfl-exploiting-backdoor-attacks-against-personalized-federated-learning/figures/pdf_framework_page_002.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/FL/bad-pfl-exploiting-backdoor-attacks-against-personalized-federated-learning/figures/pdf_framework_page_002.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:bad-pfl-exploiting-backdoor-attacks-against-personalized-federated-learning:fig-0002",
+          "includegraphics": "iclr2025_collection/papers/FL/bad-pfl-exploiting-backdoor-attacks-against-personalized-federated-learning/figures/pdf_framework_page_002.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/compositional-entailment-learning-for-hyperbolic-vision-language-models/fig-0001",
+        "paper_title": "Compositional Entailment Learning for Hyperbolic Vision-Language Models",
+        "field": "RAG",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/RAG/compositional-entailment-learning-for-hyperbolic-vision-language-models/figures/framework_01_hycoclip-diagram.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/RAG/compositional-entailment-learning-for-hyperbolic-vision-language-models/sources/arxiv_src/figures/HyCoCLIP_Overview.tex",
+          "line": 5,
+          "label": "fig:hycoclip_diagram",
+          "includegraphics": "assets/hycoclip/HyCoCLIP_diagram.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/dspo-direct-score-preference-optimization-for-diffusion-model-alignment/fig-0004",
+        "paper_title": "DSPO: Direct Score Preference Optimization for Diffusion Model Alignment",
+        "field": "NLP",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/NLP/dspo-direct-score-preference-optimization-for-diffusion-model-alignment/figures/pdf_framework_page_005.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/dspo-direct-score-preference-optimization-for-diffusion-model-alignment/figures/pdf_framework_page_005.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:dspo-direct-score-preference-optimization-for-diffusion-model-alignment:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/NLP/dspo-direct-score-preference-optimization-for-diffusion-model-alignment/figures/pdf_framework_page_005.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/emerging-safety-attack-and-defense-in-federated-instruction-tuning-of-large-language-model/fig-0001",
+        "paper_title": "Emerging Safety Attack and Defense in Federated Instruction Tuning of Large Language Models",
+        "field": "FL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/FL/emerging-safety-attack-and-defense-in-federated-instruction-tuning-of-large-language-model/figures/framework_01_overview-v2.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/FL/emerging-safety-attack-and-defense-in-federated-instruction-tuning-of-large-language-model/sources/arxiv_src/main.tex",
+          "line": 250,
+          "label": "fig:overview",
+          "includegraphics": "figs/overview_v2.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/emerging-safety-attack-and-defense-in-federated-instruction-tuning-of-large-language-model/fig-0002",
+        "paper_title": "Emerging Safety Attack and Defense in Federated Instruction Tuning of Large Language Models",
+        "field": "FL",
+        "figure_subtype": "data_or_embedding_map",
+        "layout_grammar": "map_or_distribution_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2025_collection/papers/FL/emerging-safety-attack-and-defense-in-federated-instruction-tuning-of-large-language-model/figures/framework_02_heatmap-combine.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/FL/emerging-safety-attack-and-defense-in-federated-instruction-tuning-of-large-language-model/sources/arxiv_src/main.tex",
+          "line": 496,
+          "label": "fig:heatmap",
+          "includegraphics": "figs/heatmap_combine.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/fig-0004",
+        "paper_title": "Exploring The Loss Landscape Of Regularized Neural Networks Via Convex Duality",
+        "field": "Optimization",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Optimization/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/figures/pdf_framework_page_013.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Optimization/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/figures/pdf_framework_page_013.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/Optimization/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/figures/pdf_framework_page_013.png"
+        },
+        "match_score": 8
+      }
+    ],
+    "extraction_basis": [
+      "source-grounded final reference figure records",
+      "figure subtype/layout/topology tags",
+      "caption/source-anchor keyword evidence",
+      "borrowable visual design patterns"
+    ],
+    "abstraction_level": "non_literal_semantic_visual_motif",
+    "imported_at": "2026-05-24T08:42:48.268Z",
+    "modified": true,
+    "modification": "Created as a simplified vector motif from repeated downloaded-paper framework figure patterns; source-paper text, labels, claims, datasets, metrics, and exact visual composition are intentionally not copied.",
+    "refinement": {
+      "status": "refined_semantic_vector_redraw",
+      "semantic_kind": "encoder_decoder",
+      "workflow": [
+        "contact_sheet_with_padding",
+        "imagegen_prompt_manifest_for_style_exploration",
+        "semantic_cut_slot",
+        "programmatic_svg_redraw",
+        "index_update"
+      ],
+      "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+      "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+      "generated_at": "2026-05-24T09:34:49.544Z"
+    }
+  },
+  "license": {
+    "name": "Paper-derived framework figure motif abstraction",
+    "license": "source-paper-visual-motif-abstraction",
+    "usage_terms": "Internal reusable visual/layout motif. Use for generic figure icon language only; do not treat as source-paper evidence or copy source-paper facts."
+  },
+  "files": {
+    "raw_svg": "icons/raw/paper.derived.architecture.contrastive.pair.paper_derived_outline.v1.svg",
+    "tight_svg": "icons/tight/paper.derived.architecture.contrastive.pair.paper_derived_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/paper.derived.architecture.contrastive.pair.paper_derived_outline.v1.ppt_safe.svg",
+    "semantic_cut_svg": "paper_derived_icon_refinement/cut_svg/paper.derived.architecture.contrastive.pair.paper_derived_outline.v1.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": -2.775,
+    "minY": -2.775,
+    "width": 23.55,
+    "height": 23.55,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": -0.083,
+      "top": -0.083,
+      "right": 0.167,
+      "bottom": 0.167
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "refined_from_semantic_contact_sheet": true,
+    "editable_shape_primitives": true,
+    "sha1": "519f9c452b48a7160ef949b44eb29d45e02f2d58"
+  },
+  "transfer_contract": {
+    "allowed": [
+      "generic visual icon language",
+      "layout/motif inspiration",
+      "PPT editable stencil use"
+    ],
+    "disallowed": [
+      "source-paper facts",
+      "paper-specific labels",
+      "metrics",
+      "datasets",
+      "claims",
+      "literal source-figure reproduction"
+    ]
+  },
+  "refinement": {
+    "status": "refined_semantic_vector_redraw",
+    "semantic_kind": "encoder_decoder",
+    "workflow": [
+      "contact_sheet_with_padding",
+      "imagegen_prompt_manifest_for_style_exploration",
+      "semantic_cut_slot",
+      "programmatic_svg_redraw",
+      "index_update"
+    ],
+    "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+    "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+    "generated_at": "2026-05-24T09:34:49.544Z"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "skill-contract.v1",
+  "skill_id": "vibe",
+  "status": "canonical",
+  "sources": {
+    "skill_md": {
+      "primary": "SKILL.md",
+      "alternates": []
+    }
+  },
+  "frontmatter": {
+    "required_keys": [
+      "name",
+      "description"
+    ],
+    "invariants": {
+      "name_equals_skill_id": true
+    }
+  },
+  "notes": "Governed runtime contract: validate host-syntax-neutral vibe entry, fixed six-stage runtime documentation, and canonical repo-root SKILL.md as the only tracked source of truth."
+}

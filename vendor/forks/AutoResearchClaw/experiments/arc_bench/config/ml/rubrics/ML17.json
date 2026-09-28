@@ -1,0 +1,109 @@
+{
+    "id": "ml17-root",
+    "requirements": "A credible experiment comparing LDA, NMF, and LSA topic models on small 20newsgroups subsets: conditions are implemented, execution reports coherence and ARI on multiple subsets with repeated seeds, and results address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Alternative topic-model implementations or coherence approximations that test the same scientific question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml17-code",
+            "requirements": "Topic-model conditions and dataset pipeline are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml17-code-models",
+                    "requirements": "The submission implements LDA, NMF, and LSA (or equivalents such as a truncated SVD for LSA) as distinct modeling code paths with a matched topic-count setting.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml17-code-data",
+                    "requirements": "The submission loads multiple 20newsgroups subsets (or comparable document corpora) with consistent text preprocessing/vectorization documented in code.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml17-code-metrics-impl",
+                    "requirements": "The code computes a coherence-style metric (e.g., c_v or a documented approximation) and ARI from document-cluster assignments for each method.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml17-exec",
+            "requirements": "Execution produces comparable numeric outputs for all implemented methods.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml17-exec-runs",
+                    "requirements": "Execution evaluates the core methods on multiple datasets and writes per-method, per-dataset coherence and ARI values to a machine-readable artifact.",
+                    "weight": 16.6667,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml17-exec-seeds-runtime",
+                    "requirements": "Execution repeats stochastic methods with multiple seeds per dataset, reports dispersion, and logs a wall-clock timing measure per condition. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml17-results",
+            "requirements": "Quantitative analysis addresses H1/H2/H3 directionally.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml17-result-h1",
+                    "requirements": "The submission compares NMF vs LSA on coherence for each evaluated dataset and conveys whether NMF tends to yield better coherence \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml17-result-h2",
+                    "requirements": "The submission checks ranking agreement between coherence and ARI across methods per dataset and conveys whether coherence-ranking and ARI-ranking tend to diverge (H2).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml17-result-h3",
+                    "requirements": "The submission reports LDA vs LSA ARI deltas per dataset and conveys whether LDA tends to achieve meaningfully higher document-cluster ARI (H3).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml17-result-writeup",
+                    "requirements": "The README or writeup describes methods and preprocessing, reports coherence/ARI/runtime results, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations (subset choice, coherence approximation validity, seed count, clustering-assignment assumptions). No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

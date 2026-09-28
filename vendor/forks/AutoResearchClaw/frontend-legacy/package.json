@@ -1,0 +1,6 @@
+{
+  "name": "researchclaw-frontend",
+  "version": "0.5.0",
+  "description": "ResearchClaw web dashboard (vanilla JS, no build step)",
+  "private": true
+}

@@ -1,0 +1,18 @@
+{
+  "skill_id": "writing-plans",
+  "required_capabilities": [
+    "fs.read",
+    "fs.write"
+  ],
+  "optional_capabilities": [
+    "shell.exec"
+  ],
+  "degrade_rules": [
+    {
+      "when_missing": "fs.write",
+      "state": "unsupported",
+      "behavior": "do not claim plan generation without writing the plan artifact"
+    }
+  ]
+}
+

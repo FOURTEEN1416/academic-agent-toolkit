@@ -1,0 +1,5 @@
+interface:
+  display_name: "paperFig"
+  short_description: "从参考图拆解、源码数据追踪到科研主图设计、实现和渲染验收。"
+  default_prompt: "请追踪项目中科研图的代码和数据，拆解参考图的说服机制，设计并实现高质量多面板论文配图，最后完成科学与视觉双重验收。"
+

@@ -1,0 +1,109 @@
+{
+    "id": "ml11-root",
+    "requirements": "A credible experiment benchmarking unsupervised outlier detectors (IsolationForest, LocalOutlierFactor, OneClassSVM, EllipticEnvelope, or equivalents) with injected anomalies: methods are implemented as distinct code paths, runs cover multiple datasets across anomaly rates, and results address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Well-motivated substitutes (e.g., HBOS, KNN-based outlier) that test the same scientific question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml11-code",
+            "requirements": "The outlier-detection conditions and anomaly-injection pipeline are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml11-code-methods",
+                    "requirements": "The submission implements multiple distinct detector code paths \u2014 typically including IsolationForest, LOF, OneClassSVM, and an elliptic/Gaussian-envelope method \u2014 rather than aliases to one shared estimator.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml11-code-injection",
+                    "requirements": "A reproducible anomaly-injection routine is implemented for test data at one or more explicit contamination rates with binary ground-truth anomaly labels.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "ml11-code-data",
+                    "requirements": "The code uses multiple datasets (sklearn built-ins or comparable) and applies a consistent preprocessing pipeline (including feature scaling) before model fitting.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml11-exec",
+            "requirements": "Execution records anomaly-detection metrics for each condition.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml11-exec-metrics",
+                    "requirements": "Execution produces a machine-readable metrics artifact containing numeric ROC-AUC and PR-AUC (or equivalents) for each implemented method on at least one (dataset, rate) cell.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml11-exec-seeds-rates",
+                    "requirements": "Reported results aggregate over multiple random seeds and include at least two anomaly rates, with a dispersion measure. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml11-exec-runtime",
+                    "requirements": "The run logs a wall-clock timing measure per method and demonstrates completion within a CPU-only workflow.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml11-results",
+            "requirements": "Quantitative analysis addresses H1/H2/H3 directionally.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml11-result-h1",
+                    "requirements": "The submission compares mean ROC-AUC of IsolationForest vs OneClassSVM per dataset and conveys whether IsolationForest is meaningfully better on most datasets \u2014 judge directionally against H1.",
+                    "weight": 25.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml11-result-h2h3",
+                    "requirements": "The submission conveys whether LOF is competitive on PR-AUC for at least one dataset at a higher anomaly rate (H2) and whether detectors meaningfully outperform a random baseline on pooled ROC-AUC (H3).",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml11-result-writeup",
+                    "requirements": "The README or writeup describes setup and anomaly injection, reports ROC-AUC/PR-AUC results, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and discusses limitations (synthetic anomalies, dataset scope, hyperparameter sensitivity, seed count). No strict word-count requirement.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

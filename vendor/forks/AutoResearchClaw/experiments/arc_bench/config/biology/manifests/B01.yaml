@@ -1,0 +1,164 @@
+# =============================================================================
+# B01 — E. coli succinate-production strain optimization via FBA + knockout
+# -----------------------------------------------------------------------------
+# First biology topic for ARC-Bench. Tests the full Biology-Agent integration
+# end-to-end: domain detection → biology_metabolic profile → biology prompt
+# bank → BiologyAgentSandbox at stage 12 (EXPERIMENT_RUN) → COBRApy/BIGG
+# pipeline executed inside Claude Code → flux/essentiality artifacts → judged
+# against the upgraded rubric (code/exec/results/repro).
+# =============================================================================
+
+id: B01
+title: "E. coli succinate-production strain optimization via constraint-based knockout screen"
+arxiv_id: null
+venue: "ARC-Bench Biology 2026"
+paper_asset: null
+
+synthesis: |
+  Succinate is a top-12 platform chemical and a recurring case study in
+  metabolic engineering. The standard genome-scale model E. coli iAF1260
+  (2382 reactions, 1668 metabolites, 1261 genes) provides a well-validated
+  testbed for in-silico strain design: from a fixed glucose-minimal medium
+  one can predict (a) the maximum aerobic biomass growth rate, (b) the
+  maximum theoretical succinate secretion flux once growth is held at a feasible
+  fraction of optimum, (c) the set of single- and double-gene knockouts
+  that decouple biomass from succinate secretion enough to push the strain
+  toward a high-secretion non-growth-coupled phenotype.
+
+  A credible CPU-scale study of this topic (a) loads iAF1260 from BIGG and
+  validates aerobic biomass > 0.7 1/h on glucose-minimal medium, (b) runs
+  parsimonious FBA (pFBA) at the wild-type optimum and reports the central
+  carbon flux distribution, (c) sweeps the production envelope (biomass vs
+  succinate secretion) using flux variability analysis (FVA) on the
+  succinate exchange across a grid of biomass-fraction-of-optimum values,
+  (d) runs a single-gene knockout screen (≤100 candidate genes drawn from
+  central carbon metabolism, fermentation, and TCA cycle) and ranks each KO
+  by post-KO succinate secretion flux at 50% of WT growth, (e) reports the top three
+  KO strains with mechanistic explanation tied to the network topology.
+
+  The research question is: *which single-gene knockouts of central carbon
+  metabolism in E. coli iAF1260 produce the largest predicted succinate
+  secretion flux while preserving at least 50% of wild-type biomass growth, and what
+  is the mechanistic role of each in shifting flux toward succinate?*
+
+hypotheses:
+  - id: H1
+    statement: "Wild-type aerobic E. coli iAF1260 on glucose-minimal medium predicts a biomass growth rate within ±10% of 0.736 1/h (the published BIGG iAF1260 reference value)."
+    measurable: true
+  - id: H2
+    statement: "The biomass-vs-succinate production envelope, computed via FVA at biomass fractions from 0.1 to 1.0 of WT optimum, is monotonically non-increasing in succinate as biomass approaches the WT optimum (i.e., succinate is growth-competing under aerobic glucose conditions)."
+    measurable: true
+  - id: H3
+    statement: "At least 3 of the top-5 single-gene knockouts identified by the screen as maximizing succinate secretion flux at 50% WT-growth disrupt canonical competing by-product or respiration pathways described in the metabolic-engineering literature (e.g., pyruvate-formate-lyase pflB, lactate dehydrogenase ldhA, alcohol dehydrogenase adhE, acetate kinase ackA, phosphate acetyltransferase pta, or their isozymes), or are accompanied by a mechanistic explanation for why the knockout redirects flux toward succinate under the chosen medium."
+    measurable: true
+
+experiment_design:
+  research_question: "Which single-gene knockouts of central carbon metabolism in E. coli iAF1260 produce the largest predicted succinate secretion flux while preserving at least 50% of wild-type biomass growth, and what is the mechanistic role of each in shifting flux toward succinate?"
+  conditions:
+    - name: "wt_aerobic_glucose"
+      description: "Wild-type iAF1260 on glucose-minimal medium with O2 unconstrained. Reference condition."
+    - name: "wt_aerobic_glucose_pfba"
+      description: "Same as wt_aerobic_glucose but with pFBA (parsimonious FBA) for unique flux distribution."
+    - name: "production_envelope_succinate"
+      description: "FVA on succinate exchange across biomass-fraction-of-optimum grid {0.1, 0.2, ..., 1.0}."
+    - name: "single_ko_screen_central_carbon"
+      description: "Single-gene knockouts on a curated set of ≤100 central-carbon / fermentation / TCA genes (glycolysis, PPP, TCA, anaplerotic, fermentation by-products); for each, FBA at fixed biomass = 0.5 × WT optimum; record succinate exchange flux."
+  baselines:
+    - "wt_aerobic_glucose (no perturbation) is the no-engineering baseline"
+    - "Published BIGG iAF1260 reference growth rate (0.736 1/h on glucose-minimal aerobic) — the model-validity gate"
+  metrics:
+    - name: "wt_growth_rate"
+      direction: "match_reference"
+      description: "Wild-type biomass exchange flux (1/h) on glucose-minimal aerobic; reference value 0.736."
+    - name: "max_succinate_flux_mmol_gDW_h_at_zero_growth"
+      direction: "maximize"
+      description: "Succinate exchange flux (mmol/gDW/h) at biomass = 0 (theoretical maximum)."
+    - name: "succinate_flux_mmol_gDW_h_at_half_growth"
+      direction: "maximize"
+      description: "Succinate exchange flux at biomass = 0.5 × WT optimum, wild-type strain."
+    - name: "best_ko_succinate_flux_mmol_gDW_h"
+      direction: "maximize"
+      description: "Maximum succinate exchange flux over the single-KO screen at biomass = 0.5 × WT optimum."
+  datasets:
+    - name: "iAF1260"
+      source: "BIGG database (http://bigg.ucsd.edu/models/iAF1260) via cobra.io.load_model('iAF1260')"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1800
+
+rubric_path: "experiments/arc_bench/config/biology/rubrics/B01.json"
+
+# ---------------------------------------------------------------------------
+# Agent-mode requirements (consumed by researchclaw.pipeline.requirements_judge
+# at stage 15 RESEARCH_DECISION).  Each item:
+#   id           — stable string identifier
+#   type         — advisory: numeric | discussion | artifact (LLM uses freely)
+#   description  — natural-language statement of what the agent must produce
+#   must_pass    — true → unmet ⇒ rerun (1 retry max); false → optional
+#
+# These are a separate semantic layer from the rubric: rubrics score quality,
+# requirements gate proceed-vs-rerun.  Keep the must_pass set tight (2–4 items)
+# so the agent has an unambiguous bar to clear.
+# ---------------------------------------------------------------------------
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: >-
+      A canonical results.json file exists at the workspace root with at least
+      the keys: primary_metric (number), metrics (object of numeric keys),
+      hypotheses (object with h1/h2/h3 entries each carrying a `supported`
+      boolean), summary (non-empty string).
+    must_pass: true
+
+  - id: req_wt_growth_value
+    type: numeric
+    description: >-
+      results.json metrics MUST contain a numeric value for
+      `wt_growth_observed_1_per_h` (or an equivalent wt_growth_*_1_per_h key)
+      that is non-null and finite. The wild-type growth rate must be reported,
+      otherwise H1 cannot be evaluated.
+    must_pass: true
+
+  - id: req_top5_ko
+    type: discussion
+    description: >-
+      results.json structured_results MUST contain a list of the top 5 ranked
+      single-gene knockouts with at least {gene_id, gene_name,
+      ko_succinate_flux_mmol_gDW_h,
+      is_canonical} fields each. The list need not include the textbook
+      canonical genes — but it MUST exist and identify at least 5 candidates.
+    must_pass: true
+
+  - id: req_envelope_figure
+    type: artifact
+    description: >-
+      A production-envelope figure (biomass-vs-succinate, or analogous) must
+      exist under figures/ or analysis/ in PDF or PNG format with axes labeled
+      and units shown. Either a single multi-curve figure or per-condition
+      figures both qualify.
+    must_pass: true
+
+  - id: req_h1_h2_h3_supported_flags
+    type: discussion
+    description: >-
+      Each of hypotheses.h1, hypotheses.h2, hypotheses.h3 in results.json MUST
+      have an explicit `supported` boolean and a `details` string of at least
+      40 characters describing the evidence used to reach that verdict.
+    must_pass: true
+
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: >-
+      Top-3 KO targets are discussed mechanistically — naming the pathway each
+      KO disables and a one-sentence rationale for why the disruption
+      redirects flux to succinate.  Acceptable inside summary, structured_results,
+      or a separate writeup field.
+    must_pass: false  # Optional: nice-to-have, not blocking
+
+  - id: req_seed_documented
+    type: discussion
+    description: >-
+      The solver backend (cobra optlang interface name + version) and any RNG
+      seeds used (e.g. for sampling) are reported in results.json. Required for
+      reproducibility but not for scientific correctness.
+    must_pass: false  # Optional

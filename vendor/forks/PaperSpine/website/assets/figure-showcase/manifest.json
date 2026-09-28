@@ -1,0 +1,218 @@
+{
+  "schema": "paperspine5.figure-showcase/3.0",
+  "generated_at": "2026-08-28T06:54:21.373517+00:00",
+  "public_claim_boundary": "PaperSpine5-authored synthetic demonstration figures only. No literature figure, reference artwork, citation card, DOI, or reference metadata is included in this release package.",
+  "layout": {
+    "detail_size": [
+      1080,
+      2160
+    ],
+    "detail_pages": 8,
+    "wall_pages": 4,
+    "wall_rule": "Two complete PaperSpine5 figures stacked edge-to-edge at 1080 px width; canvas height is content-bound to remove outer whitespace; no labels, frames, or cropping."
+  },
+  "combined_pdf": {
+    "path": "01_pdf/paperspine5-figure-studies-publication.pdf",
+    "pages": 8,
+    "construction": "Direct concatenation of the eight vector-native final_submission_v2 PDFs.",
+    "sha256": "b34c0d926ba8e3a9b499f4be73b60924ed2cb4919c8f630b3c669f19938afe0e"
+  },
+  "mobile_surfaces": {
+    "walls": [
+      {
+        "path": "03_mobile/walls/01-301-302-paperspine-wall.png",
+        "size": [
+          1080,
+          1262
+        ],
+        "sha256": "e054e07dd0607eac3f0b816b7f4dc1cf94a96166062508d490336efed1a6d48b"
+      },
+      {
+        "path": "03_mobile/walls/02-303-304-paperspine-wall.png",
+        "size": [
+          1080,
+          1315
+        ],
+        "sha256": "9ac9b0a367734a5adbc1fe05a69689ed257f648335133ac9d27b4e52d304e84c"
+      },
+      {
+        "path": "03_mobile/walls/03-305-306-paperspine-wall.png",
+        "size": [
+          1080,
+          1383
+        ],
+        "sha256": "237b06a0b46c31f3de4e1c101282a7fc7f8bd2df4aa0679347ee375608f48d27"
+      },
+      {
+        "path": "03_mobile/walls/04-307-308-paperspine-wall.png",
+        "size": [
+          1080,
+          2769
+        ],
+        "sha256": "7cdcbf7a661fa6cdcd9d7f57baf5b382dfa224ca904d3d67824e6150297dbb68"
+      }
+    ]
+  },
+  "items": [
+    {
+      "task": {
+        "id": "301",
+        "slug": "301_spatial_omics_model",
+        "kind": "SCHEMATIC",
+        "short": "Cross-scale spatial omics",
+        "title": "CrossScale-Omics Transformer"
+      },
+      "pdf_page": 1,
+      "assets": {
+        "paperspine_png": "02_images/png/301.png",
+        "paperspine_svg": "02_images/svg/301.svg",
+        "mobile_detail": "03_mobile/detail/301.png"
+      },
+      "sha256": {
+        "paperspine_png": "7e0bf049c6b4f01db53926c7aa6ba7dd1d5c2a830d56bcac16bfe6cef364e4b1",
+        "paperspine_svg": "fa261f6e724337bcd988bb299ed2c6d90baaa51711aa49a7729773b8edc36ff3",
+        "mobile_detail": "97e5c7c4f8b5d66be780a368aa06952f6074c509d97cda545765a9e465780606"
+      }
+    },
+    {
+      "task": {
+        "id": "302",
+        "slug": "302_tumor_immunometabolism",
+        "kind": "SCHEMATIC",
+        "short": "Tumour immunometabolism",
+        "title": "Hypoxia-lactate immune ecology"
+      },
+      "pdf_page": 2,
+      "assets": {
+        "paperspine_png": "02_images/png/302.png",
+        "paperspine_svg": "02_images/svg/302.svg",
+        "mobile_detail": "03_mobile/detail/302.png"
+      },
+      "sha256": {
+        "paperspine_png": "85cdd5e45cb5408a43367362648c53cccc18df57ca95bac616d4ba0c949bc770",
+        "paperspine_svg": "88f38f41afe7de4008cdd8e888dc8447765987e30d000c28f0d49415ea99db80",
+        "mobile_detail": "4b4d6cb915ef30ded612f69574a3d4e75039e1a61472926c9e9b1314ac0411b5"
+      }
+    },
+    {
+      "task": {
+        "id": "303",
+        "slug": "303_solid_state_battery",
+        "kind": "SCHEMATIC",
+        "short": "Solid-state battery interface",
+        "title": "Sulfide SSE | Li-metal interface evolution"
+      },
+      "pdf_page": 3,
+      "assets": {
+        "paperspine_png": "02_images/png/303.png",
+        "paperspine_svg": "02_images/svg/303.svg",
+        "mobile_detail": "03_mobile/detail/303.png"
+      },
+      "sha256": {
+        "paperspine_png": "85c119ff76cf8b293b34319004aa83283410570284262bb354f07624e5826144",
+        "paperspine_svg": "edccdef5d60b5011485c2cdfa39111267aabc1e093a1cde4f83b74b76d08071b",
+        "mobile_detail": "a41c84581bee229cd25e45c397f2ba7078eef3b1109270c121882416d00d749b"
+      }
+    },
+    {
+      "task": {
+        "id": "304",
+        "slug": "304_earth_tipping_cascade",
+        "kind": "SCHEMATIC",
+        "short": "Earth-system tipping cascades",
+        "title": "Coupled spatial tipping network"
+      },
+      "pdf_page": 4,
+      "assets": {
+        "paperspine_png": "02_images/png/304.png",
+        "paperspine_svg": "02_images/svg/304.svg",
+        "mobile_detail": "03_mobile/detail/304.png"
+      },
+      "sha256": {
+        "paperspine_png": "c2b4fc3cc15b9002f65f8e8b9f6cb653458eca11700d5eadabe57dd3603dff97",
+        "paperspine_svg": "4015e070fcf197ac5ee7342bee6aba868aed4ef8df7dc99265406e2d63b3065d",
+        "mobile_detail": "55f412384f1bae43902af1ea3846142c53970cb46713c6d8f95423aeb692fab5"
+      }
+    },
+    {
+      "task": {
+        "id": "305",
+        "slug": "305_single_cell_spatial_atlas",
+        "kind": "DATA FIGURE",
+        "short": "Single-cell spatial atlas",
+        "title": "Treatment-aware spatial tumour atlas"
+      },
+      "pdf_page": 5,
+      "assets": {
+        "paperspine_png": "02_images/png/305.png",
+        "paperspine_svg": "02_images/svg/305.svg",
+        "mobile_detail": "03_mobile/detail/305.png"
+      },
+      "sha256": {
+        "paperspine_png": "9f594dbc360cb571a7b7ae5e5d194bfa624d53b932be28c2ea37af78324d048c",
+        "paperspine_svg": "b50f1b74a22ca3f39e0329bd6c651d58838570c8e149da8cd35bf8fc33b498ca",
+        "mobile_detail": "70496f585eadf74d2635b90e736f9c882bebfec9bd66dfdfb52dafd45630307d"
+      }
+    },
+    {
+      "task": {
+        "id": "306",
+        "slug": "306_protein_design_benchmark",
+        "kind": "DATA FIGURE",
+        "short": "Protein design benchmark",
+        "title": "Generative protein design under shift"
+      },
+      "pdf_page": 6,
+      "assets": {
+        "paperspine_png": "02_images/png/306.png",
+        "paperspine_svg": "02_images/svg/306.svg",
+        "mobile_detail": "03_mobile/detail/306.png"
+      },
+      "sha256": {
+        "paperspine_png": "61f5bc8d45b89eb58c001730d44b35ec68fd1e93313aadf06f32fba8be469b1a",
+        "paperspine_svg": "1a7898fb07e00cf02ccebc2181f1d4e5cbc07ac639e3a79bbf5e94d0546d36a6",
+        "mobile_detail": "cff538ad788f5ed356f0abf764e92ca15612696608ae3ae5144e8ae2b9c3d819"
+      }
+    },
+    {
+      "task": {
+        "id": "307",
+        "slug": "307_catalyst_operando_discovery",
+        "kind": "DATA FIGURE",
+        "short": "Operando catalyst discovery",
+        "title": "Closed-loop catalyst discovery"
+      },
+      "pdf_page": 7,
+      "assets": {
+        "paperspine_png": "02_images/png/307.png",
+        "paperspine_svg": "02_images/svg/307.svg",
+        "mobile_detail": "03_mobile/detail/307.png"
+      },
+      "sha256": {
+        "paperspine_png": "1f9afeb17372216407e0b9b3fb15a15f11bba5227226b55f2d74cad9488583bb",
+        "paperspine_svg": "2f4bd05e564ab530f144a9d0cbbbd5b4137c80ace454e3d7c6c8f6ae47a8c0d2",
+        "mobile_detail": "db7633727816f28f6c7f3c6102455378743bf2110d07064a65324f8847e0ae3b"
+      }
+    },
+    {
+      "task": {
+        "id": "308",
+        "slug": "308_multicentre_medical_ai",
+        "kind": "DATA FIGURE",
+        "short": "Multicentre medical AI",
+        "title": "Multicentre external validation"
+      },
+      "pdf_page": 8,
+      "assets": {
+        "paperspine_png": "02_images/png/308.png",
+        "paperspine_svg": "02_images/svg/308.svg",
+        "mobile_detail": "03_mobile/detail/308.png"
+      },
+      "sha256": {
+        "paperspine_png": "02fa41c4464bec4e9f300f95cf7bd1a49573f6ebd398bb1aaa339ac66e0c7af9",
+        "paperspine_svg": "f41d35263730d5dede213fa6d4262323cafc084a0b35039fa239467a3e10425c",
+        "mobile_detail": "02474ce5aead3fed0b0915ce279f6480191bc7b6a108f2be6a07996a7bb21d45"
+      }
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": "pfos.pptx_icon_catalog_report.v1",
+  "generated_at": "2026-05-24T12:02:55.195Z",
+  "catalog": {
+    "file": "pptx_icon_catalog/pfos_curated_icon_master_catalog_embedded_svg.pptx",
+    "entries": 2543,
+    "svg_media": 1192,
+    "image_media": 2385,
+    "slide_count": 31,
+    "external_relationship_files": [],
+    "embedded_only": true
+  },
+  "concepts": {
+    "file": "pptx_icon_catalog/pfos_high_level_editable_neural_concepts.pptx",
+    "entries": 279,
+    "svg_media": 0,
+    "image_media": 1,
+    "slide_count": 61,
+    "external_relationship_files": [],
+    "embedded_only": true
+  },
+  "counts": {
+    "reviewed_assets_embedded_in_catalog": 1192,
+    "high_level_editable_concepts": 60
+  },
+  "notes": [
+    "The icon catalog embeds SVG media inside the PPTX package; no external relationships are allowed.",
+    "The high-level concept deck uses native PowerPoint shapes rather than linked SVGs, so internal elements are independently editable.",
+    "PowerPoint may display embedded SVGs as pictures, while native concept primitives remain fully decomposed into PPT shapes."
+  ]
+}

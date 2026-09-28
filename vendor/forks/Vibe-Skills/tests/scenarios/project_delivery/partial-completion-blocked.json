@@ -1,0 +1,52 @@
+{
+  "scenario_id": "partial-completion-blocked",
+  "task_class": "runtime_partial_completion",
+  "runtime": {
+    "status": "completed_with_failures",
+    "readiness_state": "ready"
+  },
+  "truths": {
+    "governance_truth": {
+      "state": "passing",
+      "evidence": [
+        "governed runtime executed and wrote receipts"
+      ]
+    },
+    "engineering_verification_truth": {
+      "state": "partial",
+      "evidence": [
+        "some tests passed",
+        "some tests or verifiers failed"
+      ]
+    },
+    "workflow_completion_truth": {
+      "state": "partial",
+      "evidence": [
+        "some planned work executed",
+        "some units failed"
+      ]
+    },
+    "code_task_tdd_evidence_truth": {
+      "state": "not_run",
+      "evidence": [
+        "the bounded TDD evidence package was not closed because the target behavior still failed"
+      ]
+    },
+    "artifact_review_truth": {
+      "state": "not_run",
+      "evidence": [
+        "artifact review was not attempted because critical behavior remained broken"
+      ]
+    },
+    "product_acceptance_truth": {
+      "state": "failing",
+      "evidence": [
+        "critical user flow remains broken"
+      ]
+    }
+  },
+  "manual_spot_checks": [],
+  "residual_risks": [
+    "Critical project behavior is still incomplete."
+  ]
+}

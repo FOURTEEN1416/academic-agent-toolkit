@@ -1,0 +1,18 @@
+{
+  "skill_id": "tdd-guide",
+  "name": "tdd-guide",
+  "version": 1,
+  "summary": "Behavior-preserving TDD wrapper enforcing RED, GREEN, REFACTOR discipline.",
+  "instruction_path": "core/skills/tdd-guide/instruction.md",
+  "compatibility_path": "core/skills/tdd-guide/compatibility.json",
+  "source_of_truth": {
+    "kind": "bundled-skill",
+    "path": "bundled/skills/tdd-guide/SKILL.md"
+  },
+  "tags": [
+    "coding",
+    "tdd",
+    "quality"
+  ]
+}
+

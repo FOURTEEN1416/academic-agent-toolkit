@@ -1,0 +1,142 @@
+{
+  "schema_version": 2,
+  "release": {
+    "version": "4.0.0",
+    "updated": "2026-07-17",
+    "channel": "stable",
+    "notes": "Agent-owned execution handoff, strict module-result re-entry, failure-safe delivery acceptance, retired legacy execution surfaces, task-fidelity hardening, and release/install guidance for the v4 runtime"
+  },
+  "source_of_truth": {
+    "canonical_root": ".",
+    "official_self_repo": {
+      "repo_url": "https://github.com/foryourhealth111-pixel/Vibe-Skills.git",
+      "default_branch": "main"
+    }
+  },
+  "mirror_topology": {
+    "canonical_target_id": "canonical",
+    "sync_source_target_id": "canonical",
+    "targets": [
+      {
+        "id": "canonical",
+        "path": ".",
+        "role": "canonical",
+        "required": true,
+        "presence_policy": "required",
+        "sync_enabled": false,
+        "parity_policy": "authoritative"
+      }
+    ]
+  },
+  "execution_context_policy": {
+    "require_outer_git_root": true,
+    "fail_if_script_path_is_under_mirror_root": true
+  },
+  "version_markers": {
+    "maintenance_files": [
+      "SKILL.md"
+    ],
+    "changelog_path": "references/changelog.md"
+  },
+  "logs": {
+    "release_ledger_jsonl": "references/release-ledger.jsonl",
+    "release_notes_dir": "docs/releases"
+  },
+  "packaging": {
+    "runtime_payload": {
+      "files": [
+        "SKILL.md",
+        "check.ps1",
+        "check.sh",
+        "install.ps1",
+        "install.sh",
+        "core/skill-contracts/v1/vibe.json",
+        "config/runtime-core-packaging.json",
+        "config/runtime-core-packaging.minimal.json",
+        "config/runtime-core-packaging.full.json",
+        "config/runtime-script-manifest.json",
+        "config/runtime-config-manifest.json"
+      ],
+      "directories": [
+        "adapters",
+        "docs",
+        "protocols",
+        "templates",
+        "mcp"
+      ]
+    },
+    "generated_compatibility": {
+      "nested_runtime_root": {
+        "relative_path": "",
+        "materialization_mode": "disabled"
+      }
+    },
+    "manifests": [
+      {
+        "id": "runtime_scripts",
+        "path": "config/runtime-script-manifest.json"
+      },
+      {
+        "id": "runtime_configs",
+        "path": "config/runtime-config-manifest.json"
+      }
+    ],
+    "target_overrides": {},
+    "allow_installed_only": [
+      "docs/CODEX_ECOSYSTEM_MAINTENANCE_PRINCIPLES.md"
+    ],
+    "normalized_json_ignore_keys": [
+      "updated",
+      "generated_at"
+    ],
+    "runtime_payload_roles": {
+      "files": {
+        "root_entrypoints": [
+          "SKILL.md",
+          "check.ps1",
+          "check.sh",
+          "install.ps1",
+          "install.sh",
+          "core/skill-contracts/v1/vibe.json"
+        ],
+        "governance_manifests": [
+          "config/runtime-core-packaging.json",
+          "config/runtime-core-packaging.minimal.json",
+          "config/runtime-core-packaging.full.json",
+          "config/runtime-script-manifest.json",
+          "config/runtime-config-manifest.json"
+        ]
+      },
+      "directories": {
+        "runtime_support_assets": [
+          "adapters",
+          "docs",
+          "protocols",
+          "templates",
+          "mcp"
+        ]
+      },
+      "notes": {
+        "flat_projection_contract": "runtime_payload.files and runtime_payload.directories remain the compatibility projection for existing payload consumers.",
+        "owner_boundary_rule": "The install receipt owns the installed file inventory and hashes; runtime semantics remain in the package-owned cores shipped by that receipt."
+      }
+    }
+  },
+  "runtime": {
+    "installed_runtime": {
+      "target_relpath": "skills/vibe",
+      "receipt_relpath": "skills/vibe/.vibeskills/install-receipt.json",
+      "post_install_gate": "scripts/verify/vibe-installed-runtime-freshness-gate.ps1",
+      "frontmatter_gate": "scripts/verify/vibe-bom-frontmatter-gate.ps1",
+      "coherence_gate": "scripts/verify/vibe-release-install-runtime-coherence-gate.ps1",
+      "receipt_contract_version": 1,
+      "require_nested_bundled_root": false
+    }
+  },
+  "metrics": {
+    "governed_mirror_coverage_target": 0,
+    "runtime_only_artifact_count_target": 0,
+    "upstream_manifest_coverage_target": 15,
+    "productization_ratio_target": 0.8
+  }
+}

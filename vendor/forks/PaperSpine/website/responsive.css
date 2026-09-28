@@ -1,0 +1,190 @@
+@media (max-width: 1180px) {
+  .hero { gap: 22px; }
+  .hero-copy { grid-column: 1 / span 7; }
+  .hero-index { grid-column: 9 / -1; }
+  .install-section { gap: 38px; }
+  .premise { grid-template-columns: .7fr 4fr 2fr; }
+  .workflow-head { grid-template-columns: .7fr 2fr 1.1fr; }
+  .github { grid-template-columns: .45fr 1.5fr .8fr; }
+}
+
+@media (max-width: 920px) {
+  :root { --page-pad: 28px; }
+
+  .site-header { grid-template-columns: 1fr auto; }
+  .site-header nav { display: none; }
+  .release-chip { grid-column: 2; }
+
+  .hero { grid-template-columns: 1fr; min-height: 100svh; padding-top: calc(var(--header-h) + 58px); }
+  .hero-copy { grid-column: 1; padding: 20px 0 14px; }
+  .hero-index { grid-column: 1; max-width: 620px; }
+  .hero-grid { background-size: calc((100vw - 2 * var(--page-pad)) / 6) 82px; }
+
+  .install-section { grid-template-columns: minmax(0, 1fr); }
+  .install-section-copy { position: static; grid-column: 1; min-width: 0; max-width: 720px; }
+  .install-card { grid-column: 1; min-width: 0; }
+
+  .premise, .release, .github, .community, .faq-section { grid-template-columns: 1fr; }
+  .premise { gap: 42px; }
+  .section-label { margin-bottom: 20px; }
+  .premise-note { max-width: 620px; }
+  .workspace-preview { grid-column: 1; margin-top: 18px; }
+  .community .section-label, .community .premise-copy, .community .premise-note, .community-frame-wrap { grid-column: 1; }
+  .community-frame-wrap { margin-top: 8px; }
+
+  .workflow-head, .proof-head, .evidence-head, .why-head, .deliverables-head { grid-template-columns: 1fr; gap: 26px; }
+  .why-head, .deliverables-head { margin-bottom: 48px; }
+  .why-head > p:last-child, .deliverables-head > p:last-child { max-width: 620px; }
+  .workflow-head { margin-bottom: 48px; }
+  .workflow-head > p:last-child { max-width: 620px; }
+  .workflow-list li { grid-template-columns: 64px 1fr; }
+  .workflow-list li > p { grid-column: 2; padding-bottom: 14px; }
+
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .readiness { grid-template-columns: repeat(3, 1fr); }
+  .deliverable-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
+  .deliverable-primary { grid-column: 1 / -1; grid-row: auto; min-height: 360px; }
+  .figure-method { grid-template-columns: 1fr; gap: 18px; }
+
+  .release-status { margin-top: 8px; }
+  .github-mark { max-width: 118px; }
+  .github-boundary { max-width: 520px; }
+
+  footer { grid-template-columns: 1fr auto; }
+  footer span:nth-child(2) { display: none; }
+}
+
+@media (max-width: 680px) {
+  :root { --page-pad: 18px; --header-h: 62px; }
+
+  body { font-size: 16px; }
+  .site-header { padding: 0 var(--page-pad); }
+  .wordmark { gap: 7px; font-size: 17px; }
+  .wordmark img { width: 24px; height: 24px; }
+  .release-chip { font-size: 8px; }
+  .paper-section, .install-section, .why-section, .workflow, .evidence, .github, .closing, .faq-section { padding: 84px var(--page-pad); }
+
+  .hero { gap: 26px; padding-bottom: 92px; }
+  .hero-copy { padding-top: 12px; }
+  .hero-copy h1 { font-size: clamp(52px, 15vw, 76px); line-height: .98; }
+  .hero-lede { font-size: 17px; line-height: 1.78; }
+  .hero-proof { display: grid; grid-template-columns: 1fr; }
+  .hero-proof span { width: max-content; }
+  .hero-actions { align-items: flex-start; flex-direction: column; }
+  .hero-actions .button { width: 100%; }
+  .hero-index { padding-top: 18px; padding-bottom: 18px; }
+  .hero-index li { min-height: 48px; }
+  .hero-index li a { min-height: 48px; }
+
+  .install-card { padding: 25px 20px 20px; }
+  .install-section-copy h2 { font-size: clamp(42px, 12vw, 60px); }
+  .install-card-head { display: block; }
+  .package-state { margin-top: 18px; }
+  .install-intro { font-size: 14px; }
+  .install-actions { grid-template-columns: 1fr; }
+  .artifact-grid { grid-template-columns: 1fr; }
+  .button { min-height: 56px; }
+  .install-meta { gap: 10px 14px; }
+  .install-meta a { display: inline-flex; min-height: 44px; align-items: center; }
+  .copy-inline { min-height: 44px; }
+  .command-shell pre { max-height: 310px; padding: 16px 13px 20px; }
+  .command-shell code { font-size: 9px; line-height: 1.72; }
+  .manual-grid { grid-template-columns: 1fr; }
+
+  .workspace-preview figcaption { display: block; min-height: auto; padding: 11px 12px; line-height: 1.6; }
+  .workspace-preview figcaption span { display: block; }
+  .workspace-preview figcaption span + span { margin-top: 4px; }
+  .workspace-placeholder { min-height: 360px; }
+  .media-placeholder::before { inset: 16px; }
+  .placeholder-copy b { font-size: clamp(28px, 9vw, 42px); }
+
+  .premise-copy h2, .proof-head h2, .release-copy h2, .evidence-head h2, .workflow-head h2, .github-copy h2, .why-head h2, .deliverables-head h2, .faq-head h2 { font-size: clamp(42px, 12vw, 60px); }
+  .premise-copy > p, .release-copy > p { font-size: 16px; }
+
+  .principle-grid { grid-template-columns: 1fr; }
+  .principle-grid article, .principle-grid article + article { min-height: 250px; padding: 26px 0; border-right: 0; border-bottom: 1px solid var(--rule-strong); }
+  .principle-grid article:last-child { border-bottom: 0; }
+  .principle-grid h3 { margin-top: 54px; }
+
+  .workflow-list li { grid-template-columns: 48px 1fr; gap: 18px; min-height: 132px; }
+  .workflow-list li:hover, .workflow-list li.is-current { padding-right: 10px; padding-left: 10px; }
+  .workflow-list li::before { left: -4px; }
+  .stage-no { font-size: 28px; }
+  .workflow-list h3 { font-size: 30px; }
+
+  .figure-grid { grid-template-columns: 1fr; }
+  .deliverable-grid { grid-template-columns: 1fr; }
+  .deliverable-primary { grid-column: 1; min-height: 330px; }
+  .deliverable-grid article { min-height: 260px; }
+  .deliverable-grid article h3 { font-size: 34px; }
+  .deliverable-primary h3 { font-size: 48px !important; }
+  .figure-card img, .figure-placeholder { min-height: 280px; aspect-ratio: auto; }
+  .figure-card figcaption { min-height: auto; }
+  .figure-credit a { min-height: 44px; }
+  .method-flow { min-height: 320px; flex-wrap: wrap; padding: 28px 18px; }
+  .method-flow span { min-width: 78px; min-height: 78px; font-size: 11px; }
+  .community-frame-wrap iframe { min-height: 560px; }
+
+  .metric { min-height: 220px; padding: 22px 16px; }
+  .metric b { margin-bottom: 50px; font-size: clamp(58px, 18vw, 80px); }
+  .metric h3 { font-size: 14px; }
+  .metric p { font-size: 11px; }
+  .readiness { grid-template-columns: 1fr; }
+
+  .release-status div { grid-template-columns: 1fr; gap: 8px; padding: 17px 0; }
+  .github { gap: 28px; }
+  .github-mark { max-width: 96px; }
+  .github-link { width: 100%; }
+
+  .closing { min-height: auto; }
+  .closing h2 { margin: 54px 0; font-size: clamp(46px, 12.5vw, 66px); }
+  .closing-actions { align-items: flex-start; flex-direction: column; }
+  .button-light { width: 100%; }
+  .button-outline-light { width: 100%; }
+
+  .support-panel { padding: 24px 20px 22px; }
+  .support-panel h2 { font-size: clamp(40px, 11vw, 58px); }
+  .support-panel-head .eyebrow { max-width: 190px; }
+  .support-qr { padding: 18px 10px; }
+  .support-qr-object { width: min(100%, 236px); }
+  .support-qr-placeholder { min-height: 214px; padding: 18px; }
+  .support-thanks-card > small { max-width: 320px; margin-right: auto; margin-left: auto; }
+
+  .faq-section { gap: 40px; }
+  .faq-list summary { min-height: 72px; gap: 16px; }
+  .faq-list details p { margin-left: 34px; }
+
+  footer { min-height: 88px; gap: 18px; }
+}
+
+@media (max-width: 420px) {
+  :root { --page-pad: 15px; }
+  .install-card { padding-right: 16px; padding-left: 16px; }
+  .install-card h2 { font-size: 34px; }
+  .install-meta span:nth-child(3) { display: none; }
+  .command-shell code { font-size: 8.5px; }
+  .metrics { grid-template-columns: 1fr; }
+  .metric { min-height: 190px; }
+  .metric b { margin-bottom: 32px; }
+  .header-actions { gap: 6px; }
+  .support-trigger { min-width: 46px; padding: 0 8px; }
+  .support-label-full { display: none; }
+  .support-label-short { display: inline; }
+  .language-link { min-width: 34px; }
+  .community-frame-wrap iframe { min-height: 500px; }
+}
+
+@media (max-width: 350px) {
+  .release-chip { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+  [data-tilt] { transform: none !important; }
+  .support-thanks.is-active { animation: none !important; opacity: 1; }
+  .support-thanks.is-active .thanks-spine span { animation: none !important; transform: scaleX(1); }
+  .support-thanks.is-active .thanks-spine i { animation: none !important; transform: scale(1); background: var(--clay-dark); box-shadow: 0 0 0 1px var(--clay-dark); opacity: 1; }
+  .support-thanks.is-active .support-thanks-card h2,
+  .support-thanks.is-active .support-thanks-card > small { animation: none !important; transform: none; opacity: 1; }
+}

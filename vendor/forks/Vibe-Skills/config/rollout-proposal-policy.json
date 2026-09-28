@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "bounded_adjustments": {
+    "confirm_required_max_delta": 0.03,
+    "min_top_gap_max_delta": 0.03,
+    "fallback_threshold_max_delta": 0.02
+  },
+  "proposal_output": "outputs/learn/vibe-adaptive-suggestions.json",
+  "apply_policy": "manual_review_required",
+  "default_action": "report_only"
+}

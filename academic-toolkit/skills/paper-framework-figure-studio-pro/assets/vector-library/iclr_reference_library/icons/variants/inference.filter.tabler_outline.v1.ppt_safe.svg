@@ -1,0 +1,15 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="-1 -1 26 26"
+  fill="none"
+  stroke="#111827"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+ 
+ data-icon-id="inference.filter.tabler_outline.v1" data-source="@tabler/icons">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 2v-8.5l-4.48 -4.928a2 2 0 0 1 -.52 -1.345v-2.227" />
+</svg>

@@ -1,0 +1,812 @@
+# Per-skill test environments.
+#
+# `python tests/run_all.py --isolated` builds one throwaway uv environment per
+# skill from this file, so a skill whose upstream pins conflict with another's
+# never has to share an interpreter. Nothing here is installed into the project
+# environment, and `uv sync` is unaffected.
+#
+# Each skill's `packages` list is the set the skill's SKILL.md, references, and
+# scripts actually name -- transitive dependencies are left to the resolver.
+# Skills whose bundled tooling is standard-library only have `packages = []`;
+# they still get a clean environment with just pytest.
+#
+# `python` overrides the interpreter for that skill alone. This is the reason
+# per-skill environments are worth the trouble: opentrons pins numpy<2 (no
+# cp313 wheels), PyTDC needs 3.11, molfeat caps at 3.10. uv downloads the
+# interpreter on demand.
+#
+# Packages listed under [unavailable] are documented by a skill but cannot be
+# installed here at all; the reason is recorded so nobody re-derives it.
+
+[defaults]
+python = "3.13"
+
+# --- output formats and writing -------------------------------------------
+
+[skills.docx]
+packages = ["defusedxml", "lxml"]
+
+[skills.xlsx]
+packages = ["openpyxl", "defusedxml", "lxml"]
+
+[skills.pptx]
+packages = ["pillow", "defusedxml", "lxml"]
+
+[skills.pptx-posters]
+packages = ["python-pptx", "pillow", "lxml"]
+
+[skills.pdf]
+packages = [
+    "pypdf",
+    "pdfplumber",
+    "pypdfium2",
+    "reportlab",
+    "pdf2image",
+    "pytesseract",
+    "pillow",
+    "numpy",
+    "pandas",
+]
+
+[skills.liteparse]
+packages = ["liteparse"]
+
+[skills.markitdown]
+packages = ["markitdown", "openai"]
+
+[skills.latex-posters]
+packages = ["requests", "python-dotenv"]
+
+[skills.infographics]
+packages = ["requests", "python-dotenv"]
+
+[skills.generate-image]
+# The bundled CLI is standard-library only, and a test enforces that.
+packages = []
+
+[skills.markdown-mermaid-writing]
+packages = []
+
+[skills.venue-templates]
+packages = []
+
+[skills.scientific-writing]
+packages = []
+
+[skills.scientific-slides]
+packages = [
+    "pymupdf",
+    "python-pptx",
+    "pillow",
+    "matplotlib",
+    "seaborn",
+    "numpy",
+    "pypdf",
+    "requests",
+    "python-dotenv",
+]
+
+[skills.scientific-schematics]
+packages = ["requests", "python-dotenv"]
+
+[skills.scientific-visualization]
+packages = ["matplotlib", "seaborn", "plotly", "pypdf", "pillow", "numpy"]
+
+# --- literature and research workflow -------------------------------------
+
+[skills.citation-management]
+# The BibTeX parsing, rendering, and validation layers are standard library
+# (scripts/_common.py). `requests` covers Crossref, PubMed, OpenAlex, and the
+# DataCite fallback; `scholarly` is needed only by search_google_scholar.py.
+packages = [
+    "requests",
+    "scholarly",
+]
+
+[skills.pyzotero]
+packages = ["pyzotero", "bibtexparser", "python-dotenv"]
+
+[skills.literature-review]
+packages = ["requests", "python-dotenv"]
+
+[skills.research-lookup]
+packages = ["requests"]
+
+[skills.exa-search]
+packages = ["exa-py", "python-dotenv"]
+
+[skills.parallel-web]
+packages = []
+
+[skills.paper-lookup]
+packages = []
+
+[skills.paperzilla]
+packages = []
+
+[skills.bgpt-paper-search]
+packages = []
+
+[skills.ontology-term-resolution]
+packages = []
+
+[skills.ncats-arax]
+packages = []
+
+[skills.peer-review]
+packages = []
+
+[skills.scholar-evaluation]
+packages = []
+
+[skills.research-grants]
+packages = []
+
+[skills.open-notebook]
+packages = ["requests"]
+
+[skills.usfiscaldata]
+packages = ["pandas", "requests"]
+
+[skills.market-research-reports]
+packages = []
+
+# --- reasoning and planning skills (standard library only) ----------------
+
+[skills.hypothesis-generation]
+packages = []
+
+[skills.scientific-brainstorming]
+packages = []
+
+[skills.scientific-critical-thinking]
+packages = []
+
+[skills.consciousness-council]
+packages = []
+
+[skills.what-if-oracle]
+packages = []
+
+[skills.experimental-design]
+packages = ["numpy", "pandas", "pyDOE3"]
+
+[skills.iso-standards-readiness]
+packages = []
+
+[skills.analytical-method-validation]
+packages = []
+
+[skills.clinical-decision-support]
+packages = []
+
+[skills.clinical-reports]
+packages = []
+
+[skills.treatment-plans]
+packages = []
+
+[skills.get-available-resources]
+packages = ["psutil"]
+
+[skills.autoskill]
+packages = ["httpx", "pyyaml", "sentence-transformers"]
+
+[skills.pi-agent]
+packages = []
+
+# --- core data, statistics, and plotting ----------------------------------
+
+[skills.uncertainty-and-units]
+packages = ["pint", "uncertainties", "numpy", "scipy"]
+
+[skills.matplotlib]
+packages = ["matplotlib", "ipympl", "numpy", "pandas", "scipy"]
+
+[skills.seaborn]
+packages = ["seaborn", "matplotlib", "numpy", "pandas", "scipy", "ipywidgets"]
+
+[skills.polars]
+packages = ["polars", "pyarrow", "pandas", "numpy", "sqlalchemy"]
+
+[skills.dask]
+packages = [
+    "dask[distributed]",
+    "dask-ml",
+    "dask-jobqueue",
+    "dask-kubernetes",
+    "pandas",
+    "pyarrow",
+    "h5py",
+    "xarray",
+    "zarr",
+    "s3fs",
+    "gcsfs",
+]
+
+[skills.zarr-python]
+packages = ["zarr", "fsspec", "s3fs", "gcsfs", "h5py", "numpy", "xarray", "dask"]
+
+[skills.vaex]
+python = "3.12"
+packages = ["vaex"]
+
+[skills.exploratory-data-analysis]
+packages = ["biopython", "h5py", "numpy", "pandas", "pillow", "polars", "tifffile"]
+
+[skills.networkx]
+packages = [
+    "networkx",
+    "geopandas",
+    "momepy",
+    "matplotlib",
+    "pandas",
+    "plotly",
+    "pyvis",
+    "scipy",
+]
+
+[skills.scikit-learn]
+packages = [
+    "scikit-learn",
+    "category-encoders",
+    "imbalanced-learn",
+    "umap-learn",
+    "matplotlib",
+    "seaborn",
+    "numpy",
+    "pandas",
+]
+
+[skills.statsmodels]
+packages = ["statsmodels", "scikit-learn", "matplotlib", "numpy", "pandas", "scipy"]
+
+[skills.statistical-analysis]
+packages = [
+    "statsmodels",
+    "pingouin",
+    "pymc",
+    "arviz",
+    "scipy",
+    "seaborn",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "scikit-learn",
+]
+
+[skills.statistical-power]
+packages = ["statsmodels", "lifelines", "pingouin", "matplotlib", "numpy", "pandas", "scipy"]
+
+[skills.pkpd-modeling]
+packages = ["numpy", "scipy"]
+
+[skills.pymc]
+packages = ["pymc", "arviz", "matplotlib", "numpy", "pandas", "scikit-learn"]
+
+[skills.shap]
+packages = ["shap", "matplotlib", "numpy", "pandas", "scikit-learn"]
+
+[skills.umap-learn]
+packages = ["umap-learn", "hdbscan", "matplotlib", "numba", "numpy", "scikit-learn"]
+
+[skills.scikit-survival]
+packages = [
+    "scikit-survival",
+    "scikit-learn",
+    "ecos",
+    "osqp",
+    "joblib",
+    "narwhals",
+    "numexpr",
+    "numpy",
+    "pandas",
+    "scipy",
+]
+
+[skills.sympy]
+packages = ["sympy", "mpmath", "numpy", "scipy", "matplotlib", "ipywidgets", "ipython"]
+
+[skills.pymoo]
+packages = ["pymoo", "joblib", "optuna", "matplotlib", "numpy"]
+
+[skills.simpy]
+packages = ["simpy"]
+
+[skills.aeon]
+packages = ["aeon", "matplotlib", "numpy", "scikit-learn"]
+
+[skills.relsa-severity-assessment]
+packages = ["numpy", "pandas", "scipy", "statsmodels", "matplotlib"]
+
+[skills.timesfm-forecasting]
+packages = [
+    "timesfm",
+    "jax",
+    "flax",
+    "torch",
+    "scikit-learn",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "statsmodels",
+    "pillow",
+]
+
+# --- machine learning -----------------------------------------------------
+
+[skills.transformers]
+packages = [
+    "transformers",
+    "datasets",
+    "evaluate",
+    "accelerate",
+    "huggingface-hub",
+    "timm",
+    "librosa",
+    "soundfile",
+    "peft",
+    "pillow",
+    "torch",
+    "wandb",
+]
+
+[skills.hugging-science]
+packages = [
+    "transformers",
+    "datasets",
+    "huggingface-hub",
+    "accelerate",
+    "gradio-client",
+    "torch",
+    "python-dotenv",
+]
+
+[skills.pytorch-lightning]
+packages = ["lightning", "torch", "torchvision", "tensorboard", "wandb", "mlflow", "matplotlib"]
+
+[skills.torch-geometric]
+packages = [
+    "torch-geometric",
+    "torch",
+    "captum",
+    "lightning",
+    "networkx",
+    "pandas",
+    "sentence-transformers",
+    "scikit-learn",
+]
+
+[skills.stable-baselines3]
+packages = ["stable-baselines3", "sb3-contrib", "gymnasium", "numpy", "torch", "tensorboard"]
+
+[skills.pufferlib]
+packages = ["gymnasium", "numpy"]
+
+[skills.modal]
+packages = ["modal"]
+
+[skills.optimize-for-gpu]
+packages = []
+
+[skills.hypogenic]
+packages = ["pyyaml"]
+
+[skills.pyhealth]
+packages = ["pyhealth", "torch"]
+
+# --- single cell and transcriptomics --------------------------------------
+
+[skills.scanpy]
+packages = [
+    "scanpy",
+    "python-igraph",
+    "leidenalg",
+    "dask",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "scipy",
+]
+
+[skills.anndata]
+packages = ["anndata", "h5py", "muon", "fsspec", "numpy", "pandas", "scipy", "scikit-learn"]
+
+[skills.scvi-tools]
+packages = [
+    "scvi-tools",
+    "scanpy",
+    "squidpy",
+    "mudata",
+    "shap",
+    "statsmodels",
+    "seaborn",
+    "matplotlib",
+    "numpy",
+    "optuna",
+    "psutil",
+    "scikit-learn",
+    "torch",
+]
+
+[skills.scvelo]
+packages = ["scvelo", "cellrank", "scanpy", "matplotlib", "numpy"]
+
+[skills.cellxgene-census]
+packages = ["cellxgene-census", "tiledbsoma", "tiledbsoma-ml", "scanpy", "spatialdata"]
+
+[skills.pydeseq2]
+packages = ["pydeseq2", "anndata", "matplotlib", "numpy", "pandas"]
+
+[skills.bulk-rnaseq]
+packages = ["pydeseq2", "pytximport", "gseapy", "gprofiler-official", "pandas"]
+
+[skills.pathway-enrichment]
+packages = ["gseapy", "gprofiler-official", "mygene", "numpy", "pandas"]
+
+[skills.arboreto]
+packages = ["arboreto", "dask[distributed]", "numpy", "pandas", "scipy"]
+
+[skills.depmap]
+packages = ["numpy", "pandas", "requests", "scipy"]
+
+[skills.primekg]
+packages = ["pandas"]
+
+# --- genomics and sequence analysis ---------------------------------------
+
+[skills.genomic-coordinates]
+packages = []
+
+[skills.pathogen-variant-surveillance]
+packages = []
+
+[skills.biopython]
+packages = ["biopython", "matplotlib", "numpy", "reportlab"]
+
+[skills.pysam]
+packages = ["pysam"]
+
+[skills.bioservices]
+packages = ["bioservices", "biopython", "networkx", "pandas"]
+
+[skills.gget]
+# scanpy is pinned forward deliberately. Unpinned, the resolver walks it back to
+# 1.9.8, whose numba 0.53.1 needs llvmlite 0.36.0, which cannot build on 3.13 --
+# so the whole environment fails before a single test runs. >=1.10 is also what
+# gget's own cellxgene extra requires.
+packages = ["gget", "matplotlib", "numpy", "pandas", "scanpy>=1.10"]
+
+[skills.scikit-bio]
+packages = ["scikit-bio", "biom-format", "tables", "matplotlib", "numpy", "pandas", "seaborn"]
+
+[skills.polars-bio]
+packages = ["polars-bio", "polars", "pandas", "bioframe"]
+
+# waypoint-bio's own package pulls torch + transformers + datasets, which the
+# bundled scripts deliberately do not require: the converter is pandas-only and
+# vocab_coverage.py lazy-imports the tokenizer so --help works without it.
+[skills.waypoint-bio]
+packages = ["pandas", "pyarrow"]
+
+[skills.gtars]
+packages = ["gtars"]
+
+[skills.geniml]
+packages = ["geniml", "gtars", "pyarrow", "scanpy"]
+
+[skills.deeptools]
+packages = ["deeptools"]
+
+[skills.flowio]
+packages = ["flowio", "numpy", "pandas"]
+
+[skills.etetoolkit]
+packages = ["ete4"]
+
+[skills.phylogenetics]
+python = "3.12"  # ete3 3.1.3 imports cgi, removed in 3.13
+packages = ["ete3", "matplotlib"]
+
+[skills.onekgpd]
+packages = ["dnaerys"]
+
+[skills.genomic-intelligence]
+packages = ["requests"]
+
+[skills.dhdna-profiler]
+packages = []
+
+[skills.glycoengineering]
+packages = ["glycoshield", "pandas", "requests"]
+
+[skills.esm]
+packages = ["esm", "torch", "matplotlib", "numpy", "scikit-learn", "requests", "tqdm"]
+
+[skills.diffdock]
+packages = ["torch", "rdkit", "openmm", "esm", "pandas"]
+
+# --- chemistry and materials ----------------------------------------------
+
+[skills.rdkit]
+packages = ["rdkit"]
+
+[skills.datamol]
+packages = ["datamol", "rdkit", "s3fs", "gcsfs"]
+
+[skills.medchem]
+packages = ["medchem", "datamol", "rdkit", "pandas", "tqdm"]
+
+[skills.molfeat]
+python = "3.10"
+packages = ["molfeat", "datamol", "torch"]
+
+[skills.matchms]
+packages = ["matchms", "numpy"]
+
+[skills.pyopenms]
+packages = ["pyopenms", "matplotlib", "numpy", "pandas"]
+
+[skills.molecular-dynamics]
+packages = ["mdanalysis", "openmm", "matplotlib", "numpy", "pandas", "scipy"]
+
+[skills.pymatgen]
+# Pinned to the skill's own "Verified snapshot (2026-07-23)", which its
+# `_common.py` enforces before any network execution. Left unpinned, a new
+# pymatgen-core release makes the suite fail on the snapshot check -- and
+# loosening that check would throw away the guarantee it exists to make. When
+# the skill re-verifies against newer releases, update both together.
+packages = ["pymatgen==2026.5.4", "pymatgen-core==2026.7.16", "mp-api==0.46.4"]
+
+[skills.rowan]
+packages = ["rowan-python", "rdkit", "pandas"]
+
+[skills.deepchem]
+python = "3.11"
+# torch is what the skill's own `compatibility` line and the `deepchem[torch]`
+# install command require: without a backend, dc.models.GCNModel and friends do
+# not exist, so no model path is reachable at all.
+packages = ["deepchem", "torch", "numpy", "scikit-learn"]
+
+[skills.pytdc]
+python = "3.11"
+packages = ["pytdc", "setuptools"]
+
+[skills.cobrapy]
+packages = ["cobra", "matplotlib", "pandas", "seaborn"]
+
+# --- medical imaging and clinical data ------------------------------------
+
+[skills.pydicom]
+packages = [
+    "pydicom",
+    "numpy",
+    "pillow",
+    "pylibjpeg",
+    "pylibjpeg-libjpeg",
+    "pylibjpeg-openjpeg",
+    "pylibjpeg-rle",
+    "pyjpegls",
+    "python-gdcm",
+]
+
+[skills.bids]
+packages = ["pybids", "nibabel", "pydicom", "heudiconv", "dcm2bids"]
+
+[skills.imaging-data-commons]
+packages = [
+    "idc-index",
+    "duckdb",
+    "google-cloud-bigquery",
+    "pydicom",
+    "simpleitk",
+    "numpy",
+    "pandas",
+    "s3fs",
+    "gcsfs",
+]
+
+[skills.pacsomatic]
+packages = []
+
+[skills.histolab]
+python = "3.11"
+packages = ["histolab", "pooch"]
+
+[skills.omero-integration]
+packages = ["numpy", "pillow"]
+
+# --- neuroscience ---------------------------------------------------------
+
+[skills.neurokit2]
+packages = ["neurokit2", "numpy", "pandas"]
+
+[skills.neuropixels-analysis]
+packages = ["spikeinterface", "probeinterface", "neo", "matplotlib", "numpy", "pandas", "scipy"]
+
+[skills.arbor]
+packages = ["arbor"]
+
+# --- quantum computing ----------------------------------------------------
+
+[skills.qiskit]
+packages = [
+    "qiskit[visualization]",
+    "qiskit-aer",
+    "qiskit-ibm-runtime",
+    "qiskit-algorithms",
+    "qiskit-nature",
+    "qiskit-machine-learning",
+    "qiskit-optimization",
+    "qiskit-addon-cutting",
+    "qiskit-addon-obp",
+    "qiskit-addon-sqd",
+    "matplotlib",
+    "numpy",
+    "scipy",
+]
+
+[skills.cirq]
+packages = [
+    "cirq",
+    "cirq-aqt",
+    "cirq-google",
+    "cirq-ionq",
+    "cirq-pasqal",
+    "azure-quantum",
+    "matplotlib",
+    "sympy",
+]
+
+[skills.pennylane]
+packages = [
+    "pennylane",
+    "pennylane-lightning",
+    "pennylane-cirq",
+    "pennylane-ionq",
+    "pennylane-qiskit",
+    "jax",
+    "matplotlib",
+    "networkx",
+    "torch",
+]
+
+[skills.qutip]
+packages = ["qutip", "qutip-qip", "qutip-qtrl", "qutip-jax", "matplotlib", "numpy"]
+
+# --- physics, astronomy, and simulation -----------------------------------
+
+[skills.astropy]
+packages = ["astropy", "matplotlib", "numpy", "pandas", "dask"]
+
+[skills.fluidsim]
+packages = ["fluidsim", "fluidfft", "pyfftw", "h5py", "numpy"]
+
+[skills.openpiv]
+packages = ["openpiv", "numpy", "scipy", "scikit-image", "matplotlib"]
+
+[skills.lab-hardware-cad]
+# build123d caps at <3.15 and pulls the OpenCascade kernel via cadquery-ocp-novtk,
+# a large wheel. The bundled suite is standard-library only by design -- it covers
+# the standards database and the fit arithmetic, which are the checks that gate a
+# fabrication decision -- so the kernel is listed for parity with SKILL.md rather
+# than because the tests need it.
+python = "3.12"
+packages = ["build123d", "matplotlib"]
+
+# --- geospatial -----------------------------------------------------------
+
+[skills.geopandas]
+packages = ["geopandas", "pyogrio", "pyproj", "shapely", "pyarrow", "matplotlib", "sqlalchemy"]
+
+[skills.geomaster]
+packages = [
+    "geopandas",
+    "shapely",
+    "pyproj",
+    "rasterio",
+    "rioxarray",
+    "xarray",
+    "folium",
+    "osmnx",
+    "contextily",
+    "cartopy",
+    "mapclassify",
+    "dask-geopandas",
+    "planetary-computer",
+    "pystac-client",
+    "laspy",
+    "torchgeo",
+    "xgboost",
+    "scikit-learn",
+    "scikit-image",
+    "earthengine-api",
+    "rtree",
+    "fiona",
+    "geopy",
+    "rasterstats",
+    "esda",
+    "mercantile",
+    "networkx",
+]
+
+# --- lab platforms and integrations ---------------------------------------
+
+[skills.benchling-integration]
+packages = ["benchling-sdk", "biopython", "boto3", "httpx"]
+
+[skills.dnanexus-integration]
+packages = ["dxpy>=0.400"]
+
+[skills.latchbio-integration]
+packages = ["latch"]
+
+[skills.labarchive-integration]
+packages = ["labapi"]
+
+[skills.lamindb]
+packages = ["lamindb", "bionty", "lamindb-wetlab"]
+
+[skills.opentrons-integration]
+python = "3.12"
+packages = ["opentrons"]
+
+[skills.pylabrobot]
+packages = ["pylabrobot"]
+
+[skills.tiledbvcf]
+packages = ["tiledb", "tiledb-cloud"]
+
+[skills.nextflow]
+packages = ["nf-core"]
+
+[skills.tamarind]
+packages = ["tamarind", "requests"]
+
+[skills.adaptyv]
+packages = []
+
+[skills.ginkgo-cloud-lab]
+packages = []
+
+[skills.protocolsio-integration]
+packages = []
+
+[skills.database-lookup]
+packages = ["zeep"]
+
+[skills.matlab]
+packages = ["h5py", "scipy"]
+
+[skills.pathml]
+python = "3.12"
+packages = []
+
+[skills.torchdrug]
+python = "3.10"
+packages = ["torch"]
+
+# --- packages a skill documents that cannot be installed here -------------
+#
+# The runner prints these when it sets up the skill, so the gap is visible in
+# the test output rather than rediscovered each time.
+
+[unavailable]
+adaptyv-sdk = "adaptyv skill: distributed from GitHub only, not on PyPI"
+tiledbvcf = "tiledbvcf skill: not published to PyPI; conda-forge or a source build only"
+matlabengine = "matlab skill: requires a local MATLAB installation to build against"
+pufferlib = "pufferlib skill: source-only native archive, no wheel builds on 3.13"
+hypogenic = "hypogenic skill: pins torch<=2.4.1, which has no cp313 wheels"
+torchdrug = "torchdrug skill: torch-scatter 2.1.2 sdist needs torch present at build time"
+pathml = "pathml skill: python-javabridge needs a JDK, plus OpenSlide and Bio-Formats"
+omero-py = "omero-integration skill: zeroc-ice 3.6.5 has no wheels and needs a C++ build"
+bids-validator-deno = "bids skill: Deno tool, installed with npm/deno rather than pip"
+rsgislib = "geomaster skill: conda-forge only"
+pdal = "geomaster skill: conda-forge only, needs the PDAL C++ library"
+open3d = "geomaster skill: no cp313 wheels"
+mpi4py = "fluidsim skill: needs a site MPI implementation and compilers"
+dgl = "molfeat skill: no cp313 wheels"
+"flash-attn" = "esm skill: needs a CUDA toolchain to build"
+deepspeed = "pytorch-lightning skill: needs a CUDA toolchain to build"
+bitsandbytes = "transformers skill: CUDA-only, Linux wheels"
+"cudf-cu12" = "optimize-for-gpu skill: RAPIDS wheels are Linux + CUDA only (whole group)"

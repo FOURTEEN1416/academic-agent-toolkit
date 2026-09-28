@@ -1,0 +1,18 @@
+{
+  "adapter_id": "windsurf",
+  "template": null,
+  "target": "~/.codeium/windsurf",
+  "semantics": {
+    "vco.host_root": "~/.codeium/windsurf",
+    "vco.skill_roots.global": [
+      "~/.codeium/windsurf/skills"
+    ],
+    "vco.workflow_root": "~/.codeium/windsurf/global_workflows",
+    "vco.mcp_config": "~/.codeium/windsurf/mcp_config.json",
+    "vco.workspace_surface": ".windsurf/"
+  },
+  "notes": [
+    "Windsurf mapping only declares officially documented global surfaces.",
+    "This map intentionally does not claim an undocumented global settings.json contract."
+  ]
+}

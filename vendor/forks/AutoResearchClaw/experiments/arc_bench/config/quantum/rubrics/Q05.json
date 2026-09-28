@@ -1,0 +1,109 @@
+{
+    "id": "q05-root",
+    "requirements": "An empirical study of barren plateau onset on a 6-qubit EfficientSU2 ansatz under local vs global cost functions and shallow vs deep ansatz. The agent must (a) build the EfficientSU2 ansatz with reps in {2, 10, 20} via qiskit.circuit.library, (b) for each (cost, depth) condition sample 100 random parameter vectors and compute parameter-shift gradient dL/dtheta_0, (c) report the empirical variance of those 100 gradient values per cell, (d) run a 100-step Adam training as a practical sanity probe of trainability, and (e) score H1/H2/H3 with numerical evidence.",
+    "judging_note": "Barren plateau studies are scored on (i) correctness of the EfficientSU2 / cost construction (using qiskit.circuit.library, not hand-rolled), (ii) whether the 100-sample gradient distribution actually captures the variance (cells reporting std=0 across 100 samples indicate a broken sampler), (iii) the local_cost_L10 vs global_cost_L10 contrast being clean (these have IDENTICAL ansatz, only cost differs, so any large variance gap directly tests Cerezo 2021), and (iv) the training-feasibility probe correlating with the gradient-variance prediction (BP cell should not train; trainable cell should train). Quantitative result leaves use a graded scale: 100% if cleanly met, 67% if in predicted direction without clearing threshold, 33% if ambiguous, 0% if contradicted.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "q05-code",
+            "requirements": "Code-development bucket: EfficientSU2 ansatz built correctly via qiskit.circuit.library, parameter-shift gradient implemented correctly, and the 100-sample gradient distribution actually populated per cell.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q05-code-ansatz-and-gradient",
+                    "requirements": "EfficientSU2(num_qubits=6, reps=reps_value, entanglement='linear') from qiskit.circuit.library used directly (NOT hand-coded H/CNOT/RY stacks). Parameter-shift gradient of <O>(theta) with respect to theta_0 computed via the qiskit standard pattern: dL/dtheta_0 = (L(theta + (pi/2)*e_0) - L(theta - (pi/2)*e_0)) / 2. Cost observable for local_cost is Pauli Z on qubit 0; for global_cost is the product Z_0 Z_1 Z_2 Z_3 Z_4 Z_5 (a SparsePauliOp). A sanity check confirms that the gradient is nonzero for at least one random parameter sample at L=2 local cost.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q05-code-sampling",
+                    "requirements": "For each (condition, ansatz-structure seed) cell, 100 independent random parameter vectors are drawn from Uniform[-pi, pi]^{n_params} using a per-cell seeded RNG. For each parameter vector, the gradient dL/dtheta_0 is computed. The 100 gradient values are stored and the empirical variance is reported. Reusing the same parameter vector across conditions in the same cell is allowed (paired comparison) but NOT required.",
+                    "weight": 7.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "q05-code-training-probe",
+                    "requirements": "After the gradient-variance measurement, each cell runs a 100-step Adam optimization (qiskit_algorithms.optimizers.ADAM or pytorch Adam wrapping a parameter-shift gradient closure) starting from a random initialization. The initial loss and the loss after step 100 are recorded; the training_loss_change_fraction = (L_initial - L_final) / |L_initial| is computed per cell.",
+                    "weight": 7.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q05-exec",
+            "requirements": "Execution-validity bucket: all 12 cells ran and produced numerically valid outputs.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q05-exec-cells-ran",
+                    "requirements": "At least 11 cells out of 12 expected (4 conditions x 3 ansatz-structure seeds) completed and produced a non-null log_gradient_variance value. Missing more than 1 cell without documented justification fails this leaf.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q05-exec-numerical",
+                    "requirements": "Numerical validity: no NaN or Inf in gradient values; empirical std of the 100 gradients is strictly > 0 in every cell (cells reporting std=0 indicate a broken sampler and fail this leaf); log10(variance) values are finite. The training_loss_change_fraction is in the range [-1.0, 1.0] (otherwise loss diverged or wasn't properly normalized).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q05-results",
+            "requirements": "Results bucket: quantitative tests of H1/H2/H3 plus a per-hypothesis writeup.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "q05-result-h1-quant",
+                    "requirements": "Quantitative test of H1. Is var(local_cost_L10) / var(global_cost_L10) >= 20 (3-seed mean of variances)? 100% if ratio >= 20, 67% if 5 <= ratio < 20, 33% if 1 < ratio < 5, 0% if global cost has equal or larger variance.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q05-result-h2-quant",
+                    "requirements": "Quantitative test of H2. Is log10(var_local_L20) - log10(var_local_L2) > -2.0 (3-seed mean)? 100% if difference > -2.0 (polynomial decay), 67% if difference > -3.0, 33% if difference > -4.0, 0% otherwise (exponential decay observed).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q05-result-h3-quant",
+                    "requirements": "Quantitative test of H3. Is global_cost_L10 training_loss_change_fraction <= 0.01 AND local_cost_L10 training_loss_change_fraction >= 0.10 (3-seed mean)? 100% if both conditions hold cleanly, 67% if local trains but global change is 1-5 percent, 33% if local trains but global has any change, 0% if global cost also trains (would contradict the BP prediction).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q05-result-writeup",
+                    "requirements": "Writeup of at least 200 words (submission/README.md ## Agent-produced writeup section) with explicit supported / refuted / inconclusive verdict for each of H1/H2/H3 backed by specific variance values per (condition, seed) and training_loss_change_fraction values. Explicitly references Cerezo et al. 2021 'Cost function dependent barren plateaus' and discusses whether the observed variance ratio matches their theoretical prediction. Identifies dominant uncertainty (ansatz-structure seed variance, finite-sample variance estimate from 100 gradient samples).",
+                    "weight": 12.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

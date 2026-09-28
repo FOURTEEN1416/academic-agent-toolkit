@@ -1,0 +1,18 @@
+{
+  "skill_id": "writing-plans",
+  "name": "writing-plans",
+  "version": 1,
+  "summary": "Implementation planning contract for turning approved design into executable steps.",
+  "instruction_path": "core/skills/writing-plans/instruction.md",
+  "compatibility_path": "core/skills/writing-plans/compatibility.json",
+  "source_of_truth": {
+    "kind": "bundled-skill",
+    "path": "bundled/skills/writing-plans/SKILL.md"
+  },
+  "tags": [
+    "planning",
+    "execution",
+    "tdd"
+  ]
+}
+

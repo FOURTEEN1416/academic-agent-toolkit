@@ -1,0 +1,187 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-08",
+  "migration_stage": "stage2_mirrored",
+  "mappings": [
+    {
+      "source": "outputs/external-corpus/external-corpus-gate.json",
+      "destination": "references/fixtures/external-corpus/external-corpus-gate.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/external-corpus/external-corpus-gate.md",
+      "destination": "references/fixtures/external-corpus/external-corpus-gate.md",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/external-corpus/prompt-signals.json",
+      "destination": "references/fixtures/external-corpus/prompt-signals.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/external-corpus/skill-keyword-index.backup.json",
+      "destination": "references/fixtures/external-corpus/skill-keyword-index.backup.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/external-corpus/skill-keyword-index.candidate.json",
+      "destination": "references/fixtures/external-corpus/skill-keyword-index.candidate.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/external-corpus/vco-suggestions.json",
+      "destination": "references/fixtures/external-corpus/vco-suggestions.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/external-corpus/vco-suggestions.md",
+      "destination": "references/fixtures/external-corpus/vco-suggestions.md",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/retro/compare/safety-gate/baseline-cer.json",
+      "destination": "references/fixtures/retro-compare/safety-gate/baseline-cer.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/retro/compare/safety-gate/current-cer.json",
+      "destination": "references/fixtures/retro-compare/safety-gate/current-cer.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/retro/compare/safety-gate/delta.json",
+      "destination": "references/fixtures/retro-compare/safety-gate/delta.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/retro/compare/safety-gate/delta.md",
+      "destination": "references/fixtures/retro-compare/safety-gate/delta.md",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/retro/compare/sample-run/baseline-cer.json",
+      "destination": "references/fixtures/retro-compare/sample-run/baseline-cer.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/retro/compare/sample-run/current-cer.json",
+      "destination": "references/fixtures/retro-compare/sample-run/current-cer.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/retro/compare/sample-run/delta.json",
+      "destination": "references/fixtures/retro-compare/sample-run/delta.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/retro/compare/sample-run/delta.md",
+      "destination": "references/fixtures/retro-compare/sample-run/delta.md",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/retro/compare/smoke-temp/baseline-smoke.json",
+      "destination": "references/fixtures/retro-compare/smoke/baseline-smoke.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/retro/compare/smoke-temp/current-smoke.json",
+      "destination": "references/fixtures/retro-compare/smoke/current-smoke.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/retro/compare/smoke-temp/delta-smoke.json",
+      "destination": "references/fixtures/retro-compare/smoke/delta-smoke.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/retro/compare/smoke-temp/delta-smoke.md",
+      "destination": "references/fixtures/retro-compare/smoke/delta-smoke.md",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/verify/vibe-routing-stability-gate.json",
+      "destination": "references/fixtures/verify/routing-stability/vibe-routing-stability-gate.json",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/verify/vibe-routing-stability-gate.md",
+      "destination": "references/fixtures/verify/routing-stability/vibe-routing-stability-gate.md",
+      "stage2_mirrored": true,
+      "classification": "baseline_fixture"
+    },
+    {
+      "source": "outputs/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/cleanup-receipt.json",
+      "destination": "references/fixtures/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/cleanup-receipt.json",
+      "stage2_mirrored": true,
+      "classification": "runtime_session_fixture"
+    },
+    {
+      "source": "outputs/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/governance-capsule.json",
+      "destination": "references/fixtures/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/governance-capsule.json",
+      "stage2_mirrored": true,
+      "classification": "runtime_session_fixture"
+    },
+    {
+      "source": "outputs/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/intent-contract.json",
+      "destination": "references/fixtures/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/intent-contract.json",
+      "stage2_mirrored": true,
+      "classification": "runtime_session_fixture"
+    },
+    {
+      "source": "outputs/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/phase-plan-execute.json",
+      "destination": "references/fixtures/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/phase-plan-execute.json",
+      "stage2_mirrored": true,
+      "classification": "runtime_session_fixture"
+    },
+    {
+      "source": "outputs/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/skeleton-receipt.json",
+      "destination": "references/fixtures/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/skeleton-receipt.json",
+      "stage2_mirrored": true,
+      "classification": "runtime_session_fixture"
+    },
+    {
+      "source": "outputs/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/stage-lineage.json",
+      "destination": "references/fixtures/runtime/vibe-sessions/20260413T131910Z-pr153-rabbit-review-fix/stage-lineage.json",
+      "stage2_mirrored": true,
+      "classification": "runtime_session_fixture"
+    },
+    {
+      "source": "outputs/skills-audit/bio-science-problem-consolidation.md",
+      "destination": "references/fixtures/skills-audit/bio-science-problem/bio-science-problem-consolidation.md",
+      "stage2_mirrored": true,
+      "classification": "skills_audit_fixture"
+    },
+    {
+      "source": "outputs/skills-audit/bio-science-problem-map.csv",
+      "destination": "references/fixtures/skills-audit/bio-science-problem/bio-science-problem-map.csv",
+      "stage2_mirrored": true,
+      "classification": "skills_audit_fixture"
+    },
+    {
+      "source": "outputs/skills-audit/bio-science-problem-map.json",
+      "destination": "references/fixtures/skills-audit/bio-science-problem/bio-science-problem-map.json",
+      "stage2_mirrored": true,
+      "classification": "skills_audit_fixture"
+    }
+  ]
+}

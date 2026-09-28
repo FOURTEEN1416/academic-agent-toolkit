@@ -1,0 +1,95 @@
+# ============================================================================
+# T05 — Dimensionality reduction for preserving cluster structure
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML05
+title: "Dimensionality reduction methods for preserving cluster structure in synthetic high-dimensional data"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Dimensionality reduction is frequently used before visualization and
+  clustering, but different methods optimize different objectives and can
+  distort neighborhood and global geometry in distinct ways. PCA is linear and
+  emphasizes variance preservation, while t-SNE and UMAP are nonlinear manifold
+  methods designed to preserve local structure. In practice, users often infer
+  cluster quality from 2D embeddings without checking whether separability in
+  the embedding reflects true high-dimensional structure.
+
+  A CPU-scale investigation can probe this mismatch by generating synthetic
+  datasets where ground-truth cluster labels are known and controllable. By
+  varying cluster overlap, anisotropy, and manifold geometry (e.g., Gaussian
+  blobs, anisotropic transforms, and noisy moons embedded in high dimensions),
+  one can evaluate whether each reducer preserves cluster structure under
+  different regimes instead of relying on a single toy example.
+
+  A credible experiment should compare PCA, t-SNE, and UMAP under a common
+  pipeline: reduce to 2 dimensions, then score structure using metrics such as
+  silhouette score and adjusted Rand index after a fixed clustering backend
+  (e.g., KMeans with true k). Runtime should also be tracked because nonlinear
+  methods may yield better structure at substantially higher computational cost,
+  which matters in constrained environments.
+
+  The goal is not to claim a universally best reducer, but to quantify tradeoffs
+  between structure preservation and efficiency in settings where intrinsic
+  geometry differs. This produces actionable guidance for method choice based on
+  data regime rather than defaults.
+
+  *Which dimensionality reduction method (PCA, t-SNE, or UMAP) best preserves cluster structure across distinct synthetic high-dimensional regimes when evaluated by silhouette score, ARI, and runtime?*
+
+hypotheses:
+  - id: H1
+    statement: "On nonlinear manifold data (noisy two-moons embedded into 50D), at least one nonlinear reducer (t-SNE or UMAP) achieves silhouette_score at least 0.10 higher than PCA after 2D reduction and KMeans clustering, averaged over >=5 seeds."
+    measurable: true
+  - id: H2
+    statement: "On linearly separable Gaussian blobs in 50D, PCA achieves silhouette_score within 0.05 of the best nonlinear method (t-SNE or UMAP), averaged over >=5 seeds."
+    measurable: true
+  - id: H3
+    statement: "PCA has the lowest mean wall-clock reduction time and is at least 3x faster than both t-SNE and UMAP on at least 2 of 3 datasets."
+    measurable: true
+
+experiment_design:
+  research_question: "Which reducer best balances cluster-structure preservation and compute cost across linear and nonlinear synthetic high-dimensional datasets?"
+  conditions:
+    - name: "pca_2d"
+      description: "PCA with n_components=2 using sklearn.decomposition.PCA."
+    - name: "tsne_2d"
+      description: "t-SNE with n_components=2, perplexity in [20, 40], learning_rate='auto', init='pca'."
+    - name: "umap_2d"
+      description: "UMAP-like reducer: use umap.UMAP(n_components=2, n_neighbors in [15, 30], min_dist in [0.0, 0.3]) if available; if unavailable, use sklearn.manifold.SpectralEmbedding(n_components=2) as a documented fallback proxy."
+    - name: "identity_no_reduction"
+      description: "Baseline that applies KMeans directly in the original high-dimensional space (no dimensionality reduction)."
+  baselines:
+    - "identity_no_reduction as no-DR clustering baseline"
+    - "pca_2d as linear DR baseline"
+  metrics:
+    - name: "silhouette_score"
+      direction: "maximize"
+      description: "Silhouette score computed on the 2D embedding (or original space for identity baseline) using predicted KMeans labels; primary metric."
+    - name: "ari"
+      direction: "maximize"
+      description: "Adjusted Rand Index between KMeans labels and known synthetic ground-truth labels."
+    - name: "fit_transform_time_sec"
+      direction: "minimize"
+      description: "Wall-clock time for dimensionality reduction fit_transform only (seconds)."
+  datasets:
+    - name: "gaussian_blobs_50d"
+      source: "sklearn.datasets.make_blobs with 4 centers, n_features=50, cluster_std=1.2"
+    - name: "anisotropic_blobs_50d"
+      source: "make_blobs in 10D expanded/projection to 50D then linear anisotropic transform"
+    - name: "embedded_moons_50d"
+      source: "sklearn.datasets.make_moons(noise=0.08) embedded into 50D by random linear projection plus Gaussian noise"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 600
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML05.json"

@@ -1,0 +1,31 @@
+﻿{
+    "baseline_report_id":  "CER-SAFETY-BASE",
+    "current_report_id":  "CER-SAFETY-CURR",
+    "generated_at":  "2026-02-24T18:29:48Z",
+    "status":  "improved",
+    "pattern_delta":  {
+                          "added":  "CF-2",
+                          "removed":  "CF-5",
+                          "common_count":  1
+                      },
+    "fallback_rate":  {
+                          "baseline":  0.26,
+                          "current":  0.15,
+                          "delta":  -0.11
+                      },
+    "stability":  {
+                      "baseline":  0.71,
+                      "current":  0.835,
+                      "delta":  0.125
+                  },
+    "context_pressure":  {
+                             "baseline":  0.81,
+                             "current":  0.63,
+                             "delta":  -0.18
+                         },
+    "route_gap":  {
+                      "baseline":  0.02,
+                      "current":  0.08,
+                      "delta":  0.06
+                  }
+}

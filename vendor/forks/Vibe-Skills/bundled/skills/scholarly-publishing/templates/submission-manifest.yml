@@ -1,0 +1,53 @@
+# Submission Manifest (source-of-truth)
+# 用于把“论文投稿”变成一个可审计的资产包：文件在哪里、规格是什么、是否通过自检。
+
+project:
+  title: ""
+  venue: ""          # e.g., Nature / IEEE T-PAMI / NeurIPS
+  type: ""           # research / methods / review / technical report
+  stage: ""          # draft / submission / revision / camera-ready
+  owner: ""
+
+source_of_truth:
+  format: ""         # latex / word / quarto / markdown
+  path: ""           # e.g., manuscript/main.tex
+
+artifacts:
+  manuscript_pdf: "" # build/manuscript.pdf
+  cover_letter: ""   # submission/cover-letter.md
+  highlights: ""     # submission/highlights.md
+  graphical_abstract: ""
+  supplement_pdf: ""
+
+figures:
+  # 每张图：source(代码/数据)、outputs(导出格式)、dpi/矢量等
+  - id: "fig-01"
+    title: ""
+    type: "line_art"   # line_art / raster / combination
+    source:
+      code: ""         # figures/fig-01/src/plot.py
+      data: ""         # figures/fig-01/data.csv
+    outputs:
+      - path: ""       # figures/fig-01/out/fig-01.pdf
+        format: "pdf"
+        dpi: null
+      - path: ""       # figures/fig-01/out/fig-01.tiff
+        format: "tiff"
+        dpi: 600
+    caption: ""
+
+checks:
+  figures:
+    colorblind_safe: false
+    vector_preferred: true
+    fonts_consistent: false
+    panel_labels_consistent: false
+  manuscript:
+    references_verified: false
+    units_consistent: false
+    abbreviations_defined: false
+  reproducibility:
+    build_command_documented: false
+    environment_locked: false
+    ci_build_green: false
+

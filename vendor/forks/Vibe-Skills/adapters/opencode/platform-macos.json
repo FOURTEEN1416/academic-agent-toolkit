@@ -1,0 +1,18 @@
+{
+  "adapter_id": "opencode",
+  "platform": "macos",
+  "status": "not-yet-proven",
+  "install_surface": [
+    "install.sh --host opencode"
+  ],
+  "check_surface": [
+    "check.sh --host opencode"
+  ],
+  "doctor_surface": [
+    "scripts/verify/runtime_neutral/opencode_preview_smoke.py"
+  ],
+  "notes": [
+    "The repository now exposes a preview OpenCode adapter contract, but macOS proof has not been frozen.",
+    "Do not market macOS OpenCode parity until replay-backed evidence exists."
+  ]
+}

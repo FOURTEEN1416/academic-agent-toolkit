@@ -1,0 +1,167 @@
+# ============================================================================
+# P05 — ALP EFT $E_T^\mathrm{miss}$ distribution in $pp \to a W^\pm \gamma$
+# ----------------------------------------------------------------------------
+# Adapts ColliderAgent paper-reproduction prompt:
+#   /path/to/ColliderAgent/paper-reproduction/1701.05379/prompt_figure_8.md
+# Source: arXiv:1701.05379 — bosonic ALP EFT at the LHC, MET shape in
+# $pp \to a W^\pm \gamma$ as a probe of $c_{\tilde W}$ (with photophobic
+# choice $c_{\tilde B} = -\tan^2\theta_W \cdot c_{\tilde W}$).
+# ============================================================================
+
+id: P05
+title: "Reproducing the normalized $E_T^\\mathrm{miss}$ shape in $pp \\to a W^\\pm \\gamma$ from a photophobic ALP EFT"
+arxiv_id: "1701.05379"
+venue: "ARC-Bench Physics 2026"
+paper_asset: null
+
+synthesis: |
+  Reproducing the normalized $E_T^\mathrm{miss}$ distribution for the
+  process $pp \to a W^\pm (\to \ell^\pm \nu)\, \gamma$ at $\sqrt{s}=13$
+  TeV in the bosonic ALP EFT, as a benchmark of the agent's ability to
+  handle a higher-dimensional EFT operator and parton-level missing-energy
+  reconstruction. The Lagrangian is
+  $\delta\mathcal{L}_a = c_{\tilde W} \mathcal{A}_{\tilde W} +
+  c_{\tilde B} \mathcal{A}_{\tilde B}$ with the photophobic constraint
+  $c_{\tilde B} = -\tan^2\theta_W \cdot c_{\tilde W}$ (so the
+  $a\gamma\gamma$ coupling vanishes), giving a single free Wilson
+  coefficient $c_{\tilde W}$. The diagnostic observable is the
+  normalized parton-level $E_T^\mathrm{miss} = |\vec p_T^{\,a} +
+  \vec p_T^{\,\nu}|$ shape in 50 bins over [0, 1000] GeV, with
+  generation cuts $p_T^{\gamma,\ell} > 20$ GeV, $|\eta^{\gamma,\ell}| < 2.5$.
+
+  A credible study (a) implements the photophobic ALP EFT (FeynRules
+  bosonic operators with $c_{\tilde B} = -\tan^2\theta_W \cdot c_{\tilde W}$),
+  (b) generates 500k LHE events at $f_a = 1000$ GeV, $m_a = 0.001$ GeV,
+  $c_{\tilde W} = 1$ with the nn23lo1 PDF, (c) sums $\vec p_T^{\,a}$ +
+  $\vec p_T^{\,\nu}$ from invisible final-state particles to reconstruct
+  $E_T^\mathrm{miss}$, and (d) plots the normalized histogram on log-y
+  $[10^{-4}, 1]$ over [0, 1000] GeV. Research question: *does the agent
+  reproduce the falling-then-flattening MET shape characteristic of a
+  derivative ALP coupling versus the steeply falling SM-like baseline,
+  matching Figure 8 of arXiv:1701.05379?*
+
+hypotheses:
+  - id: H1
+    statement: "The peak of the normalized $E_T^\\mathrm{miss}$ distribution lies in the bin range $[100, 250]$ GeV, consistent with the published shape."
+    measurable: true
+  - id: H2
+    statement: "The integrated normalized fraction of events with $E_T^\\mathrm{miss} > 500$ GeV is in $[0.05, 0.30]$ at $c_{\\tilde W}=1$, $f_a=1$ TeV (long high-MET tail from the derivative ALP coupling)."
+    measurable: true
+  - id: H3
+    statement: "Acceptance after the published photon and lepton cuts ($p_T > 20$ GeV, $|\\eta| < 2.5$) is $\\geq 50\\%$ of generated events."
+    measurable: true
+
+experiment_design:
+  research_question: "Does the agent reproduce the parton-level $E_T^\\mathrm{miss}$ shape for $pp \\to a W^\\pm \\gamma$, $W \\to \\ell\\nu$ at $\\sqrt{s}=13$ TeV under the photophobic ALP EFT (Figure 8 of arXiv:1701.05379)?"
+  conditions:
+    - name: "alp_cw1_fa1tev"
+      description: "Bosonic ALP EFT at $c_{\\tilde W}=1$, $c_{\\tilde B}=-\\tan^2\\theta_W$, $f_a=1000$ GeV, $m_a=0.001$ GeV, 500k events at $\\sqrt{s}=13$ TeV with nn23lo1 PDF."
+    - name: "alp_cw_variant"
+      description: "Sanity-check run at $c_{\\tilde W}=2$, $f_a=1000$ GeV; cross section should scale as $c_{\\tilde W}^2$ but normalized shape should be invariant."
+  baselines:
+    - "Shape-only normalization is its own baseline: deviation between $c_{\\tilde W}=1$ and $c_{\\tilde W}=2$ shapes should be statistical only"
+  metrics:
+    - name: "etmiss_peak_position_gev"
+      direction: "match_reference"
+      description: "$E_T^\\mathrm{miss}$ bin center of the peak of the normalized histogram."
+    - name: "high_metmiss_tail_fraction"
+      direction: "match_reference"
+      description: "Fraction of normalized events with $E_T^\\mathrm{miss} > 500$ GeV."
+    - name: "cut_acceptance"
+      direction: "match_reference"
+      description: "Acceptance fraction after photon + lepton fiducial cuts."
+  datasets:
+    - process_id: "pp_to_aWgamma_Wlnu"
+      sqrt_s_TeV: 13
+      description: "Parton-level $pp \\to a W^\\pm \\gamma$ with $W \\to \\ell\\nu$ in the photophobic ALP EFT."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 3600
+
+rubric_path: "experiments/arc_bench/config/physics/rubrics/P05.json"
+
+# ---------------------------------------------------------------------------
+# Agent-mode requirements (consumed by researchclaw.pipeline.requirements_judge
+# at stage 15 RESEARCH_DECISION). Schema mirrors B01.yaml:
+#   id          — stable identifier
+#   type        — advisory hint to the LLM judge (numeric | artifact | discussion)
+#   description — natural-language statement of what must be true post-run
+#   must_pass   — true → unmet ⇒ rerun (1 retry max); false → optional
+#
+# The five generic must_pass items apply uniformly across P01-P10; the sixth
+# is topic-specific (mirrors this manifest's H1).  The two must_pass=false
+# items reward mechanistic interpretation and MC-reproducibility metadata
+# without blocking proceed-vs-rerun on them.
+# ---------------------------------------------------------------------------
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: >-
+      A canonical results.json file exists at the workspace root with at least
+      the keys: primary_metric (number), metric_key (string), metrics (object
+      with numeric keys), hypotheses (object with h1/h2/h3 entries each
+      carrying a `supported` boolean), summary (non-empty string).
+    must_pass: true
+
+  - id: req_metrics_numeric
+    type: numeric
+    description: >-
+      results.json metrics MUST contain at least 3 numeric (non-null, finite)
+      values directly relevant to the headline physics observable named in
+      the experiment_design.metrics list above — these are the numbers the
+      paper will report in its Results section.
+    must_pass: true
+
+  - id: req_hypotheses_supported_flags
+    type: discussion
+    description: >-
+      results.json hypotheses.h1/h2/h3 each MUST have an explicit `supported`
+      boolean AND a `details` string ≥ 40 characters quoting the numerical
+      evidence (specific values + their source artifact) used to reach the
+      verdict.
+    must_pass: true
+
+  - id: req_publication_figure
+    type: artifact
+    description: >-
+      At least one publication-quality figure file (PDF or PNG, ≥150 DPI for
+      raster) exists under figures/ or output/figures/ with axes labeled in
+      physical units (GeV / pb / fb / dimensionless) and a legend if multiple
+      series are plotted.  The figure must directly support a hypothesis
+      verdict.
+    must_pass: true
+
+  - id: req_model_implementation
+    type: artifact
+    description: >-
+      The BSM Lagrangian is implemented either as a FeynRules .fr file
+      (models/*.fr) with a matching UFO directory (models/*_UFO/ containing
+      at least particles.py, parameters.py, couplings.py, vertices.py), OR
+      as analytic Python code that explicitly computes the cross sections
+      from the Lagrangian terms.  A pure SM baseline with no BSM piece is
+      NOT sufficient.
+    must_pass: true
+
+  - id: req_met_peak_bin
+    type: numeric
+    description: >-
+      results.json metrics MUST report the peak bin of the normalized E_T^miss distribution; the bin center must lie in [100, 250] GeV and the distribution must integrate to 1.0 (normalized).
+    must_pass: true
+
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: >-
+      The summary or structured_results section provides a one-paragraph
+      mechanistic interpretation of WHY the headline observable comes out the
+      way it does (which interference / propagator structure / cut effect
+      drives the result).  Nice-to-have, not blocking proceed.
+    must_pass: false
+
+  - id: req_mc_reproducibility
+    type: discussion
+    description: >-
+      results.json or a sibling reproducibility section names: (a) the
+      MadGraph5_aMC@NLO version, (b) the PDF set used (if applicable), (c)
+      at least one explicit random seed.  Required for full reproducibility
+      but not for scientific correctness.
+    must_pass: false

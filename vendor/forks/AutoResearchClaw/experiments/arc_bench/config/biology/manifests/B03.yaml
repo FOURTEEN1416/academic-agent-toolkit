@@ -1,0 +1,90 @@
+id: B03
+title: "Anaerobic E. coli lactate-overproduction knockout screen"
+arxiv_id: null
+venue: "ARC-Bench Biology 2026"
+paper_asset: null
+
+synthesis: |
+  Lactate production under anaerobic glucose conditions is a tractable
+  metabolic-engineering task for constraint-based modelling. A credible study
+  loads an E. coli BIGG model, validates anaerobic growth, computes WT lactate
+  secretion, screens central-carbon and fermentation knockouts, and ranks
+  interventions that increase lactate secretion while preserving growth.
+
+hypotheses:
+  - id: H1
+    statement: "The model supports positive anaerobic glucose growth after oxygen uptake is closed."
+    measurable: true
+  - id: H2
+    statement: "The lactate production envelope shows a tradeoff between biomass growth and maximum lactate secretion."
+    measurable: true
+  - id: H3
+    statement: "Top lactate-improving knockouts disable competing ethanol, formate, acetate, or succinate by-product routes, or have a specific mechanistic explanation."
+    measurable: true
+
+experiment_design:
+  research_question: "Which single-gene knockouts increase anaerobic lactate secretion in E. coli while preserving at least 30-50% of WT growth?"
+  conditions:
+    - name: "wt_anaerobic_glucose"
+      description: "E. coli iJO1366 or iAF1260 on glucose-minimal medium with oxygen uptake closed."
+    - name: "lactate_production_envelope"
+      description: "Sweep biomass fraction and optimize lactate secretion."
+    - name: "single_ko_screen_fermentation"
+      description: "Screen central-carbon and fermentation genes; rank by lactate flux at fixed growth fraction."
+  baselines:
+    - "Wild-type anaerobic glucose lactate secretion."
+    - "No-knockout lactate envelope."
+  metrics:
+    - name: "anaerobic_wt_growth_1_per_h"
+      direction: "maximize"
+      description: "WT biomass flux with oxygen uptake set to zero."
+    - name: "lactate_flux_mmol_gDW_h"
+      direction: "maximize"
+      description: "Lactate exchange secretion flux."
+    - name: "lactate_yield_per_glucose"
+      direction: "maximize"
+      description: "Lactate secretion divided by glucose uptake."
+    - name: "growth_fraction"
+      direction: "threshold"
+      description: "KO biomass relative to WT anaerobic growth."
+  datasets:
+    - name: "E. coli GSMM"
+      source: "BIGG iJO1366 or iAF1260 via cobra.io.load_model"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1800
+
+rubric_path: "experiments/arc_bench/config/biology/rubrics/B03.json"
+
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: "results.json contains primary_metric, metrics, hypotheses, summary, and top KO structured results."
+    must_pass: true
+  - id: req_anaerobic_medium
+    type: numeric
+    description: "Oxygen uptake is explicitly closed and anaerobic WT growth is reported."
+    must_pass: true
+  - id: req_top5_ko
+    type: discussion
+    description: "Top 5 lactate-ranked knockouts are reported with gene_id, gene_name, growth_fraction, lactate_flux, and mechanism/canonical flag."
+    must_pass: true
+  - id: req_envelope_figure
+    type: artifact
+    description: "A biomass-vs-lactate production envelope figure exists with labelled axes and units."
+    must_pass: true
+  - id: req_h1_h2_h3_supported_flags
+    type: discussion
+    description: >
+      Each of hypotheses.h1, hypotheses.h2, hypotheses.h3 in results.json MUST
+      have an explicit `supported` boolean and a `details` string of at least
+      40 characters describing the evidence used to reach that verdict.
+    must_pass: true
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: "Top-3 lactate-improving KO targets are discussed mechanistically — naming the pathway each KO disables and a one-sentence rationale for why the disruption redirects anaerobic flux to lactate. Acceptable inside summary, structured_results, or a separate writeup field."
+    must_pass: false  # Optional: nice-to-have, not blocking
+  - id: req_seed_documented
+    type: discussion
+    description: "The solver backend (cobra optlang interface name + version) and COBRApy version are reported in results.json. Required for reproducibility but not for scientific correctness."
+    must_pass: false  # Optional

@@ -1,0 +1,101 @@
+# ============================================================================
+# T22 — Active learning query strategies for logistic regression on small pools
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML22
+title: "Active learning query strategies for logistic regression on small tabular pools"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Pool-based active learning is attractive when labels are expensive but a
+  modest unlabeled pool is available. For linear probabilistic models such as
+  logistic regression, classic query policies include uncertainty sampling,
+  margin sampling, query-by-committee (QBC), and expected-error reduction
+  style lookahead approximations. These methods are often taught as broadly
+  useful, but on small tabular datasets their gains can be inconsistent due to
+  model misspecification, class imbalance, and high variance from tiny initial
+  labeled sets.
+
+  A useful CPU-bounded benchmark should compare these query strategies under a
+  fixed annotation budget and shared learner, rather than mixing in model
+  architecture changes. The core signal is label efficiency: how quickly test
+  performance improves as labels are acquired. Because final accuracy alone can
+  hide early-budget differences, the study should include both
+  accuracy-at-budget and a budget-curve summary metric such as area under the
+  learning curve.
+
+  The experiment should therefore run multiple seeds, use at least two
+  sklearn-resident tabular classification datasets, and enforce identical
+  initialization, batch size, and stopping budget across strategies. A random
+  query baseline is essential to determine whether sophisticated policies
+  provide real value beyond chance selection. A passive full-data reference is
+  also useful for contextualizing attainable performance ceilings under the
+  same logistic-regression family.
+
+  Practical constraints matter: expected-error reduction can be expensive if
+  naively recomputing retrains for every candidate. A tractable variant can
+  evaluate a capped candidate subset per round and use one-step hypothetical
+  label outcomes, preserving the spirit of expected future loss minimization
+  while staying within single-core runtime limits.
+
+  *Do uncertainty, margin, QBC, and approximate expected-error reduction deliver better label efficiency than random sampling for logistic regression on small tabular pools under a fixed annotation budget?*
+
+hypotheses:
+  - id: H1
+    statement: "At 30% labeling budget, at least 2 of {uncertainty_sampling, margin_sampling, qbc, expected_error_reduction} achieve higher mean test accuracy than random_sampling by ≥1.5 percentage points, averaged over ≥5 seeds."
+    measurable: true
+  - id: H2
+    statement: "expected_error_reduction attains the highest mean area_under_learning_curve (AULC) on at least 1 of 3 datasets, and its AULC is not lower than random_sampling on any evaluated dataset."
+    measurable: true
+  - id: H3
+    statement: "qbc outperforms uncertainty_sampling in mean test accuracy at early budget (10% labels) on at least 2 of 3 datasets."
+    measurable: true
+
+experiment_design:
+  research_question: "Which active learning query strategy provides the best label efficiency for logistic regression on small tabular pool-based classification tasks under fixed budgets?"
+  conditions:
+    - name: "random_sampling"
+      description: "Baseline pool-based active learning that queries unlabeled points uniformly at random each round."
+    - name: "uncertainty_sampling"
+      description: "Queries samples with highest predictive entropy from current logistic regression model."
+    - name: "margin_sampling"
+      description: "Queries samples with smallest top-2 class probability margin (binary: |p-0.5|)."
+    - name: "qbc"
+      description: "Query-by-committee with 5 bootstrapped logistic regression committee members; selects by vote entropy/disagreement."
+    - name: "expected_error_reduction"
+      description: "Approximate one-step expected-error reduction over a capped candidate subset per round using hypothetical labels and expected future log-loss reduction."
+  baselines:
+    - "random_sampling is the primary active-learning baseline"
+    - "passive_full_data logistic regression reference trained once on all labels for context"
+  metrics:
+    - name: "accuracy_at_budget"
+      direction: "maximize"
+      description: "Test accuracy at 30% labeled budget, averaged over seeds."
+    - name: "aulc"
+      direction: "maximize"
+      description: "Area under the test-accuracy-vs-labeled-fraction curve from initial seed set to 30% budget."
+    - name: "early_accuracy_10pct"
+      direction: "maximize"
+      description: "Test accuracy when 10% of pool labels have been acquired."
+  datasets:
+    - name: "breast_cancer"
+      source: "sklearn.datasets.load_breast_cancer"
+    - name: "wine"
+      source: "sklearn.datasets.load_wine"
+    - name: "digits"
+      source: "sklearn.datasets.load_digits"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 600
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML22.json"

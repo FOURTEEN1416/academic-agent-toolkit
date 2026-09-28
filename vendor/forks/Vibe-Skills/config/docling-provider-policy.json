@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "enabled": true,
+  "plane": "document_plane_contract",
+  "mode": "canonical_contract",
+  "control_plane_owner": "vco",
+  "tool_id": "docling-mcp",
+  "contract_reference": "references/docling-output-spec.md",
+  "integration_reference": "docs/design/docling-document-plane-integration.md",
+  "selection_policy": {
+    "advice_first": true,
+    "artifact_first": true,
+    "read_only_first": true,
+    "isolated_runtime_required": true,
+    "explicit_project_enablement_only": true,
+    "allow_second_orchestrator": false,
+    "allow_remote_crawl": false,
+    "allow_default_runtime_enablement": false,
+    "allow_write_outside_artifact_bundle": false
+  },
+  "template_posture": {
+    "approved_template": "not-enabled",
+    "project_enabled": "scoped"
+  },
+  "provider_status": {
+    "document_plane_role": "primary",
+    "position": "provider_only",
+    "runtime_exposure": "not-enabled",
+    "project_enablement": "explicit_only"
+  },
+  "admission_filter": {
+    "profile": "document_plane_primary",
+    "risk_tier": "tier1_bounded_transform",
+    "egress_profile": "none",
+    "secret_profile": "document_plane_primary",
+    "write_surface_class": "artifact_only"
+  },
+  "required_output_fields": [
+    "tool_id",
+    "enablement_level",
+    "document_plane_role",
+    "source",
+    "content",
+    "pages",
+    "artifact_bundle",
+    "provenance",
+    "degraded_mode",
+    "failure_object"
+  ],
+  "degraded_modes": [
+    "markdown_plus_pages",
+    "text_plus_provenance",
+    "page_ocr_only",
+    "failure_object"
+  ],
+  "failure_contract": {
+    "require_failure_object_on_terminal_failure": true,
+    "require_warning_channel": true,
+    "require_page_mapping_when_available": true
+  },
+  "forbidden_actions": [
+    "become_document_orchestrator",
+    "ingest_unapproved_remote_documents",
+    "write_outside_artifact_bundle",
+    "bypass_isolated_runtime_for_large_documents"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "skill_id": "subagent-driven-development",
+  "required_capabilities": [
+    "fs.read",
+    "agent.spawn"
+  ],
+  "optional_capabilities": [
+    "shell.exec",
+    "test.runner"
+  ],
+  "degrade_rules": [
+    {
+      "when_missing": "agent.spawn",
+      "state": "unsupported",
+      "behavior": "this execution pattern cannot be claimed without subagent support"
+    }
+  ]
+}
+

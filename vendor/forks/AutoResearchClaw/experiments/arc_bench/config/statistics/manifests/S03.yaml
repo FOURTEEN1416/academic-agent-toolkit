@@ -1,0 +1,195 @@
+id: S03
+title: "Reliability of LLM-assisted statistical model selection"
+arxiv_id: null
+venue: "ARC-Bench Statistics 2026"
+paper_asset: null
+
+synthesis: |
+  Large language models are increasingly used to assist with statistical data
+  analysis, including model selection, test choice, and interpretation. However,
+  statistical model selection requires matching assumptions to data-generating
+  conditions, not merely producing plausible-sounding analysis text. An LLM or
+  LLM-like rule-based assistant may recommend inappropriate tests when data are
+  skewed, heteroskedastic, non-independent, or affected by outliers.
+
+  A credible study of this topic creates a controlled benchmark of small
+  statistical-analysis tasks with known ground truth. The system should compare
+  model-selection recommendations against an oracle or rule-based reference
+  across simulated datasets. The research question is: *can an LLM-assisted
+  statistical workflow choose appropriate statistical procedures under
+  assumption violations, and how often do its recommendations lead to invalid
+  inference?*
+
+hypotheses:
+  - id: H1
+    statement: "A simple prompt-only LLM-style recommendation system is more likely to choose standard parametric tests even when assumptions are violated."
+    measurable: true
+  - id: H2
+    statement: "Adding computed diagnostic statistics, such as skewness, variance ratio, normality tests, and sample-size information, improves statistical procedure selection accuracy."
+    measurable: true
+  - id: H3
+    statement: "Incorrect procedure selection increases false positive rate or reduces coverage under assumption violations such as heteroskedasticity, skew, or dependence."
+    measurable: true
+
+experiment_design:
+  research_question: "Can LLM-assisted statistical model selection reliably choose appropriate procedures when assumptions are violated?"
+  task_type:
+    name: "statistical_test_selection"
+    description: "Given dataset summaries and analysis goals, choose an appropriate statistical test or model."
+  conditions:
+    - name: "text_only_recommender"
+      description: "Procedure selection using only natural-language task description and variable metadata."
+    - name: "diagnostics_augmented_recommender"
+      description: "Procedure selection using natural-language description plus computed diagnostics."
+    - name: "oracle_rule_based_selector"
+      description: "Reference selector using known data-generating process or explicit rules."
+    - name: "always_parametric_baseline"
+      description: "Baseline that always chooses common parametric procedures such as t-test, ANOVA, or OLS."
+  statistical_tasks:
+    - name: "two_sample_mean_comparison"
+      candidate_methods:
+        - "student_t_test"
+        - "welch_t_test"
+        - "mann_whitney_u"
+        - "permutation_test"
+    - name: "correlation_analysis"
+      candidate_methods:
+        - "pearson_correlation"
+        - "spearman_correlation"
+        - "robust_regression"
+    - name: "linear_effect_estimation"
+      candidate_methods:
+        - "ordinary_least_squares"
+        - "heteroskedasticity_robust_ols"
+        - "rank_based_method"
+        - "permutation_inference"
+  data_generating_conditions:
+    - name: "normal_equal_variance"
+      description: "Parametric assumptions approximately hold."
+    - name: "normal_unequal_variance"
+      description: "Heteroskedastic two-sample setting."
+    - name: "skewed_lognormal"
+      description: "Strongly skewed outcome distribution."
+    - name: "outlier_contaminated"
+      description: "Small fraction of extreme observations."
+    - name: "nonlinear_monotone_relationship"
+      description: "Correlation exists but is nonlinear or rank-based."
+  metrics:
+    - name: "selection_accuracy"
+      direction: "maximize"
+      description: "Fraction of tasks where selected method matches oracle-acceptable method set."
+    - name: "false_positive_rate"
+      direction: "target_nominal"
+      description: "Empirical Type I error under null simulations."
+    - name: "coverage"
+      direction: "target_0.95"
+      description: "Empirical confidence interval coverage when interval estimates are produced."
+    - name: "assumption_violation_detection_rate"
+      direction: "maximize"
+      description: "Fraction of cases where the system correctly identifies relevant assumption violations."
+    - name: "explanation_grounding_score"
+      direction: "maximize"
+      description: "Whether the written explanation cites the correct diagnostic evidence rather than generic statistical advice."
+  implementation_note: |
+    If external LLM API access is unavailable, the submission may simulate an
+    LLM-assisted workflow using templated recommendations, local heuristics, or
+    stored model outputs. The benchmark should focus on statistical validity of
+    recommendations and downstream inference, not on proprietary model access.
+  simulation_settings:
+    sample_sizes: [30, 100, 500]
+    monte_carlo_repetitions: 500
+    seeds: [0, 1, 2, 3, 4]
+  expected_artifacts:
+    - path: "src/generate_tasks.py"
+      description: "Code for generating synthetic statistical-analysis tasks."
+    - path: "src/evaluate_selectors.py"
+      description: "Code for evaluating selectors and downstream inference."
+    - path: "results/metrics.json"
+      description: "Machine-readable selection accuracy, false positive rate, coverage, and diagnostic-detection metrics."
+    - path: "results/selector_decisions.csv"
+      description: "Machine-readable selector decisions with task metadata, diagnostics, oracle-acceptable methods, and selected procedures."
+    - path: "results/figures/"
+      description: "Plots or tables comparing selectors across task types, data-generating conditions, and assumption violations."
+    - path: "report/paper.md"
+      description: "Paper-style report explaining task generation, selector designs, oracle rules, diagnostic evidence, results, limitations, and per-hypothesis conclusions."
+    - path: "README.md"
+      description: "Setup and run instructions for reproducing the full benchmark from a clean checkout."
+  dependencies:
+    python:
+      - numpy
+      - pandas
+      - scipy
+      - scikit-learn
+      - statsmodels
+      - matplotlib
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 300
+
+rubric_path: "experiments/arc_bench/config/statistics/rubrics/S03.json"
+
+# ---------------------------------------------------------------------------
+# Agent-mode requirements (consumed by researchclaw.pipeline.requirements_judge
+# at stage 15 RESEARCH_DECISION). Schema mirrors B02.yaml / P01.yaml:
+#   id          — stable identifier
+#   type        — advisory hint to the LLM judge (numeric | artifact | discussion)
+#   description — natural-language statement of what must be true post-run
+#   must_pass   — true → unmet ⇒ rerun (1 retry max); false → optional
+# ---------------------------------------------------------------------------
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: >-
+      A canonical results.json file exists at the workspace root with at least
+      the keys: primary_metric (number), metric_key (string), metrics (object
+      with numeric keys), hypotheses (object with h1/h2/h3 entries each carrying
+      a `supported` boolean), summary (non-empty string).
+    must_pass: true
+  - id: req_selector_metrics_table
+    type: artifact
+    description: >-
+      A machine-readable metrics artifact (e.g. results/metrics.json) exists
+      reporting selection accuracy and false-positive rate (or Type I error)
+      broken down by selector and data-generating condition, plus a
+      results/selector_decisions.csv with per-task selector decisions and
+      oracle-acceptable method labels.
+    must_pass: true
+  - id: req_selection_accuracy_numeric
+    type: numeric
+    description: >-
+      results.json metrics MUST contain numeric (non-null, finite) selection
+      accuracy values in [0, 1] for at least the text-only recommender and the
+      diagnostics-augmented recommender, evaluated over more than one
+      assumption-violation condition, so H1 and H2 can be evaluated.
+    must_pass: true
+  - id: req_hypotheses_supported_flags
+    type: discussion
+    description: >-
+      results.json hypotheses.h1/h2/h3 each MUST have an explicit `supported`
+      boolean AND a `details` string ≥ 40 characters quoting the numerical
+      evidence (specific accuracy / false-positive-rate / coverage values + their
+      source artifact) used to reach the verdict.
+    must_pass: true
+  - id: req_oracle_and_selectors
+    type: artifact
+    description: >-
+      The submission implements or simulates all four selectors — text-only
+      recommender, diagnostics-augmented recommender, oracle / rule-based
+      reference selector, and an always-parametric baseline — and runs the
+      selected procedures to record downstream inference (p-values, coverage,
+      or Type I error).
+    must_pass: true
+  - id: req_method_validity_writeup
+    type: discussion
+    description: >-
+      The report clearly distinguishes the analysis goal, data-generating
+      condition, oracle-acceptable method set, selected method, diagnostic
+      evidence, and downstream inference metric. Nice-to-have, not blocking.
+    must_pass: false
+  - id: req_llm_access_disclosed
+    type: discussion
+    description: >-
+      The report states whether an external LLM API was used or whether a
+      templated / heuristic / stored-output recommender stood in for it.
+      Required for honest reporting but not for scientific correctness.
+    must_pass: false

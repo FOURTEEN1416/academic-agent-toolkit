@@ -1,0 +1,242 @@
+#!/usr/bin/env node
+
+const childProcess = require("child_process")
+const fs = require("fs")
+const path = require("path")
+const os = require("os")
+
+const MIN_LINUX_KERNEL = { major: 5, minor: 1 }
+
+function parseKernelVersion(release) {
+  const match = /^(\d+)\.(\d+)/.exec(release)
+  if (!match) return undefined
+  return { major: Number(match[1]), minor: Number(match[2]) }
+}
+
+function linuxKernelProblem(platform = os.platform(), release = os.release()) {
+  if (platform !== "linux") return undefined
+  const version = parseKernelVersion(release)
+  if (!version) return undefined
+  if (
+    version.major > MIN_LINUX_KERNEL.major ||
+    (version.major === MIN_LINUX_KERNEL.major && version.minor >= MIN_LINUX_KERNEL.minor)
+  ) {
+    return undefined
+  }
+  return `Linux kernel ${release} is unsupported. OpenScience's bundled runtime requires kernel 5.1 or newer.`
+}
+
+function detectMusl(platform = os.platform()) {
+  if (platform !== "linux") return false
+  try {
+    return fs.readdirSync("/lib").some((entry) => entry.startsWith("ld-musl-"))
+  } catch {
+    return false
+  }
+}
+
+function cpuSupportsAvx2(platform = os.platform(), arch = os.arch(), linuxInfo) {
+  if (arch !== "x64") return undefined
+  if (platform === "linux") {
+    const info = (() => {
+      if (linuxInfo !== undefined) return linuxInfo
+      try {
+        return fs.readFileSync("/proc/cpuinfo", "utf8")
+      } catch {
+        return undefined
+      }
+    })()
+    if (!info) return undefined
+    const flags = /^(?:flags|features)\s*:\s*(.+)$/im.exec(info)?.[1]
+    if (!flags) return undefined
+    return flags.toLowerCase().split(/\s+/).includes("avx2")
+  }
+  if (platform !== "darwin") return undefined
+  const result = childProcess.spawnSync("sysctl", ["-n", "machdep.cpu.leaf7_features"], { encoding: "utf8" })
+  if (result.status !== 0) return undefined
+  return result.stdout.toLowerCase().split(/\s+/).includes("avx2")
+}
+
+function expectedPlatformPackages(platform, arch, musl) {
+  const suffix = musl ? "-musl" : ""
+  const name = `openscience-${platform}-${arch}${suffix}`
+  return [`@synsci/${name}`, name]
+}
+
+function pageSize() {
+  if (os.platform() !== "linux") return undefined
+  const result = childProcess.spawnSync("getconf", ["PAGESIZE"], { encoding: "utf8" })
+  return result.status === 0 ? result.stdout.trim() || undefined : undefined
+}
+
+function linuxArm64PageSizeProblem(platform, arch, detectedPageSize) {
+  if (platform !== "linux" || arch !== "arm64" || detectedPageSize === undefined) return undefined
+  const bytes = Number.parseInt(String(detectedPageSize), 10)
+  if (!Number.isFinite(bytes) || bytes === 4096) return undefined
+  return [
+    `Linux ARM64 page size ${bytes} is unsupported by OpenScience's Bun-compiled executable.`,
+    "Use a kernel or VM configured with 4 KB pages.",
+    "Upstream status: https://github.com/oven-sh/bun/issues/17627",
+  ].join(" ")
+}
+
+function runtimeDescription(platform, arch, musl) {
+  const details = [`${platform}-${arch}`]
+  if (platform === "linux") {
+    details.push(musl ? "musl" : "glibc", `kernel ${os.release()}`)
+    const detectedPageSize = pageSize()
+    if (detectedPageSize) details.push(`page size ${detectedPageSize}`)
+  }
+  details.push(`node ${process.version}`)
+  return details.join(", ")
+}
+
+function exitCodeForResult(result) {
+  if (typeof result.status === "number") return result.status
+  if (result.signal) return 128 + (os.constants.signals[result.signal] || 0)
+  return 1
+}
+
+function run(target) {
+  const kernelProblem = linuxKernelProblem()
+  if (kernelProblem) {
+    console.error(kernelProblem)
+    console.error(
+      "Upgrade the host kernel or run OpenScience on a newer VM. CentOS 7's stock 3.10 kernel is not supported.",
+    )
+    process.exit(1)
+  }
+
+  const pageSizeProblem = linuxArm64PageSizeProblem(os.platform(), os.arch(), pageSize())
+  if (pageSizeProblem) {
+    console.error(pageSizeProblem)
+    console.error(`Detected runtime: ${runtimeDescription(os.platform(), os.arch(), detectMusl())}`)
+    process.exit(1)
+  }
+
+  const result = childProcess.spawnSync(target, process.argv.slice(2), {
+    stdio: "inherit",
+  })
+  if (result.error) {
+    console.error(`Failed to launch OpenScience binary at ${target}: ${result.error.message}`)
+    console.error(`Detected runtime: ${runtimeDescription(os.platform(), os.arch(), detectMusl())}`)
+    process.exit(1)
+  }
+  if (result.signal) {
+    console.error(
+      `openscience was terminated by ${result.signal}. The prebuilt native binary may be ` +
+        `incompatible with this host (platform ${os.platform()}, arch ${os.arch()}). ` +
+        `Some ARM64 hosts (e.g. 64KB page-size kernels) and x86-64 hosts without AVX2 ` +
+        `cannot run the optimized prebuilt binary. ` +
+        `Try reinstalling, set OPENSCIENCE_BIN_PATH to a compatible binary, or report at ` +
+        `https://github.com/synthetic-sciences/openscience/issues`,
+    )
+  }
+  process.exit(exitCodeForResult(result))
+}
+
+// Helper: check if a path points to a real binary (not this wrapper script)
+function isBinary(p) {
+  try {
+    if (!fs.existsSync(p)) return false
+    const real = fs.realpathSync(p)
+    // Skip if it resolves to this script (self-reference via symlink)
+    if (real === fs.realpathSync(__filename)) return false
+    // Skip if it's a .js file (another wrapper)
+    if (real.endsWith(".js")) return false
+    return true
+  } catch {
+    return false
+  }
+}
+
+// Rank matching platform packages instead of trusting readdir order (which
+// is filesystem-dependent): right libc first, then the CPU-compatible build,
+// with wrong-libc packages only as a last resort.
+function variantRank(prefix, entry, preferMusl, preferBaseline = false) {
+  const entryMusl = entry.includes("-musl")
+  if (entryMusl !== preferMusl) return 0
+  const entryBaseline = entry.includes("-baseline")
+  return entryBaseline === preferBaseline ? 2 : 1
+}
+function matchingVariants(prefix, entries, preferMusl, preferBaseline = false) {
+  return entries
+    .filter((entry) => entry.startsWith(prefix))
+    .sort(
+      (a, b) => variantRank(prefix, b, preferMusl, preferBaseline) - variantRank(prefix, a, preferMusl, preferBaseline),
+    )
+}
+
+function main() {
+  const envPath = process.env.OPENSCIENCE_BIN_PATH
+  if (envPath && isBinary(envPath)) {
+    run(envPath)
+  }
+
+  const binary = os.platform() === "win32" ? "openscience.exe" : "openscience"
+  const scriptPath = fs.realpathSync(__filename)
+  const scriptDir = path.dirname(scriptPath)
+
+  const platformMap = { darwin: "darwin", linux: "linux", win32: "windows" }
+  const archMap = { x64: "x64", arm64: "arm64", arm: "arm" }
+  const platform = platformMap[os.platform()] || os.platform()
+  const arch = archMap[os.arch()] || os.arch()
+  const base = "openscience-" + platform + "-" + arch
+  const scopedBase = "openscience-" + platform + "-" + arch
+  const musl = detectMusl()
+  const baseline = cpuSupportsAvx2(os.platform(), os.arch()) === false
+
+  // Search this install's node_modules for the matching platform package.
+  // This must come before ~/.openscience or Homebrew fallbacks; otherwise an npm
+  // install can accidentally launch an older globally-installed binary.
+  let current = scriptDir
+  while (true) {
+    const modules = path.join(current, "node_modules")
+    if (fs.existsSync(modules)) {
+      try {
+        const entries = fs.readdirSync(modules)
+        for (const entry of matchingVariants(base, entries, musl, baseline)) {
+          const candidate = path.join(modules, entry, "bin", binary)
+          if (isBinary(candidate)) run(candidate)
+        }
+        // Check scoped packages (@synsci/openscience-darwin-arm64)
+        const scoped = path.join(modules, "@synsci")
+        if (fs.existsSync(scoped)) {
+          const scopedEntries = fs.readdirSync(scoped)
+          for (const entry of matchingVariants(scopedBase, scopedEntries, musl, baseline)) {
+            const candidate = path.join(scoped, entry, "bin", binary)
+            if (isBinary(candidate)) run(candidate)
+          }
+        }
+      } catch {}
+    }
+    const parent = path.dirname(current)
+    if (parent === current) break
+    current = parent
+  }
+
+  const expectedPackages = expectedPlatformPackages(platform, arch, musl)
+  console.error(`OpenScience binary not found for ${platform}-${arch}.`)
+  console.error(`Detected runtime: ${runtimeDescription(platform, arch, musl)}`)
+  console.error(`Expected npm package: ${expectedPackages[0]}`)
+  console.error("Check npm's platform selection with:")
+  console.error("  npm config get cpu")
+  console.error(`  npm ls -g @synsci/openscience ${expectedPackages[0]} --depth=0`)
+  console.error("Reinstall with: npm install -g @synsci/openscience")
+  console.error("Or set OPENSCIENCE_BIN_PATH to a native OpenScience binary.")
+  process.exit(1)
+}
+
+module.exports = {
+  cpuSupportsAvx2,
+  detectMusl,
+  exitCodeForResult,
+  expectedPlatformPackages,
+  linuxArm64PageSizeProblem,
+  linuxKernelProblem,
+  matchingVariants,
+  parseKernelVersion,
+  variantRank,
+}
+
+if (require.main === module) main()

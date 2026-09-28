@@ -1,0 +1,1194 @@
+import type { APICallError, ModelMessage } from "ai"
+import { mergeDeep, unique } from "remeda"
+import type { JSONSchema } from "zod/v4/core"
+import type { Provider } from "./provider"
+import type { ModelsDev } from "./models"
+import { normalizeDeepSeekToolSchema } from "./tool-schema"
+import { iife } from "@/util/iife"
+
+type Modality = NonNullable<ModelsDev.Model["modalities"]>["input"][number]
+
+function mimeToModality(mime: string): Modality | undefined {
+  if (mime.startsWith("image/")) return "image"
+  if (mime.startsWith("audio/")) return "audio"
+  if (mime.startsWith("video/")) return "video"
+  if (mime === "application/pdf") return "pdf"
+  return undefined
+}
+
+export namespace ProviderTransform {
+  // Maps npm package to the key the AI SDK expects for providerOptions
+  function sdkKey(npm: string): string | undefined {
+    switch (npm) {
+      case "@ai-sdk/github-copilot":
+      case "@ai-sdk/openai":
+      case "@ai-sdk/azure":
+        return "openai"
+      case "@ai-sdk/amazon-bedrock":
+        return "bedrock"
+      case "@ai-sdk/anthropic":
+      case "@ai-sdk/google-vertex/anthropic":
+        return "anthropic"
+      case "@ai-sdk/google-vertex":
+      case "@ai-sdk/google":
+        return "google"
+      case "@ai-sdk/gateway":
+        return "gateway"
+      case "@openrouter/ai-sdk-provider":
+        return "openrouter"
+      case "@ai-sdk/deepseek":
+        return "deepseek"
+    }
+    return undefined
+  }
+
+  // Whether a model is Anthropic/Claude on ANY route (native, Bedrock, Vertex, or
+  // OpenRouter). Checks the display id AND the wire api.id, lowercased, plus the
+  // provider/npm — so a config alias, mixed-case slug, or id/api.id divergence
+  // can't slip past a caller's guard. Mirrors the canonical detection in message().
+  function isAnthropic(model: Provider.Model): boolean {
+    if (model.providerID === "anthropic") return true
+    if (model.api.npm === "@ai-sdk/anthropic" || model.api.npm === "@ai-sdk/amazon-bedrock") return true
+    const ids = `${model.id} ${model.api.id}`.toLowerCase()
+    return ids.includes("claude") || ids.includes("anthropic")
+  }
+
+  function normalizeMessages(
+    msgs: ModelMessage[],
+    model: Provider.Model,
+    options: Record<string, unknown>,
+  ): ModelMessage[] {
+    // Anthropic rejects messages with empty content - filter out empty string messages
+    // and remove empty text/reasoning parts from array content
+    if (model.api.npm === "@ai-sdk/anthropic") {
+      msgs = msgs
+        .map((msg) => {
+          if (typeof msg.content === "string") {
+            if (msg.content === "") return undefined
+            return msg
+          }
+          if (!Array.isArray(msg.content)) return msg
+          const filtered = msg.content.filter((part) => {
+            if (part.type === "text" || part.type === "reasoning") {
+              return part.text !== ""
+            }
+            return true
+          })
+          if (filtered.length === 0) return undefined
+          return { ...msg, content: filtered }
+        })
+        .filter((msg): msg is ModelMessage => msg !== undefined && msg.content !== "")
+    }
+
+    if (model.api.id.includes("claude")) {
+      return msgs.map((msg) => {
+        if ((msg.role === "assistant" || msg.role === "tool") && Array.isArray(msg.content)) {
+          msg.content = msg.content.map((part) => {
+            if ((part.type === "tool-call" || part.type === "tool-result") && "toolCallId" in part) {
+              return {
+                ...part,
+                toolCallId: part.toolCallId.replace(/[^a-zA-Z0-9_-]/g, "_"),
+              }
+            }
+            return part
+          })
+        }
+        return msg
+      })
+    }
+    if (model.providerID === "mistral" || model.api.id.toLowerCase().includes("mistral")) {
+      const result: ModelMessage[] = []
+      for (let i = 0; i < msgs.length; i++) {
+        const msg = msgs[i]
+        const nextMsg = msgs[i + 1]
+
+        if ((msg.role === "assistant" || msg.role === "tool") && Array.isArray(msg.content)) {
+          msg.content = msg.content.map((part) => {
+            if ((part.type === "tool-call" || part.type === "tool-result") && "toolCallId" in part) {
+              // Mistral requires alphanumeric tool call IDs with exactly 9 characters
+              const normalizedId = part.toolCallId
+                .replace(/[^a-zA-Z0-9]/g, "") // Remove non-alphanumeric characters
+                .substring(0, 9) // Take first 9 characters
+                .padEnd(9, "0") // Pad with zeros if less than 9 characters
+
+              return {
+                ...part,
+                toolCallId: normalizedId,
+              }
+            }
+            return part
+          })
+        }
+
+        result.push(msg)
+
+        // Fix message sequence: tool messages cannot be followed by user messages
+        if (msg.role === "tool" && nextMsg?.role === "user") {
+          result.push({
+            role: "assistant",
+            content: [
+              {
+                type: "text",
+                text: "Done.",
+              },
+            ],
+          })
+        }
+      }
+      return result
+    }
+
+    if (
+      model.api.npm !== "@ai-sdk/deepseek" &&
+      typeof model.capabilities.interleaved === "object" &&
+      model.capabilities.interleaved.field
+    ) {
+      const field = model.capabilities.interleaved.field
+      return msgs.map((msg) => {
+        if (msg.role === "assistant" && Array.isArray(msg.content)) {
+          const reasoningParts = msg.content.filter((part: any) => part.type === "reasoning")
+          const reasoningText = reasoningParts.map((part: any) => part.text).join("")
+
+          // Filter out reasoning parts from content
+          const filteredContent = msg.content.filter((part: any) => part.type !== "reasoning")
+
+          // Include reasoning_content | reasoning_details directly on the message for all assistant messages
+          if (reasoningText) {
+            return {
+              ...msg,
+              content: filteredContent,
+              providerOptions: {
+                ...msg.providerOptions,
+                openaiCompatible: {
+                  ...(msg.providerOptions as any)?.openaiCompatible,
+                  [field]: reasoningText,
+                },
+              },
+            }
+          }
+
+          return {
+            ...msg,
+            content: filteredContent,
+          }
+        }
+
+        return msg
+      })
+    }
+
+    return msgs
+  }
+
+  function applyCaching(msgs: ModelMessage[], providerID: string): ModelMessage[] {
+    const system = msgs.filter((msg) => msg.role === "system").slice(0, 2)
+    const final = msgs.filter((msg) => msg.role !== "system").slice(-2)
+
+    const providerOptions = {
+      anthropic: {
+        cacheControl: { type: "ephemeral" },
+      },
+      openrouter: {
+        cacheControl: { type: "ephemeral" },
+      },
+      bedrock: {
+        cachePoint: { type: "ephemeral" },
+      },
+      openaiCompatible: {
+        cache_control: { type: "ephemeral" },
+      },
+    }
+
+    for (const msg of unique([...system, ...final])) {
+      const shouldUseContentOptions = providerID !== "anthropic" && Array.isArray(msg.content) && msg.content.length > 0
+
+      if (shouldUseContentOptions) {
+        const lastContent = msg.content[msg.content.length - 1]
+        if (lastContent && typeof lastContent === "object") {
+          lastContent.providerOptions = mergeDeep(lastContent.providerOptions ?? {}, providerOptions)
+          continue
+        }
+      }
+
+      msg.providerOptions = mergeDeep(msg.providerOptions ?? {}, providerOptions)
+    }
+
+    return msgs
+  }
+
+  // Pull raw bytes out of a file/media part's data, whatever shape it arrives
+  // in (data URL, raw base64, Uint8Array/ArrayBuffer). Returns null for things
+  // we can't read inline (e.g. an http URL).
+  function partBytes(data: unknown): Uint8Array | null {
+    if (data instanceof Uint8Array) return data
+    if (data instanceof ArrayBuffer) return new Uint8Array(data)
+    if (typeof data === "string") {
+      if (/^https?:\/\//i.test(data)) return null
+      const b64 = data.startsWith("data:") ? data.slice(data.indexOf(",") + 1) : data
+      try {
+        return new Uint8Array(Buffer.from(b64, "base64"))
+      } catch {
+        return null
+      }
+    }
+    return null
+  }
+
+  // Decode bytes as UTF-8, or null if they aren't valid text (binary).
+  function asText(bytes: Uint8Array): string | null {
+    if (bytes.includes(0)) return null
+    try {
+      return new TextDecoder("utf-8", { fatal: true }).decode(bytes)
+    } catch {
+      return null
+    }
+  }
+
+  // A file the model can't ingest as a known modality (e.g. .pem/x509, source
+  // code, config, application/octet-stream). Sending it through as a file part
+  // throws "AI_UnsupportedFunctionalityError: ... media type not supported" on
+  // most providers — which poisons the whole send. Inline the content as text
+  // when it's decodable; otherwise leave a short note so the model can proceed.
+  const INLINE_LIMIT = 64_000
+  function fileToText(part: any): { type: "text"; text: string } {
+    const name = part.filename ? `"${part.filename}"` : "file"
+    const mime = part.mediaType ?? "application/octet-stream"
+    const bytes = partBytes(part.data ?? part.url)
+    const text = bytes ? asText(bytes) : null
+    if (text !== null) {
+      const body =
+        text.length > INLINE_LIMIT ? text.slice(0, INLINE_LIMIT) + `\n…[truncated; ${text.length} chars total]` : text
+      return { type: "text", text: `Attached file ${name} (${mime}):\n\n${body}` }
+    }
+    return {
+      type: "text",
+      text: `[Attached file ${name} (${mime}) is binary and can't be shown inline. If its contents are needed, ask the user to paste them or read it from .context/.]`,
+    }
+  }
+
+  function unsupportedParts(msgs: ModelMessage[], model: Provider.Model): ModelMessage[] {
+    return msgs.map((msg) => {
+      if (msg.role !== "user" || !Array.isArray(msg.content)) return msg
+
+      const filtered = msg.content.map((part) => {
+        if (part.type !== "file" && part.type !== "image") return part
+
+        // Check for empty base64 image data
+        if (part.type === "image") {
+          const imageStr = part.image.toString()
+          if (imageStr.startsWith("data:")) {
+            const match = imageStr.match(/^data:([^;]+);base64,(.*)$/)
+            if (match && (!match[2] || match[2].length === 0)) {
+              return {
+                type: "text" as const,
+                text: "ERROR: Image file is empty or corrupted. Please provide a valid image.",
+              }
+            }
+          }
+        }
+
+        const mime = part.type === "image" ? part.image.toString().split(";")[0].replace("data:", "") : part.mediaType
+        const filename = part.type === "file" ? part.filename : undefined
+        const modality = mimeToModality(mime)
+        if (!modality) {
+          // No modality → the provider can't take this as a file part. For
+          // files, downgrade to text instead of crashing the request. (Images
+          // always map to a modality, so this only catches file parts.)
+          if (part.type === "file") return fileToText(part)
+          return part
+        }
+        // #192: fine-grained input.image/input.pdf can be missing/wrong in the
+        // catalog (e.g. the synthetic OpenRouter model) even though the model
+        // is flagged attachment-capable. Fall back to the coarse `attachment`
+        // capability for image/pdf only — audio/video stay gated on their own
+        // modality flag.
+        if (
+          model.capabilities.input[modality] ||
+          (model.capabilities.attachment && (modality === "image" || modality === "pdf"))
+        )
+          return part
+
+        const name = filename ? `"${filename}"` : modality
+        return {
+          type: "text" as const,
+          text: `ERROR: Cannot read ${name} (this model does not support ${modality} input). Inform the user.`,
+        }
+      })
+
+      return { ...msg, content: filtered }
+    })
+  }
+
+  // Safety net: correct all image mime types from magic bytes before sending to any provider.
+  // Prevents "Image does not match the provided media type" errors that poison the entire conversation.
+  function correctImageMimes(msgs: ModelMessage[]): ModelMessage[] {
+    return msgs.map((msg): ModelMessage => {
+      if (!Array.isArray(msg.content)) return msg
+      let changed = false
+      const content = (msg.content as any[]).map((part: any) => {
+        if (part.type !== "file" && part.type !== "image") return part
+        const mime: string | undefined = part.mediaType ?? part.mimeType
+        if (!mime?.startsWith("image/")) return part
+        // Extract base64 from data URL or raw data
+        const data: unknown = part.data ?? part.image
+        if (!data) return part
+        const str = typeof data === "string" ? data : data instanceof URL ? data.toString() : ""
+        if (!str) return part
+        const b64 = str.includes(",") ? str.slice(str.indexOf(",") + 1) : str
+        if (b64.length < 16) return part
+        try {
+          const raw = atob(b64.slice(0, 24))
+          let detected: string | undefined
+          if (raw.charCodeAt(0) === 0x89 && raw.slice(1, 4) === "PNG") detected = "image/png"
+          else if (raw.charCodeAt(0) === 0xff && raw.charCodeAt(1) === 0xd8) detected = "image/jpeg"
+          else if (raw.length >= 12 && raw.slice(8, 12) === "WEBP") detected = "image/webp"
+          else if (raw.slice(0, 3) === "GIF") detected = "image/gif"
+          if (detected && detected !== mime) {
+            changed = true
+            const newPart = { ...part, mediaType: detected }
+            // Fix data URL prefix if present
+            if (typeof newPart.data === "string" && newPart.data.startsWith("data:"))
+              newPart.data = `data:${detected};base64,${b64}`
+            if (typeof newPart.image === "string" && newPart.image.startsWith("data:"))
+              newPart.image = `data:${detected};base64,${b64}`
+            if (newPart.image instanceof URL && newPart.image.toString().startsWith("data:"))
+              newPart.image = new URL(`data:${detected};base64,${b64}`)
+            return newPart
+          }
+        } catch {}
+        return part
+      })
+      return changed ? ({ ...msg, content } as ModelMessage) : msg
+    })
+  }
+
+  export function message(msgs: ModelMessage[], model: Provider.Model, options: Record<string, unknown>) {
+    msgs = unsupportedParts(msgs, model)
+    msgs = normalizeMessages(msgs, model, options)
+    msgs = correctImageMimes(msgs)
+    if (
+      model.providerID === "anthropic" ||
+      model.api.id.includes("anthropic") ||
+      model.api.id.includes("claude") ||
+      model.id.includes("anthropic") ||
+      model.id.includes("claude") ||
+      model.api.npm === "@ai-sdk/anthropic"
+    ) {
+      msgs = applyCaching(msgs, model.providerID)
+    }
+
+    // Remap providerOptions keys from stored providerID to expected SDK key
+    const key = sdkKey(model.api.npm)
+    if (key && key !== model.providerID && model.api.npm !== "@ai-sdk/azure") {
+      const remap = (opts: Record<string, any> | undefined) => {
+        if (!opts) return opts
+        if (!(model.providerID in opts)) return opts
+        const result = { ...opts }
+        result[key] = result[model.providerID]
+        delete result[model.providerID]
+        return result
+      }
+
+      msgs = msgs.map((msg) => {
+        if (!Array.isArray(msg.content)) return { ...msg, providerOptions: remap(msg.providerOptions) }
+        return {
+          ...msg,
+          providerOptions: remap(msg.providerOptions),
+          content: msg.content.map((part) => ({ ...part, providerOptions: remap(part.providerOptions) })),
+        } as typeof msg
+      })
+    }
+
+    return msgs
+  }
+
+  export function temperature(model: Provider.Model) {
+    const id = model.id.toLowerCase()
+    if (id.includes("qwen")) return 0.55
+    if (id.includes("claude")) return undefined
+    if (id.includes("gemini")) return 1.0
+    if (id.includes("glm-4.6")) return 1.0
+    if (id.includes("glm-4.7")) return 1.0
+    if (id.includes("minimax-m2")) return 1.0
+    if (id.includes("kimi-k2")) {
+      // kimi-k2-thinking & kimi-k2.5 && kimi-k2p5
+      if (id.includes("thinking") || id.includes("k2.") || id.includes("k2p")) {
+        return 1.0
+      }
+      return 0.6
+    }
+    return undefined
+  }
+
+  export function topP(model: Provider.Model) {
+    const id = model.id.toLowerCase()
+    if (id.includes("qwen")) return 1
+    if (id.includes("minimax-m2") || id.includes("kimi-k2.5") || id.includes("kimi-k2p5") || id.includes("gemini")) {
+      return 0.95
+    }
+    return undefined
+  }
+
+  export function topK(model: Provider.Model) {
+    const id = model.id.toLowerCase()
+    if (id.includes("minimax-m2")) {
+      if (id.includes("m2.1")) return 40
+      return 20
+    }
+    if (id.includes("gemini")) return 64
+    return undefined
+  }
+
+  const WIDELY_SUPPORTED_EFFORTS = ["low", "medium", "high"]
+
+  function catalogEfforts(model: Provider.Model) {
+    const options = model.reasoningOptions
+    if (!options) return undefined
+    const effort = options.find((option) => option.type === "effort")
+    if (!effort) return undefined
+    const values = Array.isArray(effort.values) ? effort.values : []
+    return values.filter((value): value is string => typeof value === "string")
+  }
+
+  // The reasoning-effort ladder OpenAI actually accepts, per model — verified
+  // against developers.openai.com model pages + the API changelog (July 2026):
+  //   o-series          low/medium/high
+  //   gpt-5   (2025-08) minimal/low/medium/high        (minimal; no none)
+  //   gpt-5.1 (2025-11-13) none/low/medium/high         (none replaces minimal)
+  //   gpt-5.2 (2025-12-11) none/low/medium/high/xhigh
+  //   gpt-5.5 (2026-04) none/low/medium/high/xhigh
+  //   gpt-5.6 (2026-07) none/low/medium/high/xhigh/max
+  //   *-codex           low/medium/high (+xhigh on 5.2-codex); never none/minimal
+  //   gpt-5-pro         high only (fixed) → [] (no effort dial)
+  //   gpt-5.2-pro       medium/high/xhigh
+  // `none`/`xhigh` are date-gated so future minor bumps inherit them, with
+  // explicit carve-outs for the codex/pro variants that diverge from the flagship
+  // of the same date (a pure date gate would misfire on those).
+  function openaiEfforts(model: Provider.Model): string[] {
+    const id = model.id.toLowerCase()
+    // OpenRouter publishes separate GPT-5.6 `-pro` routes, but their effort
+    // contract is still the full 5.6 ladder. Check 5.6 before the generic
+    // historical Pro handling below.
+    if (/gpt-5[.-]6\b/.test(id)) return ["none", ...WIDELY_SUPPORTED_EFFORTS, "xhigh", "max"]
+    if (id.includes("gpt-5-pro")) return []
+    if (id.includes("gpt-5") && id.includes("pro")) return ["medium", "high", "xhigh"]
+    if (id.includes("codex"))
+      return /5[.-]2/.test(id) ? [...WIDELY_SUPPORTED_EFFORTS, "xhigh"] : [...WIDELY_SUPPORTED_EFFORTS]
+    const arr = [...WIDELY_SUPPORTED_EFFORTS]
+    if (model.release_date >= "2025-11-13") arr.unshift("none")
+    else if (id.includes("gpt-5")) arr.unshift("minimal")
+    if (model.release_date >= "2025-12-11") arr.push("xhigh")
+    if (/gpt-5[.-]6(?:\b|[.-])/.test(id)) arr.push("max")
+    return arr
+  }
+
+  // ChatGPT/Codex is not the public OpenAI API. Keep this exact model-by-model
+  // ladder in sync with the OAuth model catalog rather than deriving it from a
+  // release date or inheriting API-only `none`/`minimal` values.
+  function codexOAuthEfforts(id: string): string[] | undefined {
+    if (/^gpt-5[.-]6-(?:sol|terra)$/.test(id)) {
+      return [...WIDELY_SUPPORTED_EFFORTS, "xhigh", "max"]
+    }
+    if (/^gpt-5[.-]6-luna$/.test(id)) {
+      return [...WIDELY_SUPPORTED_EFFORTS, "xhigh", "max"]
+    }
+    if (/^gpt-5[.-](?:5|4)(?:-mini)?$/.test(id)) {
+      return [...WIDELY_SUPPORTED_EFFORTS, "xhigh"]
+    }
+    return undefined
+  }
+
+  export function variants(model: Provider.Model): Record<string, Record<string, any>> {
+    if (!model.capabilities.reasoning) return {}
+
+    const id = model.id.toLowerCase()
+    const exact = catalogEfforts(model)
+    const budget = model.reasoningOptions?.some((option) => option.type === "budget_tokens") ?? false
+    if (model.reasoningOptions && exact === undefined && !budget) return {}
+
+    // The synthesized provider recomputes variants after changing provider id,
+    // so this transport-specific contract cannot inherit public-API options.
+    const codexEfforts = model.providerID === "openai-codex" ? codexOAuthEfforts(id) : undefined
+    if (codexEfforts) {
+      return Object.fromEntries(
+        codexEfforts.map((effort) => [
+          effort,
+          {
+            reasoningEffort: effort,
+            reasoningSummary: "auto",
+            include: ["reasoning.encrypted_content"],
+          },
+        ]),
+      )
+    }
+
+    // Reasoning-effort coverage for families that previously had none. On
+    // OpenRouter the unified `reasoning.effort` works for reasoning models; native
+    // OpenAI-compatible providers receive `reasoningEffort`. Kimi K3 is handled
+    // explicitly below because its low/high/max ladder differs from the common
+    // low/medium/high set. Older Kimi models reject `reasoning_effort` alongside
+    // `thinking`, and MiniMax/Mistral have no effort dial.
+    if (!exact && model.api.npm !== "@openrouter/ai-sdk-provider") {
+      if (id.includes("minimax") || id.includes("mistral")) return {}
+      if (id.includes("kimi") && !/kimi-k3\b/.test(id)) return {}
+      if (id.includes("glm") && !/glm-[5-9]/.test(id)) return {}
+      if (id.includes("deepseek") && !/deepseek-v[4-9]/.test(id)) return {}
+    }
+
+    const efforts = (values: string[]) =>
+      Object.fromEntries(
+        values.map((effort) => [
+          effort,
+          model.api.npm === "@openrouter/ai-sdk-provider" ? { reasoning: { effort } } : { reasoningEffort: effort },
+        ]),
+      )
+
+    // DeepSeek V4 has three canonical effort values. The native adapter maps
+    // these to reasoning_effort and preserves reasoning_content through tool
+    // loops; do not surface its accepted compatibility aliases as UI tiers.
+    if (model.api.npm === "@ai-sdk/deepseek") {
+      if (!/deepseek-v[4-9]/.test(id)) return {}
+      const canonical = ["low", "high", "max"]
+      const values = exact?.filter((effort) => canonical.includes(effort)) ?? canonical
+      return efforts(values)
+    }
+
+    // https://www.kimi.com/help/kimi-api/api-model-selection
+    if (/kimi-k3\b/.test(id)) return efforts(exact ?? ["low", "high", "max"])
+
+    // see: https://docs.x.ai/docs/guides/reasoning#control-how-hard-the-model-thinks
+    if (id.includes("grok") && id.includes("grok-3-mini")) {
+      return efforts(exact ?? ["low", "high"])
+    }
+    // https://docs.x.ai/developers/model-capabilities/text/reasoning
+    if (/grok-4[.-]6\b/.test(id)) return efforts(exact ?? [...WIDELY_SUPPORTED_EFFORTS, "xhigh"])
+    if (/grok-4[.-]5\b/.test(id)) return efforts(exact ?? WIDELY_SUPPORTED_EFFORTS)
+    if (/grok-4[.-]3\b/.test(id)) return efforts(exact ?? ["none", ...WIDELY_SUPPORTED_EFFORTS])
+    if (/grok-4[.-]20/.test(id) && id.includes("multi-agent"))
+      return efforts(exact ?? [...WIDELY_SUPPORTED_EFFORTS, "xhigh"])
+    if (id.includes("grok")) return {}
+
+    // Meta's OpenAI-compatible Muse endpoint accepts this exact ladder. Keep it
+    // separate from OpenAI's date-derived GPT ladder: `none` is rejected with
+    // HTTP 400, while `minimal` is the lowest supported tier and there is no
+    // `max` tier.
+    if (/muse-spark-1[.-]1\b/.test(id)) {
+      const values = exact ?? ["minimal", ...WIDELY_SUPPORTED_EFFORTS, "xhigh"]
+      return Object.fromEntries(values.map((effort) => [effort, { reasoningEffort: effort }]))
+    }
+
+    switch (model.api.npm) {
+      case "@openrouter/ai-sdk-provider": {
+        // OpenRouter takes a unified `reasoning.effort` and clamps any level a model
+        // doesn't support to the nearest one (no 400) — verified against
+        // openrouter.ai/docs/use-cases/reasoning-tokens. The only hazard is silent
+        // clamping: an exotic level on a model without that tier is a dead UI option,
+        // so gate max/xhigh to families that have them and emit nothing for no-dial ones.
+        const orEffort = (efforts: string[]) =>
+          Object.fromEntries(efforts.map((effort) => [effort, { reasoning: { effort } }]))
+        // No effort dial (reasoning is on/off only): low/medium/high would be three
+        // identical "on" options — misleading — so expose none (runs at default).
+        if (exact) return orEffort(exact)
+        if (id.includes("kimi") || id.includes("minimax") || id.includes("mistral")) return {}
+        if (id.includes("glm") && !/glm-[5-9]/.test(id)) return {} // GLM-4.6 = thinking toggle only
+        if (model.id.includes("gpt")) return orEffort(openaiEfforts(model))
+        // DeepSeek-v4 / GLM-5.x carry a native "max" tier above high.
+        if (/deepseek-v[4-9]/.test(id) || /glm-[5-9]/.test(id)) return orEffort([...WIDELY_SUPPORTED_EFFORTS, "max"])
+        return orEffort(WIDELY_SUPPORTED_EFFORTS)
+      }
+
+      // NOTE: the gateway rejects max_tokens when reasoningEffort is set — the
+      // conflict is resolved in maxOutputTokens() (drops the cap for gateway
+      // calls carrying a reasoningEffort), so the effort variants are safe here.
+      case "@ai-sdk/gateway":
+        return Object.fromEntries(
+          (exact ?? openaiEfforts(model)).map((effort) => [effort, { reasoningEffort: effort }]),
+        )
+
+      case "@ai-sdk/github-copilot":
+        const copilotEfforts = iife(() => {
+          if (id.includes("5.1-codex-max") || id.includes("5.2")) return [...WIDELY_SUPPORTED_EFFORTS, "xhigh"]
+          return WIDELY_SUPPORTED_EFFORTS
+        })
+        return Object.fromEntries(
+          copilotEfforts.map((effort) => [
+            effort,
+            {
+              reasoningEffort: effort,
+              reasoningSummary: "auto",
+              include: ["reasoning.encrypted_content"],
+            },
+          ]),
+        )
+
+      case "@ai-sdk/cerebras":
+      // https://v5.ai-sdk.dev/providers/ai-sdk-providers/cerebras
+      case "@ai-sdk/togetherai":
+      // https://v5.ai-sdk.dev/providers/ai-sdk-providers/togetherai
+      case "@ai-sdk/xai":
+      // https://v5.ai-sdk.dev/providers/ai-sdk-providers/xai
+      case "@ai-sdk/deepinfra":
+      // https://v5.ai-sdk.dev/providers/ai-sdk-providers/deepinfra
+      case "@ai-sdk/openai-compatible":
+        if (exact) {
+          return Object.fromEntries(exact.map((effort) => [effort, { reasoningEffort: effort }]))
+        }
+        // DeepSeek-v4 and GLM-5.2+ accept a `max` tier above high; their OpenAI-
+        // compatible provider maps `reasoningEffort` -> body `reasoning_effort`.
+        // Other openai-compatible providers use the widely-supported floor.
+        if (/deepseek-v[4-9]/.test(id) || /glm-[5-9]/.test(id)) {
+          return Object.fromEntries(
+            [...WIDELY_SUPPORTED_EFFORTS, "max"].map((effort) => [effort, { reasoningEffort: effort }]),
+          )
+        }
+        return Object.fromEntries(WIDELY_SUPPORTED_EFFORTS.map((effort) => [effort, { reasoningEffort: effort }]))
+
+      case "@ai-sdk/azure":
+        // https://v5.ai-sdk.dev/providers/ai-sdk-providers/azure
+        if (id === "o1-mini") return {}
+        const azureEfforts = ["low", "medium", "high"]
+        if (id.includes("gpt-5-") || id === "gpt-5") {
+          azureEfforts.unshift("minimal")
+        }
+        return Object.fromEntries(
+          azureEfforts.map((effort) => [
+            effort,
+            {
+              reasoningEffort: effort,
+              reasoningSummary: "auto",
+              include: ["reasoning.encrypted_content"],
+            },
+          ]),
+        )
+      case "@ai-sdk/openai":
+        // https://v5.ai-sdk.dev/providers/ai-sdk-providers/openai
+        // openaiEfforts() returns [] for gpt-5-pro (fixed high) → no variants.
+        return Object.fromEntries(
+          (exact ?? openaiEfforts(model)).map((effort) => [
+            effort,
+            {
+              reasoningEffort: effort,
+              reasoningSummary: "auto",
+              include: ["reasoning.encrypted_content"],
+            },
+          ]),
+        )
+
+      case "@ai-sdk/anthropic":
+      // https://v5.ai-sdk.dev/providers/ai-sdk-providers/anthropic
+      case "@ai-sdk/google-vertex/anthropic": {
+        // https://v5.ai-sdk.dev/providers/ai-sdk-providers/google-vertex#anthropic-provider
+        const cap = model.limit.output
+        const usesEffort = /^claude-opus-4[.-][78]\b/.test(id) || /^claude-(opus|sonnet|mythos)-[5-9]\b/.test(id)
+        if (exact) {
+          return Object.fromEntries(
+            exact.map((effort) => [effort, usesEffort ? { thinking: { type: "adaptive" }, effort } : { effort }]),
+          )
+        }
+
+        // The newest Claudes REJECT manual extended thinking (`thinking.type:
+        // "enabled"` → 400) and drive depth via `output_config.effort` instead.
+        // Verified against platform.claude.com/docs/build-with-claude/effort
+        // (July 2026): Opus 4.7/4.8, Sonnet 5, Mythos 5 (and the 5+
+        // generation) all support the full low→max ladder INCLUDING xhigh. The AI
+        // SDK maps our top-level `effort` → `output_config: { effort }`; the pinned
+        // patch (tooling/patches/@ai-sdk%2Fanthropic@2.0.57.patch) widens its enum
+        // to include xhigh/max. Detection is by canonical id — note Mythos is NOT
+        // opus/sonnet/haiku, so it must be matched explicitly or it falls
+        // through to the classic path below and 400 (manual thinking rejected).
+        if (usesEffort) {
+          return {
+            low: { thinking: { type: "adaptive" }, effort: "low" },
+            medium: { thinking: { type: "adaptive" }, effort: "medium" },
+            high: { thinking: { type: "adaptive" }, effort: "high" },
+            xhigh: { thinking: { type: "adaptive" }, effort: "xhigh" },
+            max: { thinking: { type: "adaptive" }, effort: "max" },
+          }
+        }
+
+        // Everything else (Opus 4.5/4.6, Sonnet 4.5/4.6, Haiku 4.5, older) uses
+        // classic extended thinking via a token budget. These accept manual
+        // thinking; the 4.5 models have NO effort param (it would 400), so they
+        // must stay on this path.
+
+        return {
+          low: {
+            thinking: {
+              type: "enabled",
+              budgetTokens: Math.min(4_000, cap - 1),
+            },
+          },
+          medium: {
+            thinking: {
+              type: "enabled",
+              budgetTokens: Math.min(10_000, Math.floor(cap / 4)),
+            },
+          },
+          high: {
+            thinking: {
+              type: "enabled",
+              budgetTokens: Math.min(16_000, Math.floor(cap / 2 - 1)),
+            },
+          },
+          max: {
+            thinking: {
+              // Keep the thinking budget proportional (~3/4 of the output cap)
+              // instead of `cap - 1`: on a 32k-output model, a 31,999-token
+              // budget made maxOutputTokens() return just 1 text token, so the
+              // visible answer was truncated to a single token. Large-cap models
+              // are unaffected (still clamp at 31,999).
+              type: "enabled",
+              budgetTokens: Math.min(31_999, Math.floor((cap * 3) / 4)),
+            },
+          },
+        }
+      }
+
+      case "@ai-sdk/amazon-bedrock":
+        // https://v5.ai-sdk.dev/providers/ai-sdk-providers/amazon-bedrock
+        // For Anthropic models on Bedrock, use reasoningConfig with budgetTokens
+        if (model.api.id.includes("anthropic")) {
+          return {
+            high: {
+              reasoningConfig: {
+                type: "enabled",
+                budgetTokens: 16000,
+              },
+            },
+            max: {
+              reasoningConfig: {
+                type: "enabled",
+                budgetTokens: 31999,
+              },
+            },
+          }
+        }
+
+        // For Amazon Nova models, use reasoningConfig with maxReasoningEffort
+        return Object.fromEntries(
+          WIDELY_SUPPORTED_EFFORTS.map((effort) => [
+            effort,
+            {
+              reasoningConfig: {
+                type: "enabled",
+                maxReasoningEffort: effort,
+              },
+            },
+          ]),
+        )
+
+      case "@ai-sdk/google-vertex":
+      // https://v5.ai-sdk.dev/providers/ai-sdk-providers/google-vertex
+      case "@ai-sdk/google":
+        // https://v5.ai-sdk.dev/providers/ai-sdk-providers/google-generative-ai
+        if (exact) {
+          return Object.fromEntries(
+            exact.map((effort) => [
+              effort,
+              {
+                thinkingConfig: {
+                  includeThoughts: true,
+                  thinkingLevel: effort,
+                },
+              },
+            ]),
+          )
+        }
+        if (id.includes("2.5")) {
+          return {
+            low: {
+              thinkingConfig: {
+                includeThoughts: true,
+                thinkingBudget: 2048,
+              },
+            },
+            medium: {
+              thinkingConfig: {
+                includeThoughts: true,
+                thinkingBudget: 8192,
+              },
+            },
+            high: {
+              thinkingConfig: {
+                includeThoughts: true,
+                thinkingBudget: 16000,
+              },
+            },
+            max: {
+              thinkingConfig: {
+                includeThoughts: true,
+                thinkingBudget: 24576,
+              },
+            },
+          }
+        }
+        // Gemini 3+ uses thinkingLevel. Nest under `thinkingConfig` — the
+        // @ai-sdk/google provider only reads providerOptions.google.thinkingConfig.*,
+        // so the previous top-level keys were dropped and the selected effort was
+        // silently ignored (every call defaulted to the high thinkingLevel from
+        // options()). options()/smallOptions() already nest correctly.
+        return Object.fromEntries(
+          WIDELY_SUPPORTED_EFFORTS.map((effort) => [
+            effort,
+            {
+              thinkingConfig: {
+                includeThoughts: true,
+                thinkingLevel: effort,
+              },
+            },
+          ]),
+        )
+
+      case "@ai-sdk/mistral":
+        // https://v5.ai-sdk.dev/providers/ai-sdk-providers/mistral
+        return {}
+
+      case "@ai-sdk/cohere":
+        // https://v5.ai-sdk.dev/providers/ai-sdk-providers/cohere
+        return {}
+
+      case "@ai-sdk/groq":
+        // https://v5.ai-sdk.dev/providers/ai-sdk-providers/groq
+        // Groq uses reasoningEffort + reasoningFormat — NOT the Google
+        // includeThoughts/thinkingLevel keys (which groq ignores/rejects).
+        const groqEffort = exact ?? ["none", ...WIDELY_SUPPORTED_EFFORTS]
+        return Object.fromEntries(
+          groqEffort.map((effort) => [
+            effort,
+            {
+              reasoningEffort: effort,
+              reasoningFormat: "parsed",
+            },
+          ]),
+        )
+
+      case "@ai-sdk/perplexity":
+        // https://v5.ai-sdk.dev/providers/ai-sdk-providers/perplexity
+        return {}
+    }
+    return {}
+  }
+
+  export function options(input: {
+    model: Provider.Model
+    sessionID: string
+    providerOptions?: Record<string, any>
+  }): Record<string, any> {
+    const result: Record<string, any> = {}
+
+    // openai and providers using openai package should set store to false by default.
+    if (
+      input.model.providerID === "openai" ||
+      input.model.api.npm === "@ai-sdk/openai" ||
+      input.model.api.npm === "@ai-sdk/github-copilot"
+    ) {
+      result["store"] = false
+    }
+
+    if (input.model.api.npm === "@openrouter/ai-sdk-provider") {
+      result["usage"] = {
+        include: true,
+      }
+      // OpenRouter streams reasoning through its unified `reasoning` /
+      // `reasoning_details` fields, but ONLY when reasoning is explicitly
+      // requested — without a `reasoning` object the upstream reasons silently
+      // and OR drops the trace, so every reasoning part lands empty. Request it
+      // by default for every reasoning-capable model (a selected effort variant
+      // overrides this via mergeDeep in llm.ts). This is the single normalized
+      // reasoning path that all managed wallet inference now flows through.
+      //
+      if (input.model.capabilities.reasoning) {
+        const id = input.model.api.id.toLowerCase()
+        // Grok 4.5's documented default is high and reasoning is mandatory.
+        // Preserve that default through OpenRouter instead of replacing it with
+        // the generic medium default used by other reasoning models.
+        const effort = id.includes("gemini-3") || /grok-4[.-]5\b/.test(id) ? "high" : "medium"
+        result["reasoning"] = { effort }
+      }
+    }
+
+    if (/muse-spark-1[.-]1\b/.test(input.model.api.id.toLowerCase())) {
+      // Meta selects the default depth when effort is omitted. Stateless
+      // Responses calls must return the encrypted item so tool loops can replay
+      // the model's reasoning state on the next turn.
+      result["include"] = ["reasoning.encrypted_content"]
+    }
+
+    if (input.model.providerID === "baseten") {
+      result["chat_template_args"] = { enable_thinking: true }
+    }
+
+    if (["zai", "zhipuai"].includes(input.model.providerID) && input.model.api.npm === "@ai-sdk/openai-compatible") {
+      result["thinking"] = {
+        type: "enabled",
+        clear_thinking: false,
+      }
+    }
+
+    if (
+      input.model.api.npm === "@ai-sdk/deepseek" &&
+      /deepseek-v[4-9]/.test(input.model.api.id.toLowerCase()) &&
+      !input.model.capabilities.reasoning
+    ) {
+      result["thinking"] = { type: "disabled" }
+    }
+
+    if (input.model.providerID === "openai" || input.providerOptions?.setCacheKey) {
+      result["promptCacheKey"] = input.sessionID
+    }
+
+    if (input.model.api.npm === "@ai-sdk/google" || input.model.api.npm === "@ai-sdk/google-vertex") {
+      result["thinkingConfig"] = {
+        includeThoughts: true,
+      }
+      if (input.model.api.id.includes("gemini-3")) {
+        result["thinkingConfig"]["thinkingLevel"] = "high"
+      }
+    }
+
+    // OpenRouter-routed gpt-5 (e.g. "openai/gpt-5") is handled by the unified
+    // OpenRouter reasoning branch above. The OpenAI-Responses-only keys below
+    // (reasoningEffort / reasoningSummary / include: reasoning.encrypted_content)
+    // are meaningless to OR's /chat/completions and were silently making managed
+    // gpt-5 reasoning stream blank — exclude the OR npm here.
+    if (
+      input.model.api.id.includes("gpt-5") &&
+      !input.model.api.id.includes("gpt-5-chat") &&
+      input.model.api.npm !== "@openrouter/ai-sdk-provider"
+    ) {
+      if (!input.model.api.id.includes("gpt-5-pro")) {
+        // Defaults differ by transport and exact model. Sol defaults to low in
+        // the live Codex OAuth catalog; the other Codex models default to
+        // medium. On the public API GPT-5.4 / 5.4-mini default to none, while
+        // GPT-5.5 and GPT-5.6 default to medium.
+        const apiID = input.model.api.id.toLowerCase()
+        result["reasoningEffort"] =
+          input.model.providerID === "openai-codex" && /^gpt-5[.-]6-sol$/.test(apiID)
+            ? "low"
+            : input.model.providerID === "openai" && /^gpt-5[.-]4(?:-mini)?$/.test(apiID)
+              ? "none"
+              : "medium"
+      }
+
+      if (
+        input.model.api.id.includes("gpt-5.") &&
+        !input.model.api.id.includes("codex") &&
+        input.model.providerID !== "azure"
+      ) {
+        result["textVerbosity"] = "low"
+      }
+
+      // Request summaries + encrypted content on every OpenAI-Responses path that
+      // can carry them: direct OpenAI API and ChatGPT/Codex. Managed inference
+      // uses OpenRouter's normalized reasoning path above. This mirrors the
+      // per-effort variant options above (the
+      // @ai-sdk/openai, azure, and github-copilot cases already ship these exact
+      // keys for openai models) — this block just applies the same defaults when no
+      // effort variant is selected, so the trace renders instead of streaming blank.
+      // On verification: reasoning.encrypted_content + summaries need an OpenAI-
+      // verified org, but that is the SAME gate OpenAI requires to *stream* gpt-5 at
+      // all. Any org that can stream the model can also receive these keys, so this
+      // adds no failure surface beyond the streaming requirement already in force.
+      if (input.model.providerID === "openai" || input.model.providerID === "openai-codex") {
+        result["promptCacheKey"] = input.sessionID
+        result["include"] = ["reasoning.encrypted_content"]
+        result["reasoningSummary"] = "auto"
+      }
+    }
+
+    if (input.model.providerID === "venice") {
+      result["promptCacheKey"] = input.sessionID
+    }
+
+    return result
+  }
+
+  export function tier(model: Provider.Model, tier?: string) {
+    const mode = tier ? model.modes?.[tier] : undefined
+    const body = mode?.provider?.body ?? {}
+    const options =
+      model.api?.npm === "@ai-sdk/openai"
+        ? {
+            ...Object.fromEntries(
+              Object.entries(body).filter(([key]) => key !== "service_tier" && key !== "reasoning"),
+            ),
+            ...(typeof body.service_tier === "string" ? { serviceTier: body.service_tier } : {}),
+            ...(typeof body.reasoning?.mode === "string" ? { reasoningMode: body.reasoning.mode } : {}),
+          }
+        : body
+    return {
+      model: mode?.model,
+      options,
+      headers: mode?.provider?.headers ?? {},
+    }
+  }
+
+  export function smallOptions(model: Provider.Model) {
+    const apiID = model.api.id.toLowerCase()
+    // Grok 4.5 cannot disable reasoning. Use its lowest valid effort for titles,
+    // summaries, and compaction instead of emitting an invalid/ignored off flag
+    // or falling back to the expensive high default.
+    if (/grok-4[.-]5\b/.test(apiID)) {
+      if (model.api.npm === "@openrouter/ai-sdk-provider" || model.providerID === "openrouter") {
+        return { reasoning: { effort: "low" } }
+      }
+      return { reasoningEffort: "low" }
+    }
+    // OpenRouter first: an OR-routed gpt-5 / gemini model must use OR's unified
+    // `reasoning` shape, not the OpenAI/Google keys the branches below emit. OR
+    // silently ignores `reasoningEffort`, so without this a small OR call (title
+    // / summary / compaction) would still reason and bill. Small = skip it.
+    if (model.api.npm === "@openrouter/ai-sdk-provider" || model.providerID === "openrouter") {
+      return { reasoning: { enabled: false } }
+    }
+    if (model.providerID === "openai" || apiID.includes("gpt-5")) {
+      if (apiID.includes("5.") || /gpt-5-\d+\b/.test(apiID)) {
+        return { reasoningEffort: "low" }
+      }
+      return { reasoningEffort: "minimal" }
+    }
+    if (/muse-spark-1[.-]1\b/.test(model.api.id.toLowerCase())) {
+      return { reasoningEffort: "minimal" }
+    }
+    if (model.providerID === "google") {
+      // gemini-3 uses thinkingLevel, gemini-2.5 uses thinkingBudget
+      if (model.api.id.includes("gemini-3")) {
+        return { thinkingConfig: { thinkingLevel: "low" } }
+      }
+      return { thinkingConfig: { thinkingBudget: 0 } }
+    }
+    if (model.api.npm === "@ai-sdk/deepseek" && /deepseek-v[4-9]/.test(apiID)) {
+      return { thinking: { type: "disabled" } }
+    }
+    return {}
+  }
+
+  export function providerOptions(model: Provider.Model, options: { [x: string]: any }) {
+    const key = sdkKey(model.api.npm) ?? model.providerID
+    return { [key]: options }
+  }
+
+  export function maxOutputTokens(
+    npm: string,
+    options: Record<string, any>,
+    modelLimit: number,
+    globalLimit: number,
+  ): number | undefined {
+    const modelCap = modelLimit || globalLimit
+    const standardLimit = Math.min(modelCap, globalLimit)
+
+    // The Vercel AI gateway rejects requests that set BOTH max_tokens and a
+    // reasoningEffort. When an effort is selected, omit the output cap entirely
+    // (return undefined) and let the gateway manage the budget.
+    if (npm === "@ai-sdk/gateway" && options?.["reasoningEffort"]) {
+      return undefined
+    }
+
+    if (npm === "@ai-sdk/anthropic" || npm === "@ai-sdk/google-vertex/anthropic") {
+      const thinking = options?.["thinking"]
+      const budgetTokens = typeof thinking?.["budgetTokens"] === "number" ? thinking["budgetTokens"] : 0
+      const enabled = thinking?.["type"] === "enabled"
+      if (enabled && budgetTokens > 0) {
+        // Return text tokens so that text + thinking <= model cap, preferring 32k text when possible.
+        if (budgetTokens + standardLimit <= modelCap) {
+          return standardLimit
+        }
+        return modelCap - budgetTokens
+      }
+    }
+
+    return standardLimit
+  }
+
+  export function schema(model: Provider.Model, schema: JSONSchema.BaseSchema) {
+    /*
+    if (["openai", "azure"].includes(providerID)) {
+      if (schema.type === "object" && schema.properties) {
+        for (const [key, value] of Object.entries(schema.properties)) {
+          if (schema.required?.includes(key)) continue
+          schema.properties[key] = {
+            anyOf: [
+              value as JSONSchema.JSONSchema,
+              {
+                type: "null",
+              },
+            ],
+          }
+        }
+      }
+    }
+    */
+
+    // Convert integer enums to string enums for Google/Gemini
+    if (model.providerID === "google" || model.api.id.includes("gemini")) {
+      const sanitizeGemini = (obj: any): any => {
+        if (obj === null || typeof obj !== "object") {
+          return obj
+        }
+
+        if (Array.isArray(obj)) {
+          return obj.map(sanitizeGemini)
+        }
+
+        const result: any = {}
+        for (const [key, value] of Object.entries(obj)) {
+          if (key === "enum" && Array.isArray(value)) {
+            // Convert all enum values to strings
+            result[key] = value.map((v) => String(v))
+            // If we have integer type with enum, change type to string
+            if (result.type === "integer" || result.type === "number") {
+              result.type = "string"
+            }
+          } else if (typeof value === "object" && value !== null) {
+            result[key] = sanitizeGemini(value)
+          } else {
+            result[key] = value
+          }
+        }
+
+        // Filter required array to only include fields that exist in properties
+        if (result.type === "object" && result.properties && Array.isArray(result.required)) {
+          result.required = result.required.filter((field: any) => field in result.properties)
+        }
+
+        if (result.type === "array" && result.items == null) {
+          result.items = {}
+        }
+
+        return result
+      }
+
+      schema = sanitizeGemini(schema)
+    }
+
+    if (model.api.npm === "@ai-sdk/deepseek") {
+      schema = normalizeDeepSeekToolSchema(schema)
+    }
+
+    return schema
+  }
+
+  export function error(providerID: string, error: APICallError) {
+    let message = error.message
+    const body = error.responseBody?.toLowerCase() ?? ""
+    if (
+      providerID === "openrouter" &&
+      error.statusCode === 403 &&
+      body.includes("this model is only available in the united states") &&
+      body.includes('"provider_name":"meta"')
+    ) {
+      return "Muse Spark 1.1 is currently restricted by Meta to requests routed from the United States. Choose another model, or retry from a supported U.S. region."
+    }
+    if (providerID.includes("github-copilot") && error.statusCode === 403) {
+      return "Please reauthenticate with the copilot provider to ensure your credentials work properly with OpenScience."
+    }
+    if (providerID.includes("github-copilot") && message.includes("The requested model is not supported")) {
+      return (
+        message +
+        "\n\nMake sure the model is enabled in your copilot settings: https://github.com/settings/copilot/features"
+      )
+    }
+
+    return message
+  }
+}

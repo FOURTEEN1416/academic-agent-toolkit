@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1006 852">
+<rect width="1006" height="852" fill="#f7fafc"/>
+<text x="28" y="36" font-family="Segoe UI, Arial" font-size="20" font-weight="700" fill="#1f2937">Original Paper-Derived Motifs 1</text>
+<text x="28" y="58" font-family="Segoe UI, Arial" font-size="12" fill="#697586">Each cell intentionally leaves whitespace for image-gen style exploration and downstream cutting.</text>
+<g>
+  <rect x="38" y="82" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.pipeline.modular.paper_derived_outline.v1.svg" x="84" y="98" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="123" y="197" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">modular pipeline</text>
+</g>
+<g>
+  <rect x="228" y="82" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.pipeline.branch.merge.paper_derived_outline.v1.svg" x="274" y="98" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="313" y="197" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">branch and merge flow</text>
+</g>
+<g>
+  <rect x="418" y="82" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.pipeline.feedback.loop.paper_derived_outline.v1.svg" x="464" y="98" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="503" y="197" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">feedback loop</text>
+</g>
+<g>
+  <rect x="608" y="82" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.pipeline.central.orchestrator.paper_derived_outline.v1.svg" x="654" y="98" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="693" y="197" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">central orchestrator</text>
+</g>
+<g>
+  <rect x="798" y="82" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.pipeline.train.infer.split.paper_derived_outline.v1.svg" x="844" y="98" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="883" y="197" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">train/inference split</text>
+</g>
+<g>
+  <rect x="38" y="232" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.pipeline.swimlane.paper_derived_outline.v1.svg" x="84" y="248" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="123" y="347" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">swimlane workflow</text>
+</g>
+<g>
+  <rect x="228" y="232" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.pipeline.hierarchy.paper_derived_outline.v1.svg" x="274" y="248" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="313" y="347" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">hierarchical stack</text>
+</g>
+<g>
+  <rect x="418" y="232" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.pipeline.zoom.callout.paper_derived_outline.v1.svg" x="464" y="248" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="503" y="347" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">zoom callout</text>
+</g>
+<g>
+  <rect x="608" y="232" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.dual.tower.paper_derived_outline.v1.svg" x="654" y="248" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="693" y="347" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">dual tower architecture</text>
+</g>
+<g>
+  <rect x="798" y="232" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.encoder.decoder.paper_derived_outline.v1.svg" x="844" y="248" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="883" y="347" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">encoder-decoder architecture</text>
+</g>
+<g>
+  <rect x="38" y="382" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.transformer.block.paper_derived_outline.v1.svg" x="84" y="398" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="123" y="497" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">transformer block</text>
+</g>
+<g>
+  <rect x="228" y="382" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.attention.map.paper_derived_outline.v1.svg" x="274" y="398" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="313" y="497" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">attention wiring</text>
+</g>
+<g>
+  <rect x="418" y="382" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.kv.cache.paper_derived_outline.v1.svg" x="464" y="398" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="503" y="497" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">KV cache memory</text>
+</g>
+<g>
+  <rect x="608" y="382" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.moe.router.paper_derived_outline.v1.svg" x="654" y="398" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="693" y="497" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">mixture-of-experts router</text>
+</g>
+<g>
+  <rect x="798" y="382" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.adapter.peft.paper_derived_outline.v1.svg" x="844" y="398" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="883" y="497" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">adapter/PEFT block</text>
+</g>
+<g>
+  <rect x="38" y="532" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.mamba.scan.paper_derived_outline.v1.svg" x="84" y="548" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="123" y="647" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">selective scan block</text>
+</g>
+<g>
+  <rect x="228" y="532" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.diffusion.chain.paper_derived_outline.v1.svg" x="274" y="548" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="313" y="647" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">diffusion denoise chain</text>
+</g>
+<g>
+  <rect x="418" y="532" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.server.client.round.paper_derived_outline.v1.svg" x="464" y="548" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="503" y="647" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">server-client round</text>
+</g>
+<g>
+  <rect x="608" y="532" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.rag.flow.paper_derived_outline.v1.svg" x="654" y="548" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="693" y="647" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">RAG retrieval flow</text>
+</g>
+<g>
+  <rect x="798" y="532" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.agent.loop.paper_derived_outline.v1.svg" x="844" y="548" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="883" y="647" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">agent loop</text>
+</g>
+<g>
+  <rect x="38" y="682" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.multi.agent.paper_derived_outline.v1.svg" x="84" y="698" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="123" y="797" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">multi-agent collaboration</text>
+</g>
+<g>
+  <rect x="228" y="682" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.human.ai.loop.paper_derived_outline.v1.svg" x="274" y="698" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="313" y="797" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">human-AI feedback loop</text>
+</g>
+<g>
+  <rect x="418" y="682" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.vlm.fusion.paper_derived_outline.v1.svg" x="464" y="698" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="503" y="797" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">VLM multimodal fusion</text>
+</g>
+<g>
+  <rect x="608" y="682" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.vla.robot.action.paper_derived_outline.v1.svg" x="654" y="698" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="693" y="797" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">VLA robot action path</text>
+</g>
+<g>
+  <rect x="798" y="682" width="170" height="134" rx="12" fill="#fff" stroke="#d9e2ec"/>
+  <image href="../../icons/tight/paper.derived.architecture.graph.network.paper_derived_outline.v1.svg" x="844" y="698" width="78" height="78" preserveAspectRatio="xMidYMid meet"/>
+  <text x="883" y="797" text-anchor="middle" font-family="Segoe UI, Arial" font-size="10" fill="#52606d">graph network</text>
+</g>
+</svg>

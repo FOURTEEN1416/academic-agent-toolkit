@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-08",
+  "expected_tracked_output_count": 0,
+  "allowlisted_sets": [],
+  "disallowed_generated_output_roots": [
+    "outputs/runtime/",
+    "outputs/telemetry/",
+    "outputs/learn/",
+    "outputs/governance/",
+    "outputs/dashboard/",
+    "outputs/release/",
+    "outputs/upstream-audit/",
+    "outputs/backups/",
+    "outputs/tmp/"
+  ],
+  "enforcement": {
+    "allow_only_listed_tracked_outputs": true,
+    "check_expected_count": true,
+    "document_migration_target": true,
+    "strict_requires_zero_tracked_outputs": true
+  },
+  "migration_stage": "stage2_mirrored",
+  "fixture_roots": [
+    "references/fixtures/external-corpus/",
+    "references/fixtures/retro-compare/",
+    "references/fixtures/verify/routing-stability/",
+    "references/fixtures/runtime/",
+    "references/fixtures/skills-audit/"
+  ]
+}

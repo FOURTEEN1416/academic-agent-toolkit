@@ -1,0 +1,95 @@
+# ============================================================================
+# T16 — Comparing stochastic and adversarial bandit algorithms under drift
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML16
+title: "Bandit algorithm robustness under stationary and drifting reward regimes"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Multi-armed bandit algorithms encode different assumptions about reward
+  generation and non-stationarity. Epsilon-greedy is simple and adaptable with
+  persistent exploration; UCB1 is optimism-driven and often strong in
+  stationary stochastic settings; Thompson sampling can be highly sample
+  efficient when model assumptions are matched; Exp3 is designed for
+  adversarial settings and may trade off stochastic efficiency for robustness.
+  In small CPU-constrained studies, these differences are often discussed
+  qualitatively but not tested with matched synthetic environments.
+
+  A meaningful benchmark should evaluate both Bernoulli and Gaussian reward
+  arms, because posterior/model assumptions and noise scale can materially
+  change outcomes. It should also include stationary and drifting regimes:
+  methods tuned for fixed means can degrade when the best arm changes over
+  time. Regret, not just final reward, is the right primary metric because it
+  captures online learning efficiency throughout the horizon.
+
+  A credible experiment here implements the four algorithms with consistent
+  action/reward interfaces, runs repeated simulations over multiple seeds, and
+  reports cumulative regret trajectories and endpoint statistics. To keep the
+  study CPU-friendly, horizons and arm counts should be modest (e.g., 5-10 arms,
+  500-2000 steps), with vectorized numpy updates where possible.
+
+  The key analytical value is comparative: identify where UCB1/Thompson excel
+  in stationary stochastic settings, and whether epsilon-greedy or Exp3 is more
+  resilient under drift. The objective is not reproducing a single paper, but
+  testing algorithm-environment fit under controlled synthetic shifts.
+
+  *How do epsilon-greedy, UCB1, Thompson sampling, and Exp3 trade off cumulative regret across Bernoulli vs Gaussian arms and stationary vs drifting reward regimes?*
+
+hypotheses:
+  - id: H1
+    statement: "In stationary Bernoulli environments, either UCB1 or Thompson sampling achieves at least 10% lower mean cumulative regret than epsilon-greedy at horizon T on at least 2 of 3 datasets (averaged over >=20 seeds)."
+    measurable: true
+  - id: H2
+    statement: "In drifting environments, epsilon-greedy or Exp3 achieves lower mean cumulative regret than UCB1 on at least 2 of 3 datasets at horizon T (averaged over >=20 seeds)."
+    measurable: true
+  - id: H3
+    statement: "Across all evaluated datasets, no single algorithm is best (lowest mean cumulative regret) on every dataset, indicating environment-dependent performance."
+    measurable: true
+
+experiment_design:
+  research_question: "How do epsilon-greedy, UCB1, Thompson sampling, and Exp3 compare in cumulative regret across stationary versus drifting synthetic bandit tasks with Bernoulli and Gaussian rewards?"
+  conditions:
+    - name: "epsilon_greedy_eps0.1"
+      description: "Epsilon-greedy with constant epsilon=0.1 and sample-mean value estimates."
+    - name: "ucb1"
+      description: "UCB1 with exploration bonus sqrt(2 log t / n_a)."
+    - name: "thompson_sampling"
+      description: "Thompson sampling using Beta-Bernoulli updates for Bernoulli arms and Gaussian posterior sampling (known variance assumption) for Gaussian arms."
+    - name: "exp3_gamma0.07"
+      description: "Exp3 with gamma=0.07 and importance-weighted reward estimates."
+  baselines:
+    - "epsilon_greedy_eps0.1 as simple stochastic baseline"
+    - "ucb1 as canonical optimism baseline"
+  metrics:
+    - name: "cumulative_regret"
+      direction: "minimize"
+      description: "Mean cumulative regret at final horizon T relative to oracle best arm per round, averaged over seeds."
+    - name: "instantaneous_regret_auc"
+      direction: "minimize"
+      description: "Area under per-round regret curve over time (lower is better)."
+    - name: "best_arm_selection_rate"
+      direction: "maximize"
+      description: "Fraction of rounds selecting the current optimal arm (for drift: time-varying optimum)."
+  datasets:
+    - name: "bernoulli_stationary_k10"
+      source: "synthetic: 10 Bernoulli arms with fixed means sampled in [0.05, 0.95] and sorted gap >=0.05"
+    - name: "bernoulli_drift_k10"
+      source: "synthetic: 10 Bernoulli arms with piecewise-constant means; best arm switches at predefined changepoints"
+    - name: "gaussian_drift_k8"
+      source: "synthetic: 8 Gaussian arms (sigma=1) with linearly drifting means and periodic rank reversals"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 420
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML16.json"

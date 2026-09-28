@@ -1,0 +1,111 @@
+# ============================================================================
+# Q02 — Entangling-gate ablation in a variational quantum classifier
+# ----------------------------------------------------------------------------
+# Open research question. Holding encoding (angle), ansatz template
+# (EfficientSU2 reps=2), optimizer (COBYLA), and datasets fixed, ablate CNOTs
+# from the ansatz (full / half / none) and compare against a parameter-matched
+# classical MLP baseline. Same datasets as Q01 so results can be cross-read.
+# ============================================================================
+
+id: Q02
+title: "Entangling-gate ablation in a variational quantum classifier"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+synthesis: |
+  Quantum machine learning models routinely use parameterized circuits
+  that mix single-qubit rotations with entangling two-qubit gates,
+  typically CNOTs. The common narrative is that entanglement is the
+  source of quantum advantage. If a variational classifier with no
+  entangling gates whatsoever can match the accuracy of one with full
+  entanglement, that narrative breaks down for this task class. The
+  purpose of this study is to measure the actual contribution of
+  entanglement in a simple variational quantum classifier by cleanly
+  removing CNOTs in a controlled monotonic manner.
+
+  The design isolates entanglement to one source. The data encoding is
+  fixed to angle encoding (single-qubit rotations only, no entangling
+  gates). The variational ansatz template is EfficientSU2 with reps=3,
+  which by default places a linear chain of CNOTs between each rotation
+  block (5 CNOTs per entangling layer, 3 layers, 15 CNOTs total for
+  6 qubits). We ablate by replacing some or all of those CNOTs with
+  identity, while keeping every single-qubit rotation parameter intact.
+  This isolates the gain attributable to two-qubit entangling structure
+  from the gain attributable to the trainable single-qubit basis change.
+  half_entanglement uses an independent random Bernoulli(0.5) mask over
+  the 15 CNOT positions per cell, seeded deterministically so the
+  ablation is reproducible but not aligned with any fixed pattern.
+
+  A parameter-matched classical baseline (sklearn MLPClassifier with a
+  hidden layer sized so its total parameter count is within 10 percent
+  of the VQC parameter count) tells us whether either quantum condition
+  is competitive with a trivial classical alternative on the same data.
+  If the no-entanglement VQC underperforms the classical MLP, the
+  conclusion is that on these tasks, entangling layers are not just
+  helpful but necessary for the variational quantum model to be a
+  viable choice at all.
+
+  Datasets are deliberately shared with Q01 (encoding comparison) so
+  results can be read across both studies. If the cross-topic story
+  holds, the encoding family that benefits most from ansatz CNOTs in
+  Q02 should also be the family that performed worst in Q01 (because
+  the ansatz CNOTs are compensating for the encoding's lack of input
+  entanglement). The current manifest does not require that
+  cross-comparison, but the writeup is encouraged to discuss it.
+
+  Research question: *In a variational quantum classifier on low
+  dimensional binary classification, how much of the model's accuracy
+  is actually due to ansatz entangling gates, and does the accuracy
+  degrade monotonically as CNOTs are removed?*
+
+hypotheses:
+  - id: H1
+    statement: "full_entanglement achieves mean test_accuracy (averaged over 5 seeds) at least 5 absolute percentage points higher than no_entanglement on at least 2 of 3 datasets."
+    measurable: true
+  - id: H2
+    statement: "half_entanglement mean test_accuracy lies strictly between full_entanglement and no_entanglement (within seed-mean noise of 1 absolute percentage point) on at least 2 of 3 datasets, demonstrating that the contribution of entangling layers is approximately monotonic in CNOT count."
+    measurable: true
+  - id: H3
+    statement: "On at least 1 of 3 datasets, classical_baseline (parameter-matched MLPClassifier) achieves test_accuracy at least as high as no_entanglement (5-seed mean). This sanity check rules out a trivial-task explanation: if removing all entanglement leaves the VQC weaker than a tiny classical net, then 'no entanglement' is not a viable QML setting on these tasks."
+    measurable: true
+
+experiment_design:
+  research_question: "In a variational quantum classifier on low dimensional binary classification, how much of the model's accuracy is actually due to ansatz entangling gates, and does the accuracy degrade monotonically as CNOTs are removed?"
+  conditions:
+    - name: "full_entanglement"
+      description: "Feature map: ZFeatureMap(feature_dimension=6, reps=1). Ansatz: EfficientSU2(num_qubits=6, reps=3, entanglement='linear'). All 15 CNOTs from the 3 entangling layers are kept. This is the baseline VQC."
+    - name: "half_entanglement"
+      description: "Same feature_map and ansatz template as full_entanglement, but each of the 15 CNOTs is independently dropped according to a random Bernoulli(0.5) mask. The mask is generated per cell using a derived random state: np.random.RandomState(seed + 10000).binomial(1, 0.5, size=15), where seed is the per-cell run seed. Dropped CNOTs are replaced with identity. Each cell records its realized cnot_count (expected ~7.5, variance per draw). Trainable parameters unchanged."
+    - name: "no_entanglement"
+      description: "Same feature_map and rotation blocks as full_entanglement, but EVERY entangling gate is replaced with identity. The circuit reduces to a tensor product of independent single-qubit gates. CNOT count is 0. Trainable parameters unchanged."
+    - name: "classical_baseline"
+      description: "sklearn.neural_network.MLPClassifier with hidden_layer_sizes chosen so the total trainable parameter count is within 10 percent of the VQC (EfficientSU2 reps=3 on 6 qubits has 48 rotation parameters; an MLP with one hidden layer of size 6 has 6*6 + 6 + 6*1 + 1 = 49 params). Use hidden_layer_sizes=(6,), activation='relu', max_iter=500, solver='lbfgs', random_state matched to the corresponding seed."
+  baselines:
+    - "no_entanglement is the within-quantum ablation baseline"
+    - "classical_baseline is the cross-paradigm sanity baseline"
+  metrics:
+    - name: "test_accuracy"
+      direction: "maximize"
+      description: "Mean over 5 seeds of held-out 20% test split accuracy."
+    - name: "convergence_iterations"
+      direction: "minimize"
+      description: "Number of COBYLA iterations (or MLP solver iterations for classical_baseline) until training loss change drops below 1e-4 across 5 consecutive evaluations."
+    - name: "cnot_count"
+      direction: "minimize"
+      description: "Number of CNOT gates remaining in the variational circuit (feature map + ansatz) after ablation. Informational metric. Expected: full=15, half=mean over draws (~7.5), no=0, classical_baseline=0."
+  datasets:
+    - name: "synthetic_classification_6d"
+      source: "sklearn.datasets.make_classification"
+      description: "make_classification(n_samples=200, n_features=6, n_informative=4, n_redundant=1, n_repeated=0, n_clusters_per_class=2, class_sep=1.0, flip_y=0.05, random_state=seed). Binary classification, native 6D. Apply StandardScaler. 80/20 train/test split. Same configuration as Q01."
+    - name: "wine_binary_pca6"
+      source: "sklearn.datasets.load_wine + sklearn.decomposition.PCA"
+      description: "load_wine (178 samples, 13 features, 3 classes). Select classes 0 and 1 only (binary subset, ~130 samples). Apply StandardScaler then PCA(n_components=6). 80/20 train/test split. Same configuration as Q01."
+    - name: "breast_cancer_pca6"
+      source: "sklearn.datasets.load_breast_cancer + sklearn.decomposition.PCA"
+      description: "load_breast_cancer (569 samples, 30 features). Apply StandardScaler then PCA(n_components=6). 80/20 train/test split. Same configuration as Q01."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1200
+
+rubric_path: "experiments/arc_bench/config/quantum/rubrics/Q02.json"

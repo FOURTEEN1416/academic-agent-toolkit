@@ -1,0 +1,81 @@
+# Sample custom domain profile.
+#
+# Copy to ONE of these locations (first hit wins):
+#   ./profiles/<your_id>.yaml                    — project-local
+#   ~/.researchclaw/profiles/<your_id>.yaml      — user-wide
+#   researchclaw/domains/profiles/<your_id>.yaml — installed package
+#
+# Environment override: set RESEARCHCLAW_PROFILES_DIR to point to any dir.
+#
+# Then deploy via:
+#   researchclaw run --profile <your_id>
+# or add in config.yaml:
+#   project:
+#     profile: <your_id>
+
+domain_id: my_domain                     # must match filename stem
+display_name: My Custom Research Domain
+parent_domain: ""                        # e.g. "ml", "physics", "biology"
+
+# --- Deployment defaults --------------------------------------------------
+# Only used when this profile is deployed; user's config.yaml always wins.
+preferred_experiment_mode: docker            # simulated | docker | ssh_remote | agentic | collider_agent
+preferred_project_mode: full-auto            # docs-first | semi-auto | full-auto
+preferred_target_conference: neurips_2025    # conference template id
+default_time_budget_sec: 1800
+default_max_iterations: 5
+default_metric_key: primary_metric
+default_metric_direction: maximize           # minimize | maximize
+docker_image: researchclaw/sandbox-generic:latest
+gpu_required: false
+pip_packages:                                # pre-installed in docker sandbox
+  - numpy
+  - scipy
+  - matplotlib
+
+# --- Domain characterization (used by adapters + prompts) -----------------
+experiment_paradigm: comparison
+condition_terminology:
+  baseline: baseline
+  proposed: proposed method
+  variant: ablation
+  input: dataset
+  metric: primary metric
+
+typical_file_structure:
+  config.py: "Experiment configuration"
+  data.py: "Data loading"
+  methods.py: "Method implementations"
+  main.py: "Entry point: setup → run → evaluate → report"
+
+entry_point: main.py
+core_libraries:
+  - numpy
+  - scipy
+
+metric_types:
+  - scalar
+
+standard_baselines: []
+
+evaluation_protocol: "Describe how conditions are compared."
+
+paper_keywords:
+  - my domain keyword
+  - another keyword
+
+# --- Prompt guidance blocks (appended to stages 7–14 when detected) -------
+compute_budget_guidance: |
+  Briefly describe typical compute budgets for experiments in this domain.
+
+dataset_guidance: |
+  Describe canonical datasets and how to load them.
+
+hp_reporting_guidance: |
+  Describe how hyperparameters should be reported.
+
+code_generation_hints: |
+  Domain-specific coding guidelines and anti-patterns.
+
+result_analysis_hints: |
+  Guidance for interpreting and presenting results.

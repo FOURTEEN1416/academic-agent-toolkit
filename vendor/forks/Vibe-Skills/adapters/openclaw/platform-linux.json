@@ -1,0 +1,35 @@
+{
+  "adapter_id": "openclaw",
+  "platform": "linux",
+  "status": "preview",
+  "install_surface": [
+    "install.sh",
+    "scripts/bootstrap/one-shot-setup.sh"
+  ],
+  "check_surface": [
+    "check.sh"
+  ],
+  "doctor_surface": [
+    "check.sh",
+    "scripts/verify/runtime_neutral/coherence_gate.py",
+    "scripts/verify/runtime_neutral/freshness_gate.py"
+  ],
+  "degrade_cases": {
+    "runtime_core_only_install": "degraded-but-supported",
+    "workspace_projection_not_requested": "degraded-but-supported",
+    "host_login_state_missing": "host-managed"
+  },
+  "promotion_target": "supported-with-constraints",
+  "proof_bundle": {
+    "current_evidence_state": "adapter-skeleton-implemented"
+  },
+  "promotion_requirements": [
+    "fresh-machine install proof",
+    "shell install and check proof",
+    "workspace projection proof before broader promotion"
+  ],
+  "notes": [
+    "Linux lane currently covers OpenClaw host-root runtime-core installation.",
+    "Workspace projection remains a later wave."
+  ]
+}

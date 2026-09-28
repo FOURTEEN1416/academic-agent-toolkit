@@ -1,0 +1,37 @@
+{
+  "adapter_id": "claude-code",
+  "platform": "macos",
+  "status": "not-yet-proven",
+  "install_surface": [
+    "install.sh --host claude-code",
+    "scripts/bootstrap/one-shot-setup.sh"
+  ],
+  "check_surface": [
+    "check.sh --host claude-code"
+  ],
+  "doctor_surface": [
+    "check.sh",
+    "scripts/verify/vibe-host-adapter-contract-gate.ps1"
+  ],
+  "degrade_cases": {
+    "unverified_platform_lane": "not-yet-proven",
+    "fresh_machine_replay_missing": "not-yet-proven",
+    "host_plugin_or_mcp_state_missing": "host-managed"
+  },
+  "promotion_target": "supported-with-constraints",
+  "proof_bundle": {
+    "manifest": "references/proof-bundles/claude-code-managed-closure-candidate/manifest.json",
+    "current_evidence_state": "no-macos-fresh-machine-proof",
+    "decision": "blocked"
+  },
+  "promotion_requirements": [
+    "fresh-machine macOS install proof",
+    "fresh-machine macOS check proof",
+    "real Claude CLI smoke proof on macOS",
+    "frozen promotion decision synced into replay truth"
+  ],
+  "notes": [
+    "macOS now has a bounded Claude managed-closure contract, but no frozen macOS proof lane exists yet.",
+    "Do not promote macOS Claude Code above not-yet-proven until fresh-machine replay and host-native smoke evidence are frozen."
+  ]
+}

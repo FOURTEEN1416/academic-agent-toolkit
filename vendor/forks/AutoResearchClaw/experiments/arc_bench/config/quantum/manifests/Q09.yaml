@@ -1,0 +1,115 @@
+# ============================================================================
+# Q09 — Noise-aware variational quantum classifier training
+# ----------------------------------------------------------------------------
+# Open research question. Three noise-aware training strategies for a VQC
+# on a synthetic 4D classification task: train under ideal statevector,
+# train under simulated depolarizing noise at low rate (p=0.001), train at
+# mid rate (p=0.005), train at high rate (p=0.01). Evaluate each on
+# ideal test data AND noisy test data, characterizing the
+# robustness-vs-accuracy tradeoff and detecting negative transfer.
+# ============================================================================
+
+id: Q09
+title: "Noise-aware variational quantum classifier training"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+synthesis: |
+  Real quantum hardware exhibits gate errors, readout errors, and
+  decoherence at rates that vary across devices. A VQC trained on a
+  noiseless statevector simulator may converge to parameters that work
+  on the ideal training distribution but degrade sharply when deployed
+  on a noisy device. The noise-aware training strategy is to inject
+  simulated noise during training (e.g. a depolarizing channel after
+  each two-qubit gate) so the optimizer can find parameters that are
+  robust to that noise model. The closest classical analog is
+  adversarial training or training-time data augmentation.
+
+  Two open empirical questions follow. First, does noise-aware training
+  produce strictly more robust models on noisy test data than ideal
+  training, and at what training noise rate is the robustness gain
+  worth the loss of clean-test accuracy? Second, does training at high
+  noise (p=0.01) cause negative transfer to clean test data — i.e.
+  does the model overfit to the noise statistics and underperform an
+  ideal-trained model on noise-free evaluation? Wang et al. (NeurIPS
+  2022 "QuantumNAS: Noise-Adaptive Search for Robust Quantum
+  Circuits") and Sharma et al. (PRX Quantum 2022 "Trainability of
+  dissipative perceptron-based quantum neural networks") explored
+  these tradeoffs at small scale, leaving the precise sweet-spot
+  noise rate as a benchmark question.
+
+  Implementation guidance is provided by the quantum-qiskit skill at
+  stage 10. Use qiskit_aer.AerSimulator with a custom NoiseModel that
+  applies a single-qubit and two-qubit depolarizing channel after each
+  parameterized gate. The training uses
+  qiskit_machine_learning.algorithms.VQC with a custom
+  qiskit.primitives.BackendSamplerV2 bound to the noisy AerSimulator
+  for noisy-train conditions, and the noiseless reference
+  qiskit.primitives.StatevectorSampler for the ideal-train condition.
+  Evaluation always runs on both an ideal statevector test set and a
+  noisy test set at p=0.01 (the "deployment noise rate") so each cell
+  produces two test_accuracy values: clean and noisy. The primary
+  metric is the average across both.
+
+  Experimental protocol. Four quantum training conditions vary the
+  training noise rate: ideal (p=0), low noise (p=0.001), mid noise
+  (p=0.005), high noise (p=0.01). Two baselines complete the bench
+  gate: a no-training control (random initialization, no fit) and
+  logistic regression on the same 4D features. All six conditions
+  are evaluated on a single synthetic binary classification dataset
+  (make_classification with class_sep=0.5, 200 samples, 4 features),
+  averaged over 3 seeds. Total: 6 conditions x 1 dataset x 3 seeds
+  = 18 cells.
+
+  Research question: *On a synthetic 4D binary classification task,
+  does noise-aware VQC training at a moderate training noise rate
+  (p=0.005) produce a model that is more robust to test-time
+  depolarizing noise (p=0.01) than an ideal-trained VQC, and does
+  high training noise (p=0.01) cause negative transfer to clean
+  test data?*
+
+hypotheses:
+  - id: H1
+    statement: "On the noisy test set at p=0.01, the noisy-trained-mid VQC (training noise p=0.005) achieves test accuracy at least 5 absolute percentage points higher than the ideal-trained VQC (3-seed mean), demonstrating that moderate noise-aware training improves test-time noise robustness."
+    measurable: true
+  - id: H2
+    statement: "On the ideal test set (noiseless), the ideal-trained VQC outperforms every noisy-trained variant by at least 2 absolute percentage points (3-seed mean), reflecting the no-free-lunch tradeoff that noise-aware training sacrifices some clean-test accuracy."
+    measurable: true
+  - id: H3
+    statement: "The high-noise-trained VQC (training noise p=0.01) performs worse than the mid-noise-trained VQC on BOTH clean and noisy test sets (3-seed mean), indicating that p=0.01 is past the sweet spot and the optimizer is overfitting to noise statistics — negative transfer."
+    measurable: true
+
+experiment_design:
+  research_question: "Does noise-aware VQC training at a moderate training noise rate (p=0.005) produce a model more robust to test-time depolarizing noise than ideal training, and does high training noise cause negative transfer on clean test data?"
+  conditions:
+    - name: "train_ideal"
+      description: "VQC trained on noiseless qiskit.primitives.StatevectorSampler. EfficientSU2(num_qubits=4, reps=2, entanglement='linear') ansatz + ZFeatureMap feature map. qiskit_machine_learning.VQC(optimizer=COBYLA(maxiter=200), sampler=StatevectorSampler()). After training, evaluate on BOTH ideal test (StatevectorSampler) and noisy test (depolarizing p=0.01 NoiseModel)."
+    - name: "train_noisy_low"
+      description: "Same ansatz + feature map. VQC trained on a noisy AerSimulator with depolarizing channel p=0.001 applied after every single-qubit and two-qubit gate. Same COBYLA maxiter=200. Evaluate on both ideal and noisy test sets."
+    - name: "train_noisy_mid"
+      description: "Same as train_noisy_low but training noise rate p=0.005."
+    - name: "train_noisy_high"
+      description: "Same as train_noisy_low but training noise rate p=0.01 (matches the test-noise rate)."
+  baselines:
+    - "no_training_control: Same ansatz but parameters randomly initialized and never trained. Evaluate predict() directly on both test sets. Establishes the untrained floor."
+    - "logistic_regression: sklearn.linear_model.LogisticRegression(max_iter=1000, random_state=seed) on the same 4 features. Classical baseline."
+  metrics:
+    - name: "test_accuracy"
+      direction: "maximize"
+      description: "Average of test_accuracy_ideal and test_accuracy_noisy_p01, 3-seed mean. Primary metric for the bench."
+    - name: "test_accuracy_ideal"
+      direction: "maximize"
+      description: "Test accuracy on the noiseless test set (StatevectorSampler evaluation), 3-seed mean."
+    - name: "test_accuracy_noisy_p01"
+      direction: "maximize"
+      description: "Test accuracy on the noisy test set at depolarizing rate p=0.01 (AerSimulator with NoiseModel), 3-seed mean. The 'deployment-noise' robustness metric."
+  datasets:
+    - name: "synthetic_classification_4d_sep05"
+      source: "sklearn.datasets.make_classification"
+      description: "make_classification(n_samples=200, n_features=4, n_informative=3, n_redundant=0, n_clusters_per_class=1, class_sep=0.5, flip_y=0.05, random_state=seed). Moderately difficult binary classification, native 4D. StandardScaler fit on train only. 80/20 split."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1500
+
+rubric_path: "experiments/arc_bench/config/quantum/rubrics/Q09.json"

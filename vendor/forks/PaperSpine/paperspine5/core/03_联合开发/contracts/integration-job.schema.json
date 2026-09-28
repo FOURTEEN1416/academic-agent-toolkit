@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/integration-job.schema.json",
+  "title": "PaperSpine × PaperFigure integration job",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "job_id", "project_root", "paper", "figure"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "job_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "host": {"enum": ["codex", "claude-code", "dsh", "standalone-skill"]},
+    "project_root": {"type": "string", "minLength": 1},
+    "paper": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir"],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "progress_script": {"type": "string", "minLength": 1},
+        "figure_requests": {"type": "string", "minLength": 1},
+        "required_artifacts": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+      }
+    },
+    "figure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["job_dir"],
+      "properties": {
+        "job_dir": {"type": "string", "minLength": 1},
+        "figmirror_cli": {"type": "string", "minLength": 1},
+        "candidate_count": {"enum": [2, 3]},
+        "review_mode": {"enum": ["auto", "manual"]},
+        "review_points": {"enum": ["final_only", "blueprint_and_final"]},
+        "preferred_format": {"enum": ["pdf", "svg", "png"]},
+        "fallback_formats": {"type": "array", "items": {"enum": ["pdf", "svg", "png"]}, "uniqueItems": true},
+        "quality_profile": {"enum": ["prototype", "publication"]},
+        "require_candidate_lineage": {"type": "boolean"},
+        "auto_accept": {"type": "object"}
+      }
+    },
+    "assembly": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "final_paper_dir": {"type": "string", "minLength": 1},
+        "main_tex": {"type": "string", "minLength": 1},
+        "inject_tex_markers": {"type": "boolean"},
+        "require_tex_markers": {"type": "boolean"}
+      }
+    },
+    "publication": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "script": {"type": "string", "minLength": 1},
+        "invocation_dir": {"type": "string", "minLength": 1},
+        "enabled": {"type": "boolean"}
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {"allow_auto_selection": {"type": "boolean"}}
+    }
+  }
+}

@@ -1,0 +1,95 @@
+# ============================================================================
+# T19 — Semi-supervised strategies on small tabular datasets
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML19
+title: "Comparing graph- and pseudo-label-based semi-supervised learning on small tabular datasets"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Semi-supervised learning is attractive when labels are scarce but unlabeled
+  examples are cheap. In sklearn, LabelPropagation and LabelSpreading provide
+  graph-based transductive approaches, while SelfTrainingClassifier offers a
+  pseudo-labeling wrapper around a standard supervised base learner. These
+  methods rely on different assumptions: graph smoothness over neighborhoods
+  versus confidence-thresholded iterative self-labeling. On small tabular
+  datasets, their relative behavior can change quickly as the labeled fraction
+  drops from moderate (20%) to very low (10%).
+
+  A useful CPU-scale study should compare these methods under the same splits,
+  feature preprocessing, and random seeds, with explicit control of labeled
+  fraction. Because the key claim of semi-supervision is label efficiency, the
+  experiment should include a supervised-only baseline trained on the same
+  labeled subset and evaluated on a fixed held-out test set. This makes gains
+  attributable to unlabeled-data usage rather than favorable splits.
+
+  The study should report not only test accuracy but also balanced accuracy and
+  macro-F1, since small tabular datasets can have class imbalance and accuracy
+  alone may hide minority-class degradation. Repeating runs across several seeds
+  is necessary because which points are labeled strongly affects outcomes at low
+  label rates.
+
+  Practically, the benchmark should stay lightweight: sklearn datasets only,
+  no downloads, and model choices that complete within minutes on a single CPU
+  core. The focus is not SOTA performance but robust relative comparisons across
+  label regimes and datasets.
+
+  *How do LabelPropagation, LabelSpreading, and SelfTrainingClassifier compare in label-efficiency versus a supervised-only baseline when only 10–20% of training labels are available on small sklearn tabular datasets?*
+
+hypotheses:
+  - id: H1
+    statement: "At 10% labeled data, at least one semi-supervised method (LabelPropagation, LabelSpreading, or SelfTrainingClassifier) achieves test accuracy at least 3 percentage points higher than the supervised-only baseline on at least 2 of 3 datasets, averaged over ≥5 seeds."
+    measurable: true
+  - id: H2
+    statement: "Across datasets at 10% labeled data, LabelSpreading with RBF kernel attains mean test accuracy greater than or equal to LabelPropagation with RBF kernel in at least 2 of 3 datasets (seed-averaged)."
+    measurable: true
+  - id: H3
+    statement: "For SelfTrainingClassifier, increasing labeled fraction from 10% to 20% improves mean test accuracy by at least 1 absolute percentage point on at least 2 of 3 datasets."
+    measurable: true
+
+experiment_design:
+  research_question: "How do graph-based (LabelPropagation/LabelSpreading) and pseudo-labeling (SelfTrainingClassifier) methods compare to supervised-only training under 10% and 20% labeled-data regimes on small tabular benchmarks?"
+  conditions:
+    - name: "supervised_logreg_labeled_only"
+      description: "LogisticRegression trained only on the labeled subset of the training split; unlabeled points ignored."
+    - name: "label_propagation_rbf"
+      description: "LabelPropagation with RBF kernel; unlabeled training labels set to -1 and transductive predictions used for test inference."
+    - name: "label_spreading_rbf"
+      description: "LabelSpreading with RBF kernel under the same masked-label protocol."
+    - name: "self_training_logreg"
+      description: "SelfTrainingClassifier wrapping LogisticRegression with confidence threshold (e.g., 0.8), fit on mixed labeled/unlabeled training data."
+  baselines:
+    - "supervised_logreg_labeled_only is the primary baseline"
+    - "10% labeled regime serves as a lower-label baseline versus 20% within each method"
+  metrics:
+    - name: "test_accuracy"
+      direction: "maximize"
+      description: "Classification accuracy on held-out test split, averaged over seeds."
+    - name: "balanced_accuracy"
+      direction: "maximize"
+      description: "Balanced accuracy on held-out test split, averaged over seeds."
+    - name: "macro_f1"
+      direction: "maximize"
+      description: "Macro-averaged F1 score on held-out test split, averaged over seeds."
+  datasets:
+    - name: "breast_cancer"
+      source: "sklearn.datasets.load_breast_cancer"
+    - name: "wine"
+      source: "sklearn.datasets.load_wine"
+    - name: "digits"
+      source: "sklearn.datasets.load_digits"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 420
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML19.json"

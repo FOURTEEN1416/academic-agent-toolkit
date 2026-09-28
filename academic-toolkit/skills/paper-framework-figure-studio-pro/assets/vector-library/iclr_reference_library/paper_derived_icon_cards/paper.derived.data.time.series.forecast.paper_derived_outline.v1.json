@@ -1,0 +1,374 @@
+{
+  "concept_id": "paper.derived.data.time.series.forecast",
+  "icon_id": "paper.derived.data.time.series.forecast.paper_derived_outline.v1",
+  "primary_meaning": "Paper-derived time-series forecasting flow",
+  "aliases": [
+    "time series",
+    "forecast"
+  ],
+  "negative_aliases": [
+    "paper-specific module name",
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim",
+    "literal reproduction of source figure"
+  ],
+  "shape_family_id": "paper.derived.time_series",
+  "style_variant": "paper_derived_refined_outline",
+  "domain_tags": [
+    "paper_derived",
+    "framework_figure_motif",
+    "AI",
+    "CS",
+    "paper_figure",
+    "data",
+    "time",
+    "series"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot",
+    "visual_layout_reuse"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support",
+    "literal reproduction of source paper figure"
+  ],
+  "source_lineage": {
+    "import_mode": "paper_figure_motif_abstraction",
+    "source": "paper_framework_figure_motif_extraction",
+    "source_path": "final_reference_figure_library.jsonl",
+    "source_figure_count": 10,
+    "source_figures": [
+      {
+        "reference_case_id": "iclr2025/amortized-control-of-continuous-state-space-feynman-kac-model-for-irregular-time-series/fig-0001",
+        "paper_title": "Amortized Control of Continuous State Space Feynman-Kac Model for Irregular Time Series",
+        "field": "RL",
+        "figure_subtype": "data_or_embedding_map",
+        "layout_grammar": "map_or_distribution_panel",
+        "topology": "train_infer_split",
+        "source_path": "iclr2025_collection/papers/RL/amortized-control-of-continuous-state-space-feynman-kac-model-for-irregular-time-series/figures/pdf_framework_page_001.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/RL/amortized-control-of-continuous-state-space-feynman-kac-model-for-irregular-time-series/figures/pdf_framework_page_001.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:amortized-control-of-continuous-state-space-feynman-kac-model-for-irregular-time-series:fig-0001",
+          "includegraphics": "iclr2025_collection/papers/RL/amortized-control-of-continuous-state-space-feynman-kac-model-for-irregular-time-series/figures/pdf_framework_page_001.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/classic-but-everlasting-traditional-gradient-based-algorithms-converge-fast-even-in-time-v/fig-0004",
+        "paper_title": "Classic but Everlasting: Traditional Gradient-Based Algorithms Converge Fast Even in Time-Varying Multi-Player Games",
+        "field": "Optimization",
+        "figure_subtype": "qualitative_example",
+        "layout_grammar": "example_grid_or_before_after_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2025_collection/papers/Optimization/classic-but-everlasting-traditional-gradient-based-algorithms-converge-fast-even-in-time-v/figures/pdf_framework_page_004.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Optimization/classic-but-everlasting-traditional-gradient-based-algorithms-converge-fast-even-in-time-v/figures/pdf_framework_page_004.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:classic-but-everlasting-traditional-gradient-based-algorithms-converge-fast-even-in-time-v:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/Optimization/classic-but-everlasting-traditional-gradient-based-algorithms-converge-fast-even-in-time-v/figures/pdf_framework_page_004.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/consistency-checks-for-language-model-forecasters/fig-0001",
+        "paper_title": "Consistency Checks for Language Model Forecasters",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/consistency-checks-for-language-model-forecasters/figures/framework_01_fig1-short.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "figure_manifest_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/consistency-checks-for-language-model-forecasters/figures/framework_01_fig1-short.png",
+          "line": null,
+          "label": "figure_manifest_visual_anchor:iclr2025:consistency-checks-for-language-model-forecasters:fig-0001",
+          "includegraphics": "iclr2025_collection/papers/NLP/consistency-checks-for-language-model-forecasters/figures/framework_01_fig1-short.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/ctrl-adapter-an-efficient-and-versatile-framework-for-adapting-diverse-controls-to-any-dif/fig-0008",
+        "paper_title": "Ctrl-Adapter: An Efficient and Versatile Framework for Adapting Diverse Controls to Any Diffusion Model",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/ctrl-adapter-an-efficient-and-versatile-framework-for-adapting-diverse-controls-to-any-dif/figures/framework_08_method-adapter.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/ctrl-adapter-an-efficient-and-versatile-framework-for-adapting-diverse-controls-to-any-dif/sources/arxiv_src/main.tex",
+          "line": 293,
+          "label": "fig:adapter_method",
+          "includegraphics": "img/method_adapter.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/deepltl-learning-to-efficiently-satisfy-complex-ltl-specifications-for-multi-task-rl/fig-0001",
+        "paper_title": "DeepLTL: Learning to Efficiently Satisfy Complex LTL Specifications for Multi-Task RL",
+        "field": "RL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/RL/deepltl-learning-to-efficiently-satisfy-complex-ltl-specifications-for-multi-task-rl/figures/framework_01_overview.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/RL/deepltl-learning-to-efficiently-satisfy-complex-ltl-specifications-for-multi-task-rl/sources/arxiv_src/iclr2025_conference.tex",
+          "line": 299,
+          "label": "fig:overview",
+          "includegraphics": "figures/overview.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/federated-residual-low-rank-adaptation-of-large-language-models/fig-0002",
+        "paper_title": "Federated Residual Low-Rank Adaptation of Large Language Models",
+        "field": "FL",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/FL/federated-residual-low-rank-adaptation-of-large-language-models/figures/pdf_framework_page_002.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/FL/federated-residual-low-rank-adaptation-of-large-language-models/figures/pdf_framework_page_002.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:federated-residual-low-rank-adaptation-of-large-language-models:fig-0002",
+          "includegraphics": "iclr2025_collection/papers/FL/federated-residual-low-rank-adaptation-of-large-language-models/figures/pdf_framework_page_002.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/high-dynamic-radar-sequence-prediction-for-weather-nowcasting-using-spatiotemporal-coheren/fig-0002",
+        "paper_title": "High-Dynamic Radar Sequence Prediction for Weather Nowcasting Using Spatiotemporal Coherent Gaussian Representation",
+        "field": "Spectral",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Spectral/high-dynamic-radar-sequence-prediction-for-weather-nowcasting-using-spatiotemporal-coheren/figures/framework_02_fig2.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/Spectral/high-dynamic-radar-sequence-prediction-for-weather-nowcasting-using-spatiotemporal-coheren/sources/arxiv_src/iclr2025.tex",
+          "line": 129,
+          "label": "fig:rec",
+          "includegraphics": "fig2.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/high-dynamic-radar-sequence-prediction-for-weather-nowcasting-using-spatiotemporal-coheren/fig-0003",
+        "paper_title": "High-Dynamic Radar Sequence Prediction for Weather Nowcasting Using Spatiotemporal Coherent Gaussian Representation",
+        "field": "Spectral",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Spectral/high-dynamic-radar-sequence-prediction-for-weather-nowcasting-using-spatiotemporal-coheren/figures/framework_03_fig-mambagru.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/Spectral/high-dynamic-radar-sequence-prediction-for-weather-nowcasting-using-spatiotemporal-coheren/sources/arxiv_src/iclr2025.tex",
+          "line": 234,
+          "label": "fig_mamba",
+          "includegraphics": "fig_mambagru.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/high-dynamic-radar-sequence-prediction-for-weather-nowcasting-using-spatiotemporal-coheren/fig-0005",
+        "paper_title": "High-Dynamic Radar Sequence Prediction for Weather Nowcasting Using Spatiotemporal Coherent Gaussian Representation",
+        "field": "Spectral",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Spectral/high-dynamic-radar-sequence-prediction-for-weather-nowcasting-using-spatiotemporal-coheren/figures/framework_05_fig2.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/Spectral/high-dynamic-radar-sequence-prediction-for-weather-nowcasting-using-spatiotemporal-coheren/sources/arxiv_src/iclr2025.tex",
+          "line": 129,
+          "label": "fig:rec",
+          "includegraphics": "fig2.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/high-dynamic-radar-sequence-prediction-for-weather-nowcasting-using-spatiotemporal-coheren/fig-0006",
+        "paper_title": "High-Dynamic Radar Sequence Prediction for Weather Nowcasting Using Spatiotemporal Coherent Gaussian Representation",
+        "field": "Spectral",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Spectral/high-dynamic-radar-sequence-prediction-for-weather-nowcasting-using-spatiotemporal-coheren/figures/framework_06_fig-mambagru.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/Spectral/high-dynamic-radar-sequence-prediction-for-weather-nowcasting-using-spatiotemporal-coheren/sources/arxiv_src/iclr2025.tex",
+          "line": 234,
+          "label": "fig_mamba",
+          "includegraphics": "fig_mambagru.pdf"
+        },
+        "match_score": 8
+      }
+    ],
+    "extraction_basis": [
+      "source-grounded final reference figure records",
+      "figure subtype/layout/topology tags",
+      "caption/source-anchor keyword evidence",
+      "borrowable visual design patterns"
+    ],
+    "abstraction_level": "non_literal_semantic_visual_motif",
+    "imported_at": "2026-05-24T08:43:00.774Z",
+    "modified": true,
+    "modification": "Created as a simplified vector motif from repeated downloaded-paper framework figure patterns; source-paper text, labels, claims, datasets, metrics, and exact visual composition are intentionally not copied.",
+    "refinement": {
+      "status": "refined_semantic_vector_redraw",
+      "semantic_kind": "token",
+      "workflow": [
+        "contact_sheet_with_padding",
+        "imagegen_prompt_manifest_for_style_exploration",
+        "semantic_cut_slot",
+        "programmatic_svg_redraw",
+        "index_update"
+      ],
+      "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+      "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+      "generated_at": "2026-05-24T09:34:49.914Z"
+    }
+  },
+  "license": {
+    "name": "Paper-derived framework figure motif abstraction",
+    "license": "source-paper-visual-motif-abstraction",
+    "usage_terms": "Internal reusable visual/layout motif. Use for generic figure icon language only; do not treat as source-paper evidence or copy source-paper facts."
+  },
+  "files": {
+    "raw_svg": "icons/raw/paper.derived.data.time.series.forecast.paper_derived_outline.v1.svg",
+    "tight_svg": "icons/tight/paper.derived.data.time.series.forecast.paper_derived_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/paper.derived.data.time.series.forecast.paper_derived_outline.v1.ppt_safe.svg",
+    "semantic_cut_svg": "paper_derived_icon_refinement/cut_svg/paper.derived.data.time.series.forecast.paper_derived_outline.v1.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": -2.775,
+    "minY": -2.775,
+    "width": 24.55,
+    "height": 20.55,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": -0.083,
+      "top": -0.083,
+      "right": 0.125,
+      "bottom": 0.292
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "refined_from_semantic_contact_sheet": true,
+    "editable_shape_primitives": true,
+    "sha1": "18c55549d4a14b84ff5fabb07244cf0b56365bc0"
+  },
+  "transfer_contract": {
+    "allowed": [
+      "generic visual icon language",
+      "layout/motif inspiration",
+      "PPT editable stencil use"
+    ],
+    "disallowed": [
+      "source-paper facts",
+      "paper-specific labels",
+      "metrics",
+      "datasets",
+      "claims",
+      "literal source-figure reproduction"
+    ]
+  },
+  "refinement": {
+    "status": "refined_semantic_vector_redraw",
+    "semantic_kind": "token",
+    "workflow": [
+      "contact_sheet_with_padding",
+      "imagegen_prompt_manifest_for_style_exploration",
+      "semantic_cut_slot",
+      "programmatic_svg_redraw",
+      "index_update"
+    ],
+    "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+    "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+    "generated_at": "2026-05-24T09:34:49.914Z"
+  }
+}

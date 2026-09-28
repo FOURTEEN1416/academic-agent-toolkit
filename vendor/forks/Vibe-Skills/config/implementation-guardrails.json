@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-15",
+  "self_introduced_fallback": "forbidden_by_default",
+  "allowed_only_when_requirement_explicit": true,
+  "required_approval_markers": [
+    "approved_fallback_related_changes: true",
+    "fallback_design_explicitly_requested: true"
+  ],
+  "diff_guard": {
+    "enabled": true,
+    "include_globs": [
+      "scripts/router/**/*.ps1",
+      "scripts/router/**/*.py",
+      "scripts/runtime/**/*.ps1",
+      "config/*.json"
+    ],
+    "exempt_paths": [
+      "docs/plans/**",
+      "docs/requirements/**",
+      "scripts/verify/**",
+      "docs/releases/**",
+      "docs/status/**",
+      "config/fallback-governance.json",
+      "config/implementation-guardrails.json"
+    ],
+    "risky_terms": [
+      "legacy_fallback",
+      "fallback_on_error",
+      "continue_without",
+      "best effort",
+      "warn_and_skip",
+      "degraded-but-supported",
+      "supported-with-constraints"
+    ]
+  }
+}

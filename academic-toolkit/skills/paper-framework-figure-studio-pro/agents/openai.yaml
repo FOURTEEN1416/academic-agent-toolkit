@@ -1,0 +1,30 @@
+name: paper-framework-figure-studio-pro
+version: 3.2.15f
+description: >-
+  Human-in-the-loop research-paper framework figure studio from S0-PAPER-FOUNDATION
+  through terminal S5-CANDIDATE-IMAGE. S2 and S5 are image-generation-only stages.
+  S1 plans eight complementary style-combination proposals, selects the top four,
+  and prepares only C01-C04 S2 prompt packages. S4 prepares only F01-F02 S5 prompt
+  packages, with row-level S2 reference images for S5 when available. S1/S4 prompt packages must choose the visual mainline from the
+  paper's contribution type, use source-faithful human-aesthetic color palettes,
+  and reject generic AI-looking color treatment.
+critical_rules:
+  - "Default step order: S0-PAPER-FOUNDATION -> S1-FIGURE-STRATEGY -> S2-SKETCH-EXPLORE -> S3-DIRECTION-SELECT -> S4-CANDIDATE-BRIEF -> S5-CANDIDATE-IMAGE -> END."
+  - "Execute at most one explicitly requested public step per user turn. After S0-S4, enforce a hard human wait barrier: reviewer gates, specialist completion, internal handoffs, checkpoint success, silent defaults, and copyable prompts do not authorize the next public stage."
+  - "S1 must first plan exactly eight internally non-contradictory and complementary style-combination proposals, score them, select only the top four, explain why each selected combination is complementary, and map them to C01-C04."
+  - "S1 must prepare exactly four S2 prompt packages and a prompt-index for C01-C04 before closing. S1 must not generate S2 images."
+  - "S2 is IMAGE_GENERATE only and must generate exactly four images from the S1 prompt-index. It must not write audit, ranking, rerun guidance, aggregate checkpoint text, or next-step prose."
+  - "S3 must perform S2 issue-ledger review and exploration aggregate before direction selection. S3 must not rerun S2 images."
+  - "S4 must prepare exactly two S5 prompt packages and a prompt-index for F01-F02 before closing. S4 must not generate S5 images."
+  - "Every S5 prompt-index row prepared by S4 must include relevant registered S2 raster outputs in reference_image_paths; S5 should use them as visual references when the active image route supports image inputs and ignore them automatically when unsupported."
+  - "If S3 records explicit user-preferred first-round S2 candidate IDs, S4 must fit preference-led local-essence coverage into the two-candidate F01-F02 budget. If coverage cannot fit, S4 must repair/replan, narrow style slots, or ask for a user trade-off before S5; it must not create a third S5 row."
+  - "S5 is IMAGE_GENERATE only and terminal, and must generate exactly two images from the S4 prompt-index, using row-level S2 reference images when supported and ignoring them when unsupported. It must not write audit, ranking, rerun guidance, finalization guidance, final caption package, or next-step prose."
+  - "After S5, if asked what remains, answer exactly: 我的任务已经完成，剩下由人类来决策。"
+  - "Target-paper image units are environment-locked: Codex=image_gen; ChatGPT web=Create Image / ChatGPT Images 2.0; other runtimes require a named approved image-generation API. SVG/code/Python/PIL/Matplotlib/Graphviz/TikZ/Mermaid/canvas/PPT/PDF/screenshot/local raster substitutes are invalid."
+  - "S1/S4 image prompts must use restrained publication-grade palettes with paper-supported color semantics, grayscale legibility, accessible contrast, and no generic AI-blue/purple gradients, neon saturation, glossy orb/glass effects, bokeh, marketing-poster lighting, or decorative rainbow ramps."
+  - "S1/S4 prompt packages must classify the paper's primary contribution type, choose one primary reader question, and justify the visual mainline. Data flow may dominate only for data/dataset/database/retrieval/generation/governance/pipeline-centered contributions; otherwise data labels stay compact and supportive."
+  - "S2/S5 prompts must preserve paper-core semantics, visible hierarchy, edge-label-first carried variables, semantic-vs-visual graph separation, source-backed arrow direction, connector bundling, and internal visual motifs for core compound modules."
+  - "S1/S4 image prompts must pass strict source-grounded modular prompt contracts: evidence-backed connectors, bundled block-to-block lines, no false relay data-flow through non-consuming/non-transforming modules, variables on edges/ports/tags, modular-not-fragmented structure, simple internal motifs, no duplicate workflows/insets, and small background context with at most five repair cycles."
+  - "Every workflow text reply must validate or rebuild a cumulative checkpoint zip mirror using the response checkpoint zip gate before claiming recoverability or handing off to the next stage."
+  - "S1/S4 prompt packages must audit source-faithfulness, style-combination complementarity, human palette quality, and symbol disambiguation before image handoff."
+  - "Reusable skill packaging keeps context on demand: SKILL.md is a compact controller, detailed policies live in references/, scripts live in scripts/, project facts stay in run outputs, and stale validation reports or cache files are not runtime dependencies."

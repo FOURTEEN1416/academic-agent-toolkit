@@ -1,0 +1,20 @@
+{
+  "adapter_id": "codex",
+  "platform": "windows",
+  "status": "full-authoritative",
+  "install_surface": [
+    "install.ps1",
+    "scripts/bootstrap/one-shot-setup.ps1"
+  ],
+  "check_surface": [
+    "check.ps1"
+  ],
+  "doctor_surface": [
+    "scripts/verify/vibe-bootstrap-doctor-gate.ps1",
+    "scripts/verify/vibe-installed-runtime-freshness-gate.ps1",
+    "scripts/verify/vibe-release-install-runtime-coherence-gate.ps1"
+  ],
+  "notes": [
+    "Windows is the current reference closure lane for the official runtime."
+  ]
+}

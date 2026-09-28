@@ -1,0 +1,623 @@
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+from pathlib import Path
+
+from . import __version__
+from .server import export_bundle, generate_session, resolve_session, run_server, update_preference
+
+
+SKILL_NAME = "agent-figure-gallery"
+INSTALL_TARGETS = ["codex", "claude-code", "cursor"]
+TARGET_LABELS = {
+    "codex": "Codex",
+    "claude-code": "Claude Code",
+    "cursor": "Cursor-compatible",
+}
+TARGET_HOME_ENV = {
+    "codex": "CODEX_HOME",
+    "claude-code": "CLAUDE_HOME",
+    "cursor": "CURSOR_HOME",
+}
+TARGET_HOME_SUBDIR = {
+    "codex": ".codex",
+    "claude-code": ".claude",
+    "cursor": ".cursor",
+}
+TARGET_PROJECT_SKILLS_DIR = {
+    "codex": Path(".codex") / "skills",
+    "claude-code": Path(".claude") / "skills",
+    "cursor": Path(".cursor") / "skills",
+}
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="agentfiguregallery")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    doctor = subparsers.add_parser("doctor", help="Check local KB readiness and print next commands.")
+    doctor.add_argument("--json", action="store_true")
+
+    install_skill = subparsers.add_parser("install-skill", help="Install the lightweight agent skill wrapper.")
+    install_skill.add_argument("--target", choices=INSTALL_TARGETS, default="codex")
+    install_skill.add_argument(
+        "--scope",
+        choices=["personal", "project"],
+        default="personal",
+        help="Install into the agent's personal skills directory or this project's skills directory.",
+    )
+    install_skill.add_argument(
+        "--dest",
+        type=Path,
+        help="Destination skills directory. Defaults to the selected target/scope location.",
+    )
+    install_skill.add_argument("--mode", choices=["copy", "symlink"], default="copy")
+    install_skill.add_argument("--force", action="store_true", help="Replace an existing installed skill.")
+    install_skill.add_argument("--json", action="store_true")
+
+    cursor_rule = subparsers.add_parser(
+        "install-cursor-rule",
+        help="Install a Cursor Project Rule that points Cursor Agent to AgentFigureGallery.",
+    )
+    cursor_rule.add_argument(
+        "--project",
+        type=Path,
+        default=Path.cwd(),
+        help="Project root that should receive .cursor/rules/agent-figure-gallery.mdc.",
+    )
+    cursor_rule.add_argument(
+        "--dest",
+        type=Path,
+        help="Destination Cursor rules directory. Defaults to <project>/.cursor/rules.",
+    )
+    cursor_rule.add_argument("--force", action="store_true", help="Replace an existing Cursor rule.")
+    cursor_rule.add_argument("--json", action="store_true")
+
+    query = subparsers.add_parser("query", help="Resolve a task or plot type to available candidate counts.")
+    query.add_argument("--task", default="")
+    query.add_argument("--plot-type", default="")
+    query.add_argument("--json", action="store_true")
+
+    gallery = subparsers.add_parser("gallery", help="Generate a reference session, optionally serving the UI.")
+    gallery.add_argument("--plot-type", required=True)
+    gallery.add_argument("--task", default="")
+    gallery.add_argument("--limit", type=int, default=50)
+    gallery.add_argument("--session-id", default="")
+    gallery.add_argument("--strategy", choices=["top", "explore", "random"], default="explore")
+    gallery.add_argument("--seed", type=int)
+    gallery.add_argument("--serve", action="store_true")
+    gallery.add_argument("--host", default="127.0.0.1")
+    gallery.add_argument("--port", type=int, default=8765)
+
+    first_run = subparsers.add_parser(
+        "first-run",
+        help="Create a starter reference session and optionally open the gallery.",
+    )
+    first_run.add_argument("--plot-type", default="embedding_plot")
+    first_run.add_argument("--task", default="Nature-style embedding map for cell atlas")
+    first_run.add_argument("--limit", type=int, default=36)
+    first_run.add_argument("--session-id", default="")
+    first_run.add_argument("--strategy", choices=["top", "explore", "random"], default="explore")
+    first_run.add_argument("--seed", type=int, default=7)
+    first_run.add_argument("--host", default="127.0.0.1")
+    first_run.add_argument("--port", type=int, default=8765)
+    first_run.add_argument("--open", action="store_true", help="Open the gallery in the default browser and serve it.")
+    first_run.add_argument("--serve", action="store_true", help="Serve the gallery without opening a browser.")
+    first_run.add_argument("--json", action="store_true")
+
+    serve = subparsers.add_parser("serve", help="Serve the local gallery UI.")
+    serve.add_argument("--host", default="127.0.0.1")
+    serve.add_argument("--port", type=int, default=8765)
+
+    prefer = subparsers.add_parser("prefer", help="Record human preferences for a reference session.")
+    prefer.add_argument("--session", required=True)
+    prefer.add_argument("--like", nargs="+", action="append", default=[])
+    prefer.add_argument("--reject", nargs="+", action="append", default=[])
+    prefer.add_argument("--select", nargs="+", action="append", default=[])
+    prefer.add_argument("--clear", nargs="+", action="append", default=[])
+    prefer.add_argument("--global-like", nargs="+", action="append", default=[])
+    prefer.add_argument("--global-reject", nargs="+", action="append", default=[])
+    prefer.add_argument("--global-clear", nargs="+", action="append", default=[])
+
+    bundle = subparsers.add_parser("bundle", help="Export selected references for upstream agent action.")
+    bundle.add_argument("--session", required=True)
+    bundle.add_argument("--copy-scripts", action="store_true")
+    bundle.add_argument("--json", action="store_true")
+
+    setup = subparsers.add_parser("setup", help="Download and configure a full KB asset pack.")
+    setup.add_argument("--pack", default="public-preview")
+    setup.add_argument("--manifest", default="")
+    setup.add_argument("--manifest-url", default="")
+    setup.add_argument("--dry-run", action="store_true")
+    setup.add_argument("--force", action="store_true")
+
+    assets = subparsers.add_parser("assets", help="Asset utilities.")
+    assets_sub = assets.add_subparsers(dest="assets_command", required=True)
+    download = assets_sub.add_parser("download", help="Download an asset pack.")
+    download.add_argument("--pack", default="minimal")
+
+    return parser
+
+
+def root() -> Path:
+    for key in ["AGENT_FIGURE_GALLERY_ROOT", "DRAWING_KB_ROOT"]:
+        value = os.environ.get(key)
+        if value:
+            return Path(value).expanduser().resolve()
+    return Path(__file__).resolve().parents[1]
+
+
+def flatten_ids(groups: list[list[str]]) -> list[str]:
+    return [candidate_id for group in groups for candidate_id in group]
+
+
+def skills_dir(target: str, scope: str = "personal") -> Path:
+    if target not in INSTALL_TARGETS:
+        raise ValueError(f"Unsupported install target: {target}")
+    if scope == "project":
+        return Path.cwd().resolve() / TARGET_PROJECT_SKILLS_DIR[target]
+    home_env = os.environ.get(TARGET_HOME_ENV[target])
+    if home_env:
+        return Path(home_env).expanduser().resolve() / "skills"
+    return Path.home() / TARGET_HOME_SUBDIR[target] / "skills"
+
+
+def skill_source_dir(kb_root: Path) -> Path:
+    return kb_root / "skills" / "agent-figure-gallery"
+
+
+def agent_prompt(target: str = "codex") -> str:
+    label = TARGET_LABELS.get(target, target)
+    return (
+        f"In {label}, read the agent-figure-gallery skill, then use AgentFigureGallery "
+        "before writing publication figure code."
+    )
+
+
+def cursor_rule_text(kb_root: Path) -> str:
+    return f"""---
+description: Use AgentFigureGallery before writing publication-quality scientific plotting code.
+alwaysApply: false
+---
+
+# AgentFigureGallery
+
+Use AgentFigureGallery when the user asks for a scientific plot, publication figure, Nature/Cell/Science-style visualization, or figure refinement.
+
+KB root:
+
+```bash
+export AGENT_FIGURE_GALLERY_ROOT={kb_root}
+```
+
+Workflow:
+
+1. Query references before writing final plotting code.
+2. Open a visible gallery for human like/reject/select feedback when visual taste matters.
+3. Export the selected reference bundle.
+4. Use selected candidate IDs and source metadata as visual/code guidance.
+
+Commands:
+
+```bash
+agentfiguregallery query --task "<user plotting task>"
+agentfiguregallery gallery --plot-type <plot_type> --task "<user plotting task>" --limit 50 --serve
+agentfiguregallery bundle --session <session_id>
+```
+
+Rules:
+
+- Preserve stable candidate IDs in notes and commit messages.
+- Treat `like` and `reject` as plot-type preferences.
+- Treat `global_like` and `global_reject` as reusable cross-task taste memory.
+- Do not use rejected or globally rejected references as style guidance.
+- If no reference fits, ask the human to reject weak candidates and generate another gallery.
+"""
+
+
+def load_index() -> dict:
+    path = root() / "data" / "reference_candidate_index.json"
+    if not path.exists():
+        return {"candidates": [], "summary": {}}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def plot_type_counts(candidates: list[dict]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for item in candidates:
+        key = item.get("plot_type") or item.get("primary_plot_type") or "unknown"
+        counts[key] = counts.get(key, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def command_doctor(args: argparse.Namespace) -> int:
+    kb_root = root()
+    index_path = kb_root / "data" / "reference_candidate_index.json"
+    skill_path = skill_source_dir(kb_root) / "SKILL.md"
+    agent_skills = {
+        target: {
+            "label": TARGET_LABELS[target],
+            "installed": (skills_dir(target) / SKILL_NAME / "SKILL.md").exists(),
+            "path": str(skills_dir(target) / SKILL_NAME / "SKILL.md"),
+            "scope": "personal",
+        }
+        for target in INSTALL_TARGETS
+    }
+    frontend_path = kb_root / "frontend" / "reference_gallery" / "index.html"
+    manifest_path = kb_root / "manifests" / "resource_manifest.json"
+    hub_manifest_url = "https://huggingface.co/datasets/dsadd4/AgentFigureGallery/resolve/main/resource_manifest.json"
+
+    index = load_index()
+    candidates = index.get("candidates", [])
+    counts = plot_type_counts(candidates)
+    checks = {
+        "candidate_index": index_path.exists(),
+        "skill": skill_path.exists(),
+        "frontend": frontend_path.exists(),
+        "full_public_manifest": manifest_path.exists(),
+    }
+    payload = {
+        "version": __version__,
+        "root": str(kb_root),
+        "ok": all(checks.values()) and bool(candidates),
+        "checks": checks,
+        "candidate_total": len(candidates),
+        "plot_type_counts": counts,
+        "agent_skill": str(skill_path),
+        "agent_skills": agent_skills,
+        "codex_skill": agent_skills["codex"],
+        "recommended_commands": [
+            "agentfiguregallery install-skill --target codex",
+            "agentfiguregallery install-skill --target claude-code",
+            "agentfiguregallery install-skill --target cursor",
+            "agentfiguregallery install-cursor-rule --project /path/to/your-cursor-project",
+            "agentfiguregallery query --task \"Nature-style embedding map for cell atlas\"",
+            "agentfiguregallery gallery --plot-type embedding_plot --limit 50 --serve",
+            f"agentfiguregallery setup --pack full-public --manifest-url {hub_manifest_url}",
+        ],
+    }
+    if args.json:
+        print(json.dumps(payload, indent=2, ensure_ascii=True))
+    else:
+        print(f"AgentFigureGallery {payload['version']}")
+        print(f"root: {payload['root']}")
+        for name, passed in checks.items():
+            print(f"{'OK' if passed else 'MISSING'} {name}")
+        print(f"candidate_total: {payload['candidate_total']}")
+        if counts:
+            print("plot_types:")
+            for plot_type, count in counts.items():
+                print(f"  {plot_type}: {count}")
+        print(f"agent_skill: {payload['agent_skill']}")
+        for target, skill in payload["agent_skills"].items():
+            installed = skill["installed"]
+            print(f"{'OK' if installed else 'MISSING'} {target}_skill: {skill['path']}")
+        print("next:")
+        for command in payload["recommended_commands"]:
+            print(f"  {command}")
+    return 0 if payload["ok"] else 1
+
+
+def command_install_skill(args: argparse.Namespace) -> int:
+    kb_root = root()
+    source_dir = skill_source_dir(kb_root)
+    if not (source_dir / "SKILL.md").exists():
+        raise SystemExit(f"Missing skill source: {source_dir}")
+
+    dest_dir = (args.dest or skills_dir(args.target, args.scope)).expanduser().resolve()
+    install_dir = dest_dir / source_dir.name
+    action = "exists"
+
+    if install_dir.exists() or install_dir.is_symlink():
+        if args.force:
+            if install_dir.is_symlink() or install_dir.is_file():
+                install_dir.unlink()
+            else:
+                shutil.rmtree(install_dir)
+        else:
+            payload = {
+                "target": args.target,
+                "target_label": TARGET_LABELS[args.target],
+                "scope": args.scope,
+                "action": action,
+                "source": str(source_dir),
+                "installed": str(install_dir),
+                "root": str(kb_root),
+                "shell": f"export AGENT_FIGURE_GALLERY_ROOT={kb_root}",
+                "prompt": agent_prompt(args.target),
+            }
+            if args.json:
+                print(json.dumps(payload, indent=2, ensure_ascii=True))
+            else:
+                print(f"skill already installed: {install_dir}")
+                print(f"refresh with: agentfiguregallery install-skill --target {args.target} --force")
+                print(f"shell: {payload['shell']}")
+                print(f"prompt: {payload['prompt']}")
+            return 0
+
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    if args.mode == "symlink":
+        install_dir.symlink_to(source_dir, target_is_directory=True)
+        action = "symlinked"
+    else:
+        shutil.copytree(source_dir, install_dir)
+        action = "copied"
+
+    payload = {
+        "target": args.target,
+        "target_label": TARGET_LABELS[args.target],
+        "scope": args.scope,
+        "action": action,
+        "source": str(source_dir),
+        "installed": str(install_dir),
+        "root": str(kb_root),
+        "shell": f"export AGENT_FIGURE_GALLERY_ROOT={kb_root}",
+        "prompt": agent_prompt(args.target),
+    }
+    if args.json:
+        print(json.dumps(payload, indent=2, ensure_ascii=True))
+    else:
+        print(f"skill {action}: {install_dir}")
+        print(f"shell: {payload['shell']}")
+        print(f"prompt: {payload['prompt']}")
+    return 0
+
+
+def command_install_cursor_rule(args: argparse.Namespace) -> int:
+    kb_root = root()
+    project_root = args.project.expanduser().resolve()
+    rules_dir = (args.dest or (project_root / ".cursor" / "rules")).expanduser().resolve()
+    rule_path = rules_dir / "agent-figure-gallery.mdc"
+    action = "exists"
+
+    existed_before = rule_path.exists()
+    if existed_before and not args.force:
+        payload = {
+            "target": "cursor-rule",
+            "action": action,
+            "project": str(project_root),
+            "installed": str(rule_path),
+            "root": str(kb_root),
+            "prompt": "In Cursor, use the agent-figure-gallery project rule before writing publication figure code.",
+        }
+        if args.json:
+            print(json.dumps(payload, indent=2, ensure_ascii=True))
+        else:
+            print(f"Cursor rule already installed: {rule_path}")
+            print("refresh with: agentfiguregallery install-cursor-rule --force")
+            print(f"prompt: {payload['prompt']}")
+        return 0
+
+    rules_dir.mkdir(parents=True, exist_ok=True)
+    rule_path.write_text(cursor_rule_text(kb_root), encoding="utf-8")
+    action = "updated" if existed_before else "written"
+    payload = {
+        "target": "cursor-rule",
+        "action": action,
+        "project": str(project_root),
+        "installed": str(rule_path),
+        "root": str(kb_root),
+        "prompt": "In Cursor, use the agent-figure-gallery project rule before writing publication figure code.",
+    }
+    if args.json:
+        print(json.dumps(payload, indent=2, ensure_ascii=True))
+    else:
+        print(f"Cursor rule {action}: {rule_path}")
+        print(f"prompt: {payload['prompt']}")
+    return 0
+
+
+def infer_plot_type(task: str, explicit: str) -> str:
+    if explicit:
+        return explicit
+    text = task.lower()
+    hints = [
+        ("heatmap_matrix", ["heatmap", "matrix"]),
+        ("box_violin_distribution", ["box", "violin", "distribution"]),
+        ("bar_chart", ["bar", "column"]),
+        ("line_chart", ["line", "trend", "trajectory"]),
+        ("embedding_plot", ["umap", "tsne", "embedding"]),
+        ("scatter_plot", ["scatter", "correlation"]),
+        ("spatial_map", ["spatial", "tissue"]),
+        ("microscopy_panel", ["microscopy", "image", "segmentation"]),
+        ("benchmark_performance", ["benchmark", "performance", "accuracy"]),
+        ("multi_panel_figure", ["multi-panel", "multipanel", "panel"]),
+    ]
+    for plot_type, words in hints:
+        if any(word in text for word in words):
+            return plot_type
+    return "multi_panel_figure"
+
+
+def command_query(args: argparse.Namespace) -> int:
+    index = load_index()
+    plot_type = infer_plot_type(args.task, args.plot_type)
+    candidates = index.get("candidates", [])
+    counts = plot_type_counts(candidates)
+    payload = {
+        "resolved": {"plot_type": plot_type},
+        "available_candidates": counts.get(plot_type, 0),
+        "selectable_by_plot_type": counts,
+    }
+    if args.json:
+        print(json.dumps(payload, indent=2, ensure_ascii=True))
+    else:
+        print(f"resolved plot_type: {plot_type}")
+        print(f"available candidates: {payload['available_candidates']}")
+    return 0
+
+
+def command_gallery(args: argparse.Namespace) -> int:
+    session = generate_session(
+        root=root(),
+        plot_type=args.plot_type,
+        task=args.task or f"Reference session for {args.plot_type}",
+        limit=args.limit,
+        session_id=args.session_id or "",
+        strategy=args.strategy,
+        seed=args.seed,
+    )
+    print(f"session: {session['session_id']}")
+    print(f"candidates: {len(session.get('candidates', []))}")
+    print(f"session_json: {session['paths']['session_json']}")
+    if args.serve:
+        run_server(root=root(), host=args.host, port=args.port)
+    return 0
+
+
+def command_first_run(args: argparse.Namespace) -> int:
+    kb_root = root()
+    session = generate_session(
+        root=kb_root,
+        plot_type=args.plot_type,
+        task=args.task,
+        limit=args.limit,
+        session_id=args.session_id or "",
+        strategy=args.strategy,
+        seed=args.seed,
+    )
+    url_host = "127.0.0.1" if args.host in {"0.0.0.0", "::"} else args.host
+    url = f"http://{url_host}:{args.port}/"
+    if args.open or args.serve:
+        first_step = f"Open the running gallery at {url}."
+    else:
+        first_step = f"Run: agentfiguregallery serve --host {args.host} --port {args.port}"
+    next_steps = [
+        first_step,
+        "Like, reject, or select examples that match the figure style you want.",
+        f"Run: agentfiguregallery bundle --session {session['session_id']}",
+    ]
+    payload = {
+        "session": session["session_id"],
+        "candidates": len(session.get("candidates", [])),
+        "session_json": session["paths"]["session_json"],
+        "gallery_url": url,
+        "next_steps": next_steps,
+    }
+    if args.json:
+        print(json.dumps(payload, indent=2, ensure_ascii=True))
+    else:
+        print(f"session: {payload['session']}")
+        print(f"candidates: {payload['candidates']}")
+        print(f"session_json: {payload['session_json']}")
+        print(f"gallery_url: {payload['gallery_url']}")
+        print("next:")
+        for step in next_steps:
+            print(f"- {step}")
+    if args.open:
+        import threading
+        import webbrowser
+
+        threading.Timer(0.5, lambda: webbrowser.open(url)).start()
+    if args.open or args.serve:
+        print("Serving gallery; press Ctrl-C to stop.", flush=True)
+        return run_server(root=kb_root, host=args.host, port=args.port)
+    return 0
+
+
+def command_assets(args: argparse.Namespace) -> int:
+    if args.assets_command != "download":
+        raise SystemExit(f"Unsupported assets command: {args.assets_command}")
+    import subprocess
+    import sys
+
+    script = root() / "scripts" / "download_assets.py"
+    return subprocess.call([sys.executable, str(script), "--pack", args.pack], cwd=root())
+
+
+def command_prefer(args: argparse.Namespace) -> int:
+    kb_root = root()
+    session_json = resolve_session(kb_root, args.session)
+    actions = [
+        ("like", flatten_ids(args.like)),
+        ("reject", flatten_ids(args.reject)),
+        ("select", flatten_ids(args.select)),
+        ("clear", flatten_ids(args.clear)),
+        ("global_like", flatten_ids(args.global_like)),
+        ("global_reject", flatten_ids(args.global_reject)),
+        ("global_clear", flatten_ids(args.global_clear)),
+    ]
+    updated = None
+    for action, ids in actions:
+        if not ids:
+            continue
+        updated = update_preference(
+            kb_root,
+            session_json,
+            {
+                "session": str(session_json),
+                "candidate_ids": ids,
+                "action": action,
+            },
+        )
+    if updated is None:
+        raise SystemExit("No preference action supplied.")
+    print(f"session: {updated.get('session_id')}")
+    print(f"preferences: {session_json.parent / 'preferences.json'}")
+    print(json.dumps(updated.get("status_counts", {}), indent=2, ensure_ascii=True))
+    return 0
+
+
+def command_bundle(args: argparse.Namespace) -> int:
+    kb_root = root()
+    session_json = resolve_session(kb_root, args.session)
+    bundle = export_bundle(kb_root, session_json, copy_scripts=args.copy_scripts)
+    if args.json:
+        print(json.dumps(bundle, indent=2, ensure_ascii=True))
+    else:
+        print(f"session: {bundle.get('session_id')}")
+        print(f"bundle_json: {bundle.get('paths', {}).get('bundle_json')}")
+        print(f"selected_references: {len(bundle.get('selected_references', []))}")
+    return 0
+
+
+def command_setup(args: argparse.Namespace) -> int:
+    import subprocess
+    import sys
+
+    script = root() / "scripts" / "setup_full_kb.py"
+    cmd = [sys.executable, str(script), "--pack", args.pack, "--root", str(root())]
+    if args.manifest_url:
+        cmd.extend(["--manifest-url", args.manifest_url])
+    if args.manifest:
+        cmd.extend(["--manifest", args.manifest])
+    if args.dry_run:
+        cmd.append("--dry-run")
+    if args.force:
+        cmd.append("--force")
+    return subprocess.call(cmd, cwd=root())
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+    if args.command == "doctor":
+        return command_doctor(args)
+    if args.command == "install-skill":
+        return command_install_skill(args)
+    if args.command == "install-cursor-rule":
+        return command_install_cursor_rule(args)
+    if args.command == "query":
+        return command_query(args)
+    if args.command == "gallery":
+        return command_gallery(args)
+    if args.command == "first-run":
+        return command_first_run(args)
+    if args.command == "serve":
+        return run_server(root=root(), host=args.host, port=args.port)
+    if args.command == "prefer":
+        return command_prefer(args)
+    if args.command == "bundle":
+        return command_bundle(args)
+    if args.command == "setup":
+        return command_setup(args)
+    if args.command == "assets":
+        return command_assets(args)
+    raise SystemExit(f"Unsupported command: {args.command}")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

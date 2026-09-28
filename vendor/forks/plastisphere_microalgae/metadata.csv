@@ -1,0 +1,185 @@
+SampleID,Paired,Season,Carrier,Region,Functional
+EnvHKSumMc1,HKSumMc1,Wet,Seawater,HongKong,Marine Culture
+EnvHKSumMR1,HKSumMR1,Wet,Seawater,HongKong,Marine Reserve
+EnvHKSumMR2,HKSumMR2,Wet,Seawater,HongKong,Marine Reserve
+EnvHKSumMR3,HKSumMR3,Wet,Seawater,HongKong,Marine Reserve
+EnvHKSumMR4,HKSumMR4,Wet,Seawater,HongKong,Marine Reserve
+EnvHKSumPort1,HKSumPort1,Wet,Seawater,HongKong,Port
+EnvHKSumWWTP2,HKSumWWTP2,Wet,Seawater,HongKong,WWTP
+EnvHKWinBeach1,HKWinBeach1,Dry,Seawater,HongKong,Beach
+EnvHKWinBeach2,HKWinBeach2,Dry,Seawater,HongKong,Beach
+EnvHKWinBeach3,HKWinBeach3,Dry,Seawater,HongKong,Beach
+EnvHKWinEs1,HKWinEs1,Dry,Seawater,HongKong,Estuary
+EnvHKWinEs2,HKWinEs2,Dry,Seawater,HongKong,Estuary
+EnvHKWinEs4,HKWinEs4,Dry,Seawater,HongKong,Estuary
+EnvHKWinEs5,HKWinEs5,Dry,Seawater,HongKong,Estuary
+EnvHKWinMc1,HKWinMc1,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc10,HKWinMc10,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc11,HKWinMc11,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc12,HKWinMc12,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc13,HKWinMc13,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc15,HKWinMc15,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc2,HKWinMc2,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc3,HKWinMc3,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc4,HKWinMc4,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc5,HKWinMc5,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc6,HKWinMc6,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc7,HKWinMc7,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc8,HKWinMc8,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMc9,HKWinMc9,Dry,Seawater,HongKong,Marine Culture
+EnvHKWinMR1,HKWinMR1,Dry,Seawater,HongKong,Marine Reserve
+EnvHKWinPort1,HKWinPort1,Dry,Seawater,HongKong,Port
+EnvHKWinPort2,HKWinPort2,Dry,Seawater,HongKong,Port
+EnvHKWinPort3,HKWinPort3,Dry,Seawater,HongKong,Port
+EnvHKWinPort4,HKWinPort4,Dry,Seawater,HongKong,Port
+EnvHKWinPort5,HKWinPort5,Dry,Seawater,HongKong,Port
+EnvHKWinWWTP1,HKWinWWTP1,Dry,Seawater,HongKong,WWTP
+EnvHKWinWWTP2,HKWinWWTP2,Dry,Seawater,HongKong,WWTP
+EnvHKWinWWTP3,HKWinWWTP3,Dry,Seawater,HongKong,WWTP
+EnvHKWinWWTP4,HKWinWWTP4,Dry,Seawater,HongKong,WWTP
+EnvQDSumBeach1,QDSumBeach1,Wet,Seawater,Qingdao,Beach
+EnvQDSumBeach2,QDSumBeach2,Wet,Seawater,Qingdao,Beach
+EnvQDSumBeach4,QDSumBeach4,Wet,Seawater,Qingdao,Beach
+EnvQDSumBeach5,QDSumBeach5,Wet,Seawater,Qingdao,Beach
+EnvQDSumEs1,QDSumEs1,Wet,Seawater,Qingdao,Estuary
+EnvQDSumEs2,QDSumEs2,Wet,Seawater,Qingdao,Estuary
+EnvQDSumEs3,QDSumEs3,Wet,Seawater,Qingdao,Estuary
+EnvQDSumMc1,QDSumMc1,Wet,Seawater,Qingdao,Marine Culture
+EnvQDSumMc2,QDSumMc2,Wet,Seawater,Qingdao,Marine Culture
+EnvQDSumMc4,QDSumMc4,Wet,Seawater,Qingdao,Marine Culture
+EnvQDSumMc5,QDSumMc5,Wet,Seawater,Qingdao,Marine Culture
+EnvQDSumMR1,QDSumMR1,Wet,Seawater,Qingdao,Marine Reserve
+EnvQDSumMR2,QDSumMR2,Wet,Seawater,Qingdao,Marine Reserve
+EnvQDSumMR3,QDSumMR3,Wet,Seawater,Qingdao,Marine Reserve
+EnvQDSumPort1,QDSumPort1,Wet,Seawater,Qingdao,Port
+EnvQDSumPort2,QDSumPort2,Wet,Seawater,Qingdao,Port
+EnvQDSumPort3,QDSumPort3,Wet,Seawater,Qingdao,Port
+EnvQDSumPort4,QDSumPort4,Wet,Seawater,Qingdao,Port
+EnvQDSumPort5,QDSumPort5,Wet,Seawater,Qingdao,Port
+EnvQDSumWWTP1,QDSumWWTP1,Wet,Seawater,Qingdao,WWTP
+EnvQDSumWWTP2,QDSumWWTP2,Wet,Seawater,Qingdao,WWTP
+EnvQDSumWWTP3,QDSumWWTP3,Wet,Seawater,Qingdao,WWTP
+EnvQDSumWWTP4,QDSumWWTP4,Wet,Seawater,Qingdao,WWTP
+EnvQDSumWWTP5,QDSumWWTP5,Wet,Seawater,Qingdao,WWTP
+EnvQDWinBeach1,QDWinBeach1,Dry,Seawater,Qingdao,Beach
+EnvQDWinBeach2,QDWinBeach2,Dry,Seawater,Qingdao,Beach
+EnvQDWinBeach3,QDWinBeach3,Dry,Seawater,Qingdao,Beach
+EnvQDWinBeach4,QDWinBeach4,Dry,Seawater,Qingdao,Beach
+EnvQDWinBeach5,QDWinBeach5,Dry,Seawater,Qingdao,Beach
+EnvQDWinEs1,QDWinEs1,Dry,Seawater,Qingdao,Estuary
+EnvQDWinEs2,QDWinEs2,Dry,Seawater,Qingdao,Estuary
+EnvQDWinEs3,QDWinEs3,Dry,Seawater,Qingdao,Estuary
+EnvQDWinEs4,QDWinEs4,Dry,Seawater,Qingdao,Estuary
+EnvQDWinEs5,QDWinEs5,Dry,Seawater,Qingdao,Estuary
+EnvQDWinMc1,QDWinMc1,Dry,Seawater,Qingdao,Marine Culture
+EnvQDWinMc2,QDWinMc2,Dry,Seawater,Qingdao,Marine Culture
+EnvQDWinMc3,QDWinMc3,Dry,Seawater,Qingdao,Marine Culture
+EnvQDWinMc4,QDWinMc4,Dry,Seawater,Qingdao,Marine Culture
+EnvQDWinMc5,QDWinMc5,Dry,Seawater,Qingdao,Marine Culture
+EnvQDWinMR1,QDWinMR1,Dry,Seawater,Qingdao,Marine Reserve
+EnvQDWinMR2,QDWinMR2,Dry,Seawater,Qingdao,Marine Reserve
+EnvQDWinMR3,QDWinMR3,Dry,Seawater,Qingdao,Marine Reserve
+EnvQDWinMR4,QDWinMR4,Dry,Seawater,Qingdao,Marine Reserve
+EnvQDWinMR5,QDWinMR5,Dry,Seawater,Qingdao,Marine Reserve
+EnvQDWinPort1,QDWinPort1,Dry,Seawater,Qingdao,Port
+EnvQDWinPort2,QDWinPort2,Dry,Seawater,Qingdao,Port
+EnvQDWinPort3,QDWinPort3,Dry,Seawater,Qingdao,Port
+EnvQDWinPort4,QDWinPort4,Dry,Seawater,Qingdao,Port
+EnvQDWinPort5,QDWinPort5,Dry,Seawater,Qingdao,Port
+EnvQDWinWWTP1,QDWinWWTP1,Dry,Seawater,Qingdao,WWTP
+EnvQDWinWWTP2,QDWinWWTP2,Dry,Seawater,Qingdao,WWTP
+EnvQDWinWWTP3,QDWinWWTP3,Dry,Seawater,Qingdao,WWTP
+EnvQDWinWWTP4,QDWinWWTP4,Dry,Seawater,Qingdao,WWTP
+EnvQDWinWWTP5,QDWinWWTP5,Dry,Seawater,Qingdao,WWTP
+PlaHKSumMc1,HKSumMc1,Wet,Plastisphere,HongKong,Marine Culture
+PlaHKSumMR1,HKSumMR1,Wet,Plastisphere,HongKong,Marine Reserve
+PlaHKSumMR2,HKSumMR2,Wet,Plastisphere,HongKong,Marine Reserve
+PlaHKSumMR3,HKSumMR3,Wet,Plastisphere,HongKong,Marine Reserve
+PlaHKSumMR4,HKSumMR4,Wet,Plastisphere,HongKong,Marine Reserve
+PlaHKSumPort1,HKSumPort1,Wet,Plastisphere,HongKong,Port
+PlaHKSumWWTP2,HKSumWWTP2,Wet,Plastisphere,HongKong,WWTP
+PlaHKWinBeach1,HKWinBeach1,Dry,Plastisphere,HongKong,Beach
+PlaHKWinBeach2,HKWinBeach2,Dry,Plastisphere,HongKong,Beach
+PlaHKWinBeach3,HKWinBeach3,Dry,Plastisphere,HongKong,Beach
+PlaHKWinEs1,HKWinEs1,Dry,Plastisphere,HongKong,Estuary
+PlaHKWinEs2,HKWinEs2,Dry,Plastisphere,HongKong,Estuary
+PlaHKWinEs4,HKWinEs4,Dry,Plastisphere,HongKong,Estuary
+PlaHKWinEs5,HKWinEs5,Dry,Plastisphere,HongKong,Estuary
+PlaHKWinMc1,HKWinMc1,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc10,HKWinMc10,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc11,HKWinMc11,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc12,HKWinMc12,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc13,HKWinMc13,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc15,HKWinMc15,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc2,HKWinMc2,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc3,HKWinMc3,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc4,HKWinMc4,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc5,HKWinMc5,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc6,HKWinMc6,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc7,HKWinMc7,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc8,HKWinMc8,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMc9,HKWinMc9,Dry,Plastisphere,HongKong,Marine Culture
+PlaHKWinMR1,HKWinMR1,Dry,Plastisphere,HongKong,Marine Reserve
+PlaHKWinPort1,HKWinPort1,Dry,Plastisphere,HongKong,Port
+PlaHKWinPort2,HKWinPort2,Dry,Plastisphere,HongKong,Port
+PlaHKWinPort3,HKWinPort3,Dry,Plastisphere,HongKong,Port
+PlaHKWinPort4,HKWinPort4,Dry,Plastisphere,HongKong,Port
+PlaHKWinPort5,HKWinPort5,Dry,Plastisphere,HongKong,Port
+PlaHKWinWWTP1,HKWinWWTP1,Dry,Plastisphere,HongKong,WWTP
+PlaHKWinWWTP2,HKWinWWTP2,Dry,Plastisphere,HongKong,WWTP
+PlaHKWinWWTP3,HKWinWWTP3,Dry,Plastisphere,HongKong,WWTP
+PlaHKWinWWTP4,HKWinWWTP4,Dry,Plastisphere,HongKong,WWTP
+PlaQDSumBeach1,QDSumBeach1,Wet,Plastisphere,Qingdao,Beach
+PlaQDSumBeach2,QDSumBeach2,Wet,Plastisphere,Qingdao,Beach
+PlaQDSumBeach4,QDSumBeach4,Wet,Plastisphere,Qingdao,Beach
+PlaQDSumBeach5,QDSumBeach5,Wet,Plastisphere,Qingdao,Beach
+PlaQDSumEs1,QDSumEs1,Wet,Plastisphere,Qingdao,Estuary
+PlaQDSumEs2,QDSumEs2,Wet,Plastisphere,Qingdao,Estuary
+PlaQDSumEs3,QDSumEs3,Wet,Plastisphere,Qingdao,Estuary
+PlaQDSumMc1,QDSumMc1,Wet,Plastisphere,Qingdao,Marine Culture
+PlaQDSumMc2,QDSumMc2,Wet,Plastisphere,Qingdao,Marine Culture
+PlaQDSumMc4,QDSumMc4,Wet,Plastisphere,Qingdao,Marine Culture
+PlaQDSumMc5,QDSumMc5,Wet,Plastisphere,Qingdao,Marine Culture
+PlaQDSumMR1,QDSumMR1,Wet,Plastisphere,Qingdao,Marine Reserve
+PlaQDSumMR2,QDSumMR2,Wet,Plastisphere,Qingdao,Marine Reserve
+PlaQDSumMR3,QDSumMR3,Wet,Plastisphere,Qingdao,Marine Reserve
+PlaQDSumPort1,QDSumPort1,Wet,Plastisphere,Qingdao,Port
+PlaQDSumPort2,QDSumPort2,Wet,Plastisphere,Qingdao,Port
+PlaQDSumPort3,QDSumPort3,Wet,Plastisphere,Qingdao,Port
+PlaQDSumPort4,QDSumPort4,Wet,Plastisphere,Qingdao,Port
+PlaQDSumPort5,QDSumPort5,Wet,Plastisphere,Qingdao,Port
+PlaQDSumWWTP1,QDSumWWTP1,Wet,Plastisphere,Qingdao,WWTP
+PlaQDSumWWTP2,QDSumWWTP2,Wet,Plastisphere,Qingdao,WWTP
+PlaQDSumWWTP3,QDSumWWTP3,Wet,Plastisphere,Qingdao,WWTP
+PlaQDSumWWTP4,QDSumWWTP4,Wet,Plastisphere,Qingdao,WWTP
+PlaQDSumWWTP5,QDSumWWTP5,Wet,Plastisphere,Qingdao,WWTP
+PlaQDWinBeach1,QDWinBeach1,Dry,Plastisphere,Qingdao,Beach
+PlaQDWinBeach2,QDWinBeach2,Dry,Plastisphere,Qingdao,Beach
+PlaQDWinBeach3,QDWinBeach3,Dry,Plastisphere,Qingdao,Beach
+PlaQDWinBeach4,QDWinBeach4,Dry,Plastisphere,Qingdao,Beach
+PlaQDWinBeach5,QDWinBeach5,Dry,Plastisphere,Qingdao,Beach
+PlaQDWinEs1,QDWinEs1,Dry,Plastisphere,Qingdao,Estuary
+PlaQDWinEs2,QDWinEs2,Dry,Plastisphere,Qingdao,Estuary
+PlaQDWinEs3,QDWinEs3,Dry,Plastisphere,Qingdao,Estuary
+PlaQDWinEs4,QDWinEs4,Dry,Plastisphere,Qingdao,Estuary
+PlaQDWinEs5,QDWinEs5,Dry,Plastisphere,Qingdao,Estuary
+PlaQDWinMc1,QDWinMc1,Dry,Plastisphere,Qingdao,Marine Culture
+PlaQDWinMc2,QDWinMc2,Dry,Plastisphere,Qingdao,Marine Culture
+PlaQDWinMc3,QDWinMc3,Dry,Plastisphere,Qingdao,Marine Culture
+PlaQDWinMc4,QDWinMc4,Dry,Plastisphere,Qingdao,Marine Culture
+PlaQDWinMc5,QDWinMc5,Dry,Plastisphere,Qingdao,Marine Culture
+PlaQDWinMR1,QDWinMR1,Dry,Plastisphere,Qingdao,Marine Reserve
+PlaQDWinMR2,QDWinMR2,Dry,Plastisphere,Qingdao,Marine Reserve
+PlaQDWinMR3,QDWinMR3,Dry,Plastisphere,Qingdao,Marine Reserve
+PlaQDWinMR4,QDWinMR4,Dry,Plastisphere,Qingdao,Marine Reserve
+PlaQDWinMR5,QDWinMR5,Dry,Plastisphere,Qingdao,Marine Reserve
+PlaQDWinPort1,QDWinPort1,Dry,Plastisphere,Qingdao,Port
+PlaQDWinPort2,QDWinPort2,Dry,Plastisphere,Qingdao,Port
+PlaQDWinPort3,QDWinPort3,Dry,Plastisphere,Qingdao,Port
+PlaQDWinPort4,QDWinPort4,Dry,Plastisphere,Qingdao,Port
+PlaQDWinPort5,QDWinPort5,Dry,Plastisphere,Qingdao,Port
+PlaQDWinWWTP1,QDWinWWTP1,Dry,Plastisphere,Qingdao,WWTP
+PlaQDWinWWTP2,QDWinWWTP2,Dry,Plastisphere,Qingdao,WWTP
+PlaQDWinWWTP3,QDWinWWTP3,Dry,Plastisphere,Qingdao,WWTP
+PlaQDWinWWTP4,QDWinWWTP4,Dry,Plastisphere,Qingdao,WWTP
+PlaQDWinWWTP5,QDWinWWTP5,Dry,Plastisphere,Qingdao,WWTP

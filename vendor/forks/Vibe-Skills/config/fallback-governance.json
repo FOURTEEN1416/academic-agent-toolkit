@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-15",
+  "fallback_policy": "forbidden_by_default",
+  "silent_fallback": false,
+  "silent_degradation": false,
+  "fallback_success_is_authoritative": false,
+  "require_hazard_alert": true,
+  "hazard_alert_title": "FALLBACK HAZARD ALERT",
+  "hazard_alert_severity": "critical",
+  "hazard_summary": "This result came from a fallback or degraded path and is not equivalent to standard success. Continuing may expose you to reduced functionality, weaker verification, or lower reliability without an obvious warning.",
+  "hazard_recovery_action": "If you need an authoritative result, restore the primary path capability or missing dependency first, then rerun.",
+  "truth_contract": {
+    "fallback_truth_level": "non_authoritative",
+    "standard_truth_level": "authoritative",
+    "fallback_degradation_state": "fallback_active",
+    "fallback_guarded_state": "fallback_guarded",
+    "manual_review_required": true
+  }
+}

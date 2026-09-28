@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "score_dimensions": [
+    {
+      "id": "novelty",
+      "weight": 2
+    },
+    {
+      "id": "absorbability",
+      "weight": 3
+    },
+    {
+      "id": "overlap_risk",
+      "weight": 3
+    },
+    {
+      "id": "evaluation_cost",
+      "weight": 1
+    },
+    {
+      "id": "operator_value",
+      "weight": 1
+    }
+  ],
+  "policy_guards": {
+    "discovery_feed_only": true,
+    "runtime_install_forbidden": true,
+    "routing_authority_forbidden": true
+  },
+  "apply_policy": "manual_review_required"
+}

@@ -1,0 +1,40 @@
+{
+  "adapter_id": "claude-code",
+  "platform": "linux",
+  "status": "supported-with-constraints",
+  "install_surface": [
+    "install.sh --host claude-code",
+    "scripts/bootstrap/one-shot-setup.sh"
+  ],
+  "check_surface": [
+    "check.sh --host claude-code"
+  ],
+  "doctor_surface": [
+    "check.sh",
+    "scripts/verify/vibe-host-adapter-contract-gate.ps1",
+    "scripts/verify/vibe-dist-manifest-gate.ps1"
+  ],
+  "degrade_cases": {
+    "bounded_managed_surface_only": "supported-with-constraints",
+    "whole_host_startup_paths_unproven": "supported-with-constraints",
+    "host_plugin_or_mcp_state_missing": "host-managed",
+    "provider_credentials_missing": "configured_offline_unready"
+  },
+  "promotion_target": "supported-with-constraints",
+  "proof_bundle": {
+    "manifest": "references/proof-bundles/claude-code-managed-closure-candidate/manifest.json",
+    "current_evidence_state": "linux-proof-frozen-windows-macos-pending",
+    "decision": "promoted-to-supported-with-constraints"
+  },
+  "promotion_requirements": [
+    "frozen clean target-root Linux install proof",
+    "frozen clean target-root Linux check proof",
+    "real Claude CLI smoke proof on Linux against the managed target root",
+    "frozen promotion decision synced into replay truth"
+  ],
+  "notes": [
+    "The repository now has a frozen Linux proof bundle for the bounded Claude managed closure lane.",
+    "This promotion stops at supported-with-constraints and covers only the repo-owned managed settings, hook, and sidecar surfaces on Linux.",
+    "This lane does not claim official-runtime ownership, full-host closure, or cross-platform parity with Codex."
+  ]
+}

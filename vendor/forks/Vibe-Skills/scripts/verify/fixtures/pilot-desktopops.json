@@ -1,0 +1,17 @@
+{
+  "scenario_id": "pilot-desktopops",
+  "plane_id": "desktopops-shadow",
+  "task": "把桌面 GUI 操作描述翻译成 ACI + OpenWorld contract，但不给默认执行所有权",
+  "objective": "验证 Agent-S 语义仅作为 DesktopOps shadow contract 来源，不获得默认执行 owner。",
+  "expected": {
+    "role": "desktopops_shadow_advisor_only",
+    "contract_shape": "aci+openworld",
+    "forbid_default_execution_owner": true,
+    "stage_ceiling": "soft"
+  },
+  "must_not": [
+    "default_execution_owner_takeover",
+    "second_orchestrator",
+    "implicit_promote"
+  ]
+}

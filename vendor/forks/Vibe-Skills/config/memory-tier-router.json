@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "enabled": true,
+  "mode": "shadow",
+  "workspace_shared_plane": {
+    "source_config": "config/workspace-memory-plane.json",
+    "disclosure_policy": "config/memory-disclosure-policy.json",
+    "ingest_policy": "config/memory-ingest-policy.json"
+  },
+  "preserve_existing_truth_sources": true,
+  "tiers": {
+    "session": "state_store",
+    "project_decision": "serena",
+    "short_term_semantic": "ruflo",
+    "long_term_graph": "cognee",
+    "external_preference": "mem0",
+    "policy_contract": "letta"
+  },
+  "constraints": {
+    "forbid_mem0_as_primary": true,
+    "forbid_letta_as_runtime_owner": true,
+    "forbid_episodic_memory": true,
+    "single_workspace_plane_per_workspace": true
+  }
+}

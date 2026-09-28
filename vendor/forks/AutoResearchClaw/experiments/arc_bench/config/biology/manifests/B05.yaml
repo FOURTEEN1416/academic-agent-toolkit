@@ -1,0 +1,90 @@
+id: B05
+title: "M. tuberculosis condition-specific essentiality and metabolic drug-target prioritisation"
+arxiv_id: null
+venue: "ARC-Bench Biology 2026"
+paper_asset: null
+
+synthesis: |
+  Constraint-based essentiality analysis can prioritise metabolic drug-target
+  hypotheses in pathogen models. A credible study loads an M. tuberculosis GSMM
+  such as iNJ661 when available, validates biomass production under a documented
+  medium, performs single-gene and/or single-reaction deletion, and ranks
+  essential targets by growth impact and subsystem interpretability.
+
+hypotheses:
+  - id: H1
+    statement: "The selected M. tuberculosis model produces positive biomass under the documented reference medium."
+    measurable: true
+  - id: H2
+    statement: "Single-gene or single-reaction deletion identifies a non-empty set of essential metabolic targets under the reference condition."
+    measurable: true
+  - id: H3
+    statement: "Prioritised targets are enriched in interpretable core metabolic subsystems such as cell-wall precursor, cofactor, lipid, energy, or amino-acid metabolism."
+    measurable: true
+
+experiment_design:
+  research_question: "Which condition-specific metabolic genes or reactions are predicted essential in M. tuberculosis and are plausible drug-target hypotheses?"
+  conditions:
+    - name: "mtb_reference_medium"
+      description: "M. tuberculosis iNJ661 or comparable model under a documented reference medium."
+    - name: "single_gene_deletion"
+      description: "Single-gene deletion screen when GPR rules are available."
+    - name: "single_reaction_deletion"
+      description: "Single-reaction deletion screen as a fallback or complementary target set."
+  baselines:
+    - "Wild-type reference growth."
+    - "Nonessential deletion growth distribution."
+  metrics:
+    - name: "wt_growth_rate_1_per_h"
+      direction: "maximize"
+      description: "Reference biomass flux."
+    - name: "growth_fraction_after_deletion"
+      direction: "minimize"
+      description: "Deletion biomass divided by WT biomass."
+    - name: "essential_target_count"
+      direction: "characterize"
+      description: "Count of genes/reactions below essentiality threshold."
+    - name: "subsystem_enrichment"
+      direction: "characterize"
+      description: "Subsystem distribution among essential targets."
+  datasets:
+    - name: "M. tuberculosis GSMM"
+      source: "BIGG iNJ661 or documented local SBML/JSON model."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 2400
+
+rubric_path: "experiments/arc_bench/config/biology/rubrics/B05.json"
+
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: "results.json contains model ID, WT growth, essential target counts, top targets, and hypothesis verdicts."
+    must_pass: true
+  - id: req_deletion_table
+    type: artifact
+    description: "A gene or reaction deletion table exists with target ID, status, growth, growth_fraction, and essential flag."
+    must_pass: true
+  - id: req_top_targets
+    type: discussion
+    description: "Top 10 prioritised essential targets are reported with subsystem/pathway and rationale."
+    must_pass: true
+  - id: req_figure
+    type: artifact
+    description: "At least one essentiality distribution or subsystem-enrichment figure exists."
+    must_pass: true
+  - id: req_h1_h2_h3_supported_flags
+    type: discussion
+    description: >
+      Each of hypotheses.h1, hypotheses.h2, hypotheses.h3 in results.json MUST
+      have an explicit `supported` boolean and a `details` string of at least
+      40 characters describing the evidence used to reach that verdict.
+    must_pass: true
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: "Top-3 essential target hypotheses are framed mechanistically — naming the metabolic subsystem each target belongs to and why its disruption is predicted lethal under the reference medium. Claims must be framed as computational hypotheses, not validated drugs. Acceptable inside summary, structured_results, or a separate writeup field."
+    must_pass: false  # Optional: nice-to-have, not blocking
+  - id: req_seed_documented
+    type: discussion
+    description: "The solver backend (cobra optlang interface name + version) and COBRApy version are reported in results.json. Required for reproducibility but not for scientific correctness."
+    must_pass: false  # Optional

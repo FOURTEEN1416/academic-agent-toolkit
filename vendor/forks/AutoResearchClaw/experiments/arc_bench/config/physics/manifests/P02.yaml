@@ -1,0 +1,165 @@
+# ============================================================================
+# P02 — Heavy Majorana neutrino production at the LHC ($pp \to \mu^\pm N$)
+# ----------------------------------------------------------------------------
+# Adapts ColliderAgent paper-reproduction prompt:
+#   /path/to/ColliderAgent/paper-reproduction/1308.2209/prompt_figure_3.md
+# Source: arXiv:1308.2209 — heavy Majorana neutrino searches at the LHC,
+# extending the SM with a single right-handed singlet $N$ that mixes with
+# the muon flavor via $V_{\mu N}$.
+# ============================================================================
+
+id: P02
+title: "Reproducing $pp \\to \\mu^\\pm N$ cross section vs heavy-Majorana-neutrino mass at $\\sqrt{s} = 7, 8, 14$ TeV"
+arxiv_id: "1308.2209"
+venue: "ARC-Bench Physics 2026"
+paper_asset: null
+
+synthesis: |
+  Reproducing the LHC sensitivity to a single heavy Majorana neutrino $N$
+  in the muon channel as a benchmark of the agent's ability to assemble a
+  hadron-collider Lagrangian -> MC -> analysis pipeline. The BSM extension
+  adds a right-handed singlet $N$ mixing with $\nu_\mu$ via the
+  dimensionless real parameter $V_{\mu N}$, so the relevant interaction is
+  $\mathcal{L}_N \supset -(g_2/\sqrt{2})\,V_{\mu N}\,(\bar\mu\gamma^\mu P_L
+  N)\,W^-_\mu + (\text{NC term}) + \text{h.c.}$ The diagnostic observable
+  is the $W^*$-mediated cross section $\sigma(pp \to \mu^\pm N)$ scanned
+  over $m_N \in \{100, 200, \ldots, 1000\}$ GeV with $|V_{\mu N}|=1$, at
+  three LHC energies $\sqrt{s} \in \{7, 8, 14\}$ TeV with the CTEQ6L PDF.
+
+  A credible study (a) implements the heavy-Majorana-neutrino Lagrangian
+  (FeynRules .fr or analytic UFO modification), (b) sets up MadGraph runs
+  for the 30 (mass, energy) cells with the CTEQ6L PDF, (c) extracts the
+  cross section per cell, and (d) plots three side-by-side panels of
+  $\sigma(m_N)$ on a log-y axis over $[100,1000]$ GeV vs $[0.1, 4\times
+  10^4]$ fb. Research question: *does the agent reproduce the steep
+  PDF-driven fall-off of $\sigma(pp \to \mu^\pm N)$ with $m_N$ and the
+  correct ordering between $\sqrt{s}=7$, 8, and 14 TeV predicted by
+  arXiv:1308.2209 Fig. 3?*
+
+hypotheses:
+  - id: H1
+    statement: "At $m_N = 200$ GeV and $\\sqrt{s}=14$ TeV, $\\sigma(pp \\to \\mu^\\pm N)$ falls within $\\pm 30\\%$ of the published reference value."
+    measurable: true
+  - id: H2
+    statement: "Cross-section ordering $\\sigma(14\\,\\mathrm{TeV}) > \\sigma(8\\,\\mathrm{TeV}) > \\sigma(7\\,\\mathrm{TeV})$ holds at every mass point, with the 14/7 ratio at $m_N = 500$ GeV in $[5, 30]$."
+    measurable: true
+  - id: H3
+    statement: "$\\sigma(m_N)$ falls by at least 2 orders of magnitude between $m_N = 100$ GeV and $m_N = 1000$ GeV at every LHC energy."
+    measurable: true
+
+experiment_design:
+  research_question: "Does the agent reproduce the cross-section curves for $pp \\to \\mu^\\pm N$ as a function of the heavy-Majorana-neutrino mass at the 7, 8, and 14 TeV LHC, matching Figure 3 of arXiv:1308.2209?"
+  conditions:
+    - name: "lhc_7tev"
+      description: "$pp$ collisions at $\\sqrt{s}=7$ TeV with CTEQ6L PDF, mass scan $m_N \\in \\{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000\\}$ GeV, $|V_{\\mu N}|=1$."
+    - name: "lhc_8tev"
+      description: "Same setup at $\\sqrt{s}=8$ TeV (LHC Run 1 final dataset energy)."
+    - name: "lhc_14tev"
+      description: "Same setup at $\\sqrt{s}=14$ TeV (HL-LHC design)."
+  baselines:
+    - "Charged-current SM $pp \\to \\mu \\nu_\\mu$ (W production) cross check at the same energies"
+  metrics:
+    - name: "cross_section_fb"
+      direction: "match_reference"
+      description: "Total $\\sigma(pp \\to \\mu^\\pm N)$ in fb at each (mass, energy) cell."
+    - name: "energy_ratio_14_to_7"
+      direction: "match_reference"
+      description: "$\\sigma(14\\,\\mathrm{TeV})/\\sigma(7\\,\\mathrm{TeV})$ at $m_N = 500$ GeV."
+    - name: "mass_dropoff_factor"
+      direction: "match_reference"
+      description: "$\\sigma(m_N=100)/\\sigma(m_N=1000)$ at each $\\sqrt{s}$."
+  datasets:
+    - process_id: "pp_to_muN_via_Wstar"
+      sqrt_s_TeV: 14
+      description: "$pp \\to \\mu^\\pm N$ via $W^*$ at the LHC (CTEQ6L PDF). Three sub-samples for $\\sqrt{s} \\in \\{7,8,14\\}$ TeV."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 3600
+
+rubric_path: "experiments/arc_bench/config/physics/rubrics/P02.json"
+
+# ---------------------------------------------------------------------------
+# Agent-mode requirements (consumed by researchclaw.pipeline.requirements_judge
+# at stage 15 RESEARCH_DECISION). Schema mirrors B01.yaml:
+#   id          — stable identifier
+#   type        — advisory hint to the LLM judge (numeric | artifact | discussion)
+#   description — natural-language statement of what must be true post-run
+#   must_pass   — true → unmet ⇒ rerun (1 retry max); false → optional
+#
+# The five generic must_pass items apply uniformly across P01-P10; the sixth
+# is topic-specific (mirrors this manifest's H1).  The two must_pass=false
+# items reward mechanistic interpretation and MC-reproducibility metadata
+# without blocking proceed-vs-rerun on them.
+# ---------------------------------------------------------------------------
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: >-
+      A canonical results.json file exists at the workspace root with at least
+      the keys: primary_metric (number), metric_key (string), metrics (object
+      with numeric keys), hypotheses (object with h1/h2/h3 entries each
+      carrying a `supported` boolean), summary (non-empty string).
+    must_pass: true
+
+  - id: req_metrics_numeric
+    type: numeric
+    description: >-
+      results.json metrics MUST contain at least 3 numeric (non-null, finite)
+      values directly relevant to the headline physics observable named in
+      the experiment_design.metrics list above — these are the numbers the
+      paper will report in its Results section.
+    must_pass: true
+
+  - id: req_hypotheses_supported_flags
+    type: discussion
+    description: >-
+      results.json hypotheses.h1/h2/h3 each MUST have an explicit `supported`
+      boolean AND a `details` string ≥ 40 characters quoting the numerical
+      evidence (specific values + their source artifact) used to reach the
+      verdict.
+    must_pass: true
+
+  - id: req_publication_figure
+    type: artifact
+    description: >-
+      At least one publication-quality figure file (PDF or PNG, ≥150 DPI for
+      raster) exists under figures/ or output/figures/ with axes labeled in
+      physical units (GeV / pb / fb / dimensionless) and a legend if multiple
+      series are plotted.  The figure must directly support a hypothesis
+      verdict.
+    must_pass: true
+
+  - id: req_model_implementation
+    type: artifact
+    description: >-
+      The BSM Lagrangian is implemented either as a FeynRules .fr file
+      (models/*.fr) with a matching UFO directory (models/*_UFO/ containing
+      at least particles.py, parameters.py, couplings.py, vertices.py), OR
+      as analytic Python code that explicitly computes the cross sections
+      from the Lagrangian terms.  A pure SM baseline with no BSM piece is
+      NOT sufficient.
+    must_pass: true
+
+  - id: req_xsec_at_mN_200
+    type: numeric
+    description: >-
+      results.json metrics MUST report a numeric `sigma_pp_to_muN_at_mN200_14TeV_fb` (or equivalent) within ±30% of the published reference value at m_N=200 GeV, √s=14 TeV.
+    must_pass: true
+
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: >-
+      The summary or structured_results section provides a one-paragraph
+      mechanistic interpretation of WHY the headline observable comes out the
+      way it does (which interference / propagator structure / cut effect
+      drives the result).  Nice-to-have, not blocking proceed.
+    must_pass: false
+
+  - id: req_mc_reproducibility
+    type: discussion
+    description: >-
+      results.json or a sibling reproducibility section names: (a) the
+      MadGraph5_aMC@NLO version, (b) the PDF set used (if applicable), (c)
+      at least one explicit random seed.  Required for full reproducibility
+      but not for scientific correctness.
+    must_pass: false

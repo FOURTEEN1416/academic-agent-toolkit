@@ -1,0 +1,117 @@
+{
+    "id": "ml06-root",
+    "requirements": "A credible experiment studying whether adaptive learning-rate schedules improve logistic-regression convergence on binary classification: schedule conditions are implemented as distinct update rules, runs are executed on multiple datasets with multiple seeds, and results address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact threshold satisfaction. Equivalent schedules (e.g., a different decay parameterization) should be credited when the underlying mechanism is clearly the intended one.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml06-code",
+            "requirements": "The logistic-regression training framework and learning-rate schedule variants are implemented in a way that allows a meaningful convergence comparison.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml06-code-schedules",
+                    "requirements": "The submission implements a fixed-learning-rate baseline and multiple adaptive schedules (e.g., step-decay, exponential-decay, cosine-annealing, cosine-warm-restarts, or comparable alternatives) as distinct update rules, not duplicated code paths.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml06-code-model",
+                    "requirements": "A binary logistic-regression objective (sigmoid + log-loss) is trained via iterative gradient-based optimization with per-epoch control, enabling convergence-epoch tracking.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml06-code-data",
+                    "requirements": "The submission uses multiple datasets (including at least one sklearn built-in or synthetic classification set), performs train/validation/test splitting, and applies feature scaling consistently.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml06-exec",
+            "requirements": "Execution produces convergence and quality metrics with reasonable seed coverage.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml06-exec-metrics",
+                    "requirements": "Execution produces a machine-readable metrics artifact with numeric convergence-epochs (or equivalent convergence measure) and validation log-loss for each implemented (dataset, condition) cell.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml06-exec-seeds",
+                    "requirements": "Reported metrics are aggregated over multiple random seeds per (dataset, condition) with some dispersion measure. More seeds are better, but honest small-seed runs with variance reported are preferable to single deterministic runs.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml06-exec-auc",
+                    "requirements": "Execution also reports a final predictive-quality metric (e.g., test ROC-AUC) for each condition on at least one dataset, so readers can check that convergence-speed gains do not collapse classification quality.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml06-results",
+            "requirements": "The analysis evaluates all three hypotheses and discusses the speed-vs-quality trade-off.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml06-result-h1",
+                    "requirements": "The submission compares cosine-style schedules against the fixed-rate baseline on convergence-epochs across the evaluated datasets and conveys whether cosine schedules converge meaningfully faster \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml06-result-h2",
+                    "requirements": "The submission reports the spread of final validation log-loss among the adaptive schedules and conveys whether the best-vs-worst gap is small (i.e., final-quality differences are minor once converged).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml06-result-h3",
+                    "requirements": "The submission compares cosine-warm-restarts against exponential-decay (or equivalent schedules) on convergence speed and final ROC-AUC and conveys the qualitative outcome for H3.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml06-result-writeup",
+                    "requirements": "The README or writeup describes setup and key metrics, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations such as convergence-threshold choice, seed count, or dataset scope. No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

@@ -1,0 +1,109 @@
+{
+    "id": "ml18-root",
+    "requirements": "A credible experiment studying post-hoc probability calibration methods (Platt, isotonic, temperature, or equivalents) for sklearn classifiers: calibration conditions are implemented, execution covers multiple datasets/classifiers with repeated seeds, and results address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Well-motivated calibrator variants or alternative base classifiers that preserve the scientific question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml18-code",
+            "requirements": "Calibration methods and classifier setup are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml18-code-calibrators",
+                    "requirements": "The submission implements multiple calibration conditions \u2014 typically including uncalibrated, Platt, isotonic, and temperature scaling \u2014 as distinct code paths applied post-hoc to the same base model outputs.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml18-code-models",
+                    "requirements": "The experiment includes multiple target classifiers (e.g., RandomForest, gradient boosting, SVM-RBF, or equivalents) with consistent train/calibration/test handling.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "ml18-code-datasets",
+                    "requirements": "The submission uses multiple datasets (sklearn built-ins or comparable) and an explicit calibration split separate from train and test.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml18-exec",
+            "requirements": "Execution reports calibration-focused metrics across conditions.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml18-exec-metrics",
+                    "requirements": "Execution outputs numeric ECE, log loss, and test accuracy (or equivalents) for each implemented condition on at least one dataset-classifier pair in a machine-readable artifact.",
+                    "weight": 16.6667,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml18-exec-seeds",
+                    "requirements": "Metrics are aggregated over multiple random seeds per evaluated cell with a dispersion measure. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml18-results",
+            "requirements": "Results quantitatively address H1/H2/H3 directionally with a clear narrative.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml18-result-h1",
+                    "requirements": "The submission computes relative ECE change versus uncalibrated and conveys whether at least one calibrator yields a meaningful ECE reduction across most classifier/dataset pairs \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml18-result-h2",
+                    "requirements": "The submission compares isotonic vs Platt mean ECE per dataset and conveys the relative calibration quality plus any calibration-set size considerations (H2).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml18-result-h3",
+                    "requirements": "The submission reports accuracy deltas between calibrated and uncalibrated outputs per classifier-dataset pair and conveys whether accuracy changes are small (H3).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml18-result-writeup",
+                    "requirements": "The README or report conveys per-hypothesis outcomes (supported / refuted / inconclusive), cites key ECE/log-loss/accuracy numbers, and discusses limitations (dataset scope, binning sensitivity, seed count, calibration split size). No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

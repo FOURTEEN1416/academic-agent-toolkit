@@ -1,0 +1,92 @@
+# ============================================================================
+# T07 — Text feature extraction strategies for linear document classifiers
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML07
+title: "Text feature extraction trade-offs: TF-IDF vs count vs hashing with NB/SVM"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Sparse bag-of-words pipelines remain strong baselines for document
+  classification, especially under strict CPU and latency constraints.
+  Three common feature extractors — CountVectorizer, TfidfVectorizer, and
+  HashingVectorizer — define different bias/variance and efficiency trade-offs.
+  Count vectors preserve raw frequency signals useful for generative models;
+  TF-IDF often improves linear margin classifiers by downweighting common
+  tokens; hashing avoids vocabulary construction and can reduce memory and
+  fit-time at the cost of collisions.
+
+  Classifier choice interacts strongly with the representation. Multinomial
+  Naive Bayes (MNB) is typically paired with nonnegative count-like features,
+  while linear SVM variants often benefit from TF-IDF normalization. In
+  practical workflows, teams frequently need to choose between slightly better
+  macro-F1 and much faster runtime. This makes a pure "best score" benchmark
+  incomplete unless paired with timing and robustness checks.
+
+  A credible CPU-scale study should compare multiple extractor+classifier
+  combinations on at least two document datasets available directly through
+  sklearn (or trivially synthesized text), use fixed train/test splits with
+  repeated seeds where relevant, and report both predictive quality and
+  efficiency metrics. The experiment should explicitly test whether TF-IDF +
+  linear SVM provides the strongest macro-F1 while hashing offers meaningful
+  speed advantages with limited degradation.
+
+  *Does TF-IDF with linear SVM deliver the best macro-F1 on sklearn text benchmarks, and is HashingVectorizer a worthwhile speed/accuracy trade-off versus vocabulary-based features?*
+
+hypotheses:
+  - id: H1
+    statement: "TF-IDF + linear SVM achieves the highest macro-F1 among implemented conditions on at least 2 of 3 evaluated text datasets."
+    measurable: true
+  - id: H2
+    statement: "HashingVectorizer-based pipelines reduce vectorization+fit wall-clock time by at least 20% versus the corresponding TF-IDF pipeline on at least 2 of 3 datasets."
+    measurable: true
+  - id: H3
+    statement: "Multinomial Naive Bayes with count vectors attains macro-F1 within 0.05 absolute of TF-IDF + linear SVM on at least 1 of 3 datasets."
+    measurable: true
+
+experiment_design:
+  research_question: "Across sklearn-accessible document datasets, what are the accuracy-efficiency trade-offs between count, TF-IDF, and hashing features when paired with Multinomial Naive Bayes and linear SVM classifiers?"
+  conditions:
+    - name: "count_mnb"
+      description: "CountVectorizer (word unigrams, min_df=2) + MultinomialNB(alpha=1.0)."
+    - name: "tfidf_mnb"
+      description: "TfidfVectorizer (word unigrams, min_df=2, norm=l2) + MultinomialNB(alpha=1.0)."
+    - name: "tfidf_linear_svm"
+      description: "TfidfVectorizer (word unigrams, min_df=2, norm=l2) + LinearSVC(C=1.0)."
+    - name: "hashing_linear_svm"
+      description: "HashingVectorizer (word unigrams, n_features=2^18, alternate_sign=False) + LinearSVC(C=1.0)."
+  baselines:
+    - "count_mnb as the classic sparse-text baseline"
+    - "tfidf_mnb as a same-classifier feature-ablation baseline"
+  metrics:
+    - name: "macro_f1"
+      direction: "maximize"
+      description: "Macro-averaged F1 score on held-out test split."
+    - name: "accuracy"
+      direction: "maximize"
+      description: "Overall test accuracy for comparability with prior text benchmarks."
+    - name: "fit_predict_time_sec"
+      direction: "minimize"
+      description: "End-to-end wall-clock time for vectorization, model fit, and test prediction."
+  datasets:
+    - name: "20newsgroups_4class"
+      source: "sklearn.datasets.fetch_20newsgroups with 4 categories (subset=train/test, remove=(\"headers\",\"footers\",\"quotes\"))"
+    - name: "20newsgroups_8class"
+      source: "sklearn.datasets.fetch_20newsgroups with 8 categories (subset=train/test, remove=(\"headers\",\"footers\",\"quotes\"))"
+    - name: "synthetic_topic_docs"
+      source: "Trivially synthesized corpus via templated sentence generation for 4 classes, 2000 documents total"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 600
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML07.json"

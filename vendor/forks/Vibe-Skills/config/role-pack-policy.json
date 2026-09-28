@@ -1,0 +1,536 @@
+{
+  "schema_version": 1,
+  "updated": "2026-03-17",
+  "policy": {
+    "purpose": "Distill upstream role, subagent, and skill ecosystems into VCO-native role-pack, team-template seed, and skill-governance assets without creating a second runtime surface.",
+    "default_stage": "shadow",
+    "canonical_execution_owner": "references/team-templates.md",
+    "canonical_pack_owner": "config/pack-manifest.json",
+    "allowed_landing_modes": [
+      "team_template_seed",
+      "role_card_overlay",
+      "skill_distillation_rule",
+      "reference_case_only"
+    ],
+    "forbidden_outcomes": [
+      "second_orchestrator",
+      "second_team_execution_owner",
+      "direct_upstream_runtime_import",
+      "duplicate_skill_surface",
+      "unbounded_role_fork"
+    ]
+  },
+  "upstream_sources": [
+    {
+      "id": "agent-squad",
+      "category": "team-orchestration-patterns",
+      "preferred_landing": "team_template_seed",
+      "retained_value": [
+        "supervisor scatter/gather",
+        "bounded milestone handoff",
+        "specialist fan-out / fan-in contracts"
+      ],
+      "forbidden_imports": [
+        "new runtime loop",
+        "new supervisor command surface"
+      ],
+      "canonical_targets": [
+        "references/team-templates.md",
+        "config/role-pack-policy.json"
+      ],
+      "observed_head_sha": "8048bcf308fcc5f5768a9c2d4c3f139b0e81f4e6",
+      "reviewed_at": "2026-03-17",
+      "decision_class": "admit",
+      "admission_scope": "pattern-refresh-only",
+      "packet_memo": "docs/external-tooling/role-pack-upstream-delta-2026-03-17.md",
+      "next_action": "Refresh scatter/gather and bounded handoff language without opening a second orchestrator lane."
+    },
+    {
+      "id": "claude-skills",
+      "category": "skill-authoring-spec",
+      "preferred_landing": "skill_distillation_rule",
+      "retained_value": [
+        "skill schema and templates",
+        "validation workflow",
+        "quality checklist and anti-patterns"
+      ],
+      "forbidden_imports": [
+        "second skill runtime",
+        "parallel installer semantics"
+      ],
+      "canonical_targets": [
+        "references/skill-distillation-rules.md",
+        "config/role-pack-policy.json"
+      ],
+      "observed_head_sha": "3bf9a24b76a7c122f1fc05e83929fbc84e1c207a",
+      "reviewed_at": "2026-03-17",
+      "decision_class": "admit",
+      "admission_scope": "skill-distillation-rule-refresh-only",
+      "packet_memo": "docs/external-tooling/role-pack-upstream-delta-2026-03-17.md",
+      "next_action": "Refresh skill schema, validation, and quality rules without opening a second skill runtime."
+    },
+    {
+      "id": "awesome-agent-skills",
+      "category": "role-card-corpus",
+      "preferred_landing": "role_card_overlay",
+      "retained_value": [
+        "domain specialist coverage",
+        "role naming patterns",
+        "problem-shape catalog"
+      ],
+      "forbidden_imports": [
+        "bulk raw skill ingestion",
+        "new default pack surface"
+      ],
+      "canonical_targets": [
+        "config/role-pack-policy.json",
+        "references/skill-distillation-rules.md"
+      ],
+      "observed_head_sha": "9f1edf3d13cc340bf4f62308c8922dad8c9a0a82",
+      "reviewed_at": "2026-03-17",
+      "decision_class": "admit",
+      "admission_scope": "role-card-overlay-only",
+      "packet_memo": "docs/external-tooling/role-pack-upstream-delta-2026-03-17.md",
+      "next_action": "Continue harvesting role-card coverage and problem-shape taxonomy without bulk runtime ingestion."
+    },
+    {
+      "id": "awesome-claude-code-subagents",
+      "category": "subagent-role-templates",
+      "preferred_landing": "team_template_seed",
+      "retained_value": [
+        "reviewer archetypes",
+        "delivery lane separation",
+        "parallel critique roles"
+      ],
+      "forbidden_imports": [
+        "secondary execution owner",
+        "independent subagent runtime"
+      ],
+      "canonical_targets": [
+        "references/team-templates.md",
+        "config/role-pack-policy.json"
+      ],
+      "observed_head_sha": "87321636a1c666283d8f17398b45c2644395044b",
+      "reviewed_at": "2026-03-17",
+      "decision_class": "admit",
+      "admission_scope": "team-template-and-review-archetype-refresh-only",
+      "packet_memo": "docs/external-tooling/role-pack-upstream-delta-2026-03-17.md",
+      "next_action": "Refresh reviewer and specialist archetypes only; keep VCO templates as the sole execution owner."
+    },
+    {
+      "id": "antigravity-awesome-skills",
+      "category": "taxonomy-marketplace-corpus",
+      "preferred_landing": "reference_case_only",
+      "retained_value": [
+        "taxonomy coverage",
+        "naming inspiration",
+        "domain gap evidence"
+      ],
+      "forbidden_imports": [
+        "marketplace as default runtime surface",
+        "unbounded catalog sprawl"
+      ],
+      "canonical_targets": [
+        "references/skill-distillation-rules.md",
+        "config/role-pack-policy.json"
+      ],
+      "observed_head_sha": "883c81609a76d6d70a19068194a632a599de089f",
+      "reviewed_at": "2026-03-17",
+      "decision_class": "metadata-only",
+      "admission_scope": "taxonomy-and-quality-evidence-only",
+      "packet_memo": "docs/external-tooling/role-pack-upstream-delta-2026-03-17.md",
+      "next_action": "Use release-scale catalog drift as taxonomy evidence only; do not let marketplace breadth become runtime authority."
+    },
+    {
+      "id": "awesome-claude-skills-composio",
+      "category": "connector-aware-skill-catalog",
+      "preferred_landing": "skill_distillation_rule",
+      "retained_value": [
+        "curated root skill packaging heuristics",
+        "catalog quarantine boundary for external automation subtrees",
+        "connector-aware skill distillation constraints"
+      ],
+      "forbidden_imports": [
+        "connector automation subtree as runtime surface",
+        "external catalog becoming default skill authority"
+      ],
+      "canonical_targets": [
+        "references/skill-distillation-rules.md",
+        "config/role-pack-policy.json",
+        "docs/role-pack-distillation-governance.md"
+      ],
+      "observed_head_sha": "27904475d1270d8395acf07691966267d5abda2d",
+      "reviewed_at": "2026-03-17",
+      "decision_class": "admit",
+      "admission_scope": "curated-root-and-catalog-quarantine-rule-only",
+      "packet_memo": "docs/external-tooling/role-pack-upstream-delta-2026-03-17.md",
+      "next_action": "Use the restored curated root as distillation evidence and keep the composio automation subtree quarantined behind connector governance."
+    }
+  ],
+  "role_packs": [
+    {
+      "id": "supervisor_scatter_gather",
+      "display_name": "Supervisor Scatter/Gather",
+      "landing_mode": "team_template_seed",
+      "status": "governed",
+      "canonical_owner": "references/team-templates.md",
+      "maps_to_templates": [
+        "supervisor-scatter-gather",
+        "research-team"
+      ],
+      "source_upstreams": [
+        "agent-squad",
+        "awesome-claude-code-subagents"
+      ],
+      "problem_shapes": [
+        "parallel evidence gathering",
+        "single synthesis owner",
+        "bounded specialist context"
+      ],
+      "roles": [
+        {
+          "id": "lead",
+          "native_agent_type": "default",
+          "responsibility": "dispatch, synthesis, final decision",
+          "artifacts": [
+            "dispatch envelope",
+            "final synthesis"
+          ]
+        },
+        {
+          "id": "specialist_read",
+          "native_agent_type": "explorer",
+          "responsibility": "codebase or evidence reading",
+          "artifacts": [
+            "evidence note"
+          ]
+        },
+        {
+          "id": "specialist_risk",
+          "native_agent_type": "explorer",
+          "responsibility": "alternative view and risk analysis",
+          "artifacts": [
+            "risk note"
+          ]
+        },
+        {
+          "id": "specialist_execute",
+          "native_agent_type": "worker",
+          "responsibility": "implementation-ready patch plan",
+          "artifacts": [
+            "patch plan",
+            "handoff checklist"
+          ]
+        }
+      ],
+      "distillation_assets": {
+        "skills": [
+          "vibe",
+          "subagent-driven-development",
+          "context-hunter",
+          "code-reviewer"
+        ],
+        "references": [
+          "references/team-templates.md",
+          "protocols/team.md"
+        ],
+        "gates": [
+          "vibe-role-pack-governance-gate"
+        ]
+      },
+      "boundaries": [
+        "does_not_create_new_execution_owner",
+        "does_not_bypass_vco_grade_gate",
+        "does_not_import_upstream_runtime_surface"
+      ],
+      "promotion_boundary": {
+        "default_stage": "shadow",
+        "promotion_target": "existing template and protocol only"
+      }
+    },
+    {
+      "id": "review_board",
+      "display_name": "Review Board",
+      "landing_mode": "team_template_seed",
+      "status": "governed",
+      "canonical_owner": "references/team-templates.md",
+      "maps_to_templates": [
+        "review-team",
+        "local-vco-dialectic-review"
+      ],
+      "source_upstreams": [
+        "awesome-claude-code-subagents",
+        "antigravity-awesome-skills"
+      ],
+      "problem_shapes": [
+        "multi-perspective review",
+        "severity-first aggregation",
+        "parallel specialist critique"
+      ],
+      "roles": [
+        {
+          "id": "lead",
+          "native_agent_type": "default",
+          "responsibility": "aggregate findings and decide escalation",
+          "artifacts": [
+            "review synthesis"
+          ]
+        },
+        {
+          "id": "quality_reviewer",
+          "native_agent_type": "explorer",
+          "responsibility": "quality and maintainability review",
+          "artifacts": [
+            "quality note"
+          ]
+        },
+        {
+          "id": "security_reviewer",
+          "native_agent_type": "explorer",
+          "responsibility": "security and abuse-path review",
+          "artifacts": [
+            "security note"
+          ]
+        }
+      ],
+      "distillation_assets": {
+        "skills": [
+          "code-reviewer",
+          "security-reviewer",
+          "verification-before-completion"
+        ],
+        "references": [
+          "references/team-templates.md",
+          "references/skill-distillation-rules.md"
+        ],
+        "gates": [
+          "vibe-role-pack-governance-gate"
+        ]
+      },
+      "boundaries": [
+        "review_roles_do_not_replace_execution_owner",
+        "findings_must_flow_back_to_existing_templates",
+        "no_upstream_runtime_takeover"
+      ],
+      "promotion_boundary": {
+        "default_stage": "shadow",
+        "promotion_target": "existing review templates only"
+      }
+    },
+    {
+      "id": "feature_delivery_seed",
+      "display_name": "Feature Delivery Seed",
+      "landing_mode": "team_template_seed",
+      "status": "governed",
+      "canonical_owner": "references/team-templates.md",
+      "maps_to_templates": [
+        "feature-team",
+        "full-stack-team"
+      ],
+      "source_upstreams": [
+        "agent-squad",
+        "awesome-claude-code-subagents",
+        "awesome-agent-skills"
+      ],
+      "problem_shapes": [
+        "planner to implementer lane split",
+        "bounded verification handoff",
+        "release readiness review"
+      ],
+      "roles": [
+        {
+          "id": "planner",
+          "native_agent_type": "default",
+          "responsibility": "scope the task and sequence the delivery lanes",
+          "artifacts": [
+            "delivery plan"
+          ]
+        },
+        {
+          "id": "implementer",
+          "native_agent_type": "worker",
+          "responsibility": "perform feature implementation",
+          "artifacts": [
+            "patch set"
+          ]
+        },
+        {
+          "id": "verifier",
+          "native_agent_type": "explorer",
+          "responsibility": "validate readiness and summarize release risk",
+          "artifacts": [
+            "release readiness note"
+          ]
+        }
+      ],
+      "distillation_assets": {
+        "skills": [
+          "autonomous-builder",
+          "tdd-guide",
+          "requesting-code-review",
+          "verification-before-completion"
+        ],
+        "references": [
+          "references/team-templates.md"
+        ],
+        "gates": [
+          "vibe-role-pack-governance-gate"
+        ]
+      },
+      "boundaries": [
+        "planner_and_reviewer_do_not_form_second_owner",
+        "implementation_lanes_remain_within_existing_template_contract",
+        "no_upstream_runtime_import"
+      ],
+      "promotion_boundary": {
+        "default_stage": "shadow",
+        "promotion_target": "existing feature and full-stack templates only"
+      }
+    },
+    {
+      "id": "domain_specialist_overlay",
+      "display_name": "Domain Specialist Overlay",
+      "landing_mode": "role_card_overlay",
+      "status": "governed",
+      "canonical_owner": "config/role-pack-policy.json",
+      "maps_to_templates": [
+        "research-team",
+        "local-vco-dialectic-review"
+      ],
+      "source_upstreams": [
+        "awesome-agent-skills",
+        "antigravity-awesome-skills",
+        "awesome-claude-skills-composio"
+      ],
+      "problem_shapes": [
+        "domain expert injection",
+        "localized specialist perspective",
+        "taxonomy gap closure"
+      ],
+      "roles": [
+        {
+          "id": "domain_expert",
+          "native_agent_type": "default",
+          "responsibility": "specialized domain judgment",
+          "artifacts": [
+            "domain note"
+          ]
+        },
+        {
+          "id": "evidence_reader",
+          "native_agent_type": "explorer",
+          "responsibility": "source reading and evidence capture",
+          "artifacts": [
+            "evidence memo"
+          ]
+        },
+        {
+          "id": "integration_worker",
+          "native_agent_type": "worker",
+          "responsibility": "map findings back to canonical assets",
+          "artifacts": [
+            "integration proposal"
+          ]
+        }
+      ],
+      "distillation_assets": {
+        "skills": [
+          "research-lookup",
+          "webthinker-deep-research",
+          "local-vco-roles",
+          "context-hunter"
+        ],
+        "references": [
+          "references/skill-distillation-rules.md"
+        ],
+        "gates": [
+          "vibe-role-pack-governance-gate"
+        ]
+      },
+      "boundaries": [
+        "role_cards_do_not_create_new_team_owner",
+        "taxonomy_inputs_remain_reference_first",
+        "no_marketplace_runtime_surface"
+      ],
+      "promotion_boundary": {
+        "default_stage": "shadow",
+        "promotion_target": "future role-card overlays only"
+      }
+    }
+  ],
+  "team_template_interop": {
+    "reference_file": "references/team-templates.md",
+    "template_links": [
+      {
+        "role_pack_id": "supervisor_scatter_gather",
+        "template_id": "supervisor-scatter-gather",
+        "relation": "primary"
+      },
+      {
+        "role_pack_id": "review_board",
+        "template_id": "review-team",
+        "relation": "primary"
+      },
+      {
+        "role_pack_id": "feature_delivery_seed",
+        "template_id": "feature-team",
+        "relation": "primary"
+      },
+      {
+        "role_pack_id": "feature_delivery_seed",
+        "template_id": "full-stack-team",
+        "relation": "extended"
+      },
+      {
+        "role_pack_id": "domain_specialist_overlay",
+        "template_id": "research-team",
+        "relation": "overlay"
+      }
+    ]
+  },
+  "skill_distillation_contract": {
+    "reference_file": "references/skill-distillation-rules.md",
+    "required_card_fields": [
+      "artifact_id",
+      "upstream_source",
+      "artifact_type",
+      "retained_value",
+      "landing_decision",
+      "canonical_owner",
+      "dedup_with",
+      "evidence_required",
+      "rejection_reason_if_any"
+    ],
+    "allowed_landing_decisions": [
+      "merge_into_existing_skill",
+      "merge_into_role_pack",
+      "team_template_seed",
+      "reference_only",
+      "reject"
+    ],
+    "quality_checks": [
+      "problem_shape_reusable",
+      "boundary_explicit",
+      "runtime_conflict_cleared",
+      "evidence_path_defined",
+      "maintenance_owner_named"
+    ],
+    "source_overrides": [
+      {
+        "source_id": "claude-skills",
+        "canonical_use": "skill specification and validation rules",
+        "landing": "skill_distillation_rule"
+      },
+      {
+        "source_id": "antigravity-awesome-skills",
+        "canonical_use": "taxonomy coverage and domain examples",
+        "landing": "reference_case_only"
+      },
+      {
+        "source_id": "awesome-claude-skills-composio",
+        "canonical_use": "curated root skill packaging rules plus automation subtree quarantine",
+        "landing": "skill_distillation_rule"
+      }
+    ]
+  }
+}

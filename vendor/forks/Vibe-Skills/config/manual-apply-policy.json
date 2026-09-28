@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "policy": {
+    "apply_requires_explicit_flag": true,
+    "board_write_requires_flag": true,
+    "config_write_requires_flag": true,
+    "operator_ack_required": true,
+    "default_action": "report_only",
+    "forbid_auto_promote": true,
+    "forbid_auto_threshold_mutation": true
+  },
+  "allowed_flags": [
+    "-Apply",
+    "-ManualApply",
+    "-WriteBoard",
+    "-WriteArtifacts"
+  ],
+  "mode": "advice_first"
+}

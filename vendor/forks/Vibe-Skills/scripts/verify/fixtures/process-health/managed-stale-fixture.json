@@ -1,0 +1,39 @@
+{
+  "case_id": "managed-stale",
+  "now": "2026-03-11T14:00:00Z",
+  "live_processes": [
+    {
+      "pid": 42001,
+      "parent_pid": 42000,
+      "process_name": "node",
+      "command_line": "node stale-worker.js",
+      "working_set_bytes": 78643200,
+      "working_set_mb": 75.0
+    }
+  ],
+  "ledger": {
+    "entries": [
+      {
+        "entry_id": "vgo-node-stale-42001",
+        "label": "stale-worker",
+        "owner_id": "fixture@test",
+        "pid": 42001,
+        "launcher_pid": 42000,
+        "working_directory": "D:/fixture/project",
+        "command_line": "node stale-worker.js",
+        "status": "running",
+        "started_at": "2026-03-11T13:50:00Z",
+        "closed_at": null,
+        "last_heartbeat_at": "2026-03-11T13:54:30Z",
+        "last_seen_alive_at": "2026-03-11T13:54:30Z",
+        "heartbeat_path": "outputs/runtime/process-health/heartbeats/vgo-node-stale-42001.json",
+        "ownership": "vco-managed",
+        "cleanup_safe": true,
+        "stale_after_sec": 120,
+        "heartbeat_interval_sec": 10,
+        "node_pid_confirmed": true,
+        "target_process_name": "node"
+      }
+    ]
+  }
+}

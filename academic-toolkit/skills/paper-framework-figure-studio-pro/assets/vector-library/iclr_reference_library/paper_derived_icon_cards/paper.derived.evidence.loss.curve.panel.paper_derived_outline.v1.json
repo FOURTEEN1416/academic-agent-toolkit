@@ -1,0 +1,374 @@
+{
+  "concept_id": "paper.derived.evidence.loss.curve.panel",
+  "icon_id": "paper.derived.evidence.loss.curve.panel.paper_derived_outline.v1",
+  "primary_meaning": "Paper-derived loss curve panel",
+  "aliases": [
+    "loss curve",
+    "training curve"
+  ],
+  "negative_aliases": [
+    "paper-specific module name",
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim",
+    "literal reproduction of source figure"
+  ],
+  "shape_family_id": "paper.derived.loss_curve",
+  "style_variant": "paper_derived_refined_outline",
+  "domain_tags": [
+    "paper_derived",
+    "framework_figure_motif",
+    "AI",
+    "CS",
+    "paper_figure",
+    "evidence",
+    "loss",
+    "curve"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot",
+    "visual_layout_reuse"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support",
+    "literal reproduction of source paper figure"
+  ],
+  "source_lineage": {
+    "import_mode": "paper_figure_motif_abstraction",
+    "source": "paper_framework_figure_motif_extraction",
+    "source_path": "final_reference_figure_library.jsonl",
+    "source_figure_count": 10,
+    "source_figures": [
+      {
+        "reference_case_id": "iclr2025/a-computational-framework-for-modeling-emergence-of-color-vision-in-the-human-brain/fig-0004",
+        "paper_title": "A Computational Framework for Modeling Emergence of Color Vision in the Human Brain",
+        "field": "CV",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "train_infer_split",
+        "source_path": "iclr2025_collection/papers/CV/a-computational-framework-for-modeling-emergence-of-color-vision-in-the-human-brain/figures/framework_04_fig4-1126.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/CV/a-computational-framework-for-modeling-emergence-of-color-vision-in-the-human-brain/sources/arxiv_src/05-Representation.tex",
+          "line": 17,
+          "label": "fig:4",
+          "includegraphics": "assets/fig4_1126.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/classic-but-everlasting-traditional-gradient-based-algorithms-converge-fast-even-in-time-v/fig-0001",
+        "paper_title": "Classic but Everlasting: Traditional Gradient-Based Algorithms Converge Fast Even in Time-Varying Multi-Player Games",
+        "field": "Optimization",
+        "figure_subtype": "qualitative_example",
+        "layout_grammar": "example_grid_or_before_after_panel",
+        "topology": "loop_or_feedback",
+        "source_path": "iclr2025_collection/papers/Optimization/classic-but-everlasting-traditional-gradient-based-algorithms-converge-fast-even-in-time-v/figures/pdf_framework_page_001.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Optimization/classic-but-everlasting-traditional-gradient-based-algorithms-converge-fast-even-in-time-v/figures/pdf_framework_page_001.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:classic-but-everlasting-traditional-gradient-based-algorithms-converge-fast-even-in-time-v:fig-0001",
+          "includegraphics": "iclr2025_collection/papers/Optimization/classic-but-everlasting-traditional-gradient-based-algorithms-converge-fast-even-in-time-v/figures/pdf_framework_page_001.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/comparing-noisy-neural-population-dynamics-using-optimal-transport-distances/fig-0004",
+        "paper_title": "Comparing noisy neural population dynamics using optimal transport distances",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/comparing-noisy-neural-population-dynamics-using-optimal-transport-distances/figures/framework_04_diff-supp.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/comparing-noisy-neural-population-dynamics-using-optimal-transport-distances/sources/arxiv_src/sections/diffusion_details.tex",
+          "line": 31,
+          "label": "fig:supp_diffusion",
+          "includegraphics": "figures/Diff-Supp.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r/fig-0005",
+        "paper_title": "Context-Parametric Inversion: Why Instruction Finetuning May Not Actually Improve Context Reliance",
+        "field": "NLP",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/NLP/context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r/figures/pdf_framework_page_006.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r/figures/pdf_framework_page_006.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r:fig-0005",
+          "includegraphics": "iclr2025_collection/papers/NLP/context-parametric-inversion-why-instruction-finetuning-may-not-actually-improve-context-r/figures/pdf_framework_page_006.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/debiasing-federated-learning-with-correlated-client-participation/fig-0002",
+        "paper_title": "Debiasing Federated Learning with Correlated Client Participation",
+        "field": "FL",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/FL/debiasing-federated-learning-with-correlated-client-participation/figures/pdf_framework_page_002.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/FL/debiasing-federated-learning-with-correlated-client-participation/figures/pdf_framework_page_002.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:debiasing-federated-learning-with-correlated-client-participation:fig-0002",
+          "includegraphics": "iclr2025_collection/papers/FL/debiasing-federated-learning-with-correlated-client-participation/figures/pdf_framework_page_002.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/debiasing-federated-learning-with-correlated-client-participation/fig-0004",
+        "paper_title": "Debiasing Federated Learning with Correlated Client Participation",
+        "field": "FL",
+        "figure_subtype": "qualitative_example",
+        "layout_grammar": "example_grid_or_before_after_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2025_collection/papers/FL/debiasing-federated-learning-with-correlated-client-participation/figures/pdf_framework_page_009.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/FL/debiasing-federated-learning-with-correlated-client-participation/figures/pdf_framework_page_009.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:debiasing-federated-learning-with-correlated-client-participation:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/FL/debiasing-federated-learning-with-correlated-client-participation/figures/pdf_framework_page_009.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/global-convergence-in-neural-odes-impact-of-activation-functions/fig-0001",
+        "paper_title": "Global Convergence in Neural ODEs: Impact of Activation Functions",
+        "field": "Spectral",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Spectral/global-convergence-in-neural-odes-impact-of-activation-functions/figures/framework_01_resnet-softplus-out-diffs-loglogscale.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "caption_or_label_match",
+          "file": "iclr2025_collection/papers/Spectral/global-convergence-in-neural-odes-impact-of-activation-functions/sources/arxiv_src/4_experiments.tex",
+          "line": 31,
+          "label": "fig:information propogation",
+          "includegraphics": "figures/ntk_converge_loglogscale.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/global-convergence-in-neural-odes-impact-of-activation-functions/fig-0002",
+        "paper_title": "Global Convergence in Neural ODEs: Impact of Activation Functions",
+        "field": "Spectral",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Spectral/global-convergence-in-neural-odes-impact-of-activation-functions/figures/framework_02_resnet-softplus-grads-diffs-loglogscale.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "caption_or_label_match",
+          "file": "iclr2025_collection/papers/Spectral/global-convergence-in-neural-odes-impact-of-activation-functions/sources/arxiv_src/4_experiments.tex",
+          "line": 31,
+          "label": "fig:information propogation",
+          "includegraphics": "figures/ntk_converge_loglogscale.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/global-convergence-in-neural-odes-impact-of-activation-functions/fig-0003",
+        "paper_title": "Global Convergence in Neural ODEs: Impact of Activation Functions",
+        "field": "Spectral",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Spectral/global-convergence-in-neural-odes-impact-of-activation-functions/figures/framework_03_ntk-converge-logscale.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "caption_or_label_match",
+          "file": "iclr2025_collection/papers/Spectral/global-convergence-in-neural-odes-impact-of-activation-functions/sources/arxiv_src/4_experiments.tex",
+          "line": 31,
+          "label": "fig:information propogation",
+          "includegraphics": "figures/ntk_converge_loglogscale.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/global-convergence-in-neural-odes-impact-of-activation-functions/fig-0004",
+        "paper_title": "Global Convergence in Neural ODEs: Impact of Activation Functions",
+        "field": "Spectral",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Spectral/global-convergence-in-neural-odes-impact-of-activation-functions/figures/framework_04_ntk-converge-loglogscale.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/Spectral/global-convergence-in-neural-odes-impact-of-activation-functions/sources/arxiv_src/4_experiments.tex",
+          "line": 31,
+          "label": "fig:information propogation",
+          "includegraphics": "figures/ntk_converge_loglogscale.png"
+        },
+        "match_score": 8
+      }
+    ],
+    "extraction_basis": [
+      "source-grounded final reference figure records",
+      "figure subtype/layout/topology tags",
+      "caption/source-anchor keyword evidence",
+      "borrowable visual design patterns"
+    ],
+    "abstraction_level": "non_literal_semantic_visual_motif",
+    "imported_at": "2026-05-24T08:43:01.377Z",
+    "modified": true,
+    "modification": "Created as a simplified vector motif from repeated downloaded-paper framework figure patterns; source-paper text, labels, claims, datasets, metrics, and exact visual composition are intentionally not copied.",
+    "refinement": {
+      "status": "refined_semantic_vector_redraw",
+      "semantic_kind": "evidence",
+      "workflow": [
+        "contact_sheet_with_padding",
+        "imagegen_prompt_manifest_for_style_exploration",
+        "semantic_cut_slot",
+        "programmatic_svg_redraw",
+        "index_update"
+      ],
+      "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+      "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+      "generated_at": "2026-05-24T09:34:49.922Z"
+    }
+  },
+  "license": {
+    "name": "Paper-derived framework figure motif abstraction",
+    "license": "source-paper-visual-motif-abstraction",
+    "usage_terms": "Internal reusable visual/layout motif. Use for generic figure icon language only; do not treat as source-paper evidence or copy source-paper facts."
+  },
+  "files": {
+    "raw_svg": "icons/raw/paper.derived.evidence.loss.curve.panel.paper_derived_outline.v1.svg",
+    "tight_svg": "icons/tight/paper.derived.evidence.loss.curve.panel.paper_derived_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/paper.derived.evidence.loss.curve.panel.paper_derived_outline.v1.ppt_safe.svg",
+    "semantic_cut_svg": "paper_derived_icon_refinement/cut_svg/paper.derived.evidence.loss.curve.panel.paper_derived_outline.v1.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": 3.225,
+    "minY": 3.225,
+    "width": 17.55,
+    "height": 17.55,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": 0.167,
+      "top": 0.167,
+      "right": 0.167,
+      "bottom": 0.167
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "refined_from_semantic_contact_sheet": true,
+    "editable_shape_primitives": true,
+    "sha1": "55b2c4e2127eb28dbc1ece30e5439c96c48830bd"
+  },
+  "transfer_contract": {
+    "allowed": [
+      "generic visual icon language",
+      "layout/motif inspiration",
+      "PPT editable stencil use"
+    ],
+    "disallowed": [
+      "source-paper facts",
+      "paper-specific labels",
+      "metrics",
+      "datasets",
+      "claims",
+      "literal source-figure reproduction"
+    ]
+  },
+  "refinement": {
+    "status": "refined_semantic_vector_redraw",
+    "semantic_kind": "evidence",
+    "workflow": [
+      "contact_sheet_with_padding",
+      "imagegen_prompt_manifest_for_style_exploration",
+      "semantic_cut_slot",
+      "programmatic_svg_redraw",
+      "index_update"
+    ],
+    "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+    "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+    "generated_at": "2026-05-24T09:34:49.922Z"
+  }
+}

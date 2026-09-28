@@ -1,0 +1,38 @@
+{
+  "run_id": "20260413T131910Z-pr153-rabbit-review-fix",
+  "stage": "deep_interview",
+  "goal": "Repair the real defects surfaced during PR #153 review while rejecting false-positive Rabbit suggestions.",
+  "deliverable": "A pushed PR-head update containing verified script/config/docs fixes plus governed runtime receipts for this repair run.",
+  "constraints": [
+    "Validate external review comments against the current codebase before implementing anything.",
+    "Use TDD for any release-operator behavior fix.",
+    "Keep false-positive Rabbit comments intentionally unimplemented.",
+    "Do not claim the PR is repaired until tests, gates, and push all succeed."
+  ],
+  "acceptance_criteria": [
+    "release-cut sync invocation tolerates older sync script parameter surfaces.",
+    "wave64-82 planning board no longer contains question-mark corruption in primary_goal fields.",
+    "release/governance evidence surfaces touched in this repair no longer contain known placeholder omissions.",
+    "Verification commands pass on the repaired branch and the branch update is pushed."
+  ],
+  "product_acceptance_criteria": [
+    "Maintained-branch release operators remain backward-compatible with slimmer sync script contracts.",
+    "Governance boards and manifests remain readable and auditable."
+  ],
+  "manual_spot_checks": [
+    "Inspect the final release-cut parameter guards.",
+    "Inspect the repaired planning board text against the formal wave plan.",
+    "Inspect the final diff for deliberate false-positive rejection."
+  ],
+  "completion_language_policy": "Use evidence-backed repair wording only after red-green verification and remote push.",
+  "delivery_truth_contract": "Confirmed findings, verification commands, and final pushed commit SHA must all be reported.",
+  "non_goals": [
+    "Applying style-only wording nits with no correctness impact.",
+    "Refactoring duplicate gate helpers that are not part of a confirmed defect."
+  ],
+  "autonomy_mode": "interactive_governed",
+  "inferred_assumptions": [
+    "The user wants PR #153 repaired in place.",
+    "Historical compatibility entrypoint docs under docs/*.md are deliberate and should remain unless proven broken."
+  ]
+}

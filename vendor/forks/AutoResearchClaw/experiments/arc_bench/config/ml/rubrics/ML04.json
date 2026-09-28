@@ -1,0 +1,109 @@
+{
+    "id": "ml04-root",
+    "requirements": "A credible experiment studying how feature scaling (standard, min-max, robust, or none) affects KNN classification on datasets with different distributions: scaling conditions are implemented consistently, execution covers multiple datasets and random splits, and conclusions address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. If the submission uses alternative but well-motivated scalers or datasets that test the same scientific question, credit it accordingly.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml04-code",
+            "requirements": "The scaling conditions and KNN setup are implemented in a way that supports a fair comparison.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml04-code-conditions",
+                    "requirements": "The submission implements the relevant scaling conditions \u2014 typically no-scaling, standard-scaler, min-max-scaler, and robust-scaler \u2014 as distinct code paths sharing the same KNN configuration.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml04-code-datasets",
+                    "requirements": "The submission uses multiple datasets including at least one real sklearn dataset and at least one synthetic/outlier-heavy dataset, with a reasonable train/test split.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml04-code-consistency",
+                    "requirements": "The implementation keeps KNN settings identical across scaling conditions and fits preprocessing only on training data within each split.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml04-exec",
+            "requirements": "Execution produces benchmark metrics adequate to evaluate the hypotheses.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml04-exec-metrics",
+                    "requirements": "Execution produces a machine-readable metrics artifact with numeric test accuracy and an additional metric such as macro-F1 for each evaluated (condition, dataset) cell.",
+                    "weight": 16.6667,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml04-exec-splits",
+                    "requirements": "Reported metrics are aggregated over multiple random splits or seeds per (condition, dataset) with some dispersion measure (std or CI). More splits are better, but an honest small-split run with variance reported is preferable to a single split.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml04-results",
+            "requirements": "The analysis evaluates all three hypotheses and presents interpretable findings.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml04-result-h1",
+                    "requirements": "The submission compares robust-scaling vs standard-scaling + KNN on the outlier-heavy dataset and conveys whether robust-scaling shows a meaningful accuracy advantage. Exact percentage-point thresholds are not required.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml04-result-h2",
+                    "requirements": "The submission discusses whether scaler choice materially affects KNN accuracy on at least one real dataset \u2014 i.e., whether the best-vs-worst-scaler gap is non-trivial and of practical significance.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml04-result-h3",
+                    "requirements": "The submission compares the no-scaling baseline against the scaled conditions and conveys whether no-scaling tends to be clearly suboptimal across the evaluated datasets.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml04-result-writeup",
+                    "requirements": "The README or writeup describes setup and datasets, reports the key metric values per condition, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations such as dataset scope, split count, or KNN-hyperparameter sensitivity. No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

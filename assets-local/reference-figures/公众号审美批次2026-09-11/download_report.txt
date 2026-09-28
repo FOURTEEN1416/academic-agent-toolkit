@@ -1,0 +1,16 @@
+01 01_顶刊配色LPH: 2/2 ok, fail=0
+02 02_Codex科研绘图skill方法论: 9/9 ok, fail=0
+03 03_渐变色质感图形: 6/6 ok, fail=0
+04 04_Origin顶刊模板图库: 33/36 ok, fail=3
+    FAIL https://mmbiz.qpic.cn/mmbiz_png/xTPnDwTCiaicvvDCes9VaYGU1v0nvsPBMThA9Xk60875p9Thq8vVGhibEkCBPg15icyZUj1TExeop7rQyicxsiaLht8oKydcgpvLYQpUgGwoJoIPc/0?wx_fmt=png
+    FAIL https://mmbiz.qpic.cn/mmbiz_png/t0C6fF5UG4zCxiaqlMJJ3fKyxzib76F4LaElhI8fmT8GmwK8gUUagwhKTawQ5Q54Ul606JsjZ5ho0OYXxXXL2hFknrvXtAHbAaSkeGz4fArg0/0?wx_fmt=png
+    FAIL https://mmbiz.qpic.cn/mmbiz_png/t0C6fF5UG4wfWoUu89eug8iaTSrk2vnYNMEpKv3pO3TjhS9P3RATod3GJZZiahI8DP51bkoMhzzFTRqMnVlT4BybUGtEI5E2ibC410iaaibhNiaXA/0?wx_fmt=png
+05 05_圆形树状网络图复现: 10/12 ok, fail=2
+    FAIL https://mmbiz.qpic.cn/mmbiz_png/S8BTv76IG5Dk0gqXTDAQUdDu85TAU1ROedLZYsrSkBC85pjr74QpNRHIKKhEgUGmX2JKOP80rjgqSBGrnIVQYwJUTP0Oib6GhvFkPu2TYj4g/0?wx_fmt=png
+    FAIL https://mmbiz.qpic.cn/mmbiz_png/S8BTv76IG5CKwDl8aiaIYuF9d4IFcATMdYqq8WZDpPmsawTWOmiadVTVaRjlgMm24DpPnIiaFFORhuZ6lzFgiaGbZb7qy4CoSMrqicicBNia23Fqp0/0?wx_fmt=png
+06 06_Origin400模板图库: 43/48 ok, fail=5
+    FAIL https://mmbiz.qpic.cn/mmbiz_png/xTPnDwTCiaicvvDCes9VaYGU1v0nvsPBMThA9Xk60875p9Thq8vVGhibEkCBPg15icyZUj1TExeop7rQyicxsiaLht8oKydcgpvLYQpUgGwoJoIPc/0?wx_fmt=png
+    FAIL https://mmbiz.qpic.cn/mmbiz_png/t0C6fF5UG4wfWoUu89eug8iaTSrk2vnYNMEpKv3pO3TjhS9P3RATod3GJZZiahI8DP51bkoMhzzFTRqMnVlT4BybUGtEI5E2ibC410iaaibhNiaXA/0?wx_fmt=png
+    FAIL https://mmbiz.qpic.cn/mmbiz_png/t0C6fF5UG4zCNAfiaBeEskElOa2OA6kGOibZGg07ph9ibmJTrE266eic3OOYnveNRhz7S3VWep6NylbnQUSkrWHWibZJXjWQWeeACV5Sia3mtQgQY/0?wx_fmt=png
+    FAIL https://mmbiz.qpic.cn/mmbiz_png/t0C6fF5UG4x4YTkTbnGCm7HOKnZDqmozbuy2cvV1k8TSEzXkp0CHPVjTUrz2Tq8nfibic9R1GI7w23liaZsYd2TQU7WtEN6p8Z7cCN2I7dYN1M/0?wx_fmt=png
+    FAIL https://mmbiz.qpic.cn/mmbiz_png/t0C6fF5UG4yE7Zqt6ejeAx6TFWjsqGsgzTNBNjoVrEs6XfiahjeCITIiblbEg1ibzYagicX1pMcU1n1ibLLsRDItWjX5xDvLyWuvZD5ibWKME8wI4/0?wx_fmt=png

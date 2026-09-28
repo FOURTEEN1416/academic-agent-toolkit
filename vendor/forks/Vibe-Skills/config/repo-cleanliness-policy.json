@@ -1,0 +1,103 @@
+{
+    "version":  1,
+    "updated_at":  "2026-06-24",
+    "shared_repo_ignores":  [
+                                ".serena/",
+                                ".tmp/",
+                                ".vibeskills/"
+                            ],
+    "local_worktree_excludes":  [
+                                    "task_plan.md",
+                                    "findings.md",
+                                    "progress.md"
+                                ],
+    "local_noise_paths":  [
+                              ".serena/",
+                              ".tmp/",
+                              ".vibeskills/",
+                              "task_plan.md",
+                              "findings.md",
+                              "progress.md"
+                          ],
+    "runtime_generated_roots":  [
+                                    "outputs/"
+                                ],
+    "managed_workset_roots":  [
+                                  ".github/",
+                                  "adapters/",
+                                  "agents/",
+                                  "apps/",
+                                  "bundled/",
+                                  "commands/",
+                                  "config/",
+                                  "core/",
+                                  "dist/",
+                                  "docs/",
+                                  "mcp/",
+                                  "packages/",
+                                  "protocols/",
+                                  "references/",
+                                  "rules/",
+                                  "schemas/",
+                                  "scripts/",
+                                  "templates/",
+                                  "tests/",
+                                  "third_party/",
+                                  "vendor/",
+                                  "vgo_cli/"
+                              ],
+    "high_risk_managed_roots":  [
+                                    "config/version-governance.json",
+                                    "config/runtime-core-packaging.json",
+                                    "config/runtime-core-packaging.minimal.json",
+                                    "config/runtime-core-packaging.full.json",
+                                    "scripts/install/",
+                                    "scripts/uninstall/",
+                                    "scripts/verify/"
+                                ],
+    "cleanup_targets":  [
+                            {
+                                "path":  ".tmp/wave31_39_patch.ps1",
+                                "policy":  "delete_if_unreferenced"
+                            }
+                        ],
+    "gate_policy":  {
+                        "pass_requires":  {
+                                              "local_noise_visible":  0,
+                                              "runtime_generated_visible":  0,
+                                              "other_dirty_visible":  0
+                                          },
+                        "advisory_fields":  [
+                                                "managed_workset_visible",
+                                                "high_risk_managed_visible",
+                                                "repo_zero_dirty"
+                                            ]
+                    },
+    "managed_root_files":  [
+                               ".gitattributes",
+                               ".gitignore",
+                               "CONTRIBUTING.md",
+                               "LICENSE",
+                               "logo.png",
+                               "NOTICE",
+                               "README.md",
+                               "README.zh.md",
+                               "SKILL.md",
+                               "THIRD_PARTY_LICENSES.md",
+                               "_python_source_roots.py",
+                               "check.ps1",
+                               "check.sh",
+                               "install.ps1",
+                               "install.sh",
+                               "pyproject.toml",
+                               "pytest.ini",
+                               "scripts.check.upstream.sh",
+                               "uninstall.ps1",
+                               "uninstall.sh",
+                               "vgo_python_source_roots.py"
+                           ],
+    "companion_gates":  [
+                            "scripts/verify/vibe-repo-cleanliness-gate.ps1",
+                            "scripts/verify/vibe-output-artifact-boundary-gate.ps1"
+                        ]
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "skill-contract.v1",
+  "skill_id": "writing-plans",
+  "status": "canonical",
+  "sources": {
+    "skill_md": {
+      "primary": "bundled/skills/writing-plans/SKILL.md",
+      "alternates": []
+    }
+  },
+  "frontmatter": {
+    "required_keys": [
+      "name",
+      "description"
+    ],
+    "invariants": {
+      "name_equals_skill_id": true
+    }
+  },
+  "notes": "Batch A canonical contract (conservative): validate YAML frontmatter existence + name/description presence + name == skill_id."
+}
+

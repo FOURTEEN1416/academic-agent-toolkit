@@ -1,0 +1,18 @@
+{
+  "scenario_id": "pilot-memory",
+  "plane_id": "memory-runtime-v2",
+  "task": "保存用户偏好，但不能替代 VCO 的 canonical session owner",
+  "objective": "验证 mem0 / Letta 吸收后仍保持单一 memory truth-source。",
+  "expected": {
+    "canonical_session_owner": "state_store",
+    "external_preference_backend": "mem0",
+    "policy_contract_source": "letta",
+    "forbid_second_truth_source": true,
+    "stage_ceiling": "soft"
+  },
+  "must_not": [
+    "route_override",
+    "second_canonical_truth_source",
+    "default_execution_owner_takeover"
+  ]
+}

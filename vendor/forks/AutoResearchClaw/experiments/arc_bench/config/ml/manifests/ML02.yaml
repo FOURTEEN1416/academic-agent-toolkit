@@ -1,0 +1,98 @@
+# ============================================================================
+# T02 — Ensemble-method comparison for non-linear regression under noise
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML02
+title: "Bagging vs boosting vs stacking for noisy non-linear regression"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Ensemble learning is often presented as a broadly reliable way to improve
+  predictive performance, but different ensemble families can react very
+  differently to observation noise in regression. Bagging primarily reduces
+  variance by averaging many weakly correlated models. Boosting is sequential
+  and can aggressively fit residuals, which can help on structured non-linear
+  signals but may overfit high-noise targets if regularization is not tuned.
+  Stacking combines heterogeneous base learners through a meta-model and may
+  benefit from diversity, but it also introduces extra fitting stages that can
+  be sensitive to data size and leakage handling.
+
+  A focused CPU-scale benchmark can probe these tradeoffs using synthetic and
+  lightweight sklearn regression datasets where non-linearity and noise are
+  controllable. By varying noise level explicitly in generated data, the study
+  can test whether relative ranking among bagging, boosting, and stacking is
+  stable or changes materially as signal-to-noise degrades. This design also
+  encourages careful evaluation with repeated random seeds and test-set metrics
+  that capture both average error and fit quality.
+
+  A credible implementation should compare at least one representative for each
+  family (e.g., RandomForestRegressor for bagging, GradientBoostingRegressor
+  for boosting, StackingRegressor with diverse base estimators for stacking),
+  include a single-model baseline, and report RMSE-centered conclusions. Since
+  this benchmark is intended for fast autonomous execution, datasets and models
+  must remain small enough to run in minutes on one CPU core while still
+  producing clear numeric contrasts across noise regimes.
+
+  The key outcome is not reproducing a known paper result but determining when
+  each ensemble strategy is most robust for noisy non-linear regression in a
+  constrained practical setting.
+
+  *How does predictive robustness (RMSE) of bagging, boosting, and stacking change as regression noise increases on small non-linear benchmarks?*
+
+hypotheses:
+  - id: H1
+    statement: "On the high-noise synthetic dataset (noise >= 25), bagging (RandomForestRegressor) achieves lower mean RMSE than boosting (GradientBoostingRegressor), averaged over at least 5 seeds."
+    measurable: true
+  - id: H2
+    statement: "On at least 2 of 3 evaluated datasets, at least one ensemble method (bagging, boosting, or stacking) improves RMSE by >= 10% relative to the single DecisionTreeRegressor baseline."
+    measurable: true
+  - id: H3
+    statement: "StackingRegressor attains the best (lowest) mean RMSE on at least 1 of 3 datasets while not being worst on more than 1 dataset, averaged over at least 5 seeds."
+    measurable: true
+
+experiment_design:
+  research_question: "How does RMSE performance of bagging, boosting, and stacking vary with increasing noise in non-linear regression tasks under CPU-only constraints?"
+  conditions:
+    - name: "decision_tree_baseline"
+      description: "Single DecisionTreeRegressor (max_depth tuned over a small grid) as non-ensemble baseline."
+    - name: "bagging_random_forest"
+      description: "RandomForestRegressor representing bagging-style averaging across trees."
+    - name: "boosting_gbrt"
+      description: "GradientBoostingRegressor representing sequential boosting on residuals."
+    - name: "stacking_heterogeneous"
+      description: "StackingRegressor with base learners {kNN regressor, ridge regression, shallow random forest} and a linear meta-regressor."
+  baselines:
+    - "decision_tree_baseline is the single-model baseline"
+    - "bagging_random_forest serves as a strong classical ensemble reference"
+  metrics:
+    - name: "rmse"
+      direction: "minimize"
+      description: "Root Mean Squared Error on held-out test split, averaged over seeds."
+    - name: "mae"
+      direction: "minimize"
+      description: "Mean Absolute Error on held-out test split, averaged over seeds."
+    - name: "r2"
+      direction: "maximize"
+      description: "Coefficient of determination on held-out test split, averaged over seeds."
+  datasets:
+    - name: "friedman1_low_noise"
+      source: "sklearn.datasets.make_friedman1 (n_samples=1200, n_features=10, noise=1.0)"
+    - name: "friedman1_high_noise"
+      source: "sklearn.datasets.make_friedman1 (n_samples=1200, n_features=10, noise=30.0)"
+    - name: "diabetes"
+      source: "sklearn.datasets.load_diabetes"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 420
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML02.json"

@@ -1,0 +1,170 @@
+# ============================================================================
+# P09 — $U_1$ leptoquark angular shape at 3 TeV muon collider
+# ----------------------------------------------------------------------------
+# Adapts ColliderAgent paper-reproduction prompt:
+#   /path/to/ColliderAgent/paper-reproduction/2104.05720/prompt_figure_11.md
+# Source: arXiv:2104.05720 — vector $U_1$ leptoquark phenomenology at
+# muon colliders; pseudorapidity shape of $\mu^+\mu^- \to b\bar b$.
+# ============================================================================
+
+id: P09
+title: "Reproducing the normalized $|\\eta|$ shape in $\\mu^+\\mu^- \\to b\\bar b$ from a $U_1$ vector leptoquark at $\\sqrt{s}=3$ TeV"
+arxiv_id: "2104.05720"
+venue: "ARC-Bench Physics 2026"
+paper_asset: null
+
+synthesis: |
+  Reproducing the normalized pseudorapidity shape of the $b$ quark in
+  $\mu^+\mu^- \to b\bar b$ at a 3 TeV muon collider, comparing SM
+  ($s$-channel $\gamma^*/Z^*$) against $U_1$ vector-leptoquark
+  $t$-channel exchange. The Lagrangian has the standard vector-LQ
+  kinetic term plus
+  $\mathcal{L} \supset (g_U/\sqrt{2})\,U_1^\mu (\beta_L^{ij}\,
+  \bar Q_L^i \gamma_\mu L_L^j) + \mathrm{h.c.}$, with only
+  $\beta_L^{32}$ (b-quark to muon) non-zero. The diagnostic observable
+  is the normalized $|\eta|$ distribution of the $b$ quark binned in 13
+  bins from 0 to 2.5 (narrow [0, 0.1] first bin then uniform 0.2-wide
+  bins), shown in two side-by-side panels at $\beta_L^{32} = 1.0$ and
+  $\beta_L^{32} = 0.1$, each overlaying SM (gray bar histogram) with
+  $m_\mathrm{LQ}=1$ TeV (blue dashed) and $m_\mathrm{LQ}=10$ TeV
+  (orange dashed).
+
+  A credible study (a) implements the $U_1$ vector-LQ Lagrangian with
+  $\kappa_U=\tilde\kappa_U=0$ (FeynRules + UFO), (b) runs 5 parton-level
+  MadGraph runs (1 SM baseline at 500k events with $\beta_L^{32}=0$ and
+  $m_\mathrm{LQ}=10^5$ GeV; 4 LQ signal runs at $\beta_L^{32}\in
+  \{1.0, 0.1\}$ x $m_\mathrm{LQ}\in\{1, 10\}$ TeV with 50k events
+  each), (c) extracts the $b$-quark $|\eta|$ from each event, (d)
+  histograms into the 13 bins and normalizes to total events per run,
+  (e) plots two panels side by side with the prescribed style. Research
+  question: *does the agent reproduce the central-vs-forward angular
+  redistribution induced by the $t$-channel $U_1$ exchange in
+  $\mu^+\mu^- \to b\bar b$ from Figure 11 of arXiv:2104.05720?*
+
+hypotheses:
+  - id: H1
+    statement: "At $\\beta_L^{32} = 1.0$, $m_\\mathrm{LQ} = 1$ TeV, the central-bin ($|\\eta| < 0.1$) normalized fraction exceeds the SM by $\\geq 50\\%$ (LQ $t$-channel pulls events forward+central)."
+    measurable: true
+  - id: H2
+    statement: "At $\\beta_L^{32}=0.1$, the normalized $|\\eta|$ shape differs from the SM baseline by $\\leq 10\\%$ in every bin (small-coupling regime collapses to SM)."
+    measurable: true
+  - id: H3
+    statement: "At $\\beta_L^{32}=1.0$, $m_\\mathrm{LQ}=10$ TeV the normalized shape lies between the SM and the $m_\\mathrm{LQ}=1$ TeV curves (decoupling limit)."
+    measurable: true
+
+experiment_design:
+  research_question: "Does the agent reproduce the normalized $|\\eta|$ distributions of $\\mu^+\\mu^- \\to b\\bar b$ for SM and $U_1$ leptoquark signal at $\\sqrt{s}=3$ TeV muon collider, in the two coupling regimes $\\beta_L^{32} \\in \\{1.0, 0.1\\}$ (Figure 11 of arXiv:2104.05720)?"
+  conditions:
+    - name: "sm_baseline_3tev"
+      description: "All $\\beta_L^{ij} = 0$ (LQ decoupled), $m_\\mathrm{LQ} = 10^5$ GeV. 500k events at $\\sqrt{s}=3$ TeV, parton level."
+    - name: "lq_beta1_3tev"
+      description: "$\\beta_L^{32} = 1.0$, mass scan $m_\\mathrm{LQ} \\in \\{1, 10\\}$ TeV, 50k events each at $\\sqrt{s}=3$ TeV."
+    - name: "lq_beta01_3tev"
+      description: "$\\beta_L^{32} = 0.1$, mass scan $m_\\mathrm{LQ} \\in \\{1, 10\\}$ TeV, 50k events each at $\\sqrt{s}=3$ TeV."
+  baselines:
+    - "SM $s$-channel $\\mu^+\\mu^- \\to \\gamma^*/Z^* \\to b\\bar b$ (the $\\beta_L^{32}=0$ run)"
+  metrics:
+    - name: "central_bin_excess_fraction"
+      direction: "match_reference"
+      description: "Ratio of central-bin ($|\\eta| < 0.1$) normalized event fraction in LQ signal vs SM."
+    - name: "shape_deviation_l1norm"
+      direction: "match_reference"
+      description: "$L^1$ norm $\\sum_i |f_i^\\mathrm{LQ} - f_i^\\mathrm{SM}|$ of normalized shape difference per (mass, coupling)."
+    - name: "decoupling_distance"
+      direction: "match_reference"
+      description: "Shape distance between $m_\\mathrm{LQ}=10$ TeV signal and SM should be smaller than for $m_\\mathrm{LQ}=1$ TeV signal."
+  datasets:
+    - process_id: "mumu_to_bbbar_U1"
+      sqrt_s_TeV: 3
+      description: "$\\mu^+\\mu^- \\to b\\bar b$ via SM ($s$-channel) + $U_1$ ($t$-channel) at a 3 TeV muon collider, parton level."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 3600
+
+rubric_path: "experiments/arc_bench/config/physics/rubrics/P09.json"
+
+# ---------------------------------------------------------------------------
+# Agent-mode requirements (consumed by researchclaw.pipeline.requirements_judge
+# at stage 15 RESEARCH_DECISION). Schema mirrors B01.yaml:
+#   id          — stable identifier
+#   type        — advisory hint to the LLM judge (numeric | artifact | discussion)
+#   description — natural-language statement of what must be true post-run
+#   must_pass   — true → unmet ⇒ rerun (1 retry max); false → optional
+#
+# The five generic must_pass items apply uniformly across P01-P10; the sixth
+# is topic-specific (mirrors this manifest's H1).  The two must_pass=false
+# items reward mechanistic interpretation and MC-reproducibility metadata
+# without blocking proceed-vs-rerun on them.
+# ---------------------------------------------------------------------------
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: >-
+      A canonical results.json file exists at the workspace root with at least
+      the keys: primary_metric (number), metric_key (string), metrics (object
+      with numeric keys), hypotheses (object with h1/h2/h3 entries each
+      carrying a `supported` boolean), summary (non-empty string).
+    must_pass: true
+
+  - id: req_metrics_numeric
+    type: numeric
+    description: >-
+      results.json metrics MUST contain at least 3 numeric (non-null, finite)
+      values directly relevant to the headline physics observable named in
+      the experiment_design.metrics list above — these are the numbers the
+      paper will report in its Results section.
+    must_pass: true
+
+  - id: req_hypotheses_supported_flags
+    type: discussion
+    description: >-
+      results.json hypotheses.h1/h2/h3 each MUST have an explicit `supported`
+      boolean AND a `details` string ≥ 40 characters quoting the numerical
+      evidence (specific values + their source artifact) used to reach the
+      verdict.
+    must_pass: true
+
+  - id: req_publication_figure
+    type: artifact
+    description: >-
+      At least one publication-quality figure file (PDF or PNG, ≥150 DPI for
+      raster) exists under figures/ or output/figures/ with axes labeled in
+      physical units (GeV / pb / fb / dimensionless) and a legend if multiple
+      series are plotted.  The figure must directly support a hypothesis
+      verdict.
+    must_pass: true
+
+  - id: req_model_implementation
+    type: artifact
+    description: >-
+      The BSM Lagrangian is implemented either as a FeynRules .fr file
+      (models/*.fr) with a matching UFO directory (models/*_UFO/ containing
+      at least particles.py, parameters.py, couplings.py, vertices.py), OR
+      as analytic Python code that explicitly computes the cross sections
+      from the Lagrangian terms.  A pure SM baseline with no BSM piece is
+      NOT sufficient.
+    must_pass: true
+
+  - id: req_central_bin_excess
+    type: numeric
+    description: >-
+      results.json metrics MUST report the normalized central-|η|<0.1 fraction for β_L^32=1.0, m_LQ=1 TeV, AND the same fraction for SM, AND the LQ fraction MUST exceed SM by ≥50%.
+    must_pass: true
+
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: >-
+      The summary or structured_results section provides a one-paragraph
+      mechanistic interpretation of WHY the headline observable comes out the
+      way it does (which interference / propagator structure / cut effect
+      drives the result).  Nice-to-have, not blocking proceed.
+    must_pass: false
+
+  - id: req_mc_reproducibility
+    type: discussion
+    description: >-
+      results.json or a sibling reproducibility section names: (a) the
+      MadGraph5_aMC@NLO version, (b) the PDF set used (if applicable), (c)
+      at least one explicit random seed.  Required for full reproducibility
+      but not for scientific correctness.
+    must_pass: false

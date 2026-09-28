@@ -80,14 +80,16 @@ dev-docs/
 node_modules/
 .pnpm-store/
 
-# Third-party competition material and private references (no redistribution right)
+# Third-party competition material and private references
 # 2026-09-23 v2.0 改造：原根级散置的 参考论文/ 参考图/ CUMCM论文模板/ 统一迁入
-# assets-local/（英文子目录 award-papers / reference-figures / cumcm-templates），
-# 整区一条规则隔离；子目录内容不改名（第三方原件保持原貌）。
-assets-local/
+# assets-local/（英文子目录 award-papers / reference-figures / cumcm-templates）。
+# 2026-09-28 用户裁决：assets-local 整区随公开仓分发（私有参考资料转公开资产）。
 附件*.pdf
 CUMCM2026Problems/
 extracted_images/
+
+# 依赖安装目录（vendor 解除忽略后防误收；可再生，见各 package.json）
+**/node_modules/
 
 # Real practice/validation workspaces
 workspaces/
@@ -145,8 +147,7 @@ academic-toolkit/baseline/*
 academic-toolkit/_test_input.md
 **/.drawio_vision_calls.json
 **/.tikz_vision_calls.json
-# Upstream fork staging (local research only, not tracked)
-vendor/
+# Upstream fork staging（2026-09-28 用户裁决：vendor 整体随公开仓分发；node_modules 不入库，见全局排除）
 
 # ZCode host-local layer: skills junction + 会话产物（不入库；2026-09-23 v2.0 起整目录本地化）
 .zcode/
@@ -155,22 +156,12 @@ vendor/
 # Modex v3 技能包原包（本地对照源，已定向吸收，赛后评估入库方式）
 modex-3-skills/
 
-# 无 License 上游技能（本地完整复刻可用，不入公开仓——侵权红线隔离）
-academic-toolkit/skills/plot-from-data/
-academic-toolkit/skills/plot-from-image/
-academic-toolkit/skills/visio-image-rebuilder/
-academic-toolkit/skills/paper-framework-figure-studio-pro/
+# 无 License 上游技能（2026-09-28 规则修订：无 License 上游件经过本地化适应性改写后可推送——
+# 五件均已集成进本仓并附 ADAPTATION.md 本地化声明，计入 255 技能口径）
 
-# No-license upstream skill batch (2026-09-11): eco-community-plots
-academic-toolkit/skills/eco-community-plots/
 
-# 竞赛模板集中字体库 + 模板内嵌字体（2026-09-22 P2 资产落位：103MB+~84MB 二进制不入公开仓；恢复源见 _templates/huawei/README.md）
-academic-toolkit/skills/comp-paper-zh/_templates/_fonts-local/
-academic-toolkit/skills/comp-paper-zh/_templates/**/*.[tT][tT][fF]
-academic-toolkit/skills/comp-paper-zh/_templates/**/*.[tT][tT][cC]
-academic-toolkit/skills/comp-paper-zh/_templates/**/*.[oO][tT][fF]
-# 官方附件3 Word/PDF（第三方模板，无再分发授权，本机参照用）
-academic-toolkit/skills/comp-paper-zh/_templates/huawei/official_docx/
+# 竞赛模板集中字体库 + 官方附件（2026-09-28 用户裁决：随公开仓分发——模板开箱即用，
+# 字体 103MB+~84MB 二进制入库；恢复源仍见 _templates/huawei/README.md）
 
 # 重建期临时件（2026-09-23 v2.0 收尾）
 *.whl

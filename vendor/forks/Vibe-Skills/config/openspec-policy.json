@@ -1,0 +1,94 @@
+{
+    "version":  1,
+    "updated":  "2026-02-26",
+    "mode":  "soft",
+    "preserve_routing_assignment":  true,
+    "routing_integration":  "post_route_governance_only",
+    "profile_by_grade":  {
+                             "M":  "lite",
+                             "L":  "full",
+                             "XL":  "full"
+                         },
+    "required_task_types_by_profile":  {
+                                           "lite":  [
+                                                        "planning",
+                                                        "coding",
+                                                        "review",
+                                                        "debug",
+                                                        "research"
+                                                    ],
+                                           "full":  [
+                                                        "planning"
+                                                    ]
+                                       },
+    "m_lite":  {
+                   "auto_create":  true,
+                   "directory":  "openspec/micro",
+                   "max_lines":  20,
+                   "required_fields":  [
+                                           "goal",
+                                           "in_scope",
+                                           "out_of_scope",
+                                           "acceptance",
+                                           "risk",
+                                           "rollback"
+                                       ]
+               },
+    "full":  {
+                 "specs_dir":  "openspec/specs",
+                 "changes_dir":  "openspec/changes",
+                 "require_for_planning_grades":  [
+                                                     "L",
+                                                     "XL"
+                                                 ]
+             },
+    "soft_confirm_scope":  {
+                               "grades":  [
+                                              "L",
+                                              "XL"
+                                          ],
+                               "task_types":  [
+                                                  "planning"
+                                              ]
+                           },
+    "upgrade_triggers":  [
+                             "design",
+                             "architect",
+                             "refactor",
+                             "migrate",
+                             "redesign",
+                             "new system",
+                             "schema change",
+                             "data migration",
+                             "security",
+                             "compliance",
+                             "架构",
+                             "重构",
+                             "迁移",
+                             "新系统",
+                             "数据迁移",
+                             "安全",
+                             "合规"
+                         ],
+    "exemptions":  {
+                       "requested_skill_bypass":  true,
+                       "requested_skill_whitelist":  [
+                                                         "sc:design",
+                                                         "brainstorming",
+                                                         "writing-plans"
+                                                     ],
+                       "trivial_prompt_patterns":  [
+                                                       "typo",
+                                                       "single-line change",
+                                                       "small fix",
+                                                       "单行修改",
+                                                       "小修复"
+                                                   ]
+                   },
+    "fallback_behavior":  {
+                              "on_missing_lite":  "advisory",
+                              "on_missing_full_shadow":  "advisory",
+                              "on_missing_full_soft":  "confirm_required",
+                              "on_missing_full_strict":  "required"
+                          }
+}

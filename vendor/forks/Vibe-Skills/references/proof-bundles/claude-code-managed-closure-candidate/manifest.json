@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "bundle_id": "claude-code-managed-closure-candidate-2026-03-31",
+  "frozen_at": "2026-03-31",
+  "source_release": {
+    "version": "2.3.55",
+    "updated": "2026-03-30"
+  },
+  "lane_id": "claude-code/managed-with-constraints",
+  "current_status": "supported-with-constraints",
+  "target_status": "supported-with-constraints",
+  "evidence_state": "linux-proof-frozen-windows-macos-pending",
+  "contracts": [
+    "adapters/claude-code/host-profile.json",
+    "adapters/claude-code/closure.json",
+    "adapters/claude-code/platform-windows.json",
+    "adapters/claude-code/platform-linux.json",
+    "adapters/claude-code/platform-macos.json"
+  ],
+  "required_gates": [
+    "scripts/verify/vibe-host-adapter-contract-gate.ps1",
+    "scripts/verify/vibe-cross-host-route-parity-gate.ps1",
+    "scripts/verify/vibe-dist-manifest-gate.ps1"
+  ],
+  "required_replay_sync": [
+    "tests/replay/fixtures/host-capability-matrix.json",
+    "tests/replay/promotion/claude-code-managed-closure.json"
+  ],
+  "required_future_evidence": [
+    "fresh-machine Windows install log",
+    "fresh-machine Windows check log",
+    "real Claude CLI smoke log on Windows",
+    "fresh-machine macOS install log",
+    "fresh-machine macOS check log",
+    "real Claude CLI smoke log on macOS"
+  ],
+  "frozen_linux_runs": [
+    {
+      "id": "linux-managed-run-01-local-host",
+      "bundle_dir": "references/proof-bundles/claude-code-managed-closure-candidate/linux-managed-run-01-local-host",
+      "operation_record": null,
+      "required_files": [
+        "installed-runtime-outputs/runtime-freshness-receipt.json"
+      ]
+    }
+  ],
+  "truth_constraints": {
+    "host_status_may_remain_supported_with_constraints": true,
+    "linux_is_promoted_only_to_supported_with_constraints": true,
+    "linux_proof_scope_is_bounded_managed_closure_only": true,
+    "windows_must_remain_not_yet_proven_until_new_evidence": true,
+    "macos_must_remain_not_yet_proven_until_new_evidence": true,
+    "official_runtime_ownership_must_remain_unclaimed": true,
+    "full_authoritative_promotion_is_not_allowed_in_this_candidate": true
+  },
+  "notes": [
+    "This bundle freezes the current Claude managed-closure evidence and promotes only the Linux lane to supported-with-constraints.",
+    "Linux proof is frozen as a clean target-root local-host install/check/smoke bundle for the bounded managed closure surface.",
+    "The live bundle keeps only the runtime-freshness receipt; historical operation records, duplicated verify outputs, and command inventories are not part of the current proof contract.",
+    "Windows and macOS remain blocked by missing fresh-machine replay and real Claude host smoke evidence."
+  ]
+}

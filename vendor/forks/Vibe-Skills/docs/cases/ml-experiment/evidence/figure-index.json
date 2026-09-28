@@ -1,0 +1,192 @@
+{
+  "schema_version": "figure_index_v1",
+  "generated_at": "2026-07-18T04:36:19Z",
+  "style": {
+    "palette": "Okabe-Ito-derived colorblind-safe categorical colors",
+    "redundant_encoding": "model color plus line style or marker",
+    "raster_dpi": 300,
+    "vector_format": "SVG",
+    "significance_annotations": "none; no formal significance test was justified"
+  },
+  "source_files": {
+    "target_distribution": {
+      "path": "deliverables/01-data-audit/target-distribution.csv",
+      "sha256": "b034fa27ca95160cfa78c9b45d80a987f451cae1a4aa503a7c0ca93fb18978d7"
+    },
+    "holdout_predictions": {
+      "path": "deliverables/02-baseline/holdout-predictions.csv",
+      "sha256": "fc547ba1cd2cd5e6fbf483056d5714a8fc77cd37c635b86d25e50bef248badbd"
+    },
+    "fold_metrics": {
+      "path": "deliverables/02-baseline/fold-metrics.csv",
+      "sha256": "df0fb209666f8f95aa45f53bd0fe5b9120e98ea8fd59e5dbd5ac8c2c8e641e5d"
+    },
+    "metrics": {
+      "path": "deliverables/02-baseline/metrics.json",
+      "sha256": "01b74246f2a164b9b6a0e4e8363935317cf6f929e55383af895c80a7d082335e"
+    },
+    "uncertainty": {
+      "path": "deliverables/03-statistical-review/statistics/uncertainty.json",
+      "sha256": "4ebbd260d16c2d045aca9cbfdd1ef7ecef0f31c10d1fd919e464276cdd8b7775"
+    }
+  },
+  "figures": {
+    "class-balance": {
+      "png": "deliverables/04-figures/class-balance.png",
+      "svg": "deliverables/04-figures/vector/class-balance.svg",
+      "sources": [
+        "target_distribution"
+      ],
+      "mapped_values": {
+        "benign": {
+          "count": 357,
+          "proportion": 0.6274165202108963
+        },
+        "malignant": {
+          "count": 212,
+          "proportion": 0.3725834797891036
+        }
+      },
+      "alt_text": "Bar chart showing 357 benign and 212 malignant samples in the frozen dataset.",
+      "sha256": {
+        "png": "f470bf6ecb5ebab9a0a2c6f19d344b8de04005a3cdaf92f98c2c0818498f79c6",
+        "svg": "92bb901a4a70fea3d65b7f421f8e672ba92862851003370dc70524cd9167fab0"
+      }
+    },
+    "roc-and-pr-curves": {
+      "png": "deliverables/04-figures/roc-and-pr-curves.png",
+      "svg": "deliverables/04-figures/vector/roc-and-pr-curves.svg",
+      "sources": [
+        "holdout_predictions",
+        "metrics"
+      ],
+      "mapped_values": {
+        "dummy_stratified": {
+          "roc_auc": 0.5783730158730159,
+          "average_precision": 0.41446639855452583
+        },
+        "scaled_logistic_regression": {
+          "roc_auc": 0.9917328042328042,
+          "average_precision": 0.989010989010989
+        }
+      },
+      "alt_text": "ROC and precision-recall curves comparing the scaled logistic model with a stratified dummy on 114 holdout samples.",
+      "sha256": {
+        "png": "1275f003b61dc4375e06c7f9a25506b1fdde3dbd56ebbca233c336d6208b8114",
+        "svg": "37109af45cd7b60a0e1316d53ebb7236a60f491cc2faa55cdfdd8769c6364005"
+      }
+    },
+    "cv-performance-distribution": {
+      "png": "deliverables/04-figures/cv-performance-distribution.png",
+      "svg": "deliverables/04-figures/vector/cv-performance-distribution.svg",
+      "sources": [
+        "fold_metrics",
+        "metrics",
+        "uncertainty"
+      ],
+      "mapped_values": {
+        "dummy_stratified": {
+          "roc_auc": {
+            "mean": 0.522420020639835,
+            "sample_sd": 0.043794722173273404,
+            "minimum": 0.43085655314757487,
+            "maximum": 0.5952012383900929
+          },
+          "balanced_accuracy": {
+            "mean": 0.522420020639835,
+            "sample_sd": 0.04379472217327342,
+            "minimum": 0.43085655314757487,
+            "maximum": 0.5952012383900929
+          },
+          "f1": {
+            "mean": 0.4297297297297298,
+            "sample_sd": 0.050415308328959824,
+            "minimum": 0.32432432432432434,
+            "maximum": 0.5135135135135135
+          }
+        },
+        "scaled_logistic_regression": {
+          "roc_auc": {
+            "mean": 0.995531475748194,
+            "sample_sd": 0.005230671096867828,
+            "minimum": 0.9819401444788443,
+            "maximum": 1.0
+          },
+          "balanced_accuracy": {
+            "mean": 0.9723993808049535,
+            "sample_sd": 0.014044392731073729,
+            "minimum": 0.9442724458204335,
+            "maximum": 1.0
+          },
+          "f1": {
+            "mean": 0.9668173353538855,
+            "sample_sd": 0.016774170671739114,
+            "minimum": 0.927536231884058,
+            "maximum": 1.0
+          }
+        }
+      },
+      "alt_text": "Three panels show ROC AUC, balanced accuracy, and F1 across 50 dependent validation folds per model.",
+      "sha256": {
+        "png": "ba726dc8f907e9933ceb11903ba97fb76fabab3a543ecc7cb809d628f8c5701e",
+        "svg": "fd97762087732430620f8f64a0e12a1cee68a71545a99ad0542ba3fce6225429"
+      }
+    },
+    "confusion-matrix": {
+      "png": "deliverables/04-figures/confusion-matrix.png",
+      "svg": "deliverables/04-figures/vector/confusion-matrix.svg",
+      "sources": [
+        "metrics"
+      ],
+      "mapped_values": {
+        "dummy_stratified": {
+          "tn": 49,
+          "fp": 23,
+          "fn": 22,
+          "tp": 20
+        },
+        "scaled_logistic_regression": {
+          "tn": 72,
+          "fp": 0,
+          "fn": 2,
+          "tp": 40
+        }
+      },
+      "alt_text": "Two holdout confusion matrices compare dummy and scaled logistic predictions for benign and malignant samples.",
+      "sha256": {
+        "png": "9c38309f4b23b1311c093afd2ed8e9a9de35430a377c8627540e8b115dbfab22",
+        "svg": "9b164411c1e5ff97537db3a8d85eb26475b75588647b8c59d038b7c86496b2b2"
+      }
+    }
+  },
+  "automated_checks": {
+    "four_png_files_exist": true,
+    "four_svg_files_exist": true,
+    "all_source_hashes_recorded": true,
+    "all_plotted_values_source_mapped": true
+  },
+  "manual_visual_qa": {
+    "status": "passed",
+    "checked_at": "2026-07-18T04:36:58Z",
+    "inspection_method": "Original-resolution local image inspection with no browser automation",
+    "checked_figures": [
+      "class-balance.png",
+      "roc-and-pr-curves.png",
+      "cv-performance-distribution.png",
+      "confusion-matrix.png"
+    ],
+    "criteria": [
+      "readable labels",
+      "color and redundant encoding",
+      "honest axes and defined uncertainty",
+      "no clipping or overlap",
+      "no unsupported significance claim"
+    ],
+    "findings": [
+      "Class counts, curve labels, fold distributions, and confusion counts are readable at full size.",
+      "Model curves and fold points use both color and line or marker encoding.",
+      "The first confusion-matrix render had an overlapping colorbar; layout was corrected and the final image was re-inspected.",
+      "Final figures contain no clipping, incoherent overlap, unsupported significance marker, or misleading truncated count axis."
+    ]
+  }
+}

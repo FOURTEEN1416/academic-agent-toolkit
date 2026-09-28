@@ -1,0 +1,119 @@
+﻿{
+  "schema_version": 1,
+  "updated": "2026-03-06",
+  "default_runtime_policy": {
+    "write_requires_confirmation": true,
+    "deny_unknown_egress": true,
+    "require_contract_tests_for_external_writes": true,
+    "default_unattended_allowed_tiers": [
+      "tier0_read_only",
+      "tier1_bounded_transform"
+    ]
+  },
+  "tools": [
+    {
+      "tool_id": "docling-mcp",
+      "display_name": "Docling MCP",
+      "integration_surface": "mcp",
+      "approval_state": "approved-template",
+      "risk_tier": "tier1_bounded_transform",
+      "action_types": [
+        "read",
+        "transform",
+        "write_artifact"
+      ],
+      "data_classes": [
+        "documents",
+        "user_content"
+      ],
+      "secret_refs": [],
+      "egress_profile": "none",
+      "quota_profile": "cpu_bound_transform",
+      "runtime_profile": "isolated_doc_runner",
+      "human_confirmation": {
+        "enable_required": true,
+        "per_action_required": false,
+        "unattended_allowed": false
+      },
+      "upstream": {
+        "repo": "docling-project/docling",
+        "mirror_path": "third_party/vco-ecosystem-mirror/docling",
+        "evidence": "docs/usage/mcp.md"
+      },
+      "contract_reference": "references/docling-output-spec.md",
+      "notes": "Use as an opt-in parser/transformer only. Keep document ingestion isolated from the default runtime."
+    },
+    {
+      "tool_id": "activepieces-mcp",
+      "display_name": "Activepieces MCP Server",
+      "integration_surface": "mcp",
+      "approval_state": "approved-template",
+      "risk_tier": "tier3_open_world_or_high_impact",
+      "action_types": [
+        "read",
+        "write_external",
+        "delete_external",
+        "open_world"
+      ],
+      "data_classes": [
+        "automation_flows",
+        "external_service_state"
+      ],
+      "secret_refs": [
+        "ACTIVEPIECES_MCP_TOKEN"
+      ],
+      "egress_profile": "activepieces-project",
+      "quota_profile": "write_heavy_external",
+      "runtime_profile": "external_control_plane",
+      "human_confirmation": {
+        "enable_required": true,
+        "per_action_required": true,
+        "unattended_allowed": false
+      },
+      "upstream": {
+        "repo": "activepieces/activepieces",
+        "mirror_path": "third_party/vco-ecosystem-mirror/activepieces",
+        "evidence": "packages/web/src/app/components/project-settings/mcp-server/mcp-credentials.tsx"
+      },
+      "contract_reference": null,
+      "notes": "Treat Activepieces as an external automation/control plane. Do not embed platform runtime into VCO core."
+    },
+    {
+      "tool_id": "composio-tool-router",
+      "display_name": "Composio Tool Router",
+      "integration_surface": "mcp",
+      "approval_state": "approved-template",
+      "risk_tier": "tier3_open_world_or_high_impact",
+      "action_types": [
+        "read",
+        "write_external",
+        "delete_external",
+        "open_world"
+      ],
+      "data_classes": [
+        "connected_accounts",
+        "external_service_state",
+        "session_scoped_actions"
+      ],
+      "secret_refs": [
+        "COMPOSIO_API_KEY",
+        "COMPOSIO_SESSION_MCP_URL"
+      ],
+      "egress_profile": "composio-session",
+      "quota_profile": "write_heavy_external",
+      "runtime_profile": "external_control_plane",
+      "human_confirmation": {
+        "enable_required": true,
+        "per_action_required": true,
+        "unattended_allowed": false
+      },
+      "upstream": {
+        "repo": "ComposioHQ/composio",
+        "mirror_path": "third_party/vco-ecosystem-mirror/composio",
+        "evidence": "ts/docs/api/tool-router.md"
+      },
+      "contract_reference": null,
+      "notes": "Use Composio only through a constrained action subset with tags and risk hints. Never treat the full provider catalog as trusted-by-default."
+    }
+  ]
+}

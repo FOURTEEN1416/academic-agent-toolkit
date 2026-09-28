@@ -1,0 +1,101 @@
+# ============================================================================
+# T25 — Reservoir computing vs MLP vs Gaussian Process on Lorenz-63
+# ----------------------------------------------------------------------------
+# This is the "experimental spirit" exemplar — the ARC-Bench slot meant to
+# test whether autoclaw can design a non-boilerplate study, not just shuffle
+# standard sklearn classifiers. The topic forces the agent to (a) integrate
+# Lorenz-63 from scratch, (b) implement a reservoir (echo-state network)
+# from scratch (sklearn has none), (c) benchmark it against a matched-
+# parameter MLP and a Gaussian Process at small training-data sizes, and
+# (d) report a dynamics-aware metric (valid prediction time) in addition to
+# raw RMSE. Everything stays CPU-friendly in <15 min.
+# ============================================================================
+
+id: ML25
+title: "Reservoir computing vs MLP vs GP for short-horizon Lorenz-63 forecasting"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+synthesis: |
+  Reservoir computing (a.k.a. echo state networks, ESN) is a lightweight
+  approach for learning dynamical systems: a fixed random recurrent network
+  projects the input into a high-dimensional reservoir state, and only a
+  linear readout layer is trained. For chaotic systems, ESNs have repeatedly
+  been reported to match or outperform trainable recurrent nets on
+  short-horizon trajectory prediction, despite training only a ridge
+  regression on the readout.
+
+  A credible CPU-scale study of this claim must compare (i) a reservoir
+  network with a random sparse internal matrix and fixed spectral radius,
+  (ii) a parameter-matched fully-connected MLP that reads a fixed window of
+  past states, and (iii) a Gaussian Process regressor with an RBF kernel on
+  the same windowed input. The target signal is Lorenz-63 integrated at
+  dt=0.02 with the classical (σ=10, ρ=28, β=8/3) parameters. Training-set
+  sizes N ∈ {200, 500, 1000, 2000} are small enough that the standard
+  reservoir-computing folklore — "ESNs win when data is scarce" — can
+  actually be tested rather than assumed.
+
+  The key dynamics-aware metric is the *valid prediction time* (VPT):
+  the first time step at which the normalized prediction error exceeds a
+  threshold (commonly 0.4 of the attractor standard deviation). Unlike
+  per-step RMSE, VPT tracks how long a model's forecast remains useful on
+  the chaotic attractor. Reporting both RMSE and VPT reveals whether any
+  observed "superiority" is numerical or dynamical.
+
+  The research question is: *does a small reservoir (N_res ≤ 500 units) beat
+  a matched-parameter MLP and a Gaussian Process on valid prediction time
+  for Lorenz-63, and at which training-set size does the gap appear?*
+
+hypotheses:
+  - id: H1
+    statement: "An echo-state network with spectral radius ≈ 0.9 and ≤ 500 reservoir units achieves a longer mean Valid Prediction Time (VPT ≥ 1.2×) than a parameter-matched MLP on Lorenz-63 at training-set sizes N ≤ 500."
+    measurable: true
+  - id: H2
+    statement: "The Gaussian Process regressor is competitive with (VPT within ±20% of) the ESN at N=200 but is decisively beaten (ESN VPT at least 2× the GP's) at N=2000, reflecting the GP's O(N^3) training bottleneck and the ESN's ability to exploit more data without re-inverting a Gram matrix."
+    measurable: true
+  - id: H3
+    statement: "Per-step RMSE at one-step-ahead prediction is NOT a reliable proxy for VPT: at least one condition exists where model A has lower one-step RMSE than model B but a shorter VPT, showing that per-step error understates the divergence on chaotic attractors."
+    measurable: true
+
+experiment_design:
+  research_question: "On Lorenz-63 short-horizon forecasting, does a small echo-state network achieve a longer valid prediction time than a parameter-matched MLP and a Gaussian Process regressor, and how does the ranking depend on training-set size?"
+  conditions:
+    - name: "esn_N200"
+      description: "Echo-state network with 300 reservoir units, spectral radius 0.9, input scaling 1.0, leak rate 0.3, ridge regression readout (alpha=1e-5). Trained on N=200 consecutive Lorenz-63 samples."
+    - name: "esn_N500"
+      description: "Same ESN configuration, N=500 training samples."
+    - name: "esn_N1000"
+      description: "Same ESN configuration, N=1000 training samples."
+    - name: "esn_N2000"
+      description: "Same ESN configuration, N=2000 training samples."
+    - name: "mlp_N{200,500,1000,2000}"
+      description: "Fully-connected MLP with 2 hidden layers whose total parameter count is within ±10% of the ESN readout parameter count. Reads a 5-step window of past (x,y,z) states as input. Adam optimizer, early stopping on a 10% validation split."
+    - name: "gp_N{200,500,1000,2000}"
+      description: "Gaussian Process regressor with an RBF kernel and WhiteNoise term, hyperparameters optimised by marginal likelihood maximisation. Reads the same 5-step window as the MLP. At N=2000 the GP may time out or run out of memory; record the failure."
+  baselines:
+    - "Persistence baseline: predicted next state = previous state. Establishes a floor for VPT."
+    - "Linear autoregressive baseline: one-step-ahead linear regression on the 5-step window. Establishes whether the non-linear methods' gains are real."
+  metrics:
+    - name: "valid_prediction_time"
+      direction: "maximize"
+      description: "First forecast step (in units of integration dt) at which the normalized L2 error exceeds 0.4 × attractor std. Averaged over 10 random initial conditions on an independent test trajectory."
+    - name: "one_step_rmse"
+      direction: "minimize"
+      description: "Root-mean-square error of one-step-ahead prediction on the test trajectory."
+    - name: "train_wall_clock_sec"
+      direction: "minimize"
+      description: "Wall-clock time to fit the model, including hyperparameter optimisation where applicable."
+    - name: "param_count"
+      direction: "report"
+      description: "Number of trainable parameters. Must be reported to demonstrate that the MLP is parameter-matched to the ESN."
+  datasets:
+    - name: "lorenz63_train"
+      source: "synthetic — integrate dxdt=σ(y-x), dy/dt=x(ρ-z)-y, dz/dt=xy-βz at dt=0.02 with σ=10, ρ=28, β=8/3. Use scipy.integrate.solve_ivp or a hand-rolled RK4."
+    - name: "lorenz63_test"
+      source: "independent Lorenz-63 trajectory (different IC, 10× longer warmup) with 10 evaluation windows for VPT averaging."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 720
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML25.json"

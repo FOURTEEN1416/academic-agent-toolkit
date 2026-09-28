@@ -1,0 +1,44 @@
+{
+  "schema_version": "vibeskills_public_skill_inventory_v1",
+  "captured_at": "2026-07-18T06:50:38Z",
+  "case_run_id": "20260718T041559Z-51996499",
+  "capture_note": "Captured on the same Windows host during public-case preparation after the accepted run. The runtime recorded the configured roots; this file records their publication-time inventory.",
+  "counting_rule": "Count every SKILL.md file under each configured root, parse its frontmatter name, then count distinct names across all present roots.",
+  "roots": [
+    {
+      "path": "<user-home>\\.agents\\skills",
+      "kind": "host_local",
+      "present": true,
+      "skill_files": 111,
+      "unique_names_within_root": 105
+    },
+    {
+      "path": "<user-home>\\.codex\\plugins\\cache",
+      "kind": "host_plugin_cache",
+      "present": true,
+      "skill_files": 250,
+      "unique_names_within_root": 162
+    },
+    {
+      "path": "<user-home>\\.codex\\skills\\vibe\\core\\skills",
+      "kind": "repo_core",
+      "present": false,
+      "skill_files": 0,
+      "unique_names_within_root": 0
+    },
+    {
+      "path": "<user-home>\\.codex\\skills\\vibe\\bundled\\skills",
+      "kind": "repo_bundled",
+      "present": false,
+      "skill_files": 0,
+      "unique_names_within_root": 0
+    }
+  ],
+  "totals": {
+    "skill_files": 361,
+    "unique_names": 266,
+    "duplicate_name_groups": 95,
+    "selected_for_case": 7
+  },
+  "readme_claim": "more than 100 configured local Skills"
+}

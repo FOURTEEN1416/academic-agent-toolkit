@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vibeskills.dev/schemas/skill-compatibility.schema.json",
+  "title": "Skill Compatibility Contract",
+  "type": "object",
+  "required": [
+    "skill_id",
+    "required_capabilities",
+    "optional_capabilities",
+    "degrade_rules"
+  ],
+  "properties": {
+    "skill_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "required_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "optional_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "degrade_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "when_missing",
+          "state",
+          "behavior"
+        ],
+        "properties": {
+          "when_missing": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "full",
+              "degraded-but-supported",
+              "advisory-only",
+              "unsupported"
+            ]
+          },
+          "behavior": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
+

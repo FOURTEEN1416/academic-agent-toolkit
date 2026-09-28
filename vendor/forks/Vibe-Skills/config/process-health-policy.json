@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "updated": "2026-03-11",
+  "enabled": true,
+  "mode": "audit",
+  "ownership_contract": {
+    "managed": "vco-managed",
+    "external": "external",
+    "unknown": "unknown"
+  },
+  "process_detection": {
+    "node_process_names": [
+      "node",
+      "node.exe"
+    ],
+    "launcher_process_names": [
+      "node",
+      "node.exe",
+      "npm",
+      "npm.cmd",
+      "npx",
+      "npx.cmd",
+      "pnpm",
+      "pnpm.cmd",
+      "yarn",
+      "yarn.cmd"
+    ]
+  },
+  "audit": {
+    "startup_grace_sec": 20,
+    "missing_heartbeat_sec": 45,
+    "stale_heartbeat_sec": 120,
+    "write_markdown_summary": true,
+    "max_recent_events": 20
+  },
+  "cleanup": {
+    "default_mode": "report_only",
+    "allowed_classifications": [
+      "managed_stale",
+      "managed_completed_process_alive"
+    ],
+    "require_cleanup_safe": true,
+    "protect_ownership": [
+      "external",
+      "unknown"
+    ],
+    "termination_wait_sec": 5
+  }
+}

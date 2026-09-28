@@ -1,0 +1,199 @@
+{
+  "schema_version": "cross_artifact_consistency_v1",
+  "generated_at": "2026-07-18T05:31:55Z",
+  "overall_status": "passed",
+  "passing_check_count": 17,
+  "failing_check_count": 0,
+  "canonical_acceptance_evaluated": false,
+  "publishable_as_readme_success": false,
+  "rounding_rule": "Three decimals for performance and intervals in human-facing artifacts; exact values remain in JSON and CSV sources.",
+  "checks": [
+    {
+      "check_id": "required-files",
+      "state": "passing",
+      "detail": "28 of 28 required primary files exist.",
+      "evidence_paths": [
+        "deliverables/00-environment/.venv/Scripts/python.exe",
+        "deliverables/00-environment/requirements.lock",
+        "deliverables/00-environment/environment.json",
+        "deliverables/00-environment/reproduce.ps1",
+        "deliverables/01-data-audit/dataset-metadata.json",
+        "deliverables/01-data-audit/target-distribution.csv",
+        "deliverables/01-data-audit/wisconsin-breast-cancer.csv",
+        "deliverables/01-data-audit/data-audit.md",
+        "deliverables/02-baseline/experiment-config.json",
+        "deliverables/02-baseline/metrics.json",
+        "deliverables/02-baseline/fold-metrics.csv",
+        "deliverables/02-baseline/holdout-predictions.csv",
+        "deliverables/02-baseline/reproduction-check.json",
+        "deliverables/03-statistical-review/statistics/uncertainty.json",
+        "deliverables/03-statistical-review/statistics/statistical-review.md",
+        "deliverables/03-statistical-review/method-review/method-and-claims-review.md",
+        "deliverables/04-figures/figure-index.json",
+        "deliverables/05-report/final/scientific-report.md",
+        "deliverables/05-report/draft/report-source-map.json",
+        "deliverables/05-report/final/writing-review.md",
+        "deliverables/06-slides/group-meeting-slides.pptx",
+        "deliverables/06-slides/slide-source-map.json",
+        "deliverables/06-slides/slides-qa.txt",
+        "deliverables/06-slides/slides-montage.png",
+        "deliverables/07-case-package/summary-en.md",
+        "deliverables/07-case-package/summary-zh.md",
+        "deliverables/07-case-package/visual-materials.md",
+        "deliverables/07-case-package/case-manifest.json"
+      ]
+    },
+    {
+      "check_id": "module-output-patterns",
+      "state": "passing",
+      "detail": "Every frozen module expected-output pattern resolves to at least one real file.",
+      "evidence_paths": [
+        "deliverables/07-case-package/case-manifest.json",
+        "outputs/runtime/vibe-sessions/20260718T041559Z-51996499/module-work-plan.json"
+      ]
+    },
+    {
+      "check_id": "runtime-plan-binding",
+      "state": "passing",
+      "detail": "The execution plan remains L with nine modules, ten work units, and the seven frozen Skill IDs.",
+      "evidence_paths": [
+        "outputs/runtime/vibe-sessions/20260718T041559Z-51996499/module-work-plan.json",
+        "deliverables/07-case-package/case-manifest.json"
+      ]
+    },
+    {
+      "check_id": "environment-contract",
+      "state": "passing",
+      "detail": "Python 3.12.12 is active and all 18 locked distributions match the installed case environment.",
+      "evidence_paths": [
+        "deliverables/00-environment/environment.json",
+        "deliverables/00-environment/requirements.lock"
+      ]
+    },
+    {
+      "check_id": "dataset-contract",
+      "state": "passing",
+      "detail": "Dataset shape, class counts, missingness, non-finite values, and duplicate checks agree across metadata and the target table.",
+      "evidence_paths": [
+        "deliverables/01-data-audit/dataset-metadata.json",
+        "deliverables/01-data-audit/target-distribution.csv"
+      ]
+    },
+    {
+      "check_id": "split-and-model-contract",
+      "state": "passing",
+      "detail": "The frozen 455/114 split is disjoint, repeated CV is 5 x 10 on training only, and no hyperparameter search was added.",
+      "evidence_paths": [
+        "deliverables/02-baseline/experiment-config.json"
+      ]
+    },
+    {
+      "check_id": "baseline-results",
+      "state": "passing",
+      "detail": "Holdout rows, fold rows, model metrics, and confusion counts match the frozen machine-readable results.",
+      "evidence_paths": [
+        "deliverables/02-baseline/metrics.json",
+        "deliverables/02-baseline/fold-metrics.csv",
+        "deliverables/02-baseline/holdout-predictions.csv"
+      ]
+    },
+    {
+      "check_id": "exact-reproduction",
+      "state": "passing",
+      "detail": "A second run produced the same combined digest for configuration, metrics, folds, and holdout predictions.",
+      "evidence_paths": [
+        "deliverables/02-baseline/reproduction-check.json",
+        "deliverables/00-environment/reproduce.ps1"
+      ]
+    },
+    {
+      "check_id": "uncertainty-consistency",
+      "state": "passing",
+      "detail": "Uncertainty point estimates and confusion counts match metrics.json; the 10,000-replicate method and no-significance-test decision are preserved.",
+      "evidence_paths": [
+        "deliverables/03-statistical-review/statistics/uncertainty.json",
+        "deliverables/02-baseline/metrics.json"
+      ]
+    },
+    {
+      "check_id": "statistics-write-protection",
+      "state": "passing",
+      "detail": "The verifier wrote only the method-review document and recorded owner-file hashes that still match the protected statistics outputs.",
+      "evidence_paths": [
+        "deliverables/03-statistical-review/statistics/uncertainty.json",
+        "deliverables/03-statistical-review/statistics/statistical-review.md",
+        "deliverables/03-statistical-review/method-review/method-and-claims-review.md"
+      ]
+    },
+    {
+      "check_id": "figure-traceability",
+      "state": "passing",
+      "detail": "Four PNG and four SVG figures retain valid hashes, source mappings, and a passed full-size visual inspection.",
+      "evidence_paths": [
+        "deliverables/04-figures/figure-index.json",
+        "deliverables/04-figures/*.png",
+        "deliverables/04-figures/vector/*.svg"
+      ]
+    },
+    {
+      "check_id": "report-consistency",
+      "state": "passing",
+      "detail": "The final scientific report contains the frozen counts, rounded metrics, named uncertainty method, figure references, and non-clinical limitations backed by its source map.",
+      "evidence_paths": [
+        "deliverables/05-report/final/scientific-report.md",
+        "deliverables/05-report/draft/report-source-map.json"
+      ]
+    },
+    {
+      "check_id": "slides-consistency",
+      "state": "passing",
+      "detail": "The seven-slide PPTX, source map, extracted slide text, 1920 x 1080 renders, and QA ledger agree with the machine-readable experiment evidence.",
+      "evidence_paths": [
+        "deliverables/06-slides/group-meeting-slides.pptx",
+        "deliverables/06-slides/slide-source-map.json",
+        "deliverables/06-slides/slides-qa.txt",
+        "deliverables/06-slides/rendered/slide-*.png"
+      ]
+    },
+    {
+      "check_id": "bilingual-summary-consistency",
+      "state": "passing",
+      "detail": "The short English and Chinese candidate summaries use the same module counts, Skill count, rounded metrics, and pre-acceptance publication gate.",
+      "evidence_paths": [
+        "deliverables/07-case-package/summary-en.md",
+        "deliverables/07-case-package/summary-zh.md"
+      ]
+    },
+    {
+      "check_id": "visual-material-guidance",
+      "state": "passing",
+      "detail": "Every recommended README visual points to a real case artifact and the guidance preserves the protected README asset boundary.",
+      "evidence_paths": [
+        "deliverables/07-case-package/visual-materials.md",
+        "deliverables/06-slides/rendered/slide-6.png",
+        "deliverables/04-figures/roc-and-pr-curves.png",
+        "deliverables/04-figures/class-balance.png",
+        "deliverables/04-figures/cv-performance-distribution.png",
+        "deliverables/06-slides/rendered/slide-7.png",
+        "deliverables/06-slides/slides-montage.png"
+      ]
+    },
+    {
+      "check_id": "manifest-boundary",
+      "state": "passing",
+      "detail": "The manifest reports produced artifacts without fabricating module-execution, cleanup, delivery acceptance, or README success state.",
+      "evidence_paths": [
+        "deliverables/07-case-package/case-manifest.json"
+      ]
+    },
+    {
+      "check_id": "artifact-path-boundary",
+      "state": "passing",
+      "detail": "Every manifest artifact remains inside the case workspace.",
+      "evidence_paths": [
+        "deliverables/07-case-package/case-manifest.json"
+      ]
+    }
+  ],
+  "case_status_after_this_check": "awaiting_canonical_module_execution_and_delivery_acceptance"
+}

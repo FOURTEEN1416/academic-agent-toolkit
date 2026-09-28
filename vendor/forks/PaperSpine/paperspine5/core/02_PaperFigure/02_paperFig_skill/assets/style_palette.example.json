@@ -1,0 +1,15 @@
+{
+  "ink": "#263238",
+  "grid": "#E3E8EC",
+  "primary": "#D95F4C",
+  "secondary": "#2AA198",
+  "tertiary": "#4C78A8",
+  "accent": "#756BB1",
+  "neutral": "#7F8C8D",
+  "rules": {
+    "method_color_is_stable_across_figures": true,
+    "panel_letters_inside_safe_margin": true,
+    "max_primary_colors_per_panel": 4,
+    "vector_text_and_axes": true
+  }
+}

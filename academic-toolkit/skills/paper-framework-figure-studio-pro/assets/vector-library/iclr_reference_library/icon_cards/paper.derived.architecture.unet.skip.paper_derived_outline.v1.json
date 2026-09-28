@@ -1,0 +1,374 @@
+{
+  "concept_id": "paper.derived.architecture.unet.skip",
+  "icon_id": "paper.derived.architecture.unet.skip.paper_derived_outline.v1",
+  "primary_meaning": "Paper-derived U-Net skip architecture",
+  "aliases": [
+    "U-Net",
+    "skip connections"
+  ],
+  "negative_aliases": [
+    "paper-specific module name",
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim",
+    "literal reproduction of source figure"
+  ],
+  "shape_family_id": "paper.derived.unet_skip",
+  "style_variant": "paper_derived_refined_outline",
+  "domain_tags": [
+    "paper_derived",
+    "framework_figure_motif",
+    "AI",
+    "CS",
+    "paper_figure",
+    "architecture",
+    "unet",
+    "skip"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot",
+    "visual_layout_reuse"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support",
+    "literal reproduction of source paper figure"
+  ],
+  "source_lineage": {
+    "import_mode": "paper_figure_motif_abstraction",
+    "source": "paper_framework_figure_motif_extraction",
+    "source_path": "final_reference_figure_library.jsonl",
+    "source_figure_count": 10,
+    "source_figures": [
+      {
+        "reference_case_id": "iclr2025/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/fig-0005",
+        "paper_title": "Exploring The Loss Landscape Of Regularized Neural Networks Via Convex Duality",
+        "field": "Optimization",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "train_infer_split",
+        "source_path": "iclr2025_collection/papers/Optimization/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/figures/pdf_framework_page_047.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Optimization/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/figures/pdf_framework_page_047.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality:fig-0005",
+          "includegraphics": "iclr2025_collection/papers/Optimization/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/figures/pdf_framework_page_047.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/open-world-reinforcement-learning-over-long-short-term-imagination/fig-0004",
+        "paper_title": "Open-World Reinforcement Learning over Long Short-Term Imagination",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/open-world-reinforcement-learning-over-long-short-term-imagination/figures/framework_04_sequencial-and-parallel.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/open-world-reinforcement-learning-over-long-short-term-imagination/sources/arxiv_src/sections/04.experiments.tex",
+          "line": 113,
+          "label": "fig:vis_comp",
+          "includegraphics": "fig/sequencial_and_parallel.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/sana-efficient-high-resolution-text-to-image-synthesis-with-linear-diffusion-transformers/fig-0002",
+        "paper_title": "SANA: Efficient High-Resolution Text-to-Image Synthesis with Linear Diffusion Transformers",
+        "field": "NLP",
+        "figure_subtype": "method_architecture",
+        "layout_grammar": "left_to_right_modular_pipeline",
+        "topology": "pipeline_or_modular_system",
+        "source_path": "iclr2025_collection/papers/NLP/sana-efficient-high-resolution-text-to-image-synthesis-with-linear-diffusion-transformers/figures/pdf_framework_page_002.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/sana-efficient-high-resolution-text-to-image-synthesis-with-linear-diffusion-transformers/figures/pdf_framework_page_002.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:sana-efficient-high-resolution-text-to-image-synthesis-with-linear-diffusion-transformers:fig-0002",
+          "includegraphics": "iclr2025_collection/papers/NLP/sana-efficient-high-resolution-text-to-image-synthesis-with-linear-diffusion-transformers/figures/pdf_framework_page_002.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/shepherd-diffusing-shape-electrostatics-and-pharmacophores-for-bioisosteric-drug-design/fig-0001",
+        "paper_title": "ShEPhERD: Diffusing shape, electrostatics, and pharmacophores for bioisosteric drug design",
+        "field": "Graph",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Graph/shepherd-diffusing-shape-electrostatics-and-pharmacophores-for-bioisosteric-drug-design/figures/framework_01_shepherd-methods-v3.jpg",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/Graph/shepherd-diffusing-shape-electrostatics-and-pharmacophores-for-bioisosteric-drug-design/sources/arxiv_src/main.tex",
+          "line": 207,
+          "label": "fig:methods",
+          "includegraphics": "figures/shepherd_methods_v3.jpg"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/transfusion-predict-the-next-token-and-diffuse-images-with-one-multi-modal-model/fig-0002",
+        "paper_title": "Transfusion: Predict the Next Token and Diffuse Images with One Multi-Modal Model",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "train_infer_split",
+        "source_path": "iclr2025_collection/papers/NLP/transfusion-predict-the-next-token-and-diffuse-images-with-one-multi-modal-model/figures/framework_02_model-vision-crop.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/transfusion-predict-the-next-token-and-diffuse-images-with-one-multi-modal-model/sources/arxiv_src/03_method.tex",
+          "line": 10,
+          "label": "fig:encdec",
+          "includegraphics": "pics/model_vision-crop.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/transfusion-predict-the-next-token-and-diffuse-images-with-one-multi-modal-model/fig-0003",
+        "paper_title": "Transfusion: Predict the Next Token and Diffuse Images with One Multi-Modal Model",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "train_infer_split",
+        "source_path": "iclr2025_collection/papers/NLP/transfusion-predict-the-next-token-and-diffuse-images-with-one-multi-modal-model/figures/framework_03_attention-mask-crop.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/transfusion-predict-the-next-token-and-diffuse-images-with-one-multi-modal-model/sources/arxiv_src/03_method.tex",
+          "line": 17,
+          "label": "fig:attention",
+          "includegraphics": "pics/attention_mask-crop.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2026/characterizing-the-discrete-geometry-of-relu-networks/fig-0001",
+        "paper_title": "Characterizing the Discrete Geometry of ReLU Networks",
+        "field": "Graph",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2026_collection/papers/Graph/characterizing-the-discrete-geometry-of-relu-networks/figures/pdf_framework_page_001.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2026_collection/papers/Graph/characterizing-the-discrete-geometry-of-relu-networks/figures/pdf_framework_page_001.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2026:characterizing-the-discrete-geometry-of-relu-networks:fig-0001",
+          "includegraphics": "iclr2026_collection/papers/Graph/characterizing-the-discrete-geometry-of-relu-networks/figures/pdf_framework_page_001.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2026/characterizing-the-discrete-geometry-of-relu-networks/fig-0003",
+        "paper_title": "Characterizing the Discrete Geometry of ReLU Networks",
+        "field": "Graph",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "train_infer_split",
+        "source_path": "iclr2026_collection/papers/Graph/characterizing-the-discrete-geometry-of-relu-networks/figures/pdf_framework_page_003.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2026_collection/papers/Graph/characterizing-the-discrete-geometry-of-relu-networks/figures/pdf_framework_page_003.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2026:characterizing-the-discrete-geometry-of-relu-networks:fig-0003",
+          "includegraphics": "iclr2026_collection/papers/Graph/characterizing-the-discrete-geometry-of-relu-networks/figures/pdf_framework_page_003.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2026/characterizing-the-discrete-geometry-of-relu-networks/fig-0004",
+        "paper_title": "Characterizing the Discrete Geometry of ReLU Networks",
+        "field": "Graph",
+        "figure_subtype": "qualitative_example",
+        "layout_grammar": "example_grid_or_before_after_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2026_collection/papers/Graph/characterizing-the-discrete-geometry-of-relu-networks/figures/pdf_framework_page_004.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2026_collection/papers/Graph/characterizing-the-discrete-geometry-of-relu-networks/figures/pdf_framework_page_004.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2026:characterizing-the-discrete-geometry-of-relu-networks:fig-0004",
+          "includegraphics": "iclr2026_collection/papers/Graph/characterizing-the-discrete-geometry-of-relu-networks/figures/pdf_framework_page_004.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2026/characterizing-the-discrete-geometry-of-relu-networks/fig-0005",
+        "paper_title": "Characterizing the Discrete Geometry of ReLU Networks",
+        "field": "Graph",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2026_collection/papers/Graph/characterizing-the-discrete-geometry-of-relu-networks/figures/pdf_framework_page_016.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2026_collection/papers/Graph/characterizing-the-discrete-geometry-of-relu-networks/figures/pdf_framework_page_016.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2026:characterizing-the-discrete-geometry-of-relu-networks:fig-0005",
+          "includegraphics": "iclr2026_collection/papers/Graph/characterizing-the-discrete-geometry-of-relu-networks/figures/pdf_framework_page_016.png"
+        },
+        "match_score": 8
+      }
+    ],
+    "extraction_basis": [
+      "source-grounded final reference figure records",
+      "figure subtype/layout/topology tags",
+      "caption/source-anchor keyword evidence",
+      "borrowable visual design patterns"
+    ],
+    "abstraction_level": "non_literal_semantic_visual_motif",
+    "imported_at": "2026-05-24T08:42:48.797Z",
+    "modified": true,
+    "modification": "Created as a simplified vector motif from repeated downloaded-paper framework figure patterns; source-paper text, labels, claims, datasets, metrics, and exact visual composition are intentionally not copied.",
+    "refinement": {
+      "status": "refined_semantic_vector_redraw",
+      "semantic_kind": "encoder_decoder",
+      "workflow": [
+        "contact_sheet_with_padding",
+        "imagegen_prompt_manifest_for_style_exploration",
+        "semantic_cut_slot",
+        "programmatic_svg_redraw",
+        "index_update"
+      ],
+      "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+      "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+      "generated_at": "2026-05-24T09:34:49.553Z"
+    }
+  },
+  "license": {
+    "name": "Paper-derived framework figure motif abstraction",
+    "license": "source-paper-visual-motif-abstraction",
+    "usage_terms": "Internal reusable visual/layout motif. Use for generic figure icon language only; do not treat as source-paper evidence or copy source-paper facts."
+  },
+  "files": {
+    "raw_svg": "icons/raw/paper.derived.architecture.unet.skip.paper_derived_outline.v1.svg",
+    "tight_svg": "icons/tight/paper.derived.architecture.unet.skip.paper_derived_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/paper.derived.architecture.unet.skip.paper_derived_outline.v1.ppt_safe.svg",
+    "semantic_cut_svg": "paper_derived_icon_refinement/cut_svg/paper.derived.architecture.unet.skip.paper_derived_outline.v1.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": -2.775,
+    "minY": -2.775,
+    "width": 24.55,
+    "height": 22.55,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": -0.083,
+      "top": -0.083,
+      "right": 0.125,
+      "bottom": 0.208
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "refined_from_semantic_contact_sheet": true,
+    "editable_shape_primitives": true,
+    "sha1": "519f9c452b48a7160ef949b44eb29d45e02f2d58"
+  },
+  "transfer_contract": {
+    "allowed": [
+      "generic visual icon language",
+      "layout/motif inspiration",
+      "PPT editable stencil use"
+    ],
+    "disallowed": [
+      "source-paper facts",
+      "paper-specific labels",
+      "metrics",
+      "datasets",
+      "claims",
+      "literal source-figure reproduction"
+    ]
+  },
+  "refinement": {
+    "status": "refined_semantic_vector_redraw",
+    "semantic_kind": "encoder_decoder",
+    "workflow": [
+      "contact_sheet_with_padding",
+      "imagegen_prompt_manifest_for_style_exploration",
+      "semantic_cut_slot",
+      "programmatic_svg_redraw",
+      "index_update"
+    ],
+    "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+    "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+    "generated_at": "2026-05-24T09:34:49.553Z"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "case_id": "no-node-processes",
+  "now": "2026-03-11T14:00:00Z",
+  "live_processes": [],
+  "ledger": {
+    "entries": []
+  }
+}

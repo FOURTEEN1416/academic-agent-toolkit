@@ -1,0 +1,123 @@
+{
+  "concept_id": "dl.explain.feature_attribution",
+  "icon_id": "dl.explain.feature.attribution.generated_outline.v1",
+  "primary_meaning": "Feature attribution",
+  "aliases": [
+    "attribution",
+    "feature importance"
+  ],
+  "negative_aliases": [
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim"
+  ],
+  "shape_family_id": "dl.explain.attribution",
+  "style_variant": "generated_outline",
+  "domain_tags": [
+    "deep_learning",
+    "interpretability",
+    "analysis",
+    "AI",
+    "CS",
+    "paper_figure"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "deep_learning_detail",
+    "scene_spec_icon_slot"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support"
+  ],
+  "source_lineage": {
+    "import_mode": "generated_project_vector",
+    "source": "generated_deep_learning_svg_icons",
+    "source_path": "generated_deep_learning_svg_icons/attention_head",
+    "imported_at": "2026-05-24T08:42:28.526Z",
+    "modified": true,
+    "modification": "generated SVG preserved as raw source; tight SVG viewBox cropped to computed visible geometry with stroke bleed; PPT-safe variant uses explicit stroke color."
+  },
+  "license": {
+    "name": "Generated Deep Learning SVG Icons",
+    "license": "project_generated_svg",
+    "usage_terms": "Generated vector symbols for this project; reusable as generic visual/layout icons and not as source-paper evidence."
+  },
+  "files": {
+    "raw_svg": "icons/raw/dl.explain.feature.attribution.generated_outline.v1.svg",
+    "tight_svg": "icons/tight/dl.explain.feature.attribution.generated_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/dl.explain.feature.attribution.generated_outline.v1.ppt_safe.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": 2.825,
+    "minY": 2.825,
+    "width": 18.35,
+    "height": 16.35,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": 0.15,
+      "top": 0.15,
+      "right": 0.15,
+      "bottom": 0.233
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "sha1": "c21ff5f20e46811e681df3b19da28f78dbeb7b9a"
+  }
+}

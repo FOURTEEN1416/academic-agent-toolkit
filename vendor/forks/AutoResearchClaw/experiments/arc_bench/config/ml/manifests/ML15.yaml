@@ -1,0 +1,96 @@
+# ============================================================================
+# T15 — Filter vs embedded feature selection under irrelevant-feature injection
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML15
+title: "Filter-based vs embedded L1 feature selection with injected noise features"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Feature selection on tabular classification problems is often presented as a
+  choice between simple univariate filters and embedded sparse models.
+  Univariate filters such as chi-squared, ANOVA F-score, and mutual
+  information are computationally cheap and easy to apply in a pipeline, but
+  they evaluate each feature independently and can miss interactions. Embedded
+  L1-regularized logistic regression performs selection during model fitting,
+  potentially yielding feature subsets that better align with predictive
+  structure when many irrelevant variables are present.
+
+  A practical stress test is to inject synthetic irrelevant features into
+  otherwise standard benchmark datasets. This setup creates controlled feature
+  dilution while preserving original labels and base difficulty. Under such
+  dilution, methods that can ignore noise should maintain accuracy and avoid
+  selecting many synthetic features. Conversely, methods sensitive to spurious
+  univariate associations may degrade as noise dimension increases.
+
+  A credible CPU-only study should compare at least three filter selectors
+  (mutual_info_classif, chi2, f_classif) and an embedded L1 selector in a
+  shared downstream classifier pipeline, evaluate on multiple sklearn
+  classification datasets, and report both predictive performance and selection
+  quality. Including multiple random seeds is important because both noise
+  injection and train/test splits can change apparent selector rankings.
+
+  The key aim is not to reproduce a single published table, but to determine
+  whether embedded sparsity offers robustness advantages over filters as
+  irrelevant dimensions grow, and whether that robustness generalizes across
+  datasets with different feature scales and class structures.
+
+  *Does embedded L1-logistic feature selection retain predictive performance and reject injected irrelevant features more reliably than univariate filter methods under controlled feature-noise injection?*
+
+hypotheses:
+  - id: H1
+    statement: "With 5x injected irrelevant features (relative to original feature count), L1-logistic embedded selection achieves higher mean test_accuracy than each filter method (mutual_info_classif, chi2, f_classif) on at least 2 of 3 datasets, averaged over >=5 seeds."
+    measurable: true
+  - id: H2
+    statement: "At fixed selected-feature budget k=20 (or all features if p<20), L1-logistic selects a lower fraction of injected irrelevant features than the average of the three filter methods on all evaluated datasets."
+    measurable: true
+  - id: H3
+    statement: "From no-injection to 5x-injection settings, mean test_accuracy drop for L1-logistic is <= 3 percentage points on at least 2 of 3 datasets."
+    measurable: true
+
+experiment_design:
+  research_question: "Does embedded L1-logistic feature selection outperform univariate filter methods in robustness to injected irrelevant features on sklearn tabular classification datasets?"
+  conditions:
+    - name: "filter_mutual_info_k20"
+      description: "SelectKBest(mutual_info_classif, k=20 or p if p<20) followed by LogisticRegression classifier."
+    - name: "filter_chi2_k20"
+      description: "MinMax scaling to nonnegative domain, then SelectKBest(chi2, k=20 or p if p<20) followed by LogisticRegression classifier."
+    - name: "filter_f_classif_k20"
+      description: "SelectKBest(f_classif, k=20 or p if p<20) followed by LogisticRegression classifier."
+    - name: "embedded_l1_logistic"
+      description: "L1-penalized LogisticRegression (saga/liblinear) used as embedded selector; keep top-20 by absolute coefficient magnitude (or nonzero if <=20), retrain LogisticRegression on selected subset."
+  baselines:
+    - "filter_f_classif_k20 as a standard univariate linear-statistic baseline"
+    - "filter_mutual_info_k20 as a nonlinear dependency baseline"
+  metrics:
+    - name: "test_accuracy"
+      direction: "maximize"
+      description: "Held-out test accuracy averaged over >=5 seeds for each dataset and injection level."
+    - name: "noise_feature_selection_rate"
+      direction: "minimize"
+      description: "Fraction of selected features that come from injected irrelevant columns."
+    - name: "accuracy_drop_0x_to_5x_pp"
+      direction: "minimize"
+      description: "Absolute percentage-point drop in test_accuracy from 0x to 5x injection."
+  datasets:
+    - name: "breast_cancer"
+      source: "sklearn.datasets.load_breast_cancer"
+    - name: "wine"
+      source: "sklearn.datasets.load_wine"
+    - name: "digits"
+      source: "sklearn.datasets.load_digits"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 420
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML15.json"

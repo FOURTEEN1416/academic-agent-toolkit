@@ -1,0 +1,17 @@
+{
+  "skill_id": "brainstorming",
+  "required_capabilities": [
+    "fs.read"
+  ],
+  "optional_capabilities": [
+    "doc.write"
+  ],
+  "degrade_rules": [
+    {
+      "when_missing": "doc.write",
+      "state": "degraded-but-supported",
+      "behavior": "design may be discussed, but formal design artifact must be written later"
+    }
+  ]
+}
+

@@ -1,0 +1,9 @@
+{
+  "adapter_id": "generic",
+  "template": null,
+  "target": null,
+  "semantics": {},
+  "notes": [
+    "Generic hosts are expected to map canonical contracts into their own settings systems."
+  ]
+}

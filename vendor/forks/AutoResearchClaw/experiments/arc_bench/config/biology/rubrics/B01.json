@@ -1,0 +1,166 @@
+{
+    "id": "B01",
+    "requirements": "A credible constraint-based experiment on E. coli iAF1260 that (a) loads the BIGG model and validates wild-type growth, (b) computes a flux distribution under the standard objective, (c) characterises the biomass-vs-succinate production envelope, (d) runs a single-gene knockout screen targeted at central carbon metabolism, and (e) ties the top-ranked knockouts to the network mechanism. Partial but well-motivated evidence deserves partial credit; rigid wording or naming should not penalize a substantively correct experiment.",
+    "judging_note": "Score on biological substance and quantitative correctness, not exact threshold satisfaction. Reproducing canonical FBA numbers (WT growth ~0.7, well-known knockouts like pflB/ldhA/adhE/ackA-pta) is strong evidence; novel-but-coherent design choices are acceptable.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "b01-code",
+            "requirements": "The constraint-based pipeline is implemented with COBRApy and a BIGG genome-scale model.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "b01-code-model",
+                    "requirements": "The submission loads E. coli iAF1260 (or a comparable validated genome-scale metabolic model) from BIGG via COBRApy, with the medium constraints (glucose uptake, O2 availability) explicitly set and the biomass objective explicitly named.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "b01-code-fba",
+                    "requirements": "FBA and pFBA are invoked correctly to obtain wild-type growth and a unique flux distribution; output flux table covers exchange + central-carbon reactions at minimum.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "b01-code-envelope",
+                    "requirements": "The biomass-vs-succinate production envelope is computed by sweeping a fraction-of-optimum biomass constraint and running FVA (or two-step FBA) on the succinate exchange at each grid point.",
+                    "weight": 4.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "b01-code-koscreen",
+                    "requirements": "The single-gene knockout screen iterates over a curated central-carbon / fermentation / TCA gene set (≤100), applies model.genes.<g>.knock_out() (or equivalent reaction-bound deletion), and records succinate flux at fixed biomass = 0.5 × WT optimum.",
+                    "weight": 4.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "b01-exec",
+            "requirements": "Execution produces the FBA / FVA / KO numbers needed to evaluate the hypotheses without crashing.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "b01-exec-validity",
+                    "requirements": "Solver returns optimal status for the wild-type FBA and at least 90% of the KO conditions; no negative biomass or non-physical fluxes (succinate secretion negative under aerobic glucose, etc.) appear without explanation.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "b01-exec-physics",
+                    "requirements": "Mass balance, charge balance, and biomass-positive checks pass for the loaded model; this is the biology-validity gate analogous to physics-validity (gauge invariance, unitarity) in the physics rubric.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "b01-exec-results",
+                    "requirements": "A machine-readable results artifact (results.json or simulations/*.csv) records WT growth rate, the production-envelope grid (biomass fraction → succinate secretion flux in mmol/gDW/h), and a per-KO succinate-flux table. If yield is reported, define it separately as succinate secretion flux divided by glucose uptake flux.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "b01-results",
+            "requirements": "The results analysis addresses the three hypotheses with quantitative evidence and a clear narrative tied to network mechanism.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "b01-result-h1-quant",
+                    "requirements": "Quantitative test of H1: predicted WT aerobic growth rate is reported and compared to the published BIGG reference 0.736 1/h. Score 100% if relative error < 3%, 67% if < 10%, 33% if < 30%, 0% otherwise.",
+                    "weight": 12.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "b01-result-h2-quant",
+                    "requirements": "Quantitative test of H2: production envelope shows succinate is growth-competing — succinate flux is non-increasing as biomass approaches WT optimum. Score 100% if monotonic over ≥8 of 10 grid points, 67% if ≥6 of 10, 33% if ≥4 of 10.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "b01-result-h3-quant",
+                    "requirements": "Quantitative test of H3: among the top-5 KO ranked by succinate secretion flux at 0.5 × WT growth, count how many disrupt canonical competing by-product or respiration pathways for succinate-overproduction logic, such as {pflB, ldhA, adhE, ackA, pta, acetate/ethanol/lactate branch competitors, oxygen-respiration competitors}, or include a specific mechanistic explanation for redirecting flux toward succinate under the chosen medium. Score 100% if ≥3 of 5 meet this canonical-or-mechanistic criterion, 67% if 2 of 5, 33% if 1 of 5, 0% otherwise.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "b01-result-figure",
+                    "requirements": "At least one publication-quality figure is produced — typically the production envelope (biomass on x, succinate secretion flux on y, with WT and best KO overlaid) and/or the KO essentiality / flux heatmap. Axes labeled with units (1/h, mmol/gDW/h), legend present.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "b01-result-writeup",
+                    "requirements": "The README or results writeup discusses each hypothesis outcome, names the top knockouts with their gene/enzyme identity, and gives a one-paragraph mechanistic interpretation (which competing pathways the KOs disable, why this redirects flux to succinate).",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "b01-repro",
+            "requirements": "Reproducibility: the model, run cards, and seeds are checked into artifacts so a fresh clone can rerun and obtain matching numbers.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "b01-repro-model",
+                    "requirements": "The loaded GSMM is either persisted (models/iAF1260.json) or pinned by version + BIGG URL in the writeup; a downstream user can locate the exact model object used.",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Reproducibility"
+                },
+                {
+                    "id": "b01-repro-runcards",
+                    "requirements": "The medium definition (exchange bounds), objective function, FVA fraction-of-optimum, and KO gene list are saved to a config / params file (not only inline in code).",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Reproducibility"
+                },
+                {
+                    "id": "b01-repro-seeds",
+                    "requirements": "Solver settings (LP backend name + version, tolerance) are recorded; if any sampling step is used, the RNG seed is logged. A second run reproduces the central WT growth rate to within solver tolerance.",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Reproducibility"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

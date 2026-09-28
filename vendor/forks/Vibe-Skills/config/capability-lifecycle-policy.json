@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "states": [
+    "intake",
+    "shadow",
+    "soft_review",
+    "strict_review",
+    "ceiling",
+    "retire"
+  ],
+  "policy_guards": {
+    "productize_only_after_dedup": true,
+    "manual_review_required": true,
+    "route_authority_forbidden": true
+  },
+  "required_fields": [
+    "capability_id",
+    "lane",
+    "current_state",
+    "next_state",
+    "promotion_ceiling",
+    "explicit_no_go",
+    "required_gates"
+  ]
+}

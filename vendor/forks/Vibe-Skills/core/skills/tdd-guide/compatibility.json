@@ -1,0 +1,19 @@
+{
+  "skill_id": "tdd-guide",
+  "required_capabilities": [
+    "fs.read",
+    "fs.write",
+    "shell.exec"
+  ],
+  "optional_capabilities": [
+    "test.runner"
+  ],
+  "degrade_rules": [
+    {
+      "when_missing": "test.runner",
+      "state": "unsupported",
+      "behavior": "do not claim TDD execution without the ability to run tests"
+    }
+  ]
+}
+

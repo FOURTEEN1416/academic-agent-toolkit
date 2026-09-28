@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentfiguregallery"
+version = "0.1.0"
+description = "Drop-in scientific plotting skill for Claude Code, Codex, Cursor, and other coding agents."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  {name = "AgentFigureGallery contributors"}
+]
+dependencies = []
+keywords = [
+  "scientific-figures",
+  "nature-style",
+  "cell-style",
+  "science-style",
+  "plotting-agent",
+  "ai-agent",
+  "agent-skill",
+  "skill",
+  "codex",
+  "codex-skill",
+  "claude",
+  "claude-code",
+  "cursor",
+  "coding-agents",
+  "human-in-the-loop",
+  "data-visualization",
+  "bioinformatics",
+  "matplotlib",
+  "ggplot2",
+  "reference-gallery",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Web Environment",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Visualization",
+]
+
+[project.urls]
+Homepage = "https://github.com/Dsadd4/AgentFigureGallery"
+Repository = "https://github.com/Dsadd4/AgentFigureGallery"
+Issues = "https://github.com/Dsadd4/AgentFigureGallery/issues"
+Dataset = "https://huggingface.co/datasets/dsadd4/AgentFigureGallery"
+Documentation = "https://github.com/Dsadd4/AgentFigureGallery#readme"
+
+[project.scripts]
+agentfiguregallery = "agentfiguregallery.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agentfiguregallery*"]

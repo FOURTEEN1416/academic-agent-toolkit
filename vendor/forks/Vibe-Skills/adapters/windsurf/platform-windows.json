@@ -1,0 +1,29 @@
+{
+  "adapter_id": "windsurf",
+  "platform": "windows",
+  "status": "not-yet-proven",
+  "install_surface": [
+    "install.ps1",
+    "scripts/bootstrap/one-shot-setup.ps1"
+  ],
+  "check_surface": [
+    "check.ps1"
+  ],
+  "doctor_surface": [
+    "check.ps1"
+  ],
+  "degrade_cases": {
+    "unverified_platform_lane": "not-yet-proven"
+  },
+  "promotion_target": "supported-with-constraints",
+  "proof_bundle": {
+    "current_evidence_state": "no-proof-yet"
+  },
+  "promotion_requirements": [
+    "fresh-machine install proof",
+    "check proof"
+  ],
+  "notes": [
+    "Windows lane is registered but not yet proven."
+  ]
+}

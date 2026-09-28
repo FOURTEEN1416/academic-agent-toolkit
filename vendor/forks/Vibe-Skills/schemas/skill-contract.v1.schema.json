@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vibes.dev/schemas/skill-contract.v1.schema.json",
+  "title": "VibeSkills Skill Contract (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "skill_id",
+    "sources",
+    "frontmatter"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skill-contract.v1"
+    },
+    "skill_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Canonical skill identifier. Must match the skill directory name."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "canonical",
+        "experimental",
+        "deprecated"
+      ],
+      "default": "canonical"
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "skill_md"
+      ],
+      "properties": {
+        "skill_md": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "primary",
+            "alternates"
+          ],
+          "properties": {
+            "primary": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Repo-relative path to the primary SKILL.md source of truth."
+            },
+            "alternates": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "default": [],
+              "description": "Repo-relative paths to alternate copies that must remain byte-identical to primary (normalized newlines)."
+            }
+          }
+        }
+      }
+    },
+    "frontmatter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_keys",
+        "invariants"
+      ],
+      "properties": {
+        "required_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "Frontmatter keys that must exist in SKILL.md."
+        },
+        "invariants": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "name_equals_skill_id": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "extensions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Reserved for forward-compatible extensions. Gates must ignore unknown keys in this object."
+    }
+  }
+}
+

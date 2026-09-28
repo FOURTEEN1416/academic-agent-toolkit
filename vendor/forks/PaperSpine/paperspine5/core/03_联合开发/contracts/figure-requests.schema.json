@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/figure-requests.schema.json",
+  "title": "PaperSpine figure handoff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "paper_id", "figures"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "paper_id": {"type": "string", "minLength": 1},
+    "figures": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["figure_id", "figure_kind", "claim", "caption"],
+        "properties": {
+          "figure_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+          "figure_kind": {"enum": ["data", "schematic"]},
+          "decision": {"enum": ["keep", "redesign", "create"]},
+          "figure_role": {"type": "string", "minLength": 1},
+          "scientific_question": {"type": "string", "minLength": 8},
+          "claim": {"type": "string", "minLength": 12},
+          "intended_conclusion": {"type": "string", "minLength": 12},
+          "claim_boundary": {"type": "string", "minLength": 8},
+          "results_units": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "hero_panel": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+          "panels": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": ["panel_id", "question", "role", "evidence_anchor", "intended_reading"],
+              "properties": {
+                "panel_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+                "question": {"type": "string", "minLength": 4},
+                "role": {"type": "string", "minLength": 3},
+                "evidence_anchor": {"type": "string", "minLength": 2},
+                "intended_reading": {"type": "string", "minLength": 4}
+              }
+            }
+          },
+          "caption": {"type": "string", "minLength": 4},
+          "label": {"type": "string", "pattern": "^fig:[A-Za-z0-9][A-Za-z0-9._:-]*$"},
+          "source_data": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "data_evidence": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "reference_assets": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "candidate_reference_assets": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "current_figure": {"type": "string", "minLength": 1},
+          "current_figure_metadata": {"type": "object"},
+          "panel_count": {"oneOf": [{"type": "integer", "minimum": 1}, {"const": "auto"}]}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"figure_kind": {"const": "data"}}},
+            "then": {"required": ["source_data"], "properties": {"source_data": {"minItems": 1}}}
+          },
+          {
+            "if": {"required": ["data_evidence"]},
+            "then": {
+              "properties": {
+                "figure_kind": {"const": "schematic"},
+                "data_evidence": {"minItems": 1}
+              }
+            }
+          },
+          {
+            "if": {
+              "required": ["decision"],
+              "properties": {"decision": {"enum": ["keep", "redesign"]}}
+            },
+            "then": {"required": ["current_figure"]}
+          },
+          {
+            "if": {
+              "anyOf": [
+                {"required": ["scientific_question"]},
+                {"required": ["figure_role"]},
+                {"required": ["intended_conclusion"]},
+                {"required": ["claim_boundary"]},
+                {"required": ["results_units"]},
+                {"required": ["hero_panel"]},
+                {"required": ["panels"]}
+              ]
+            },
+            "then": {
+              "required": ["figure_role", "scientific_question", "intended_conclusion", "claim_boundary", "results_units", "hero_panel", "panels"]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

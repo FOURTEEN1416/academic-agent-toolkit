@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "updated": "2026-04-18",
+  "policy_id": "bundled_skill_routing_governance_p1",
+  "scope": {
+    "skills_root": "bundled/skills",
+    "pack_manifest": "config/pack-manifest.json",
+    "skill_keyword_index": "config/skill-keyword-index.json",
+    "skill_routing_rules": "config/skill-routing-rules.json"
+  },
+  "autonomous_phrase_rules": {
+    "description": "Bundled built-in skills are router-governed and must not claim they self-activate or self-dispatch.",
+    "banned_patterns": [
+      "auto-activ",
+      "automatically activ",
+      "self[- ]activ",
+      "self[- ]dispatch",
+      "self[- ]route",
+      "auto trigger",
+      "auto-trigger",
+      "AUTO-ACTIVATES",
+      "自动激活",
+      "自动触发",
+      "自动运行",
+      "自动调用"
+    ],
+    "allowlisted_skills": []
+  },
+  "boilerplate_description_rules": {
+    "patterns": [
+      "Part of the .* skill category",
+      "This skill provides automated assistance",
+      "Provides step-by-step guidance",
+      "Follows industry best practices and patterns",
+      "Generates production-ready code and configurations",
+      "Validates outputs against common standards"
+    ]
+  },
+  "keyword_collision_rules": {
+    "minimum_skill_count": 2,
+    "ignore_keywords": [
+      "skill",
+      "skills",
+      "best practices"
+    ]
+  }
+}

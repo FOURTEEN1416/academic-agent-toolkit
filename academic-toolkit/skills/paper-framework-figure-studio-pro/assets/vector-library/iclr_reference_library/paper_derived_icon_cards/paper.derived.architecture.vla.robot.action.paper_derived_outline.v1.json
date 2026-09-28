@@ -1,0 +1,375 @@
+{
+  "concept_id": "paper.derived.architecture.vla.robot.action",
+  "icon_id": "paper.derived.architecture.vla.robot.action.paper_derived_outline.v1",
+  "primary_meaning": "Paper-derived VLA robot action path",
+  "aliases": [
+    "VLA",
+    "robot action",
+    "policy action"
+  ],
+  "negative_aliases": [
+    "paper-specific module name",
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim",
+    "literal reproduction of source figure"
+  ],
+  "shape_family_id": "paper.derived.robot_action",
+  "style_variant": "paper_derived_refined_outline",
+  "domain_tags": [
+    "paper_derived",
+    "framework_figure_motif",
+    "AI",
+    "CS",
+    "paper_figure",
+    "architecture",
+    "vla",
+    "robot"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot",
+    "visual_layout_reuse"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support",
+    "literal reproduction of source paper figure"
+  ],
+  "source_lineage": {
+    "import_mode": "paper_figure_motif_abstraction",
+    "source": "paper_framework_figure_motif_extraction",
+    "source_path": "final_reference_figure_library.jsonl",
+    "source_figure_count": 10,
+    "source_figures": [
+      {
+        "reference_case_id": "iclr2025/diffusion-based-planning-for-autonomous-driving-with-flexible-guidance/fig-0001",
+        "paper_title": "Diffusion-Based Planning for Autonomous Driving with Flexible Guidance",
+        "field": "VLA",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/VLA/diffusion-based-planning-for-autonomous-driving-with-flexible-guidance/figures/framework_01_architecture.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/VLA/diffusion-based-planning-for-autonomous-driving-with-flexible-guidance/sources/arxiv_src/iclr2025_conference.tex",
+          "line": 203,
+          "label": "fig:model_architecture",
+          "includegraphics": "fig/architecture.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/embodiedsam-online-segment-any-3d-thing-in-real-time/fig-0001",
+        "paper_title": "EmbodiedSAM: Online Segment Any 3D Thing in Real Time",
+        "field": "VLA",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/VLA/embodiedsam-online-segment-any-3d-thing-in-real-time/figures/framework_01_pipeline.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/VLA/embodiedsam-online-segment-any-3d-thing-in-real-time/sources/arxiv_src/tex/approach.tex",
+          "line": 14,
+          "label": "fig:pipeline",
+          "includegraphics": "figures/pipeline.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/feedback-favors-the-generalization-of-neural-odes/fig-0005",
+        "paper_title": "Feedback Favors the Generalization of Neural ODEs",
+        "field": "CV",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "loop_or_feedback",
+        "source_path": "iclr2025_collection/papers/CV/feedback-favors-the-generalization-of-neural-odes/figures/pdf_framework_page_013.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/CV/feedback-favors-the-generalization-of-neural-odes/figures/pdf_framework_page_013.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:feedback-favors-the-generalization-of-neural-odes:fig-0005",
+          "includegraphics": "iclr2025_collection/papers/CV/feedback-favors-the-generalization-of-neural-odes/figures/pdf_framework_page_013.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/geometry-aware-rl-for-manipulation-of-varying-shapes-and-deformable-objects/fig-0001",
+        "paper_title": "Geometry-aware RL for Manipulation of Varying Shapes and Deformable Objects",
+        "field": "VLA",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/VLA/geometry-aware-rl-for-manipulation-of-varying-shapes-and-deformable-objects/figures/framework_01_all-objects.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/VLA/geometry-aware-rl-for-manipulation-of-varying-shapes-and-deformable-objects/sources/arxiv_src/ICLR_2025/Sections/appendix.tex",
+          "line": 472,
+          "label": "fig:rigid-objs",
+          "includegraphics": "ICLR_2025/Figures/all_objects.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/geometry-of-neural-reinforcement-learning-in-continuous-state-and-action-spaces/fig-0003",
+        "paper_title": "Geometry of Neural Reinforcement Learning in Continuous State and Action Spaces",
+        "field": "RL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/RL/geometry-of-neural-reinforcement-learning-in-continuous-state-and-action-spaces/figures/framework_03_dims-estimate-gripper.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "caption_or_label_match",
+          "file": "iclr2025_collection/papers/RL/geometry-of-neural-reinforcement-learning-in-continuous-state-and-action-spaces/sources/arxiv_src/iclr2025_conference.tex",
+          "line": 644,
+          "label": "fig:dimestimate",
+          "includegraphics": "images/dims_estimate_swimmer.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/iterative-nash-policy-optimization-aligning-llms-with-general-preferences-via-no-regret-le/fig-0001",
+        "paper_title": "Iterative Nash Policy Optimization: Aligning LLMs with General Preferences via No-Regret Learning",
+        "field": "NLP",
+        "figure_subtype": "qualitative_example",
+        "layout_grammar": "example_grid_or_before_after_panel",
+        "topology": "loop_or_feedback",
+        "source_path": "iclr2025_collection/papers/NLP/iterative-nash-policy-optimization-aligning-llms-with-general-preferences-via-no-regret-le/figures/pdf_framework_page_001.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/NLP/iterative-nash-policy-optimization-aligning-llms-with-general-preferences-via-no-regret-le/figures/pdf_framework_page_001.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:iterative-nash-policy-optimization-aligning-llms-with-general-preferences-via-no-regret-le:fig-0001",
+          "includegraphics": "iclr2025_collection/papers/NLP/iterative-nash-policy-optimization-aligning-llms-with-general-preferences-via-no-regret-le/figures/pdf_framework_page_001.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/kinetix-investigating-the-training-of-general-agents-through-open-ended-physics-based-cont/fig-0002",
+        "paper_title": "Kinetix: Investigating the Training of General Agents through Open-Ended Physics-Based Control Tasks",
+        "field": "VLA",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "train_infer_split",
+        "source_path": "iclr2025_collection/papers/VLA/kinetix-investigating-the-training-of-general-agents-through-open-ended-physics-based-cont/figures/framework_02_architecture3.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/VLA/kinetix-investigating-the-training-of-general-agents-through-open-ended-physics-based-cont/sources/arxiv_src/main.tex",
+          "line": 274,
+          "label": "fig:architecture",
+          "includegraphics": "images/architecture3.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement/fig-0001",
+        "paper_title": "LaMPlace: Learning to Optimize Cross-Stage Metrics in Macro Placement",
+        "field": "VLA",
+        "figure_subtype": "method_architecture",
+        "layout_grammar": "left_to_right_modular_pipeline",
+        "topology": "pipeline_or_modular_system",
+        "source_path": "iclr2025_collection/papers/VLA/lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement/figures/pdf_framework_page_002.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/VLA/lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement/figures/pdf_framework_page_002.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement:fig-0001",
+          "includegraphics": "iclr2025_collection/papers/VLA/lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement/figures/pdf_framework_page_002.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement/fig-0003",
+        "paper_title": "LaMPlace: Learning to Optimize Cross-Stage Metrics in Macro Placement",
+        "field": "VLA",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/VLA/lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement/figures/pdf_framework_page_005.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/VLA/lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement/figures/pdf_framework_page_005.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement:fig-0003",
+          "includegraphics": "iclr2025_collection/papers/VLA/lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement/figures/pdf_framework_page_005.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement/fig-0004",
+        "paper_title": "LaMPlace: Learning to Optimize Cross-Stage Metrics in Macro Placement",
+        "field": "VLA",
+        "figure_subtype": "qualitative_example",
+        "layout_grammar": "example_grid_or_before_after_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2025_collection/papers/VLA/lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement/figures/pdf_framework_page_014.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/VLA/lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement/figures/pdf_framework_page_014.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/VLA/lamplace-learning-to-optimize-cross-stage-metrics-in-macro-placement/figures/pdf_framework_page_014.png"
+        },
+        "match_score": 8
+      }
+    ],
+    "extraction_basis": [
+      "source-grounded final reference figure records",
+      "figure subtype/layout/topology tags",
+      "caption/source-anchor keyword evidence",
+      "borrowable visual design patterns"
+    ],
+    "abstraction_level": "non_literal_semantic_visual_motif",
+    "imported_at": "2026-05-24T08:42:42.163Z",
+    "modified": true,
+    "modification": "Created as a simplified vector motif from repeated downloaded-paper framework figure patterns; source-paper text, labels, claims, datasets, metrics, and exact visual composition are intentionally not copied.",
+    "refinement": {
+      "status": "refined_semantic_vector_redraw",
+      "semantic_kind": "robot",
+      "workflow": [
+        "contact_sheet_with_padding",
+        "imagegen_prompt_manifest_for_style_exploration",
+        "semantic_cut_slot",
+        "programmatic_svg_redraw",
+        "index_update"
+      ],
+      "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+      "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+      "generated_at": "2026-05-24T09:34:49.459Z"
+    }
+  },
+  "license": {
+    "name": "Paper-derived framework figure motif abstraction",
+    "license": "source-paper-visual-motif-abstraction",
+    "usage_terms": "Internal reusable visual/layout motif. Use for generic figure icon language only; do not treat as source-paper evidence or copy source-paper facts."
+  },
+  "files": {
+    "raw_svg": "icons/raw/paper.derived.architecture.vla.robot.action.paper_derived_outline.v1.svg",
+    "tight_svg": "icons/tight/paper.derived.architecture.vla.robot.action.paper_derived_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/paper.derived.architecture.vla.robot.action.paper_derived_outline.v1.ppt_safe.svg",
+    "semantic_cut_svg": "paper_derived_icon_refinement/cut_svg/paper.derived.architecture.vla.robot.action.paper_derived_outline.v1.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": -2.775,
+    "minY": -4.775,
+    "width": 22.05,
+    "height": 21.55,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": -0.083,
+      "top": -0.167,
+      "right": 0.229,
+      "bottom": 0.333
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "refined_from_semantic_contact_sheet": true,
+    "editable_shape_primitives": true,
+    "sha1": "d81b2e7ed90cce31a704c0a91b4f3aab45db00d5"
+  },
+  "transfer_contract": {
+    "allowed": [
+      "generic visual icon language",
+      "layout/motif inspiration",
+      "PPT editable stencil use"
+    ],
+    "disallowed": [
+      "source-paper facts",
+      "paper-specific labels",
+      "metrics",
+      "datasets",
+      "claims",
+      "literal source-figure reproduction"
+    ]
+  },
+  "refinement": {
+    "status": "refined_semantic_vector_redraw",
+    "semantic_kind": "robot",
+    "workflow": [
+      "contact_sheet_with_padding",
+      "imagegen_prompt_manifest_for_style_exploration",
+      "semantic_cut_slot",
+      "programmatic_svg_redraw",
+      "index_update"
+    ],
+    "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+    "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+    "generated_at": "2026-05-24T09:34:49.459Z"
+  }
+}

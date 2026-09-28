@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/integration-state.schema.json",
+  "title": "Resumable integration state",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "job_id", "stage", "next_action", "events", "signals", "context", "updated_at"],
+  "properties": {
+    "schema_version": {"const": "1.2"},
+    "job_id": {"type": "string", "minLength": 1},
+    "stage": {"enum": ["initialized", "awaiting_candidates", "awaiting_review", "figures_confirmed", "awaiting_paper_integration", "canonical_paper_ready", "target_profile_ready", "rebuttal_validated", "rebuttal_materials_ready", "destination_rebuild_ready", "awaiting_external_authorization", "blocked"]},
+    "next_action": {"type": "string"},
+    "events": {"type": "array", "items": {"type": "object"}},
+    "signals": {"type": "array", "items": {"type": "object"}},
+    "context": {"type": "object"},
+    "updated_at": {"type": "string"}
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Visio 图重建 Skill"
+  short_description: "把参考图重建为可编辑 Visio .vsdx，中文技术标流程图默认只输出主 .vsdx。"
+  default_prompt: "使用这个 skill 将参考图片、截图或生成图还原为可编辑的 Visio .vsdx；中文技术标流程图默认采用宋体 12pt、浅灰框、淡蓝线，页面不超过 165mm x 235mm，并且只输出最终 .vsdx，除非用户明确要求备份、预览或其它格式。"

@@ -1,0 +1,157 @@
+domain_id: statistics_general
+display_name: "Statistical Methodology & Simulation"
+parent_domain: statistics_general
+
+# Tip: to plug in extra stage-level guidance (e.g. a bootstrap CI note for
+# code_generation, or a JASA-style outline rule for paper_outline), use
+# the top-level `prompts.extra_prompts` block in config.yaml.
+
+# --- Deployment defaults ---------------------------------------------------
+# Consumed by researchclaw.domains.deploy when this profile is selected via
+# --profile statistics_general or project.profile: statistics_general.
+preferred_experiment_mode: stat_agent           # maps to experiment.mode
+preferred_project_mode: full-auto               # maps to project.mode
+preferred_target_conference: generic            # maps to export.target_conference (JASA template not available; fall back to generic)
+default_time_budget_sec: 1800                   # 30 min per simulation study
+default_max_iterations: 4
+default_metric_key: primary_metric
+default_metric_direction: maximize
+
+stat_agent:
+  timeout_sec: 1800
+  max_turns: 100
+  install_skills: true
+  extra_args:
+    - "--dangerously-skip-permissions"
+
+experiment_paradigm: simulation
+
+condition_terminology:
+  baseline: ordinary or non-orthogonalized estimator (e.g. plug-in, percentile)
+  proposed: refined / orthogonalized / robust estimator under test
+  variant: data-generating process or method ablation
+  input: sample size, distribution, contamination level, or design knob
+  metric: empirical coverage / bias / RMSE / interval width / selection accuracy
+
+typical_file_structure:
+  src/experiment.py: "Driver: simulate data, run estimators, record metrics"
+  results/metrics.json: "Per-cell numeric metrics (method x distribution x n)"
+  results/figures/coverage_vs_n.png: "Headline coverage diagnostic"
+  report/paper.md: "IMRAD-style writeup with claim verdicts"
+  experiments/<TOPIC_ID>/config.yaml: "Stat-agent run manifest"
+
+entry_point: src/experiment.py
+
+core_libraries:
+  - numpy
+  - scipy
+  - pandas
+  - sklearn
+  - statsmodels
+  - matplotlib
+
+docker_image: researchclaw/sandbox-generic:latest
+gpu_required: false
+
+pip_packages:
+  - numpy
+  - scipy
+  - pandas
+  - sklearn
+  - statsmodels
+  - matplotlib
+
+metric_types:
+  - scalar
+  - structured
+
+standard_baselines:
+  - Normal-theory / t-based parametric interval (for CI studies)
+  - Naive plug-in / inverse-propensity estimator (for causal studies)
+  - Always-parametric rule-based selector (for model-selection studies)
+  - Oracle estimator using ground-truth nuisance functions
+
+evaluation_protocol: >
+  Compare proposed estimators against parametric and oracle baselines on
+  simulated data with KNOWN ground truth. Report empirical coverage,
+  bias, RMSE, and interval width, broken down by method x distribution x
+  sample size, averaged over Monte Carlo repetitions. State Monte Carlo
+  uncertainty (Wald SE on coverage). Connect every numeric verdict to a
+  formulated hypothesis.
+
+statistical_tests:
+  - bootstrap_resampling
+  - cross_fitting
+  - profile_likelihood
+  - permutation_test
+  - chi_squared_goodness_of_fit
+
+output_formats:
+  - latex_table
+  - metrics_json
+  - coverage_curve_plot
+
+figure_types:
+  - coverage_vs_sample_size
+  - interval_width_vs_method
+  - bias_vs_nuisance_complexity
+  - calibration_diagnostic
+
+github_search_terms:
+  - bootstrap confidence interval coverage simulation
+  - double machine learning cross-fitting python
+  - semiparametric ate estimation
+  - robust location estimator m-estimator
+  - statsmodels regression diagnostics
+
+paper_keywords:
+  - bootstrap
+  - confidence interval
+  - coverage
+  - semiparametric inference
+  - double machine learning
+  - cross-fitting
+  - robust statistics
+  - model selection
+  - simulation study
+
+code_generation_hints: |
+  Statistical-methodology code requirements:
+
+  1. **Reproducible simulation.** Use numpy.random.default_rng(seed) per
+     simulation; never call the global numpy.random API. Record the seed
+     list in results.json.
+  2. **Known estimands.** For every data-generating process, compute the
+     TRUE estimand in closed form (mean, ATE, median) — do NOT approximate
+     it from one large sample. Coverage is meaningless without exact truth.
+  3. **Method implementations.** Implement each method as a distinct
+     function. Percentile bootstrap, studentized bootstrap, normal-theory
+     CI, robust-estimator bootstrap MUST be separate code paths — not
+     toggled flags.
+  4. **Distributions.** Use scipy.stats for parametric distributions; build
+     contamination as a mixture explicitly (do not eyeball it). Document
+     the parameter values used.
+  5. **Repetitions.** Default 500 Monte Carlo replications per (method,
+     distribution, n) cell; 1000 bootstrap resamples each. Cap so the
+     full study runs in under 30 minutes wall-clock.
+  6. **Metrics.** Per cell record: empirical coverage, mean interval
+     width, coverage-error |cov - nominal|, failure rate (NaN/invalid
+     intervals). Save as results/metrics.json with method/distribution/n
+     keys.
+  7. **Figures.** At minimum: coverage-vs-n line plot per distribution,
+     and an interval-width-vs-method bar/box plot. Save under
+     results/figures/. Label axes with units and include a legend.
+  8. **Hypotheses.** results.json hypotheses.{h1, h2, h3} MUST carry an
+     explicit `supported` boolean AND a `details` string quoting the
+     specific numeric evidence used to reach that verdict.
+
+  ANTI-PATTERNS (do NOT do these):
+  - Do NOT train neural networks or run sklearn for anything except
+     standard estimators (RandomForest / GBM are appropriate as ML
+     nuisance learners in causal topics; deep nets are out of scope).
+  - Do NOT fabricate metrics with random.uniform(). The metrics are
+     deterministic given seed + estimator + DGP.
+  - Do NOT report aggregate coverage without per-cell breakdowns —
+     averaging across distributions hides the heavy-tailed undercoverage.
+  - Do NOT skip Monte Carlo uncertainty on coverage numbers. Report
+     Wald SE = sqrt(p(1-p)/R).

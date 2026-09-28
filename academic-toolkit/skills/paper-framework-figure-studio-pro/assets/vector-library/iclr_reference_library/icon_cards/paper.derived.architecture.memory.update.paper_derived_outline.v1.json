@@ -1,0 +1,374 @@
+{
+  "concept_id": "paper.derived.architecture.memory.update",
+  "icon_id": "paper.derived.architecture.memory.update.paper_derived_outline.v1",
+  "primary_meaning": "Paper-derived memory update loop",
+  "aliases": [
+    "memory update",
+    "episodic memory"
+  ],
+  "negative_aliases": [
+    "paper-specific module name",
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim",
+    "literal reproduction of source figure"
+  ],
+  "shape_family_id": "paper.derived.memory_update",
+  "style_variant": "paper_derived_refined_outline",
+  "domain_tags": [
+    "paper_derived",
+    "framework_figure_motif",
+    "AI",
+    "CS",
+    "paper_figure",
+    "architecture",
+    "memory",
+    "update"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot",
+    "visual_layout_reuse"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support",
+    "literal reproduction of source paper figure"
+  ],
+  "source_lineage": {
+    "import_mode": "paper_figure_motif_abstraction",
+    "source": "paper_framework_figure_motif_extraction",
+    "source_path": "final_reference_figure_library.jsonl",
+    "source_figure_count": 10,
+    "source_figures": [
+      {
+        "reference_case_id": "iclr2025/a-computational-framework-for-modeling-emergence-of-color-vision-in-the-human-brain/fig-0004",
+        "paper_title": "A Computational Framework for Modeling Emergence of Color Vision in the Human Brain",
+        "field": "CV",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "train_infer_split",
+        "source_path": "iclr2025_collection/papers/CV/a-computational-framework-for-modeling-emergence-of-color-vision-in-the-human-brain/figures/framework_04_fig4-1126.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/CV/a-computational-framework-for-modeling-emergence-of-color-vision-in-the-human-brain/sources/arxiv_src/05-Representation.tex",
+          "line": 17,
+          "label": "fig:4",
+          "includegraphics": "assets/fig4_1126.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/artificial-kuramoto-oscillatory-neurons/fig-0001",
+        "paper_title": "Artificial Kuramoto Oscillatory Neurons",
+        "field": "Spectral",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Spectral/artificial-kuramoto-oscillatory-neurons/figures/framework_01_kuramoto-fig1-drawio.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/Spectral/artificial-kuramoto-oscillatory-neurons/sources/arxiv_src/iclr2025_conference.tex",
+          "line": 201,
+          "label": "fig:kuramoto_desc",
+          "includegraphics": "gfx/Kuramoto-Fig1.drawio.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/cax-cellular-automata-accelerated-in-jax/fig-0001",
+        "paper_title": "CAX: Cellular Automata Accelerated in JAX",
+        "field": "Bio",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Bio/cax-cellular-automata-accelerated-in-jax/figures/framework_01_architecture.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/Bio/cax-cellular-automata-accelerated-in-jax/sources/arxiv_src/main_arxiv.tex",
+          "line": 264,
+          "label": "fig:architecture",
+          "includegraphics": "assets/architecture.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/cut-your-losses-in-large-vocabulary-language-models/fig-0001",
+        "paper_title": "Cut Your Losses in Large-Vocabulary Language Models",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/cut-your-losses-in-large-vocabulary-language-models/figures/framework_01_overview-crop.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/cut-your-losses-in-large-vocabulary-language-models/sources/arxiv_src/main.tex",
+          "line": 302,
+          "label": "fig:lse-forward",
+          "includegraphics": "figures/overview-crop.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/cut-your-losses-in-large-vocabulary-language-models/fig-0002",
+        "paper_title": "Cut Your Losses in Large-Vocabulary Language Models",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/cut-your-losses-in-large-vocabulary-language-models/figures/framework_02_overview-crop.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/cut-your-losses-in-large-vocabulary-language-models/sources/arxiv_src/main.tex",
+          "line": 302,
+          "label": "fig:lse-forward",
+          "includegraphics": "figures/overview-crop.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/cut-your-losses-in-large-vocabulary-language-models/fig-0003",
+        "paper_title": "Cut Your Losses in Large-Vocabulary Language Models",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/cut-your-losses-in-large-vocabulary-language-models/figures/framework_03_overview-crop.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/cut-your-losses-in-large-vocabulary-language-models/sources/arxiv_src/main.tex",
+          "line": 302,
+          "label": "fig:lse-forward",
+          "includegraphics": "figures/overview-crop.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/cybench-a-framework-for-evaluating-cybersecurity-capabilities-and-risks-of-language-models/fig-0001",
+        "paper_title": "Cybench: A Framework for Evaluating Cybersecurity Capabilities and Risks of Language Models",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/cybench-a-framework-for-evaluating-cybersecurity-capabilities-and-risks-of-language-models/figures/framework_01_cybench-overview.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/cybench-a-framework-for-evaluating-cybersecurity-capabilities-and-risks-of-language-models/sources/arxiv_src/1_intro.tex",
+          "line": 13,
+          "label": "fig:cybench_overview",
+          "includegraphics": "main_paper_figures/cybench_overview.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/cybench-a-framework-for-evaluating-cybersecurity-capabilities-and-risks-of-language-models/fig-0002",
+        "paper_title": "Cybench: A Framework for Evaluating Cybersecurity Capabilities and Risks of Language Models",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/cybench-a-framework-for-evaluating-cybersecurity-capabilities-and-risks-of-language-models/figures/framework_02_agent-flow.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/cybench-a-framework-for-evaluating-cybersecurity-capabilities-and-risks-of-language-models/sources/arxiv_src/4_agent.tex",
+          "line": 11,
+          "label": "fig:agent_flow",
+          "includegraphics": "main_paper_figures/agent_flow.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/debiasing-federated-learning-with-correlated-client-participation/fig-0003",
+        "paper_title": "Debiasing Federated Learning with Correlated Client Participation",
+        "field": "FL",
+        "figure_subtype": "qualitative_example",
+        "layout_grammar": "example_grid_or_before_after_panel",
+        "topology": "train_infer_split",
+        "source_path": "iclr2025_collection/papers/FL/debiasing-federated-learning-with-correlated-client-participation/figures/pdf_framework_page_003.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/FL/debiasing-federated-learning-with-correlated-client-participation/figures/pdf_framework_page_003.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:debiasing-federated-learning-with-correlated-client-participation:fig-0003",
+          "includegraphics": "iclr2025_collection/papers/FL/debiasing-federated-learning-with-correlated-client-participation/figures/pdf_framework_page_003.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/dept-decoupled-embeddings-for-pre-training-language-models/fig-0002",
+        "paper_title": "DEPT: Decoupled Embeddings for Pre-training Language Models",
+        "field": "FL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/FL/dept-decoupled-embeddings-for-pre-training-language-models/figures/framework_02_mclr-pile-act-l2-norms.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/FL/dept-decoupled-embeddings-for-pre-training-language-models/sources/arxiv_src/files/eval.tex",
+          "line": 61,
+          "label": "fig:motivation:pre_train_Activations",
+          "includegraphics": "plots/MCLR_PILE_ACT_l2_norms.pdf"
+        },
+        "match_score": 8
+      }
+    ],
+    "extraction_basis": [
+      "source-grounded final reference figure records",
+      "figure subtype/layout/topology tags",
+      "caption/source-anchor keyword evidence",
+      "borrowable visual design patterns"
+    ],
+    "abstraction_level": "non_literal_semantic_visual_motif",
+    "imported_at": "2026-05-24T08:42:51.035Z",
+    "modified": true,
+    "modification": "Created as a simplified vector motif from repeated downloaded-paper framework figure patterns; source-paper text, labels, claims, datasets, metrics, and exact visual composition are intentionally not copied.",
+    "refinement": {
+      "status": "refined_semantic_vector_redraw",
+      "semantic_kind": "agent",
+      "workflow": [
+        "contact_sheet_with_padding",
+        "imagegen_prompt_manifest_for_style_exploration",
+        "semantic_cut_slot",
+        "programmatic_svg_redraw",
+        "index_update"
+      ],
+      "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+      "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+      "generated_at": "2026-05-24T09:34:49.615Z"
+    }
+  },
+  "license": {
+    "name": "Paper-derived framework figure motif abstraction",
+    "license": "source-paper-visual-motif-abstraction",
+    "usage_terms": "Internal reusable visual/layout motif. Use for generic figure icon language only; do not treat as source-paper evidence or copy source-paper facts."
+  },
+  "files": {
+    "raw_svg": "icons/raw/paper.derived.architecture.memory.update.paper_derived_outline.v1.svg",
+    "tight_svg": "icons/tight/paper.derived.architecture.memory.update.paper_derived_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/paper.derived.architecture.memory.update.paper_derived_outline.v1.ppt_safe.svg",
+    "semantic_cut_svg": "paper_derived_icon_refinement/cut_svg/paper.derived.architecture.memory.update.paper_derived_outline.v1.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": -2.775,
+    "minY": -2.775,
+    "width": 23.55,
+    "height": 23.55,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": -0.083,
+      "top": -0.083,
+      "right": 0.167,
+      "bottom": 0.167
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "refined_from_semantic_contact_sheet": true,
+    "editable_shape_primitives": true,
+    "sha1": "74040b0b5e7f20e5b9ba7827d64f8fcfc3532a0e"
+  },
+  "transfer_contract": {
+    "allowed": [
+      "generic visual icon language",
+      "layout/motif inspiration",
+      "PPT editable stencil use"
+    ],
+    "disallowed": [
+      "source-paper facts",
+      "paper-specific labels",
+      "metrics",
+      "datasets",
+      "claims",
+      "literal source-figure reproduction"
+    ]
+  },
+  "refinement": {
+    "status": "refined_semantic_vector_redraw",
+    "semantic_kind": "agent",
+    "workflow": [
+      "contact_sheet_with_padding",
+      "imagegen_prompt_manifest_for_style_exploration",
+      "semantic_cut_slot",
+      "programmatic_svg_redraw",
+      "index_update"
+    ],
+    "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+    "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+    "generated_at": "2026-05-24T09:34:49.615Z"
+  }
+}

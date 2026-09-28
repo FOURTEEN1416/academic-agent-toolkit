@@ -1,0 +1,79 @@
+{
+  "supervisor_version": "1.0",
+  "project_name": "{{PROJECT_NAME}}",
+  "project_path": "{{PROJECT_DIR}}",
+  "created_at": "{{TIMESTAMP}}",
+  "enabled": true,
+
+  "claude_options": {
+    "skill": "autonomous-builder",
+    "dangerously_skip_permissions": true,
+    "additional_args": []
+  },
+
+  "monitoring": {
+    "check_interval_seconds": 60,
+    "session_timeout_seconds": 300,
+    "max_restart_attempts": 10,
+    "restart_cooldown_seconds": 5
+  },
+
+  "health_checks": {
+    "progress_stall_threshold_seconds": 600,
+    "error_rate_threshold": 0.5,
+    "context_usage_warning": 0.8,
+    "max_same_error_count": 3,
+    "max_same_file_edits": 5
+  },
+
+  "notifications": {
+    "on_completion": true,
+    "on_error_spike": true,
+    "on_stall": true,
+    "on_loop_detected": true,
+    "log_file": ".builder/supervisor.log"
+  },
+
+  "recovery": {
+    "auto_rollback_on_critical": true,
+    "checkpoint_interval_minutes": 10,
+    "max_checkpoints": 5,
+    "backup_before_destructive": true
+  },
+
+  "statistics": {
+    "total_sessions": 0,
+    "total_restarts": 0,
+    "total_runtime_seconds": 0,
+    "features_completed": 0,
+    "errors_resolved": 0,
+    "last_restart_time": null,
+    "last_checkpoint_time": null
+  },
+
+  "safety": {
+    "workspace_only": true,
+    "require_confirmation_for_external": true,
+    "protected_paths": [
+      "C:\\Windows\\",
+      "C:\\Program Files\\",
+      "/etc/",
+      "/usr/",
+      "/var/",
+      "/root/",
+      "/System/",
+      "/Library/"
+    ],
+    "safety_log": ".builder/safety-log.json"
+  },
+
+  "loop_prevention": {
+    "enabled": true,
+    "max_same_error": 3,
+    "max_same_file_edit": 5,
+    "max_same_command": 3,
+    "max_no_progress_operations": 10,
+    "max_session_turns": 50,
+    "loop_log": ".builder/loop-log.json"
+  }
+}

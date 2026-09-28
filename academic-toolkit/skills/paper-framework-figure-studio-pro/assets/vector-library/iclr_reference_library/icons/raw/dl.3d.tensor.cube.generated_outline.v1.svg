@@ -1,0 +1,7 @@
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round" ><polygon points="3,10 11,10 11,18 3,18"/>
+<polyline points="11,10 15,7 15,15 11,18"/>
+<polyline points="3,10 7,7 15,7"/>
+<line x1="7" y1="7" x2="7" y2="15"/><polygon points="10,7 18,7 18,15 10,15"/>
+<polyline points="18,7 22,4 22,12 18,15"/>
+<polyline points="10,7 14,4 22,4"/>
+<line x1="14" y1="4" x2="14" y2="12"/></svg>

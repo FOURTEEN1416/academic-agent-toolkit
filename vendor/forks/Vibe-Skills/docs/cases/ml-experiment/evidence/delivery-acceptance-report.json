@@ -1,0 +1,438 @@
+{
+  "evaluated_at": "2026-07-18T05:41:08Z",
+  "contract_id": "vibe-project-delivery-acceptance-v6",
+  "contract_version": 6,
+  "session_root": "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499",
+  "artifacts": {
+    "execute_receipt_path": "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\phase-execute.json",
+    "cleanup_receipt_path": "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\cleanup-receipt.json",
+    "requirement_doc_path": "<case-root>\\docs\\requirements\\2026-07-18-vibeskills-skills-baseline-slides-skills-vibeskills-skills-skill.md",
+    "execution_plan_path": "<case-root>\\docs\\plans\\2026-07-18-vibeskills-skills-baseline-slides-skills-vibeskills-skills-skill-execution-plan.md",
+    "execution_manifest_path": "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\execution-manifest.json",
+    "runtime_input_packet_path": "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\runtime-input-packet.json",
+    "module_execution_path": "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\module-execution.json"
+  },
+  "summary": {
+    "gate_result": "PASS",
+    "completion_language_allowed": true,
+    "runtime_status": "completed",
+    "readiness_state": "fully_ready",
+    "manual_review_layer_count": 0,
+    "failing_layer_count": 0,
+    "degraded_layer_count": 0,
+    "forbidden_completion_hit_count": 0,
+    "incomplete_layers": [],
+    "manual_spot_check_count": 0,
+    "code_task_tdd_evidence_requirement_count": 0,
+    "artifact_review_requirement_count": 0,
+    "baseline_document_quality_dimension_count": 0,
+    "baseline_ui_quality_dimension_count": 0
+  },
+  "truth_results": {
+    "governance_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\phase-execute.json",
+        "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\cleanup-receipt.json",
+        "<case-root>\\docs\\requirements\\2026-07-18-vibeskills-skills-baseline-slides-skills-vibeskills-skills-skill.md",
+        "<case-root>\\docs\\plans\\2026-07-18-vibeskills-skills-baseline-slides-skills-vibeskills-skills-skill-execution-plan.md",
+        "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\execution-manifest.json"
+      ],
+      "notes": "",
+      "details": {}
+    },
+    "engineering_verification_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\execution-manifest.json"
+      ],
+      "notes": "",
+      "details": {}
+    },
+    "code_task_tdd_evidence_truth": {
+      "state": "not_applicable",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [],
+      "notes": "",
+      "details": {}
+    },
+    "workflow_completion_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\phase-execute.json",
+        "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\cleanup-receipt.json",
+        "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\module-work-plan.json",
+        "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\module-execution.json"
+      ],
+      "notes": "Approved module work is complete in module-execution.json.",
+      "details": {}
+    },
+    "artifact_review_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [],
+      "notes": "",
+      "details": {}
+    },
+    "product_acceptance_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "<case-root>\\docs\\requirements\\2026-07-18-vibeskills-skills-baseline-slides-skills-vibeskills-skills-skill.md"
+      ],
+      "notes": "",
+      "details": {}
+    },
+    "module_acceptance_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\module-work-plan.json",
+        "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\module-execution.json"
+      ],
+      "notes": "All required modules are complete and accepted by their criteria.",
+      "details": {}
+    }
+  },
+  "completed_module_work": [
+    {
+      "skill_id": "exploratory-data-analysis",
+      "unit_id": "data_audit--exploratory-data-analysis--owner",
+      "module_id": "data_audit"
+    },
+    {
+      "skill_id": "scikit-learn",
+      "unit_id": "baseline_experiment--scikit-learn--owner",
+      "module_id": "baseline_experiment"
+    },
+    {
+      "skill_id": "statistical-analysis",
+      "unit_id": "statistical_method_review--statistical-analysis--owner",
+      "module_id": "statistical_method_review"
+    },
+    {
+      "skill_id": "scientific-critical-thinking",
+      "unit_id": "statistical_method_review--scientific-critical-thinking--verifier",
+      "module_id": "statistical_method_review"
+    },
+    {
+      "skill_id": "scientific-visualization",
+      "unit_id": "result_figures--scientific-visualization--owner",
+      "module_id": "result_figures"
+    },
+    {
+      "skill_id": "sciwrite",
+      "unit_id": "report_review--sciwrite--owner",
+      "module_id": "report_review"
+    },
+    {
+      "skill_id": "presentations",
+      "unit_id": "group_meeting_slides--presentations--owner",
+      "module_id": "group_meeting_slides"
+    }
+  ],
+  "artifact_review_coverage": {
+    "covered_baseline_document_quality_dimensions": [],
+    "missing_baseline_document_quality_dimensions": [],
+    "covered_baseline_ui_quality_dimensions": [],
+    "missing_baseline_ui_quality_dimensions": [],
+    "covered_task_specific_acceptance_extensions": [],
+    "missing_task_specific_acceptance_extensions": [],
+    "considered_research_augmentation_sources": [],
+    "missing_research_augmentation_sources": []
+  },
+  "tdd_evidence_coverage": {
+    "covered_code_task_tdd_evidence_requirements": [],
+    "missing_code_task_tdd_evidence_requirements": [],
+    "covered_code_task_tdd_exceptions": [],
+    "missing_code_task_tdd_exceptions": [],
+    "red_phase_evidence_paths": [],
+    "green_phase_evidence_paths": [],
+    "refactor_phase_evidence_paths": []
+  },
+  "frozen_requirement_sections": {
+    "product_acceptance_criteria": [
+      "Requirement document is frozen before execution.",
+      "Execution plan exists before task execution.",
+      "Verification evidence exists before completion claims.",
+      "Phase cleanup receipt is produced.",
+      "The delivered output must satisfy observable behavior implied by the frozen goal and deliverable, not only internal runtime progress.",
+      "Full completion wording is allowed only after downstream delivery truth is passing."
+    ],
+    "manual_spot_checks": [],
+    "completion_language_policy": [
+      "Full completion wording is allowed only when governance truth, engineering verification truth, workflow completion truth, and product acceptance truth are all passing.",
+      "`completed_with_failures`, degraded execution, or pending manual actions must be reported as non-complete states.",
+      "If manual spot checks remain pending, the run must be described as requiring manual review rather than fully ready."
+    ],
+    "delivery_truth_contract": [
+      "Governance truth: requirement, plan, execution, and cleanup artifacts remain traceable and authoritative.",
+      "Engineering verification truth: targeted verification passes or fails explicitly; silence does not count as success.",
+      "Workflow completion truth: planned units, delegated lanes, and specialist outputs reconcile back into the governed plan.",
+      "Product acceptance truth: observable deliverable behavior satisfies frozen acceptance criteria before full completion language is allowed.",
+      "Do not create separate M/L/XL entry commands.",
+      "Do not introduce a second router or control plane."
+    ],
+    "artifact_review_requirements": [],
+    "code_task_tdd_evidence_requirements": [],
+    "code_task_tdd_exceptions": [],
+    "baseline_document_quality_dimensions": [],
+    "baseline_ui_quality_dimensions": [],
+    "task_specific_acceptance_extensions": [],
+    "research_augmentation_sources": []
+  },
+  "execution_context": {
+    "run_id": "20260718T041559Z-51996499",
+    "session_root": "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499",
+    "governance_scope": "root",
+    "completion_claim_allowed": true,
+    "cleanup_mode": "receipt_only",
+    "execution_status": "completed",
+    "completed_unit_count": 10,
+    "failed_unit_count": 0,
+    "blocked_unit_count": 0,
+    "execution_plan_contains_delivery_acceptance_plan": true,
+    "tdd_evidence_source_path": "",
+    "code_task_tdd_evidence_state": "not_applicable",
+    "artifact_review_source_path": "",
+    "artifact_review_state": "passing",
+    "module_work_plan_path": "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\module-work-plan.json",
+    "module_execution_path": "<case-root>\\outputs\\runtime\\vibe-sessions\\20260718T041559Z-51996499\\module-execution.json",
+    "pending_module_work_unit_ids": [],
+    "pending_module_work_units": [],
+    "assigned_module_skill_ids": [
+      "exploratory-data-analysis",
+      "scikit-learn",
+      "statistical-analysis",
+      "scientific-critical-thinking",
+      "scientific-visualization",
+      "sciwrite",
+      "presentations"
+    ],
+    "module_work_resolution_state": "completed",
+    "completed_module_work_unit_count": 10,
+    "blocked_module_work_unit_count": 0,
+    "failed_module_work_unit_count": 0,
+    "resolved_module_work_units": [
+      {
+        "unit_id": "data_audit--exploratory-data-analysis--owner",
+        "module_id": "data_audit",
+        "skill_id": "exploratory-data-analysis",
+        "role": "owner",
+        "state": "completed",
+        "result_summary": "Materialized the built-in dataset and completed the frozen structure, quality, balance, type, duplicate, and leakage-risk audit.",
+        "evidence_paths": [
+          "deliverables/01-data-audit/wisconsin-breast-cancer.csv",
+          "deliverables/01-data-audit/dataset-metadata.json",
+          "deliverables/01-data-audit/target-distribution.csv",
+          "deliverables/01-data-audit/data-audit.md"
+        ],
+        "verification_results": [
+          "The 569-row, 30-feature snapshot matched sklearn.datasets.load_breast_cancer.",
+          "Target encoding matched the declared malignant-positive flip.",
+          "Missing, non-finite, and exact duplicate feature-target row counts were all zero."
+        ]
+      },
+      {
+        "unit_id": "baseline_experiment--scikit-learn--owner",
+        "module_id": "baseline_experiment",
+        "skill_id": "scikit-learn",
+        "role": "owner",
+        "state": "completed",
+        "result_summary": "Ran the frozen stratified dummy and scaled logistic-regression experiment with a leakage-safe pipeline, holdout, repeated CV, predictions, and exact replay.",
+        "evidence_paths": [
+          "deliverables/02-baseline/run_experiment.py",
+          "deliverables/02-baseline/experiment-config.json",
+          "deliverables/02-baseline/metrics.json",
+          "deliverables/02-baseline/fold-metrics.csv",
+          "deliverables/02-baseline/holdout-predictions.csv",
+          "deliverables/02-baseline/reproduction-check.json"
+        ],
+        "verification_results": [
+          "The 455/114 split was stratified, disjoint, and covered all 569 rows once.",
+          "Five-fold CV repeated ten times produced 50 validation folds per model on training only.",
+          "Logistic holdout ROC AUC was 0.9917328042328042, balanced accuracy 0.9761904761904762, F1 0.975609756097561, with TN=72, FP=0, FN=2, TP=40.",
+          "The second run exactly matched the first configuration, metrics, folds, and holdout predictions."
+        ]
+      },
+      {
+        "unit_id": "statistical_method_review--statistical-analysis--owner",
+        "module_id": "statistical_method_review",
+        "skill_id": "statistical-analysis",
+        "role": "owner",
+        "state": "completed",
+        "result_summary": "Computed conditional holdout uncertainty and descriptive cross-validation variability with explicit assumptions and no unjustified significance test.",
+        "evidence_paths": [
+          "deliverables/03-statistical-review/statistics/uncertainty.json",
+          "deliverables/03-statistical-review/statistics/statistical-review.md",
+          "deliverables/03-statistical-review/statistics/compute_uncertainty.py"
+        ],
+        "verification_results": [
+          "Ten thousand fixed-seed class-stratified bootstrap replicates produced the named holdout intervals.",
+          "Wilson intervals were recorded for sensitivity and specificity.",
+          "Point estimates and confusion counts matched metrics.json exactly.",
+          "No formal significance test was performed because repeated folds are dependent and one holdout cannot establish external superiority."
+        ]
+      },
+      {
+        "unit_id": "statistical_method_review--scientific-critical-thinking--verifier",
+        "module_id": "statistical_method_review",
+        "skill_id": "scientific-critical-thinking",
+        "role": "verifier",
+        "state": "completed",
+        "result_summary": "Verified design validity, leakage controls, bias, generalization limits, and permitted claims without modifying protected statistics-owner outputs.",
+        "evidence_paths": [
+          "deliverables/03-statistical-review/method-review/method-and-claims-review.md",
+          "deliverables/03-statistical-review/statistics/uncertainty.json",
+          "deliverables/03-statistical-review/statistics/statistical-review.md"
+        ],
+        "verification_results": [
+          "The verifier wrote only method-review/method-and-claims-review.md.",
+          "The uncertainty.json and statistical-review.md hashes were rechecked after verifier output and remained unchanged.",
+          "The review permits only non-clinical, descriptive, dataset-specific claims and explicitly rejects clinical and transportability claims."
+        ]
+      },
+      {
+        "unit_id": "result_figures--scientific-visualization--owner",
+        "module_id": "result_figures",
+        "skill_id": "scientific-visualization",
+        "role": "owner",
+        "state": "completed",
+        "result_summary": "Created four accessible, source-mapped PNG figures with matching SVG exports and completed automated plus full-size visual QA.",
+        "evidence_paths": [
+          "deliverables/04-figures/class-balance.png",
+          "deliverables/04-figures/roc-and-pr-curves.png",
+          "deliverables/04-figures/cv-performance-distribution.png",
+          "deliverables/04-figures/confusion-matrix.png",
+          "deliverables/04-figures/vector/class-balance.svg",
+          "deliverables/04-figures/vector/roc-and-pr-curves.svg",
+          "deliverables/04-figures/vector/cv-performance-distribution.svg",
+          "deliverables/04-figures/vector/confusion-matrix.svg",
+          "deliverables/04-figures/figure-index.json"
+        ],
+        "verification_results": [
+          "Every plotted value maps to saved CSV or JSON evidence and every PNG/SVG hash matches figure-index.json.",
+          "All four PNGs were nonblank and inspected at original resolution.",
+          "An overlapping colorbar in the first confusion-matrix render was corrected; the final figures have no clipping, incoherent overlap, or unsupported significance marker."
+        ]
+      },
+      {
+        "unit_id": "report_review--sciwrite--owner",
+        "module_id": "report_review",
+        "skill_id": "sciwrite",
+        "role": "owner",
+        "state": "completed",
+        "result_summary": "Completed the five-pass scientific-writing review and produced a clearer final report without changing scientific content.",
+        "evidence_paths": [
+          "deliverables/05-report/final/scientific-report.md",
+          "deliverables/05-report/final/writing-review.md"
+        ],
+        "verification_results": [
+          "The review records clutter, voice, sentence architecture, terminology, and numerical/citation passes.",
+          "Sample counts, metrics, intervals, significant figures, confusion counts, and figure references were rechecked.",
+          "The content-preservation check passed and all non-clinical limitations remain."
+        ]
+      },
+      {
+        "unit_id": "group_meeting_slides--presentations--owner",
+        "module_id": "group_meeting_slides",
+        "skill_id": "presentations",
+        "role": "owner",
+        "state": "completed",
+        "result_summary": "Built the seven-slide group-meeting PPTX with artifact-tool, rendered every slide, source-mapped the deck, and completed automated geometry plus full-size visual QA.",
+        "evidence_paths": [
+          "deliverables/06-slides/group-meeting-slides.pptx",
+          "deliverables/06-slides/rendered/slide-1.png",
+          "deliverables/06-slides/rendered/slide-2.png",
+          "deliverables/06-slides/rendered/slide-3.png",
+          "deliverables/06-slides/rendered/slide-4.png",
+          "deliverables/06-slides/rendered/slide-5.png",
+          "deliverables/06-slides/rendered/slide-6.png",
+          "deliverables/06-slides/rendered/slide-7.png",
+          "deliverables/06-slides/slides-montage.png",
+          "deliverables/06-slides/slides-qa.txt",
+          "deliverables/06-slides/slide-source-map.json"
+        ],
+        "verification_results": [
+          "The PPTX opened through the local render route and produced seven nonblank 1920 x 1080 slide PNGs.",
+          "All 94 artifact-tool object bounds remained inside the 1280 x 720 canvas and final titles were single-line.",
+          "Every slide and the montage were inspected; initial title wrapping on slides 4, 5, and 7 was corrected and re-rendered.",
+          "The slides_test.py helper failure is disclosed in slides-qa.txt; the final overflow decision passed through object bounds and full-size render inspection."
+        ]
+      },
+      {
+        "unit_id": "environment_setup--agent--owner",
+        "module_id": "environment_setup",
+        "skill_id": null,
+        "role": "owner",
+        "state": "completed",
+        "result_summary": "Created and verified the case-local CPython 3.12.12 environment, 18-package lock, and executable replay command.",
+        "evidence_paths": [
+          "deliverables/00-environment/environment.json",
+          "deliverables/00-environment/requirements.lock",
+          "deliverables/00-environment/reproduce.ps1",
+          "deliverables/02-baseline/reproduction-check.json"
+        ],
+        "verification_results": [
+          "Python 3.12.12 and required scientific imports passed.",
+          "The 18 locked distributions exactly matched the installed case environment.",
+          "reproduce.ps1 executed successfully and the second experiment run exactly matched the first result digest."
+        ]
+      },
+      {
+        "unit_id": "report_draft--agent--owner",
+        "module_id": "report_draft",
+        "skill_id": null,
+        "role": "owner",
+        "state": "completed",
+        "result_summary": "Drafted the evidence-bound scientific report with all four real figures and a machine-readable source map for numerical claims and figure references.",
+        "evidence_paths": [
+          "deliverables/05-report/draft/scientific-report-draft.md",
+          "deliverables/05-report/draft/report-source-map.json"
+        ],
+        "verification_results": [
+          "The draft covers purpose, data, methods, holdout results, CV variability, uncertainty, reproducibility, limitations, and conclusion.",
+          "The source map records 16 numerical or methodological claims and all four figure references.",
+          "Every referenced figure exists and the non-clinical boundary is explicit."
+        ]
+      },
+      {
+        "unit_id": "case_package_and_consistency--agent--owner",
+        "module_id": "case_package_and_consistency",
+        "skill_id": null,
+        "role": "owner",
+        "state": "completed",
+        "result_summary": "Prepared bilingual candidate README copy, visual guidance, the case manifest, and a failing-on-contradiction cross-artifact verifier.",
+        "evidence_paths": [
+          "deliverables/07-case-package/summary-en.md",
+          "deliverables/07-case-package/summary-zh.md",
+          "deliverables/07-case-package/visual-materials.md",
+          "deliverables/07-case-package/case-manifest.json",
+          "deliverables/07-case-package/verify_consistency.py",
+          "deliverables/07-case-package/consistency-check.json",
+          "deliverables/07-case-package/consistency-check.md"
+        ],
+        "verification_results": [
+          "The automated cross-artifact verifier passed 17 of 17 checks with zero failures.",
+          "Metrics, intervals, confusion counts, sample counts, model names, CV settings, figure mappings, report text, PPTX text, summaries, paths, and artifact hashes reconcile.",
+          "The manifest and summaries explicitly keep publishable README success false until canonical delivery acceptance passes."
+        ]
+      }
+    ],
+    "module_work_status": "module_work_completed",
+    "module_work_continuation_pending": false
+  },
+  "forbidden_completion_hits": [],
+  "manual_spot_checks": [],
+  "residual_risks": []
+}

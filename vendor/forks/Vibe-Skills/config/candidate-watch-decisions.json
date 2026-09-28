@@ -1,0 +1,120 @@
+﻿{
+  "version": 1,
+  "updated": "2026-03-07",
+  "purpose": "Wave15 watch-lane decision register. Reporting-only and never mutates routing defaults, candidate availability, or live connector enablement.",
+  "baseline": {
+    "as_of": "2026-03-06",
+    "watch_queue_count": 8,
+    "source_artifact": "outputs/governance/candidate-curation/candidate-curation-leaderboard.json",
+    "board_mode": "advice-first"
+  },
+  "decision_policy": {
+    "principles": [
+      "close the watch lane before widening any default surface",
+      "convert remaining value into advisory, shadow, or pilot assets before any promotion discussion",
+      "preserve rollback-first governance for every pilot or review-ready item",
+      "prefer active-lane digestion over importing new default capabilities"
+    ],
+    "allowed_decision_labels": [
+      "hold",
+      "pilot",
+      "review-ready"
+    ],
+    "forbidden_actions": [
+      "live-router-auto-mutation",
+      "default-surface-expansion",
+      "connector-auto-enable",
+      "silent-promotion"
+    ]
+  },
+  "candidates": [
+    {
+      "id": "awesome-ai-tools",
+      "current_state": "watch",
+      "cluster": "governance-taxonomy",
+      "priority_band": "high-yield-advisory",
+      "decision_label": "review-ready",
+      "landing_zone": "eval slicing / governance taxonomy",
+      "default_surface_change": false,
+      "next_action": "Operationalize evaluation slicing and board-readable reporting without promoting runtime behavior.",
+      "rationale": "The taxonomy remains high-value for evaluation decomposition, but its remaining value is governance-facing rather than router-facing."
+    },
+    {
+      "id": "awesome-mcp-servers",
+      "current_state": "watch",
+      "cluster": "tool-governance",
+      "priority_band": "high-yield-advisory",
+      "decision_label": "review-ready",
+      "landing_zone": "registry snapshot / allowlist review",
+      "default_surface_change": false,
+      "next_action": "Use as a discovery registry only, then subject every candidate to allowlist, risk-tier, and contract review.",
+      "rationale": "Useful as an intake map, but not trustworthy enough to be treated as a runtime registry or approved server list."
+    },
+    {
+      "id": "activepieces",
+      "current_state": "watch",
+      "cluster": "tool-governance",
+      "priority_band": "gated-pilot-only",
+      "decision_label": "pilot",
+      "landing_zone": "project-scoped automation templates",
+      "default_surface_change": false,
+      "next_action": "Keep any integration read-only or template-only until a project-level operator explicitly enables write paths.",
+      "rationale": "The control-plane value is real, but write amplification and connector sprawl make default promotion premature."
+    },
+    {
+      "id": "composio",
+      "current_state": "watch",
+      "cluster": "tool-governance",
+      "priority_band": "gated-pilot-only",
+      "decision_label": "pilot",
+      "landing_zone": "session-scoped connector subsets",
+      "default_surface_change": false,
+      "next_action": "Restrict usage to scoped connector contracts, approved tool subsets, and operator-visible session governance.",
+      "rationale": "Composio is valuable for session-scoped tool contracts, but broad connector enablement would exceed the current governance envelope."
+    },
+    {
+      "id": "awesome-vibe-coding",
+      "current_state": "watch",
+      "cluster": "workflow-governance",
+      "priority_band": "high-yield-advisory",
+      "decision_label": "review-ready",
+      "landing_zone": "operator playbooks / workflow evidence",
+      "default_surface_change": false,
+      "next_action": "Translate the useful parts into XL operator checkpoints and workflow evidence, not new default commands.",
+      "rationale": "Its remaining value is operator discipline and execution structure rather than new runtime surface area."
+    },
+    {
+      "id": "awesome-agent-skills",
+      "current_state": "watch",
+      "cluster": "skill-metadata",
+      "priority_band": "hold-until-gap",
+      "decision_label": "hold",
+      "landing_zone": "gap-driven skill mining only",
+      "default_surface_change": false,
+      "next_action": "Mine only when an explicit capability gap survives active-lane consolidation and existing role packs.",
+      "rationale": "The collection is broad but noisy; importing more skills now would worsen overlap and trigger precision debt."
+    },
+    {
+      "id": "awesome-claude-skills-composio",
+      "current_state": "watch",
+      "cluster": "skill-metadata",
+      "priority_band": "hold-until-gap",
+      "decision_label": "hold",
+      "landing_zone": "spec deltas / connector examples",
+      "default_surface_change": false,
+      "next_action": "Extract only structure, examples, or permission patterns when a concrete gap requires them.",
+      "rationale": "It overlaps with antigravity, claude-skills, and composio-specific assets; keeping it advisory avoids duplicate ingestion."
+    },
+    {
+      "id": "awesome-ai-agents-e2b",
+      "current_state": "watch",
+      "cluster": "workflow-governance",
+      "priority_band": "hold-until-gap",
+      "decision_label": "hold",
+      "landing_zone": "execution-isolation reference",
+      "default_surface_change": false,
+      "next_action": "Reuse isolation and sandbox ideas only when a concrete execution-isolation gap remains after current pilot tooling is evaluated.",
+      "rationale": "The repo is strategically relevant, but current VCO needs disciplined governance assets more than a second execution substrate."
+    }
+  ]
+}

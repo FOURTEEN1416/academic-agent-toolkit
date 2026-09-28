@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "enabled": false,
+  "mode": "shadow",
+  "role": "optional_external_preference_backend",
+  "allowed_payload_types": [
+    "preference",
+    "style_hint",
+    "recurring_constraint",
+    "output_preference"
+  ],
+  "forbidden_payload_types": [
+    "route_assignment",
+    "canonical_project_decision",
+    "primary_session_state",
+    "security_secret",
+    "build_truth"
+  ],
+  "fallback_behavior": {
+    "on_missing_backend": "keep_core_memory_owners",
+    "on_forbidden_write": "deny_and_report"
+  }
+}

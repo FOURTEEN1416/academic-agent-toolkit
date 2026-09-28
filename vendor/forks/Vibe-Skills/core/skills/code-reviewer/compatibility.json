@@ -1,0 +1,18 @@
+{
+  "skill_id": "code-reviewer",
+  "required_capabilities": [
+    "fs.read"
+  ],
+  "optional_capabilities": [
+    "shell.exec",
+    "diff.read",
+    "security.scan"
+  ],
+  "degrade_rules": [
+    {
+      "when_missing": "diff.read",
+      "state": "degraded-but-supported",
+      "behavior": "review falls back to file-level analysis instead of diff-grounded review"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "adapter_id": "opencode",
+  "platform": "windows",
+  "status": "not-yet-proven",
+  "install_surface": [
+    "install.ps1 --host opencode"
+  ],
+  "check_surface": [
+    "check.ps1 --host opencode"
+  ],
+  "doctor_surface": [
+    "scripts/verify/runtime_neutral/opencode_preview_smoke.py"
+  ],
+  "notes": [
+    "PowerShell entrypoints now understand OpenCode preview roots, but a Windows-specific proof bundle does not exist yet.",
+    "The preview lane writes only bounded wrapper payload and example config; it does not claim Windows host closure."
+  ]
+}

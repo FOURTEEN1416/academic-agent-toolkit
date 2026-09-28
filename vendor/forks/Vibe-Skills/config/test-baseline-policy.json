@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-01",
+  "defaults": {
+    "external_network_allowed": false,
+    "disable_network_env": "VIBESKILLS_TEST_DISABLE_NETWORK",
+    "pytest_quiet_arg": "-q",
+    "collect_timeout_seconds": 180
+  },
+  "layers": [
+    {
+      "id": "contract_unit",
+      "description": "Fast deterministic contract and unit checks.",
+      "selection_scope": "contract_support",
+      "pytest_args": ["tests/contract", "tests/unit"],
+      "timeout_seconds": 180,
+      "dependencies": ["python", "pytest"],
+      "external_network_allowed": false
+    },
+    {
+      "id": "default_live_contracts",
+      "description": "Executable live-document and shared run-artifact contract proof.",
+      "selection_scope": "default_regression",
+      "pytest_args": [
+        "tests/runtime_neutral/test_live_document_contract_gate.py",
+        "tests/integration/test_shared_run_artifact_contract.py"
+      ],
+      "timeout_seconds": 1800,
+      "run_strategy": "file_serial",
+      "per_file_timeout_seconds": 600,
+      "dependencies": ["python", "pytest", "powershell", "git"],
+      "external_network_allowed": false
+    },
+    {
+      "id": "default_install_lifecycle",
+      "description": "Install lifecycle proof for install, check, wrapper entrypoints, and uninstall safety.",
+      "selection_scope": "default_regression",
+      "pytest_args": [
+        "tests/runtime_neutral/test_check_installed_runtime_root.py",
+        "tests/runtime_neutral/test_install_profile_differentiation.py",
+        "tests/runtime_neutral/test_installed_runtime_uninstall.py",
+        "tests/runtime_neutral/test_simple_powershell_installer_wrappers.py"
+      ],
+      "timeout_seconds": 2400,
+      "run_strategy": "file_serial",
+      "per_file_timeout_seconds": 600,
+      "dependencies": ["python", "pytest", "powershell", "bash", "git"],
+      "external_network_allowed": false
+    },
+    {
+      "id": "default_runtime_entry_truth",
+      "description": "Runtime entry truth proof for governed execution, delivery receipts, and shared-memory continuity.",
+      "selection_scope": "default_regression",
+      "pytest_args": [
+        "tests/runtime_neutral/test_agent_skill_organization_contract.py",
+        "tests/runtime_neutral/test_governed_runtime_bridge.py",
+        "tests/runtime_neutral/test_runtime_delivery_acceptance.py",
+        "tests/runtime_neutral/test_workspace_shared_memory_plane.py"
+      ],
+      "timeout_seconds": 2400,
+      "run_strategy": "file_serial",
+      "per_file_timeout_seconds": 600,
+      "dependencies": ["python", "pytest", "powershell", "bash", "git"],
+      "external_network_allowed": false
+    },
+    {
+      "id": "default_routing_mainline",
+      "description": "Routing mainline proof for authority selection and bounded module dispatch.",
+      "selection_scope": "default_regression",
+      "pytest_args": [
+        "tests/runtime_neutral/test_custom_admission_bridge.py",
+        "tests/runtime_neutral/test_router_authority_safe_fallback.py"
+      ],
+      "timeout_seconds": 1800,
+      "run_strategy": "file_serial",
+      "per_file_timeout_seconds": 300,
+      "dependencies": ["python", "pytest", "powershell", "bash", "git"],
+      "external_network_allowed": false
+    },
+    {
+      "id": "touched_packaging_release",
+      "description": "Packaging and release proof that only runs when packaging surfaces are touched.",
+      "selection_scope": "touched_surface_only",
+      "pytest_args": [
+        "tests/runtime_neutral/test_pack_manifest_role_contract.py",
+        "tests/runtime_neutral/test_release_truth_gate.py"
+      ],
+      "timeout_seconds": 1200,
+      "run_strategy": "file_serial",
+      "per_file_timeout_seconds": 300,
+      "dependencies": ["python", "pytest", "powershell", "bash", "git"],
+      "external_network_allowed": false
+    },
+    {
+      "id": "touched_historical_governance",
+      "description": "Historical-path census and stale-archive checks for explicitly touched governance history.",
+      "selection_scope": "touched_surface_only",
+      "pytest_args": [
+        "tests/runtime_neutral/test_current_routing_contract_scan.py",
+        "tests/runtime_neutral/test_retired_agent_execution_surfaces.py"
+      ],
+      "timeout_seconds": 1200,
+      "run_strategy": "file_serial",
+      "per_file_timeout_seconds": 300,
+      "dependencies": ["python", "pytest", "powershell", "git"],
+      "external_network_allowed": false
+    },
+    {
+      "id": "integration_host_boundary",
+      "description": "Focused host-boundary smoke for shell wrappers and cross-process runtime launch behavior.",
+      "selection_scope": "host_boundary",
+      "pytest_args": [
+        "tests/integration/test_host_global_bootstrap_shell_lifecycle.py",
+        "tests/integration/test_install_rerun_matrix.py",
+        "tests/integration/test_powershell_wrapper_host_validation_dedupe.py"
+      ],
+      "timeout_seconds": 1800,
+      "run_strategy": "file_serial",
+      "per_file_timeout_seconds": 600,
+      "dependencies": ["python", "pytest", "powershell", "bash", "git"],
+      "external_network_allowed": false
+    }
+  ],
+  "artifact_names": {
+    "json": "test-baseline-audit.json",
+    "markdown": "test-baseline-audit.md"
+  }
+}

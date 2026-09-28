@@ -1,0 +1,155 @@
+name: vco-release-proof
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release-proof:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Checkout released tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        shell: bash
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Verify release contract
+        id: release-contract
+        continue-on-error: true
+        shell: bash
+        run: |
+          python scripts/verify/publish-proof.py run \
+            --repo-root . \
+            --output outputs/release-proof/release-contract.json \
+            --artifact config/version-governance.json \
+            --artifact config/live-document-contract.json \
+            --label release-contract \
+            -- python -c "import json, os, pathlib; version=json.loads(pathlib.Path('config/version-governance.json').read_text(encoding='utf-8'))['release']['version']; expected='v'+version; actual=os.environ['RELEASE_TAG']; assert actual == expected, f'release tag {actual} does not match {expected}'"
+
+      - name: Run canonical release validation
+        id: release-validation
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t targets < <(grep -v '^[[:space:]]*#' config/python-validation-targets.txt | sed '/^[[:space:]]*$/d')
+          if [ "${#targets[@]}" -eq 0 ]; then
+            echo "canonical python validation target list is empty" >&2
+            exit 1
+          fi
+          python scripts/verify/publish-proof.py run \
+            --repo-root . \
+            --output outputs/release-proof/release-validation.json \
+            --artifact config/live-document-contract.json \
+            --label release-validation \
+            -- python -B -m pytest -q "${targets[@]}"
+
+      - name: Assemble public distribution
+        id: distribution
+        continue-on-error: true
+        shell: bash
+        run: |
+          python scripts/verify/publish-proof.py run \
+            --repo-root . \
+            --output outputs/release-proof/distribution.json \
+            --artifact dist/distribution/manifest.json \
+            --label assemble-distribution \
+            -- python scripts/build/assemble_distribution.py \
+              --output-dir dist/distribution \
+              --host codex \
+              --profile minimal
+
+      - name: Build public release bundle
+        id: release-bundle
+        continue-on-error: true
+        shell: bash
+        run: |
+          version="${RELEASE_TAG#v}"
+          python scripts/verify/publish-proof.py run \
+            --repo-root . \
+            --output outputs/release-proof/release-bundle-command.json \
+            --artifact dist/release/release-bundle.json \
+            --artifact "dist/release/vibe-skills-${version}-public.zip" \
+            --label build-release-bundle \
+            -- python scripts/release/build_release_bundle.py \
+              --distribution-manifest dist/distribution/manifest.json \
+              --output-dir dist/release
+
+      - name: Generate formal release proof
+        id: formal-proof
+        if: always()
+        shell: bash
+        run: |
+          python scripts/verify/publish-proof.py aggregate \
+            --repo-root . \
+            --proof outputs/release-proof/release-contract.json \
+            --proof outputs/release-proof/release-validation.json \
+            --proof outputs/release-proof/distribution.json \
+            --proof outputs/release-proof/release-bundle-command.json \
+            --artifact config/live-document-contract.json \
+            --output-directory outputs/release-proof
+
+      - name: Retain formal release proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vco-release-proof-${{ github.event.release.tag_name }}
+          path: |
+            outputs/release-proof
+            dist/release
+          retention-days: 90
+
+      - name: Attach proof to GitHub Release
+        if: >-
+          steps.release-contract.outcome == 'success' &&
+          steps.release-validation.outcome == 'success' &&
+          steps.distribution.outcome == 'success' &&
+          steps.release-bundle.outcome == 'success' &&
+          steps.formal-proof.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          assets=(
+            outputs/release-proof/proof-bundle.json
+            outputs/release-proof/current-state.json
+            outputs/release-proof/current-state.md
+          )
+          version="${RELEASE_TAG#v}"
+          for candidate in \
+            dist/release/release-bundle.json \
+            "dist/release/vibe-skills-${version}-public.zip"; do
+            if [[ -f "${candidate}" ]]; then
+              assets+=("${candidate}")
+            fi
+          done
+          gh release upload "${RELEASE_TAG}" "${assets[@]}" --clobber
+
+      - name: Enforce formal release proof
+        if: always()
+        shell: bash
+        run: |
+          if [[ "${{ steps.release-contract.outcome }}" != "success" || \
+                "${{ steps.release-validation.outcome }}" != "success" || \
+                "${{ steps.distribution.outcome }}" != "success" || \
+                "${{ steps.release-bundle.outcome }}" != "success" || \
+                "${{ steps.formal-proof.outcome }}" != "success" ]]; then
+            exit 1
+          fi

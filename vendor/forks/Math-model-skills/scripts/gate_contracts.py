@@ -1,0 +1,2082 @@
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+from pathlib import Path
+from typing import Any, Callable
+
+from manifest import competition_profile, find_step
+from state_store import load_state
+
+
+CN_DIGITS = {
+    "一": 1,
+    "二": 2,
+    "三": 3,
+    "四": 4,
+    "五": 5,
+    "六": 6,
+    "七": 7,
+    "八": 8,
+    "九": 9,
+    "十": 10,
+}
+
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace") if path.exists() else ""
+
+
+def read_bytes(path: Path) -> bytes:
+    return path.read_bytes() if path.exists() else b""
+
+
+def visible_manuscript_text(text: str) -> str:
+    text = re.sub(r"(?m)(?<!\\)%.*$", " ", text)
+    text = re.sub(r"<!--.*?-->", " ", text, flags=re.DOTALL)
+    text = re.sub(r"```.*?```", " ", text, flags=re.DOTALL)
+    return text
+
+
+def load_json(path: Path) -> Any:
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def cn_int(text: str) -> int | None:
+    if text.isdigit():
+        return int(text)
+    return CN_DIGITS.get(text.strip())
+
+
+def declared_problem_count(text: str) -> int | None:
+    match = re.search(r"本赛题共\s*([0-9一二三四五六七八九十]+)\s*个子问题", text)
+    if not match:
+        return None
+    return cn_int(match.group(1))
+
+
+def heading_problem_count(text: str) -> int:
+    patterns = [
+        r"(?m)^##+\s*问题[一二三四五六七八九十0-9]+",
+        r"(?m)^###\s*问题[一二三四五六七八九十0-9]+",
+        r"(?m)^##+\s*Problem\s*[0-9]+",
+        r"(?m)^问题[一二三四五六七八九十0-9]+",
+    ]
+    count = 0
+    for pattern in patterns:
+        count = max(count, len(re.findall(pattern, text, flags=re.IGNORECASE)))
+    return count
+
+
+def expected_problem_count(workspace: Path) -> int:
+    candidates: list[int] = []
+    for rel in ("问题分析.md", "建模报告.md"):
+        text = read_text(workspace / rel)
+        if not text:
+            continue
+        declared = declared_problem_count(text)
+        if declared:
+            candidates.append(declared)
+        counted = heading_problem_count(text)
+        if counted:
+            candidates.append(counted)
+    return max(candidates) if candidates else 0
+
+
+MODEL_DEFINITION_RE = re.compile(
+    r"(?mi)^模型定义\s*Q(?P<question>\d+)\s*\|\s*正式名称\s*[:：]\s*(?P<name>[^|\n]+)"
+    r"\s*\|\s*标准模型族\s*[:：]\s*(?P<family>[^|\n]+)"
+    r"\s*\|\s*求解算法\s*[:：]\s*(?P<algorithm>[^|\n]+)"
+)
+
+MODEL_DEFINITION_EN_RE = re.compile(
+    r"(?mi)^model\s+definition\s+Q(?P<question>\d+)\s*\|\s*academic\s+name\s*[:：]\s*(?P<name>[^|\n]+)"
+    r"\s*\|\s*canonical\s+model\s+family\s*[:：]\s*(?P<family>[^|\n]+)"
+    r"\s*\|\s*solver\s+algorithm\s*[:：]\s*(?P<algorithm>[^|\n]+)"
+)
+
+MODEL_STRUCTURE_RE = re.compile(
+    r"(?mi)^模型结构\s*Q(?P<question>\d+)\s*\|\s*决策变量/状态量\s*[:：]\s*(?P<variables>[^|\n]+)"
+    r"\s*\|\s*目标函数/统计关系\s*[:：]\s*(?P<objective>[^|\n]+)"
+    r"\s*\|\s*核心约束/方程\s*[:：]\s*(?P<constraints>[^|\n]+)"
+    r"\s*\|\s*定制机制\s*[:：]\s*(?P<mechanism>[^|\n]+)"
+)
+
+MODEL_STRUCTURE_EN_RE = re.compile(
+    r"(?mi)^model\s+structure\s+Q(?P<question>\d+)\s*\|\s*decision/state\s+variables\s*[:：]\s*(?P<variables>[^|\n]+)"
+    r"\s*\|\s*objective/statistical\s+relation\s*[:：]\s*(?P<objective>[^|\n]+)"
+    r"\s*\|\s*core\s+constraints/equations\s*[:：]\s*(?P<constraints>[^|\n]+)"
+    r"\s*\|\s*custom\s+mechanism\s*[:：]\s*(?P<mechanism>[^|\n]+)"
+)
+
+MODEL_SEMANTICS_RE = re.compile(
+    r"(?mi)^模型语义\s*Q(?P<question>\d+)\s*\|\s*目标数量\s*[:：]\s*(?P<objective_count>[^|\n]+)"
+    r"\s*\|\s*目标方向\s*[:：]\s*(?P<objective_direction>[^|\n]+)"
+    r"\s*\|\s*变量类型\s*[:：]\s*(?P<variable_type>[^|\n]+)"
+    r"\s*\|\s*关系类型\s*[:：]\s*(?P<relation_type>[^|\n]+)"
+    r"\s*\|\s*多目标证据\s*[:：]\s*(?P<multiobjective_evidence>[^|\n]+)"
+)
+
+MODEL_SEMANTICS_EN_RE = re.compile(
+    r"(?mi)^model\s+semantics\s+Q(?P<question>\d+)\s*\|\s*objective\s+count\s*[:：]\s*(?P<objective_count>[^|\n]+)"
+    r"\s*\|\s*objective\s+direction\s*[:：]\s*(?P<objective_direction>[^|\n]+)"
+    r"\s*\|\s*variable\s+type\s*[:：]\s*(?P<variable_type>[^|\n]+)"
+    r"\s*\|\s*relation\s+type\s*[:：]\s*(?P<relation_type>[^|\n]+)"
+    r"\s*\|\s*multiobjective\s+evidence\s*[:：]\s*(?P<multiobjective_evidence>[^|\n]+)"
+)
+
+MODEL_INCREMENT_RE = re.compile(
+    r"(?mi)^模型增量\s*Q(?P<question>\d+)\s*\|\s*继承方程\s*[:：]\s*(?P<inherited_equations>[^|\n]+)"
+    r"\s*\|\s*新增变量\s*[:：]\s*(?P<new_variables>[^|\n]+)"
+    r"\s*\|\s*新增/修改约束\s*[:：]\s*(?P<constraint_changes>[^|\n]+)"
+    r"\s*\|\s*目标变化\s*[:：]\s*(?P<objective_changes>[^|\n]+)"
+    r"\s*\|\s*求解变化\s*[:：]\s*(?P<solver_changes>[^|\n]+)"
+    r"\s*\|\s*验证变化\s*[:：]\s*(?P<validation_changes>[^|\n]+)"
+)
+
+MODEL_INCREMENT_EN_RE = re.compile(
+    r"(?mi)^model\s+increment\s+Q(?P<question>\d+)\s*\|\s*inherited\s+equations\s*[:：]\s*(?P<inherited_equations>[^|\n]+)"
+    r"\s*\|\s*new\s+variables\s*[:：]\s*(?P<new_variables>[^|\n]+)"
+    r"\s*\|\s*constraint\s+changes\s*[:：]\s*(?P<constraint_changes>[^|\n]+)"
+    r"\s*\|\s*objective\s+changes\s*[:：]\s*(?P<objective_changes>[^|\n]+)"
+    r"\s*\|\s*solver\s+changes\s*[:：]\s*(?P<solver_changes>[^|\n]+)"
+    r"\s*\|\s*validation\s+changes\s*[:：]\s*(?P<validation_changes>[^|\n]+)"
+)
+
+PAPER_EXPRESSION_RE = re.compile(
+    r"(?mi)^论文表达\s*Q(?P<question>\d+)\s*\|\s*展示名称\s*[:：]\s*(?P<name>[^|\n]+)"
+    r"\s*\|\s*问题角色\s*[:：]\s*(?P<role>[^|\n]+)"
+    r"\s*\|\s*继承模型\s*[:：]\s*(?P<inherits>[^|\n]+)"
+    r"\s*\|\s*核心方法\s*[:：]\s*(?P<method>[^|\n]+)"
+)
+
+PAPER_EXPRESSION_EN_RE = re.compile(
+    r"(?mi)^paper\s+expression\s+Q(?P<question>\d+)\s*\|\s*display\s+name\s*[:：]\s*(?P<name>[^|\n]+)"
+    r"\s*\|\s*question\s+role\s*[:：]\s*(?P<role>[^|\n]+)"
+    r"\s*\|\s*inherits\s+from\s*[:：]\s*(?P<inherits>[^|\n]+)"
+    r"\s*\|\s*core\s+method\s*[:：]\s*(?P<method>[^|\n]+)"
+)
+
+MODEL_BUILDING_ROLES = {"new_model", "model_extension"}
+INHERITED_ROLES = {"comparison", "validation", "application"}
+QUESTION_ROLES = MODEL_BUILDING_ROLES | INHERITED_ROLES
+ABSTRACT_INTERNAL_TERMS = [
+    "标准模型族为", "求解算法为", "冻结合同", "统一验证器", "验证器", "搜索预算",
+    "相同随机种子", "统一随机种子", "canonical model family", "solver algorithm is",
+    "frozen contract", "unified validator", "search budget", "same random seed",
+    "Q1/Q2求解器", "Q1/Q2 求解器", "model_identity", "全部结果.json",
+    "代码哈希", "哈希固化", "内部合同", "工作流状态",
+]
+
+CANONICAL_MODEL_FAMILIES: dict[str, tuple[str, ...]] = {
+    "linear_programming": (r"(?<!非)(?<!整数)线性规划", r"(?i)(?<!integer )\blinear programming\b", r"(?i)\bLP\b"),
+    "integer_programming": (r"(?<!混合)整数规划", r"(?i)(?<!mixed-)(?<!mixed )\binteger programming\b", r"(?i)\bIP\b"),
+    "mixed_integer_programming": (r"混合整数(?:线性|非线性)?规划", r"(?i)\bmixed[- ]integer(?: linear| nonlinear)? programming\b", r"(?i)\bMI(?:L|N)?P\b"),
+    "nonlinear_programming": (r"非线性规划", r"(?i)\bnonlinear programming\b", r"(?i)\bNLP\b"),
+    "quadratic_programming": (r"二次规划", r"(?i)\bquadratic programming\b", r"(?i)\bQP\b"),
+    "multiobjective_optimization": (r"多目标(?:规划|优化)", r"(?i)\bmulti[- ]objective (?:programming|optimization|optimisation)\b"),
+    "robust_optimization": (r"鲁棒优化", r"(?i)\brobust (?:optimization|optimisation)\b"),
+    "stochastic_programming": (r"随机规划", r"(?i)\bstochastic programming\b"),
+    "chance_constrained_programming": (r"机会约束规划", r"(?i)\bchance[- ]constrained programming\b"),
+    "network_flow": (r"网络流|最短路|最大流", r"(?i)\bnetwork flow|shortest path|maximum flow\b"),
+    "vehicle_routing": (r"车辆路径|取送货路径|拨号乘车", r"(?i)\bvehicle routing|pickup and delivery|dial[- ]a[- ]ride\b", r"(?i)\bVRP\b"),
+    "facility_location": (r"设施选址|选址分配", r"(?i)\bfacility location|location[- ]allocation\b"),
+    "assignment": (r"线性指派|二分图匹配|线性分配模型", r"(?i)\blinear assignment|bipartite matching\b"),
+    "scheduling": (r"机组承诺|作业车间调度|流水车间调度|并行机调度", r"(?i)\bunit commitment|job[- ]shop scheduling|flow[- ]shop scheduling|parallel[- ]machine scheduling\b"),
+    "regression": (r"回归模型|动态回归", r"(?i)\bregression model|dynamic regression\b"),
+    "time_series": (r"时间序列|ARIMA|SARIMA", r"(?i)\btime[- ]series|ARIMA|SARIMA\b"),
+    "state_space": (r"状态空间", r"(?i)\bstate[- ]space\b"),
+    "grey_prediction": (r"灰色预测|GM\s*\(1\s*,\s*1\)", r"(?i)\bgrey prediction|gray prediction|GM\s*\(1\s*,\s*1\)\b"),
+    "markov": (r"马尔可夫", r"(?i)\bMarkov\b"),
+    "queueing": (r"排队模型|排队论", r"(?i)\bqueueing model|queuing model\b"),
+    "differential_equation": (r"微分方程", r"(?i)\bdifferential equation\b"),
+    "kinematic_dynamic": (r"运动学模型|动力学模型", r"(?i)\bkinematic(?:s)? model|dynamic(?:s)? model\b"),
+    "geometric_visibility": (r"几何可见性|几何遮挡|视线遮挡|空间相交模型", r"(?i)\bgeometric visibility|line[- ]of[- ]sight|occlusion model|intersection model\b"),
+    "event_driven": (r"事件驱动(?:仿真|模型)|连续时间事件模型|事件区间模型", r"(?i)\bevent[- ]driven (?:simulation|model)|continuous[- ]time event model\b"),
+    "simulation_optimization": (r"仿真优化|模拟优化", r"(?i)\bsimulation[- ]based optimization|simulation optimization\b"),
+    "hybrid_discrete_continuous": (r"混合离散[-— ]连续模型|离散[-— ]连续联合模型|混合整数非线性规划", r"(?i)\bhybrid discrete[- ]continuous model|mixed[- ]integer nonlinear programming\b", r"(?i)\bMINLP\b"),
+    "set_interval": (r"区间集合模型|集合覆盖模型|最大覆盖模型", r"(?i)\binterval set model|set covering model|maximum coverage model\b"),
+    "difference_equation": (r"差分方程", r"(?i)\bdifference equation\b"),
+    "compartmental": (r"SIR|SEIR|仓室模型", r"(?i)\bSIR|SEIR|compartmental model\b"),
+    "bayesian": (r"贝叶斯", r"(?i)\bBayesian\b"),
+    "multicriteria_decision": (r"多指标决策|多准则决策|层次分析|TOPSIS|数据包络分析", r"(?i)\bmulti[- ]criteria decision|AHP|TOPSIS|data envelopment analysis\b", r"(?i)\bDEA\b"),
+    "dimension_reduction": (r"主成分分析|因子分析", r"(?i)\bprincipal component analysis|factor analysis\b", r"(?i)\bPCA\b"),
+    "clustering_classification": (r"聚类模型|分类模型", r"(?i)\bclustering model|classification model\b"),
+    "machine_learning": (r"神经网络|随机森林|支持向量机|梯度提升", r"(?i)\bneural network|random forest|support vector machine|gradient boosting\b", r"(?i)\bSVM|XGBoost\b"),
+    "simulation": (r"系统动力学|元胞自动机|智能体仿真|蒙特卡洛仿真", r"(?i)\bsystem dynamics|cellular automaton|agent[- ]based simulation|Monte Carlo simulation\b"),
+    "game_theory": (r"博弈模型|博弈论", r"(?i)\bgame[- ]theoretic model|game theory\b"),
+    "graphical_model": (r"图模型|贝叶斯网络", r"(?i)\bgraphical model|Bayesian network\b"),
+    "control": (r"最优控制|模型预测控制", r"(?i)\boptimal control|model predictive control\b", r"(?i)\bMPC\b"),
+}
+
+VAGUE_MODEL_FAMILIES = {
+    "优化", "优化模型", "决策", "决策模型", "预测", "预测模型", "评价", "评价模型",
+    "综合模型", "数学模型", "智能模型", "advanced model", "optimization model",
+    "decision model", "prediction model", "evaluation model", "mathematical model",
+}
+
+
+def matched_model_families(text: str) -> set[str]:
+    return {
+        family
+        for family, patterns in CANONICAL_MODEL_FAMILIES.items()
+        if any(re.search(pattern, text) for pattern in patterns)
+    }
+
+
+def model_identity_issues(name: str, family: str, algorithm: str, english_route: bool) -> list[str]:
+    issues: list[str] = []
+    family_matches = matched_model_families(family)
+    name_matches = matched_model_families(name)
+    if family.strip().lower() in VAGUE_MODEL_FAMILIES or not family_matches:
+        issues.append("canonical model family is vague or not recognized")
+    elif len(family_matches) > 1:
+        issues.append("canonical model family must identify one primary mathematical structure")
+    if not name_matches:
+        issues.append("academic model name does not expose a canonical mathematical model family")
+    elif family_matches and not family_matches.intersection(name_matches):
+        issues.append("academic model name and canonical model family identify different structures")
+    if english_route:
+        if not re.search(r"(?i)model|regression|programming|optimization|optimisation|routing|analysis|control|simulation|network", name):
+            issues.append("English academic model name is not publication-facing")
+    elif "模型" not in name:
+        issues.append("Chinese academic model name must contain 模型")
+    if len(algorithm.strip()) < 2:
+        issues.append("solver algorithm is empty or too vague")
+    return issues
+
+
+def model_definition_records(text: str) -> dict[str, dict[str, str]]:
+    records: dict[str, dict[str, str]] = {}
+    for match in MODEL_DEFINITION_RE.finditer(text):
+        question = f"Q{match.group('question')}"
+        records[question] = {
+            "academic_name": match.group("name").strip(),
+            "model_family": match.group("family").strip(),
+            "solver_algorithm": match.group("algorithm").strip(),
+        }
+    for match in MODEL_DEFINITION_EN_RE.finditer(text):
+        question = f"Q{match.group('question')}"
+        records[question] = {
+            "academic_name": match.group("name").strip(),
+            "model_family": match.group("family").strip(),
+            "solver_algorithm": match.group("algorithm").strip(),
+        }
+    for pattern in (MODEL_STRUCTURE_RE, MODEL_STRUCTURE_EN_RE):
+        for match in pattern.finditer(text):
+            question = f"Q{match.group('question')}"
+            if question in records:
+                records[question].update({
+                    "variables": match.group("variables").strip(),
+                    "objective_relation": match.group("objective").strip(),
+                    "constraints_equations": match.group("constraints").strip(),
+                    "custom_mechanism": match.group("mechanism").strip(),
+                })
+    return records
+
+
+def model_semantic_records(text: str) -> dict[str, dict[str, str]]:
+    records: dict[str, dict[str, str]] = {}
+    for pattern in (MODEL_SEMANTICS_RE, MODEL_SEMANTICS_EN_RE):
+        for match in pattern.finditer(text):
+            records[f"Q{match.group('question')}"] = {
+                "objective_count": match.group("objective_count").strip(),
+                "objective_direction": match.group("objective_direction").strip(),
+                "variable_type": match.group("variable_type").strip(),
+                "relation_type": match.group("relation_type").strip(),
+                "multiobjective_evidence": match.group("multiobjective_evidence").strip(),
+            }
+    return records
+
+
+def model_increment_records(text: str) -> dict[str, dict[str, str]]:
+    records: dict[str, dict[str, str]] = {}
+    for pattern in (MODEL_INCREMENT_RE, MODEL_INCREMENT_EN_RE):
+        for match in pattern.finditer(text):
+            records[f"Q{match.group('question')}"] = {
+                field: match.group(field).strip()
+                for field in (
+                    "inherited_equations", "new_variables", "constraint_changes",
+                    "objective_changes", "solver_changes", "validation_changes",
+                )
+            }
+    return records
+
+
+def model_semantic_issues(question: str, definition: dict[str, str], semantic: dict[str, str] | None) -> list[str]:
+    if not semantic:
+        return [f"{question}: missing model semantics card"]
+    issues: list[str] = []
+    try:
+        objective_count = int(semantic["objective_count"])
+    except (TypeError, ValueError):
+        return [f"{question}: objective_count must be a non-negative integer"]
+    if objective_count < 0:
+        issues.append(f"{question}: objective_count must be non-negative")
+    direction = semantic["objective_direction"].strip().lower()
+    if objective_count == 0 and direction not in {"none", "n/a", "not_applicable", "无"}:
+        issues.append(f"{question}: a non-optimization model must use objective_direction=none")
+    if objective_count > 0 and direction in {"none", "n/a", "not_applicable", "无"}:
+        issues.append(f"{question}: an optimization model must state objective direction")
+    if not re.search(r"continuous|integer|binary|mixed|state|连续|整数|二元|混合|状态", semantic["variable_type"], flags=re.IGNORECASE):
+        issues.append(f"{question}: variable_type is not structurally recognizable")
+    if not re.search(r"linear|nonlinear|differential|stochastic|geometric|simulation|hybrid|statistical|network|set|线性|非线性|微分|随机|几何|仿真|混合|统计|网络|集合", semantic["relation_type"], flags=re.IGNORECASE):
+        issues.append(f"{question}: relation_type is not structurally recognizable")
+    identified = matched_model_families(definition.get("model_family", "") + " " + definition.get("academic_name", ""))
+    if "multiobjective_optimization" in identified:
+        if objective_count < 2:
+            issues.append(f"{question}: multiobjective model name requires at least two optimized objectives")
+        evidence = semantic["multiobjective_evidence"].strip().lower()
+        if evidence in {"none", "n/a", "not_applicable", "无", "不适用"} or len(evidence) < 4:
+            issues.append(f"{question}: multiobjective model lacks conflict/aggregation/Pareto evidence")
+    return issues
+
+
+def paper_expression_records(text: str) -> dict[str, dict[str, str]]:
+    records: dict[str, dict[str, str]] = {}
+    for pattern in (PAPER_EXPRESSION_RE, PAPER_EXPRESSION_EN_RE):
+        for match in pattern.finditer(text):
+            records[f"Q{match.group('question')}"] = {
+                "display_name": match.group("name").strip(),
+                "question_role": match.group("role").strip().lower(),
+                "inherits_from": match.group("inherits").strip(),
+                "core_method": match.group("method").strip(),
+            }
+    return records
+
+
+def paper_expression_contract_issues(workspace: Path, expected: int) -> list[str]:
+    report = read_text(workspace / "建模报告.md")
+    definitions = model_definition_records(report)
+    expressions = paper_expression_records(report)
+    english_route = active_profile(workspace)[0] == "mcm-icm"
+    issues: list[str] = []
+    for index in range(1, expected + 1):
+        question = f"Q{index}"
+        expression = expressions.get(question)
+        if not expression:
+            issues.append(f"{question}: missing paper expression card")
+            continue
+        role = expression["question_role"]
+        if role not in QUESTION_ROLES:
+            issues.append(f"{question}: invalid question role {role}")
+            continue
+        display_name = expression["display_name"]
+        core_method = expression["core_method"]
+        inherits_from = expression["inherits_from"].strip().lower()
+        name_limit = 90 if english_route else 32
+        method_limit = 100 if english_route else 40
+        if len(display_name) < 4 or len(display_name) > name_limit:
+            issues.append(f"{question}: paper display name must be concise and publication-facing")
+        if len(core_method) < 2 or len(core_method) > method_limit:
+            issues.append(f"{question}: core method is empty or expands into an implementation pipeline")
+        if any(term.lower() in f"{display_name} {core_method}".lower() for term in ABSTRACT_INTERNAL_TERMS):
+            issues.append(f"{question}: paper expression contains internal workflow vocabulary")
+        if len(re.findall(r"[、,+＋/]|以及|并结合|\b(?:and|with)\b", core_method, flags=re.IGNORECASE)) > 2:
+            issues.append(f"{question}: core method lists too many algorithm components")
+        definition = definitions.get(question)
+        if role in MODEL_BUILDING_ROLES:
+            if not definition:
+                issues.append(f"{question}: {role} requires a model definition and structure card")
+                continue
+            display_families = matched_model_families(display_name)
+            definition_families = matched_model_families(definition["model_family"])
+            if not display_families.intersection(definition_families):
+                issues.append(f"{question}: paper display name does not preserve the primary model family")
+            if role == "new_model" and inherits_from not in {"none", "无", "n/a", "not_applicable"}:
+                issues.append(f"{question}: new_model must not claim an inherited model")
+            if role == "model_extension" and inherits_from in {"none", "无", "n/a", "not_applicable"}:
+                issues.append(f"{question}: model_extension must identify its inherited model")
+        else:
+            if inherits_from in {"none", "无", "n/a", "not_applicable"}:
+                issues.append(f"{question}: {role} must identify the inherited model instead of inventing a new one")
+    return issues
+
+
+def model_definition_contract_issues(workspace: Path, expected: int) -> list[str]:
+    report = read_text(workspace / "建模报告.md")
+    records = model_definition_records(report)
+    semantics = model_semantic_records(report)
+    increments = model_increment_records(report)
+    expressions = paper_expression_records(report)
+    profile_key, _ = active_profile(workspace)
+    english_route = profile_key == "mcm-icm"
+    issues: list[str] = []
+    for index in range(1, expected + 1):
+        question = f"Q{index}"
+        expression = expressions.get(question)
+        if expression and expression.get("question_role") in INHERITED_ROLES:
+            continue
+        record = records.get(question)
+        if not record:
+            issues.append(f"{question}: missing explicit model definition (name, canonical family, and solver algorithm)")
+            continue
+        issues.extend(
+            f"{question}: {issue}"
+            for issue in model_identity_issues(
+                record["academic_name"], record["model_family"], record["solver_algorithm"], english_route
+            )
+        )
+        structure_fields = ("variables", "objective_relation", "constraints_equations", "custom_mechanism")
+        missing_structure = [field for field in structure_fields if len(record.get(field, "").strip()) < 2]
+        if missing_structure:
+            issues.append(f"{question}: model structure card is incomplete: {missing_structure}")
+        issues.extend(model_semantic_issues(question, record, semantics.get(question)))
+        if expression and expression.get("question_role") == "model_extension":
+            increment = increments.get(question)
+            if not increment:
+                issues.append(f"{question}: model_extension requires a model increment card")
+            else:
+                missing_increment = [field for field, value in increment.items() if len(value.strip()) < 2]
+                if missing_increment:
+                    issues.append(f"{question}: model increment card is incomplete: {missing_increment}")
+    issues.extend(paper_expression_contract_issues(workspace, expected))
+    return issues
+
+
+def result_model_identity_issues(workspace: Path, expected: int) -> list[str]:
+    report_text = read_text(workspace / "建模报告.md")
+    report_records = model_definition_records(report_text)
+    report_semantics = model_semantic_records(report_text)
+    expressions = paper_expression_records(report_text)
+    aggregate = load_json(workspace / "图表" / "全部结果.json")
+    payload = aggregate.get("model_identity", {}) if isinstance(aggregate, dict) else {}
+    if not isinstance(payload, dict):
+        return ["全部结果.json.model_identity must be an object keyed by Q1/Q2/..."]
+    issues: list[str] = []
+    for index in range(1, expected + 1):
+        question = f"Q{index}"
+        if expressions.get(question, {}).get("question_role") in INHERITED_ROLES:
+            continue
+        report = report_records.get(question)
+        result = payload.get(question)
+        if not isinstance(result, dict):
+            issues.append(f"{question}: 全部结果.json lacks model_identity evidence")
+            continue
+        if not report:
+            issues.append(f"{question}: report model identity is missing")
+            continue
+        expected_values = {
+            "academic_name": report["academic_name"],
+            "canonical_model_family": report["model_family"],
+            "solver_algorithm": report["solver_algorithm"],
+        }
+        semantic = report_semantics.get(question, {})
+        expected_values.update({
+            "objective_count": semantic.get("objective_count", ""),
+            "objective_direction": semantic.get("objective_direction", ""),
+            "variable_type": semantic.get("variable_type", ""),
+            "relation_type": semantic.get("relation_type", ""),
+            "multiobjective_evidence": semantic.get("multiobjective_evidence", ""),
+        })
+        for field, expected_value in expected_values.items():
+            if str(result.get(field) if result.get(field) is not None else "").strip() != expected_value:
+                issues.append(f"{question}: result {field} does not match the formulation identity")
+    return issues
+
+
+def publication_claim_issues(workspace: Path, expected: int, manuscript: str = "") -> list[str]:
+    aggregate = load_json(workspace / "图表" / "全部结果.json")
+    claims = aggregate.get("publication_claims", {}) if isinstance(aggregate, dict) else {}
+    if not isinstance(claims, dict) or not claims:
+        return ["全部结果.json.publication_claims must be a non-empty object"]
+    issues: list[str] = []
+    covered: set[str] = set()
+    allowed_sections = {"abstract", "body", "table", "figure", "conclusion", "appendix"}
+    for claim_id, item in claims.items():
+        if not isinstance(item, dict):
+            issues.append(f"{claim_id}: publication claim must be an object")
+            continue
+        question = str(item.get("question") or "").upper()
+        if not re.fullmatch(r"Q\d+", question):
+            issues.append(f"{claim_id}: invalid question id")
+        else:
+            covered.add(question)
+        for field in ("statement", "display_value", "source_key", "derivation"):
+            if len(str(item.get(field) or "").strip()) < 1:
+                issues.append(f"{claim_id}: missing {field}")
+        required_in = item.get("required_in")
+        if not isinstance(required_in, list) or not required_in:
+            issues.append(f"{claim_id}: required_in must be a non-empty list")
+        elif any(str(section).lower() not in allowed_sections for section in required_in):
+            issues.append(f"{claim_id}: required_in contains an unsupported section")
+        if manuscript:
+            display_value = str(item.get("display_value") or "")
+            numeric_tokens = re.findall(r"[-+]?\d+(?:\.\d+)?", display_value)
+            if numeric_tokens and not any(token in manuscript for token in numeric_tokens):
+                issues.append(f"{claim_id}: display value is absent from the manuscript")
+    for index in range(1, expected + 1):
+        if f"Q{index}" not in covered:
+            issues.append(f"Q{index}: no publication claim is registered")
+    return issues
+
+
+def abstract_source(text: str) -> str:
+    visible = visible_manuscript_text(text)
+    patterns = [
+        r"(?is)\\begin\{summarysheet\}(.*?)\\end\{summarysheet\}",
+        r"(?is)\\begin\{kwabstract\}.*?\}(.*?)\\end\{kwabstract\}",
+        r"(?is)\\begin\{abstract\}(.*?)\\end\{abstract\}",
+        r"(?is)\\section\*?\{\s*(?:摘要|Summary|Abstract)\s*\}(.*?)(?=\\label\{AbstractEnd\}|\\section|\\input|\\label\{BodyStart\}|\Z)",
+        r"(?is)(?:^|\n)##?\s*(?:摘要|Summary|Abstract)\b(.*?)(?=\n(?:#|\\section|\\input|\\label\{BodyStart\})|\Z)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, visible)
+        if match:
+            return match.group(1).strip()
+    return ""
+
+
+def abstract_structure_issues(workspace: Path, source: str, expected: int) -> list[str]:
+    abstract = abstract_source(source)
+    if not abstract:
+        return ["abstract content cannot be isolated for structural validation"]
+    report_text = read_text(workspace / "建模报告.md")
+    report_records = model_definition_records(report_text)
+    expression_records = paper_expression_records(report_text)
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n", abstract) if part.strip()]
+    content_paragraphs = [
+        paragraph for paragraph in paragraphs
+        if not re.match(r"(?is)^(?:\\keywords\{|(?:\\noindent\s*)?\\textbf\{?(?:关键词|keywords)|\*\*(?:关键词|keywords))", paragraph)
+    ]
+    minimum_paragraphs = expected + 2
+    issues: list[str] = []
+    if len(content_paragraphs) < minimum_paragraphs:
+        issues.append(f"abstract has {len(content_paragraphs)} content paragraphs; requires at least {minimum_paragraphs} structured paragraphs")
+    lowered = abstract.lower()
+    leaked = [term for term in ABSTRACT_INTERNAL_TERMS if term.lower() in lowered]
+    if leaked:
+        issues.append(f"abstract exposes field labels or internal workflow vocabulary: {leaked}")
+    acronym_groups = re.findall(r"(?<![A-Za-z])[A-Z](?:/[A-Z])+(?![A-Za-z])", abstract)
+    if acronym_groups and not re.search(r"分别(?:表示|为)|其中|记为|respectively|denote", abstract, flags=re.IGNORECASE):
+        issues.append(f"abstract uses unexplained scheme abbreviations: {sorted(set(acronym_groups))}")
+    result_terms = ["结果", "得到", "目标值", "达到", "降低", "提高", "最优", "result", "achieved", "reduced", "improved", "optimal", "score", "value"]
+    validation_terms = ["验证", "检验", "灵敏度", "稳健", "validation", "test", "sensitivity", "robust"]
+    decision_terms = ["优于", "可行", "推荐", "排序", "改善", "降低", "提高", "feasible", "recommended", "outperform", "rank"]
+    cn_by_index = {value: key for key, value in CN_DIGITS.items()}
+    for index in range(1, expected + 1):
+        question = f"Q{index}"
+        cn_label = cn_by_index.get(index, str(index))
+        question_pattern = rf"(?:问题\s*(?:{index}|{cn_label})|problem\s*{index}|q{index})"
+        question_paragraphs = [p.lower() for p in content_paragraphs if re.search(question_pattern, p, flags=re.IGNORECASE)]
+        if not question_paragraphs:
+            issues.append(f"Q{index}: abstract lacks a dedicated per-question paragraph")
+            continue
+        joined = " ".join(question_paragraphs)
+        expression = expression_records.get(question)
+        if not expression:
+            issues.append(f"{question}: abstract cannot resolve a paper expression card")
+        else:
+            if expression["display_name"].lower() not in joined:
+                issues.append(f"{question}: abstract omits the concise paper display name or inherited-task label")
+            if expression["core_method"].lower() not in joined:
+                issues.append(f"{question}: abstract omits the registered core method")
+            if expression["question_role"] in INHERITED_ROLES | {"model_extension"}:
+                inheritance_terms = ["基于前述", "在问题", "基础上", "沿用", "继承", "前述模型", "based on the preceding", "using the preceding", "builds on", "inherits"]
+                if not any(term in joined for term in inheritance_terms):
+                    issues.append(f"{question}: inherited task is written as if it established an unrelated new model")
+        if not any(term.lower() in joined for term in result_terms):
+            issues.append(f"Q{index}: per-question abstract paragraph lacks a result statement")
+        if not any(term.lower() in joined for term in validation_terms):
+            issues.append(f"Q{index}: per-question abstract paragraph lacks a validation statement")
+        if not re.search(r"[-+]?\d+(?:\.\d+)?\s*(?:%|min|h|元|辆|个|分|秒|倍)?", joined) and not any(term in joined for term in decision_terms):
+            issues.append(f"Q{index}: per-question abstract paragraph lacks a quantitative or decisive conclusion")
+        number_mentions = len(re.findall(r"[-+]?\d+(?:\.\d+)?\s*%?", re.sub(question_pattern, "", joined, flags=re.IGNORECASE)))
+        if number_mentions > 8:
+            issues.append(f"Q{index}: abstract reports too many numeric fragments ({number_mentions}); retain only decision-critical results")
+    if content_paragraphs:
+        opening = content_paragraphs[0].lower()
+        if not matched_model_families(opening) and not any(
+            expression["display_name"].lower() in opening for expression in expression_records.values()
+        ):
+            issues.append("abstract opening paragraph does not identify the principal mathematical model")
+        closing = content_paragraphs[-1].lower()
+        advantage_terms = ["可解释", "稳健", "推广", "迁移", "优势", "interpret", "robust", "general", "transfer"]
+        boundary_terms = ["局限", "限制", "边界", "适用", "假设", "limit", "boundary", "applicable", "assumption"]
+        if not any(term in closing for term in advantage_terms):
+            issues.append("abstract closing paragraph does not summarize model advantages")
+        if not any(term in closing for term in boundary_terms):
+            issues.append("abstract closing paragraph does not state limitations or applicability boundaries")
+    visible_source = visible_manuscript_text(source)
+    keyword_text = ""
+    for pattern in (
+        r"(?is)\\keywords\{([^}]*)\}",
+        r"(?is)\\begin\{kwabstract\}\{([^}]*)\}",
+        r"(?im)^(?:\*\*)?(?:关键词|keywords?)\s*[:：]\s*(.*?)(?:\*\*)?\s*$",
+        r"(?is)(?:关键词|keywords?)\s*[:：]\s*(.*?)(?:\n\s*\\end\{|\Z)",
+    ):
+        keyword_match = re.search(pattern, visible_source)
+        if keyword_match:
+            keyword_text = keyword_match.group(1).strip()
+            break
+    if not keyword_text:
+        issues.append("abstract keywords cannot be isolated")
+    else:
+        keyword_text = re.sub(r"[{}\\]|quad|qquad", " ", keyword_text)
+        keywords = [item.strip(" \t;；,，*") for item in re.split(r"[;；,，]", keyword_text) if item.strip(" \t;；,，*")]
+        family_ids = {
+            family
+            for record in report_records.values()
+            for family in matched_model_families(record["model_family"])
+        }
+        algorithms = [record["core_method"].lower() for record in expression_records.values()]
+        invalid_keywords = []
+        for keyword in keywords:
+            keyword_lower = keyword.lower()
+            model_keyword = bool(matched_model_families(keyword).intersection(family_ids))
+            algorithm_keyword = any(keyword_lower in value or value in keyword_lower for value in algorithms)
+            if not model_keyword and not algorithm_keyword:
+                invalid_keywords.append(keyword)
+        if not keywords:
+            issues.append("abstract has no keywords")
+        elif not 3 <= len(keywords) <= 5:
+            issues.append(f"abstract must contain 3-5 focused keywords; got {len(keywords)}")
+        elif invalid_keywords:
+            issues.append(f"abstract keywords are not canonical model families or registered solver algorithms: {invalid_keywords}")
+        if keywords and not any(matched_model_families(keyword).intersection(family_ids) for keyword in keywords):
+            issues.append("abstract keywords must include at least one canonical mathematical model family")
+    return issues
+
+
+def manuscript_expression_issues(workspace: Path, text: str) -> list[str]:
+    report_text = read_text(workspace / "建模报告.md")
+    definitions = model_definition_records(report_text)
+    expressions = paper_expression_records(report_text)
+    lowered = visible_manuscript_text(text).lower()
+    issues: list[str] = []
+    for question, expression in sorted(expressions.items()):
+        if expression["display_name"].lower() not in lowered:
+            issues.append(f"{question}: manuscript omits the concise paper display name")
+        if expression["core_method"].lower() not in lowered:
+            issues.append(f"{question}: manuscript omits the registered core method")
+        if expression["question_role"] in MODEL_BUILDING_ROLES:
+            definition = definitions.get(question)
+            if definition and definition["model_family"].lower() not in lowered:
+                issues.append(f"{question}: manuscript omits the canonical mathematical model family")
+    return issues
+
+
+def has_any(text: str, keywords: list[str]) -> bool:
+    return any(keyword in text for keyword in keywords)
+
+
+def planning_text(workspace: Path) -> str:
+    return "\n".join(
+        read_text(workspace / rel)
+        for rel in ("问题分析.md", "建模报告.md", "论文规划.md")
+    )
+
+
+def recipe_matches(text: str) -> list[str]:
+    return re.findall(r"\((?:basic|advanced|empirical|competition)\s*#\d+\)|\(custom\)", text, flags=re.IGNORECASE)
+
+
+def planned_data_figure_stems(text: str) -> list[str]:
+    stems: set[str] = set()
+    for line in text.splitlines():
+        if not recipe_matches(line):
+            continue
+        for stem in re.findall(r"\b(fig_[A-Za-z0-9_-]+)\b", line):
+            if ".drawio" in line or stem.startswith("fig_flow_") or stem in {"技术路线图", "fig_pipeline", "fig_framework"}:
+                continue
+            stems.add(stem)
+    return sorted(stems)
+
+
+def planned_drawio_sources(text: str) -> list[str]:
+    return sorted(set(re.findall(r"\b(fig_[A-Za-z0-9_-]+\.drawio)\b", text)))
+
+
+def planned_tikz_sources(text: str) -> list[str]:
+    return sorted(set(re.findall(r"\b(tikz(?:_diagrams)?[A-Za-z0-9_.-]*\.tex)\b", text)))
+
+
+def planned_ai_image_files(text: str) -> list[str]:
+    planned: set[str] = set()
+    for line in text.splitlines():
+        if "AIIMG" not in line and "AI Image" not in line:
+            continue
+        planned.update(re.findall(r"\b(fig_[A-Za-z0-9_-]+\.(?:png|jpg|jpeg))\b", line, flags=re.IGNORECASE))
+    return sorted(planned)
+
+
+def figure_asset_exists(workspace: Path, stem: str) -> bool:
+    figures_dir = workspace / "图表"
+    for suffix in (".pdf", ".png", ".jpg", ".jpeg"):
+        if (figures_dir / f"{stem}{suffix}").exists():
+            return True
+    return False
+
+
+def data_figure_assets(workspace: Path) -> list[Path]:
+    figures_dir = workspace / "图表"
+    assets = list(figures_dir.glob("fig_*.pdf")) + list(figures_dir.glob("fig_*.png")) + list(figures_dir.glob("fig_*.jpg")) + list(figures_dir.glob("fig_*.jpeg"))
+    return [
+        path
+        for path in assets
+        if path.stem not in {"技术路线图", "fig_pipeline", "fig_framework"}
+        and not path.stem.startswith("fig_flow_")
+    ]
+
+
+def all_generated_figure_files(workspace: Path) -> list[Path]:
+    figures_dir = workspace / "图表"
+    files = list(figures_dir.glob("*.pdf")) + list(figures_dir.glob("*.png")) + list(figures_dir.glob("*.jpg")) + list(figures_dir.glob("*.jpeg"))
+    return sorted(files)
+
+
+def figure_manifest(workspace: Path) -> dict[str, Any]:
+    path = workspace / "图表" / "figure_manifest.json"
+    if not path.exists():
+        return {}
+    try:
+        return load_json(path)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def published_figure_files(workspace: Path) -> list[Path]:
+    manifest = figure_manifest(workspace)
+    entries = manifest.get("figures", []) if isinstance(manifest, dict) else []
+    files: list[Path] = []
+    for item in entries:
+        if not item.get("publish", False):
+            continue
+        rel = str(item.get("path") or "")
+        if rel:
+            files.append(workspace / rel)
+    return files
+
+
+def published_table_entries(workspace: Path) -> list[dict[str, Any]]:
+    manifest = figure_manifest(workspace)
+    entries = manifest.get("tables", []) if isinstance(manifest, dict) else []
+    if not isinstance(entries, list):
+        return []
+    return [item for item in entries if isinstance(item, dict) and item.get("publish", False)]
+
+
+DATA_FILE_SUFFIXES = {
+    ".csv", ".tsv", ".xlsx", ".xls", ".json", ".parquet", ".feather",
+    ".txt", ".dat", ".mat", ".sav", ".dta", ".nc", ".geojson", ".shp",
+}
+
+
+def user_data_files(workspace: Path) -> list[Path]:
+    user_dir = workspace / "用户数据"
+    if not user_dir.exists():
+        return []
+    return sorted(
+        path for path in user_dir.rglob("*")
+        if path.is_file() and path.suffix.lower() in DATA_FILE_SUFFIXES
+    )
+
+
+def has_user_data_files(workspace: Path) -> bool:
+    return bool(user_data_files(workspace))
+
+
+def data_preparation_payload(aggregate: Any) -> dict[str, Any]:
+    if isinstance(aggregate, dict) and isinstance(aggregate.get("data_preparation"), dict):
+        return aggregate["data_preparation"]
+    if isinstance(aggregate, list):
+        for item in aggregate:
+            if isinstance(item, dict) and isinstance(item.get("data_preparation"), dict):
+                return item["data_preparation"]
+    return {}
+
+
+def data_preparation_contract_issues(workspace: Path) -> list[str]:
+    data_files = user_data_files(workspace)
+    planning = planning_text(workspace)
+    if not data_files:
+        if not has_any(planning.lower(), ["数据模式: none", "数据模式：none", "无附件数据", "无外部数据", "no supplied data"]):
+            return ["data-free workflow lacks an explicit preprocessing waiver"]
+        return []
+
+    issues: list[str] = []
+    script = workspace / "程序" / "data_preprocessing.py"
+    if not script.exists():
+        issues.append("missing 程序/data_preprocessing.py for a data-bearing workflow")
+    aggregate = load_json(workspace / "图表" / "全部结果.json")
+    payload = data_preparation_payload(aggregate)
+    if not payload:
+        return issues + ["全部结果.json lacks data_preparation evidence"]
+    if payload.get("mode") not in {"supplied", "collected"} or payload.get("status") != "completed":
+        issues.append("data_preparation mode/status must be supplied|collected and completed")
+    source_entries = payload.get("source_files")
+    registered: dict[str, str] = {}
+    if isinstance(source_entries, list):
+        for item in source_entries:
+            if isinstance(item, dict) and item.get("path") and item.get("sha256"):
+                registered[str(item["path"]).replace("\\", "/")] = str(item["sha256"])
+    expected_sources = {
+        path.relative_to(workspace).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in data_files
+    }
+    if registered != expected_sources:
+        issues.append("data_preparation source file paths or hashes do not match current user data")
+    processed = payload.get("processed_file")
+    if not isinstance(processed, dict) or not processed.get("path") or not processed.get("sha256"):
+        issues.append("data_preparation processed_file contract is missing")
+    else:
+        processed_path = (workspace / str(processed["path"])).resolve()
+        processed_root = (workspace / "数据" / "processed").resolve()
+        if not processed_path.exists() or processed_root not in processed_path.parents:
+            issues.append("processed model input must exist under 数据/processed")
+        elif hashlib.sha256(processed_path.read_bytes()).hexdigest() != processed.get("sha256"):
+            issues.append("processed model input hash is stale")
+        else:
+            code_dir = workspace / "程序"
+            code_corpus = "\n".join(
+                read_text(path)
+                for path in code_dir.rglob("*")
+                if path.is_file() and path.suffix.lower() in {".py", ".r", ".m", ".jl", ".cpp", ".c", ".java"}
+                and path.name != "data_preprocessing.py"
+            ) if code_dir.exists() else ""
+            if processed_path.name not in code_corpus and str(processed["path"]).replace("\\", "/") not in code_corpus:
+                issues.append("model programs do not reference the frozen processed input")
+    if not isinstance(payload.get("steps"), list) or not payload.get("steps"):
+        issues.append("data_preparation steps are missing")
+    for field in ("quality_before", "quality_after"):
+        if not isinstance(payload.get(field), dict) or not payload.get(field):
+            issues.append(f"data_preparation {field} statistics are missing")
+    leakage = payload.get("leakage_control")
+    if not isinstance(leakage, dict) or not leakage:
+        issues.append("data_preparation leakage_control is missing")
+    elif leakage.get("applicable", True):
+        if leakage.get("split_before_fit") is not True or leakage.get("train_only_fit") is not True:
+            issues.append("preprocessing must split before fitting and fit transformations on training data only")
+    elif not str(leakage.get("reason") or "").strip():
+        issues.append("non-applicable leakage control requires a reason")
+    return issues
+
+
+def manuscript_data_preparation_issues(workspace: Path, text: str) -> list[str]:
+    if not has_user_data_files(workspace):
+        return []
+    visible = visible_manuscript_text(text)
+    issues: list[str] = []
+    heading = re.search(
+        r"(?im)^(?:#{1,6}\s*|\\(?:sub)*section\*?\{)\s*(?:数据预处理|Data Preprocessing)",
+        visible,
+    )
+    if not heading:
+        return ["data-bearing manuscript lacks an independent data preprocessing subsection under model preparation"]
+    tail = visible[heading.end():]
+    next_heading = re.search(r"(?im)^(?:#{1,6}\s+|\\(?:sub)*section\*?\{)", tail)
+    section_text = tail[:next_heading.start()] if next_heading else tail
+    context_checks = {
+        "source/provenance": ["数据来源", "来源", "provenance", "source"],
+        "frozen model input": ["冻结模型输入", "冻结输入", "processed input", "frozen model input"],
+    }
+    section_checks = {
+        "preprocessing method": ["缺失", "异常", "编码", "标准化", "归一化", "清洗", "missing", "outlier", "encoding", "standardization", "normalization", "cleaning", "transformation"],
+        "before-processing quality evidence": ["处理前", "预处理前", "before preprocessing", "before-processing"],
+        "after-processing quality evidence": ["处理后", "预处理后", "after preprocessing", "after-processing"],
+        "leakage control": ["泄漏", "先划分", "训练集拟合", "leakage", "split before", "training data only"],
+    }
+    visible_lowered = visible.lower()
+    for label, terms in context_checks.items():
+        if not any(term.lower() in visible_lowered for term in terms):
+            issues.append(f"data preparation chapter lacks {label}")
+    lowered = section_text.lower()
+    for label, terms in section_checks.items():
+        if not any(term.lower() in lowered for term in terms):
+            issues.append(f"data preprocessing subsection lacks {label}")
+    return issues
+
+
+def placeholder_patterns() -> list[str]:
+    return [
+        r"\[论文标题\]",
+        r"\[中文摘要内容",
+        r"\[关键词",
+        r"\[English Abstract",
+        r"\[Title",
+        r"\[摘要待正文完成后填写\]",
+        r"\[CONTROL NUMBER\]",
+        r"\[PAPER TITLE\]",
+        r"\[Write the English executive summary here\.\]",
+        r"\[Reference entry\.\]",
+        r"\[题号\]",
+        r"\[报名号\]",
+        r"\[(?:State|Restate|Enumerate|For every|Document|Implement|Derive|Compare|Answer|Independently|Interpret|List|complete identification|research/model/code|include the required|sources checked)[^\]]*\]",
+        r"\[(?:基于|逐项|给出|分别|列出|填写|说明|按实际|由独立|报告|只写|明确|逐问|代码与|仅放|中文摘要)[^\]]*\]",
+    ]
+
+
+def latex_texts(workspace: Path) -> list[str]:
+    texts: list[str] = []
+    paper_dir = workspace / "论文"
+    if not paper_dir.exists():
+        return texts
+    for path in sorted(paper_dir.rglob("*.tex")):
+        texts.append(read_text(path))
+    return texts
+
+
+def latest_mtime(paths: list[Path]) -> float:
+    existing = [path.stat().st_mtime for path in paths if path.exists()]
+    return max(existing) if existing else 0.0
+
+
+def pdf_page_count(pdf_path: Path) -> int | None:
+    if not pdf_path.exists():
+        return None
+    try:
+        from PyPDF2 import PdfReader
+    except Exception:
+        try:
+            from pypdf import PdfReader
+        except Exception:
+            pdf_bytes = read_bytes(pdf_path)
+            rough = len(re.findall(rb"/Type\s*/Page\b", pdf_bytes))
+            return rough if rough > 0 else None
+    try:
+        return len(PdfReader(str(pdf_path)).pages)
+    except Exception:
+        pdf_bytes = read_bytes(pdf_path)
+        rough = len(re.findall(rb"/Type\s*/Page\b", pdf_bytes))
+        return rough if rough > 0 else None
+
+
+def latex_label_page(workspace: Path, label: str) -> int | None:
+    paper_dir = workspace / "论文"
+    candidates = [paper_dir / "论文正文.aux", paper_dir / "main.aux", *sorted(paper_dir.glob("*.aux"))]
+    seen: set[Path] = set()
+    for path in candidates:
+        if path in seen:
+            continue
+        seen.add(path)
+        aux = read_text(path)
+        match = re.search(r"\\newlabel\{" + re.escape(label) + r"\}\{\{[^}]*\}\{(\d+)\}", aux)
+        if match:
+            return int(match.group(1))
+    return None
+
+
+def anonymous_markers(text: str) -> list[str]:
+    patterns = [
+        r"队号",
+        r"队员",
+        r"指导老师",
+        r"指导教师",
+        r"所在学校",
+        r"所在学院",
+        r"Team\s*Number",
+    ]
+    found = []
+    for pattern in patterns:
+        if re.search(pattern, text, flags=re.IGNORECASE):
+            found.append(pattern)
+    return found
+
+
+def citation_matches(text: str) -> list[str]:
+    return re.findall(r"\\(?:up)?cite[tp]?\{[^}]+\}", text)
+
+
+def citation_count(text: str) -> int:
+    return len(citation_matches(text))
+
+
+def has_superscript_citation_style(main_tex: str, corpus: str) -> bool:
+    if re.search(r"gbt7714|setcitestyle\s*\{[^}]*super|numbers\s*,\s*square\s*,\s*super|superscript", main_tex, flags=re.IGNORECASE):
+        return True
+    return bool(re.search(r"\\textsuperscript\s*\{\s*\\cite|\\upcite\{", corpus))
+
+
+def bibliography_entry_count(workspace: Path) -> int:
+    bib_path = workspace / "论文" / "references.bib"
+    if bib_path.exists():
+        return len(re.findall(r"@\w+\s*\{", read_text(bib_path)))
+    return len(re.findall(r"\\bibitem\{", "\n".join(latex_texts(workspace))))
+
+
+def labels_in_text(text: str) -> list[str]:
+    return re.findall(r"\\label\{([^}]+)\}", text)
+
+
+def labels_in_file(path: Path) -> list[str]:
+    return labels_in_text(read_text(path))
+
+
+def figure_table_labels(workspace: Path) -> list[str]:
+    manifest = figure_manifest(workspace)
+    if not manifest:
+        labels: list[str] = []
+        labels.extend(labels_in_file(workspace / "图表" / "图表引用.tex"))
+        for path in sorted((workspace / "图表").glob("TABLE_*.tex")):
+            labels.extend(labels_in_file(path))
+        return sorted(set(labels))
+    labels = []
+    reference_text = read_text(workspace / "图表" / "图表引用.tex")
+    for path in published_figure_files(workspace):
+        for block in re.findall(r"\\begin\{figure\}.*?\\end\{figure\}", reference_text, flags=re.DOTALL):
+            if path.name in block or path.stem in block:
+                labels.extend(labels_in_text(block))
+    for item in published_table_entries(workspace):
+        label = str(item.get("label") or "").strip()
+        if label:
+            labels.append(label)
+        rel = str(item.get("path") or "")
+        if rel:
+            labels.extend(labels_in_file(workspace / rel))
+    return sorted(set(labels))
+
+
+def missing_embedded_labels(workspace: Path) -> list[str]:
+    corpus = "\n".join(latex_texts(workspace))
+    missing = [label for label in figure_table_labels(workspace) if label not in corpus]
+    return missing
+
+
+def section_char_counts(workspace: Path) -> list[int]:
+    return [len(read_text(path)) for path in manuscript_section_files(workspace)]
+
+
+def manuscript_section_files(workspace: Path, suffix: str = ".tex") -> list[Path]:
+    paper_dir = workspace / "论文"
+    files: list[Path] = []
+    for dirname in ("章节", "sections"):
+        files.extend(sorted((paper_dir / dirname).glob(f"*{suffix}")))
+    return files
+
+
+def effective_text_units(text: str) -> int:
+    cleaned = re.sub(r"(?m)%.*$", " ", text)
+    cleaned = re.sub(r"\\begin\{(?:figure|table|lstlisting|verbatim|equation\*?|align\*?)\}.*?\\end\{(?:figure|table|lstlisting|verbatim|equation\*?|align\*?)\}", " ", cleaned, flags=re.DOTALL)
+    cleaned = re.sub(r"\$\$.*?\$\$|\\\[.*?\\\]|\$[^$]*\$", " ", cleaned, flags=re.DOTALL)
+    cleaned = re.sub(r"\\[A-Za-z@]+\*?(?:\[[^]]*\])?", " ", cleaned)
+    cleaned = re.sub(r"[{}\\]", " ", cleaned)
+    chinese = len(re.findall(r"[\u4e00-\u9fff]", cleaned))
+    english = len(re.findall(r"\b[A-Za-z][A-Za-z'-]*\b", cleaned))
+    return chinese + english
+
+
+def latex_figure_contract_issues(workspace: Path) -> list[str]:
+    issues: list[str] = []
+    corpus = "\n".join(latex_texts(workspace))
+    for index, match in enumerate(re.finditer(r"\\includegraphics(?:\[([^]]*)\])?\{([^}]+)\}", corpus), 1):
+        options = (match.group(1) or "").replace(" ", "")
+        asset = match.group(2)
+        if not options:
+            issues.append(f"figure {index} ({asset}) has no size constraint")
+            continue
+        if "keepaspectratio" not in options:
+            issues.append(f"figure {index} ({asset}) is missing keepaspectratio")
+        if "width=" not in options and "height=" not in options:
+            issues.append(f"figure {index} ({asset}) has no width/height")
+        width = re.search(r"width=([0-9.]+)\\(?:textwidth|linewidth)", options)
+        if width and float(width.group(1)) > 1.0:
+            issues.append(f"figure {index} ({asset}) width exceeds line width: {width.group(1)}")
+        height = re.search(r"height=([0-9.]+)\\textheight", options)
+        if height and float(height.group(1)) > 0.70:
+            issues.append(f"figure {index} ({asset}) height exceeds 0.70 textheight: {height.group(1)}")
+    return issues
+
+
+def body_density_contract(workspace: Path) -> tuple[int, list[str]]:
+    key, profile = active_profile(workspace)
+    files = manuscript_section_files(workspace)
+    units = sum(effective_text_units(read_text(path)) for path in files)
+    minimum = int(profile.get("minimum_body_units", 3500))
+    issues: list[str] = []
+    if units < minimum:
+        issues.append(f"effective body units {units} < required {minimum}")
+    expected = expected_problem_count(workspace)
+    problem_files = [path for path in files if re.search(r"(?:problem|问题)[_-]?\d+", path.stem, flags=re.IGNORECASE)]
+    aggregate_problem_sections = heading_problem_count("\n".join(read_text(path) for path in files))
+    if expected and len(problem_files) < expected and aggregate_problem_sections < expected:
+        issues.append(f"problem coverage {max(len(problem_files), aggregate_problem_sections)} < expected {expected}")
+    for path in problem_files:
+        text = read_text(path)
+        path_units = effective_text_units(text)
+        if path_units < 450:
+            issues.append(f"{path.name} effective units {path_units} < 450")
+        if not has_any(text.lower(), ["模型", "公式", "目标函数", "model", "equation", "objective", "constraint"]):
+            issues.append(f"{path.name} lacks model/mechanism content")
+        if not has_any(text.lower(), ["结果", "数值", "求解", "result", "solution", "estimate", "prediction"]):
+            issues.append(f"{path.name} lacks result content")
+    corpus = "\n".join(read_text(path) for path in files).lower()
+    if not has_any(corpus, ["验证", "检验", "灵敏度", "鲁棒", "validation", "sensitivity", "robust"]):
+        issues.append("manuscript lacks validation/sensitivity evidence")
+    if not has_any(corpus, ["解释", "表明", "说明", "意味着", "interpret", "indicate", "imply", "discussion"]):
+        issues.append("manuscript lacks result interpretation")
+    return units, issues
+
+
+def code_appendix_contract_issues(workspace: Path, corpus: str) -> list[str]:
+    _, profile = active_profile(workspace)
+    policy = profile.get("code_appendix", {})
+    manifest_path = workspace / "程序" / "code_manifest.json"
+    if not manifest_path.exists():
+        return ["程序/code_manifest.json is missing"] if policy.get("require_manifest", True) else []
+    try:
+        manifest = load_json(manifest_path)
+    except (json.JSONDecodeError, OSError) as exc:
+        return [f"code manifest is unreadable: {exc}"]
+    issues: list[str] = []
+    files = manifest.get("files", [])
+    if manifest.get("appendix_mode") != "core":
+        issues.append("code appendix must use core mode; full-source embedding is not allowed")
+    if manifest.get("no_program_declared"):
+        if not has_any(corpus, ["本论文没有用到程序", "no program was used", "No program was used"]):
+            issues.append("no-program manifest requires an explicit appendix declaration")
+        return issues
+    if not files:
+        return ["code manifest contains no source files"]
+    entrypoint = manifest.get("entrypoint")
+    if not entrypoint:
+        issues.append("code manifest has no entrypoint")
+    required_lines = 0
+    required_count = 0
+    for item in files:
+        rel = str(item.get("path") or "")
+        if not rel:
+            issues.append("code manifest contains an empty path")
+            continue
+        source = workspace / Path(rel)
+        if not source.exists():
+            issues.append(f"missing source file: {rel}")
+            continue
+        actual_hash = hashlib.sha256(source.read_bytes()).hexdigest()
+        if item.get("sha256") != actual_hash:
+            issues.append(f"stale source hash: {rel}")
+        display_name = str(item.get("display_name") or "")
+        if not display_name or not re.fullmatch(r"[A-Za-z0-9._-]+", display_name):
+            issues.append(f"appendix display name must be an English code name: {rel}")
+        normalized = rel.replace("\\", "/")
+        if item.get("required_in_appendix"):
+            required_count += 1
+            actual_lines = len(read_text(source).splitlines())
+            required_lines += actual_lines
+            marker = f"CODE_FILE: {normalized}"
+            if marker not in corpus and normalized not in corpus and Path(normalized).name not in corpus:
+                issues.append(f"required code is not embedded in appendix: {normalized}")
+        else:
+            marker = f"CODE_FILE: {normalized}"
+            if marker in corpus:
+                issues.append(f"supporting source must not be expanded as full code: {rel}")
+    if required_count == 0:
+        issues.append("code manifest selects no required appendix files")
+    minimum = int(policy.get("minimum_code_lines", 20))
+    if required_lines < minimum:
+        issues.append(f"embedded source lines {required_lines} < required {minimum}")
+    if not re.search(r"\\lstinputlisting|\\begin\{lstlisting\}|```(?:python|r|matlab|julia|cpp|c|java|sql|text)?", corpus, flags=re.IGNORECASE):
+        issues.append("appendix contains no actual code listing")
+    return issues
+
+
+def page_policy_measure(workspace: Path, total_pages: int) -> tuple[dict[str, Any], list[str]]:
+    key, profile = active_profile(workspace)
+    policy = profile.get("page_policy") or {}
+    if not policy and profile.get("page_limit"):
+        policy = {"scope": "total", "limit": profile.get("page_limit")}
+    if not policy or not policy.get("limit"):
+        return {"competition": key, "scope": "unlimited", "total_pages": total_pages}, []
+    scope = policy.get("scope", "total")
+    issues: list[str] = []
+    counted_pages = total_pages
+    if scope == "body":
+        start = latex_label_page(workspace, policy.get("start_marker", "BodyStart"))
+        end = latex_label_page(workspace, policy.get("end_marker", "BodyEnd"))
+        if start is None or end is None:
+            issues.append("body page markers are missing from compiled aux")
+        elif end < start:
+            issues.append(f"invalid body page markers: start={start}, end={end}")
+        else:
+            counted_pages = end - start + 1
+    elif scope == "solution":
+        marker = policy.get("end_marker") or profile.get("page_limit_marker")
+        end = latex_label_page(workspace, marker) if marker else None
+        if end is None:
+            issues.append(f"solution page marker is missing: {marker}")
+        else:
+            counted_pages = end
+    limit = int(policy["limit"])
+    if counted_pages > limit:
+        issues.append(f"{scope} pages {counted_pages} exceed limit {limit}")
+    measurement: dict[str, Any] = {
+        "competition": key,
+        "scope": scope,
+        "counted_pages": counted_pages,
+        "limit": limit,
+        "total_pages": total_pages,
+    }
+    abstract_limit = policy.get("abstract_limit")
+    if abstract_limit:
+        start = latex_label_page(workspace, policy.get("abstract_start_marker", "AbstractStart"))
+        end = latex_label_page(workspace, policy.get("abstract_end_marker", "AbstractEnd"))
+        if start is None or end is None:
+            issues.append("abstract page markers are missing from compiled aux")
+        else:
+            abstract_pages = end - start + 1
+            measurement["abstract_pages"] = abstract_pages
+            if abstract_pages > int(abstract_limit):
+                issues.append(f"abstract pages {abstract_pages} exceed limit {abstract_limit}")
+    return measurement, issues
+
+
+class GateResult:
+    def __init__(self, stage_id: str, skill_name: str) -> None:
+        self.stage_id = stage_id
+        self.skill_name = skill_name
+        self.checks: list[dict[str, str]] = []
+        self.issues: list[str] = []
+        self.warnings: list[str] = []
+
+    def require(self, condition: bool, name: str, detail: str) -> None:
+        self.checks.append({"name": name, "status": "pass" if condition else "fail", "detail": detail})
+        if not condition:
+            self.issues.append(f"{name}: {detail}")
+
+    def warn_if(self, condition: bool, name: str, detail: str) -> None:
+        self.checks.append({"name": name, "status": "warn" if condition else "pass", "detail": detail})
+        if condition:
+            self.warnings.append(f"{name}: {detail}")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "stage_id": self.stage_id,
+            "skill_name": self.skill_name,
+            "passed": not self.issues,
+            "issues": self.issues,
+            "warnings": self.warnings,
+            "checks": self.checks,
+        }
+
+
+def base_output_checks(workspace: Path, step: dict[str, Any], result: GateResult) -> None:
+    output_files = list(step["output_files"])
+    minimums = dict(step.get("min_output_bytes", {}))
+    try:
+        output_format = load_state(workspace).get("output_format", "pdf")
+    except FileNotFoundError:
+        output_format = "pdf"
+    if output_format == "docx" and step["stage_id"] == "MANUSCRIPT":
+        output_files = ["论文/论文正文.md"]
+        minimums = {"论文/论文正文.md": 5000}
+    elif output_format == "docx" and step["stage_id"] == "ASSURANCE":
+        output_files = ["论文/数模论文.docx", "论文/docx_report.json"]
+        minimums = {"论文/数模论文.docx": 15000, "论文/docx_report.json": 100}
+    for rel in output_files:
+        path = workspace / rel
+        minimum = minimums.get(rel, 1)
+        result.require(path.exists(), f"output:{rel}", "required output exists")
+        if path.exists():
+            result.require(path.stat().st_size >= minimum, f"output_size:{rel}", f"size >= {minimum} bytes")
+    for rel in step.get("companion_files", []):
+        path = workspace / rel
+        minimum = 1 if rel == "依赖清单.txt" else 50
+        result.require(path.exists(), f"companion:{rel}", "required companion exists")
+        if path.exists():
+            result.require(path.stat().st_size >= minimum, f"companion_size:{rel}", f"companion size >= {minimum} bytes")
+
+
+def check_s1(workspace: Path, step: dict[str, Any]) -> dict[str, Any]:
+    result = GateResult(step["stage_id"], step["skill_name"])
+    base_output_checks(workspace, step, result)
+    text = read_text(workspace / "问题分析.md")
+    result.require("子问题" in text, "subproblem_breakdown", "analysis mentions 子问题")
+    result.require(has_any(text, ["变量", "符号"]), "variables", "analysis includes variables or symbols")
+    result.require("建模" in text, "modeling_direction", "analysis includes modeling direction")
+    result.require(has_any(text, ["图表", "流程图", "技术路线图"]), "figure_plan", "analysis includes figure or roadmap planning")
+    result.require("数据探索" in text, "data_exploration", "analysis includes data exploration or no-data treatment")
+    data_files = user_data_files(workspace)
+    if data_files:
+        result.require(has_any(text.lower(), ["数据模式: supplied", "数据模式：supplied", "数据模式: collected", "数据模式：collected"]), "data_mode", "analysis explicitly declares supplied or collected data mode")
+        result.require(has_any(text, ["数据预处理", "预处理计划", "质量审查", "冻结模型输入"]), "data_preparation_plan", "analysis plans data audit, preprocessing, and frozen model input")
+    else:
+        result.require(has_any(text.lower(), ["数据模式: none", "数据模式：none"]), "data_mode", "analysis explicitly declares data mode none")
+        result.require(has_any(text, ["无附件数据", "无外部数据", "no supplied data"]), "data_preparation_waiver", "analysis explicitly waives preprocessing because no data exists")
+    result.require("工作计划" in text, "work_plan", "analysis includes a work plan")
+    result.require("假设敏感性预检" in text, "assumption_precheck", "analysis records assumption sensitivity precheck")
+    result.require(has_any(text, ["题目逐句拆解表", "句子级五问审查"]), "sentence_audit", "analysis includes sentence-level audit tables")
+    result.require(has_any(text, ["反向对照表", "经典问题升级"]), "enhancement_audit", "analysis includes reverse mapping or classic-problem enhancement audit")
+    result.require(bool(recipe_matches(text)), "figure_recipe_ids", "analysis includes figure recipe ids or custom markers")
+    result.require("技术路线图.drawio" in text, "roadmap_drawio_plan", "analysis plans 技术路线图.drawio")
+    result.require(has_any(text, ["语言:", "语言："]), "diagram_language", "analysis states the diagram language")
+    count = declared_problem_count(text)
+    result.require(count is not None, "declared_problem_count", "analysis explicitly states the subproblem count")
+    if count:
+        for index in range(1, count + 1):
+            result.require(
+                f"问题流程图_{index}.drawio" in text,
+                f"flow_plan_q{index}",
+                f"analysis plans 问题流程图_{index}.drawio",
+            )
+    return result.to_dict()
+
+
+def check_s2(workspace: Path, step: dict[str, Any]) -> dict[str, Any]:
+    result = GateResult(step["stage_id"], step["skill_name"])
+    base_output_checks(workspace, step, result)
+    text = read_text(workspace / "建模报告.md")
+    expected = expected_problem_count(workspace)
+    modeled = heading_problem_count(text)
+    if expected:
+        result.require(modeled >= expected, "problem_coverage", f"modeled subproblems {modeled} >= expected {expected}")
+        definition_issues = model_definition_contract_issues(workspace, expected)
+        result.require(not definition_issues, "model_definition_contract", f"each question has a named model distinct from its solver algorithm: {definition_issues or 'all ok'}")
+    result.require(has_any(text, ["目标函数", "min", "max", "\\begin{align}", "\\["]), "objective_or_formula", "report includes objective or formula markers")
+    result.require(has_any(text, ["约束", "subject to", "s.t."]), "constraints", "report includes constraints")
+    result.require(has_any(text, ["验证", "灵敏度", "鲁棒", "检验"]), "verification_plan", "report includes verification/sensitivity/robustness")
+    result.require("假设" in text, "assumptions", "report includes assumptions")
+    result.require("参数化:" in text, "parameterized_assumptions", "report includes parameterization markers")
+    result.require("替代假设:" in text, "alternate_assumptions", "report includes alternate assumptions")
+    result.require(has_any(text, ["经典问题升级", "升级建议", "覆盖度检查表", "反向对照"]), "enhancement_review", "report reviews enhancement suggestions from DISCOVERY")
+    result.require("已对照防错手册审查" in text, "error_prevention_ack", "report acknowledges the error-prevention review")
+    result.require("验证检查点" in text, "validation_checkpoints", "report includes validation checkpoints for computational-realization")
+    result.require("图表预规划" in text, "figure_plan_carried", "report carries the figure plan forward")
+    if has_user_data_files(workspace):
+        result.require("预处理合同" in text, "data_preparation_contract", "data-bearing report defines a preprocessing contract")
+        result.require(has_any(text, ["缺失值", "异常值", "编码", "单位统一", "标准化", "归一化"]), "data_preparation_strategy", "preprocessing contract defines data quality and transformation strategies")
+        result.require(has_any(text, ["数据泄漏", "先划分后拟合", "训练集拟合", "split before", "train-only"]), "data_leakage_boundary", "preprocessing contract defines the leakage boundary")
+        result.require(has_any(text, ["冻结模型输入", "冻结输入", "processed input"]), "frozen_input_contract", "report defines the canonical frozen model input")
+    else:
+        result.require(has_any(text.lower(), ["数据模式: none", "数据模式：none", "预处理: skipped", "预处理：skipped"]), "data_preparation_skip", "no-data report records the preprocessing skip")
+    if has_any(text, ["优化", "线性规划", "整数规划", "目标函数", "最优"]):
+        result.require("结构性验证输入" in text, "structural_validation_inputs", "optimization-like reports include structural validation inputs")
+    return result.to_dict()
+
+
+def problem_script_count(workspace: Path) -> int:
+    return len(list((workspace / "程序").glob("问题_[0-9]*.py")))
+
+
+def problem_json_count(workspace: Path) -> int:
+    count = len(list((workspace / "图表").glob("问题_*_结果.json")))
+    count = max(count, len(list((workspace / "图表").glob("problem_*_结果.json"))))
+    return count
+
+
+def contains_forbidden_figure_output(workspace: Path) -> bool:
+    code_dir = workspace / "程序"
+    if not code_dir.exists():
+        return False
+    pattern = re.compile(r"(savefig|save_fig)\s*\([^)]*\.pdf", re.IGNORECASE | re.DOTALL)
+    for path in code_dir.rglob("*.py"):
+        if pattern.search(read_text(path)):
+            return True
+    return False
+
+
+def check_s3(workspace: Path, step: dict[str, Any]) -> dict[str, Any]:
+    result = GateResult(step["stage_id"], step["skill_name"])
+    base_output_checks(workspace, step, result)
+    expected = expected_problem_count(workspace)
+    scripts = problem_script_count(workspace)
+    jsons = problem_json_count(workspace)
+    results_text = read_text(workspace / "计算结果.md")
+    main_text = read_text(workspace / "程序" / "主程序.py")
+    requirements_text = read_text(workspace / "依赖清单.txt")
+    if expected:
+        result.require(scripts >= expected, "problem_scripts", f"problem scripts {scripts} >= expected {expected}")
+        result.require(jsons >= expected, "problem_jsons", f"problem result json {jsons} >= expected {expected}")
+        result.require(
+            heading_problem_count(results_text) >= expected,
+            "results_problem_sections",
+            f"计算结果.md covers at least {expected} problems",
+        )
+    result.require((workspace / "图表" / "全部结果.json").exists(), "aggregate_json", "全部结果.json exists")
+    result.require(bool(re.search(r"\d", results_text)), "numeric_results", "计算结果.md contains numeric results")
+    result.require("全部结果.json" in main_text, "main_aggregates_results", "程序/主程序.py writes 全部结果.json")
+    result.require(has_any(main_text, ["def main", "__main__"]), "main_entrypoint", "程序/主程序.py has a main entrypoint")
+    result.require(
+        has_any(requirements_text, ["numpy", "pandas", "scipy", "matplotlib", "scikit-learn", "statsmodels", "networkx"]),
+        "scientific_requirements",
+        "依赖清单.txt lists at least one scientific library",
+    )
+    result.require(not contains_forbidden_figure_output(workspace), "no_pdf_figure_output", "computational-realization does not save pdf figures")
+    identity_issues = result_model_identity_issues(workspace, expected)
+    result.require(not identity_issues, "result_model_identity", f"computed result identities match formulation: {identity_issues or 'all ok'}")
+    claim_issues = publication_claim_issues(workspace, expected)
+    result.require(not claim_issues, "publication_claims", f"publication claims are traceable and cover every question: {claim_issues or 'all ok'}")
+    data_issues = data_preparation_contract_issues(workspace)
+    result.require(not data_issues, "data_preparation_contract", f"conditional data preparation is complete and auditable: {data_issues or 'all ok'}")
+    if has_user_data_files(workspace):
+        result.require(has_any(results_text, ["数据预处理", "冻结模型输入", "Data Preprocessing"]), "data_preparation_summary", "计算结果.md summarizes preprocessing and the frozen model input")
+    result.warn_if(not (workspace / "程序" / "通用工具.py").exists(), "utils_skeleton", "程序/通用工具.py is missing")
+    code_manifest_path = workspace / "程序" / "code_manifest.json"
+    result.require(code_manifest_path.exists(), "code_manifest", "程序/code_manifest.json exists")
+    if code_manifest_path.exists():
+        try:
+            code_manifest = load_json(code_manifest_path)
+        except (json.JSONDecodeError, OSError):
+            code_manifest = {}
+        code_files = code_manifest.get("files", [])
+        result.require(bool(code_files) or bool(code_manifest.get("no_program_declared")), "code_manifest_files", "code manifest lists source files or explicitly declares no program")
+        entrypoint = code_manifest.get("entrypoint")
+        result.require(bool(entrypoint) and (workspace / str(entrypoint)).exists(), "code_manifest_entrypoint", f"code manifest entrypoint exists: {entrypoint}")
+        stale = []
+        for item in code_files:
+            rel = str(item.get("path") or "")
+            source = workspace / rel
+            if not source.exists() or item.get("sha256") != hashlib.sha256(source.read_bytes()).hexdigest():
+                stale.append(rel or "<empty>")
+        result.require(not stale, "code_manifest_hashes", f"code manifest hashes match sources: {stale or 'all ok'}")
+    return result.to_dict()
+
+
+def paper_plan_allows_empty(workspace: Path) -> bool:
+    text = read_text(workspace / "论文规划.md")
+    return bool(text and ("无图表" in text or "图表清单为空" in text))
+
+
+def check_s4(workspace: Path, step: dict[str, Any]) -> dict[str, Any]:
+    result = GateResult(step["stage_id"], step["skill_name"])
+    figure_files = list((workspace / "图表").glob("*.pdf")) + list((workspace / "图表").glob("*.png"))
+    includes = workspace / "图表" / "图表引用.tex"
+    includes_text = read_text(includes)
+    plan_text = planning_text(workspace)
+    planned_data = planned_data_figure_stems(plan_text)
+    planned_ai = planned_ai_image_files(plan_text)
+    result.require(includes.exists(), "output:图表/图表引用.tex", "图表引用.tex exists")
+    manifest_path = workspace / "图表" / "figure_manifest.json"
+    result.require(manifest_path.exists(), "figure_manifest", "图表/figure_manifest.json exists")
+    manifest = figure_manifest(workspace)
+    manifest_entries = manifest.get("figures", []) if isinstance(manifest, dict) else []
+    result.require(isinstance(manifest_entries, list), "figure_manifest_schema", "figure manifest has a figures list")
+    for item in manifest_entries if isinstance(manifest_entries, list) else []:
+        rel = str(item.get("path") or "")
+        question = str(item.get("question") or "").upper()
+        visual_role = str(item.get("visual_role") or "").lower()
+        claim = str(item.get("claim") or "").strip()
+        source = str(item.get("source") or "").strip()
+        result_keys = item.get("result_keys")
+        result.require(bool(re.fullmatch(r"Q\d+|GLOBAL", question)), f"figure_question:{rel}", f"figure has a valid question owner: {rel}")
+        result.require(visual_role in {"mechanism", "result", "validation", "decision", "diagnostic"}, f"figure_role:{rel}", f"figure has an explicit visual role: {rel}")
+        result.require(isinstance(result_keys, list) and bool(result_keys), f"figure_result_keys:{rel}", f"figure records result keys: {rel}")
+        result.require(bool(claim), f"figure_claim:{rel}", f"published figure has an explicit evidence claim: {rel}")
+        result.require(bool(source), f"figure_source:{rel}", f"published figure records its data source: {rel}")
+        if not item.get("publish", False):
+            continue
+        result.require(visual_role != "diagnostic", f"published_role:{rel}", f"published figure is not a diagnostic-only asset: {rel}")
+        result.require(bool(rel) and (workspace / rel).exists(), f"published_figure:{rel}", f"published figure exists: {rel}")
+        if rel:
+            result.require(Path(rel).name in includes_text or Path(rel).stem in includes_text, f"published_include:{rel}", f"published figure is included by LaTeX: {rel}")
+    table_entries = manifest.get("tables", []) if isinstance(manifest, dict) else []
+    result.require(isinstance(table_entries, list), "table_manifest_schema", "figure manifest has a tables list")
+    registered_tables: set[str] = set()
+    for item in table_entries if isinstance(table_entries, list) else []:
+        if not isinstance(item, dict):
+            result.require(False, "table_manifest_entry", "table manifest entries must be objects")
+            continue
+        rel = str(item.get("path") or "")
+        registered_tables.add(Path(rel).name)
+        question = str(item.get("question") or "").upper()
+        visual_role = str(item.get("visual_role") or "").lower()
+        result_keys = item.get("result_keys")
+        result.require(bool(re.fullmatch(r"Q\d+|GLOBAL", question)), f"table_question:{rel}", f"table has a valid question owner: {rel}")
+        result.require(visual_role in {"mechanism", "result", "validation", "decision", "diagnostic"}, f"table_role:{rel}", f"table has an explicit evidence role: {rel}")
+        result.require(isinstance(result_keys, list) and bool(result_keys), f"table_result_keys:{rel}", f"table records result keys: {rel}")
+        result.require(bool(str(item.get("claim") or "").strip()), f"table_claim:{rel}", f"table has an explicit evidence claim: {rel}")
+        result.require(bool(str(item.get("source") or "").strip()), f"table_source:{rel}", f"table records its data source: {rel}")
+        result.require(bool(rel) and (workspace / rel).exists(), f"table_asset:{rel}", f"registered table exists: {rel}")
+        if item.get("publish", False):
+            result.require(visual_role != "diagnostic", f"published_table_role:{rel}", f"published table is not diagnostic-only: {rel}")
+    generated_tables = [*sorted((workspace / "图表").glob("TABLE_*.tex")), *sorted((workspace / "图表").glob("TABLE_*.md"))]
+    unregistered_tables = [path.name for path in generated_tables if path.name not in registered_tables]
+    result.require(not unregistered_tables, "registered_tables", f"all generated tables are classified in the manifest: {unregistered_tables or 'all ok'}")
+    if figure_files:
+        result.require(includes.exists() and includes.stat().st_size > 0, "latex_includes", "图表引用.tex is present for generated figures")
+    else:
+        result.require(
+            paper_plan_allows_empty(workspace) or (includes.exists() and not includes_text.strip()),
+            "empty_figure_placeholder",
+            "empty figure case is explicitly handled",
+        )
+    if planned_data:
+        for stem in planned_data:
+            result.require(figure_asset_exists(workspace, stem), f"planned_figure:{stem}", f"{stem} planned in docs and generated in 图表/")
+            result.require(stem in includes_text, f"latex_include:{stem}", f"{stem} is referenced from 图表引用.tex")
+    if planned_ai:
+        for name in planned_ai:
+            result.require((workspace / "图表" / name).exists(), f"planned_ai_image:{name}", f"{name} planned in docs and generated")
+    visual_script_issues: list[str] = []
+    for script in sorted((workspace / "图表").glob("gen_fig*.py")):
+        code = read_text(script)
+        if re.search(r"boxstyle\s*=\s*['\"]round", code, flags=re.IGNORECASE):
+            visual_script_issues.append(f"{script.name}: rounded annotation box")
+        if has_any(code.lower(), ["simplepatchshadow", "set_path_effects", "shadow=true"]):
+            visual_script_issues.append(f"{script.name}: decorative shadow/path effect")
+        if "setup_style" not in code:
+            visual_script_issues.append(f"{script.name}: missing setup_style")
+        if re.search(r"(?:plt\.title|set_title)\(", code):
+            visual_script_issues.append(f"{script.name}: in-figure title")
+    result.require(not visual_script_issues, "visual_script_contract", f"figure scripts are restrained and publication-safe: {visual_script_issues or 'all ok'}")
+    result.require((workspace / "图表" / "全部结果.json").exists(), "all_results_json", "figure stage has upstream aggregated json")
+    return result.to_dict()
+
+
+def no_diagram_plan(workspace: Path) -> bool:
+    text = read_text(workspace / "论文规划.md")
+    return bool(text and ("无架构图" in text or "无流程图" in text))
+
+
+def check_s5(workspace: Path, step: dict[str, Any]) -> dict[str, Any]:
+    result = GateResult(step["stage_id"], step["skill_name"])
+    includes_path = workspace / "图表" / "图表引用.tex"
+    result.require(includes_path.exists(), "output:图表/图表引用.tex", "图表引用.tex exists")
+    drawios = list((workspace / "图表").glob("*.drawio"))
+    tikz = list((workspace / "图表").glob("tikz_*.tex")) + list((workspace / "图表").glob("结构示意图*.tex"))
+    includes_text = read_text(includes_path)
+    plan_text = planning_text(workspace)
+    planned_drawios = planned_drawio_sources(plan_text)
+    planned_tikz = planned_tikz_sources(plan_text)
+    if drawios or tikz or planned_drawios or planned_tikz:
+        result.require(bool(drawios or tikz), "diagram_sources", "drawio or tikz source exists")
+        expected_pdfs = []
+        for path in drawios:
+            expected_pdfs.append(path.with_suffix(".pdf"))
+        for path in tikz:
+            expected_pdfs.append(path.with_suffix(".pdf"))
+        existing_expected = [path for path in expected_pdfs if path.exists()]
+        result.require(bool(existing_expected), "diagram_pdfs", "diagram pdf exists")
+        missing_refs = []
+        for path in drawios + tikz:
+            stem = path.stem
+            if stem not in includes_text:
+                missing_refs.append(stem)
+        result.require(not missing_refs, "latex_includes_append", f"diagram entries referenced: {', '.join(missing_refs) if missing_refs else 'all ok'}")
+        for rel in planned_drawios:
+            source = workspace / "图表" / rel
+            result.require(source.exists(), f"planned_drawio:{rel}", f"{rel} planned in docs and generated")
+            result.require(source.with_suffix(".pdf").exists(), f"planned_drawio_pdf:{rel}", f"{source.with_suffix('.pdf').name} exists")
+            result.require(source.stem in includes_text, f"planned_drawio_include:{rel}", f"{rel} is referenced from 图表引用.tex")
+        for rel in planned_tikz:
+            source = workspace / "图表" / rel
+            result.require(source.exists(), f"planned_tikz:{rel}", f"{rel} planned in docs and generated")
+            result.require(source.with_suffix(".pdf").exists(), f"planned_tikz_pdf:{rel}", f"{source.with_suffix('.pdf').name} exists")
+            result.require(source.stem in includes_text or source.with_suffix(".pdf").name in includes_text, f"planned_tikz_include:{rel}", f"{rel} is referenced from 图表引用.tex")
+        diagram_style_issues: list[str] = []
+        for path in drawios:
+            content = read_text(path)
+            for cell in re.findall(r'<mxCell\b[^>]*vertex="1"[^>]*>', content):
+                style_match = re.search(r'style="([^"]*)"', cell)
+                if not style_match:
+                    continue
+                style = style_match.group(1)
+                if ("shape=" not in style or "swimlane" in style) and "rounded=1" in style:
+                    diagram_style_issues.append(f"{path.name}: rounded rectangle")
+            if "gradientColor" in content:
+                diagram_style_issues.append(f"{path.name}: decorative gradient")
+            if "shadow=1" in content:
+                diagram_style_issues.append(f"{path.name}: decorative shadow")
+        for path in tikz:
+            content = read_text(path)
+            if re.search(r"rectangle[^\n]*rounded corners|rounded corners[^\n]*rectangle", content):
+                diagram_style_issues.append(f"{path.name}: rounded rectangle")
+        result.require(not diagram_style_issues, "diagram_style_contract", f"flowchart rectangles are straight and decoration is restrained: {diagram_style_issues or 'all ok'}")
+    else:
+        result.require(no_diagram_plan(workspace), "no_diagram_exception", "diagram-free run must be explicitly declared")
+    return result.to_dict()
+
+
+def count_section_files(workspace: Path) -> int:
+    paper_dir = workspace / "论文"
+    return sum(len(list((paper_dir / dirname).glob("*.tex"))) for dirname in ("章节", "sections"))
+
+
+def has_section_inputs(main_tex: str) -> bool:
+    return bool(re.search(r"\\(?:input|include)\{(?:章节|sections)/", main_tex))
+
+
+def latex_input_paths(main_tex: str) -> set[str]:
+    return {
+        re.sub(r"\.tex$", "", match.replace("\\", "/"))
+        for match in re.findall(r"\\(?:input|include)\{([^}]+)\}", main_tex)
+    }
+
+
+def question_section_map(workspace: Path) -> dict[int, Path]:
+    paper_dir = workspace / "论文"
+    mapped: dict[int, Path] = {}
+    for dirname in ("章节", "sections"):
+        for path in (paper_dir / dirname).glob("*.tex"):
+            filename = re.search(r"(?i)problem[_-]?(\d+)", path.stem)
+            if filename:
+                mapped[int(filename.group(1))] = path
+                continue
+            text = visible_manuscript_text(read_text(path))
+            heading = re.search(r"\\section\{\s*问题\s*([一二三四五六七八九十\d]+)", text)
+            if heading:
+                index = cn_int(heading.group(1))
+                if index:
+                    mapped[index] = path
+    return mapped
+
+
+def question_input_issues(workspace: Path, main_tex: str, expected: int) -> list[str]:
+    issues: list[str] = []
+    paper_dir = workspace / "论文"
+    inputs = latex_input_paths(main_tex)
+    for rel in inputs:
+        candidate = paper_dir / f"{rel}.tex"
+        if rel.startswith(("sections/", "章节/")) and not candidate.exists():
+            issues.append(f"referenced section does not exist: {rel}.tex")
+    mapped = question_section_map(workspace)
+    for index in range(1, expected + 1):
+        path = mapped.get(index)
+        if not path:
+            issues.append(f"Q{index}: question section file is missing")
+            continue
+        rel = re.sub(r"\.tex$", "", path.relative_to(paper_dir).as_posix())
+        if rel not in inputs:
+            issues.append(f"Q{index}: {rel}.tex exists but is not included by the main manuscript")
+    return issues
+
+
+def problem_narrative_issues(workspace: Path, expected: int) -> list[str]:
+    issues: list[str] = []
+    mapped = question_section_map(workspace)
+    checks = {
+        "model/mechanism": ["模型", "机制", "继承", "model", "mechanism", "inherits"],
+        "mathematical expression": ["\\begin{equation", "\\begin{align", "目标函数", "约束", "状态方程", "statistical relation"],
+        "solver": ["求解", "算法", "数值计算", "solver", "algorithm"],
+        "numeric result": ["结果", "最优", "误差", "提升", "result", "optimum", "error"],
+        "validation": ["验证", "检验", "回代", "基线", "收敛", "validation", "baseline", "convergence"],
+        "interpretation/boundary": ["说明", "表明", "原因", "机制", "边界", "局限", "意味着", "indicate", "boundary", "limitation"],
+    }
+    for index in range(1, expected + 1):
+        path = mapped.get(index)
+        if not path:
+            continue
+        text = visible_manuscript_text(read_text(path))
+        for label, markers in checks.items():
+            if not has_any(text.lower(), [marker.lower() for marker in markers]):
+                issues.append(f"Q{index}: section lacks {label} evidence")
+        if not re.search(r"\d", text):
+            issues.append(f"Q{index}: section contains no numeric evidence")
+    return issues
+
+
+def latex_semantic_issues(workspace: Path) -> list[str]:
+    issues: list[str] = []
+    corpus = "\n".join(latex_texts(workspace))
+    visible = visible_manuscript_text(corpus)
+    labels = re.findall(r"\\label\{([^}]+)\}", corpus)
+    duplicates = sorted({label for label in labels if labels.count(label) > 1})
+    if duplicates:
+        issues.append(f"duplicate labels: {duplicates}")
+    for path in [workspace / "论文" / "论文正文.tex", *sorted((workspace / "论文" / "sections").glob("*.tex")), *sorted((workspace / "论文" / "章节").glob("*.tex"))]:
+        if not path.exists():
+            continue
+        for line_number, line in enumerate(read_text(path).splitlines(), start=1):
+            prose = re.sub(r"(?<!\\)%.*$", "", line)
+            if re.search(r"(?:图|表)\s*[0-9一二三四五六七八九十]+|式\s*[（(]?\s*\d+", prose) and not re.search(r"\\(?:ref|cref|Cref|eqref)\{", prose):
+                issues.append(f"{path.name}:{line_number}: hard-coded figure/table/equation number")
+    image_paths = re.findall(r"\\includegraphics(?:\[[^]]*\])?\{([^}]+)\}", corpus)
+    suspicious_images = [path for path in image_paths if re.search(r"(?i)(?:^|[/_-])(formula|equation|eqn|公式)(?:[/_.-]|$)", path)]
+    if suspicious_images:
+        issues.append(f"formula-like images must be native LaTeX: {suspicious_images}")
+    floats = len(re.findall(r"\\begin\{(?:figure|table)\}", corpus))
+    forced = len(re.findall(r"\\begin\{(?:figure|table)\}\[H\]", corpus))
+    if forced > max(2, int(floats * 0.3)):
+        issues.append(f"excessive forced [H] floats: {forced}/{floats}")
+    for table in re.findall(r"\\begin\{tabular\}.*?\\end\{tabular\}", corpus, flags=re.DOTALL):
+        rows = len(re.findall(r"\\\\(?:\s*\[[^]]+\])?\s*(?:\n|$)", table))
+        if rows > 13:
+            issues.append(f"ordinary tabular has {rows - 1} data/header rows; summarize or use longtable")
+    if re.search(r"\\resizebox\s*\{[^}]+\}\s*\{[^}]+\}\s*\{\s*\\begin\{(?:equation|align)", corpus):
+        issues.append("display equations must not be compressed with resizebox")
+    if re.search(r"\\begin\{(?:equation|align)\*?\}.*?\\includegraphics", visible, flags=re.DOTALL):
+        issues.append("math environments must contain native equations, not images")
+    return issues
+
+
+def citation_credibility_issues(workspace: Path) -> list[str]:
+    corpus = "\n".join(latex_texts(workspace))
+    bibliography = re.search(r"\\begin\{thebibliography\}.*?\\end\{thebibliography\}", corpus, flags=re.DOTALL)
+    if not bibliography:
+        return []
+    ai_names = re.findall(r"(?i)DeepSeek|Doubao|豆包|ChatGPT|Claude|Gemini", bibliography.group(0))
+    return [f"AI tools cannot serve as academic evidence in the bibliography: {sorted(set(ai_names))}"] if ai_names else []
+
+
+def resolve_competition_class(workspace: Path, profile: dict[str, Any]) -> Path | None:
+    class_file = profile.get("class_file")
+    if not class_file:
+        return None
+    candidates = [
+        workspace / "论文" / class_file,
+        workspace / "模板" / "当前竞赛" / class_file,
+        Path(__file__).resolve().parent.parent / "assets" / "templates" / "manuscript-synthesis" / profile.get("template_dir", "") / class_file,
+    ]
+    return next((path for path in candidates if path.exists()), None)
+
+
+def declared_base_font_pt(main_tex: str, class_text: str) -> float | None:
+    combined = main_tex + "\n" + class_text
+    match = re.search(r"\\(?:documentclass|LoadClass)\[([^]]*)\]", combined, flags=re.IGNORECASE)
+    if match:
+        size = re.search(r"(?:^|,)\s*(\d+(?:\.\d+)?)pt(?:\s*,|$)", match.group(1), flags=re.IGNORECASE)
+        if size:
+            return float(size.group(1))
+    size = re.search(r"\\@setfontsize\\normalsize\{(\d+(?:\.\d+)?)\}", class_text)
+    return float(size.group(1)) if size else None
+
+
+def referenced_figure_basenames(workspace: Path) -> set[str]:
+    corpus = "\n".join(latex_texts(workspace))
+    refs: set[str] = set()
+    for path in (workspace / "图表").glob("*.pdf"):
+        if path.name in corpus:
+            refs.add(path.name)
+    return refs
+
+
+def placeholders_present(workspace: Path) -> list[str]:
+    corpus = "\n".join(latex_texts(workspace))
+    found = []
+    for pattern in placeholder_patterns():
+        if re.search(pattern, corpus):
+            found.append(pattern)
+    return found
+
+
+def active_profile(workspace: Path) -> tuple[str, dict[str, Any]]:
+    try:
+        state = load_state(workspace)
+        key = state.get("competition", "cumcm")
+    except (FileNotFoundError, KeyError, json.JSONDecodeError):
+        key = "cumcm"
+    return key, competition_profile(key)
+
+
+def competition_source_checks(workspace: Path, main_tex: str, corpus: str, result: GateResult) -> None:
+    key, profile = active_profile(workspace)
+    result.require(bool(profile), "competition_profile", f"active competition profile: {key}")
+    for term in profile.get("required_source_terms", []):
+        result.require(term.lower() in main_tex.lower(), f"competition_source:{term}", f"required template marker present: {term}")
+    for term in profile.get("required_content_terms", []):
+        aliases = {
+            ("cumcm", "摘要"): ["\\begin{abstract}", "\\section*{摘要}", "摘要"],
+            ("cumcm", "关键词"): ["\\keywords", "关键词"],
+            ("51mcm", "摘要"): ["\\begin{kwabstract}", "摘要"],
+            ("51mcm", "关键词"): ["\\begin{kwabstract}", "关键词"],
+        }.get((key, term), [term])
+        result.require(has_any(corpus.lower(), [alias.lower() for alias in aliases]), f"competition_content:{term}", f"required paper content present: {term}")
+    forbidden = [term for term in profile.get("forbidden_identity_terms", []) if term.lower() in corpus.lower()]
+    result.require(not forbidden, "competition_identity", f"forbidden identity fields absent: {forbidden or 'none'}")
+    class_path = resolve_competition_class(workspace, profile)
+    result.require(class_path is not None, "competition_class_file", f"competition class is available: {profile.get('class_file')}")
+    class_text = read_text(class_path) if class_path else ""
+    for term in profile.get("class_required_terms", []):
+        result.require(term.lower() in class_text.lower(), f"competition_class_contract:{term}", f"class preserves required layout contract: {term}")
+    minimum_font = float(profile.get("minimum_font_pt", 0))
+    declared_font = declared_base_font_pt(main_tex, class_text)
+    result.require(declared_font is not None, "competition_font_detected", f"base font size detected: {declared_font}")
+    if declared_font is not None:
+        result.require(declared_font >= minimum_font, "competition_minimum_font", f"base font {declared_font}pt >= required {minimum_font}pt")
+    if key == "mcm-icm":
+        visible_corpus = re.sub(r"(?m)%.*$", " ", corpus)
+        visible_corpus = re.sub(r"\\(?:input|include|includegraphics|lstinputlisting)(?:\[[^]]*\])?\{[^}]*\}", " ", visible_corpus)
+        chinese_chars = len(re.findall(r"[\u4e00-\u9fff]", visible_corpus))
+        result.require(chinese_chars == 0, "english_only", f"MCM/ICM paper contains no Chinese characters ({chinese_chars} found)")
+        result.require(bool(re.search(r"\\problemchoice\{[A-F]\}", main_tex, flags=re.IGNORECASE)), "mcm_problem_choice", "MCM/ICM problem choice A-F is populated")
+        result.require(bool(re.search(r"\\controlnumber\{(?!\[)[^}]+\}", main_tex, flags=re.IGNORECASE)), "mcm_control_number", "Control Number is populated")
+
+
+def check_s6(workspace: Path, step: dict[str, Any]) -> dict[str, Any]:
+    result = GateResult(step["stage_id"], step["skill_name"])
+    base_output_checks(workspace, step, result)
+    try:
+        state = load_state(workspace)
+    except FileNotFoundError:
+        state = {"output_format": "pdf"}
+    if state.get("output_format") == "docx":
+        markdown = read_text(workspace / "论文" / "论文正文.md")
+        units = effective_text_units(markdown)
+        _, profile = active_profile(workspace)
+        minimum = int(profile.get("minimum_body_units", 3500))
+        result.require(units >= minimum, "docx_body_density", f"effective body units {units} >= {minimum}")
+        result.require(bool(re.search(r"(?m)^#\s+\S+", markdown)), "docx_title", "Markdown manuscript has a title")
+        result.require(has_any(markdown, ["摘要", "Summary", "Abstract"]), "docx_abstract", "DOCX source includes abstract/summary")
+        result.require(has_any(markdown, ["关键词", "Keywords"]), "docx_keywords", "DOCX source includes keywords")
+        result.require(has_any(markdown, ["参考文献", "References"]), "docx_references", "DOCX source includes references")
+        result.require(has_any(markdown, ["验证", "检验", "灵敏度", "鲁棒", "Validation", "Sensitivity", "Robustness"]), "docx_validation", "DOCX source includes validation")
+        result.require(has_any(markdown, ["解释", "表明", "说明", "意味着", "interpret", "indicate", "discussion"]), "docx_interpretation", "DOCX source includes result interpretation")
+        expected = expected_problem_count(workspace)
+        definition_issues = model_definition_contract_issues(workspace, expected)
+        result.require(not definition_issues, "model_definition_contract", f"model definitions are explicit before manuscript synthesis: {definition_issues or 'all ok'}")
+        result_identity_issues = result_model_identity_issues(workspace, expected)
+        result.require(not result_identity_issues, "result_model_identity", f"computed result identities remain aligned: {result_identity_issues or 'all ok'}")
+        claim_issues = publication_claim_issues(workspace, expected, markdown)
+        result.require(not claim_issues, "publication_claims", f"publication claims remain traceable in the DOCX source: {claim_issues or 'all ok'}")
+        abstract_issues = abstract_structure_issues(workspace, markdown, expected)
+        result.require(not abstract_issues, "abstract_structure_contract", f"abstract follows context, per-question model/result/validation, and model-advantage structure: {abstract_issues or 'all ok'}")
+        data_manuscript_issues = manuscript_data_preparation_issues(workspace, markdown)
+        result.require(not data_manuscript_issues, "manuscript_data_preparation", f"data preprocessing is independently and reproducibly documented: {data_manuscript_issues or 'all ok'}")
+        key, profile = active_profile(workspace)
+        forbidden = [term for term in profile.get("forbidden_identity_terms", []) if term.lower() in markdown.lower()]
+        result.require(not forbidden, "docx_identity", f"forbidden identity fields absent: {forbidden or 'none'}")
+        if key == "mcm-icm":
+            visible_markdown = re.sub(r"<!--.*?-->", " ", markdown, flags=re.DOTALL)
+            visible_markdown = re.sub(r"```.*?```", " ", visible_markdown, flags=re.DOTALL)
+            result.require(not re.search(r"[\u4e00-\u9fff]", visible_markdown), "docx_english_only", "MCM/ICM visible DOCX prose is English-only")
+            result.require(bool(re.search(r"Control\s*Number\s*\*{0,2}:\*{0,2}\s*(?!\[)\S+", markdown, flags=re.IGNORECASE)), "docx_control_number", "Control Number is populated")
+            result.require(bool(re.search(r"Problem\s*\*{0,2}:\*{0,2}\s*[A-F]\b", markdown, flags=re.IGNORECASE)), "docx_problem_choice", "Problem A-F is populated")
+            result.require("Report on Use of AI Tools" in markdown, "docx_ai_report", "AI use report is present")
+        if key == "51mcm":
+            result.require(bool(re.search(r"报名号[：:]\s*(?!\[)\S+", markdown)), "docx_51mcm_registration", "51MCM registration number is populated")
+        code_issues = code_appendix_contract_issues(workspace, markdown)
+        result.require(not code_issues, "docx_code_appendix", f"DOCX code appendix is source-linked and complete: {code_issues or 'all ok'}")
+        expression_issues = manuscript_expression_issues(workspace, markdown)
+        result.require(not expression_issues, "docx_paper_expression", f"DOCX uses concise publication model expressions: {expression_issues or 'all ok'}")
+        result.require(not any(re.search(pattern, markdown) for pattern in placeholder_patterns()), "docx_placeholders", "DOCX source contains no template placeholders")
+        return result.to_dict()
+    main_tex = read_text(workspace / "论文" / "论文正文.tex")
+    corpus = "\n".join(latex_texts(workspace))
+    result.require("documentclass" in main_tex, "template_documentclass", "论文正文.tex uses a LaTeX template")
+    result.require(count_section_files(workspace) >= 3, "section_files", "论文/章节 or 论文/sections has at least 3 files")
+    result.require(has_section_inputs(main_tex), "section_inputs", "论文正文.tex inputs 章节/ or sections/ files")
+    result.require(has_any(main_tex, ["thebibliography", "bibliography{"]), "bibliography", "bibliography exists")
+    result.require(has_any(main_tex, ["appendix", "\\appendix"]), "appendix", "appendix exists")
+    result.require(has_any(corpus, ["摘要", "Abstract"]), "abstract", "paper includes an abstract section")
+    result.require(has_any(corpus, ["关键词", "Keywords"]), "keywords", "paper includes keywords")
+    result.require(has_any(corpus, ["结论", "结语", "总结"]), "conclusion", "paper includes a conclusion-like section")
+    expected = expected_problem_count(workspace)
+    input_issues = question_input_issues(workspace, main_tex, expected)
+    result.require(not input_issues, "question_input_closure", f"every real question section is included by the main manuscript: {input_issues or 'all ok'}")
+    definition_issues = model_definition_contract_issues(workspace, expected)
+    result.require(not definition_issues, "model_definition_contract", f"model definitions are explicit before manuscript synthesis: {definition_issues or 'all ok'}")
+    result_identity_issues = result_model_identity_issues(workspace, expected)
+    result.require(not result_identity_issues, "result_model_identity", f"computed result identities remain aligned: {result_identity_issues or 'all ok'}")
+    claim_issues = publication_claim_issues(workspace, expected, corpus)
+    result.require(not claim_issues, "publication_claims", f"publication claims remain traceable in the manuscript: {claim_issues or 'all ok'}")
+    abstract_issues = abstract_structure_issues(workspace, main_tex, expected)
+    result.require(not abstract_issues, "abstract_structure_contract", f"abstract follows context, per-question model/result/validation, and model-advantage structure: {abstract_issues or 'all ok'}")
+    data_manuscript_issues = manuscript_data_preparation_issues(workspace, corpus)
+    result.require(not data_manuscript_issues, "manuscript_data_preparation", f"data preprocessing is independently and reproducibly documented: {data_manuscript_issues or 'all ok'}")
+    result.require(citation_count(corpus) > 0, "citations_in_body", "paper body includes citations")
+    result.require(bibliography_entry_count(workspace) > 0, "bibliography_entries", "paper has bibliography entries")
+    key, _ = active_profile(workspace)
+    if key != "mcm-icm":
+        result.require(has_superscript_citation_style(main_tex, corpus), "superscript_citations", "Chinese competition paper uses superscript-style citations")
+    competition_source_checks(workspace, main_tex, corpus, result)
+    figure_contract_issues = latex_figure_contract_issues(workspace)
+    result.require(not figure_contract_issues, "figure_size_contract", f"LaTeX figures fit the page body: {figure_contract_issues or 'all ok'}")
+    body_units, body_issues = body_density_contract(workspace)
+    result.require(not body_issues, "body_density_contract", f"effective body units={body_units}; issues={body_issues or 'none'}")
+    narrative_issues = problem_narrative_issues(workspace, expected)
+    result.require(not narrative_issues, "problem_narrative_contract", f"each question closes model, result, validation, and interpretation: {narrative_issues or 'all ok'}")
+    semantic_issues = latex_semantic_issues(workspace)
+    result.require(not semantic_issues, "latex_semantic_contract", f"LaTeX uses native equations and semantic cross-references: {semantic_issues or 'all ok'}")
+    credibility_issues = citation_credibility_issues(workspace)
+    result.require(not credibility_issues, "citation_credibility", f"academic claims use credible sources: {credibility_issues or 'all ok'}")
+    expression_issues = manuscript_expression_issues(workspace, corpus)
+    result.require(not expression_issues, "paper_expression_contract", f"paper uses concise publication model expressions: {expression_issues or 'all ok'}")
+    code_issues = code_appendix_contract_issues(workspace, corpus)
+    result.require(not code_issues, "code_appendix", f"code appendix embeds current source files: {code_issues or 'all ok'}")
+    missing_placeholders = placeholders_present(workspace)
+    result.require(not missing_placeholders, "template_placeholders", f"placeholders removed: {missing_placeholders or 'none'}")
+    figure_files = published_figure_files(workspace)
+    if not figure_files and not figure_manifest(workspace):
+        figure_files = all_generated_figure_files(workspace)
+    if figure_files:
+        missing_refs = [path.name for path in figure_files if path.name not in corpus]
+        result.require(not missing_refs, "embedded_figures", f"all publish=true figures are embedded: {', '.join(missing_refs) if missing_refs else 'all ok'}")
+    published_tables = published_table_entries(workspace)
+    if published_tables:
+        missing_tables = []
+        for item in published_tables:
+            rel = str(item.get("path") or "")
+            label = str(item.get("label") or "")
+            if rel and Path(rel).name not in corpus and Path(rel).stem not in corpus and (not label or label not in corpus):
+                missing_tables.append(Path(rel).name)
+        result.require(not missing_tables, "embedded_tables", f"all publish=true tables are embedded: {', '.join(missing_tables) if missing_tables else 'all ok'}")
+    missing_labels = missing_embedded_labels(workspace)
+    if figure_table_labels(workspace):
+        result.require(not missing_labels, "embedded_labels", f"all publication figure/table labels are embedded: {', '.join(missing_labels) if missing_labels else 'all ok'}")
+    section_sizes = section_char_counts(workspace)
+    if section_sizes:
+        result.warn_if(min(section_sizes) < 1200, "thin_section_warning", f"smallest section has {min(section_sizes)} raw chars")
+    return result.to_dict()
+
+
+def check_s7(workspace: Path, step: dict[str, Any]) -> dict[str, Any]:
+    result = GateResult(step["stage_id"], step["skill_name"])
+    base_output_checks(workspace, step, result)
+    try:
+        state = load_state(workspace)
+    except FileNotFoundError:
+        state = {"output_format": "pdf"}
+    if state.get("output_format") == "docx":
+        report_path = workspace / "论文" / "docx_report.json"
+        report = load_json(report_path) if report_path.exists() else {}
+        docx_path = workspace / "论文" / "数模论文.docx"
+        source_path = workspace / "论文" / "论文正文.md"
+        result.require(docx_path.exists() and docx_path.stat().st_size >= 15000, "docx_output", "DOCX output exists and is non-trivial")
+        current_source_hash = hashlib.sha256(source_path.read_bytes()).hexdigest() if source_path.exists() else ""
+        result.require(bool(current_source_hash) and report.get("source_sha256") == current_source_hash, "docx_source_freshness", "DOCX report matches the current Markdown source hash")
+        if source_path.exists() and docx_path.exists():
+            result.require(docx_path.stat().st_mtime_ns >= source_path.stat().st_mtime_ns, "docx_output_freshness", "DOCX output is not older than the Markdown source")
+        usable_width = float(report.get("usable_width_cm") or 0)
+        image_issues = []
+        for item in report.get("images", []):
+            width = float(item.get("width_cm") or 0)
+            height = float(item.get("height_cm") or 0)
+            if width <= 0 or width > usable_width + 0.01:
+                image_issues.append(f"{item.get('path')}: width {width}>{usable_width}")
+            if height <= 0 or height > 20.0:
+                image_issues.append(f"{item.get('path')}: height {height}>20")
+        result.require(not image_issues, "docx_image_size_contract", f"DOCX images fit page body: {image_issues or 'all ok'}")
+        _, profile = active_profile(workspace)
+        minimum = int(profile.get("minimum_body_units", 3500))
+        units = int(report.get("effective_body_units") or 0)
+        result.require(units >= minimum, "docx_body_density", f"effective body units {units} >= {minimum}")
+        markdown = read_text(source_path)
+        expected = expected_problem_count(workspace)
+        final_definition_issues = model_definition_contract_issues(workspace, expected)
+        result.require(not final_definition_issues, "final_model_definition_contract", f"final model identities remain valid: {final_definition_issues or 'all ok'}")
+        final_result_identity_issues = result_model_identity_issues(workspace, expected)
+        result.require(not final_result_identity_issues, "final_result_model_identity", f"final result identities remain aligned: {final_result_identity_issues or 'all ok'}")
+        final_claim_issues = publication_claim_issues(workspace, expected, markdown)
+        result.require(not final_claim_issues, "final_publication_claims", f"final claims remain traceable: {final_claim_issues or 'all ok'}")
+        final_abstract_issues = abstract_structure_issues(workspace, markdown, expected)
+        result.require(not final_abstract_issues, "final_abstract_structure_contract", f"final abstract remains structurally consistent: {final_abstract_issues or 'all ok'}")
+        final_data_issues = manuscript_data_preparation_issues(workspace, markdown)
+        result.require(not final_data_issues, "final_data_preparation_contract", f"final data preprocessing section remains reproducible: {final_data_issues or 'all ok'}")
+        code_issues = code_appendix_contract_issues(workspace, markdown)
+        result.require(not code_issues, "docx_code_appendix", f"DOCX code appendix remains source-linked: {code_issues or 'all ok'}")
+        page_policy = profile.get("page_policy") or {}
+        limit = page_policy.get("limit") or profile.get("page_limit")
+        if limit:
+            pages = report.get("page_count")
+            result.require(pages is not None, "docx_page_count", "page-limited DOCX requires LibreOffice PDF preview for page counting")
+            scope = page_policy.get("scope", "total")
+            counted = report.get("body_page_count") if scope == "body" else pages
+            result.require(counted is not None, "docx_counted_pages", f"DOCX report provides {scope} page count")
+            if counted is not None:
+                result.require(int(counted) <= int(limit), "docx_page_limit", f"DOCX {scope} has {counted}/{limit} pages (total {pages})")
+            if page_policy.get("abstract_limit"):
+                abstract_pages = report.get("abstract_page_count")
+                result.require(abstract_pages is not None, "docx_abstract_pages", "DOCX report provides abstract page count")
+                if abstract_pages is not None:
+                    result.require(int(abstract_pages) <= int(page_policy["abstract_limit"]), "docx_abstract_page_limit", f"DOCX abstract has {abstract_pages}/{page_policy['abstract_limit']} pages")
+        return result.to_dict()
+    pdf_path = workspace / "论文" / "数模论文.pdf"
+    main_tex = workspace / "论文" / "论文正文.tex"
+    corpus = "\n".join(latex_texts(workspace))
+    log_text = read_text(workspace / "论文" / "编译日志.log")
+    if pdf_path.exists() and main_tex.exists():
+        result.require(pdf_path.stat().st_mtime >= main_tex.stat().st_mtime, "pdf_freshness", "数模论文.pdf is newer than 论文正文.tex")
+    pages = pdf_page_count(pdf_path)
+    if pages is not None:
+        result.require(pages > 0, "pdf_pages", f"pdf has {pages} pages")
+        measurement, page_issues = page_policy_measure(workspace, pages)
+        result.require(not page_issues, "competition_page_limit", f"competition page policy: {measurement}; issues={page_issues or 'none'}")
+    else:
+        key, profile = active_profile(workspace)
+        page_limit = (profile.get("page_policy") or {}).get("limit") or profile.get("page_limit")
+        if page_limit:
+            result.require(False, "pdf_pages_required", f"{key} requires a readable PDF page count")
+        else:
+            result.warn_if(True, "pdf_pages_unknown", "PyPDF2 unavailable or page count unreadable")
+    result.require((workspace / "论文" / "编译日志.log").exists(), "compile_log", "论文/编译日志.log exists after compile")
+    expected = expected_problem_count(workspace)
+    final_definition_issues = model_definition_contract_issues(workspace, expected)
+    result.require(not final_definition_issues, "final_model_definition_contract", f"final model identities remain valid: {final_definition_issues or 'all ok'}")
+    final_result_identity_issues = result_model_identity_issues(workspace, expected)
+    result.require(not final_result_identity_issues, "final_result_model_identity", f"final result identities remain aligned: {final_result_identity_issues or 'all ok'}")
+    final_claim_issues = publication_claim_issues(workspace, expected, corpus)
+    result.require(not final_claim_issues, "final_publication_claims", f"final claims remain traceable: {final_claim_issues or 'all ok'}")
+    final_abstract_issues = abstract_structure_issues(workspace, read_text(main_tex), expected)
+    result.require(not final_abstract_issues, "final_abstract_structure_contract", f"final abstract remains structurally consistent: {final_abstract_issues or 'all ok'}")
+    final_data_issues = manuscript_data_preparation_issues(workspace, corpus)
+    result.require(not final_data_issues, "final_data_preparation_contract", f"final data preprocessing section remains reproducible: {final_data_issues or 'all ok'}")
+    code_issues = code_appendix_contract_issues(workspace, corpus)
+    result.require(not code_issues, "code_appendix", f"compiled paper uses current source-linked code appendix: {code_issues or 'all ok'}")
+    if log_text:
+        result.require("undefined" not in log_text.lower() or "undefined references: 0" in log_text.lower(), "no_undefined_refs", "compile log has no undefined references or citations")
+        fatal_patterns = [
+            r"Bad math environment delimiter",
+            r"Missing \$ inserted",
+            r"Not allowed in LR mode",
+            r"Undefined control sequence",
+            r"Fatal error",
+        ]
+        fatal_hits = [pattern for pattern in fatal_patterns if re.search(pattern, log_text, flags=re.IGNORECASE)]
+        result.require(not fatal_hits, "compile_log_health", f"compile log free of critical latex errors: {fatal_hits or 'none'}")
+        overfull = re.findall(r"Overfull \\[hv]box", log_text, flags=re.IGNORECASE)
+        result.require(not overfull, "no_overfull_boxes", f"compile log has no overfull boxes ({len(overfull)} found)")
+    results_json = workspace / "图表" / "全部结果.json"
+    if pdf_path.exists() and results_json.exists():
+        result.warn_if(pdf_path.stat().st_mtime < results_json.stat().st_mtime, "stale_pdf", "pdf is older than 全部结果.json")
+        stale_figures = [path.name for path in (workspace / "图表").glob("*.pdf") if path.stat().st_mtime < results_json.stat().st_mtime]
+        result.warn_if(bool(stale_figures), "stale_figures", f"figure pdf older than 全部结果.json: {', '.join(stale_figures) if stale_figures else 'none'}")
+    missing_placeholders = placeholders_present(workspace)
+    result.require(not missing_placeholders, "template_placeholders", f"placeholders removed: {missing_placeholders or 'none'}")
+    key, _ = active_profile(workspace)
+    generic_markers = anonymous_markers(corpus)
+    if key == "mcm-icm":
+        generic_markers = [marker for marker in generic_markers if marker not in {r"Team\s*Number"}]
+    result.require(not generic_markers, "anonymous_compliance", f"anonymous markers removed: {generic_markers or 'none'}")
+    competition_source_checks(workspace, read_text(main_tex), corpus, result)
+    input_issues = question_input_issues(workspace, read_text(main_tex), expected)
+    result.require(not input_issues, "final_question_input_closure", f"compiled source includes every real question: {input_issues or 'all ok'}")
+    figure_contract_issues = latex_figure_contract_issues(workspace)
+    result.require(not figure_contract_issues, "figure_size_contract", f"LaTeX figures fit the page body: {figure_contract_issues or 'all ok'}")
+    body_units, body_issues = body_density_contract(workspace)
+    result.require(not body_issues, "body_density_contract", f"effective body units={body_units}; issues={body_issues or 'none'}")
+    narrative_issues = problem_narrative_issues(workspace, expected)
+    result.require(not narrative_issues, "final_problem_narrative", f"every question retains its semantic evidence chain: {narrative_issues or 'all ok'}")
+    semantic_issues = latex_semantic_issues(workspace)
+    result.require(not semantic_issues, "final_latex_semantics", f"formula and cross-reference contracts pass: {semantic_issues or 'all ok'}")
+    credibility_issues = citation_credibility_issues(workspace)
+    result.require(not credibility_issues, "final_citation_credibility", f"academic sources remain credible: {credibility_issues or 'all ok'}")
+    if pdf_path.exists():
+        from layout_audit import audit_pdf
+
+        layout_report = audit_pdf(pdf_path)
+        result.require(not layout_report.get("issues"), "rendered_page_layout", f"rendered PDF has no hard page-composition defects: {layout_report.get('issues') or 'all ok'}")
+        warnings = layout_report.get("warnings") or []
+        result.warn_if(bool(warnings), "rendered_page_layout_review", f"rendered PDF pages requiring review: {warnings or 'none'}")
+    result.require(citation_count(corpus) > 0, "citations_present", "compiled paper source still contains citations")
+    result.require(bibliography_entry_count(workspace) > 0, "bibliography_entries", "compiled paper has bibliography entries")
+    return result.to_dict()
+
+
+CHECKERS: dict[str, Callable[[Path, dict[str, Any]], dict[str, Any]]] = {
+    "DISCOVERY": check_s1,
+    "FORMULATION": check_s2,
+    "COMPUTATION": check_s3,
+    "EVIDENCE": check_s4,
+    "SCHEMATICS": check_s5,
+    "MANUSCRIPT": check_s6,
+    "ASSURANCE": check_s7,
+}
+
+
+def run_gate_check(workspace: Path, stage_identifier: str) -> dict[str, Any]:
+    step = find_step(stage_identifier)
+    if step is None:
+        raise SystemExit(f"Unknown stage: {stage_identifier}")
+    checker = CHECKERS.get(step["stage_id"])
+    if checker is None:
+        raise SystemExit(f"No checker for stage: {stage_identifier}")
+    return checker(workspace, step)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Verify Meta-model-agent research, evidence, and paper quality contracts.")
+    parser.add_argument("stage")
+    parser.add_argument("--workspace", default=".")
+    args = parser.parse_args()
+    report = run_gate_check(Path(args.workspace).resolve(), args.stage)
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    return 0 if report["passed"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

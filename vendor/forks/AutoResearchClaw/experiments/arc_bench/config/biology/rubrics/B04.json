@@ -1,0 +1,166 @@
+{
+  "id": "B04",
+  "requirements": "A credible S. cerevisiae ethanol-yield study that loads a yeast GSMM, validates growth, sweeps oxygen uptake, swaps carbon sources, and reports ethanol secretion/yield with interpretable figures.",
+  "judging_note": "The main challenge is adapting the pipeline beyond E. coli while remaining within COBRApy/BIGG capabilities. Accept iMM904 or another documented yeast GSMM.",
+  "weight": 1,
+  "sub_tasks": [
+    {
+      "id": "b04-code",
+      "requirements": "The code implements yeast model loading, medium setup, oxygen sweep, carbon-source swap, and ethanol-yield calculations.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b04-code-model",
+          "requirements": "Loads iMM904 or comparable yeast model, identifies biomass, glucose, oxygen, and ethanol exchange reactions, and validates positive reference growth.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "b04-code-o2",
+          "requirements": "Sweeps oxygen uptake across at least 8 values while keeping substrate uptake defined and restoring state between runs.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Experimental Setup"
+        },
+        {
+          "id": "b04-code-carbon",
+          "requirements": "Compares at least 4 carbon sources where model reactions exist and explicitly records unsupported sources.",
+          "weight": 5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Experimental Setup"
+        },
+        {
+          "id": "b04-code-yield",
+          "requirements": "Calculates ethanol yield using absolute substrate uptake and separates yield from raw secretion flux.",
+          "weight": 5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b04-exec",
+      "requirements": "Execution produces oxygen-sweep and carbon-source artifacts without crashing.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b04-exec-status",
+          "requirements": "Reference glucose condition is optimal and at least 80% of supported oxygen/carbon conditions solve or are clearly marked infeasible.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b04-exec-physics",
+          "requirements": "Mass-balance check passes for the yeast GSMM; no non-physical fluxes appear under aerobic glucose reference (e.g. ethanol secretion should be low under full aerobic conditions); biomass flux is positive under yeast glucose-minimal reference. This is the biology-validity gate equivalent to physics-validity checks in the physics rubric.",
+          "weight": 7.0,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b04-exec-artifacts",
+          "requirements": "Writes results.json, oxygen_sweep.csv, and carbon_source_comparison.csv or equivalent structured outputs.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b04-results",
+      "requirements": "Results quantify oxygen and substrate effects on ethanol secretion/yield.",
+      "weight": 3,
+      "sub_tasks": [
+        {
+          "id": "b04-result-h1",
+          "requirements": "Reports yeast reference growth with model ID and medium definition. Score 100% if positive yeast biomass flux and ethanol secretion are both reported under aerobic glucose-minimal medium with optimal solver status and a named model ID; 67% if growth is positive but ethanol is not reported; 33% if feasibility is stated without numeric values; 0% otherwise.",
+          "weight": 7,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b04-result-h2",
+          "requirements": "Quantifies how ethanol flux or yield changes as oxygen decreases and identifies the low-oxygen fermentation regime. Score 100% if ethanol flux or yield is non-decreasing as oxygen uptake decreases across ≥6 of 8 oxygen-sweep points; 67% if non-decreasing over ≥4 of 8 points; 33% if the trend is described without a quantitative grid; 0% otherwise.",
+          "weight": 12,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b04-result-h3",
+          "requirements": "Compares growth and ethanol yield across carbon sources with a biological interpretation. Score 100% if at least 3 carbon sources are compared with distinct numeric ethanol yields and a biological interpretation; 67% if 2 sources are compared with numeric differences; 33% if the comparison is qualitative or only one carbon source produces positive growth; 0% otherwise.",
+          "weight": 10,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b04-result-figure",
+          "requirements": "Produces labelled figures for oxygen sweep and/or carbon-source yield comparison.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b04-result-writeup",
+          "requirements": "The README or results writeup discusses each hypothesis outcome, names the oxygen regime and carbon source that maximise ethanol yield, and gives a one-paragraph mechanistic interpretation of why oxygen restriction switches yeast from respiratory growth to fermentative ethanol production.",
+          "weight": 6.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b04-repro",
+      "requirements": "Model source, medium, oxygen grid, carbon-source reactions, solver, and versions are documented.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b04-repro-model",
+          "requirements": "The loaded yeast GSMM is either persisted (models/<model_id>.json) or pinned by BIGG model ID, version, and source URL in the writeup; a downstream user can locate the exact model object used.",
+          "weight": 5.0,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        },
+        {
+          "id": "b04-repro-config",
+          "requirements": "Saves reaction IDs, bounds, grid values, and carbon-source list in config or results metadata.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        },
+        {
+          "id": "b04-repro-version",
+          "requirements": "Records COBRApy, solver, model source/version, and rerun consistency for reference growth.",
+          "weight": 5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    }
+  ],
+  "task_category": null,
+  "finegrained_task_category": null
+}

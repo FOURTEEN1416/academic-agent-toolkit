@@ -1,0 +1,24 @@
+{
+  "schema_version": "pfos.curated_icon_handoff_contract.v1",
+  "generated_at": "2026-05-24T12:02:53.222Z",
+  "status": "active",
+  "default_policy": "Use curated keep_publication_core and keep_support indexes for downstream retrieval. Preserve original icon IDs and original library for provenance.",
+  "preferred_downstream_inputs": [
+    "curated_icons/curated_icon_canonical_index.jsonl",
+    "curated_icons/curated_neural_ppt_primitive_index.jsonl",
+    "curated_icons/curated_paper_derived_motif_index.jsonl"
+  ],
+  "review_outputs": [
+    "icon_aesthetic_review/aesthetic_review_decisions.jsonl",
+    "icon_aesthetic_review/replace_candidate_queue.jsonl",
+    "icon_aesthetic_review/quarantine_queue.jsonl",
+    "icon_aesthetic_review/replacement_candidate_report.md"
+  ],
+  "counts": {
+    "curated_standalone_icons": 507,
+    "curated_neural_ppt_primitives": 493,
+    "curated_paper_derived_motif_icons": 100,
+    "excluded_from_default_icon_use": 192
+  },
+  "transfer_boundary": "Curated icons are generic visual language only; they do not transfer source-paper facts."
+}

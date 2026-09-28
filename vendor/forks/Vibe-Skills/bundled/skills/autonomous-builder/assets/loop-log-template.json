@@ -1,0 +1,25 @@
+{
+  "project_name": "project-name",
+  "created_at": "2026-02-13T00:00:00Z",
+  "loop_log": [],
+  "statistics": {
+    "total_loops_detected": 0,
+    "loops_by_type": {
+      "SAME_ERROR_LOOP": 0,
+      "FILE_EDIT_LOOP": 0,
+      "COMMAND_LOOP": 0,
+      "NO_PROGRESS": 0,
+      "SESSION_LIMIT": 0
+    },
+    "tokens_saved_by_early_detection": 0,
+    "features_skipped_due_to_loops": 0
+  },
+  "current_state": {
+    "error_signatures": {},
+    "file_edit_counts": {},
+    "command_counts": {},
+    "operations_since_progress": 0,
+    "session_turn_count": 0,
+    "session_start_time": null
+  }
+}

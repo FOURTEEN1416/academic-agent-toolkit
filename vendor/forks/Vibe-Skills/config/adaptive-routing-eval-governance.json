@@ -1,0 +1,51 @@
+{
+    "version":  1,
+    "updated_at":  "2026-03-07",
+    "stage":  "shadow_ready",
+    "guardrails":  {
+                       "advice_first":  true,
+                       "shadow_first":  true,
+                       "auto_promote_forbidden":  true,
+                       "no_second_router":  true
+                   },
+    "baseline_heuristics":  [
+                                {
+                                    "id":  "route_probe_delta",
+                                    "description":  "Compare baseline route vs candidate route from same probe signals"
+                                },
+                                {
+                                    "id":  "pack_confidence_gap",
+                                    "description":  "Require explicit confidence delta before any promotion discussion"
+                                },
+                                {
+                                    "id":  "manual_override_priority",
+                                    "description":  "User explicit tool choice overrides adaptive suggestion"
+                                }
+                            ],
+    "evaluation_scenarios":  [
+                                 {
+                                     "id":  "planning_lxl",
+                                     "purpose":  "planning tasks with multiple candidate packs"
+                                 },
+                                 {
+                                     "id":  "debug_cross_plane",
+                                     "purpose":  "debug tasks touching routing + governance + runtime"
+                                 },
+                                 {
+                                     "id":  "research_absorption",
+                                     "purpose":  "research tasks requiring source-aware routing"
+                                 }
+                             ],
+    "replay_contract":  "references/eval-replay-ledger-contract.md",
+    "promotion_heuristics":  {
+                                 "shadow_to_soft_requires":  [
+                                                                 "replay ledger populated",
+                                                                 "benchmark scenario stable",
+                                                                 "manual review present"
+                                                             ],
+                                 "strict_requires":  [
+                                                         "separate proposal",
+                                                         "board decision"
+                                                     ]
+                             }
+}

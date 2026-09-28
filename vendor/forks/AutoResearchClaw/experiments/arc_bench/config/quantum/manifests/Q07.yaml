@@ -1,0 +1,125 @@
+# ============================================================================
+# Q07 — MPS classifier vs neural network at matched parameter count
+# ----------------------------------------------------------------------------
+# Open research question. Compare Matrix Product State (MPS) classifiers
+# at three bond dimensions against parameter-matched classical baselines
+# (logistic regression, small CNN) on downsampled 8x8 image classification
+# (MNIST and Fashion-MNIST). Tests the quantum-inspired classical /
+# tensor-network ML claim that MPS classifiers are competitive with neural
+# networks at small parameter budgets.
+# ============================================================================
+
+id: Q07
+title: "Matrix Product State classifier vs neural network at matched parameter count"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+synthesis: |
+  A Matrix Product State (MPS) is a tensor network in which a target
+  tensor of N indices is decomposed into a 1D chain of N small tensors,
+  each connected to its neighbors by "bond" indices of dimension chi.
+  MPS originated in condensed-matter physics as the representation
+  underlying the Density Matrix Renormalization Group (DMRG) for 1D
+  ground-state computation, and Schollwock's 2011 review remains the
+  canonical reference. Stoudenmire and Schwab (NeurIPS 2016, "Supervised
+  Learning with Tensor Networks") repurposed the MPS as a classical
+  supervised classifier. The idea is simple: each input feature
+  (pixel) is mapped to a small feature vector (e.g. cos(pi*x/2),
+  sin(pi*x/2) for grayscale x in [0,1]), and the per-pixel feature
+  vectors are contracted with a chain of MPS tensors to produce a
+  class-score vector. The MPS bond dimension chi controls how much
+  correlation between distant pixels the classifier can capture,
+  giving an interpretable expressivity knob.
+
+  Crucially, the MPS classifier runs entirely on classical hardware.
+  This makes it a "quantum-inspired classical" baseline: the same
+  mathematical machinery as a low-entanglement quantum state, but
+  implemented as a NumPy tensor contraction. Glasser et al. (PRX 2018)
+  extended the framework to richer tensor networks. More recent
+  benchmarks (Liu et al. 2022 Nature Communications Physics) have asked
+  where the bond-dimension sweet spot is for image classification and
+  whether MPS classifiers can be competitive with CNNs at small
+  parameter budgets.
+
+  This topic asks whether an MPS classifier matches a parameter-matched
+  CNN baseline on a CPU-feasible image classification task. The
+  comparison is not "does MPS beat CNN at large scale" (it doesn't, on
+  high-resolution images) but rather "at matched small parameter
+  counts, is the MPS inductive bias competitive with a small CNN's
+  spatial bias on 8x8 downsampled MNIST and Fashion-MNIST?" The
+  question is timely because tensor-network ML is increasingly cited
+  as the honest classical baseline against which to measure quantum
+  machine learning claims of advantage.
+
+  Implementation guidance. Use pure NumPy or PyTorch for the MPS
+  contraction (no qiskit required for this topic; it is quantum-inspired
+  classical computation). The standard MPS classifier from Stoudenmire
+  & Schwab 2016 stores N+1 tensors of shape (chi, d, chi) where N is
+  the number of pixels (64 for an 8x8 image), d=2 is the per-pixel
+  feature dimension (we use the cos/sin embedding), and chi is the
+  bond dimension. The CNN baseline is a single 3x3 convolution layer
+  with K filters followed by a fully connected output layer; K is
+  chosen so the total parameter count is within 10 percent of the MPS
+  parameter count at each bond dimension.
+
+  Experimental protocol. Three MPS bond dimensions (chi=4, chi=8,
+  chi=16) are compared against two classical baselines (logistic
+  regression on flattened 8x8 pixels; small CNN with parameter count
+  matched to the chi=8 MPS). All five conditions are evaluated on two
+  datasets: 8x8 downsampled MNIST (10 classes, 5000 train / 1000 test
+  images) and 8x8 downsampled Fashion-MNIST (10 classes, same
+  size). Each (condition, dataset) cell is averaged over 3 random
+  seeds (controlling MPS / CNN initialization and the train / test
+  split). Total cells: 5 conditions x 2 datasets x 3 seeds = 30 cells.
+
+  Research question: *On 8x8 downsampled MNIST and Fashion-MNIST, do
+  MPS classifiers at moderate bond dimension chi reach the test
+  accuracy of a parameter-matched CNN, and how does the accuracy
+  scale with chi?*
+
+hypotheses:
+  - id: H1
+    statement: "On 8x8 downsampled MNIST, the MPS classifier at bond dimension chi=16 reaches at least 92 percent test accuracy (3-seed mean), matching the Stoudenmire & Schwab 2016 result scaled to this image size."
+    measurable: true
+  - id: H2
+    statement: "On 8x8 downsampled Fashion-MNIST, the parameter-matched CNN beats the chi=16 MPS classifier by at least 5 absolute percentage points (3-seed mean), reflecting the CNN's stronger inductive bias for spatial texture features that are more important on Fashion-MNIST than on plain digits."
+    measurable: true
+  - id: H3
+    statement: "Test accuracy of the MPS classifier scales log-linearly with bond dimension: on 8x8 MNIST the chi=4 to chi=8 gain in 3-seed mean accuracy is greater than the chi=8 to chi=16 gain (consistent with saturating expressivity at moderate chi)."
+    measurable: true
+
+experiment_design:
+  research_question: "On 8x8 downsampled MNIST and Fashion-MNIST, do MPS classifiers at moderate bond dimension chi reach the test accuracy of a parameter-matched CNN, and how does accuracy scale with chi?"
+  conditions:
+    - name: "mps_chi4"
+      description: "Matrix Product State classifier with bond dimension chi=4. 64 pixels x 2-dim per-pixel feature embedding x chi=4 bonds, with a per-class output index. Approximate parameter count: 64 * 2 * 4 * 4 = 2048 parameters. Trained with Adam on cross-entropy for 50 epochs."
+    - name: "mps_chi8"
+      description: "MPS classifier with chi=8. Approximate parameter count: 64 * 2 * 8 * 8 = 8192. Trained with Adam on cross-entropy for 50 epochs."
+    - name: "mps_chi16"
+      description: "MPS classifier with chi=16. Approximate parameter count: 64 * 2 * 16 * 16 = 32768. Trained with Adam on cross-entropy for 50 epochs."
+  baselines:
+    - "logistic_regression: sklearn.linear_model.LogisticRegression(C=1.0, max_iter=1000, multi_class='multinomial') on flattened 8x8 pixels. Classical linear baseline, ~640 parameters."
+    - "small_cnn_matched: PyTorch CNN with a single 3x3 conv layer of K=12 filters followed by an FC(K*6*6, 10) output, chosen so total parameter count is within 10 percent of the chi=8 MPS (target ~8200 parameters). Trained with Adam for 50 epochs."
+  metrics:
+    - name: "test_accuracy"
+      direction: "maximize"
+      description: "Top-1 classification accuracy on the 1000-image held-out test set, 3-seed mean. Primary metric."
+    - name: "trainable_parameter_count"
+      direction: "minimize"
+      description: "Total number of trainable parameters in the model. Reported for parity validation across conditions: matched-parameter comparisons require this to be within 10 percent across the relevant condition pair."
+    - name: "training_time_sec"
+      direction: "minimize"
+      description: "Wall-clock seconds for 50 epochs of training, measured per cell. Tests the practical compute cost of each method at matched accuracy."
+  datasets:
+    - name: "mnist_8x8_downsampled"
+      source: "sklearn.datasets.fetch_openml('mnist_784') downsampled to 8x8 via skimage.transform.resize"
+      description: "MNIST handwritten digits 0-9, downsampled from 28x28 to 8x8 grayscale, normalized to [0, 1]. 5000 training images, 1000 test images (stratified split, fixed random_state=seed). The 8x8 resolution is small enough for CPU MPS contraction but large enough to retain class structure (LogReg should reach ~85 percent here)."
+    - name: "fashion_mnist_8x8_downsampled"
+      source: "sklearn.datasets.fetch_openml('Fashion-MNIST') downsampled to 8x8"
+      description: "Fashion-MNIST clothing items (T-shirt, trouser, pullover, etc.) downsampled from 28x28 to 8x8. Tests model performance on texture-rich images where CNN inductive bias should be more important than for handwritten digits."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1500
+
+rubric_path: "experiments/arc_bench/config/quantum/rubrics/Q07.json"

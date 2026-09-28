@@ -1,0 +1,271 @@
+{
+  "version": 1,
+  "generated_at": "2026-04-28T05:42:46.4532269Z",
+  "candidate_skill_index": "references\\fixtures\\external-corpus\\skill-keyword-index.candidate.json",
+  "baseline": {
+    "label": "baseline",
+    "total": 12,
+    "correct": 11,
+    "accuracy": 0.9167,
+    "fallback_count": 0,
+    "fallback_rate": 0.0,
+    "avg_route_gap": 0.3161,
+    "details": [
+      {
+        "prompt": "Design a workflow orchestration strategy for multi-agent delivery",
+        "expected_pack": null,
+        "blocked_pack": "orchestration-core",
+        "selected_pack": "scholarly-publishing-workflow",
+        "route_mode": "confirm_required",
+        "correct": true,
+        "confidence": 0.45,
+        "route_gap": 0.006
+      },
+      {
+        "prompt": "Route this task and classify the execution path",
+        "expected_pack": null,
+        "blocked_pack": "orchestration-core",
+        "selected_pack": "scholarly-publishing-workflow",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.0619,
+        "route_gap": 0.0003
+      },
+      {
+        "prompt": "Run code review and identify behavioral regressions",
+        "expected_pack": "code-quality",
+        "blocked_pack": null,
+        "selected_pack": "code-quality",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.5056,
+        "route_gap": 0.3002
+      },
+      {
+        "prompt": "Perform root cause investigation for this failing build",
+        "expected_pack": "code-quality",
+        "blocked_pack": null,
+        "selected_pack": "code-quality",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.3031,
+        "route_gap": 0.2415
+      },
+      {
+        "prompt": "Train a machine learning model and evaluate feature engineering quality",
+        "expected_pack": "data-ml",
+        "blocked_pack": null,
+        "selected_pack": "data-ml",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.2324,
+        "route_gap": 0.1705
+      },
+      {
+        "prompt": "Build a sklearn pipeline with cross validation and SHAP analysis",
+        "expected_pack": "data-ml",
+        "blocked_pack": null,
+        "selected_pack": "data-ml",
+        "route_mode": "confirm_required",
+        "correct": true,
+        "confidence": 0.4931,
+        "route_gap": 0.4312
+      },
+      {
+        "prompt": "Analyze single-cell sequencing data and marker genes with scanpy",
+        "expected_pack": "bio-science",
+        "blocked_pack": null,
+        "selected_pack": "bio-science",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.7,
+        "route_gap": 0.4803
+      },
+      {
+        "prompt": "Process xlsx spreadsheets and export a docx and pdf report",
+        "expected_pack": "docs-media",
+        "blocked_pack": null,
+        "selected_pack": "docs-media",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.8144,
+        "route_gap": 0.6339
+      },
+      {
+        "prompt": "Fix GitHub Actions CI failure and inspect deployment errors in Sentry",
+        "expected_pack": "integration-devops",
+        "blocked_pack": null,
+        "selected_pack": "integration-devops",
+        "route_mode": "confirm_required",
+        "correct": true,
+        "confidence": 0.7361,
+        "route_gap": 0.6136
+      },
+      {
+        "prompt": "Optimize prompt strategy for Responses API with embedding retrieval",
+        "expected_pack": "ai-llm",
+        "blocked_pack": null,
+        "selected_pack": "ai-llm",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.4776,
+        "route_gap": 0.4157
+      },
+      {
+        "prompt": "Create hypothesis-driven experimental design and methodology plan",
+        "expected_pack": "research-design",
+        "blocked_pack": null,
+        "selected_pack": "research-design",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.5531,
+        "route_gap": 0.4912
+      },
+      {
+        "prompt": "Search literature and synthesize a scientific writing outline",
+        "expected_pack": "research-design",
+        "blocked_pack": null,
+        "selected_pack": "scholarly-publishing-workflow",
+        "route_mode": "pack_overlay",
+        "correct": false,
+        "confidence": 0.2501,
+        "route_gap": 0.009
+      }
+    ]
+  },
+  "candidate": {
+    "label": "candidate",
+    "total": 12,
+    "correct": 11,
+    "accuracy": 0.9167,
+    "fallback_count": 0,
+    "fallback_rate": 0.0,
+    "avg_route_gap": 0.3117,
+    "details": [
+      {
+        "prompt": "Design a workflow orchestration strategy for multi-agent delivery",
+        "expected_pack": null,
+        "blocked_pack": "orchestration-core",
+        "selected_pack": "scholarly-publishing-workflow",
+        "route_mode": "confirm_required",
+        "correct": true,
+        "confidence": 0.45,
+        "route_gap": 0.006
+      },
+      {
+        "prompt": "Route this task and classify the execution path",
+        "expected_pack": null,
+        "blocked_pack": "orchestration-core",
+        "selected_pack": "scholarly-publishing-workflow",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.0619,
+        "route_gap": 0.0003
+      },
+      {
+        "prompt": "Run code review and identify behavioral regressions",
+        "expected_pack": "code-quality",
+        "blocked_pack": null,
+        "selected_pack": "code-quality",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.5056,
+        "route_gap": 0.3002
+      },
+      {
+        "prompt": "Perform root cause investigation for this failing build",
+        "expected_pack": "code-quality",
+        "blocked_pack": null,
+        "selected_pack": "code-quality",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.3031,
+        "route_gap": 0.2415
+      },
+      {
+        "prompt": "Train a machine learning model and evaluate feature engineering quality",
+        "expected_pack": "data-ml",
+        "blocked_pack": null,
+        "selected_pack": "data-ml",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.2324,
+        "route_gap": 0.1705
+      },
+      {
+        "prompt": "Build a sklearn pipeline with cross validation and SHAP analysis",
+        "expected_pack": "data-ml",
+        "blocked_pack": null,
+        "selected_pack": "data-ml",
+        "route_mode": "confirm_required",
+        "correct": true,
+        "confidence": 0.4931,
+        "route_gap": 0.4312
+      },
+      {
+        "prompt": "Analyze single-cell sequencing data and marker genes with scanpy",
+        "expected_pack": "bio-science",
+        "blocked_pack": null,
+        "selected_pack": "bio-science",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.7,
+        "route_gap": 0.4803
+      },
+      {
+        "prompt": "Process xlsx spreadsheets and export a docx and pdf report",
+        "expected_pack": "docs-media",
+        "blocked_pack": null,
+        "selected_pack": "docs-media",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.8144,
+        "route_gap": 0.6339
+      },
+      {
+        "prompt": "Fix GitHub Actions CI failure and inspect deployment errors in Sentry",
+        "expected_pack": "integration-devops",
+        "blocked_pack": null,
+        "selected_pack": "integration-devops",
+        "route_mode": "confirm_required",
+        "correct": true,
+        "confidence": 0.7361,
+        "route_gap": 0.6136
+      },
+      {
+        "prompt": "Optimize prompt strategy for Responses API with embedding retrieval",
+        "expected_pack": "ai-llm",
+        "blocked_pack": null,
+        "selected_pack": "ai-llm",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.4776,
+        "route_gap": 0.4157
+      },
+      {
+        "prompt": "Create hypothesis-driven experimental design and methodology plan",
+        "expected_pack": "research-design",
+        "blocked_pack": null,
+        "selected_pack": "research-design",
+        "route_mode": "pack_overlay",
+        "correct": true,
+        "confidence": 0.5,
+        "route_gap": 0.4381
+      },
+      {
+        "prompt": "Search literature and synthesize a scientific writing outline",
+        "expected_pack": "research-design",
+        "blocked_pack": null,
+        "selected_pack": "scholarly-publishing-workflow",
+        "route_mode": "pack_overlay",
+        "correct": false,
+        "confidence": 0.2501,
+        "route_gap": 0.009
+      }
+    ]
+  },
+  "run_existing_smoke": false,
+  "smoke_results": [],
+  "gate_passed": true,
+  "reasons": []
+}

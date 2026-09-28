@@ -1,0 +1,109 @@
+{
+    "id": "q09-root",
+    "requirements": "An empirical study of noise-aware VQC training. Four quantum training conditions vary the training-time depolarizing noise rate (ideal, p=0.001, p=0.005, p=0.01), evaluated on both an ideal test set and a noisy test set at p=0.01. The agent must (a) implement the noise model via qiskit_aer.NoiseModel applying single-qubit and two-qubit depolarizing channels, (b) train VQC under each noise level using qiskit_machine_learning.VQC with the appropriate sampler, (c) evaluate each trained model on BOTH ideal and noisy test sets to expose the robustness-vs-clean-accuracy tradeoff, and (d) score H1/H2/H3 with numerical evidence.",
+    "judging_note": "Noise-aware training studies are scored on (i) correctness of the qiskit_aer NoiseModel construction (depolarizing channel must be applied after every gate, not only after measurement; verifiable by inspecting the agent's noise model setup), (ii) test_accuracy reporting BOTH ideal and noisy variants per cell (without both, H1 cannot be evaluated), (iii) the noise-rate sweep producing visibly different test accuracies (cells reporting identical numbers across noise levels indicate the noise model is not actually being applied during training), and (iv) numerical evidence backing the three-way comparison: ideal-train vs noisy-mid-train vs noisy-high-train.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "q09-code",
+            "requirements": "Code-development bucket: NoiseModel correctly constructed, training pipeline applies noise, evaluation on both ideal and noisy test.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q09-code-noise-model",
+                    "requirements": "qiskit_aer.NoiseModel with depolarizing_error applied to all single-qubit gates (h, ry, rz, etc.) AND two-qubit gates (cx). For a noisy-train condition at rate p, the single-qubit error rate is p and the two-qubit error rate is p (or some agent-documented scaling of p). A sanity check verifies that the same ansatz parameters produce different expectation values under the noise model vs under StatevectorSampler (otherwise the noise is not being applied).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q09-code-training-pipeline",
+                    "requirements": "Each training condition uses qiskit_machine_learning.VQC with a qiskit.primitives.BackendSamplerV2 (or BackendSampler) bound to either AerSimulator (for noisy training) or StatevectorSampler (for ideal training). Same ansatz family (EfficientSU2 num_qubits=4 reps=2 entanglement='linear'), same optimizer (COBYLA maxiter=200), same per-seed random initialization across noise-rate conditions for paired comparison.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "q09-code-dual-eval",
+                    "requirements": "Each trained VQC is evaluated on TWO test sets: (a) ideal StatevectorSampler (test_accuracy_ideal), (b) noisy AerSimulator at depolarizing p=0.01 (test_accuracy_noisy_p01). Both numbers are logged per cell. The primary 'test_accuracy' metric is the average of the two. Each cell's METRIC_RESULT JSON includes all three numbers.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q09-exec",
+            "requirements": "Execution-validity bucket: all 18 cells ran with valid outputs.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q09-exec-cells-ran",
+                    "requirements": "At least 16 cells out of 18 expected (6 conditions x 1 dataset x 3 seeds) completed without unhandled errors and produced both test_accuracy_ideal AND test_accuracy_noisy_p01 values. Missing more than 2 cells (10 percent) without documented justification fails this leaf.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q09-exec-numerical",
+                    "requirements": "Numerical validity: both test accuracies in [0, 1]; for any single training condition, test_accuracy_ideal and test_accuracy_noisy_p01 differ by at least 0.01 (cells reporting bit-identical clean and noisy accuracy mean the noise model isn't being applied at evaluation); no_training_control accuracy is in [0.4, 0.6] (random predictor floor).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q09-results",
+            "requirements": "Results bucket: quantitative tests of H1/H2/H3 plus a per-hypothesis writeup.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "q09-result-h1-quant",
+                    "requirements": "Quantitative test of H1. On the noisy test set at p=0.01, is train_noisy_mid (training noise p=0.005) test_accuracy >= train_ideal test_accuracy + 5 absolute pp (3-seed mean)? 100% if gap >= 5pp, 67% if 2-5pp, 33% if any positive gap, 0% if ideal train matches or beats noisy-mid train on noisy test.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q09-result-h2-quant",
+                    "requirements": "Quantitative test of H2. On the ideal test set, does train_ideal beat EVERY noisy-trained variant by >= 2 absolute pp (3-seed mean)? 100% if gap >= 2pp vs all three noisy variants, 67% if gap >= 2pp vs at least 2 of 3, 33% if marginal advantage on at least 1, 0% if noisy training matches or beats ideal training on clean test (no tradeoff).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q09-result-h3-quant",
+                    "requirements": "Quantitative test of H3. Does train_noisy_high underperform train_noisy_mid on BOTH the clean and the noisy test set (3-seed mean)? 100% if cleanly worse on both, 67% if worse on 1 of 2 by >= 3pp, 33% if marginally worse on 1, 0% if high-noise training matches or beats mid-noise on both test sets (no negative transfer observed).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q09-result-writeup",
+                    "requirements": "Writeup of at least 200 words (submission/README.md ## Agent-produced writeup section) with explicit supported / refuted / inconclusive verdict for each of H1/H2/H3 backed by per-(training_noise_rate, test_set) 3-seed mean accuracy values. References Wang NeurIPS 2022 QuantumNAS and Sharma PRX Quantum 2022. Discusses whether the observed sweet-spot noise rate matches the test-deployment rate, and acknowledges that AerSimulator depolarizing channel is a simplified model relative to real hardware noise (T1/T2, crosstalk, readout asymmetry not captured).",
+                    "weight": 12.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

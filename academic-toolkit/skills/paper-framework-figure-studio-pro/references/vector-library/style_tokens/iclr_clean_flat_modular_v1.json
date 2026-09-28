@@ -1,0 +1,16 @@
+{
+  "style_id": "iclr_clean_flat_modular_v1",
+  "source": "ICLR 2025/2026 local figure corpus metadata",
+  "status": "starter_token_pending_visual_audit",
+  "principles": [
+    "vector-first rebuild",
+    "reviewer-first information grouping",
+    "clean academic figure language",
+    "caption carries paper-specific claims"
+  ],
+  "do_not_transfer": [
+    "source-paper facts",
+    "exact numbers",
+    "paper-specific labels without target support"
+  ]
+}

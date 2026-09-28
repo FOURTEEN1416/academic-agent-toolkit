@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "updated": "2026-03-11",
+  "enabled": true,
+  "schema_version": 1,
+  "paths": {
+    "runtime_root": "outputs/runtime/process-health",
+    "ledger": "outputs/runtime/process-health/process-ledger.json",
+    "events": "outputs/runtime/process-health/process-ledger.events.jsonl",
+    "heartbeats": "outputs/runtime/process-health/heartbeats",
+    "audits": "outputs/runtime/process-health/audits",
+    "cleanups": "outputs/runtime/process-health/cleanups"
+  },
+  "defaults": {
+    "status": "running",
+    "ownership": "vco-managed",
+    "cleanup_safe": true,
+    "heartbeat_interval_sec": 10,
+    "stale_after_sec": 120
+  },
+  "locking": {
+    "named_mutex_prefix": "Global\\VgoProcessLedger",
+    "wait_timeout_sec": 10
+  }
+}

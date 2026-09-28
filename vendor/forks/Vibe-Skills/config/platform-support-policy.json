@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-13",
+  "policy": "platform-support-truth-contract",
+  "axes": {
+    "host": [
+      "official-runtime",
+      "codex",
+      "claude-code",
+      "opencode",
+      "generic"
+    ],
+    "platform": [
+      "windows",
+      "linux",
+      "macos"
+    ]
+  },
+  "status_levels": [
+    "full-authoritative",
+    "supported-with-constraints",
+    "degraded-but-supported",
+    "not-yet-proven"
+  ],
+  "truth_rules": {
+    "must_separate_host_and_platform": true,
+    "must_label_degraded_paths_explicitly": true,
+    "must_not_mark_inferred_paths_as_full": true,
+    "must_preserve_windows_official_runtime_authority": true
+  },
+  "current_baseline": {
+    "official-runtime": {
+      "windows": "full-authoritative",
+      "linux": "supported-with-constraints",
+      "macos": "not-yet-proven"
+    }
+  },
+  "degrade_rules": {
+    "linux_without_pwsh": {
+      "status": "degraded-but-supported",
+      "reason": "authoritative PowerShell doctor and coherence gates can be skipped"
+    },
+    "macos_without_pwsh": {
+      "status": "not-yet-proven",
+      "reason": "expected to resemble bash degraded path but not yet contract-frozen"
+    }
+  },
+  "promotion_requirements": [
+    "platform support matrix exists",
+    "doctor parity gaps are recorded",
+    "authoritative gate ownership is explicit",
+    "support wording matches measured state",
+    "fresh-machine platform evidence is frozen before promotion",
+    "replay fixture is synchronized with any promoted status",
+    "platform promotion bundle gate passes"
+  ]
+}

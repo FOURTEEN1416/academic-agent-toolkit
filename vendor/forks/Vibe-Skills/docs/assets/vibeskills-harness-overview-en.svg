@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">VibeSkills governed task flow</title>
+  <desc id="desc">A five-stage flow from requirement confirmation through task grading, Skill organization, recorded execution, and final checking, with a TDD loop for code work.</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#0F4C4E"/>
+    </marker>
+    <marker id="arrow-coral" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#D56F62"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="520" fill="#FAFBF7"/>
+
+  <!-- Harness rails keep the whole flow connected. -->
+  <path d="M76 78 H1124" fill="none" stroke="#0F4C4E" stroke-width="4" stroke-linecap="round"/>
+  <path d="M76 430 H1124" fill="none" stroke="#0F4C4E" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="76" cy="78" r="7" fill="#A7EEF0" stroke="#0F4C4E" stroke-width="3"/>
+  <circle cx="1124" cy="78" r="7" fill="#A7EEF0" stroke="#0F4C4E" stroke-width="3"/>
+  <circle cx="76" cy="430" r="7" fill="#A7EEF0" stroke="#0F4C4E" stroke-width="3"/>
+  <circle cx="1124" cy="430" r="7" fill="#A7EEF0" stroke="#0F4C4E" stroke-width="3"/>
+
+  <text x="600" y="49" fill="#0F4C4E" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" text-anchor="middle">One process from confirmation to final check</text>
+
+  <g fill="#0F4C4E" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" text-anchor="middle">
+    <text x="130" y="116">01</text>
+    <text x="350" y="116">02</text>
+    <text x="570" y="116">03</text>
+    <text x="790" y="116">04</text>
+    <text x="1010" y="116">05</text>
+  </g>
+
+  <g stroke="#0F4C4E" stroke-width="3" stroke-linecap="round">
+    <path d="M130 78 V99"/>
+    <path d="M350 78 V99"/>
+    <path d="M570 78 V99"/>
+    <path d="M790 78 V99"/>
+    <path d="M1010 78 V99"/>
+  </g>
+
+  <!-- Main journey. -->
+  <g fill="none" stroke="#0F4C4E" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)">
+    <path d="M212 240 H267"/>
+    <path d="M432 240 H487"/>
+    <path d="M652 240 H707"/>
+    <path d="M872 240 H927"/>
+  </g>
+
+  <!-- 01: confirmed requirement. -->
+  <g transform="translate(62 148)">
+    <rect x="0" y="0" width="136" height="184" rx="8" fill="#FFFFFF" stroke="#0F4C4E" stroke-width="3"/>
+    <text x="68" y="24" fill="#0F4C4E" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">Confirm requirements</text>
+    <path d="M38 42 H82 L100 60 V125 H38 Z" fill="#E8F9F7" stroke="#0F4C4E" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M82 42 V60 H100" fill="none" stroke="#0F4C4E" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M54 81 H84 M54 96 H76" fill="none" stroke="#0F4C4E" stroke-width="3"/>
+    <circle cx="93" cy="116" r="23" fill="#75B89B" stroke="#0F4C4E" stroke-width="3"/>
+    <path d="M82 116 L90 124 L104 106" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- 02: L or XL task level. -->
+  <g transform="translate(282 148)">
+    <rect x="0" y="0" width="136" height="184" rx="8" fill="#FFFFFF" stroke="#0F4C4E" stroke-width="3"/>
+    <text x="68" y="24" fill="#0F4C4E" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">Recommend level</text>
+    <circle cx="34" cy="92" r="9" fill="#0F4C4E"/>
+    <path d="M43 92 H60 C72 92 72 62 86 62 H101" fill="none" stroke="#0F4C4E" stroke-width="4" marker-end="url(#arrow)"/>
+    <path d="M43 92 H60 C72 92 72 122 86 122 H101" fill="none" stroke="#0F4C4E" stroke-width="4" marker-end="url(#arrow)"/>
+    <rect x="84" y="40" width="38" height="34" rx="6" fill="#A7EEF0" stroke="#0F4C4E" stroke-width="2"/>
+    <rect x="84" y="110" width="38" height="34" rx="6" fill="#F0C86A" stroke="#0F4C4E" stroke-width="2"/>
+    <g fill="#0F4C4E" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" text-anchor="middle">
+      <text x="103" y="63">L</text>
+      <text x="103" y="133">XL</text>
+    </g>
+  </g>
+
+  <!-- 03: Skills organized around modules. -->
+  <g transform="translate(502 148)">
+    <rect x="0" y="0" width="136" height="184" rx="8" fill="#FFFFFF" stroke="#0F4C4E" stroke-width="3"/>
+    <text x="68" y="24" fill="#0F4C4E" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">Organize Skills</text>
+    <rect x="18" y="34" width="42" height="42" rx="6" fill="#A7EEF0" stroke="#0F4C4E" stroke-width="2"/>
+    <rect x="76" y="34" width="42" height="42" rx="6" fill="#E88E7D" stroke="#0F4C4E" stroke-width="2"/>
+    <rect x="18" y="92" width="42" height="42" rx="6" fill="#75B89B" stroke="#0F4C4E" stroke-width="2"/>
+    <rect x="76" y="92" width="42" height="42" rx="6" fill="#F0C86A" stroke="#0F4C4E" stroke-width="2"/>
+    <path d="M60 55 H76 M39 76 V92 M97 76 V92 M60 113 H76" fill="none" stroke="#0F4C4E" stroke-width="3"/>
+    <text x="68" y="161" fill="#0F4C4E" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle">Local Skills</text>
+  </g>
+
+  <!-- 04: execution with a continuing task record. -->
+  <g transform="translate(722 148)">
+    <rect x="0" y="0" width="136" height="184" rx="8" fill="#FFFFFF" stroke="#0F4C4E" stroke-width="3"/>
+    <text x="68" y="24" fill="#0F4C4E" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">Execute and record</text>
+    <rect x="26" y="32" width="84" height="112" rx="6" fill="#E8F9F7" stroke="#0F4C4E" stroke-width="3"/>
+    <path d="M40 58 H94 M40 77 H84 M40 96 H94 M40 115 H75" fill="none" stroke="#0F4C4E" stroke-width="3"/>
+    <circle cx="100" cy="123" r="22" fill="#D56F62" stroke="#0F4C4E" stroke-width="3"/>
+    <path d="M93 112 L108 123 L93 134 Z" fill="#FFFFFF"/>
+  </g>
+
+  <!-- 05: compare the result and finish honestly. -->
+  <g transform="translate(942 148)">
+    <rect x="0" y="0" width="136" height="184" rx="8" fill="#FFFFFF" stroke="#0F4C4E" stroke-width="3"/>
+    <text x="68" y="24" fill="#0F4C4E" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">Check result</text>
+    <rect x="25" y="30" width="86" height="108" rx="6" fill="#F2FAF5" stroke="#0F4C4E" stroke-width="3"/>
+    <path d="M42 58 L48 64 L59 51 M42 83 L48 89 L59 76 M42 108 L48 114 L59 101" fill="none" stroke="#3D8F70" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M68 58 H95 M68 83 H95 M68 108 H95" fill="none" stroke="#0F4C4E" stroke-width="3"/>
+    <rect x="35" y="148" width="66" height="28" rx="6" fill="#75B89B"/>
+    <text x="68" y="168" fill="#FFFFFF" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle">PASS</text>
+  </g>
+
+  <!-- Saved records follow the task from start to finish. -->
+  <g fill="#A7EEF0" stroke="#0F4C4E" stroke-width="2">
+    <rect x="119" y="418" width="22" height="22" rx="4"/>
+    <rect x="339" y="418" width="22" height="22" rx="4"/>
+    <rect x="559" y="418" width="22" height="22" rx="4"/>
+    <rect x="779" y="418" width="22" height="22" rx="4"/>
+    <rect x="999" y="418" width="22" height="22" rx="4"/>
+  </g>
+  <g fill="#0F4C4E">
+    <circle cx="130" cy="429" r="3"/>
+    <circle cx="350" cy="429" r="3"/>
+    <circle cx="570" cy="429" r="3"/>
+    <circle cx="790" cy="429" r="3"/>
+    <circle cx="1010" cy="429" r="3"/>
+  </g>
+
+  <!-- Code work can take a small TDD loop without leaving the main flow. -->
+  <g transform="translate(650 353)">
+    <path d="M22 20 C22 -2 64 -2 64 20 C64 42 106 42 106 20" fill="none" stroke="#D56F62" stroke-width="4" marker-end="url(#arrow-coral)"/>
+    <rect x="0" y="8" width="44" height="25" rx="6" fill="#FCE8E4" stroke="#D56F62" stroke-width="2"/>
+    <rect x="84" y="8" width="44" height="25" rx="6" fill="#E6F5EC" stroke="#3D8F70" stroke-width="2"/>
+    <text x="22" y="26" fill="#B84E43" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle">TDD</text>
+    <path d="M101 15 L107 21 L116 12" fill="none" stroke="#3D8F70" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="64" y="58" fill="#B84E43" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">Code work</text>
+  </g>
+
+  <g stroke="#0F4C4E" stroke-width="3" stroke-linecap="round">
+    <path d="M130 332 V418"/>
+    <path d="M350 332 V418"/>
+    <path d="M570 332 V418"/>
+    <path d="M790 332 V353"/>
+    <path d="M790 397 V418"/>
+    <path d="M1010 332 V418"/>
+  </g>
+
+  <text x="600" y="475" fill="#0F4C4E" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" text-anchor="middle">The task record stays with the work from start to finish</text>
+</svg>

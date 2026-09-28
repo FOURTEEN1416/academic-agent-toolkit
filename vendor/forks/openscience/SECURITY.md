@@ -1,0 +1,50 @@
+# Security
+
+## Threat model
+
+OpenScience is an AI agent that runs locally on your machine. The agent can run shell commands, read and write files, and access the web.
+
+### Execution sandbox
+
+The permission system decides whether the agent may take an action. A permission prompt is not an isolation boundary by itself. New local installs default to **Approve for me**: the project is trusted and the execution sandbox is on. Routine work stays low-friction while commands are confined by the native sandbox when it is available.
+
+Use **Research tools → Action approval** beneath the composer to switch to **Ask for approval** (keep containment and revoke project trust) or deliberately select **Full access** (trust the project and disable containment). In either contained mode, OpenScience wraps terminal and shell commands, Python/R kernels, and local compute jobs in macOS Seatbelt or Linux bubblewrap, confines reads and writes to the session workspace and explicitly granted paths, and denies network egress. Run `openscience sandbox test`; if it does not report **Containment verified**, do not rely on that backend. Windows has no sandbox backend, and the boundary is not a full VM. Use a container or VM for hostile code.
+
+### Server mode
+
+Server mode is opt-in. The server binds to localhost (127.0.0.1) only and enforces a Host and Origin allowlist to block DNS-rebinding and cross-origin requests. It is not built for remote exposure. If you tunnel or reverse-proxy it yourself, securing that exposure is your responsibility, and anything the server provides in that setup is not a vulnerability.
+
+Self-hosted operators can set `OPENSCIENCE_AUTH_TOKEN` to require `Authorization: Bearer <token>` on network requests as an additional deployment boundary. The health endpoint and browser CORS preflights remain open, and trusted in-process calls are unaffected. A reverse proxy must inject or forward the header on ordinary HTTP, streaming, and WebSocket requests. Leaving the variable unset preserves the local default.
+
+### Telemetry and managed services
+
+Content-free product telemetry is enabled by default and can be disabled in Settings. The telemetry contract accepts only allowlisted operational fields such as installation, session, tool category, model route, latency, status, and aggregate token counts. It rejects prompts, responses, file paths and contents, notebook cells, shell output, environment values, credentials, and arbitrary metadata. Telemetry failures never block research and telemetry can never debit the Gateway wallet.
+
+Research-content sharing is a separate explicit opt-in. Managed search queries necessarily leave the machine for the OpenScience Gateway and its configured search provider; the UI identifies that route before use. Local, BYOK, and eligible ChatGPT/Codex routes remain available when the Gateway is disconnected or unavailable.
+
+### Out of scope
+
+| Category                    | Why                                                                  |
+| --------------------------- | -------------------------------------------------------------------- |
+| Server access when opted in | If you enable server mode, API access is expected behavior.          |
+| Granted-root contents       | A command may read files inside roots explicitly granted to it.      |
+| Windows sandboxing          | Windows has no execution-sandbox backend yet.                        |
+| LLM provider data handling  | Data you send to a provider is governed by that provider's policies. |
+| MCP server behavior         | External MCP servers you configure are outside the trust boundary.   |
+| Malicious config files      | You control your own config; editing it is not an attack.            |
+
+## Supported versions
+
+Security fixes ship in the latest release on npm (`@synsci/openscience`). Please
+upgrade to the newest version before reporting — earlier versions are not patched.
+
+| Version            | Supported |
+| ------------------ | --------- |
+| latest npm release | ✅        |
+| older releases     | ❌        |
+
+## Reporting a vulnerability
+
+Please report security issues through the GitHub Security Advisory ["Report a Vulnerability"](https://github.com/synthetic-sciences/OpenScience/security/advisories/new) form.
+
+You will get a response with the next steps. The team will keep you updated on progress toward a fix and may ask for more detail. If you do not hear back within six business days, email security@syntheticsciences.ai.

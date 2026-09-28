@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vibeskills.dev/schemas/skill.schema.json",
+  "title": "VibeSkills Canonical Skill Contract",
+  "type": "object",
+  "required": [
+    "skill_id",
+    "name",
+    "version",
+    "summary",
+    "instruction_path",
+    "compatibility_path",
+    "source_of_truth"
+  ],
+  "properties": {
+    "skill_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "instruction_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "compatibility_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_of_truth": {
+      "type": "object",
+      "required": [
+        "kind",
+        "path"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "bundled-skill",
+            "canonical-skill"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

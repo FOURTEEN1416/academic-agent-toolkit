@@ -1,0 +1,10 @@
+{
+  "name": "launch-ssh-summary",
+  "command": "python3 -c 'import json,platform; print(json.dumps({\"status\":\"ok\",\"host\":platform.node()}))'",
+  "resources": {
+    "cpu": 1,
+    "memoryMb": 256,
+    "wallSeconds": 60
+  },
+  "outputs": ["stdout"]
+}

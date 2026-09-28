@@ -1,0 +1,114 @@
+﻿{
+    "version":  1,
+    "updated":  "2026-02-25",
+    "enabled":  true,
+    "mode": "soft",
+    "preserve_routing_assignment":  true,
+    "routing_integration":  "post_route_data_scale_overlay",
+    "task_allow":  [
+                       "coding",
+                       "research"
+                   ],
+    "grade_allow":  [
+                        "M",
+                        "L",
+                        "XL"
+                    ],
+    "monitor":  {
+                    "pack_allow":  [
+                                       "docs-media"
+                                   ],
+                    "skill_allow":  [
+                                        "spreadsheet",
+                                        "xlsx",
+                                        "xan"
+                                    ],
+                    "supported_extensions":  [
+                                                 "csv",
+                                                 "tsv",
+                                                 "tab",
+                                                 "psv",
+                                                 "ssv",
+                                                 "scsv",
+                                                 "csv.gz",
+                                                 "tsv.gz",
+                                                 "tab.gz",
+                                                 "psv.gz",
+                                                 "ssv.gz",
+                                                 "scsv.gz",
+                                                 "csv.zst",
+                                                 "tsv.zst",
+                                                 "tab.zst",
+                                                 "xlsx",
+                                                 "xlsm",
+                                                 "xls"
+                                             ]
+                },
+    "path_probe":  {
+                       "enabled":  true,
+                       "extract_from_prompt":  true,
+                       "workspace_probe_when_no_path":  false,
+                       "workspace_probe_limit":  3,
+                       "workspace_probe_extensions":  [
+                                                         "csv",
+                                                         "tsv",
+                                                         "tab",
+                                                         "psv",
+                                                         "ssv",
+                                                         "scsv",
+                                                         "xlsx",
+                                                         "xlsm",
+                                                         "xls"
+                                                     ],
+                       "read_sample_max_lines":  200,
+                       "read_sample_max_chars":  200000
+                   },
+    "thresholds":  {
+                       "medium_size_bytes":  52428800,
+                       "large_size_bytes":  314572800,
+                       "medium_estimated_rows":  500000,
+                       "large_estimated_rows":  3000000,
+                       "confirm_confidence_min":  0.6,
+                       "high_confidence_for_override":  0.85
+                   },
+    "recommendations":  {
+                            "csv_default_skill":  "spreadsheet",
+                            "csv_large_skill":  "xan",
+                            "workbook_skill":  "xlsx",
+                            "workbook_analysis_skill":  "spreadsheet",
+                            "operations_preferring_xan":  [
+                                                             "join",
+                                                             "groupby",
+                                                             "dedup",
+                                                             "frequency",
+                                                             "sort",
+                                                             "filter",
+                                                             "pipeline",
+                                                             "aggregate",
+                                                             "window",
+                                                             "parallel",
+                                                             "merge",
+                                                             "split",
+                                                             "分组",
+                                                             "去重",
+                                                             "聚合",
+                                                             "连接",
+                                                             "排序",
+                                                             "过滤",
+                                                             "管道",
+                                                             "流式"
+                                                         ]
+                        },
+    "fallback_behavior":  {
+                              "on_probe_failure":  "keep_selected_skill",
+                              "on_no_data_signal":  "keep_selected_skill",
+                              "on_missing_file":  "keep_selected_skill"
+                          }
+}
+
+
+
+
+
+
+

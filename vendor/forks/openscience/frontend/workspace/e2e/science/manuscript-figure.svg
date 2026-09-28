@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="280" viewBox="0 0 480 280">
+  <rect width="480" height="280" fill="#f4f1e8"/>
+  <path d="M60 220 L160 138 L260 172 L420 55" fill="none" stroke="#326a65" stroke-width="8"/>
+  <circle cx="60" cy="220" r="10" fill="#326a65"/>
+  <circle cx="160" cy="138" r="10" fill="#326a65"/>
+  <circle cx="260" cy="172" r="10" fill="#326a65"/>
+  <circle cx="420" cy="55" r="10" fill="#326a65"/>
+  <text x="28" y="36" fill="#252821" font-family="system-ui" font-size="18">Primary endpoint</text>
+</svg>

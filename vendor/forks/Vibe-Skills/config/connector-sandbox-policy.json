@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "simulation_classes": [
+    "read_only_lookup",
+    "draft_write_preview",
+    "confirm_write",
+    "rollback_drill"
+  ],
+  "policy_guards": {
+    "implicit_auto_install": false,
+    "background_execution_owner": false,
+    "sandbox_only_before_soft": true,
+    "manual_review_required": true
+  },
+  "required_fields": [
+    "provider_slug",
+    "risk_class",
+    "confirm_mode",
+    "replay_handle",
+    "rollback_plan",
+    "evidence_refs"
+  ]
+}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResearchClaw — Autonomous Research Pipeline</title>
+  <link rel="stylesheet" href="/static/src/styles/main.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <h1>ResearchClaw</h1>
+      <span id="server-status" style="font-size:12px;color:var(--text-muted)"></span>
+      <span id="connection-badge" class="status-badge idle">Connecting...</span>
+      <div style="flex:1"></div>
+      <span style="font-size:13px;color:var(--text-secondary)">Autonomous Research Pipeline</span>
+    </header>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <h3>Overview</h3>
+        <a class="nav-item active" data-view="dashboard" href="#">
+          <span>📊</span> Dashboard
+        </a>
+        <a class="nav-item" data-view="pipeline" href="#">
+          <span>🔬</span> Pipeline
+        </a>
+        <a class="nav-item" data-view="experiments" href="#">
+          <span>📈</span> Experiments
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <h3>Interact</h3>
+        <a class="nav-item" data-view="chat" href="#">
+          <span>💬</span> Chat
+        </a>
+        <a class="nav-item" data-view="paper" href="#">
+          <span>📄</span> Paper
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <h3>Manage</h3>
+        <a class="nav-item" data-view="projects" href="#">
+          <span>📁</span> Projects
+        </a>
+        <a class="nav-item" data-view="wizard" href="#">
+          <span>🧙</span> Wizard
+        </a>
+      </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main" id="main-content">
+      <p style="color:var(--text-muted)">Loading...</p>
+    </main>
+  </div>
+
+  <!-- Scripts (no build step needed) -->
+  <script src="/static/src/services/api.js"></script>
+  <script src="/static/src/services/websocket.js"></script>
+  <script src="/static/src/components/Dashboard.js"></script>
+  <script src="/static/src/components/PipelineView.js"></script>
+  <script src="/static/src/components/ChatPanel.js"></script>
+  <script src="/static/src/components/ExperimentMonitor.js"></script>
+  <script src="/static/src/components/PaperPreview.js"></script>
+  <script src="/static/src/components/ProjectList.js"></script>
+  <script src="/static/src/components/WizardFlow.js"></script>
+  <script src="/static/src/app.js"></script>
+</body>
+</html>

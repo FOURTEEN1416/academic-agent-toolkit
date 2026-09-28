@@ -1,0 +1,10 @@
+sample,treatment,response
+S01,vehicle,10.1
+S02,vehicle,9.8
+S03,vehicle,10.4
+S04,low,12.2
+S05,low,11.8
+S06,low,12.5
+S07,high,15.6
+S08,high,16.1
+S09,high,15.8

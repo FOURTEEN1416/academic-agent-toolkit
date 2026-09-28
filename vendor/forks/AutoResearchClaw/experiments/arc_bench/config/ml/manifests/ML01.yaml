@@ -1,0 +1,89 @@
+# ============================================================================
+# T01 — Dropout regularization strategies for shallow MLPs
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML01
+title: "Dropout regularization strategies on shallow tabular MLPs"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Dropout-style regularization is a cornerstone of neural-net training for
+  overfitting control, but its impact on tabular classification with shallow
+  MLPs remains subtle. Standard element-wise dropout is the default; spatial
+  (feature-wise) dropout treats correlated input features as a block; MC /
+  variational dropout keeps dropout active at test time and averages over
+  samples. For tabular data with small feature counts and mild non-linearity,
+  these variants can produce equal test-set accuracy yet very different
+  probability calibration — a known gotcha that makes accuracy-only
+  evaluation misleading.
+
+  A credible CPU-scale study of this topic (a) compares at least three
+  dropout variants against a no-dropout control on multiple sklearn
+  classification benchmarks, (b) reports both accuracy and calibration
+  metrics (ECE, NLL, Brier), (c) averages over ≥5 seeds with statistical
+  tests, and (d) checks for ablation integrity (that different dropout
+  variants actually produce different output distributions, not just the
+  same network). The research question is: *does the choice of dropout
+  variant matter more for calibration than for accuracy on tabular data?*
+
+hypotheses:
+  - id: H1
+    statement: "Variational / MC dropout produces lower Expected Calibration Error (ECE) than standard element-wise dropout on at least 2 of 3 tabular classification benchmarks, averaged over ≥5 seeds."
+    measurable: true
+  - id: H2
+    statement: "Test-set accuracy differs by <2 absolute percentage points between dropout variants on datasets where all methods exceed 95% accuracy — i.e. accuracy is non-discriminative and calibration is needed to distinguish methods."
+    measurable: true
+  - id: H3
+    statement: "The no-dropout control is strictly worse than at least one dropout variant in ECE on at least 2 of 3 datasets."
+    measurable: true
+
+experiment_design:
+  research_question: "Does the choice of dropout variant (standard / spatial / variational) matter more for probability calibration than for test accuracy on tabular classification with shallow MLPs?"
+  conditions:
+    - name: "no_dropout"
+      description: "Shallow MLP (2 hidden layers, 64 units, ReLU) trained with no dropout. Control condition."
+    - name: "standard_dropout_p30"
+      description: "Same MLP with standard element-wise dropout at p=0.3 between hidden layers."
+    - name: "standard_dropout_p50"
+      description: "Same MLP with standard element-wise dropout at p=0.5."
+    - name: "spatial_dropout_p30"
+      description: "Same MLP with feature-blockwise dropout at p=0.3 applied to the input layer."
+    - name: "mc_dropout_p30_T20"
+      description: "Same MLP with standard p=0.3 dropout left active at test time; prediction is the mean of T=20 stochastic forward passes."
+  baselines:
+    - "no_dropout is the no-regularization baseline"
+  metrics:
+    - name: "test_accuracy"
+      direction: "maximize"
+      description: "Fraction correctly classified on held-out 20% test split, mean over 5 seeds."
+    - name: "ece"
+      direction: "minimize"
+      description: "Expected Calibration Error (15 bins) on the test split, mean over 5 seeds."
+    - name: "nll"
+      direction: "minimize"
+      description: "Mean per-example negative log-likelihood on the test split."
+    - name: "brier"
+      direction: "minimize"
+      description: "Mean Brier score on the test split."
+  datasets:
+    - name: "breast_cancer"
+      source: "sklearn.datasets.load_breast_cancer"
+    - name: "wine"
+      source: "sklearn.datasets.load_wine"
+    - name: "digits"
+      source: "sklearn.datasets.load_digits"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 240
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML01.json"

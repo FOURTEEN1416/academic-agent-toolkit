@@ -1,0 +1,91 @@
+import type { Connector, ConnectorHit, FetchedFile, FetchOptions } from "../types"
+import { getJSON, getText, orFallback } from "../http"
+
+/**
+ * PubChem — NCBI's public chemical database (PUG REST). No key required.
+ *   search: name -> CIDs (word match), then a batched property table.
+ *     GET /rest/pug/compound/name/<query>/cids/JSON?name_type=word
+ *     GET /rest/pug/compound/cid/<csv>/property/<fields>/JSON
+ *   fetch:  GET /rest/pug/compound/cid/<CID>/JSON  (full compound record)
+ */
+const BASE = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
+const FIELDS = "Title,MolecularFormula,MolecularWeight,ConnectivitySMILES,InChIKey,IUPACName"
+
+interface Property {
+  CID?: number
+  Title?: string
+  IUPACName?: string
+  MolecularFormula?: string
+  MolecularWeight?: string
+  ConnectivitySMILES?: string
+  InChIKey?: string
+  [key: string]: unknown
+}
+
+function summarize(p: Property): string | undefined {
+  const parts = [
+    p.MolecularFormula ? `Formula ${p.MolecularFormula}` : undefined,
+    p.MolecularWeight ? `MW ${p.MolecularWeight}` : undefined,
+    p.ConnectivitySMILES ? `SMILES ${p.ConnectivitySMILES}` : undefined,
+    p.InChIKey ? p.InChIKey : undefined,
+  ].filter(Boolean)
+  return parts.length ? parts.join(" · ") : undefined
+}
+
+export const pubchem: Connector = {
+  id: "pubchem",
+  name: "PubChem",
+  domain: "chemistry",
+  description: "Chemical compounds, structures, and properties from NCBI PubChem.",
+  homepage: "https://pubchem.ncbi.nlm.nih.gov",
+
+  async search(query, opts) {
+    const limit = Math.min(opts?.limit ?? 10, 25)
+    const cidUrl = `${BASE}/compound/name/${encodeURIComponent(query)}/cids/JSON?name_type=word`
+    const cidData = await orFallback(
+      getJSON<{ IdentifierList?: { CID?: number[] } }>(cidUrl, {
+        signal: opts?.signal,
+      }),
+      {} as { IdentifierList?: { CID?: number[] } },
+      opts?.signal,
+    )
+    const cids = (cidData.IdentifierList?.CID ?? []).slice(0, limit)
+    if (!cids.length) return []
+
+    const propUrl = `${BASE}/compound/cid/${cids.join(",")}/property/${FIELDS}/JSON`
+    const propData = await orFallback(
+      getJSON<{ PropertyTable?: { Properties?: Property[] } }>(propUrl, {
+        signal: opts?.signal,
+      }),
+      {} as { PropertyTable?: { Properties?: Property[] } },
+      opts?.signal,
+    )
+    const props = propData.PropertyTable?.Properties ?? []
+
+    return props.map<ConnectorHit>((p) => {
+      const cid = p.CID != null ? String(p.CID) : ""
+      return {
+        id: cid,
+        title: p.Title ?? p.IUPACName ?? (cid ? `CID ${cid}` : "(unknown compound)"),
+        summary: summarize(p),
+        url: cid ? `https://pubchem.ncbi.nlm.nih.gov/compound/${cid}` : undefined,
+        extra: p,
+      }
+    })
+  },
+
+  async fetch(id, opts) {
+    const url = `${BASE}/compound/cid/${encodeURIComponent(id)}/JSON`
+    return getJSON(url, { signal: opts?.signal })
+  },
+
+  formats: ["sdf"],
+
+  async fetchFile(id, format, opts?: FetchOptions): Promise<FetchedFile> {
+    // PubChem takes the format as an UPPERCASE path segment, not a parameter.
+    const body = await getText(`${BASE}/compound/cid/${encodeURIComponent(id)}/${format.toUpperCase()}`, {
+      signal: opts?.signal,
+    })
+    return { body, contentType: "chemical/x-mdl-sdfile", filename: `${id}.${format}` }
+  },
+}

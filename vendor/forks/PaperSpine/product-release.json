@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "product": {
+    "name": "PaperSpine5",
+    "slug": "paperspine5",
+    "version": "0.3.0-rc.1",
+    "channel": "prerelease",
+    "license": "MIT"
+  },
+  "github": {
+    "owner": "WUBING2023",
+    "repository": "PaperSpine",
+    "communityRepository": null
+  },
+  "build": {
+    "installCommand": "powershell -ExecutionPolicy Bypass -File <extracted-package>/install.ps1 -Target codex",
+    "verifyCommands": [
+      "python paperspine5/release_tools/verify_release.py",
+      "python -m unittest discover -s tests -p test_atlas_pipeline.py"
+    ],
+    "buildCommand": "python paperspine5/release_tools/build_site.py"
+  },
+  "release": {
+    "tagTemplate": "v{version}",
+    "artifactGlob": "release-assets/paperspine5-skill-*.zip",
+    "assetNameTemplate": "paperspine5-skill-{version}.zip",
+    "checksum": "sha256"
+  },
+  "website": {
+    "directory": "website",
+    "cloudflareProject": "not-applicable-github-pages-primary",
+    "productionUrl": "https://wubing2023.github.io/PaperSpine/v5/",
+    "manifestPath": "website/downloads/manifest.json"
+  },
+  "compatibility": {
+    "desktopAppId": "not-applicable.skill-package",
+    "userDataIdentity": ".paperspine"
+  }
+}

@@ -1,0 +1,223 @@
+﻿{
+    "version":  2,
+    "updated":  "2026-03-06",
+    "policy_id":  "skill_metadata_hardening_p25",
+    "validation_scope":  {
+                             "mode":  "expanded",
+                             "enabled_sources":  [
+                                                     "capability_catalog",
+                                                     "pack_manifest",
+                                                     "skill_alias_map",
+                                                     "local_role_surfaces",
+                                                     "always_required_skills"
+                                                 ],
+                             "deferred_sources":  [
+                                                      {
+                                                          "id":  "full_skill_corpus",
+                                                          "reason":  "P2.5 only hardens the routed surface; full bundled-skill corpus normalization remains a later phase."
+                                                      }
+                                                  ]
+                         },
+    "paths":  {
+                  "capability_catalog":  "config/capability-catalog.json",
+                  "pack_manifest":  "config/pack-manifest.json",
+                  "skill_alias_map":  "config/skill-alias-map.json",
+                  "team_templates":  "references/team-templates.md",
+                  "role_taxonomy":  "references/subagent-role-taxonomy.md",
+                  "skills_roots":  [
+                                       {
+                                           "id":  "user_skills",
+                                           "path":  "~/.agents/skills",
+                                           "priority":  1
+                                       },
+                                       {
+                                           "id":  "bundled_skills",
+                                           "path":  "bundled/skills",
+                                           "priority":  2
+                                       }
+                                   ]
+              },
+    "metadata_contract":  {
+                              "required_catalog_block_fields":  [
+                                                                    "mode",
+                                                                    "policy",
+                                                                    "gate",
+                                                                    "enforced_scopes"
+                                                                ],
+                              "required_scopes":  [
+                                                      "capability_catalog.skills",
+                                                      "capability_catalog.advice_overlays",
+                                                      "pack_manifest.skill_candidates",
+                                                      "pack_manifest.defaults_by_task",
+                                                      "skill_alias_map.alias_targets",
+                                                      "local_vco_roles.template_7"
+                                                  ]
+                          },
+    "default_interview_question_rules":  {
+                                             "minimum_count":  3,
+                                             "required_fields":  [
+                                                                     "id",
+                                                                     "prompt"
+                                                                 ]
+                                         },
+    "catalog_rules":  {
+                          "required_top_level_fields":  [
+                                                            "version",
+                                                            "updated",
+                                                            "metadata_hardening",
+                                                            "default_interview_questions",
+                                                            "capabilities"
+                                                        ],
+                          "required_capability_fields":  [
+                                                             "id",
+                                                             "display_name",
+                                                             "task_allow",
+                                                             "keywords",
+                                                             "skills"
+                                                         ],
+                          "optional_capability_fields":  [
+                                                             "advice_overlays"
+                                                         ],
+                          "allowed_task_types":  [
+                                                     "planning",
+                                                     "coding",
+                                                     "debug",
+                                                     "review",
+                                                     "research"
+                                                 ],
+                          "minimum_keywords":  3,
+                          "minimum_skills":  1,
+                          "maximum_skills":  6,
+                          "disallow_duplicate_capability_ids":  true,
+                          "disallow_duplicate_skills_within_capability":  true,
+                          "reserved_non_skill_patterns":  [
+                                                              "(^|-)overlay$",
+                                                              "(^|-)policy$",
+                                                              "(^|-)manifest$"
+                                                          ],
+                          "advice_overlay_pattern":  "(^|-)overlay$"
+                      },
+    "pack_rules":  {
+                       "required_top_level_fields":  [
+                                                         "version",
+                                                         "updated",
+                                                         "legacy_matrix_fallback",
+                                                         "packs"
+                                                     ],
+                       "required_pack_fields":  [
+                                                    "id",
+                                                    "priority",
+                                                    "grade_allow",
+                                                    "task_allow",
+                                                    "trigger_keywords",
+                                                    "skill_candidates",
+                                                    "defaults_by_task"
+                                                ],
+                       "allowed_grades":  [
+                                              "M",
+                                              "L",
+                                              "XL"
+                                          ],
+                       "allowed_task_types":  [
+                                                  "planning",
+                                                  "coding",
+                                                  "debug",
+                                                  "review",
+                                                  "research"
+                                              ],
+                       "minimum_trigger_keywords":  1,
+                       "minimum_skill_candidates":  1,
+                       "require_legacy_matrix_fallback":  true,
+                       "require_defaults_in_candidates":  true,
+                       "require_default_tasks_in_task_allow":  true,
+                       "require_defaults_cover_task_allow":  true,
+                      "disallow_duplicate_pack_ids":  true,
+                       "disallow_duplicate_skills_within_pack":  true
+                   },
+    "alias_rules":  {
+                        "required_top_level_fields":  [
+                                                          "version",
+                                                          "updated",
+                                                          "aliases"
+                                                      ],
+                        "require_non_empty_target":  true,
+                        "forbid_targeting_another_alias":  true,
+                        "require_target_resolves":  true
+                    },
+    "routed_surface_rules":  {
+                                 "always_required_skills":  [
+                                                                "vibe",
+                                                                "brainstorming",
+                                                                "writing-plans",
+                                                                "think-harder",
+                                                                "subagent-driven-development",
+                                                                "local-vco-roles"
+                                                            ]
+                             },
+    "skill_frontmatter_rules":  {
+                                    "required_fields":  [
+                                                            "name",
+                                                            "description"
+                                                        ],
+                                    "normalize_name":  {
+                                                           "trim_quotes":  true,
+                                                           "case_insensitive":  true
+                                                       },
+                                    "duplicate_display_name_allowlist":  [
+                                                                             "torch-geometric"
+                                                                         ]
+                                },
+    "role_surface_rules":  {
+                               "required_permission_bundles":  [
+                                                                   "lead_synthesis",
+                                                                   "read_only_analysis",
+                                                                   "scoped_implementation",
+                                                                   "quality_gate",
+                                                                   "security_review"
+                                                               ],
+                               "surfaces":  [
+                                                {
+                                                    "id":  "local_vco_dialectic_review",
+                                                    "template_marker":  "## Template 7: local-vco-dialectic-review (local-vco-roles adapter)",
+                                                    "taxonomy_marker":  "## 4. Local VCO Dialectic Roles",
+                                                    "roles":  [
+                                                                  {
+                                                                      "role":  "team-lead",
+                                                                      "native_agent_type":  "default",
+                                                                      "permission_bundle":  "lead_synthesis",
+                                                                      "template_prompt_path":  "~/.agents/skills/local-vco-roles/references/role-prompts/team-lead.md",
+                                                                      "taxonomy_prompt_path":  "bundled/skills/local-vco-roles/references/role-prompts/team-lead.md"
+                                                                  },
+                                                                  {
+                                                                      "role":  "bug-analyst",
+                                                                      "native_agent_type":  "explorer",
+                                                                      "permission_bundle":  "read_only_analysis",
+                                                                      "template_prompt_path":  "~/.agents/skills/local-vco-roles/references/role-prompts/bug-analyst.md",
+                                                                      "taxonomy_prompt_path":  "bundled/skills/local-vco-roles/references/role-prompts/bug-analyst.md"
+                                                                  },
+                                                                  {
+                                                                      "role":  "arch-critic",
+                                                                      "native_agent_type":  "default",
+                                                                      "permission_bundle":  "quality_gate",
+                                                                      "template_prompt_path":  "~/.agents/skills/local-vco-roles/references/role-prompts/arch-critic.md",
+                                                                      "taxonomy_prompt_path":  "bundled/skills/local-vco-roles/references/role-prompts/arch-critic.md"
+                                                                  },
+                                                                  {
+                                                                      "role":  "integration-analyst",
+                                                                      "native_agent_type":  "worker",
+                                                                      "permission_bundle":  "scoped_implementation",
+                                                                      "template_prompt_path":  "~/.agents/skills/local-vco-roles/references/role-prompts/integration-analyst.md",
+                                                                      "taxonomy_prompt_path":  "bundled/skills/local-vco-roles/references/role-prompts/integration-analyst.md"
+                                                                  },
+                                                                  {
+                                                                      "role":  "usability-analyst",
+                                                                      "native_agent_type":  "default",
+                                                                      "permission_bundle":  "quality_gate",
+                                                                      "template_prompt_path":  "~/.agents/skills/local-vco-roles/references/role-prompts/usability-analyst.md",
+                                                                      "taxonomy_prompt_path":  "bundled/skills/local-vco-roles/references/role-prompts/usability-analyst.md"
+                                                                  }
+                                                              ]
+                                                }
+                                            ]
+                           }
+}

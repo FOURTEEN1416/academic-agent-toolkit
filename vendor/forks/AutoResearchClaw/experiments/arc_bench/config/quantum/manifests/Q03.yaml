@@ -1,0 +1,142 @@
+# ============================================================================
+# Q03 — Classical optimizer comparison for VQE under finite shot noise
+# ----------------------------------------------------------------------------
+# Open research question. The agent holds ansatz / Hamiltonian / initial
+# parameters / simulator fixed and varies only the classical optimizer
+# (SPSA, COBYLA, L-BFGS-B, ADAM) and the shot budget per energy evaluation
+# (1024, 4096, 16384) on two H2 geometries (equilibrium and stretched).
+# Diagnostic: cumulative shots to reach chemical accuracy (1.6 mHa of FCI).
+# ============================================================================
+
+id: Q03
+title: "Classical optimizer comparison for VQE on H2 under finite shot noise"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+synthesis: |
+  The Variational Quantum Eigensolver (VQE) is the canonical algorithm
+  for near-term quantum chemistry. The quality of a VQE result depends
+  on the ansatz, but it also critically depends on the classical
+  optimizer that updates variational parameters using noisy energy
+  estimates from shot-based measurement. Different optimizers exploit
+  gradient information very differently. Gradient-free methods such as
+  COBYLA and Nelder-Mead do not need explicit gradients and may be
+  robust to shot noise but converge slowly in high dimensions.
+  Simultaneous Perturbation Stochastic Approximation (SPSA) approximates
+  the gradient using just two function evaluations regardless of
+  parameter count, trading gradient quality for evaluation count and
+  often dominating in low-shot regimes. Gradient-based methods such as
+  L-BFGS-B and ADAM need explicit or finite-difference gradients, which
+  are expensive under shot noise because each partial derivative is
+  estimated from a noisy function value.
+
+  The choice of optimizer is rarely studied head-to-head under a fixed
+  shot budget. Most VQE papers fix the optimizer and tune everything
+  else around it. Here we hold ansatz (hardware-efficient EfficientSU2
+  reps=2), Hamiltonian (H2 in STO-3G basis), and initial parameters
+  (small random Gaussian) fixed, and vary only the optimizer and the
+  shot budget per energy evaluation. The diagnostic question is which
+  optimizer reaches chemical accuracy (within 1.6 mHa of the FCI
+  reference) using the fewest cumulative shots.
+
+  A credible study uses at least two molecular geometries to avoid
+  overfitting to a single energy landscape. We use H2 at two bond
+  lengths: the equilibrium distance (0.74 angstrom) where the ground
+  state is near Hartree-Fock and the optimization landscape is well
+  behaved, and a stretched geometry (1.5 angstrom) where multireference
+  character makes the landscape harder and tests optimizer robustness.
+  Each optimizer is run at a SINGLE fixed shot budget of 1024 shots per
+  energy evaluation. This is chosen as a representative middle-ground
+  value: low enough that shot noise is non-trivial (per-eval std ~15 mHa,
+  well above the 1.6 mHa chemical accuracy threshold, so the running-mean
+  convergence criterion matters), but high enough that some optimizers
+  can plausibly converge within their iteration budgets. All cells use
+  3 random seeds per (optimizer, geometry) cell, giving 4 optimizers x
+  1 shot budget x 2 geometries x 3 seeds = 24 total cells. Cumulative
+  shots is the sum of shots used across all energy evaluations
+  (including finite-difference gradient evaluations where applicable).
+  The Hamiltonian itself is constructed via
+  qiskit_nature.second_q.drivers.PySCFDriver (qiskit_nature and pyscf
+  are required dependencies for this topic; hardcoded Pauli string
+  fallbacks are NOT accepted).
+
+  Implementation contract (see quantum-qiskit skill for the reference
+  code). In qiskit 2.x, `qiskit_algorithms.VQE` and
+  `qiskit_nature.second_q.algorithms` are NOT importable (they depend on
+  the removed `qiskit.primitives.BaseEstimator` V1 interface). VQE MUST
+  be implemented as a manual optimization loop:
+  energy(theta) = estimator.run([(bound_ansatz, qubit_op)]).result()[0].data.evs + e_nuclear,
+  using `qiskit.primitives.StatevectorEstimator` (the V2 primitive that
+  works in qiskit 2.x) for the energy evaluation, and one of the four
+  optimizer classes from `qiskit_algorithms.optimizers` (SPSA, COBYLA,
+  L_BFGS_B, ADAM) for the parameter update, called via
+  `optimizer.minimize(energy, initial_point)`. Each call to `energy`
+  counts as one evaluation; cumulative shots is
+  `n_evaluations * shots_per_eval`. The Hamiltonian itself is constructed
+  via qiskit_nature.second_q.drivers.PySCFDriver +
+  qiskit_nature.second_q.mappers.ParityMapper (these submodules ARE safe
+  to import in qiskit 2.x — only the qiskit_nature.second_q.algorithms
+  module is broken). With ParityMapper and 2-qubit reduction
+  (num_particles=(1,1)), the H2/STO-3G Hamiltonian is 2 qubits, not 4.
+  Implement shot noise by adding Gaussian noise to each energy value
+  with sigma = ||H||_1 / sqrt(shots_per_eval). The convergence criterion
+  for shots_to_chemical_accuracy is the cumulative shots when a 5-eval
+  running mean energy stays within 1.6 mHa of E_FCI for 5 consecutive
+  evaluations; if not reached, report None or a sentinel distinct from
+  the upper bound so analysis can flag the cell as "did not converge"
+  rather than treating the budget cap as a measurement.
+
+  Research question: *Under finite shot noise, which classical optimizer
+  (SPSA, COBYLA, L-BFGS-B, ADAM) reaches VQE chemical accuracy using the
+  fewest cumulative shots, and how does the answer depend on shot budget
+  per evaluation and on Hamiltonian difficulty (equilibrium vs stretched
+  H2)?*
+
+hypotheses:
+  - id: H1
+    statement: "At 1024 shots per energy evaluation, SPSA reaches chemical accuracy (|E_running_mean - E_FCI| < 1.6 mHa for 5 consecutive 5-eval windows) using fewer cumulative shots than L-BFGS-B (3-seed median), on at least 1 of 2 H2 geometries."
+    measurable: true
+  - id: H2
+    statement: "At 1024 shots per energy evaluation, gradient-free methods (SPSA and COBYLA, 6 seed-runs combined across both geometries) achieve chemical accuracy with success rate at least 4/6, while gradient-based methods (L-BFGS-B and ADAM, 6 seed-runs combined) achieve it with success rate at most 3/6. This isolates the shot-noise sensitivity of finite-difference gradient estimation."
+    measurable: true
+  - id: H3
+    statement: "Optimizer ranking by shots_to_chemical_accuracy changes between H2 equilibrium and H2 stretched geometries: at least one optimizer pair (e.g. SPSA vs COBYLA, or SPSA vs L-BFGS-B) swaps relative ranking between the two geometries, indicating that Hamiltonian difficulty changes optimizer choice."
+    measurable: true
+
+experiment_design:
+  research_question: "Under finite shot noise, which classical optimizer reaches VQE chemical accuracy in the fewest cumulative shots, and how does the answer depend on shot budget per evaluation and on Hamiltonian difficulty?"
+  conditions:
+    - name: "spsa"
+      description: "qiskit_algorithms.optimizers.SPSA(maxiter=200, learning_rate=0.05, perturbation=0.1). Fixed shot budget: 1024 shots per energy evaluation. Each iteration costs 2 energy evaluations."
+    - name: "cobyla"
+      description: "qiskit_algorithms.optimizers.COBYLA(maxiter=200, rhobeg=0.1, tol=1e-4). 1024 shots per energy evaluation. Each iteration costs 1 energy evaluation."
+    - name: "lbfgsb"
+      description: "qiskit_algorithms.optimizers.L_BFGS_B(maxiter=100, ftol=1e-6) with finite-difference gradients (epsilon=1e-3). 1024 shots per energy evaluation. Each iteration costs ~2*num_params energy evaluations for the gradient plus 1 for the function value (so ~25 evals per iter for EfficientSU2 reps=2 on 4 qubits)."
+    - name: "adam"
+      description: "qiskit_algorithms.optimizers.ADAM(maxiter=200, lr=0.05, beta_1=0.9, beta_2=0.999) with finite-difference gradients (epsilon=1e-3). 1024 shots per energy evaluation. Same per-iter cost as L-BFGS-B."
+  baselines:
+    - "Cumulative shots vs. FCI energy reference is the within-method benchmark"
+    - "Hartree-Fock energy at each geometry is the trivial classical baseline below which any optimizer should clear"
+  metrics:
+    - name: "shots_to_chemical_accuracy"
+      direction: "minimize"
+      description: "Cumulative shots until |E_running_mean - E_FCI| stays below 1.6 mHa for 5 consecutive evaluations. If not reached within the maxiter budget, report the total cumulative shots used (sentinel = max-shots) and flag success=False."
+    - name: "final_energy_error_hartree"
+      direction: "minimize"
+      description: "|E_final - E_FCI| in Hartree at the end of optimization (after all maxiter iterations)."
+    - name: "success_rate"
+      direction: "maximize"
+      description: "Fraction of seeds (out of 3 per condition x geometry) where the run reached chemical accuracy by the maxiter budget."
+  datasets:
+    - name: "h2_equilibrium"
+      source: "qiskit_nature.second_q.drivers.PySCFDriver (REQUIRED dependency)"
+      description: "H2 in STO-3G basis at bond length 0.74 angstrom. Build the FermionicOp via PySCFDriver, apply ParityMapper with 2-qubit reduction to obtain a 4-qubit qubit Hamiltonian (alternatively JordanWignerMapper + tapering). FCI reference: E_FCI = -1.137283 Ha. Hardcoded Pauli strings are NOT an acceptable substitute for this benchmark; both qiskit_nature and pyscf must be installed and used."
+    - name: "h2_stretched"
+      source: "qiskit_nature.second_q.drivers.PySCFDriver (REQUIRED dependency)"
+      description: "H2 in STO-3G basis at bond length 1.5 angstrom (multireference / strong-correlation regime). 4 qubits via the same mapping pipeline as h2_equilibrium. FCI reference: E_FCI ~ -1.001 Ha. Hardcoded Pauli strings NOT accepted."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1200
+
+rubric_path: "experiments/arc_bench/config/quantum/rubrics/Q03.json"

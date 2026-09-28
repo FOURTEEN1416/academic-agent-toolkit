@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "product": "PaperSpine5",
+  "version": "0.3.0-rc.1",
+  "build_id": "paperspine5-0.3.0-rc.1-build.20260823.1",
+  "release_state": "release-candidate-local-staging",
+  "paper_spine": {
+    "component_version": "4.0.0",
+    "verified_checkpoint": "2026-08-23-manual-opt-in-update",
+    "tests": 267,
+    "scope_note": "Open Release Beta is intentionally excluded because the delegated release authority freezes the independently accepted 267-test checkpoint."
+  },
+  "paper_figure": {
+    "tests": 60
+  },
+  "integration": {
+    "tests": 19,
+    "state_schema": "1.2",
+    "workflow_schema": "1.1",
+    "publication_cycle_interface": "1.0",
+    "visible_stages": [
+      "工作配置",
+      "论文定锚",
+      "科研图件",
+      "规范主稿",
+      "投稿循环"
+    ]
+  },
+  "update_policy": {
+    "manual": true,
+    "automatic": "opt-in-launch-preflight",
+    "default_enabled": false
+  },
+  "public_release": false
+}

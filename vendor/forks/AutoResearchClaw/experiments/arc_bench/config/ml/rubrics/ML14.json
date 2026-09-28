@@ -1,0 +1,117 @@
+{
+    "id": "ml14-root",
+    "requirements": "A credible experiment comparing split-conformal, Mondrian conformal, CQR-style, and optionally naive-quantile prediction intervals for ~90% target coverage on heteroscedastic regression: methods are implemented, executed on multiple datasets with multiple seeds, and results address H1/H2/H3 directionally with coverage-gap-focused analysis.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Alternative conformal variants (e.g., jackknife+, locally adaptive) that test the same scientific question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml14-code",
+            "requirements": "The conformal and baseline interval-construction conditions are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml14-code-methods",
+                    "requirements": "The submission implements multiple distinct conditions \u2014 typically including split conformal, a Mondrian/group-adaptive variant, and a CQR-style or naive-quantile baseline \u2014 as separate code paths, not a single shared interval formula.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml14-code-conformal-splits",
+                    "requirements": "Conformal methods use explicit train/calibration/test separation (or equivalent cross-fit logic) so calibration quantiles are computed on data not used to fit base regressors.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "ml14-code-datasets",
+                    "requirements": "The submission uses multiple datasets (including at least one heteroscedastic synthetic dataset) and prepares regression targets correctly.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml14-exec",
+            "requirements": "Execution outputs interval-quality metrics for each condition.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml14-exec-metrics",
+                    "requirements": "Execution produces a metrics artifact containing numeric coverage gap and mean interval width (or equivalents) for each implemented condition on at least one dataset.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml14-exec-seeds",
+                    "requirements": "Reported metrics are aggregated over multiple random seeds per (condition, dataset) cell with a dispersion estimate. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml14-exec-conditional",
+                    "requirements": "Execution computes a conditional-coverage diagnostic (e.g., worst-bin miscoverage across several bins) for the conformal methods.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml14-results",
+            "requirements": "Quantitative analysis addresses H1/H2/H3 directionally and discusses trade-offs between coverage, conditional validity, and interval efficiency.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml14-result-h1",
+                    "requirements": "The submission compares coverage gap of adaptive methods (Mondrian, CQR-style) against plain split conformal per dataset and conveys whether adaptive methods are meaningfully closer to the nominal coverage \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml14-result-h2",
+                    "requirements": "The submission evaluates whether CQR-style intervals achieve mean interval width comparable to or narrower than plain split conformal on most datasets and conveys an H2 outcome.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml14-result-h3",
+                    "requirements": "The submission compares worst-bin miscoverage for Mondrian conformal vs plain split conformal and conveys whether Mondrian yields a meaningful improvement in conditional coverage (H3).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml14-result-writeup",
+                    "requirements": "The README or writeup describes methods and datasets, reports key metric values (coverage gap, interval width, worst-bin miscoverage), conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations (finite seeds, binning choice, synthetic-to-real transfer). No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

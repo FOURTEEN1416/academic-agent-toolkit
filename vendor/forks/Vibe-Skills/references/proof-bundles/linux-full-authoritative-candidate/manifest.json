@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "bundle_id": "codex-linux-full-authoritative-candidate-2026-03-13",
+  "frozen_at": "2026-03-13",
+  "source_release": {
+    "version": "2.3.47",
+    "updated": "2026-03-15"
+  },
+  "lane_id": "codex/linux",
+  "current_status": "supported-with-constraints",
+  "target_status": "full-authoritative",
+  "evidence_state": "fresh-machine-proof-complete-pending-promotion-sync",
+  "contracts": [
+    "config/live-document-contract.json",
+    "config/runtime-contract.json",
+    "config/adapter-registry.json",
+    "adapters/codex/host-profile.json",
+    "adapters/codex/platform-linux.json"
+  ],
+  "required_gates": [
+    "scripts/verify/vibe-platform-support-contract-gate.ps1",
+    "scripts/verify/vibe-platform-doctor-parity-gate.ps1",
+    "scripts/verify/vibe-cross-host-install-isolation-gate.ps1",
+    "scripts/verify/vibe-universalization-no-regression-gate.ps1",
+    "scripts/verify/vibe-proof-bundle-tracked-files-gate.ps1",
+    "scripts/verify/vibe-linux-pwsh-proof-gate.ps1",
+    "scripts/verify/vibe-platform-promotion-bundle.ps1"
+  ],
+  "required_fresh_machine_reports": [
+    "references/proof-bundles/linux-full-authoritative-candidate/linux-pwsh-run-01-wsl/installed-runtime-outputs/runtime-freshness-receipt.json",
+    "references/proof-bundles/linux-full-authoritative-candidate/linux-pwsh-run-02-docker/installed-runtime-outputs/runtime-freshness-receipt.json"
+  ],
+  "frozen_runs": [
+    {
+      "id": "linux-pwsh-run-01-wsl",
+      "environment": "WSL Ubuntu 24.04",
+      "bundle_dir": "references/proof-bundles/linux-full-authoritative-candidate/linux-pwsh-run-01-wsl",
+      "operation_record": null,
+      "required_files": [
+        "installed-runtime-outputs/runtime-freshness-receipt.json"
+      ],
+      "expected_check_summary": "Result: 61 passed, 0 failed, 0 warnings",
+      "expected_readiness_state": "manual_actions_pending"
+    },
+    {
+      "id": "linux-pwsh-run-02-docker",
+      "environment": "Docker Ubuntu 24.04",
+      "bundle_dir": "references/proof-bundles/linux-full-authoritative-candidate/linux-pwsh-run-02-docker",
+      "operation_record": null,
+      "required_files": [
+        "installed-runtime-outputs/runtime-freshness-receipt.json"
+      ],
+      "expected_check_summary": "Result: 61 passed, 0 failed, 0 warnings",
+      "expected_readiness_state": "manual_actions_pending"
+    }
+  ],
+  "required_replay_sync": {
+    "fixture": "tests/replay/fixtures/host-capability-matrix.json",
+    "only_allowed_full_authoritative_lanes_must_include_linux_after_promotion": true
+  },
+  "truth_constraints": {
+    "windows_must_remain_full_authoritative": true,
+    "linux_without_pwsh_must_remain_degraded": true,
+    "promotion_requires_fresh_machine_evidence": true
+  },
+  "notes": [
+    "The current bundle is the canonical proof bundle for the codex/linux promotion candidate lane.",
+    "Fresh-machine Linux proof is frozen, but replay/status/release truth remains intentionally below formal full-authoritative promotion.",
+    "Manifest-declared machine-readable proof artifacts are intentionally tracked in git so clean clones can replay the same promotion truth.",
+    "Historical operation records and dated status pages are retired; the runtime receipts remain the bounded evidence surface.",
+    "Raw shell logs and receipt inventories are no longer part of the minimum tracked proof surface for this bundle."
+  ]
+}

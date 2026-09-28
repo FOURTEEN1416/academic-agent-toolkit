@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-13",
+  "policy": "replay-provider-state-matrix",
+  "sources": {
+    "router_provider_registry": "config/router-provider-registry.json",
+    "router_provider_defaults": "config/router-provider-defaults.json",
+    "router_model_neutrality_doc": "docs/universalization/router-model-neutrality.md"
+  },
+  "runtime_states": [
+    "provider-assisted",
+    "heuristic-only",
+    "offline-frozen",
+    "unsupported"
+  ],
+  "defaults_contract": {
+    "default_runtime_state": "heuristic-only",
+    "fallback_provider_mode": "heuristic-only",
+    "offline_frozen_enabled": true,
+    "offline_frozen_state": "offline-frozen"
+  },
+  "providers": [
+    {
+      "id": "openai-compatible",
+      "kind": "provider-assisted",
+      "module_relpath": "scripts/router/modules/01-openai-responses.ps1",
+      "required_env_any": [
+        "OPENAI_API_KEY"
+      ],
+      "offline_state_expected": "heuristic-only",
+      "offline_abstain_reason_expected": "missing_openai_api_key",
+      "no_network_without_credentials": true
+    },
+    {
+      "id": "heuristic-only",
+      "kind": "heuristic-only",
+      "module_relpath": "scripts/router/modules/00-core-utils.ps1",
+      "required_env_any": [],
+      "offline_state_expected": "heuristic-only",
+      "offline_abstain_reason_expected": "not_applicable",
+      "no_network_without_credentials": true
+    }
+  ],
+  "hard_truth_rules": {
+    "provider_layer_advice_only": true,
+    "provider_absence_must_be_labeled": true,
+    "no_silent_degrade": true,
+    "no_network_calls_without_credentials": true
+  }
+}

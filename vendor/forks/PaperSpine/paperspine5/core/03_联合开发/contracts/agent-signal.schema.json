@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/agent-signal.schema.json",
+  "title": "Host-neutral continuation signal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "signal_type", "job_id", "source"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "signal_type": {"enum": ["continue", "motivation_confirmed", "contribution_confirmed", "figure_review_confirmed"]},
+    "job_id": {"type": "string", "minLength": 1},
+    "source": {"enum": ["codex", "claude-code", "dsh", "standalone-skill", "ui", "user"]},
+    "note": {"type": "string"}
+  }
+}

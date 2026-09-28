@@ -1,0 +1,227 @@
+﻿{
+    "version": 1,
+    "updated": "2026-02-26",
+    "enabled": true,
+    "mode": "soft",
+    "preserve_routing_assignment": true,
+    "routing_integration": "post_route_system_design_overlay",
+    "task_allow": [
+        "planning",
+        "research",
+        "review"
+    ],
+    "grade_allow": [
+        "L",
+        "XL"
+    ],
+    "monitor": {
+        "pack_allow": [],
+        "skill_allow": []
+    },
+    "positive_keywords": [
+        "system design",
+        "architecture design",
+        "distributed system",
+        "high availability",
+        "scalability",
+        "throughput",
+        "latency",
+        "rps",
+        "qps",
+        "slo",
+        "sla",
+        "api gateway",
+        "message queue",
+        "event driven",
+        "load balancer",
+        "database sharding",
+        "replication",
+        "failover",
+        "capacity planning",
+        "consistency model",
+        "系统设计",
+        "架构设计",
+        "分布式系统",
+        "高可用",
+        "扩展性",
+        "吞吐",
+        "延迟",
+        "容量规划",
+        "一致性模型",
+        "消息队列",
+        "读写分离",
+        "分片",
+        "故障切换"
+    ],
+    "negative_keywords": [
+        "interview prep",
+        "system design interview",
+        "flashcard",
+        "anki",
+        "quiz only",
+        "背题",
+        "面试八股",
+        "刷题",
+        "速记",
+        "只要题库"
+    ],
+    "coverage_dimensions": {
+        "requirements": [
+            "functional requirement",
+            "non functional requirement",
+            "nfr",
+            "scope",
+            "acceptance criteria",
+            "功能需求",
+            "非功能需求",
+            "范围",
+            "验收标准"
+        ],
+        "nfr_latency_throughput": [
+            "latency",
+            "throughput",
+            "p95",
+            "p99",
+            "slo",
+            "sla",
+            "qps",
+            "rps",
+            "延迟",
+            "吞吐",
+            "可用性目标"
+        ],
+        "capacity_estimate": [
+            "capacity",
+            "estimate",
+            "traffic growth",
+            "sizing",
+            "headroom",
+            "容量估算",
+            "流量增长",
+            "预留"
+        ],
+        "consistency_availability": [
+            "consistency",
+            "availability",
+            "cap theorem",
+            "eventual consistency",
+            "quorum",
+            "一致性",
+            "可用性",
+            "最终一致"
+        ],
+        "cache_strategy": [
+            "cache",
+            "ttl",
+            "cache invalidation",
+            "cache aside",
+            "redis",
+            "缓存",
+            "缓存失效",
+            "缓存策略"
+        ],
+        "data_partitioning_replication": [
+            "shard",
+            "partition",
+            "replication",
+            "read replica",
+            "multi region",
+            "分片",
+            "分区",
+            "复制",
+            "多地域"
+        ],
+        "async_backpressure": [
+            "message queue",
+            "stream",
+            "backpressure",
+            "retry",
+            "idempotent",
+            "消息队列",
+            "流处理",
+            "背压",
+            "重试",
+            "幂等"
+        ],
+        "failure_recovery": [
+            "failover",
+            "circuit breaker",
+            "degrade",
+            "disaster recovery",
+            "rto",
+            "rpo",
+            "故障切换",
+            "熔断",
+            "降级",
+            "容灾"
+        ],
+        "observability": [
+            "metrics",
+            "logging",
+            "tracing",
+            "dashboard",
+            "alert",
+            "监控指标",
+            "日志",
+            "链路追踪",
+            "告警"
+        ],
+        "cost_tradeoff": [
+            "cost",
+            "tradeoff",
+            "budget",
+            "cost optimization",
+            "tco",
+            "成本",
+            "权衡",
+            "预算",
+            "成本优化"
+        ]
+    },
+    "thresholds": {
+        "trigger_signal_score_min": 0.45,
+        "confirm_signal_score_min": 0.58,
+        "high_signal_score_min": 0.78,
+        "suppress_penalty_weight": 0.24,
+        "min_dimension_hits_for_overlay": 2,
+        "min_coverage_score_for_ready": 0.6,
+        "min_coverage_score_for_strict_confirm": 0.72
+    },
+    "strict_confirm_scope": {
+        "grades": [
+            "L",
+            "XL"
+        ],
+        "task_types": [
+            "planning",
+            "review"
+        ]
+    },
+    "artifact_contract": [
+        "architecture-one-pager",
+        "capacity-note",
+        "tradeoff-matrix",
+        "risk-register"
+    ],
+    "recommendations_by_dimension": {
+        "requirements": "Clarify functional scope and non-functional targets before locking component boundaries.",
+        "nfr_latency_throughput": "State target latency/throughput explicitly and tie them to concrete SLOs.",
+        "capacity_estimate": "Estimate peak and growth traffic with safety headroom and scaling breakpoints.",
+        "consistency_availability": "Document consistency and availability trade-offs for key read/write paths.",
+        "cache_strategy": "Define cache placement, invalidation, and TTL strategy for critical hot paths.",
+        "data_partitioning_replication": "Describe sharding/replication choices and migration strategy early.",
+        "async_backpressure": "Include queue semantics, retry policy, idempotency, and backpressure handling.",
+        "failure_recovery": "Specify failover, degradation policy, and recovery objectives (RTO/RPO).",
+        "observability": "Define metrics/logs/traces plus alert thresholds for each critical subsystem.",
+        "cost_tradeoff": "Capture cost-performance trade-offs and expected spend guardrails."
+    },
+    "fallback_behavior": {
+        "on_missing_config": "bypass_overlay",
+        "on_parser_failure": "continue_advisory"
+    }
+}
+
+
+
+
+

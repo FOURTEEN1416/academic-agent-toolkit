@@ -1,0 +1,39 @@
+{
+  "case_id": "managed-completed-alive",
+  "now": "2026-03-11T14:00:00Z",
+  "live_processes": [
+    {
+      "pid": 43001,
+      "parent_pid": 43000,
+      "process_name": "node",
+      "command_line": "node completed-but-alive.js",
+      "working_set_bytes": 62914560,
+      "working_set_mb": 60.0
+    }
+  ],
+  "ledger": {
+    "entries": [
+      {
+        "entry_id": "vgo-node-completed-43001",
+        "label": "completed-but-alive",
+        "owner_id": "fixture@test",
+        "pid": 43001,
+        "launcher_pid": 43000,
+        "working_directory": "D:/fixture/project",
+        "command_line": "node completed-but-alive.js",
+        "status": "completed",
+        "started_at": "2026-03-11T13:40:00Z",
+        "closed_at": "2026-03-11T13:58:00Z",
+        "last_heartbeat_at": "2026-03-11T13:57:50Z",
+        "last_seen_alive_at": "2026-03-11T13:57:50Z",
+        "heartbeat_path": "outputs/runtime/process-health/heartbeats/vgo-node-completed-43001.json",
+        "ownership": "vco-managed",
+        "cleanup_safe": true,
+        "stale_after_sec": 120,
+        "heartbeat_interval_sec": 10,
+        "node_pid_confirmed": true,
+        "target_process_name": "node"
+      }
+    ]
+  }
+}

@@ -1,0 +1,374 @@
+{
+  "concept_id": "paper.derived.evidence.robustness.attack",
+  "icon_id": "paper.derived.evidence.robustness.attack.paper_derived_outline.v1",
+  "primary_meaning": "Paper-derived robustness/attack panel",
+  "aliases": [
+    "attack robustness",
+    "poisoning defense"
+  ],
+  "negative_aliases": [
+    "paper-specific module name",
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim",
+    "literal reproduction of source figure"
+  ],
+  "shape_family_id": "paper.derived.robustness_attack",
+  "style_variant": "paper_derived_refined_outline",
+  "domain_tags": [
+    "paper_derived",
+    "framework_figure_motif",
+    "AI",
+    "CS",
+    "paper_figure",
+    "evidence",
+    "robustness",
+    "attack"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot",
+    "visual_layout_reuse"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support",
+    "literal reproduction of source paper figure"
+  ],
+  "source_lineage": {
+    "import_mode": "paper_figure_motif_abstraction",
+    "source": "paper_framework_figure_motif_extraction",
+    "source_path": "final_reference_figure_library.jsonl",
+    "source_figure_count": 10,
+    "source_figures": [
+      {
+        "reference_case_id": "iclr2025/artificial-kuramoto-oscillatory-neurons/fig-0001",
+        "paper_title": "Artificial Kuramoto Oscillatory Neurons",
+        "field": "Spectral",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Spectral/artificial-kuramoto-oscillatory-neurons/figures/framework_01_kuramoto-fig1-drawio.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/Spectral/artificial-kuramoto-oscillatory-neurons/sources/arxiv_src/iclr2025_conference.tex",
+          "line": 201,
+          "label": "fig:kuramoto_desc",
+          "includegraphics": "gfx/Kuramoto-Fig1.drawio.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/bad-pfl-exploiting-backdoor-attacks-against-personalized-federated-learning/fig-0001",
+        "paper_title": "Bad-PFL: Exploiting Backdoor Attacks against Personalized Federated Learning",
+        "field": "FL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/FL/bad-pfl-exploiting-backdoor-attacks-against-personalized-federated-learning/figures/pdf_framework_page_001.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/FL/bad-pfl-exploiting-backdoor-attacks-against-personalized-federated-learning/figures/pdf_framework_page_001.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:bad-pfl-exploiting-backdoor-attacks-against-personalized-federated-learning:fig-0001",
+          "includegraphics": "iclr2025_collection/papers/FL/bad-pfl-exploiting-backdoor-attacks-against-personalized-federated-learning/figures/pdf_framework_page_001.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/dept-decoupled-embeddings-for-pre-training-language-models/fig-0001",
+        "paper_title": "DEPT: Decoupled Embeddings for Pre-training Language Models",
+        "field": "FL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/FL/dept-decoupled-embeddings-for-pre-training-language-models/figures/framework_01_mclr-pile-act-act.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "caption_or_label_match",
+          "file": "iclr2025_collection/papers/FL/dept-decoupled-embeddings-for-pre-training-language-models/sources/arxiv_src/files/eval.tex",
+          "line": 61,
+          "label": "fig:motivation:pre_train_Activations",
+          "includegraphics": "plots/MCLR_PILE_ACT_l2_norms.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/dept-decoupled-embeddings-for-pre-training-language-models/fig-0002",
+        "paper_title": "DEPT: Decoupled Embeddings for Pre-training Language Models",
+        "field": "FL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/FL/dept-decoupled-embeddings-for-pre-training-language-models/figures/framework_02_mclr-pile-act-l2-norms.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/FL/dept-decoupled-embeddings-for-pre-training-language-models/sources/arxiv_src/files/eval.tex",
+          "line": 61,
+          "label": "fig:motivation:pre_train_Activations",
+          "includegraphics": "plots/MCLR_PILE_ACT_l2_norms.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/dept-decoupled-embeddings-for-pre-training-language-models/fig-0003",
+        "paper_title": "DEPT: Decoupled Embeddings for Pre-training Language Models",
+        "field": "FL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/FL/dept-decoupled-embeddings-for-pre-training-language-models/figures/framework_03_dept-pipeline-dept.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/FL/dept-decoupled-embeddings-for-pre-training-language-models/sources/arxiv_src/files/intro.tex",
+          "line": 18,
+          "label": "fig:summary_diagram",
+          "includegraphics": "diagrams/DEPT-pipeline-dept.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/emerging-safety-attack-and-defense-in-federated-instruction-tuning-of-large-language-model/fig-0001",
+        "paper_title": "Emerging Safety Attack and Defense in Federated Instruction Tuning of Large Language Models",
+        "field": "FL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/FL/emerging-safety-attack-and-defense-in-federated-instruction-tuning-of-large-language-model/figures/framework_01_overview-v2.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/FL/emerging-safety-attack-and-defense-in-federated-instruction-tuning-of-large-language-model/sources/arxiv_src/main.tex",
+          "line": 250,
+          "label": "fig:overview",
+          "includegraphics": "figs/overview_v2.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/emerging-safety-attack-and-defense-in-federated-instruction-tuning-of-large-language-model/fig-0002",
+        "paper_title": "Emerging Safety Attack and Defense in Federated Instruction Tuning of Large Language Models",
+        "field": "FL",
+        "figure_subtype": "data_or_embedding_map",
+        "layout_grammar": "map_or_distribution_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2025_collection/papers/FL/emerging-safety-attack-and-defense-in-federated-instruction-tuning-of-large-language-model/figures/framework_02_heatmap-combine.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/FL/emerging-safety-attack-and-defense-in-federated-instruction-tuning-of-large-language-model/sources/arxiv_src/main.tex",
+          "line": 496,
+          "label": "fig:heatmap",
+          "includegraphics": "figs/heatmap_combine.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/energy-based-backdoor-defense-against-federated-graph-learning/fig-0001",
+        "paper_title": "Energy-based Backdoor Defense Against Federated Graph Learning",
+        "field": "FL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/FL/energy-based-backdoor-defense-against-federated-graph-learning/figures/pdf_framework_page_002.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/FL/energy-based-backdoor-defense-against-federated-graph-learning/figures/pdf_framework_page_002.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:energy-based-backdoor-defense-against-federated-graph-learning:fig-0001",
+          "includegraphics": "iclr2025_collection/papers/FL/energy-based-backdoor-defense-against-federated-graph-learning/figures/pdf_framework_page_002.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/energy-based-backdoor-defense-against-federated-graph-learning/fig-0002",
+        "paper_title": "Energy-based Backdoor Defense Against Federated Graph Learning",
+        "field": "FL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/FL/energy-based-backdoor-defense-against-federated-graph-learning/figures/pdf_framework_page_003.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/FL/energy-based-backdoor-defense-against-federated-graph-learning/figures/pdf_framework_page_003.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:energy-based-backdoor-defense-against-federated-graph-learning:fig-0002",
+          "includegraphics": "iclr2025_collection/papers/FL/energy-based-backdoor-defense-against-federated-graph-learning/figures/pdf_framework_page_003.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/energy-based-backdoor-defense-against-federated-graph-learning/fig-0003",
+        "paper_title": "Energy-based Backdoor Defense Against Federated Graph Learning",
+        "field": "FL",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "train_infer_split",
+        "source_path": "iclr2025_collection/papers/FL/energy-based-backdoor-defense-against-federated-graph-learning/figures/pdf_framework_page_004.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/FL/energy-based-backdoor-defense-against-federated-graph-learning/figures/pdf_framework_page_004.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:energy-based-backdoor-defense-against-federated-graph-learning:fig-0003",
+          "includegraphics": "iclr2025_collection/papers/FL/energy-based-backdoor-defense-against-federated-graph-learning/figures/pdf_framework_page_004.png"
+        },
+        "match_score": 8
+      }
+    ],
+    "extraction_basis": [
+      "source-grounded final reference figure records",
+      "figure subtype/layout/topology tags",
+      "caption/source-anchor keyword evidence",
+      "borrowable visual design patterns"
+    ],
+    "abstraction_level": "non_literal_semantic_visual_motif",
+    "imported_at": "2026-05-24T08:43:01.904Z",
+    "modified": true,
+    "modification": "Created as a simplified vector motif from repeated downloaded-paper framework figure patterns; source-paper text, labels, claims, datasets, metrics, and exact visual composition are intentionally not copied.",
+    "refinement": {
+      "status": "refined_semantic_vector_redraw",
+      "semantic_kind": "evidence",
+      "workflow": [
+        "contact_sheet_with_padding",
+        "imagegen_prompt_manifest_for_style_exploration",
+        "semantic_cut_slot",
+        "programmatic_svg_redraw",
+        "index_update"
+      ],
+      "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+      "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+      "generated_at": "2026-05-24T09:34:49.930Z"
+    }
+  },
+  "license": {
+    "name": "Paper-derived framework figure motif abstraction",
+    "license": "source-paper-visual-motif-abstraction",
+    "usage_terms": "Internal reusable visual/layout motif. Use for generic figure icon language only; do not treat as source-paper evidence or copy source-paper facts."
+  },
+  "files": {
+    "raw_svg": "icons/raw/paper.derived.evidence.robustness.attack.paper_derived_outline.v1.svg",
+    "tight_svg": "icons/tight/paper.derived.evidence.robustness.attack.paper_derived_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/paper.derived.evidence.robustness.attack.paper_derived_outline.v1.ppt_safe.svg",
+    "semantic_cut_svg": "paper_derived_icon_refinement/cut_svg/paper.derived.evidence.robustness.attack.paper_derived_outline.v1.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": -2.775,
+    "minY": -2.775,
+    "width": 25.85,
+    "height": 23.55,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": -0.083,
+      "top": -0.083,
+      "right": 0.071,
+      "bottom": 0.167
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "refined_from_semantic_contact_sheet": true,
+    "editable_shape_primitives": true,
+    "sha1": "55b2c4e2127eb28dbc1ece30e5439c96c48830bd"
+  },
+  "transfer_contract": {
+    "allowed": [
+      "generic visual icon language",
+      "layout/motif inspiration",
+      "PPT editable stencil use"
+    ],
+    "disallowed": [
+      "source-paper facts",
+      "paper-specific labels",
+      "metrics",
+      "datasets",
+      "claims",
+      "literal source-figure reproduction"
+    ]
+  },
+  "refinement": {
+    "status": "refined_semantic_vector_redraw",
+    "semantic_kind": "evidence",
+    "workflow": [
+      "contact_sheet_with_padding",
+      "imagegen_prompt_manifest_for_style_exploration",
+      "semantic_cut_slot",
+      "programmatic_svg_redraw",
+      "index_update"
+    ],
+    "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+    "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+    "generated_at": "2026-05-24T09:34:49.930Z"
+  }
+}

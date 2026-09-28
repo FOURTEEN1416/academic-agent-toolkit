@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="183mm" height="102.9375mm"
+     viewBox="0 0 2400 1350" role="img" aria-labelledby="title desc">
+  <title id="title">Sulfide solid-electrolyte and lithium-metal interface evolution</title>
+  <desc id="desc">Illustrative synthetic mechanism showing aligned initial, cycling and competing failure states, with carrier, chemical, grain-boundary and mechanical scales plus three stabilization interventions.</desc>
+  <metadata>{"task":"303-solid-state-battery","version":"v2","mechanism":"illustrative synthetic mechanism","qualitative":true,"not_to_scale":true,"measured_field":false,"background":"white","editable_text":true,"reference_artwork_embedded":false}</metadata>
+  <defs>
+    <marker id="li-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#0b84a5"/></marker>
+    <marker id="e-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#d24f45"/></marker>
+    <marker id="stress-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#7a56a1"/></marker>
+    <marker id="dark-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#344b52"/></marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill:#17343b; }
+      .title { font-size:40px; font-weight:700; letter-spacing:-0.4px; }
+      .subtitle { font-size:24px; fill:#52676c; }
+      .stage { font-size:30px; font-weight:700; }
+      .stage-sub { font-size:24px; font-weight:600; fill:#52676c; }
+      .route { font-size:24px; font-weight:700; }
+      .label { font-size:26px; font-weight:700; }
+      .body { font-size:24px; fill:#354f55; }
+      .legend { font-size:24px; font-weight:600; }
+      .micro { font-size:24px; font-weight:600; }
+      .panel { fill:#ffffff; stroke:#9aada9; stroke-width:3; }
+      .inset { fill:#ffffff; stroke:#9aada9; stroke-width:3; }
+      .connector { fill:none; stroke:#344b52; stroke-width:4; }
+      .li-path { fill:none; stroke:#0b84a5; stroke-width:8; marker-end:url(#li-arrow); }
+      .e-path { fill:none; stroke:#d24f45; stroke-width:6; marker-end:url(#e-arrow); }
+      .stress { fill:none; stroke:#7a56a1; stroke-width:6; marker-start:url(#stress-arrow); marker-end:url(#stress-arrow); }
+    </style>
+  </defs>
+
+  <rect id="background" x="0" y="0" width="2400" height="1350" fill="#ffffff" data-qa="visible"/>
+
+  <g id="title-block">
+    <text x="70" y="62" class="title" data-qa-text="true">Sulfide SSE | Li-metal interface evolution, failure competition and stabilization</text>
+    <text x="70" y="101" class="subtitle" data-qa-text="true">Aligned cross-sections connect transport, reaction chemistry, grain boundaries and mechanics across cycling time</text>
+  </g>
+
+  <g id="scientific-legend">
+    <line x1="76" y1="151" x2="139" y2="151" class="li-path" data-qa-connector="true"/>
+    <text x="158" y="160" class="legend" data-qa-text="true">Li+ in SSE</text>
+    <line x1="355" y1="151" x2="410" y2="151" stroke="#d24f45" stroke-width="6" data-qa-connector="true"/>
+    <line x1="410" y1="137" x2="410" y2="165" stroke="#d24f45" stroke-width="6" data-qa-connector="true"/>
+    <text x="431" y="160" class="legend" data-qa-text="true">e- blocking</text>
+    <line x1="650" y1="151" x2="725" y2="151" class="stress" data-qa-connector="true"/>
+    <text x="746" y="160" class="legend" data-qa-text="true">stress</text>
+    <line x1="910" y1="151" x2="983" y2="151" stroke="#e1b85b" stroke-width="18" data-qa-connector="true"/>
+    <text x="1005" y="160" class="legend" data-qa-text="true">Li-side interphase</text>
+    <path d="M1332 138 L1350 151 L1332 164" fill="none" stroke="#474c52" stroke-width="5" data-qa-connector="true"/>
+    <text x="1372" y="160" class="legend" data-qa-text="true">crack / grain boundary</text>
+    <ellipse cx="1782" cy="151" rx="24" ry="14" fill="#ffffff" stroke="#d97849" stroke-width="4" data-qa="visible"/>
+    <text x="1820" y="160" class="legend" data-qa-text="true">void</text>
+    <path d="M1960 165 C1950 146 1975 138 1964 119" fill="none" stroke="#c44e3f" stroke-width="9" data-qa="visible"/>
+    <text x="1993" y="160" class="legend" data-qa-text="true">Li filament</text>
+  </g>
+
+  <g id="time-grid">
+    <rect x="70" y="205" width="700" height="680" rx="8" class="panel" data-qa="visible"/>
+    <rect x="850" y="205" width="700" height="680" rx="8" class="panel" data-qa="visible"/>
+    <rect x="1630" y="205" width="700" height="680" rx="8" class="panel" data-qa="visible"/>
+    <path d="M770 255 H835" class="connector" marker-end="url(#dark-arrow)" data-qa-connector="true"/>
+    <path d="M1550 255 H1615" class="connector" marker-end="url(#dark-arrow)" data-qa-connector="true"/>
+  </g>
+
+  <g id="stage-t0-as-assembled">
+    <text x="100" y="253" class="stage" data-qa-text="true">t0 · AS ASSEMBLED</text>
+    <text x="100" y="288" class="stage-sub" data-qa-text="true">incipient solid–solid contact</text>
+    <g id="t0-sulfide-sse"><polygon points="100,345 285,335 338,452 115,478" fill="#dcebe3" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="285,335 500,335 532,445 338,452" fill="#d2e5db" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="500,335 738,345 740,475 532,445" fill="#e2eee8" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="115,478 338,452 324,610 98,610" fill="#d0e3d9" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="338,452 532,445 525,610 324,610" fill="#dbeae2" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="532,445 740,475 740,610 525,610" fill="#cfe3d8" stroke="#66857b" stroke-width="3" data-qa="visible"/></g>
+    <path d="M98 610 C250 607 425 613 580 608 C645 606 690 609 740 607 L740 642 L98 642 Z" fill="#e1b85b" stroke="#b58a30" stroke-width="3" data-qa="visible"/>
+    <rect x="98" y="642" width="642" height="158" fill="#c9dde8" stroke="#7295a4" stroke-width="3" data-qa="visible"/>
+    <line x1="98" y1="800" x2="740" y2="800" stroke="#566b71" stroke-width="5" data-qa="visible"/>
+    <path d="M205 420 V588 M405 410 V588 M610 420 V588" class="li-path" data-qa-connector="true"/>
+    <circle cx="205" cy="397" r="14" fill="#0b84a5" stroke="#ffffff" stroke-width="3" data-qa="visible"/>
+    <circle cx="405" cy="387" r="14" fill="#0b84a5" stroke="#ffffff" stroke-width="3" data-qa="visible"/>
+    <circle cx="610" cy="397" r="14" fill="#0b84a5" stroke="#ffffff" stroke-width="3" data-qa="visible"/>
+    <path d="M215 742 V674" class="e-path" data-qa-connector="true"/>
+    <line x1="188" y1="668" x2="242" y2="668" stroke="#d24f45" stroke-width="7" data-qa-connector="true"/>
+    <path d="M520 570 H650" class="stress" data-qa-connector="true"/>
+    <text x="100" y="846" class="body" data-qa-text="true">uniform Li+ flux · intact e- block · low stress</text>
+  </g>
+
+  <g id="stage-t1-cycling">
+    <text x="880" y="253" class="stage" data-qa-text="true">t1 · REPEATED CYCLING</text>
+    <text x="880" y="288" class="stage-sub" data-qa-text="true">reaction growth and contact redistribution</text>
+    <g id="t1-sulfide-sse"><polygon points="880,345 1050,335 1120,430 895,470" fill="#dcebe3" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="1050,335 1285,335 1320,455 1120,430" fill="#d0e3d9" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="1285,335 1518,345 1520,470 1320,455" fill="#e0ede6" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="895,470 1120,430 1100,610 878,610" fill="#cfe3d8" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="1120,430 1320,455 1305,610 1100,610" fill="#dbeae2" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="1320,455 1520,470 1520,610 1305,610" fill="#d2e5db" stroke="#66857b" stroke-width="3" data-qa="visible"/></g>
+    <path id="t1-grain-boundary" d="M1120 430 L1098 500 L1126 548 L1110 610" fill="none" stroke="#474c52" stroke-width="6" stroke-dasharray="12 8" data-qa="visible"/>
+    <path d="M878 610 C970 596 1045 628 1120 605 C1195 582 1260 635 1335 606 C1410 579 1465 620 1520 600 L1520 646 C1460 659 1405 630 1335 654 C1260 678 1190 638 1120 661 C1040 686 965 651 878 664 Z" fill="#e1b85b" stroke="#b58a30" stroke-width="3" data-qa="visible"/>
+    <path d="M878 664 C970 651 1045 686 1120 661 C1190 638 1260 678 1335 654 C1405 630 1460 659 1520 646 L1520 800 L878 800 Z" fill="#c9dde8" stroke="#7295a4" stroke-width="3" data-qa="visible"/>
+    <line x1="878" y1="800" x2="1520" y2="800" stroke="#566b71" stroke-width="5" data-qa="visible"/>
+    <ellipse cx="1045" cy="653" rx="48" ry="21" fill="#ffffff" stroke="#d97849" stroke-width="4" data-qa="visible"/>
+    <ellipse cx="1398" cy="646" rx="62" ry="24" fill="#ffffff" stroke="#d97849" stroke-width="4" data-qa="visible"/>
+    <path d="M960 410 C958 498 982 551 1013 600" class="li-path" data-qa-connector="true"/>
+    <path d="M1210 397 C1212 492 1240 555 1275 603" class="li-path" data-qa-connector="true"/>
+    <path d="M1465 410 C1462 490 1438 545 1418 598" class="li-path" data-qa-connector="true"/>
+    <circle cx="960" cy="388" r="14" fill="#0b84a5" stroke="#ffffff" stroke-width="3" data-qa="visible"/>
+    <circle cx="1210" cy="375" r="14" fill="#0b84a5" stroke="#ffffff" stroke-width="3" data-qa="visible"/>
+    <circle cx="1465" cy="388" r="14" fill="#0b84a5" stroke="#ffffff" stroke-width="3" data-qa="visible"/>
+    <path d="M930 750 V688" class="e-path" data-qa-connector="true"/>
+    <line x1="903" y1="682" x2="957" y2="682" stroke="#d24f45" stroke-width="7" data-qa-connector="true"/>
+    <path d="M1325 570 H1455" class="stress" data-qa-connector="true"/>
+    <rect x="1250" y="586" width="95" height="93" fill="none" stroke="#344b52" stroke-width="4" data-qa="visible"/>
+    <text x="880" y="846" class="body" data-qa-text="true">heterogeneous interphase · residual contact necks</text>
+  </g>
+
+  <g id="stage-t2-competing-outcomes">
+    <text x="1660" y="253" class="stage" data-qa-text="true">t2 · COMPETING OUTCOMES</text>
+    <text x="1660" y="288" class="stage-sub" data-qa-text="true">dominance depends on half-cycle and local defects</text>
+    <g id="route-a-void-contact-loss">
+      <text x="1652" y="333" class="route" data-qa-text="true">A · STRIPPING → VOID</text>
+      <g><polygon points="1652,365 1744,340 1807,435 1660,480" fill="#dcebe3" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="1744,340 1947,352 1947,468 1807,435" fill="#d0e3d9" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="1660,480 1807,435 1800,610 1652,610" fill="#cfe3d8" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="1807,435 1947,468 1947,610 1800,610" fill="#dbeae2" stroke="#66857b" stroke-width="3" data-qa="visible"/></g>
+      <path d="M1652 610 C1720 608 1780 610 1820 607 C1860 605 1905 610 1947 608 L1947 638 C1908 642 1860 637 1822 640 C1782 644 1725 637 1652 641 Z" fill="#e1b85b" stroke="#b58a30" stroke-width="3" data-qa="visible"/>
+      <rect x="1652" y="641" width="295" height="159" fill="#c9dde8" stroke="#7295a4" stroke-width="3" data-qa="visible"/>
+      <line x1="1652" y1="800" x2="1947" y2="800" stroke="#566b71" stroke-width="5" data-qa="visible"/>
+      <ellipse cx="1800" cy="638" rx="71" ry="31" fill="#ffffff" stroke="#d97849" stroke-width="5" data-qa="visible"/>
+      <path d="M1720 598 C1715 540 1702 490 1695 425" class="li-path" data-qa-connector="true"/>
+      <path d="M1908 598 C1906 535 1914 485 1922 425" class="li-path" data-qa-connector="true"/>
+      <path d="M1718 570 H1770 M1830 570 H1892" class="stress" data-qa-connector="true"/>
+      <path d="M1885 748 V675" class="e-path" data-qa-connector="true"/>
+      <line x1="1858" y1="670" x2="1912" y2="670" stroke="#d24f45" stroke-width="7" data-qa-connector="true"/>
+      <text x="1660" y="842" class="body" data-qa-text="true">void → contact loss</text>
+    </g>
+
+    <g id="route-b-dendrite-short-circuit">
+      <text x="1992" y="333" class="route" data-qa-text="true">B · PLATING → FILAMENT</text>
+      <g><polygon points="1993,365 2085,340 2148,435 2001,480" fill="#dcebe3" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="2085,340 2288,352 2288,468 2148,435" fill="#d0e3d9" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="2001,480 2148,435 2141,610 1993,610" fill="#cfe3d8" stroke="#66857b" stroke-width="3" data-qa="visible"/><polygon points="2148,435 2288,468 2288,610 2141,610" fill="#dbeae2" stroke="#66857b" stroke-width="3" data-qa="visible"/></g>
+      <path d="M1993 610 C2070 607 2150 612 2288 607 L2288 641 C2180 646 2070 638 1993 643 Z" fill="#e1b85b" stroke="#b58a30" stroke-width="3" data-qa="visible"/>
+      <rect x="1993" y="643" width="295" height="157" fill="#c9dde8" stroke="#7295a4" stroke-width="3" data-qa="visible"/>
+      <line x1="1993" y1="800" x2="2288" y2="800" stroke="#566b71" stroke-width="5" data-qa="visible"/>
+      <path d="M2148 435 L2128 505 L2152 557 L2136 610" fill="none" stroke="#474c52" stroke-width="7" stroke-dasharray="12 8" data-qa="visible"/>
+      <path d="M2140 690 C2115 650 2160 625 2138 588 C2112 548 2163 518 2145 472" fill="none" stroke="#c44e3f" stroke-width="16" stroke-linecap="round" data-qa="visible"/>
+      <path d="M2045 425 C2070 500 2095 550 2120 592 M2250 425 C2225 495 2195 548 2168 590" class="li-path" data-qa-connector="true"/>
+      <path d="M2218 750 C2200 690 2180 635 2155 585" fill="none" stroke="#d24f45" stroke-width="7" stroke-dasharray="12 9" marker-end="url(#e-arrow)" data-qa-connector="true"/>
+      <path d="M2050 540 H2110 M2185 540 H2250" class="stress" data-qa-connector="true"/>
+      <text x="1998" y="842" class="body" data-qa-text="true">filament → short circuit</text>
+    </g>
+  </g>
+
+  <g id="chemistry-magnification-inset">
+    <rect x="70" y="910" width="700" height="148" rx="6" class="inset" data-qa="visible"/>
+    <text x="96" y="946" class="label" data-qa-text="true">INTERPHASE CUTAWAY · nanoscale</text>
+    <rect x="100" y="970" width="180" height="28" fill="#d8e8df" stroke="#66857b" stroke-width="2" data-qa="visible"/>
+    <rect x="100" y="998" width="180" height="24" fill="#e1b85b" stroke="#b58a30" stroke-width="2" data-qa="visible"/>
+    <rect x="100" y="1022" width="180" height="24" fill="#c9dde8" stroke="#7295a4" stroke-width="2" data-qa="visible"/>
+    <text x="310" y="990" class="body" data-qa-text="true">sulfide SSE</text>
+    <text x="310" y="1018" class="body" data-qa-text="true">Li2S-rich / Li3P-rich layer (schematic)</text>
+    <text x="310" y="1046" class="body" data-qa-text="true">Li metal · electronic reservoir</text>
+  </g>
+
+  <g id="contact-neck-microfield-inset">
+    <rect x="850" y="910" width="700" height="148" rx="6" class="inset" data-qa="visible"/>
+    <text x="876" y="946" class="label" data-qa-text="true">CONTACT-NECK FIELD · local scale</text>
+    <path d="M888 1016 C930 981 984 981 1028 1016" fill="none" stroke="#e1b85b" stroke-width="18" data-qa="visible"/>
+    <path d="M958 968 V1010" class="li-path" data-qa-connector="true"/>
+    <circle cx="958" cy="1018" r="25" fill="#f2b35f" stroke="#d24f45" stroke-width="5" data-qa="visible"/>
+    <path d="M900 1040 C920 1005 940 991 958 987 M1016 1040 C997 1005 978 991 958 987" fill="none" stroke="#7a56a1" stroke-width="5" data-qa="visible"/>
+    <text x="1080" y="990" class="body" data-qa-text="true">current density ↑ at residual contact</text>
+    <text x="1080" y="1022" class="body" data-qa-text="true">stress concentrates at neck edge</text>
+    <text x="1080" y="1050" class="body" data-qa-text="true">void growth and cracking can cross-couple</text>
+    <path d="M1345 632 H1535 V900 H1040 V904" class="connector" stroke-dasharray="10 8" marker-end="url(#dark-arrow)" data-qa-connector="true"/>
+  </g>
+
+  <g id="cross-scale-map">
+    <rect x="1630" y="910" width="700" height="148" rx="6" class="inset" data-qa="visible"/>
+    <text x="1656" y="946" class="label" data-qa-text="true">CROSS-SCALE CAUSAL CHAIN</text>
+    <text x="1656" y="990" class="body" data-qa-text="true">pressure</text>
+    <text x="1830" y="990" class="body" data-qa-text="true">grain / GB</text>
+    <text x="2010" y="990" class="body" data-qa-text="true">interphase</text>
+    <text x="2180" y="990" class="body" data-qa-text="true">carriers</text>
+    <path d="M1760 982 H1804 M1944 982 H1984 M2128 982 H2154" class="connector" marker-end="url(#dark-arrow)" data-qa-connector="true"/>
+    <text x="1656" y="1032" class="body" data-qa-text="true">device</text>
+    <text x="1810" y="1032" class="body" data-qa-text="true">mesoscale</text>
+    <text x="1992" y="1032" class="body" data-qa-text="true">nanoscale</text>
+    <text x="2164" y="1032" class="body" data-qa-text="true">local field</text>
+  </g>
+
+  <g id="stable-window-interventions">
+    <text x="70" y="1103" class="stage" data-qa-text="true">STABLE-WINDOW INTERVENTIONS · complementary, non-ranked</text>
+    <rect x="70" y="1123" width="700" height="175" rx="6" class="panel" data-qa="visible"/>
+    <rect x="850" y="1123" width="700" height="175" rx="6" class="panel" data-qa="visible"/>
+    <rect x="1630" y="1123" width="700" height="175" rx="6" class="panel" data-qa="visible"/>
+
+    <g id="intervention-coating">
+      <rect x="103" y="1162" width="52" height="92" fill="#c9dde8" stroke="#7295a4" stroke-width="3" data-qa="visible"/>
+      <rect x="155" y="1162" width="18" height="92" fill="#4aa68e" stroke="#347d6c" stroke-width="3" data-qa="visible"/>
+      <rect x="173" y="1162" width="52" height="92" fill="#d8e8df" stroke="#66857b" stroke-width="3" data-qa="visible"/>
+      <path d="M125 1210 H153" class="e-path" data-qa-connector="true"/>
+      <line x1="146" y1="1185" x2="146" y2="1235" stroke="#d24f45" stroke-width="6" data-qa-connector="true"/>
+      <text x="260" y="1170" class="label" data-qa-text="true">Electron-blocking coating</text>
+      <text x="260" y="1210" class="body" data-qa-text="true">uniform interphase · suppress local SSE reduction</text>
+      <text x="260" y="1250" class="body" data-qa-text="true">preserve Li+ transfer across the interface</text>
+    </g>
+
+    <g id="intervention-3d-collector">
+      <rect x="885" y="1160" width="120" height="98" fill="none" stroke="#4c88a8" stroke-width="6" data-qa="visible"/>
+      <path d="M925 1160 V1258 M965 1160 V1258 M885 1193 H1005 M885 1226 H1005" fill="none" stroke="#4c88a8" stroke-width="5" data-qa="visible"/>
+      <path d="M945 1140 V1230" class="li-path" data-qa-connector="true"/>
+      <text x="1040" y="1170" class="label" data-qa-text="true">3D current collector / Li host</text>
+      <text x="1040" y="1210" class="body" data-qa-text="true">homogenize effective current distribution</text>
+      <text x="1040" y="1250" class="body" data-qa-text="true">accommodate deposited Li and reduce hotspots</text>
+    </g>
+
+    <g id="intervention-pressure-control">
+      <path d="M1680 1170 H1800 M1740 1145 V1170 M1680 1250 H1800 M1740 1250 V1275" fill="none" stroke="#7a56a1" stroke-width="7" data-qa="visible"/>
+      <path d="M1740 1145 V1193 M1740 1275 V1227" fill="none" stroke="#7a56a1" stroke-width="7" marker-end="url(#stress-arrow)" data-qa-connector="true"/>
+      <text x="1835" y="1170" class="label" data-qa-text="true">Closed-loop pressure control</text>
+      <rect x="1835" y="1190" width="145" height="18" fill="#efb0a8" stroke="#ffffff" stroke-width="1" data-qa="visible"/>
+      <rect x="1980" y="1190" width="175" height="18" fill="#75bea5" stroke="#ffffff" stroke-width="1" data-qa="visible"/>
+      <rect x="2155" y="1190" width="145" height="18" fill="#e8c886" stroke="#ffffff" stroke-width="1" data-qa="visible"/>
+      <text x="1835" y="1245" class="body" data-qa-text="true">low: voids</text>
+      <text x="1985" y="1245" class="body" data-qa-text="true">stable window</text>
+      <text x="2168" y="1245" class="body" data-qa-text="true">high: fracture</text>
+      <text x="1835" y="1280" class="body" data-qa-text="true">retain contact without creep or crack activation</text>
+    </g>
+  </g>
+
+  <g id="scientific-disclosure">
+    <text x="70" y="1332" class="subtitle" data-qa-text="true">Illustrative synthetic mechanism · qualitative · not to scale · no measured field</text>
+  </g>
+</svg>

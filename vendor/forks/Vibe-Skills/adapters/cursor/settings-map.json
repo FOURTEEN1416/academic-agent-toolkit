@@ -1,0 +1,18 @@
+{
+  "adapter_id": "cursor",
+  "template": null,
+  "target": "~/.cursor/settings.json",
+  "semantics": {
+    "vco.host_root": "~/.cursor",
+    "vco.skill_roots.global": [
+      "~/.cursor/skills"
+    ],
+    "vco.command_root": "~/.cursor/commands",
+    "vco.settings_surface": "~/.cursor/settings.json",
+    "vco.host_closure": "~/.cursor/.vibeskills/host-closure.json"
+  },
+  "notes": [
+    "Cursor mapping now materializes commands, a managed host-closure manifest, and a minimal settings surface.",
+    "Deeper host-native workflow projection remains preview-scoped until broader replay-backed proof is available."
+  ]
+}

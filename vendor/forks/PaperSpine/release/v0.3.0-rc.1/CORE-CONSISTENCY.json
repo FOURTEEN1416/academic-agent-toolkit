@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "version": "0.3.0-rc.1",
+  "build_id": "paperspine5-0.3.0-rc.1-build.20260823.1",
+  "consistent": true,
+  "algorithm": "sha256(sorted '<file_sha256>  <relative_path>' lines)",
+  "core_sha256": "9eed412bf2a40b1e00787cd04de2adf696a662055ea31152ebc8f2899e2ba95f",
+  "packages": [
+    {
+      "kind": "universal-skill",
+      "path": "packages/paperspine5-skill-0.3.0-rc.1/core",
+      "sha256": "9eed412bf2a40b1e00787cd04de2adf696a662055ea31152ebc8f2899e2ba95f",
+      "files": 176
+    },
+    {
+      "kind": "codex-plugin",
+      "path": "packages/paperspine5-codex-plugin-0.3.0-rc.1/plugins/paperspine5/core",
+      "sha256": "9eed412bf2a40b1e00787cd04de2adf696a662055ea31152ebc8f2899e2ba95f",
+      "files": 176
+    },
+    {
+      "kind": "claude-code-plugin",
+      "path": "packages/paperspine5-claude-code-plugin-0.3.0-rc.1/plugins/paperspine5/core",
+      "sha256": "9eed412bf2a40b1e00787cd04de2adf696a662055ea31152ebc8f2899e2ba95f",
+      "files": 176
+    },
+    {
+      "kind": "dsh-plugin",
+      "path": "packages/dsh-paperspine5-0.3.0-rc.1/core",
+      "sha256": "9eed412bf2a40b1e00787cd04de2adf696a662055ea31152ebc8f2899e2ba95f",
+      "files": 176
+    }
+  ]
+}

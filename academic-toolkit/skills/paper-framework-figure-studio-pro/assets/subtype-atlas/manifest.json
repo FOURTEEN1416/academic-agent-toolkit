@@ -1,0 +1,245 @@
+{
+  "atlas_version": "3.0.0",
+  "generated_skill_slug": "paper-framework-figure-studio-pro",
+  "generated_skill_version": "3.0.0",
+  "build_source": "project-local diagram evidence corpus",
+  "asset_root": "assets/subtype-atlas",
+  "display_markdown_template": "![{alt_text}]({image_path})",
+  "codex_display_rule": "Codex does not use direct atlas-board image embeds; when an atlas/category board is mentioned, display the package-local PNG directly with a Markdown image embed.",
+  "chatgpt_sources_display_rule": "When an atlas/category board is mentioned, display the saved PNG board directly with Markdown image syntax when available.",
+  "plain_path_list_is_not_display": true,
+  "required_abstract_decision_display_rule": "If a reply mentions subtype, category, layout grammar, visual style, reader role, communication style, density, metaphor, modeling pattern, candidate scheme differences, or final content architecture, display the matching saved atlas/category board image immediately with Markdown syntax. Prose-only mention does not satisfy this rule.",
+  "required_visual_structure_display_rule": "If a reply mentions visual structure, layout skeleton, panel choreography, module topology, arrow grammar, candidate-board structure, local-refinement geometry, or content architecture, display the matching saved atlas/category board image immediately with Markdown syntax. Prose-only mention does not satisfy this rule.",
+  "inline_non_target_reference_display_allowed": true,
+  "target_paper_candidate_or_final_images_must_not_be_embedded_in_text": true,
+  "inline_reference_images_do_not_satisfy_candidate_bridge": true,
+  "inline_reference_images_do_not_satisfy_local_refinement": true,
+  "target_paper_local_refinement_candidates_must_be_image_only": true,
+  "default_display_order": [
+    "subtype-overview",
+    "visual-grammar-layout",
+    "reader-role-detail",
+    "visual-communication-styles"
+  ],
+  "coverage_angles": [
+    "reader_question",
+    "narrative_role",
+    "logical_gap",
+    "visual_rhetoric",
+    "visual_grammar_layout",
+    "paper_slot",
+    "density_detail_level",
+    "visual_communication_art_style",
+    "secondary_style_lens_decision_matrix"
+  ],
+  "style_lens_policy": {
+    "role": "F1-F4/atlas boards are first-level routing references. They must be mapped to second-level style_lens_id decisions before S2/S5 image generation.",
+    "contract": "references/startup-style-lens-decision-policy-v315.md",
+    "not_target_paper_evidence": true,
+    "allowed_transfer": [
+      "layout skeleton",
+      "reader path",
+      "panel rhythm",
+      "abstraction level",
+      "callout strategy",
+      "icon style",
+      "arrow grammar",
+      "density discipline",
+      "legend strategy"
+    ],
+    "disallowed_transfer": [
+      "paper-specific facts",
+      "module names",
+      "datasets",
+      "metrics",
+      "formulas",
+      "examples",
+      "claims",
+      "exact figure structures"
+    ]
+  },
+  "generation_route": {
+    "chatgpt_web": "Create image through ChatGPT Images 2.0",
+    "codex_priority": "$imagegen skill first",
+    "codex_actual_route": "$imagegen skill / built-in image generation",
+    "codex_fallback": "ChatGPT Images 2.0 API or another approved image-generation API"
+  },
+  "assets": [
+    {
+      "asset_id": "subtype-overview",
+      "classification_angle": "narrative_role",
+      "classification_angles": [
+        "narrative_role",
+        "paper_slot"
+      ],
+      "subtypes": [
+        "method_framework",
+        "architecture",
+        "pipeline_process",
+        "agent_workflow",
+        "system_data_flow",
+        "mechanism_intuition",
+        "case_walkthrough",
+        "evidence_board"
+      ],
+      "image_path": "assets/subtype-atlas/boards/subtype-overview.png",
+      "thumbnail_path": "assets/subtype-atlas/thumbnails/subtype-overview.png",
+      "board_path": "assets/subtype-atlas/boards/subtype-overview.png",
+      "generation_route": "$imagegen skill / built-in image generation",
+      "build_time_or_id": "paper-framework-figure-studio-pro-v3.0.0",
+      "intended_use": "Startup overview and subtype routing reference.",
+      "reference_role": "saved_atlas",
+      "abstract_decision_triggers_supported": [
+        "subtype",
+        "candidate_scheme_differences"
+      ],
+      "visual_structure_triggers_supported": [
+        "candidate_board_structure",
+        "content_architecture"
+      ],
+      "transferable_visual_attributes": [
+        "module grouping",
+        "arrow grammar",
+        "panel structure",
+        "framework subtype distinction"
+      ],
+      "limitations": [
+        "Reference board only; not a paper-specific candidate figure."
+      ]
+    },
+    {
+      "asset_id": "visual-grammar-layout",
+      "classification_angle": "visual_grammar_layout",
+      "classification_angles": [
+        "visual_grammar_layout",
+        "visual_rhetoric"
+      ],
+      "subtypes": [
+        "block_pipeline",
+        "central_core",
+        "swimlanes",
+        "graph_network",
+        "layer_stack",
+        "storyboard",
+        "matrix_map",
+        "zoom_callouts"
+      ],
+      "image_path": "assets/subtype-atlas/boards/visual-grammar-layout.png",
+      "thumbnail_path": "assets/subtype-atlas/thumbnails/visual-grammar-layout.png",
+      "board_path": "assets/subtype-atlas/boards/visual-grammar-layout.png",
+      "generation_route": "$imagegen skill / built-in image generation",
+      "build_time_or_id": "paper-framework-figure-studio-pro-v3.0.0",
+      "intended_use": "Layout and visual-grammar selection reference.",
+      "reference_role": "saved_atlas",
+      "abstract_decision_triggers_supported": [
+        "layout_grammar",
+        "metaphor",
+        "modeling_pattern",
+        "final_content_architecture"
+      ],
+      "visual_structure_triggers_supported": [
+        "visual_structure",
+        "layout_skeleton",
+        "panel_choreography",
+        "module_topology",
+        "arrow_grammar",
+        "candidate_board_structure",
+        "second_round_optimization_geometry",
+        "final_content_architecture"
+      ],
+      "transferable_visual_attributes": [
+        "layout skeleton",
+        "reading order",
+        "panel rhythm",
+        "callout placement"
+      ],
+      "limitations": [
+        "Use only as a style/layout reference; adapt labels and content to the target paper."
+      ]
+    },
+    {
+      "asset_id": "reader-role-detail",
+      "classification_angle": "reader_question",
+      "classification_angles": [
+        "reader_question",
+        "logical_gap",
+        "paper_slot",
+        "density_detail_level"
+      ],
+      "subtypes": [
+        "main_message",
+        "parts_and_flow",
+        "idea_to_model",
+        "over_time",
+        "core_case",
+        "reweb-display_doubt",
+        "sparse_detail",
+        "dense_detail"
+      ],
+      "image_path": "assets/subtype-atlas/boards/reader-role-detail.png",
+      "thumbnail_path": "assets/subtype-atlas/thumbnails/reader-role-detail.png",
+      "board_path": "assets/subtype-atlas/boards/reader-role-detail.png",
+      "generation_route": "$imagegen skill / built-in image generation",
+      "build_time_or_id": "paper-framework-figure-studio-pro-v3.0.0",
+      "intended_use": "Reader-effect, paper-slot, and density selection reference.",
+      "reference_role": "saved_atlas",
+      "abstract_decision_triggers_supported": [
+        "density",
+        "candidate_scheme_differences"
+      ],
+      "visual_structure_triggers_supported": [
+        "content_architecture",
+        "panel_choreography"
+      ],
+      "transferable_visual_attributes": [
+        "reader question framing",
+        "density contrast",
+        "rebuttal-oriented compression",
+        "case walkthrough staging"
+      ],
+      "limitations": [
+        "The board combines several classification angles for compact startup display."
+      ]
+    },
+    {
+      "asset_id": "visual-communication-styles",
+      "classification_angle": "visual_communication_art_style",
+      "classification_angles": [
+        "visual_communication_art_style"
+      ],
+      "subtypes": [
+        "clean_flat",
+        "formal_schematic",
+        "minimal_line",
+        "blueprint",
+        "scientific_illustration",
+        "isometric_3d",
+        "interface_metaphor",
+        "infographic_board"
+      ],
+      "image_path": "assets/subtype-atlas/boards/visual-communication-styles.png",
+      "thumbnail_path": "assets/subtype-atlas/thumbnails/visual-communication-styles.png",
+      "board_path": "assets/subtype-atlas/boards/visual-communication-styles.png",
+      "generation_route": "$imagegen skill / built-in image generation",
+      "build_time_or_id": "paper-framework-figure-studio-pro-v3.0.0",
+      "intended_use": "Visual communication art style selection reference.",
+      "reference_role": "saved_atlas",
+      "abstract_decision_triggers_supported": [
+        "visual_style"
+      ],
+      "visual_structure_triggers_supported": [
+        "visual_structure"
+      ],
+      "transferable_visual_attributes": [
+        "style family",
+        "abstraction level",
+        "dimensionality",
+        "communication tone"
+      ],
+      "limitations": [
+        "Style reference only; a final figure must still be generated from the target paper brief.",
+        "Must be mapped into a second-level style_lens_id before S2/S5 generation."
+      ]
+    }
+  ]
+}

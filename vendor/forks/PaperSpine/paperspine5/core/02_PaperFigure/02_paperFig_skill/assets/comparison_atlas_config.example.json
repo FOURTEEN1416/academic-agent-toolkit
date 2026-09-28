@@ -1,0 +1,26 @@
+{
+  "project_root": "D:/project",
+  "output_pdf": "D:/project/output/reference-vs-project.pdf",
+  "output_arrays": "D:/project/output/figure-arrays.npz",
+  "preview_dir": "D:/project/tmp/reference-atlas-preview",
+  "page_size": [12.4, 15.8],
+  "layout_seed": 20260802,
+  "pages": [
+    {
+      "title": "01  Architecture and evidence",
+      "builder": "project_builders.figure01:build",
+      "references": [
+        {
+          "path": "D:/project/references/reference-a.png",
+          "citation": "Public paper - venue (year), Fig. 1"
+        },
+        {
+          "path": "D:/project/references/reference-b.png",
+          "citation": "Public paper - venue (year), Extended Data Fig. 1"
+        }
+      ],
+      "footer": "Project figure generated from verified code and data."
+    }
+  ]
+}
+

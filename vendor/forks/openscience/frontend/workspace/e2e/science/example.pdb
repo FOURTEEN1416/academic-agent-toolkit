@@ -1,0 +1,7 @@
+HEADER    MINIMAL GLYCINE
+ATOM      1  N   GLY A   1       0.000   0.000   0.000  1.00 20.00           N
+ATOM      2  CA  GLY A   1       1.458   0.000   0.000  1.00 20.00           C
+ATOM      3  C   GLY A   1       1.958   1.420   0.000  1.00 20.00           C
+ATOM      4  O   GLY A   1       1.220   2.390   0.000  1.00 20.00           O
+TER
+END

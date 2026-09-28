@@ -1,0 +1,109 @@
+{
+    "id": "q02-root",
+    "requirements": "A controlled ablation study of entangling gates in a variational quantum classifier. Holding encoding (angle), ansatz template (EfficientSU2 reps=2), optimizer (COBYLA), and datasets fixed (matching Q01), the agent must implement full / half / no entanglement variants by selectively replacing CNOTs with identity in the ansatz, plus a parameter-matched classical MLP baseline. Score H1 (full > no by >=5pp), H2 (half between full and no), H3 (classical >= no on at least 1 dataset) with numerical evidence.",
+    "judging_note": "Ablation studies are scored on (i) whether the CNOT-removal mechanism actually changes the circuit as described (verified by inspecting cnot_count per condition), (ii) whether every other variable is held fixed (same encoding, same rotation parameters, same datasets, same optimizer, same seeds), and (iii) whether the H1/H2/H3 verdicts are backed by numerical evidence. The classical baseline must be parameter-matched (within 10 percent of the VQC's trainable parameter count) to be a meaningful sanity check.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "q02-code",
+            "requirements": "Code-development bucket: the CNOT ablation mechanism is correctly implemented, the classical baseline is parameter-matched, and the evaluation loop holds all non-ablated variables fixed.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q02-code-ablation-mechanism",
+                    "requirements": "All three quantum conditions (full_entanglement, half_entanglement, no_entanglement) use the same ZFeatureMap and the same EfficientSU2(reps=3) rotation parameters. CNOTs are removed by replacing them with identity (not by re-parameterizing the ansatz). The resulting circuits have cnot_count = 15 for full, 0 for no, and a random Bernoulli(0.5) draw over 15 positions for half (mean ~7.5, verified by recording the realized count per cell). The half_entanglement mask is generated via np.random.RandomState(seed + 10000).binomial(1, 0.5, size=15) to be reproducible.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q02-code-classical-baseline",
+                    "requirements": "classical_baseline uses sklearn MLPClassifier with a hidden layer size chosen so the total parameter count is within 10 percent of the VQC's 48 trainable parameters (e.g. hidden_layer_sizes=(6,) gives 49 params for 6-dim input). max_iter, activation, solver, and random_state are specified explicitly. The MLP is trained and evaluated on the SAME train/test splits as the VQC conditions.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "q02-code-pipeline",
+                    "requirements": "Nested loop over 4 conditions x 3 datasets x at least 5 seeds. Each cell records test_accuracy, convergence_iterations, and cnot_count. The same seed produces the same train/test split across the 4 conditions on each dataset (so the 4 conditions can be paired-compared).",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q02-exec",
+            "requirements": "Execution-validity bucket: all cells ran and produced numerically valid outputs.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q02-exec-cells-ran",
+                    "requirements": "At least 60 cells out of 60 expected (4 conditions x 3 datasets x 5 seeds) completed and produced an accuracy value. Missing cells must be documented; missing more than 6 cells (10 percent) without justification fails this leaf.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q02-exec-numerical",
+                    "requirements": "Numerical validity: no NaN or Inf in test_accuracy. Every test_accuracy in [0, 1]. cnot_count matches the manifest expectation per condition (full=15, half=Bernoulli draw mean ~7.5 with all values in [0,15], no=0, classical_baseline=0). At least one cell of each condition produces a non-degenerate classifier (not predicting a single class for all test samples).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q02-results",
+            "requirements": "Results bucket: quantitative tests of H1/H2/H3 plus a per-hypothesis writeup.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "q02-result-h1-quant",
+                    "requirements": "Quantitative test of H1. Does full_entanglement beat no_entanglement by at least 5 absolute percentage points (5-seed mean) on at least 2 of 3 datasets? 100% if cleanly met, 67% if gap >= 2pp on 2/3, 33% if full > no on 2/3 but gap <2pp, 0% if full does not consistently beat no.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q02-result-h2-quant",
+                    "requirements": "Quantitative test of H2. Does half_entanglement test_accuracy lie strictly between full and no (within 1pp seed-mean noise) on at least 2 of 3 datasets? 100% if cleanly monotonic on 2/3, 67% if monotonic on 1/3, 33% if half is non-monotonic but within 2pp of one of the endpoints, 0% otherwise.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q02-result-h3-quant",
+                    "requirements": "Quantitative test of H3. On at least 1 of 3 datasets, does classical_baseline achieve test_accuracy at least as high as no_entanglement (5-seed mean)? 100% if classical >= no on at least 1/3, 50% if classical is within 2pp of no on at least 1/3, 0% if classical never reaches no_entanglement minus 2pp.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q02-result-writeup",
+                    "requirements": "Writeup of at least 200 words (in submission/README.md ## Agent-produced writeup section) with explicit supported / refuted / inconclusive verdict for each of H1, H2, H3 with numerical evidence (specific mean accuracies for each condition x dataset, and the gap), a discussion of monotonicity, and an honest acknowledgment of whether the classical_baseline sanity check passes. The writeup is encouraged but not required to cross-reference Q01 (encoding) findings if available.",
+                    "weight": 14.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

@@ -1,0 +1,157 @@
+name: vco-optional-audits
+
+on:
+  workflow_dispatch:
+    inputs:
+      audit_suite:
+        description: Optional audit suite to run outside the default regression lane
+        required: true
+        type: choice
+        default: baseline_collect
+        options:
+          - baseline_collect
+          - capability_baseline
+          - packaging_release
+          - host_boundary
+          - history_surface
+
+jobs:
+  baseline-collect:
+    if: ${{ inputs.audit_suite == 'baseline_collect' }}
+    runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python_bin="$(bash scripts/common/python_helpers.sh --print-supported-python 'Optional baseline collect audit')"
+          "${python_bin}" -m pip install --upgrade pip pytest
+
+      - name: Collect capability policy coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          python_bin="$(bash scripts/common/python_helpers.sh --print-supported-python 'Optional baseline collect audit')"
+          "${python_bin}" scripts/verify/test-baseline-audit.py --collect-only --write-artifacts
+
+  capability-baseline:
+    if: ${{ inputs.audit_suite == 'capability_baseline' }}
+    runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python_bin="$(bash scripts/common/python_helpers.sh --print-supported-python 'Optional capability baseline audit')"
+          "${python_bin}" -m pip install --upgrade pip pytest
+
+      - name: Run capability baseline audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python_bin="$(bash scripts/common/python_helpers.sh --print-supported-python 'Optional capability baseline audit')"
+          for layer in default_live_contracts default_install_lifecycle default_runtime_entry_truth default_routing_mainline; do
+            "${python_bin}" scripts/verify/test-baseline-audit.py --run-layer "${layer}"
+          done
+
+  packaging-release:
+    if: ${{ inputs.audit_suite == 'packaging_release' }}
+    runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python_bin="$(bash scripts/common/python_helpers.sh --print-supported-python 'Optional packaging release audit')"
+          "${python_bin}" -m pip install --upgrade pip pytest
+
+      - name: Run packaging release audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python_bin="$(bash scripts/common/python_helpers.sh --print-supported-python 'Optional packaging release audit')"
+          "${python_bin}" scripts/verify/test-baseline-audit.py --run-layer touched_packaging_release
+
+  host-boundary:
+    if: ${{ inputs.audit_suite == 'host_boundary' }}
+    runs-on: windows-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python -m pip install --upgrade pip pytest
+
+      - name: Run host-boundary audit
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python .\scripts\verify\test-baseline-audit.py --run-layer integration_host_boundary
+
+  history-surface:
+    if: ${{ inputs.audit_suite == 'history_surface' }}
+    runs-on: windows-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python -m pip install --upgrade pip pytest
+
+      - name: Run touched historical governance audit
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python .\scripts\verify\test-baseline-audit.py --run-layer touched_historical_governance

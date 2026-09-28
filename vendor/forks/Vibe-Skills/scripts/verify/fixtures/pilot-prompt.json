@@ -1,0 +1,17 @@
+{
+  "scenario_id": "pilot-prompt",
+  "plane_id": "prompt-intelligence",
+  "task": "注入 prompt pattern cards 与 risk checklist，但不改变 selected pack 或 selected skill",
+  "objective": "验证 prompt intelligence 只增强资产层，不形成第二 router。",
+  "expected": {
+    "asset_only": true,
+    "forbid_second_router": true,
+    "reference_only_injection": true,
+    "preserve_selected_pack": true
+  },
+  "must_not": [
+    "selected_pack_override",
+    "second_router",
+    "second_prompt_surface"
+  ]
+}

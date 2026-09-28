@@ -1,0 +1,97 @@
+# ============================================================================
+# T21 — Comparing causal structure learning algorithms on small linear-SEM DAGs
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML21
+title: "PC vs GES vs NOTEARS-linear for recovering small Gaussian linear-SEM DAGs"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Causal structure learning methods often claim asymptotic guarantees, but in
+  practical settings researchers usually face small graphs, finite samples, and
+  imperfect hyperparameter choices. For Gaussian linear structural equation
+  models (SEMs), three widely discussed paradigms are constraint-based (PC),
+  score-based (GES), and continuous optimization (NOTEARS-linear). Even when
+  data are generated from the model class these methods assume, finite-sample
+  behavior can differ sharply in edge recovery and orientation errors.
+
+  A compact CPU-scale benchmark can isolate these differences by generating
+  synthetic DAGs with known ground truth over 5-15 nodes, sampling linear-Gaussian
+  observations, and evaluating structural recovery against the true adjacency.
+  This avoids data-download overhead and lets the study vary sample size and
+  graph density in a controlled way. The key metric is Structural Hamming
+  Distance (SHD), which penalizes missing, extra, and wrongly oriented edges.
+
+  A credible study should implement all three algorithms with transparent
+  assumptions: PC via partial-correlation CI tests, GES via greedy score search
+  (e.g., BIC), and NOTEARS-linear via a differentiable acyclicity penalty and
+  L1 regularization. Multiple random seeds and at least two synthetic regimes
+  (sparser/easier vs denser/harder) are needed to reduce variance and avoid
+  over-interpreting one-off runs.
+
+  Because these algorithms expose different tuning knobs (significance level,
+  regularization strength, score penalties), the comparison should include one
+  clear default setting per method plus modest tuning on validation seeds. The
+  resulting analysis should report SHD and at least one precision/recall-style
+  edge metric, then map outcomes back to explicit hypotheses about relative
+  ranking and sample-efficiency.
+
+  *On small Gaussian linear-SEM DAGs, which of PC, GES, and NOTEARS-linear most reliably minimizes structural recovery error under realistic finite-sample budgets?*
+
+hypotheses:
+  - id: H1
+    statement: "At n_samples=1000, NOTEARS-linear achieves lower mean SHD than PC on at least 2 of 3 synthetic DAG regimes (averaged over >=5 random DAG/data seeds per regime)."
+    measurable: true
+  - id: H2
+    statement: "At n_samples=300, GES achieves mean SHD <= PC in all evaluated regimes, and strictly lower SHD in at least 1 regime."
+    measurable: true
+  - id: H3
+    statement: "The best method at n_samples=1000 reduces mean SHD by at least 20% relative to the worst method in at least 2 of 3 regimes."
+    measurable: true
+
+experiment_design:
+  research_question: "For 5-15 node Gaussian linear-SEM DAGs, how do PC, GES, and NOTEARS-linear compare in SHD and edge recovery across sparse/medium/dense synthetic regimes and finite sample sizes?"
+  conditions:
+    - name: "pc_partial_corr"
+      description: "Constraint-based PC using Gaussian partial-correlation conditional independence tests with significance level alpha (default 0.01, optional small grid)."
+    - name: "ges_bic"
+      description: "Score-based greedy equivalence search using Gaussian/BIC score with forward-backward edge operations."
+    - name: "notears_linear_l1"
+      description: "Continuous optimization NOTEARS-linear with squared loss, acyclicity constraint, and L1 sparsity penalty tuned on a small lambda grid."
+    - name: "pc_alpha_tuned"
+      description: "PC variant selecting alpha from {0.005, 0.01, 0.05} by lowest validation-seed SHD, then evaluated on held-out seeds."
+  baselines:
+    - "pc_partial_corr is the classical constraint-based baseline"
+    - "ges_bic is the classical score-based baseline"
+  metrics:
+    - name: "shd"
+      direction: "minimize"
+      description: "Structural Hamming Distance between learned and true DAG adjacency (lower is better), averaged over seeds."
+    - name: "edge_f1"
+      direction: "maximize"
+      description: "F1 score on directed edge existence/orientation against ground truth adjacency."
+    - name: "runtime_sec"
+      direction: "minimize"
+      description: "Per-run wall-clock time in seconds to assess CPU practicality."
+  datasets:
+    - name: "synth_linear_sem_sparse"
+      source: "Synthetic 8-node DAGs generated via Erdos-Renyi with expected degree ~1.5; linear weights sampled from [-2,-0.5] U [0.5,2], Gaussian noise."
+    - name: "synth_linear_sem_medium"
+      source: "Synthetic 12-node DAGs with expected degree ~2.5 using same linear-Gaussian SEM generator."
+    - name: "synth_linear_sem_dense"
+      source: "Synthetic 15-node DAGs with expected degree ~3.5 using same linear-Gaussian SEM generator."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 720
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML21.json"

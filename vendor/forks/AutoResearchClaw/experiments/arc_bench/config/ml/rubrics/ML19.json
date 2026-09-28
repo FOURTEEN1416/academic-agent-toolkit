@@ -1,0 +1,109 @@
+{
+    "id": "ml19-root",
+    "requirements": "A credible experiment comparing semi-supervised methods (LabelPropagation, LabelSpreading, SelfTrainingClassifier, or equivalents) against a supervised-only baseline under limited-label regimes: methods are implemented correctly, runs cover multiple datasets with repeated seeds, and results address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Well-motivated alternative semi-supervised methods that test the same scientific question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml19-code",
+            "requirements": "Semi-supervised and baseline conditions are implemented correctly with explicit label masking.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml19-code-methods",
+                    "requirements": "The submission implements multiple distinct conditions \u2014 typically including at least one graph-based method (LabelPropagation or LabelSpreading), a self-training method, and a supervised-only baseline \u2014 as separate code paths.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml19-code-masking",
+                    "requirements": "Label masking for semi-supervised runs is explicit and correct: only a defined labeled fraction retains class labels and the remaining training labels are set to the unlabeled marker.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "ml19-code-datasets",
+                    "requirements": "The submission uses multiple datasets (sklearn built-ins or comparable), with a held-out test split and consistent preprocessing across conditions.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml19-exec",
+            "requirements": "Execution covers multiple label fractions and produces benchmark metrics.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml19-exec-metrics",
+                    "requirements": "Execution outputs numeric test accuracy and at least one additional metric (e.g., balanced accuracy or macro-F1) for each implemented (condition, dataset, label-fraction) cell in a machine-readable artifact.",
+                    "weight": 16.6667,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml19-exec-seeds",
+                    "requirements": "Each reported cell is aggregated over multiple random seeds with a dispersion measure. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml19-results",
+            "requirements": "Results address H1/H2/H3 directionally with quantitative comparisons.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml19-result-h1",
+                    "requirements": "The submission compares each semi-supervised method versus the supervised-only baseline at a low labeled fraction and conveys whether any method provides a meaningful gain on most datasets \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml19-result-h2",
+                    "requirements": "The submission reports a direct LabelSpreading vs LabelPropagation comparison per dataset and conveys whether LabelSpreading is at least competitive on most datasets (H2).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml19-result-h3",
+                    "requirements": "The submission reports self-training accuracy at both low and higher labeled fractions and conveys whether the gain with more labels is meaningful (H3).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml19-result-writeup",
+                    "requirements": "The README or writeup describes setup and methods, reports per-dataset metrics, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and discusses limitations (dataset scope, seed count variance, sensitivity to masking/hyperparameters). No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

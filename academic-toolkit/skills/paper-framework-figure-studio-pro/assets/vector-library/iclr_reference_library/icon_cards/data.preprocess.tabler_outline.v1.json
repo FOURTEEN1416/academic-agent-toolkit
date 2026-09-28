@@ -1,0 +1,124 @@
+{
+  "concept_id": "data.preprocess",
+  "icon_id": "data.preprocess.tabler_outline.v1",
+  "primary_meaning": "Preprocessing",
+  "aliases": [
+    "preprocess",
+    "clean",
+    "transform"
+  ],
+  "negative_aliases": [
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim"
+  ],
+  "shape_family_id": "data.preprocess",
+  "style_variant": "tabler_outline",
+  "domain_tags": [
+    "data",
+    "preprocess",
+    "AI",
+    "CS",
+    "paper_figure"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support"
+  ],
+  "source_lineage": {
+    "import_mode": "import_with_license",
+    "source": "@tabler/icons",
+    "source_path": "tools/icon_sources/tabler-icons-3.44.0/package/categories/outline/System/filter-cog.svg",
+    "imported_at": "2026-05-24T08:42:21.907Z",
+    "modified": true,
+    "modification": "raw SVG preserved; tight SVG viewBox cropped to computed visible geometry with stroke bleed; PPT-safe variant uses explicit stroke color."
+  },
+  "license": {
+    "name": "Tabler Icons",
+    "package": "@tabler/icons",
+    "version": "3.44.0",
+    "license": "MIT",
+    "repository": "https://github.com/tabler/tabler-icons"
+  },
+  "files": {
+    "raw_svg": "icons/raw/data.preprocess.tabler_outline.v1.svg",
+    "tight_svg": "icons/tight/data.preprocess.tabler_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/data.preprocess.tabler_outline.v1.ppt_safe.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": -1,
+    "minY": -1,
+    "width": 26,
+    "height": 26,
+    "stroke_bleed": 1,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "sha1": "f81128dbc7e4438cf6d2f7b2643f70930a48f03f"
+  }
+}

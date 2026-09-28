@@ -1,0 +1,26 @@
+﻿{
+    "report_id":  "CER-SMOKE-CURR",
+    "trigger_signals":  {
+                            "fallback_rate":  0.12,
+                            "context_pressure":  0.60,
+                            "route_stability_pack":  0.88,
+                            "route_stability_skill":  0.82,
+                            "top1_top2_gap":  0.09
+                        },
+    "findings":  [
+                     {
+                         "pattern":  "CF-2"
+                     }
+                 ],
+    "comparison":  {
+                       "baseline_report_id":  "CER-SMOKE-BASE",
+                       "pattern_delta":  [
+                                             "added: CF-2",
+                                             "removed: CF-3",
+                                             "common_count: 0"
+                                         ],
+                       "fallback_rate_delta":  -0.18,
+                       "stability_delta":  0.175,
+                       "notes":  "auto-updated by cer-compare.ps1 at 2026-02-24T18:29:46Z"
+                   }
+}

@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "enabled": true,
+  "mode": "shadow",
+  "inject_as": "reference_only",
+  "max_overlay_candidates": 3,
+  "risk_check_required_for": [
+    "planning",
+    "research",
+    "high_risk_tool_use"
+  ],
+  "allow_quality_checks": true,
+  "allow_route_override": false,
+  "allow_second_prompt_surface": false
+}

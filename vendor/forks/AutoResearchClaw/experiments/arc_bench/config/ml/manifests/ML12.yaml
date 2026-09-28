@@ -1,0 +1,96 @@
+# ============================================================================
+# T12 — Clustering algorithm comparison on synthetic geometric datasets
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML12
+title: "Comparing clustering algorithms on synthetic non-convex and anisotropic shapes"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  Clustering algorithms encode very different geometric assumptions. K-means
+  prefers spherical, equal-variance groups; agglomerative clustering can adapt
+  to hierarchical structure depending on linkage; DBSCAN finds dense regions
+  and can recover non-convex shapes while labeling outliers as noise; spectral
+  clustering can separate manifolds when graph affinity is appropriate.
+  Because these assumptions interact strongly with data geometry, a single
+  benchmark score often hides systematic failure modes.
+
+  Synthetic datasets are ideal for a fast but meaningful comparison because we
+  can generate known structures with ground-truth labels: intertwined moons,
+  concentric circles, and anisotropic Gaussian blobs. These patterns expose
+  strengths and weaknesses that are difficult to isolate in real-world data.
+  With labeled synthetic data, external clustering metrics like adjusted rand
+  index (ARI) and normalized mutual information (NMI) directly quantify
+  partition recovery quality.
+
+  A credible CPU-scale study should compare several algorithms under a shared
+  protocol: standardized inputs, fixed train-size generation per seed, and
+  explicit handling of methods that output noise labels. It should include at
+  least one centroid baseline (k-means) and one density method (DBSCAN), then
+  test whether non-linear methods systematically outperform centroid methods on
+  non-convex shapes while avoiding large regressions on anisotropic blobs.
+
+  The practical goal is not to crown one universally best algorithm, but to
+  establish data-shape-dependent guidance. If shape complexity changes which
+  method wins, practitioners should choose clustering tools by geometric prior
+  rather than habit.
+
+  *How strongly does dataset geometry (non-convex vs anisotropic) determine which clustering algorithm achieves the best ground-truth agreement under a fixed CPU-budget protocol?*
+
+hypotheses:
+  - id: H1
+    statement: "On the two non-convex datasets (moons and circles), at least one of {DBSCAN, SpectralClustering} achieves mean ARI that is at least 0.15 higher than k-means, averaged over ≥5 seeds."
+    measurable: true
+  - id: H2
+    statement: "On the anisotropic-blobs dataset, agglomerative clustering (ward linkage) achieves ARI greater than or equal to k-means in the seed-averaged result (difference >= 0.00)."
+    measurable: true
+  - id: H3
+    statement: "No single algorithm ranks first in ARI on all evaluated datasets; i.e., the best-ARI method differs on at least one dataset from the global winner."
+    measurable: true
+
+experiment_design:
+  research_question: "How strongly does dataset geometry (non-convex vs anisotropic) determine which clustering algorithm achieves the best agreement with ground-truth labels under a fixed CPU-budget protocol?"
+  conditions:
+    - name: "kmeans_k2_or_k3"
+      description: "KMeans baseline with n_clusters set to dataset ground-truth class count; n_init>=10."
+    - name: "agglomerative_ward"
+      description: "AgglomerativeClustering with ward linkage and n_clusters equal to ground-truth class count."
+    - name: "dbscan_tuned_eps"
+      description: "DBSCAN with eps selected from a small grid per dataset (e.g., 0.1 to 0.5) and fixed min_samples (e.g., 5)."
+    - name: "spectral_rbf"
+      description: "SpectralClustering with RBF affinity and n_clusters equal to ground-truth class count."
+  baselines:
+    - "kmeans_k2_or_k3 as centroid-based baseline"
+    - "agglomerative_ward as hierarchical baseline"
+  metrics:
+    - name: "adjusted_rand_score"
+      direction: "maximize"
+      description: "Adjusted Rand Index against ground-truth labels, averaged over seeds."
+    - name: "normalized_mutual_info"
+      direction: "maximize"
+      description: "Normalized Mutual Information against ground-truth labels."
+    - name: "silhouette_score"
+      direction: "maximize"
+      description: "Internal cohesion/separation score computed from predicted labels (excluding noise-only failures)."
+  datasets:
+    - name: "moons"
+      source: "sklearn.datasets.make_moons (n_samples~800, noise~0.08)"
+    - name: "circles"
+      source: "sklearn.datasets.make_circles (n_samples~800, noise~0.06, factor~0.5)"
+    - name: "anisotropic_blobs"
+      source: "sklearn.datasets.make_blobs followed by linear transformation to create anisotropy"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 420
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML12.json"

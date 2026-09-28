@@ -1,0 +1,101 @@
+{
+    "id": "ml10-root",
+    "requirements": "A credible experiment studying how cross-validation strategy choice (k-fold, stratified k-fold, repeated stratified k-fold, LOOCV) affects small-sample model-selection reliability: strategies are implemented consistently, runs cover multiple small-sample datasets with multiple seeds, and results address H1/H2/H3 directionally around estimation bias, stability, and compute.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Alternative CV strategies or datasets that preserve the scientific question (small-sample bias/stability of CV) should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml10-code",
+            "requirements": "Cross-validation strategy conditions and the model-selection pipeline are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml10-code-cv-strategies",
+                    "requirements": "The submission implements multiple distinct CV strategies \u2014 typically including plain k-fold, stratified k-fold, repeated stratified k-fold, and optionally LOOCV \u2014 as separate code paths used for model selection under a shared candidate-model grid.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml10-code-datasets",
+                    "requirements": "The submission uses multiple small-sample datasets (e.g., reduced breast_cancer, wine, or synthetic imbalanced variants) with a held-out test split.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml10-code-bias-metric",
+                    "requirements": "Code computes an estimation-bias style metric (e.g., |best_cv_score - selected_model_test_score|) or equivalent for each (dataset, seed, strategy) and aggregates it reproducibly.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml10-exec",
+            "requirements": "Execution logs required metrics per strategy with multi-seed evaluation.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml10-exec-metrics-output",
+                    "requirements": "Execution produces a machine-readable results artifact containing estimation bias (or equivalent) and selected-model test accuracy for each implemented strategy on at least one dataset.",
+                    "weight": 16.6667,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml10-exec-seeds-runtime",
+                    "requirements": "Execution uses multiple random seeds per (dataset, strategy) and records timing information sufficient to compare the more expensive strategies (e.g., LOOCV vs repeated stratified). Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml10-results",
+            "requirements": "Reported results address H1/H2/H3 directionally with interpretable evidence.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml10-result-h1",
+                    "requirements": "The submission compares mean estimation bias of repeated-stratified CV vs plain k-fold per dataset and conveys whether repeated stratified is meaningfully better on most datasets \u2014 judge directionally against H1.",
+                    "weight": 25.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml10-result-h2h3",
+                    "requirements": "The submission reports selection stability or across-seed variability for stratified k-fold vs plain k-fold (H2) and compares LOOCV versus repeated stratified CV on estimation bias and runtime (H3), conveying qualitative outcomes for both.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml10-result-writeup",
+                    "requirements": "The README or writeup describes the setup, reports per-strategy metrics, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and discusses limitations (small dataset scope, candidate-model grid choice, metric sensitivity, compute budget). No strict word-count requirement.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

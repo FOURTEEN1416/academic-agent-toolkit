@@ -1,0 +1,22 @@
+{
+  "adapter_id": "claude-code",
+  "template": "config/settings.template.claude.json",
+  "target": "~/.claude/settings.json",
+  "semantics": {
+    "vco.host_root": "~/.claude",
+    "vco.skill_roots.global": [
+      "~/.claude/skills"
+    ],
+    "vco.command_root": "~/.claude/commands",
+    "vco.settings_surface": "~/.claude/settings.json",
+    "vco.host_closure": "~/.claude/.vibeskills/host-closure.json",
+    "env.ANTHROPIC_AUTH_TOKEN": "primary provider credential",
+    "env.ANTHROPIC_BASE_URL": "provider endpoint binding",
+    "env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "host runtime behavior toggle",
+    "env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "host runtime team capability flag"
+  },
+  "notes": [
+    "This mapping is template-derived and now writes a minimal managed vibeskills surface into the host settings file while preserving existing values.",
+    "Hook installation remains preview-scoped until broader compatibility proof is available."
+  ]
+}

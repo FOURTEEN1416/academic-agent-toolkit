@@ -1,0 +1,29 @@
+{
+  "adapter_id": "opencode",
+  "template": "config/opencode/opencode.json.example",
+  "target": "~/.config/opencode/opencode.json",
+  "semantics": {
+    "vco.host_root.global": "~/.config/opencode",
+    "vco.skill_roots.global": [
+      "~/.config/opencode/skills"
+    ],
+    "vco.skill_roots.project": [
+      ".opencode/skills"
+    ],
+    "vco.command_root.global": "~/.config/opencode/commands",
+    "vco.command_root.project": ".opencode/commands",
+    "vco.command_root.compat": "~/.config/opencode/command",
+    "vco.agent_root.global": "~/.config/opencode/agents",
+    "vco.agent_root.project": ".opencode/agents",
+    "vco.agent_root.compat": "~/.config/opencode/agent",
+    "vco.host_closure": "~/.config/opencode/.vibeskills/host-closure.json",
+    "permission.skill": "skill allow/ask rules for Vibe-Skills entrypoints",
+    "permission.external_directory": "needed only when the operator intentionally points OpenCode at compatibility roots outside the project or OpenCode config home",
+    "provider.*": "host-managed provider credentials and endpoint bindings"
+  },
+  "notes": [
+    "The repository does not write the real opencode.json; OpenCode keeps that surface host-managed.",
+    "Preview install writes markdown wrapper files into OpenCode command/agent roots and keeps the example opencode.json scaffold for reference.",
+    "Both plural and singular command/agent subdirectories are mirrored during preview installation for compatibility with current doc/runtime drift."
+  ]
+}

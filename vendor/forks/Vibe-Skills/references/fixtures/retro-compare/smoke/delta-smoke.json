@@ -1,0 +1,31 @@
+﻿{
+    "baseline_report_id":  "CER-SMOKE-BASE",
+    "current_report_id":  "CER-SMOKE-CURR",
+    "generated_at":  "2026-02-24T18:29:46Z",
+    "status":  "improved",
+    "pattern_delta":  {
+                          "added":  "CF-2",
+                          "removed":  "CF-3",
+                          "common_count":  0
+                      },
+    "fallback_rate":  {
+                          "baseline":  0.3,
+                          "current":  0.12,
+                          "delta":  -0.18
+                      },
+    "stability":  {
+                      "baseline":  0.675,
+                      "current":  0.85,
+                      "delta":  0.175
+                  },
+    "context_pressure":  {
+                             "baseline":  0.85,
+                             "current":  0.6,
+                             "delta":  -0.25
+                         },
+    "route_gap":  {
+                      "baseline":  0.02,
+                      "current":  0.09,
+                      "delta":  0.07
+                  }
+}

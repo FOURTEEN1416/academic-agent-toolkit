@@ -1,0 +1,173 @@
+{
+  "current_docs": [
+    "README.md",
+    "SKILL.md",
+    "protocols/runtime.md",
+    "protocols/team.md",
+    "docs/governance/current-routing-contract.md",
+    "docs/governance/current-runtime-field-contract.md"
+  ],
+  "current_runtime_files": [
+    "scripts/runtime/VibeSkillRouting.Common.ps1",
+    "scripts/runtime/VibeRuntime.Common.ps1",
+    "scripts/runtime/Freeze-RuntimeInputPacket.ps1",
+    "scripts/runtime/Write-RequirementDoc.ps1",
+    "scripts/runtime/Write-XlPlan.ps1",
+    "scripts/runtime/invoke-vibe-runtime.ps1"
+  ],
+  "current_behavior_tests": [
+    "tests/runtime_neutral/test_root_child_hierarchy_bridge.py",
+    "tests/runtime_neutral/test_runtime_contract_schema.py",
+    "tests/runtime_neutral/test_runtime_delivery_acceptance.py",
+    "tests/runtime_neutral/test_module_skill_dispatch_safety.py",
+    "tests/runtime_neutral/test_retired_agent_execution_surfaces.py",
+    "tests/runtime_neutral/test_governed_runtime_bridge.py",
+    "tests/runtime_neutral/test_installed_host_runtime_simulation.py"
+  ],
+  "retired_behavior_tests": [
+    "tests/runtime_neutral/test_simplified_skill_routing_contract.py"
+  ],
+  "historical_docs": [
+    "docs/governance/binary-skill-usage-routing-2026-04-28.md",
+    "docs/governance/simplified-skill-routing-2026-04-29.md",
+    "docs/governance/terminology-governance.md",
+    "docs/governance/specialist-dispatch-governance.md",
+    "docs/superpowers/specs/2026-04-10-vibe-aggressive-specialist-routing-design.md",
+    "docs/superpowers/specs/2026-04-12-vibe-approved-dispatch-user-disclosure-design.md",
+    "docs/superpowers/specs/2026-04-12-vibe-discussion-time-specialist-consultation-design.md",
+    "docs/superpowers/specs/2026-04-12-vibe-host-stage-disclosure-protocol-design.md"
+  ],
+  "historical_doc_roots": [
+    "docs/governance",
+    "docs/requirements",
+    "docs/superpowers/plans",
+    "docs/superpowers/specs"
+  ],
+  "historical_doc_exemptions": [
+    "docs/governance/current-routing-contract.md",
+    "docs/governance/current-runtime-field-contract.md",
+    "docs/governance/terminology-governance.md"
+  ],
+  "execution_internal_scan_files": [
+    "scripts/runtime/Invoke-PlanExecute.ps1"
+  ],
+  "execution_internal_allowed_specialist_dispatch_reference_count": 0,
+  "current_policy_helper_files": [
+    "config/runtime-input-packet-policy.json",
+    "scripts/runtime/VibeRuntime.Common.ps1",
+    "scripts/runtime/Freeze-RuntimeInputPacket.ps1",
+    "scripts/runtime/Write-RequirementDoc.ps1",
+    "scripts/runtime/Write-XlPlan.ps1",
+    "scripts/runtime/Invoke-PlanExecute.ps1",
+    "packages/runtime-core/src/vgo_runtime/canonical_entry.py"
+  ],
+  "current_policy_helper_forbidden_patterns": [
+    "specialist_dispatch_contract",
+    "host_specialist_dispatch_contract",
+    "interactive_specialist_disclosure",
+    "Get-VibeRuntimeSpecialistDispatchProjection",
+    "Get-VibeHostSpecialistDispatchContract",
+    "Get-VibeHostSpecialistDispatchDecisionMarkdownLines",
+    "Get-VibeInteractiveSpecialistDisclosurePolicy",
+    "host_specialist_dispatch_decision",
+    "specialist_dispatch_decision",
+    "approved_specialist_dispatch_count",
+    "Host Specialist Dispatch Decision",
+    "## Specialist Decision",
+    "## Specialist Decision Plan",
+    "## Specialist Skill Dispatch Plan",
+    "## Specialist Dispatch Audit",
+    "fallback specialist dispatch",
+    "specialist dispatch section",
+    "specialist dispatch accounting",
+    "specialist dispatch integrity proof",
+    "approved_dispatch_only",
+    "dispatch_unit_count =",
+    "execution_topology",
+    "execution-topology",
+    "execution topology",
+    "execution_proof_manifest",
+    "direct current-session specialist",
+    "native specialist"
+  ],
+  "current_surface_roots": [
+    "README.md",
+    "README.zh.md",
+    "SKILL.md",
+    "protocols",
+    "docs/governance/current-routing-contract.md",
+    "docs/governance/current-runtime-field-contract.md",
+    "docs/install",
+    "packages/verification-core/src/vgo_verify",
+    "packages/runtime-core/src/vgo_runtime",
+    "scripts/router",
+    "scripts/runtime",
+    "scripts/verify",
+    "tests/runtime_neutral",
+    "tests/unit",
+    "tests/integration"
+  ],
+  "historical_surface_roots": [
+    "docs/superpowers/plans",
+    "docs/superpowers/specs",
+    "docs/governance"
+  ],
+  "historical_surface_exemptions": [
+    "docs/governance/current-routing-contract.md",
+    "docs/governance/current-runtime-field-contract.md"
+  ],
+  "allowed_negative_files": [
+    "tests/runtime_neutral/test_runtime_route_output_shape.py",
+    "scripts/verify/vibe-current-routing-debt-gate.ps1",
+    "scripts/verify/vibe-current-routing-contract-scan.ps1",
+    "scripts/verify/vibe-routing-terminology-hard-cleanup-scan.ps1"
+  ],
+  "compatibility_review_files": [
+    "packages/runtime-core/src/vgo_runtime/router_contract_runtime.py",
+    "scripts/router/resolve-pack-route.ps1"
+  ],
+  "retired_positive_terms": [
+    "route_authority_candidates",
+    "stage_assistant_candidates",
+    "route_authority_eligible",
+    "legacy_role",
+    "_legacy_role",
+    "_legacy_stage_assistant_candidates",
+    "route authority",
+    "stage assistant",
+    "route owner",
+    "primary skill",
+    "secondary skill",
+    "legacy admission role",
+    "pack consolidation role"
+  ],
+  "retired_terms": [
+    "legacy_skill_routing",
+    "specialist_recommendations",
+    "stage_assistant_hints",
+    "## Specialist Consultation",
+    "primary skill",
+    "secondary skill",
+    "route owner",
+    "consultation expert",
+    "auxiliary expert",
+    "stage assistant",
+    "Specialist Dispatch",
+    "specialist dispatch"
+  ],
+  "current_behavior_test_forbidden_patterns": [
+    "[\"specialist_dispatch\"]",
+    "runtime_input_packet[\"specialist_dispatch\"]",
+    "packet[\"specialist_dispatch\"]",
+    ".get(\"specialist_dispatch\")",
+    "legacy_skill_routing",
+    "specialist_recommendations",
+    "stage_assistant_hints"
+  ],
+  "historical_markers": [
+    "Historical / Retired Note",
+    "Historical Note",
+    "Retired Note",
+    "Superseded"
+  ]
+}

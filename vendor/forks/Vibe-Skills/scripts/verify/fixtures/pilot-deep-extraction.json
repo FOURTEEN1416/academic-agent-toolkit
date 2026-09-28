@@ -1,0 +1,19 @@
+{
+  "scenario_id": "pilot-deep-extraction",
+  "plane_id": "deep-extraction-governance",
+  "task": "验证 Wave31-39 的 mirror topology、upstream corpus、docling、connector、role-pack、capability catalog 是否都进入 canonical 治理。",
+  "objective": "确保新增吸收成果全部具备 docs + config + script + gate + rollback/pilot 证据，不再依赖 runtime-only 副本。",
+  "expected": {
+    "governed_mirror_coverage": 1.0,
+    "runtime_only_artifact_count": 0,
+    "upstream_manifest_coverage": 15,
+    "productization_ratio_min": 0.8,
+    "single_control_plane": true
+  },
+  "must_not": [
+    "runtime_only_contract",
+    "mirror_only_authority",
+    "second_orchestrator",
+    "ungoverned_upstream"
+  ]
+}

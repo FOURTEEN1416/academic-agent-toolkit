@@ -1,0 +1,533 @@
+{
+  "schema_version": "module_work_plan_v1",
+  "source_run_id": "20260718T041559Z-51996499",
+  "requirement_digest": "581778ea46dcb0195493c66f4f8c7cbfe1a4479574e9931a06139adaa719985d",
+  "organization_digest": "8bd47c2490942932fb9781d79b53bc84f111978b97060aeeed9fbbf68ce36a1e",
+  "workflow_level": "L",
+  "modules": [
+    {
+      "module_id": "environment_setup",
+      "goal": "Create the isolated Python 3.12 environment and reproduction command.",
+      "required": true,
+      "depends_on": [],
+      "execution_mode": "agent_direct",
+      "write_scope": "deliverables/00-environment/**",
+      "expected_outputs": [
+        "deliverables/00-environment/.venv/Scripts/python.exe",
+        "deliverables/00-environment/requirements.lock",
+        "deliverables/00-environment/environment.json",
+        "deliverables/00-environment/reproduce.ps1"
+      ],
+      "verification": [
+        "Check Python 3.12, pinned versions, imports, and the reproduction command."
+      ],
+      "gap_reason": null,
+      "acceptance_criteria": [
+        {
+          "criterion_id": "environment-contract",
+          "description": "The case-local Python 3.12 environment imports every required pinned dependency.",
+          "verification_mode": "automated"
+        },
+        {
+          "criterion_id": "reproduction-entry",
+          "description": "One recorded command starts the frozen experiment through that environment.",
+          "verification_mode": "automated"
+        }
+      ]
+    },
+    {
+      "module_id": "data_audit",
+      "goal": "Materialize and audit the built-in Wisconsin Breast Cancer dataset before modeling.",
+      "required": true,
+      "depends_on": [
+        "environment_setup"
+      ],
+      "execution_mode": "skill_assigned",
+      "write_scope": "deliverables/01-data-audit/**",
+      "expected_outputs": [
+        "deliverables/01-data-audit/wisconsin-breast-cancer.csv",
+        "deliverables/01-data-audit/dataset-metadata.json",
+        "deliverables/01-data-audit/target-distribution.csv",
+        "deliverables/01-data-audit/data-audit.md"
+      ],
+      "verification": [
+        "Compare the snapshot with the loader and check shape, labels, missingness, duplicates, balance, types, and leakage risk."
+      ],
+      "gap_reason": null,
+      "acceptance_criteria": [
+        {
+          "criterion_id": "data-snapshot",
+          "description": "The table and metadata agree with the scikit-learn loader output.",
+          "verification_mode": "automated"
+        },
+        {
+          "criterion_id": "data-audit-coverage",
+          "description": "The audit reports every frozen quality check and separates facts from recommendations.",
+          "verification_mode": "manual"
+        }
+      ]
+    },
+    {
+      "module_id": "baseline_experiment",
+      "goal": "Run the frozen DummyClassifier comparator and scaled LogisticRegression baseline.",
+      "required": true,
+      "depends_on": [
+        "data_audit"
+      ],
+      "execution_mode": "skill_assigned",
+      "write_scope": "deliverables/02-baseline/**",
+      "expected_outputs": [
+        "deliverables/02-baseline/run_experiment.py",
+        "deliverables/02-baseline/experiment-config.json",
+        "deliverables/02-baseline/metrics.json",
+        "deliverables/02-baseline/fold-metrics.csv",
+        "deliverables/02-baseline/holdout-predictions.csv",
+        "deliverables/02-baseline/reproduction-check.json"
+      ],
+      "verification": [
+        "Verify the in-pipeline scaler, fixed seeds, stratified holdout, repeated stratified CV, required metrics, and a clean replay."
+      ],
+      "gap_reason": null,
+      "acceptance_criteria": [
+        {
+          "criterion_id": "baseline-design",
+          "description": "The models, pipeline, split, cross-validation, and no-search boundary match the frozen requirement.",
+          "verification_mode": "automated"
+        },
+        {
+          "criterion_id": "baseline-results",
+          "description": "Holdout and fold outputs contain ROC AUC, balanced accuracy, F1, confusion counts, sample counts, and model identities and reproduce under the pinned environment.",
+          "verification_mode": "automated"
+        }
+      ]
+    },
+    {
+      "module_id": "statistical_method_review",
+      "goal": "Quantify uncertainty and verify that methods and claims are justified.",
+      "required": true,
+      "depends_on": [
+        "baseline_experiment"
+      ],
+      "execution_mode": "skill_assigned",
+      "write_scope": "deliverables/03-statistical-review/**",
+      "expected_outputs": [
+        "deliverables/03-statistical-review/statistics/uncertainty.json",
+        "deliverables/03-statistical-review/statistics/statistical-review.md",
+        "deliverables/03-statistical-review/method-review/method-and-claims-review.md"
+      ],
+      "verification": [
+        "Recalculate uncertainty, disclose assumptions, avoid unjustified significance tests, then review leakage, bias, overclaiming, generalization, and non-clinical limits."
+      ],
+      "gap_reason": null,
+      "acceptance_criteria": [
+        {
+          "criterion_id": "uncertainty-contract",
+          "description": "Variability and uncertainty intervals state their method, units, assumptions, and source data.",
+          "verification_mode": "automated"
+        },
+        {
+          "criterion_id": "claim-boundary",
+          "description": "The review records limitations and permits only conclusions supported by this demonstration design.",
+          "verification_mode": "manual"
+        }
+      ]
+    },
+    {
+      "module_id": "result_figures",
+      "goal": "Create accessible, source-mapped result figures from saved experiment outputs.",
+      "required": true,
+      "depends_on": [
+        "statistical_method_review"
+      ],
+      "execution_mode": "skill_assigned",
+      "write_scope": "deliverables/04-figures/**",
+      "expected_outputs": [
+        "deliverables/04-figures/class-balance.png",
+        "deliverables/04-figures/roc-and-pr-curves.png",
+        "deliverables/04-figures/cv-performance-distribution.png",
+        "deliverables/04-figures/confusion-matrix.png",
+        "deliverables/04-figures/vector/*.svg",
+        "deliverables/04-figures/figure-index.json"
+      ],
+      "verification": [
+        "Check source mappings and inspect each full-size PNG for readable labels, accessible colors, defined uncertainty, honest scales, clipping, and overlap."
+      ],
+      "gap_reason": null,
+      "acceptance_criteria": [
+        {
+          "criterion_id": "figure-traceability",
+          "description": "Four PNG figures and matching vector exports map every plotted value to saved evidence.",
+          "verification_mode": "automated"
+        },
+        {
+          "criterion_id": "figure-visual-qa",
+          "description": "Full-size inspection finds no unreadable, clipped, overlapping, inaccessible, or misleading elements.",
+          "verification_mode": "manual"
+        }
+      ]
+    },
+    {
+      "module_id": "report_draft",
+      "goal": "Draft the scientific report strictly from approved evidence and figure mappings.",
+      "required": true,
+      "depends_on": [
+        "result_figures"
+      ],
+      "execution_mode": "agent_direct",
+      "write_scope": "deliverables/05-report/draft/**",
+      "expected_outputs": [
+        "deliverables/05-report/draft/scientific-report-draft.md",
+        "deliverables/05-report/draft/report-source-map.json"
+      ],
+      "verification": [
+        "Map every numerical statement and figure reference to saved evidence and separate results, interpretation, limitations, and non-clinical scope."
+      ],
+      "gap_reason": null,
+      "acceptance_criteria": [
+        {
+          "criterion_id": "report-draft-content",
+          "description": "The draft covers purpose, data, methods, results, limitations, reproducibility, and conclusion.",
+          "verification_mode": "manual"
+        },
+        {
+          "criterion_id": "report-source-map",
+          "description": "Every result number and figure reference has a machine-readable source mapping.",
+          "verification_mode": "automated"
+        }
+      ]
+    },
+    {
+      "module_id": "report_review",
+      "goal": "Apply the full scientific-writing review without altering scientific content.",
+      "required": true,
+      "depends_on": [
+        "report_draft"
+      ],
+      "execution_mode": "skill_assigned",
+      "write_scope": "deliverables/05-report/final/**",
+      "expected_outputs": [
+        "deliverables/05-report/final/scientific-report.md",
+        "deliverables/05-report/final/writing-review.md"
+      ],
+      "verification": [
+        "Run all five review passes and recheck terminology, sample counts, metrics, intervals, significant figures, and figure references."
+      ],
+      "gap_reason": null,
+      "acceptance_criteria": [
+        {
+          "criterion_id": "writing-five-passes",
+          "description": "The review records all five required passes and concrete revisions.",
+          "verification_mode": "automated"
+        },
+        {
+          "criterion_id": "writing-content-boundary",
+          "description": "The final report is clearer but preserves the approved data, methods, model identities, and claims.",
+          "verification_mode": "manual"
+        }
+      ]
+    },
+    {
+      "module_id": "group_meeting_slides",
+      "goal": "Create and fully render-check a seven-slide group-meeting PowerPoint deck.",
+      "required": true,
+      "depends_on": [
+        "report_review",
+        "result_figures"
+      ],
+      "execution_mode": "skill_assigned",
+      "write_scope": "deliverables/06-slides/**",
+      "expected_outputs": [
+        "deliverables/06-slides/group-meeting-slides.pptx",
+        "deliverables/06-slides/rendered/slide-*.png",
+        "deliverables/06-slides/slides-montage.png",
+        "deliverables/06-slides/slides-qa.txt",
+        "deliverables/06-slides/slide-source-map.json"
+      ],
+      "verification": [
+        "Use the local artifact-tool route, run overflow checks, render every slide, inspect each full size, and reconcile every displayed result with its source."
+      ],
+      "gap_reason": null,
+      "acceptance_criteria": [
+        {
+          "criterion_id": "slides-render",
+          "description": "The seven-slide PPTX opens and every slide renders to a nonblank PNG.",
+          "verification_mode": "automated"
+        },
+        {
+          "criterion_id": "slides-content-qa",
+          "description": "No overflow, clipping, overlap, placeholder, narrative break, or chart-data mismatch remains.",
+          "verification_mode": "manual"
+        }
+      ]
+    },
+    {
+      "module_id": "case_package_and_consistency",
+      "goal": "Prepare bilingual README case material and reconcile every number and claim across all outputs without editing README files.",
+      "required": true,
+      "depends_on": [
+        "baseline_experiment",
+        "statistical_method_review",
+        "result_figures",
+        "report_review",
+        "group_meeting_slides"
+      ],
+      "execution_mode": "agent_direct",
+      "write_scope": "deliverables/07-case-package/**",
+      "expected_outputs": [
+        "deliverables/07-case-package/summary-en.md",
+        "deliverables/07-case-package/summary-zh.md",
+        "deliverables/07-case-package/visual-materials.md",
+        "deliverables/07-case-package/case-manifest.json",
+        "deliverables/07-case-package/verify_consistency.py",
+        "deliverables/07-case-package/consistency-check.json",
+        "deliverables/07-case-package/consistency-check.md"
+      ],
+      "verification": [
+        "Parse metrics, uncertainty, report, PPTX text, figure index, manifest, and summaries; compare sample counts, models, split settings, values, intervals, confusion counts, limitations, and paths under explicit rounding rules."
+      ],
+      "gap_reason": null,
+      "acceptance_criteria": [
+        {
+          "criterion_id": "case-package-truth",
+          "description": "The aligned English and Chinese summaries and visual guidance use only verified artifacts and make no success claim before canonical acceptance.",
+          "verification_mode": "manual"
+        },
+        {
+          "criterion_id": "cross-artifact-consistency",
+          "description": "All numbers, model names, sample counts, settings, limitations, figure labels, and paths reconcile; missing or contradictory evidence fails the check.",
+          "verification_mode": "automated"
+        }
+      ]
+    }
+  ],
+  "work_units": [
+    {
+      "unit_id": "data_audit--exploratory-data-analysis--owner",
+      "module_id": "data_audit",
+      "skill_id": "exploratory-data-analysis",
+      "role": "owner",
+      "responsibility": "Own dataset materialization and the structure, quality, distribution, and leakage-risk audit.",
+      "write_scope": "deliverables/01-data-audit/**",
+      "depends_on_unit_ids": [
+        "environment_setup--agent--owner"
+      ],
+      "expected_outputs": [
+        "deliverables/01-data-audit/wisconsin-breast-cancer.csv",
+        "deliverables/01-data-audit/dataset-metadata.json",
+        "deliverables/01-data-audit/target-distribution.csv",
+        "deliverables/01-data-audit/data-audit.md"
+      ],
+      "verification": [
+        "Compare the snapshot with the loader and check shape, labels, missingness, duplicates, balance, types, and leakage risk."
+      ],
+      "stage_order": 2,
+      "phase_id": "module-stage-2"
+    },
+    {
+      "unit_id": "baseline_experiment--scikit-learn--owner",
+      "module_id": "baseline_experiment",
+      "skill_id": "scikit-learn",
+      "role": "owner",
+      "responsibility": "Own the leakage-safe pipeline, frozen models, stratified evaluation, metrics, predictions, and replay.",
+      "write_scope": "deliverables/02-baseline/**",
+      "depends_on_unit_ids": [
+        "data_audit--exploratory-data-analysis--owner"
+      ],
+      "expected_outputs": [
+        "deliverables/02-baseline/run_experiment.py",
+        "deliverables/02-baseline/experiment-config.json",
+        "deliverables/02-baseline/metrics.json",
+        "deliverables/02-baseline/fold-metrics.csv",
+        "deliverables/02-baseline/holdout-predictions.csv",
+        "deliverables/02-baseline/reproduction-check.json"
+      ],
+      "verification": [
+        "Verify the in-pipeline scaler, fixed seeds, stratified holdout, repeated stratified CV, required metrics, and a clean replay."
+      ],
+      "stage_order": 3,
+      "phase_id": "module-stage-3"
+    },
+    {
+      "unit_id": "statistical_method_review--statistical-analysis--owner",
+      "module_id": "statistical_method_review",
+      "skill_id": "statistical-analysis",
+      "role": "owner",
+      "responsibility": "Own uncertainty selection, variability summaries, assumption disclosure, and restrained statistical reporting.",
+      "write_scope": "deliverables/03-statistical-review/**",
+      "depends_on_unit_ids": [
+        "baseline_experiment--scikit-learn--owner"
+      ],
+      "expected_outputs": [
+        "deliverables/03-statistical-review/statistics/uncertainty.json",
+        "deliverables/03-statistical-review/statistics/statistical-review.md",
+        "deliverables/03-statistical-review/method-review/method-and-claims-review.md"
+      ],
+      "verification": [
+        "Recalculate uncertainty, disclose assumptions, avoid unjustified significance tests, then review leakage, bias, overclaiming, generalization, and non-clinical limits."
+      ],
+      "stage_order": 4,
+      "phase_id": "module-stage-4"
+    },
+    {
+      "unit_id": "statistical_method_review--scientific-critical-thinking--verifier",
+      "module_id": "statistical_method_review",
+      "skill_id": "scientific-critical-thinking",
+      "role": "verifier",
+      "responsibility": "After the statistics owner, verify design validity, bias, leakage, overclaiming, generalization, and non-clinical boundaries.",
+      "write_scope": "deliverables/03-statistical-review/**",
+      "depends_on_unit_ids": [
+        "baseline_experiment--scikit-learn--owner",
+        "statistical_method_review--statistical-analysis--owner"
+      ],
+      "expected_outputs": [
+        "deliverables/03-statistical-review/statistics/uncertainty.json",
+        "deliverables/03-statistical-review/statistics/statistical-review.md",
+        "deliverables/03-statistical-review/method-review/method-and-claims-review.md"
+      ],
+      "verification": [
+        "Recalculate uncertainty, disclose assumptions, avoid unjustified significance tests, then review leakage, bias, overclaiming, generalization, and non-clinical limits."
+      ],
+      "stage_order": 5,
+      "phase_id": "module-stage-5"
+    },
+    {
+      "unit_id": "result_figures--scientific-visualization--owner",
+      "module_id": "result_figures",
+      "skill_id": "scientific-visualization",
+      "role": "owner",
+      "responsibility": "Own the accessible, publication-quality, source-mapped PNG and SVG figure set.",
+      "write_scope": "deliverables/04-figures/**",
+      "depends_on_unit_ids": [
+        "statistical_method_review--scientific-critical-thinking--verifier",
+        "statistical_method_review--statistical-analysis--owner"
+      ],
+      "expected_outputs": [
+        "deliverables/04-figures/class-balance.png",
+        "deliverables/04-figures/roc-and-pr-curves.png",
+        "deliverables/04-figures/cv-performance-distribution.png",
+        "deliverables/04-figures/confusion-matrix.png",
+        "deliverables/04-figures/vector/*.svg",
+        "deliverables/04-figures/figure-index.json"
+      ],
+      "verification": [
+        "Check source mappings and inspect each full-size PNG for readable labels, accessible colors, defined uncertainty, honest scales, clipping, and overlap."
+      ],
+      "stage_order": 6,
+      "phase_id": "module-stage-6"
+    },
+    {
+      "unit_id": "report_review--sciwrite--owner",
+      "module_id": "report_review",
+      "skill_id": "sciwrite",
+      "role": "owner",
+      "responsibility": "Run the five-pass writing review and produce the clear final report without changing scientific content.",
+      "write_scope": "deliverables/05-report/final/**",
+      "depends_on_unit_ids": [
+        "report_draft--agent--owner"
+      ],
+      "expected_outputs": [
+        "deliverables/05-report/final/scientific-report.md",
+        "deliverables/05-report/final/writing-review.md"
+      ],
+      "verification": [
+        "Run all five review passes and recheck terminology, sample counts, metrics, intervals, significant figures, and figure references."
+      ],
+      "stage_order": 8,
+      "phase_id": "module-stage-8"
+    },
+    {
+      "unit_id": "group_meeting_slides--presentations--owner",
+      "module_id": "group_meeting_slides",
+      "skill_id": "presentations",
+      "role": "owner",
+      "responsibility": "Own the artifact-tool PPTX, seven-slide narrative, rendering, overflow checks, visual QA, and source map.",
+      "write_scope": "deliverables/06-slides/**",
+      "depends_on_unit_ids": [
+        "report_review--sciwrite--owner",
+        "result_figures--scientific-visualization--owner"
+      ],
+      "expected_outputs": [
+        "deliverables/06-slides/group-meeting-slides.pptx",
+        "deliverables/06-slides/rendered/slide-*.png",
+        "deliverables/06-slides/slides-montage.png",
+        "deliverables/06-slides/slides-qa.txt",
+        "deliverables/06-slides/slide-source-map.json"
+      ],
+      "verification": [
+        "Use the local artifact-tool route, run overflow checks, render every slide, inspect each full size, and reconcile every displayed result with its source."
+      ],
+      "stage_order": 9,
+      "phase_id": "module-stage-9"
+    },
+    {
+      "unit_id": "environment_setup--agent--owner",
+      "module_id": "environment_setup",
+      "skill_id": null,
+      "role": "owner",
+      "responsibility": "Create the isolated Python 3.12 environment and reproduction command.",
+      "write_scope": "deliverables/00-environment/**",
+      "depends_on_unit_ids": [],
+      "expected_outputs": [
+        "deliverables/00-environment/.venv/Scripts/python.exe",
+        "deliverables/00-environment/requirements.lock",
+        "deliverables/00-environment/environment.json",
+        "deliverables/00-environment/reproduce.ps1"
+      ],
+      "verification": [
+        "Check Python 3.12, pinned versions, imports, and the reproduction command."
+      ],
+      "stage_order": 1,
+      "phase_id": "module-stage-1"
+    },
+    {
+      "unit_id": "report_draft--agent--owner",
+      "module_id": "report_draft",
+      "skill_id": null,
+      "role": "owner",
+      "responsibility": "Draft the scientific report strictly from approved evidence and figure mappings.",
+      "write_scope": "deliverables/05-report/draft/**",
+      "depends_on_unit_ids": [
+        "result_figures--scientific-visualization--owner"
+      ],
+      "expected_outputs": [
+        "deliverables/05-report/draft/scientific-report-draft.md",
+        "deliverables/05-report/draft/report-source-map.json"
+      ],
+      "verification": [
+        "Map every numerical statement and figure reference to saved evidence and separate results, interpretation, limitations, and non-clinical scope."
+      ],
+      "stage_order": 7,
+      "phase_id": "module-stage-7"
+    },
+    {
+      "unit_id": "case_package_and_consistency--agent--owner",
+      "module_id": "case_package_and_consistency",
+      "skill_id": null,
+      "role": "owner",
+      "responsibility": "Prepare bilingual README case material and reconcile every number and claim across all outputs without editing README files.",
+      "write_scope": "deliverables/07-case-package/**",
+      "depends_on_unit_ids": [
+        "baseline_experiment--scikit-learn--owner",
+        "group_meeting_slides--presentations--owner",
+        "report_review--sciwrite--owner",
+        "result_figures--scientific-visualization--owner",
+        "statistical_method_review--scientific-critical-thinking--verifier",
+        "statistical_method_review--statistical-analysis--owner"
+      ],
+      "expected_outputs": [
+        "deliverables/07-case-package/summary-en.md",
+        "deliverables/07-case-package/summary-zh.md",
+        "deliverables/07-case-package/visual-materials.md",
+        "deliverables/07-case-package/case-manifest.json",
+        "deliverables/07-case-package/verify_consistency.py",
+        "deliverables/07-case-package/consistency-check.json",
+        "deliverables/07-case-package/consistency-check.md"
+      ],
+      "verification": [
+        "Parse metrics, uncertainty, report, PPTX text, figure index, manifest, and summaries; compare sample counts, models, split settings, values, intervals, confusion counts, limitations, and paths under explicit rounding rules."
+      ],
+      "stage_order": 10,
+      "phase_id": "module-stage-10"
+    }
+  ]
+}

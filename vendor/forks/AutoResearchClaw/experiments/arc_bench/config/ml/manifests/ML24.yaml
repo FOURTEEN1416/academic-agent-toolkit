@@ -1,0 +1,98 @@
+# ============================================================================
+# T24 — Benchmarking online learning algorithms under concept drift
+# ----------------------------------------------------------------------------
+# Unlike paper_replication's P01-P07, the "synthesis" here frames a research
+# QUESTION rather than a known paper's method. The model must design the
+# experiment (conditions, metrics, datasets) — we only commit to what a
+# competent study of this topic would include and what the rubric expects.
+# ============================================================================
+
+id: ML24
+title: "Online binary classification under concept drift: SGD, PA, NB, and FTRL"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+# The "synthesis" plays the role of the upstream briefing: research question,
+# background, why the question matters, what "a reasonable experiment" looks
+# like. It deliberately does NOT pre-specify a single method to reproduce.
+synthesis: |
+  In streaming classification, data arrive sequentially and model updates must
+  be cheap and immediate. Under concept drift, the relationship between
+  features and labels changes over time, so static train/test evaluation can
+  be misleading. Prequential (test-then-train) evaluation better reflects
+  deployment: each incoming point is first predicted, then used for an update.
+  This setting creates practical trade-offs among stability, adaptability, and
+  computational cost.
+
+  Several lightweight online learners in sklearn-style workflows represent
+  different adaptation biases. SGD logistic regression can track drift via
+  gradient updates but may require careful learning-rate choices. Passive-
+  Aggressive updates can react strongly to mistakes and often adapt quickly to
+  abrupt shifts. Online Naive Bayes is extremely cheap and robust but may lag
+  when feature dependence structure changes. A simple FTRL-style proximal
+  logistic update (implemented with diagonal accumulators) offers adaptive
+  per-feature learning rates and implicit regularization.
+
+  A credible CPU-only benchmark should compare these methods on at least one
+  synthetic abrupt-drift stream and one real sklearn dataset converted to a
+  stream with induced drift (e.g., blockwise class-prior or feature transform
+  shift). It should report prequential accuracy as the primary metric, plus at
+  least one drift-sensitive secondary metric such as post-drift recovery and
+  cumulative log loss. Multi-seed runs are important because stream order and
+  drift-point randomness can materially change outcomes.
+
+  The study should also verify that drift actually hurts models by comparing a
+  no-drift control stream against drifted streams, and should discuss which
+  algorithms recover fastest after drift while maintaining overall accuracy.
+  This makes the benchmark more diagnostic than a single aggregate score.
+
+  *Which lightweight online learner provides the best trade-off between overall prequential accuracy and adaptation speed after concept drift in binary streams?*
+
+hypotheses:
+  - id: H1
+    statement: "On drifted streams, Passive-Aggressive or FTRL achieves higher prequential_accuracy than online Naive Bayes by at least 0.02 absolute on at least 2 of 3 datasets, averaged over >=5 seeds."
+    measurable: true
+  - id: H2
+    statement: "For at least 2 of 3 drifted datasets, the best post-drift recovery accuracy in a fixed window of 200 samples after each drift point is achieved by either Passive-Aggressive or FTRL."
+    measurable: true
+  - id: H3
+    statement: "For SGD logistic and Passive-Aggressive, prequential_accuracy on a drifted version of each stream is at least 0.03 lower than on its matched no-drift control, on at least 2 of 3 datasets."
+    measurable: true
+
+experiment_design:
+  research_question: "Which online method among SGD logistic, Passive-Aggressive, online Naive Bayes, and FTRL-style logistic best balances prequential accuracy and post-drift recovery on binary data streams with concept drift?"
+  conditions:
+    - name: "sgd_logistic"
+      description: "SGDClassifier with log_loss and partial_fit in prequential test-then-train loop."
+    - name: "passive_aggressive"
+      description: "PassiveAggressiveClassifier with partial_fit in the same loop."
+    - name: "online_naive_bayes"
+      description: "GaussianNB updated incrementally via partial_fit."
+    - name: "ftrl_prox_logistic"
+      description: "Custom numpy FTRL-proximal logistic regression with diagonal accumulator and L1/L2 regularization."
+  baselines:
+    - "online_naive_bayes as a simple low-cost baseline"
+    - "sgd_logistic as a standard linear online-learning baseline"
+  metrics:
+    - name: "prequential_accuracy"
+      direction: "maximize"
+      description: "Mean test-then-train accuracy over the full stream, averaged over 5 seeds."
+    - name: "post_drift_recovery_accuracy"
+      direction: "maximize"
+      description: "Accuracy in the first 200 samples after each drift point, averaged across drift events and seeds."
+    - name: "prequential_log_loss"
+      direction: "minimize"
+      description: "Cumulative mean log loss computed prequentially when probabilistic outputs are available (or clipped score-to-prob mapping)."
+  datasets:
+    - name: "synthetic_abrupt_drift"
+      source: "numpy synthesis (piecewise make_classification with coefficient/sign flips at fixed indices)"
+    - name: "breast_cancer_stream"
+      source: "sklearn.datasets.load_breast_cancer transformed into a repeated/shuffled stream with blockwise feature scaling shift"
+    - name: "spambase_like_synthetic"
+      source: "numpy synthesis with sparse informative features and class-prior shift across blocks"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 420
+
+rubric_path: "experiments/arc_bench/config/ml/rubrics/ML24.json"

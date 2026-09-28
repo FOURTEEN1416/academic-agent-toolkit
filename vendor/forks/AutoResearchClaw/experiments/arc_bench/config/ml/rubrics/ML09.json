@@ -1,0 +1,117 @@
+{
+    "id": "ml09-root",
+    "requirements": "A credible experiment comparing Bayesian optimization, grid search, and random search for RandomForest hyperparameter tuning: methods are implemented with comparable budgets, executed on multiple datasets, and results are mapped directionally to H1/H2/H3.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. If a well-motivated substitute (e.g., Hyperopt, Optuna, or a custom TPE-like surrogate) is used in place of a canonical Bayesian library, credit the scientific intent.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml09-code",
+            "requirements": "The tuning strategies and shared evaluation setup are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml09-code-strategies",
+                    "requirements": "The submission implements distinct code paths for grid search, random search, and a Bayesian-style search for RandomForestClassifier (or equivalent) rather than reusing identical sampled configurations across methods.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml09-code-space",
+                    "requirements": "A shared hyperparameter space is defined (covering several meaningful RF hyperparameters such as n_estimators, max_depth, min_samples_split, min_samples_leaf, max_features) so search methods are fairly comparable.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Hyperparameter Tuning"
+                },
+                {
+                    "id": "ml09-code-data",
+                    "requirements": "The code loads multiple sklearn classification datasets (e.g., wine, breast_cancer, digits, or comparable) and uses a consistent train/test split plus CV protocol across search methods.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml09-exec",
+            "requirements": "The benchmark is executed and logs optimization quality and efficiency metrics.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml09-exec-metrics",
+                    "requirements": "Execution outputs numeric best_cv_score and test_accuracy (or equivalents) for each implemented method on at least one dataset in a machine-readable metrics artifact.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml09-exec-budget",
+                    "requirements": "Execution evidences budget control: non-default search methods evaluate a roughly comparable number of configurations, so quality comparisons are not confounded by wildly different evaluation counts.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "ml09-exec-time",
+                    "requirements": "Execution reports a wall-clock timing measure (e.g., search_time_sec) per method and dataset.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml09-results",
+            "requirements": "Results address H1/H2/H3 directionally and convey interpretable tradeoffs.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml09-result-h1",
+                    "requirements": "The submission compares Bayesian optimization vs random search on best_cv_score across the evaluated datasets and conveys whether Bayesian search is meaningfully better on most \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml09-result-h2",
+                    "requirements": "The submission compares random search vs grid search on best_cv_score and conveys whether random is at least competitive with grid on most datasets (H2).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml09-result-h3",
+                    "requirements": "The submission checks test_accuracy differences between the best Bayesian-tuned and best grid-tuned models and conveys whether any practical gain (H3) is observed on at least one dataset.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml09-result-writeup",
+                    "requirements": "The README or writeup reports per-dataset metrics, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and discusses limitations such as small dataset set, budget tightness, surrogate instability, or CV variance. No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

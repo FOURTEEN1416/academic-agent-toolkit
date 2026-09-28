@@ -1,0 +1,538 @@
+{
+  "version": 1,
+  "updated": "2026-03-05",
+  "selection": {
+    "weights": {
+      "keyword_match": 0.85,
+      "name_match": 0.15
+    },
+    "fallback_to_first_when_score_below": 0.15
+  },
+  "skills": {
+    "vibe": {
+      "keywords": ["/vibe", "$vibe", "vibe route", "vibe 路由", "vibe内核", "vibe skills", "路由融合", "路由冲突", "命中稳定", "误路由", "权重计算", "阈值计算"]
+    },
+    "flashrag-evidence": {
+      "keywords": ["flashrag", "evidence", "evidence plane", "citation", "cite", "source of truth", "where is this defined", "policy", "protocol", "config", "router config", "vco config", "vibe config", "证据", "引用", "出处", "在哪里定义", "协议", "策略", "配置", "路由器"]
+    },
+    "webthinker-deep-research": {
+      "keywords": ["webthinker", "deep research", "deep research report", "multi-hop", "browse", "navigate", "extract", "trace", "trace.jsonl", "sources.json", "深度调研", "调研", "调研报告", "网页探索", "可审计", "证据链"]
+    },
+    "scrapling": {
+      "keywords": ["scrapling", "scrapling extract", "scrapling mcp", "web scraping", "scrape", "scraping", "scraper", "crawl", "crawler", "spider", "html extraction", "content extraction", "css selector", "css-selector", "xpath", "xpath selector", "cf-turnstile", "turnstile", "cloudflare", "cloudflare challenge", "captcha", "anti-bot", "网页爬虫", "爬虫", "网页爬取", "抓取网页", "网页抓取", "网页采集", "反爬", "CSS选择器", "XPath选择器", "选择器提取"]
+    },
+    "deepagent-toolchain-plan": {
+      "keywords": ["deepagent", "tool discovery", "toolchain", "skill chain", "confirm_required", "white-box menu", "capability interview", "route instability", "工具发现", "工具链", "技能链", "选技能", "确认菜单", "能力访谈", "路由不确定"]
+    },
+    "deepagent-memory-fold": {
+      "keywords": ["deepagent", "memory folding", "fold", "context compression", "compress context", "resume prompt", "handoff", "handover", "long-running", "上下文压缩", "记忆折叠", "续跑", "交接", "恢复提示"]
+    },
+    "spec-kit-vibe-compat": {
+      "keywords": ["/speckit", "speckit", "spec-kit", ".specify", "specify cli", "spec.md", "tasks.md", "constitution.md"]
+    },
+    "tdd-guide": {
+      "keywords": ["tdd", "red green refactor", "write failing tests first", "failing tests first", "test first", "测试驱动", "先写测试", "先写失败测试", "测试先行", "红绿重构"]
+    },
+    "systematic-debugging": {
+      "keywords": ["root cause", "debugging", "systematic debugging", "build error", "compile error", "failing tests", "test failure", "stack trace", "traceback", "type error", "bug diagnosis", "根因分析", "系统化调试", "故障定位", "构建失败", "编译错误", "测试失败", "报错", "异常", "定位bug"]
+    },
+    "security-reviewer": {
+      "keywords": ["security", "security audit", "security review", "owasp", "threat model", "secret leak", "auth bypass", "injection", "权限", "越权", "安全", "安全审计", "安全评审", "漏洞排查", "风险评估"]
+    },
+    "code-reviewer": {
+      "keywords": ["code review", "pr review", "review this change", "quality checks", "maintainability", "maintainable", "bug risk", "regression risk", "代码评审", "代码审查", "审查代码", "质量检查", "变更审查", "可维护性", "回归风险"]
+    },
+    "receiving-code-review": {
+      "keywords": ["address review", "review feedback", "review comments", "CodeRabbit", "coderabbit", "review finding", "should fix", "评审反馈", "评审意见", "审查意见", "逐条判断", "是否要改", "处理评论", "回复评审意见"]
+    },
+    "verification-before-completion": {
+      "keywords": ["verify before completion", "completion gate", "acceptance evidence", "test evidence", "run tests before finish", "closeout", "final verification", "收尾", "验收证据", "确认测试", "测试通过", "完成声明", "最终验证"]
+    },
+    "deslop": {
+      "keywords": ["cleanup ai code", "ai-generated code", "remove slop", "redundant comments", "defensive checks", "cleanup boilerplate", "清理AI生成代码", "废话注释", "多余防御式检查", "代码废话", "冗余注释"]
+    },
+    "windows-hook-debugging": {
+      "keywords": ["windows hook", "git bash hook", "wsl hook", "cannot execute binary file", "pre-commit hook", "powershell hook", "Windows钩子", "Git Bash", "WSL", "钩子失败", "无法执行二进制文件"]
+    },
+    "verification-quality-assurance": {
+      "keywords": ["quality assurance", "routing audit", "关键词准确", "命中范围", "互不干扰", "命中稳定性验证", "误路由检查", "实践验证"]
+    },
+    "gh-fix-ci": {
+      "keywords": ["github actions", "github actions logs", "ci failure", "ci pipeline failure", "pipeline failed", "check logs", "actions failed", "修复ci", "持续集成失败", "排查ci", "流水线失败", "检查流水线日志", "检查ci日志", "ci日志"]
+    },
+    "gh-address-comments": {
+      "keywords": ["pr comments", "review comments", "处理评论", "回复评审意见", "地址评论"]
+    },
+    "generating-test-reports": {
+      "keywords": ["test report", "coverage report", "test summary", "junit report", "coverage summary", "测试报告", "测试覆盖率", "测试结果汇总"]
+    },
+    "mcp-integration": {
+      "keywords": ["mcp server", ".mcp.json", "model context protocol", "接入mcp", "配置mcp", "连接mcp服务", "主路由工具可用性", "skills agent mcp", "工具可用性检查", "mcp工具接入"]
+    },
+    "sentry": {
+      "keywords": ["sentry issue", "sentry alert", "production error", "production errors", "error tracking", "线上报错", "线上告警", "异常事件", "错误追踪"]
+    },
+    "vercel-deploy": {
+      "keywords": ["vercel deploy", "preview deployment", "发布到vercel", "部署到vercel"]
+    },
+    "netlify-deploy": {
+      "keywords": ["netlify deploy", "deploy netlify", "发布到netlify", "部署到netlify"]
+    },
+    "node-zombie-guardian": {
+      "keywords": ["node zombie", "zombie node", "orphan node", "stale node process", "node process audit", "cleanup zombie node", "僵尸node", "僵尸进程", "node进程审计", "清理僵尸node"]
+    },
+    "openai-docs": {
+      "keywords": ["openai docs", "responses api", "chat completions", "openai官方文档", "查询openai文档", "responses接口"]
+    },
+    "openai-knowledge": {
+      "keywords": ["openai platform", "model limits", "openai api", "openai平台能力", "模型限制", "api文档解析"]
+    },
+    "prompt-lookup": {
+      "keywords": ["prompt template", "prompt library", "prompts.chat", "system prompt", "improve prompt", "optimize prompt", "提示词模板", "提示词库", "提示词优化", "改进提示词", "检索prompt"]
+    },
+    "embedding-strategies": {
+      "keywords": ["embedding strategy", "chunking", "semantic search", "向量嵌入", "嵌入策略", "语义检索"]
+    },
+    "evaluating-llms-harness": {
+      "keywords": ["mmlu", "gsm8k", "truthfulqa", "llm benchmark", "大模型评测", "学术基准评测"]
+    },
+    "documentation-lookup": {
+      "keywords": ["api reference", "framework docs", "文档查询", "接口参考", "官方文档检索"]
+    },
+    "aeon": {
+      "keywords": ["aeon", "time series machine learning", "time series classification", "time series clustering", "时序机器学习", "时间序列分类", "时序聚类"]
+    },
+    "evaluating-machine-learning-models": {
+      "keywords": ["model evaluation", "model validation", "threshold selection", "calibration", "模型评估", "模型验证", "阈值选择"]
+    },
+    "exploratory-data-analysis": {
+      "keywords": ["eda", "exploratory data analysis", "data profiling", "data quality", "探索性分析", "数据画像", "数据质量"]
+    },
+    "ml-pipeline-workflow": {
+      "keywords": ["mlops", "ml pipeline", "machine learning workflow", "training pipeline", "机器学习流程", "训练流水线", "模型流水线"]
+    },
+    "scikit-learn": {
+      "keywords": ["scikit-learn", "sklearn", "classification", "regression", "cross validation", "tabular machine learning", "scikit学习", "分类模型", "回归模型", "交叉验证"]
+    },
+    "LQF_Machine_Learning_Expert_Guide": {
+      "keywords": ["machine learning expert", "机器学习专家", "批判式讨论", "批判性评估", "challenge my assumptions", "挑战我的假设", "baseline first", "基线是否充分", "ablation study", "消融实验"]
+    },
+    "shap": {
+      "keywords": ["shap", "feature attribution", "model explainability", "beeswarm", "waterfall plot", "模型解释", "特征归因", "shap图"]
+    },
+    "umap-learn": {
+      "keywords": ["umap", "dimensionality reduction", "manifold", "降维", "流形学习", "umap可视化"]
+    },
+    "ml-data-leakage-guard": {
+      "keywords": ["data leakage", "leakage audit", "fit before split", "normalization before split", "train test contamination", "prediction time", "防止泄漏", "数据泄漏", "数据泄漏检查", "泄漏检查", "归一化", "划分前fit", "fit了", "训练测试污染", "时序泄漏"]
+    },
+    "preprocessing-data-with-automated-pipelines": {
+      "keywords": ["preprocess data", "data preprocessing", "data cleaning pipeline", "etl pipeline", "data transformation", "feature encoding", "standardize data", "normalize data", "数据预处理", "清洗数据", "ETL流水线", "数据转换"]
+    },
+    "scanpy": {
+      "keywords": ["scanpy", "single-cell", "scRNA", "单细胞分析", "细胞聚类", "marker基因"]
+    },
+    "pydeseq2": {
+      "keywords": ["deseq2", "differential expression", "差异表达", "de分析", "rna-seq差异"]
+    },
+    "pysam": {
+      "keywords": ["bam", "sam", "vcf", "cram", "测序比对文件", "变异文件解析"]
+    },
+    "biopython": {
+      "keywords": ["biopython", "fasta", "genbank", "序列解析", "生物序列处理", "生物信息学分析", "生信分析", "基因注释", "序列注释"]
+    },
+    "docs-write": {
+      "keywords": ["write docs", "documentation", "documentation page", "markdown docs", "mdx docs", "说明文档", "文档写作", "用户文档", "使用说明", "markdown文档"]
+    },
+    "docs-review": {
+      "keywords": ["docs review", "documentation review", "writing style", "style guide", "文档审阅", "文档评审", "说明文档审阅", "文案审阅"]
+    },
+    "xlsx": {
+      "keywords": ["xlsx", "excel file", "workbook", "修改xlsx", "电子表格", "工作簿", "保留公式", "excel公式", "xlsx格式"]
+    },
+    "spreadsheet": {
+      "keywords": ["spreadsheet", "csv", "tsv", "tabular transform", "excel analysis", "pivot table", "表格处理", "批量表格", "数据表整理", "数据透视", "excel表格分析", "分析excel"]
+    },
+    "xan": {
+      "keywords": ["xan", "large csv", "big csv", "streaming csv", "low memory csv", "csv pipeline", "百万行csv", "超大csv", "流式csv", "低内存处理"]
+    },
+    "pdf": {
+      "keywords": ["pdf extract", "pdf parse", "pdf extraction", "render pdf", "读取pdf", "提取pdf文本", "pdf报告处理", "pdf正文", "pdf布局"]
+    },
+    "docx": {
+      "keywords": ["docx", "word", "word document", "tracked changes", "docx formatting", "word修订", "文档编辑", "word报告", "word文档", "修订", "文档排版"]
+    },
+    "speech": {
+      "keywords": ["text to speech", "tts", "语音合成", "文本转语音", "语音播报"]
+    },
+    "transcribe": {
+      "keywords": ["transcribe", "speech to text", "meeting transcript", "语音转文字", "会议转录", "说话人分离", "会议录音转文字", "区分说话人", "录音转文字"]
+    },
+    "video-studio": {
+      "keywords": ["video", "video editing", "edit video", "clips", "clip", "montage", "highlight reel", "subtitle", "subtitles", "caption", "captions", "b-roll", "transition", "transitions", "ffmpeg", "ffprobe", "remotion", "capcut", "剪映", "视频", "视频制作", "视频剪辑", "剪辑", "混剪", "字幕", "转场", "配音", "口播", "片头", "片尾", "bgm", "短视频", "抛光", "打磨", "音量标准化", "去静音", "jumpcut", "jump cut", "remove silence", "silence removal", "srt", "burn subtitles", "去停顿", "剪掉停顿"]
+    },
+    "screenshot": {
+      "keywords": ["screenshot", "screen capture", "capture screen", "desktop screenshot", "window screenshot", "截屏", "截图", "桌面截图", "窗口截图", "屏幕快照"]
+    },
+    "scientific-writing": {
+      "keywords": ["scientific writing", "imrad", "manuscript", "科研写作", "论文写作", "学术稿件"]
+    },
+    "designing-experiments": {
+      "keywords": ["did", "difference-in-differences", "its", "interrupted time series", "synthetic control", "quasi-experimental", "准实验", "合成控制", "中断时间序列", "断点回归"]
+    },
+    "figma-implement-design": {
+      "keywords": ["figma to code", "implement design", "设计稿还原", "figma实现", "按figma开发", "figma设计稿", "还原代码", "设计转代码"]
+    },
+    "aios-master": {
+      "keywords": ["aios master", "aios orchestrator", "synkra aios", "aios总控", "aios编排器", "框架级任务"]
+    },
+    "aios-dev": {
+      "keywords": ["aios dev", "aios开发", "故事实现", "story implementation", "按故事开发"]
+    },
+    "aios-architect": {
+      "keywords": ["aios architect", "架构设计", "技术架构", "architecture design", "technical architecture", "module boundary", "cross-module architecture", "routing architecture", "governance architecture", "architecture review", "架构评审"]
+    },
+    "aios-pm": {
+      "keywords": ["aios pm", "prd", "产品需求文档", "产品规划", "epic规划"]
+    },
+    "aios-qa": {
+      "keywords": ["aios qa", "quality gate", "质量门禁", "测试架构", "qa review"]
+    },
+    "aios-sm": {
+      "keywords": ["aios sm", "scrum master", "用户故事拆分", "story drafting", "敏捷节奏"]
+    },
+    "aios-po": {
+      "keywords": ["aios po", "product owner", "backlog管理", "验收标准", "优先级排序"]
+    },
+    "aios-analyst": {
+      "keywords": ["aios analyst", "市场分析", "需求调研", "business analysis", "竞争分析"]
+    },
+    "research-lookup": {
+      "keywords": ["literature search", "paper search", "文献检索", "查找论文", "研究调研"]
+    },
+    "performing-regression-analysis": {
+      "keywords": ["regression analysis", "linear regression", "multiple regression", "glm", "ols", "回归分析", "线性回归", "回归建模", "回归诊断"]
+    },
+    "pubmed-database": {
+      "keywords": ["pubmed", "pmid", "mesh", "medline", "ncbi", "e-utilities", "biomedical literature", "文献检索", "医学文献"]
+    },
+    "openalex-database": {
+      "keywords": ["openalex", "doi", "citation graph", "works api", "paper metadata", "引用网络", "论文元数据", "文献元数据"]
+    },
+    "biorxiv-database": {
+      "keywords": ["biorxiv", "bioRxiv", "preprint", "预印本", "生物预印本"]
+    },
+    "bgpt-paper-search": {
+      "keywords": ["bgpt", "full-text paper", "structured paper data", "sample size extraction", "effect size extraction", "systematic review evidence table", "论文全文提取", "结构化证据表", "实验数据抽取"]
+    },
+    "paper-2-web": {
+      "keywords": ["paper to web", "paper2web", "论文转网页", "论文可视化", "paper viewer"]
+    },
+    "open-notebook": {
+      "keywords": ["research notebook", "open notebook", "lab notebook", "研究笔记", "实验记录", "notebook"]
+    },
+    "pyzotero": {
+      "keywords": ["zotero", "pyzotero", "bibtex", "citation management", "references", "参考文献管理", "引文管理"]
+    },
+    "citation-management": {
+      "keywords": ["citation", "bibtex", "zotero", "endnote", "references", "bibliography", "引用格式", "参考文献"]
+    },
+    "literature-review": {
+      "keywords": ["literature review", "systematic review", "meta-analysis", "文献综述", "系统综述", "荟萃分析"]
+    },
+    "peer-review": {
+      "keywords": ["peer review", "reviewer comments", "rebuttal", "同行评审", "审稿意见", "审稿", "返修"]
+    },
+    "scholar-evaluation": {
+      "keywords": ["scholar evaluation", "paper evaluation", "methodology scoring", "论文评价", "学术评估", "评估论文"]
+    },
+    "scientific-critical-thinking": {
+      "keywords": ["critical thinking", "scientific critique", "methodology critique", "批判性思维", "科研批判", "方法学批判"]
+    },
+    "chembl-database": {
+      "keywords": ["chembl", "bioactivity", "assay", "ic50", "ki", "kd", "target", "化合物活性", "药物靶点"]
+    },
+    "drugbank-database": {
+      "keywords": ["drugbank", "drug target", "drug interaction", "adme", "drug info", "药物靶点", "药物相互作用"]
+    },
+    "pubchem-database": {
+      "keywords": ["pubchem", "cid", "smiles", "inchi", "compound", "化合物", "化学结构"]
+    },
+    "brenda-database": {
+      "keywords": ["brenda", "enzyme", "km", "kcat", "vmax", "enzymology", "酶动力学", "酶参数"]
+    },
+    "hmdb-database": {
+      "keywords": ["hmdb", "metabolite", "metabolomics", "代谢物", "代谢组"]
+    },
+    "zinc-database": {
+      "keywords": ["zinc", "virtual screening", "compound library", "small molecules", "化合物库", "虚拟筛选库"]
+    },
+    "datamol": {
+      "keywords": ["datamol", "rdkit wrapper", "molecule utils", "molecule processing", "分子处理"]
+    },
+    "deepchem": {
+      "keywords": ["deepchem", "cheminformatics", "drug discovery", "molecular ml", "药物发现", "分子机器学习"]
+    },
+    "medchem": {
+      "keywords": ["medchem", "medicinal chemistry", "lead optimization", "hit to lead", "药物化学", "先导优化"]
+    },
+    "rdkit": {
+      "keywords": ["rdkit", "smiles", "fingerprint", "descriptor", "logp", "tpsa", "分子指纹", "分子描述符"]
+    },
+    "diffdock": {
+      "keywords": ["diffdock", "docking", "protein ligand", "binding pose", "virtual screening", "分子对接", "结合构象"]
+    },
+    "molfeat": {
+      "keywords": ["molfeat", "featurization", "fingerprint", "molecular features", "分子特征", "分子表示"]
+    },
+    "pytdc": {
+      "keywords": ["tdc", "therapeutics data commons", "admet dataset", "drug discovery benchmark", "药物数据集", "基准数据集"]
+    },
+    "clinicaltrials-database": {
+      "keywords": ["clinicaltrials.gov", "clinical trial", "nct", "trial phase", "eligibility", "临床试验", "NCT"]
+    },
+    "fda-database": {
+      "keywords": ["fda", "drug label", "drug safety", "adverse event", "药监", "药品说明书", "不良反应"]
+    },
+    "clinpgx-database": {
+      "keywords": ["pharmacogenomics", "cpic", "pharmgkb", "drug gene", "药物基因组", "用药基因"]
+    },
+    "clinical-reports": {
+      "keywords": ["clinical report", "case report", "medical report", "临床报告", "病例报告"]
+    },
+    "treatment-plans": {
+      "keywords": ["treatment plan", "care plan", "治疗方案", "诊疗方案", "用药方案"]
+    },
+    "iso-13485-certification": {
+      "keywords": ["iso 13485", "medical device", "quality system", "regulatory", "医疗器械", "质量体系"]
+    },
+    "clinical-decision-support": {
+      "keywords": ["clinical decision support", "cds", "guideline", "evidence-based", "临床决策支持", "用药指南"]
+    },
+    "pydicom": {
+      "keywords": ["pydicom", "dicom", "ct", "mri", "dicom tag", "医学影像", "DICOM"]
+    },
+    "imaging-data-commons": {
+      "keywords": ["imaging data commons", "idc", "imaging dataset", "dicom dataset", "影像数据集", "IDC"]
+    },
+    "histolab": {
+      "keywords": ["histolab", "whole slide image", "wsi", "histopathology", "病理切片", "WSI"]
+    },
+    "omero-integration": {
+      "keywords": ["omero", "microscopy", "image server", "bioimaging", "显微图像", "图像服务器"]
+    },
+    "pathml": {
+      "keywords": ["pathml", "digital pathology", "wsi", "tissue segmentation", "数字病理", "病理图像分析"]
+    },
+    "opentrons-integration": {
+      "keywords": ["opentrons", "ot-2", "liquid handling", "pipetting robot", "实验室自动化", "移液机器人"]
+    },
+    "pylabrobot": {
+      "keywords": ["pylabrobot", "liquid handler", "hamilton", "tecan", "液体处理", "实验室机器人"]
+    },
+    "protocolsio-integration": {
+      "keywords": ["protocols.io", "lab protocol", "protocol", "实验协议", "protocols"]
+    },
+    "benchling-integration": {
+      "keywords": ["benchling", "lims", "eln", "lab notebook", "实验室信息管理", "电子实验记录"]
+    },
+    "labarchive-integration": {
+      "keywords": ["labarchive", "eln", "lab notebook", "实验记录", "ELN"]
+    },
+    "latchbio-integration": {
+      "keywords": ["latchbio", "latch workflow", "latchbio workflow", "bioinformatics platform", "latch pipeline", "latchbio pipeline", "latch sdk", "生信平台", "数据管道"]
+    },
+    "ginkgo-cloud-lab": {
+      "keywords": ["ginkgo", "cloud lab", "lab services", "云实验室", "外包实验"]
+    },
+    "edgartools": {
+      "keywords": ["edgar", "sec", "10-k", "10q", "8-k", "13f", "财报", "美国证监会", "EDGAR"]
+    },
+    "alpha-vantage": {
+      "keywords": ["alpha vantage", "alphavantage", "stock price", "market data", "美股行情", "股票数据"]
+    },
+    "fred-economic-data": {
+      "keywords": ["fred", "economic data", "macro", "interest rate", "inflation", "宏观数据", "经济数据"]
+    },
+    "usfiscaldata": {
+      "keywords": ["us fiscal data", "treasury", "fiscal", "budget", "deficit", "财政数据", "美国财政", "国库"]
+    },
+    "hedgefundmonitor": {
+      "keywords": ["hedge fund monitor", "ofr", "hedge fund", "对冲基金", "OFR"]
+    },
+    "market-research-reports": {
+      "keywords": ["market research", "industry report", "competitive analysis", "市场研究", "行业报告", "市场调研"]
+    },
+    "datacommons-client": {
+      "keywords": ["data commons", "datacommons", "public data", "open data", "公共数据", "开放数据"]
+    },
+    "qiskit": {
+      "keywords": ["qiskit", "quantum circuit", "ibm quantum", "量子电路", "量子计算"]
+    },
+    "cirq": {
+      "keywords": ["cirq", "google quantum", "quantum circuit", "量子电路"]
+    },
+    "pennylane": {
+      "keywords": ["pennylane", "qml", "quantum machine learning", "量子机器学习", "量子ML"]
+    },
+    "qutip": {
+      "keywords": ["qutip", "quantum dynamics", "open quantum system", "量子动力学", "开放量子系统"]
+    },
+    "uspto-database": {
+      "keywords": ["uspto", "patent", "patents", "专利", "专利检索", "发明专利"]
+    },
+    "astropy": {
+      "keywords": ["astropy", "fits", "astronomy", "wcs", "天文", "FITS", "天球坐标"]
+    },
+    "pymatgen": {
+      "keywords": ["pymatgen", "materials", "crystal", "structure", "phase diagram", "材料", "晶体", "相图"]
+    },
+    "geopandas": {
+      "keywords": ["geopandas", "gis", "shapefile", "geojson", "geospatial", "地理数据", "空间数据", "地图"]
+    },
+    "geo-database": {
+      "keywords": ["geodatabase", "geodata", "geonames", "spatial database", "地理数据库", "地理信息"]
+    },
+    "geomaster": {
+      "keywords": ["geomaster", "coordinate transform", "projection", "geospatial", "坐标转换", "投影"]
+    },
+    "polars": {
+      "keywords": ["polars", "dataframe", "parquet", "arrow", "rust dataframe", "高性能dataframe", "大表处理"]
+    },
+    "vaex": {
+      "keywords": ["vaex", "out-of-core", "big dataframe", "large data", "磁盘外计算", "大数据df"]
+    },
+    "zarr-python": {
+      "keywords": ["zarr", "chunked array", "out-of-core", "大数组", "分块存储", "chunk"]
+    },
+    "tiledbvcf": {
+      "keywords": ["tiledb-vcf", "tiledb vcf", "tiledbvcf", "vcf", "bcf", "genomics storage", "variant storage", "变异存储", "population genomics", "variant query"]
+    },
+    "hypothesis-generation": {
+      "keywords": ["hypothesis", "hypotheses", "hypothesis generation", "research hypothesis", "scientific hypothesis", "testable", "falsifiable", "假设生成", "研究假设", "科学假设", "假设", "可检验", "可证伪", "prediction", "预测"]
+    },
+    "research-grants": {
+      "keywords": ["research grant", "grant", "grants", "grant proposal", "proposal", "proposals", "nih", "nsf", "nsfc", "darpa", "科研基金", "项目申请书", "基金申请", "基金申请书", "基金标书"]
+    },
+    "arboreto": {
+      "keywords": ["arboreto", "grn", "gene regulatory network", "pySCENIC", "基因调控网络", "转录因子"]
+    },
+    "cobrapy": {
+      "keywords": ["cobrapy", "flux balance", "fba", "metabolic model", "代谢建模", "通量平衡"]
+    },
+    "esm": {
+      "keywords": ["esm", "protein language model", "protein embedding", "蛋白语言模型", "蛋白嵌入"]
+    },
+    "flowio": {
+      "keywords": ["flowio", "flow cytometry", "fcs", "cytometry", "流式细胞", "FCS"]
+    },
+    "geniml": {
+      "keywords": ["geniml", "genomic ml", "genome embedding", "基因组机器学习", "基因组嵌入"]
+    },
+    "scientific-slides": {
+      "keywords": ["scientific slides", "slide deck", "ppt", "pptx", "科研幻灯片", "学术幻灯片"]
+    },
+    "pptx-posters": {
+      "keywords": ["pptx poster", "poster", "powerpoint poster", "科研海报", "学术海报", "PPT海报"]
+    },
+    "infographics": {
+      "keywords": ["infographic", "data story", "visual summary", "信息图", "可视化总结"]
+    },
+    "markdown-mermaid-writing": {
+      "keywords": ["mermaid", "mermaid flowchart", "sequence diagram", "markdown diagram", "mermaid 流程图", "时序图"]
+    },
+    "markitdown": {
+      "keywords": ["markitdown", "convert to markdown", "pdf to markdown", "docx to markdown", "转成 markdown", "转成markdown", "markdown转换", "pdf转markdown"]
+    },
+    "document-skills": {
+      "keywords": ["document processing", "report formatting", "文档处理", "报告排版", "文档生成"]
+    },
+    "generate-image": {
+      "keywords": ["generate image", "image generation", "生成图片", "图片生成", "出图"]
+    },
+    "fluidsim": {
+      "keywords": ["fluidsim", "cfd", "navier-stokes", "turbulence", "computational fluid dynamics", "流体仿真", "湍流"]
+    },
+    "simpy": {
+      "keywords": ["simpy", "discrete event simulation", "queue", "resource", "离散事件", "排队系统", "仿真"]
+    },
+    "matchms": {
+      "keywords": ["matchms", "ms/ms", "msms", "mass spectrum", "spectral similarity", "代谢组", "谱图匹配"]
+    },
+    "matlab": {
+      "keywords": ["matlab", "octave", ".m script", "m-file", "simulink", "矩阵计算"]
+    },
+    "modal": {
+      "keywords": ["modal.com", "modal run", "modal deploy", "serverless gpu", "batch job", "gpu container", "云端运行", "gpu容器"]
+    },
+    "modal-labs": {
+      "keywords": ["modal.com", "modal labs", "modallabs", "modal run", "modal deploy", "modal serve", "serverless gpu", "batch job", "autoscaling containers", "云端运行"]
+    },
+    "neuropixels-analysis": {
+      "keywords": ["neuropixels", "kilosort", "spike sorting", "spikeglx", "open ephys", "ibl", "神经电生理"]
+    },
+    "pymc": {
+      "keywords": ["pymc", "bayesian", "mcmc", "nuts", "posterior", "hierarchical model", "贝叶斯", "后验"]
+    },
+    "pymoo": {
+      "keywords": ["pymoo", "multi-objective", "nsga", "pareto", "constraint optimization", "多目标优化", "帕累托"]
+    },
+    "rowan": {
+      "keywords": ["rowan api", "quantum chemistry", "autodock vina", "pka prediction", "geometry optimization", "量子化学", "分子对接"]
+    },
+    "stable-baselines3": {
+      "keywords": ["stable-baselines3", "sb3", "ppo", "sac", "dqn", "reinforcement learning", "强化学习"]
+    },
+    "timesfm-forecasting": {
+      "keywords": ["timesfm", "time series forecasting", "zero-shot forecasting", "prediction intervals", "时间序列预测", "零样本预测"]
+    },
+    "torch-geometric": {
+      "keywords": ["torch-geometric", "pyg", "pytorch geometric", "graph neural network", "gnn", "图神经网络"]
+    },
+    "torch_geometric": {
+      "keywords": ["torch_geometric", "pyg", "pytorch geometric", "graph neural network", "gnn", "图神经网络"]
+    },
+    "docx-comment-reply": {
+      "keywords": ["批注", "回复批注", "word批注", "评论线程", "comment thread", "comment reply", "threaded comment", "comments.xml", "commentsExtended.xml", "commentsextended.xml", "docx批注", "doc批注"]
+    },
+    "scientific-visualization": {
+      "keywords": ["publication figure", "journal figure", "figure panel", "subplot", "multi-panel", "tiff", "600dpi", "dpi", "vector", "eps", "svg", "colorblind", "okabe-ito", "scienceplots", "科研绘图", "顶刊作图", "投稿图", "误差棒", "显著性"]
+    },
+    "scientific-schematics": {
+      "keywords": ["schematic", "diagram", "flowchart", "mechanism", "pathway", "system diagram", "示意图", "流程图", "机制图", "通路图", "系统图"]
+    },
+    "venue-templates": {
+      "keywords": ["latex template", "author guidelines", "submission template", "camera-ready template", "投稿模板", "格式要求", "acm", "ieee", "neurips", "icml", "cvpr", "nature template", "science template", "plos template"]
+    },
+    "latex-posters": {
+      "keywords": ["conference poster", "beamerposter", "tikzposter", "baposter", "poster latex", "科研海报", "学术海报", "a0海报"]
+    },
+    "matplotlib": {
+      "keywords": ["matplotlib", "pyplot", "plt", "mplstyle", "subplot", "savefig", "colormap", "线宽", "字体统一"]
+    },
+    "seaborn": {
+      "keywords": ["seaborn", "sns", "boxplot", "violinplot", "stripplot", "catplot", "pairplot", "regplot", "统计绘图"]
+    },
+    "plotly": {
+      "keywords": ["plotly", "plotly express", "px.", "write_image", "interactive plot", "html plot", "交互图", "plotly导出"]
+    },
+    "scholarly-publishing": {
+      "keywords": ["submission", "投稿", "rebuttal", "revision", "返修", "回复审稿意见", "camera-ready", "相机就绪", "proof", "校样", "submission package", "投稿包"]
+    },
+    "submission-checklist": {
+      "keywords": ["checklist", "自检清单", "投稿清单", "返修清单", "cover letter", "附信", "rebuttal matrix", "逐条回应", "camera-ready checklist"]
+    },
+    "manuscript-as-code": {
+      "keywords": ["manuscript as code", "paper as code", "论文工程化", "可复现构建", "reproducible build", "ci build", "版本控制论文", "final_v7"]
+    },
+    "latex-submission-pipeline": {
+      "keywords": ["latexmk", "overleaf", "chktex", "latexindent", "bibtex", "biber", "texlive", "latex action", "submission zip", "latex投稿"]
+    },
+    "slides-as-code": {
+      "keywords": ["slidev", "marp", "reveal.js", "quarto slides", "decktape", "slides as code", "组会汇报", "导出pdf"]
+    },
+    "scientific-reporting": {
+      "keywords": ["scientific report", "technical report", "research report", "科研报告", "技术报告", "项目报告", "执行摘要", "executive summary", "appendix", "附录", "可复现报告", "quarto", "rmarkdown"]
+    }
+  }
+}

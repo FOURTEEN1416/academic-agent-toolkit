@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-13",
+  "policy": "human-entry-compression-before-physical-consolidation",
+  "inventory_snapshot": {
+    "config_file_count": 110,
+    "verify_file_count": 124
+  },
+  "human_entry_order": [
+    "README.md",
+    "docs/README.md",
+    "config/live-document-contract.json",
+    "references/index.md",
+    "scripts/verify/gate-family-index.md"
+  ],
+  "config_families": [
+    {
+      "id": "governance-and-runtime",
+      "approx_count": 39,
+      "purpose": "runtime truth, installation, governance lifecycle, doctor and release-adjacent policies",
+      "status": "active"
+    },
+    {
+      "id": "routing-and-overlays",
+      "approx_count": 25,
+      "purpose": "router thresholds, overlay controls, prompt and adaptive routing governance",
+      "status": "active"
+    },
+    {
+      "id": "distribution-and-sources",
+      "approx_count": 11,
+      "purpose": "upstream provenance, dependency mapping, distribution tier and source retention",
+      "status": "active"
+    },
+    {
+      "id": "other",
+      "approx_count": 35,
+      "purpose": "specialized and not-yet-converged assets that still require second-pass family labeling",
+      "status": "needs-refinement"
+    }
+  ],
+  "verify_families": [
+    {
+      "id": "runtime-integrity-packaging",
+      "authority_doc": "scripts/verify/gate-family-index.md",
+      "status": "active"
+    },
+    {
+      "id": "managed-runtime-process-hygiene",
+      "authority_doc": "scripts/verify/gate-family-index.md",
+      "status": "active"
+    },
+    {
+      "id": "cleanliness-outputs-mirror-hygiene",
+      "authority_doc": "scripts/verify/gate-family-index.md",
+      "status": "active"
+    },
+    {
+      "id": "plane-governance",
+      "authority_doc": "scripts/verify/gate-family-index.md",
+      "status": "active"
+    },
+    {
+      "id": "capability-role-upstream-value-ops",
+      "authority_doc": "scripts/verify/gate-family-index.md",
+      "status": "active"
+    },
+    {
+      "id": "release-promotion-observability",
+      "authority_doc": "scripts/verify/gate-family-index.md",
+      "status": "active"
+    },
+    {
+      "id": "operator-preview-apply-safety",
+      "authority_doc": "scripts/verify/gate-family-index.md",
+      "status": "active"
+    },
+    {
+      "id": "execution-context-wave-runner",
+      "authority_doc": "scripts/verify/gate-family-index.md",
+      "status": "active"
+    }
+  ],
+  "hard_rules": {
+    "compress_human_entry_first": true,
+    "do_not_delete_gates_by_default": true,
+    "do_not_claim_cleanup_from_file_count_alone": true,
+    "require_family_owner_and_entry_before_merge": true
+  }
+}

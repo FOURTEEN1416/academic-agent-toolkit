@@ -1,0 +1,17 @@
+{
+  "skill_id": "vibe",
+  "name": "Vibe Code Orchestrator",
+  "version": 1,
+  "summary": "Canonical governed runtime entry for requirement freezing, XL-first planning, execution orchestration, verification, and cleanup.",
+  "instruction_path": "core/skills/vibe/instruction.md",
+  "compatibility_path": "core/skills/vibe/compatibility.json",
+  "source_of_truth": {
+    "kind": "canonical-skill",
+    "path": "SKILL.md"
+  },
+  "tags": [
+    "router",
+    "governance",
+    "orchestration"
+  ]
+}

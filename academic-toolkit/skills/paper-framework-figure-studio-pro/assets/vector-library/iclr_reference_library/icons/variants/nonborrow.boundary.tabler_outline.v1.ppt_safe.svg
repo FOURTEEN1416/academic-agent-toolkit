@@ -1,0 +1,16 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="-1 -1 26 26"
+  fill="none"
+  stroke="#111827"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+ 
+ data-icon-id="nonborrow.boundary.tabler_outline.v1" data-source="@tabler/icons">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+  <path d="M5.7 5.7l12.6 12.6" />
+</svg>

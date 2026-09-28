@@ -1,0 +1,114 @@
+﻿{
+    "version": 1,
+    "updated": "2026-02-25",
+    "enabled": true,
+    "mode": "soft",
+    "preserve_routing_assignment": true,
+    "routing_integration": "post_route_quality_debt_overlay",
+    "task_allow": [
+        "coding",
+        "review"
+    ],
+    "grade_allow": [
+        "L",
+        "XL"
+    ],
+    "monitor": {
+        "pack_allow": [
+            "code-quality"
+        ],
+        "skill_allow": [
+            "code-reviewer",
+            "deslop",
+            "receiving-code-review",
+            "requesting-code-review",
+            "security-reviewer",
+            "systematic-debugging",
+            "tdd-guide",
+            "verification-before-completion",
+            "windows-hook-debugging"
+        ]
+    },
+    "risk_keywords": [
+        "code smell",
+        "maintainability",
+        "complexity",
+        "technical debt",
+        "duplicate logic",
+        "dead code",
+        "unreachable code",
+        "security risk",
+        "regression risk",
+        "lint debt",
+        "test debt",
+        "spaghetti",
+        "refactor needed",
+        "质量债务",
+        "技术债",
+        "可维护性",
+        "复杂度",
+        "重复代码",
+        "死代码",
+        "安全风险"
+    ],
+    "suppress_keywords": [
+        "typo",
+        "format only",
+        "rename only",
+        "comment only",
+        "docs only",
+        "文档改动",
+        "纯格式调整"
+    ],
+    "focus_facets": {
+        "maintainability": [
+            "maintainability",
+            "readability",
+            "complexity",
+            "可维护性",
+            "复杂度"
+        ],
+        "test_hardening": [
+            "test debt",
+            "missing test",
+            "flaky",
+            "coverage",
+            "测试缺失",
+            "脆弱测试"
+        ],
+        "security_hardening": [
+            "security risk",
+            "unsafe input",
+            "injection",
+            "auth bypass",
+            "安全风险",
+            "注入",
+            "越权"
+        ]
+    },
+    "thresholds": {
+        "confirm_risk_score_min": 0.65,
+        "high_risk_score_min": 0.8,
+        "suppress_penalty_weight": 0.35,
+        "min_risk_hits_for_overlay": 1
+    },
+    "external_analyzer": {
+        "enabled": true,
+        "command": "fuck-u-code",
+        "invoke_mode": "manual_only",
+        "run_in_modes": [
+            "soft",
+            "strict"
+        ],
+        "risk_score_min": 0.65,
+        "manual_command_hint": "fuck-u-code analyze --path <repo>",
+        "timeout_ms": 4000
+    },
+    "fallback_behavior": {
+        "on_missing_config": "bypass_overlay",
+        "on_tool_unavailable": "continue_advisory",
+        "on_analyzer_failure": "continue_advisory"
+    }
+}
+
+

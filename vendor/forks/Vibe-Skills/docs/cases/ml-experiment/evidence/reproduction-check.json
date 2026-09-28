@@ -1,0 +1,20 @@
+{
+  "schema_version": "reproduction_check_v1",
+  "checked_at": "2026-07-18T04:26:11Z",
+  "command": "deliverables/00-environment/reproduce.ps1",
+  "required_outputs_exist": true,
+  "file_sha256": {
+    "experiment-config.json": "9048c57d423e0e1c320224ea9ff18c22506aa316a57732cb33950baf32d01dfd",
+    "metrics.json": "01b74246f2a164b9b6a0e4e8363935317cf6f929e55383af895c80a7d082335e",
+    "fold-metrics.csv": "df0fb209666f8f95aa45f53bd0fe5b9120e98ea8fd59e5dbd5ac8c2c8e641e5d",
+    "holdout-predictions.csv": "fc547ba1cd2cd5e6fbf483056d5714a8fc77cd37c635b86d25e50bef248badbd"
+  },
+  "combined_sha256": "2b2999cf1a48172d7aa784ceab681bf8eb6bcb4c5c7c90e5deb7b8e14e565f02",
+  "previous_combined_sha256": "2b2999cf1a48172d7aa784ceab681bf8eb6bcb4c5c7c90e5deb7b8e14e565f02",
+  "exact_match_previous_run": true,
+  "split_integrity": {
+    "train_test_disjoint": true,
+    "all_rows_assigned_once": true,
+    "stratification_requested": true
+  }
+}

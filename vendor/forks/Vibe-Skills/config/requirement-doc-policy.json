@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-17",
+  "enabled": true,
+  "artifact_sink": "config/live-document-contract.json",
+  "root": ".vibeskills/runs",
+  "template_path": "templates/requirements/governed-requirement-template.md",
+  "single_requirement_doc_per_run": true,
+  "required_sections": [
+    "Summary",
+    "Goal",
+    "Deliverable",
+    "Constraints",
+    "Acceptance Criteria",
+    "Product Acceptance Criteria",
+    "Manual Spot Checks",
+    "Completion Language Policy",
+    "Delivery Truth Contract",
+    "Workflow Level Confirmation",
+    "Primary Objective",
+    "Non-Objective Proxy Signals",
+    "Validation Material Role",
+    "Anti-Proxy-Goal-Drift Tier",
+    "Intended Scope",
+    "Abstraction Layer Target",
+    "Completion State",
+    "Generalization Evidence Bundle",
+    "Non-Goals",
+    "Autonomy Mode",
+    "Assumptions",
+    "Evidence Inputs"
+  ],
+  "filename_contract": "{run_id}/requirement.md",
+  "bridges": {
+    "intent_contract_fields": [
+      "goal",
+      "deliverable",
+      "constraints",
+      "acceptance_criteria",
+      "product_acceptance_criteria",
+      "manual_spot_checks",
+      "completion_language_policy",
+      "delivery_truth_contract",
+      "workflow_level_confirmation",
+      "non_goals",
+      "autonomy_mode",
+      "assumptions"
+    ],
+    "anti_proxy_goal_drift_fields": [
+      "primary_objective",
+      "non_objective_proxy_signals",
+      "validation_material_role",
+      "anti_proxy_goal_drift_tier",
+      "intended_scope",
+      "abstraction_layer_target",
+      "completion_state",
+      "generalization_evidence_bundle"
+    ]
+  }
+}

@@ -1,0 +1,99 @@
+# =============================================================================
+# ARC-Bench Biology — constraint-based metabolic modelling topics
+# -----------------------------------------------------------------------------
+# All biology topics drive the Biology-Agent integration:
+#   experiment.mode = biology_agent  →  BiologyAgentSandbox  →  Claude Code
+#   with /path/to/Biology-Agent skills + agents installed into ~/.claude/.
+# =============================================================================
+
+topics:
+  - id: B01
+    topic: "E. coli succinate-production strain optimization via constraint-based knockout screen on iAF1260"
+    domains: ["systems-biology", "metabolic-engineering", "constraint-based-modelling"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    bigg_model: "iAF1260"
+    source_skills:
+      - "Biology-Agent/skills/gsmm-builder"
+      - "Biology-Agent/skills/gsmm-validator"
+      - "Biology-Agent/skills/fba-simulator"
+      - "Biology-Agent/skills/flux-analyzer"
+      - "Biology-Agent/skills/mfa-pipeline-orchestrator"
+
+  - id: B02
+    topic: "E. coli acetate overflow metabolism phase map under glucose and oxygen limitation"
+    domains: ["systems-biology", "constraint-based-modelling", "phase-plane-analysis"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    bigg_model: "iJO1366"
+    source_skills:
+      - "Biology-Agent/skills/gsmm-builder"
+      - "Biology-Agent/skills/gsmm-validator"
+      - "Biology-Agent/skills/fba-simulator"
+      - "Biology-Agent/skills/flux-analyzer"
+      - "Biology-Agent/skills/mfa-pipeline-orchestrator"
+
+  - id: B03
+    topic: "Anaerobic E. coli lactate-overproduction knockout screen"
+    domains: ["systems-biology", "metabolic-engineering", "constraint-based-modelling"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    bigg_model: "iJO1366"
+    source_skills:
+      - "Biology-Agent/skills/gsmm-builder"
+      - "Biology-Agent/skills/gsmm-validator"
+      - "Biology-Agent/skills/fba-simulator"
+      - "Biology-Agent/skills/flux-analyzer"
+      - "Biology-Agent/skills/mfa-pipeline-orchestrator"
+
+  - id: B04
+    topic: "S. cerevisiae ethanol yield under oxygen limitation and carbon-source changes"
+    domains: ["systems-biology", "metabolic-engineering", "constraint-based-modelling"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    bigg_model: "iMM904"
+    source_skills:
+      - "Biology-Agent/skills/gsmm-builder"
+      - "Biology-Agent/skills/gsmm-validator"
+      - "Biology-Agent/skills/fba-simulator"
+      - "Biology-Agent/skills/flux-analyzer"
+      - "Biology-Agent/skills/mfa-pipeline-orchestrator"
+
+  - id: B05
+    topic: "M. tuberculosis condition-specific essentiality and metabolic drug-target prioritisation"
+    domains: ["systems-biology", "drug-target-prioritisation", "constraint-based-modelling"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    bigg_model: "iNJ661"
+    source_skills:
+      - "Biology-Agent/skills/gsmm-builder"
+      - "Biology-Agent/skills/gsmm-validator"
+      - "Biology-Agent/skills/fba-simulator"
+      - "Biology-Agent/skills/flux-analyzer"
+      - "Biology-Agent/skills/mfa-pipeline-orchestrator"
+
+  - id: B06
+    topic: "E. coli carbon-source robustness and condition-dependent essential genes"
+    domains: ["systems-biology", "essentiality-analysis", "constraint-based-modelling"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    bigg_model: "iJO1366"
+    source_skills:
+      - "Biology-Agent/skills/gsmm-builder"
+      - "Biology-Agent/skills/gsmm-validator"
+      - "Biology-Agent/skills/fba-simulator"
+      - "Biology-Agent/skills/flux-analyzer"
+      - "Biology-Agent/skills/mfa-pipeline-orchestrator"
+
+  - id: B07
+    topic: "Reproducible FBA protocol benchmark: FBA vs pFBA vs loopless/FVA on E. coli"
+    domains: ["systems-biology", "method-benchmarking", "constraint-based-modelling"]
+    metric_key: "primary_metric"
+    metric_direction: "maximize"
+    bigg_model: "iJO1366"
+    source_skills:
+      - "Biology-Agent/skills/gsmm-builder"
+      - "Biology-Agent/skills/gsmm-validator"
+      - "Biology-Agent/skills/fba-simulator"
+      - "Biology-Agent/skills/flux-analyzer"
+      - "Biology-Agent/skills/mfa-pipeline-orchestrator"

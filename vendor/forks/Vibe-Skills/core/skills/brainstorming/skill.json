@@ -1,0 +1,18 @@
+{
+  "skill_id": "brainstorming",
+  "name": "brainstorming",
+  "version": 1,
+  "summary": "Design-first gate for creative or behavior-changing work.",
+  "instruction_path": "core/skills/brainstorming/instruction.md",
+  "compatibility_path": "core/skills/brainstorming/compatibility.json",
+  "source_of_truth": {
+    "kind": "bundled-skill",
+    "path": "bundled/skills/brainstorming/SKILL.md"
+  },
+  "tags": [
+    "design",
+    "planning",
+    "hard-gate"
+  ]
+}
+

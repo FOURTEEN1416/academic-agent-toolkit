@@ -1,0 +1,90 @@
+{
+  "version": 2,
+  "updated_at": "2026-03-07",
+  "integration_wave": "wave25",
+  "source_project": "simular-ai/Agent-S",
+  "mode": "shadow",
+  "role": "desktopops_shadow_advisory_contract_only",
+  "single_default_execution_owner": true,
+  "default_execution_owner": "vco_control_plane",
+  "forbid_default_execution_owner": true,
+  "forbid_second_default_execution_owner": true,
+  "forbid_second_orchestrator": true,
+  "forbid_default_takeover": true,
+  "forbid_default_gui_owner": true,
+  "forbid_implicit_promote": true,
+  "allow_stages": [
+    "off",
+    "shadow",
+    "soft"
+  ],
+  "stage_contracts": {
+    "off": {
+      "enabled": false,
+      "advisory_only": false,
+      "shadow_only": true,
+      "takeover_allowed": false
+    },
+    "shadow": {
+      "enabled": true,
+      "advisory_only": true,
+      "shadow_only": true,
+      "takeover_allowed": false
+    },
+    "soft": {
+      "enabled": true,
+      "advisory_only": true,
+      "shadow_only": true,
+      "takeover_allowed": false,
+      "requires_explicit_manual_confirmation": true
+    }
+  },
+  "allowed_outputs": [
+    "shadow_plan",
+    "aci_contract",
+    "dag_contract",
+    "openworld_task_contract",
+    "handoff_boundary",
+    "risk_advisory"
+  ],
+  "advisory_outputs": [
+    "aci_contract",
+    "dag_contract",
+    "openworld_task_contract",
+    "handoff_boundary",
+    "risk_advisory"
+  ],
+  "forbidden_outputs": [
+    "default_gui_owner",
+    "implicit_execution_takeover",
+    "implicit_promotion",
+    "owner_reassignment",
+    "route_override",
+    "browser_provider_override"
+  ],
+  "require_human_confirm": true,
+  "confirm_required_for": [
+    "state_mutation",
+    "credential_use",
+    "desktop_side_effect",
+    "cross_app_handoff",
+    "external_submission"
+  ],
+  "human_confirmation_boundary": {
+    "manual_only": true,
+    "never_auto_promote": true,
+    "must_confirm_before": [
+      "typing_into_live_desktop",
+      "changing_system_or_app_settings",
+      "using_saved_credentials",
+      "moving_or_deleting_files",
+      "switching_from_browserops_to_desktopops_execution",
+      "clicking_real_submit_or_publish"
+    ]
+  },
+  "promotion_rules": {
+    "allow_implicit": false,
+    "require_manual_approval": true,
+    "promoted_stage_supported": false
+  }
+}

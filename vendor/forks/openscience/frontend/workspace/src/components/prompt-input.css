@@ -1,0 +1,1165 @@
+.workspace-composer__setup {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--surface-raised-strong);
+  color: var(--text-strong);
+}
+
+.workspace-composer__setup > span {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace-composer__setup strong {
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  line-height: 17px;
+}
+
+.workspace-composer__setup small {
+  overflow: hidden;
+  color: var(--text-weak);
+  font-size: 12px;
+  line-height: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-composer__setup button {
+  min-height: 32px;
+  flex: 0 0 auto;
+  padding-inline: 10px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: var(--surface-base);
+  color: var(--text-strong);
+  font: inherit;
+  font-size: 12px;
+  font-weight: var(--font-weight-regular);
+  cursor: pointer;
+}
+
+.workspace-composer__setup button:hover {
+  background: var(--surface-raised-base-hover);
+}
+
+.workspace-composer__context {
+  gap: 6px;
+  padding: 7px 8px 0;
+}
+
+.workspace-composer__context-item {
+  height: 42px;
+  gap: 2px;
+  padding: 4px 5px 4px 7px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: var(--surface-weak);
+  transition: background-color 150ms var(--ease-standard);
+}
+
+.workspace-composer__context-item:hover {
+  background: var(--surface-raised-base-hover);
+}
+
+.workspace-composer__context-heading {
+  min-width: 0;
+  min-height: 20px;
+  color: var(--text-strong);
+  font-size: 12.5px;
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+}
+
+.workspace-composer__context-remove {
+  width: 32px;
+  height: 32px;
+  margin-right: -2px;
+  opacity: 0.58;
+}
+
+.workspace-composer__context-remove:hover,
+.workspace-composer__context-remove:focus-visible {
+  opacity: 1;
+}
+
+.workspace-composer__context-comment {
+  margin-left: 20px;
+  padding-right: 4px;
+  color: var(--text-weak);
+  font-size: 12px;
+  font-weight: var(--font-weight-regular);
+  line-height: 15px;
+}
+
+.workspace-composer__attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 8px 0;
+}
+
+.workspace-composer__dropzone {
+  border-radius: inherit;
+  background: var(--surface-raised-stronger-non-alpha);
+  backdrop-filter: blur(3px);
+}
+
+.workspace-composer__dropzone-copy {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 9px;
+  color: var(--text-weak);
+}
+
+.workspace-composer__dropzone-copy > [data-component="icon"] {
+  grid-row: 1 / span 2;
+}
+
+.workspace-composer__dropzone-copy strong {
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  line-height: 17px;
+}
+
+.workspace-composer__dropzone-copy span {
+  color: var(--text-weak);
+  font-size: 11.5px;
+  font-weight: var(--font-weight-regular);
+  line-height: 15px;
+}
+
+.workspace-composer__attachment {
+  min-width: 0;
+  max-width: min(260px, 100%);
+  height: 44px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 5px 5px 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface-weak);
+}
+
+.workspace-composer__attachment-open {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  border-radius: var(--radius-xs);
+  color: inherit;
+  text-decoration: none;
+}
+
+.workspace-composer__attachment-open:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.workspace-composer__attachment-open:hover .workspace-composer__attachment-copy strong {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.workspace-composer__attachment-icon,
+.workspace-composer__attachment-preview {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-xs);
+}
+
+.workspace-composer__attachment-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-base);
+  color: var(--text-weak);
+}
+
+.workspace-composer__attachment-preview {
+  object-fit: cover;
+}
+
+.workspace-composer__attachment-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.workspace-composer__attachment-copy strong,
+.workspace-composer__attachment-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-composer__attachment-copy strong {
+  color: var(--text-strong);
+  font-size: 12.5px;
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+}
+
+.workspace-composer__attachment-copy span {
+  color: var(--text-weak);
+  font-size: 12px;
+  line-height: 15px;
+}
+
+.workspace-composer__attachment-remove {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.72;
+}
+
+.workspace-composer__attachment-remove:hover,
+.workspace-composer__attachment-remove:focus-visible {
+  background: var(--surface-raised-base-hover);
+  opacity: 1;
+}
+
+@media (max-width: 719px) {
+  .workspace-composer__footer {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .workspace-composer__controls {
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .workspace-composer__actions {
+    min-width: 0;
+    justify-content: flex-end;
+  }
+
+  .workspace-composer__setup {
+    align-items: flex-start;
+  }
+
+  .workspace-composer__setup small {
+    white-space: normal;
+  }
+}
+
+.workspace-composer__suggestions {
+  z-index: 40;
+  max-height: min(360px, 48vh);
+  gap: 1px;
+  padding: 5px;
+  overscroll-behavior: contain;
+  border: 1px solid var(--color-border-weak, var(--color-border));
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-solid, var(--surface-raised-stronger-non-alpha));
+  background-clip: padding-box;
+  box-shadow:
+    var(--atlas-shadow-md),
+    inset 0 1px color-mix(in srgb, var(--text-strong) 5%, transparent);
+  font-family: var(--font-family-sans);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.workspace-composer__suggestion {
+  min-height: 34px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-base);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 140ms var(--ease-standard),
+    color 140ms var(--ease-standard);
+}
+
+.workspace-composer__suggestion:hover,
+.workspace-composer__suggestion:focus-visible {
+  background: var(--color-bg-subtle, var(--surface-raised-base-hover));
+}
+
+.workspace-composer__suggestion-heading,
+.workspace-composer__suggestion-empty {
+  padding: 5px 8px;
+  color: var(--text-weak);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.workspace-composer__suggestion-heading {
+  font-weight: var(--font-weight-medium);
+}
+
+.workspace-composer__conversation-row {
+  width: 100%;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.workspace-composer__conversation-mark {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--surface-base-hover);
+  color: var(--text-weak);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+}
+
+.workspace-composer__conversation-row > span:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.workspace-composer__conversation-row strong,
+.workspace-composer__conversation-row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-composer__conversation-row strong {
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  line-height: 17px;
+}
+
+.workspace-composer__conversation-row small {
+  color: var(--text-weak);
+  font-size: 11.5px;
+  line-height: 15px;
+}
+
+form.workspace-composer [data-component="prompt-input"] [data-type="conversation"] {
+  padding: 1px 4px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-interactive-weak);
+  color: var(--text-link-base);
+}
+
+.workspace-composer__slash-group {
+  display: grid;
+  gap: 2px;
+}
+
+.workspace-composer__slash-group + .workspace-composer__slash-group {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-weak, var(--color-border));
+}
+
+.workspace-composer__slash-heading {
+  min-height: 24px;
+  display: block;
+  padding: 4px 8px 2px;
+  color: var(--text-weak);
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  line-height: 18px;
+}
+
+.workspace-composer__suggestion:focus-visible {
+  outline: 2px solid var(--focus-lit-ring);
+  outline-offset: -2px;
+}
+
+.workspace-composer__slash-row {
+  display: grid;
+  grid-template-columns: 20px minmax(96px, 0.38fr) minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
+}
+
+.workspace-composer__slash-icon {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  color: var(--text-weaker);
+}
+
+.workspace-composer__suggestion:hover .workspace-composer__slash-icon,
+.workspace-composer__suggestion:focus-visible .workspace-composer__slash-icon {
+  color: var(--text-weak);
+}
+
+.workspace-composer__slash-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-composer__slash-detail {
+  color: var(--text-weak);
+  font-size: 12.5px;
+  line-height: 16px;
+}
+
+.workspace-composer__slash-meta {
+  max-width: 76px;
+  overflow: hidden;
+  color: var(--text-weaker);
+  font-size: 11.5px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 639px) {
+  .workspace-composer__suggestions {
+    max-height: min(340px, 48vh);
+  }
+
+  .workspace-composer__slash-row {
+    grid-template-columns: 20px minmax(0, 1fr) auto;
+  }
+
+  .workspace-composer__slash-detail {
+    display: none;
+  }
+}
+
+/* Composer surface
+   ----------------
+   This file is the sole owner of the input surface, editor baseline, utility
+   row, and responsive control geometry. */
+
+form.workspace-composer {
+  --composer-radius-pill: 999px;
+  --composer-radius-segment: var(--radius-sm);
+  --composer-editor-font-family: var(--font-family-sans);
+  --composer-editor-font-features: var(--font-family-sans--font-feature-settings, normal);
+  --composer-editor-font-variation: var(--font-family-sans--font-variation-settings, normal);
+  /* Keep the editor on the same type rhythm as the surrounding workspace.
+     Mobile still steps up to 16px below to prevent browser zoom. */
+  --composer-editor-font-size: var(--font-size-base);
+  --composer-editor-font-weight: var(--font-weight-regular);
+  --composer-editor-line-height: 20px;
+  --composer-editor-padding-block-start: 12px;
+  --composer-editor-padding-block-end: 5px;
+  --composer-editor-padding-inline: 14px;
+  min-height: 88px;
+  border: 1px solid var(--border-weak-base);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-solid, var(--surface-raised-stronger-non-alpha));
+  box-shadow: none;
+  transition:
+    border-color 150ms var(--ease-standard),
+    box-shadow 150ms var(--ease-standard);
+}
+
+form.workspace-composer:focus-within {
+  border-color: var(--border-base);
+  box-shadow: var(--focus-lit);
+}
+
+.workspace-composer__editor {
+  position: relative;
+  max-height: 240px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-base) transparent;
+}
+
+.workspace-composer__editor[data-composer-mode="shell"] {
+  --composer-editor-font-family: var(--font-family-mono);
+  --composer-editor-font-features: var(--font-family-mono--font-feature-settings, normal);
+  --composer-editor-font-variation: var(--font-family-mono--font-variation-settings, normal);
+}
+
+/* One declaration owns every metric that affects the first glyph's baseline.
+   Keeping the placeholder and contenteditable in the same selector prevents
+   utility classes or future component changes from drifting apart. */
+form.workspace-composer :is([data-component="prompt-input"], .workspace-composer__placeholder) {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 46px;
+  padding: var(--composer-editor-padding-block-start) var(--composer-editor-padding-inline)
+    var(--composer-editor-padding-block-end);
+  font-family: var(--composer-editor-font-family);
+  font-feature-settings: var(--composer-editor-font-features);
+  font-variation-settings: var(--composer-editor-font-variation);
+  font-kerning: normal;
+  font-optical-sizing: auto;
+  font-size: var(--composer-editor-font-size);
+  font-style: normal;
+  font-weight: var(--composer-editor-font-weight);
+  line-height: var(--composer-editor-line-height);
+  letter-spacing: 0;
+  font-synthesis: none;
+}
+
+form.workspace-composer [data-component="prompt-input"] {
+  display: block;
+  color: var(--text-strong);
+  caret-color: var(--text-strong);
+  overflow-wrap: anywhere;
+  text-align: start;
+  white-space: pre-wrap;
+}
+
+form.workspace-composer .workspace-composer__placeholder {
+  position: absolute;
+  inset: 0 0 auto;
+  overflow: hidden;
+  color: var(--text-weak);
+  pointer-events: none;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+form.workspace-composer .workspace-composer__footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 2px 6px 6px;
+}
+
+form.workspace-composer .workspace-composer__controls,
+form.workspace-composer .workspace-composer__actions {
+  min-width: 0;
+  gap: 2px;
+}
+
+form.workspace-composer .workspace-composer__controls {
+  overflow: visible;
+}
+
+form.workspace-composer .workspace-composer__actions {
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+form.workspace-composer .workspace-composer__attach {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  justify-content: center;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-weak);
+  font-weight: var(--font-weight-regular);
+  transition:
+    background-color 150ms var(--ease-standard),
+    color 150ms var(--ease-standard),
+    transform 120ms var(--ease-standard);
+}
+
+form.workspace-composer .workspace-composer__attach:hover:not(:disabled),
+form.workspace-composer .workspace-composer__attach:focus-visible {
+  background: var(--color-bg-subtle, var(--surface-raised-base-hover));
+  color: var(--text-strong);
+}
+
+form.workspace-composer .workspace-composer__attach:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+form.workspace-composer .workspace-composer__intent {
+  min-width: 0;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px 0 6px;
+  border: 0;
+  border-radius: var(--composer-radius-pill);
+  background: var(--surface-raised-base-hover);
+  color: var(--text-weak);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition:
+    background-color 140ms var(--ease-standard),
+    color 140ms var(--ease-standard),
+    transform 100ms var(--ease-standard);
+}
+
+form.workspace-composer .workspace-composer__intent:hover,
+form.workspace-composer .workspace-composer__intent:focus-visible {
+  background: var(--surface-raised-base-active);
+  color: var(--text-strong);
+}
+
+form.workspace-composer .workspace-composer__intent:focus-visible {
+  outline: 2px solid var(--focus-lit-ring);
+  outline-offset: 1px;
+}
+
+form.workspace-composer .workspace-composer__intent:active {
+  transform: translateY(1px);
+}
+
+form.workspace-composer .workspace-composer__intent-close {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-base-hover);
+  color: currentColor;
+}
+
+form.workspace-composer .workspace-composer__intent-close [data-slot="icon-svg"] {
+  width: 11px;
+  height: 11px;
+}
+
+form.workspace-composer .workspace-composer__research-tools {
+  position: relative;
+  flex: 0 0 auto;
+  height: 32px;
+}
+
+form.workspace-composer .workspace-composer__research-tools > summary {
+  height: 34px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 7px;
+  border-radius: var(--radius-sm);
+  color: var(--text-weak);
+  font-family: var(--font-family-sans);
+  font-size: 13px;
+  font-weight: var(--font-weight-regular);
+  line-height: 1;
+  list-style: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 150ms var(--ease-standard),
+    color 150ms var(--ease-standard),
+    transform 120ms var(--ease-standard);
+}
+
+form.workspace-composer .workspace-composer__research-tools > summary::-webkit-details-marker {
+  display: none;
+}
+
+form.workspace-composer .workspace-composer__research-tools > summary:hover,
+form.workspace-composer .workspace-composer__research-tools > summary:focus-visible,
+form.workspace-composer .workspace-composer__research-tools[open] > summary {
+  background: var(--color-bg-subtle, var(--surface-raised-base-hover));
+  color: var(--text-strong);
+}
+
+form.workspace-composer .workspace-composer__research-tools > summary:focus-visible {
+  outline: 2px solid var(--focus-lit-ring);
+  outline-offset: -2px;
+}
+
+form.workspace-composer .workspace-composer__research-tools > summary:active {
+  transform: scale(0.98);
+}
+
+form.workspace-composer .workspace-composer__research-tools > summary [data-component="icon"] {
+  transition: transform 150ms var(--ease-standard);
+}
+
+form.workspace-composer .workspace-composer__research-tools[open] > summary [data-component="icon"] {
+  transform: rotate(180deg);
+}
+
+form.workspace-composer .workspace-composer__research-tools-menu {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 0;
+  z-index: 40;
+  width: min(360px, calc(100vw - 24px));
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-solid, var(--surface-raised-stronger-non-alpha));
+  background-clip: padding-box;
+  box-shadow: var(--atlas-shadow-md);
+}
+
+form.workspace-composer .workspace-composer__research-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+}
+
+form.workspace-composer .workspace-composer__research-slider {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 5px;
+  min-height: 56px;
+  padding: 5px 4px;
+  border-radius: var(--radius-md);
+}
+
+form.workspace-composer .workspace-composer__research-slider-label {
+  overflow: hidden;
+  color: var(--text-strong);
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-inline: 2px;
+}
+
+form.workspace-composer .workspace-composer__research-slider > [role="radiogroup"] {
+  min-width: 0;
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle, var(--surface-raised-base));
+  box-shadow: inset 0 1px 2px color-mix(in srgb, var(--text-strong) 4%, transparent);
+}
+
+form.workspace-composer .workspace-composer__research-slider button {
+  min-width: 0;
+  min-height: 32px;
+  padding: 3px 7px;
+  border: 0;
+  border-radius: var(--composer-radius-segment);
+  background: transparent;
+  color: var(--text-weak);
+  font: inherit;
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+  cursor: pointer;
+  transition:
+    background-color 150ms var(--ease-standard),
+    color 150ms var(--ease-standard),
+    box-shadow 150ms var(--ease-standard),
+    transform 120ms var(--ease-standard);
+}
+
+form.workspace-composer .workspace-composer__research-slider button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--surface-raised-base-hover) 62%, transparent);
+  color: var(--text-strong);
+}
+
+form.workspace-composer .workspace-composer__research-slider button[aria-checked="true"] {
+  background: var(--color-surface-solid, var(--surface-raised-stronger-non-alpha));
+  color: var(--text-strong);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-border) 86%, transparent),
+    0 1px 2px color-mix(in srgb, var(--text-strong) 10%, transparent);
+}
+
+form.workspace-composer .workspace-composer__research-slider button:focus-visible {
+  outline: 2px solid var(--focus-lit-ring);
+  outline-offset: -2px;
+}
+
+form.workspace-composer .workspace-composer__research-slider button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+form.workspace-composer .workspace-composer__research-slider button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+form.workspace-composer .workspace-composer__research-control,
+form.workspace-composer .workspace-composer__research-choice > summary {
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 5px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-base);
+}
+
+form.workspace-composer .workspace-composer__research-control strong,
+form.workspace-composer .workspace-composer__research-choice > summary > span {
+  color: var(--text-strong);
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+form.workspace-composer .workspace-composer__research-choice {
+  position: relative;
+}
+
+form.workspace-composer .workspace-composer__research-choice > summary {
+  grid-template-columns: 100px minmax(0, 1fr) 12px;
+  list-style: none;
+  cursor: pointer;
+  transition:
+    background-color 150ms var(--ease-standard),
+    transform 120ms var(--ease-standard);
+}
+
+form.workspace-composer .workspace-composer__research-choice > summary::-webkit-details-marker {
+  display: none;
+}
+
+form.workspace-composer .workspace-composer__research-choice > summary:hover,
+form.workspace-composer .workspace-composer__research-choice > summary:focus-visible,
+form.workspace-composer .workspace-composer__research-choice[open] > summary {
+  background: var(--color-bg-subtle, var(--surface-raised-base-hover));
+}
+
+form.workspace-composer .workspace-composer__research-choice > summary:focus-visible {
+  outline: 2px solid var(--focus-lit-ring);
+  outline-offset: -2px;
+}
+
+form.workspace-composer .workspace-composer__research-choice > summary:active {
+  transform: scale(0.985);
+}
+
+form.workspace-composer .workspace-composer__research-choice > summary > strong {
+  overflow: hidden;
+  color: var(--text-weak);
+  font-size: 13px;
+  font-weight: var(--font-weight-regular);
+  line-height: 16px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+form.workspace-composer .workspace-composer__research-choice > summary > [data-component="icon"] {
+  color: var(--text-weaker);
+}
+
+form.workspace-composer .workspace-composer__research-divider {
+  height: 1px;
+  margin: 4px;
+  background: var(--color-border);
+}
+
+form.workspace-composer .workspace-composer__research-choice-menu {
+  position: static;
+  width: auto;
+  max-height: min(240px, calc(100vh - 32px));
+  margin: 2px 0 0;
+  overflow-y: auto;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle, var(--surface-raised-base));
+  box-shadow: none;
+  scrollbar-width: thin;
+}
+
+/* Research choices intentionally float across workspace panes. The session
+   layout clips its normal content, so lift only this route while the compact
+   menu is open instead of weakening overflow boundaries permanently. */
+.project-workspace-frame:has(form.workspace-composer .workspace-composer__research-tools[open])
+  :is(.project-workspace-frame__route, .atlas-root, .session-workspace, .session-main) {
+  overflow: visible;
+}
+
+.project-workspace-frame:has(form.workspace-composer .workspace-composer__research-tools[open])
+  .project-workspace-frame__route {
+  position: relative;
+  z-index: 50;
+}
+
+form.workspace-composer .workspace-composer__research-choice-menu > button {
+  width: 100%;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 7px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-base);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 150ms var(--ease-standard),
+    color 150ms var(--ease-standard),
+    transform 120ms var(--ease-standard);
+}
+
+form.workspace-composer .workspace-composer__research-choice-menu > button:hover:not(:disabled),
+form.workspace-composer .workspace-composer__research-choice-menu > button:focus-visible,
+form.workspace-composer .workspace-composer__research-choice-menu > button[aria-checked="true"] {
+  background: var(--color-bg-subtle, var(--surface-raised-base-hover));
+}
+
+form.workspace-composer .workspace-composer__research-choice-menu > button:focus-visible {
+  outline: 2px solid var(--focus-lit-ring);
+  outline-offset: -2px;
+}
+
+form.workspace-composer .workspace-composer__research-choice-menu > button:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+form.workspace-composer .workspace-composer__research-choice-menu > button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+form.workspace-composer .workspace-composer__research-choice-menu > button[data-tone="warning"][aria-checked="true"] {
+  color: var(--color-warning, var(--text-warning-base));
+}
+
+form.workspace-composer .workspace-composer__research-choice-menu > button > span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+form.workspace-composer .workspace-composer__research-choice-menu > button strong {
+  overflow: hidden;
+  color: currentColor;
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+form.workspace-composer .workspace-composer__research-choice-menu > button small {
+  overflow: hidden;
+  color: var(--text-weak);
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+form.workspace-composer .workspace-composer__research-access-retry {
+  width: 100%;
+  min-height: 32px;
+  margin-top: 5px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface-critical-weak);
+  color: var(--text-critical-base);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+form.workspace-composer .workspace-composer__research-access-retry:focus-visible {
+  outline: 2px solid var(--focus-lit-ring);
+  outline-offset: -2px;
+}
+
+form.workspace-composer .workspace-composer__send {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: var(--composer-radius-pill);
+  box-shadow: none;
+}
+
+form.workspace-composer .workspace-composer__send[data-composer-action="idle"]:disabled {
+  background-color: var(--color-bg-subtle, var(--surface-raised-base-hover));
+}
+
+form.workspace-composer .workspace-composer__send[data-composer-action="idle"]:disabled [data-slot="icon-svg"] {
+  color: var(--text-weaker);
+}
+
+form.workspace-composer .workspace-composer__send[data-composer-action="stop"] {
+  background-color: var(--surface-critical-strong);
+}
+
+form.workspace-composer .workspace-composer__send[data-composer-action="stop"]:hover:not(:disabled),
+form.workspace-composer .workspace-composer__send[data-composer-action="stop"]:focus-visible {
+  background-color: var(--icon-critical-hover);
+}
+
+form.workspace-composer .workspace-composer__send[data-composer-action="stop"] [data-slot="icon-svg"] {
+  color: var(--icon-invert-base);
+}
+
+form.workspace-composer .workspace-composer__send[data-composer-action="stop"] [data-component="icon"] {
+  --icon-size: 12px;
+}
+
+/* The conversation column can narrow independently of the viewport when the
+   research pane is resized. Mirror the small-screen control geometry against
+   that actual available width instead of waiting for a window breakpoint. */
+@container conversation (max-width: 540px) {
+  form.workspace-composer {
+    --composer-editor-padding-inline: 12px;
+  }
+
+  form.workspace-composer .workspace-composer__footer {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+    padding: 2px 5px 5px;
+  }
+
+  form.workspace-composer .workspace-composer__controls,
+  form.workspace-composer .workspace-composer__actions {
+    width: 100%;
+  }
+
+  form.workspace-composer .workspace-composer__actions {
+    justify-content: flex-end;
+  }
+
+  form.workspace-composer .workspace-composer__research-tools-menu {
+    left: -46px;
+    width: min(292px, calc(100cqw - 20px));
+  }
+
+  form.workspace-composer .workspace-composer__research-slider {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding-block: 4px;
+  }
+
+  form.workspace-composer .workspace-composer__research-choice > summary {
+    grid-template-columns: minmax(0, 1fr) auto 12px;
+  }
+}
+
+@media (max-width: 719px) {
+  form.workspace-composer {
+    --composer-editor-font-size: 16px;
+    --composer-editor-line-height: 24px;
+    --composer-editor-padding-inline: 12px;
+    min-height: 94px;
+    border-radius: var(--radius-lg);
+  }
+
+  form.workspace-composer .workspace-composer__footer {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+    padding: 2px 5px 5px;
+  }
+
+  form.workspace-composer .workspace-composer__controls,
+  form.workspace-composer .workspace-composer__actions {
+    width: 100%;
+  }
+
+  form.workspace-composer .workspace-composer__actions {
+    justify-content: flex-end;
+  }
+
+  form.workspace-composer .workspace-composer__research-tools-menu {
+    left: -46px;
+    width: min(292px, calc(100vw - 32px));
+  }
+
+  form.workspace-composer .workspace-composer__research-slider {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding-block: 4px;
+  }
+
+  form.workspace-composer .workspace-composer__research-choice > summary {
+    grid-template-columns: minmax(0, 1fr) auto 12px;
+  }
+
+  form.workspace-composer .workspace-composer__research-choice-menu {
+    position: static;
+    width: 100%;
+    max-height: 240px;
+    margin-top: 3px;
+    box-shadow: none;
+  }
+}
+
+@media (pointer: coarse) {
+  form.workspace-composer .workspace-composer__research-tools {
+    height: 44px;
+  }
+
+  form.workspace-composer .workspace-composer__attach,
+  form.workspace-composer .workspace-composer__research-tools > summary,
+  form.workspace-composer .workspace-composer__research-control,
+  form.workspace-composer .workspace-composer__research-slider button,
+  form.workspace-composer .workspace-composer__research-choice > summary,
+  form.workspace-composer .workspace-composer__research-choice-menu > button,
+  form.workspace-composer .workspace-composer__send {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .workspace-composer__context-remove,
+  .workspace-composer__attachment-remove {
+    position: relative;
+  }
+
+  .workspace-composer__context-remove::after,
+  .workspace-composer__attachment-remove::after {
+    position: absolute;
+    inset: -6px;
+    content: "";
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  form.workspace-composer {
+    transition: none;
+  }
+
+  form.workspace-composer .workspace-composer__research-tools > summary,
+  form.workspace-composer .workspace-composer__research-tools > summary [data-component="icon"],
+  form.workspace-composer .workspace-composer__research-choice > summary,
+  form.workspace-composer .workspace-composer__research-slider button,
+  form.workspace-composer .workspace-composer__research-choice-menu > button,
+  form.workspace-composer .workspace-composer__attach {
+    transition: none;
+  }
+}

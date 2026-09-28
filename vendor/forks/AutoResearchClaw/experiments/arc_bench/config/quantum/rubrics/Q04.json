@@ -1,0 +1,109 @@
+{
+    "id": "q04-root",
+    "requirements": "A credible empirical study of data re-uploading depth vs Fourier expressivity in variational quantum regression. The agent must (a) implement 4 re-uploading circuits at L in {1, 3, 5, 7} using qiskit ParameterVector + RY/RZ rotation gates, (b) train each with parameter-shift Adam on 200 samples of two 1D regression targets (sinusoid mixture and step function), (c) compare against two classical baselines (RBF kernel ridge regression, polynomial regression degree 7) on the same data, (d) measure test MSE per cell and the recovered Fourier spectrum of the trained quantum model, and (e) score H1/H2/H3 with numerical evidence.",
+    "judging_note": "Re-uploading topics are scored on (i) whether the 4 quantum circuits actually differ by depth (sanity check: parameter counts must be 2/6/10/14), (ii) whether training was real and produced different outputs across L levels (3 quantum cells producing bit-identical MSE would indicate dispatch failure, same anti-pattern as Q01 ablation failure), (iii) whether classical baselines are computed on the exact same data as quantum cells, and (iv) whether H1/H2/H3 are supported by reported MSE and Fourier-spectrum numbers. Quantitative result leaves use a graded scale: 100% if hypothesis threshold cleanly met, 67% if trend in predicted direction without clearing threshold, 33% if ambiguous, 0% if contradicted or evidence missing.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "q04-code",
+            "requirements": "Code-development bucket: 4 re-uploading circuits + 2 classical baselines are implemented correctly with shared training pipeline and reproducible per-cell seed control.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q04-code-circuits",
+                    "requirements": "All four re-uploading circuits use qiskit.QuantumCircuit + qiskit.circuit.ParameterVector. The encoding gate is RZ(x) and the trainable block is RY(theta_2k) RZ(theta_2k+1). Output is the expectation <Z> on the single qubit (via qiskit.quantum_info.Statevector or the reference Estimator primitive). Parameter counts match: L=1 has 2 params, L=3 has 6, L=5 has 10, L=7 has 14. A sanity check asserts that the four circuits produce different output values for a fixed nonzero input x=0.3 with a fixed random parameter vector.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q04-code-training-pipeline",
+                    "requirements": "Training uses Adam with parameter-shift gradients computed via the qiskit parameter-shift rule (NOT scipy finite differences). Loss is mean squared error on the 200 training samples. Same optimizer hyperparameters across all four L levels (Adam lr=0.05, 300 steps). Both classical baselines use sklearn (KernelRidge with grid-searched gamma, and a Pipeline of PolynomialFeatures+Ridge).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "q04-code-metric-logging",
+                    "requirements": "Each per-(condition, dataset, seed) result is emitted to stdout as a single line starting with METRIC_RESULT followed by JSON containing condition, dataset, seed, test_mse, train_mse, and fourier_spectrum_cosine. The FFT is computed on the trained model's output sampled on a uniform 256-point grid over [0, 1].",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q04-exec",
+            "requirements": "Execution-validity bucket: all 24 cells ran and produced numerically valid outputs.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q04-exec-cells-ran",
+                    "requirements": "At least 22 cells out of 24 expected (6 conditions x 2 datasets x 2 seeds) completed without unhandled errors and produced a test_mse value. Missing more than 2 cells (10 percent) without documented justification fails this leaf.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q04-exec-numerical",
+                    "requirements": "Numerical validity: no NaN or Inf in test_mse; train_mse <= test_mse * 1.5 across conditions (otherwise model is broken); the 4 quantum L levels produce different test MSEs (max - min across the 4 quantum conditions on the sinusoid-mixture dataset is at least 0.005). Fourier spectrum values are real, finite, and the cosine similarity is in [-1, 1].",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q04-results",
+            "requirements": "Results bucket: quantitative tests of H1/H2/H3 plus a per-hypothesis writeup.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "q04-result-h1-quant",
+                    "requirements": "Quantitative test of H1. On the sinusoid-mixture dataset, is test_mse(L=5) <= test_mse(L=1) / 4 (2-seed mean)? 100% if ratio >= 4, 67% if 2 <= ratio < 4, 33% if 1 < ratio < 2, 0% if L=5 is not better than L=1.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q04-result-h2-quant",
+                    "requirements": "Quantitative test of H2. On the step function dataset, is test_mse(L=7) >= test_mse(L=5) * 1.15 (2-seed mean)? 100% if overshoot is >= 15 percent, 67% if 5-15 percent, 33% if any small overshoot (0-5 percent), 0% if L=7 still has lower MSE.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q04-result-h3-quant",
+                    "requirements": "Quantitative test of H3. On the sinusoid-mixture dataset at L=7, does the recovered Fourier spectrum cosine similarity (restricted to lowest 5 nonzero frequencies) reach 0.7? 100% if >= 0.7, 67% if >= 0.5, 33% if >= 0.3, 0% otherwise.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "q04-result-writeup",
+                    "requirements": "Writeup of at least 200 words (submission/README.md ## Agent-produced writeup section) with explicit supported / refuted / inconclusive verdict for each of H1, H2, H3 backed by specific test MSE values per (L, dataset) and Fourier spectrum cosine values. Discusses how the Fourier-series view (Schuld, Sweke, Meyer 2021) predicts the observed trend, and identifies a dominant systematic uncertainty (seed variance, optimizer convergence, parameter-shift gradient noise).",
+                    "weight": 12.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

@@ -1,0 +1,374 @@
+{
+  "concept_id": "paper.derived.data.patch.grid",
+  "icon_id": "paper.derived.data.patch.grid.paper_derived_outline.v1",
+  "primary_meaning": "Paper-derived patch grid",
+  "aliases": [
+    "image patches",
+    "ViT patches"
+  ],
+  "negative_aliases": [
+    "paper-specific module name",
+    "paper-specific metric",
+    "dataset value",
+    "source-paper claim",
+    "literal reproduction of source figure"
+  ],
+  "shape_family_id": "paper.derived.patch_grid",
+  "style_variant": "paper_derived_refined_outline",
+  "domain_tags": [
+    "paper_derived",
+    "framework_figure_motif",
+    "AI",
+    "CS",
+    "paper_figure",
+    "data",
+    "patch",
+    "grid"
+  ],
+  "recommended_use": [
+    "architecture",
+    "method_framework",
+    "scene_spec_icon_slot",
+    "visual_layout_reuse"
+  ],
+  "avoid_use": [
+    "paper factual evidence without target support",
+    "literal reproduction of source paper figure"
+  ],
+  "source_lineage": {
+    "import_mode": "paper_figure_motif_abstraction",
+    "source": "paper_framework_figure_motif_extraction",
+    "source_path": "final_reference_figure_library.jsonl",
+    "source_figure_count": 10,
+    "source_figures": [
+      {
+        "reference_case_id": "iclr2025/ai-as-humanitys-salieri-quantifying-linguistic-creativity-of-language-models-via-systemati/fig-0001",
+        "paper_title": "AI as Humanity鈥檚 Salieri: Quantifying Linguistic Creativity of Language Models via Systematic Attribution of Machine Text against Web Text",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/ai-as-humanitys-salieri-quantifying-linguistic-creativity-of-language-models-via-systemati/figures/framework_01_figure-2.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/ai-as-humanitys-salieri-quantifying-linguistic-creativity-of-language-models-via-systemati/sources/arxiv_src/comment_free.tex",
+          "line": 632,
+          "label": "fig:2",
+          "includegraphics": "figures/figure_2.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/ctrl-adapter-an-efficient-and-versatile-framework-for-adapting-diverse-controls-to-any-dif/fig-0009",
+        "paper_title": "Ctrl-Adapter: An Efficient and Versatile Framework for Adapting Diverse Controls to Any Diffusion Model",
+        "field": "NLP",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/NLP/ctrl-adapter-an-efficient-and-versatile-framework-for-adapting-diverse-controls-to-any-dif/figures/framework_09_full-moe-method.pdf",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "partial_includegraphics_match",
+          "file": "iclr2025_collection/papers/NLP/ctrl-adapter-an-efficient-and-versatile-framework-for-adapting-diverse-controls-to-any-dif/sources/arxiv_src/main.tex",
+          "line": 440,
+          "label": "fig:multi_source_method",
+          "includegraphics": "img/full_moe_method.pdf"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/fig-0002",
+        "paper_title": "Exploring The Loss Landscape Of Regularized Neural Networks Via Convex Duality",
+        "field": "Optimization",
+        "figure_subtype": "qualitative_example",
+        "layout_grammar": "example_grid_or_before_after_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2025_collection/papers/Optimization/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/figures/pdf_framework_page_002.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "caption_or_label_match",
+          "file": "iclr2025_collection/papers/Optimization/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/sources/arxiv_src/iclr2025_conference.tex",
+          "line": 139,
+          "label": "fig0:staircasecartoon",
+          "includegraphics": ""
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/fig-0004",
+        "paper_title": "Exploring The Loss Landscape Of Regularized Neural Networks Via Convex Duality",
+        "field": "Optimization",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Optimization/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/figures/pdf_framework_page_013.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Optimization/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/figures/pdf_framework_page_013.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/Optimization/exploring-the-loss-landscape-of-regularized-neural-networks-via-convex-duality/figures/pdf_framework_page_013.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/federated-few-shot-class-incremental-learning/fig-0004",
+        "paper_title": "Federated Few-Shot Class-Incremental Learning",
+        "field": "FL",
+        "figure_subtype": "retrieval_flow",
+        "layout_grammar": "query_context_retrieval_answer_flow",
+        "topology": "retrieval_augmented_flow",
+        "source_path": "iclr2025_collection/papers/FL/federated-few-shot-class-incremental-learning/figures/pdf_framework_page_004.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/FL/federated-few-shot-class-incremental-learning/figures/pdf_framework_page_004.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:federated-few-shot-class-incremental-learning:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/FL/federated-few-shot-class-incremental-learning/figures/pdf_framework_page_004.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/fig-0001",
+        "paper_title": "Homomorphism Expressivity of Spectral Invariant Graph Neural Networks",
+        "field": "Graph",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Graph/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/figures/pdf_framework_page_002.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Graph/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/figures/pdf_framework_page_002.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:homomorphism-expressivity-of-spectral-invariant-graph-neural-networks:fig-0001",
+          "includegraphics": "iclr2025_collection/papers/Graph/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/figures/pdf_framework_page_002.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/fig-0002",
+        "paper_title": "Homomorphism Expressivity of Spectral Invariant Graph Neural Networks",
+        "field": "Graph",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Graph/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/figures/pdf_framework_page_003.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Graph/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/figures/pdf_framework_page_003.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:homomorphism-expressivity-of-spectral-invariant-graph-neural-networks:fig-0002",
+          "includegraphics": "iclr2025_collection/papers/Graph/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/figures/pdf_framework_page_003.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/fig-0003",
+        "paper_title": "Homomorphism Expressivity of Spectral Invariant Graph Neural Networks",
+        "field": "Graph",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Graph/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/figures/pdf_framework_page_004.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Graph/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/figures/pdf_framework_page_004.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:homomorphism-expressivity-of-spectral-invariant-graph-neural-networks:fig-0003",
+          "includegraphics": "iclr2025_collection/papers/Graph/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/figures/pdf_framework_page_004.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/fig-0004",
+        "paper_title": "Homomorphism Expressivity of Spectral Invariant Graph Neural Networks",
+        "field": "Graph",
+        "figure_subtype": "graph_or_network",
+        "layout_grammar": "node_edge_graph_layout",
+        "topology": "graph_network",
+        "source_path": "iclr2025_collection/papers/Graph/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/figures/pdf_framework_page_006.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Graph/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/figures/pdf_framework_page_006.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:homomorphism-expressivity-of-spectral-invariant-graph-neural-networks:fig-0004",
+          "includegraphics": "iclr2025_collection/papers/Graph/homomorphism-expressivity-of-spectral-invariant-graph-neural-networks/figures/pdf_framework_page_006.png"
+        },
+        "match_score": 8
+      },
+      {
+        "reference_case_id": "iclr2025/language-representations-can-be-what-recommenders-need-findings-and-potentials/fig-0005",
+        "paper_title": "Language Representations Can be What Recommenders Need: Findings and Potentials",
+        "field": "Graph",
+        "figure_subtype": "qualitative_example",
+        "layout_grammar": "example_grid_or_before_after_panel",
+        "topology": "unknown_caption_only",
+        "source_path": "iclr2025_collection/papers/Graph/language-representations-can-be-what-recommenders-need-findings-and-potentials/figures/pdf_framework_page_014.png",
+        "local_source_exists": true,
+        "source_anchor": {
+          "status": "source_anchor_hint_available",
+          "match_confidence": "pdf_page_visual_anchor",
+          "file": "iclr2025_collection/papers/Graph/language-representations-can-be-what-recommenders-need-findings-and-potentials/figures/pdf_framework_page_014.png",
+          "line": null,
+          "label": "pdf_page_visual_anchor:iclr2025:language-representations-can-be-what-recommenders-need-findings-and-potentials:fig-0005",
+          "includegraphics": "iclr2025_collection/papers/Graph/language-representations-can-be-what-recommenders-need-findings-and-potentials/figures/pdf_framework_page_014.png"
+        },
+        "match_score": 8
+      }
+    ],
+    "extraction_basis": [
+      "source-grounded final reference figure records",
+      "figure subtype/layout/topology tags",
+      "caption/source-anchor keyword evidence",
+      "borrowable visual design patterns"
+    ],
+    "abstraction_level": "non_literal_semantic_visual_motif",
+    "imported_at": "2026-05-24T08:42:59.333Z",
+    "modified": true,
+    "modification": "Created as a simplified vector motif from repeated downloaded-paper framework figure patterns; source-paper text, labels, claims, datasets, metrics, and exact visual composition are intentionally not copied.",
+    "refinement": {
+      "status": "refined_semantic_vector_redraw",
+      "semantic_kind": "matrix",
+      "workflow": [
+        "contact_sheet_with_padding",
+        "imagegen_prompt_manifest_for_style_exploration",
+        "semantic_cut_slot",
+        "programmatic_svg_redraw",
+        "index_update"
+      ],
+      "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+      "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+      "generated_at": "2026-05-24T09:34:49.893Z"
+    }
+  },
+  "license": {
+    "name": "Paper-derived framework figure motif abstraction",
+    "license": "source-paper-visual-motif-abstraction",
+    "usage_terms": "Internal reusable visual/layout motif. Use for generic figure icon language only; do not treat as source-paper evidence or copy source-paper facts."
+  },
+  "files": {
+    "raw_svg": "icons/raw/paper.derived.data.patch.grid.paper_derived_outline.v1.svg",
+    "tight_svg": "icons/tight/paper.derived.data.patch.grid.paper_derived_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/paper.derived.data.patch.grid.paper_derived_outline.v1.ppt_safe.svg",
+    "semantic_cut_svg": "paper_derived_icon_refinement/cut_svg/paper.derived.data.patch.grid.paper_derived_outline.v1.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": 3.225,
+    "minY": -12.775,
+    "width": 15.95,
+    "height": 33.55,
+    "stroke_bleed": 0.775,
+    "original_viewBox": [
+      0,
+      0,
+      24,
+      24
+    ],
+    "original_hidden_margin_ratio": {
+      "left": 0.167,
+      "top": -0.5,
+      "right": 0.233,
+      "bottom": 0.167
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "refined_from_semantic_contact_sheet": true,
+    "editable_shape_primitives": true,
+    "sha1": "2a64623f100923c1781119318e23310d209b3dc9"
+  },
+  "transfer_contract": {
+    "allowed": [
+      "generic visual icon language",
+      "layout/motif inspiration",
+      "PPT editable stencil use"
+    ],
+    "disallowed": [
+      "source-paper facts",
+      "paper-specific labels",
+      "metrics",
+      "datasets",
+      "claims",
+      "literal source-figure reproduction"
+    ]
+  },
+  "refinement": {
+    "status": "refined_semantic_vector_redraw",
+    "semantic_kind": "matrix",
+    "workflow": [
+      "contact_sheet_with_padding",
+      "imagegen_prompt_manifest_for_style_exploration",
+      "semantic_cut_slot",
+      "programmatic_svg_redraw",
+      "index_update"
+    ],
+    "imagegen_use_boundary": "Prompts/contact sheets are generated for optional raster style exploration; final library asset is deterministic editable SVG.",
+    "style_goal": "minimal academic outline icon with subtle pale fill, consistent stroke, generous internal whitespace, no source-paper labels or facts",
+    "generated_at": "2026-05-24T09:34:49.893Z"
+  }
+}

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" id="delivery_route" viewBox="0 0 96 96" role="img">
+<title>Delivery route</title>
+<g id="delivery_route_svg_root"><polygon id="delivery_route_diamond" fill="#FBFDFF" stroke="#2E7D32" stroke-width="3" stroke-linejoin="round" points="48,9 84,48 48,87 12,48"/><path id="delivery_route_route" fill="none" stroke="#2E7D32" stroke-width="4" stroke-linecap="round" d="M31 58 C40 40 57 57 66 38"/><circle id="delivery_route_route_start" fill="#2E7D32" cx="31" cy="58" r="4"/><circle id="delivery_route_route_end" fill="#2E7D32" cx="66" cy="38" r="4"/></g>
+</svg>

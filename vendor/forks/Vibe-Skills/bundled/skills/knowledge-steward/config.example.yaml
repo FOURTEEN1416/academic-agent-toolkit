@@ -1,0 +1,82 @@
+# Knowledge Steward Configuration Template
+# Copy this file to config.yaml and customize for your setup
+
+version: "1.0"
+
+# Local Paths
+paths:
+  # Path to your Obsidian vault or knowledge base directory
+  vault_path: "D:\\Documents\\ai技能外置大脑"
+
+  # Path to the knowledge-steward skill directory
+  skill_path: "C:\\Users\\羽裳\\.claude\\skills\\knowledge-steward"
+
+# GitHub Repositories
+repositories:
+  # Repository for syncing knowledge notes
+  knowledge_base:
+    # Replace 'username' with your GitHub username
+    url: "https://github.com/username/knowledge-base.git"
+    enabled: true
+    # Pull before push to handle multi-device scenarios
+    auto_pull: true
+
+  # Repository for syncing skill code
+  skill_code:
+    # Replace 'username' with your GitHub username
+    url: "https://github.com/username/claude-skill-knowledge-steward.git"
+    enabled: true
+    # Usually don't need auto_pull for skill code
+    auto_pull: false
+
+# Git Settings
+git:
+  # Enable/disable git sync globally
+  enabled: true
+
+  # Automatically sync after each save
+  auto_sync: true
+
+  # Template for commit messages
+  # Available variables: {type}, {title}, {date}
+  commit_message_template: "Add: {type} - {title}"
+
+  # Git author information (optional)
+  # If not set, uses global git config
+  # author_name: "Claude Knowledge Steward"
+  # author_email: "noreply@claude.ai"
+
+# Sync Behavior
+sync:
+  # Pull before push to avoid conflicts
+  auto_pull_before_push: true
+
+  # How to handle merge conflicts
+  # Options: "prefer-remote", "prefer-local", "manual"
+  conflict_resolution: "prefer-remote"
+
+  # Retry failed syncs
+  retry_on_failure: true
+  max_retries: 3
+  retry_delay_seconds: 5
+
+# Logging
+logging:
+  enabled: true
+  # Log levels: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+  file: "logs/git_sync.log"
+  # Maximum log file size in MB
+  max_size_mb: 10
+  # Number of backup log files to keep
+  backup_count: 7
+
+# Authentication (optional)
+# By default, uses system git credentials (Git Credential Manager on Windows)
+# Only configure this if you need to override the default behavior
+# auth:
+#   # Method: "credential-manager", "ssh", "token"
+#   method: "credential-manager"
+#
+#   # Only if using token method (NOT RECOMMENDED - use credential manager instead)
+#   # token: "ghp_your_personal_access_token_here"

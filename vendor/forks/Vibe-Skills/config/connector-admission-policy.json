@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-17",
+  "plane_id": "connector-admission-layer",
+  "default_stage": "shadow",
+  "default_owner": "vco-core",
+  "principles": [
+    "catalog_first_not_auto_install",
+    "single_control_plane_only",
+    "advice_first_and_rollback_first",
+    "risk_class_before_provider_enable",
+    "no_shadow_ownership_without_canonical_approval"
+  ],
+  "risk_classes": {
+    "low": {
+      "allowed_actions": [
+        "discover",
+        "document",
+        "tag"
+      ],
+      "confirm_required": false
+    },
+    "medium": {
+      "allowed_actions": [
+        "catalog",
+        "score",
+        "shadow_pilot"
+      ],
+      "confirm_required": true
+    },
+    "high": {
+      "allowed_actions": [
+        "manual_review_only"
+      ],
+      "confirm_required": true
+    }
+  },
+  "sources": [
+    {
+      "id": "awesome-mcp-servers",
+      "role": "discovery_catalog",
+      "landing": "connector admission matrix",
+      "risk_class": "medium",
+      "reviewed_head_sha": "ed1aa4fbeb0006e9c2be7594b494910a948d83ae",
+      "decision_class": "metadata-only"
+    },
+    {
+      "id": "composio",
+      "role": "connector provider contract",
+      "landing": "provider metadata and auth boundary guidance",
+      "risk_class": "medium",
+      "reviewed_head_sha": "3d284eef2e48b4c3e8ce84ad1f866bdb4d204056",
+      "decision_class": "admit",
+      "secret_profile": "connector_admission",
+      "ownership_boundary": "vco_only"
+    },
+    {
+      "id": "activepieces",
+      "role": "workflow connector reference",
+      "landing": "workflow pattern reference",
+      "risk_class": "medium",
+      "reviewed_head_sha": "e1bd2772affc271f69b502b07cfa22e57eb2b757",
+      "decision_class": "admit",
+      "secret_profile": "connector_admission",
+      "ownership_boundary": "vco_only"
+    },
+    {
+      "id": "awesome-claude-skills-composio",
+      "role": "connector skill examples",
+      "landing": "reference-only patterns",
+      "risk_class": "low"
+    }
+  ],
+  "forbidden_surfaces": [
+    "implicit_auto_install",
+    "route_takeover",
+    "second_orchestrator",
+    "background_execution_owner"
+  ],
+  "allowlist": [
+    {
+      "id": "mcp_server_catalog",
+      "source": "awesome-mcp-servers",
+      "capability_tags": [
+        "discovery",
+        "metadata",
+        "ranking"
+      ],
+      "risk_class": "medium",
+      "landing": "catalog_only",
+      "decision_class": "metadata-only"
+    },
+    {
+      "id": "composio_toolkits",
+      "source": "composio",
+      "capability_tags": [
+        "tool_binding",
+        "oauth_boundary",
+        "app_catalog"
+      ],
+      "risk_class": "medium",
+      "landing": "provider_contract",
+      "decision_class": "admit"
+    },
+    {
+      "id": "activepieces_pieces",
+      "source": "activepieces",
+      "capability_tags": [
+        "workflow_templates",
+        "piece_metadata",
+        "automation_reference"
+      ],
+      "risk_class": "medium",
+      "landing": "workflow_reference",
+      "decision_class": "admit"
+    }
+  ],
+  "reviewed_packet": "docs/external-tooling/connector-admission-upstream-delta-2026-03-17.md"
+}

@@ -1,0 +1,20 @@
+{
+  "adapter_id": "codex",
+  "template": "config/settings.template.codex.json",
+  "target": "~/.agents/settings.json",
+  "semantics": {
+    "vco.skill_roots.global": [
+      "~/.agents/skills",
+      "~/.codex/skills"
+    ],
+    "vco.rules_root": "~/.agents/rules",
+    "env.OPENAI_API_KEY": "provider credential, required for provider-assisted routing/runtime features",
+    "env.OPENAI_BASE_URL": "OpenAI-compatible endpoint binding, not canonical router truth",
+    "env.VCO_RUCNLPIR_MODEL": "provider model hint, not canonical routing ownership"
+  },
+  "notes": [
+    "This mapping defines how Codex attaches to the shared agents runtime.",
+    "Template values are runtime bindings, not cross-host canonical truth.",
+    "Host hook installation is temporarily frozen because of compatibility issues."
+  ]
+}

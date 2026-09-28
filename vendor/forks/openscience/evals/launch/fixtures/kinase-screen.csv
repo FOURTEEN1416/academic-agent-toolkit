@@ -1,0 +1,7 @@
+compound,target_ic50_nm,off_target_ic50_nm,cell_viability_pct,solubility_um
+KS-101,8,190,91,42
+KS-102,12,420,88,67
+KS-103,5,55,96,24
+KS-104,21,900,83,80
+KS-105,16,640,94,58
+KS-106,7,140,72,35

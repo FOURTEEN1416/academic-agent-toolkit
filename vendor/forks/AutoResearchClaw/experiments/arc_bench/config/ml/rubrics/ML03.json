@@ -1,0 +1,109 @@
+{
+    "id": "ml03-root",
+    "requirements": "A credible experiment comparing Nelder-Mead, Powell, and CMA-ES on non-convex benchmark functions: the optimizers are implemented under matched evaluation budgets, execution covers multiple benchmark functions with repeated random starts, and results address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact threshold satisfaction. If the submission uses different optimizer names or slightly different benchmark functions but addresses the same scientific question, credit it accordingly.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml03-code",
+            "requirements": "The optimization methods and benchmark setup are implemented in a way that supports a fair comparison.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml03-code-methods",
+                    "requirements": "The submission implements distinct optimizer code paths for a local-simplex method (e.g., Nelder-Mead), a direction-set method (e.g., Powell), and an evolution-strategy method (e.g., CMA-ES or a well-motivated substitute such as a random-search baseline), rather than aliases of a single optimizer.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml03-code-functions",
+                    "requirements": "The submission defines multiple non-convex benchmark functions (e.g., Rastrigin, Rosenbrock, Ackley at a moderate dimension such as 10D) with bounded domains and deterministic objective evaluation.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml03-code-budget",
+                    "requirements": "A shared function-evaluation budget (maxfev or equivalent) is enforced across optimizers so comparisons are budget-matched.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml03-exec",
+            "requirements": "Execution uses repeated random starts and produces comparable benchmark metrics.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml03-exec-runs",
+                    "requirements": "Execution uses multiple random starts per (optimizer, function) cell across the evaluated benchmark functions. More starts are better for reducing variance, but an honest small-repetition run with reported dispersion is preferable to a single start.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml03-exec-metrics",
+                    "requirements": "Execution produces a machine-readable metrics artifact with numeric best-objective-value (the primary optimization metric), a wall-clock runtime measure (e.g., median runtime), and a success-rate-style metric (fraction of runs reaching a threshold f(x) \u2264 \u03b5) per optimizer and function.",
+                    "weight": 16.6667,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml03-results",
+            "requirements": "The reported results address all three hypotheses and include a clear narrative.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml03-result-h1",
+                    "requirements": "The submission compares mean best-objective-values across the optimizers for each function and conveys whether CMA-ES (or its stand-in) tends to outperform the local methods on the multimodal functions \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml03-result-h2",
+                    "requirements": "The submission compares runtime between Powell and CMA-ES across the evaluated functions and conveys whether Powell tends to finish meaningfully faster under the matched budget.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml03-result-h3",
+                    "requirements": "The submission compares success-rate on a hard multimodal function (e.g., Rastrigin) between a local method (e.g., Nelder-Mead) and CMA-ES and conveys whether CMA-ES has a clearly higher success rate.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml03-result-writeup",
+                    "requirements": "The README or writeup describes the benchmark setup and metrics, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations such as budget size, dimensionality, CMA-ES implementation simplifications, and seed variance. No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

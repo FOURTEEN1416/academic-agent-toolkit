@@ -1,0 +1,26 @@
+sst-env.d.ts
+.claude/
+.openscience/
+# generated output
+tooling/sdk/js/src/gen/
+tooling/sdk/js/src/v2/gen/
+tooling/sdk/openapi.json
+backend/cli/src/provider/models-snapshot.ts
+# build output
+dist/
+# prettier's mdx parser is deprecated and can mangle JSX-in-markdown
+*.mdx
+# curated skill content consumed verbatim by agents
+backend/cli/skills/
+.astro/
+
+# recorded live-API responses, replayed verbatim by the connector conformance
+# suite (regenerate with: bun run script/record-fetch-fixtures.ts)
+backend/cli/test/science/fixtures/
+
+# local Playwright output
+frontend/workspace/e2e/playwright-report/
+frontend/workspace/e2e/test-results/
+
+# built docs, embedded so openscience.sh/docs serves them (regenerate with: bun run --cwd frontend/landing sync:docs)
+frontend/landing/public/docs/

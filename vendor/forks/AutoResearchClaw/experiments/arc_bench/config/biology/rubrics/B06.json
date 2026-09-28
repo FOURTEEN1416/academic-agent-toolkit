@@ -1,0 +1,166 @@
+{
+  "id": "B06",
+  "requirements": "A credible E. coli carbon-source robustness study that loads a validated GSMM, swaps carbon sources, reports growth/secretion profiles, and identifies condition-dependent essential genes from a focused gene set.",
+  "judging_note": "Score explicit medium handling and condition-dependent interpretation. It is acceptable if some carbon sources are unsupported, provided they are recorded and not silently dropped.",
+  "weight": 1,
+  "sub_tasks": [
+    {
+      "id": "b06-code",
+      "requirements": "The code implements carbon-source medium swaps, FBA/pFBA, and focused essentiality comparison.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b06-code-model",
+          "requirements": "Loads E. coli BIGG model, identifies biomass and candidate carbon exchange reactions, and defines a minimal medium policy.",
+          "weight": 7,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Experimental Setup"
+        },
+        {
+          "id": "b06-code-swap",
+          "requirements": "Closes background carbon uptake and opens one carbon source at a time with documented uptake bounds.",
+          "weight": 7,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Experimental Setup"
+        },
+        {
+          "id": "b06-code-secretion",
+          "requirements": "Runs FBA/pFBA per source and records major positive exchange fluxes.",
+          "weight": 5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "b06-code-essentiality",
+          "requirements": "Runs focused single-gene deletions for feasible carbon sources and computes growth fractions relative to each source-specific WT.",
+          "weight": 7,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b06-exec",
+      "requirements": "Execution produces carbon-source and essentiality artifacts.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b06-exec-validity",
+          "requirements": "Glucose reference is optimal and at least two non-glucose sources are either feasible or clearly marked unsupported/infeasible.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b06-exec-physics",
+          "requirements": "Mass-balance check passes for the E. coli GSMM under each tested carbon source; no carbon source produces negative biomass or non-physical secretion without explicit handling; model state is restored between carbon-source conditions. This is the biology-validity gate equivalent to physics-validity checks in the physics rubric.",
+          "weight": 7.0,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b06-exec-artifacts",
+          "requirements": "Writes results.json, carbon-source table, and gene-by-condition growth-fraction matrix.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b06-results",
+      "requirements": "Results compare carbon sources and identify condition-dependent vulnerabilities.",
+      "weight": 3,
+      "sub_tasks": [
+        {
+          "id": "b06-result-h1",
+          "requirements": "Reports feasible carbon-source count and growth rates, including unsupported-source handling. Score 100% if ≥3 carbon sources including glucose support positive biomass growth with explicit exchange bounds documented; 67% if 2 sources support positive growth; 33% if only glucose is feasible with explicit confirmation that other sources are infeasible or unsupported; 0% otherwise.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b06-result-h2",
+          "requirements": "Compares secretion profiles and growth rates across sources with quantitative differences. Score 100% if growth rates differ by >10% between at least 2 feasible carbon sources AND major secretion fluxes differ qualitatively across sources; 67% if growth rate differences are reported without secretion-profile comparison; 33% if differences are noted qualitatively without quantification; 0% otherwise.",
+          "weight": 9,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b06-result-h3",
+          "requirements": "Identifies genes with large growth-fraction changes across carbon sources and explains pathway context for top hits. Score 100% if ≥3 genes with condition-dependent essentiality changes (essential under one carbon source but not another) are identified with pathway context; 67% if 2 genes are identified; 33% if 1 gene is identified with pathway context; 0% otherwise.",
+          "weight": 12,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b06-result-figure",
+          "requirements": "Produces labelled bar plots and/or heatmaps for growth, secretion, and condition-dependent essentiality.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b06-result-writeup",
+          "requirements": "The README or results writeup discusses each hypothesis outcome, names supported and unsupported carbon sources, identifies condition-dependent essential genes, and gives a one-paragraph mechanistic interpretation linking carbon-source specific metabolism to the observed vulnerability changes.",
+          "weight": 6.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b06-repro",
+      "requirements": "Carbon-source definitions, gene set, thresholds, solver, and model are documented.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b06-repro-model",
+          "requirements": "The loaded E. coli GSMM is either persisted (models/<model_id>.json) or pinned by BIGG model ID and source URL in the writeup; a downstream user can locate the exact model object and reproduce each carbon-source medium setup.",
+          "weight": 5.0,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        },
+        {
+          "id": "b06-repro-runcard",
+          "requirements": "Saves carbon exchange IDs, uptake bounds, oxygen setting, gene list, and essentiality threshold.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        },
+        {
+          "id": "b06-repro-version",
+          "requirements": "Records COBRApy/solver versions and rerun consistency for glucose and at least one non-glucose source.",
+          "weight": 5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    }
+  ],
+  "task_category": null,
+  "finegrained_task_category": null
+}

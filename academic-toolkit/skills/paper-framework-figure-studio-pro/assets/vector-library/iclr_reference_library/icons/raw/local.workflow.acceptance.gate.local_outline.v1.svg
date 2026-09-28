@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" id="acceptance_gate" viewBox="0 0 96 96" role="img">
+<title>Acceptance gate</title>
+<g id="acceptance_gate_svg_root"><polygon id="acceptance_gate_diamond" fill="#FBFDFF" stroke="#2563D8" stroke-width="3" stroke-linejoin="round" points="48,9 84,48 48,87 12,48"/><path id="acceptance_gate_check" fill="none" stroke="#2563D8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" d="M34 49 L44 60 L64 37"/></g>
+</svg>

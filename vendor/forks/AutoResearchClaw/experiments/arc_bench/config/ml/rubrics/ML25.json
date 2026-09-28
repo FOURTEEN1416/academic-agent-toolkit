@@ -1,0 +1,125 @@
+{
+    "id": "ml25-root",
+    "requirements": "A credible CPU-scale study of reservoir computing (echo-state network), a matched-parameter MLP, and a Gaussian Process on Lorenz-63 short-horizon forecasting: Lorenz-63 is integrated, the three model families are implemented, multiple training-set sizes are swept, valid-prediction-time is reported, and results address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Reasonable substitutes (e.g., alternative chaotic system, library-based ESN when clearly documented, Matern-kernel GP) that test the same scientific question should be credited. A GP running out of memory at large N is a valid reported outcome.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml25-code",
+            "requirements": "The three model families and the dynamical system are implemented.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml25-code-lorenz",
+                    "requirements": "The submission integrates the Lorenz-63 system with classical parameters at a small time step using scipy.integrate or a hand-rolled Runge-Kutta integrator, and uses separate train/test trajectories.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml25-code-esn",
+                    "requirements": "An echo-state network is implemented with a sparse random reservoir scaled to a target spectral radius below ~1.1, driven by the input sequence with a leak-rate update and a linear readout fit by ridge regression. A from-scratch implementation is preferred; a clearly documented library-based ESN that exposes the same mechanics is acceptable.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml25-code-mlp",
+                    "requirements": "An MLP is implemented that reads a fixed window of past states and predicts the next state, with its total parameter count reported and roughly matched to the ESN readout parameter count.",
+                    "weight": 4.1667,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml25-code-gp",
+                    "requirements": "A Gaussian Process regressor with an RBF or Matern kernel is fit on the same windowed input, with marginal-likelihood hyperparameter optimisation enabled.",
+                    "weight": 4.1667,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml25-exec",
+            "requirements": "Execution produces per-method, per-N quantitative results.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml25-exec-sweep",
+                    "requirements": "The experiment sweeps multiple training-set sizes for each of the three methods and reports numeric results per cell.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml25-exec-vpt",
+                    "requirements": "A valid-prediction-time (VPT) metric is computed per method per N \u2014 the first step at which the normalised prediction error exceeds a threshold \u2014 averaged over multiple independent initial conditions or seeds.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml25-exec-rmse",
+                    "requirements": "A one-step-ahead RMSE (or equivalent pointwise error) is computed per method per N on the test trajectory and reported in the metrics file.",
+                    "weight": 5.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml25-results",
+            "requirements": "The writeup addresses H1/H2/H3 directionally and contextualises numeric findings.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml25-result-h1",
+                    "requirements": "The submission reports VPT for the ESN vs MLP at small training sizes and conveys whether the ESN meaningfully outperforms the MLP in the small-N regime \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml25-result-h2",
+                    "requirements": "The submission compares ESN and GP VPT at both small-N and larger-N and conveys whether the GP is competitive at small N and falls behind (or becomes infeasible) at large N (H2). Reporting a GP memory/time failure at large N is a valid outcome.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml25-result-h3",
+                    "requirements": "The submission examines whether one-step RMSE ranking tracks VPT ranking across method-N cells and conveys whether at least one rank inversion is observed (H3).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml25-result-writeup",
+                    "requirements": "The README or writeup describes the Lorenz-63 setup, the three methods, the N-sweep, the VPT and RMSE numbers, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations (single dynamical system, no Lyapunov-time normalisation, GP memory cliff). No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

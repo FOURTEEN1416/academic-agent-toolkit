@@ -1,0 +1,1324 @@
+{
+  "version": "wave37-38-v2",
+  "schema_version": 2,
+  "updated": "2026-03-17",
+  "catalog_purpose": "Preserve Deep Discovery capability-hit compatibility while upgrading the catalog into a governed capability ledger for productized capabilities, discovery corpora, and eval corpora without creating a second runtime surface.",
+  "metadata_hardening": {
+    "mode": "expanded",
+    "policy": "config/skill-metadata-policy.json",
+    "gate": "scripts/verify/skill-metadata-gate.ps1",
+    "enforced_scopes": [
+      "capability_catalog.skills",
+      "capability_catalog.advice_overlays",
+      "local_skill_index_v2.skills",
+      "local_skill_index_v2.diagnostics",
+      "skill_alias_map.alias_targets",
+      "local_vco_roles.template_7"
+    ]
+  },
+  "governance": {
+    "catalog_kind": "governed_capability_ledger",
+    "compatibility_contract": {
+      "consumer": "scripts/router/modules/21-capability-interview.ps1",
+      "required_legacy_fields": [
+        "id",
+        "display_name",
+        "task_allow",
+        "keywords",
+        "skills"
+      ],
+      "preserve_flat_fields": true,
+      "routing_assignment_owner": "generated/skills-index.json"
+    },
+    "material_layer_boundary": {
+      "discovery_eval_mode": "material_only",
+      "runtime_surface_for_material_layer": "none",
+      "explanation": "Discovery/eval corpus entries can inform interview questions, evidence gathering, and pilot scenarios, but they must not become a second orchestrator, second team execution owner, or second runtime surface."
+    },
+    "forbidden_outcomes": [
+      "second_runtime_surface",
+      "second_orchestrator",
+      "second_team_execution_owner",
+      "raw_curated_list_runtime_ingestion",
+      "capability_catalog_replacing_local_skill_index"
+    ]
+  },
+  "corpus_sources": [
+    {
+      "id": "native",
+      "category": "canonical_runtime_capability",
+      "catalog_kind": "productized_capability",
+      "retained_value": [
+        "VCO-native capability slices already mapped to existing packs and skills"
+      ],
+      "canonical_use": "Runtime-adjacent capability recommendation inside the existing VCO governance plane.",
+      "boundary": "Can support runtime recommendations, but does not replace pack, template, or protocol ownership.",
+      "evidence_artifacts": [
+        "references/capability-catalog.md"
+      ]
+    },
+    {
+      "id": "awesome-vibe-coding",
+      "category": "workflow_discovery",
+      "catalog_kind": "discovery_corpus",
+      "retained_value": [
+        "workflow heuristics",
+        "community phrasing",
+        "vibe-style anti-patterns"
+      ],
+      "canonical_use": "Discovery corpus for workflow terminology and anti-pattern evidence.",
+      "boundary": "Material layer only; must not become a new vibe runtime or prompt execution surface.",
+      "evidence_artifacts": [
+        "docs/governance/discovery-eval-corpus-governance.md",
+        "docs/external-tooling/upstream-eval-pilot-scenarios.md"
+      ],
+      "observed_head_sha": "a6171375cca88783eeaa8e2057c0eae9e54aef04",
+      "reviewed_at": "2026-03-17",
+      "decision_class": "admit",
+      "admission_scope": "workflow-discovery-refresh-only",
+      "packet_memo": "docs/external-tooling/discovery-methodology-upstream-delta-2026-03-17.md",
+      "next_action": "Refresh workflow phrasing and anti-pattern evidence only; do not introduce a new vibe runtime entry."
+    },
+    {
+      "id": "awesome-ai-tools",
+      "category": "tool_landscape_discovery",
+      "catalog_kind": "discovery_corpus",
+      "retained_value": [
+        "tool watchlist",
+        "vendor landscape",
+        "capability gap hints"
+      ],
+      "canonical_use": "Discovery corpus for capability watchlists and future registry curation.",
+      "boundary": "Material layer only; must not become a second tool registry runtime or tool runner.",
+      "evidence_artifacts": [
+        "docs/governance/discovery-eval-corpus-governance.md",
+        "docs/external-tooling/upstream-eval-pilot-scenarios.md"
+      ],
+      "observed_head_sha": "9d8b9d49fa26114fcc635a80ac1db1e950d3542a",
+      "reviewed_at": "2026-03-17",
+      "decision_class": "metadata-only",
+      "admission_scope": "watchlist-and-gap-evidence-only",
+      "packet_memo": "docs/external-tooling/discovery-methodology-upstream-delta-2026-03-17.md",
+      "next_action": "Use as capability watchlist evidence only; do not convert it into a second tool registry surface."
+    },
+    {
+      "id": "vibe-coding-cn",
+      "category": "localization_discovery",
+      "catalog_kind": "discovery_corpus",
+      "retained_value": [
+        "Chinese terminology alignment",
+        "localized task phrasing",
+        "CN evaluation prompts"
+      ],
+      "canonical_use": "Discovery corpus for Chinese-language discovery and terminology normalization.",
+      "boundary": "Material layer only; must not become an independent CN router or separate orchestration track.",
+      "evidence_artifacts": [
+        "docs/governance/discovery-eval-corpus-governance.md",
+        "docs/external-tooling/upstream-eval-pilot-scenarios.md"
+      ],
+      "observed_head_sha": "d1466fc77e770ae127afb53dce18146857147ed4",
+      "reviewed_at": "2026-03-17",
+      "decision_class": "admit",
+      "admission_scope": "localization-and-multilingual-eval-refresh-only",
+      "packet_memo": "docs/external-tooling/discovery-methodology-upstream-delta-2026-03-17.md",
+      "next_action": "Refresh localized phrasing and multilingual eval prompts only; do not open an independent CN router lane."
+    },
+    {
+      "id": "awesome-ai-agents-e2b",
+      "category": "sandbox_eval_patterns",
+      "catalog_kind": "eval_corpus",
+      "retained_value": [
+        "sandbox execution evaluation patterns",
+        "remote environment examples",
+        "E2B benchmark prompts"
+      ],
+      "canonical_use": "Eval corpus for sandbox/remote-execution pilot scenarios and governance evidence.",
+      "boundary": "Material layer only; must not become a new sandbox execution owner or runtime surface.",
+      "evidence_artifacts": [
+        "docs/governance/discovery-eval-corpus-governance.md",
+        "docs/external-tooling/upstream-eval-pilot-scenarios.md"
+      ],
+      "observed_head_sha": "6af02e9230dae8a155fe6e49526dd309c04120b7",
+      "reviewed_at": "2026-03-17",
+      "decision_class": "metadata-only",
+      "admission_scope": "sandbox-eval-reference-only",
+      "packet_memo": "docs/external-tooling/discovery-methodology-upstream-delta-2026-03-17.md",
+      "next_action": "Keep as sandbox/eval reference corpus only until a fresher governed sandbox challenger exists."
+    }
+  ],
+  "default_interview_questions": [
+    {
+      "id": "deliverable_shape",
+      "prompt": "What final deliverable shape do you want for this task (script, report, document, page, or runnable workflow)?",
+      "rationale": "Lock the target artifact before capability expansion."
+    },
+    {
+      "id": "scope_surface",
+      "prompt": "What is the exact scope for this task: which repo, directory, file, or data source does it live in? If you already know the target path, list it directly.",
+      "rationale": "Anchor the request to the exact repo, path, or data surface."
+    },
+    {
+      "id": "available_context",
+      "prompt": "What inputs or context do you already have available (existing code, samples, errors, screenshots, APIs, data, or reference links)?",
+      "rationale": "Collect the existing materials needed to avoid fragmented follow-up questions."
+    },
+    {
+      "id": "hard_constraints",
+      "prompt": "What hard constraints or off-limits areas apply to this task (time, performance, compatibility, permissions, budget, untouched areas, or forbidden methods)?",
+      "rationale": "Expose delivery constraints before execution planning."
+    },
+    {
+      "id": "execution_posture",
+      "prompt": "What do you want me to do first in this run: clarify and propose a plan, or start implementation/execution directly?",
+      "rationale": "Separate clarification-first from execution-first intent."
+    },
+    {
+      "id": "acceptance_and_verification",
+      "prompt": "What result counts as done for you? Please give the acceptance criteria, key outputs, and how you want me to verify them.",
+      "rationale": "Define done-state and verification up front."
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "brainstorm_planning",
+      "display_name": "需求澄清与方案规划",
+      "summary": "Covers requirement clarification, option framing, and plan synthesis for VCO-native planning flows.",
+      "catalog_kind": "productized_capability",
+      "task_allow": [
+        "planning",
+        "research",
+        "review"
+      ],
+      "keywords": [
+        "brainstorm",
+        "clarify",
+        "plan",
+        "proposal",
+        "scope",
+        "需求",
+        "澄清",
+        "规划",
+        "方案",
+        "范围"
+      ],
+      "skills": [
+        "vibe"
+      ],
+      "problem_domains": [
+        "requirement discovery",
+        "execution planning",
+        "scope shaping"
+      ],
+      "inputs": [
+        "ambiguous task briefs",
+        "goal statements",
+        "planning requests"
+      ],
+      "outputs": [
+        "plan drafts",
+        "clarifying questions",
+        "execution outlines"
+      ],
+      "applicable_planes": [
+        "capability",
+        "governance"
+      ],
+      "upstream_sources": [
+        "native"
+      ],
+      "dedup_with": [
+        "architecture_design"
+      ],
+      "retirement_conditions": [
+        "Retire when planning-related keywords and outputs are fully subsumed by another canonical capability without losing Deep Discovery recall.",
+        "Retire when VCO planning owner changes and an equivalent governed slice is introduced."
+      ],
+      "materialization": {
+        "mode": "vibe_stage_method",
+        "canonical_owner": "protocols/think.md",
+        "runtime_surface": "vibe.deep_interview.xl_plan",
+        "promotion_stage": "absorbed"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-deep-discovery-gate.ps1",
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-pack-routing-smoke.ps1"
+      ],
+      "evidence_artifacts": [
+        "references/capability-catalog.md",
+        "outputs/governance/capability-catalog-gate.json"
+      ]
+    },
+    {
+      "id": "implementation_execution",
+      "display_name": "工程实现与落地执行",
+      "summary": "Captures coding, TDD, and delivery-oriented execution for canonical implementation flows.",
+      "catalog_kind": "productized_capability",
+      "task_allow": [
+        "coding",
+        "debug",
+        "planning"
+      ],
+      "keywords": [
+        "implement",
+        "build",
+        "execute",
+        "refactor",
+        "fix",
+        "实现",
+        "开发",
+        "落地",
+        "重构",
+        "修复"
+      ],
+      "skills": [
+        "tdd-guide",
+        "systematic-debugging"
+      ],
+      "problem_domains": [
+        "feature delivery",
+        "bug fixing",
+        "implementation execution"
+      ],
+      "inputs": [
+        "feature requests",
+        "bug reports",
+        "task breakdowns"
+      ],
+      "outputs": [
+        "code changes",
+        "tests",
+        "implementation notes"
+      ],
+      "applicable_planes": [
+        "capability"
+      ],
+      "upstream_sources": [
+        "native"
+      ],
+      "dedup_with": [
+        "devops_delivery",
+        "quality_security"
+      ],
+      "retirement_conditions": [
+        "Retire when implementation execution is governed by a replacement slice with equivalent coding and debugging recall.",
+        "Retire when execution semantics move out of Deep Discovery and into a new governed contract."
+      ],
+      "materialization": {
+        "mode": "runtime_recommendation",
+        "canonical_owner": "generated/skills-index.json",
+        "runtime_surface": "vco-native",
+        "promotion_stage": "soft"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-pack-routing-smoke.ps1"
+      ],
+      "evidence_artifacts": [
+        "references/capability-catalog.md",
+        "outputs/governance/capability-catalog-gate.json"
+      ]
+    },
+    {
+      "id": "bio_data_acquisition",
+      "display_name": "生物数据库抓取与注释",
+      "summary": "Represents canonical bioinformatics data acquisition and annotation workflows using existing VCO skills.",
+      "catalog_kind": "productized_capability",
+      "task_allow": [
+        "research",
+        "coding",
+        "planning"
+      ],
+      "keywords": [
+        "uniprot",
+        "gene",
+        "protein",
+        "sequence",
+        "annotation",
+        "基因",
+        "蛋白",
+        "序列",
+        "注释",
+        "数据库"
+      ],
+      "skills": [
+        "biopython",
+        "bio-database-evidence",
+        "uniprot-database"
+      ],
+      "problem_domains": [
+        "bio data retrieval",
+        "sequence annotation",
+        "bioinformatics lookup"
+      ],
+      "inputs": [
+        "gene or protein identifiers",
+        "database lookup tasks",
+        "annotation requests"
+      ],
+      "outputs": [
+        "retrieved records",
+        "annotated entities",
+        "lookup scripts"
+      ],
+      "applicable_planes": [
+        "capability",
+        "research"
+      ],
+      "upstream_sources": [
+        "native"
+      ],
+      "dedup_with": [
+        "deep_web_research",
+        "data_processing_analysis"
+      ],
+      "retirement_conditions": [
+        "Retire when bio-data retrieval is folded into a broader canonical scientific-data slice with equivalent evidence hooks.",
+        "Retire when the supporting skills are removed from the canonical skill lock."
+      ],
+      "materialization": {
+        "mode": "runtime_recommendation",
+        "canonical_owner": "generated/skills-index.json",
+        "runtime_surface": "vco-native",
+        "promotion_stage": "soft"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-keyword-precision-audit.ps1"
+      ],
+      "evidence_artifacts": [
+        "references/capability-catalog.md",
+        "outputs/governance/capability-catalog-gate.json"
+      ]
+    },
+    {
+      "id": "ml_modeling_pipeline",
+      "display_name": "机器学习建模与评估",
+      "summary": "Covers canonical model training, pipeline assembly, and evaluation guidance for ML tasks.",
+      "catalog_kind": "productized_capability",
+      "task_allow": [
+        "research",
+        "coding",
+        "planning"
+      ],
+      "keywords": [
+        "model",
+        "train",
+        "pipeline",
+        "evaluation",
+        "feature engineering",
+        "建模",
+        "训练",
+        "评估",
+        "特征工程",
+        "机器学习"
+      ],
+      "skills": [
+        "scikit-learn",
+        "ml-pipeline-workflow",
+        "preprocessing-data-with-automated-pipelines",
+        "evaluating-machine-learning-models",
+        "shap"
+      ],
+      "problem_domains": [
+        "machine learning",
+        "model evaluation",
+        "pipeline design"
+      ],
+      "inputs": [
+        "datasets",
+        "modeling requests",
+        "evaluation criteria"
+      ],
+      "outputs": [
+        "trained models",
+        "metrics",
+        "evaluation reports"
+      ],
+      "applicable_planes": [
+        "capability",
+        "research"
+      ],
+      "upstream_sources": [
+        "native"
+      ],
+      "dedup_with": [
+        "data_processing_analysis",
+        "architecture_design"
+      ],
+      "retirement_conditions": [
+        "Retire when ML modeling is re-owned by a broader governed ML capability set with equivalent routing precision.",
+        "Retire when supporting evaluation hooks are replaced by newer governed audits."
+      ],
+      "materialization": {
+        "mode": "runtime_recommendation",
+        "canonical_owner": "generated/skills-index.json",
+        "runtime_surface": "vco-native",
+        "promotion_stage": "soft"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-keyword-precision-audit.ps1"
+      ],
+      "evidence_artifacts": [
+        "references/capability-catalog.md",
+        "outputs/governance/capability-catalog-gate.json"
+      ]
+    },
+    {
+      "id": "data_processing_analysis",
+      "display_name": "数据处理与分析可视化",
+      "summary": "Represents canonical spreadsheet, CSV, and exploratory-analysis workflows already owned by VCO-native skills.",
+      "catalog_kind": "productized_capability",
+      "task_allow": [
+        "coding",
+        "research",
+        "planning"
+      ],
+      "keywords": [
+        "csv",
+        "xlsx",
+        "analysis",
+        "visualization",
+        "table",
+        "数据处理",
+        "表格",
+        "分析",
+        "可视化",
+        "图表"
+      ],
+      "skills": [
+        "spreadsheet",
+        "xlsx",
+        "xan",
+        "exploratory-data-analysis",
+        "plotly",
+        "matplotlib"
+      ],
+      "problem_domains": [
+        "tabular data processing",
+        "exploratory analysis",
+        "visual reporting"
+      ],
+      "inputs": [
+        "csv/xlsx files",
+        "tabular datasets",
+        "analysis requests"
+      ],
+      "outputs": [
+        "cleaned tables",
+        "charts",
+        "analysis summaries"
+      ],
+      "applicable_planes": [
+        "capability",
+        "discovery"
+      ],
+      "upstream_sources": [
+        "native"
+      ],
+      "dedup_with": [
+        "ml_modeling_pipeline",
+        "ai_tool_landscape_corpus"
+      ],
+      "retirement_conditions": [
+        "Retire when tabular analysis is merged into a new governed data-scale slice with equivalent keyword coverage.",
+        "Retire when canonical spreadsheet/data-analysis ownership changes."
+      ],
+      "materialization": {
+        "mode": "runtime_recommendation",
+        "canonical_owner": "generated/skills-index.json",
+        "runtime_surface": "vco-native",
+        "promotion_stage": "soft"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-keyword-precision-audit.ps1"
+      ],
+      "evidence_artifacts": [
+        "references/capability-catalog.md",
+        "outputs/governance/capability-catalog-gate.json"
+      ]
+    },
+    {
+      "id": "architecture_design",
+      "display_name": "系统架构与技术选型",
+      "summary": "Captures architecture framing, trade-off analysis, and technical planning without introducing a separate design runtime.",
+      "catalog_kind": "productized_capability",
+      "task_allow": [
+        "planning",
+        "research",
+        "review"
+      ],
+      "keywords": [
+        "architecture",
+        "scalable",
+        "distributed",
+        "trade-off",
+        "设计",
+        "架构",
+        "可扩展",
+        "分布式",
+        "技术选型"
+      ],
+      "skills": [
+        "architecture-patterns",
+        "vibe"
+      ],
+      "problem_domains": [
+        "system design",
+        "technical selection",
+        "architecture review"
+      ],
+      "inputs": [
+        "architecture prompts",
+        "trade-off questions",
+        "system requirements"
+      ],
+      "outputs": [
+        "design options",
+        "architecture notes",
+        "decision criteria"
+      ],
+      "applicable_planes": [
+        "control",
+        "capability"
+      ],
+      "upstream_sources": [
+        "native"
+      ],
+      "dedup_with": [
+        "brainstorm_planning",
+        "multi_agent_orchestration"
+      ],
+      "retirement_conditions": [
+        "Retire when architecture and technical-selection responsibilities are moved to another governed capability slice with preserved compatibility fields.",
+        "Retire when the canonical architecture owner is redefined outside this catalog."
+      ],
+      "materialization": {
+        "mode": "runtime_recommendation",
+        "canonical_owner": "generated/skills-index.json",
+        "runtime_surface": "vco-native",
+        "promotion_stage": "soft"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-pack-routing-smoke.ps1"
+      ],
+      "evidence_artifacts": [
+        "references/capability-catalog.md",
+        "outputs/governance/capability-catalog-gate.json"
+      ]
+    },
+    {
+      "id": "devops_delivery",
+      "display_name": "CI/CD 与交付自动化",
+      "summary": "Represents canonical delivery automation, CI troubleshooting, and deployment integration capability slices.",
+      "catalog_kind": "productized_capability",
+      "task_allow": [
+        "coding",
+        "debug",
+        "planning",
+        "review"
+      ],
+      "keywords": [
+        "github actions",
+        "ci",
+        "cd",
+        "deploy",
+        "pipeline",
+        "发布",
+        "部署",
+        "流水线",
+        "自动化"
+      ],
+      "skills": [
+        "gh-fix-ci",
+        "netlify-deploy",
+        "vercel-deploy",
+        "mcp-integration"
+      ],
+      "problem_domains": [
+        "CI/CD",
+        "deployment automation",
+        "delivery debugging"
+      ],
+      "inputs": [
+        "pipeline failures",
+        "deployment tasks",
+        "delivery automation requests"
+      ],
+      "outputs": [
+        "delivery plans",
+        "CI fixes",
+        "deployment commands"
+      ],
+      "applicable_planes": [
+        "capability",
+        "governance"
+      ],
+      "upstream_sources": [
+        "native"
+      ],
+      "dedup_with": [
+        "implementation_execution",
+        "ai_tool_landscape_corpus"
+      ],
+      "retirement_conditions": [
+        "Retire when delivery automation is split into a more precise governed capability set without losing compatibility.",
+        "Retire when the delivery owner moves to another canonical contract."
+      ],
+      "materialization": {
+        "mode": "runtime_recommendation",
+        "canonical_owner": "generated/skills-index.json",
+        "runtime_surface": "vco-native",
+        "promotion_stage": "soft"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-pack-routing-smoke.ps1"
+      ],
+      "evidence_artifacts": [
+        "references/capability-catalog.md",
+        "outputs/governance/capability-catalog-gate.json"
+      ]
+    },
+    {
+      "id": "quality_security",
+      "display_name": "质量与安全审查",
+      "summary": "Collects canonical review, security, and verification flows for quality-gated execution.",
+      "catalog_kind": "productized_capability",
+      "task_allow": [
+        "review",
+        "debug",
+        "coding"
+      ],
+      "keywords": [
+        "review",
+        "quality",
+        "security",
+        "risk",
+        "code smell",
+        "评审",
+        "质量",
+        "安全",
+        "风险"
+      ],
+      "skills": [
+        "code-reviewer",
+        "security-reviewer",
+        "verification-before-completion"
+      ],
+      "problem_domains": [
+        "code review",
+        "security review",
+        "verification gating"
+      ],
+      "inputs": [
+        "diffs",
+        "review requests",
+        "quality concerns"
+      ],
+      "outputs": [
+        "review findings",
+        "risk summaries",
+        "verification decisions"
+      ],
+      "applicable_planes": [
+        "governance",
+        "capability"
+      ],
+      "upstream_sources": [
+        "native"
+      ],
+      "dedup_with": [
+        "review_board",
+        "local_evidence_retrieval"
+      ],
+      "retirement_conditions": [
+        "Retire when quality/security review is governed elsewhere with equivalent recommendation coverage.",
+        "Retire when verification ownership leaves the capability catalog plane."
+      ],
+      "materialization": {
+        "mode": "runtime_recommendation",
+        "canonical_owner": "generated/skills-index.json",
+        "runtime_surface": "vco-native",
+        "promotion_stage": "soft"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-keyword-precision-audit.ps1"
+      ],
+      "evidence_artifacts": [
+        "references/capability-catalog.md",
+        "outputs/governance/capability-catalog-gate.json"
+      ]
+    },
+    {
+      "id": "prompt_docs",
+      "display_name": "提示词与文档能力",
+      "summary": "Represents prompt retrieval, docs lookup, and documentation writing inside the canonical VCO surface.",
+      "catalog_kind": "productized_capability",
+      "task_allow": [
+        "planning",
+        "research",
+        "review"
+      ],
+      "keywords": [
+        "prompt",
+        "prompts.chat",
+        "docs",
+        "api reference",
+        "提示词",
+        "文档",
+        "官方文档",
+        "接口说明"
+      ],
+      "skills": [
+        "prompt-lookup",
+        "openai-docs",
+        "docs-write"
+      ],
+      "problem_domains": [
+        "prompt discovery",
+        "documentation lookup",
+        "docs authoring"
+      ],
+      "inputs": [
+        "prompt requests",
+        "documentation questions",
+        "API reference tasks"
+      ],
+      "outputs": [
+        "prompt candidates",
+        "doc summaries",
+        "documentation drafts"
+      ],
+      "applicable_planes": [
+        "capability",
+        "discovery"
+      ],
+      "upstream_sources": [
+        "native"
+      ],
+      "dedup_with": [
+        "vibe_workflow_discovery_corpus",
+        "vibe_cn_localization_corpus"
+      ],
+      "retirement_conditions": [
+        "Retire when prompt/doc lookup is re-owned by another governed slice with preserved compatibility fields.",
+        "Retire when documentation retrieval no longer depends on this catalog."
+      ],
+      "materialization": {
+        "mode": "runtime_recommendation",
+        "canonical_owner": "generated/skills-index.json",
+        "runtime_surface": "vco-native",
+        "promotion_stage": "soft"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-keyword-precision-audit.ps1"
+      ],
+      "evidence_artifacts": [
+        "references/capability-catalog.md",
+        "outputs/governance/capability-catalog-gate.json"
+      ]
+    },
+    {
+      "id": "multi_agent_orchestration",
+      "display_name": "多智能体编排",
+      "summary": "Captures VCO-native multi-agent orchestration and team-template usage without introducing a second orchestrator.",
+      "catalog_kind": "productized_capability",
+      "task_allow": [
+        "planning",
+        "coding",
+        "research",
+        "review"
+      ],
+      "keywords": [
+        "multi-agent",
+        "orchestration",
+        "parallel",
+        "team template",
+        "多智能体",
+        "编排",
+        "并行",
+        "团队模板"
+      ],
+      "skills": [
+        "vibe"
+      ],
+      "problem_domains": [
+        "team orchestration",
+        "parallel execution",
+        "role coordination"
+      ],
+      "inputs": [
+        "multi-step tasks",
+        "parallelizable workstreams",
+        "team coordination requests"
+      ],
+      "outputs": [
+        "team routing decisions",
+        "subtask splits",
+        "coordination plans"
+      ],
+      "applicable_planes": [
+        "control",
+        "capability"
+      ],
+      "upstream_sources": [
+        "native"
+      ],
+      "dedup_with": [
+        "vibe_workflow_discovery_corpus"
+      ],
+      "retirement_conditions": [
+        "Retire when multi-agent orchestration is fully governed by another canonical team contract with matching compatibility fields.",
+        "Retire when VCO stops consuming capability hits for orchestration suggestions."
+      ],
+      "materialization": {
+        "mode": "vibe_stage_method",
+        "canonical_owner": "protocols/team.md",
+        "runtime_surface": "vibe.plan_execute",
+        "promotion_stage": "absorbed"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-pack-routing-smoke.ps1"
+      ],
+      "evidence_artifacts": [
+        "references/team-templates.md",
+        "outputs/governance/capability-catalog-gate.json"
+      ]
+    },
+    {
+      "id": "local_evidence_retrieval",
+      "display_name": "本地证据检索（FlashRAG-style）",
+      "summary": "Represents local evidence retrieval and grounded verification against repository-local sources.",
+      "catalog_kind": "productized_capability",
+      "task_allow": [
+        "research",
+        "review",
+        "debug"
+      ],
+      "keywords": [
+        "evidence",
+        "flashrag",
+        "local retrieval",
+        "repo grounding",
+        "证据",
+        "检索",
+        "本地检索",
+        "仓库依据"
+      ],
+      "skills": [
+        "flashrag-evidence",
+        "context-hunter"
+      ],
+      "problem_domains": [
+        "grounded evidence retrieval",
+        "repo-local verification",
+        "context inspection"
+      ],
+      "inputs": [
+        "repository questions",
+        "citation requests",
+        "verification tasks"
+      ],
+      "outputs": [
+        "grounded snippets",
+        "evidence summaries",
+        "verification traces"
+      ],
+      "applicable_planes": [
+        "capability",
+        "governance"
+      ],
+      "upstream_sources": [
+        "native"
+      ],
+      "dedup_with": [
+        "deep_web_research",
+        "quality_security"
+      ],
+      "retirement_conditions": [
+        "Retire when local evidence retrieval is re-owned by another canonical grounded-retrieval contract.",
+        "Retire when verification workflows stop consuming this slice."
+      ],
+      "materialization": {
+        "mode": "runtime_recommendation",
+        "canonical_owner": "generated/skills-index.json",
+        "runtime_surface": "vco-native",
+        "promotion_stage": "soft"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-keyword-precision-audit.ps1"
+      ],
+      "evidence_artifacts": [
+        "references/capability-catalog.md",
+        "outputs/governance/capability-catalog-gate.json"
+      ]
+    },
+    {
+      "id": "deep_web_research",
+      "display_name": "深度网页调研（WebThinker-style）",
+      "summary": "Captures multi-hop web research and browsing support as a canonical research capability slice.",
+      "catalog_kind": "productized_capability",
+      "task_allow": [
+        "research",
+        "planning",
+        "review"
+      ],
+      "keywords": [
+        "web research",
+        "browse",
+        "multi-hop",
+        "current info",
+        "网页调研",
+        "联网搜索",
+        "多跳",
+        "最新信息"
+      ],
+      "skills": [
+        "webthinker-deep-research",
+        "research-lookup",
+        "playwright"
+      ],
+      "problem_domains": [
+        "web research",
+        "browsing",
+        "current-information retrieval"
+      ],
+      "inputs": [
+        "research questions",
+        "live web topics",
+        "multi-source evidence requests"
+      ],
+      "outputs": [
+        "research traces",
+        "source-backed summaries",
+        "browsing evidence"
+      ],
+      "applicable_planes": [
+        "capability",
+        "discovery"
+      ],
+      "upstream_sources": [
+        "native"
+      ],
+      "dedup_with": [
+        "local_evidence_retrieval",
+        "ai_tool_landscape_corpus",
+        "sandbox_agent_eval_corpus"
+      ],
+      "retirement_conditions": [
+        "Retire when deep web research is re-owned by another governed retrieval stack with preserved compatibility fields.",
+        "Retire when the current browsing skills leave the canonical skill lock."
+      ],
+      "materialization": {
+        "mode": "runtime_recommendation",
+        "canonical_owner": "generated/skills-index.json",
+        "runtime_surface": "vco-native",
+        "promotion_stage": "soft"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-keyword-precision-audit.ps1"
+      ],
+      "evidence_artifacts": [
+        "references/capability-catalog.md",
+        "outputs/governance/capability-catalog-gate.json"
+      ]
+    },
+    {
+      "id": "vibe_workflow_discovery_corpus",
+      "display_name": "Vibe workflow discovery corpus",
+      "summary": "Stores workflow heuristics and anti-pattern terminology distilled from awesome-vibe-coding as governed material only.",
+      "catalog_kind": "discovery_corpus",
+      "task_allow": [
+        "planning",
+        "research",
+        "review"
+      ],
+      "keywords": [
+        "vibe workflow",
+        "workflow heuristic",
+        "workflow anti-pattern",
+        "awesome-vibe-coding",
+        "vibe 工作流",
+        "工作流启发",
+        "反模式"
+      ],
+      "skills": [
+        "research-lookup",
+        "prompt-lookup",
+        "skill-lookup",
+        "vibe"
+      ],
+      "problem_domains": [
+        "workflow discovery",
+        "anti-pattern mining",
+        "community terminology"
+      ],
+      "inputs": [
+        "curated workflow lists",
+        "community examples",
+        "workflow terminology questions"
+      ],
+      "outputs": [
+        "discovery notes",
+        "terminology mappings",
+        "material-layer evidence"
+      ],
+      "applicable_planes": [
+        "discovery",
+        "governance"
+      ],
+      "upstream_sources": [
+        "awesome-vibe-coding"
+      ],
+      "dedup_with": [
+        "brainstorm_planning",
+        "multi_agent_orchestration"
+      ],
+      "retirement_conditions": [
+        "Retire when workflow heuristics are either productized into existing canonical capabilities or demoted to reference-only evidence.",
+        "Retire when awesome-vibe-coding no longer contributes non-duplicative retained value."
+      ],
+      "materialization": {
+        "mode": "material_only",
+        "canonical_owner": "config/capability-catalog.json",
+        "runtime_surface": "none",
+        "promotion_stage": "n/a"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-keyword-precision-audit.ps1"
+      ],
+      "evidence_artifacts": [
+        "docs/governance/discovery-eval-corpus-governance.md",
+        "docs/external-tooling/discovery-methodology-upstream-delta-2026-03-17.md",
+        "docs/external-tooling/upstream-eval-pilot-scenarios.md",
+        "outputs/governance/capability-catalog-gate.json",
+        "references/capability-catalog.md"
+      ]
+    },
+    {
+      "id": "ai_tool_landscape_corpus",
+      "display_name": "AI tool landscape corpus",
+      "summary": "Tracks tool-landscape watchlists and capability gaps distilled from awesome-ai-tools as governed discovery material.",
+      "catalog_kind": "discovery_corpus",
+      "task_allow": [
+        "planning",
+        "research",
+        "review"
+      ],
+      "keywords": [
+        "tool landscape",
+        "vendor watchlist",
+        "awesome-ai-tools",
+        "tool survey",
+        "工具生态",
+        "工具图谱",
+        "供应商"
+      ],
+      "skills": [
+        "research-lookup",
+        "skill-lookup",
+        "mcp-integration"
+      ],
+      "problem_domains": [
+        "tool discovery",
+        "vendor comparison",
+        "capability gap scanning"
+      ],
+      "inputs": [
+        "curated tool lists",
+        "tool comparison prompts",
+        "ecosystem scan requests"
+      ],
+      "outputs": [
+        "watchlists",
+        "gap notes",
+        "material-layer evidence"
+      ],
+      "applicable_planes": [
+        "discovery",
+        "governance"
+      ],
+      "upstream_sources": [
+        "awesome-ai-tools"
+      ],
+      "dedup_with": [
+        "devops_delivery",
+        "prompt_docs"
+      ],
+      "retirement_conditions": [
+        "Retire when tool-watch retained value is integrated into a canonical registry or demoted to reference-only evidence.",
+        "Retire when awesome-ai-tools no longer adds non-duplicative coverage."
+      ],
+      "materialization": {
+        "mode": "material_only",
+        "canonical_owner": "config/capability-catalog.json",
+        "runtime_surface": "none",
+        "promotion_stage": "n/a"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1"
+      ],
+      "evidence_artifacts": [
+        "docs/governance/discovery-eval-corpus-governance.md",
+        "docs/external-tooling/discovery-methodology-upstream-delta-2026-03-17.md",
+        "docs/external-tooling/upstream-eval-pilot-scenarios.md",
+        "outputs/governance/capability-catalog-gate.json",
+        "references/capability-catalog.md"
+      ]
+    },
+    {
+      "id": "vibe_cn_localization_corpus",
+      "display_name": "Vibe 中文语料 discovery corpus",
+      "summary": "Keeps Chinese terminology alignment and localized task phrasing from vibe-coding-cn in the governed material layer.",
+      "catalog_kind": "discovery_corpus",
+      "task_allow": [
+        "planning",
+        "research",
+        "review"
+      ],
+      "keywords": [
+        "vibe 中文",
+        "中文 prompt",
+        "localized vibe",
+        "vibe-coding-cn",
+        "中文术语",
+        "本地化"
+      ],
+      "skills": [
+        "research-lookup",
+        "prompt-lookup",
+        "docs-write",
+        "vibe"
+      ],
+      "problem_domains": [
+        "CN localization",
+        "terminology normalization",
+        "localized discovery"
+      ],
+      "inputs": [
+        "Chinese prompts",
+        "localized task corpora",
+        "terminology questions"
+      ],
+      "outputs": [
+        "localized mappings",
+        "CN prompt evidence",
+        "material-layer notes"
+      ],
+      "applicable_planes": [
+        "discovery",
+        "governance"
+      ],
+      "upstream_sources": [
+        "vibe-coding-cn"
+      ],
+      "dedup_with": [
+        "brainstorm_planning",
+        "prompt_docs"
+      ],
+      "retirement_conditions": [
+        "Retire when Chinese terminology retained value is fully productized into canonical prompts/docs assets or reduced to reference-only status.",
+        "Retire when vibe-coding-cn no longer provides distinct localization coverage."
+      ],
+      "materialization": {
+        "mode": "material_only",
+        "canonical_owner": "config/capability-catalog.json",
+        "runtime_surface": "none",
+        "promotion_stage": "n/a"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1"
+      ],
+      "evidence_artifacts": [
+        "docs/governance/discovery-eval-corpus-governance.md",
+        "docs/external-tooling/discovery-methodology-upstream-delta-2026-03-17.md",
+        "docs/external-tooling/upstream-eval-pilot-scenarios.md",
+        "outputs/governance/capability-catalog-gate.json",
+        "references/capability-catalog.md"
+      ]
+    },
+    {
+      "id": "sandbox_agent_eval_corpus",
+      "display_name": "Sandbox / remote execution eval corpus",
+      "summary": "Stores sandbox and remote-execution evaluation patterns from awesome-ai-agents-e2b as eval-only material.",
+      "catalog_kind": "eval_corpus",
+      "task_allow": [
+        "research",
+        "planning",
+        "review"
+      ],
+      "keywords": [
+        "e2b",
+        "sandbox eval",
+        "remote execution",
+        "awesome-ai-agents-e2b",
+        "沙箱评测",
+        "远程执行",
+        "环境隔离"
+      ],
+      "skills": [
+        "research-lookup",
+        "playwright",
+        "vibe"
+      ],
+      "problem_domains": [
+        "sandbox evaluation",
+        "remote execution pilots",
+        "benchmark scenario design"
+      ],
+      "inputs": [
+        "sandbox benchmark ideas",
+        "remote execution examples",
+        "evaluation pilot requests"
+      ],
+      "outputs": [
+        "pilot scenarios",
+        "eval notes",
+        "material-layer evidence"
+      ],
+      "applicable_planes": [
+        "eval",
+        "governance"
+      ],
+      "upstream_sources": [
+        "awesome-ai-agents-e2b"
+      ],
+      "dedup_with": [
+        "deep_web_research",
+        "multi_agent_orchestration",
+        "quality_security"
+      ],
+      "retirement_conditions": [
+        "Retire when sandbox-eval retained value is either productized into a governed benchmark surface or reduced to reference-only evidence.",
+        "Retire when awesome-ai-agents-e2b no longer provides distinct eval patterns."
+      ],
+      "materialization": {
+        "mode": "material_only",
+        "canonical_owner": "config/capability-catalog.json",
+        "runtime_surface": "none",
+        "promotion_stage": "n/a"
+      },
+      "evaluation_hooks": [
+        "scripts/verify/vibe-capability-catalog-gate.ps1",
+        "scripts/verify/vibe-keyword-precision-audit.ps1"
+      ],
+      "evidence_artifacts": [
+        "docs/governance/discovery-eval-corpus-governance.md",
+        "docs/external-tooling/discovery-methodology-upstream-delta-2026-03-17.md",
+        "docs/external-tooling/upstream-eval-pilot-scenarios.md",
+        "outputs/governance/capability-catalog-gate.json",
+        "references/capability-catalog.md"
+      ]
+    }
+  ]
+}

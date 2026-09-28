@@ -1,0 +1,18 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="-1 -1 26 26"
+  fill="none"
+  stroke="#111827"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+ 
+ data-icon-id="inference.beam.tabler_outline.v1" data-source="@tabler/icons">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M21 17h-8l-3.5 -5h-6.5" />
+  <path d="M21 7h-8l-3.495 5" />
+  <path d="M18 10l3 -3l-3 -3" />
+  <path d="M18 20l3 -3l-3 -3" />
+</svg>

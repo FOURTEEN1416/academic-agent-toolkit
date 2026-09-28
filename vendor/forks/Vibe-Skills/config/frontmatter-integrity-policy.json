@@ -1,0 +1,51 @@
+{
+    "version":  1,
+    "updated_at":  "2026-03-07",
+    "detection":  {
+                      "frontmatter_opening":  "---",
+                      "require_frontmatter_at_byte0":  true,
+                      "forbid_utf8_bom":  true
+                  },
+    "scopes":  [
+                   {
+                       "id":  "canonical",
+                       "root":  "canonical",
+                       "requires_target_root":  false,
+                       "relpaths":  [
+                                        "SKILL.md"
+                                    ]
+                   },
+                   {
+                       "id":  "bundled",
+                       "root":  "bundled",
+                       "requires_target_root":  false,
+                       "relpaths":  [
+                                        "SKILL.md"
+                                    ]
+                   },
+                   {
+                       "id":  "nested_bundled",
+                       "root":  "nested_bundled",
+                       "requires_target_root":  false,
+                       "relpaths":  [
+                                        "SKILL.md"
+                                    ]
+                   },
+                   {
+                       "id":  "installed",
+                       "root":  "installed",
+                       "requires_target_root":  true,
+                       "relpaths":  [
+                                        "SKILL.md"
+                                    ]
+                   }
+               ],
+    "write_policy":  {
+                         "required_no_bom_writers":  [
+                                                         "Write-VgoUtf8NoBomText",
+                                                         "Append-VgoUtf8NoBomText",
+                                                         "[System.Text.UTF8Encoding]::new($false)"
+                                                     ],
+                         "stop_ship_on_bom":  true
+                     }
+}

@@ -1,0 +1,149 @@
+{
+  "id": "s03-root",
+  "requirements": "A credible controlled simulation study evaluating whether LLM-assisted or LLM-like statistical model selection chooses appropriate procedures under assumption violations. The submission should generate statistical-analysis tasks with known reference decisions, compare text-only and diagnostics-augmented recommenders against an oracle or rule-based selector, evaluate downstream inference validity, and connect the numeric findings to the three hypotheses.",
+  "judging_note": "Score on statistical validity, reproducible task generation, appropriate reference decisions, and honest discussion of downstream inference. Do not require access to an external LLM API; a templated, heuristic, local, or stored-output recommender can receive full credit if it supports the benchmark question. Penalize generic recommendation text that is not tied to diagnostics or data-generating conditions.",
+  "weight": 1,
+  "sub_tasks": [
+    {
+      "id": "s03-code",
+      "requirements": "The code implements a controlled benchmark for statistical procedure selection under several data-generating conditions and selector designs.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "s03-code-task-generator",
+          "requirements": "The submission generates multiple statistical-analysis tasks, including two-sample mean comparison, correlation analysis, and linear effect estimation, with known null or alternative settings and fixed random seeds.",
+          "weight": 10.0,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Dataset and Model Acquisition"
+        },
+        {
+          "id": "s03-code-assumption-conditions",
+          "requirements": "The generated tasks cover meaningful assumption regimes, including approximately normal equal-variance data and at least three violation regimes such as heteroskedasticity, skewness, outliers, nonlinear monotone relationships, or dependence.",
+          "weight": 10.0,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Experimental Setup"
+        },
+        {
+          "id": "s03-code-selectors",
+          "requirements": "The submission implements or simulates the required selectors: a text-only recommender, a diagnostics-augmented recommender, an oracle or rule-based reference selector, and a simple parametric baseline.",
+          "weight": 12.5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "s03-code-diagnostics",
+          "requirements": "The diagnostics-augmented condition computes relevant diagnostic information, such as skewness, variance ratio, normality checks, outlier indicators, sample size, monotonicity, or heteroskedasticity evidence, and makes those diagnostics available to the selector.",
+          "weight": 7.5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "s03-code-downstream-inference",
+          "requirements": "The code runs the selected statistical procedures or models and records downstream quantities such as p-values, confidence intervals, Type I error, coverage, or effect estimates where applicable.",
+          "weight": 10.0,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "s03-exec",
+      "requirements": "Execution produces machine-readable selector and inference metrics adequate to evaluate statistical reliability.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "s03-exec-metrics",
+          "requirements": "Execution produces a machine-readable metrics artifact, such as results/metrics.json, containing selection accuracy, false positive rate or Type I error, confidence interval coverage where applicable, assumption-violation detection rate, and explanation grounding by selector and data condition.",
+          "weight": 17.5,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "s03-exec-repetitions",
+          "requirements": "Reported metrics are aggregated over multiple simulation repetitions, seeds, task instances, or sample sizes, with enough repetition to make selector differences meaningful.",
+          "weight": 10.0,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "s03-exec-task-coverage",
+          "requirements": "The executed benchmark includes more than one task type and more than one assumption-violation condition, rather than evaluating a single isolated example.",
+          "weight": 7.5,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "s03-exec-artifacts",
+          "requirements": "Execution artifacts include selector decisions, oracle-acceptable method labels, diagnostic summaries, and at least one plot or table comparing selectors across assumption regimes.",
+          "weight": 7.5,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "s03-paper",
+      "requirements": "The final paper or report addresses the three model-selection reliability hypotheses with quantitative evidence and a clear statistical narrative.",
+      "weight": 3,
+      "sub_tasks": [
+        {
+          "id": "s03-paper-h1",
+          "requirements": "The report evaluates whether the text-only recommender over-selects standard parametric procedures under assumption violations and supports the conclusion with selector-decision metrics.",
+          "weight": 12.5,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s03-paper-h2",
+          "requirements": "The report compares diagnostics-augmented and text-only selection and states whether computed diagnostics improve procedure selection accuracy or assumption-violation detection.",
+          "weight": 15.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s03-paper-h3",
+          "requirements": "The report analyzes whether incorrect procedure selection leads to invalid inference, such as inflated false positive rates, poor coverage, or misleading effect estimates under specific violations.",
+          "weight": 15.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s03-paper-method-validity",
+          "requirements": "The writeup clearly distinguishes the analysis goal, data-generating condition, oracle-acceptable method set, selected method, diagnostic evidence, and downstream inference metric.",
+          "weight": 7.5,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s03-paper-writeup",
+          "requirements": "The README or paper describes task generation, selector designs, diagnostic features, oracle rules, key numeric results, limitations, and per-hypothesis outcomes with appropriate caveats on simulation scope and any use or non-use of external LLM APIs.",
+          "weight": 10.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    }
+  ],
+  "task_category": null,
+  "finegrained_task_category": null
+}

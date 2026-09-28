@@ -1,0 +1,182 @@
+domain_id: biology_metabolic
+display_name: "Constraint-Based Metabolic Modelling"
+parent_domain: biology_metabolic
+
+# Tip: to plug in extra stage-level guidance (e.g. a COBRApy / BIGG note for
+# code_generation, or a Nature-Methods-style outline rule for paper_outline),
+# use the top-level `prompts.extra_prompts` block in config.yaml. Run
+# `researchclaw info` to list the active stage names plus configured extras.
+
+# --- Deployment defaults ---------------------------------------------------
+# Consumed by researchclaw.domains.deploy when this profile is selected via
+# --profile biology_metabolic or project.profile: biology_metabolic. Every
+# key here only applies if the user's config.yaml leaves the matching slot
+# blank.
+preferred_experiment_mode: biology_agent       # maps to experiment.mode
+preferred_project_mode: full-auto              # maps to project.mode
+preferred_target_conference: nature_methods    # maps to export.target_conference
+default_time_budget_sec: 3600                  # 1 hour per FBA / scan run
+default_max_iterations: 5
+default_metric_key: biomass_growth_rate
+default_metric_direction: maximize
+
+biology_agent:
+  timeout_sec: 3600
+  max_turns: 100
+  install_skills: true
+  extra_args:
+    - "--dangerously-skip-permissions"
+
+experiment_paradigm: simulation
+
+condition_terminology:
+  baseline: wild-type strain (unperturbed reference flux distribution)
+  proposed: engineered strain (knock-out / over-expression / medium swap)
+  variant: knockout or perturbation variant (single / double gene deletion)
+  input: substrate / medium composition (carbon source, oxygen uptake bound)
+  metric: growth rate (h^-1) / product yield (mmol/gDW/h) / flux
+
+typical_file_structure:
+  model.json: "COBRApy model serialised from BIGG (or custom GEM) with reactions, metabolites, gene-protein-reaction rules"
+  simulations/fba_fluxes.csv: "Per-reaction flux distribution from FBA / pFBA"
+  simulations/gene_essentiality.csv: "Single-gene knockout growth rates"
+  analysis/phase_plane.png: "Phenotypic phase plane (substrate uptake vs growth)"
+  analysis/essentiality_heatmap.png: "Gene essentiality across conditions"
+  main.py: "Entry point: load model -> set medium -> FBA -> pFBA -> FVA -> knockout screen -> figures"
+
+entry_point: main.py
+
+core_libraries:
+  - cobra
+  - pandas
+  - numpy
+  - matplotlib
+  - escher
+
+docker_image: researchclaw/sandbox-biology:latest
+gpu_required: false
+
+pip_packages:
+  - cobra
+  - pandas
+  - numpy
+  - matplotlib
+  - escher
+
+metric_types:
+  - scalar
+  - structured
+
+standard_baselines:
+  - BIGG-published wild-type growth rate for the chosen GEM (e.g. iAF1260, iJO1366, iMM904, Recon3D)
+  - Keio collection / OGEE database gene-essentiality calls (E. coli K-12)
+  - Experimentally measured product yields (Burgard et al., OptKnock literature)
+  - pFBA reference flux distribution (parsimonious enzyme usage)
+  - Random-knockout null distribution (sample N random KOs as a control)
+
+evaluation_protocol: >
+  Compare in-silico predictions against published experimental references.
+  Report (i) wild-type growth-rate prediction error vs measured doubling time,
+  (ii) gene-essentiality recall / precision vs Keio / OGEE calls, (iii) flux
+  distribution agreement with 13C-MFA when available, (iv) phenotypic phase
+  planes versus published Edwards-Palsson plots. All numerical fluxes must
+  be reported with explicit units (mmol/gDW/h) and at least one dimensionless
+  ratio (e.g. growth-rate ratio KO/WT) for cross-strain comparison.
+
+statistical_tests:
+  - flux_variability_analysis
+  - monte_carlo_flux_sampling
+  - bootstrap_growth_rate_ci
+  - hypergeometric_essential_gene_enrichment
+
+output_formats:
+  - latex_table
+  - flux_distribution_csv
+  - escher_metabolic_map
+  - phase_plane_plot
+
+figure_types:
+  - phenotypic_phase_plane
+  - essentiality_heatmap
+  - flux_variability_envelope
+  - escher_pathway_map
+  - knockout_growth_scatter
+
+github_search_terms:
+  - cobrapy flux balance analysis
+  - bigg model genome-scale metabolic
+  - constraint-based modelling python
+  - gene essentiality knockout screen
+  - phenotypic phase plane fba
+  - escher metabolic map
+  - parsimonious enzyme usage pfba
+
+paper_keywords:
+  - flux balance analysis
+  - genome-scale metabolic model
+  - constraint-based modelling
+  - metabolic engineering
+  - gene essentiality
+  - phenotypic phase plane
+  - in-silico knockout
+  - BIGG database
+  - COBRApy
+
+# NOTE: Narrative stage prompts are carried by researchclaw.prompts.biology
+# (which inherits from researchclaw.prompts.ml and overrides 5 stages).
+# Only the blueprint-level code_generation_hints is retained here because
+# it feeds PromptAdapter.get_blueprint_context() which wraps the
+# code_agent / CodeGen blueprint prompt.
+code_generation_hints: |
+  Constraint-based metabolic modelling code requirements:
+
+  1. **Model loading.** Use COBRApy. Prefer BIGG models (`cobra.io.load_model("iJO1366")`)
+     or `cobra.io.read_sbml_model(path)` for custom GEMs. NEVER hand-roll a
+     stoichiometric matrix when a published GEM exists for the organism.
+  2. **Medium / boundary conditions.** Set exchange reaction bounds
+     EXPLICITLY before optimisation:
+
+         model.medium = {"EX_glc__D_e": 10.0, "EX_o2_e": 18.5, "EX_nh4_e": 1000.0, ...}
+
+     Print the medium so a reviewer can reproduce it. Do NOT rely on the
+     default BIGG medium silently.
+  3. **Objective function.** The biomass reaction (e.g. "BIOMASS_Ec_iJO1366_core_53p95M")
+     is the canonical objective. State it explicitly:
+         model.objective = "BIOMASS_Ec_iJO1366_core_53p95M"
+     For product-yield questions, switch the objective to the demand reaction
+     (e.g. "EX_succ_e") and report yield = flux_product / flux_substrate.
+  4. **Solve order.** FBA first (fastest sanity check), then pFBA
+     (`cobra.flux_analysis.pfba(model)`) for parsimonious flux, then FVA
+     (`cobra.flux_analysis.flux_variability_analysis(model, fraction_of_optimum=0.95)`).
+     Report the growth rate from each — they MUST agree at the optimum.
+  5. **Knockouts.** Use `model.genes.<gene_id>.knock_out()` inside a
+     `with model:` context so the change is reverted automatically. For
+     screens, iterate over `model.genes` (or a curated list) and record
+     growth_rate_KO / growth_rate_WT. Flag genes with ratio < 0.01 as
+     essential.
+  6. **Reproducibility.** Set the solver tolerance explicitly
+     (`model.tolerance = 1e-7`) and pin the solver
+     (`model.solver = "glpk"` or `"gurobi"`). Print COBRApy version.
+  7. **Output.** Write `results.json` with keys: `wild_type_growth_rate`
+     (units: 1/h), `medium` (dict), `essential_genes` (list), `knockout_growth_table`
+     (list of {gene, growth_rate, ratio}), `pfba_flux_sum` (1/h-equivalent),
+     `objective_reaction`, `model_id`, `cobra_version`. Include UNITS in
+     every numeric field name or as a sibling `_units` key.
+  8. **Figures.** At minimum a phenotypic phase plane (matplotlib) and an
+     essentiality heatmap. Use `escher.Builder` for pathway maps when the
+     analysis highlights a specific subsystem.
+
+  ANTI-PATTERNS (do NOT do these):
+  - Do NOT train neural networks, run sklearn, or use gradient descent to
+    "predict" fluxes. FBA is a linear program — solve it.
+  - Do NOT fabricate growth rates with `random.uniform()`. The whole point
+    is the deterministic LP solution.
+  - Do NOT skip the medium definition and rely on BIGG defaults — this
+    silently changes the answer across BIGG releases.
+  - Do NOT call a method "Bayesian Optimization" / "PPO" / etc. — this is
+    metabolic modelling, not RL. Use the standard FBA / pFBA / FVA / MOMA /
+    ROOM nomenclature.
+  - Do NOT report dimensionless growth rates without flagging the missing
+    units. Every flux MUST carry its unit (mmol/gDW/h or 1/h).
+  - Do NOT iterate over the entire genome for double-knockout screens
+    without an upper bound — cap at 100 conditions per run.

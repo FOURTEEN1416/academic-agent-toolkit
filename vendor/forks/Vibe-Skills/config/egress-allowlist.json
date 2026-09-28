@@ -1,0 +1,29 @@
+﻿{
+  "schema_version": 1,
+  "updated": "2026-03-06",
+  "deny_unknown_domains": true,
+  "require_explicit_profile": true,
+  "profiles": [
+    {
+      "id": "none",
+      "domains": [],
+      "notes": "No outbound network access required or allowed."
+    },
+    {
+      "id": "activepieces-project",
+      "domains": [
+        "<activepieces-host>"
+      ],
+      "notes": "Project-scoped Activepieces MCP endpoint. Replace placeholder host before live enablement."
+    },
+    {
+      "id": "composio-session",
+      "domains": [
+        "*.composio.dev",
+        "*.composio.run",
+        "*.composio.com"
+      ],
+      "notes": "Session-scoped Composio MCP endpoints. Narrow to tenant-specific domains when known."
+    }
+  ]
+}

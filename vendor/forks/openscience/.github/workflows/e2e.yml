@@ -1,0 +1,85 @@
+name: E2E
+
+on:
+  workflow_dispatch:
+  # Nightly rather than per-PR: the suite is long and browser-heavy. Promote
+  # to a PR trigger once it has a green track record.
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.settings.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - name: linux
+            host: ubuntu-latest
+            playwright: bunx playwright install --with-deps
+            workdir: frontend/workspace
+            # Use the same hermetic runner developers use locally. It owns a
+            # disposable data root, fake model, backend, Vite server, ports,
+            # and teardown. Prestarting any of those here creates two distinct
+            # test systems and makes failures depend on which one the browser
+            # reaches.
+            command: bun run test:e2e
+          # Windows e2e:local skipped — chronically failing since
+          # 2026-04-28 across all PRs from all authors. Root cause is
+          # the in-process Playwright/bun/Vite spawn chain not
+          # propagating Basic-Auth credentials reliably on
+          # windows-latest. Re-enable in a dedicated workflow-repair
+          # PR with full audit context (see commits b47b779/d7ad855/
+          # 21aae5d/6a9dcd0/0f1d7c1 for the diagnosis chain).
+    runs-on: ${{ matrix.settings.host }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Install and verify Linux sandbox
+        if: matrix.settings.name == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          # Ubuntu 24.04's host-wide AppArmor policy blocks unprivileged user
+          # namespaces on the hosted runner before bubblewrap can apply our
+          # stricter per-process profile. This runner is disposable; enable
+          # user namespaces for the job, then prove the sandbox can start.
+          if [[ -e /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]]; then
+            echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+          fi
+          bwrap --ro-bind / / --dev /dev --proc /proc --unshare-pid --die-with-parent -- true
+
+      - name: Install Playwright browsers
+        working-directory: frontend/workspace
+        run: ${{ matrix.settings.playwright }}
+
+      - name: run
+        working-directory: ${{ matrix.settings.workdir }}
+        run: ${{ matrix.settings.command }}
+        env:
+          CI: true
+        timeout-minutes: 30
+
+      - name: Upload Playwright artifacts
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-${{ matrix.settings.name }}-${{ github.run_attempt }}
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            frontend/workspace/e2e/test-results
+            frontend/workspace/e2e/playwright-report

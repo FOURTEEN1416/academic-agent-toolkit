@@ -1,0 +1,157 @@
+{
+  "id": "s02-root",
+  "requirements": "A credible semiparametric simulation study evaluating how double machine learning / orthogonalized AIPW estimates a finite-dimensional average treatment effect while using flexible estimators for infinite-dimensional nuisance functions under nonlinear confounding. The submission should implement multiple estimators, simulate observational data with known true ATE, evaluate bias, RMSE, confidence interval behavior, and sensitivity to nuisance estimation quality, and tie the numeric findings to the hypotheses.",
+  "judging_note": "Score on causal and semiparametric substance rather than exact package choices. A correct hand-written AIPW / DML implementation should receive full credit even if it does not use a specialized causal inference library. Partial credit should reward clear separation of the finite-dimensional estimand from infinite-dimensional nuisance functions, correct use of orthogonal scores, nuisance estimation, cross-fitting, and honest uncertainty reporting.",
+  "weight": 1,
+  "sub_tasks": [
+    {
+      "id": "s02-code",
+      "requirements": "The code implements a meaningful comparison of ATE estimators under simulated confounding with known ground truth.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "s02-code-dgp",
+          "requirements": "The submission implements a simulated observational data-generating process with covariates, confounded treatment assignment, outcome generation, known true average treatment effect, and explicit true or approximate nuisance functions such as propensity scores and outcome regressions.",
+          "weight": 10.0,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Dataset and Model Acquisition"
+        },
+        {
+          "id": "s02-code-baselines",
+          "requirements": "The submission implements simple baseline estimators such as difference-in-means, regression adjustment, and/or inverse propensity weighting so that DML is compared against meaningful alternatives.",
+          "weight": 7.5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "s02-code-aipw",
+          "requirements": "The submission implements a doubly robust or Neyman-orthogonal AIPW-style estimator using estimated propensity and outcome nuisance functions, and explains why the score targets the finite-dimensional ATE while treating those nuisances as flexible or infinite-dimensional.",
+          "weight": 12.5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "s02-code-crossfit",
+          "requirements": "The DML condition uses sample splitting or K-fold cross-fitting so nuisance models are trained out-of-fold relative to the observations used in the orthogonal score.",
+          "weight": 12.5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "s02-code-nuisance-models",
+          "requirements": "The nuisance functions are estimated with reasonable models for the simulated setting, such as logistic regression, random forests, gradient boosting, or other justified supervised learning methods, with at least one comparison that changes nuisance-model flexibility or quality.",
+          "weight": 7.5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Experimental Setup"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "s02-exec",
+      "requirements": "Execution produces ATE estimation metrics adequate to evaluate bias, precision, and interval behavior.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "s02-exec-metrics",
+          "requirements": "Execution produces a machine-readable metrics artifact, such as results/metrics.json, containing numeric ATE estimates, bias or absolute bias, RMSE, and preferably confidence interval coverage or interval width by estimator and sample size.",
+          "weight": 17.5,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "s02-exec-repetitions",
+          "requirements": "Reported metrics are aggregated over multiple simulation repetitions or random seeds, with some dispersion reporting such as standard deviation, standard error, confidence interval, or quantiles.",
+          "weight": 10.0,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "s02-exec-sample-sizes",
+          "requirements": "The experiment evaluates at least one nontrivial sample size and receives more credit for multiple sample sizes showing finite-sample behavior.",
+          "weight": 5.0,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "s02-exec-uncertainty",
+          "requirements": "The submission computes uncertainty estimates, such as influence-function standard errors, bootstrap standard errors, or Monte Carlo confidence intervals, sufficient to discuss coverage or reliability.",
+          "weight": 7.5,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "s02-paper",
+      "requirements": "The final paper or report addresses the semiparametric hypotheses with quantitative evidence and a clear causal-inference narrative about finite-dimensional targets and infinite-dimensional nuisance functions.",
+      "weight": 3,
+      "sub_tasks": [
+        {
+          "id": "s02-result-h1",
+          "requirements": "The submission evaluates whether the naive difference-in-means estimator is biased under confounded treatment assignment and supports the conclusion using the known true ATE.",
+          "weight": 12.5,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s02-result-h2",
+          "requirements": "The submission compares the doubly robust / orthogonalized estimator against simpler plug-in regression or IPW estimators and states whether DML reduces absolute bias or RMSE under nonlinear nuisance functions.",
+          "weight": 17.5,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s02-result-h3",
+          "requirements": "The submission compares cross-fitted and non-cross-fitted versions of the doubly robust estimator, or otherwise clearly analyzes the contribution of cross-fitting to bias, RMSE, or stability.",
+          "weight": 15.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s02-result-h4",
+          "requirements": "The submission evaluates whether Neyman-orthogonal scores make the ATE estimate less sensitive to nuisance-function estimation error than non-orthogonal plug-in estimators, using weaker versus stronger nuisance learners or another explicit nuisance-quality diagnostic.",
+          "weight": 12.5,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s02-result-estimand",
+          "requirements": "The writeup clearly distinguishes the finite-dimensional causal estimand, infinite-dimensional nuisance functions, orthogonal score or estimator, and evaluation metrics, avoiding confusion between prediction performance and ATE estimation quality.",
+          "weight": 7.5,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "s02-result-writeup",
+          "requirements": "The README or writeup describes the data-generating process, estimators, nuisance models, cross-fitting procedure, semiparametric target-vs-nuisance relationship, key numeric results, and per-hypothesis outcomes with appropriate caveats on sample size, simulation repetitions, and model misspecification.",
+          "weight": 10.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    }
+  ],
+  "task_category": null,
+  "finegrained_task_category": null
+}

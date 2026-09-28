@@ -1,0 +1,92 @@
+id: B07
+title: "Reproducible FBA protocol benchmark: FBA vs pFBA vs loopless/FVA on E. coli"
+arxiv_id: null
+venue: "ARC-Bench Biology 2026"
+paper_asset: null
+
+synthesis: |
+  A method benchmark is well matched to mfa-agent because it tests robust use of
+  COBRApy APIs rather than biological novelty alone. A credible study loads a
+  validated E. coli GSMM, runs standard FBA, pFBA, loopless FBA when available,
+  and FVA at a fixed fraction of optimum, then compares growth, flux sparsity,
+  runtime, and reaction-level variability.
+
+hypotheses:
+  - id: H1
+    statement: "FBA, pFBA, and loopless FBA preserve the same biomass optimum within solver tolerance under the same medium."
+    measurable: true
+  - id: H2
+    statement: "pFBA produces a lower total absolute flux norm and/or fewer active reactions than unconstrained FBA."
+    measurable: true
+  - id: H3
+    statement: "FVA reveals that only a subset of central-carbon reactions are tightly constrained near optimum while others remain variable."
+    measurable: true
+
+experiment_design:
+  research_question: "How do standard FBA, pFBA, loopless FBA, and FVA differ in flux parsimony and variability while preserving E. coli growth predictions?"
+  conditions:
+    - name: "standard_fba"
+      description: "Maximize biomass on aerobic glucose-minimal medium."
+    - name: "pfba"
+      description: "Maximize biomass then minimize total absolute flux."
+    - name: "loopless_fba"
+      description: "Run loopless solution when available and compare objective/fluxes."
+    - name: "fva_95_percent_growth"
+      description: "Run FVA at 95% of optimum and classify rigid vs flexible reactions."
+  baselines:
+    - "Standard FBA biomass optimum."
+    - "COBRApy solver status and runtime."
+  metrics:
+    - name: "growth_rate_1_per_h"
+      direction: "match"
+      description: "Biomass flux for each method."
+    - name: "total_abs_flux"
+      direction: "minimize"
+      description: "Sum of absolute reaction fluxes."
+    - name: "active_reaction_count"
+      direction: "minimize"
+      description: "Number of reactions with absolute flux above tolerance."
+    - name: "fva_width"
+      direction: "characterize"
+      description: "Maximum minus minimum FVA interval per reaction."
+  datasets:
+    - name: "E. coli GSMM"
+      source: "BIGG iJO1366 or iAF1260 via cobra.io.load_model"
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1800
+
+rubric_path: "experiments/arc_bench/config/biology/rubrics/B07.json"
+
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: "results.json contains method-level metrics, hypotheses, summary, and solver/version metadata."
+    must_pass: true
+  - id: req_method_table
+    type: artifact
+    description: "A method-comparison table exists with method, status, growth, total_abs_flux, active_reactions, and runtime."
+    must_pass: true
+  - id: req_fva_table
+    type: artifact
+    description: "An FVA table exists with reaction ID, minimum, maximum, width, and rigid/flexible classification."
+    must_pass: true
+  - id: req_figures
+    type: artifact
+    description: "At least one labelled figure compares methods or FVA variability."
+    must_pass: true
+  - id: req_h1_h2_h3_supported_flags
+    type: discussion
+    description: >
+      Each of hypotheses.h1, hypotheses.h2, hypotheses.h3 in results.json MUST
+      have an explicit `supported` boolean and a `details` string of at least
+      40 characters describing the evidence used to reach that verdict.
+    must_pass: true
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: "The protocol comparison is summarised with a method recommendation — which method is most reproducible and why, referencing flux-norm and FVA evidence. Acceptable inside summary, method_comparison, or a separate writeup field."
+    must_pass: false  # Optional: nice-to-have, not blocking
+  - id: req_seed_documented
+    type: discussion
+    description: "The solver backend (cobra optlang interface name + version) and COBRApy version are reported in results.json. Required for reproducibility but not for scientific correctness."
+    must_pass: false  # Optional

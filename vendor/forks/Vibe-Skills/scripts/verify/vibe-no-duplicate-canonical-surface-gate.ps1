@@ -1,0 +1,243 @@
+param(
+    [switch]$WriteArtifacts,
+    [string]$OutputDirectory = ''
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+. (Join-Path $PSScriptRoot '..\common\vibe-governance-helpers.ps1')
+. (Join-Path $PSScriptRoot '..\runtime\VibeRuntime.Common.ps1')
+
+function Add-Assertion {
+    param(
+        [ref]$Results,
+        [bool]$Condition,
+        [string]$Message,
+        [string]$Details = ''
+    )
+
+    $record = [pscustomobject]@{
+        passed = [bool]$Condition
+        message = $Message
+        details = $Details
+    }
+    $Results.Value += $record
+
+    if ($Condition) {
+        Write-Host "[PASS] $Message"
+    } else {
+        Write-Host "[FAIL] $Message" -ForegroundColor Red
+        if ($Details) {
+            Write-Host "       $Details" -ForegroundColor DarkRed
+        }
+    }
+}
+
+function Test-PathUnderDirectory {
+    param(
+        [Parameter(Mandatory)] [string]$CandidatePath,
+        [Parameter(Mandatory)] [string]$RootPath
+    )
+
+    $candidate = [System.IO.Path]::GetFullPath($CandidatePath)
+    $root = [System.IO.Path]::GetFullPath($RootPath)
+    if (-not $root.EndsWith([System.IO.Path]::DirectorySeparatorChar)) {
+        $root += [System.IO.Path]::DirectorySeparatorChar
+    }
+    return $candidate.StartsWith($root, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Convert-ToNormalizedPathToken {
+    param(
+        [Parameter(Mandatory)] [string]$PathValue
+    )
+
+    return ([System.IO.Path]::GetFullPath($PathValue)).Replace('\', '/')
+}
+
+function New-ChildDelegationEnvelopeForGate {
+    param(
+        [Parameter(Mandatory)] [object]$RootSummary,
+        [Parameter(Mandatory)] [string]$ChildRunId
+    )
+
+    $sessionRoot = [string]$RootSummary.summary.session_root
+    $childSessionRoot = Join-Path ([System.IO.Path]::GetDirectoryName($sessionRoot)) $ChildRunId
+    New-Item -ItemType Directory -Path $childSessionRoot -Force | Out-Null
+    $envelopePath = Get-VibeGovernanceArtifactPath -SessionRoot $childSessionRoot -ArtifactName 'delegation_envelope'
+    Write-VibeDelegationEnvelope `
+        -Path $envelopePath `
+        -RootRunId ([string]$RootSummary.summary.run_id) `
+        -ParentRunId ([string]$RootSummary.summary.run_id) `
+        -ParentUnitId 'canonical-surface-child-unit' `
+        -ChildRunId $ChildRunId `
+        -RequirementDocPath ([string]$RootSummary.summary.artifacts.requirement_doc) `
+        -ExecutionPlanPath ([string]$RootSummary.summary.artifacts.execution_plan) `
+        -WriteScope 'gate:canonical-surface' `
+        -ApprovedSpecialists @() `
+        -ReviewMode 'module_acceptance' | Out-Null
+    return $envelopePath
+}
+
+$context = Get-VgoGovernanceContext -ScriptPath $PSCommandPath -EnforceExecutionContext
+$repoRoot = $context.repoRoot
+$runtimeEntryPath = Get-VgoRuntimeEntrypointPath -RepoRoot $repoRoot -RuntimeConfig $context.runtimeConfig
+$results = @()
+
+$runId = "canonical-surface-" + [System.Guid]::NewGuid().ToString('N').Substring(0, 8)
+$artifactRoot = Join-Path $repoRoot (".tmp\canonical-surface-{0}" -f $runId)
+$task = "Canonical surface uniqueness probe $runId"
+$hostDecisionJson = @{
+    agent_skill_organization = [ordered]@{
+        schema_version = 'agent_skill_organization_v1'
+        derived_by = 'agent'
+        workflow_level = 'L'
+        modules = @(
+            [ordered]@{
+                module_id = 'canonical_surface_probe'
+                goal = 'Verify that the governed runtime has one canonical artifact surface.'
+                candidate_skill_ids = @()
+                execution_mode = 'blocked_gap'
+                acceptance_criteria = @(
+                    [ordered]@{
+                        criterion_id = 'canonical-surface-result'
+                        description = 'The canonical artifact surface is verified.'
+                        verification_mode = 'automated'
+                    }
+                )
+            }
+        )
+        selected_skills = @()
+        uncovered_modules = @(
+            [ordered]@{
+                module_id = 'canonical_surface_probe'
+                reason = 'This structural gate does not need a task Skill.'
+            }
+        )
+        workflow_level_contract = [ordered]@{
+            L = 'Use one serial governed lane.'
+            XL = 'Use bounded waves for dependency-ready, non-conflicting work.'
+        }
+    }
+} | ConvertTo-Json -Depth 20 -Compress
+$summary = & $runtimeEntryPath -Task $task -Mode interactive_governed -GovernanceScope root -RunId $runId -ArtifactRoot $artifactRoot -HostDecisionJson $hostDecisionJson
+
+Add-Assertion -Results ([ref]$results) -Condition ($null -ne $summary) -Message 'canonical surface probe returned summary payload'
+$hasSummary = ($null -ne $summary) -and ($summary.PSObject.Properties.Name -contains 'summary')
+Add-Assertion -Results ([ref]$results) -Condition $hasSummary -Message 'canonical surface probe has summary object'
+
+if ($hasSummary) {
+    $requirementDocPath = [string]$summary.summary.artifacts.requirement_doc
+    $executionPlanPath = [string]$summary.summary.artifacts.execution_plan
+    $runtimeInputPacketPath = [string]$summary.summary.artifacts.runtime_input_packet
+    $executionManifestPath = [string]$summary.summary.artifacts.execution_manifest
+
+    Add-Assertion -Results ([ref]$results) -Condition (Test-Path -LiteralPath $requirementDocPath) -Message 'canonical requirement artifact exists' -Details $requirementDocPath
+    Add-Assertion -Results ([ref]$results) -Condition (Test-Path -LiteralPath $executionPlanPath) -Message 'canonical execution plan artifact exists' -Details $executionPlanPath
+    $requirementPathToken = Convert-ToNormalizedPathToken -PathValue $requirementDocPath
+    $executionPlanPathToken = Convert-ToNormalizedPathToken -PathValue $executionPlanPath
+    $canonicalPaths = Get-VibeRunArtifactPaths `
+        -RepoRoot $repoRoot `
+        -RunId ([string]$summary.summary.run_id) `
+        -ArtifactRoot $artifactRoot
+    Add-Assertion -Results ([ref]$results) -Condition (
+        [System.IO.Path]::GetFullPath($requirementDocPath).Equals(
+            [System.IO.Path]::GetFullPath([string]$canonicalPaths.primary_requirement),
+            [System.StringComparison]::OrdinalIgnoreCase
+        )
+    ) -Message 'canonical requirement uses the run artifact sink' -Details $requirementDocPath
+    Add-Assertion -Results ([ref]$results) -Condition (
+        [System.IO.Path]::GetFullPath($executionPlanPath).Equals(
+            [System.IO.Path]::GetFullPath([string]$canonicalPaths.primary_plan),
+            [System.StringComparison]::OrdinalIgnoreCase
+        )
+    ) -Message 'canonical execution plan uses the run artifact sink' -Details $executionPlanPath
+    Add-Assertion -Results ([ref]$results) -Condition (
+        -not $requirementPathToken.Contains('/docs/requirements/') -and
+        -not $executionPlanPathToken.Contains('/docs/plans/')
+    ) -Message 'historical documentation roots are compatibility-only destinations'
+
+    $runtimeInputPacket = Get-Content -LiteralPath $runtimeInputPacketPath -Raw -Encoding UTF8 | ConvertFrom-Json
+
+    Add-Assertion -Results ([ref]$results) -Condition ($runtimeInputPacket.governance_scope -eq 'root') -Message 'canonical surface probe runs in root governance scope'
+    Add-Assertion -Results ([ref]$results) -Condition ([bool]$runtimeInputPacket.authority_flags.allow_requirement_freeze) -Message 'root scope keeps requirement freeze authority'
+    Add-Assertion -Results ([ref]$results) -Condition ([bool]$runtimeInputPacket.authority_flags.allow_plan_freeze) -Message 'root scope keeps plan freeze authority'
+
+    $childRunId = "canonical-surface-child-" + [System.Guid]::NewGuid().ToString('N').Substring(0, 8)
+    $childDelegationEnvelopePath = New-ChildDelegationEnvelopeForGate -RootSummary $summary -ChildRunId $childRunId
+    $childSummary = & $runtimeEntryPath `
+        -Task ("Child canonical surface uniqueness probe {0}" -f $childRunId) `
+        -Mode interactive_governed `
+        -GovernanceScope child `
+        -RunId $childRunId `
+        -RootRunId ([string]$summary.summary.run_id) `
+        -ParentRunId ([string]$summary.summary.run_id) `
+        -ParentUnitId 'canonical-surface-child-unit' `
+        -InheritedRequirementDocPath $requirementDocPath `
+        -InheritedExecutionPlanPath $executionPlanPath `
+        -DelegationEnvelopePath $childDelegationEnvelopePath `
+        -ArtifactRoot $artifactRoot `
+        -HostDecisionJson $hostDecisionJson
+
+    Add-Assertion -Results ([ref]$results) -Condition ($null -ne $childSummary) -Message 'child canonical probe returned summary payload'
+    $hasChildSummary = ($null -ne $childSummary) -and ($childSummary.PSObject.Properties.Name -contains 'summary')
+    Add-Assertion -Results ([ref]$results) -Condition $hasChildSummary -Message 'child canonical probe has summary object'
+
+    if ($hasChildSummary) {
+        $childRequirementReceipt = Get-Content -LiteralPath $childSummary.summary.artifacts.requirement_receipt -Raw -Encoding UTF8 | ConvertFrom-Json
+        $childExecutionPlanReceipt = Get-Content -LiteralPath $childSummary.summary.artifacts.execution_plan_receipt -Raw -Encoding UTF8 | ConvertFrom-Json
+        $childExecutionManifest = Get-Content -LiteralPath $childSummary.summary.artifacts.execution_manifest -Raw -Encoding UTF8 | ConvertFrom-Json
+        $childDelegationValidation = Get-Content -LiteralPath $childSummary.summary.artifacts.delegation_validation_receipt -Raw -Encoding UTF8 | ConvertFrom-Json
+
+        Add-Assertion -Results ([ref]$results) -Condition ($childSummary.summary.governance_scope -eq 'child') -Message 'child canonical probe runs in child governance scope'
+        Add-Assertion -Results ([ref]$results) -Condition (
+            [System.IO.Path]::GetFullPath([string]$childDelegationValidation.envelope_path) -eq [System.IO.Path]::GetFullPath([string]$childDelegationEnvelopePath)
+        ) -Message 'child canonical probe validates the root-authored delegation envelope'
+        Add-Assertion -Results ([ref]$results) -Condition (-not [bool]$childRequirementReceipt.canonical_write_allowed) -Message 'child requirement stage cannot write canonical requirement surface'
+        Add-Assertion -Results ([ref]$results) -Condition (-not [bool]$childExecutionPlanReceipt.canonical_write_allowed) -Message 'child plan stage cannot write canonical plan surface'
+        Add-Assertion -Results ([ref]$results) -Condition ($null -eq $childRequirementReceipt.primary_requirement_path) -Message 'child requirement receipt does not claim a primary destination'
+        Add-Assertion -Results ([ref]$results) -Condition ($null -eq $childExecutionPlanReceipt.primary_plan_path) -Message 'child plan receipt does not claim a primary destination'
+        Add-Assertion -Results ([ref]$results) -Condition (
+            [System.IO.Path]::GetFullPath([string]$childRequirementReceipt.requirement_doc_path) -eq [System.IO.Path]::GetFullPath([string]$requirementDocPath)
+        ) -Message 'child requirement stage reuses root canonical requirement path'
+        Add-Assertion -Results ([ref]$results) -Condition (
+            [System.IO.Path]::GetFullPath([string]$childExecutionPlanReceipt.execution_plan_path) -eq [System.IO.Path]::GetFullPath([string]$executionPlanPath)
+        ) -Message 'child plan stage reuses root canonical execution plan path'
+        Add-Assertion -Results ([ref]$results) -Condition ($childExecutionManifest.governance_scope -eq 'child') -Message 'child execution manifest is marked as child scope'
+        Add-Assertion -Results ([ref]$results) -Condition (-not [bool]$childExecutionManifest.authority.completion_claim_allowed) -Message 'child execution manifest cannot issue final completion claims'
+    }
+}
+
+$failureCount = @($results | Where-Object { -not $_.passed }).Count
+$gatePassed = ($failureCount -eq 0)
+$report = [pscustomobject]@{
+    generated_at = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+    repo_root = $repoRoot
+    gate_passed = $gatePassed
+    assertion_count = @($results).Count
+    failure_count = $failureCount
+    runtime_summary_path = if ($null -ne $summary -and ($summary.PSObject.Properties.Name -contains 'summary_path')) { $summary.summary_path } else { $null }
+    results = @($results)
+}
+
+if ($WriteArtifacts) {
+    $targetDir = if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
+        Join-Path $repoRoot 'outputs\verify\vibe-no-duplicate-canonical-surface'
+    } elseif ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
+        [System.IO.Path]::GetFullPath($OutputDirectory)
+    } else {
+        [System.IO.Path]::GetFullPath((Join-Path $repoRoot $OutputDirectory))
+    }
+
+    New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+    Write-VibeJsonArtifact -Path (Join-Path $targetDir 'vibe-no-duplicate-canonical-surface-gate.json') -Value $report
+} elseif (Test-Path -LiteralPath $artifactRoot) {
+    Remove-Item -LiteralPath $artifactRoot -Recurse -Force
+}
+
+if (-not $gatePassed) {
+    throw "vibe-no-duplicate-canonical-surface-gate failed with $failureCount failing assertion(s)."
+}
+
+$report

@@ -1,6 +1,6 @@
 # CUMCM 竞赛技能全库地图（CONTEST_SKILL_MAP）
 
-> **定位**：全库 255 个技能（含 SKILL.md 的目录；tracked 250）× comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
+> **定位**：全库 255 个技能（含 SKILL.md 的目录；tracked 255）× comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
 > `companion_skills` 字段每步主动给出本步推荐；本文件是全量真源，
 > 含"情境可用"、"外域不接入"与"未接入库"的完整分类账——**任何一个技能都不允许处于"无人知晓"状态**。
 > 维护纪律：新增技能入库时必须归入下列五类之一并同步本文件与引擎
@@ -148,7 +148,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 **机检首匹配归段口径**（技能名按首次出现的段落计一次，跨段引用不重复计；词边界 + 斜杠缩写展开 +
 前缀域 fnmatch，与 `tools/check_asset_utilization.py` 的 `load_map_coverage` 完全同口径）：
 主链家族 20 + 每步推荐 18 + 情境可用 78 + 外域 137 + 未接入库 2 = **255**，
-与 skills/ 下含 SKILL.md 的目录实测数（255；tracked clone 250，差 5 系 gitignored 无 License 技能）逐一相符：零幽灵名、零漏网。
+与 skills/ 下含 SKILL.md 的目录实测数（255；tracked clone 255——2026-09-28 起 5 件无 License 技能经本地化改写入库）逐一相符：零幽灵名、零漏网。
 口径说明（避免读者对不上数）：§三 标题"79 个"是**具名条目数**，其中
 `paper-figure-palette` 首现于 §二 step5 必用位故首匹配归 §二（79→78）；§四 标题不再钉固定数
 （外域件随改名/合并演进），其前缀域（`spine-*`/`latex-paper-*`/`dev-*`/`meta-*`/`lit-*`/`doc-*`/`fig-*`/`paper-*`）
@@ -164,7 +164,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 （如 `copyright-build/draft/source-materials`），未接入库 = §五具名。
 **零漏网对账已固化为机检**（词边界+斜杠展开+前缀 fnmatch）：
 `python tools/check_asset_utilization.py --strict` + `tests/test_asset_utilization.py::test_real_map_covers_all_skills_zero_missing`。
-全库技能 255（改名合并后实存；tracked 250——`scholar-critique-manuscript` 已并入 `paper-self-review`）；
+全库技能 255（改名合并后实存；tracked 255（原 250）——`scholar-critique-manuscript` 已并入 `paper-self-review`）；
 计数以本机 `check_asset_utilization` 机检为准。
 ——任何改动本文件的维护者必须跑过机检后方可保留本节统计行。
 

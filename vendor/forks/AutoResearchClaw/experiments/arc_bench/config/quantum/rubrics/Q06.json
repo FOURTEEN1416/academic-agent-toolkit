@@ -1,0 +1,109 @@
+{
+    "id": "q06-root",
+    "requirements": "An empirical study of neural-network warm-start for QAOA-MaxCut at p=1. The agent must (a) precompute 200 Erdős-Rényi G(n=6, p=0.5) training graphs with their optimal (beta, gamma) via grid search to label the MLP training set, (b) train sklearn.MLPRegressor to predict (beta, gamma) from graph features, (c) at test time, predict (beta, gamma) and run COBYLA QAOA optimization starting from that init for up to 20 iterations, (d) compare against random and fixed (pi/4, pi/4) initialization baselines on both in-distribution (ER G(n=6, p=0.5)) and out-of-distribution (3-regular n=8) test graphs, and (e) score H1/H2/H3 with numerical evidence.",
+    "judging_note": "QAOA warm-start studies are scored on (i) whether the MLP is actually trained offline (cells reporting identical MLP predictions across different graph instances indicate the model is broken or untrained), (ii) whether the 4 initialization strategies actually produce different starting (beta, gamma) points (must be verified by sanity check), (iii) whether COBYLA is run from each init for exactly 20 iterations and the approximation_ratio trajectory is recorded, and (iv) whether H1/H2/H3 are supported by 3-graph-median numerical evidence keyed by (condition, graph_family). Quantitative result leaves use a graded scale.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "q06-code",
+            "requirements": "Code-development bucket: QAOA p=1 circuit built via qiskit.circuit.library or hand-coded RX/RZ + CNOT correctly, MLP trained offline on graph features, and 4 initialization conditions actually produce different starting points.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q06-code-qaoa-circuit",
+                    "requirements": "QAOA p=1 circuit for MaxCut implemented correctly: H^{otimes n} initial state, then U_C(gamma) = product over edges of exp(-i * gamma * Z_i Z_j), then U_B(beta) = product over qubits of exp(-i * beta * X_i). Run on qiskit AerSimulator statevector backend; observable is the cut Hamiltonian sum_{(i,j) in E} (1 - Z_i Z_j) / 2. Optimization via qiskit_algorithms.optimizers.COBYLA(maxiter=20).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q06-code-mlp-training",
+                    "requirements": "Offline phase: generate 200 random ER G(n=6, p=0.5) graphs with a different RNG than the test set. For each, compute the optimal (beta_optimal, gamma_optimal) via a 20x20 grid search on (beta, gamma) in [0, pi/2]^2 maximizing the QAOA p=1 expected cut size. Extract 4 graph features (degree_mean, degree_var, edge_density, n_edges) and fit sklearn.neural_network.MLPRegressor(hidden_layer_sizes=(32, 16), max_iter=2000) to map features -> (beta_optimal, gamma_optimal). The trained MLP is reused for both in-distribution and out-of-distribution test conditions.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q06-code-init-conditions",
+                    "requirements": "The 4 initialization strategies produce different starting (beta, gamma) per test graph. Sanity check: for 3 test graphs, log the initial (beta, gamma) for each of the 4 conditions and verify they are not all equal. Each condition's COBYLA optimization is run for exactly 20 iterations, and the cut size at each iteration is recorded so the iterations_to_target_ratio can be computed by replaying the trajectory.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q06-exec",
+            "requirements": "Execution-validity bucket: all cells ran and produced numerically valid outputs.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q06-exec-cells-ran",
+                    "requirements": "At least 22 cells out of 24 expected (4 conditions x 2 graph families x 3 seeds) completed and produced an iterations_to_target_ratio value (clamped to 20 if not reached). Missing more than 2 cells (10 percent) without documented justification fails this leaf.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q06-exec-numerical",
+                    "requirements": "Numerical validity: iterations_to_target_ratio is in [1, 20] (integer-valued, since COBYLA budget is 20); final_approximation_ratio is in [0, 1]; success_rate is in [0, 1]. At least one cell across the entire 24-cell sweep reaches AR >= 0.9 within 20 iterations (otherwise threshold is uncalibrated).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q06-results",
+            "requirements": "Results bucket: quantitative tests of H1/H2/H3 plus a per-hypothesis writeup.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "q06-result-h1-quant",
+                    "requirements": "Quantitative test of H1. On in-distribution ER G(n=6, p=0.5) graphs, does mlp_init_in_distribution reach AR>=0.9 in <= 10 COBYLA iterations on 3-graph mean, while random_init requires >= 18? 100% if MLP <= 10 AND random >= 18, 67% if MLP at least 30 percent better than random, 33% if MLP marginally better than random, 0% if random equals or beats MLP.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q06-result-h2-quant",
+                    "requirements": "Quantitative test of H2. On out-of-distribution 3-regular n=8 graphs, does mlp_init_out_of_distribution beat random_init by at least 20 percent in 3-graph-median iterations_to_target_ratio? 100% if mlp gain >= 20 percent, 67% if mlp gain 10-20 percent, 33% if mlp marginally faster, 0% if no transfer (random matches or beats MLP).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q06-result-h3-quant",
+                    "requirements": "Quantitative test of H3. On in-distribution graphs, is the 3-graph-median iteration-count gap between fixed_init_pi_over_4 and mlp_init_in_distribution <= 30 percent (i.e. fixed init is competitive with MLP at p=1, consistent with Brandao 2018 concentration)? 100% if gap <= 30 percent, 67% if 30-60 percent, 33% if 60-100 percent, 0% if MLP is more than 2x better than fixed init (would refute the concentration interpretation).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q06-result-writeup",
+                    "requirements": "Writeup of at least 200 words (submission/README.md ## Agent-produced writeup section) with explicit supported / refuted / inconclusive verdict for each of H1/H2/H3 backed by per-(condition, graph_family) median iteration counts and approximation ratios. References Brandao et al. 2018 concentration result and Jain et al. Quantum 2022 GNN-init paper. Discusses whether the observed out-of-distribution transfer rate is high enough that MLP-init is worth the offline training cost compared to fixed init.",
+                    "weight": 12.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

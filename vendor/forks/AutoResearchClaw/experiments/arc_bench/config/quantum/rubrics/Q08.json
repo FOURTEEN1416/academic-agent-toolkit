@@ -1,0 +1,109 @@
+{
+    "id": "q08-root",
+    "requirements": "An empirical study of layerwise vs end-to-end training of a 4-qubit reps=5 EfficientSU2 VQC on UCI binary classification (iris-binary and breast-cancer). The agent must (a) implement the layerwise training schedule manually (train reps=1, freeze, add reps=1, train, ...), (b) implement the end-to-end baseline that trains all 5 reps together, (c) measure mean gradient norm during the first 10 optimization steps of each schedule to test the Skolik 2021 mechanism, and (d) compare against logistic regression + parameter-matched MLP baselines. Score H1/H2/H3 with numerical evidence.",
+    "judging_note": "Layerwise studies are scored on (i) correctness of the freeze-and-add mechanism (verifiable: the layerwise condition should have N optimizer.minimize() calls each operating on a subset of parameters, not 1 single call over all parameters), (ii) parameter counts matching across conditions (the layerwise and end-to-end VQCs must end with the same 40-parameter ansatz), (iii) the gradient-norm probe being measured at consistent points across conditions, (iv) the random-init control producing accuracy near 0.5 on both datasets (otherwise the ansatz is leaking labels through initialization).",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "q08-code",
+            "requirements": "Code-development bucket: layerwise freeze-and-add schedule implemented manually, classical baselines parameter-matched, gradient-norm probe consistent.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q08-code-layerwise-mechanism",
+                    "requirements": "The layerwise condition trains the EfficientSU2(reps=5) ansatz by 5 sequential optimizer.minimize() calls. Each call trains only the parameters belonging to the newly added reps=1 block while the previous blocks have their parameters bound to their previously converged values via qiskit.QuantumCircuit.assign_parameters() on a partial dictionary. After all 5 calls the final fitted VQC has 40 trainable parameters, identical in count to the end-to-end VQC.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q08-code-gradient-probe",
+                    "requirements": "Mean gradient norm during the first 10 optimization steps is recorded per condition via the qiskit_machine_learning VQC callback or via a custom wrapper around the loss function that uses parameter-shift gradients. For layerwise, the metric is averaged across the first 10 steps of each newly added block (so total of 50 steps averaged, since 5 blocks x 10). For end-to-end, the metric is the first 10 steps of the single training run.",
+                    "weight": 7.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q08-code-classical-baselines",
+                    "requirements": "mlp_matched uses sklearn.neural_network.MLPClassifier(hidden_layer_sizes=(8,)) for ~49 parameters, within 20 percent of the VQC's 40 parameters. logistic_regression uses sklearn.linear_model.LogisticRegression(max_iter=1000). Both train on the same 80/20 train/test split as the VQC conditions using the same per-seed random_state.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q08-exec",
+            "requirements": "Execution-validity bucket: all 30 cells ran and produced numerically valid outputs.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q08-exec-cells-ran",
+                    "requirements": "At least 27 cells out of 30 expected (5 conditions x 2 datasets x 3 seeds) completed without unhandled errors and produced a test_accuracy value. Missing more than 3 cells (10 percent) without documented justification fails this leaf.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q08-exec-numerical",
+                    "requirements": "Numerical validity: test_accuracy in [0, 1] with non-degenerate predictions (no condition collapses to a single-class predictor on all test samples). The random_init_control condition produces test_accuracy approximately 0.5 +/- 0.1 on both datasets (otherwise label leakage in the untrained ansatz). mean_gradient_norm_first10 is strictly positive across all cells.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q08-results",
+            "requirements": "Results bucket: quantitative tests of H1/H2/H3 plus a per-hypothesis writeup.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "q08-result-h1-quant",
+                    "requirements": "Quantitative test of H1. On at least 1 of 2 datasets, is layerwise test_accuracy >= end-to-end test_accuracy + 3 absolute pp (3-seed mean)? 100% if gap >= 3pp on at least 1 dataset, 67% if gap >= 1pp on at least 1 dataset, 33% if layerwise marginally faster on any dataset, 0% if end-to-end equals or beats layerwise on both datasets.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q08-result-h2-quant",
+                    "requirements": "Quantitative test of H2. Is mean_gradient_norm_first10 of layerwise >= 5x mean_gradient_norm_first10 of end-to-end (3-seed mean, across both datasets combined)? 100% if ratio >= 5x, 67% if 2-5x, 33% if any positive ratio (layerwise > end-to-end), 0% otherwise.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q08-result-h3-quant",
+                    "requirements": "Quantitative test of H3. Do both layerwise and end-to-end test_accuracy exceed random_init_control test_accuracy by >= 5 absolute pp on both datasets (3-seed mean)? 100% if both gaps >= 5pp on both datasets, 67% if both on 1 dataset, 33% if at least one VQC beats random anywhere, 0% if random matches or beats trained VQCs.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q08-result-writeup",
+                    "requirements": "Writeup of at least 200 words (submission/README.md ## Agent-produced writeup section) with explicit supported / refuted / inconclusive verdict for each of H1/H2/H3 backed by specific 3-seed mean test_accuracy, mean_gradient_norm_first10, and iterations_to_target_accuracy values per (condition, dataset). References Skolik et al. Quantum 2021 and discusses whether the layerwise gradient-norm advantage matches their theoretical prediction.",
+                    "weight": 12.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

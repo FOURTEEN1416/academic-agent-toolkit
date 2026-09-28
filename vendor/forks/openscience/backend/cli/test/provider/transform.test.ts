@@ -1,0 +1,2333 @@
+import { describe, expect, test } from "bun:test"
+import { ProviderTransform } from "../../src/provider/transform"
+
+const OUTPUT_TOKEN_MAX = 32000
+
+describe("ProviderTransform.options - setCacheKey", () => {
+  const sessionID = "test-session-123"
+
+  const mockModel = {
+    id: "anthropic/claude-3-5-sonnet",
+    providerID: "anthropic",
+    api: {
+      id: "claude-3-5-sonnet-20241022",
+      url: "https://api.anthropic.com",
+      npm: "@ai-sdk/anthropic",
+    },
+    name: "Claude 3.5 Sonnet",
+    capabilities: {
+      temperature: true,
+      reasoning: false,
+      attachment: true,
+      toolcall: true,
+      input: { text: true, audio: false, image: true, video: false, pdf: true },
+      output: { text: true, audio: false, image: false, video: false, pdf: false },
+      interleaved: false,
+    },
+    cost: {
+      input: 0.003,
+      output: 0.015,
+      cache: { read: 0.0003, write: 0.00375 },
+    },
+    limit: {
+      context: 200000,
+      output: 8192,
+    },
+    status: "active",
+    options: {},
+    headers: {},
+  } as any
+
+  test("should set promptCacheKey when providerOptions.setCacheKey is true", () => {
+    const result = ProviderTransform.options({
+      model: mockModel,
+      sessionID,
+      providerOptions: { setCacheKey: true },
+    })
+    expect(result.promptCacheKey).toBe(sessionID)
+  })
+
+  test("should not set promptCacheKey when providerOptions.setCacheKey is false", () => {
+    const result = ProviderTransform.options({
+      model: mockModel,
+      sessionID,
+      providerOptions: { setCacheKey: false },
+    })
+    expect(result.promptCacheKey).toBeUndefined()
+  })
+
+  test("should not set promptCacheKey when providerOptions is undefined", () => {
+    const result = ProviderTransform.options({
+      model: mockModel,
+      sessionID,
+      providerOptions: undefined,
+    })
+    expect(result.promptCacheKey).toBeUndefined()
+  })
+
+  test("should not set promptCacheKey when providerOptions does not have setCacheKey", () => {
+    const result = ProviderTransform.options({ model: mockModel, sessionID, providerOptions: {} })
+    expect(result.promptCacheKey).toBeUndefined()
+  })
+
+  test("should set promptCacheKey for openai provider regardless of setCacheKey", () => {
+    const openaiModel = {
+      ...mockModel,
+      providerID: "openai",
+      api: {
+        id: "gpt-4",
+        url: "https://api.openai.com",
+        npm: "@ai-sdk/openai",
+      },
+    }
+    const result = ProviderTransform.options({ model: openaiModel, sessionID, providerOptions: {} })
+    expect(result.promptCacheKey).toBe(sessionID)
+  })
+
+  test("should set store=false for openai provider", () => {
+    const openaiModel = {
+      ...mockModel,
+      providerID: "openai",
+      api: {
+        id: "gpt-4",
+        url: "https://api.openai.com",
+        npm: "@ai-sdk/openai",
+      },
+    }
+    const result = ProviderTransform.options({
+      model: openaiModel,
+      sessionID,
+      providerOptions: {},
+    })
+    expect(result.store).toBe(false)
+  })
+
+  test("enables managed Claude reasoning through OpenRouter", () => {
+    const result = ProviderTransform.options({
+      model: {
+        ...mockModel,
+        id: "anthropic/claude-opus-4.8",
+        providerID: "openrouter",
+        api: {
+          id: "anthropic/claude-opus-4.8",
+          url: "https://openrouter.ai/api/v1",
+          npm: "@openrouter/ai-sdk-provider",
+        },
+        capabilities: {
+          ...mockModel.capabilities,
+          reasoning: true,
+          interleaved: { field: "reasoning_details" },
+        },
+      },
+      sessionID,
+      providerOptions: {},
+    })
+
+    expect(result.reasoning).toEqual({ effort: "medium" })
+  })
+})
+
+describe("ProviderTransform.tier", () => {
+  test("catalog mode applies provider body, headers, and sibling model route", () => {
+    const result = ProviderTransform.tier(
+      {
+        modes: {
+          pro: {
+            model: "openai/gpt-5.6-sol-pro",
+            provider: {
+              body: { reasoning: { mode: "pro" } },
+              headers: { "x-model-mode": "pro" },
+            },
+          },
+        },
+      } as any,
+      "pro",
+    )
+
+    expect(result.model).toBe("openai/gpt-5.6-sol-pro")
+    expect(result.options).toEqual({ reasoning: { mode: "pro" } })
+    expect(result.headers).toEqual({ "x-model-mode": "pro" })
+  })
+
+  test("missing mode metadata leaves provider payload and model untouched", () => {
+    expect(ProviderTransform.tier({ modes: {} } as any, "pro")).toEqual({
+      model: undefined,
+      options: {},
+      headers: {},
+    })
+    expect(ProviderTransform.tier({} as any, "fast")).toEqual({
+      model: undefined,
+      options: {},
+      headers: {},
+    })
+  })
+})
+
+describe("ProviderTransform.variants - exact catalog efforts", () => {
+  const model = {
+    id: "deepseek/deepseek-v4-pro",
+    providerID: "openrouter",
+    api: {
+      id: "deepseek/deepseek-v4-pro",
+      url: "https://openrouter.ai/api/v1",
+      npm: "@openrouter/ai-sdk-provider",
+    },
+    capabilities: {
+      reasoning: true,
+      temperature: true,
+      attachment: false,
+      toolcall: true,
+      input: { text: true, audio: false, image: false, video: false, pdf: false },
+      output: { text: true, audio: false, image: false, video: false, pdf: false },
+      interleaved: false,
+    },
+    reasoningOptions: [{ type: "effort", values: ["high", "xhigh"] }],
+    limit: { context: 1_000_000, output: 384_000 },
+    cost: { input: 0, output: 0, cache: { read: 0, write: 0 } },
+    status: "active",
+    options: {},
+    headers: {},
+  } as any
+
+  test("uses the model's exact effort ladder instead of a family-wide guess", () => {
+    expect(ProviderTransform.variants(model)).toEqual({
+      high: { reasoning: { effort: "high" } },
+      xhigh: { reasoning: { effort: "xhigh" } },
+    })
+  })
+
+  test("an explicit empty reasoning contract exposes no effort control", () => {
+    expect(
+      ProviderTransform.variants({
+        ...model,
+        id: "z-ai/glm-5",
+        api: { ...model.api, id: "z-ai/glm-5" },
+        reasoningOptions: [],
+      }),
+    ).toEqual({})
+  })
+})
+
+describe("ProviderTransform.maxOutputTokens", () => {
+  test("returns 32k when modelLimit > 32k", () => {
+    const modelLimit = 100000
+    const result = ProviderTransform.maxOutputTokens("@ai-sdk/openai", {}, modelLimit, OUTPUT_TOKEN_MAX)
+    expect(result).toBe(OUTPUT_TOKEN_MAX)
+  })
+
+  test("returns modelLimit when modelLimit < 32k", () => {
+    const modelLimit = 16000
+    const result = ProviderTransform.maxOutputTokens("@ai-sdk/openai", {}, modelLimit, OUTPUT_TOKEN_MAX)
+    expect(result).toBe(16000)
+  })
+
+  describe("gateway effort<->max_tokens conflict", () => {
+    test("drops the output cap when a reasoningEffort is set (gateway rejects both)", () => {
+      const result = ProviderTransform.maxOutputTokens(
+        "@ai-sdk/gateway",
+        { reasoningEffort: "high" },
+        100000,
+        OUTPUT_TOKEN_MAX,
+      )
+      expect(result).toBeUndefined()
+    })
+
+    test("keeps the standard cap when no reasoningEffort is set", () => {
+      const result = ProviderTransform.maxOutputTokens("@ai-sdk/gateway", {}, 100000, OUTPUT_TOKEN_MAX)
+      expect(result).toBe(OUTPUT_TOKEN_MAX)
+    })
+  })
+
+  describe("azure", () => {
+    test("returns 32k when modelLimit > 32k", () => {
+      const modelLimit = 100000
+      const result = ProviderTransform.maxOutputTokens("@ai-sdk/azure", {}, modelLimit, OUTPUT_TOKEN_MAX)
+      expect(result).toBe(OUTPUT_TOKEN_MAX)
+    })
+
+    test("returns modelLimit when modelLimit < 32k", () => {
+      const modelLimit = 16000
+      const result = ProviderTransform.maxOutputTokens("@ai-sdk/azure", {}, modelLimit, OUTPUT_TOKEN_MAX)
+      expect(result).toBe(16000)
+    })
+  })
+
+  describe("bedrock", () => {
+    test("returns 32k when modelLimit > 32k", () => {
+      const modelLimit = 100000
+      const result = ProviderTransform.maxOutputTokens("@ai-sdk/amazon-bedrock", {}, modelLimit, OUTPUT_TOKEN_MAX)
+      expect(result).toBe(OUTPUT_TOKEN_MAX)
+    })
+
+    test("returns modelLimit when modelLimit < 32k", () => {
+      const modelLimit = 16000
+      const result = ProviderTransform.maxOutputTokens("@ai-sdk/amazon-bedrock", {}, modelLimit, OUTPUT_TOKEN_MAX)
+      expect(result).toBe(16000)
+    })
+  })
+
+  describe("anthropic without thinking options", () => {
+    test("returns 32k when modelLimit > 32k", () => {
+      const modelLimit = 100000
+      const result = ProviderTransform.maxOutputTokens("@ai-sdk/anthropic", {}, modelLimit, OUTPUT_TOKEN_MAX)
+      expect(result).toBe(OUTPUT_TOKEN_MAX)
+    })
+
+    test("returns modelLimit when modelLimit < 32k", () => {
+      const modelLimit = 16000
+      const result = ProviderTransform.maxOutputTokens("@ai-sdk/anthropic", {}, modelLimit, OUTPUT_TOKEN_MAX)
+      expect(result).toBe(16000)
+    })
+  })
+
+  describe("anthropic with thinking options", () => {
+    test("returns 32k when budgetTokens + 32k <= modelLimit", () => {
+      const modelLimit = 100000
+      const options = {
+        thinking: {
+          type: "enabled",
+          budgetTokens: 10000,
+        },
+      }
+      const result = ProviderTransform.maxOutputTokens("@ai-sdk/anthropic", options, modelLimit, OUTPUT_TOKEN_MAX)
+      expect(result).toBe(OUTPUT_TOKEN_MAX)
+    })
+
+    test("returns modelLimit - budgetTokens when budgetTokens + 32k > modelLimit", () => {
+      const modelLimit = 50000
+      const options = {
+        thinking: {
+          type: "enabled",
+          budgetTokens: 30000,
+        },
+      }
+      const result = ProviderTransform.maxOutputTokens("@ai-sdk/anthropic", options, modelLimit, OUTPUT_TOKEN_MAX)
+      expect(result).toBe(20000)
+    })
+
+    test("returns 32k when thinking type is not enabled", () => {
+      const modelLimit = 100000
+      const options = {
+        thinking: {
+          type: "disabled",
+          budgetTokens: 10000,
+        },
+      }
+      const result = ProviderTransform.maxOutputTokens("@ai-sdk/anthropic", options, modelLimit, OUTPUT_TOKEN_MAX)
+      expect(result).toBe(OUTPUT_TOKEN_MAX)
+    })
+  })
+})
+
+describe("ProviderTransform.schema - gemini array items", () => {
+  test("adds missing items for array properties", () => {
+    const geminiModel = {
+      providerID: "google",
+      api: {
+        id: "gemini-3-pro",
+      },
+    } as any
+
+    const schema = {
+      type: "object",
+      properties: {
+        nodes: { type: "array" },
+        edges: { type: "array", items: { type: "string" } },
+      },
+    } as any
+
+    const result = ProviderTransform.schema(geminiModel, schema) as any
+
+    expect(result.properties.nodes.items).toBeDefined()
+    expect(result.properties.edges.items.type).toBe("string")
+  })
+})
+
+describe("ProviderTransform.message - DeepSeek reasoning content", () => {
+  test("DeepSeek with tool calls includes reasoning_content in providerOptions", () => {
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "Let me think about this..." },
+          {
+            type: "tool-call",
+            toolCallId: "test",
+            toolName: "bash",
+            input: { command: "echo hello" },
+          },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(
+      msgs,
+      {
+        id: "deepseek/deepseek-chat",
+        providerID: "deepseek",
+        api: {
+          id: "deepseek-chat",
+          url: "https://api.deepseek.com",
+          npm: "@ai-sdk/openai-compatible",
+        },
+        name: "DeepSeek Chat",
+        capabilities: {
+          temperature: true,
+          reasoning: true,
+          attachment: false,
+          toolcall: true,
+          input: { text: true, audio: false, image: false, video: false, pdf: false },
+          output: { text: true, audio: false, image: false, video: false, pdf: false },
+          interleaved: {
+            field: "reasoning_content",
+          },
+        },
+        cost: {
+          input: 0.001,
+          output: 0.002,
+          cache: { read: 0.0001, write: 0.0002 },
+        },
+        limit: {
+          context: 128000,
+          output: 8192,
+        },
+        status: "active",
+        options: {},
+        headers: {},
+        release_date: "2023-04-01",
+      },
+      {},
+    )
+
+    expect(result).toHaveLength(1)
+    expect(result[0].content).toEqual([
+      {
+        type: "tool-call",
+        toolCallId: "test",
+        toolName: "bash",
+        input: { command: "echo hello" },
+      },
+    ])
+    expect(result[0].providerOptions?.openaiCompatible?.reasoning_content).toBe("Let me think about this...")
+  })
+
+  test("Non-DeepSeek providers leave reasoning content unchanged", () => {
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "Should not be processed" },
+          { type: "text", text: "Answer" },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(
+      msgs,
+      {
+        id: "openai/gpt-4",
+        providerID: "openai",
+        api: {
+          id: "gpt-4",
+          url: "https://api.openai.com",
+          npm: "@ai-sdk/openai",
+        },
+        name: "GPT-4",
+        capabilities: {
+          temperature: true,
+          reasoning: false,
+          attachment: true,
+          toolcall: true,
+          input: { text: true, audio: false, image: true, video: false, pdf: false },
+          output: { text: true, audio: false, image: false, video: false, pdf: false },
+          interleaved: false,
+        },
+        cost: {
+          input: 0.03,
+          output: 0.06,
+          cache: { read: 0.001, write: 0.002 },
+        },
+        limit: {
+          context: 128000,
+          output: 4096,
+        },
+        status: "active",
+        options: {},
+        headers: {},
+        release_date: "2023-04-01",
+      },
+      {},
+    )
+
+    expect(result[0].content).toEqual([
+      { type: "reasoning", text: "Should not be processed" },
+      { type: "text", text: "Answer" },
+    ])
+    expect(result[0].providerOptions?.openaiCompatible?.reasoning_content).toBeUndefined()
+  })
+})
+
+describe("ProviderTransform.message - empty image handling", () => {
+  const mockModel = {
+    id: "anthropic/claude-3-5-sonnet",
+    providerID: "anthropic",
+    api: {
+      id: "claude-3-5-sonnet-20241022",
+      url: "https://api.anthropic.com",
+      npm: "@ai-sdk/anthropic",
+    },
+    name: "Claude 3.5 Sonnet",
+    capabilities: {
+      temperature: true,
+      reasoning: false,
+      attachment: true,
+      toolcall: true,
+      input: { text: true, audio: false, image: true, video: false, pdf: true },
+      output: { text: true, audio: false, image: false, video: false, pdf: false },
+      interleaved: false,
+    },
+    cost: {
+      input: 0.003,
+      output: 0.015,
+      cache: { read: 0.0003, write: 0.00375 },
+    },
+    limit: {
+      context: 200000,
+      output: 8192,
+    },
+    status: "active",
+    options: {},
+    headers: {},
+  } as any
+
+  test("should replace empty base64 image with error text", () => {
+    const msgs = [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is in this image?" },
+          { type: "image", image: "data:image/png;base64," },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, mockModel, {})
+
+    expect(result).toHaveLength(1)
+    expect(result[0].content).toHaveLength(2)
+    expect(result[0].content[0]).toEqual({ type: "text", text: "What is in this image?" })
+    expect(result[0].content[1]).toEqual({
+      type: "text",
+      text: "ERROR: Image file is empty or corrupted. Please provide a valid image.",
+    })
+  })
+
+  test("should keep valid base64 images unchanged", () => {
+    const validBase64 =
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    const msgs = [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is in this image?" },
+          { type: "image", image: `data:image/png;base64,${validBase64}` },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, mockModel, {})
+
+    expect(result).toHaveLength(1)
+    expect(result[0].content).toHaveLength(2)
+    expect(result[0].content[0]).toEqual({ type: "text", text: "What is in this image?" })
+    expect(result[0].content[1]).toEqual({ type: "image", image: `data:image/png;base64,${validBase64}` })
+  })
+
+  test("should handle mixed valid and empty images", () => {
+    const validBase64 =
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    const msgs = [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Compare these images" },
+          { type: "image", image: `data:image/png;base64,${validBase64}` },
+          { type: "image", image: "data:image/jpeg;base64," },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, mockModel, {})
+
+    expect(result).toHaveLength(1)
+    expect(result[0].content).toHaveLength(3)
+    expect(result[0].content[0]).toEqual({ type: "text", text: "Compare these images" })
+    expect(result[0].content[1]).toEqual({ type: "image", image: `data:image/png;base64,${validBase64}` })
+    expect(result[0].content[2]).toEqual({
+      type: "text",
+      text: "ERROR: Image file is empty or corrupted. Please provide a valid image.",
+    })
+  })
+})
+
+describe("ProviderTransform.message - anthropic empty content filtering", () => {
+  const anthropicModel = {
+    id: "anthropic/claude-3-5-sonnet",
+    providerID: "anthropic",
+    api: {
+      id: "claude-3-5-sonnet-20241022",
+      url: "https://api.anthropic.com",
+      npm: "@ai-sdk/anthropic",
+    },
+    name: "Claude 3.5 Sonnet",
+    capabilities: {
+      temperature: true,
+      reasoning: false,
+      attachment: true,
+      toolcall: true,
+      input: { text: true, audio: false, image: true, video: false, pdf: true },
+      output: { text: true, audio: false, image: false, video: false, pdf: false },
+      interleaved: false,
+    },
+    cost: {
+      input: 0.003,
+      output: 0.015,
+      cache: { read: 0.0003, write: 0.00375 },
+    },
+    limit: {
+      context: 200000,
+      output: 8192,
+    },
+    status: "active",
+    options: {},
+    headers: {},
+  } as any
+
+  test("filters out messages with empty string content", () => {
+    const msgs = [
+      { role: "user", content: "Hello" },
+      { role: "assistant", content: "" },
+      { role: "user", content: "World" },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropicModel, {})
+
+    expect(result).toHaveLength(2)
+    expect(result[0].content).toBe("Hello")
+    expect(result[1].content).toBe("World")
+  })
+
+  test("filters out empty text parts from array content", () => {
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          { type: "text", text: "" },
+          { type: "text", text: "Hello" },
+          { type: "text", text: "" },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropicModel, {})
+
+    expect(result).toHaveLength(1)
+    expect(result[0].content).toHaveLength(1)
+    expect(result[0].content[0]).toEqual({ type: "text", text: "Hello" })
+  })
+
+  test("filters out empty reasoning parts from array content", () => {
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "" },
+          { type: "text", text: "Answer" },
+          { type: "reasoning", text: "" },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropicModel, {})
+
+    expect(result).toHaveLength(1)
+    expect(result[0].content).toHaveLength(1)
+    expect(result[0].content[0]).toEqual({ type: "text", text: "Answer" })
+  })
+
+  test("removes entire message when all parts are empty", () => {
+    const msgs = [
+      { role: "user", content: "Hello" },
+      {
+        role: "assistant",
+        content: [
+          { type: "text", text: "" },
+          { type: "reasoning", text: "" },
+        ],
+      },
+      { role: "user", content: "World" },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropicModel, {})
+
+    expect(result).toHaveLength(2)
+    expect(result[0].content).toBe("Hello")
+    expect(result[1].content).toBe("World")
+  })
+
+  test("keeps non-text/reasoning parts even if text parts are empty", () => {
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          { type: "text", text: "" },
+          { type: "tool-call", toolCallId: "123", toolName: "bash", input: { command: "ls" } },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropicModel, {})
+
+    expect(result).toHaveLength(1)
+    expect(result[0].content).toHaveLength(1)
+    expect(result[0].content[0]).toEqual({
+      type: "tool-call",
+      toolCallId: "123",
+      toolName: "bash",
+      input: { command: "ls" },
+    })
+  })
+
+  test("keeps messages with valid text alongside empty parts", () => {
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "Thinking..." },
+          { type: "text", text: "" },
+          { type: "text", text: "Result" },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropicModel, {})
+
+    expect(result).toHaveLength(1)
+    expect(result[0].content).toHaveLength(2)
+    expect(result[0].content[0]).toEqual({ type: "reasoning", text: "Thinking..." })
+    expect(result[0].content[1]).toEqual({ type: "text", text: "Result" })
+  })
+
+  test("does not filter for non-anthropic providers", () => {
+    const openaiModel = {
+      ...anthropicModel,
+      providerID: "openai",
+      api: {
+        id: "gpt-4",
+        url: "https://api.openai.com",
+        npm: "@ai-sdk/openai",
+      },
+    }
+
+    const msgs = [
+      { role: "assistant", content: "" },
+      {
+        role: "assistant",
+        content: [{ type: "text", text: "" }],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, openaiModel, {})
+
+    expect(result).toHaveLength(2)
+    expect(result[0].content).toBe("")
+    expect(result[1].content).toHaveLength(1)
+  })
+})
+
+describe("ProviderTransform.message - strip openai metadata when store=false", () => {
+  const openaiModel = {
+    id: "openai/gpt-5",
+    providerID: "openai",
+    api: {
+      id: "gpt-5",
+      url: "https://api.openai.com",
+      npm: "@ai-sdk/openai",
+    },
+    name: "GPT-5",
+    capabilities: {
+      temperature: true,
+      reasoning: true,
+      attachment: true,
+      toolcall: true,
+      input: { text: true, audio: false, image: true, video: false, pdf: false },
+      output: { text: true, audio: false, image: false, video: false, pdf: false },
+      interleaved: false,
+    },
+    cost: { input: 0.03, output: 0.06, cache: { read: 0.001, write: 0.002 } },
+    limit: { context: 128000, output: 4096 },
+    status: "active",
+    options: {},
+    headers: {},
+  } as any
+
+  test("preserves itemId and reasoningEncryptedContent when store=false", () => {
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "reasoning",
+            text: "thinking...",
+            providerOptions: {
+              openai: {
+                itemId: "rs_123",
+                reasoningEncryptedContent: "encrypted",
+              },
+            },
+          },
+          {
+            type: "text",
+            text: "Hello",
+            providerOptions: {
+              openai: {
+                itemId: "msg_456",
+              },
+            },
+          },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, openaiModel, { store: false }) as any[]
+
+    expect(result).toHaveLength(1)
+    expect(result[0].content[0].providerOptions?.openai?.itemId).toBe("rs_123")
+    expect(result[0].content[1].providerOptions?.openai?.itemId).toBe("msg_456")
+  })
+
+  test("preserves itemId and reasoningEncryptedContent when store=false even when not openai", () => {
+    const zenModel = {
+      ...openaiModel,
+      providerID: "zen",
+    }
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "reasoning",
+            text: "thinking...",
+            providerOptions: {
+              openai: {
+                itemId: "rs_123",
+                reasoningEncryptedContent: "encrypted",
+              },
+            },
+          },
+          {
+            type: "text",
+            text: "Hello",
+            providerOptions: {
+              openai: {
+                itemId: "msg_456",
+              },
+            },
+          },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, zenModel, { store: false }) as any[]
+
+    expect(result).toHaveLength(1)
+    expect(result[0].content[0].providerOptions?.openai?.itemId).toBe("rs_123")
+    expect(result[0].content[1].providerOptions?.openai?.itemId).toBe("msg_456")
+  })
+
+  test("preserves other openai options including itemId", () => {
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "text",
+            text: "Hello",
+            providerOptions: {
+              openai: {
+                itemId: "msg_123",
+                otherOption: "value",
+              },
+            },
+          },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, openaiModel, { store: false }) as any[]
+
+    expect(result[0].content[0].providerOptions?.openai?.itemId).toBe("msg_123")
+    expect(result[0].content[0].providerOptions?.openai?.otherOption).toBe("value")
+  })
+
+  test("preserves metadata for openai package when store is true", () => {
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "text",
+            text: "Hello",
+            providerOptions: {
+              openai: {
+                itemId: "msg_123",
+              },
+            },
+          },
+        ],
+      },
+    ] as any[]
+
+    // openai package preserves itemId regardless of store value
+    const result = ProviderTransform.message(msgs, openaiModel, { store: true }) as any[]
+
+    expect(result[0].content[0].providerOptions?.openai?.itemId).toBe("msg_123")
+  })
+
+  test("preserves metadata for non-openai packages when store is false", () => {
+    const anthropicModel = {
+      ...openaiModel,
+      providerID: "anthropic",
+      api: {
+        id: "claude-3",
+        url: "https://api.anthropic.com",
+        npm: "@ai-sdk/anthropic",
+      },
+    }
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "text",
+            text: "Hello",
+            providerOptions: {
+              openai: {
+                itemId: "msg_123",
+              },
+            },
+          },
+        ],
+      },
+    ] as any[]
+
+    // store=false preserves metadata for non-openai packages
+    const result = ProviderTransform.message(msgs, anthropicModel, { store: false }) as any[]
+
+    expect(result[0].content[0].providerOptions?.openai?.itemId).toBe("msg_123")
+  })
+
+  test("preserves metadata using providerID key when store is false", () => {
+    const customModel = {
+      ...openaiModel,
+      providerID: "custom",
+      api: {
+        id: "custom-test",
+        url: "https://api.example.test",
+        npm: "@ai-sdk/openai-compatible",
+      },
+    }
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "text",
+            text: "Hello",
+            providerOptions: {
+              custom: {
+                itemId: "msg_123",
+                otherOption: "value",
+              },
+            },
+          },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, customModel, { store: false }) as any[]
+
+    expect(result[0].content[0].providerOptions?.custom?.itemId).toBe("msg_123")
+    expect(result[0].content[0].providerOptions?.custom?.otherOption).toBe("value")
+  })
+
+  test("preserves itemId across all providerOptions keys", () => {
+    const customModel = {
+      ...openaiModel,
+      providerID: "custom",
+      api: {
+        id: "custom-test",
+        url: "https://api.example.test",
+        npm: "@ai-sdk/openai-compatible",
+      },
+    }
+    const msgs = [
+      {
+        role: "assistant",
+        providerOptions: {
+          openai: { itemId: "msg_root" },
+          custom: { itemId: "msg_custom" },
+          extra: { itemId: "msg_extra" },
+        },
+        content: [
+          {
+            type: "text",
+            text: "Hello",
+            providerOptions: {
+              openai: { itemId: "msg_openai_part" },
+              custom: { itemId: "msg_custom_part" },
+              extra: { itemId: "msg_extra_part" },
+            },
+          },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, customModel, { store: false }) as any[]
+
+    expect(result[0].providerOptions?.openai?.itemId).toBe("msg_root")
+    expect(result[0].providerOptions?.custom?.itemId).toBe("msg_custom")
+    expect(result[0].providerOptions?.extra?.itemId).toBe("msg_extra")
+    expect(result[0].content[0].providerOptions?.openai?.itemId).toBe("msg_openai_part")
+    expect(result[0].content[0].providerOptions?.custom?.itemId).toBe("msg_custom_part")
+    expect(result[0].content[0].providerOptions?.extra?.itemId).toBe("msg_extra_part")
+  })
+
+  test("does not strip metadata for non-openai packages when store is not false", () => {
+    const anthropicModel = {
+      ...openaiModel,
+      providerID: "anthropic",
+      api: {
+        id: "claude-3",
+        url: "https://api.anthropic.com",
+        npm: "@ai-sdk/anthropic",
+      },
+    }
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "text",
+            text: "Hello",
+            providerOptions: {
+              openai: {
+                itemId: "msg_123",
+              },
+            },
+          },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropicModel, {}) as any[]
+
+    expect(result[0].content[0].providerOptions?.openai?.itemId).toBe("msg_123")
+  })
+})
+
+describe("ProviderTransform.message - unsupported file attachments", () => {
+  const anthropicModel = {
+    id: "anthropic/claude-sonnet-4-6",
+    providerID: "anthropic",
+    api: { id: "claude-sonnet-4-6", url: "https://api.anthropic.com", npm: "@ai-sdk/anthropic" },
+    name: "Claude Sonnet 4.6",
+    capabilities: {
+      temperature: true,
+      reasoning: true,
+      attachment: true,
+      toolcall: true,
+      input: { text: true, audio: false, image: true, video: false, pdf: true },
+      output: { text: true, audio: false, image: false, video: false, pdf: false },
+      interleaved: false,
+    },
+    cost: { input: 0.003, output: 0.015, cache: { read: 0.0003, write: 0.00375 } },
+    limit: { context: 200000, output: 8192 },
+    status: "active",
+    options: {},
+    headers: {},
+  } as any
+
+  const b64 = (s: string) => Buffer.from(s).toString("base64")
+
+  test("inlines a text-decodable file (e.g. .pem) as a text part instead of crashing", () => {
+    const pem = "-----BEGIN PRIVATE KEY-----\nABCDEF\n-----END PRIVATE KEY-----\n"
+    const msgs = [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "hey" },
+          {
+            type: "file",
+            mediaType: "application/x-x509-ca-cert",
+            filename: "key.pem",
+            data: `data:application/x-x509-ca-cert;base64,${b64(pem)}`,
+          },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropicModel, {})
+
+    // No file parts must survive for an unsupported media type.
+    const content = result[0].content as any[]
+    expect(content.some((p: any) => p.type === "file")).toBe(false)
+    const texts = content.filter((p: any) => p.type === "text").map((p: any) => p.text)
+    expect(texts.some((t: string) => t.includes("key.pem") && t.includes("BEGIN PRIVATE KEY"))).toBe(true)
+  })
+
+  test("replaces a binary file with a note (not inlined, not a file part)", () => {
+    const binary = new Uint8Array([0x00, 0x01, 0x02, 0xff, 0xfe])
+    const msgs = [
+      {
+        role: "user",
+        content: [{ type: "file", mediaType: "application/octet-stream", filename: "blob.bin", data: binary }],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropicModel, {})
+    const content = result[0].content as any[]
+    expect(content.some((p: any) => p.type === "file")).toBe(false)
+    const text = (content.find((p: any) => p.type === "text") as any)?.text ?? ""
+    expect(text).toContain("blob.bin")
+    expect(text.toLowerCase()).toContain("binary")
+  })
+
+  test("leaves a supported pdf file part intact", () => {
+    const msgs = [
+      {
+        role: "user",
+        content: [
+          {
+            type: "file",
+            mediaType: "application/pdf",
+            filename: "doc.pdf",
+            data: `data:application/pdf;base64,${b64("%PDF-1.4 fake")}`,
+          },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropicModel, {})
+    expect((result[0].content as any[]).some((p: any) => p.type === "file")).toBe(true)
+  })
+})
+
+describe("ProviderTransform.message - image/pdf attachment fallback (#192)", () => {
+  // #192: images were falsely rejected as "this model doesn't support image
+  // input" for vision-capable models whose fine-grained input.image/input.pdf
+  // flag was missing/wrong in the catalog (notably the synthetic OpenRouter
+  // model, which hardcoded these false). The gate must fall back to the
+  // coarse `attachment` capability for image/pdf so it isn't blocked purely
+  // on a missing modality flag — but a model with attachment:false is
+  // genuinely incapable and must still get the ERROR text.
+  const b64 = (s: string) => Buffer.from(s).toString("base64")
+  const validImageBase64 =
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+
+  const createModel = (capabilityOverrides: Record<string, unknown>) =>
+    ({
+      id: "openrouter/some-vision-model",
+      providerID: "openrouter",
+      api: { id: "some-vision-model", url: "https://openrouter.ai/api/v1", npm: "@openrouter/ai-sdk-provider" },
+      name: "Some Vision Model",
+      capabilities: {
+        temperature: true,
+        reasoning: false,
+        attachment: false,
+        toolcall: true,
+        input: { text: true, audio: false, image: false, video: false, pdf: false },
+        output: { text: true, audio: false, image: false, video: false, pdf: false },
+        interleaved: false,
+        ...capabilityOverrides,
+      },
+      cost: { input: 0, output: 0, cache: { read: 0, write: 0 } },
+      limit: { context: 128000, output: 8192 },
+      status: "active",
+      options: {},
+      headers: {},
+      release_date: "",
+    }) as any
+
+  test("image part survives when input.image=false but attachment=true (fallback)", () => {
+    const model = createModel({
+      attachment: true,
+      input: { text: true, audio: false, image: false, video: false, pdf: false },
+    })
+    const msgs = [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is in this image?" },
+          { type: "image", image: `data:image/png;base64,${validImageBase64}` },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, model, {})
+
+    expect(result[0].content[1]).toEqual({ type: "image", image: `data:image/png;base64,${validImageBase64}` })
+  })
+
+  test("image part still replaced with ERROR when input.image=false and attachment=false (genuinely incapable model)", () => {
+    const model = createModel({
+      attachment: false,
+      input: { text: true, audio: false, image: false, video: false, pdf: false },
+    })
+    const msgs = [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is in this image?" },
+          { type: "image", image: `data:image/png;base64,${validImageBase64}` },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, model, {})
+
+    expect(result[0].content[1]).toEqual({
+      type: "text",
+      text: "ERROR: Cannot read image (this model does not support image input). Inform the user.",
+    })
+  })
+
+  test("image part survives when input.image=true regardless of attachment (regression)", () => {
+    const model = createModel({
+      attachment: false,
+      input: { text: true, audio: false, image: true, video: false, pdf: false },
+    })
+    const msgs = [
+      {
+        role: "user",
+        content: [{ type: "image", image: `data:image/png;base64,${validImageBase64}` }],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, model, {})
+
+    expect(result[0].content[0]).toEqual({ type: "image", image: `data:image/png;base64,${validImageBase64}` })
+  })
+
+  test("pdf file part survives when input.pdf=false but attachment=true (fallback)", () => {
+    const model = createModel({
+      attachment: true,
+      input: { text: true, audio: false, image: false, video: false, pdf: false },
+    })
+    const msgs = [
+      {
+        role: "user",
+        content: [
+          {
+            type: "file",
+            mediaType: "application/pdf",
+            filename: "doc.pdf",
+            data: `data:application/pdf;base64,${b64("%PDF-1.4 fake")}`,
+          },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, model, {})
+
+    expect((result[0].content as any[]).some((p: any) => p.type === "file")).toBe(true)
+  })
+
+  test("pdf file part replaced with ERROR when input.pdf=false and attachment=false", () => {
+    const model = createModel({
+      attachment: false,
+      input: { text: true, audio: false, image: false, video: false, pdf: false },
+    })
+    const msgs = [
+      {
+        role: "user",
+        content: [
+          {
+            type: "file",
+            mediaType: "application/pdf",
+            filename: "doc.pdf",
+            data: `data:application/pdf;base64,${b64("%PDF-1.4 fake")}`,
+          },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, model, {})
+
+    const content = result[0].content as any[]
+    expect(content.some((p: any) => p.type === "file")).toBe(false)
+    expect(content[0]).toEqual({
+      type: "text",
+      text: 'ERROR: Cannot read "doc.pdf" (this model does not support pdf input). Inform the user.',
+    })
+  })
+
+  test("audio file part is NOT broadened by the attachment fallback (image/pdf only)", () => {
+    const model = createModel({
+      attachment: true,
+      input: { text: true, audio: false, image: false, video: false, pdf: false },
+    })
+    const msgs = [
+      {
+        role: "user",
+        content: [
+          {
+            type: "file",
+            mediaType: "audio/mpeg",
+            filename: "clip.mp3",
+            data: `data:audio/mpeg;base64,${b64("fake audio bytes")}`,
+          },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, model, {})
+
+    const content = result[0].content as any[]
+    expect(content.some((p: any) => p.type === "file")).toBe(false)
+    expect(content[0]).toEqual({
+      type: "text",
+      text: 'ERROR: Cannot read "clip.mp3" (this model does not support audio input). Inform the user.',
+    })
+  })
+})
+
+describe("ProviderTransform.message - providerOptions key remapping", () => {
+  const createModel = (providerID: string, npm: string) =>
+    ({
+      id: `${providerID}/test-model`,
+      providerID,
+      api: {
+        id: "test-model",
+        url: "https://api.test.com",
+        npm,
+      },
+      name: "Test Model",
+      capabilities: {
+        temperature: true,
+        reasoning: false,
+        attachment: true,
+        toolcall: true,
+        input: { text: true, audio: false, image: true, video: false, pdf: true },
+        output: { text: true, audio: false, image: false, video: false, pdf: false },
+        interleaved: false,
+      },
+      cost: { input: 0.001, output: 0.002, cache: { read: 0.0001, write: 0.0002 } },
+      limit: { context: 128000, output: 8192 },
+      status: "active",
+      options: {},
+      headers: {},
+    }) as any
+
+  test("azure keeps 'azure' key and does not remap to 'openai'", () => {
+    const model = createModel("azure", "@ai-sdk/azure")
+    const msgs = [
+      {
+        role: "user",
+        content: "Hello",
+        providerOptions: {
+          azure: { someOption: "value" },
+        },
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, model, {})
+
+    expect(result[0].providerOptions?.azure).toEqual({ someOption: "value" })
+    expect(result[0].providerOptions?.openai).toBeUndefined()
+  })
+
+  test("openai with github-copilot npm remaps providerID to 'openai'", () => {
+    const model = createModel("github-copilot", "@ai-sdk/github-copilot")
+    const msgs = [
+      {
+        role: "user",
+        content: "Hello",
+        providerOptions: {
+          "github-copilot": { someOption: "value" },
+        },
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, model, {})
+
+    expect(result[0].providerOptions?.openai).toEqual({ someOption: "value" })
+    expect(result[0].providerOptions?.["github-copilot"]).toBeUndefined()
+  })
+
+  test("bedrock remaps providerID to 'bedrock' key", () => {
+    const model = createModel("my-bedrock", "@ai-sdk/amazon-bedrock")
+    const msgs = [
+      {
+        role: "user",
+        content: "Hello",
+        providerOptions: {
+          "my-bedrock": { someOption: "value" },
+        },
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, model, {})
+
+    expect(result[0].providerOptions?.bedrock).toEqual({ someOption: "value" })
+    expect(result[0].providerOptions?.["my-bedrock"]).toBeUndefined()
+  })
+})
+
+describe("ProviderTransform.message - claude w/bedrock custom inference profile", () => {
+  test("adds cachePoint", () => {
+    const model = {
+      id: "amazon-bedrock/custom-claude-sonnet-4.5",
+      providerID: "amazon-bedrock",
+      api: {
+        id: "arn:aws:bedrock:xxx:yyy:application-inference-profile/zzz",
+        url: "https://api.test.com",
+        npm: "@ai-sdk/amazon-bedrock",
+      },
+      name: "Custom inference profile",
+      capabilities: {},
+      options: {},
+      headers: {},
+    } as any
+
+    const msgs = [
+      {
+        role: "user",
+        content: "Hello",
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, model, {})
+
+    expect(result[0].providerOptions?.bedrock).toEqual(
+      expect.objectContaining({
+        cachePoint: {
+          type: "ephemeral",
+        },
+      }),
+    )
+  })
+})
+
+describe("ProviderTransform.variants", () => {
+  const createMockModel = (overrides: Partial<any> = {}): any => ({
+    id: "test/test-model",
+    providerID: "test",
+    api: {
+      id: "test-model",
+      url: "https://api.test.com",
+      npm: "@ai-sdk/openai",
+    },
+    name: "Test Model",
+    capabilities: {
+      temperature: true,
+      reasoning: true,
+      attachment: true,
+      toolcall: true,
+      input: { text: true, audio: false, image: true, video: false, pdf: false },
+      output: { text: true, audio: false, image: false, video: false, pdf: false },
+      interleaved: false,
+    },
+    cost: {
+      input: 0.001,
+      output: 0.002,
+      cache: { read: 0.0001, write: 0.0002 },
+    },
+    limit: {
+      context: 200_000,
+      output: 64_000,
+    },
+    status: "active",
+    options: {},
+    headers: {},
+    release_date: "2024-01-01",
+    ...overrides,
+  })
+
+  test("returns empty object when model has no reasoning capabilities", () => {
+    const model = createMockModel({
+      capabilities: { reasoning: false },
+    })
+    const result = ProviderTransform.variants(model)
+    expect(result).toEqual({})
+  })
+
+  test("deepseek returns empty object", () => {
+    const model = createMockModel({
+      id: "deepseek/deepseek-chat",
+      providerID: "deepseek",
+      api: {
+        id: "deepseek-chat",
+        url: "https://api.deepseek.com",
+        npm: "@ai-sdk/openai-compatible",
+      },
+    })
+    const result = ProviderTransform.variants(model)
+    expect(result).toEqual({})
+  })
+
+  test("minimax returns empty object", () => {
+    const model = createMockModel({
+      id: "minimax/minimax-model",
+      providerID: "minimax",
+      api: {
+        id: "minimax-model",
+        url: "https://api.minimax.com",
+        npm: "@ai-sdk/openai-compatible",
+      },
+    })
+    const result = ProviderTransform.variants(model)
+    expect(result).toEqual({})
+  })
+
+  test("glm returns empty object", () => {
+    const model = createMockModel({
+      id: "glm/glm-4",
+      providerID: "glm",
+      api: {
+        id: "glm-4",
+        url: "https://api.glm.com",
+        npm: "@ai-sdk/openai-compatible",
+      },
+    })
+    const result = ProviderTransform.variants(model)
+    expect(result).toEqual({})
+  })
+
+  test("mistral returns empty object", () => {
+    const model = createMockModel({
+      id: "mistral/mistral-large",
+      providerID: "mistral",
+      api: {
+        id: "mistral-large-latest",
+        url: "https://api.mistral.com",
+        npm: "@ai-sdk/mistral",
+      },
+    })
+    const result = ProviderTransform.variants(model)
+    expect(result).toEqual({})
+  })
+
+  describe("@openrouter/ai-sdk-provider", () => {
+    test("non-gpt reasoning models get low/medium/high effort", () => {
+      const model = createMockModel({
+        id: "openrouter/test-model",
+        providerID: "openrouter",
+        api: {
+          id: "test-model",
+          url: "https://openrouter.ai",
+          npm: "@openrouter/ai-sdk-provider",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(result).toEqual({
+        low: { reasoning: { effort: "low" } },
+        medium: { reasoning: { effort: "medium" } },
+        high: { reasoning: { effort: "high" } },
+      })
+    })
+
+    test("gpt models map through the per-model OpenAI effort ladder (reasoning wrapper)", () => {
+      const model = createMockModel({
+        id: "openrouter/gpt-5.2",
+        providerID: "openrouter",
+        api: {
+          id: "gpt-5.2",
+          url: "https://openrouter.ai",
+          npm: "@openrouter/ai-sdk-provider",
+        },
+        release_date: "2025-12-11",
+      })
+      const result = ProviderTransform.variants(model)
+      // gpt-5.2: none/low/medium/high/xhigh (no minimal); OpenRouter wraps in reasoning.effort.
+      expect(Object.keys(result)).toEqual(["none", "low", "medium", "high", "xhigh"])
+      expect(result.low).toEqual({ reasoning: { effort: "low" } })
+      expect(result.xhigh).toEqual({ reasoning: { effort: "xhigh" } })
+    })
+
+    test("claude via OpenRouter uses its exact catalog effort ladder", () => {
+      const result = ProviderTransform.variants(
+        createMockModel({
+          id: "anthropic/claude-opus-4.8",
+          providerID: "openrouter",
+          api: {
+            id: "anthropic/claude-opus-4.8",
+            url: "https://openrouter.ai",
+            npm: "@openrouter/ai-sdk-provider",
+          },
+          reasoningOptions: [
+            {
+              type: "effort",
+              values: ["low", "medium", "high", "xhigh", "max"],
+            },
+          ],
+        }),
+      )
+      expect(Object.keys(result)).toEqual(["low", "medium", "high", "xhigh", "max"])
+      expect(result.xhigh).toEqual({ reasoning: { effort: "xhigh" } })
+    })
+
+    test("no-effort-dial models expose no variants (kimi = on/off only)", () => {
+      const result = ProviderTransform.variants(
+        createMockModel({
+          id: "openrouter/kimi-k2.7",
+          providerID: "openrouter",
+          api: { id: "moonshotai/kimi-k2.7", url: "https://openrouter.ai", npm: "@openrouter/ai-sdk-provider" },
+        }),
+      )
+      expect(result).toEqual({})
+    })
+
+    test("Kimi K3 exposes its low/high/max effort ladder", () => {
+      const result = ProviderTransform.variants(
+        createMockModel({
+          id: "openrouter/kimi-k3",
+          providerID: "openrouter",
+          api: { id: "moonshotai/kimi-k3", url: "https://openrouter.ai", npm: "@openrouter/ai-sdk-provider" },
+        }),
+      )
+      expect(Object.keys(result)).toEqual(["low", "high", "max"])
+      expect(result.max).toEqual({ reasoning: { effort: "max" } })
+    })
+
+    test("gemini-3 returns WIDELY_SUPPORTED_EFFORTS with reasoning", () => {
+      const model = createMockModel({
+        id: "openrouter/gemini-3-5-pro",
+        providerID: "openrouter",
+        api: {
+          id: "gemini-3-5-pro",
+          url: "https://openrouter.ai",
+          npm: "@openrouter/ai-sdk-provider",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      // Gemini exposes low/medium/high reasoning levels — not OpenAI's
+      // none/minimal/xhigh set — so openrouter gemini-3 maps to those.
+      expect(Object.keys(result)).toEqual(["low", "medium", "high"])
+      expect(result.low).toEqual({ reasoning: { effort: "low" } })
+      expect(result.high).toEqual({ reasoning: { effort: "high" } })
+    })
+
+    test("grok-4 returns empty object", () => {
+      const model = createMockModel({
+        id: "openrouter/grok-4",
+        providerID: "openrouter",
+        api: {
+          id: "grok-4",
+          url: "https://openrouter.ai",
+          npm: "@openrouter/ai-sdk-provider",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(result).toEqual({})
+    })
+
+    test("current Grok models expose their documented effort ladders", () => {
+      const cases = {
+        "grok-4.3": ["none", "low", "medium", "high"],
+        "grok-4.5": ["low", "medium", "high"],
+        "grok-4.20-multi-agent-0309": ["low", "medium", "high", "xhigh"],
+      }
+      for (const [id, expected] of Object.entries(cases)) {
+        const result = ProviderTransform.variants(
+          createMockModel({
+            id: `openrouter/${id}`,
+            providerID: "openrouter",
+            api: { id: `x-ai/${id}`, url: "https://openrouter.ai", npm: "@openrouter/ai-sdk-provider" },
+          }),
+        )
+        expect(Object.keys(result)).toEqual(expected)
+        expect(result[expected.at(-1)!]).toEqual({ reasoning: { effort: expected.at(-1) } })
+      }
+    })
+
+    test("grok-3-mini returns low and high with reasoning", () => {
+      const model = createMockModel({
+        id: "openrouter/grok-3-mini",
+        providerID: "openrouter",
+        api: {
+          id: "grok-3-mini",
+          url: "https://openrouter.ai",
+          npm: "@openrouter/ai-sdk-provider",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "high"])
+      expect(result.low).toEqual({ reasoning: { effort: "low" } })
+      expect(result.high).toEqual({ reasoning: { effort: "high" } })
+    })
+  })
+
+  describe("@ai-sdk/gateway", () => {
+    test("uses the per-model OpenAI effort ladder with reasoningEffort", () => {
+      const model = createMockModel({
+        id: "gateway/gpt-5.5",
+        providerID: "gateway",
+        api: {
+          id: "gpt-5.5",
+          url: "https://gateway.ai",
+          npm: "@ai-sdk/gateway",
+        },
+        release_date: "2026-04-24",
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["none", "low", "medium", "high", "xhigh"])
+      expect(result.low).toEqual({ reasoningEffort: "low" })
+      expect(result.high).toEqual({ reasoningEffort: "high" })
+    })
+  })
+
+  describe("@ai-sdk/github-copilot", () => {
+    test("standard models return low, medium, high", () => {
+      const model = createMockModel({
+        id: "gpt-4.5",
+        providerID: "github-copilot",
+        api: {
+          id: "gpt-4.5",
+          url: "https://api.githubcopilot.com",
+          npm: "@ai-sdk/github-copilot",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high"])
+      expect(result.low).toEqual({
+        reasoningEffort: "low",
+        reasoningSummary: "auto",
+        include: ["reasoning.encrypted_content"],
+      })
+    })
+
+    test("gpt-5.1-codex-max includes xhigh", () => {
+      const model = createMockModel({
+        id: "gpt-5.1-codex-max",
+        providerID: "github-copilot",
+        api: {
+          id: "gpt-5.1-codex-max",
+          url: "https://api.githubcopilot.com",
+          npm: "@ai-sdk/github-copilot",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high", "xhigh"])
+    })
+
+    test("gpt-5.1-codex-mini does not include xhigh", () => {
+      const model = createMockModel({
+        id: "gpt-5.1-codex-mini",
+        providerID: "github-copilot",
+        api: {
+          id: "gpt-5.1-codex-mini",
+          url: "https://api.githubcopilot.com",
+          npm: "@ai-sdk/github-copilot",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high"])
+    })
+
+    test("gpt-5.1-codex does not include xhigh", () => {
+      const model = createMockModel({
+        id: "gpt-5.1-codex",
+        providerID: "github-copilot",
+        api: {
+          id: "gpt-5.1-codex",
+          url: "https://api.githubcopilot.com",
+          npm: "@ai-sdk/github-copilot",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high"])
+    })
+
+    test("gpt-5.2 includes xhigh", () => {
+      const model = createMockModel({
+        id: "gpt-5.2",
+        providerID: "github-copilot",
+        api: {
+          id: "gpt-5.2",
+          url: "https://api.githubcopilot.com",
+          npm: "@ai-sdk/github-copilot",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high", "xhigh"])
+      expect(result.xhigh).toEqual({
+        reasoningEffort: "xhigh",
+        reasoningSummary: "auto",
+        include: ["reasoning.encrypted_content"],
+      })
+    })
+
+    test("gpt-5.2-codex includes xhigh", () => {
+      const model = createMockModel({
+        id: "gpt-5.2-codex",
+        providerID: "github-copilot",
+        api: {
+          id: "gpt-5.2-codex",
+          url: "https://api.githubcopilot.com",
+          npm: "@ai-sdk/github-copilot",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high", "xhigh"])
+    })
+  })
+
+  describe("@ai-sdk/cerebras", () => {
+    test("returns WIDELY_SUPPORTED_EFFORTS with reasoningEffort", () => {
+      const model = createMockModel({
+        id: "cerebras/llama-4",
+        providerID: "cerebras",
+        api: {
+          id: "llama-4-sc",
+          url: "https://api.cerebras.ai",
+          npm: "@ai-sdk/cerebras",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high"])
+      expect(result.low).toEqual({ reasoningEffort: "low" })
+      expect(result.high).toEqual({ reasoningEffort: "high" })
+    })
+  })
+
+  describe("@ai-sdk/togetherai", () => {
+    test("returns WIDELY_SUPPORTED_EFFORTS with reasoningEffort", () => {
+      const model = createMockModel({
+        id: "togetherai/llama-4",
+        providerID: "togetherai",
+        api: {
+          id: "llama-4-sc",
+          url: "https://api.togetherai.com",
+          npm: "@ai-sdk/togetherai",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high"])
+      expect(result.low).toEqual({ reasoningEffort: "low" })
+      expect(result.high).toEqual({ reasoningEffort: "high" })
+    })
+  })
+
+  describe("@ai-sdk/xai", () => {
+    test("grok-3 returns empty object", () => {
+      const model = createMockModel({
+        id: "xai/grok-3",
+        providerID: "xai",
+        api: {
+          id: "grok-3",
+          url: "https://api.x.ai",
+          npm: "@ai-sdk/xai",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(result).toEqual({})
+    })
+
+    test("grok-3-mini returns low and high with reasoningEffort", () => {
+      const model = createMockModel({
+        id: "xai/grok-3-mini",
+        providerID: "xai",
+        api: {
+          id: "grok-3-mini",
+          url: "https://api.x.ai",
+          npm: "@ai-sdk/xai",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "high"])
+      expect(result.low).toEqual({ reasoningEffort: "low" })
+      expect(result.high).toEqual({ reasoningEffort: "high" })
+    })
+
+    test("current Grok models return their documented reasoningEffort variants", () => {
+      const cases = {
+        "grok-4.3": ["none", "low", "medium", "high"],
+        "grok-4.5": ["low", "medium", "high"],
+        "grok-4.20-multi-agent-0309": ["low", "medium", "high", "xhigh"],
+      }
+      for (const [id, expected] of Object.entries(cases)) {
+        const result = ProviderTransform.variants(
+          createMockModel({
+            id,
+            providerID: "xai",
+            api: {
+              id,
+              url: "https://api.x.ai",
+              npm: "@ai-sdk/xai",
+            },
+          }),
+        )
+        expect(Object.keys(result)).toEqual(expected)
+        expect(result[expected.at(-1)!]).toEqual({ reasoningEffort: expected.at(-1) })
+      }
+    })
+  })
+
+  describe("@ai-sdk/deepinfra", () => {
+    test("returns WIDELY_SUPPORTED_EFFORTS with reasoningEffort", () => {
+      const model = createMockModel({
+        id: "deepinfra/llama-4",
+        providerID: "deepinfra",
+        api: {
+          id: "llama-4-sc",
+          url: "https://api.deepinfra.com",
+          npm: "@ai-sdk/deepinfra",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high"])
+      expect(result.low).toEqual({ reasoningEffort: "low" })
+      expect(result.high).toEqual({ reasoningEffort: "high" })
+    })
+  })
+
+  describe("@ai-sdk/openai-compatible", () => {
+    test("returns WIDELY_SUPPORTED_EFFORTS with reasoningEffort", () => {
+      const model = createMockModel({
+        id: "custom-provider/custom-model",
+        providerID: "custom-provider",
+        api: {
+          id: "custom-model",
+          url: "https://api.custom.com",
+          npm: "@ai-sdk/openai-compatible",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high"])
+      expect(result.low).toEqual({ reasoningEffort: "low" })
+      expect(result.high).toEqual({ reasoningEffort: "high" })
+    })
+
+    test("Kimi K3 uses its native low/high/max reasoning_effort ladder", () => {
+      const model = createMockModel({
+        id: "kimi-k3",
+        providerID: "moonshotai",
+        api: {
+          id: "kimi-k3",
+          url: "https://api.moonshot.ai/v1",
+          npm: "@ai-sdk/openai-compatible",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "high", "max"])
+      expect(result.max).toEqual({ reasoningEffort: "max" })
+    })
+  })
+
+  describe("@ai-sdk/azure", () => {
+    test("o1-mini returns empty object", () => {
+      const model = createMockModel({
+        id: "o1-mini",
+        providerID: "azure",
+        api: {
+          id: "o1-mini",
+          url: "https://azure.com",
+          npm: "@ai-sdk/azure",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(result).toEqual({})
+    })
+
+    test("standard azure models return custom efforts with reasoningSummary", () => {
+      const model = createMockModel({
+        id: "o1",
+        providerID: "azure",
+        api: {
+          id: "o1",
+          url: "https://azure.com",
+          npm: "@ai-sdk/azure",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high"])
+      expect(result.low).toEqual({
+        reasoningEffort: "low",
+        reasoningSummary: "auto",
+        include: ["reasoning.encrypted_content"],
+      })
+    })
+
+    test("gpt-5 adds minimal effort", () => {
+      const model = createMockModel({
+        id: "gpt-5",
+        providerID: "azure",
+        api: {
+          id: "gpt-5",
+          url: "https://azure.com",
+          npm: "@ai-sdk/azure",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["minimal", "low", "medium", "high"])
+    })
+  })
+
+  describe("@ai-sdk/openai", () => {
+    test("gpt-5-pro returns empty object", () => {
+      const model = createMockModel({
+        id: "gpt-5-pro",
+        providerID: "openai",
+        api: {
+          id: "gpt-5-pro",
+          url: "https://api.openai.com",
+          npm: "@ai-sdk/openai",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(result).toEqual({})
+    })
+
+    test("standard openai models return custom efforts with reasoningSummary", () => {
+      const model = createMockModel({
+        id: "gpt-5",
+        providerID: "openai",
+        api: {
+          id: "gpt-5",
+          url: "https://api.openai.com",
+          npm: "@ai-sdk/openai",
+        },
+        release_date: "2024-06-01",
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["minimal", "low", "medium", "high"])
+      expect(result.low).toEqual({
+        reasoningEffort: "low",
+        reasoningSummary: "auto",
+        include: ["reasoning.encrypted_content"],
+      })
+    })
+
+    test("models on/after 2025-11-13 use 'none' and drop 'minimal' (5.1+ replaced it)", () => {
+      const model = createMockModel({
+        id: "gpt-5-nano",
+        providerID: "openai",
+        api: {
+          id: "gpt-5-nano",
+          url: "https://api.openai.com",
+          npm: "@ai-sdk/openai",
+        },
+        release_date: "2025-11-14",
+      })
+      const result = ProviderTransform.variants(model)
+      // GPT-5.1 replaced `minimal` with `none` — they are never both accepted.
+      expect(Object.keys(result)).toEqual(["none", "low", "medium", "high"])
+    })
+
+    test("models on/after 2025-12-11 include 'xhigh' effort (GPT-5.2 introduced it)", () => {
+      const model = createMockModel({
+        id: "openai/gpt-5-chat",
+        providerID: "openai",
+        api: {
+          id: "gpt-5-chat",
+          url: "https://api.openai.com",
+          npm: "@ai-sdk/openai",
+        },
+        release_date: "2025-12-11",
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["none", "low", "medium", "high", "xhigh"])
+    })
+
+    test("GPT-5.6 models include the max reasoning effort", () => {
+      for (const id of ["gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]) {
+        const model = createMockModel({
+          id,
+          providerID: "openai",
+          api: {
+            id,
+            url: "https://api.openai.com",
+            npm: "@ai-sdk/openai",
+          },
+          release_date: "2026-07-09",
+        })
+        expect(Object.keys(ProviderTransform.variants(model))).toEqual([
+          "none",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max",
+        ])
+      }
+    })
+  })
+
+  describe("@ai-sdk/anthropic", () => {
+    test("returns low, medium, high and max with thinking config", () => {
+      const model = createMockModel({
+        id: "anthropic/claude-4",
+        providerID: "anthropic",
+        api: {
+          id: "claude-4",
+          url: "https://api.anthropic.com",
+          npm: "@ai-sdk/anthropic",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high", "max"])
+      expect(result.low).toEqual({
+        thinking: {
+          type: "enabled",
+          budgetTokens: 4000,
+        },
+      })
+      expect(result.medium).toEqual({
+        thinking: {
+          type: "enabled",
+          budgetTokens: 10000,
+        },
+      })
+      expect(result.high).toEqual({
+        thinking: {
+          type: "enabled",
+          budgetTokens: 16000,
+        },
+      })
+      expect(result.max).toEqual({
+        thinking: {
+          type: "enabled",
+          budgetTokens: 31999,
+        },
+      })
+    })
+  })
+
+  describe("@ai-sdk/anthropic effort vs classic thinking", () => {
+    // Verified against platform.claude.com/docs/build-with-claude/effort (July
+    // 2026). Two paths:
+    //  • EFFORT (output_config.effort, full low→max incl. xhigh): the newest
+    //    Claudes that REJECT manual thinking — Opus 4.7/4.8, Sonnet 5, Mythos 5,
+    //    and the 5+ generation. The SDK effort enum is widened to
+    //    include xhigh/max by tooling/patches/@ai-sdk%2Fanthropic@2.0.57.patch.
+    //  • CLASSIC thinking-budget (low/medium/high/max): everything else — Opus
+    //    4.5/4.6, Sonnet 4.5/4.6, Haiku 4.5 — which have no effort param (4.5
+    //    would 400) but accept a manual thinking budget.
+    const anthropicModel = (id: string) =>
+      createMockModel({
+        id,
+        providerID: "anthropic",
+        api: { id, url: "https://api.anthropic.com", npm: "@ai-sdk/anthropic" },
+      })
+
+    const EFFORT_MODELS = ["claude-opus-4-7", "claude-opus-4-8", "claude-opus-5", "claude-sonnet-5", "claude-mythos-5"]
+    for (const id of EFFORT_MODELS) {
+      test(`${id} exposes the full low→max effort ladder including xhigh`, () => {
+        const result = ProviderTransform.variants(anthropicModel(id))
+        expect(Object.keys(result)).toEqual(["low", "medium", "high", "xhigh", "max"])
+        expect(result.low).toEqual({ thinking: { type: "adaptive" }, effort: "low" })
+        expect(result.xhigh).toEqual({ thinking: { type: "adaptive" }, effort: "xhigh" })
+        expect(result.max).toEqual({ thinking: { type: "adaptive" }, effort: "max" })
+      })
+    }
+
+    // Regression guard: Mythos is NOT opus/sonnet/haiku, so a naive regex
+    // drops them to the classic path where manual thinking 400s.
+    test("claude-mythos-5 uses effort, not a thinking budget", () => {
+      const result = ProviderTransform.variants(anthropicModel("claude-mythos-5"))
+      expect(result.high).toEqual({ thinking: { type: "adaptive" }, effort: "high" })
+      expect(result.high.thinking).not.toHaveProperty("budgetTokens")
+    })
+
+    const CLASSIC_MODELS = [
+      "claude-opus-4-5",
+      "claude-opus-4-6",
+      "claude-sonnet-4-5",
+      "claude-sonnet-4-6",
+      "claude-haiku-4-5",
+    ]
+    for (const id of CLASSIC_MODELS) {
+      test(`${id} uses classic thinking-budget variants (no effort param)`, () => {
+        const result = ProviderTransform.variants(anthropicModel(id))
+        expect(Object.keys(result)).toEqual(["low", "medium", "high", "max"])
+        expect(result.low).toHaveProperty("thinking")
+        expect((result.low as { effort?: string }).effort).toBeUndefined()
+      })
+    }
+  })
+
+  describe("@ai-sdk/amazon-bedrock", () => {
+    test("returns WIDELY_SUPPORTED_EFFORTS with reasoningConfig", () => {
+      const model = createMockModel({
+        id: "bedrock/llama-4",
+        providerID: "bedrock",
+        api: {
+          id: "llama-4-sc",
+          url: "https://bedrock.amazonaws.com",
+          npm: "@ai-sdk/amazon-bedrock",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high"])
+      expect(result.low).toEqual({
+        reasoningConfig: {
+          type: "enabled",
+          maxReasoningEffort: "low",
+        },
+      })
+    })
+  })
+
+  describe("@ai-sdk/google", () => {
+    test("gemini-2.5 returns low, medium, high and max with thinkingConfig and thinkingBudget", () => {
+      const model = createMockModel({
+        id: "google/gemini-2.5-pro",
+        providerID: "google",
+        api: {
+          id: "gemini-2.5-pro",
+          url: "https://generativelanguage.googleapis.com",
+          npm: "@ai-sdk/google",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high", "max"])
+      expect(result.low).toEqual({
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingBudget: 2048,
+        },
+      })
+      expect(result.medium).toEqual({
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingBudget: 8192,
+        },
+      })
+      expect(result.high).toEqual({
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingBudget: 16000,
+        },
+      })
+      expect(result.max).toEqual({
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingBudget: 24576,
+        },
+      })
+    })
+
+    test("other gemini models return low, medium and high with thinkingLevel", () => {
+      const model = createMockModel({
+        id: "google/gemini-2.0-pro",
+        providerID: "google",
+        api: {
+          id: "gemini-2.0-pro",
+          url: "https://generativelanguage.googleapis.com",
+          npm: "@ai-sdk/google",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high"])
+      // Nested under thinkingConfig so @ai-sdk/google actually reads the level.
+      expect(result.low).toEqual({
+        thinkingConfig: { includeThoughts: true, thinkingLevel: "low" },
+      })
+      expect(result.medium).toEqual({
+        thinkingConfig: { includeThoughts: true, thinkingLevel: "medium" },
+      })
+      expect(result.high).toEqual({
+        thinkingConfig: { includeThoughts: true, thinkingLevel: "high" },
+      })
+    })
+  })
+
+  describe("@ai-sdk/google-vertex", () => {
+    test("gemini-2.5 returns low, medium, high and max with thinkingConfig and thinkingBudget", () => {
+      const model = createMockModel({
+        id: "google-vertex/gemini-2.5-pro",
+        providerID: "google-vertex",
+        api: {
+          id: "gemini-2.5-pro",
+          url: "https://vertexai.googleapis.com",
+          npm: "@ai-sdk/google-vertex",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high", "max"])
+    })
+
+    test("other vertex models return low, medium and high with thinkingLevel", () => {
+      const model = createMockModel({
+        id: "google-vertex/gemini-2.0-pro",
+        providerID: "google-vertex",
+        api: {
+          id: "gemini-2.0-pro",
+          url: "https://vertexai.googleapis.com",
+          npm: "@ai-sdk/google-vertex",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["low", "medium", "high"])
+    })
+  })
+
+  describe("@ai-sdk/cohere", () => {
+    test("returns empty object", () => {
+      const model = createMockModel({
+        id: "cohere/command-r",
+        providerID: "cohere",
+        api: {
+          id: "command-r",
+          url: "https://api.cohere.com",
+          npm: "@ai-sdk/cohere",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(result).toEqual({})
+    })
+  })
+
+  describe("@ai-sdk/groq", () => {
+    test("returns none and WIDELY_SUPPORTED_EFFORTS with groq reasoning keys", () => {
+      const model = createMockModel({
+        id: "groq/llama-4",
+        providerID: "groq",
+        api: {
+          id: "llama-4-sc",
+          url: "https://api.groq.com",
+          npm: "@ai-sdk/groq",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(Object.keys(result)).toEqual(["none", "low", "medium", "high"])
+      // Groq uses reasoningEffort + reasoningFormat, NOT the Google
+      // includeThoughts/thinkingLevel keys.
+      expect(result.none).toEqual({
+        reasoningEffort: "none",
+        reasoningFormat: "parsed",
+      })
+      expect(result.low).toEqual({
+        reasoningEffort: "low",
+        reasoningFormat: "parsed",
+      })
+    })
+  })
+
+  describe("@ai-sdk/perplexity", () => {
+    test("returns empty object", () => {
+      const model = createMockModel({
+        id: "perplexity/sonar-plus",
+        providerID: "perplexity",
+        api: {
+          id: "sonar-plus",
+          url: "https://api.perplexity.ai",
+          npm: "@ai-sdk/perplexity",
+        },
+      })
+      const result = ProviderTransform.variants(model)
+      expect(result).toEqual({})
+    })
+  })
+})

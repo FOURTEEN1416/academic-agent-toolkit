@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-13",
+  "policy": "distribution-tier-taxonomy",
+  "tiers": [
+    {
+      "id": "distributed-local",
+      "repo_local_retention_allowed": true,
+      "shipped_by_default_allowed": true,
+      "description": "Canonical VCO-owned or locally rewritten assets that are part of normal distribution."
+    },
+    {
+      "id": "repo-local-mirror-not-shipped",
+      "repo_local_retention_allowed": true,
+      "shipped_by_default_allowed": false,
+      "description": "Repo-local mirrors or retained upstream assets kept for audit, comparison, or simplified operator workflows, but not shipped by default."
+    },
+    {
+      "id": "external-optional",
+      "repo_local_retention_allowed": false,
+      "shipped_by_default_allowed": false,
+      "description": "External dependency, service, CLI, or library that may be used by operators but is not distributed as core repo content."
+    },
+    {
+      "id": "reference-only",
+      "repo_local_retention_allowed": false,
+      "shipped_by_default_allowed": false,
+      "description": "Governance, methodology, corpus, or advisory source retained as a reference, not as distributable runtime content."
+    }
+  ]
+}

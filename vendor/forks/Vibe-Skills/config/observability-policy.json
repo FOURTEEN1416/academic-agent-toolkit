@@ -1,0 +1,65 @@
+﻿{
+    "version":  1,
+    "updated":  "2026-02-26",
+    "enabled":  true,
+    "mode": "soft",
+    "preserve_routing_assignment":  true,
+    "routing_integration":  "post_route_observability_only",
+    "event_schema_version":  "v1",
+    "telemetry":  {
+                      "output_dir":  "outputs/telemetry",
+                      "file_prefix":  "route-events",
+                      "write_jsonl":  true,
+                      "store_prompt_raw":  false,
+                      "prompt_excerpt_max_chars":  0,
+                      "sample_rates":  {
+                                           "shadow":  0.35,
+                                           "soft":  0.6,
+                                           "strict":  1.0
+                                       },
+                      "force_capture":  {
+                                            "route_modes":  [
+                                                                "confirm_required",
+                                                                "legacy_fallback"
+                                                            ],
+                                            "overlay_confirm_required":  true
+                                        }
+                  },
+    "profile_dimensions":  {
+                               "include_os":  true,
+                               "include_shell":  true,
+                               "include_cpu_bucket":  true,
+                               "include_locale":  true,
+                               "include_proxy_hint":  true
+                           },
+    "user_dimensions":  {
+                            "include_user_hash":  true,
+                            "include_language_mix":  true,
+                            "include_explicit_command_hint":  true
+                        },
+    "learning":  {
+                     "enabled":  true,
+                     "min_events_for_suggestion":  200,
+                     "bounded_adjustments":  {
+                                                "confirm_required_max_delta":  0.03,
+                                                "min_top_gap_max_delta":  0.03,
+                                                "fallback_threshold_max_delta":  0.02
+                                            },
+                     "output_path":  "outputs/learn/vibe-adaptive-suggestions.json",
+                     "apply_policy":  "manual_review_required"
+                 },
+    "rollback_policy":  {
+                            "automatic_rollback_enabled":  false,
+                            "user_confirmation_required":  true,
+                            "notify_only":  true
+                        },
+    "fallback_behavior":  {
+                              "on_missing_config":  "skip_telemetry",
+                              "on_write_error":  "continue_without_telemetry"
+                          }
+}
+
+
+
+
+

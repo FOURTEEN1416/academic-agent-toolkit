@@ -1,0 +1,28 @@
+{
+  "schema": "paperspine5.material-library/1.0",
+  "updated_at": "2026-08-28",
+  "append_only": true,
+  "releases": [
+    {
+      "id": "2026-08-28-figure-studies-301-308",
+      "sequence": 1,
+      "published_on": "2026-08-28",
+      "title": "Figure Studies 301–308",
+      "summary": "Four schematics and four data figures published as PNG, SVG, mobile surfaces, and one eight-page vector PDF.",
+      "detail_path": "../figure-studies/",
+      "manifest_path": "../assets/figure-showcase/manifest.json",
+      "pdf_path": "../assets/figure-showcase/01_pdf/paperspine5-figure-studies-publication.pdf",
+      "counts": {
+        "figures": 8,
+        "schematics": 4,
+        "data_figures": 4,
+        "svg": 8,
+        "png": 8,
+        "mobile_detail": 8,
+        "mobile_walls": 4,
+        "pdf_pages": 8
+      },
+      "pdf_sha256": "b34c0d926ba8e3a9b499f4be73b60924ed2cb4919c8f630b3c669f19938afe0e"
+    }
+  ]
+}

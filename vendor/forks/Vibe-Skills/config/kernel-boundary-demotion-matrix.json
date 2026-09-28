@@ -1,0 +1,313 @@
+{
+  "version": 2,
+  "updated_at": "2026-06-20",
+  "purpose": "Declares which layer currently owns each major capability and which older layers are demoted to compatibility, release-only, or host wiring roles.",
+  "capability_boundaries": [
+    {
+      "capability": "task_understanding",
+      "authority_layer": "kernel",
+      "primary_entry_file": "packages/runtime-core/src/vgo_runtime/kernel/task_card.py",
+      "authority_files": [
+        "packages/runtime-core/src/vgo_runtime/kernel/task_card.py"
+      ],
+      "steady_state_contract": "TaskCard",
+      "demoted_layers": [
+        "packages/runtime-core/src/vgo_runtime/task_intent.py",
+        "packages/runtime-core/src/vgo_runtime/governance.py"
+      ]
+    },
+    {
+      "capability": "skill_contract",
+      "authority_layer": "kernel",
+      "primary_entry_file": "packages/runtime-core/src/vgo_runtime/kernel/skill_manifest.py",
+      "authority_files": [
+        "packages/runtime-core/src/vgo_runtime/kernel/skill_manifest.py"
+      ],
+      "steady_state_contract": "SkillManifest",
+      "demoted_layers": [
+        "core/skill-contracts/",
+        "packages/skill-catalog/",
+        "scripts/router/"
+      ]
+    },
+    {
+      "capability": "skill_indexing",
+      "authority_layer": "kernel",
+      "primary_entry_file": "packages/runtime-core/src/vgo_runtime/kernel/skill_index.py",
+      "authority_files": [
+        "packages/runtime-core/src/vgo_runtime/kernel/skill_index.py"
+      ],
+      "steady_state_contract": "generated/skills-index.json",
+      "demoted_layers": [
+        "packages/runtime-core/src/vgo_runtime/custom_admission.py",
+        "scripts/router/modules/19-custom-admission.ps1"
+      ]
+    },
+    {
+      "capability": "local_skill_extension",
+      "authority_layer": "skill_surface",
+      "primary_entry_file": "skills/local/<new-skill>/SKILL.md",
+      "authority_files": [
+        "packages/runtime-core/src/vgo_runtime/kernel/skill_manifest.py",
+        "packages/runtime-core/src/vgo_runtime/kernel/skill_index.py"
+      ],
+      "steady_state_contract": "local skill frontmatter plus generated/skills-index.json",
+      "demoted_layers": [
+        "config/skill-routing-rules.json",
+        "config/skill-keyword-index.json",
+        "packages/skill-catalog/"
+      ]
+    },
+    {
+      "capability": "skill_selection",
+      "authority_layer": "kernel",
+      "primary_entry_file": "packages/runtime-core/src/vgo_runtime/kernel/finder.py",
+      "authority_files": [
+        "packages/runtime-core/src/vgo_runtime/kernel/finder.py"
+      ],
+      "steady_state_contract": "SkillCandidate",
+      "demoted_layers": [
+        "packages/runtime-core/src/vgo_runtime/route_index.py"
+      ]
+    },
+    {
+      "capability": "plan_construction",
+      "authority_layer": "kernel",
+      "primary_entry_file": "packages/runtime-core/src/vgo_runtime/kernel/planner.py",
+      "authority_files": [
+        "packages/runtime-core/src/vgo_runtime/kernel/work_plan.py",
+        "packages/runtime-core/src/vgo_runtime/kernel/planner.py"
+      ],
+      "steady_state_contract": "WorkPlan",
+      "demoted_layers": [
+        "packages/runtime-core/src/vgo_runtime/planning.py",
+        "packages/runtime-core/src/vgo_runtime/stage_machine.py"
+      ]
+    },
+    {
+      "capability": "execution",
+      "authority_layer": "kernel",
+      "primary_entry_file": "packages/runtime-core/src/vgo_runtime/kernel/loop.py",
+      "authority_files": [
+        "packages/runtime-core/src/vgo_runtime/kernel/executor.py",
+        "packages/runtime-core/src/vgo_runtime/kernel/loop.py"
+      ],
+      "steady_state_contract": "WorkUnitResult",
+      "demoted_layers": [
+        "packages/runtime-core/src/vgo_runtime/runtime_bridge.py"
+      ]
+    },
+    {
+      "capability": "verification",
+      "authority_layer": "kernel",
+      "primary_entry_file": "packages/runtime-core/src/vgo_runtime/kernel/verifier.py",
+      "authority_files": [
+        "packages/runtime-core/src/vgo_runtime/kernel/verifier.py"
+      ],
+      "steady_state_contract": "VerificationResult",
+      "demoted_layers": [
+        "docs/governance/current-runtime-field-contract.md"
+      ]
+    },
+    {
+      "capability": "run_state",
+      "authority_layer": "kernel",
+      "primary_entry_file": "packages/runtime-core/src/vgo_runtime/kernel/run_state.py",
+      "authority_files": [
+        "packages/runtime-core/src/vgo_runtime/kernel/run_state.py"
+      ],
+      "steady_state_contract": "RunState",
+      "demoted_layers": [
+        "packages/runtime-core/src/vgo_runtime/stage_machine.py",
+        "packages/runtime-core/src/vgo_runtime/canonical_entry.py"
+      ]
+    },
+    {
+      "capability": "public_entry",
+      "authority_layer": "entry_wrapper",
+      "primary_entry_file": "packages/runtime-core/src/vgo_runtime/canonical_entry.py",
+      "authority_files": [
+        "packages/runtime-core/src/vgo_runtime/canonical_entry.py"
+      ],
+      "steady_state_contract": "thin entry wrapper",
+      "demoted_layers": [
+        "scripts/runtime/VibeRuntime.Common.ps1",
+        "scripts/router/resolve-pack-route.ps1"
+      ]
+    },
+    {
+      "capability": "host_wiring",
+      "authority_layer": "host_adapter",
+      "primary_entry_file": "packages/runtime-core/src/vgo_runtime/powershell_bridge.py",
+      "authority_files": [
+        "packages/runtime-core/src/vgo_runtime/powershell_bridge.py"
+      ],
+      "steady_state_contract": "host and leaf execution only",
+      "demoted_layers": [
+        "scripts/router/",
+        "packages/runtime-core/src/vgo_runtime/runtime_bridge.py"
+      ]
+    }
+  ],
+  "compatibility_exit_policy": {
+    "version": 1,
+    "purpose": "Freeze the rule that compatibility layers can translate or wire hosts, but must not regain live semantic authority. Also declares explicit deletion budgets for each migration phase.",
+    "non_negotiable_rules": [
+      {
+        "id": "no-new-live-semantic-authority",
+        "applies_to_authority_layers": [
+          "entry_wrapper",
+          "host_adapter"
+        ],
+        "forbidden_change_classes": [
+          "task_meaning",
+          "skill_selection",
+          "plan_construction",
+          "verification_semantics"
+        ],
+        "allowed_roles": [
+          "entry delegation",
+          "projection only",
+          "host wiring",
+          "leaf execution bridge",
+          "historical contract reader"
+        ],
+        "review_requirement": "Any change in these layers must name the kernel-facing owner and prove that the layer only delegates, projects, or wires a host edge."
+      },
+      {
+        "id": "zero-expansion-budget",
+        "applies_to_authority_layers": [
+          "entry_wrapper",
+          "host_adapter"
+        ],
+        "rule": "Migration phases may remove compatibility residue, but they must not introduce new compatibility-owned semantic capabilities."
+      }
+    ],
+    "controlled_capabilities": [
+      {
+        "capability": "public_entry",
+        "authority_layer": "entry_wrapper",
+        "kernel_owner_capabilities": [
+          "plan_construction",
+          "execution",
+          "verification",
+          "run_state"
+        ],
+        "allowed_change_roles": [
+          "entry delegation",
+          "request normalization",
+          "summary projection"
+        ],
+        "deletion_target_phase": "phase_4"
+      },
+      {
+        "capability": "host_wiring",
+        "authority_layer": "host_adapter",
+        "kernel_owner_capabilities": [],
+        "allowed_change_roles": [
+          "host wiring",
+          "leaf execution bridge"
+        ],
+        "deletion_target_phase": "retain"
+      }
+    ],
+    "phase_deletion_budgets": [
+      {
+        "phase": "phase_1",
+        "minimum_retirements": 0,
+        "maximum_new_compatibility_capabilities": 0,
+        "focus": "freeze the inventory and stop semantic expansion before larger cuts"
+      },
+      {
+        "phase": "phase_2",
+        "minimum_retirements": 1,
+        "maximum_new_compatibility_capabilities": 0,
+        "focus": "remove at least one local-skill or admission-related compatibility residue"
+      },
+      {
+        "phase": "phase_3",
+        "minimum_retirements": 2,
+        "maximum_new_compatibility_capabilities": 0,
+        "focus": "remove route-led planning or execution residue while the kernel hot path becomes authoritative"
+      },
+      {
+        "phase": "phase_4",
+        "minimum_retirements": 3,
+        "maximum_new_compatibility_capabilities": 0,
+        "focus": "leave only explicit thin projections, host edges, or historical release shims"
+      }
+    ]
+  },
+  "residue_retirement_ledger": {
+    "version": 1,
+    "purpose": "Track the remaining places where one semantic fact is still mirrored across compatibility-era runtime surfaces. Every retained mirror needs a preferred source, a reason to exist, and a retirement proof path.",
+    "residue_items": [
+      {
+        "id": "task-type-mirror-between-route-snapshot-and-canonical-router",
+        "semantic_fact": "current task type used for canonical continuation",
+        "owner_capability": "task_understanding",
+        "current_preferred_source": "runtime packet route_snapshot.task_type",
+        "compatibility_mirrors": [],
+        "current_role": "retired default duplicate mirror",
+        "current_reason_retained": "canonical_router.task_type no longer ships in the default runtime packet. route_snapshot now carries the routed task_type truth directly.",
+        "retirement_target_phase": "phase_4",
+        "retirement_proof_paths": [
+          "packages/runtime-core/src/vgo_runtime/canonical_entry.py",
+          "scripts/runtime/VibeRuntime.Common.ps1",
+          "tests/unit/test_canonical_vibe_entry_launcher.py",
+          "scripts/verify/vibe-canonical-entry-truth-gate.ps1"
+        ]
+      },
+      {
+        "id": "selected-skill-mirror-across-kernel-selection-and-compatibility-summaries",
+        "semantic_fact": "routed helper skill chosen for the current work",
+        "owner_capability": "skill_selection",
+        "current_preferred_source": "runtime packet module_assignments.units[*].bound_skill",
+        "compatibility_mirrors": [],
+        "current_role": "retired default duplicate mirror",
+        "current_reason_retained": "module_assignments carries the live bounded-work selection truth. Current packets do not emit a duplicate route-selected mirror.",
+        "retirement_target_phase": "phase_4",
+        "retirement_proof_paths": [
+          "packages/runtime-core/src/vgo_runtime/canonical_entry.py",
+          "scripts/runtime/VibeRuntime.Common.ps1",
+          "tests/integration/test_canonical_vibe_truth_gate.py",
+          "config/kernel-boundary-demotion-matrix.json"
+        ]
+      },
+      {
+        "id": "runtime-authority-mirror-across-governance-capsule-and-divergence-shadow",
+        "semantic_fact": "canonical runtime authority stays on vibe even when helper skills are attached",
+        "owner_capability": "public_entry",
+        "current_preferred_source": "governance-capsule.json runtime_selected_skill",
+        "compatibility_mirrors": [],
+        "current_role": "retired default duplicate mirror",
+        "current_reason_retained": "governance-capsule now carries the required runtime authority truth, and divergence_shadow.runtime_selected_skill has been removed from the default packet. Older audit surfaces may still tolerate it when present, but current canonical truth no longer emits or requires it.",
+        "retirement_target_phase": "phase_4",
+        "retirement_proof_paths": [
+          "packages/runtime-core/src/vgo_runtime/canonical_entry.py",
+          "tests/unit/test_canonical_vibe_entry_launcher.py",
+          "scripts/verify/vibe-canonical-entry-truth-gate.ps1"
+        ]
+      }
+    ]
+  },
+  "migration_scaffold_retirement_protocol": {
+    "purpose": "Prevent migration-only governance assets from becoming a second heavy control plane after they helped demote the old router surfaces.",
+    "governed_assets": [
+      "config/kernel-benchmark-pack.json",
+      "config/kernel-evaluation-metrics.json",
+      "config/kernel-boundary-demotion-matrix.json"
+    ],
+    "rules": [
+      "Prefer extending an existing governance surface over creating a net-new migration contract file.",
+      "A migration slice should not add more governance-edit burden than the semantic authority it removes from the old route-first system.",
+      "By phase_4, migration-only governance surfaces should be shrinking, generated, historicalized, or otherwise easier to maintain than the router era they replaced.",
+      "After phase_4, the live governance surface should stay capped at the benchmark pack, metric config, and boundary demotion map; anything wider should be generated, historical, or artifact-only."
+    ],
+    "change_budget": {
+      "maximum_net_new_governance_contract_files_per_slice": 0,
+      "default_preferred_governance_files_touched_per_slice": 1
+    },
+    "claim_rule": "Do not call the architecture lighter if each semantic change still requires maintaining an expanding stack of migration-only governance assets."
+  }
+}

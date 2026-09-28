@@ -1,0 +1,37 @@
+{
+  "adapter_id": "claude-code",
+  "platform": "windows",
+  "status": "not-yet-proven",
+  "install_surface": [
+    "install.ps1 --host claude-code",
+    "scripts/bootstrap/one-shot-setup.ps1"
+  ],
+  "check_surface": [
+    "check.ps1 --host claude-code"
+  ],
+  "doctor_surface": [
+    "check.ps1",
+    "scripts/verify/vibe-host-adapter-contract-gate.ps1"
+  ],
+  "degrade_cases": {
+    "unverified_platform_lane": "not-yet-proven",
+    "fresh_machine_replay_missing": "not-yet-proven",
+    "host_plugin_or_mcp_state_missing": "host-managed"
+  },
+  "promotion_target": "supported-with-constraints",
+  "proof_bundle": {
+    "manifest": "references/proof-bundles/claude-code-managed-closure-candidate/manifest.json",
+    "current_evidence_state": "no-windows-fresh-machine-proof",
+    "decision": "blocked"
+  },
+  "promotion_requirements": [
+    "fresh-machine Windows install proof",
+    "fresh-machine Windows check proof",
+    "real Claude CLI smoke proof on Windows",
+    "frozen promotion decision synced into replay truth"
+  ],
+  "notes": [
+    "Windows lane now has a bounded Claude managed-closure contract, but no frozen Windows proof bundle exists yet.",
+    "Do not promote Windows Claude Code above not-yet-proven until fresh-machine replay and host-native smoke evidence are frozen."
+  ]
+}

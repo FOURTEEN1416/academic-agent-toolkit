@@ -1,0 +1,130 @@
+domain_id: hep_ph
+display_name: High Energy Physics Phenomenology
+parent_domain: hep_ph
+
+# Tip: to plug in extra stage-level physics guidance (e.g. a MadGraph
+# toolchain note for code_generation, or a JHEP-style outline rule for
+# paper_outline), use the top-level `prompts.extra_prompts` block in
+# config.yaml. Run `researchclaw info` to see the full list of stage
+# names this run will execute plus any extras already configured.
+
+# --- Deployment defaults ---------------------------------------------------
+# Consumed by researchclaw.domains.deploy when this profile is selected via
+# --profile hep_ph or project.profile: hep_ph.  Every key here only applies
+# if the user's config.yaml leaves the matching slot blank.
+preferred_experiment_mode: collider_agent      # maps to experiment.mode
+preferred_project_mode: full-auto              # maps to project.mode
+preferred_target_conference: jhep              # maps to export.target_conference
+default_time_budget_sec: 7200                  # 2 hours per collider sim
+default_max_iterations: 5
+default_metric_key: exclusion_95cl
+default_metric_direction: maximize
+
+collider_agent:
+  timeout_sec: 7200
+  max_turns: 150
+  install_skills: true
+  extra_args:
+    - "--dangerously-skip-permissions"
+
+experiment_paradigm: simulation
+
+condition_terminology:
+  baseline: existing experimental bound / SM prediction
+  proposed: new BSM model or signal hypothesis
+  variant: model parameter variation (mass, coupling)
+  input: signal or background process
+  metric: cross section / exclusion limit / signal significance
+
+typical_file_structure:
+  model.py: "BSM model definition: particle content, couplings, Lagrangian parameters"
+  cross_sections.py: "Analytical or numerical cross-section computation"
+  analysis.py: "Event selection, kinematic cuts, limit setting (CLs or profile likelihood)"
+  relic_density.py: "Thermal relic density calculation (Boltzmann equation)"
+  main.py: "Entry point: compute predictions → compare bounds → set limits → report"
+
+entry_point: main.py
+
+core_libraries:
+  - numpy
+  - scipy
+  - matplotlib
+
+docker_image: researchclaw/sandbox-generic:latest
+gpu_required: false
+
+pip_packages:
+  - numpy
+  - scipy
+  - matplotlib
+
+metric_types:
+  - scalar
+  - structured
+
+standard_baselines:
+  - LZ/XENON1T/PandaX direct detection upper limits
+  - ATLAS/CMS monojet and mono-X exclusion contours
+  - Planck relic density constraint (Omega_DM h^2 = 0.120 +/- 0.001)
+  - LEP and electroweak precision constraints
+  - Indirect detection bounds (Fermi-LAT, AMS-02)
+
+evaluation_protocol: >
+  Compute BSM model predictions (cross sections, relic density, event rates)
+  and compare against current experimental 95% CL upper limits. Identify
+  allowed vs. excluded regions in model parameter space. Report exclusion
+  contours as a function of mediator mass, DM mass, and coupling constants.
+
+statistical_tests:
+  - cls_exclusion
+  - profile_likelihood_ratio
+  - chi_squared_goodness_of_fit
+
+output_formats:
+  - latex_table
+  - exclusion_contour_plot
+
+figure_types:
+  - exclusion_contour_mDM_mMed
+  - cross_section_vs_mass
+  - relic_density_contour
+  - signal_kinematic_distribution
+
+github_search_terms:
+  - dark matter phenomenology python
+  - simplified model dark matter collider
+  - direct detection cross section WIMP
+  - relic density Boltzmann equation python
+  - effective field theory dark matter
+
+paper_keywords:
+  - dark matter
+  - direct detection
+  - collider phenomenology
+  - beyond standard model
+  - effective field theory
+  - exclusion limits
+  - relic density
+  - simplified model
+
+# NOTE: Narrative stage prompts (dataset/compute/hp/results prose) are now
+# carried by researchclaw.prompts.hep. Only the blueprint-level
+# code_generation_hints is retained here because it feeds
+# PromptAdapter.get_blueprint_context() which wraps the code_agent/CodeGen
+# blueprint prompt. Everything else is redundant with the HEP prompt bank.
+code_generation_hints: |
+  HEP phenomenology code requirements:
+  1. Implement physics formulas correctly — cross sections, decay widths, relic density
+  2. Use natural units consistently (GeV for masses/energies, pb or cm^2 for cross sections)
+  3. Encode current experimental upper limits as reference constants in code
+     (e.g., LZ_SI_limit_cm2, ATLAS_monojet_sigma_vis_pb)
+  4. Scan over (mDM, mMed) grid and mark excluded/allowed regions
+  5. Compute signal significance: S/sqrt(B) or simplified CLs ratio
+  6. Output all results to results.json with physical units labeled
+
+  ANTI-PATTERNS for HEP (DO NOT do these):
+  - Do NOT use sklearn, pytorch, or gradient descent for physics calculations
+  - Do NOT use random.uniform() to simulate physics outcomes
+  - Physics cross sections are deterministic — implement the actual formula
+  - Do NOT apply ML training loops to "learn" BSM model parameters
+  - Do NOT treat this as a regression/classification benchmark task

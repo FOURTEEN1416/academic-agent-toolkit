@@ -1,0 +1,109 @@
+{
+    "id": "ml23-root",
+    "requirements": "A credible experiment comparing pointwise, pairwise (RankNet-style), and listwise (ListMLE-style) ranking approaches on synthetic query-document datasets: methods are implemented as distinct objectives, execution reports ranking metrics on multiple datasets with multiple seeds, and results address H1/H2/H3 directionally.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Well-motivated ranking-objective substitutes (e.g., LambdaRank-style, softrank) that test the same scientific question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml23-code",
+            "requirements": "The ranking methods and synthetic grouped datasets are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml23-code-methods",
+                    "requirements": "The submission implements multiple distinct conditions \u2014 typically a pointwise baseline plus at least one pairwise and one listwise method \u2014 with genuinely different objective computations, not merely different hyperparameters of one loss.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml23-code-data",
+                    "requirements": "A synthetic query-document generator is implemented with grouped queries, per-query document lists, and graded relevance labels, and multiple dataset regimes are instantiated.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml23-code-setup",
+                    "requirements": "The experimental setup includes query-level train/test splitting (no leakage of documents from the same query across splits) and a shared scoring-function interface across methods.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml23-exec",
+            "requirements": "Execution logs ranking metrics per method and dataset.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml23-exec-metrics",
+                    "requirements": "Execution produces a metrics artifact containing numeric NDCG@k and MAP@k (or equivalents) for each implemented condition on at least one dataset.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml23-exec-seeds",
+                    "requirements": "Reported metrics are averaged over multiple random seeds per (condition, dataset) cell with a dispersion measure. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml23-exec-tuning",
+                    "requirements": "At least one non-trivial hyperparameter search or documented default is executed (e.g., learning rate/regularization) and the chosen value is logged.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Hyperparameter Tuning"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml23-results",
+            "requirements": "Results analysis addresses H1/H2/H3 directionally.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml23-result-h1",
+                    "requirements": "The submission compares the listwise method vs the pointwise baseline in mean NDCG@k per dataset and conveys whether listwise meaningfully improves ranking quality \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml23-result-h2h3",
+                    "requirements": "The submission conveys whether at least one ranking-aware method beats the pointwise baseline on NDCG across all datasets (H2) and whether the best ranking-aware method yields a meaningful MAP improvement on most datasets (H3).",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml23-result-writeup",
+                    "requirements": "The README or writeup describes methods, datasets, and metric outcomes; conveys per-hypothesis outcomes (supported / refuted / inconclusive); and discusses limitations (synthetic-data realism, scorer capacity, seed count, metric sensitivity). No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

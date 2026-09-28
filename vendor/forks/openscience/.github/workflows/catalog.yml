@@ -1,0 +1,31 @@
+name: Catalog
+
+# Nightly live check that models.dev still lists the models the test suite pins.
+# PR CI runs against a committed fixture (test/fixture/models-catalog.json.gz) and
+# is fully deterministic; this job is the only thing that talks to live models.dev,
+# so an upstream delisting reddens this job — not every PR. When it fails, update
+# the SONNET/OPUS pins in provider.test.ts and regenerate the fixture.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 4 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  live-catalog:
+    name: Live catalog check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-bun
+      - name: Configure git for tests
+        run: |
+          git config --global user.email "ci@openscience.dev"
+          git config --global user.name "OpenScience CI"
+          git config --global init.defaultBranch main
+      - run: bun run --cwd backend/cli test test/provider/live-catalog.test.ts
+        env:
+          OPENSCIENCE_LIVE_CATALOG: "1"

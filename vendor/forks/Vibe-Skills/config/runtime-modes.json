@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-23",
+  "default_mode": "interactive_governed",
+  "allowed_modes": [
+    "interactive_governed"
+  ],
+  "legacy_mode_aliases": {},
+  "mode_contracts": {
+    "interactive_governed": {
+      "ask_questions": true,
+      "requires_requirement_visibility": true,
+      "requires_plan_pause": true,
+      "replace_confirms_with_receipts": false
+    }
+  },
+  "bridges": {
+    "deep_discovery_policy": "config/deep-discovery-policy.json",
+    "plan_execution_policy": "config/plan-execution-policy.json"
+  }
+}

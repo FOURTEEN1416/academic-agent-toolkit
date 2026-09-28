@@ -1,0 +1,79 @@
+name: Deploy stargazer atlas
+
+on:
+  schedule:
+    - cron: "0 1 * * *"   # 每天 UTC 01:00（北京时间 09:00）刷新数据并重新发布
+  workflow_dispatch:
+  release:
+    types: [published, prereleased]
+  push:
+    branches: [main]
+    paths:
+      - "atlas/**"
+      - "website/**"
+      - ".github/workflows/atlas.yml"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Restore cached stargazer profiles
+        uses: actions/cache@v4
+        with:
+          path: atlas/stargazers_raw.json
+          key: atlas-stargazers-${{ github.run_id }}
+          restore-keys: |
+            atlas-stargazers-
+
+      - name: Refresh stargazer data
+        env:
+          ATLAS_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$ATLAS_GITHUB_TOKEN" ]; then
+            echo "::error::The GitHub Actions repository token is unavailable."
+            exit 1
+          fi
+          python atlas/fetch_stargazers.py
+          python atlas/process.py
+
+      - name: Refuse empty atlas data
+        run: python atlas/validate_data.py atlas/data.js
+
+      - name: Build and verify PaperSpine5 website
+        run: python paperspine5/release_tools/build_site.py
+
+      - name: Assemble site (static files only)
+        run: |
+          mkdir _site
+          cp atlas/index.html atlas/echarts.min.js atlas/worldgeo.js atlas/data.js _site/
+          mkdir -p _site/v5
+          cp -R build/v5-site/. _site/v5/
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

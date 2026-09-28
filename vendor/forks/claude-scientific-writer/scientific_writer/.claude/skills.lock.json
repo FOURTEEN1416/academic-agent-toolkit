@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/K-Dense-AI/scientific-agent-skills",
+  "ref": "ab2f84ab10597c59fac186ecda6d5edd5dcc8b92",
+  "commit": "ab2f84ab10597c59fac186ecda6d5edd5dcc8b92",
+  "snapshot_sha256": "b5a3d19457452148db098bab0620fdefd34302d1d26a8e96c0e90c8204d10bce",
+  "skills": [
+    {
+      "source": "citation-management",
+      "destination": "citation-management",
+      "sha256": "5809be57bc54ed6b04c629a2c8a231b1d3d81d68f1873c7519cd4bbc7c25c056"
+    },
+    {
+      "source": "clinical-decision-support",
+      "destination": "clinical-decision-support",
+      "sha256": "0c7151b529a908846de67a408dff8f9e0704101ce223e4a9c556f23df941fe55"
+    },
+    {
+      "source": "clinical-reports",
+      "destination": "clinical-reports",
+      "sha256": "56336dcc1f5f17148fa1319362ad40b1fc8062198affd1a9156908598ba8e7ff"
+    },
+    {
+      "source": "docx",
+      "destination": "docx",
+      "sha256": "297eabe17185286e63696c5e99cc263838e00cffb9ad5e44add9b0455487307f"
+    },
+    {
+      "source": "pdf",
+      "destination": "pdf",
+      "sha256": "a168863ca17d8d82b10ca343f6d07d91765a14f2a61d7d6ddb6d248dc48aebe9"
+    },
+    {
+      "source": "pptx",
+      "destination": "pptx",
+      "sha256": "bdb280197d933df17f4436a3f34be5aa06e1b4e6cf52d73d74b62157c5915915"
+    },
+    {
+      "source": "xlsx",
+      "destination": "xlsx",
+      "sha256": "dbb2a5ae521c3e16c0864329bdfd5c8491d7e2e52295bfaefe432b570d67e882"
+    },
+    {
+      "source": "generate-image",
+      "destination": "generate-image",
+      "sha256": "df3a2db1841a0b6d4bb91f454abaf0da70f02ebe502f88f16920266ab7081ec5"
+    },
+    {
+      "source": "hypothesis-generation",
+      "destination": "hypothesis-generation",
+      "sha256": "bd64cf3802351fc627cdfc7862c0ed4aa77a1046828f280b1467b748b403e109"
+    },
+    {
+      "source": "infographics",
+      "destination": "infographics",
+      "sha256": "a7f703b672b5211a5b26fb180c25d386310ed74ca6fff4f97b8225403dffe847"
+    },
+    {
+      "source": "latex-posters",
+      "destination": "latex-posters",
+      "sha256": "06f0c07b758fce3de413c8eb861cf9a9a404436633d452b04220b6396bc9d92c"
+    },
+    {
+      "source": "literature-review",
+      "destination": "literature-review",
+      "sha256": "e7960c4d80794b43df6ad64ce0362d8b1bee95c55d166574b27d108fec4ac8d1"
+    },
+    {
+      "source": "market-research-reports",
+      "destination": "market-research-reports",
+      "sha256": "42061c99c0ddd02c15a1a6c35233b7dc9db74e6c3543c1a3b33e41a9fb4401b2"
+    },
+    {
+      "source": "markitdown",
+      "destination": "markitdown",
+      "sha256": "27d1f7de5c3f283c4b7e68463e4960ee00b947e36521246e9127ac711283cda9"
+    },
+    {
+      "source": "parallel-web",
+      "destination": "parallel-web",
+      "sha256": "6b1dd5347a4e8820a2aae197988a24f781cd8d3c3a697782be8c22c66e994045"
+    },
+    {
+      "source": "peer-review",
+      "destination": "peer-review",
+      "sha256": "abc6322ce688a74c0280bc673f6a4ec5d4f35630ef6fc5669e970f6d996bc5f0"
+    },
+    {
+      "source": "pptx-posters",
+      "destination": "pptx-posters",
+      "sha256": "a55bf83cb445e688836da059ae8d0287c32452df0234d2d1bfb733fd04d54481"
+    },
+    {
+      "source": "research-grants",
+      "destination": "research-grants",
+      "sha256": "51ee36659a62386eed0cf1feccb146a289e996017b1b721c3eab9e90c3a8b342"
+    },
+    {
+      "source": "research-lookup",
+      "destination": "research-lookup",
+      "sha256": "c7862d98768a51e814f44ed768c22b06dbee8f6f6f303e788aa8a25775a0551b"
+    },
+    {
+      "source": "scholar-evaluation",
+      "destination": "scholar-evaluation",
+      "sha256": "896c61c2875e590a6725b548cacdd1156de8ce51256b25894676b333e0244f73"
+    },
+    {
+      "source": "scientific-critical-thinking",
+      "destination": "scientific-critical-thinking",
+      "sha256": "e325f75c16a739d4fe984881bef097f5394d4ac2d377455eb7fc5940b7b100c1"
+    },
+    {
+      "source": "scientific-schematics",
+      "destination": "scientific-schematics",
+      "sha256": "b35312e248959157be8497ed0dc1252d187aa5ee6fef44dc1333376f680bd4b5"
+    },
+    {
+      "source": "scientific-slides",
+      "destination": "scientific-slides",
+      "sha256": "83ad63b39f8afda6098d0da69978522ae0648b0a4f8328a3a9d0f3d7b4f914fe"
+    },
+    {
+      "source": "scientific-writing",
+      "destination": "scientific-writing",
+      "sha256": "3affacf18f64ad3061aea7973e222d9bea5a67cf0fbb4829d44170e015a4082b"
+    },
+    {
+      "source": "treatment-plans",
+      "destination": "treatment-plans",
+      "sha256": "3b9435612c9e18b416706211034345a92525e4f589cace00d386509402eaabaf"
+    },
+    {
+      "source": "venue-templates",
+      "destination": "venue-templates",
+      "sha256": "7a1ca2bb6f7980d89cdb3a467a840d3a7d7666f2de691fafd9d8f62c84583486"
+    }
+  ]
+}

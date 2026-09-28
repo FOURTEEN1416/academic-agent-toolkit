@@ -1,0 +1,102 @@
+# ============================================================================
+# ARC-Bench Quantum — open-ended quantum machine learning + VQE topics
+# ----------------------------------------------------------------------------
+# Q01-Q03 are CPU-only Qiskit topics. They run on the autoclaw native sandbox
+# (experiment.mode = sandbox) using qiskit-aer's statevector simulator
+# (and optional finite-shot sampling for Q03). No GPU, no IBM Quantum hardware,
+# no external agent.
+#
+# Manifests live in   config/quantum/manifests/QNN.yaml
+# Rubrics  live in    config/quantum/rubrics/QNN.json
+# ============================================================================
+
+topics:
+  - id: Q01
+    topic: "Comparing quantum data encoding strategies (angle, amplitude, IQP, ZZ feature map) for variational quantum classifiers on small low-dimensional binary classification tasks"
+    domains:
+      - quantum-machine-learning
+      - data-encoding
+      - feature-maps
+    metric_key: test_accuracy
+    metric_direction: maximize
+
+  - id: Q02
+    topic: "Ablating entangling gates in a variational quantum classifier: how much classification accuracy is actually attributable to CNOTs versus single-qubit rotations"
+    domains:
+      - quantum-machine-learning
+      - entanglement
+      - ablation-study
+    metric_key: test_accuracy
+    metric_direction: maximize
+
+  - id: Q03
+    topic: "Benchmarking classical optimizers (SPSA, COBYLA, L-BFGS-B, ADAM) for VQE convergence on H2 under finite shot noise across multiple shot budgets and bond lengths"
+    domains:
+      - variational-quantum-eigensolver
+      - quantum-chemistry
+      - classical-optimization
+    metric_key: shots_to_chemical_accuracy
+    metric_direction: minimize
+
+  - id: Q04
+    topic: "Data re-uploading depth vs Fourier expressivity for variational quantum regression: characterizing how the trainable bandwidth of a parameterized re-uploading circuit scales with re-uploading layers L on synthetic 1D regression targets"
+    domains:
+      - quantum-machine-learning
+      - data-reuploading
+      - expressivity
+    metric_key: test_mse
+    metric_direction: minimize
+
+  - id: Q05
+    topic: "Barren plateau onset under cost-function locality: empirically measuring gradient variance of hardware-efficient ansatze under global vs local cost functions across depth, testing the Cerezo 2021 prediction that local costs avoid exponential gradient suppression"
+    domains:
+      - quantum-machine-learning
+      - barren-plateaus
+      - trainability
+    metric_key: log_gradient_variance
+    metric_direction: maximize
+
+  - id: Q06
+    topic: "Neural-network warm-start for QAOA-MaxCut: comparing MLP-predicted initial parameters against random and fixed initialization across in-distribution and out-of-distribution graph families"
+    domains:
+      - ai-for-quantum
+      - qaoa
+      - meta-learning
+    metric_key: iterations_to_target_ratio
+    metric_direction: minimize
+
+  - id: Q07
+    topic: "Matrix Product State classifier vs neural network at matched parameter count on downsampled image classification, characterizing the bond-dimension scaling of tensor-network classifiers as a quantum-inspired classical baseline for QML"
+    domains:
+      - quantum-inspired-classical
+      - tensor-networks
+      - supervised-learning
+    metric_key: test_accuracy
+    metric_direction: maximize
+
+  - id: Q08
+    topic: "Layerwise learning vs end-to-end training for variational quantum classifiers: testing the Skolik 2021 claim that incremental ansatz growth avoids barren plateaus on small UCI binary classification tasks"
+    domains:
+      - quantum-machine-learning
+      - training-strategies
+      - barren-plateaus
+    metric_key: test_accuracy
+    metric_direction: maximize
+
+  - id: Q09
+    topic: "Noise-aware variational quantum classifier training: comparing training under simulated depolarizing noise vs ideal-statevector training, evaluating both robustness to test-time noise and clean-test transfer"
+    domains:
+      - ai-for-quantum
+      - noisy-quantum-training
+      - robustness
+    metric_key: test_accuracy
+    metric_direction: maximize
+
+  - id: Q10
+    topic: "Quantum autoencoder for pure-state compression: training a parameterized circuit to compress n-qubit Haar-random states into m<n latent qubits via SWAP-test loss, measuring reconstruction fidelity vs compression ratio"
+    domains:
+      - quantum-machine-learning
+      - generative-models
+      - autoencoders
+    metric_key: reconstruction_fidelity
+    metric_direction: maximize

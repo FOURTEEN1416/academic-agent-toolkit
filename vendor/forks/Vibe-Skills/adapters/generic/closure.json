@@ -1,0 +1,27 @@
+{
+  "adapter_id": "generic",
+  "closure_level": "runtime-core-only",
+  "install_mode": "runtime-core",
+  "check_mode": "runtime-core",
+  "bootstrap_mode": "runtime-core",
+  "repo_managed_payload": [
+    "skills/**",
+    "commands/**",
+    "config/upstream-lock.json",
+    "canonical vibe mirror under skills/vibe/**"
+  ],
+  "host_state_written": [],
+  "host_managed_boundaries": [
+    "settings.json",
+    "plugin provisioning",
+    "MCP registration",
+    "provider credentials",
+    "host runtime integration"
+  ],
+  "verification_contract": [
+    "runtime freshness gate",
+    "runtime BOM/frontmatter gate",
+    "runtime coherence gate",
+    "runtime-core presence check"
+  ]
+}

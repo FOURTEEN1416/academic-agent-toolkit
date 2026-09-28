@@ -1,0 +1,109 @@
+{
+    "id": "ml16-root",
+    "requirements": "A credible experiment comparing bandit algorithms (epsilon-greedy, UCB1, Thompson sampling, Exp3, or equivalents) under stationary and drifting synthetic regimes: algorithms are implemented with a common interface, experiments cover multiple environments with repeated seeds, and results address H1/H2/H3 directionally using cumulative regret.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Well-motivated algorithm variants (e.g., UCB-V, linear Thompson) should be credited when they test the same scientific question.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml16-code",
+            "requirements": "The bandit algorithms and synthetic environments are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml16-code-algos",
+                    "requirements": "The submission implements multiple distinct algorithm code paths \u2014 typically including epsilon-greedy, UCB1, Thompson sampling, and/or Exp3 \u2014 with per-round action selection and update logic that are not identical wrappers.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml16-code-envs",
+                    "requirements": "The submission defines multiple synthetic bandit environments including at least one stationary and one drifting regime, with reproducible seed control and oracle best-arm rewards per round for regret computation.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                },
+                {
+                    "id": "ml16-code-thompson-exp3",
+                    "requirements": "If Thompson sampling and/or Exp3 are included, implementation uses sampling-based posterior decisions (Thompson) and probability-weighted action selection with importance-weighted updates (Exp3), rather than greedy mean selection.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml16-exec",
+            "requirements": "Execution produces regret metrics across algorithms and datasets.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml16-exec-runs",
+                    "requirements": "Execution runs multiple seeds per (algorithm, dataset) cell for multiple environments and logs final cumulative-regret values with mean and dispersion. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 16.6667,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml16-exec-artifacts",
+                    "requirements": "A machine-readable results artifact is produced containing dataset-wise metrics for each implemented algorithm, including cumulative regret.",
+                    "weight": 8.3333,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml16-results",
+            "requirements": "Findings address H1/H2/H3 directionally and summarize implications.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml16-result-h1",
+                    "requirements": "The submission compares stationary-regime cumulative regret between epsilon-greedy and {UCB1, Thompson} and conveys whether the principled algorithms are meaningfully better \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml16-result-h2",
+                    "requirements": "The submission evaluates drifting-regime cumulative regret and conveys whether more exploratory algorithms (epsilon-greedy or Exp3) outperform UCB1 on most drifting datasets (H2).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml16-result-h3",
+                    "requirements": "The submission conveys whether any single algorithm dominates across all environments or whether winners are mixed (H3), with supporting tables or summaries.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml16-result-writeup",
+                    "requirements": "The README or writeup describes setup, reports key cumulative-regret results per environment, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and notes limitations (horizon length, hyperparameter sensitivity, synthetic-only scope). No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

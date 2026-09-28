@@ -1,0 +1,25 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "*": "ask",
+    "bash": {
+      "git *": "allow",
+      "rg *": "allow",
+      "fd *": "allow",
+      "ls *": "allow",
+      "*": "ask"
+    },
+    "skill": {
+      "*": "allow"
+    },
+    "edit": "ask",
+    "write": "ask"
+  },
+  "command": {
+    "vibe": {
+      "description": "Run the governed Vibe-Skills runtime",
+      "agent": "vibe-plan",
+      "template": "Use the `vibe` skill and follow its governed runtime contract for this request.\\n\\nRequest:\\n$ARGUMENTS"
+    }
+  }
+}

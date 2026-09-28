@@ -1,0 +1,6 @@
+# Minimal latexmk config (optional)
+$pdf_mode = 1;
+$interaction = 'nonstopmode';
+$halt_on_error = 1;
+$silent = 1;
+

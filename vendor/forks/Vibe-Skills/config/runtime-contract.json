@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-15",
+  "runtime_id": "vibe-governed-runtime",
+  "entry_skill": "vibe",
+  "host_syntax_aliases": [
+    "/vibe",
+    "$vibe",
+    "vibe"
+  ],
+  "authority": {
+    "local_installed_skill_recommender": "packages/runtime-core/src/vgo_runtime/router_contract_runtime.py",
+    "local_installed_skill_recommender_bridge": "scripts/router/resolve-pack-route.ps1",
+    "canonical_router": "legacy packet field name only; runtime authority remains vibe",
+    "canonical_router_compatibility": "retained callers may still enter through scripts/router/resolve-pack-route.ps1 compatibility bridge",
+    "runtime_protocol": "protocols/runtime.md",
+    "forbid_second_router": true
+  },
+  "discoverable_entry_surface": "config/vibe-entry-surfaces.json",
+  "invariants": {
+    "single_runtime_authority": true,
+    "discoverable_intent_entries_allowed": true,
+    "discoverable_entries_are_presentational": true,
+    "grade_alias_matrix_forbidden": true,
+    "fixed_stage_order": true,
+    "freeze_requirement_before_execution": true,
+    "cleanup_required_before_completion": true,
+    "internal_grades_only": true,
+    "no_silent_fallback": true,
+    "no_silent_degradation": true,
+    "fallback_hazard_alert_required": true,
+    "fallback_success_is_non_authoritative": true,
+    "no_self_introduced_fallback_without_requirement_approval": true
+  },
+  "stages": [
+    {
+      "id": "skeleton_check",
+      "order": 1,
+      "required": true,
+      "receipt": "outputs/runtime/vibe-sessions/{run_id}/skeleton-receipt.json"
+    },
+    {
+      "id": "deep_interview",
+      "order": 2,
+      "required": true,
+      "receipt": "outputs/runtime/vibe-sessions/{run_id}/intent-contract.json"
+    },
+    {
+      "id": "requirement_doc",
+      "order": 3,
+      "required": true,
+      "receipt": ".vibeskills/runs/{run_id}/requirement.md"
+    },
+    {
+      "id": "xl_plan",
+      "order": 4,
+      "required": true,
+      "receipt": ".vibeskills/runs/{run_id}/plan.md"
+    },
+    {
+      "id": "plan_execute",
+      "order": 5,
+      "required": true,
+      "receipt": "outputs/runtime/vibe-sessions/{run_id}/phase-execute.json"
+    },
+    {
+      "id": "phase_cleanup",
+      "order": 6,
+      "required": true,
+      "receipt": "outputs/runtime/vibe-sessions/{run_id}/cleanup-receipt.json"
+    }
+  ]
+}

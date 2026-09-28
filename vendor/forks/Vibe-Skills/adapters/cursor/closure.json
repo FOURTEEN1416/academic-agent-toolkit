@@ -1,0 +1,58 @@
+{
+  "adapter_id": "cursor",
+  "closure_level": "preview-managed",
+  "install_mode": "preview-guidance",
+  "check_mode": "preview-guidance",
+  "bootstrap_mode": "preview-guidance",
+  "repo_managed_payload": [
+    "runtime core payload",
+    "commands/**",
+    "canonical vibe mirror under skills/vibe/**",
+    ".vibeskills/host-closure.json",
+    ".vibeskills/bin/**",
+    "settings.json managed vibeskills stanza"
+  ],
+  "host_state_written": [
+    "commands/**",
+    ".vibeskills/host-closure.json",
+    ".vibeskills/bin/**",
+    "settings.json managed vibeskills stanza"
+  ],
+  "host_managed_boundaries": [
+    "plugin provisioning",
+    "MCP registration",
+    "provider credentials",
+    "broader host-native workflow behavior outside the managed Vibe closure surface"
+  ],
+  "uninstall_contract": {
+    "contract_version": 1,
+    "ledger_first": true,
+    "install_ledger_path": ".vibeskills/install-ledger.json",
+    "owned_payload": [
+      "runtime core payload",
+      "commands/**",
+      "canonical vibe mirror under skills/vibe/**",
+      ".vibeskills/host-closure.json",
+      ".vibeskills/bin/**"
+    ],
+    "shared_json_targets": [
+      "settings.json vibeskills stanza"
+    ],
+    "legacy_compatibility": [
+      ".vibeskills/bin/**"
+    ],
+    "host_state_written": [
+      "commands/**",
+      ".vibeskills/host-closure.json",
+      ".vibeskills/bin/**",
+      "settings.json managed vibeskills stanza"
+    ],
+    "documentation_reference": "docs/uninstall-governance.md"
+  },
+  "verification_contract": [
+    "runtime freshness gate",
+    "runtime BOM/frontmatter gate",
+    "runtime coherence gate",
+    "host closure presence check"
+  ]
+}

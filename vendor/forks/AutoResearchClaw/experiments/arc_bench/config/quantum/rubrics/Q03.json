@@ -1,0 +1,109 @@
+{
+    "id": "q03-root",
+    "requirements": "A credible VQE optimizer comparison on H2 in STO-3G basis at two bond lengths (0.74 A equilibrium, 1.5 A stretched), at a fixed shot budget of 1024 shots per energy evaluation. The agent must (a) construct the 4-qubit H2 Hamiltonian at each geometry via qiskit_nature.PySCFDriver, (b) implement VQE via qiskit_algorithms.VQE.compute_minimum_eigenvalue() with a hardware-efficient EfficientSU2 reps=2 ansatz, (c) run 4 optimizers (SPSA, COBYLA, L-BFGS-B, ADAM) x 2 geometries x 3 seeds = 24 cells, (d) log cumulative shots and energy trajectories per cell, and (e) score H1/H2/H3 with numerical evidence keyed by (optimizer, geometry).",
+    "judging_note": "Optimizer comparisons are scored on (i) correctness of the Hamiltonian (FCI reference within 1 mHa of -1.137 Ha for H2 equilibrium), (ii) consistent ansatz / initial parameters across cells so only the optimizer and shot budget vary, (iii) accurate accounting of cumulative shots including gradient evaluations for L-BFGS-B and ADAM, and (iv) numerical evidence backing H1/H2/H3. qiskit_nature.second_q.drivers.PySCFDriver MUST be used to build the Hamiltonian. Hardcoded Pauli strings are NOT acceptable and a submission that uses them fails q03-code-hamiltonians.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "q03-code",
+            "requirements": "Code-development bucket: VQE pipeline correctly implements 4 optimizers, both H2 geometries, and accurate cumulative-shot tracking.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q03-code-vqe",
+                    "requirements": "VQE is implemented using qiskit_algorithms.VQE or an equivalent custom loop. The ansatz is EfficientSU2(num_qubits=4, reps=2, entanglement='linear'). Initial parameters are sampled from N(0, 0.1) with the same seed across all 4 optimizers for a given (shot_budget, geometry, seed) triple. All 4 optimizers are correctly instantiated from qiskit_algorithms.optimizers (SPSA, COBYLA, L_BFGS_B, ADAM) with the maxiter and learning rates listed in the manifest.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q03-code-hamiltonians",
+                    "requirements": "Both H2 Hamiltonians are constructed at the correct bond lengths (0.74 and 1.5 angstrom) in STO-3G basis using qiskit_nature.second_q.drivers.PySCFDriver (REQUIRED) and either ParityMapper with 2-qubit reduction or JordanWignerMapper with tapering. The diagonalized Hamiltonian (numpy eigvalsh of the matrix form) gives FCI energies within 1 mHa of -1.137 Ha (equilibrium) and -1.001 Ha (stretched). Hardcoded Pauli strings as a substitute for PySCFDriver are NOT accepted and fail this leaf.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q03-code-shot-tracking",
+                    "requirements": "Cumulative shots is tracked correctly per run. For SPSA and COBYLA, each iteration adds shots_per_eval * num_evaluations_per_iter (2 for SPSA, 1 for COBYLA). For L-BFGS-B and ADAM with finite-difference gradients, each iteration adds shots_per_eval * (2 * num_params + 1) so the gradient evaluations are accounted for. The shots_to_chemical_accuracy metric is computed using the running mean energy (over the last 5 evaluations) and reports the cumulative shot count at the first evaluation where the mean stays within 1.6 mHa of E_FCI for 5 consecutive evaluations.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q03-exec",
+            "requirements": "Execution-validity bucket: all cells ran with valid energies and shot accounting.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q03-exec-cells-ran",
+                    "requirements": "At least 22 cells out of 24 expected (4 optimizers x 1 shot budget (1024) x 2 geometries x 3 seeds = 24) completed and produced a final_energy_error_hartree value. If any cells are omitted (e.g. ADAM ran out of budget), they must be documented with a recorded cause. Missing more than 2 cells (10 percent) without justification fails this leaf. The condition_summaries MUST be keyed by (optimizer, geometry) so each of the 8 condition cells has 3 seed entries — collapsing across the geometry axis (e.g. reporting only per-optimizer aggregates) fails this leaf because it makes H1 and H3 unevaluable.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q03-exec-numerical",
+                    "requirements": "Numerical validity: every final energy is finite (no NaN/Inf), every final_energy_error_hartree >= 0, every success_rate in [0, 1], cumulative shots is monotone increasing within a run. At least one cell across the entire sweep reaches chemical accuracy (otherwise the rubric thresholds are uncalibrated for this setup).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q03-results",
+            "requirements": "Results bucket: quantitative tests of H1/H2/H3 plus a per-hypothesis writeup.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "q03-result-h1-quant",
+                    "requirements": "Quantitative test of H1. On at least 1 of 2 geometries at 1024 shots/eval, does SPSA reach chemical accuracy with fewer median cumulative shots than L-BFGS-B (over 3 seeds)? 100% if SPSA wins on at least 1/2 geometries with a >=20 percent shot reduction, 67% if SPSA wins on at least 1/2 with any margin, 33% if SPSA and L-BFGS-B are within 10 percent of each other, 0% if L-BFGS-B is consistently faster.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q03-result-h2-quant",
+                    "requirements": "Quantitative test of H2. At 1024 shots/eval, pooling across both geometries: do gradient-free methods (SPSA + COBYLA, total of 6 seed-runs = 2 methods x 3 seeds) have a combined chemical-accuracy success rate of at least 4/6, while gradient-based methods (L-BFGS-B + ADAM, 6 seed-runs) have at most 3/6? 100% if cleanly met, 67% if the gradient-free success rate exceeds gradient-based by at least 30 percent, 33% if gradient-free exceeds gradient-based at all, 0% if gradient-based methods are equal or better.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q03-result-h3-quant",
+                    "requirements": "Quantitative test of H3. Does the optimizer ranking by median shots_to_chemical_accuracy change between H2 equilibrium and H2 stretched geometries? Specifically: take the 4-element ranking of optimizers (by 3-seed-median shots) on each geometry; H3 is supported if at least one pair swaps relative order between the two rankings (Kendall tau distance >= 1 between the two rankings). 100% if at least one swap detected with clear evidence, 67% if one optimizer's rank differs by exactly 1 position, 33% if rankings are similar but values differ, 0% if rankings are identical or H3 is unevaluable (e.g. due to collapsed condition_summaries that drop the geometry axis).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q03-result-writeup",
+                    "requirements": "Writeup of at least 200 words (in submission/README.md ## Agent-produced writeup section) with explicit supported / refuted / inconclusive verdict for each of H1, H2, H3 with numerical evidence (specific median cumulative shots, success rates, and final energy errors per optimizer x shot budget). Identifies a dominant systematic uncertainty (seed variance, finite-difference epsilon, optimizer hyperparameter sensitivity, shot-noise variance at low budgets). Discusses the difference between equilibrium and stretched H2 in terms of optimizer ranking.",
+                    "weight": 12.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

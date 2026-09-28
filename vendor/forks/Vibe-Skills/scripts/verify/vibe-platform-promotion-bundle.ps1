@@ -1,0 +1,160 @@
+param(
+    [switch]$WriteArtifacts,
+    [string]$OutputDirectory = ''
+)
+
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+
+. (Join-Path $PSScriptRoot '..\common\vibe-governance-helpers.ps1')
+
+function Add-Assertion {
+    param(
+        [Parameter(Mandatory)] [AllowEmptyCollection()] [System.Collections.Generic.List[object]]$Assertions,
+        [Parameter(Mandatory)] [bool]$Pass,
+        [Parameter(Mandatory)] [string]$Message,
+        [AllowNull()] [object]$Details = $null
+    )
+
+    [void]$Assertions.Add([pscustomobject]@{
+        pass = [bool]$Pass
+        message = [string]$Message
+        details = $Details
+    })
+
+    if ($Pass) {
+        Write-Host "[PASS] $Message"
+    } else {
+        Write-Host "[FAIL] $Message" -ForegroundColor Red
+    }
+}
+
+function Write-GateArtifacts {
+    param(
+        [Parameter(Mandatory)] [string]$RepoRoot,
+        [AllowEmptyString()] [string]$OutputDirectory,
+        [Parameter(Mandatory)] [psobject]$Artifact
+    )
+
+    $dir = if ([string]::IsNullOrWhiteSpace($OutputDirectory)) { Join-Path $RepoRoot 'outputs\verify' } else { $OutputDirectory }
+    New-Item -ItemType Directory -Force -Path $dir | Out-Null
+
+    $jsonPath = Join-Path $dir 'vibe-platform-promotion-bundle.json'
+    $mdPath = Join-Path $dir 'vibe-platform-promotion-bundle.md'
+
+    Write-VgoUtf8NoBomText -Path $jsonPath -Content ($Artifact | ConvertTo-Json -Depth 100)
+
+    $lines = @(
+        '# VCO Platform Promotion Bundle Gate',
+        '',
+        ('- Gate Result: **{0}**' -f $Artifact.gate_result),
+        ('- Failure count: {0}' -f $Artifact.summary.failure_count),
+        '',
+        '## Subgates',
+        ''
+    )
+
+    foreach ($g in @($Artifact.subgates)) {
+        $lines += ('- `{0}` :: {1} (exit={2})' -f $g.gate, $g.result, $g.exit_code)
+    }
+
+    $lines += ''
+    $lines += '## Assertions'
+    $lines += ''
+    foreach ($a in @($Artifact.assertions)) {
+        $lines += ('- `{0}` {1}' -f $(if ($a.pass) { 'PASS' } else { 'FAIL' }), $a.message)
+    }
+
+    Write-VgoUtf8NoBomText -Path $mdPath -Content ($lines -join "`n")
+}
+
+function Invoke-SubGate {
+    param(
+        [Parameter(Mandatory)] [string]$RepoRoot,
+        [Parameter(Mandatory)] [string]$GateScriptRel,
+        [switch]$WriteArtifacts,
+        [string]$OutputDirectory
+    )
+
+    $gateFull = ConvertTo-VgoFullPath -BasePath $RepoRoot -RelativePath $GateScriptRel
+    if (-not (Test-Path -LiteralPath $gateFull)) {
+        return [pscustomobject]@{
+            gate = $GateScriptRel
+            result = 'MISSING'
+            exit_code = 1
+            path = $gateFull
+        }
+    }
+
+    $args = @()
+    if ($WriteArtifacts) {
+        $args += '-WriteArtifacts'
+        if (-not [string]::IsNullOrWhiteSpace($OutputDirectory)) {
+            $args += @('-OutputDirectory', $OutputDirectory)
+        }
+    }
+
+    $result = Invoke-VgoPowerShellFile -ScriptPath $gateFull -ArgumentList $args -NoProfile
+    $code = [int]$result.exit_code
+
+    return [pscustomobject]@{
+        gate = $GateScriptRel
+        result = if ($code -eq 0) { 'PASS' } else { 'FAIL' }
+        exit_code = $code
+        path = $gateFull
+        host_path = $result.host_path
+    }
+}
+
+$context = Get-VgoGovernanceContext -ScriptPath $PSCommandPath -EnforceExecutionContext
+$repoRoot = [string]$context.repoRoot
+
+$assertions = [System.Collections.Generic.List[object]]::new()
+$subgates = [System.Collections.Generic.List[object]]::new()
+
+$requiredDocs = @(
+    'docs/universalization/platform-promotion-criteria.md',
+    'docs/status/platform-promotion-baseline-2026-03-13.md',
+    'docs/status/linux-pwsh-fresh-machine-evidence-ledger-2026-03-13.md',
+    'references/proof-bundles/linux-full-authoritative-candidate/manifest.json'
+)
+
+foreach ($docRel in $requiredDocs) {
+    $docPath = ConvertTo-VgoFullPath -BasePath $repoRoot -RelativePath $docRel
+    Add-Assertion -Assertions $assertions -Pass (Test-Path -LiteralPath $docPath) -Message ("required promotion artifact exists: {0}" -f $docRel) -Details $null
+}
+
+$gateSpecs = @(
+    'scripts/verify/vibe-platform-support-contract-gate.ps1',
+    'scripts/verify/vibe-platform-doctor-parity-gate.ps1',
+    'scripts/verify/vibe-proof-bundle-tracked-files-gate.ps1',
+    'scripts/verify/vibe-linux-pwsh-proof-gate.ps1'
+)
+
+foreach ($gateRel in $gateSpecs) {
+    $subgate = Invoke-SubGate -RepoRoot $repoRoot -GateScriptRel $gateRel -WriteArtifacts:$WriteArtifacts -OutputDirectory $OutputDirectory
+    [void]$subgates.Add($subgate)
+}
+
+$failureCount = @($subgates | Where-Object { [int]$_.exit_code -ne 0 }).Count + @($assertions | Where-Object { -not $_.pass }).Count
+$gateResult = if ($failureCount -eq 0) { 'PASS' } else { 'FAIL' }
+
+$artifact = [pscustomobject]@{
+    gate = 'vibe-platform-promotion-bundle'
+    repo_root = $repoRoot
+    generated_at = (Get-Date).ToString('s')
+    gate_result = $gateResult
+    subgates = @($subgates)
+    assertions = @($assertions)
+    summary = [pscustomobject]@{
+        failure_count = $failureCount
+    }
+}
+
+if ($WriteArtifacts) {
+    Write-GateArtifacts -RepoRoot $repoRoot -OutputDirectory $OutputDirectory -Artifact $artifact
+}
+
+if ($gateResult -ne 'PASS') {
+    exit 1
+}

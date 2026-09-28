@@ -1,0 +1,95 @@
+﻿{
+  "version": 1,
+  "updated": "2026-03-07",
+  "purpose": "Wave16 evaluation slicing policy derived from awesome-ai-tools, Prompt-Engineering-Guide, and awesome-ai-agents-e2b. Slices are reporting-only and never mutate routing defaults.",
+  "principles": [
+    "promote explainability before automation",
+    "use slices to compare evidence, not to silently route new behavior",
+    "tie every slice to an existing artifact family or a bounded new report",
+    "prefer shadow evaluation and operator review over runtime mutation"
+  ],
+  "source_projects": [
+    "awesome-ai-tools",
+    "prompt-engineering-guide",
+    "awesome-ai-agents-e2b"
+  ],
+  "slice_axes": [
+    {
+      "id": "plane",
+      "values": ["prompt", "tool", "team", "portfolio"],
+      "question": "Which VCO plane does the slice improve?"
+    },
+    {
+      "id": "evidence_mode",
+      "values": ["static-structure", "shadow-replay", "operator-review", "rollback-drill"],
+      "question": "What kind of evidence is needed before any board discussion?"
+    },
+    {
+      "id": "decision_horizon",
+      "values": ["hold", "review-ready", "rollback-ready"],
+      "question": "How close is the slice to promotion discussion?"
+    }
+  ],
+  "slices": [
+    {
+      "id": "prompt-pattern-drift",
+      "plane": "prompt",
+      "source_projects": ["prompt-engineering-guide"],
+      "evidence_mode": "shadow-replay",
+      "decision_horizon": "review-ready",
+      "artifact_family": ["prompt-regression-gate", "prompt-intelligence-gate"],
+      "operator_action": "Track prompt pattern drift as warning-rich shadow telemetry.",
+      "default_surface_change": false
+    },
+    {
+      "id": "prompt-risk-checklist-alignment",
+      "plane": "prompt",
+      "source_projects": ["prompt-engineering-guide", "awesome-ai-tools"],
+      "evidence_mode": "operator-review",
+      "decision_horizon": "review-ready",
+      "artifact_family": ["prompt-risk-checklist", "release-packet"],
+      "operator_action": "Use risk-card language to explain why a change remains advisory-only.",
+      "default_surface_change": false
+    },
+    {
+      "id": "tool-risk-tier-alignment",
+      "plane": "tool",
+      "source_projects": ["awesome-ai-tools"],
+      "evidence_mode": "static-structure",
+      "decision_horizon": "review-ready",
+      "artifact_family": ["tool-governance-gate", "tool-risk-tiers"],
+      "operator_action": "Compare external tool ideas against VCO risk tiers before any pilot request.",
+      "default_surface_change": false
+    },
+    {
+      "id": "execution-isolation-readiness",
+      "plane": "team",
+      "source_projects": ["awesome-ai-agents-e2b"],
+      "evidence_mode": "operator-review",
+      "decision_horizon": "hold",
+      "artifact_family": ["team-contract-gate", "watch-lane-case-matrix"],
+      "operator_action": "Keep sandbox and isolation ideas as reference material until a concrete gap is proven.",
+      "default_surface_change": false
+    },
+    {
+      "id": "degraded-mode-recovery",
+      "plane": "team",
+      "source_projects": ["awesome-ai-agents-e2b", "awesome-ai-tools"],
+      "evidence_mode": "rollback-drill",
+      "decision_horizon": "rollback-ready",
+      "artifact_family": ["release-packet", "consistency-gate"],
+      "operator_action": "Require degraded-mode and rollback evidence before any pilot widens write privileges.",
+      "default_surface_change": false
+    },
+    {
+      "id": "candidate-overlap-pressure",
+      "plane": "portfolio",
+      "source_projects": ["awesome-ai-tools", "prompt-engineering-guide"],
+      "evidence_mode": "static-structure",
+      "decision_horizon": "review-ready",
+      "artifact_family": ["candidate-curation-leaderboard", "watch-portfolio-review"],
+      "operator_action": "Use overlap-aware slicing to decide whether remaining value should be operationalized or held.",
+      "default_surface_change": false
+    }
+  ]
+}

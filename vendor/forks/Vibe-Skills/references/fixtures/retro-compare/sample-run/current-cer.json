@@ -1,0 +1,30 @@
+﻿{
+    "schema_version":  "1.0.0",
+    "report_id":  "CER-CURRENT-001",
+    "trigger_signals":  {
+                            "fallback_rate":  0.14,
+                            "context_pressure":  0.62,
+                            "route_stability_pack":  0.86,
+                            "route_stability_skill":  0.81,
+                            "top1_top2_gap":  0.09
+                        },
+    "findings":  [
+                     {
+                         "pattern":  "CF-2"
+                     },
+                     {
+                         "pattern":  "CF-3"
+                     }
+                 ],
+    "comparison":  {
+                       "baseline_report_id":  "CER-BASELINE-001",
+                       "pattern_delta":  [
+                                             "added: CF-2",
+                                             "removed: CF-5",
+                                             "common_count: 1"
+                                         ],
+                       "fallback_rate_delta":  -0.13,
+                       "stability_delta":  0.125,
+                       "notes":  "auto-updated by cer-compare.ps1 at 2026-02-24T18:20:00Z"
+                   }
+}

@@ -1,0 +1,143 @@
+{
+  "schema_version": "replay.route.v1",
+  "generated_at": "2026-03-15",
+  "entry_script": "scripts/router/invoke-pack-route.py",
+  "notes": "Curated recovery prompts for the Linux no-pwsh router bridge. These cases assert route usefulness, not full PowerShell parity.",
+  "cases": [
+    {
+      "id": "plan_task_breakdown",
+      "grade": "L",
+      "task_type": "planning",
+      "prompt": "create implementation plan and task breakdown",
+      "expected": {
+        "route_mode": "no_local_candidate"
+      }
+    },
+    {
+      "id": "migration_governance",
+      "grade": "L",
+      "task_type": "planning",
+      "prompt": "design a migration plan for cross-module routing and governance",
+      "expected": {
+        "route_mode": "no_local_candidate"
+      }
+    },
+    {
+      "id": "prd_backlog",
+      "grade": "L",
+      "task_type": "planning",
+      "prompt": "create PRD and user story backlog with quality gate",
+      "expected": {
+        "route_mode": "no_local_candidate"
+      }
+    },
+    {
+      "id": "ambiguous_low_signal",
+      "grade": "M",
+      "task_type": "research",
+      "prompt": "help me with this",
+      "expected": {
+        "route_mode": "no_local_candidate"
+      }
+    },
+    {
+      "id": "ml_scikit_workflow",
+      "grade": "L",
+      "task_type": "research",
+      "prompt": "我想做一个二分类机器学习任务：用 scikit-learn 做特征工程、交叉验证和模型评估",
+      "expected": {
+        "route_mode": "local_skill_overlay",
+        "candidate_focus_pack": "local-skill-index",
+        "candidate_focus_skill": "scikit-learn"
+      }
+    },
+    {
+      "id": "science_publication_figure",
+      "grade": "L",
+      "task_type": "research",
+      "prompt": "我要做科研绘图：matplotlib 多子图、色盲友好、投稿 PDF/TIFF 600dpi 输出",
+      "expected": {
+        "route_mode": "local_skill_overlay",
+        "candidate_focus_pack": "local-skill-index",
+        "candidate_focus_skill": "scientific-visualization"
+      }
+    },
+    {
+      "id": "ml_critical_discussion",
+      "grade": "L",
+      "task_type": "research",
+      "prompt": "请你作为机器学习专家和我进行三轮批判式讨论：这个分类方案有没有数据泄漏、基线是否充分、是否该先用简单模型",
+      "expected": {
+        "route_mode": "local_skill_overlay",
+        "candidate_focus_pack": "local-skill-index",
+        "candidate_focus_skill": "ml-data-leakage-guard"
+      }
+    },
+    {
+      "id": "bgpt_full_text_structured_extraction",
+      "grade": "L",
+      "task_type": "research",
+      "prompt": "请帮我做 full-text 文献检索，提取样本量、effect size、方法学细节，做系统综述证据表",
+      "expected": {
+        "route_mode": "local_skill_overlay",
+        "candidate_focus_pack": "local-skill-index",
+        "candidate_focus_skill": "literature-review"
+      }
+    },
+    {
+      "id": "ml_data_leakage_audit",
+      "grade": "L",
+      "task_type": "review",
+      "prompt": "请检查这个特征工程流程有没有数据泄漏，尤其是 fit before split 和 prediction time 问题",
+      "expected": {
+        "route_mode": "local_skill_overlay",
+        "candidate_focus_pack": "local-skill-index",
+        "candidate_focus_skill": "ml-data-leakage-guard"
+      }
+    },
+    {
+      "id": "test_report_packaging",
+      "grade": "L",
+      "task_type": "review",
+      "prompt": "请根据 pytest 和 coverage 输出生成测试报告，整理失败摘要、覆盖率和质量门禁结论",
+      "expected": {
+        "route_mode": "local_skill_overlay",
+        "candidate_focus_pack": "local-skill-index",
+        "candidate_focus_skill": "generating-test-reports"
+      }
+    },
+    {
+      "id": "regression_analysis_owner",
+      "grade": "L",
+      "task_type": "research",
+      "prompt": "请对这个实验数据做回归分析：线性回归或 GLM 建模、残差诊断、系数解释和拟合优度比较",
+      "expected": {
+        "route_mode": "local_skill_overlay",
+        "candidate_focus_pack": "local-skill-index",
+        "candidate_focus_skill": "scikit-learn"
+      }
+    },
+    {
+      "id": "deep_research_trace",
+      "grade": "L",
+      "task_type": "research",
+      "prompt": "我要做 deep research，多跳浏览网页并保留 trace.jsonl 和 sources.json 证据链",
+      "expected": {
+        "route_mode": "local_skill_overlay",
+        "candidate_focus_pack": "local-skill-index",
+        "candidate_focus_skill": "webthinker-deep-research"
+      }
+    },
+    {
+      "id": "scientific_report_authoring",
+      "grade": "L",
+      "task_type": "research",
+      "prompt": "请把我们现有实验结果整理成 research report，带 executive summary、appendix、Quarto/PDF 导出",
+      "expected": {
+        "route_mode": "local_skill_overlay",
+        "candidate_focus_pack": "local-skill-index",
+        "candidate_focus_skill": "scientific-reporting"
+      }
+    }
+  ]
+}

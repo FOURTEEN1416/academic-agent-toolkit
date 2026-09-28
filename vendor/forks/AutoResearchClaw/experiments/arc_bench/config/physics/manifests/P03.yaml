@@ -1,0 +1,169 @@
+# ============================================================================
+# P03 — B-L Z' exclusion contours at LHC Run 1 dilepton search
+# ----------------------------------------------------------------------------
+# Adapts ColliderAgent paper-reproduction prompt:
+#   /path/to/ColliderAgent/paper-reproduction/1605.02910/prompt_figure_1.md
+# Source: arXiv:1605.02910 — kinetic-mixing B-L Z' phenomenology, three-panel
+# exclusion contours in the $(\tilde g, g_1')$ plane at $\sqrt{s}=8$ TeV.
+# ============================================================================
+
+id: P03
+title: "Reproducing 8 TeV LHC dilepton exclusion contours for a B-L Z' boson with kinetic mixing"
+arxiv_id: "1605.02910"
+venue: "ARC-Bench Physics 2026"
+paper_asset: null
+
+synthesis: |
+  Reproducing the LHC Run 1 sensitivity to a B-L gauge boson Z' with
+  kinetic mixing as a benchmark of the agent's ability to combine MC
+  parameter scans with an analytic statistical recast. The model has a
+  Z' coupling to SM fermions via a left/right combination
+  $C_{f,L/R}(\tilde g, g_1', M_{Z'})$ where $g_1'$ is the B-L gauge
+  coupling, $\tilde g$ is the kinetic mixing, and the production cross
+  section is the exact quadratic form
+  $\sigma(pp \to Z') = A g_1'^2 + B g_1' \tilde g + C \tilde g^2$ — so
+  three runs per mass point determine $(A,B,C)$ for the entire $(\tilde
+  g, g_1')$ plane. The diagnostic observable is the three-panel exclusion
+  contour at $\mathrm{Sig}\equiv 2(\sqrt{S+B}-\sqrt B) = 2$ for
+  $M_{Z'} \in \{2.0, 2.5, 3.0\}$ TeV at $\mathcal{L} = 20$ fb$^{-1}$.
+
+  A credible study (a) implements the kinetic-mixing B-L Lagrangian and
+  $C_{f,L/R}$ couplings, (b) runs the 9 signal MadGraph runs (3 mass
+  points x 3 coupling points) plus 3 SM Drell-Yan background runs with
+  $m_{\ell\ell} > 0.9 M_{Z'}$ generator cut, (c) computes the analytic
+  $Z' \to e^+e^- + \mu^+\mu^-$ branching ratio including 3 degenerate
+  heavy Majorana neutrinos $m_{\nu_h}=95$ GeV, (d) applies the published
+  NNLO k-factors $k\in\{1.35,1.40,1.50\}$ and acceptance
+  $\epsilon_\mathrm{acc}=0.6$, (e) solves the $\mathrm{Sig}=2$ equation
+  on a 2D grid in $(\tilde g, g_1')$, and (f) plots three side-by-side
+  contours. Research question: *does the agent reproduce the three-panel
+  $(\tilde g, g_1')$ exclusion contours at $M_{Z'}=2.0, 2.5, 3.0$ TeV from
+  Figure 1 of arXiv:1605.02910?*
+
+hypotheses:
+  - id: H1
+    statement: "For the $M_{Z'}=2$ TeV panel, the exclusion contour crosses the $\\tilde g = 0$ axis at $g_1' \\in [0.10, 0.20]$ (matching the published value within 30%)."
+    measurable: true
+  - id: H2
+    statement: "The $(A, B, C)$ quadratic coefficients extracted at $M_{Z'}=2$ TeV satisfy $A > 0$ and $|B| \\le 4\\sqrt{AC}$ (positivity of the cross section over the full parameter plane)."
+    measurable: true
+  - id: H3
+    statement: "The maximum reach in $g_1'$ at $\\tilde g = 0$ degrades by at least a factor of 2 going from $M_{Z'}=2$ TeV to $M_{Z'}=3$ TeV, reflecting the PDF suppression at high mass."
+    measurable: true
+
+experiment_design:
+  research_question: "Does the agent reproduce the three-panel $(\\tilde g, g_1')$ 2$\\sigma$ exclusion contours at $M_{Z'}=2.0, 2.5, 3.0$ TeV from the LHC Run 1 dilepton search at $\\sqrt{s}=8$ TeV with $\\mathcal{L}=20$ fb$^{-1}$ (Figure 1 of arXiv:1605.02910)?"
+  conditions:
+    - name: "mzp_2tev"
+      description: "$M_{Z'}=2$ TeV: 3 signal runs at $(g_1', \\tilde g) \\in \\{(0.10, 0), (0.10, -0.10), (0.15, -0.05)\\}$."
+    - name: "mzp_2p5tev"
+      description: "$M_{Z'}=2.5$ TeV: 3 signal runs at the same three $(g_1', \\tilde g)$ points."
+    - name: "mzp_3tev"
+      description: "$M_{Z'}=3$ TeV: 3 signal runs at $(g_1', \\tilde g) \\in \\{(0.30, 0), (0.30, -0.30), (0.50, -0.60)\\}$."
+  baselines:
+    - "SM Drell-Yan $pp \\to \\ell^+\\ell^-$ at $\\sqrt{s}=8$ TeV with generator-level cut $m_{\\ell\\ell} > 0.9 M_{Z'}$, one per mass point"
+  metrics:
+    - name: "exclusion_g1p_at_kinmix0"
+      direction: "match_reference"
+      description: "Value of $g_1'$ at which the $\\mathrm{Sig}=2$ contour crosses $\\tilde g = 0$, per mass point."
+    - name: "quadratic_coefficients_ABC"
+      direction: "match_reference"
+      description: "$(A, B, C)$ extracted from the 3 signal runs per mass; positive-definite check."
+    - name: "br_zprime_to_dilepton"
+      direction: "match_reference"
+      description: "Analytic $\\mathrm{BR}(Z' \\to e^+e^-+\\mu^+\\mu^-)$ at the three benchmark masses."
+  datasets:
+    - process_id: "pp_to_Zprime_BL_kinmix"
+      sqrt_s_TeV: 8
+      description: "$pp \\to Z'$ with kinetic-mixing B-L Z' at the LHC, dilepton final state. Background: SM Drell-Yan with $m_{\\ell\\ell}$ cut."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 3600
+
+rubric_path: "experiments/arc_bench/config/physics/rubrics/P03.json"
+
+# ---------------------------------------------------------------------------
+# Agent-mode requirements (consumed by researchclaw.pipeline.requirements_judge
+# at stage 15 RESEARCH_DECISION). Schema mirrors B01.yaml:
+#   id          — stable identifier
+#   type        — advisory hint to the LLM judge (numeric | artifact | discussion)
+#   description — natural-language statement of what must be true post-run
+#   must_pass   — true → unmet ⇒ rerun (1 retry max); false → optional
+#
+# The five generic must_pass items apply uniformly across P01-P10; the sixth
+# is topic-specific (mirrors this manifest's H1).  The two must_pass=false
+# items reward mechanistic interpretation and MC-reproducibility metadata
+# without blocking proceed-vs-rerun on them.
+# ---------------------------------------------------------------------------
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: >-
+      A canonical results.json file exists at the workspace root with at least
+      the keys: primary_metric (number), metric_key (string), metrics (object
+      with numeric keys), hypotheses (object with h1/h2/h3 entries each
+      carrying a `supported` boolean), summary (non-empty string).
+    must_pass: true
+
+  - id: req_metrics_numeric
+    type: numeric
+    description: >-
+      results.json metrics MUST contain at least 3 numeric (non-null, finite)
+      values directly relevant to the headline physics observable named in
+      the experiment_design.metrics list above — these are the numbers the
+      paper will report in its Results section.
+    must_pass: true
+
+  - id: req_hypotheses_supported_flags
+    type: discussion
+    description: >-
+      results.json hypotheses.h1/h2/h3 each MUST have an explicit `supported`
+      boolean AND a `details` string ≥ 40 characters quoting the numerical
+      evidence (specific values + their source artifact) used to reach the
+      verdict.
+    must_pass: true
+
+  - id: req_publication_figure
+    type: artifact
+    description: >-
+      At least one publication-quality figure file (PDF or PNG, ≥150 DPI for
+      raster) exists under figures/ or output/figures/ with axes labeled in
+      physical units (GeV / pb / fb / dimensionless) and a legend if multiple
+      series are plotted.  The figure must directly support a hypothesis
+      verdict.
+    must_pass: true
+
+  - id: req_model_implementation
+    type: artifact
+    description: >-
+      The BSM Lagrangian is implemented either as a FeynRules .fr file
+      (models/*.fr) with a matching UFO directory (models/*_UFO/ containing
+      at least particles.py, parameters.py, couplings.py, vertices.py), OR
+      as analytic Python code that explicitly computes the cross sections
+      from the Lagrangian terms.  A pure SM baseline with no BSM piece is
+      NOT sufficient.
+    must_pass: true
+
+  - id: req_g1prime_threshold
+    type: numeric
+    description: >-
+      results.json metrics MUST report the g1' coordinate where the 2σ exclusion contour at M_Z'=2 TeV crosses the g̃=0 axis, in the interval [0.07, 0.26] (i.e. published [0.10, 0.20] ±30%).
+    must_pass: true
+
+  - id: req_mechanistic_writeup
+    type: discussion
+    description: >-
+      The summary or structured_results section provides a one-paragraph
+      mechanistic interpretation of WHY the headline observable comes out the
+      way it does (which interference / propagator structure / cut effect
+      drives the result).  Nice-to-have, not blocking proceed.
+    must_pass: false
+
+  - id: req_mc_reproducibility
+    type: discussion
+    description: >-
+      results.json or a sibling reproducibility section names: (a) the
+      MadGraph5_aMC@NLO version, (b) the PDF set used (if applicable), (c)
+      at least one explicit random seed.  Required for full reproducibility
+      but not for scientific correctness.
+    must_pass: false

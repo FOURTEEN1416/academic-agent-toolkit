@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/host-bridge.schema.json",
+  "title": "PaperSpine5 HostBridge command",
+  "description": "A host-neutral command envelope used by Codex, Claude Code, DSH, and the standalone skill adapter.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol", "version", "request_id", "host", "action", "payload"],
+  "properties": {
+    "protocol": {
+      "const": "paperspine5.host"
+    },
+    "version": {
+      "const": "0.1.0"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "host": {
+      "enum": ["codex", "claude-code", "dsh", "standalone-skill"]
+    },
+    "action": {
+      "enum": [
+        "snapshot",
+        "save_configuration",
+        "advance",
+        "record_decision",
+        "record_signal",
+        "open_workspace"
+      ]
+    },
+    "job_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "open_workspace"
+          }
+        },
+        "required": ["action"]
+      },
+      "then": {
+        "required": ["job_path"]
+      }
+    }
+  ]
+}

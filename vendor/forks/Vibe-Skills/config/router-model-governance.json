@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-15",
+  "policy": "router-model-neutrality",
+  "control_plane_owner": "canonical-pack-router",
+  "provider_layer": {
+    "enabled": true,
+    "authoritative": false,
+    "replaceable": true,
+    "provider_neutral_contract_required": true
+  },
+  "provider_neutral_contract": {
+    "schema_path": "schemas/router-provider.schema.json",
+    "provider_registry_path": "config/router-provider-registry.json",
+    "provider_defaults_path": "config/router-provider-defaults.json",
+    "provider_layer_doc_path": "docs/universalization/router-provider-layer.md",
+    "verification_gates": [
+      "scripts/verify/vibe-router-provider-neutrality-gate.ps1",
+      "scripts/verify/vibe-router-offline-degrade-contract-gate.ps1"
+    ],
+    "runtime_boundary": {
+      "canonical_authority_script": "scripts/router/resolve-pack-route.ps1",
+      "do_not_modify_router_scripts_in_governance_phase": true,
+      "no_second_router": true
+    },
+    "degrade_honesty": {
+      "fallback_provider_mode": "heuristic-only",
+      "offline_frozen_state": "offline-frozen",
+      "silent_provider_absence_forbidden": true,
+      "fallback_hazard_alert_required": true,
+      "fallback_truth_level": "non_authoritative"
+    }
+  },
+  "allowed_provider_roles": [
+    "semantic_extraction",
+    "candidate_rerank",
+    "route_advice",
+    "shadow_evaluation",
+    "route_explainability"
+  ],
+  "forbidden_provider_roles": [
+    "canonical_assignment_owner",
+    "second_router",
+    "live_router_takeover",
+    "explicit_command_override",
+    "release_chain_owner"
+  ],
+  "runtime_states": [
+    "provider-assisted",
+    "heuristic-only",
+    "offline-frozen",
+    "unsupported"
+  ],
+  "hard_rules": {
+    "single_routing_authority": true,
+    "no_second_router": true,
+    "no_provider_lockin_claims": true,
+    "must_label_degraded_state_explicitly": true,
+    "must_support_truthful_no-provider_mode": true,
+    "must_emit_hazard_alert_for_fallback": true,
+    "must_not_treat_fallback_as_authoritative_success": true
+  },
+  "current_observed_bindings": [
+    "scripts/router/modules/01-openai-responses.ps1",
+    "config/settings.template.codex.json",
+    "config/ruc-nlpir-runtime.json"
+  ],
+  "promotion_requirements": [
+    "provider-neutral governance document exists",
+    "provider-assisted versus heuristic-only boundary is explicit",
+    "cross-host provider-state wording is truthful",
+    "router contract remains single-authority"
+  ]
+}

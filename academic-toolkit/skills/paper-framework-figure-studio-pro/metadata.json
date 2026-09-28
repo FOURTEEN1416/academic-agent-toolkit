@@ -1,0 +1,219 @@
+{
+  "name": "paper-framework-figure-studio-pro",
+  "version": "3.2.15f",
+  "title": "Paper Framework Figure Studio Pro",
+  "description": "Human-in-the-loop research-paper framework figure workflow. S1 plans eight internally non-contradictory and complementary style-combination proposals, selects the top four for S2 prompt packages C01-C04, and S2 generates exactly four raster candidates through row-atomic one-candidate-per-call image generation. S4 prepares exactly two S5 prompt packages F01-F02 with relevant S2 raster reference-image inputs, and S5 generates exactly two terminal raster candidates through row-atomic one-candidate-per-call image generation while using row-local references when supported and ignoring them when unsupported. S1/S4 prompts must use paper-grounded, human-aesthetic color palettes, reject generic AI-looking color artifacts, audit/repair prompts up to five cycles, block false relay data-flow through modules that do not consume or transform the carried item, and choose the visual mainline from the paper's primary contribution type rather than defaulting to data flow. S0 must convert vague role/actor/condition directives into concrete visual contracts with forbidden misimplementation locks before S1/S4 prompt preparation, and enforce compact-balanced layout density so primary method mechanisms remain central, background/context insets stay subordinate, and excessive whitespace or fragmented micro-block scatter blocks prompt handoff.",
+  "workflow": [
+    {
+      "step": "S0-PAPER-FOUNDATION",
+      "mode": "TEXT_ONLY"
+    },
+    {
+      "step": "S1-FIGURE-STRATEGY",
+      "mode": "TEXT_ONLY_WITH_EMBEDDED_S2_PREPARE"
+    },
+    {
+      "step": "S2-SKETCH-EXPLORE",
+      "mode": "IMAGE_GENERATE_ONLY"
+    },
+    {
+      "step": "S3-DIRECTION-SELECT",
+      "mode": "TEXT_ONLY_WITH_EMBEDDED_S2_REVIEW_AGGREGATE"
+    },
+    {
+      "step": "S4-CANDIDATE-BRIEF",
+      "mode": "TEXT_ONLY_WITH_EMBEDDED_S5_PREPARE"
+    },
+    {
+      "step": "S5-CANDIDATE-IMAGE",
+      "mode": "IMAGE_GENERATE_ONLY_TERMINAL"
+    }
+  ],
+  "terminal_step": "S5-CANDIDATE-IMAGE",
+  "terminal_reply": "我的任务已经完成，剩下由人类来决策。",
+  "image_route_policy": {
+    "codex": "image_gen only",
+    "chatgpt_web": "Create Image / ChatGPT Images 2.0 only",
+    "other": "named approved image-generation API only",
+    "forbidden": "SVG, HTML/canvas, Mermaid, Python/PIL, Matplotlib, Graphviz, TikZ, PPT/PDF rendering, screenshots, SVG-to-PNG, and local programmatic raster substitutes"
+  },
+  "s5_reference_image_input_policy": {
+    "source_stage": "S2-SKETCH-EXPLORE",
+    "row_field": "reference_image_paths",
+    "required_in_s5_prompt_index_rows": true,
+    "use_when_supported": true,
+    "ignore_when_unsupported": true,
+    "semantic_authority": "S2 reference images are visual exploration/preference signals only; paper/S0/S1/S3/S4 constraints remain authoritative.",
+    "checkpoint_rule": "Listed S2 reference image paths are required existing assets in cumulative S4/S5 checkpoints when their roots are included."
+  },
+  "candidate_count_policy": {
+    "s1_style_combination_pool_count": 8,
+    "s1_selected_s2_candidate_count": 4,
+    "s2_image_count": 4,
+    "s4_s5_prompt_candidate_count": 2,
+    "s5_image_count": 2,
+    "s2_default_ids": [
+      "C01",
+      "C02",
+      "C03",
+      "C04"
+    ],
+    "s5_default_ids": [
+      "F01",
+      "F02"
+    ],
+    "no_extra_candidates": true,
+    "row_atomic_image_calls_required": true,
+    "s2_required_image_calls": "one per selected/non-skipped prompt-index row; default 4",
+    "s5_required_image_calls": "one per selected/non-skipped prompt-index row; default 2"
+  },
+  "style_combination_policy": {
+    "s1_pool_ids": [
+      "SC01",
+      "SC02",
+      "SC03",
+      "SC04",
+      "SC05",
+      "SC06",
+      "SC07",
+      "SC08"
+    ],
+    "selection_rule": "Score all eight complementary style-combination proposals and select only the four highest overall evaluations for C01-C04.",
+    "complementarity_required": true,
+    "contradiction_examples": [
+      "dense evidence dashboard combined with minimal line-art overview without an explicit hierarchy plan",
+      "hand-drawn narrative surface combined with precision blueprint semantics without a paper-grounded reason",
+      "neon gradient poster palette combined with restrained publication schematic goals"
+    ],
+    "required_s1_records": [
+      "style_combination_pool",
+      "style_combination_selection_matrix",
+      "selected_style_combinations",
+      "rejected_style_combinations",
+      "combination_complementarity_rationale",
+      "palette_human_taste_contract"
+    ]
+  },
+  "human_palette_policy": {
+    "applies_to": [
+      "S1",
+      "S2",
+      "S4",
+      "S5"
+    ],
+    "required": "Use restrained publication-grade palettes with paper-supported color semantics, grayscale legibility, one primary accent, one secondary accent when needed, and accessible contrast.",
+    "forbidden": [
+      "generic AI-blue/purple gradients",
+      "neon saturation",
+      "glossy orb or glassmorphism effects",
+      "bokeh or decorative glow backgrounds",
+      "rainbow ramps without semantic role",
+      "marketing-poster lighting"
+    ]
+  },
+  "prompt_audit_policy": {
+    "s1_s4_max_audit_repair_cycles": 5,
+    "required_records": [
+      "contribution_type_visual_priority",
+      "primary_reader_question",
+      "visual_mainline_decision",
+      "data_flow_mainline_justification",
+      "s5_reference_image_input_plan",
+      "edge_support_ledger",
+      "data_consumer_transformer_ledger",
+      "false_relay_data_flow_audit",
+      "s0_semantic_precision_contract",
+      "role_visual_realization_contract",
+      "forbidden_misimplementation_locks",
+      "process_instance_budget",
+      "layout_information_density_plan",
+      "canvas_area_budget",
+      "context_inset_budget",
+      "mainline_center_of_gravity_gate",
+      "layout_density_audit"
+    ],
+    "false_relay_rule": "If A produces x and C consumes x while B does not consume, transform, store, route, evaluate, update, or emit x, do not draw A->B(x) or A->B->C(x); route to the true consumer/transformer, attach x to the true input/port/tag, or move it to caption/legend."
+  },
+  "public_stage_human_wait_barrier_policy": {
+    "hard_required": true,
+    "rule": "After S0-S4, the next public stage requires a later explicit user message or a source-allowed explicit skip/default/automation choice recorded before the barrier.",
+    "not_sufficient": [
+      "reviewer gates",
+      "specialist completion",
+      "internal handoffs",
+      "checkpoint success",
+      "silent defaults",
+      "copyable prompts"
+    ]
+  },
+  "checkpoint_policy": "Every workflow text reply must validate or rebuild a cumulative checkpoint zip mirror before claiming recoverability. User-facing checkpoint links require checkpoint-manifest.json, checkpoint-cumulative-integrity.json, checkpoint-integrity-audit.json, and PASS / complete_restore_ready status.",
+  "generic_policy_scope": "Reusable skill files must remain paper-neutral and must not hard-code target-paper modules, variables, datasets, topology, or project-specific fixes.",
+  "v3215e_changes": [
+    "S1/S4 now require a contribution-type visual priority gate: classify the paper's primary contribution, choose the primary reader question, select the visual mainline, and justify any data-flow mainline from source evidence.",
+    "Data flow is no longer treated as a default framework backbone. It may dominate only for data/dataset/database/retrieval/generation/governance/pipeline-centered contributions; otherwise data labels should stay as edge labels, port labels, small tags, compact notes, caption-supported annotations, or omissions.",
+    "S1 candidate diversity now tests distinct contribution-explanation viewpoints rather than four layouts of the same data pipeline.",
+    "S3 issue ledgers now record visual_mainline_mismatch, data_flow_overdominance, variable_inventory_layout, supporting_data_overlabeling, and unbalanced_whitespace when generated candidates obscure the innovation mechanism.",
+    "S1 now plans eight complementary style-combination proposals, scores them, explains why selected styles are mutually complementary, and writes only four C01-C04 S2 prompt packages.",
+    "S2 now generates exactly four first-round raster candidates from the S1 prompt-index.",
+    "S4 now writes exactly two F01-F02 S5 prompt packages; S5 generates exactly two terminal raster candidates.",
+    "S4 now records relevant S2 raster outputs as S5 reference_image_paths; S5 uses them as image references when supported and automatically ignores them when unsupported.",
+    "Preference carryover remains supported but must be narrowed, repaired, or replanned if preferred-source x style coverage cannot fit within two S5 candidates.",
+    "S1/S4 prompt packages must include palette_strategy, palette_semantic_mapping, palette_anti_ai_artifact_rules, human_aesthetic_rationale, and color_accessibility_note.",
+    "Audit and packaging rules reject contradictory style combinations and AI-looking color treatment.",
+    "S1/S4 prompt audit and repair loops are capped at five cycles.",
+    "S1/S4 prompt packages must reject false relay data-flow through modules that do not consume or transform the carried item.",
+    "Public stages enforce a hard human wait barrier; reviewer gates, internal handoffs, and copyable prompts do not authorize the next public stage.",
+    "S1/S4 prompt packages now require layout density, canvas area, context inset, and mainline center-of-gravity gates so algorithm/model/framework diagrams stay compact-balanced rather than sparse, fragmented, or top-heavy with background context."
+  ],
+  "prompt_fidelity_policy": "Every image-prompt entity, relation, connector, label, variable, metric, formula, and visual symbol must be directly supported by paper/materials/S0 reports or derived by recorded strict logical inference. Paper contradictions, unsupported arrows, reversed directions, ambiguous relation claims, visual mainlines that mismatch the paper's contribution type, unjustified data-flow dominance, false relay data-flow through non-consuming/non-transforming modules, symbol mixing, contradictory style combinations, and AI-looking palette artifacts block S2/S5 handoff, and layout plans with excessive whitespace, fragmented micro-block scatter, off-center mainlines, or dominant support-context panels block S2/S5 handoff unless a source-grounded physical-layout exception is recorded.",
+  "packaging_policy": "SKILL.md is a compact controller; detailed rules are loaded from references/ on demand; scripts are reusable helpers; project-specific facts stay in run outputs; stale validation reports, cache folders, and project outputs are not runtime dependencies and are pruned from the clean release package.",
+  "s0_semantic_precision_policy": {
+    "policy_id": "s0-semantic-precision-and-role-variation-lock-v3215f",
+    "contract_path": "outputs/S0-paper-foundation/s0-semantic-precision-contract.json",
+    "required_before_s1": true,
+    "required_report_fields": [
+      "ambiguous_directive_normalization",
+      "actor_or_condition_variation_matrix",
+      "role_visual_realization_contract",
+      "process_instance_budget",
+      "forbidden_misimplementation_locks",
+      "downstream_s1_s4_carry_forward"
+    ],
+    "rule": "S0 vague visual directives must be normalized into concrete meaning, visual-safe implementation, forbidden interpretation, and downstream prompt constraints. Repeated roles/actors/conditions sharing the same canonical workflow must not become one complete workflow per role.",
+    "default_process_instance_rule": "one canonical process by default; additional full process instances require source evidence for different operations, different input-output contracts, phases, or explicit comparison intent."
+  },
+  "layout_density_policy": {
+    "policy_id": "layout-density-mainline-balance-v3215f",
+    "contract": "references/layout-density-mainline-balance-policy-v3215f.md",
+    "required_before_s2_s5_handoff": true,
+    "required_records": [
+      "layout_information_density_plan",
+      "canvas_area_budget",
+      "context_inset_budget",
+      "mainline_center_of_gravity_gate",
+      "layout_density_audit"
+    ],
+    "default_rule": "For algorithm/model/method/framework figures, use compact-balanced manuscript density: primary method content stays central and dominant, background/context insets are small and subordinate, and empty quadrants, top-heavy context panels, fragmented micro-block islands, and support-context area overrun block handoff unless a physical-layout exception is recorded.",
+    "physical_layout_exception_examples": [
+      "circuit",
+      "chip",
+      "hardware board",
+      "mechanical assembly",
+      "geospatial/map",
+      "other source-grounded physical layout"
+    ]
+  },
+  "row_atomic_image_generation_policy": {
+    "applies_to": [
+      "S2-SKETCH-EXPLORE",
+      "S5-CANDIDATE-IMAGE"
+    ],
+    "one_candidate_per_image_call": true,
+    "queue_source": "prompt-index selected/non-skipped rows",
+    "single_call_cannot_satisfy_multiple_rows": true,
+    "completion_gate": "all active rows must have registered rasters at their own target_image_path before the image-only stage can close",
+    "orphan_raster_policy": "generated images not mirrored to a row target_image_path with matching candidate_id are not active candidate outputs",
+    "guard_script": "scripts/figure_studio_image_only_row_guard.py",
+    "policy_reference": "references/s2-s5-row-atomic-image-generation-guard-policy-v3215f.md"
+  }
+}

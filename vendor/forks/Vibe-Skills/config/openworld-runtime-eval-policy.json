@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "updated": "2026-03-07",
+  "candidate_providers": [
+    "browser-use",
+    "Agent-S"
+  ],
+  "evidence_requirements": {
+    "confirm_mode": "confirm_required",
+    "replay_handle_required": true,
+    "rollback_plan_required": true,
+    "operator_owner_required": true
+  },
+  "control_plane_guard": {
+    "takeover_forbidden": true,
+    "provider_priority_writes_forbidden": true,
+    "background_execution_owner": false
+  },
+  "comparison_axes": [
+    "task_completion",
+    "replay_integrity",
+    "rollback_integrity",
+    "confirm_discipline",
+    "owner_boundary"
+  ],
+  "apply_policy": "manual_review_required"
+}

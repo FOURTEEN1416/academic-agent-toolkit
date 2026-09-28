@@ -1,0 +1,31 @@
+﻿{
+    "baseline_report_id":  "CER-BASELINE-001",
+    "current_report_id":  "CER-CURRENT-001",
+    "generated_at":  "2026-02-24T18:20:00Z",
+    "status":  "improved",
+    "pattern_delta":  {
+                          "added":  "CF-2",
+                          "removed":  "CF-5",
+                          "common_count":  1
+                      },
+    "fallback_rate":  {
+                          "baseline":  0.27,
+                          "current":  0.14,
+                          "delta":  -0.13
+                      },
+    "stability":  {
+                      "baseline":  0.71,
+                      "current":  0.835,
+                      "delta":  0.125
+                  },
+    "context_pressure":  {
+                             "baseline":  0.79,
+                             "current":  0.62,
+                             "delta":  -0.17
+                         },
+    "route_gap":  {
+                      "baseline":  0.02,
+                      "current":  0.09,
+                      "delta":  0.07
+                  }
+}

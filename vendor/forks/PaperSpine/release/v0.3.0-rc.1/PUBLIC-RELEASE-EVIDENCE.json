@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "product": "PaperSpine5",
+  "version": "0.3.0-rc.1",
+  "tag": "v0.3.0-rc.1",
+  "build_id": "paperspine5-0.3.0-rc.1-build.20260823.1",
+  "status": "published",
+  "immutable_artifacts": [
+    {
+      "file": "paperspine5-skill-0.3.0-rc.1.zip",
+      "bytes": 577038,
+      "sha256": "04cf4eefcf467054ab0c6da38bb5fc4cc264c8132efc8d4ccc23c03d0c44766d"
+    },
+    {
+      "file": "paperspine5-codex-plugin-0.3.0-rc.1.zip",
+      "bytes": 589272,
+      "sha256": "a5c0553ace8c96e547e2d2e4ec1063c74bab06d78528b8b2db26eeb064875f87"
+    },
+    {
+      "file": "paperspine5-claude-code-plugin-0.3.0-rc.1.zip",
+      "bytes": 591636,
+      "sha256": "ae181ce48e0168b9d3492dd0af3695ab00dad5a002cc8a7dcbe246c857424e29"
+    },
+    {
+      "file": "dsh-paperspine5-0.3.0-rc.1.zip",
+      "bytes": 577009,
+      "sha256": "57495524d0f81f1b0ea24828e53546ce306a8733e96450528d064921c18c7655"
+    }
+  ],
+  "validation": {
+    "status": "PASS",
+    "checks": 43,
+    "failed": []
+  },
+  "core": {
+    "files": 176,
+    "sha256": "9eed412bf2a40b1e00787cd04de2adf696a662055ea31152ebc8f2899e2ba95f"
+  },
+  "notes": [
+    "ZIP files were copied byte-for-byte from the validated staging directory.",
+    "The unpacked staging directory contained no __pycache__ directories at preparation time.",
+    "Machine-local paths were removed from the public validation evidence.",
+    "The four immutable ZIPs passed authenticated draft re-download and anonymous public re-download SHA-256 verification on 2026-08-23."
+  ]
+}

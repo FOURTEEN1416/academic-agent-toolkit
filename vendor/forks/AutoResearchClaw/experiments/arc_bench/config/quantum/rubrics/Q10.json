@@ -1,0 +1,109 @@
+{
+    "id": "q10-root",
+    "requirements": "An empirical study of a quantum autoencoder on Haar-random pure states. The agent must (a) construct encoder + decoder circuits as EfficientSU2(reps=3) from qiskit.circuit.library, (b) implement the SWAP-test loss via auxiliary qubits + Hadamard-controlled-SWAP-Hadamard or compute trash-qubit fidelity-to-|0> directly via Statevector, (c) train each compression-ratio condition by qiskit_algorithms.optimizers.COBYLA.minimize() on a fixed batch of 5 Haar states per seed, (d) evaluate on 20 unseen Haar states reporting reconstruction_fidelity, and (e) score H1/H2/H3 with numerical evidence.",
+    "judging_note": "Quantum autoencoder studies are scored on (i) correctness of the SWAP-test or fidelity computation (verifiable: no_compression baseline must report fidelity ~1.0, otherwise the eval pipeline is broken), (ii) the random_unitary_compression baseline producing fidelity in the expected range for that compression ratio (theoretical floor is 2^(m-n) per Page formula, e.g. for 4->2 the random baseline fidelity is around 0.0625), (iii) the trained conditions being measurably above the random baseline (otherwise no learning), and (iv) numerical evidence for the latent-dimension capacity effect (4->3 better than 4->2).",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "q10-code",
+            "requirements": "Code-development bucket: encoder/decoder built from qiskit.circuit.library, SWAP-test or direct-fidelity loss implemented correctly, training pipeline runs.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q10-code-encoder-decoder",
+                    "requirements": "Encoder is qiskit.circuit.library.EfficientSU2(num_qubits=n, reps=3, entanglement='linear'). Decoder is the inverse of the encoder (via QuantumCircuit.inverse()) sharing the same parameters but acting in reverse, applied after fresh |0> ancillas have replaced the trash qubits. Both encoder and decoder are built once from qiskit.circuit.library — NOT hand-coded as H/RY/RZ + CNOT stacks (the quantum-qiskit skill warns against this anti-pattern).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q10-code-loss-eval",
+                    "requirements": "Training loss is implemented as either (a) a SWAP-test circuit using auxiliary qubits and the standard Hadamard-controlled-SWAP-Hadamard pattern, OR (b) a direct Statevector computation: trace out the trash register, compute its partial-trace overlap with |0><0|, and sum across trash qubits. Both implementations are valid. The reconstruction_fidelity metric on the test set uses |<psi_input|psi_reconstructed>|^2 computed via qiskit.quantum_info.Statevector inner product (no SWAP test needed at evaluation since we have access to both states).",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "q10-code-pipeline",
+                    "requirements": "Training: 100 iterations of qiskit_algorithms.optimizers.COBYLA.minimize() over the SWAP-test loss, summed over a fixed batch of 5 Haar-random states drawn once per (condition, seed) pair via qiskit.quantum_info.random_statevector. Evaluation: 20 fresh Haar-random states drawn from a different RNG stream than the training batch. Each cell logs METRIC_RESULT JSON with condition, seed, reconstruction_fidelity_mean (over 20 test states), swap_test_loss_final, training_time_sec.",
+                    "weight": 6.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q10-exec",
+            "requirements": "Execution-validity bucket: all 15 cells ran with valid outputs.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "q10-exec-cells-ran",
+                    "requirements": "At least 14 cells out of 15 expected (5 conditions x 1 ensemble x 3 seeds) completed without unhandled errors and produced a reconstruction_fidelity_mean value. Missing more than 1 cell without documented justification fails this leaf.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q10-exec-numerical",
+                    "requirements": "Numerical validity: reconstruction_fidelity is in [0, 1] for every cell; the no_compression baseline reports fidelity in [0.95, 1.0] (else eval pipeline is broken); the random_unitary_compression baseline for 4->2 reports fidelity in [0.04, 0.15] (matching the theoretical 2^(m-n) = 0.0625 average for Haar states); no cell reports identical fidelity across all 3 seeds (would indicate the Haar sampler is not actually randomizing per seed).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "q10-results",
+            "requirements": "Results bucket: quantitative tests of H1/H2/H3 plus a per-hypothesis writeup.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "q10-result-h1-quant",
+                    "requirements": "Quantitative test of H1. On at least 2 of 3 compression-ratio conditions, is trained reconstruction_fidelity >= random_unitary_compression reconstruction_fidelity + 0.2 absolute (3-seed mean)? 100% if gap >= 0.2 on at least 2/3 conditions, 67% if gap >= 0.1 on at least 2/3, 33% if any positive gap on at least 1, 0% if random unitary equals or beats trained on all 3.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q10-result-h2-quant",
+                    "requirements": "Quantitative test of H2. Is reconstruction_fidelity(compress_4_to_3) - reconstruction_fidelity(compress_4_to_2) >= 0.15 absolute (3-seed mean)? 100% if gap >= 0.15, 67% if 0.05-0.15, 33% if any positive gap (capacity effect at least directionally correct), 0% otherwise.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q10-result-h3-quant",
+                    "requirements": "Quantitative test of H3. Does no_compression baseline report reconstruction_fidelity >= 0.95 (3-seed mean)? 100% if >= 0.95, 67% if >= 0.85, 33% if >= 0.70, 0% otherwise — failure of this sanity check means the eval pipeline is misconstructed.",
+                    "weight": 8.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "q10-result-writeup",
+                    "requirements": "Writeup of at least 200 words (submission/README.md ## Agent-produced writeup section) with explicit supported / refuted / inconclusive verdict for each of H1/H2/H3 backed by 3-seed mean reconstruction_fidelity per condition. References Romero, Olson, Aspuru-Guzik Quantum Sci Tech 2017 and discusses whether the trained autoencoder's advantage over random_unitary_compression on Haar-random data is consistent with the Page-formula expectation (Haar states have no exploitable structure, so any improvement reflects the optimizer finding a non-trivial subspace).",
+                    "weight": 12.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

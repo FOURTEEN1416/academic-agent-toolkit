@@ -1,0 +1,117 @@
+{
+    "id": "ml20-root",
+    "requirements": "A credible experiment benchmarking classical forecasters (AR, ARIMA, SARIMAX, ETS, Theta, or equivalents) on synthetic seasonal series: model conditions are implemented, execution covers multiple synthetic regimes with repeated seeds, and results address H1/H2/H3 directionally using sMAPE-centered analysis.",
+    "judging_note": "Score on scientific substance and directional correctness of evidence, not on exact numeric thresholds. Alternative forecaster implementations or substitutes that test the same scientific question should be credited.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "ml20-code",
+            "requirements": "The forecasting conditions and synthetic data generation pipeline are implemented correctly.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml20-code-methods",
+                    "requirements": "The submission implements multiple distinct forecasting methods \u2014 typically AR/ARIMA, a seasonal model (SARIMAX or ETS), and Theta or equivalents \u2014 as separate code paths, and includes at least one explicit naive/seasonal-naive baseline.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Method Implementation"
+                },
+                {
+                    "id": "ml20-code-synthdata",
+                    "requirements": "The submission generates multiple synthetic seasonal dataset families with controllable seasonality, trend, and noise, each with a train/test split suitable for forecasting.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Dataset and Model Acquisition"
+                },
+                {
+                    "id": "ml20-code-setup",
+                    "requirements": "Forecasting setup uses a fixed holdout horizon (or rolling-origin equivalent) and computes comparable forecasts for every (method, dataset, seed) cell.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Development",
+                    "finegrained_task_category": "Experimental Setup"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml20-exec",
+            "requirements": "Benchmark execution logs required metrics with repeated trials.",
+            "weight": 2,
+            "sub_tasks": [
+                {
+                    "id": "ml20-exec-metrics",
+                    "requirements": "Execution produces a structured metrics artifact containing numeric sMAPE and MAE (or equivalents) for each implemented method on at least one dataset family.",
+                    "weight": 12.5,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml20-exec-seeds",
+                    "requirements": "Each reported method-dataset metric is aggregated over multiple random seeds with dispersion statistics. Honest small-seed runs with variance reported are preferable to a single run.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml20-exec-runtime",
+                    "requirements": "The run logs per-method wall-clock timing and completes within a CPU-only budget.",
+                    "weight": 6.25,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        },
+        {
+            "id": "ml20-results",
+            "requirements": "Results analysis addresses H1/H2/H3 directionally with quantitative comparisons.",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "ml20-result-h1",
+                    "requirements": "The submission isolates high-seasonality low-noise results and conveys whether SARIMAX or ETS tends to attain the best mean sMAPE \u2014 judge directionally against H1.",
+                    "weight": 20.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml20-result-h2",
+                    "requirements": "The submission compares the best advanced method against seasonal-naive under high-noise settings and conveys whether the sMAPE gap collapses to a small margin (H2).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+                },
+                {
+                    "id": "ml20-result-h3",
+                    "requirements": "The submission ranks methods by mean sMAPE per dataset family and conveys whether no single method dominates across all families (H3).",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                },
+                {
+                    "id": "ml20-result-writeup",
+                    "requirements": "The README or writeup reports key metric tables, conveys per-hypothesis outcomes (supported / refuted / inconclusive), and discusses limitations (synthetic realism, grid-search scope, seed count, horizon sensitivity). No strict word-count requirement.",
+                    "weight": 10.0,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis",
+                    "finegrained_task_category": "Logging, Analysis & Presentation"
+                }
+            ],
+            "task_category": null,
+            "finegrained_task_category": null
+        }
+    ],
+    "task_category": null,
+    "finegrained_task_category": null
+}

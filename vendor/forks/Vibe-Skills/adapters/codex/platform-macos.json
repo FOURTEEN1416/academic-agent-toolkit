@@ -1,0 +1,17 @@
+{
+  "adapter_id": "codex",
+  "platform": "macos",
+  "status": "not-yet-proven",
+  "install_surface": [
+    "install.sh"
+  ],
+  "check_surface": [
+    "check.sh"
+  ],
+  "doctor_surface": [
+    "PowerShell gates only if pwsh is provisioned"
+  ],
+  "notes": [
+    "The repository contains bash-compatible entry points, but macOS has not been frozen as a proof lane yet."
+  ]
+}

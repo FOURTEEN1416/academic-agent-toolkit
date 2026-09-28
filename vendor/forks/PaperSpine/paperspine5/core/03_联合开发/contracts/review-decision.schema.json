@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/review-decision.schema.json",
+  "title": "Confirmed all-figure review decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project_id", "review_scope", "status", "figures"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "project_id": {"type": "string", "minLength": 1},
+    "review_scope": {"const": "all_figures"},
+    "status": {"const": "confirmed"},
+    "figures": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["figure_id", "selected_candidate", "confirmed", "panel_decisions"],
+        "properties": {
+          "figure_id": {"type": "string", "minLength": 1},
+          "selected_candidate": {"enum": ["A", "B", "C", "existing"]},
+          "panel_count": {"type": "integer", "minimum": 0},
+          "layout": {"type": "string"},
+          "confirmed": {"const": true},
+          "notes": {"type": "string"},
+          "panel_decisions": {"type": "array", "items": {"type": "object", "required": ["panel_id", "action"], "properties": {"panel_id": {"type": "string", "minLength": 1}, "action": {"enum": ["keep", "lock", "revise"]}}, "additionalProperties": false}}
+        }
+      }
+    }
+  }
+}

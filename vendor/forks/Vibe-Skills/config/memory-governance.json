@@ -1,0 +1,107 @@
+{
+    "version":  1,
+    "updated":  "2026-02-25",
+    "enabled":  true,
+    "mode": "soft",
+    "preserve_routing_assignment":  true,
+    "routing_integration":  "post_route_governance_only",
+    "task_allow":  [
+                       "planning",
+                       "coding",
+                       "review",
+                       "debug",
+                       "research"
+                   ],
+    "grade_allow":  [
+                        "M",
+                        "L",
+                        "XL"
+                    ],
+    "role_boundaries":  {
+                            "state_store":  {
+                                                "status":  "active",
+                                                "scope":  "session",
+                                                "use_for":  [
+                                                                "session_state",
+                                                                "execution_progress",
+                                                                "intermediate_results"
+                                                            ],
+                                                "do_not_use_for":  [
+                                                                       "explicit_project_decisions",
+                                                                       "short_term_vector_cache",
+                                                                       "long_term_graph_memory"
+                                                                   ]
+                                            },
+                            "serena":  {
+                                           "status":  "active",
+                                           "scope":  "project",
+                                           "use_for":  [
+                                                           "explicit_project_decisions",
+                                                           "architecture_decisions",
+                                                           "conventions"
+                                                       ],
+                                           "write_policy":  "explicit_decision_only"
+                                       },
+                            "ruflo":  {
+                                          "status":  "active",
+                                          "scope":  "session",
+                                          "use_for":  [
+                                                          "short_term_vector_cache",
+                                                          "intra_session_semantic_retrieval"
+                                                      ],
+                                          "retention":  "short_term"
+                                      },
+                            "cognee":  {
+                                           "status":  "active",
+                                           "scope":  "cross_session",
+                                           "use_for":  [
+                                                           "long_term_graph_memory",
+                                                           "relationship_retrieval",
+                                                           "entity_linking"
+                                                       ],
+                                           "retention":  "long_term"
+                                       },
+                            "episodic_memory":  {
+                                                    "status":  "disabled",
+                                                    "canonical_name":  "episodic-memory",
+                                                    "reason":  "decommissioned_in_vco_memory_governance"
+                                                }
+                        },
+    "defaults_by_task":  {
+                             "planning":  {
+                                              "primary":  "state_store",
+                                              "project_decisions":  "serena",
+                                              "short_cache":  "ruflo",
+                                              "long_term":  "cognee"
+                                          },
+                             "coding":  {
+                                            "primary":  "state_store",
+                                            "project_decisions":  "serena",
+                                            "short_cache":  "ruflo",
+                                            "long_term":  "cognee"
+                                        },
+                             "review":  {
+                                            "primary":  "state_store",
+                                            "project_decisions":  "serena",
+                                            "short_cache":  "ruflo",
+                                            "long_term":  "cognee"
+                                        },
+                             "debug":  {
+                                           "primary":  "state_store",
+                                           "project_decisions":  "serena",
+                                           "short_cache":  "ruflo",
+                                           "long_term":  "cognee"
+                                       },
+                             "research":  {
+                                              "primary":  "state_store",
+                                              "project_decisions":  "serena",
+                                              "short_cache":  "ruflo",
+                                              "long_term":  "cognee"
+                                          }
+                         },
+    "fallback_behavior":  {
+                              "on_missing_config":  "bypass_overlay",
+                              "on_hook_failure":  "continue_core_routing",
+                              "on_disabled_memory_call":  "warn_and_use_governed_alternative"
+                          }
+}

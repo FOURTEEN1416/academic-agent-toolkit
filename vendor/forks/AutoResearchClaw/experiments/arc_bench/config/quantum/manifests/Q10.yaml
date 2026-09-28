@@ -1,0 +1,116 @@
+# ============================================================================
+# Q10 — Quantum autoencoder for pure-state compression
+# ----------------------------------------------------------------------------
+# Open research question. Train a parameterized quantum circuit to compress
+# n-qubit Haar-random pure states into m<n latent qubits via the SWAP-test
+# fidelity loss (Romero, Olson, Aspuru-Guzik 2017). Compare three
+# compression ratios against two no-skill baselines (no compression /
+# random unitary compression). Tests how compression ratio trades off
+# against reconstruction fidelity on a generic random-state ensemble.
+# ============================================================================
+
+id: Q10
+title: "Quantum autoencoder for pure-state compression"
+arxiv_id: null
+venue: "ARC-Bench 2026"
+paper_asset: null
+
+synthesis: |
+  A quantum autoencoder takes an n-qubit quantum state, applies a
+  parameterized circuit that disentangles the information onto a
+  smaller subset of m < n "latent" qubits, and traces out the
+  remaining n - m "trash" qubits. The latent qubits are then expanded
+  back to n qubits via a fresh ancilla register and a decoder circuit
+  (typically the conjugate of the encoder). Training optimizes the
+  encoder so the trash qubits end in the |0> state (verified via a
+  SWAP test against fresh |0> ancillas), which is equivalent to
+  maximizing the fidelity between the reconstructed state and the
+  original input state.
+
+  The training data is an ensemble of input states drawn from some
+  distribution. If the ensemble is concentrated in a low-dimensional
+  manifold of the 2^n Hilbert space, the autoencoder can in principle
+  reach near-perfect reconstruction at significant compression (m <
+  n). If the ensemble is Haar-random pure states, no compression is
+  achievable in principle and the average reconstruction fidelity is
+  upper bounded by 2^(m-n) (the latent space is too small to hold a
+  generic state).
+
+  The empirical question this topic addresses is what compression
+  fidelity is achievable on a small Haar-random ensemble at a few
+  compression ratios, and whether the trained autoencoder
+  meaningfully beats a random-unitary baseline (which represents the
+  null hypothesis: a random encoder cannot do better than chance).
+  This is the cleanest possible test of "does the autoencoder learn
+  anything" without confounding from structured ensembles.
+
+  Implementation guidance is provided by the quantum-qiskit skill at
+  stage 10. The encoder and decoder are EfficientSU2(num_qubits=n,
+  reps=3, entanglement='linear') circuits built from
+  qiskit.circuit.library. The SWAP-test loss is implemented manually
+  via auxiliary qubits and a Hadamard-controlled-SWAP-Hadamard pattern.
+  Use qiskit.primitives.StatevectorSampler for the SWAP-test
+  measurement and qiskit.primitives.StatevectorEstimator for the
+  reconstruction-fidelity diagnostic. Training uses
+  qiskit_algorithms.optimizers.COBYLA.minimize() over the SWAP-test
+  loss (DO NOT use qiskit_algorithms.VQE — see the quantum-qiskit
+  skill's note about qiskit 2.x compatibility).
+
+  Experimental protocol. Three quantum compression conditions probe
+  the compression-fidelity tradeoff: compress 4 qubits -> 2 latent,
+  compress 4 -> 3, compress 6 -> 3. Two no-skill baselines establish
+  the floor: no_compression (identity encoder, m=n, fidelity should
+  be ~1.0) and random_unitary_compression (encoder parameters drawn
+  randomly and never trained). Test data is an ensemble of 20
+  Haar-random pure states per seed. Each (condition, seed) cell
+  reports the mean reconstruction fidelity over the 20 test states.
+  Total: 5 conditions x 1 ensemble x 3 seeds = 15 cells.
+
+  Research question: *On an ensemble of Haar-random pure states, what
+  reconstruction fidelity does a trained quantum autoencoder achieve
+  at compression ratios 4->2, 4->3, and 6->3, and how much better is
+  it than an untrained (random-unitary) encoder at the same
+  compression ratio?*
+
+hypotheses:
+  - id: H1
+    statement: "The trained autoencoder achieves reconstruction fidelity at least 0.2 absolute higher than a random-unitary encoder at the same compression ratio (3-seed mean across the 20 Haar test states), on at least 2 of 3 compression-ratio conditions, confirming that training extracts non-trivial structure from the Haar ensemble."
+    measurable: true
+  - id: H2
+    statement: "Trained reconstruction fidelity is strictly monotone in latent dimension: the 4->3 condition achieves fidelity at least 0.15 higher than the 4->2 condition (3-seed mean), as expected from the Hilbert-space capacity argument 2^m / 2^n."
+    measurable: true
+  - id: H3
+    statement: "The no_compression baseline (identity encoder, m=n) achieves reconstruction fidelity at least 0.95 (3-seed mean), confirming the experimental setup is correctly implemented — the trash-qubit register is non-functional when m=n and the test pipeline should report near-perfect fidelity."
+    measurable: true
+
+experiment_design:
+  research_question: "On an ensemble of Haar-random pure states, what reconstruction fidelity does a trained quantum autoencoder achieve at compression ratios 4->2, 4->3, 6->3, and how much better is it than an untrained encoder at the same compression?"
+  conditions:
+    - name: "compress_4_to_2"
+      description: "Encoder: EfficientSU2(num_qubits=4, reps=3, entanglement='linear'). After applying the encoder, qubits 2 and 3 are the 'trash' register and the SWAP test against fresh |0> ancillas is summed into the loss. Latent qubits: 0, 1. Decoder is the inverse encoder. Training: 100 iterations of qiskit_algorithms.optimizers.COBYLA(maxiter=100).minimize() on a fixed batch of 5 Haar-random states drawn once per seed."
+    - name: "compress_4_to_3"
+      description: "Same as compress_4_to_2 but with 1 trash qubit (qubit 3) and 3 latent qubits (0, 1, 2). Easier compression task."
+    - name: "compress_6_to_3"
+      description: "Encoder: EfficientSU2(num_qubits=6, reps=3, entanglement='linear'). 3 trash qubits (3, 4, 5) and 3 latent qubits (0, 1, 2). Harder compression task (50 percent compression on a larger Hilbert space)."
+  baselines:
+    - "no_compression: Encoder is the identity circuit (no parameters). All qubits are latent (m=n); no trash qubits. The SWAP test trivially passes and reconstruction fidelity equals 1.0 exactly. Sanity check on the eval pipeline."
+    - "random_unitary_compression: Same EfficientSU2 ansatz as the trained conditions, but parameters drawn randomly from Uniform[-pi, pi] once per seed and NEVER trained. Establishes the no-skill floor — represents 'what if the encoder is just random noise'."
+  metrics:
+    - name: "reconstruction_fidelity"
+      direction: "maximize"
+      description: "Mean of |<psi_input|psi_reconstructed>|^2 over the 20 Haar-random test states, 3-seed mean. Primary metric. Computed as 1 - SWAP_test_probability_of_outcome_1 averaged over the trash qubits, OR via direct Statevector inner product when running on the noiseless simulator."
+    - name: "swap_test_loss"
+      direction: "minimize"
+      description: "Training loss at the final iteration. Sum over the m trash qubits of P(SWAP_test_outcome=1) on each. Equivalent to 1 - average_trash_qubit_fidelity_with_|0>."
+    - name: "training_time_sec"
+      direction: "minimize"
+      description: "Wall-clock seconds for the 100 COBYLA iterations of training. Reported for context — the compression task should fit well under 60 seconds per cell."
+  datasets:
+    - name: "haar_random_states_n4"
+      source: "qiskit.quantum_info.random_statevector(2**4, seed=ensemble_seed) — generate 20 Haar-random 4-qubit pure states with a fixed per-seed ensemble seed"
+      description: "An ensemble of 20 Haar-random 4-qubit pure states (for compress_4_to_2 and compress_4_to_3 conditions). A separate Haar ensemble of 20 6-qubit states is generated for the compress_6_to_3 condition. Training uses a fixed batch of 5 of these states; testing uses all 20. The ensemble is fully unstructured by construction, so any non-trivial reconstruction fidelity above the random-unitary baseline reflects the autoencoder learning a structured compression rule on Haar states."
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 1200
+
+rubric_path: "experiments/arc_bench/config/quantum/rubrics/Q10.json"

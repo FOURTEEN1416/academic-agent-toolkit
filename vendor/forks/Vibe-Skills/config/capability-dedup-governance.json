@@ -1,0 +1,117 @@
+{
+    "version":  1,
+    "updated_at":  "2026-03-07",
+    "required_clusters":  [
+                              "memory-governance",
+                              "browser-ops",
+                              "desktop-ops",
+                              "connector-admission",
+                              "skill-ecosystem",
+                              "prompt-intelligence"
+                          ],
+    "clusters":  [
+                     {
+                         "cluster_id":  "memory-governance",
+                         "canonical_owner":  "vco-memory-governance",
+                         "upstream_sources":  [
+                                                  "mem0",
+                                                  "letta"
+                                              ],
+                         "absorbed_value":  [
+                                                "preference backend contract",
+                                                "policy contract"
+                                            ],
+                         "explicit_non_goals":  [
+                                                    "second canonical truth-source"
+                                                ],
+                         "verification_anchor":  "references/capability-dedup-matrix.md"
+                     },
+                     {
+                         "cluster_id":  "browser-ops",
+                         "canonical_owner":  "vco-browserops",
+                         "upstream_sources":  [
+                                                  "browser-use",
+                                                  "agent-s"
+                                              ],
+                         "absorbed_value":  [
+                                                "provider candidate contract",
+                                                "browser task envelope"
+                                            ],
+                         "explicit_non_goals":  [
+                                                    "second default execution owner"
+                                                ],
+                         "verification_anchor":  "references/capability-dedup-matrix.md"
+                     },
+                     {
+                         "cluster_id":  "desktop-ops",
+                         "canonical_owner":  "vco-desktopops-shadow",
+                         "upstream_sources":  [
+                                                  "agent-s"
+                                              ],
+                         "absorbed_value":  [
+                                                "open-world GUI task contract"
+                                            ],
+                         "explicit_non_goals":  [
+                                                    "direct runtime takeover"
+                                                ],
+                         "verification_anchor":  "references/capability-dedup-matrix.md"
+                     },
+                     {
+                         "cluster_id":  "connector-admission",
+                         "canonical_owner":  "vco-connector-admission",
+                         "upstream_sources":  [
+                                                  "awesome-mcp-servers",
+                                                  "composio",
+                                                  "activepieces"
+                                              ],
+                         "absorbed_value":  [
+                                                "admission matrix",
+                                                "risk classification",
+                                                "provider candidate catalog"
+                                            ],
+                         "explicit_non_goals":  [
+                                                    "turn catalog into runtime default surface"
+                                                ],
+                         "verification_anchor":  "references/capability-dedup-matrix.md"
+                     },
+                     {
+                         "cluster_id":  "skill-ecosystem",
+                         "canonical_owner":  "vco-role-pack-governance",
+                         "upstream_sources":  [
+                                                  "claude-skills",
+                                                  "awesome-agent-skills",
+                                                  "awesome-claude-code-subagents",
+                                                  "antigravity-awesome-skills",
+                                                  "agent-squad"
+                                              ],
+                         "absorbed_value":  [
+                                                "role pack rules",
+                                                "team templates",
+                                                "skill quality bar"
+                                            ],
+                         "explicit_non_goals":  [
+                                                    "second skill loader",
+                                                    "second orchestrator"
+                                                ],
+                         "verification_anchor":  "references/capability-dedup-matrix.md"
+                     },
+                     {
+                         "cluster_id":  "prompt-intelligence",
+                         "canonical_owner":  "vco-prompt-intelligence",
+                         "upstream_sources":  [
+                                                  "Prompt-Engineering-Guide",
+                                                  "vibe-coding-cn",
+                                                  "awesome-vibe-coding"
+                                              ],
+                         "absorbed_value":  [
+                                                "pattern cards",
+                                                "risk checklists",
+                                                "chaining heuristics"
+                                            ],
+                         "explicit_non_goals":  [
+                                                    "second prompt router"
+                                                ],
+                         "verification_anchor":  "references/capability-dedup-matrix.md"
+                     }
+                 ]
+}

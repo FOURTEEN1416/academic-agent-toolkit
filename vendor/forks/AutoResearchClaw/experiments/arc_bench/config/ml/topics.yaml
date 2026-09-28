@@ -1,0 +1,222 @@
+# ============================================================================
+# ARC-Bench ML — 25 CPU-friendly ML research topics
+# ----------------------------------------------------------------------------
+# ML01-ML10 are kept in sync with experiments/hitl_ablation/topics.yaml so the
+# two experiments share stimuli. ML11-ML25 are new, spanning additional ML
+# subfields while staying CPU-executable in <10 min on a single core with
+# numpy / scipy / sklearn / statsmodels / networkx.
+# ============================================================================
+
+
+topics:
+- id: ML01
+  topic: Comparing dropout regularization strategies (standard, spatial, variational)
+    for preventing overfitting in shallow MLPs on tabular classification benchmarks
+  domains:
+  - machine-learning
+  - regularization
+  metric_key: test_accuracy
+  metric_direction: maximize
+- id: ML02
+  topic: Evaluating ensemble methods (bagging, boosting, stacking) for regression
+    on synthetic non-linear datasets with varying noise levels
+  domains:
+  - machine-learning
+  - ensemble-methods
+  metric_key: rmse
+  metric_direction: minimize
+- id: ML03
+  topic: Comparing gradient-free optimization algorithms (Nelder-Mead, Powell, CMA-ES)
+    for non-convex benchmark functions using only CPU computation
+  domains:
+  - optimization
+  - numerical-methods
+  metric_key: primary_metric
+  metric_direction: minimize
+- id: ML04
+  topic: Analyzing the effect of feature scaling methods (standard, min-max, robust)
+    on k-nearest neighbors classification performance across different data distributions
+  domains:
+  - machine-learning
+  - data-preprocessing
+  metric_key: test_accuracy
+  metric_direction: maximize
+- id: ML05
+  topic: Investigating dimensionality reduction techniques (PCA, t-SNE, UMAP) for
+    preserving cluster structure in high-dimensional synthetic datasets
+  domains:
+  - machine-learning
+  - unsupervised-learning
+  metric_key: silhouette_score
+  metric_direction: maximize
+- id: ML06
+  topic: Comparing adaptive learning rate schedules (cosine annealing, step decay,
+    exponential decay, warm restarts) for logistic regression convergence on binary
+    classification
+  domains:
+  - optimization
+  - machine-learning
+  metric_key: convergence_epochs
+  metric_direction: minimize
+- id: ML07
+  topic: Evaluating text feature extraction methods (TF-IDF, count vectors, hashing)
+    combined with Naive Bayes and SVM for document classification on 20newsgroups
+  domains:
+  - natural-language-processing
+  - machine-learning
+  metric_key: f1_score
+  metric_direction: maximize
+- id: ML08
+  topic: Analyzing the impact of class imbalance handling strategies (SMOTE, random
+    oversampling, class weights, undersampling) on binary classification with scikit-learn
+  domains:
+  - machine-learning
+  - imbalanced-learning
+  metric_key: balanced_accuracy
+  metric_direction: maximize
+- id: ML09
+  topic: Comparing Bayesian optimization vs grid search vs random search for hyperparameter
+    tuning of random forests on UCI benchmark datasets
+  domains:
+  - automl
+  - machine-learning
+  metric_key: best_cv_score
+  metric_direction: maximize
+- id: ML10
+  topic: Investigating the effectiveness of different cross-validation strategies
+    (k-fold, stratified, repeated, leave-one-out) for model selection with small sample
+    sizes
+  domains:
+  - machine-learning
+  - model-selection
+  metric_key: estimation_bias
+  metric_direction: minimize
+- id: ML11
+  topic: Benchmarking unsupervised outlier detection methods (IsolationForest, LocalOutlierFactor,
+    OneClassSVM, EllipticEnvelope) on UCI datasets with injected anomalies
+  domains:
+  - anomaly-detection
+  - machine-learning
+  metric_key: roc_auc
+  metric_direction: maximize
+- id: ML12
+  topic: Comparing clustering algorithms (k-means, agglomerative, DBSCAN, HDBSCAN,
+    spectral) on synthetic shapes (moons, circles, blobs, anisotropic) with ground-truth
+    labels
+  domains:
+  - machine-learning
+  - clustering
+  metric_key: adjusted_rand_score
+  metric_direction: maximize
+- id: ML13
+  topic: Evaluating kernel choices (RBF, polynomial, Matern-3/2, Matern-5/2) for Gaussian
+    Process regression on synthetic 1-D and 5-D functions with homoscedastic noise
+  domains:
+  - machine-learning
+  - kernel-methods
+  metric_key: test_nll
+  metric_direction: minimize
+- id: ML14
+  topic: Comparing conformal prediction procedures (split-conformal, Mondrian, CQR)
+    for achieving target coverage on heteroscedastic regression tasks
+  domains:
+  - machine-learning
+  - uncertainty-quantification
+  metric_key: coverage_gap
+  metric_direction: minimize
+- id: ML15
+  topic: Investigating filter-based feature selection (mutual_info_classif, chi2,
+    f_classif) vs embedded L1-logistic selection on UCI classification datasets with
+    injected irrelevant features
+  domains:
+  - machine-learning
+  - feature-selection
+  metric_key: test_accuracy
+  metric_direction: maximize
+- id: ML16
+  topic: Comparing multi-armed bandit algorithms (epsilon-greedy, UCB1, Thompson sampling,
+    Exp3) on synthetic Bernoulli and Gaussian arms under stationary and drift regimes
+  domains:
+  - reinforcement-learning
+  - bandits
+  metric_key: cumulative_regret
+  metric_direction: minimize
+- id: ML17
+  topic: Comparing topic models (LDA, NMF, LSA) on a small subset of 20newsgroups
+    by topic coherence (c_v) and document-cluster adjusted rand score
+  domains:
+  - natural-language-processing
+  - topic-modeling
+  metric_key: coherence_cv
+  metric_direction: maximize
+- id: ML18
+  topic: Evaluating probability calibration methods (Platt scaling, isotonic regression,
+    temperature scaling) applied to scikit-learn classifiers (RandomForest, GBM, SVM-RBF)
+    on UCI benchmarks
+  domains:
+  - machine-learning
+  - calibration
+  metric_key: ece
+  metric_direction: minimize
+- id: ML19
+  topic: Comparing semi-supervised learning strategies (LabelPropagation, LabelSpreading,
+    SelfTrainingClassifier) on small UCI datasets with 10-20% labeled data
+  domains:
+  - machine-learning
+  - semi-supervised-learning
+  metric_key: test_accuracy
+  metric_direction: maximize
+- id: ML20
+  topic: Benchmarking classical time-series forecasters (AR, ARIMA, SARIMAX, ETS,
+    Theta) on synthetic seasonal series with varying noise, trend, and seasonality
+    amplitudes
+  domains:
+  - time-series
+  - forecasting
+  metric_key: smape
+  metric_direction: minimize
+- id: ML21
+  topic: Comparing causal structure learning algorithms (PC, GES, NOTEARS-linear)
+    on small synthetic linear-SEM DAGs of 5-15 nodes with Gaussian noise
+  domains:
+  - causal-inference
+  - machine-learning
+  metric_key: structural_hamming_distance
+  metric_direction: minimize
+- id: ML22
+  topic: Evaluating active learning query strategies (uncertainty sampling, margin
+    sampling, query-by-committee, expected-error reduction) for logistic regression
+    on small UCI pools
+  domains:
+  - machine-learning
+  - active-learning
+  metric_key: accuracy_at_budget
+  metric_direction: maximize
+- id: ML23
+  topic: Comparing learning-to-rank approaches (pointwise linear, pairwise RankNet-lite,
+    listwise ListMLE-lite) on synthetic query-document pairs with known relevance
+    grades
+  domains:
+  - information-retrieval
+  - machine-learning
+  metric_key: ndcg_at_10
+  metric_direction: maximize
+- id: ML24
+  topic: Benchmarking online learning algorithms (SGD logistic, Passive-Aggressive,
+    online Naive Bayes, Follow-the-Regularized-Leader) on streaming binary classification
+    with concept drift
+  domains:
+  - online-learning
+  - machine-learning
+  metric_key: prequential_accuracy
+  metric_direction: maximize
+- id: ML25
+  topic: Testing whether a random-feature echo state network (reservoir computing)
+    predicts Lorenz-63 short-horizon trajectories more accurately than a matched-parameter
+    MLP and a Gaussian Process at small training-data sizes (N=200-2000 points)
+  domains:
+  - dynamical-systems
+  - machine-learning
+  - reservoir-computing
+  metric_key: valid_prediction_time
+  metric_direction: maximize

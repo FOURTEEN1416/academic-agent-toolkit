@@ -1,0 +1,18 @@
+{
+  "skill_id": "systematic-debugging",
+  "name": "systematic-debugging",
+  "version": 1,
+  "summary": "Root-cause-first debugging contract for failures, bugs, and unexpected behavior.",
+  "instruction_path": "core/skills/systematic-debugging/instruction.md",
+  "compatibility_path": "core/skills/systematic-debugging/compatibility.json",
+  "source_of_truth": {
+    "kind": "bundled-skill",
+    "path": "bundled/skills/systematic-debugging/SKILL.md"
+  },
+  "tags": [
+    "debugging",
+    "root-cause",
+    "stability"
+  ]
+}
+

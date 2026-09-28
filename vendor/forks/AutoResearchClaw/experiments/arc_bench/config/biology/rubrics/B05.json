@@ -1,0 +1,166 @@
+{
+  "id": "B05",
+  "requirements": "A credible M. tuberculosis essentiality study using COBRApy that validates a pathogen GSMM, runs single-gene and/or single-reaction deletions, identifies essential targets, and prioritises interpretable drug-target hypotheses.",
+  "judging_note": "Accept gene deletions, reaction deletions, or both depending on model GPR support. Penalize unsupported biological claims more than absence of external drug databases.",
+  "weight": 1,
+  "sub_tasks": [
+    {
+      "id": "b05-code",
+      "requirements": "The code loads the pathogen model, validates medium, runs deletion screens, and annotates essential targets.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b05-code-model",
+          "requirements": "Loads iNJ661 or a documented M. tuberculosis GSMM, defines medium/objective, and validates positive WT biomass.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "b05-code-deletion",
+          "requirements": "Runs single-gene deletion when GPR rules are usable, or single-reaction deletion as an explicit fallback/complement.",
+          "weight": 7,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Method Implementation"
+        },
+        {
+          "id": "b05-code-threshold",
+          "requirements": "Defines essentiality threshold such as growth <5% or <10% of WT and applies it consistently.",
+          "weight": 5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b05-code-annotation",
+          "requirements": "Extracts subsystem, reaction name, gene name, GPR, or other model-native annotations for top targets.",
+          "weight": 5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b05-exec",
+      "requirements": "Deletion runs complete with interpretable status handling and structured outputs.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b05-exec-status",
+          "requirements": "WT reference condition is optimal and at least 85% of deletion simulations solve or are explicitly marked infeasible/lethal.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b05-exec-physics",
+          "requirements": "Mass-balance check passes for the loaded pathogen GSMM; WT biomass is positive under the documented medium; deletion table contains no negative growth values; model GPR rules produce logically consistent essential gene predictions. This is the biology-validity gate equivalent to physics-validity checks in the physics rubric.",
+          "weight": 7.0,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Evaluation, Metrics & Benchmarking"
+        },
+        {
+          "id": "b05-exec-artifacts",
+          "requirements": "Writes results.json plus deletion table with growth, growth_fraction, status, and essential flag.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Code Execution",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b05-results",
+      "requirements": "Results identify essential targets and provide conservative biological interpretation.",
+      "weight": 3,
+      "sub_tasks": [
+        {
+          "id": "b05-result-h1",
+          "requirements": "Reports WT growth, medium, model ID, and validation caveats. Score 100% if positive WT biomass flux is reported under the documented medium with optimal solver status and model ID named; 67% if growth is positive but medium is not explicitly documented; 33% if feasibility is stated without a numeric value; 0% otherwise.",
+          "weight": 7,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b05-result-h2",
+          "requirements": "Reports essential target count and distribution of growth fractions after deletion. Score 100% if ≥5 essential genes/reactions are identified with growth fractions below the stated threshold and the deletion table covers ≥50 candidates; 67% if essential targets are identified but the candidate set covers fewer than 50 entries; 33% if essential targets are named without a deletion table; 0% otherwise.",
+          "weight": 10,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b05-result-h3",
+          "requirements": "Top 10 targets include subsystem/pathway and one-sentence rationale; claims are framed as modelling hypotheses, not validated drugs. Score 100% if ≥3 of the top-10 prioritised targets belong to named core metabolic subsystems (cell-wall precursor, cofactor, lipid, energy, or amino-acid biosynthesis) with at least a one-sentence pathway rationale; 67% if 2 of 10 with rationale; 33% if 1 of 10 with rationale; 0% otherwise.",
+          "weight": 12,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b05-result-figure",
+          "requirements": "Produces a labelled essentiality histogram, target ranking plot, or subsystem enrichment chart.",
+          "weight": 8,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        },
+        {
+          "id": "b05-result-writeup",
+          "requirements": "The README or results writeup discusses each hypothesis outcome, names the top prioritised essential targets with subsystem/enzyme identity, and gives a one-paragraph mechanistic rationale for why each target's disruption is lethal. Claims are explicitly framed as computational hypotheses requiring wet-lab validation.",
+          "weight": 6.0,
+          "sub_tasks": [],
+          "task_category": "Result Analysis",
+          "finegrained_task_category": "Logging, Analysis & Presentation"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    },
+    {
+      "id": "b05-repro",
+      "requirements": "Model, medium, deletion type, threshold, solver, and annotations are reproducibly recorded.",
+      "weight": 2,
+      "sub_tasks": [
+        {
+          "id": "b05-repro-model",
+          "requirements": "The loaded M. tuberculosis GSMM is either persisted (models/<model_id>.json) or pinned by BIGG model ID, version, or local file hash in the writeup; a downstream user can locate the exact model object used.",
+          "weight": 5.0,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        },
+        {
+          "id": "b05-repro-config",
+          "requirements": "Saves model source, medium bounds, objective, deletion mode, and essentiality threshold.",
+          "weight": 6,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        },
+        {
+          "id": "b05-repro-version",
+          "requirements": "Records COBRApy/solver versions and confirms rerun consistency for WT growth and essential count.",
+          "weight": 5,
+          "sub_tasks": [],
+          "task_category": "Code Development",
+          "finegrained_task_category": "Reproducibility"
+        }
+      ],
+      "task_category": null,
+      "finegrained_task_category": null
+    }
+  ],
+  "task_category": null,
+  "finegrained_task_category": null
+}

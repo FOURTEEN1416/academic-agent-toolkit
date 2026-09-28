@@ -1,0 +1,48 @@
+{
+  "name": "claude-scientific-writer",
+  "metadata": {
+    "description": "Skills and setup for scientific writing (papers, grants, posters, clinical reports) using the scientific-writer toolkit.",
+    "version": "2.21.0",
+    "homepage": "https://github.com/K-Dense-AI/claude-scientific-writer"
+  },
+  "owner": {
+    "name": "K-Dense Inc.",
+    "email": "contact@k-dense.ai"
+  },
+  "plugins": [
+    {
+      "name": "claude-scientific-writer",
+      "description": "Collection of scientific writer skills",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/citation-management",
+        "./skills/clinical-decision-support",
+        "./skills/clinical-reports",
+        "./skills/docx",
+        "./skills/generate-image",
+        "./skills/hypothesis-generation",
+        "./skills/infographics",
+        "./skills/latex-posters",
+        "./skills/literature-review",
+        "./skills/market-research-reports",
+        "./skills/markitdown",
+        "./skills/parallel-web",
+        "./skills/pdf",
+        "./skills/peer-review",
+        "./skills/pptx",
+        "./skills/pptx-posters",
+        "./skills/research-grants",
+        "./skills/research-lookup",
+        "./skills/scholar-evaluation",
+        "./skills/scientific-critical-thinking",
+        "./skills/scientific-schematics",
+        "./skills/scientific-slides",
+        "./skills/scientific-writing",
+        "./skills/treatment-plans",
+        "./skills/venue-templates",
+        "./skills/xlsx"
+      ]
+    }
+  ]
+}

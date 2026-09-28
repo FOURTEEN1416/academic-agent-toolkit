@@ -1,0 +1,118 @@
+{
+  "concept_id": "local.workflow.cleanup.broom",
+  "icon_id": "local.workflow.cleanup.broom.local_outline.v1",
+  "primary_meaning": "cleanup broom",
+  "aliases": [
+    "cleanup broom",
+    "cleanup-broom"
+  ],
+  "negative_aliases": [
+    "paper-specific fact",
+    "metric value"
+  ],
+  "shape_family_id": "local.workflow_glyph",
+  "style_variant": "local_outline",
+  "domain_tags": [
+    "workflow",
+    "local_asset",
+    "paper_figure_os"
+  ],
+  "recommended_use": [
+    "workflow",
+    "handoff",
+    "validation",
+    "delivery"
+  ],
+  "avoid_use": [
+    "paper factual evidence"
+  ],
+  "source_lineage": {
+    "import_mode": "local_project_asset",
+    "source": "local_extracted_svg_icons",
+    "source_path": "extracted_svg_icons/icons/cleanup_broom.svg",
+    "imported_at": "2026-05-24T08:42:29.065Z",
+    "modified": true,
+    "modification": "raw SVG preserved; tight SVG viewBox cropped to computed visible geometry with stroke bleed; PPT-safe variant uses explicit stroke color."
+  },
+  "license": {
+    "license": "local_project_asset",
+    "usage_terms": "User-supplied/local workspace asset; keep provenance and avoid external redistribution claims beyond this project."
+  },
+  "files": {
+    "raw_svg": "icons/raw/local.workflow.cleanup.broom.local_outline.v1.svg",
+    "tight_svg": "icons/tight/local.workflow.cleanup.broom.local_outline.v1.svg",
+    "ppt_safe_svg": "icons/variants/local.workflow.cleanup.broom.local_outline.v1.ppt_safe.svg"
+  },
+  "tight_bbox": {
+    "status": "computed",
+    "minX": 11.2,
+    "minY": 11,
+    "width": 51.8,
+    "height": 74,
+    "stroke_bleed": 3,
+    "original_viewBox": [
+      0,
+      0,
+      96,
+      96
+    ],
+    "original_hidden_margin_ratio": {
+      "left": 0.148,
+      "top": 0.146,
+      "right": 0.375,
+      "bottom": 0.146
+    },
+    "margin_after_normalization": 0
+  },
+  "anchors": {
+    "center": [
+      0.5,
+      0.5
+    ],
+    "top": [
+      0.5,
+      0
+    ],
+    "right": [
+      1,
+      0.5
+    ],
+    "bottom": [
+      0.5,
+      1
+    ],
+    "left": [
+      0,
+      0.5
+    ],
+    "baseline": [
+      0.5,
+      0.82
+    ]
+  },
+  "ports": {
+    "input": [
+      0,
+      0.5
+    ],
+    "output": [
+      1,
+      0.5
+    ],
+    "control": [
+      0.5,
+      0
+    ],
+    "feedback": [
+      0.5,
+      1
+    ]
+  },
+  "vector_quality": {
+    "has_viewBox": true,
+    "embedded_raster": false,
+    "baked_text": false,
+    "ppt_safe": true,
+    "sha1": "10f01ac280bdd334e82470e12e57b69855875055"
+  }
+}

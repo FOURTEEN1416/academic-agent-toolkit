@@ -1,0 +1,199 @@
+id: S02
+title: "Double machine learning for average treatment effect estimation"
+arxiv_id: null
+venue: "ARC-Bench Statistics 2026"
+paper_asset: null
+
+synthesis: |
+  Semiparametric causal inference separates a low-dimensional target parameter,
+  such as the average treatment effect, from infinite-dimensional nuisance
+  functions such as the propensity score e(X) and outcome regressions m0(X) and
+  m1(X). Double machine learning studies how the target parameter can remain
+  estimable when those nuisance functions are learned flexibly rather than
+  specified by a finite-dimensional parametric model.
+
+  The benchmark should make this relationship explicit. The study should
+  implement and evaluate treatment effect estimators in simulated observational
+  data with nonlinear confounding, compare naive regression or inverse-propensity
+  weighting against orthogonalized / doubly robust estimators, and test how
+  Neyman orthogonality and cross-fitting reduce first-order sensitivity to
+  nuisance estimation error. The research question is: *when the nuisance
+  functions are treated as infinite-dimensional objects and estimated with
+  flexible learners, does orthogonalization preserve reliable inference for the
+  finite-dimensional ATE?*
+
+hypotheses:
+  - id: H1
+    statement: "A naive difference-in-means estimator is biased under confounded treatment assignment."
+    measurable: true
+  - id: H2
+    statement: "A doubly robust / orthogonalized estimator has lower absolute bias than simple plug-in regression or IPW when nuisance functions are nonlinear."
+    measurable: true
+  - id: H3
+    statement: "Cross-fitting improves stability or reduces bias compared with fitting nuisance functions and estimating the treatment effect on the same sample."
+    measurable: true
+  - id: H4
+    statement: "Neyman-orthogonal scores make the ATE estimate less sensitive to nuisance-function estimation error than non-orthogonal plug-in estimators."
+    measurable: true
+
+experiment_design:
+  research_question: "How does double machine learning estimate a finite-dimensional ATE while using flexible estimators for infinite-dimensional nuisance functions under nonlinear confounding?"
+  estimand:
+    name: "average_treatment_effect"
+    description: "ATE = E[Y(1) - Y(0)] in a simulated observational study with known ground truth."
+  semiparametric_structure:
+    target_parameter:
+      name: "finite_dimensional_ate"
+      description: "The scalar ATE is the parameter of scientific interest."
+    nuisance_functions:
+      - name: "propensity_score"
+        notation: "e(X) = P(A = 1 | X)"
+        role: "Controls confounded treatment assignment and appears in IPW and AIPW scores."
+      - name: "outcome_regression_treated"
+        notation: "m1(X) = E[Y | A = 1, X]"
+        role: "Models the treated potential-outcome regression."
+      - name: "outcome_regression_control"
+        notation: "m0(X) = E[Y | A = 0, X]"
+        role: "Models the control potential-outcome regression."
+    key_relationship: "The benchmark should evaluate whether an orthogonal score protects the finite-dimensional ATE estimate from first-order errors in flexible, effectively infinite-dimensional nuisance estimates."
+  conditions:
+    - name: "difference_in_means"
+      description: "Naive treated-control mean difference without confounding adjustment."
+    - name: "ols_adjustment"
+      description: "Linear regression adjustment for covariates."
+    - name: "ipw_logistic"
+      description: "Inverse propensity weighting using logistic regression propensity scores."
+    - name: "aipw_no_crossfit"
+      description: "Augmented inverse propensity weighting using nuisance models fit on the same sample."
+    - name: "dml_aipw_crossfit"
+      description: "Doubly robust AIPW estimator with K-fold cross-fitting and flexible nuisance models."
+    - name: "nuisance_quality_sensitivity"
+      description: "A diagnostic condition comparing weaker and stronger nuisance learners to test sensitivity of each estimator to nuisance estimation error."
+  nuisance_models:
+    - name: "propensity_model"
+      candidates:
+        - "logistic_regression"
+        - "random_forest_classifier"
+        - "gradient_boosting_classifier"
+    - name: "outcome_model"
+      candidates:
+        - "linear_regression"
+        - "random_forest_regressor"
+        - "gradient_boosting_regressor"
+  metrics:
+    - name: "bias"
+      direction: "minimize_abs"
+      description: "Mean estimated ATE minus true ATE across simulation repetitions."
+    - name: "rmse"
+      direction: "minimize"
+      description: "Root mean squared error of ATE estimates."
+    - name: "coverage"
+      direction: "target_0.95"
+      description: "Empirical coverage of nominal 95% confidence intervals."
+    - name: "interval_width"
+      direction: "minimize_given_coverage"
+      description: "Average confidence interval width."
+    - name: "estimate_std"
+      direction: "diagnostic"
+      description: "Monte Carlo standard deviation of ATE estimates."
+  simulation_settings:
+    sample_sizes: [500, 1000, 3000]
+    monte_carlo_repetitions: 500
+    crossfit_folds: 2
+    seeds: [0, 1, 2, 3, 4]
+  data_generating_process:
+    covariates: "X ~ multivariate normal or uniform with nonlinear transformations"
+    treatment: "A ~ Bernoulli(sigmoid nonlinear function of X)"
+    outcome: "Y = tau * A + nonlinear function of X + noise"
+    true_ate: 1.0
+  expected_artifacts:
+    - path: "src/experiment.py"
+      description: "Executable simulation code implementing all ATE estimators."
+    - path: "results/metrics.json"
+      description: "Machine-readable bias, RMSE, coverage, and interval width by estimator and sample size."
+    - path: "results/figures/"
+      description: "Plots or tables summarizing estimator bias, RMSE, coverage, interval width, and cross-fitting effects."
+    - path: "report/paper.md"
+      description: "Paper-style report explaining the causal estimand, DGP, estimators, uncertainty method, results, limitations, and per-hypothesis conclusions."
+    - path: "README.md"
+      description: "Setup and run instructions for reproducing the full experiment from a clean checkout."
+  dependencies:
+    python:
+      - numpy
+      - pandas
+      - scipy
+      - scikit-learn
+      - matplotlib
+  compute_requirements:
+    gpu_required: false
+    estimated_wall_clock_sec: 300
+
+rubric_path: "experiments/arc_bench/config/statistics/rubrics/S02.json"
+
+# ---------------------------------------------------------------------------
+# Agent-mode requirements (consumed by researchclaw.pipeline.requirements_judge
+# at stage 15 RESEARCH_DECISION). Schema mirrors B02.yaml / P01.yaml:
+#   id          — stable identifier
+#   type        — advisory hint to the LLM judge (numeric | artifact | discussion)
+#   description — natural-language statement of what must be true post-run
+#   must_pass   — true → unmet ⇒ rerun (1 retry max); false → optional
+# This topic carries four hypotheses (H1-H4); the supported-flags requirement
+# covers all four.
+# ---------------------------------------------------------------------------
+requirements:
+  - id: req_results_json
+    type: artifact
+    description: >-
+      A canonical results.json file exists at the workspace root with at least
+      the keys: primary_metric (number), metric_key (string), metrics (object
+      with numeric keys), hypotheses (object with h1/h2/h3/h4 entries each
+      carrying a `supported` boolean), summary (non-empty string).
+    must_pass: true
+  - id: req_ate_metrics_table
+    type: artifact
+    description: >-
+      A machine-readable metrics artifact (e.g. results/metrics.json) exists
+      reporting ATE estimate, bias (or absolute bias), and RMSE broken down by
+      estimator and sample size, with confidence-interval coverage or width
+      where applicable.
+    must_pass: true
+  - id: req_bias_numeric
+    type: numeric
+    description: >-
+      results.json metrics MUST contain numeric (non-null, finite) bias or
+      absolute-bias values for at least the naive difference-in-means estimator
+      and the doubly robust / cross-fitted DML estimator, evaluated against the
+      known true ATE, so H1 and H2 can be evaluated quantitatively.
+    must_pass: true
+  - id: req_hypotheses_supported_flags
+    type: discussion
+    description: >-
+      results.json hypotheses.h1/h2/h3/h4 each MUST have an explicit `supported`
+      boolean AND a `details` string ≥ 40 characters quoting the numerical
+      evidence (specific bias / RMSE / coverage values + their source artifact)
+      used to reach the verdict.
+    must_pass: true
+  - id: req_crossfit_implemented
+    type: artifact
+    description: >-
+      The DML condition implements sample splitting or K-fold cross-fitting so
+      nuisance models are trained out-of-fold relative to the observations used
+      in the orthogonal score; a non-cross-fitted AIPW comparison is also
+      present so H3 can be evaluated.
+    must_pass: true
+  - id: req_estimand_writeup
+    type: discussion
+    description: >-
+      The report clearly distinguishes the finite-dimensional causal estimand,
+      the infinite-dimensional nuisance functions, the orthogonal score, and the
+      evaluation metrics — avoiding confusion between prediction performance and
+      ATE estimation quality. Nice-to-have, not blocking.
+    must_pass: false
+  - id: req_seed_documented
+    type: discussion
+    description: >-
+      results.json or a sibling reproducibility section names the Monte Carlo
+      repetition count, cross-fitting fold count, and at least one explicit
+      random seed. Required for full reproducibility but not for scientific
+      correctness.
+    must_pass: false

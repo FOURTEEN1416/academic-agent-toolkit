@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "updated": "2026-03-07",
+  "required_fields": [
+    "slug",
+    "lane",
+    "current_status",
+    "canonical_owner",
+    "absorbability_class",
+    "recommended_migration",
+    "promotion_ceiling",
+    "wave92_lifecycle_state",
+    "remaining_value_class",
+    "next_productization_asset",
+    "quality_bar_gap",
+    "explicit_no_go",
+    "rollback_reference",
+    "wave94_harvest_relevance",
+    "re_audit_priority"
+  ],
+  "manual_review_required": true,
+  "single_control_plane_only": true
+}

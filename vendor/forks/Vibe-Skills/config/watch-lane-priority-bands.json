@@ -1,0 +1,49 @@
+﻿{
+  "version": 1,
+  "updated": "2026-03-07",
+  "purpose": "Wave18 watch-lane priority bands. These bands govern how remaining-value cases may be used without changing default surfaces.",
+  "bands": [
+    {
+      "id": "high-yield-advisory",
+      "decision_label": "review-ready",
+      "allowed_actions": ["docs", "policy", "catalog", "shadow-review", "board-prep"],
+      "default_surface_change": false,
+      "criteria": {
+        "min_value_score": 60,
+        "max_overlap_risk": 55,
+        "requires_clear_landing_zone": true
+      }
+    },
+    {
+      "id": "gated-pilot-only",
+      "decision_label": "pilot",
+      "allowed_actions": ["project-scoped-template", "read-only-first", "connector-subset", "rollback-ready-pilot"],
+      "default_surface_change": false,
+      "criteria": {
+        "requires_project_scope": true,
+        "requires_rollback_plan": true,
+        "write_paths_disallowed_by_default": true
+      }
+    },
+    {
+      "id": "hold-until-gap",
+      "decision_label": "hold",
+      "allowed_actions": ["reference", "gap-driven-extraction"],
+      "default_surface_change": false,
+      "criteria": {
+        "requires_gap_evidence": true,
+        "high_overlap_or_noise": true
+      }
+    }
+  ],
+  "candidate_band_map": {
+    "awesome-ai-tools": "high-yield-advisory",
+    "awesome-mcp-servers": "high-yield-advisory",
+    "awesome-vibe-coding": "high-yield-advisory",
+    "activepieces": "gated-pilot-only",
+    "composio": "gated-pilot-only",
+    "awesome-agent-skills": "hold-until-gap",
+    "awesome-claude-skills-composio": "hold-until-gap",
+    "awesome-ai-agents-e2b": "hold-until-gap"
+  }
+}

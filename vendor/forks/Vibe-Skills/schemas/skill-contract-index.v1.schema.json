@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vibes.dev/schemas/skill-contract-index.v1.schema.json",
+  "title": "VibeSkills Skill Contract Index (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contracts"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skill-contract-index.v1"
+    },
+    "contracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "skill_id",
+          "contract_path"
+        ],
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contract_path": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Repo-relative path to the contract JSON."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "canonical",
+              "experimental",
+              "deprecated"
+            ],
+            "default": "canonical"
+          }
+        }
+      },
+      "default": []
+    }
+  }
+}
+

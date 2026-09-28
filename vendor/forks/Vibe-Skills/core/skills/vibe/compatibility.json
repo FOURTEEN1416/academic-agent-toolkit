@@ -1,0 +1,25 @@
+{
+  "skill_id": "vibe",
+  "required_capabilities": [
+    "fs.read",
+    "shell.exec"
+  ],
+  "optional_capabilities": [
+    "agent.spawn",
+    "route.provider_call",
+    "mcp.client"
+  ],
+  "degrade_rules": [
+    {
+      "when_missing": "agent.spawn",
+      "state": "degraded-but-supported",
+      "behavior": "fall back from XL team execution to single-agent or staged execution"
+    },
+    {
+      "when_missing": "route.provider_call",
+      "state": "degraded-but-supported",
+      "behavior": "retain canonical routing in heuristic-only mode"
+    }
+  ]
+}
+

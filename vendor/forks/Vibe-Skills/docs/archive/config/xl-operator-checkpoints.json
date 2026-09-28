@@ -1,0 +1,73 @@
+﻿{
+  "version": 1,
+  "updated": "2026-03-07",
+  "purpose": "Wave17 XL operator checkpoints for unattended multi-agent execution. These checkpoints formalize control, verification, and rollback expectations before new absorption surface is considered.",
+  "principles": [
+    "plan before fan-out",
+    "one owner per artifact set",
+    "verification before promotion claims",
+    "rollback-ready before widening any pilot"
+  ],
+  "governed_runtime_bridge": {
+    "state_machine_binding": [
+      "skeleton_check",
+      "deep_interview",
+      "requirement_doc",
+      "xl_plan",
+      "plan_execute",
+      "phase_cleanup"
+    ],
+    "require_frozen_requirement_before_wave_contract": true,
+    "require_cleanup_receipt_before_board_handoff": true
+  },
+  "checkpoints": [
+    {
+      "id": "xl-intake-probe",
+      "stage_order": 1,
+      "required": true,
+      "blocking_if_missing": true,
+      "artifacts": ["baseline snapshot", "active/watch boundary", "owner map"],
+      "pass_criteria": ["scope quantified", "default-surface constraint stated"]
+    },
+    {
+      "id": "wave-contract",
+      "stage_order": 2,
+      "required": true,
+      "blocking_if_missing": true,
+      "artifacts": ["wave backlog", "disjoint file ownership", "success metrics"],
+      "pass_criteria": ["parallel workstreams isolated", "review checkpoints named"]
+    },
+    {
+      "id": "mid-wave-sync",
+      "stage_order": 3,
+      "required": true,
+      "blocking_if_missing": false,
+      "artifacts": ["artifact progress matrix", "risk register update"],
+      "pass_criteria": ["blocked work identified", "overlap avoided"]
+    },
+    {
+      "id": "verification-gate",
+      "stage_order": 4,
+      "required": true,
+      "blocking_if_missing": true,
+      "artifacts": ["artifact builders", "consistency gate", "portfolio gate"],
+      "pass_criteria": ["required outputs exist", "no unresolved hard failures"]
+    },
+    {
+      "id": "board-handoff",
+      "stage_order": 5,
+      "required": true,
+      "blocking_if_missing": true,
+      "artifacts": ["promotion prep", "release packet", "rollback path"],
+      "pass_criteria": ["review-ready vs hold clearly separated", "no silent promotion path"]
+    },
+    {
+      "id": "phase-cleanup",
+      "stage_order": 6,
+      "required": true,
+      "blocking_if_missing": true,
+      "artifacts": ["cleanup receipt", "temp cleanup summary", "node audit result"],
+      "pass_criteria": ["phase residue minimized", "managed node state reconciled"]
+    }
+  ]
+}

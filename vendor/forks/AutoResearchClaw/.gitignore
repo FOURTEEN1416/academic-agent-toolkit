@@ -1,0 +1,147 @@
+HANDOFF_METACLAW_SKILL_LOOP.md
+.venv/
+.venv_arc/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+workspaces/
+.claude/*
+!.claude/agents/
+!.claude/agents/*.md
+!.claude/skills/
+!.claude/skills/**/SKILL.md
+.claude/settings.local.json
+
+# Experiment run artifacts (pipeline outputs — local only, never committed)
+artifacts/
+/artifacts
+output/
+experiment_metaclaw/
+promotional/
+
+# Legacy experiment artifacts (pre-v5)
+exp/
+logs/
+writing/
+
+# Root-level config (local overrides, not committed)
+/config.yaml
+/config.arc.yaml
+# Editor/manual backups of the private config (PR #311 leaked one of these)
+/config.arc.yaml_backup
+/config.arc.yaml.*
+/config.researchclaw.yaml
+config_*.yaml
+config_run*.yaml
+config_agent_*.yaml
+config_case*.yaml
+config_v8_case*.yaml
+pipeline_run_*.log
+
+# Sensitive / credentials
+user_token_cache.json
+*.secret
+.env
+.env.*
+# Local env-loader scripts with real credentials (template lives in
+# experiments/arc_bench/config/credentials.example.env)
+scripts/setenv*.sh
+setenv*.sh
+
+# Literature search cache
+.researchclaw_cache/
+
+# Local pipeline state: sessions, saved ideas, experiment cache (local only)
+.researchclaw/
+
+# Run-cost telemetry log (local only, never committed)
+cost_log.jsonl
+
+# Playwright MCP logs
+.playwright-mcp/
+
+# Frontend (local dev only)
+frontend/
+
+# Benchmarks scratch
+benchmarks/
+
+# Logo generation prompts
+image/logo_prompt.md
+
+# macOS / temp
+.DS_Store
+run.log
+mdpdf.log
+scripts/md2pdf.py
+.history/
+.serena/
+cli_pause
+
+# Test outputs and run logs (local only)
+test_outputs*/
+records/
+run*_full_log.txt
+
+# ── Docs: internal / dev-only (not for public) ──────────────────────────────
+docs/internal/
+docs/kb/
+docs/plans/
+docs/tasks/
+docs/superpowers/
+docs/figures/
+docs/figure_prompts/
+docs/*_PLAN*.md
+docs/*plan*.md
+docs/*_TRACKER*.md
+docs/*tracker*.md
+docs/REBUTTAL_*.md
+docs/BUG_*.md
+docs/BUGFIX_TRACKER*.md
+docs/IMPROVEMENT_*_EXECUTION.md
+docs/OPTIMIZATION_PLAN*.md
+docs/MULTI_CASE_EVALUATION*.md
+docs/pipeline_quality_issues*.md
+docs/pipeline_critical_fixes*.md
+docs/PIPELINE_TEST_LOG*.md
+docs/iteration_*.md
+docs/next_phase_*.md
+docs/appendix.tex
+docs/autobench-loop.md
+docs/feature_expansion_analysis.*
+docs/tester_guide_cn.*
+
+# Internal/dev planning, audit & spec docs at repo root (not for public).
+# Public root docs are README.md, CONTRIBUTING.md, RESEARCHCLAW_AGENTS.md,
+# RESEARCHCLAW_CLAUDE.md — none of which match these patterns.
+/*_PLAN.md
+/*_REPORT.md
+/*_SPEC.md
+/*_OVERHAUL.md
+
+# ── Experiments: only ARC-Bench harness/config is tracked ───────────────────
+# All other experiment workspaces are local-only research scratch.
+experiments/autoresearch_bench/
+experiments/collider_physics/
+experiments/component_ablation/
+experiments/framework_comparison/
+experiments/hitl_ablation/
+experiments/paper_replication/
+
+# ARC-Bench: track config + baseline harness + scripts + docs.
+# Large run outputs, analysis notes, and cloned upstream repos stay local.
+experiments/arc_bench/results/
+experiments/arc_bench/analysis/
+experiments/arc_bench/baseline/external/
+experiments/arc_bench/log/
+experiments/arc_bench/batch_logs/
+**/_local_planning/
+
+# ── External agents ─────────────────────────────────────────────────────────
+# Biology-Agent + stat_research_agent are vendored (committed). ColliderAgent is
+# referenced from https://github.com/HET-AGI/ColliderAgent — only its pointer
+# README is tracked; any local checkout placed here stays local.
+external/agents/ColliderAgent/*
+!external/agents/ColliderAgent/README.md

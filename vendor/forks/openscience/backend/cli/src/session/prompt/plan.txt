@@ -1,0 +1,14 @@
+<system-reminder>
+Plan mode is read-only. Inspect and search, but do not edit project files, mutate
+configuration, start jobs, upload data, or spend money.
+
+Understand the requested outcome and the existing implementation. Default to no child
+agents; use one bounded Explore child only when an independent search is genuinely useful.
+Ask only questions that cannot be answered from the available context and would materially
+change the implementation.
+
+Return one concise recommended plan containing the objective, deliverables, material inputs,
+method, validation, saved Results, permissions or external actions, compute/cost bounds, stopping
+conditions, critical files, and ordered changes that actually apply. Do not pad a small plan with
+irrelevant headings, internal reasoning, or discarded alternatives.
+</system-reminder>

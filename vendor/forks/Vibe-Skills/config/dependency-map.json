@@ -1,0 +1,61 @@
+﻿{
+  "version": 1,
+  "items": [
+    {
+      "source": "${CODEX_HOME}/skills/dialectic",
+      "target": "bundled/skills/dialectic"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/local-vco-roles",
+      "target": "bundled/skills/local-vco-roles"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/spec-kit-vibe-compat",
+      "target": "bundled/skills/spec-kit-vibe-compat"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/ralph-loop",
+      "target": "bundled/skills/ralph-loop"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/cancel-ralph",
+      "target": "bundled/skills/cancel-ralph"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/tdd-guide",
+      "target": "bundled/skills/tdd-guide"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/think-harder",
+      "target": "bundled/skills/think-harder"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/brainstorming",
+      "target": "bundled/skills/brainstorming"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/writing-plans",
+      "target": "bundled/skills/writing-plans"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/subagent-driven-development",
+      "target": "bundled/skills/subagent-driven-development"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/systematic-debugging",
+      "target": "bundled/skills/systematic-debugging"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/requesting-code-review",
+      "target": "bundled/skills/requesting-code-review"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/receiving-code-review",
+      "target": "bundled/skills/receiving-code-review"
+    },
+    {
+      "source": "${CODEX_HOME}/skills/verification-before-completion",
+      "target": "bundled/skills/verification-before-completion"
+    }
+  ]
+}

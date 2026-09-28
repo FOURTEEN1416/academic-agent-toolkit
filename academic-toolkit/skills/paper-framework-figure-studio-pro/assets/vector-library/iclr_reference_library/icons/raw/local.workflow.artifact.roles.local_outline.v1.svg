@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" id="artifact_roles" viewBox="0 0 96 96" role="img">
+<title>Artifact roles</title>
+<g id="artifact_roles_svg_root"><rect id="artifact_roles_board" fill="#ECFEFF" stroke="#078B8D" stroke-width="3" x="25" y="18" width="48" height="60" rx="4"/><path id="artifact_roles_tick_1" fill="none" stroke="#078B8D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M33 33 L37 37 L43 29"/><line id="artifact_roles_line_1" stroke="#078B8D" stroke-width="3" stroke-linecap="round" x1="49" y1="33" x2="64" y2="33"/><path id="artifact_roles_tick_2" fill="none" stroke="#078B8D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M33 47 L37 51 L43 43"/><line id="artifact_roles_line_2" stroke="#078B8D" stroke-width="3" stroke-linecap="round" x1="49" y1="47" x2="64" y2="47"/><path id="artifact_roles_tick_3" fill="none" stroke="#078B8D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M33 61 L37 65 L43 57"/><line id="artifact_roles_line_3" stroke="#078B8D" stroke-width="3" stroke-linecap="round" x1="49" y1="61" x2="64" y2="61"/></g>
+</svg>

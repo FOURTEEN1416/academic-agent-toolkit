@@ -1,0 +1,347 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vco.local/schemas/cer-report.schema.json",
+  "title": "Context Evidence Report (CER)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "report_id",
+    "date",
+    "task",
+    "objective_protection",
+    "trigger_signals",
+    "findings",
+    "actions",
+    "comparison",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "report_id": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string"
+    },
+    "task": {
+      "type": "object",
+      "required": [
+        "task_id",
+        "topic",
+        "grade",
+        "task_type"
+      ],
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "topic": {
+          "type": "string"
+        },
+        "grade": {
+          "type": "string",
+          "enum": [
+            "M",
+            "L",
+            "XL"
+          ]
+        },
+        "task_type": {
+          "type": "string",
+          "enum": [
+            "planning",
+            "coding",
+            "review",
+            "debug",
+            "research",
+            "retro"
+          ]
+        }
+      }
+    },
+    "objective_protection": {
+      "type": "object",
+      "required": [
+        "governance_mode",
+        "anti_proxy_goal_drift_tier",
+        "completion_state",
+        "abstraction_layer_target",
+        "primary_objective",
+        "non_objective_proxy_signals",
+        "validation_material_role",
+        "intended_scope",
+        "specialization_assessment",
+        "generalization_evidence_bundle",
+        "report_only_warning_codes",
+        "completion_honesty_notes"
+      ],
+      "properties": {
+        "governance_mode": {
+          "type": "string",
+          "enum": [
+            "report_only"
+          ]
+        },
+        "anti_proxy_goal_drift_tier": {
+          "type": "string",
+          "enum": [
+            "Tier A",
+            "Tier B",
+            "Tier C"
+          ]
+        },
+        "completion_state": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "partial",
+            "scenario-scoped",
+            "blocked",
+            "not-yet-generalized"
+          ]
+        },
+        "abstraction_layer_target": {
+          "type": "string",
+          "enum": [
+            "symptom",
+            "adapter",
+            "mechanism",
+            "abstraction",
+            "governance"
+          ]
+        },
+        "primary_objective": {
+          "type": "string",
+          "minLength": 1
+        },
+        "non_objective_proxy_signals": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "validation_material_role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intended_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "specialization_assessment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generalization_evidence_bundle": {
+          "type": "object",
+          "required": [
+            "required_case_count",
+            "notes"
+          ],
+          "properties": {
+            "required_case_count": {
+              "type": "number",
+              "minimum": 0
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "report_only_warning_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "completion_honesty_notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "trigger_signals": {
+      "type": "object",
+      "required": [
+        "retry_count_10m",
+        "fallback_rate",
+        "context_pressure",
+        "route_stability_pack",
+        "route_stability_skill",
+        "top1_top2_gap",
+        "triggered_reasons"
+      ],
+      "properties": {
+        "retry_count_10m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "fallback_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "context_pressure": {
+          "type": "number",
+          "minimum": 0
+        },
+        "route_stability_pack": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "route_stability_skill": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "top1_top2_gap": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "triggered_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "pattern",
+          "pattern_label",
+          "evidence",
+          "root_cause",
+          "intervention",
+          "guardrail",
+          "confidence"
+        ],
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "enum": [
+              "CF-1",
+              "CF-2",
+              "CF-3",
+              "CF-4",
+              "CF-5",
+              "CF-6"
+            ]
+          },
+          "pattern_label": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "root_cause": {
+            "type": "string",
+            "minLength": 1
+          },
+          "intervention": {
+            "type": "string",
+            "minLength": 1
+          },
+          "guardrail": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          }
+        }
+      }
+    },
+    "actions": {
+      "type": "object",
+      "required": [
+        "approved_actions",
+        "deferred_actions",
+        "owners",
+        "due_dates"
+      ],
+      "properties": {
+        "approved_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "deferred_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "owners": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "due_dates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "required": [
+        "baseline_report_id",
+        "pattern_delta",
+        "fallback_rate_delta",
+        "stability_delta",
+        "notes"
+      ],
+      "properties": {
+        "baseline_report_id": {
+          "type": "string"
+        },
+        "pattern_delta": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fallback_rate_delta": {
+          "type": "number"
+        },
+        "stability_delta": {
+          "type": "number"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "validated",
+        "invalid"
+      ]
+    }
+  }
+}
