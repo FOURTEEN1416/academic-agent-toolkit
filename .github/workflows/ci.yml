@@ -37,6 +37,12 @@ jobs:
       PYTHONIOENCODING: "utf-8"
 
     steps:
+      - name: Enable git long paths (Windows runner default 260 限制)
+        # 2026-09-28 资产入库后，paper-framework-figure-studio-pro 的 icon 库
+        # 含超长文件名，Windows runner 默认 core.longpaths=false 会让 Checkout
+        # 报 "Filename too long" 直接失败——须在 Checkout 前系统级开启。
+        run: git config --system core.longpaths true
+
       - name: Checkout
         uses: actions/checkout@v7
 
