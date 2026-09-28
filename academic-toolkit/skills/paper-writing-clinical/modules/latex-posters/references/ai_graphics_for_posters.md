@@ -1,3 +1,5 @@
+> ⛔ **Retired (2026-09-28)**: the `generate_schematic` route was removed under the security redesign (networked AI-generation scripts are no longer bundled with clinical modules). Use your host's image generation/retrieval, the `scientific-schematics` skill, or inline SVG instead.
+
 # AI Graphics for Posters
 
 Full rules, worked examples, and the mandatory review gates for generating poster

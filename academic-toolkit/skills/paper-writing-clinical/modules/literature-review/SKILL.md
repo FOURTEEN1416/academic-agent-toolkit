@@ -50,7 +50,7 @@ This is not optional. Literature reviews without visual elements are incomplete.
 
 **How to generate schematics:**
 ```bash
-python scripts/generate_schematic.py "your diagram description" -o figures/output.png
+⛔ generate_schematic route retired (2026-09-28 security redesign) — use host image generation or `scientific-schematics`.
 ```
 
 The AI will automatically:

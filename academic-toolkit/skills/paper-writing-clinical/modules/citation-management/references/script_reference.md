@@ -3,7 +3,7 @@
 Purpose, arguments, and usage examples for each script in `scripts/`:
 `search_google_scholar.py`, `search_pubmed.py`, `extract_metadata.py`,
 `validate_citations.py`, `format_bibtex.py`, `doi_to_bibtex.py`,
-`generate_schematic.py`, and `generate_schematic_ai.py`.
+`validate_citations.py`.
 
 ## Tools and Scripts
 
@@ -206,24 +206,3 @@ python scripts/doi_to_bibtex.py \
 python scripts/doi_to_bibtex.py --input dois.txt --output references.bib
 ```
 
-### generate_schematic.py
-
-**Status**: 待处置（安全重设计口径下暂缓使用）— pending disposition under the safe-redesign decision; not part of the standard citation workflow.
-
-Generate scientific schematics from a natural-language prompt via Nano Banana 2.
-
-**Usage**:
-```bash
-python scripts/generate_schematic.py "CONSORT flowchart" -o flowchart.png --doc-type journal
-```
-
-### generate_schematic_ai.py
-
-**Status**: 待处置（安全重设计口径下暂缓使用）— pending disposition under the safe-redesign decision; not part of the standard citation workflow.
-
-AI-powered schematic generation with iterative quality review (requires `OPENROUTER_API_KEY`).
-
-**Usage**:
-```bash
-python scripts/generate_schematic_ai.py "Neural network architecture diagram" -o architecture.png --doc-type journal
-```

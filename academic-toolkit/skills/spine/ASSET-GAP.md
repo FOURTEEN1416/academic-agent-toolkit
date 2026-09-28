@@ -18,3 +18,7 @@
   `references/submission.md`（branch-map 引用的 9 份 playbook，本仓已拆分为 spine-* 独立技能——
   路由请改走各 spine-* 技能）
 - `scripts/progress_check.py`（branch-map :70 引用）
+
+## 清账（2026-09-28：用户裁决允许拉取，上列 9 份 playbook 与 progress_check.py 已自 pin 1fe46f0 回填）
+
+- 9 份 playbook 收编为 `references/<名>.md`（与 orchestrator-branch-map 引用一致）；`scripts/progress_check.py` 回填 scripts/。

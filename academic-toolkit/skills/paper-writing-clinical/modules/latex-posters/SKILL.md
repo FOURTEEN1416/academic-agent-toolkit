@@ -147,16 +147,12 @@ guidance are in
 2. **Generate SIMPLE visual elements**:
    ```bash
    # Introduction - ONLY 3 icons/elements
-   python scripts/generate_schematic.py "POSTER FORMAT for A0. SIMPLE visual with ONLY 3 elements: [icon1] [icon2] [icon3]. ONE word labels (80pt+). 50% white space. Readable from 8 feet." -o figures/intro.png
    
    # Methods - ONLY 4 steps maximum
-   python scripts/generate_schematic.py "POSTER FORMAT for A0. SIMPLE flowchart with ONLY 4 boxes: STEP1 → STEP2 → STEP3 → STEP4. GIANT labels (100pt+). 50% white space. NO sub-steps." -o figures/methods.png
    
    # Results - ONLY 3 bars/comparisons
-   python scripts/generate_schematic.py "POSTER FORMAT for A0. SIMPLE chart with ONLY 3 bars. GIANT percentages ON bars (120pt+). NO axis, NO legend. 50% white space." -o figures/results.png
    
    # Conclusions - EXACTLY 3 items with GIANT numbers
-   python scripts/generate_schematic.py "POSTER FORMAT for A0. EXACTLY 3 key findings: '[NUMBER]' (150pt) '[LABEL]' (60pt) for each. 50% white space. NO other text." -o figures/conclusions.png
    ```
 
 3. **Review generated figures - check for overflow:**
@@ -337,7 +333,6 @@ tlmgr install qrcode graphics xcolor tcolorbox subcaption
 Helper scripts available in `scripts/` directory:
 
 - `review_poster.sh`: Poster review and validation
-- `generate_schematic.py`: Generate scientific diagrams and schematics
 
 ## References
 

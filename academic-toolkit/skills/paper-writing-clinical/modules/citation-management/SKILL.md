@@ -57,7 +57,7 @@ If your document does not already contain schematics or diagrams:
 
 **How to generate schematics:**
 ```bash
-python scripts/generate_schematic.py "your diagram description" -o figures/output.png
+⛔ generate_schematic route retired (2026-09-28 security redesign) — use host image generation or `scientific-schematics`.
 ```
 
 The AI will automatically:
@@ -306,7 +306,7 @@ Each environment variable this skill reads is used only to authenticate to the o
 | `NCBI_EMAIL` | `eutils.ncbi.nlm.nih.gov` | Entrez caller identification (required by NCBI) |
 | `OPENROUTER_API_KEY` | `openrouter.ai` | Bearer token for the optional schematic generation |
 
-`api.crossref.org`, `doi.org`, and `arxiv.org` are queried without credentials. `generate_schematic.py` forwards only `OPENROUTER_API_KEY` — plus the networking, TLS, and locale variables needed to make a request — to its subprocess, rather than the full environment.
+`api.crossref.org`, `doi.org`, and `arxiv.org` are queried without credentials. `generate_schematic` was removed under the security redesign (2026-09-28).
 
 ## Summary
 

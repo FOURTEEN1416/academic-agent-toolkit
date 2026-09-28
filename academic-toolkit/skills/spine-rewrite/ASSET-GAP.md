@@ -19,3 +19,10 @@
 - `scripts/revision_audit.py`（rewrite-matrix.md:140 以 CWD 相对调用；本件在 spine-audit/scripts/，
   spine-rewrite/scripts/ 缺副本）
 - `scripts/section_economy_check.py`（deep-imitation-protocol.md:113 声称 hard-fail 门禁，未随本仓集成）
+
+## 清账（2026-09-28：已自 pin 1fe46f0 回填）
+
+- ~~`scripts/revision_audit.py`~~（已回填 spine-rewrite/scripts/）
+- ~~`scripts/section_economy_check.py`~~（已回填）
+- ~~`references/logic-transfer-audit.md`~~（已回填）
+- `references/paragraph_function_templates.md`、`references/result_narrative_templates.md`：**上游 pin 亦无此二件**（rewrite-matrix.md 的引用在上游即为悬空），维持缺位登记。

@@ -43,6 +43,16 @@
       "file": "skills/paper-writing-clinical/references/UPSTREAM.md",
       "pattern": "ANTHROPIC_API_KEY",
       "reason": "溯源台账如实记录上游 API 依赖（审计义务）"
+    },
+    {
+      "file": "skills/spine-update/scripts/paperspine_update.py",
+      "pattern": "~/.claude",
+      "reason": "2026-09-28 收编批：本脚本职能即更新宿主安装副本，宿主路径为功能语义（运行时依赖事实），非依赖泄漏"
+    },
+    {
+      "file": "skills/spine-update/scripts/paperspine_update.py",
+      "pattern": ".claude/",
+      "reason": "同上——宿主安装副本探测路径"
     }
   ]
 }

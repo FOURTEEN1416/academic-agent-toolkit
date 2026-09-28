@@ -217,7 +217,7 @@ In addition to slide generation, use the **scientific-schematics** skill for tec
 
 **How to generate schematics:**
 ```bash
-python scripts/generate_schematic.py "your diagram description" -o figures/output.png
+⛔ generate_schematic route retired (2026-09-28 security redesign) — use host image generation or `scientific-schematics`.
 ```
 
 For detailed guidance on creating schematics, refer to the scientific-schematics skill documentation.
