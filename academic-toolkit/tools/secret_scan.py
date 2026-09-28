@@ -51,7 +51,7 @@ REPO_ROOT = TOOLBOX_ROOT.parent
 ALLOWLIST_PATH = TOOLBOX_ROOT / "data" / "secret_scan_allowlist.json"
 
 # 不扫描的 tracked 路径前缀（dated 快照 = 不可变历史，见模块 docstring）
-EXCLUDED_PREFIXES = ("releases/",)
+EXCLUDED_PREFIXES = ("releases/", "vendor/")   # vendor/ 为第三方上游快照（不就地修改，按 git 历史+上游远端锚定），不参与仓内密钥扫描；其测试样例假密钥已按行哈希登记 allowlist（2026-09-28 收编批）
 
 # 二进制/不可文本审阅的扩展名（与 tools 审查口径一致：pyc 读同名 .py 真源）
 BINARY_SUFFIXES = {

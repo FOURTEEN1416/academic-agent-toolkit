@@ -42,7 +42,7 @@ REPO_ROOT = TOOLBOX_ROOT.parent
 REGISTRY_PATH = TOOLBOX_ROOT / "data" / "duplicate_assets_registry.json"
 
 THRESHOLD_BYTES = 4096          # <4KB 的重复不值得台账治理（噪声大于收益）
-EXCLUDED_PREFIXES = ("releases/",)   # dated 发布快照 = 不可变历史，不参与
+EXCLUDED_PREFIXES = ("releases/", "vendor/")   # vendor/ 内部存在大量上游自有重复（dist/claude vs dist/codex 等分发副本），不参与仓内查重棘轮   # dated 发布快照 = 不可变历史，不参与
 EXCLUDED_SUFFIXES = (".pyc",)        # 分发件随同名 .py 真源走，重复属设计
 
 
