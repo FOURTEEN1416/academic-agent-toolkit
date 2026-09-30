@@ -399,7 +399,7 @@ for text in ax.texts:
 - Avoid `\begin{itemize}` in body text (bullet-point lists read as AI-generated). Use `\begin{enumerate}` or flowing prose instead. Itemize is acceptable only in appendices
 - **⛔ 正文中禁止使用 `\begin{itemize}` 和 `\begin{enumerate}` 列表。** 黑点/编号列表是最典型的 AI 写作痕迹。学术论文正文必须用连贯的段落叙述。例外：模型假设（可用编号）、附录、算法步骤描述。
   - ❌ 错误：`\begin{itemize} \item 牛市：2023年7月至... \item 震荡市：2024年4月至... \end{itemize}`
-  - ✅ 正确：将每个要点展开为完整段落，用"首先...其次...此外..."等过渡词连接，或用"（1）...（2）...（3）..."行内编号
+  - ✅ 正确：将每个要点展开为完整段落，用自然衔接的因果/转折关系连缀成段，或用"（1）...（2）...（3）..."行内编号（不用"首先/其次"机械过渡链——那是过程式骨架 AI 痕迹）
 - **⛔ 正文中禁止出现元叙述和内部指令。** 以下内容绝对不能出现在论文正文中：
   - "参赛者"、"参赛队伍"、"我们团队" → 用"本文"代替
   - "RESULTS.md"、"figures/*.json"、"AGENTS.md"、"MODELING_REPORT.md" 等文件名 → 这些是内部工作文件，不是论文内容
@@ -624,8 +624,8 @@ AITELL=""
 for f in _utils/ai_tell_check.py skills/shared-scripts/ai_tell_check.py; do
   [ -f "$f" ] && { AITELL="$f"; break; }
 done
-[ -n "$AITELL" ] && python "$AITELL"    # 在工作区根目录跑，自动找 paper/
-# 退出码：0=干净  1=查出禁用语汇(必修)  2=没找到正文(跳过不阻塞)
+[ -n "$AITELL" ] && python "$AITELL" --strict    # 在工作区根目录跑，自动找 paper/；--strict 下空话套话也计失败
+# 退出码：0=干净  1=查出禁用语汇(必修；含中文套话与「随着…的发展」)  2=没找到正文(跳过不阻塞)
 ```
 
 它已排除：代码块（``` / lstlisting / verbatim）、行内代码、Markdown 与 LaTeX 注释、报告类文件（`*REPORT*`/`*AUDIT*`/`*CHECKLIST*` 等——那些文件本就该用工程语汇）。报告仍需区分明确内部控制标记与合法领域术语，启发式命中不能一概当作真错误。
@@ -633,7 +633,7 @@ done
 只修明确的内容缺陷并按工作流有限预算复查；建议项不触发新模型轮次。解析崩溃或缺依赖归类为检查不可用，不重写论文，不设置“直到 0”的无限循环。
 
 ### Structural AI patterns
-- **⛔ `\begin{itemize}` / `\begin{enumerate}` in body text** — the #1 AI writing tell. Convert every bullet list to flowing paragraphs. Use "首先...其次...最后..." or "（1）...（2）...（3）..." inline numbering instead.
+- **⛔ `\begin{itemize}` / `\begin{enumerate}` in body text** — the #1 AI writing tell. Convert every bullet list to flowing paragraphs connected by natural logic (cause/effect, contrast), or use "（1）...（2）...（3）..." inline numbering. Do NOT use "首先...其次...最后..." transition chains — a procedural skeleton is itself an AI tell.
 - 段落以表达完整为准；一两句的定义、承接或结论可以保留，不为固定句数扩写。
 - **⛔ 连续段落以相同句式开头** — 如连续三段都以"本文..."开头，改为不同的开头方式。
 

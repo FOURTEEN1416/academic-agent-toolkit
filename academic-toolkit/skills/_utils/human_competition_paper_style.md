@@ -99,6 +99,20 @@
 补足的论文内容，不向正文暴露报告名、检查项编号或通过状态。最终论文之外的诊断材料也不作为推荐产物
 展示给普通用户。
 
+## 8. 获奖语料对标（各板块动笔前先读）
+
+本规范是统计与经验规则；真实获奖论文的成段写法（信息密度、段落节奏、推导怎么铺开、数值怎么嵌进叙述）
+要从语料里直接对标，不靠规则猜：
+
+- 范文索引：`data/award_paper_exemplars.json`（2021-2025 国赛优秀论文 62 篇；`priority_25` 为优先样本，
+  `all_by_year` 按年索引，原文页扫描件在 `assets-local/award-papers/<年>/<论文号>/`）。
+- 板块对应库（`skills/award-paper-mining/data/`）：摘要对照 `abstract_golden_structure.md`，
+  句式与段落节奏对照 `sentence_pattern_library.md`，图表与版面对照 `figure_table_conventions.md`
+  与 `typography_spec.md`。
+- 写每个板块（摘要/问题分析/建模推导/求解/检验/结论）前，取同赛事、同题型 2--3 篇结构化条目对照其
+  密度与节奏，再动笔。
+- 只模仿信息密度与节奏，**禁止照抄措辞、句式串或章节原句**；对标注为本规范摘录的范文片段同样只学结构。
+
 ## 参考基线
 
 - 全国组委会公开的 2024 优秀论文展示：https://dxs.moe.gov.cn/zx/hd/sxjm/sxjmlw/2024qgdxssxjmjslwzs/

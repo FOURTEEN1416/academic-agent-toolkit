@@ -4,13 +4,15 @@
 用法:
   python ai_tell_check.py                 # 在工作区根目录跑，自动找 paper/
   python ai_tell_check.py paper/main.md   # 指定文件
-  python ai_tell_check.py --strict        # 空话套话也计入失败（默认只警告）
+  python ai_tell_check.py --strict        --strict 下剩余空话（由此可见/换言之等）也计入失败
 
 退出码: 0=干净  1=查出禁用语汇(必修)  2=没找到正文文件(跳过不阻塞)
 
 ⛔ 为什么需要这个闸：这类词是【内部工程/质检语汇】，从流水线提示词流进论文正文。
    实测 10 个真实工作区命中 442 次，「口径」单独 225 次——是所有 AI 痕迹里最密集的一类。
    人工通读会漏（单篇最高 96 次），必须机器扫。
+   中文套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）
+   2026-10-01 起与工程词同级硬拦——评审把这类开头直接判为 AI 痕迹，技能文档不再教、正文不得用。
 
 ⛔ 全标准库实现，与项目其它 tools 一致，不引第三方。
 """
@@ -89,6 +91,21 @@ BANNED = {
     "quality gate": "remove from the paper; keep only in the internal report",
 }
 
+# ===== 硬拦项：中文套话（与工程词同级；2026-10-01 从 SOFT 升级，评审实锤判 AI 痕迹）=====
+BANNED.update({
+    "值得注意的是": "（删去，直接陈述事实）",
+    "综上所述": "（删去；确需收束时陈述具体结论，如「以上结果表明……」）",
+    "不难发现": "（删去，直接给出观察与数值）",
+    "显而易见": "（删去；结论需要理由就给理由，不需要就整句删）",
+    "在此基础上": "（写明衔接的具体对象，如「在去噪后的位移序列上」）",
+})
+
+# ===== 硬拦项：正则类套话（dict 只收字面量，模式类单列；display 用于输出可读性）=====
+BANNED_PATTERNS = [
+    (r"随着.{0,16}的(?:快速)?发展", "随着…的发展",
+     "（删去套话开头，首句直接给现实矛盾、数据或问题对象）"),
+]
+
 # ===== 硬拦项：内部标记 =====
 MARK_PATTERNS = [
     (r"[⛔✅❌⚠]", "内部标记符号"),
@@ -107,9 +124,8 @@ MARK_PATTERNS = [
      "验收式通过结论"),
 ]
 
-# ===== 仅警告项：空话套话 =====
-SOFT = ["值得注意的是", "综上所述", "不难发现", "显而易见", "需要指出的是",
-        "由此可见", "换言之", "具有重要的理论意义", "创新性地", "深入探讨"]
+# ===== 仅警告项：剩余空话（--strict 时计入失败；上面一批套话已升硬拦）=====
+SOFT = ["需要指出的是", "由此可见", "换言之", "具有重要的理论意义", "创新性地", "深入探讨"]
 
 # ⛔ 只扫论文正文；报告/审计/清单类文件本就该用工程语汇，扫它们是误报
 EXCLUDE_NAME = re.compile(
@@ -203,6 +219,10 @@ def scan(path: Path):
             n = len(re.findall(re.escape(w), ln, flags=re.IGNORECASE))
             if n:
                 hard.append((i, w, alt, ln.strip()[:70], n))
+        for pat, disp, alt in BANNED_PATTERNS:
+            n = len(re.findall(pat, ln))
+            if n:
+                hard.append((i, disp, alt, ln.strip()[:70], n))
         for pat, kind in MARK_PATTERNS:
             found = re.findall(pat, ln)
             if found:
@@ -216,7 +236,7 @@ def scan(path: Path):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("paths", nargs="*", help="要扫的文件；缺省自动找 paper/")
-    ap.add_argument("--strict", action="store_true", help="空话套话也计入失败")
+    ap.add_argument("--strict", action="store_true", help="剩余空话（SOFT）也计入失败")
     ap.add_argument("--max-show", type=int, default=8, help="每类最多列几条")
     a = ap.parse_args()
 
@@ -256,7 +276,7 @@ def main():
             wcount[r[1]] = wcount.get(r[1], 0) + r[4]
 
     print("=== 汇总 ===")
-    print("禁用语汇 %d 处 · 内部标记 %d 处 · 空话套话 %d 处（仅警告）"
+    print("禁用语汇 %d 处 · 内部标记 %d 处 · 空话套话 %d 处（--strict 时计失败）"
           % (tot_hard, tot_mark, tot_soft))
     if wcount:
         top = sorted(wcount.items(), key=lambda kv: -kv[1])[:8]

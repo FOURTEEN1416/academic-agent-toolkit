@@ -694,6 +694,8 @@ Come back to fill the abstract in Step 5 (final check), after all body chapters 
 
 <abstract_format>
 
+**⛔ 摘要动笔前先读语料**：读 `data/award_paper_exemplars.json` 同赛事 2-3 篇结构化条目 + `skills/award-paper-mining/data/abstract_golden_structure.md`（摘要黄金结构）与 `sentence_pattern_library.md`（句式库），模仿其信息密度与节奏，禁止照抄措辞。下述规则是与语料对标后的底线要求，不是替代。
+
 The template uses manual typesetting for abstracts. Do not use two `\begin{abstract}` environments — ctexart shows "摘要" as title for both.
 
 **⛔ 华中杯例外**：华中杯模板基于 `cumcmthesis` 文档类，使用 `\begin{abstract}...\keywords{}\end{abstract}` 环境。不要改成手动排版格式。正确写法：
@@ -790,7 +792,7 @@ Correct format for cumcm/stats templates (already in template):
 
 本文针对……建立了……模型。
 
-针对问题一，首先……，采用……算法，最优解为……，适应度达 0.917。
+针对问题一，构建……模型，采用……算法求解，最优解为……，适应度达 0.917。
 
 针对问题二，构建……模型，……MAPE 由 29.48\% 降至 14.93\%。
 
@@ -992,11 +994,13 @@ print()
 print("=== Abstract Quality Self-Check ===")
 def check_abstract_elements(text, mode="unknown"):
     issues = []
-    # Background
-    bg_patterns = ["随着", "最近", "针对"]
-    has_bg = any(re.search(p, text) for p in bg_patterns)
-    if not has_bg:
-        issues.append("WARNING: Lacking background-intro opening")
+    # Problem statement: 每问开头一句话说清「要解决什么+怎么解决+量化结果」
+    purpose_kw = ["针对", "旨在", "要解决", "待解决"]
+    has_purpose = any(kw in text for kw in purpose_kw)
+    if not has_purpose:
+        issues.append("WARNING: 未写清「要解决什么」— 每问开头应一句话交代问题对象、方法路线与量化目标")
+    if re.search(r"随着.{0,16}的(?:快速)?发展", text):
+        issues.append("FAIL: 「随着…的发展」式开头是 AI 套话（ai_tell_check 硬拦）— 首句直接给现实矛盾或数据事实")
     # Method
     method_kw = ["建立", "提出", "采用", "模型", "算法"]
     has_method = any(kw in text for kw in method_kw)
@@ -1056,7 +1060,7 @@ if issues:
         print("  " + i)
     print("Non-blocking but recommended to fix during writing.")
 else:
-    print("OK: All 4 abstract elements present: background/method/results/conclusion")
+    print("OK: All 4 abstract elements present: problem/method/results/conclusion")
 
 # 2) Re-count results
 result_count = len(re.findall(r"\\textbf\{[0-9.%,\s]+\}", text))
@@ -1065,13 +1069,17 @@ if result_count < 3:
 else:
     print("OK: Abstract has " + str(result_count) + " numbers, sufficient")
 
-# 3) Check opening style
-bg_openers = ["随着", "最近", "针对"]
-has_bg_opener = any(re.search(p, text[:200]) for p in bg_openers)
-if has_bg_opener:
-    print("OK: Abstract uses background-intro opening (advantage: 91.9%)")
+# 3) Check per-question lead: 要解决什么 + 怎么解决 + 量化结果（「随着/最近」式背景开头不再加分）
+qs = re.findall(r"针对问题[一二三四五六七八九十]", text)
+qs_solved = re.findall(r"针对问题[一二三四五六七八九十][^。\n]{0,150}?(?:建立|构建|采用|提出)[^。\n]{0,150}?[0-9]", text)
+if not qs:
+    print("Warning: 摘要未按「针对问题 X」分段，评委无法按问快速定位与核对工作量")
+elif len(qs_solved) < len(qs):
+    print("Warning: %d 问中仅 %d 问一句话交代「要解决什么+怎么解决+量化结果」" % (len(qs), len(qs_solved)))
 else:
-    print("Warning: Abstract does not use typical background-intro opening")
+    print("OK: 每问开头均有「问题-方法-量化结果」引导句")
+if re.search(r"随着.{0,16}的(?:快速)?发展", text[:200]):
+    print("⛔: 「随着…的发展」式开头是 AI 套话（ai_tell_check 硬拦）— 改为直接给现实矛盾或数据事实")
 
 print("=== Abstract Quality Self-Check END ===")
 # NEW_ABSTRACT_CHECK_BLOCK_END-->
@@ -1118,9 +1126,9 @@ fi
 
 |---|---|---|
 
-| **1. 产业/社会背景开头** | 直接讲数据集 + 技术瓶颈 | "随着...的发展，...的应用推动了对...的需求。...作为核心组件，其性能优化对于...至关重要。" |
+| **1. 问题背景开头（写具体矛盾）** | "随着...的发展" 式空背景（AI 套话，ai_tell_check 硬拦） | 首句直接给现实矛盾或数据事实："...在...场景下存在...瓶颈，...作为核心组件，其[关键指标]直接制约[宏观目标]。" |
 
-| **2. 过程式叙述骨架** | "构建了 XGBoost 三分类模型" | "**首先** 利用傅里叶变换分析噪声，**再** 提取 X/Y/Z 特征，**接着** 建立 A/B/C 模型对比，**最后** 借助混淆矩阵和交叉验证评估模型" |
+| **2. 方法链叙述（因果衔接）** | 只甩结论"构建了 XGBoost 三分类模型"（无过程无取舍） | 方法按因果连缀成句："噪声叠加导致直接拟合失真，故先以傅里叶变换分离趋势项并提取 X/Y/Z 特征；为避免单模型偏差，建立 A/B/C 三模型对比，以混淆矩阵和交叉验证择优"（不用"首先/接着/最后"机械过渡词） |
 
 | **3. 候选方法对比** | 只讲最优方案（XGBoost） | 列 2-3 个候选方法 + 选定 + 选择理由（MLP / 随机森林 / MLP-RF 加权集成；Solow / 二次多项式 / 温度饱和） |
 
@@ -1142,9 +1150,9 @@ fi
 
 ```latex
 
-% 第 1 段：产业背景 + 问题导入（150-200 字）
+% 第 1 段：问题导入（150-200 字）
 
-随着[领域]的快速发展，[技术/产品]的[关键性能]优化对[应用场景]至关重要。
+[现实场景中的具体矛盾或数据事实：...在...场景下存在...瓶颈]，
 
 [问题对象]作为[系统]中的核心组件，其[关键指标]直接影响[宏观目标]。
 
@@ -1152,7 +1160,7 @@ fi
 
 % 第 2 段：问题一（280-400 字，过程式 + 候选对比 + 数值）
 
-针对问题一[简称]，[首先]...[再]...建立 [方法 A、B、C] 等模型进行对比，
+针对问题一[一句话交代：要解决什么、难点在哪]。考虑[约束/难点]，建立 [方法 A、B、C] 等模型进行对比，
 
 最终选用 [选定方法] 并通过 [评估方式] 验证。结果表明 [关键数值1, 2]，
 
@@ -1176,7 +1184,7 @@ fi
 
 - ❌ 关键词只 5-6 个：丧失关键词检索曝光
 
-- ❌ 开头直接讲数据集 / 技术细节：缺少产业背景定位
+- ❌ 用「随着…的发展」式空背景开头：AI 套话（ai_tell_check 硬拦）；背景必须写具体矛盾或数据事实
 
 - ❌ 不列附件预测代表数值：评委无法快速核验工作量
 
@@ -1519,6 +1527,19 @@ PY
 ```
 
 Every scalar you need is in `RESULTS.md` or the range/sample of the summary above. If one scalar isn't fully shown, fetch just that value with `python3 -c "import json;d=json.load(open('figures/all_results.json'));print(d['key'])"` — still never read the whole file. Copy the exact numbers into the LaTeX text. Do NOT round differently, do NOT estimate, do NOT make up numbers that "look reasonable". If a number is not in the data, it cannot appear in the paper.
+
+**⛔ 动笔前先读获奖语料（六大板块通用：摘要/问题分析/建模推导/求解/检验/结论，一个都不能跳）：**
+
+写每个板块前，读 `data/award_paper_exemplars.json`（国赛优秀论文范文精选包索引，2021-2025 共 62 篇，`priority_25` 为优先样本）中**同赛事/同题型 2-3 篇**的结构化条目，并对照 `skills/award-paper-mining/data/` 对应库取该板块的写法基准：
+
+| 板块 | 对应语料 |
+|---|---|
+| 摘要 | `abstract_golden_structure.md`（摘要黄金结构） |
+| 全文句式与段落节奏 | `sentence_pattern_library.md`（句式库） |
+| 图表使用与版面 | `figure_table_conventions.md` + `typography_spec.md` |
+| 原文对照 | `assets-local/award-papers/` 按 `all_by_year` 索引取本现代码页 |
+
+模仿其信息密度与节奏（一段承载几个论点、数值怎么嵌进叙述、推导怎么铺开）；**禁止照抄措辞**——照抄同时踩查重与 AI 痕迹两道闸。语料索引缺席或字段不全时如实说明并跳过对标，不虚构读过。
 
 **⛔ 数模竞赛（cumcm/huawei/mathorcup）必须严格按模板的章节顺序写：**
 
@@ -1888,13 +1909,19 @@ Figure/table selection is driven by research content, not fixed type templates. 
 
 - **禁止在正文中使用 `\begin{itemize}` 或 `\begin{enumerate}` 列表。** 黑点/编号列表是最明显的 AI 写作痕迹。必须用连贯的段落叙述。
 
-  - 需要列举时用行内编号："（1）...（2）...（3）..."或"首先...其次...最后..."
+  - 需要列举时用行内编号："（1）...（2）...（3）..."，或改写为自然衔接的连贯段落（不用"首先/其次/最后"机械过渡链——那是过程式骨架，与"首先...再...接着...最后"同属 AI 痕迹）
 
   - 例外：模型假设列表（可用编号）、附录
 
 - **每段至少 3-5 句话。** 不要写只有 1-2 句的短段落。
 
 - **连续段落不能以相同句式开头。** 如连续三段都以"本文..."开头，必须改。
+
+- **段落长短错落。** 相邻段落字数几乎相等（差 <20%）说明节奏单一，是 AI 结构痕迹；长段展开论证、短段给结论，写作时自查。
+
+- **图题写发现，不写「XX 对比图」。** 图题应陈述该图揭示的结论（如"误差随噪声水平升高呈指数增长"），"XX 对比图 / XX 结果图"式空标题是 AI 痕迹。
+
+- **关键数据给误差范围或置信区间，禁止全文统一四位小数。** 所有数值一刀切同一精度是机器输出痕迹；按量纲与误差水平取有效位，关键估计量附 ± 区间或置信区间。
 
 - **图号必须显式引用、句式换着来（标准优秀论文口径）。** 每张图都要点名"图 N"让读者对上号（硬规范，别为避免套路删图号）；要禁的是"图X展示了……从图中可以看出……"这种图作主语+空话的单调重复，不是禁止一切图作主语。相邻两图引用句式必须不同，在括号旁注（首选）／句首带出／动词引导／图作主语（带实质结论时可用）／后置印证间轮换。详见 `_utils/writing_rules.md` 的"图表是论据"规则。
 
@@ -2045,6 +2072,22 @@ $\sum_j x_{ij}=1$，$\sum_i d_ix_{ij}\le Q_j$，$x_{ij},y_j\in\{0,1\}$，
 （那些下游 `constraint_audit.py` 会复核）。⛔ 不许在论文里新编一个建模阶段没有的约束，
 也不许把建模阶段有的关键约束在论文里悄悄漏掉。
 
+##### ⛔ 每个模型的建模小节必答「人类痕迹四问」
+
+评审实测反馈：「模型建立过程一点没有」「找不到公式」——AI 式建模只把公式摆出来，看不见人的决策痕迹。
+每个建模小节动笔前自问四问，答不上来就是没写完（第四问可与检验章节呼应，但必须点名）：
+
+1. **为什么选这个方法**：对比过哪些替代方案、各自为何不合适（一两句写进正文，与摘要"候选方法对比"要素同源）；
+2. **参数从哪来**：数据估计、文献取值还是标定实验，给出处与取值依据，不凭空落数；
+3. **完整推导链**：从假设到结论逐步呈现，关键一步一行，读者能跟着验算；禁止只给终式；
+4. **这个模型哪里脆弱**：哪里可能失真、对哪个假设或参数最敏感——检验章节（灵敏度/误差界）必须回应这一问。
+
+**正反对照（建模小节开头怎么写）**：
+
+- ❌ AI 式：直接抛公式。"建立 XGBoost 模型：[公式]。参数取 n_estimators=500。"——看不见选择理由、参数依据与推导过程，评委有理由怀疑模型是抄的。
+
+- ✅ 人类式：先说约束冲突，再引出建模选择。"样本特征含连续与类别两类量纲，直接最小二乘会被类别维度主导，故先将类别量做目标编码，再以梯度提升树拟合非线性项：[公式]。树深与学习率按 5 折交叉验证在训练段标定；弱学习器个数受样本量约束取 500（附录参数表）。该模型对编码泄露最敏感，第 X 章灵敏度分析单独检验。"
+
 ##### ⛔⛔ 求解小节：写"解为什么可信"，不要复述算法原理
 
 数模论文的核心是**建模**与**求解**，不是算法教学。评委关心的是"模型对不对、这个解可不可信"，
@@ -2097,6 +2140,7 @@ $\sum_j x_{ij}=1$，$\sum_i d_ix_{ij}\le Q_j$，$x_{ij},y_j\in\{0,1\}$，
 **结论与建议**:
 - Main conclusions (echo research objectives) → Policy / application recommendations (specific and actionable) → Innovation points → Limitations and future work
 - "Innovation & limitations" can be inside the conclusion or a standalone chapter (Example B style)
+- ⛔ 结论章禁止复述摘要：不复述各问数值结果，必须给出局限性与适用边界（模型在哪类场景失效、对哪个假设/参数最敏感、结论在什么范围内成立）
 </chapter_writing_points>
 
 **Expansion strategies** when content is thin (not padding — substantive content):
@@ -2141,6 +2185,8 @@ $\sum_j x_{ij}=1$，$\sum_i d_ix_{ij}\le Q_j$，$x_{ij},y_j\in\{0,1\}$，
 - Main conclusions (echo research objectives) → Policy / application recommendations (specific and actionable) → Innovation points → Limitations and future work
 
 - "Innovation & limitations" can be inside the conclusion or a standalone chapter (Example B style)
+
+- ⛔ 结论章禁止复述摘要：不复述各问数值结果，必须给出局限性与适用边界（模型在哪类场景失效、对哪个假设/参数最敏感、结论在什么范围内成立）
 
 </chapter_writing_points>
 
@@ -2763,7 +2809,7 @@ echo "模板检查: $TMPL_OK 通过, $TMPL_FAIL 失败"
 ## Key Rules
 
 - ⛔ **AI 申报双件套自动生成（合规硬要求）**：竞赛要求正文参考文献前放“AI 工具使用声明”+ 独立支撑材料《AI工具使用详情.pdf》。生成/核验必须用确定性脚本 `_utils/build_ai_disclosure.py`（双副本同 shared-scripts/，规范见 `_utils/ai_disclosure_rules.md`）：工具/型号/日期/用途只来自用户确认的清单（`.mh/ai_disclosure.json`），禁止语言模型自由编写详情；正文声明位置在参考文献之前；交付前必跑 `--check-only` 反查闸。未使用 AI 时用脚本生成“未使用”声明并清理旧详情文件。
-- ⛔ **AI 痕迹自检（交稿前必跑）**：`python _utils/ai_tell_check.py paper/`（双副本同 shared-scripts/）——工程/质检语汇（口径/闭环等）从提示词流进正文是实测最高频 AI 痕迹（10 工作区 442 次命中）；exit 1 时必修。人工风格对照 `_utils/human_competition_paper_style.md`，风格检查 `python _utils/human_paper_style_check.py paper/`。
+- ⛔ **AI 痕迹自检（交稿前必跑）**：`python _utils/ai_tell_check.py --strict paper/`（双副本同 shared-scripts/）——工程/质检语汇（口径/闭环等）从提示词流进正文是实测最高频 AI 痕迹（10 工作区 442 次命中）；中文套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）与工程词同级硬拦，`--strict` 下剩余空话（由此可见/换言之等）也计失败；exit 1 时必修。人工风格对照 `_utils/human_competition_paper_style.md`，风格检查 `python _utils/human_paper_style_check.py paper/`。
 - **防过度/辩护性写作（修订轮主动推荐）**：修订或压缩页数时调 `anti-defensive-writing` 技能，删不必要的 hedge/免责声明/道歉式框架/过度解释——保留必要的范围、误差与方法学限定，删的是"可能在一定程度上"式空转措辞；深度检测可加跑 `anti-ai-detection` 技能（8 维度 AI 特征分析+改写建议）。与 ai_tell_check 互补：一个删 AI 痕迹语汇、一个删防御性冗余。
 
 - Use templates from `templates/`, do not write main.tex from scratch
