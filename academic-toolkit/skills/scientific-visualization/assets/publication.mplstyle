@@ -1,8 +1,16 @@
-# Publication-quality matplotlib style
-# Usage: plt.style.use('publication.mplstyle')
-#
-# This style provides clean, professional formatting suitable
-# for most scientific journals
+# Publication journal style — academic.mplstyle 的期刊印刷差异档
+# ==================================================================
+# 基线真源：academic-toolkit/skills/_utils/academic.mplstyle
+# （字号阶梯/CJK 字体链/定版色板/保存护栏的理由都在基线文件头）。
+# 本文件 = 基线 + 下列差异项，可独立 plt.style.use：
+#   差异项（相对基线）：
+#   · 字号阶梯 8/9/7pt（期刊印刷尺度，基线为 A4 屏幕口径 11/12/13/10）
+#   · figsize 3.5x2.5（Nature 单栏 89mm 量级）、figure.dpi 100（屏幕预览）
+#   · constrained_layout True（期刊小图自动排版）
+#   · lines/legend 更细更小（印刷小图密度）
+#   其余键与基线同值（savefig.bbox=standard 护栏、CJK 字体链、定版色板）。
+#   含中文标签的图：保留下面 font.sans-serif 的 CJK 链，勿删成纯拉丁链。
+# ==================================================================
 
 # Figure properties
 figure.dpi: 100
@@ -11,10 +19,12 @@ figure.autolayout: False
 figure.constrained_layout.use: True
 figure.figsize: 3.5, 2.5
 
-# Font properties
+# Font properties（含 CJK 链，纯英文图可按 SKILL 差异项收窄）
 font.size: 8
 font.family: sans-serif
-font.sans-serif: Arial, Helvetica, DejaVu Sans
+font.sans-serif: Noto Sans SC, NotoSansSC, SimHei, Microsoft YaHei, PingFang SC, Arial, Helvetica, DejaVu Sans
+axes.unicode_minus: False
+mathtext.fontset: stix
 
 # Axes properties
 axes.linewidth: 0.5
@@ -29,7 +39,9 @@ axes.edgecolor: black
 axes.labelcolor: black
 axes.axisbelow: True
 axes.grid: False
-axes.prop_cycle: cycler('color', ['E69F00', '56B4E9', '009E73', 'F0E442', '0072B2', 'D55E00', 'CC79A7', '000000'])
+# 定版色板与基线一致（低饱和 elegant 8 色；理由见 academic.mplstyle 文件头。
+# 高可及性备选 Okabe-Ito 见 assets/color_palettes.py；禁 tab10 默认色环）
+axes.prop_cycle: cycler('color', ['7AAEC8', 'E8945A', '7BC8A4', '9B8EC4', 'E0A0A0', 'F0C05A', '8FAEC0', 'A8C4D8'])
 
 # Tick properties
 xtick.major.size: 3
@@ -55,10 +67,10 @@ legend.fontsize: 7
 legend.frameon: False
 legend.loc: best
 
-# Save properties
+# Save properties（bbox=standard 护栏与基线一致：禁 tight，防 mediabox 撑爆）
 savefig.dpi: 300
 savefig.format: pdf
-savefig.bbox: tight
+savefig.bbox: standard
 savefig.pad_inches: 0.05
 savefig.transparent: False
 savefig.facecolor: white

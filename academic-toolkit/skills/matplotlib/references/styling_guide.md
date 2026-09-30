@@ -42,19 +42,19 @@ im = ax.imshow(data, cmap='coolwarm', vmin=-1, vmax=1)
 
 **4. Qualitative**
 Best for categorical/nominal data without inherent ordering.
-- `tab10` (10 distinct colors)
-- `tab20` (20 distinct colors)
-- `Set1`, `Set2`, `Set3`
-- `Pastel1`, `Pastel2`
-- `Dark2`, `Accent`, `Paired`
+- ⛔ `tab10`, `tab20`, `Set1`/`Set2`/`Set3` — matplotlib/seaborn 出厂默认色环，交付图**禁用**（"ran with defaults" 的 AI 味来源）
+- ✅ 分类数据首选：`academic.mplstyle` 定版 cycler（低饱和 elegant 8 色）；高可及性需求用 Okabe-Ito
+- 参考（仅了解存在，勿用于交付）：`Pastel1`, `Pastel2`, `Dark2`, `Accent`, `Paired`
 
 **Usage:**
 ```python
 import matplotlib as mpl
 
-colors = mpl.colormaps['tab10'](np.linspace(0, 1, n_categories))
+# 分类数据正解：基线 cycler（色板定版理由见 academic.mplstyle 文件头）
+plt.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
+colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
 for i, category in enumerate(categories):
-    ax.plot(x, y[i], color=colors[i], label=category)
+    ax.plot(x, y[i], color=colors[i % len(colors)], label=category)
 ```
 
 **5. Cyclic**
@@ -114,13 +114,13 @@ im = ax.imshow(data, cmap=cmap, norm=norm)
 ### Using Built-in Styles
 
 ```python
-# List available styles
+# 论文/交付图：先加载仓库基线（唯一真源）
+plt.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
+
+# List available styles（内置风格仅供屏幕预览/探索）
 print(plt.style.available)
 
-# Apply a style
-plt.style.use('seaborn-v0_8-darkgrid')
-
-# Apply multiple styles (later styles override earlier ones)
+# 内置风格演示（⛔ 灰底网格/出厂色环风格禁用于交付图）：
 plt.style.use(['seaborn-v0_8-whitegrid', 'seaborn-v0_8-poster'])
 
 # Temporarily use a style
@@ -131,10 +131,13 @@ with plt.style.context('ggplot'):
 
 ### Popular Built-in Styles
 
+（以下均为 matplotlib 出厂风格，仅限屏幕预览与探索；交付图一律以
+`academic.mplstyle` 为基线——灰底 darkgrid 系与默认色环是"AI 默认味"来源。）
+
 - `default` - Matplotlib's default style
 - `classic` - Classic matplotlib look (pre-2.0)
 - `seaborn-v0_8-*` - Seaborn-inspired styles
-  - `seaborn-v0_8-darkgrid`, `seaborn-v0_8-whitegrid`
+  - `seaborn-v0_8-darkgrid`, `seaborn-v0_8-whitegrid`（⛔ 交付图禁用）
   - `seaborn-v0_8-dark`, `seaborn-v0_8-white`
   - `seaborn-v0_8-ticks`, `seaborn-v0_8-poster`, `seaborn-v0_8-talk`
 - `ggplot` - ggplot2-inspired style
@@ -293,22 +296,24 @@ plt.rcParams['savefig.transparent'] = False
 ```python
 import matplotlib as mpl
 
-# Tableau colors
-tableau_colors = mpl.colormaps['tab10'].colors
+# ⛔ tab10/Tableau10 是 matplotlib 出厂色环，交付图禁用——此处不再给取用示例；
+#   需要"命名色系"认知请查 matplotlib 文档 Colormap 参考。
 
 # CSS4 colors (subset)
 css_colors = ['steelblue', 'coral', 'teal', 'goldenrod', 'crimson']
 
-# Manual definition
-custom_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+# ✅ 交付图取色正解：academic.mplstyle 定版 cycler（色板与理由见其文件头）
+plt.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
+house_colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
 ```
 
 ### Color Cycles
 
 ```python
-# Set default color cycle
+# Set default color cycle（演示 cycler 机制；色值必须取自 academic.mplstyle
+# 定版板——⛔ #1f77b4 系是出厂默认色环，"AI 味"来源，交付图禁用）
 from cycler import cycler
-colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
 plt.rcParams['axes.prop_cycle'] = cycler(color=colors)
 
 # Or combine color and line style

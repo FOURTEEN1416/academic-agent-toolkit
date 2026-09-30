@@ -1,0 +1,88 @@
+# ==================================================================
+# academic.mplstyle — 学术图表统一风格基线（单一真源 · W4-FIG 定版 2026-10-01）
+# ==================================================================
+# 【定位】本仓库所有产图技能的 rcParams 基线。
+#   · skills/_utils/plot_utils.py 的 setup_style() 加载本文件作基线，
+#     再叠加动态层（可用字体检测 / 配色选择 / 随机版式族 / Nature 反解）；
+#   · fig-academic / scientific-visualization / matplotlib 等技能文档引用
+#     本文件并只声明差异项，不在各自文档里另立字号/字体/色板真源。
+#   直接消费方式：
+#     import matplotlib.pyplot as plt
+#     plt.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
+#
+# 【字号口径】本文件是「画时字号」（默认画布按屏幕尺度 8x5in 计）。
+#   印刷落点字号由「嵌入宽反推 figsize」铁律保证（公式与事故复盘见
+#   plot_utils.py 注释区 PAGE_MAX_W_IN 上方）：
+#     画时字号 = 印刷目标字号 x figsize宽 / 嵌入显示宽 W_in
+#     figsize宽 = W_in x 画时字号 / 印刷目标字号
+#   ⛔ 2026-09-26 FIGFIX 批教训：figsize 缩放比 0.5（嵌入宽仅为画布一半）
+#     未按公式放大画时字号，印刷字号跌到 4-5pt，全图返工。
+#     「字看起来小」先查缩放比，禁止逐处手写 fontsize= 补救。
+#
+# 【色板定版理由】axes.prop_cycle = paper-figure 现行低饱和板（elegant 8 色，
+#   62 篇国赛获奖论文锚定，2026-09-26 华为杯 D 题管线生产验证）。
+#   与 YY10（D:/YY建模资料/YY网盘原件/增量/数学建模常用12种可视化.md 的
+#   7CD6CF/76DA91/63B2EE/7898E1/9192AB/F89588/E9D8A6/ADE8F4/FFC8DD/A2D2FF）
+#   的量化对比（白底 WCAG 对比度 / 灰度 luma / Vienot 色盲模拟 dE76，2026-10-01 实测）：
+#   · YY10：6/10 色白底对比度 < 2.0（最浅 #ADE8F4 仅 1.34，白底细线发虚）；
+#     4 色 luma 落 201-219，黑白打印与纸面几乎合并；蓝系 4 色（#63B2EE/
+#     #7898E1/#ADE8F4/#A2D2FF）聚类；deutan dE 12.7 / protan dE 14.8。
+#     → 判定为屏幕演示级板：屏幕上好看，落纸不稳，不作默认。
+#   · elegant：8 色全部落在 luma 152-195 中间带，黑白打印最浅仍可辨；
+#     已知弱点：蓝灰系内部 #7AAEC8<->#8FAEC0 protan dE 仅 4.3 —— 由
+#     「单图数据系列 <= 6」使用规则兜底（冲突色在第 7/8 位，该规则下不出现；
+#     规则见 paper-figure SKILL「Competition paper color constraint」）。
+#     量化值：白底对比度 1.69-2.97，deutan dE 10.0 / protan dE 4.3。
+#   Okabe-Ito 保留为高可及性备选（scientific-visualization SKILL 与
+#   assets/color_palettes.py 提供取用）；连续/热图用 viridis/cividis 系不变。
+#
+# 【CJK 字体族】Noto Sans SC（随仓内置 skills/_utils/NotoSansSC-Regular.ttf，
+#   族名实测 "Noto Sans SC"，setup_style 动态 addfont）→ SimHei →
+#   Microsoft YaHei → 平台中文字体 → Arial/Helvetica/DejaVu Sans。
+#   ⛔ 纯拉丁链（Arial/Helvetica/Liberation Sans）只允许在「确认全图无
+#   CJK 字符」时作为差异项覆盖本链，否则中文渲染为 □（fig-academic 旧
+#   基线的事故来源）。
+# ==================================================================
+
+# ---- 画布与保存护栏（与 plot_utils.setup_style 基线一致）----
+figure.dpi: 300
+figure.facecolor: white
+savefig.dpi: 350
+# 'standard' 在 mpl>=3.8 验证后归一化为 None（=不裁剪）——这正是护栏本意：
+# 禁 'tight'，否则 axes 外文字会把 PDF mediabox 撑爆成超长条。
+savefig.bbox: standard
+savefig.pad_inches: 0.1
+savefig.facecolor: white
+
+# ---- 字体（含 CJK 链，理由见文件头）----
+font.size: 11
+font.family: sans-serif
+font.sans-serif: Noto Sans SC, NotoSansSC, SimHei, Microsoft YaHei, PingFang SC, Heiti SC, WenQuanYi Micro Hei, Arial, Helvetica, DejaVu Sans
+axes.unicode_minus: False
+text.usetex: False
+mathtext.fontset: stix
+
+# ---- 字号阶梯（画时口径；印刷换算见文件头公式）----
+axes.labelsize: 12
+axes.titlesize: 13
+xtick.labelsize: 10
+ytick.labelsize: 10
+legend.fontsize: 10
+legend.frameon: False
+
+# ---- 轴与网格 ----
+axes.linewidth: 0.8
+axes.grid: False
+axes.spines.top: False
+axes.spines.right: False
+axes.facecolor: white
+
+# ---- 线与块 ----
+lines.linewidth: 1.8
+lines.markersize: 6
+patch.edgecolor: white
+patch.linewidth: 1.0
+
+# ---- 定版色板（paper-figure 现行低饱和板 elegant 8 色；理由见文件头）----
+# 注意：mplstyle 行内 '#' 是注释符，色值必须写裸 hex（不带 #）。
+axes.prop_cycle: cycler('color', ['7AAEC8', 'E8945A', '7BC8A4', '9B8EC4', 'E0A0A0', 'F0C05A', '8FAEC0', 'A8C4D8'])

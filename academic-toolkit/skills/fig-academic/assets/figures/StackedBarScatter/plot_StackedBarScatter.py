@@ -112,8 +112,11 @@ def plot_jitter_mean_sig(
         if n <= 3:
             palette = base3[:n]
         else:
-            tab = [plt.get_cmap("tab10")(i) for i in range(10)]
-            palette = base3 + [tab[i] for i in range(n - 3)]
+            # 扩位色取定版低饱和板（真源 skills/_utils/academic.mplstyle；
+            # ⛔ 旧写法 plt.get_cmap("tab10") 是出厂默认色环，已退役）
+            extra = ["#7AAEC8", "#E8945A", "#7BC8A4", "#9B8EC4",
+                     "#E0A0A0", "#F0C05A", "#8FAEC0", "#A8C4D8"]
+            palette = base3 + [extra[i % len(extra)] for i in range(n - 3)]
     else:
         assert len(palette) >= n, "palette 颜色数量不足覆盖所有分组"
 

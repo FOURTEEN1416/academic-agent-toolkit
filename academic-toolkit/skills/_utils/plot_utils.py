@@ -294,6 +294,15 @@ def _knobs_from_custom(spec):
 # 正解：让落地字号恒定，画时字号跟着画布走。
 #   落地宽 = min(PAGE_MAX_W_IN, 画布宽)（比 5.5 寸窄的图 Word 不会放大）
 #   画时字号 = 目标落地字号 × 画布宽 ÷ 落地宽
+#
+# ⛔⛔ 铁律（2026-09-26 FIGFIX 批教训固化）：嵌入宽反推 figsize
+#   设嵌入显示宽 W_in（= _display_width_in 的落点）、印刷目标字号 F_print：
+#     画时字号  = F_print × figsize宽 ÷ W_in     （画图时按它设 rcParams）
+#     figsize宽 = W_in × 画时字号 ÷ F_print      （定画布尺寸时用它反推）
+#   两式同源：印刷字号 = 画时字号 × 缩放比，缩放比 = W_in ÷ figsize宽。
+#   事故复盘：D 题曾以 0.5 缩放比（画布 2× 嵌入宽）出图且未按公式放大画时
+#   字号 → 印刷字号跌到 4-5pt，整批 8 图返工。自查只问一句：W_in ÷ figsize宽
+#   =？不等于 1，画时字号就必须 = F_print ÷ 缩放比；禁止逐处手写 fontsize= 补救。
 PAGE_MAX_W_IN = 5.5       # = md_to_docx 的 _DEFAULT_IMAGE_MAX_W_IN
 # 印刷可读下限。⛔ 与 tools/screenshot_capture.py 的 MIN_FONT_PT 保持一致，
 #   改一处必须改另一处（那边是出图后的静态闸，这里是画图时的自检）。
@@ -932,34 +941,20 @@ def setup_style(palette='auto'):
             print("  Or install: Windows=SimHei, Linux=fonts-noto-cjk-extra, macOS=built-in")
             zh_fonts = ['DejaVu Sans']
 
-    matplotlib.rcParams.update({
-        'font.size': 11,
-        'font.family': 'sans-serif',
-        'font.sans-serif': zh_fonts + ['Arial', 'Helvetica', 'DejaVu Sans'],
-        'axes.unicode_minus': False,
-        'axes.labelsize': 12,
-        'axes.titlesize': 13,
-        'axes.linewidth': 0.8,
-        'xtick.labelsize': 10,
-        'ytick.labelsize': 10,
-        'legend.fontsize': 10,
-        'legend.frameon': False,
-        'figure.dpi': 300,
-        'savefig.dpi': 350,
-        'savefig.bbox': 'standard',       # ★ 不用 'tight' — 否则 axes 外文字会撑爆 mediabox
-        'savefig.pad_inches': 0.1,        # ★ 配合 standard，留窄边距
-        'axes.grid': False,
-        'axes.spines.top': False,
-        'axes.spines.right': False,
-        'axes.facecolor': 'white',
-        'figure.facecolor': 'white',
-        'text.usetex': False,
-        'mathtext.fontset': 'stix',
-        'lines.linewidth': 1.8,
-        'lines.markersize': 6,
-        'patch.edgecolor': 'white',       # 饼图/柱状图块之间白色分隔线
-        'patch.linewidth': 1.0,
-    })
+    # ★★ 版式基线单一真源：academic.mplstyle（与本文件同目录）。
+    # 字号阶梯 / CJK 字体链 / 定版色板 / 保存护栏全部在该文件定版并附理由
+    # （色板择优的量化对比见其文件头）。本函数只负责动态层：
+    # 可用字体检测（下方 zh_fonts）、配色选择、随机版式族、Nature 反解。
+    # 改基线 = 改 academic.mplstyle；本函数的签名与对外行为不变（调用方无感）。
+    _style_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               'academic.mplstyle')
+    _base_style = matplotlib.rc_params_from_file(_style_path,
+                                                 use_default_template=False)
+    matplotlib.rcParams.update(_base_style)
+    # 动态字体层：上方检测到的中文字体（随机模式按种子挑选/内置件 addfont）
+    # 置于链首；基线 CJK 链中未命中的项继后作后备（比旧硬编码链更抗缺字体）。
+    matplotlib.rcParams['font.sans-serif'] = zh_fonts + [
+        f for f in matplotlib.rcParams['font.sans-serif'] if f not in zh_fonts]
 
     # 设置颜色循环 — 这是关键，防止 matplotlib 用默认丑蓝色
     matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colors)

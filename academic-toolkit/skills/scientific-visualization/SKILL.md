@@ -136,7 +136,13 @@ save_for_journal(fig, 'figure1', journal='nature', figure_type='combination')
 
 **Always use colorblind-friendly palettes** (detailed in `references/color_palettes.md`):
 
-**Recommended: Okabe-Ito palette** (distinguishable by all types of color blindness):
+**Color cycle baseline (single source of truth):** load `academic.mplstyle` first — its `axes.prop_cycle` is the repo-定版 low-saturation palette (rationale and the rejected alternative are documented in the style file header):
+```python
+import matplotlib.pyplot as plt
+plt.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
+```
+
+**Accessible alternative: Okabe-Ito palette** (kept as the opt-in choice when maximum colorblind separability matters more than house style; distinguishable by all types of color blindness):
 ```python
 # Option 1: Use assets/color_palettes.py
 from color_palettes import OKABE_ITO_LIST, apply_palette
@@ -147,6 +153,7 @@ okabe_ito = ['#E69F00', '#56B4E9', '#009E73', '#F0E442',
              '#0072B2', '#D55E00', '#CC79A7', '#000000']
 plt.rcParams['axes.prop_cycle'] = plt.cycler(color=okabe_ito)
 ```
+⛔ Never fall back to matplotlib's default cycle (`tab10`, `#1f77b4` first color) — the "ran with defaults" look is the #1 AI-flavor tell.
 
 **For heatmaps/continuous data:**
 - Use perceptually uniform colormaps: `viridis`, `plasma`, `cividis`
@@ -168,14 +175,20 @@ plt.rcParams['axes.prop_cycle'] = plt.cycler(color=okabe_ito)
 
 **Implementation:**
 ```python
-# Set fonts globally
+# 单一真源：academic.mplstyle（academic-toolkit/skills/_utils/）——先加载基线：
 import matplotlib as mpl
-mpl.rcParams['font.family'] = 'sans-serif'
-mpl.rcParams['font.sans-serif'] = ['Arial', 'Helvetica']
-mpl.rcParams['font.size'] = 8
-mpl.rcParams['axes.labelsize'] = 9
-mpl.rcParams['xtick.labelsize'] = 7
-mpl.rcParams['ytick.labelsize'] = 7
+mpl.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
+
+# —— 本技能差异项（期刊印刷尺度；仅当确认全图无 CJK 字符时才可覆盖字体链）——
+mpl.rcParams.update({
+    'font.size': 8,
+    'axes.labelsize': 9,
+    'xtick.labelsize': 7,
+    'ytick.labelsize': 7,
+    # 纯英文图可收窄为拉丁链；含中文标签 ⇒ 删除本行，沿用基线 CJK 链
+    # （Noto Sans SC → SimHei → Microsoft YaHei…），否则中文渲染为 □
+    'font.sans-serif': ['Arial', 'Helvetica'],
+})
 ```
 
 ### 4. Figure Dimensions

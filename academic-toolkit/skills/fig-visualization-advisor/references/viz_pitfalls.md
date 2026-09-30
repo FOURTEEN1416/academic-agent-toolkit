@@ -257,7 +257,7 @@ sns.stripplot(data=df, x='group', y='value', color='black',
 **正确做法**：
 - 单向连续值（全正 / 全负）→ `viridis` / `magma` / `inferno` / `cividis`
 - 双向数据（有正有负，0 是基线）→ `RdBu_r` / `PiYG` / `seismic` + `center=0`
-- 分类（discrete）→ `tab10` / `Set2` / Okabe-Ito，**不要**用 rainbow 抽点
+- 分类（discrete）→ `academic.mplstyle` 定版 cycler / Okabe-Ito（⛔ 禁 `tab10` / `Set2` 等出厂色环），**不要**用 rainbow 抽点
 
 ---
 

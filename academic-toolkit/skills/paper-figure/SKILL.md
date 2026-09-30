@@ -1194,7 +1194,8 @@ setup_style()  # defaults to Soft palette; alternatives: tableau/npg/nejm/scienc
 #    ❌ 导读       题给 $B$=500000 元 → 在图右
 #    ❌ 成段说明   面额 5→50 涨 10 倍\n人均增量 GMV 仅涨 2.3 倍\n…\n（全池均值口径）
 #    ❌ 多标签堆叠 最优解 · 收敛区间 · 预算上限 3271 元   ← 单个都放行，堆一起就是文字块
-#    分界线：给东西【起名】放行，【下判断】拦掉。阐述与口径写进图前后正文，caption 只留短图名。
+#    分界线：给东西【起名】放行，【下判断】拦掉。阐述与口径写进图前后正文；
+#    caption 写「一句发现」（见 Step 6 图题规范），不塞数据源与口径。
 #    ⓘ 为什么留放行档：阈值线不说明是什么线、最优点不标是最优点，图就没法读了。
 #      实测 17 个工作区 523 处里 335 处（64%）是这类合法标签，一律拦掉会逼 AI 删成残图。
 #    figure_check.sh 用 AST 扫描，换 API 绕不过去（fig.text / annotate 一样被扫）。
@@ -1925,15 +1926,19 @@ Save to `figures/latex_includes.tex`. Figures use `[H]` float specifier (pinned 
 
 **⛔ Captions must match paper language.** Check TOPIC_PLAN.md or PROBLEM_ANALYSIS.md:
 
-- Chinese papers (stats modeling / math competition): `\caption{模型性能对比雷达图}` — Chinese caption
+- Chinese papers (stats modeling / math competition): `\caption{需求放大20%时硬时限仍零违约}` — Chinese caption
 
-- English papers (MCM/ICM/APMCM): `\caption{Model Performance Comparison}` — English caption
+- English papers (MCM/ICM/APMCM): `\caption{The 20\% demand surge leaves hard deadlines intact}` — English caption
+
+**⛔ 图题写发现（一句话结论式图题）**：caption 首选写这张图证明了什么，不是这张图画了什么。「图3 需求放大20%时硬时限仍零违约」优于「图3 需求敏感性对比」——评委扫图题即得结论，正文再展开证据链。界限：一句发现（≤25 字为佳）放 caption；数据源、计算口径、多 panel 逐项解说仍写正文，不塞 caption。
 
 ```latex
-% ✅ 图注只命名；正文另写各 panel 的证据与结论
-\caption{相对论钟速率沿轨道相位的变化}
-% ❌ 不把结果段、数据源和计算口径塞进 caption
-\caption{相对论钟速率沿轨道相位的变化。(a) 速度项……数据源……}
+% ✅ 一句发现（首选）：图题即结论
+\caption{需求放大20\%时硬时限仍零违约}
+% ⚠️ 纯命名（可接受但弱）：只说画了什么，不说证明了什么
+\caption{需求敏感性对比}
+% ❌ 结果段/数据源/口径塞 caption（长度爆炸且与正文重复）
+\caption{需求敏感性对比。(a) 速度项……数据来源为……计算口径……}
 ```
 
 ⛔ 图内被搬走的结论必须进入论文图前后的正文解读；如果正文尚未撰写，在图表规划/清单中记录应解释的关键证据，不能删除信息。

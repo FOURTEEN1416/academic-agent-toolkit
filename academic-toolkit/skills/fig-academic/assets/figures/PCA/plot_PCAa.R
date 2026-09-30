@@ -116,7 +116,7 @@ plot_metabolite_pca_science <- function(
   # ------------------------------
   pc1_contrib <- fviz_contrib(
     res.pca, choice = "var", axes = 1, top = top_contrib,
-    fill = "#1f77b4", color = "black", sort.val = "asc"
+    fill = "#7AAEC8", color = "black", sort.val = "asc"
   ) + coord_flip() +
     theme_minimal() +
     ylab("Dim1 contrib. (%)") +
@@ -165,10 +165,12 @@ plot_metabolite_pca_science <- function(
 }
 
 
+# 定版低饱和板（elegant 8 色 + 2 协调补位；真源 skills/_utils/academic.mplstyle，
+# ⛔ 旧值是 matplotlib tab10 出厂色环，"AI 默认味"来源，已退役）
 science_colors <- c(
-  "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
-  "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
-  "#bcbd22", "#17becf"
+  "#7AAEC8", "#E8945A", "#7BC8A4", "#9B8EC4",
+  "#E0A0A0", "#F0C05A", "#8FAEC0", "#A8C4D8",
+  "#FFB347", "#A8DADC"
 )
 
 result <- plot_metabolite_pca_science(

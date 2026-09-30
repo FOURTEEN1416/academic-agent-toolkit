@@ -205,20 +205,25 @@ For comprehensive plot type examples and variations, refer to `references/plot_t
 
 **Using style sheets:**
 ```python
-plt.style.use('seaborn-v0_8-darkgrid')  # Apply predefined style
-# Available styles: 'ggplot', 'bmh', 'fivethirtyeight', etc.
-print(plt.style.available)  # List all available styles
+# 仓库产图基线（论文/竞赛/交付图必须从它出发）：
+plt.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
+
+# matplotlib 内置风格（'ggplot', 'bmh', 'fivethirtyeight', 'seaborn-v0_8-*' 等，
+# 见 plt.style.available）仅限屏幕预览与交互探索——
+# ⛔ 禁止用于论文/交付图：灰底网格、默认色环、screen 字号是"AI 默认味"的直观来源
 ```
 
 **Customizing with rcParams:**
 ```python
-plt.rcParams['font.size'] = 12
-plt.rcParams['axes.labelsize'] = 14
-plt.rcParams['axes.titlesize'] = 16
+# 覆盖前先加载基线 academic.mplstyle；下面的值就是基线值（示例用），
+# 需要偏离时在这里覆盖并写明理由（如期刊印刷尺度差异档见 fig-academic）。
+plt.rcParams['font.size'] = 11
+plt.rcParams['axes.labelsize'] = 12
+plt.rcParams['axes.titlesize'] = 13
 plt.rcParams['xtick.labelsize'] = 10
 plt.rcParams['ytick.labelsize'] = 10
-plt.rcParams['legend.fontsize'] = 12
-plt.rcParams['figure.titlesize'] = 18
+plt.rcParams['legend.fontsize'] = 10
+plt.rcParams['figure.titlesize'] = 13
 ```
 
 **Text and annotations:**
@@ -293,7 +298,7 @@ ax.set_zlabel('Z Label')
 ### 4. Colormap Selection
 - **Sequential** (viridis, plasma, inferno): Ordered data with consistent progression
 - **Diverging** (coolwarm, RdBu): Data with meaningful center point (e.g., zero)
-- **Qualitative** (tab10, Set3): Categorical/nominal data
+- **Qualitative**: Categorical/nominal data — ⛔ 禁用 `tab10`/`Set3` 等默认定性色环（matplotlib 出厂色，"AI 味"来源）；分类数据用 `academic.mplstyle` 定版 cycler，高可及性需求用 Okabe-Ito
 - Avoid rainbow colormaps (jet) - they are not perceptually uniform
 
 ### 5. Accessibility
