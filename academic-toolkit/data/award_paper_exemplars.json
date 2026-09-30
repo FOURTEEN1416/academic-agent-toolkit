@@ -222,8 +222,8 @@
    "verification": {
     "award_unverified": 686,
     "award_evidence_present": 0,
-    "contest_evidence_yes": 536,
-    "contest_evidence_no": 150,
+    "contest_evidence_yes": 619,
+    "contest_evidence_no": 67,
     "policy": "无逐篇获奖佐证，全部 award_unverified：不进黄金结构/句式库聚合，只作语料底座与图表借鉴；contest_evidence=no 的 150 篇另禁用于研赛图表惯例归纳",
     "false_positive_note": "2023 年 C 题（竞赛评审题）正文奖级词均为题面语义非获奖佐证，已复核排除"
    },
@@ -1393,7 +1393,7 @@
      "year": 2010,
      "code": "unavailable",
      "pages": 7,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2010/10561008B/",
      "title": "与封堵溃口有关的重物落水后的运动过程"
     },
@@ -3021,7 +3021,7 @@
      "year": 2015,
      "code": "unavailable",
      "pages": 74,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/10004002/",
      "title": "面向节能的单/多列车优化决策问题"
     },
@@ -3030,7 +3030,7 @@
      "year": 2015,
      "code": "unavailable",
      "pages": 43,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/10287013/",
      "title": "面向节能的单/多列车优化决策问题"
     },
@@ -3039,7 +3039,7 @@
      "year": 2015,
      "code": "unavailable",
      "pages": 40,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/10287026/",
      "title": "面向节能的单/多列车优化决策问题"
     },
@@ -3048,7 +3048,7 @@
      "year": 2015,
      "code": "unavailable",
      "pages": 43,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/10422053/",
      "title": "面向节能的单/多列车优化决策问题"
     },
@@ -3057,7 +3057,7 @@
      "year": 2015,
      "code": "unavailable",
      "pages": 56,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/10615017/",
      "title": "面向节能的单/多列车优化决策问题"
     },
@@ -3066,7 +3066,7 @@
      "year": 2015,
      "code": "unavailable",
      "pages": 56,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/10700001/",
      "title": "面向节能的单/多列车优化决策问题研究"
     },
@@ -3075,7 +3075,7 @@
      "year": 2015,
      "code": "unavailable",
      "pages": 60,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/83285013/",
      "title": "单/多列车优化决策问题的研究"
     },
@@ -3084,7 +3084,7 @@
      "year": 2015,
      "code": "unavailable",
      "pages": 50,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/90002014/",
      "title": "面向节能的单/多列车优化决策控制"
     },
@@ -3093,7 +3093,7 @@
      "year": 2015,
      "code": "unavailable",
      "pages": 64,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/90038010/",
      "title": "面向节能的单/多列车优化决策问题"
     },
@@ -3102,7 +3102,7 @@
      "year": 2015,
      "code": "unavailable",
      "pages": 71,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/90038025/",
      "title": "面向节能的列车调度优化决策研究"
     },
@@ -3111,7 +3111,7 @@
      "year": 2015,
      "code": "A",
      "pages": 37,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/A10288020/",
      "title": "水面舰艇编队防空和信息化战争评估模型"
     },
@@ -3120,7 +3120,7 @@
      "year": 2015,
      "code": "A",
      "pages": 36,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/A10422076/",
      "title": "水面舰艇编队防空和信息化战争评估模型"
     },
@@ -3129,7 +3129,7 @@
      "year": 2015,
      "code": "A",
      "pages": 38,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/A10533032/",
      "title": "水面舰艇编队防空和信息化战争评估模型"
     },
@@ -3138,7 +3138,7 @@
      "year": 2015,
      "code": "A",
      "pages": 34,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/A10651009/",
      "title": "水面舰艇编队防空和信息化战争评估模型"
     },
@@ -3147,7 +3147,7 @@
      "year": 2015,
      "code": "A",
      "pages": 72,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/A10856054/",
      "title": "水面舰艇编队防空和信息化战争评估模型"
     },
@@ -3156,7 +3156,7 @@
      "year": 2015,
      "code": "A",
      "pages": 54,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/A11075030/",
      "title": "水面舰艇编队防空和信息化战争评估模型"
     },
@@ -3165,7 +3165,7 @@
      "year": 2015,
      "code": "A",
      "pages": 56,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/A90025016/",
      "title": "水面舰艇编队防空和信息化战争评估模型"
     },
@@ -3174,7 +3174,7 @@
      "year": 2015,
      "code": "B",
      "pages": 25,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/B10006005/",
      "title": "本文通过"
     },
@@ -3183,7 +3183,7 @@
      "year": 2015,
      "code": "B",
      "pages": 57,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/B10248091/",
      "title": "数据的多流形结构分析"
     },
@@ -3192,7 +3192,7 @@
      "year": 2015,
      "code": "B",
      "pages": 36,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/B10248118/",
      "title": "数据的多流形结构分析"
     },
@@ -3201,7 +3201,7 @@
      "year": 2015,
      "code": "B",
      "pages": 51,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/B10290012/",
      "title": "数据的多流形结构分析"
     },
@@ -3210,7 +3210,7 @@
      "year": 2015,
      "code": "B",
      "pages": 51,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/B10290012_1/",
      "title": "数据的多流形结构分析"
     },
@@ -3219,7 +3219,7 @@
      "year": 2015,
      "code": "B",
      "pages": 47,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/B10294017/",
      "title": "数据的多流形结构分析"
     },
@@ -3228,7 +3228,7 @@
      "year": 2015,
      "code": "B",
      "pages": 47,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/B10700027/",
      "title": "数据的多流形结构分析"
     },
@@ -3237,7 +3237,7 @@
      "year": 2015,
      "code": "B",
      "pages": 55,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/B11660017/",
      "title": "数据的多流形结构分析"
     },
@@ -3246,7 +3246,7 @@
      "year": 2015,
      "code": "B",
      "pages": 43,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/B90002105/",
      "title": "数据的多流形结构分析"
     },
@@ -3255,7 +3255,7 @@
      "year": 2015,
      "code": "B",
      "pages": 54,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/B90006058/",
      "title": "数据的多流形结构分析"
     },
@@ -3273,7 +3273,7 @@
      "year": 2015,
      "code": "C",
      "pages": 32,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/C90019017/",
      "title": "移动通信中的无线信道“指纹”特征建模"
     },
@@ -3282,7 +3282,7 @@
      "year": 2015,
      "code": "C",
      "pages": 24,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/C90047002/",
      "title": "移动通信中的无线信道“指纹”特征建模"
     },
@@ -3291,7 +3291,7 @@
      "year": 2015,
      "code": "C",
      "pages": 40,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/C90110006/",
      "title": "移动通信无线信道指纹建模及识别"
     },
@@ -3300,7 +3300,7 @@
      "year": 2015,
      "code": "C",
      "pages": 36,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/C90110010/",
      "title": "移动通信中的无线信道“指纹”特征建模"
     },
@@ -3309,7 +3309,7 @@
      "year": 2015,
      "code": "C",
      "pages": 29,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/CK0127/",
      "title": "移动通信中的无线信道“指纹”特征建模"
     },
@@ -3318,7 +3318,7 @@
      "year": 2015,
      "code": "E",
      "pages": 34,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/E10054013/",
      "title": "数控机床加工优化控制"
     },
@@ -3327,7 +3327,7 @@
      "year": 2015,
      "code": "E",
      "pages": 51,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/E10247086/",
      "title": "数控加工刀具运动的优化控制模型研究"
     },
@@ -3336,7 +3336,7 @@
      "year": 2015,
      "code": "E",
      "pages": 25,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/E10256058/",
      "title": "数控加工刀具运动的优化控制"
     },
@@ -3345,7 +3345,7 @@
      "year": 2015,
      "code": "E",
      "pages": 44,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/E10425010/",
      "title": "数控加工刀具运动的优化控制"
     },
@@ -3354,7 +3354,7 @@
      "year": 2015,
      "code": "E",
      "pages": 23,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/E10459037/",
      "title": "基于S 型曲线的加减速优化控制与实例检验"
     },
@@ -3363,7 +3363,7 @@
      "year": 2015,
      "code": "E",
      "pages": 38,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/E10700022/",
      "title": "数控加工刀具运动的优化控制"
     },
@@ -3372,7 +3372,7 @@
      "year": 2015,
      "code": "E",
      "pages": 27,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/E10757002/",
      "title": "数控加工刀具运动的优化控制问题研究"
     },
@@ -3381,7 +3381,7 @@
      "year": 2015,
      "code": "E",
      "pages": 56,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/E90047006/",
      "title": "E.数控加工刀具运动的优化控制"
     },
@@ -3390,7 +3390,7 @@
      "year": 2015,
      "code": "E",
      "pages": 34,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/EK0196/",
      "title": "数控加工刀具优化控制的建模仿真"
     },
@@ -3408,7 +3408,7 @@
      "year": 2015,
      "code": "F",
      "pages": 64,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/F10273011/",
      "title": "最优旅游路线规划问题研究（F 题）"
     },
@@ -3417,7 +3417,7 @@
      "year": 2015,
      "code": "F",
      "pages": 49,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/F10295002/",
      "title": "旅游路线规划问题"
     },
@@ -3426,7 +3426,7 @@
      "year": 2015,
      "code": "F",
      "pages": 101,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/F10353007/",
      "title": "旅游路径规划问题"
     },
@@ -3435,7 +3435,7 @@
      "year": 2015,
      "code": "F",
      "pages": 65,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/F10357003/",
      "title": "基于粒化思想的多层次目标规划模型的研究"
     },
@@ -3444,7 +3444,7 @@
      "year": 2015,
      "code": "F",
      "pages": 67,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/F10613002/",
      "title": "旅游路线规划问题"
     },
@@ -3453,7 +3453,7 @@
      "year": 2015,
      "code": "F",
      "pages": 112,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/F10613003/",
      "title": "旅游路线优化设计问题研究"
     },
@@ -3462,7 +3462,7 @@
      "year": 2015,
      "code": "F",
      "pages": 95,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/F10613005/",
      "title": "旅游路线规划问题"
     },
@@ -3471,7 +3471,7 @@
      "year": 2015,
      "code": "F",
      "pages": 39,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/F10615003/",
      "title": "分块分层优化的旅游路线规划问题研究"
     },
@@ -3480,7 +3480,7 @@
      "year": 2015,
      "code": "F",
      "pages": 53,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/FK0041/",
      "title": "旅游路线规划模型"
     },
@@ -3489,7 +3489,7 @@
      "year": 2015,
      "code": "unavailable",
      "pages": 68,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2015/K0032/",
      "title": "面向节能的单/多列车优化决策问题"
     },
@@ -3956,7 +3956,7 @@
      "year": 2017,
      "code": "D",
      "pages": 95,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2017/D10701013/",
      "title": "基于监控视频的前景目标提取"
     },
@@ -4037,7 +4037,7 @@
      "year": 2017,
      "code": "E",
      "pages": 47,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2017/E90038022/",
      "title": "两波次导弹发射中的规划问题"
     },
@@ -4154,7 +4154,7 @@
      "year": 2018,
      "code": "A",
      "pages": 32,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2018/A18106150026/",
      "title": "Ȱংၼיȱݾ༈Ⴗ઀᎒खᆼ઱໶"
     },
@@ -4208,7 +4208,7 @@
      "year": 2018,
      "code": "B",
      "pages": 67,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2018/B18102860425/",
      "title": "Ȱংၼיȱݾ༈Ⴗ઀᎒खᆼ઱໶"
     },
@@ -4478,7 +4478,7 @@
      "year": 2019,
      "code": "A",
      "pages": 41,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2019/A19100270008/",
      "title": "基于神经网络的无线电波传播损耗预测模型"
     },
@@ -4604,7 +4604,7 @@
      "year": 2019,
      "code": "D",
      "pages": 52,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2019/D19100010050/",
      "title": "基于随机搜索和聚类分析以及自编码器再优化"
     },
@@ -4703,7 +4703,7 @@
      "year": 2019,
      "code": "F",
      "pages": 24,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2019/F19102690110/",
      "title": "᎒खᆼ઱໶ۺᅐ༏ਯქ௜ܹບ"
     },
@@ -4838,7 +4838,7 @@
      "year": 2020,
      "code": "B",
      "pages": 47,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2020/B20103380015/",
      "title": "基于数据挖掘降低汽油精制过程辛烷值损失"
     },
@@ -5063,7 +5063,7 @@
      "year": 2020,
      "code": "F",
      "pages": 57,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2020/F20102690221/",
      "title": "飞行器质心平衡供油策略优化"
     },
@@ -5324,7 +5324,7 @@
      "year": 2022,
      "code": "D",
      "pages": 56,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2022/D22106990096/",
      "title": "22106990096"
     },
@@ -5378,7 +5378,7 @@
      "year": 2022,
      "code": "E",
      "pages": 120,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2022/E22104860014/",
      "title": "草原放牧策略研究"
     },
@@ -5423,7 +5423,7 @@
      "year": 2022,
      "code": "F",
      "pages": 68,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2022/F22101470006/",
      "title": "COVID-19 疫情期间生活物资的科学管理问题"
     },
@@ -5432,7 +5432,7 @@
      "year": 2022,
      "code": "F",
      "pages": 86,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2022/F22102540295/",
      "title": "COVID-19 疫情期间生活物资的科学管理问题建模与优化"
     },
@@ -5459,7 +5459,7 @@
      "year": 2022,
      "code": "F",
      "pages": 52,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2022/F22105330345/",
      "title": "22105330345"
     },
@@ -5495,7 +5495,7 @@
      "year": 2023,
      "code": "A",
      "pages": 83,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/A23102480015/",
      "title": "基于Markov chain 的WLAN 网络信道接入机制建模"
     },
@@ -5504,7 +5504,7 @@
      "year": 2023,
      "code": "A",
      "pages": 62,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/A23102860239/",
      "title": "_____WLAN 网络信道接入机制建模______"
     },
@@ -5540,7 +5540,7 @@
      "year": 2023,
      "code": "A",
      "pages": 49,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/A23104220005/",
      "title": "WLAN 网络信道接入机制建模"
     },
@@ -5603,7 +5603,7 @@
      "year": 2023,
      "code": "B",
      "pages": 126,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/B23103360062/",
      "title": "DFT 类矩阵的整数分解逼近"
     },
@@ -5720,7 +5720,7 @@
      "year": 2023,
      "code": "C",
      "pages": 73,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/C23107120024/",
      "title": "大规模创新类竞赛评审方案研究"
     },
@@ -5756,7 +5756,7 @@
      "year": 2023,
      "code": "D",
      "pages": 73,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/D23102860126/",
      "title": "区域双碳目标与路径规划研究_____"
     },
@@ -5783,7 +5783,7 @@
      "year": 2023,
      "code": "D",
      "pages": 66,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/D23105330094/",
      "title": "双碳目标下基于kaya-LMDI 模型的区域碳排放预测及路径设计"
     },
@@ -5819,7 +5819,7 @@
      "year": 2023,
      "code": "E",
      "pages": 59,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/E23100650012/",
      "title": "出血性脑卒中临床智能诊疗建模"
     },
@@ -5828,7 +5828,7 @@
      "year": 2023,
      "code": "E",
      "pages": 68,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/E23102550019/",
      "title": "出血性脑卒中临床智能诊疗模型的建立"
     },
@@ -5846,7 +5846,7 @@
      "year": 2023,
      "code": "E",
      "pages": 138,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/E23103570015/",
      "title": "：E _"
     },
@@ -5855,7 +5855,7 @@
      "year": 2023,
      "code": "E",
      "pages": 60,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/E23104030073/",
      "title": "出血性脑卒中临床智能诊疗建模分析"
     },
@@ -5873,7 +5873,7 @@
      "year": 2023,
      "code": "E",
      "pages": 109,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/E23106730076/",
      "title": "出血性脑卒中临床智能诊疗建模"
     },
@@ -5927,7 +5927,7 @@
      "year": 2023,
      "code": "F",
      "pages": 39,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2023/F23102860072/",
      "title": "基于多任务学习和时空预测模型的降水临近预报方法"
     },
@@ -6026,7 +6026,7 @@
      "year": 2024,
      "code": "A",
      "pages": 59,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2024/A24107120016/",
      "title": "风电场有功功率分配优化模型"
     },
@@ -6071,7 +6071,7 @@
      "year": 2024,
      "code": "C",
      "pages": 71,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2024/C24102890089/",
      "title": "数据驱动下磁性元件的磁芯损耗建模"
     },
@@ -6080,7 +6080,7 @@
      "year": 2024,
      "code": "C",
      "pages": 82,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2024/C24103860012/",
      "title": "数据驱动下磁性元件的磁芯损耗建模"
     },
@@ -6143,7 +6143,7 @@
      "year": 2024,
      "code": "E",
      "pages": 84,
-     "contest_evidence": "no",
+     "contest_evidence": "yes",
      "dir": "assets-local/award-papers/graduate/2024/E24101480006/",
      "title": "高速公路应急车道启用管控优化与决策模型研究"
     },
@@ -6399,7 +6399,8 @@
      "dir": "assets-local/award-papers/graduate/2025/F题-江南古典园林美学特征的量化建模与分析/",
      "title": "江南古典园林美学特征的量化建模与分析"
     }
-   ]
+   ],
+   "section_tree_coverage": 299
   }
  },
  "companion_reports": {
@@ -6910,7 +6911,8 @@
      "title": "基于机器学习的物流理赔风险识别与服务升级策略研究",
      "team_id": "MCB2500116"
     }
-   ]
+   ],
+   "section_tree_coverage": 43
   },
   "pending_third_contest": "YY math-model/2-3MathorCup（挑战赛 11 届 141 pdf）为第三赛事维度，本窗未入库，待裁决"
  }
