@@ -85,6 +85,8 @@ node_modules/
 # assets-local/（英文子目录 award-papers / reference-figures / cumcm-templates）。
 # 2026-09-28 用户裁决：assets-local 整区随公开仓分发（私有参考资料转公开资产）。
 附件*.pdf
+# 2026-10-01 W1-REG：contest-regs 官方规范原件库按 assets-local 整区分发裁决放行（防吞）
+!assets-local/contest-regs/**/*.pdf
 CUMCM2026Problems/
 extracted_images/
 
