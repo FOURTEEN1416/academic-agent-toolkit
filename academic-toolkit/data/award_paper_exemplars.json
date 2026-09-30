@@ -1,220 +1,6917 @@
 {
-  "schema_version": 1,
-  "title": "国赛优秀论文范文精选包（2021-2025，62 篇）",
-  "source": {
-    "origin": "中国大学生在线 dxs.moe.gov.cn 数学建模竞赛论文展示（2021-2025 共 62 篇优秀论文）",
-    "local_root": "assets-local/award-papers/（gitignored 私有资料区；公开 clone 仅本清单可读）",
-    "license_note": "第三方获奖论文，仅本地学习参照，不再分发。"
-  },
-  "usage": "comp-paper-zh 写作步按题型取范文对照（结构/摘要/图表/论证）；comp-literature 文献步按题型定位同类做法。原文按 local_root/<年>/<论文号>/ 页扫描件取用；清单公开，正文本地。",
-  "priority_25": [
-    "2021_A217",
-    "2021_B050",
-    "2021_C066",
-    "2021_D017",
-    "2021_E014",
-    "2022_A171",
-    "2022_B030",
-    "2022_C155",
-    "2022_D999",
-    "2022_E029",
-    "2023_A0127",
-    "2023_B226",
-    "2023_C126",
-    "2023_D039",
-    "2023_E032",
-    "2024_A016",
-    "2024_B195",
-    "2024_C094",
-    "2024_D033",
-    "2024_E218",
-    "2025_A196",
-    "2025_B060",
-    "2025_C023",
-    "2025_D037",
-    "2025_E030"
+ "schema_version": 1,
+ "title": "国赛优秀论文范文精选包（2021-2025，62 篇）",
+ "source": {
+  "origin": "中国大学生在线 dxs.moe.gov.cn 数学建模竞赛论文展示（2021-2025 共 62 篇优秀论文）",
+  "local_root": "assets-local/award-papers/（gitignored 私有资料区；公开 clone 仅本清单可读）",
+  "license_note": "第三方获奖论文，仅本地学习参照，不再分发。"
+ },
+ "usage": "comp-paper-zh 写作步按题型取范文对照（结构/摘要/图表/论证）；comp-literature 文献步按题型定位同类做法。原文按 local_root/<年>/<论文号>/ 页扫描件取用；清单公开，正文本地。",
+ "priority_25": [
+  "2021_A217",
+  "2021_B050",
+  "2021_C066",
+  "2021_D017",
+  "2021_E014",
+  "2022_A171",
+  "2022_B030",
+  "2022_C155",
+  "2022_D999",
+  "2022_E029",
+  "2023_A0127",
+  "2023_B226",
+  "2023_C126",
+  "2023_D039",
+  "2023_E032",
+  "2024_A016",
+  "2024_B195",
+  "2024_C094",
+  "2024_D033",
+  "2024_E218",
+  "2025_A196",
+  "2025_B060",
+  "2025_C023",
+  "2025_D037",
+  "2025_E030"
+ ],
+ "all_by_year": {
+  "2021": [
+   "A028",
+   "A115",
+   "A217",
+   "B007",
+   "B026",
+   "B050",
+   "B160",
+   "C066",
+   "C085",
+   "C169",
+   "C283",
+   "D017",
+   "D026",
+   "D034",
+   "E014",
+   "E025",
+   "E037"
   ],
-  "all_by_year": {
-    "2021": [
-      "A028",
-      "A115",
-      "A217",
-      "B007",
-      "B026",
-      "B050",
-      "B160",
-      "C066",
-      "C085",
-      "C169",
-      "C283",
-      "D017",
-      "D026",
-      "D034",
-      "E014",
-      "E025",
-      "E037"
-    ],
-    "2022": [
-      "A001",
-      "A022",
-      "A171",
-      "B030",
-      "B035",
-      "B086",
-      "C155",
-      "D999",
-      "E014",
-      "E029"
-    ],
-    "2023": [
-      "A0127",
-      "A0165",
-      "A092",
-      "B226",
-      "B311",
-      "B477",
-      "C050",
-      "C126",
-      "C228",
-      "D039",
-      "E032",
-      "E176"
-    ],
-    "2024": [
-      "A016",
-      "A053",
-      "A163",
-      "A178",
-      "A242",
-      "B159",
-      "B195",
-      "B196",
-      "C038",
-      "C063",
-      "C094",
-      "C234",
-      "D033",
-      "E010",
-      "E061",
-      "E218"
-    ],
-    "2025": [
-      "A196",
-      "B060",
-      "B157",
-      "C023",
-      "C132",
-      "D037",
-      "E030"
-    ]
+  "2022": [
+   "A001",
+   "A022",
+   "A171",
+   "B030",
+   "B035",
+   "B086",
+   "C155",
+   "D999",
+   "E014",
+   "E029"
+  ],
+  "2023": [
+   "A0127",
+   "A0165",
+   "A092",
+   "B226",
+   "B311",
+   "B477",
+   "C050",
+   "C126",
+   "C228",
+   "D039",
+   "E032",
+   "E176"
+  ],
+  "2024": [
+   "A016",
+   "A053",
+   "A163",
+   "A178",
+   "A242",
+   "B159",
+   "B195",
+   "B196",
+   "C038",
+   "C063",
+   "C094",
+   "C234",
+   "D033",
+   "E010",
+   "E061",
+   "E218"
+  ],
+  "2025": [
+   "A196",
+   "B060",
+   "B157",
+   "C023",
+   "C132",
+   "D037",
+   "E030"
+  ]
+ },
+ "counts": {
+  "papers": 62,
+  "years": [
+   2021,
+   2022,
+   2023,
+   2024,
+   2025
+  ],
+  "priority": 25
+ },
+ "learning_paths": {
+  "A": {
+   "focus": "几何建模、物理定律转化、优化求解",
+   "exemplars": [
+    "2021_A028",
+    "2025_A196"
+   ]
   },
-  "counts": {
-    "papers": 62,
-    "years": [
-      2021,
-      2022,
-      2023,
-      2024,
-      2025
-    ],
-    "priority": 25
+  "B": {
+   "focus": "图论模型、整数规划、启发式算法",
+   "exemplars": [
+    "2024_B195",
+    "2023_B477"
+   ]
   },
-  "learning_paths": {
-    "A": {
-      "focus": "几何建模、物理定律转化、优化求解",
-      "exemplars": [
-        "2021_A028",
-        "2025_A196"
-      ]
-    },
-    "B": {
-      "focus": "图论模型、整数规划、启发式算法",
-      "exemplars": [
-        "2024_B195",
-        "2023_B477"
-      ]
-    },
-    "C": {
-      "focus": "回归分析、混合效应模型、机器学习",
-      "exemplars": [
-        "2025_C023",
-        "2023_C126"
-      ]
-    },
-    "D": {
-      "focus": "基础模型应用（高职高专口径，相对简化）",
-      "exemplars": [
-        "2024_D033"
-      ]
-    },
-    "E": {
-      "focus": "AHP、熵权法、TOPSIS 等综合评价/决策",
-      "exemplars": [
-        "2024_E218"
-      ]
-    },
-    "研赛/华为杯": {
-      "focus": "研究生组：“华为杯”中国研究生数学建模竞赛。与国赛的硬差异在格式层——统一摘要页（≤2 页、六要素、无需英文）、正文上限 50 页（附录另计）、首页封皮不可删且除首页外不得出现身份信息、无页眉、页码自摘要页起；内容层对推导深度要求更高。（经验口径，非官方：一等奖正文常见 50–65 页量级，见 comp_rules.json comp_huawei.rules）",
-      "exemplars": [],
-      "detail_ref": "graduate_contest（逐篇字段见该块 papers；本轮空，待用户分批提供研赛获奖论文后填充）",
-      "note": "与 A–E 国赛分型并列，不并入国赛题型统计——model_stats 仍只覆盖国赛 A–E，counts.papers=62 不变"
-    }
+  "C": {
+   "focus": "回归分析、混合效应模型、机器学习",
+   "exemplars": [
+    "2025_C023",
+    "2023_C126"
+   ]
   },
-  "model_stats": {
-    "高频": {
-      "优化模型": "A/B 题",
-      "回归分析": "C 题（数据分析类）"
-    },
-    "中频": {
-      "混合效应模型": "2025C",
-      "动态规划": "B/C 题",
-      "蒙特卡罗方法": "A 题（仿真验证）",
-      "分类判定": "C/E 题",
-      "整数规划": "B 题",
-      "聚类分析": "C 题",
-      "时间序列": "C 题",
-      "图论/网络": "B 题"
-    },
-    "低频": {
-      "神经网络": "C 题（近年增多）",
-      "微分方程": "A 题"
-    }
+  "D": {
+   "focus": "基础模型应用（高职高专口径，相对简化）",
+   "exemplars": [
+    "2024_D033"
+   ]
   },
-  "graduate_contest": {
-    "key": "研赛/华为杯",
-    "full_name": "“华为杯”中国研究生数学建模竞赛（中国研究生创新实践系列大赛）",
-    "parallel_to": "learning_paths 的 A/B/C/D/E（国赛本科组分型）。本块为并列第二分型，只增不改——国赛既有数据（priority_25 / all_by_year / counts / learning_paths A–E / model_stats）一律不动。",
-    "source": {
-      "level_1_official": "官方规范（一级）：cpipc.acge.org.cn 开赛公告（21/22/23 届同口径）+《“华为杯”第二十二届中国研究生数学建模竞赛论文格式规范》（中国研究生数学建模竞赛专家委员会，2025-09-15）",
-      "level_2_papers": "获奖论文原文（二级）：由用户分批提供 PDF/文本，逐篇抽取时登记文件名",
-      "level_3_internal": "内部经验口径（三级，不得冒充官方）：comp_rules.json comp_huawei.rules、skills/_utils/figure_exemplars.md",
-      "format_evidence": "skills/comp-paper-zh/references/huawei-official-format.md（官方口径外部实证备份；镜像 engine/modex-core/comp_rules.json → comp_huawei.compliance）",
-      "official_template": "skills/comp-paper-zh/_templates/huawei/official_docx/huabei-21st-official-paper-template.doc|.pdf（官方模板全 4 页，无承诺书页）",
-      "local_root": "assets-local/award-papers/graduate/（gitignored 私有资料区；待论文落盘后启用）"
-    },
-    "source_level_policy": "官方规范 > 获奖论文原文 > 内部经验口径。三级来源不可混用、不可跨级替代：同一取值若两级冲突，取高级；每条断言必须带 provenance 记录来源层级。内部经验口径在条目内显式标 internal_empirical。",
-    "field_schema": {
-      "题": "论文题目（原文标题页逐字；无标题页时标 unavailable）",
-      "年": "获奖年份（4 位数字，取自原文/用户提供文件名，不确定标 unavailable）",
-      "题型": "研赛试题编号 A–F（按当届实际设置；不套用国赛 A–E 语义）",
-      "方法链": "有序数组：建模思路 → 模型 → 求解算法 → 检验/灵敏度，逐环节附原文出处",
-      "图表风格": "对象：图表类型分布 / 配色与线型 / 编号与题注位置 / 跨页与分辨率处理，逐项附原文出处",
-      "结构特色": "数组：章节骨架与版面安排上可识别的特征（如每问“建模→推导→求解→检验”四段式、公式逐式编号密度）",
-      "可迁移要点": "数组：可跨题复用的做法，每条一行并附原文出处",
-      "provenance": "对象：逐字段出处 = 文件名 + 章节/页码；无法定位一律标 unavailable，禁止占位编造"
-    },
-    "intake_protocol": "每收到一篇论文 → 按 field_schema 抽取 → 逐字段写 provenance → 追加到 papers[<paper_id>] → 同步 counts.papers / counts.years → 跑机检（pytest -q + check_asset_utilization --strict）→ 数据+测试同批一个 commit。空字段标 unavailable，不编造。",
-    "counts": {
-      "papers": 0,
-      "years": [],
-      "note": "本轮仅建分型骨架，未编造任何论文条目；待用户分批提供后递增"
-    },
-    "papers": {}
+  "E": {
+   "focus": "AHP、熵权法、TOPSIS 等综合评价/决策",
+   "exemplars": [
+    "2024_E218"
+   ]
   },
-  "companion_reports": {
-    "使用指南": "assets-local/award-papers/参考论文使用指南.md",
-    "摘要深度分析": "assets-local/award-papers/摘要深度分析报告.md",
-    "图表配色分析": "assets-local/award-papers/图表配色分析报告.md",
-    "论文风格分析": "assets-local/award-papers/论文风格分析报告.md"
+  "研赛/华为杯": {
+   "focus": "研究生组：“华为杯”中国研究生数学建模竞赛。与国赛的硬差异在格式层——统一摘要页（≤2 页、六要素、无需英文）、正文上限 50 页（附录另计）、首页封皮不可删且除首页外不得出现身份信息、无页眉、页码自摘要页起；内容层对推导深度要求更高。（经验口径，非官方：一等奖正文常见 50–65 页量级，见 comp_rules.json comp_huawei.rules）",
+   "exemplars": [],
+   "detail_ref": "graduate_contest（逐篇字段见该块 papers；本轮空，待用户分批提供研赛获奖论文后填充）",
+   "note": "与 A–E 国赛分型并列，不并入国赛题型统计——model_stats 仍只覆盖国赛 A–E，counts.papers=62 不变"
   }
+ },
+ "model_stats": {
+  "高频": {
+   "优化模型": "A/B 题",
+   "回归分析": "C 题（数据分析类）"
+  },
+  "中频": {
+   "混合效应模型": "2025C",
+   "动态规划": "B/C 题",
+   "蒙特卡罗方法": "A 题（仿真验证）",
+   "分类判定": "C/E 题",
+   "整数规划": "B 题",
+   "聚类分析": "C 题",
+   "时间序列": "C 题",
+   "图论/网络": "B 题"
+  },
+  "低频": {
+   "神经网络": "C 题（近年增多）",
+   "微分方程": "A 题"
+  }
+ },
+ "graduate_contest": {
+  "key": "研赛/华为杯",
+  "full_name": "“华为杯”中国研究生数学建模竞赛（中国研究生创新实践系列大赛）",
+  "parallel_to": "learning_paths 的 A/B/C/D/E（国赛本科组分型）。本块为并列第二分型，只增不改——国赛既有数据（priority_25 / all_by_year / counts / learning_paths A–E / model_stats）一律不动。",
+  "source": {
+   "level_1_official": "官方规范（一级）：cpipc.acge.org.cn 开赛公告（21/22/23 届同口径）+《“华为杯”第二十二届中国研究生数学建模竞赛论文格式规范》（中国研究生数学建模竞赛专家委员会，2025-09-15）",
+   "level_2_papers": "获奖论文原文（二级）：由用户分批提供 PDF/文本，逐篇抽取时登记文件名",
+   "level_3_internal": "内部经验口径（三级，不得冒充官方）：comp_rules.json comp_huawei.rules、skills/_utils/figure_exemplars.md",
+   "format_evidence": "skills/comp-paper-zh/references/huawei-official-format.md（官方口径外部实证备份；镜像 engine/modex-core/comp_rules.json → comp_huawei.compliance）",
+   "official_template": "skills/comp-paper-zh/_templates/huawei/official_docx/huabei-21st-official-paper-template.doc|.pdf（官方模板全 4 页，无承诺书页）",
+   "local_root": "assets-local/award-papers/graduate/（gitignored 私有资料区；待论文落盘后启用）"
+  },
+  "source_level_policy": "官方规范 > 获奖论文原文 > 内部经验口径。三级来源不可混用、不可跨级替代：同一取值若两级冲突，取高级；每条断言必须带 provenance 记录来源层级。内部经验口径在条目内显式标 internal_empirical。",
+  "field_schema": {
+   "题": "论文题目（原文标题页逐字；无标题页时标 unavailable）",
+   "年": "获奖年份（4 位数字，取自原文/用户提供文件名，不确定标 unavailable）",
+   "题型": "研赛试题编号 A–F（按当届实际设置；不套用国赛 A–E 语义）",
+   "方法链": "有序数组：建模思路 → 模型 → 求解算法 → 检验/灵敏度，逐环节附原文出处",
+   "图表风格": "对象：图表类型分布 / 配色与线型 / 编号与题注位置 / 跨页与分辨率处理，逐项附原文出处",
+   "结构特色": "数组：章节骨架与版面安排上可识别的特征（如每问“建模→推导→求解→检验”四段式、公式逐式编号密度）",
+   "可迁移要点": "数组：可跨题复用的做法，每条一行并附原文出处",
+   "provenance": "对象：逐字段出处 = 文件名 + 章节/页码；无法定位一律标 unavailable，禁止占位编造"
+  },
+  "intake_protocol": "每收到一篇论文 → 按 field_schema 抽取 → 逐字段写 provenance → 追加到 papers[<paper_id>] → 同步 counts.papers / counts.years → 跑机检（pytest -q + check_asset_utilization --strict）→ 数据+测试同批一个 commit。空字段标 unavailable，不编造。",
+  "counts": {
+   "papers": 0,
+   "years": [],
+   "note": "本轮仅建分型骨架，未编造任何论文条目；待用户分批提供后递增"
+  },
+  "papers": {},
+  "corpus": {
+   "built_date": "2026-10-01",
+   "window": "W2-CORPUS",
+   "papers_total": 686,
+   "years_covered": "2004-2025（2004-2020 来自 YY 镜像；2022-2025 来自华为杯优秀论文合集.zip；2021 空缺如实登记）",
+   "sources": [
+    "华为杯优秀论文合集.zip（自媒体分享；官方封面格式+参赛队号；2022:42/2023:58/2024:24/2025:21）",
+    "YY建模资料 github-mirror Math_Model/2-0研赛题目+论文/优秀论文按年份（541 篇）"
+   ],
+   "verification": {
+    "award_unverified": 686,
+    "award_evidence_present": 0,
+    "contest_evidence_yes": 536,
+    "contest_evidence_no": 150,
+    "policy": "无逐篇获奖佐证，全部 award_unverified：不进黄金结构/句式库聚合，只作语料底座与图表借鉴；contest_evidence=no 的 150 篇另禁用于研赛图表惯例归纳",
+    "false_positive_note": "2023 年 C 题（竞赛评审题）正文奖级词均为题面语义非获奖佐证，已复核排除"
+   },
+   "manifest": "assets-local/award-papers/graduate/corpus_manifest.json",
+   "stats_report": "assets-local/award-papers/new_corpus_stats_2026-10-01.md",
+   "usage_scope": "数据可视化/处理与建模方法检索底座；格式规范参照 graduate_contest.source 一级官方口径，不以本语料替代",
+   "papers_index": [
+    {
+     "paper_id": "2004_信息工程大学电子技术学院的研究生建模竞赛获奖论文实用下料数学模型",
+     "year": 2004,
+     "code": "unavailable",
+     "pages": 5,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2004/信息工程大学电子技术学院的研究生建模竞赛获奖论文实用下料数学模型/",
+     "title": "实用下料的数学模型"
+    },
+    {
+     "paper_id": "2004_华东理工大学数模竞赛472队的论文",
+     "year": 2004,
+     "code": "unavailable",
+     "pages": 5,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2004/华东理工大学数模竞赛472队的论文/",
+     "title": "有交货时间限制的大规模实用下料问题"
+    },
+    {
+     "paper_id": "2004_售后服务数据的应用",
+     "year": 2004,
+     "code": "unavailable",
+     "pages": 5,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2004/售后服务数据的应用/",
+     "title": "基于样条模型的汽车可靠性双向联合预测"
+    },
+    {
+     "paper_id": "2004_售后服务数据的应用2",
+     "year": 2004,
+     "code": "unavailable",
+     "pages": 6,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2004/售后服务数据的应用2/",
+     "title": "汽车千车故障数的预测与分析"
+    },
+    {
+     "paper_id": "2004_售后服务数据的应用3",
+     "year": 2004,
+     "code": "unavailable",
+     "pages": 10,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2004/售后服务数据的应用3/",
+     "title": "售后服务数据的运用"
+    },
+    {
+     "paper_id": "2004_基于最大满意度的研究生录取问题",
+     "year": 2004,
+     "code": "unavailable",
+     "pages": 5,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2004/基于最大满意度的研究生录取问题/",
+     "title": "基于最大满意度的研究生录取问题"
+    },
+    {
+     "paper_id": "2004_目标定位最优布局的研究",
+     "year": 2004,
+     "code": "unavailable",
+     "pages": 30,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2004/目标定位最优布局的研究/",
+     "title": "目标定位最优布局的研究"
+    },
+    {
+     "paper_id": "2004_目标定位最优布局的研究2",
+     "year": 2004,
+     "code": "unavailable",
+     "pages": 5,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2004/目标定位最优布局的研究2/",
+     "title": "发现空间目标并定位的模型1"
+    },
+    {
+     "paper_id": "2004_研究生录取问题2",
+     "year": 2004,
+     "code": "unavailable",
+     "pages": 10,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2004/研究生录取问题2/",
+     "title": "要求研究了在各种不同条件下的研究生录取问题。在对笔试、面试成绩以"
+    },
+    {
+     "paper_id": "2004_装甲兵研究生录取问题",
+     "year": 2004,
+     "code": "unavailable",
+     "pages": 5,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2004/装甲兵研究生录取问题/",
+     "title": "研究生录取的优化模型"
+    },
+    {
+     "paper_id": "2005_1035",
+     "year": 2005,
+     "code": "unavailable",
+     "pages": 32,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2005/1035/",
+     "title": "空中加油"
+    },
+    {
+     "paper_id": "2005_1415",
+     "year": 2005,
+     "code": "unavailable",
+     "pages": 19,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2005/1415/",
+     "title": "第 1 页 共 19 页"
+    },
+    {
+     "paper_id": "2005_1418",
+     "year": 2005,
+     "code": "unavailable",
+     "pages": 14,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2005/1418/",
+     "title": "高速公路行车时间估计及最优路径选择问题"
+    },
+    {
+     "paper_id": "2005_交通网络的通行时间预测与最优路径决策1433-A",
+     "year": 2005,
+     "code": "unavailable",
+     "pages": 17,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2005/交通网络的通行时间预测与最优路径决策1433-A/",
+     "title": "交通网络的通行时间预测与最优路径决策"
+    },
+    {
+     "paper_id": "2005_仓库容量有限条件下的随机存贮管理",
+     "year": 2005,
+     "code": "unavailable",
+     "pages": 19,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2005/仓库容量有限条件下的随机存贮管理/",
+     "title": "仓库容量有限条件下的随机存贮管理"
+    },
+    {
+     "paper_id": "2005_仓库容量有限条件下的随机存贮管理2",
+     "year": 2005,
+     "code": "unavailable",
+     "pages": 29,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2005/仓库容量有限条件下的随机存贮管理2/",
+     "title": "要求写出平均费用的函数，该函数是关于订货点L 和缺货天数X 的函数，"
+    },
+    {
+     "paper_id": "2005_仓库容量有限条件下的随机存贮管理3",
+     "year": 2005,
+     "code": "unavailable",
+     "pages": 9,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2005/仓库容量有限条件下的随机存贮管理3/",
+     "title": "中所述，个别引入符号在文中会有具体说明。"
+    },
+    {
+     "paper_id": "2005_城市交通管理中的出租车规划",
+     "year": 2005,
+     "code": "unavailable",
+     "pages": 24,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2005/城市交通管理中的出租车规划/",
+     "title": "C 题：城市交通管理中的出租车规划"
+    },
+    {
+     "paper_id": "2005_城市出租车交通规划综合模型",
+     "year": 2005,
+     "code": "unavailable",
+     "pages": 37,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2005/城市出租车交通规划综合模型/",
+     "title": "给出的图表数据，假定出行与公交数据的统计口径只针对常住人口，"
+    },
+    {
+     "paper_id": "2005_排队论模型解决出租车最佳数量预测",
+     "year": 2005,
+     "code": "unavailable",
+     "pages": 40,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2005/排队论模型解决出租车最佳数量预测/"
+    },
+    {
+     "paper_id": "2005_数学建模",
+     "year": 2005,
+     "code": "unavailable",
+     "pages": 8,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2005/数学建模/",
+     "title": "空中加油问题的递推模型与调度策略 （B 题）"
+    },
+    {
+     "paper_id": "2005_行车时间估计和最优路线选择",
+     "year": 2005,
+     "code": "unavailable",
+     "pages": 21,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2005/行车时间估计和最优路线选择/",
+     "title": "行车时间估计和最优路线选择（A）"
+    },
+    {
+     "paper_id": "2006_10183011",
+     "year": 2006,
+     "code": "unavailable",
+     "pages": 25,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2006/10183011/",
+     "title": "维修线性流量阀时的内筒设计问题（C 题）"
+    },
+    {
+     "paper_id": "2006_10286020",
+     "year": 2006,
+     "code": "unavailable",
+     "pages": 17,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2006/10286020/",
+     "title": "维修线性流量阀时的内筒设计问题"
+    },
+    {
+     "paper_id": "2006_10394003",
+     "year": 2006,
+     "code": "unavailable",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2006/10394003/",
+     "title": "学生面试中教师安排的优化与算法"
+    },
+    {
+     "paper_id": "2006_10635002",
+     "year": 2006,
+     "code": "unavailable",
+     "pages": 22,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2006/10635002/",
+     "title": "线性流量阀的内筒孔设计"
+    },
+    {
+     "paper_id": "2006_90017001",
+     "year": 2006,
+     "code": "unavailable",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2006/90017001/",
+     "title": "Ad Hoc 网络中的区域划分和资源分配问题"
+    },
+    {
+     "paper_id": "2006_Ad_Hoc_网络中的区域划分和资源分配问题",
+     "year": 2006,
+     "code": "A",
+     "pages": 18,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2006/Ad_Hoc_网络中的区域划分和资源分配问题/",
+     "title": "Ad Hoc 网络中的区域划分和资源分配问题"
+    },
+    {
+     "paper_id": "2006_A题_02",
+     "year": 2006,
+     "code": "A",
+     "pages": 21,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2006/A题_02/",
+     "title": "中的不同的条件，分别建立了不同的最优化模型，但是对"
+    },
+    {
+     "paper_id": "2006_最终正文",
+     "year": 2006,
+     "code": "unavailable",
+     "pages": 57,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2006/最终正文/"
+    },
+    {
+     "paper_id": "2006_最终论文2",
+     "year": 2006,
+     "code": "unavailable",
+     "pages": 23,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2006/最终论文2/",
+     "title": "考虑航天器在仅受到地球万有引力、航天器自身发动机作用力的作用下作平"
+    },
+    {
+     "paper_id": "2006_确定高精度参数问题(正文)",
+     "year": 2006,
+     "code": "unavailable",
+     "pages": 25,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2006/确定高精度参数问题(正文)/"
+    },
+    {
+     "paper_id": "2006_论文",
+     "year": 2006,
+     "code": "unavailable",
+     "pages": 47,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2006/论文/",
+     "title": "高校自主招生是高考改革中的一项新生事物，现在仍处于探索阶段。某高校"
+    },
+    {
+     "paper_id": "2006_论文正文",
+     "year": 2006,
+     "code": "unavailable",
+     "pages": 38,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2006/论文正文/",
+     "title": "中的各个目标及约束转化成"
+    },
+    {
+     "paper_id": "2007_1000401-A",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 22,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1000401-A/",
+     "title": "食品卫生安全保障体系数学模型及改进模型"
+    },
+    {
+     "paper_id": "2007_1000633",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 25,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1000633/",
+     "title": "邮政运输网络中的邮路规划和邮车调整"
+    },
+    {
+     "paper_id": "2007_10006331",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 25,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/10006331/",
+     "title": "邮政运输网络中的邮路规划和邮车调整"
+    },
+    {
+     "paper_id": "2007_1001302",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1001302/",
+     "title": "机械臂运动路径设计问题"
+    },
+    {
+     "paper_id": "2007_1002701",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 18,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/1002701/",
+     "title": "邮政运输网络中的邮路规划和邮车调度"
+    },
+    {
+     "paper_id": "2007_10052A",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 22,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/10052A/",
+     "title": "基于自助法和核密度估计的膳食暴露评估模型"
+    },
+    {
+     "paper_id": "2007_1028601",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 31,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1028601/",
+     "title": "食品卫生安全保障体系数学模型的建立及其改进理论问题的研究"
+    },
+    {
+     "paper_id": "2007_1029301",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1029301/",
+     "title": "邮政运输网络中的邮路规划和邮车调度"
+    },
+    {
+     "paper_id": "2007_1029405",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 18,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/1029405/",
+     "title": "邮政运输网络中的邮路规划和邮车调度"
+    },
+    {
+     "paper_id": "2007_1031910",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 32,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/1031910/",
+     "title": "给出的实际情"
+    },
+    {
+     "paper_id": "2007_1042202",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1042202/",
+     "title": "邮政运输网络中的邮路规划和邮车调度"
+    },
+    {
+     "paper_id": "2007_1042609",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 40,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1042609/",
+     "title": "邮路规划与邮车调度最优化理论研究"
+    },
+    {
+     "paper_id": "2007_1048606",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 16,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1048606/",
+     "title": "机械臂运动路径设计问题"
+    },
+    {
+     "paper_id": "2007_1048701",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 19,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1048701/",
+     "title": "邮路规划与邮车调度"
+    },
+    {
+     "paper_id": "2007_1053306",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 24,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1053306/",
+     "title": "高速公路路面质量改进的分析"
+    },
+    {
+     "paper_id": "2007_1056108",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 22,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1056108/",
+     "title": "机械臂运动路径规划的算法设计"
+    },
+    {
+     "paper_id": "2007_1061308",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 21,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/1061308/",
+     "title": "建立食品卫生安全保障体系数学模型及"
+    },
+    {
+     "paper_id": "2007_1061802",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1061802/",
+     "title": "基于提高高速公路路面质量改进方案的探讨"
+    },
+    {
+     "paper_id": "2007_1065102",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 35,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/1065102/",
+     "title": "高速公路路面的寿命对降低高速公路的运行成本、保障运输安全有着极其重"
+    },
+    {
+     "paper_id": "2007_1107502",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/1107502/",
+     "title": "六自由度机械臂路径优化设计"
+    },
+    {
+     "paper_id": "2007_9000212",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 25,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/9000212/",
+     "title": "中提出的风险评估模型建立过程中的难点给出了专门的"
+    },
+    {
+     "paper_id": "2007_9000213",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 29,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/9000213/",
+     "title": "自1959 年美国的英格伯格和德沃尔制造出世界上第一台工业机器人“尤尼"
+    },
+    {
+     "paper_id": "2007_9000513",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 17,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/9000513/",
+     "title": "高速公路路面的寿命对降低高速公路的运行成本、保障运输安全有着极其重"
+    },
+    {
+     "paper_id": "2007_9000615",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 31,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/9000615/"
+    },
+    {
+     "paper_id": "2007_9001601",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 42,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/9001601/",
+     "title": "第 1 页 共 42 页"
+    },
+    {
+     "paper_id": "2007_9003803",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/9003803/",
+     "title": "邮政运输网络中的邮路规划和邮车调度"
+    },
+    {
+     "paper_id": "2007_9005210",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 22,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2007/9005210/",
+     "title": "基于自助法和核密度估计的膳食暴露评估模型"
+    },
+    {
+     "paper_id": "2007_机械臂运动路径设计问题1",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 22,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/机械臂运动路径设计问题1/",
+     "title": "机械臂运动路径设计问题"
+    },
+    {
+     "paper_id": "2007_正文",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 26,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/正文/",
+     "title": "高速公路路面的寿命对降低高速公路的运行成本、保障运输安全有着极其重"
+    },
+    {
+     "paper_id": "2007_邮政运输网络中的邮路规划和邮车调度",
+     "year": 2007,
+     "code": "unavailable",
+     "pages": 18,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2007/邮政运输网络中的邮路规划和邮车调度/",
+     "title": "邮政运输网络中的邮路规划和邮车调度"
+    },
+    {
+     "paper_id": "2008_1000313A",
+     "year": 2008,
+     "code": "unavailable",
+     "pages": 24,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2008/1000313A/",
+     "title": "汶川地震中唐家山堰塞湖泄洪问题研究"
+    },
+    {
+     "paper_id": "2008_1000409",
+     "year": 2008,
+     "code": "unavailable",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2008/1000409/",
+     "title": "城市道路交通信号实时控制数学模型及微观仿真"
+    },
+    {
+     "paper_id": "2008_1024710",
+     "year": 2008,
+     "code": "unavailable",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2008/1024710/",
+     "title": "城市道路交通信号实时控制问题"
+    },
+    {
+     "paper_id": "2008_1025109",
+     "year": 2008,
+     "code": "unavailable",
+     "pages": 39,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2008/1025109/",
+     "title": "城市道路交通信号控制，是解决城市交通安全、提高道路通行能力的主要措"
+    },
+    {
+     "paper_id": "2008_1048603",
+     "year": 2008,
+     "code": "unavailable",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2008/1048603/",
+     "title": "唐家山堰塞湖泄洪问题的研究"
+    },
+    {
+     "paper_id": "2008_1048609",
+     "year": 2008,
+     "code": "unavailable",
+     "pages": 26,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2008/1048609/",
+     "title": "PDF 文件使用 \"pdfFactory Pro\" 试用版本创建 www.fineprint.c"
+    },
+    {
+     "paper_id": "2008_1056204",
+     "year": 2008,
+     "code": "unavailable",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2008/1056204/",
+     "title": "汶川地震中唐家山堰塞湖泄洪问题的计算分析"
+    },
+    {
+     "paper_id": "2008_1069809",
+     "year": 2008,
+     "code": "unavailable",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2008/1069809/",
+     "title": "唐家山堰塞湖泄洪问题的建模与解决方案"
+    },
+    {
+     "paper_id": "2008_1069812",
+     "year": 2008,
+     "code": "unavailable",
+     "pages": 40,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2008/1069812/",
+     "title": "基于能量模型的交通信号实时优化"
+    },
+    {
+     "paper_id": "2008_1085601",
+     "year": 2008,
+     "code": "unavailable",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2008/1085601/",
+     "title": "城市道路信号实时控制方案"
+    },
+    {
+     "paper_id": "2008_9000510",
+     "year": 2008,
+     "code": "unavailable",
+     "pages": 26,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2008/9000510/",
+     "title": "今年5 月12 日14：28 在我国四川汶川地区发生了8.0 级强烈地震，给人民生命"
+    },
+    {
+     "paper_id": "2008_9004521",
+     "year": 2008,
+     "code": "unavailable",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2008/9004521/",
+     "title": "唐家山堰塞湖泄洪问题的研究"
+    },
+    {
+     "paper_id": "2009_1001007",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 20,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2009/1001007/",
+     "title": "研究背景与问题重述"
+    },
+    {
+     "paper_id": "2009_1001303D",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1001303D/",
+     "title": "基于布朗分子运动的警车巡逻调度"
+    },
+    {
+     "paper_id": "2009_1014605",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 39,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1014605/",
+     "title": "110 警车配置及巡逻方案"
+    },
+    {
+     "paper_id": "2009_1021308A",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1021308A/",
+     "title": "我国城镇就业人数的数学模型"
+    },
+    {
+     "paper_id": "2009_1025106",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 31,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1025106/",
+     "title": "110 警车配置及巡逻方案"
+    },
+    {
+     "paper_id": "2009_1028402B",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 22,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1028402B/",
+     "title": "基于小波变换的枪弹头痕迹自动对比研究"
+    },
+    {
+     "paper_id": "2009_1028625B_(1)",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1028625B_(1)/",
+     "title": "枪弹头痕迹自动比对方法的研究"
+    },
+    {
+     "paper_id": "2009_1029498",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 40,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1029498/",
+     "title": "枪弹头痕迹自动比对方法的研究"
+    },
+    {
+     "paper_id": "2009_1035302A",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 18,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1035302A/",
+     "title": "我国城镇就业问题研究"
+    },
+    {
+     "paper_id": "2009_1037801A",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1037801A/",
+     "title": "我国就业人数的主要影响因素分析及前景预测"
+    },
+    {
+     "paper_id": "2009_1038417",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1038417/",
+     "title": "110 警车配置及巡逻方案"
+    },
+    {
+     "paper_id": "2009_1048611A",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 70,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1048611A/",
+     "title": "我国城镇登记失业率的数学建模"
+    },
+    {
+     "paper_id": "2009_1050401A",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 51,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1050401A/",
+     "title": "基于向量自回归模型的城镇就业人数问题研究"
+    },
+    {
+     "paper_id": "2009_1061306",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 39,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2009/1061306/",
+     "title": "关于我国就业人数的数学模型及前景预测"
+    },
+    {
+     "paper_id": "2009_1164601A",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1164601A/",
+     "title": "A 题 我国就业人数或城镇登记失业率的数学建模"
+    },
+    {
+     "paper_id": "2009_1194207D",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 31,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1194207D/",
+     "title": "警车配置及巡逻方案"
+    },
+    {
+     "paper_id": "2009_1194218A",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 31,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1194218A/",
+     "title": "我国就业人数或城镇登记失业率的数学建模"
+    },
+    {
+     "paper_id": "2009_1194301",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 49,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/1194301/",
+     "title": "A 题： 我国就业人数数学建模"
+    },
+    {
+     "paper_id": "2009_9000208",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 18,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/9000208/",
+     "title": "110 警车配置及巡逻方案"
+    },
+    {
+     "paper_id": "2009_9000221-A",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 54,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/9000221-A/",
+     "title": "就业问题的数学建模分析"
+    },
+    {
+     "paper_id": "2009_9000246",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/9000246/",
+     "title": "枪弹头痕迹自动比对方法的研究"
+    },
+    {
+     "paper_id": "2009_9000515",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/9000515/",
+     "title": "枪弹头痕迹自动比对方法的研究"
+    },
+    {
+     "paper_id": "2009_9000534A",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/9000534A/",
+     "title": "城镇登记失业率影响因素的探讨"
+    },
+    {
+     "paper_id": "2009_9000624",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 40,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2009/9000624/",
+     "title": "枪弹发射后，弹头上留下了枪管膛线的擦痕痕迹。枪管有4 条凸膛线共8 个棱，分"
+    },
+    {
+     "paper_id": "2009_9002102",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/9002102/",
+     "title": "城镇登记失业率的研究与预测"
+    },
+    {
+     "paper_id": "2009_9004512A",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/9004512A/",
+     "title": "城镇登记失业率与主要经济指标的模型"
+    },
+    {
+     "paper_id": "2009_9006806D",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 20,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2009/9006806D/",
+     "title": "讨论的是在一组特定的约束条件下的警车优化配置和警车巡逻方案"
+    },
+    {
+     "paper_id": "2009_k000005A",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 56,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/k000005A/",
+     "title": "城镇就业人数影响因素分析"
+    },
+    {
+     "paper_id": "2009_基于三维测量仪器的子弹自动对比方法的研究",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/基于三维测量仪器的子弹自动对比方法的研究/",
+     "title": "基于三维测量仪器的子弹自动对比方法的研究"
+    },
+    {
+     "paper_id": "2009_基于特征曲线提取和自由曲面匹配的弹头自动比对建模",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 37,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/基于特征曲线提取和自由曲面匹配的弹头自动比对建模/",
+     "title": "基于特征曲线提取和曲面匹配的弹痕自动比对方案"
+    },
+    {
+     "paper_id": "2009_封面及正文",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/封面及正文/",
+     "title": "基于一阶不变矩方法的弹痕自动比对研究"
+    },
+    {
+     "paper_id": "2009_我国就业人数或城镇登记失业率的数学建模",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 22,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2009/我国就业人数或城镇登记失业率的数学建模/",
+     "title": "失业、经济增长和通货膨胀为宏观经济中特别重要的三个指标，就业（或者"
+    },
+    {
+     "paper_id": "2009_论文1042215B_最终",
+     "year": 2009,
+     "code": "unavailable",
+     "pages": 56,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2009/论文1042215B_最终/",
+     "title": "枪弹头痕迹自动比对方法的研究"
+    },
+    {
+     "paper_id": "2010_10054039",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 49,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10054039/",
+     "title": "基于改进顺序遍历法的特殊工件磨削加工研究"
+    },
+    {
+     "paper_id": "2010_10109001",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 15,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10109001/",
+     "title": "特殊工件磨削加工的数学模型研究"
+    },
+    {
+     "paper_id": "2010_10145008",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10145008/",
+     "title": "基于SVM 和LDA-GA 的基因图谱信息提取方法的研究"
+    },
+    {
+     "paper_id": "2010_10183003",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 14,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10183003/",
+     "title": "与封堵溃口有关的封堵物落水后运动过程的"
+    },
+    {
+     "paper_id": "2010_10188002",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10188002/",
+     "title": "与封堵溃口有关的重物落水后运动过程的数学模型"
+    },
+    {
+     "paper_id": "2010_10247038",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 24,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10247038/",
+     "title": "特殊工件磨削加工问题研究"
+    },
+    {
+     "paper_id": "2010_10248012",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10248012/",
+     "title": "神经元形态分类与识别的数学建模"
+    },
+    {
+     "paper_id": "2010_10255012",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10255012/",
+     "title": "基于神经网络MIV 值分析的肿瘤基因信息提取"
+    },
+    {
+     "paper_id": "2010_10269004",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 26,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2010/10269004/",
+     "title": "I1Ô3ïÄ)êÆï"
+    },
+    {
+     "paper_id": "2010_10286037",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10286037/",
+     "title": "确定肿瘤的重要基因信息"
+    },
+    {
+     "paper_id": "2010_10286041",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10286041/",
+     "title": "A 确定肿瘤的重要基因信息"
+    },
+    {
+     "paper_id": "2010_10286081",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 22,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10286081/",
+     "title": "特殊工件磨削加工的数学建模"
+    },
+    {
+     "paper_id": "2010_10291003B",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10291003B/",
+     "title": "与封堵溃口有关的重物落水后运动过程的数学建模"
+    },
+    {
+     "paper_id": "2010_10291006",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 24,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10291006/",
+     "title": "基于临床与基因图谱的结肠癌基因标签提取"
+    },
+    {
+     "paper_id": "2010_10359003",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10359003/",
+     "title": "特殊工件磨削加工的数学建模"
+    },
+    {
+     "paper_id": "2010_10386017C",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 19,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10386017C/",
+     "title": "神经元的形态分类和识别"
+    },
+    {
+     "paper_id": "2010_10407002",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10407002/",
+     "title": "重物落水后运动过程的动力学分析"
+    },
+    {
+     "paper_id": "2010_10422016",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10422016/",
+     "title": "基于多分类器集成的神经元特征选择及分类"
+    },
+    {
+     "paper_id": "2010_10491004C",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10491004C/",
+     "title": "神经元的形态分类和识别"
+    },
+    {
+     "paper_id": "2010_10491009",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10491009/",
+     "title": "与封堵溃口有关的重物落水后运动模型"
+    },
+    {
+     "paper_id": "2010_10561008B",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 7,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2010/10561008B/",
+     "title": "与封堵溃口有关的重物落水后的运动过程"
+    },
+    {
+     "paper_id": "2010_10613001",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10613001/",
+     "title": "肿瘤"
+    },
+    {
+     "paper_id": "2010_10613020",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10613020/",
+     "title": "特殊工件磨削加工的数学建模"
+    },
+    {
+     "paper_id": "2010_10701001",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 25,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10701001/",
+     "title": "神经元的形态分类和识别"
+    },
+    {
+     "paper_id": "2010_10749007C",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 15,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/10749007C/",
+     "title": "神经元的形态分类和识别"
+    },
+    {
+     "paper_id": "2010_90068005",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/90068005/",
+     "title": "特殊工件磨削加工的数学建模"
+    },
+    {
+     "paper_id": "2010_90068006C",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/90068006C/",
+     "title": "神经元的空间形态分类和识别"
+    },
+    {
+     "paper_id": "2010_C-90002064",
+     "year": 2010,
+     "code": "C",
+     "pages": 21,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/C-90002064/",
+     "title": "神经元的形态分类和识别"
+    },
+    {
+     "paper_id": "2010_k00000151",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 6,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2010/k00000151/",
+     "title": "Journal of Computational and Applied Mathematics"
+    },
+    {
+     "paper_id": "2010_k0000057",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 20,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2010/k0000057/",
+     "title": "基因表达谱的复杂网络研究"
+    },
+    {
+     "paper_id": "2010_探讨重物落水后运动过程的数学模型",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 24,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2010/探讨重物落水后运动过程的数学模型/",
+     "title": "我国经常发生洪水、溃坝溃堤，进而引发泥石流灾害对国家和人民生命财"
+    },
+    {
+     "paper_id": "2010_特殊工件磨削加工的数学建模",
+     "year": 2010,
+     "code": "unavailable",
+     "pages": 44,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2010/特殊工件磨削加工的数学建模/",
+     "title": "4.1 圆柱型砂轮加工的法线一致最小偏差模型（问题一） ................... "
+    },
+    {
+     "paper_id": "2011_A10013001",
+     "year": 2011,
+     "code": "A",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/A10013001/",
+     "title": "光的波粒二象性探索"
+    },
+    {
+     "paper_id": "2011_A10079005",
+     "year": 2011,
+     "code": "A",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/A10079005/",
+     "title": "基于光的波粒二象性一种猜想的数学仿真"
+    },
+    {
+     "paper_id": "2011_A10213012",
+     "year": 2011,
+     "code": "A",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/A10213012/",
+     "title": "光子结构猜想的仿真验证"
+    },
+    {
+     "paper_id": "2011_A10286004",
+     "year": 2011,
+     "code": "A",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/A10286004/",
+     "title": "基于光的波粒二象性一种猜想的数学仿真"
+    },
+    {
+     "paper_id": "2011_A10613002",
+     "year": 2011,
+     "code": "A",
+     "pages": 26,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/A10613002/",
+     "title": "基于光的波粒二象性一种猜想的数学仿真"
+    },
+    {
+     "paper_id": "2011_A80151001",
+     "year": 2011,
+     "code": "A",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/A80151001/",
+     "title": "基于光的波粒二象性一种猜想的数学仿真"
+    },
+    {
+     "paper_id": "2011_A90002057",
+     "year": 2011,
+     "code": "A",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/A90002057/",
+     "title": "基于光子结构猜想的波动性现象建模仿真研究"
+    },
+    {
+     "paper_id": "2011_A90005003",
+     "year": 2011,
+     "code": "A",
+     "pages": 24,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/A90005003/",
+     "title": "两种光子结构猜想的波动现象解释及仿真"
+    },
+    {
+     "paper_id": "2011_A90006033",
+     "year": 2011,
+     "code": "A",
+     "pages": 31,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/A90006033/",
+     "title": "基于光的波粒二象性猜想的数学仿真"
+    },
+    {
+     "paper_id": "2011_A99999029",
+     "year": 2011,
+     "code": "A",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/A99999029/",
+     "title": "基于光的波粒二象性一种猜想的数学仿真"
+    },
+    {
+     "paper_id": "2011_B10145011",
+     "year": 2011,
+     "code": "B",
+     "pages": 25,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/B10145011/",
+     "title": "尖劈形吸波体性能求解及基于菲涅耳区微波"
+    },
+    {
+     "paper_id": "2011_B10247007",
+     "year": 2011,
+     "code": "B",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/B10247007/",
+     "title": "吸波材料与微波暗室问题的数学建模"
+    },
+    {
+     "paper_id": "2011_B10286058",
+     "year": 2011,
+     "code": "B",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/B10286058/",
+     "title": "吸波材料与微波暗室问题的数学建模"
+    },
+    {
+     "paper_id": "2011_B10293022",
+     "year": 2011,
+     "code": "B",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/B10293022/",
+     "title": "吸波材料与微波暗室问题的数学建模"
+    },
+    {
+     "paper_id": "2011_B10319002",
+     "year": 2011,
+     "code": "B",
+     "pages": 20,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/B10319002/",
+     "title": "吸波材料与微波暗室问题的数学模型"
+    },
+    {
+     "paper_id": "2011_B10386003",
+     "year": 2011,
+     "code": "B",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/B10386003/",
+     "title": "吸波材料与微波暗室问题的数学建模"
+    },
+    {
+     "paper_id": "2011_B10699002",
+     "year": 2011,
+     "code": "B",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/B10699002/",
+     "title": "基于几何光学法和惠更斯原理的微波暗室性能分析"
+    },
+    {
+     "paper_id": "2011_B10699008",
+     "year": 2011,
+     "code": "B",
+     "pages": 25,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/B10699008/",
+     "title": "吸波材料与微波暗室问题的数学建模"
+    },
+    {
+     "paper_id": "2011_B90002072",
+     "year": 2011,
+     "code": "B",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/B90002072/",
+     "title": "吸波材料与微波暗室问题的数学建模"
+    },
+    {
+     "paper_id": "2011_B90005018",
+     "year": 2011,
+     "code": "B",
+     "pages": 20,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/B90005018/",
+     "title": "吸波材料与微波暗室吸波性能研究"
+    },
+    {
+     "paper_id": "2011_B90045020",
+     "year": 2011,
+     "code": "B",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/B90045020/",
+     "title": "吸波材料与微波暗室问题的数学建模"
+    },
+    {
+     "paper_id": "2011_C10248059",
+     "year": 2011,
+     "code": "C",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/C10248059/",
+     "title": "小麦发育后期茎秆抗倒性的数学模型"
+    },
+    {
+     "paper_id": "2011_C10286016",
+     "year": 2011,
+     "code": "C",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/C10286016/",
+     "title": "小麦发育后期茎秆抗倒性的数学模型"
+    },
+    {
+     "paper_id": "2011_C10287012",
+     "year": 2011,
+     "code": "C",
+     "pages": 51,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/C10287012/",
+     "title": "对小麦发育后期茎秆抗倒性问题的研究"
+    },
+    {
+     "paper_id": "2011_C10293009",
+     "year": 2011,
+     "code": "C",
+     "pages": 40,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/C10293009/",
+     "title": "小麦发育后期茎秆抗倒性的数学模型"
+    },
+    {
+     "paper_id": "2011_C10319011",
+     "year": 2011,
+     "code": "C",
+     "pages": 55,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/C10319011/",
+     "title": "小麦蜡熟期茎杆抗倒伏的静态和动态数学模型"
+    },
+    {
+     "paper_id": "2011_C11934008",
+     "year": 2011,
+     "code": "C",
+     "pages": 37,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/C11934008/",
+     "title": "小麦发育后期茎"
+    },
+    {
+     "paper_id": "2011_C90006004",
+     "year": 2011,
+     "code": "C",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/C90006004/",
+     "title": "小麦发育后期茎秆抗倒伏性的数学模型"
+    },
+    {
+     "paper_id": "2011_C90021014",
+     "year": 2011,
+     "code": "C",
+     "pages": 37,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/C90021014/",
+     "title": "小麦发育后期茎秆抗倒性的数学模型"
+    },
+    {
+     "paper_id": "2011_C90052010",
+     "year": 2011,
+     "code": "C",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/C90052010/",
+     "title": "小麦发育后期茎秆抗倒性的数学模型"
+    },
+    {
+     "paper_id": "2011_D10290011",
+     "year": 2011,
+     "code": "D",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/D10290011/",
+     "title": "房地产行业态势、发展及调控的模型研究"
+    },
+    {
+     "paper_id": "2011_D10293014",
+     "year": 2011,
+     "code": "D",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/D10293014/",
+     "title": "房地产行业的数学建模"
+    },
+    {
+     "paper_id": "2011_D10504004",
+     "year": 2011,
+     "code": "D",
+     "pages": 51,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/D10504004/",
+     "title": "房地产行业的数学模型"
+    },
+    {
+     "paper_id": "2011_D10564001",
+     "year": 2011,
+     "code": "D",
+     "pages": 53,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/D10564001/",
+     "title": "房地产行业的数学模型"
+    },
+    {
+     "paper_id": "2011_D10614001",
+     "year": 2011,
+     "code": "D",
+     "pages": 42,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2011/D10614001/",
+     "title": "房地产行业的数学建模"
+    },
+    {
+     "paper_id": "2011_D11934001",
+     "year": 2011,
+     "code": "D",
+     "pages": 62,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/D11934001/",
+     "title": "房地产行业的数学建模"
+    },
+    {
+     "paper_id": "2011_D11943006",
+     "year": 2011,
+     "code": "D",
+     "pages": 50,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/D11943006/",
+     "title": "我国房地产市场系列问题的研究"
+    },
+    {
+     "paper_id": "2011_D11943008",
+     "year": 2011,
+     "code": "D",
+     "pages": 56,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/D11943008/",
+     "title": "我国房地产行业问题研究"
+    },
+    {
+     "paper_id": "2011_D90052013",
+     "year": 2011,
+     "code": "D",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/D90052013/",
+     "title": "房地产行业的数学建模"
+    },
+    {
+     "paper_id": "2011_D99999040",
+     "year": 2011,
+     "code": "D",
+     "pages": 59,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2011/D99999040/",
+     "title": "房地产行业的数学建模"
+    },
+    {
+     "paper_id": "2012_A10248044",
+     "year": 2012,
+     "code": "A",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/A10248044/",
+     "title": "基因识别问题及其算法实现"
+    },
+    {
+     "paper_id": "2012_A10286015",
+     "year": 2012,
+     "code": "A",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/A10286015/",
+     "title": "基因识别问题及其算法实现"
+    },
+    {
+     "paper_id": "2012_A10358011",
+     "year": 2012,
+     "code": "A",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/A10358011/",
+     "title": "基因识别问题及其算法实现"
+    },
+    {
+     "paper_id": "2012_A10422053",
+     "year": 2012,
+     "code": "A",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/A10422053/",
+     "title": "基于联合识别的基因预测"
+    },
+    {
+     "paper_id": "2012_A90005004",
+     "year": 2012,
+     "code": "A",
+     "pages": 55,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/A90005004/",
+     "title": "DNA 序列表示及基因识别方法研究"
+    },
+    {
+     "paper_id": "2012_A90006027",
+     "year": 2012,
+     "code": "A",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/A90006027/",
+     "title": "基于谱分析的DNA 序列识别算法研究"
+    },
+    {
+     "paper_id": "2012_AK005",
+     "year": 2012,
+     "code": "A",
+     "pages": 31,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/AK005/",
+     "title": "基因识别问题及其算法实现"
+    },
+    {
+     "paper_id": "2012_B10286035",
+     "year": 2012,
+     "code": "B",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/B10286035/",
+     "title": "基于卫星无源探测的空间飞行器"
+    },
+    {
+     "paper_id": "2012_B10423006靳高曹",
+     "year": 2012,
+     "code": "B",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/B10423006靳高曹/",
+     "title": "基于伴随同化方法的空间飞行器轨道估计与误差分析"
+    },
+    {
+     "paper_id": "2012_B10614002刘汪张",
+     "year": 2012,
+     "code": "B",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/B10614002刘汪张/",
+     "title": "空间飞行器主动段轨道估计与误差分析"
+    },
+    {
+     "paper_id": "2012_B10699008_程梁孟",
+     "year": 2012,
+     "code": "B",
+     "pages": 21,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/B10699008_程梁孟/",
+     "title": "空间飞行器轨道估计与误差分析"
+    },
+    {
+     "paper_id": "2012_B11646001张郭贺",
+     "year": 2012,
+     "code": "B",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/B11646001张郭贺/",
+     "title": "基于卫星无源探测的空间飞行器"
+    },
+    {
+     "paper_id": "2012_B83221017张许陈",
+     "year": 2012,
+     "code": "B",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/B83221017张许陈/",
+     "title": "卫星无源探测的飞行器主动段轨道估计"
+    },
+    {
+     "paper_id": "2012_B90006033宋陈李",
+     "year": 2012,
+     "code": "B",
+     "pages": 44,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/B90006033宋陈李/",
+     "title": "基于卫星无源探测的空间飞行器"
+    },
+    {
+     "paper_id": "2012_B90027001吴杨沈",
+     "year": 2012,
+     "code": "B",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/B90027001吴杨沈/",
+     "title": "基于卫星无源探测的空间飞行器主动段的"
+    },
+    {
+     "paper_id": "2012_B90052016李鹿刘",
+     "year": 2012,
+     "code": "B",
+     "pages": 51,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/B90052016李鹿刘/",
+     "title": "基于卫星无源探测的空间飞行器主动段"
+    },
+    {
+     "paper_id": "2012_B90059006余林汤",
+     "year": 2012,
+     "code": "B",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/B90059006余林汤/",
+     "title": "基于卫星无源探测的空间飞行器"
+    },
+    {
+     "paper_id": "2012_C10286020",
+     "year": 2012,
+     "code": "C",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/C10286020/",
+     "title": "有杆抽油系统的数学建模及诊断"
+    },
+    {
+     "paper_id": "2012_C10287008",
+     "year": 2012,
+     "code": "C",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/C10287008/",
+     "title": "有杆抽油系统的数学建模及诊断"
+    },
+    {
+     "paper_id": "2012_C10425008",
+     "year": 2012,
+     "code": "C",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/C10425008/",
+     "title": "有杆抽油系统的数学建模及诊断"
+    },
+    {
+     "paper_id": "2012_C10425015",
+     "year": 2012,
+     "code": "C",
+     "pages": 54,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/C10425015/",
+     "title": "有杆抽油系统的数学建模及诊断"
+    },
+    {
+     "paper_id": "2012_C10446019",
+     "year": 2012,
+     "code": "C",
+     "pages": 23,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2012/C10446019/",
+     "title": "之外的数据，要用字母表示并给出计算c 的推导过程。"
+    },
+    {
+     "paper_id": "2012_C10699007",
+     "year": 2012,
+     "code": "C",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/C10699007/",
+     "title": "基于功能原理的有杆抽油系统的数学建模及诊断"
+    },
+    {
+     "paper_id": "2012_C80144001",
+     "year": 2012,
+     "code": "C",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/C80144001/",
+     "title": "有杆抽油系统的数学建模及诊断"
+    },
+    {
+     "paper_id": "2012_C85101007",
+     "year": 2012,
+     "code": "C",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/C85101007/",
+     "title": "有杆抽油系统的数学建模及诊断"
+    },
+    {
+     "paper_id": "2012_C90044008",
+     "year": 2012,
+     "code": "C",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/C90044008/",
+     "title": "有杆抽油系统的数学建模及诊断"
+    },
+    {
+     "paper_id": "2012_C90052015",
+     "year": 2012,
+     "code": "C",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/C90052015/",
+     "title": "有杆抽油系统的数学建模及诊断"
+    },
+    {
+     "paper_id": "2012_D10054016",
+     "year": 2012,
+     "code": "D",
+     "pages": 25,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/D10054016/",
+     "title": "基于卫星云图的风矢场（云导风）度量模型与"
+    },
+    {
+     "paper_id": "2012_D10079010",
+     "year": 2012,
+     "code": "D",
+     "pages": 31,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/D10079010/",
+     "title": "基于交叉相关系数的度量模型"
+    },
+    {
+     "paper_id": "2012_D10284001",
+     "year": 2012,
+     "code": "D",
+     "pages": 21,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/D10284001/",
+     "title": "D:基于卫星云图的风矢场度量模型与算法探讨"
+    },
+    {
+     "paper_id": "2012_D10404005",
+     "year": 2012,
+     "code": "D",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/D10404005/",
+     "title": "基于卫星云图的风矢场(云导风)度量模型与算法探讨"
+    },
+    {
+     "paper_id": "2012_D10422033",
+     "year": 2012,
+     "code": "D",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/D10422033/",
+     "title": "卫星云图推导云迹风的研究"
+    },
+    {
+     "paper_id": "2012_D10613024",
+     "year": 2012,
+     "code": "D",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/D10613024/",
+     "title": "基于卫星云图的风矢场度量模型与自适应算法"
+    },
+    {
+     "paper_id": "2012_D90002016",
+     "year": 2012,
+     "code": "D",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/D90002016/",
+     "title": "基于网络流联合相关的卫星云图导风技术"
+    },
+    {
+     "paper_id": "2012_D90006047",
+     "year": 2012,
+     "code": "D",
+     "pages": 19,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/D90006047/",
+     "title": "云导风计算的初步探究"
+    },
+    {
+     "paper_id": "2012_DK002",
+     "year": 2012,
+     "code": "D",
+     "pages": 22,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2012/DK002/",
+     "title": "基于卫星云图的风矢场度量模型与算法探讨（D 题）"
+    },
+    {
+     "paper_id": "2013_A1",
+     "year": 2013,
+     "code": "A",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/A1/",
+     "title": "变循环发动机部件法模型的求解及优化"
+    },
+    {
+     "paper_id": "2013_A2",
+     "year": 2013,
+     "code": "A",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/A2/",
+     "title": "变循环发动机部件法建模及优化"
+    },
+    {
+     "paper_id": "2013_A3",
+     "year": 2013,
+     "code": "A",
+     "pages": 64,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/A3/",
+     "title": "基于部件法的变循环发动机建模法"
+    },
+    {
+     "paper_id": "2013_A4",
+     "year": 2013,
+     "code": "A",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/A4/",
+     "title": "变循环发动机部件法建模及优化"
+    },
+    {
+     "paper_id": "2013_A5",
+     "year": 2013,
+     "code": "A",
+     "pages": 57,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2013/A5/"
+    },
+    {
+     "paper_id": "2013_A6",
+     "year": 2013,
+     "code": "A",
+     "pages": 62,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/A6/",
+     "title": "变循环发动机部件法建模及优化"
+    },
+    {
+     "paper_id": "2013_A7",
+     "year": 2013,
+     "code": "A",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/A7/",
+     "title": "变循环发动机部件法建模及优化"
+    },
+    {
+     "paper_id": "2013_A8",
+     "year": 2013,
+     "code": "A",
+     "pages": 39,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/A8/",
+     "title": "基于遗传算法的变循环航空发动机"
+    },
+    {
+     "paper_id": "2013_A9",
+     "year": 2013,
+     "code": "A",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/A9/",
+     "title": "《变循环发动机部件法建模及优化》"
+    },
+    {
+     "paper_id": "2013_B1",
+     "year": 2013,
+     "code": "B",
+     "pages": 24,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/B1/",
+     "title": "功率放大器非线性特性及预失真建模"
+    },
+    {
+     "paper_id": "2013_B10",
+     "year": 2013,
+     "code": "B",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/B10/",
+     "title": "功率放大器非线性特性及预失真建模"
+    },
+    {
+     "paper_id": "2013_B2",
+     "year": 2013,
+     "code": "B",
+     "pages": 25,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/B2/",
+     "title": "功率放大器非线性特性及预失真建模"
+    },
+    {
+     "paper_id": "2013_B3",
+     "year": 2013,
+     "code": "B",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/B3/",
+     "title": "功率放大器非线性特性及预失真建模"
+    },
+    {
+     "paper_id": "2013_B4",
+     "year": 2013,
+     "code": "B",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/B4/",
+     "title": "功率放大器非线性特性及预失真建模"
+    },
+    {
+     "paper_id": "2013_B5",
+     "year": 2013,
+     "code": "B",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/B5/",
+     "title": "功率放大器非线性特性及预失真建模"
+    },
+    {
+     "paper_id": "2013_B6",
+     "year": 2013,
+     "code": "B",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/B6/",
+     "title": "功率放大器非线性特性及预失真建模研究"
+    },
+    {
+     "paper_id": "2013_B7",
+     "year": 2013,
+     "code": "B",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/B7/",
+     "title": "功率放大器非线性特性及预失真建模"
+    },
+    {
+     "paper_id": "2013_B8",
+     "year": 2013,
+     "code": "B",
+     "pages": 31,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/B8/",
+     "title": "功率放大器非线性特性及预失真建模"
+    },
+    {
+     "paper_id": "2013_B9",
+     "year": 2013,
+     "code": "B",
+     "pages": 22,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/B9/",
+     "title": "功率放大器非线性特性及预失真建模"
+    },
+    {
+     "paper_id": "2013_C1",
+     "year": 2013,
+     "code": "C",
+     "pages": 25,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/C1/",
+     "title": "微蜂窝环境中无线接收信号的特性分析"
+    },
+    {
+     "paper_id": "2013_C2",
+     "year": 2013,
+     "code": "C",
+     "pages": 47,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/C2/",
+     "title": "微蜂窝环境中无线接收信号的特性分析"
+    },
+    {
+     "paper_id": "2013_C3",
+     "year": 2013,
+     "code": "C",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/C3/",
+     "title": "微蜂窝环境中无线接收信号的特性分析"
+    },
+    {
+     "paper_id": "2013_C4",
+     "year": 2013,
+     "code": "C",
+     "pages": 31,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/C4/",
+     "title": "微蜂窝环境中无线接收信号的特性分析"
+    },
+    {
+     "paper_id": "2013_C5",
+     "year": 2013,
+     "code": "C",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/C5/",
+     "title": "微蜂窝环境中无线接收信号的特性分析"
+    },
+    {
+     "paper_id": "2013_C6",
+     "year": 2013,
+     "code": "C",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/C6/",
+     "title": "微蜂窝环境中无线接收信号的特性分析"
+    },
+    {
+     "paper_id": "2013_C7",
+     "year": 2013,
+     "code": "C",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/C7/",
+     "title": "微蜂窝环境中无线接收信号的特性分析"
+    },
+    {
+     "paper_id": "2013_C8",
+     "year": 2013,
+     "code": "C",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/C8/",
+     "title": "微蜂窝环境中无线接收信号的特性分析"
+    },
+    {
+     "paper_id": "2013_D1",
+     "year": 2013,
+     "code": "D",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/D1/",
+     "title": "空气中PM2.5 问题的研究"
+    },
+    {
+     "paper_id": "2013_D10",
+     "year": 2013,
+     "code": "D",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/D10/",
+     "title": "基于二维多箱模型的PM2.5 扩散问题研究"
+    },
+    {
+     "paper_id": "2013_D2",
+     "year": 2013,
+     "code": "D",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/D2/",
+     "title": "空气中PM2.5 问题的研究"
+    },
+    {
+     "paper_id": "2013_D3",
+     "year": 2013,
+     "code": "D",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/D3/",
+     "title": "PM2.5 演变评估模型及治理方案研究"
+    },
+    {
+     "paper_id": "2013_D4",
+     "year": 2013,
+     "code": "D",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/D4/",
+     "title": "空气中PM2.5 问题的研究"
+    },
+    {
+     "paper_id": "2013_D5",
+     "year": 2013,
+     "code": "D",
+     "pages": 56,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/D5/",
+     "title": "PM2.5 相关问题研究"
+    },
+    {
+     "paper_id": "2013_D6",
+     "year": 2013,
+     "code": "D",
+     "pages": 62,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/D6/",
+     "title": "空气中PM2.5 问题的研究"
+    },
+    {
+     "paper_id": "2013_D7",
+     "year": 2013,
+     "code": "D",
+     "pages": 51,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/D7/",
+     "title": "对空气中PM2.5 问题的建模研究"
+    },
+    {
+     "paper_id": "2013_D8",
+     "year": 2013,
+     "code": "D",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/D8/",
+     "title": "PM2.5 扩散预测模型及相关问题研究"
+    },
+    {
+     "paper_id": "2013_D9",
+     "year": 2013,
+     "code": "D",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/D9/",
+     "title": "本文主要研究空气污染中"
+    },
+    {
+     "paper_id": "2013_E1",
+     "year": 2013,
+     "code": "E",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/E1/",
+     "title": "中等收入定位与人口度量模型研究"
+    },
+    {
+     "paper_id": "2013_E2",
+     "year": 2013,
+     "code": "E",
+     "pages": 31,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/E2/",
+     "title": "E:中等收入人口度量与实证研究"
+    },
+    {
+     "paper_id": "2013_E3",
+     "year": 2013,
+     "code": "E",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/E3/",
+     "title": "中等收入定位与人口度量模型研究"
+    },
+    {
+     "paper_id": "2013_E4",
+     "year": 2013,
+     "code": "E",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/E4/",
+     "title": "中等收入定位与人口度量模型研究"
+    },
+    {
+     "paper_id": "2013_E5",
+     "year": 2013,
+     "code": "E",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/E5/",
+     "title": "中等收入定位与人口度量模型研究"
+    },
+    {
+     "paper_id": "2013_F1",
+     "year": 2013,
+     "code": "F",
+     "pages": 56,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/F1/",
+     "title": "可持续的中国城乡居民养老保险体系的数学模型研究"
+    },
+    {
+     "paper_id": "2013_F2",
+     "year": 2013,
+     "code": "F",
+     "pages": 53,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/F2/",
+     "title": "可持续的中国城乡居民养老保险体系的数学模型研究"
+    },
+    {
+     "paper_id": "2013_F3",
+     "year": 2013,
+     "code": "F",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/F3/",
+     "title": "中国城乡居民养老保险可持续发展体系研究"
+    },
+    {
+     "paper_id": "2013_F4",
+     "year": 2013,
+     "code": "F",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/F4/",
+     "title": "可持续的中国城乡居民养老保险体系的数学模型研究"
+    },
+    {
+     "paper_id": "2013_F5",
+     "year": 2013,
+     "code": "F",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2013/F5/",
+     "title": "中国城乡居民养老制度可持续性的精算研究"
+    },
+    {
+     "paper_id": "2014_A10056003",
+     "year": 2014,
+     "code": "A",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/A10056003/",
+     "title": "小鼠视觉感受区电位信号（LFP）与视觉刺激之间的"
+    },
+    {
+     "paper_id": "2014_A10079006",
+     "year": 2014,
+     "code": "A",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/A10079006/",
+     "title": "小鼠视觉感受区电位信号(LFP)与视觉刺激"
+    },
+    {
+     "paper_id": "2014_A10107001",
+     "year": 2014,
+     "code": "A",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/A10107001/",
+     "title": "小鼠视觉感受区电位信号(LFP)与视觉刺激"
+    },
+    {
+     "paper_id": "2014_A10248027",
+     "year": 2014,
+     "code": "A",
+     "pages": 26,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/A10248027/",
+     "title": "小鼠视觉感受区电位信号(LFP)与视觉刺激间关系研究"
+    },
+    {
+     "paper_id": "2014_A10252101",
+     "year": 2014,
+     "code": "A",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/A10252101/",
+     "title": "小鼠视觉感受区电位信号(LFP)与"
+    },
+    {
+     "paper_id": "2014_A10269049",
+     "year": 2014,
+     "code": "A",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/A10269049/",
+     "title": "小鼠视觉感受区电位信号(LFP)与视觉刺激之间的关系研"
+    },
+    {
+     "paper_id": "2014_A10300065",
+     "year": 2014,
+     "code": "A",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/A10300065/",
+     "title": "基于ICA 的小鼠视觉感受区电位信号(LFP)与"
+    },
+    {
+     "paper_id": "2014_A10699024",
+     "year": 2014,
+     "code": "A",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/A10699024/",
+     "title": "小鼠特征脑电波信号分离与相关性分析"
+    },
+    {
+     "paper_id": "2014_B10006002",
+     "year": 2014,
+     "code": "B",
+     "pages": 83,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/B10006002/",
+     "title": "机动目标的跟踪与反跟踪（B 题）"
+    },
+    {
+     "paper_id": "2014_B10248108",
+     "year": 2014,
+     "code": "B",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/B10248108/",
+     "title": "机动目标的跟踪与反跟踪问题的数学建模"
+    },
+    {
+     "paper_id": "2014_B10287028",
+     "year": 2014,
+     "code": "B",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/B10287028/",
+     "title": "机动目标的跟踪与反跟踪"
+    },
+    {
+     "paper_id": "2014_B10287032",
+     "year": 2014,
+     "code": "B",
+     "pages": 44,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/B10287032/",
+     "title": "机动目标的跟踪与反跟踪"
+    },
+    {
+     "paper_id": "2014_B10561006",
+     "year": 2014,
+     "code": "B",
+     "pages": 38,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2014/B10561006/",
+     "title": "ݾ༈ህ઀ংၼי้खᆼ઱໶བྷᆓ਼೉બບ"
+    },
+    {
+     "paper_id": "2014_B10698001",
+     "year": 2014,
+     "code": "B",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/B10698001/",
+     "title": "机动目标的跟踪与反跟踪"
+    },
+    {
+     "paper_id": "2014_B90045007",
+     "year": 2014,
+     "code": "B",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/B90045007/",
+     "title": "机动目标的跟踪与反跟踪"
+    },
+    {
+     "paper_id": "2014_B90059013",
+     "year": 2014,
+     "code": "B",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/B90059013/",
+     "title": "机动目标的跟踪与反跟踪"
+    },
+    {
+     "paper_id": "2014_C10013006",
+     "year": 2014,
+     "code": "C",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/C10013006/",
+     "title": "无线通信中的快时变信道建模"
+    },
+    {
+     "paper_id": "2014_C10247056",
+     "year": 2014,
+     "code": "C",
+     "pages": 39,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/C10247056/",
+     "title": "无线通信中的快速时变信道建模"
+    },
+    {
+     "paper_id": "2014_C10248046",
+     "year": 2014,
+     "code": "C",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/C10248046/",
+     "title": "无线通信中的快时变信道建模"
+    },
+    {
+     "paper_id": "2014_C10286040",
+     "year": 2014,
+     "code": "C",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/C10286040/",
+     "title": "无线通信中的快时变信道建模"
+    },
+    {
+     "paper_id": "2014_C10286046",
+     "year": 2014,
+     "code": "C",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/C10286046/",
+     "title": "无线通信中的快时变信道建模"
+    },
+    {
+     "paper_id": "2014_C10291002",
+     "year": 2014,
+     "code": "C",
+     "pages": 39,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/C10291002/",
+     "title": "无线通信中的快时变信道建模"
+    },
+    {
+     "paper_id": "2014_C10293007",
+     "year": 2014,
+     "code": "C",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/C10293007/",
+     "title": "无线通信中的快时变信道建模"
+    },
+    {
+     "paper_id": "2014_C10558018",
+     "year": 2014,
+     "code": "C",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/C10558018/",
+     "title": "无线通信中的快时变信道建模"
+    },
+    {
+     "paper_id": "2014_C90005034",
+     "year": 2014,
+     "code": "C",
+     "pages": 39,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/C90005034/",
+     "title": "无线通信中的快时变信道建模"
+    },
+    {
+     "paper_id": "2014_C90006014",
+     "year": 2014,
+     "code": "C",
+     "pages": 26,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/C90006014/",
+     "title": "基于基扩展的快时变多径信道建模与估计"
+    },
+    {
+     "paper_id": "2014_D10247034",
+     "year": 2014,
+     "code": "D",
+     "pages": 53,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/D10247034/",
+     "title": "人体营养健康角度的中国果蔬发展战略研究"
+    },
+    {
+     "paper_id": "2014_D10252179",
+     "year": 2014,
+     "code": "D",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/D10252179/",
+     "title": "人体营养健康角度的中国果蔬发展战略研究"
+    },
+    {
+     "paper_id": "2014_D10327003",
+     "year": 2014,
+     "code": "D",
+     "pages": 49,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/D10327003/",
+     "title": "人体营养健康角度的中国果蔬发展战略研究"
+    },
+    {
+     "paper_id": "2014_D10357002",
+     "year": 2014,
+     "code": "D",
+     "pages": 75,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/D10357002/",
+     "title": "基于多种智能优化算法和营养健康"
+    },
+    {
+     "paper_id": "2014_D10426016",
+     "year": 2014,
+     "code": "D",
+     "pages": 51,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/D10426016/",
+     "title": "人体营养健康角度的中国果蔬发展战略研究"
+    },
+    {
+     "paper_id": "2014_D10615010",
+     "year": 2014,
+     "code": "D",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/D10615010/",
+     "title": "人体营养健康角度的中国果蔬发展战略研究"
+    },
+    {
+     "paper_id": "2014_D11075002",
+     "year": 2014,
+     "code": "D",
+     "pages": 51,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/D11075002/",
+     "title": "人体营养健康角度的中国果蔬发展问题研究"
+    },
+    {
+     "paper_id": "2014_D11075031",
+     "year": 2014,
+     "code": "D",
+     "pages": 57,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/D11075031/",
+     "title": "人体营养健康角度的中国果蔬发展战略研究"
+    },
+    {
+     "paper_id": "2014_D90019003",
+     "year": 2014,
+     "code": "D",
+     "pages": 58,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/D90019003/",
+     "title": "人体营养健康角度的中国果蔬发展战略研究"
+    },
+    {
+     "paper_id": "2014_DK0002",
+     "year": 2014,
+     "code": "D",
+     "pages": 50,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/DK0002/",
+     "title": "D：人体营养健康角度的中国果蔬发展战略研究"
+    },
+    {
+     "paper_id": "2014_E10079020",
+     "year": 2014,
+     "code": "E",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/E10079020/",
+     "title": "乘用车物流运输计划问题"
+    },
+    {
+     "paper_id": "2014_E10287023",
+     "year": 2014,
+     "code": "E",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/E10287023/",
+     "title": "乘用车物流运输计划问题"
+    },
+    {
+     "paper_id": "2014_E10294001",
+     "year": 2014,
+     "code": "E",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/E10294001/",
+     "title": "轿运车装载和运输的数学建模"
+    },
+    {
+     "paper_id": "2014_E10404005",
+     "year": 2014,
+     "code": "E",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/E10404005/",
+     "title": "乘用车物流运输计划问题"
+    },
+    {
+     "paper_id": "2014_E10477002",
+     "year": 2014,
+     "code": "E",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/E10477002/",
+     "title": "乘用车物流运输计划问题的探究"
+    },
+    {
+     "paper_id": "2014_E10613031",
+     "year": 2014,
+     "code": "E",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/E10613031/",
+     "title": "乘用车物流运输计划问题"
+    },
+    {
+     "paper_id": "2014_E10699014",
+     "year": 2014,
+     "code": "E",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/E10699014/",
+     "title": "乘用车物流运输的最优规划"
+    },
+    {
+     "paper_id": "2014_E10700002",
+     "year": 2014,
+     "code": "E",
+     "pages": 37,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/E10700002/",
+     "title": "乘用车物流运输计划问题"
+    },
+    {
+     "paper_id": "2014_E10700006",
+     "year": 2014,
+     "code": "E",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/E10700006/",
+     "title": "乘用车物流运输计划问题"
+    },
+    {
+     "paper_id": "2014_E90019007",
+     "year": 2014,
+     "code": "E",
+     "pages": 37,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2014/E90019007/",
+     "title": "乘用车物流运输计划问题研究"
+    },
+    {
+     "paper_id": "2015_10004002",
+     "year": 2015,
+     "code": "unavailable",
+     "pages": 74,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/10004002/",
+     "title": "面向节能的单/多列车优化决策问题"
+    },
+    {
+     "paper_id": "2015_10287013",
+     "year": 2015,
+     "code": "unavailable",
+     "pages": 43,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/10287013/",
+     "title": "面向节能的单/多列车优化决策问题"
+    },
+    {
+     "paper_id": "2015_10287026",
+     "year": 2015,
+     "code": "unavailable",
+     "pages": 40,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/10287026/",
+     "title": "面向节能的单/多列车优化决策问题"
+    },
+    {
+     "paper_id": "2015_10422053",
+     "year": 2015,
+     "code": "unavailable",
+     "pages": 43,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/10422053/",
+     "title": "面向节能的单/多列车优化决策问题"
+    },
+    {
+     "paper_id": "2015_10615017",
+     "year": 2015,
+     "code": "unavailable",
+     "pages": 56,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/10615017/",
+     "title": "面向节能的单/多列车优化决策问题"
+    },
+    {
+     "paper_id": "2015_10700001",
+     "year": 2015,
+     "code": "unavailable",
+     "pages": 56,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/10700001/",
+     "title": "面向节能的单/多列车优化决策问题研究"
+    },
+    {
+     "paper_id": "2015_83285013",
+     "year": 2015,
+     "code": "unavailable",
+     "pages": 60,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/83285013/",
+     "title": "单/多列车优化决策问题的研究"
+    },
+    {
+     "paper_id": "2015_90002014",
+     "year": 2015,
+     "code": "unavailable",
+     "pages": 50,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/90002014/",
+     "title": "面向节能的单/多列车优化决策控制"
+    },
+    {
+     "paper_id": "2015_90038010",
+     "year": 2015,
+     "code": "unavailable",
+     "pages": 64,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/90038010/",
+     "title": "面向节能的单/多列车优化决策问题"
+    },
+    {
+     "paper_id": "2015_90038025",
+     "year": 2015,
+     "code": "unavailable",
+     "pages": 71,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/90038025/",
+     "title": "面向节能的列车调度优化决策研究"
+    },
+    {
+     "paper_id": "2015_A10288020",
+     "year": 2015,
+     "code": "A",
+     "pages": 37,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/A10288020/",
+     "title": "水面舰艇编队防空和信息化战争评估模型"
+    },
+    {
+     "paper_id": "2015_A10422076",
+     "year": 2015,
+     "code": "A",
+     "pages": 36,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/A10422076/",
+     "title": "水面舰艇编队防空和信息化战争评估模型"
+    },
+    {
+     "paper_id": "2015_A10533032",
+     "year": 2015,
+     "code": "A",
+     "pages": 38,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/A10533032/",
+     "title": "水面舰艇编队防空和信息化战争评估模型"
+    },
+    {
+     "paper_id": "2015_A10651009",
+     "year": 2015,
+     "code": "A",
+     "pages": 34,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/A10651009/",
+     "title": "水面舰艇编队防空和信息化战争评估模型"
+    },
+    {
+     "paper_id": "2015_A10856054",
+     "year": 2015,
+     "code": "A",
+     "pages": 72,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/A10856054/",
+     "title": "水面舰艇编队防空和信息化战争评估模型"
+    },
+    {
+     "paper_id": "2015_A11075030",
+     "year": 2015,
+     "code": "A",
+     "pages": 54,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/A11075030/",
+     "title": "水面舰艇编队防空和信息化战争评估模型"
+    },
+    {
+     "paper_id": "2015_A90025016",
+     "year": 2015,
+     "code": "A",
+     "pages": 56,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/A90025016/",
+     "title": "水面舰艇编队防空和信息化战争评估模型"
+    },
+    {
+     "paper_id": "2015_B10006005",
+     "year": 2015,
+     "code": "B",
+     "pages": 25,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/B10006005/",
+     "title": "本文通过"
+    },
+    {
+     "paper_id": "2015_B10248091",
+     "year": 2015,
+     "code": "B",
+     "pages": 57,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/B10248091/",
+     "title": "数据的多流形结构分析"
+    },
+    {
+     "paper_id": "2015_B10248118",
+     "year": 2015,
+     "code": "B",
+     "pages": 36,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/B10248118/",
+     "title": "数据的多流形结构分析"
+    },
+    {
+     "paper_id": "2015_B10290012",
+     "year": 2015,
+     "code": "B",
+     "pages": 51,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/B10290012/",
+     "title": "数据的多流形结构分析"
+    },
+    {
+     "paper_id": "2015_B10290012_1",
+     "year": 2015,
+     "code": "B",
+     "pages": 51,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/B10290012_1/",
+     "title": "数据的多流形结构分析"
+    },
+    {
+     "paper_id": "2015_B10294017",
+     "year": 2015,
+     "code": "B",
+     "pages": 47,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/B10294017/",
+     "title": "数据的多流形结构分析"
+    },
+    {
+     "paper_id": "2015_B10700027",
+     "year": 2015,
+     "code": "B",
+     "pages": 47,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/B10700027/",
+     "title": "数据的多流形结构分析"
+    },
+    {
+     "paper_id": "2015_B11660017",
+     "year": 2015,
+     "code": "B",
+     "pages": 55,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/B11660017/",
+     "title": "数据的多流形结构分析"
+    },
+    {
+     "paper_id": "2015_B90002105",
+     "year": 2015,
+     "code": "B",
+     "pages": 43,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/B90002105/",
+     "title": "数据的多流形结构分析"
+    },
+    {
+     "paper_id": "2015_B90006058",
+     "year": 2015,
+     "code": "B",
+     "pages": 54,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/B90006058/",
+     "title": "数据的多流形结构分析"
+    },
+    {
+     "paper_id": "2015_C90005047",
+     "year": 2015,
+     "code": "C",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2015/C90005047/",
+     "title": "移动通信中的无线信道“指纹”特征建模"
+    },
+    {
+     "paper_id": "2015_C90019017",
+     "year": 2015,
+     "code": "C",
+     "pages": 32,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/C90019017/",
+     "title": "移动通信中的无线信道“指纹”特征建模"
+    },
+    {
+     "paper_id": "2015_C90047002",
+     "year": 2015,
+     "code": "C",
+     "pages": 24,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/C90047002/",
+     "title": "移动通信中的无线信道“指纹”特征建模"
+    },
+    {
+     "paper_id": "2015_C90110006",
+     "year": 2015,
+     "code": "C",
+     "pages": 40,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/C90110006/",
+     "title": "移动通信无线信道指纹建模及识别"
+    },
+    {
+     "paper_id": "2015_C90110010",
+     "year": 2015,
+     "code": "C",
+     "pages": 36,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/C90110010/",
+     "title": "移动通信中的无线信道“指纹”特征建模"
+    },
+    {
+     "paper_id": "2015_CK0127",
+     "year": 2015,
+     "code": "C",
+     "pages": 29,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/CK0127/",
+     "title": "移动通信中的无线信道“指纹”特征建模"
+    },
+    {
+     "paper_id": "2015_E10054013",
+     "year": 2015,
+     "code": "E",
+     "pages": 34,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/E10054013/",
+     "title": "数控机床加工优化控制"
+    },
+    {
+     "paper_id": "2015_E10247086",
+     "year": 2015,
+     "code": "E",
+     "pages": 51,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/E10247086/",
+     "title": "数控加工刀具运动的优化控制模型研究"
+    },
+    {
+     "paper_id": "2015_E10256058",
+     "year": 2015,
+     "code": "E",
+     "pages": 25,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/E10256058/",
+     "title": "数控加工刀具运动的优化控制"
+    },
+    {
+     "paper_id": "2015_E10425010",
+     "year": 2015,
+     "code": "E",
+     "pages": 44,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/E10425010/",
+     "title": "数控加工刀具运动的优化控制"
+    },
+    {
+     "paper_id": "2015_E10459037",
+     "year": 2015,
+     "code": "E",
+     "pages": 23,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/E10459037/",
+     "title": "基于S 型曲线的加减速优化控制与实例检验"
+    },
+    {
+     "paper_id": "2015_E10700022",
+     "year": 2015,
+     "code": "E",
+     "pages": 38,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/E10700022/",
+     "title": "数控加工刀具运动的优化控制"
+    },
+    {
+     "paper_id": "2015_E10757002",
+     "year": 2015,
+     "code": "E",
+     "pages": 27,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/E10757002/",
+     "title": "数控加工刀具运动的优化控制问题研究"
+    },
+    {
+     "paper_id": "2015_E90047006",
+     "year": 2015,
+     "code": "E",
+     "pages": 56,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/E90047006/",
+     "title": "E.数控加工刀具运动的优化控制"
+    },
+    {
+     "paper_id": "2015_EK0196",
+     "year": 2015,
+     "code": "E",
+     "pages": 34,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/EK0196/",
+     "title": "数控加工刀具优化控制的建模仿真"
+    },
+    {
+     "paper_id": "2015_F10248085",
+     "year": 2015,
+     "code": "F",
+     "pages": 72,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2015/F10248085/",
+     "title": "2015 年全国研究生数学建模竞赛F 题"
+    },
+    {
+     "paper_id": "2015_F10273011",
+     "year": 2015,
+     "code": "F",
+     "pages": 64,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/F10273011/",
+     "title": "最优旅游路线规划问题研究（F 题）"
+    },
+    {
+     "paper_id": "2015_F10295002",
+     "year": 2015,
+     "code": "F",
+     "pages": 49,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/F10295002/",
+     "title": "旅游路线规划问题"
+    },
+    {
+     "paper_id": "2015_F10353007",
+     "year": 2015,
+     "code": "F",
+     "pages": 101,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/F10353007/",
+     "title": "旅游路径规划问题"
+    },
+    {
+     "paper_id": "2015_F10357003",
+     "year": 2015,
+     "code": "F",
+     "pages": 65,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/F10357003/",
+     "title": "基于粒化思想的多层次目标规划模型的研究"
+    },
+    {
+     "paper_id": "2015_F10613002",
+     "year": 2015,
+     "code": "F",
+     "pages": 67,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/F10613002/",
+     "title": "旅游路线规划问题"
+    },
+    {
+     "paper_id": "2015_F10613003",
+     "year": 2015,
+     "code": "F",
+     "pages": 112,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/F10613003/",
+     "title": "旅游路线优化设计问题研究"
+    },
+    {
+     "paper_id": "2015_F10613005",
+     "year": 2015,
+     "code": "F",
+     "pages": 95,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/F10613005/",
+     "title": "旅游路线规划问题"
+    },
+    {
+     "paper_id": "2015_F10615003",
+     "year": 2015,
+     "code": "F",
+     "pages": 39,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/F10615003/",
+     "title": "分块分层优化的旅游路线规划问题研究"
+    },
+    {
+     "paper_id": "2015_FK0041",
+     "year": 2015,
+     "code": "F",
+     "pages": 53,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/FK0041/",
+     "title": "旅游路线规划模型"
+    },
+    {
+     "paper_id": "2015_K0032",
+     "year": 2015,
+     "code": "unavailable",
+     "pages": 68,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2015/K0032/",
+     "title": "面向节能的单/多列车优化决策问题"
+    },
+    {
+     "paper_id": "2016_A10248058",
+     "year": 2016,
+     "code": "A",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/A10248058/",
+     "title": "多无人机协同任务规划"
+    },
+    {
+     "paper_id": "2016_A10252152",
+     "year": 2016,
+     "code": "A",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/A10252152/",
+     "title": "多无人机协同任务规划"
+    },
+    {
+     "paper_id": "2016_A10287004",
+     "year": 2016,
+     "code": "A",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/A10287004/",
+     "title": "多无人机协同任务规划"
+    },
+    {
+     "paper_id": "2016_A10287022",
+     "year": 2016,
+     "code": "A",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/A10287022/",
+     "title": "多无人机协同任务规划"
+    },
+    {
+     "paper_id": "2016_A10294006",
+     "year": 2016,
+     "code": "A",
+     "pages": 71,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/A10294006/",
+     "title": "多无人机协同任务规划"
+    },
+    {
+     "paper_id": "2016_B10013022",
+     "year": 2016,
+     "code": "B",
+     "pages": 26,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/B10013022/",
+     "title": "具有遗传性疾病和性状的遗传位点分析"
+    },
+    {
+     "paper_id": "2016_B10248299",
+     "year": 2016,
+     "code": "B",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/B10248299/",
+     "title": "具有遗传性疾病和性状的遗传位点分析"
+    },
+    {
+     "paper_id": "2016_B10273004",
+     "year": 2016,
+     "code": "B",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/B10273004/",
+     "title": "具有遗传性疾病和性状的遗传位点分析（B 题）"
+    },
+    {
+     "paper_id": "2016_B11117004",
+     "year": 2016,
+     "code": "B",
+     "pages": 27,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2016/B11117004/",
+     "title": "具有遗传性疾病和性状的遗传位点分析"
+    },
+    {
+     "paper_id": "2016_BK0209",
+     "year": 2016,
+     "code": "B",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/BK0209/",
+     "title": "具有遗传性疾病和性状的遗传位点分析"
+    },
+    {
+     "paper_id": "2016_BK0247",
+     "year": 2016,
+     "code": "B",
+     "pages": 23,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2016/BK0247/"
+    },
+    {
+     "paper_id": "2016_C10287048",
+     "year": 2016,
+     "code": "C",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/C10287048/",
+     "title": "基于无线通信基站的室内三维定位问题"
+    },
+    {
+     "paper_id": "2016_C10423010",
+     "year": 2016,
+     "code": "C",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/C10423010/",
+     "title": "基于无线通信基站的预估-校正-自适应定位模型"
+    },
+    {
+     "paper_id": "2016_C10534002",
+     "year": 2016,
+     "code": "C",
+     "pages": 65,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/C10534002/",
+     "title": "基于无线通信基站的室内三维定位问题"
+    },
+    {
+     "paper_id": "2016_C11660022",
+     "year": 2016,
+     "code": "C",
+     "pages": 44,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/C11660022/",
+     "title": "基于无线通信基站的室内三维定位问题"
+    },
+    {
+     "paper_id": "2016_C80138004",
+     "year": 2016,
+     "code": "C",
+     "pages": 25,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/C80138004/",
+     "title": "基于无线通信基站的室内三维定位问题"
+    },
+    {
+     "paper_id": "2016_C90110002",
+     "year": 2016,
+     "code": "C",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/C90110002/",
+     "title": "基于无线通信基站的室内三维定位问题"
+    },
+    {
+     "paper_id": "2016_D10248021",
+     "year": 2016,
+     "code": "D",
+     "pages": 55,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/D10248021/",
+     "title": "军事行动避空侦察的时机和路径选择"
+    },
+    {
+     "paper_id": "2016_D10252015",
+     "year": 2016,
+     "code": "D",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/D10252015/",
+     "title": "军事行动避空侦察的时机和路线选择"
+    },
+    {
+     "paper_id": "2016_D10291002",
+     "year": 2016,
+     "code": "D",
+     "pages": 37,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/D10291002/",
+     "title": "军事行动避空侦察的时机和路线选择"
+    },
+    {
+     "paper_id": "2016_D83285024",
+     "year": 2016,
+     "code": "D",
+     "pages": 54,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/D83285024/",
+     "title": "军事行动避空侦察的时机和路线选择"
+    },
+    {
+     "paper_id": "2016_D90059029",
+     "year": 2016,
+     "code": "D",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/D90059029/",
+     "title": "军事行动避空侦察的时机和路线选择"
+    },
+    {
+     "paper_id": "2016_DK0003",
+     "year": 2016,
+     "code": "D",
+     "pages": 56,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/DK0003/",
+     "title": "军事行动避空侦察的时机和路线选择"
+    },
+    {
+     "paper_id": "2016_E10058003",
+     "year": 2016,
+     "code": "E",
+     "pages": 76,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/E10058003/",
+     "title": "粮食最低收购价问题研究"
+    },
+    {
+     "paper_id": "2016_E10058009",
+     "year": 2016,
+     "code": "E",
+     "pages": 54,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/E10058009/",
+     "title": "粮食最低收购价政策问题研究"
+    },
+    {
+     "paper_id": "2016_E10327023",
+     "year": 2016,
+     "code": "E",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/E10327023/",
+     "title": "粮食最低收购价政策问题研究"
+    },
+    {
+     "paper_id": "2016_E10357003",
+     "year": 2016,
+     "code": "E",
+     "pages": 108,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/E10357003/",
+     "title": "基于多目标规划和智能优化算法的粮"
+    },
+    {
+     "paper_id": "2016_E10615007",
+     "year": 2016,
+     "code": "E",
+     "pages": 50,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2016/E10615007/",
+     "title": "粮食最低收购价政策问题研究"
+    },
+    {
+     "paper_id": "2017_A10252401",
+     "year": 2017,
+     "code": "A",
+     "pages": 39,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/A10252401/",
+     "title": "无人机在抢险救灾中的优化运用"
+    },
+    {
+     "paper_id": "2017_A10254014",
+     "year": 2017,
+     "code": "A",
+     "pages": 77,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/A10254014/",
+     "title": "无人机在抢险救灾中的优化运用"
+    },
+    {
+     "paper_id": "2017_A10286374",
+     "year": 2017,
+     "code": "A",
+     "pages": 47,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/A10286374/",
+     "title": "无人机在抢险救灾中的优化运用"
+    },
+    {
+     "paper_id": "2017_A10425002",
+     "year": 2017,
+     "code": "A",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/A10425002/",
+     "title": "无人机在抢险救灾中的优化运用"
+    },
+    {
+     "paper_id": "2017_A10700045",
+     "year": 2017,
+     "code": "A",
+     "pages": 49,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/A10700045/",
+     "title": "无人机在抢险救灾中的优化运用"
+    },
+    {
+     "paper_id": "2017_A80143001",
+     "year": 2017,
+     "code": "A",
+     "pages": 66,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/A80143001/",
+     "title": "无人机在抢险救灾中的优化运用"
+    },
+    {
+     "paper_id": "2017_B10183125",
+     "year": 2017,
+     "code": "B",
+     "pages": 67,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/B10183125/",
+     "title": "面向下一代光通信的VCSEL 激光器仿真建模"
+    },
+    {
+     "paper_id": "2017_B10246049",
+     "year": 2017,
+     "code": "B",
+     "pages": 60,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/B10246049/",
+     "title": "面向下一代光通信的VCSEL 激光器仿真模型"
+    },
+    {
+     "paper_id": "2017_B10280234",
+     "year": 2017,
+     "code": "B",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/B10280234/",
+     "title": "面向下一代光通信的VCSEL 激光器仿真模型"
+    },
+    {
+     "paper_id": "2017_B10614023",
+     "year": 2017,
+     "code": "B",
+     "pages": 75,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/B10614023/",
+     "title": "面向下一代光通信的VCSEL 激光器仿真模型"
+    },
+    {
+     "paper_id": "2017_B10615020",
+     "year": 2017,
+     "code": "B",
+     "pages": 54,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/B10615020/",
+     "title": "基于最优参数搜索算法的VCSEL 激光器仿真模型"
+    },
+    {
+     "paper_id": "2017_B80143006",
+     "year": 2017,
+     "code": "B",
+     "pages": 47,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/B80143006/",
+     "title": "面向下一代光通信的VCSEL 激光器仿真模型"
+    },
+    {
+     "paper_id": "2017_B80151002",
+     "year": 2017,
+     "code": "B",
+     "pages": 53,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/B80151002/",
+     "title": "面向下一代光通信的VCSEL 激光器仿真模型"
+    },
+    {
+     "paper_id": "2017_B90105001",
+     "year": 2017,
+     "code": "B",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/B90105001/",
+     "title": "面向下一代光通信的VCSEL 激光器仿真模型"
+    },
+    {
+     "paper_id": "2017_C10004025",
+     "year": 2017,
+     "code": "C",
+     "pages": 66,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2017/C10004025/",
+     "title": "\"r\u0017į\"żoÃ\u0016ŭŶśĎ®Ôĺź。"
+    },
+    {
+     "paper_id": "2017_C10248117",
+     "year": 2017,
+     "code": "C",
+     "pages": 25,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/C10248117/",
+     "title": "应用时空网络模型解决不正常航班恢复问题"
+    },
+    {
+     "paper_id": "2017_C10617012",
+     "year": 2017,
+     "code": "C",
+     "pages": 22,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/C10617012/",
+     "title": "航班恢复问题"
+    },
+    {
+     "paper_id": "2017_C90005033",
+     "year": 2017,
+     "code": "C",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/C90005033/",
+     "title": "机场临时关闭时的航班恢复问题研究"
+    },
+    {
+     "paper_id": "2017_CK0264",
+     "year": 2017,
+     "code": "C",
+     "pages": 26,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/CK0264/",
+     "title": "基于时空网络技术的航班恢复问题"
+    },
+    {
+     "paper_id": "2017_CK0723",
+     "year": 2017,
+     "code": "C",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/CK0723/",
+     "title": "航班恢复问题"
+    },
+    {
+     "paper_id": "2017_D10247003",
+     "year": 2017,
+     "code": "D",
+     "pages": 62,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/D10247003/",
+     "title": "基于监控视频的前景目标提取"
+    },
+    {
+     "paper_id": "2017_D10252016",
+     "year": 2017,
+     "code": "D",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/D10252016/",
+     "title": "基于监控视频的前景目标提取"
+    },
+    {
+     "paper_id": "2017_D10532006",
+     "year": 2017,
+     "code": "D",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/D10532006/",
+     "title": "基于Vibe 算法的视频前景目标提取"
+    },
+    {
+     "paper_id": "2017_D10701013",
+     "year": 2017,
+     "code": "D",
+     "pages": 95,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2017/D10701013/",
+     "title": "基于监控视频的前景目标提取"
+    },
+    {
+     "paper_id": "2017_D90005013",
+     "year": 2017,
+     "code": "D",
+     "pages": 47,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/D90005013/",
+     "title": "基于监控视频的前景目标提取"
+    },
+    {
+     "paper_id": "2017_DK0059",
+     "year": 2017,
+     "code": "D",
+     "pages": 70,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/DK0059/",
+     "title": "基于监控视频的前景目标提取"
+    },
+    {
+     "paper_id": "2017_DK0483",
+     "year": 2017,
+     "code": "D",
+     "pages": 86,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/DK0483/",
+     "title": "基于监控视频的前景目标提取"
+    },
+    {
+     "paper_id": "2017_E10252101",
+     "year": 2017,
+     "code": "E",
+     "pages": 31,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/E10252101/",
+     "title": "多波次导弹发射中的规划问题"
+    },
+    {
+     "paper_id": "2017_E10294008",
+     "year": 2017,
+     "code": "E",
+     "pages": 40,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/E10294008/",
+     "title": "多波次导弹发射中的规划问题"
+    },
+    {
+     "paper_id": "2017_E10426002",
+     "year": 2017,
+     "code": "E",
+     "pages": 47,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/E10426002/",
+     "title": "车载导弹波次作战部署"
+    },
+    {
+     "paper_id": "2017_E10487018",
+     "year": 2017,
+     "code": "E",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/E10487018/",
+     "title": "多波次导弹发射中的规划问题"
+    },
+    {
+     "paper_id": "2017_E10610009",
+     "year": 2017,
+     "code": "E",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/E10610009/",
+     "title": "多波次导弹发射中的规划问题"
+    },
+    {
+     "paper_id": "2017_E90038022",
+     "year": 2017,
+     "code": "E",
+     "pages": 47,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2017/E90038022/",
+     "title": "两波次导弹发射中的规划问题"
+    },
+    {
+     "paper_id": "2017_EK0411",
+     "year": 2017,
+     "code": "E",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/EK0411/",
+     "title": "多波次导弹发射中的规划问题"
+    },
+    {
+     "paper_id": "2017_F10256001",
+     "year": 2017,
+     "code": "F",
+     "pages": 68,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/F10256001/",
+     "title": "地下物流系统的构建研究"
+    },
+    {
+     "paper_id": "2017_F10294003",
+     "year": 2017,
+     "code": "F",
+     "pages": 50,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/F10294003/",
+     "title": "构建地下物流系统网络"
+    },
+    {
+     "paper_id": "2017_F10486024",
+     "year": 2017,
+     "code": "F",
+     "pages": 49,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/F10486024/",
+     "title": "2017 年中国研究生数学建模竞赛F 题"
+    },
+    {
+     "paper_id": "2017_F10703002",
+     "year": 2017,
+     "code": "F",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/F10703002/",
+     "title": "构建分层优化的城市地下物流系统网络"
+    },
+    {
+     "paper_id": "2017_F10710008",
+     "year": 2017,
+     "code": "F",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/F10710008/",
+     "title": "构建地下物流系统网络"
+    },
+    {
+     "paper_id": "2017_F90005027",
+     "year": 2017,
+     "code": "F",
+     "pages": 54,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/F90005027/",
+     "title": "关于南京仙林地区ULS 的建设方案探析"
+    },
+    {
+     "paper_id": "2017_FK0263",
+     "year": 2017,
+     "code": "F",
+     "pages": 63,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2017/FK0263/",
+     "title": "构建地下物流系统网络"
+    },
+    {
+     "paper_id": "2018_A18101830082",
+     "year": 2018,
+     "code": "A",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/A18101830082/",
+     "title": "关于跳台跳水体型系数设置的建模分析"
+    },
+    {
+     "paper_id": "2018_A18102690160",
+     "year": 2018,
+     "code": "A",
+     "pages": 10,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2018/A18102690160/",
+     "title": "跳台跳水体型校正系数的建模分析"
+    },
+    {
+     "paper_id": "2018_A18103000012",
+     "year": 2018,
+     "code": "A",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/A18103000012/",
+     "title": "关于跳台跳水体型系数设置的建模分析"
+    },
+    {
+     "paper_id": "2018_A18105000011",
+     "year": 2018,
+     "code": "A",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/A18105000011/",
+     "title": "关于跳台跳水体型系数设置的建模分析"
+    },
+    {
+     "paper_id": "2018_A18106150026",
+     "year": 2018,
+     "code": "A",
+     "pages": 32,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2018/A18106150026/",
+     "title": "Ȱংၼיȱݾ༈Ⴗ઀᎒खᆼ઱໶"
+    },
+    {
+     "paper_id": "2018_A18900020063",
+     "year": 2018,
+     "code": "A",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/A18900020063/",
+     "title": "关于跳台跳水体型系数设置的建模分析"
+    },
+    {
+     "paper_id": "2018_B18102520096",
+     "year": 2018,
+     "code": "B",
+     "pages": 49,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/B18102520096/",
+     "title": "光传送网建模与价值评估"
+    },
+    {
+     "paper_id": "2018_B18102800030",
+     "year": 2018,
+     "code": "B",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/B18102800030/",
+     "title": "光传送网建模与价值评估"
+    },
+    {
+     "paper_id": "2018_B18102840008",
+     "year": 2018,
+     "code": "B",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/B18102840008/",
+     "title": "光传送网建模与价值评估"
+    },
+    {
+     "paper_id": "2018_B18102840019",
+     "year": 2018,
+     "code": "B",
+     "pages": 44,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/B18102840019/",
+     "title": "光传送网建模与价值评估"
+    },
+    {
+     "paper_id": "2018_B18102860425",
+     "year": 2018,
+     "code": "B",
+     "pages": 67,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2018/B18102860425/",
+     "title": "Ȱংၼיȱݾ༈Ⴗ઀᎒खᆼ઱໶"
+    },
+    {
+     "paper_id": "2018_B18102930014",
+     "year": 2018,
+     "code": "B",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/B18102930014/",
+     "title": "光传送网建模与价值评估"
+    },
+    {
+     "paper_id": "2018_B18106140049",
+     "year": 2018,
+     "code": "B",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/B18106140049/",
+     "title": "光传送网建模与价值评估"
+    },
+    {
+     "paper_id": "2018_C18101830161",
+     "year": 2018,
+     "code": "C",
+     "pages": 59,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/C18101830161/",
+     "title": "对恐怖主义袭击事件数据的量化分析"
+    },
+    {
+     "paper_id": "2018_C18102720070",
+     "year": 2018,
+     "code": "C",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/C18102720070/",
+     "title": "对恐怖袭击事件记录数据的量化分析"
+    },
+    {
+     "paper_id": "2018_C18103570006",
+     "year": 2018,
+     "code": "C",
+     "pages": 60,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/C18103570006/",
+     "title": "基于模糊聚类和距离测度的恐袭"
+    },
+    {
+     "paper_id": "2018_C18105320019",
+     "year": 2018,
+     "code": "C",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/C18105320019/",
+     "title": "基于恐怖袭击记录数据的量化分析"
+    },
+    {
+     "paper_id": "2018_C18108560226",
+     "year": 2018,
+     "code": "C",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/C18108560226/",
+     "title": "对恐怖袭击事件记录数据的量化分析"
+    },
+    {
+     "paper_id": "2018_C18900450036",
+     "year": 2018,
+     "code": "C",
+     "pages": 83,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/C18900450036/",
+     "title": "对恐怖袭击事件记录数据的量化分析"
+    },
+    {
+     "paper_id": "2018_C18910040046",
+     "year": 2018,
+     "code": "C",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/C18910040046/",
+     "title": "对恐怖袭击事件记录数据的量化分析"
+    },
+    {
+     "paper_id": "2018_D18102480211",
+     "year": 2018,
+     "code": "D",
+     "pages": 73,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/D18102480211/",
+     "title": "基于卫星高度计海面高度异常资料"
+    },
+    {
+     "paper_id": "2018_D18104250046",
+     "year": 2018,
+     "code": "D",
+     "pages": 58,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/D18104250046/",
+     "title": "基于卫星高度计海面高度异常资料获取潮汐调和常数方法及应用"
+    },
+    {
+     "paper_id": "2018_D18104910017",
+     "year": 2018,
+     "code": "D",
+     "pages": 65,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/D18104910017/",
+     "title": "基于卫星高度计海面高度异常资料"
+    },
+    {
+     "paper_id": "2018_D18106110053",
+     "year": 2018,
+     "code": "D",
+     "pages": 50,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/D18106110053/",
+     "title": "基于卫星高度计海面高度异常资料"
+    },
+    {
+     "paper_id": "2018_D18107010021",
+     "year": 2018,
+     "code": "D",
+     "pages": 44,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/D18107010021/",
+     "title": "基于卫星高度计海面高度异常资料获取潮汐调和常数"
+    },
+    {
+     "paper_id": "2018_D18108560125",
+     "year": 2018,
+     "code": "D",
+     "pages": 60,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/D18108560125/",
+     "title": "基于卫星高度计海面高度异常资料"
+    },
+    {
+     "paper_id": "2018_D18116460078",
+     "year": 2018,
+     "code": "D",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/D18116460078/",
+     "title": "基于卫星高度计海面高度异常资料"
+    },
+    {
+     "paper_id": "2018_D18911010003",
+     "year": 2018,
+     "code": "D",
+     "pages": 49,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/D18911010003/",
+     "title": "基于卫星高度计海面高度异常资料"
+    },
+    {
+     "paper_id": "2018_E18100700006",
+     "year": 2018,
+     "code": "E",
+     "pages": 37,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/E18100700006/",
+     "title": "多无人机对组网雷达的协同干扰"
+    },
+    {
+     "paper_id": "2018_E18102690044",
+     "year": 2018,
+     "code": "E",
+     "pages": 37,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/E18102690044/",
+     "title": "多无人机对组网雷达的协同干扰"
+    },
+    {
+     "paper_id": "2018_E18102700005",
+     "year": 2018,
+     "code": "E",
+     "pages": 37,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/E18102700005/",
+     "title": "多无人机对组网雷达的协同干扰"
+    },
+    {
+     "paper_id": "2018_E18102860271",
+     "year": 2018,
+     "code": "E",
+     "pages": 37,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/E18102860271/",
+     "title": "多无人机对组网雷达的协同干扰"
+    },
+    {
+     "paper_id": "2018_E18910160005",
+     "year": 2018,
+     "code": "E",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/E18910160005/",
+     "title": "（E）多无人机对组网雷达的协同干扰"
+    },
+    {
+     "paper_id": "2018_F18100030032",
+     "year": 2018,
+     "code": "F",
+     "pages": 59,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/F18100030032/",
+     "title": "中转航班调度：从MILP 模型到启发式算法"
+    },
+    {
+     "paper_id": "2018_F18102470507",
+     "year": 2018,
+     "code": "F",
+     "pages": 73,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/F18102470507/",
+     "title": "机场新增卫星厅对中转旅客影响的研究"
+    },
+    {
+     "paper_id": "2018_F18104860073",
+     "year": 2018,
+     "code": "F",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/F18104860073/",
+     "title": "机场新增卫星厅对中转旅客影响的评估方法"
+    },
+    {
+     "paper_id": "2018_F18105610030",
+     "year": 2018,
+     "code": "F",
+     "pages": 56,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/F18105610030/",
+     "title": "机场新增卫星厅对中转旅客影响的评估方法"
+    },
+    {
+     "paper_id": "2018_F18107010037",
+     "year": 2018,
+     "code": "F",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/F18107010037/",
+     "title": "机场新增卫星厅对中转旅客影响的评估方法"
+    },
+    {
+     "paper_id": "2018_F18900020072",
+     "year": 2018,
+     "code": "F",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2018/F18900020072/",
+     "title": "增设卫星厅的登机口分配问题"
+    },
+    {
+     "paper_id": "2019_A19100030004",
+     "year": 2019,
+     "code": "A",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/A19100030004/",
+     "title": "中国研究生创新实践系列大赛"
+    },
+    {
+     "paper_id": "2019_A19100270008",
+     "year": 2019,
+     "code": "A",
+     "pages": 41,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2019/A19100270008/",
+     "title": "基于神经网络的无线电波传播损耗预测模型"
+    },
+    {
+     "paper_id": "2019_A19102460049",
+     "year": 2019,
+     "code": "A",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/A19102460049/",
+     "title": "关于无线智能传播模型的研究"
+    },
+    {
+     "paper_id": "2019_A19102690029",
+     "year": 2019,
+     "code": "A",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/A19102690029/",
+     "title": "无线智能传播模型"
+    },
+    {
+     "paper_id": "2019_A19103580027",
+     "year": 2019,
+     "code": "A",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/A19103580027/",
+     "title": "无线智能传播模型"
+    },
+    {
+     "paper_id": "2019_B19100030006",
+     "year": 2019,
+     "code": "B",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/B19100030006/",
+     "title": "天文导航中的星图识别"
+    },
+    {
+     "paper_id": "2019_B19102690067",
+     "year": 2019,
+     "code": "B",
+     "pages": 47,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/B19102690067/",
+     "title": "天体导航中的星图识别"
+    },
+    {
+     "paper_id": "2019_B19102880053",
+     "year": 2019,
+     "code": "B",
+     "pages": 24,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/B19102880053/",
+     "title": "天文导航中的星图识别"
+    },
+    {
+     "paper_id": "2019_B19910160009",
+     "year": 2019,
+     "code": "B",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/B19910160009/",
+     "title": "天文导航中的星图识别"
+    },
+    {
+     "paper_id": "2019_B19910360003",
+     "year": 2019,
+     "code": "B",
+     "pages": 40,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/B19910360003/",
+     "title": "天文导航中的星图识别"
+    },
+    {
+     "paper_id": "2019_C19100030017",
+     "year": 2019,
+     "code": "C",
+     "pages": 40,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/C19100030017/",
+     "title": "基于单目视觉的视频图像信息分析"
+    },
+    {
+     "paper_id": "2019_C19102480006",
+     "year": 2019,
+     "code": "C",
+     "pages": 69,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/C19102480006/",
+     "title": "视觉情报信息分析"
+    },
+    {
+     "paper_id": "2019_C19102840053",
+     "year": 2019,
+     "code": "C",
+     "pages": 70,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/C19102840053/",
+     "title": "C 视觉情报信息分析"
+    },
+    {
+     "paper_id": "2019_C19104220023",
+     "year": 2019,
+     "code": "C",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/C19104220023/",
+     "title": "视觉情报信息分析"
+    },
+    {
+     "paper_id": "2019_C19910040006",
+     "year": 2019,
+     "code": "C",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/C19910040006/",
+     "title": "视觉情报信息分析"
+    },
+    {
+     "paper_id": "2019_D19100010050",
+     "year": 2019,
+     "code": "D",
+     "pages": 52,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2019/D19100010050/",
+     "title": "基于随机搜索和聚类分析以及自编码器再优化"
+    },
+    {
+     "paper_id": "2019_D19102470244",
+     "year": 2019,
+     "code": "D",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/D19102470244/",
+     "title": "汽车行驶工况构建"
+    },
+    {
+     "paper_id": "2019_D19102860085",
+     "year": 2019,
+     "code": "D",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/D19102860085/",
+     "title": "汽车行驶工况构建"
+    },
+    {
+     "paper_id": "2019_D19103860074",
+     "year": 2019,
+     "code": "D",
+     "pages": 44,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/D19103860074/",
+     "title": "基于改进K-means 聚类和隐马尔可夫"
+    },
+    {
+     "paper_id": "2019_D19105320030",
+     "year": 2019,
+     "code": "D",
+     "pages": 51,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/D19105320030/",
+     "title": "汽车行驶工况构建"
+    },
+    {
+     "paper_id": "2019_E19102470046",
+     "year": 2019,
+     "code": "E",
+     "pages": 89,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/E19102470046/",
+     "title": "基于多变量的全球气候与极端天气模型的构建与应用"
+    },
+    {
+     "paper_id": "2019_E19102540248",
+     "year": 2019,
+     "code": "E",
+     "pages": 75,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/E19102540248/",
+     "title": "全球变暖？"
+    },
+    {
+     "paper_id": "2019_E19102840016",
+     "year": 2019,
+     "code": "E",
+     "pages": 61,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/E19102840016/",
+     "title": "全球变暖气候预测分析"
+    },
+    {
+     "paper_id": "2019_E19103530011",
+     "year": 2019,
+     "code": "E",
+     "pages": 59,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/E19103530011/",
+     "title": "对气温变化数据的量化分析与预测"
+    },
+    {
+     "paper_id": "2019_E19106180041",
+     "year": 2019,
+     "code": "E",
+     "pages": 57,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/E19106180041/",
+     "title": "全球变暖和极端气候的时空分析"
+    },
+    {
+     "paper_id": "2019_F19102510081",
+     "year": 2019,
+     "code": "F",
+     "pages": 40,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/F19102510081/",
+     "title": "多约束条件下智能飞行器航迹快速规划"
+    },
+    {
+     "paper_id": "2019_F19102690110",
+     "year": 2019,
+     "code": "F",
+     "pages": 24,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2019/F19102690110/",
+     "title": "᎒खᆼ઱໶ۺᅐ༏ਯქ௜ܹບ"
+    },
+    {
+     "paper_id": "2019_F19103360018",
+     "year": 2019,
+     "code": "F",
+     "pages": 79,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/F19103360018/",
+     "title": "智能飞行器航迹规划模型"
+    },
+    {
+     "paper_id": "2019_F19103360033",
+     "year": 2019,
+     "code": "F",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/F19103360033/",
+     "title": "多约束条件下智能飞行器航迹快速规划"
+    },
+    {
+     "paper_id": "2019_F19910020011",
+     "year": 2019,
+     "code": "F",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2019/F19910020011/",
+     "title": "多约束条件下智能飞行器航迹快速规划问题"
+    },
+    {
+     "paper_id": "2020_A20102460127",
+     "year": 2020,
+     "code": "A",
+     "pages": 40,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/A20102460127/",
+     "title": "ASIC 芯片上的载波恢复DSP 算法设计与实现"
+    },
+    {
+     "paper_id": "2020_A20102480161",
+     "year": 2020,
+     "code": "A",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/A20102480161/",
+     "title": "ASIC 芯片上的载波恢复DSP 算法设计与实现"
+    },
+    {
+     "paper_id": "2020_A20104870015",
+     "year": 2020,
+     "code": "A",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/A20104870015/",
+     "title": "载波恢复算法设计及实现"
+    },
+    {
+     "paper_id": "2020_A20106110086",
+     "year": 2020,
+     "code": "A",
+     "pages": 40,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/A20106110086/",
+     "title": "基于通信仿真的载波恢复算法设计与ASIC 实现"
+    },
+    {
+     "paper_id": "2020_A20910040037",
+     "year": 2020,
+     "code": "A",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/A20910040037/",
+     "title": "ASIC 芯片上的载波恢复DSP 算法设计与实现"
+    },
+    {
+     "paper_id": "2020_B20100040057",
+     "year": 2020,
+     "code": "B",
+     "pages": 36,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/B20100040057/",
+     "title": "降低汽油精制过程中的辛烷值损失模型"
+    },
+    {
+     "paper_id": "2020_B20100050019",
+     "year": 2020,
+     "code": "B",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/B20100050019/",
+     "title": "汽油精制过程中的辛烷值损失预测及优化研究"
+    },
+    {
+     "paper_id": "2020_B20102470089",
+     "year": 2020,
+     "code": "B",
+     "pages": 51,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/B20102470089/",
+     "title": "汽油辛烷值优化建模"
+    },
+    {
+     "paper_id": "2020_B20102940042",
+     "year": 2020,
+     "code": "B",
+     "pages": 54,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/B20102940042/",
+     "title": "汽油辛烷值优化建模"
+    },
+    {
+     "paper_id": "2020_B20102980116",
+     "year": 2020,
+     "code": "B",
+     "pages": 50,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/B20102980116/",
+     "title": "降低汽油精制过程中的辛烷值损失模型"
+    },
+    {
+     "paper_id": "2020_B20103350031",
+     "year": 2020,
+     "code": "B",
+     "pages": 82,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/B20103350031/",
+     "title": "基于数据挖掘技术的汽油辛烷值优化研究"
+    },
+    {
+     "paper_id": "2020_B20103380015",
+     "year": 2020,
+     "code": "B",
+     "pages": 47,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2020/B20103380015/",
+     "title": "基于数据挖掘降低汽油精制过程辛烷值损失"
+    },
+    {
+     "paper_id": "2020_B20103580004",
+     "year": 2020,
+     "code": "B",
+     "pages": 39,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/B20103580004/",
+     "title": "汽油辛烷值优化建模"
+    },
+    {
+     "paper_id": "2020_B20104870036",
+     "year": 2020,
+     "code": "B",
+     "pages": 60,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/B20104870036/",
+     "title": "降低汽油精制过程中的辛烷值损失模型"
+    },
+    {
+     "paper_id": "2020_B20105340008",
+     "year": 2020,
+     "code": "B",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/B20105340008/",
+     "title": "降低汽油精制过程中的辛烷值损失模型"
+    },
+    {
+     "paper_id": "2020_B20106570027",
+     "year": 2020,
+     "code": "B",
+     "pages": 51,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/B20106570027/",
+     "title": "降低汽油精制过程中的辛烷值损失模型"
+    },
+    {
+     "paper_id": "2020_C20102470319",
+     "year": 2020,
+     "code": "C",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/C20102470319/",
+     "title": "面向康复工程的脑电信号分析和判别模型"
+    },
+    {
+     "paper_id": "2020_C20102480095",
+     "year": 2020,
+     "code": "C",
+     "pages": 68,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2020/C20102480095/",
+     "title": "脑电信号分析与判别模型研究"
+    },
+    {
+     "paper_id": "2020_C20102520034",
+     "year": 2020,
+     "code": "C",
+     "pages": 26,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/C20102520034/",
+     "title": "面向康复工程的脑电信号分析和判别模型"
+    },
+    {
+     "paper_id": "2020_C20102840089",
+     "year": 2020,
+     "code": "C",
+     "pages": 64,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/C20102840089/",
+     "title": "面向康复工程的脑电信号分析和判别模型"
+    },
+    {
+     "paper_id": "2020_C20102860127",
+     "year": 2020,
+     "code": "C",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/C20102860127/",
+     "title": "面向康复工程的脑电信号分析和判别模型"
+    },
+    {
+     "paper_id": "2020_C20106980009",
+     "year": 2020,
+     "code": "C",
+     "pages": 50,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/C20106980009/",
+     "title": "面向康复工程的脑电信号分析和判别模型"
+    },
+    {
+     "paper_id": "2020_D20102470005",
+     "year": 2020,
+     "code": "D",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/D20102470005/",
+     "title": "无人机集群追逃博弈模型研究"
+    },
+    {
+     "paper_id": "2020_D20102690110",
+     "year": 2020,
+     "code": "D",
+     "pages": 67,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/D20102690110/",
+     "title": "无人机集群协同对抗"
+    },
+    {
+     "paper_id": "2020_D20102860223",
+     "year": 2020,
+     "code": "D",
+     "pages": 50,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/D20102860223/",
+     "title": "无人机集群协同对抗"
+    },
+    {
+     "paper_id": "2020_D20107010019",
+     "year": 2020,
+     "code": "D",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/D20107010019/",
+     "title": "无人机集群协同对抗"
+    },
+    {
+     "paper_id": "2020_D20910240043",
+     "year": 2020,
+     "code": "D",
+     "pages": 62,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/D20910240043/",
+     "title": "无人机集群协同对抗"
+    },
+    {
+     "paper_id": "2020_D20910240065",
+     "year": 2020,
+     "code": "D",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/D20910240065/",
+     "title": "无人机集群协同对抗"
+    },
+    {
+     "paper_id": "2020_E20102690219",
+     "year": 2020,
+     "code": "E",
+     "pages": 57,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/E20102690219/",
+     "title": "能见度估计与预测"
+    },
+    {
+     "paper_id": "2020_E20104250114",
+     "year": 2020,
+     "code": "E",
+     "pages": 54,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/E20104250114/",
+     "title": "基于视频数据的能见度估计与预测"
+    },
+    {
+     "paper_id": "2020_E20104590039",
+     "year": 2020,
+     "code": "E",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/E20104590039/",
+     "title": "中国研究生创新实践系列大赛"
+    },
+    {
+     "paper_id": "2020_E20104590100",
+     "year": 2020,
+     "code": "E",
+     "pages": 68,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/E20104590100/",
+     "title": "大雾演化规律的量化分析与预测模型研究"
+    },
+    {
+     "paper_id": "2020_E20112870005",
+     "year": 2020,
+     "code": "E",
+     "pages": 50,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/E20112870005/",
+     "title": "基于深度学习的大雾条件下能见度估计与预测"
+    },
+    {
+     "paper_id": "2020_E20114820008",
+     "year": 2020,
+     "code": "E",
+     "pages": 70,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/E20114820008/",
+     "title": "大雾天气下的能见度估计与预测问题"
+    },
+    {
+     "paper_id": "2020_F20100070005",
+     "year": 2020,
+     "code": "F",
+     "pages": 57,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/F20100070005/",
+     "title": "飞行器质心平衡供油策略优化"
+    },
+    {
+     "paper_id": "2020_F20102480125",
+     "year": 2020,
+     "code": "F",
+     "pages": 76,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/F20102480125/",
+     "title": "质心平衡供油策略设计：贪心和搜索的结合"
+    },
+    {
+     "paper_id": "2020_F20102690221",
+     "year": 2020,
+     "code": "F",
+     "pages": 57,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2020/F20102690221/",
+     "title": "飞行器质心平衡供油策略优化"
+    },
+    {
+     "paper_id": "2020_F20102840100",
+     "year": 2020,
+     "code": "F",
+     "pages": 75,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/F20102840100/",
+     "title": "F 飞行器质心平衡供油策略优化"
+    },
+    {
+     "paper_id": "2020_F20102920009",
+     "year": 2020,
+     "code": "F",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/F20102920009/",
+     "title": "F 飞行器质心平衡供油策略优化研究"
+    },
+    {
+     "paper_id": "2020_F20105320023",
+     "year": 2020,
+     "code": "F",
+     "pages": 56,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2020/F20105320023/",
+     "title": "飞行器质心平衡供油策略优化研究"
+    },
+    {
+     "paper_id": "2022_A22100070190",
+     "year": 2022,
+     "code": "A",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/A22100070190/",
+     "title": "移动场景超分辨定位问题"
+    },
+    {
+     "paper_id": "2022_A22100130054",
+     "year": 2022,
+     "code": "A",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/A22100130054/",
+     "title": "基于压缩感知的快速超分辨率雷达定位与追踪算法"
+    },
+    {
+     "paper_id": "2022_A22102460007",
+     "year": 2022,
+     "code": "A",
+     "pages": 56,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/A22102460007/",
+     "title": "多维变分贝叶斯低复杂度超分辨率线谱估计"
+    },
+    {
+     "paper_id": "2022_A22103040090",
+     "year": 2022,
+     "code": "A",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/A22103040090/",
+     "title": "移动场景超分辨定位问题"
+    },
+    {
+     "paper_id": "2022_A22104860055",
+     "year": 2022,
+     "code": "A",
+     "pages": 59,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/A22104860055/",
+     "title": "移动场景超分辨定位问题"
+    },
+    {
+     "paper_id": "2022_A22107010047",
+     "year": 2022,
+     "code": "A",
+     "pages": 60,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/A22107010047/",
+     "title": "移动场景下MIMO 毫米波雷达超分辨定位问题求解"
+    },
+    {
+     "paper_id": "2022_A22116460175",
+     "year": 2022,
+     "code": "A",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/A22116460175/",
+     "title": "移动场景超分辨定位问题"
+    },
+    {
+     "paper_id": "2022_B22100070171",
+     "year": 2022,
+     "code": "B",
+     "pages": 62,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/B22100070171/",
+     "title": "方形件排样优化与订单组批问题探析"
+    },
+    {
+     "paper_id": "2022_B22102860210",
+     "year": 2022,
+     "code": "B",
+     "pages": 75,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/B22102860210/",
+     "title": "方形件组批优化问题"
+    },
+    {
+     "paper_id": "2022_B22103360018",
+     "year": 2022,
+     "code": "B",
+     "pages": 53,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/B22103360018/",
+     "title": "基于整数规划的组批和下料优化问题研究"
+    },
+    {
+     "paper_id": "2022_B22104870143",
+     "year": 2022,
+     "code": "B",
+     "pages": 41,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/B22104870143/",
+     "title": "基于整数规划的方形件排样和组批优化问题研究"
+    },
+    {
+     "paper_id": "2022_B22105300030",
+     "year": 2022,
+     "code": "B",
+     "pages": 39,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/B22105300030/",
+     "title": "方形件组批优化问题研究"
+    },
+    {
+     "paper_id": "2022_B22106140009",
+     "year": 2022,
+     "code": "B",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/B22106140009/",
+     "title": "二维三阶段矩形件排样组批优化研究"
+    },
+    {
+     "paper_id": "2022_B22110490001",
+     "year": 2022,
+     "code": "B",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/B22110490001/",
+     "title": "方形件组批优化问题"
+    },
+    {
+     "paper_id": "2022_C22103190082",
+     "year": 2022,
+     "code": "C",
+     "pages": 49,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/C22103190082/",
+     "title": "汽车制造涂装-总装缓存调序区调度优化研究"
+    },
+    {
+     "paper_id": "2022_C22103360057",
+     "year": 2022,
+     "code": "C",
+     "pages": 39,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/C22103360057/",
+     "title": "基于改进贪婪算法的PBS 优化调度问题"
+    },
+    {
+     "paper_id": "2022_C22103560098",
+     "year": 2022,
+     "code": "C",
+     "pages": 56,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/C22103560098/",
+     "title": "基于动态规划的PBS 多目标优化调度问题研究"
+    },
+    {
+     "paper_id": "2022_C22105330245",
+     "year": 2022,
+     "code": "C",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/C22105330245/",
+     "title": "PBS 调度优化问题建模"
+    },
+    {
+     "paper_id": "2022_C22105930028",
+     "year": 2022,
+     "code": "C",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/C22105930028/",
+     "title": "汽车制造涂装-总装缓存调序区调度优化问题"
+    },
+    {
+     "paper_id": "2022_C22106130232",
+     "year": 2022,
+     "code": "C",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/C22106130232/",
+     "title": "涂装-总装缓存区调序调度优化问题"
+    },
+    {
+     "paper_id": "2022_C22106140003",
+     "year": 2022,
+     "code": "C",
+     "pages": 50,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/C22106140003/",
+     "title": "汽车制造涂装-总装缓存调序区调度优化问题"
+    },
+    {
+     "paper_id": "2022_D22102920026",
+     "year": 2022,
+     "code": "D",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/D22102920026/",
+     "title": "PISA 架构芯片资源排布问题"
+    },
+    {
+     "paper_id": "2022_D22102930009",
+     "year": 2022,
+     "code": "D",
+     "pages": 49,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/D22102930009/",
+     "title": "PISA 架构芯片资源排布问题"
+    },
+    {
+     "paper_id": "2022_D22103360092",
+     "year": 2022,
+     "code": "D",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/D22103360092/",
+     "title": "多约束条件下PISA 架构芯片资源排布规划"
+    },
+    {
+     "paper_id": "2022_D22104760020",
+     "year": 2022,
+     "code": "D",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/D22104760020/",
+     "title": "PISA 架构芯片资源排布问题"
+    },
+    {
+     "paper_id": "2022_D22106990096",
+     "year": 2022,
+     "code": "D",
+     "pages": 56,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2022/D22106990096/",
+     "title": "22106990096"
+    },
+    {
+     "paper_id": "2022_D22900310001",
+     "year": 2022,
+     "code": "D",
+     "pages": 69,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/D22900310001/",
+     "title": "中国研究生创新实践系列大赛"
+    },
+    {
+     "paper_id": "2022_D22910040028",
+     "year": 2022,
+     "code": "D",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/D22910040028/",
+     "title": "基于模拟退火和粒子群混合的的PISA 架构芯片资源"
+    },
+    {
+     "paper_id": "2022_E22100160013",
+     "year": 2022,
+     "code": "E",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/E22100160013/",
+     "title": "草原放牧策略研究"
+    },
+    {
+     "paper_id": "2022_E22103040108",
+     "year": 2022,
+     "code": "E",
+     "pages": 69,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/E22103040108/",
+     "title": "草原放牧策略研究"
+    },
+    {
+     "paper_id": "2022_E22103350038",
+     "year": 2022,
+     "code": "E",
+     "pages": 104,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/E22103350038/",
+     "title": "!!!!!!!!!!!\"#$%&'()!"
+    },
+    {
+     "paper_id": "2022_E22104860014",
+     "year": 2022,
+     "code": "E",
+     "pages": 120,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2022/E22104860014/",
+     "title": "草原放牧策略研究"
+    },
+    {
+     "paper_id": "2022_E22104870114",
+     "year": 2022,
+     "code": "E",
+     "pages": 76,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/E22104870114/",
+     "title": "草原放牧策略研究"
+    },
+    {
+     "paper_id": "2022_E22106110005",
+     "year": 2022,
+     "code": "E",
+     "pages": 57,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/E22106110005/",
+     "title": "基于机理分析与组合模型的草原放牧策略研究"
+    },
+    {
+     "paper_id": "2022_E22107100039",
+     "year": 2022,
+     "code": "E",
+     "pages": 92,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/E22107100039/",
+     "title": "草原放牧策略研究"
+    },
+    {
+     "paper_id": "2022_F22100090053",
+     "year": 2022,
+     "code": "F",
+     "pages": 70,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/F22100090053/",
+     "title": "COVID-19 疫情期间生活物资的科学管理问题"
+    },
+    {
+     "paper_id": "2022_F22101470006",
+     "year": 2022,
+     "code": "F",
+     "pages": 68,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2022/F22101470006/",
+     "title": "COVID-19 疫情期间生活物资的科学管理问题"
+    },
+    {
+     "paper_id": "2022_F22102540295",
+     "year": 2022,
+     "code": "F",
+     "pages": 86,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2022/F22102540295/",
+     "title": "COVID-19 疫情期间生活物资的科学管理问题建模与优化"
+    },
+    {
+     "paper_id": "2022_F22102980006",
+     "year": 2022,
+     "code": "F",
+     "pages": 51,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/F22102980006/",
+     "title": "COVID-19 疫情期间生活物资的科学管理问题"
+    },
+    {
+     "paper_id": "2022_F22103570053",
+     "year": 2022,
+     "code": "F",
+     "pages": 87,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/F22103570053/",
+     "title": "COVID-19 疫情期间生活物资的科学管理问题"
+    },
+    {
+     "paper_id": "2022_F22105330345",
+     "year": 2022,
+     "code": "F",
+     "pages": 52,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2022/F22105330345/",
+     "title": "22105330345"
+    },
+    {
+     "paper_id": "2022_F22106150018",
+     "year": 2022,
+     "code": "F",
+     "pages": 138,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2022/F22106150018/",
+     "title": "COVID-19 疫情期间生活物资的科学管理问题"
+    },
+    {
+     "paper_id": "2023_A23100070049",
+     "year": 2023,
+     "code": "A",
+     "pages": 56,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/A23100070049/",
+     "title": "WLAN 网络信道接入机制建模"
+    },
+    {
+     "paper_id": "2023_A23102470073",
+     "year": 2023,
+     "code": "A",
+     "pages": 58,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/A23102470073/",
+     "title": "WLAN 网络信道接入机制建模"
+    },
+    {
+     "paper_id": "2023_A23102480015",
+     "year": 2023,
+     "code": "A",
+     "pages": 83,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/A23102480015/",
+     "title": "基于Markov chain 的WLAN 网络信道接入机制建模"
+    },
+    {
+     "paper_id": "2023_A23102860239",
+     "year": 2023,
+     "code": "A",
+     "pages": 62,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/A23102860239/",
+     "title": "_____WLAN 网络信道接入机制建模______"
+    },
+    {
+     "paper_id": "2023_A23102890028",
+     "year": 2023,
+     "code": "A",
+     "pages": 89,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/A23102890028/",
+     "title": "同信道多BSS 系统吞吐计算问题"
+    },
+    {
+     "paper_id": "2023_A23103360079",
+     "year": 2023,
+     "code": "A",
+     "pages": 77,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/A23103360079/",
+     "title": "WLAN 组网中多BSS 系统建模研究"
+    },
+    {
+     "paper_id": "2023_A23103840031",
+     "year": 2023,
+     "code": "A",
+     "pages": 55,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/A23103840031/",
+     "title": "WLAN 网络信道接入机制建模"
+    },
+    {
+     "paper_id": "2023_A23104220005",
+     "year": 2023,
+     "code": "A",
+     "pages": 49,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/A23104220005/",
+     "title": "WLAN 网络信道接入机制建模"
+    },
+    {
+     "paper_id": "2023_A23104860166",
+     "year": 2023,
+     "code": "A",
+     "pages": 68,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/A23104860166/",
+     "title": "基于Markov 链的WLAN 网络信道接入机制建模"
+    },
+    {
+     "paper_id": "2023_A23105330383",
+     "year": 2023,
+     "code": "A",
+     "pages": 63,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/A23105330383/",
+     "title": "WLAN 中多BSS 场景下的信道竞争建模与性能分析"
+    },
+    {
+     "paper_id": "2023_B23100070010",
+     "year": 2023,
+     "code": "B",
+     "pages": 74,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/B23100070010/",
+     "title": "DFT 类矩阵的整数分解逼近：解析与优化方法"
+    },
+    {
+     "paper_id": "2023_B23100070173",
+     "year": 2023,
+     "code": "B",
+     "pages": 49,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/B23100070173/",
+     "title": "DFT 类矩阵的整数分解逼近"
+    },
+    {
+     "paper_id": "2023_B23102870003",
+     "year": 2023,
+     "code": "B",
+     "pages": 53,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/B23102870003/",
+     "title": "DFT 类矩阵的整数分解逼近"
+    },
+    {
+     "paper_id": "2023_B23102870182",
+     "year": 2023,
+     "code": "B",
+     "pages": 61,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/B23102870182/",
+     "title": "DFT 类矩阵的整数分解逼近"
+    },
+    {
+     "paper_id": "2023_B23103360062",
+     "year": 2023,
+     "code": "B",
+     "pages": 126,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/B23103360062/",
+     "title": "DFT 类矩阵的整数分解逼近"
+    },
+    {
+     "paper_id": "2023_B23104860044",
+     "year": 2023,
+     "code": "B",
+     "pages": 103,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/B23104860044/",
+     "title": "DFT 类矩阵的整数分解逼近"
+    },
+    {
+     "paper_id": "2023_B23105580005",
+     "year": 2023,
+     "code": "B",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/B23105580005/",
+     "title": "基于修正精确分解的矩阵连乘拟合模型"
+    },
+    {
+     "paper_id": "2023_B23106140164",
+     "year": 2023,
+     "code": "B",
+     "pages": 68,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/B23106140164/",
+     "title": "___ DFT 类矩阵的整数分解逼近问题研究_ _"
+    },
+    {
+     "paper_id": "2023_B23111170006",
+     "year": 2023,
+     "code": "B",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/B23111170006/",
+     "title": "基于整数分解的DFT 精度和效率优化问题"
+    },
+    {
+     "paper_id": "2023_C23102540029",
+     "year": 2023,
+     "code": "C",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/C23102540029/",
+     "title": "大规模创新类竞赛评审方案研究"
+    },
+    {
+     "paper_id": "2023_C23102890004",
+     "year": 2023,
+     "code": "C",
+     "pages": 54,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/C23102890004/",
+     "title": "大规模创新类竞赛评审方案研究"
+    },
+    {
+     "paper_id": "2023_C23102980125",
+     "year": 2023,
+     "code": "C",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/C23102980125/",
+     "title": "大规模创新类竞赛评审方案的建模与研究"
+    },
+    {
+     "paper_id": "2023_C23103360083",
+     "year": 2023,
+     "code": "C",
+     "pages": 101,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/C23103360083/",
+     "title": "大规模创新类竞赛评审方案研究"
+    },
+    {
+     "paper_id": "2023_C23103510013",
+     "year": 2023,
+     "code": "C",
+     "pages": 59,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/C23103510013/",
+     "title": "大规模创新类竞赛评审方案研究"
+    },
+    {
+     "paper_id": "2023_C23104080013",
+     "year": 2023,
+     "code": "C",
+     "pages": 65,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/C23104080013/",
+     "title": "大规模创新类竞赛评审模型构建____"
+    },
+    {
+     "paper_id": "2023_C23106130016",
+     "year": 2023,
+     "code": "C",
+     "pages": 74,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/C23106130016/",
+     "title": "_大规模创新类竞赛评审方案研究_"
+    },
+    {
+     "paper_id": "2023_C23106570312",
+     "year": 2023,
+     "code": "C",
+     "pages": 49,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/C23106570312/",
+     "title": "大规模创新类竞赛评审方案研究"
+    },
+    {
+     "paper_id": "2023_C23107120024",
+     "year": 2023,
+     "code": "C",
+     "pages": 73,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/C23107120024/",
+     "title": "大规模创新类竞赛评审方案研究"
+    },
+    {
+     "paper_id": "2023_C23910020010",
+     "year": 2023,
+     "code": "C",
+     "pages": 58,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/C23910020010/",
+     "title": "创新型竞赛评审全流程优化设计方法探索"
+    },
+    {
+     "paper_id": "2023_D23100060041",
+     "year": 2023,
+     "code": "D",
+     "pages": 99,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/D23100060041/",
+     "title": "区域碳排放量影响因素分析及双碳目标分析."
+    },
+    {
+     "paper_id": "2023_D23102690008",
+     "year": 2023,
+     "code": "D",
+     "pages": 63,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/D23102690008/",
+     "title": "实现区域双碳的目标与路径规划研究"
+    },
+    {
+     "paper_id": "2023_D23102860126",
+     "year": 2023,
+     "code": "D",
+     "pages": 73,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/D23102860126/",
+     "title": "区域双碳目标与路径规划研究_____"
+    },
+    {
+     "paper_id": "2023_D23103560099",
+     "year": 2023,
+     "code": "D",
+     "pages": 79,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/D23103560099/",
+     "title": "基于碳排放时序分析的区域双碳目标与路径规划的研究"
+    },
+    {
+     "paper_id": "2023_D23104860011",
+     "year": 2023,
+     "code": "D",
+     "pages": 98,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/D23104860011/",
+     "title": "___ _区域双碳目标与路径规划研究_____"
+    },
+    {
+     "paper_id": "2023_D23105330094",
+     "year": 2023,
+     "code": "D",
+     "pages": 66,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/D23105330094/",
+     "title": "双碳目标下基于kaya-LMDI 模型的区域碳排放预测及路径设计"
+    },
+    {
+     "paper_id": "2023_D23106350004",
+     "year": 2023,
+     "code": "D",
+     "pages": 76,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/D23106350004/",
+     "title": "基于区域双碳目标与路径规划的算法研究"
+    },
+    {
+     "paper_id": "2023_D23106740070",
+     "year": 2023,
+     "code": "D",
+     "pages": 86,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/D23106740070/",
+     "title": "____ 区域双碳目标与路径规划研究"
+    },
+    {
+     "paper_id": "2023_D23116460172",
+     "year": 2023,
+     "code": "D",
+     "pages": 58,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/D23116460172/",
+     "title": "区域双碳目标与路径规划研究"
+    },
+    {
+     "paper_id": "2023_E23100650012",
+     "year": 2023,
+     "code": "E",
+     "pages": 59,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/E23100650012/",
+     "title": "出血性脑卒中临床智能诊疗建模"
+    },
+    {
+     "paper_id": "2023_E23102550019",
+     "year": 2023,
+     "code": "E",
+     "pages": 68,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/E23102550019/",
+     "title": "出血性脑卒中临床智能诊疗模型的建立"
+    },
+    {
+     "paper_id": "2023_E23103530067",
+     "year": 2023,
+     "code": "E",
+     "pages": 85,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/E23103530067/",
+     "title": "出血性脑卒中患者预后预测与治疗智能模型构建"
+    },
+    {
+     "paper_id": "2023_E23103570015",
+     "year": 2023,
+     "code": "E",
+     "pages": 138,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/E23103570015/",
+     "title": "：E _"
+    },
+    {
+     "paper_id": "2023_E23104030073",
+     "year": 2023,
+     "code": "E",
+     "pages": 60,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/E23104030073/",
+     "title": "出血性脑卒中临床智能诊疗建模分析"
+    },
+    {
+     "paper_id": "2023_E23105330424",
+     "year": 2023,
+     "code": "E",
+     "pages": 115,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/E23105330424/",
+     "title": "出血性脑卒中临床智能诊疗建模"
+    },
+    {
+     "paper_id": "2023_E23106730076",
+     "year": 2023,
+     "code": "E",
+     "pages": 109,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/E23106730076/",
+     "title": "出血性脑卒中临床智能诊疗建模"
+    },
+    {
+     "paper_id": "2023_E23106980022",
+     "year": 2023,
+     "code": "E",
+     "pages": 53,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/E23106980022/",
+     "title": "出血性脑卒中临床智能诊疗建模"
+    },
+    {
+     "paper_id": "2023_E23107030070",
+     "year": 2023,
+     "code": "E",
+     "pages": 73,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/E23107030070/",
+     "title": "_出血性脑卒中临床智能诊疗建模__"
+    },
+    {
+     "paper_id": "2023_E23900310014",
+     "year": 2023,
+     "code": "E",
+     "pages": 61,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/E23900310014/",
+     "title": "出血性脑卒中临床智能诊疗建模"
+    },
+    {
+     "paper_id": "2023_F23102520378",
+     "year": 2023,
+     "code": "F",
+     "pages": 61,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/F23102520378/",
+     "title": "强对流降水临近预报"
+    },
+    {
+     "paper_id": "2023_F23102690048",
+     "year": 2023,
+     "code": "F",
+     "pages": 72,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/F23102690048/",
+     "title": "短临强降水情景下基于深度学习模型和双偏振雷达数据的未来降"
+    },
+    {
+     "paper_id": "2023_F23102860072",
+     "year": 2023,
+     "code": "F",
+     "pages": 39,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2023/F23102860072/",
+     "title": "基于多任务学习和时空预测模型的降水临近预报方法"
+    },
+    {
+     "paper_id": "2023_F23103560002",
+     "year": 2023,
+     "code": "F",
+     "pages": 63,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/F23103560002/",
+     "title": "基于U-Net 的强对流降水临近预报"
+    },
+    {
+     "paper_id": "2023_F23104040152",
+     "year": 2023,
+     "code": "F",
+     "pages": 64,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/F23104040152/",
+     "title": "基于多特征融合ConvLSTM 模型的强对流天气预测研究"
+    },
+    {
+     "paper_id": "2023_F23105550004",
+     "year": 2023,
+     "code": "F",
+     "pages": 70,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/F23105550004/",
+     "title": "基于多模型融合的UNet 网络预报强对流降水"
+    },
+    {
+     "paper_id": "2023_F23107010086",
+     "year": 2023,
+     "code": "F",
+     "pages": 71,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/F23107010086/",
+     "title": "强对流降水临近预报建模与优化 ."
+    },
+    {
+     "paper_id": "2023_F23107300013",
+     "year": 2023,
+     "code": "F",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/F23107300013/",
+     "title": "基于双偏振订正NowcastNet 的短临降水估测研究"
+    },
+    {
+     "paper_id": "2023_F23910020015",
+     "year": 2023,
+     "code": "F",
+     "pages": 87,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/F23910020015/",
+     "title": "强对流降水临近预报"
+    },
+    {
+     "paper_id": "2023_F23910020096",
+     "year": 2023,
+     "code": "F",
+     "pages": 69,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2023/F23910020096/",
+     "title": "基于因果推理的强对流降水临近预报问题研究 究"
+    },
+    {
+     "paper_id": "2024_A24102940057",
+     "year": 2024,
+     "code": "A",
+     "pages": 68,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/A24102940057/",
+     "title": "考虑机组实时疲劳损伤的风电场有功功率优化分配"
+    },
+    {
+     "paper_id": "2024_A24103350007",
+     "year": 2024,
+     "code": "A",
+     "pages": 79,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/A24103350007/",
+     "title": "__________风电场有功功率优化分配___________________"
+    },
+    {
+     "paper_id": "2024_A24103530117",
+     "year": 2024,
+     "code": "A",
+     "pages": 73,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/A24103530117/",
+     "title": "风电场有功功率优化分配"
+    },
+    {
+     "paper_id": "2024_A24107120016",
+     "year": 2024,
+     "code": "A",
+     "pages": 59,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2024/A24107120016/",
+     "title": "风电场有功功率分配优化模型"
+    },
+    {
+     "paper_id": "2024_B24102860287",
+     "year": 2024,
+     "code": "B",
+     "pages": 90,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/B24102860287/",
+     "title": "__________WLAN 组网中网络吞吐量建模___________"
+    },
+    {
+     "paper_id": "2024_B24103530099",
+     "year": 2024,
+     "code": "B",
+     "pages": 104,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/B24103530099/",
+     "title": "__基于特征对齐与多重预测驱动的WLAN 信号预测方案__"
+    },
+    {
+     "paper_id": "2024_B24104760033",
+     "year": 2024,
+     "code": "B",
+     "pages": 113,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/B24104760033/",
+     "title": "WLAN 组网中网络吞吐量建模"
+    },
+    {
+     "paper_id": "2024_B24116640167",
+     "year": 2024,
+     "code": "B",
+     "pages": 69,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/B24116640167/",
+     "title": "WLAN 组网中网络吞吐量建模"
+    },
+    {
+     "paper_id": "2024_C24102890089",
+     "year": 2024,
+     "code": "C",
+     "pages": 71,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2024/C24102890089/",
+     "title": "数据驱动下磁性元件的磁芯损耗建模"
+    },
+    {
+     "paper_id": "2024_C24103860012",
+     "year": 2024,
+     "code": "C",
+     "pages": 82,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2024/C24103860012/",
+     "title": "数据驱动下磁性元件的磁芯损耗建模"
+    },
+    {
+     "paper_id": "2024_C24104220149",
+     "year": 2024,
+     "code": "C",
+     "pages": 71,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/C24104220149/",
+     "title": "基于多因素分析与深度学习的磁芯损耗建模"
+    },
+    {
+     "paper_id": "2024_C24106130096",
+     "year": 2024,
+     "code": "C",
+     "pages": 105,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/C24106130096/",
+     "title": "多变量复杂环境下的磁芯损耗建模"
+    },
+    {
+     "paper_id": "2024_D24103850092",
+     "year": 2024,
+     "code": "D",
+     "pages": 113,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/D24103850092/",
+     "title": "多源异构数据驱动的暴雨成灾机理及其时空演变特征研究"
+    },
+    {
+     "paper_id": "2024_D24104250063",
+     "year": 2024,
+     "code": "D",
+     "pages": 62,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/D24104250063/",
+     "title": "____________大数据驱动的地理综合问题__________________"
+    },
+    {
+     "paper_id": "2024_D24104460003",
+     "year": 2024,
+     "code": "D",
+     "pages": 96,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/D24104460003/",
+     "title": "_____大数据驱动的地理综合问题______"
+    },
+    {
+     "paper_id": "2024_D24106570027",
+     "year": 2024,
+     "code": "D",
+     "pages": 114,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/D24106570027/",
+     "title": "大数据驱动的地理综合问题建模与分析"
+    },
+    {
+     "paper_id": "2024_E24101480006",
+     "year": 2024,
+     "code": "E",
+     "pages": 84,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2024/E24101480006/",
+     "title": "高速公路应急车道启用管控优化与决策模型研究"
+    },
+    {
+     "paper_id": "2024_E24102870008",
+     "year": 2024,
+     "code": "E",
+     "pages": 81,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/E24102870008/",
+     "title": "高速公路应急车道紧急启用模型"
+    },
+    {
+     "paper_id": "2024_E24102910005",
+     "year": 2024,
+     "code": "E",
+     "pages": 60,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/E24102910005/",
+     "title": "基于目标检测的高速公路应急车道实时启用策略研究"
+    },
+    {
+     "paper_id": "2024_E24106980067",
+     "year": 2024,
+     "code": "E",
+     "pages": 78,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/E24106980067/",
+     "title": "___ 高速公路应急车道紧急启用模型_____"
+    },
+    {
+     "paper_id": "2024_F24102870082",
+     "year": 2024,
+     "code": "F",
+     "pages": 44,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/F24102870082/",
+     "title": "_____ X 射线脉冲星光子到达时间建模__ __"
+    },
+    {
+     "paper_id": "2024_F24103360083",
+     "year": 2024,
+     "code": "F",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/F24103360083/",
+     "title": "X 射线脉冲星光子到达时间建模研究"
+    },
+    {
+     "paper_id": "2024_F24104860143",
+     "year": 2024,
+     "code": "F",
+     "pages": 79,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/F24104860143/",
+     "title": "X 射线脉冲星光子到达时间建模"
+    },
+    {
+     "paper_id": "2024_F24910020063",
+     "year": 2024,
+     "code": "F",
+     "pages": 53,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2024/F24910020063/",
+     "title": "X 射线脉冲星时间转换建模与光子序列仿真"
+    },
+    {
+     "paper_id": "2025_A题-1-通用神经网络处理器下的核内调度问题",
+     "year": 2025,
+     "code": "A",
+     "pages": 59,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/A题-1-通用神经网络处理器下的核内调度问题/",
+     "title": "通用神经网络处理器下的核内调度问题"
+    },
+    {
+     "paper_id": "2025_A题-2-通用神经网络处理器下的核内调度问题",
+     "year": 2025,
+     "code": "A",
+     "pages": 98,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/A题-2-通用神经网络处理器下的核内调度问题/",
+     "title": "通用神经网络处理器下的核内调度问题"
+    },
+    {
+     "paper_id": "2025_A题-NPU_核内调度算法设计与优化研究",
+     "year": 2025,
+     "code": "A",
+     "pages": 120,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2025/A题-NPU_核内调度算法设计与优化研究/",
+     "title": "NPU 核内调度算法设计与优化研究"
+    },
+    {
+     "paper_id": "2025_A题-面向_Davinci_架构的_NPU_核内调度算法研究",
+     "year": 2025,
+     "code": "A",
+     "pages": 77,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/A题-面向_Davinci_架构的_NPU_核内调度算法研究/",
+     "title": "_____面向Davinci 架构的NPU 核内调度算法研究_______"
+    },
+    {
+     "paper_id": "2025_B题-MIMO-OFDM_链路速率预测问题的建模研究",
+     "year": 2025,
+     "code": "B",
+     "pages": 57,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/B题-MIMO-OFDM_链路速率预测问题的建模研究/",
+     "title": "MIMO-OFDM 链路速率预测问题的建模研究"
+    },
+    {
+     "paper_id": "2025_B题-无线通信系统链路速率建模",
+     "year": 2025,
+     "code": "B",
+     "pages": 68,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/B题-无线通信系统链路速率建模/",
+     "title": "无线通信系统链路速率建模"
+    },
+    {
+     "paper_id": "2025_B题-机器学习驱动的面向_MIMO-OFDM_的链路速率预测",
+     "year": 2025,
+     "code": "B",
+     "pages": 76,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/B题-机器学习驱动的面向_MIMO-OFDM_的链路速率预测/",
+     "title": "机器学习驱动的面向MIMO-OFDM 的链路速率预测"
+    },
+    {
+     "paper_id": "2025_C题-1-围岩裂隙精准识别与三维模型重构",
+     "year": 2025,
+     "code": "C",
+     "pages": 71,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2025/C题-1-围岩裂隙精准识别与三维模型重构/",
+     "title": "围岩裂隙精准识别与三维模型重构"
+    },
+    {
+     "paper_id": "2025_C题-2-围岩裂隙精准识别与三维模型重构",
+     "year": 2025,
+     "code": "C",
+     "pages": 78,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2025/C题-2-围岩裂隙精准识别与三维模型重构/",
+     "title": "围岩裂隙精准识别与三维模型重构"
+    },
+    {
+     "paper_id": "2025_C题-3-围岩裂隙精准识别与三维模型重构",
+     "year": 2025,
+     "code": "C",
+     "pages": 68,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/C题-3-围岩裂隙精准识别与三维模型重构/",
+     "title": "围岩裂隙精准识别与三维模型重构"
+    },
+    {
+     "paper_id": "2025_C题-基于_Frangi_滤波的钻孔裂隙识别与三维概率重构",
+     "year": 2025,
+     "code": "C",
+     "pages": 91,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/C题-基于_Frangi_滤波的钻孔裂隙识别与三维概率重构/",
+     "title": "基于Frangi 滤波的钻孔裂隙识别与三维概率重构"
+    },
+    {
+     "paper_id": "2025_C题-基于钻孔裂隙智能识别的岩体结构面网络重构与稳定性分区研究",
+     "year": 2025,
+     "code": "C",
+     "pages": 76,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/C题-基于钻孔裂隙智能识别的岩体结构面网络重构与稳定性分区研究/",
+     "title": "基于钻孔裂隙智能识别的岩体结构面网络重构"
+    },
+    {
+     "paper_id": "2025_D题-低空湍流监测及最优航路规划研究",
+     "year": 2025,
+     "code": "D",
+     "pages": 60,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/D题-低空湍流监测及最优航路规划研究/",
+     "title": "___低空湍流监测及最优航路规划研究____"
+    },
+    {
+     "paper_id": "2025_D题-基于多源数据融合的低空湍流监测与航路优化",
+     "year": 2025,
+     "code": "D",
+     "pages": 110,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/D题-基于多源数据融合的低空湍流监测与航路优化/",
+     "title": "基于多源数据融合的低空湍流监测与航路优化"
+    },
+    {
+     "paper_id": "2025_E题-基于迁移学习的高速列车轴承故障诊断研究",
+     "year": 2025,
+     "code": "E",
+     "pages": 93,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/E题-基于迁移学习的高速列车轴承故障诊断研究/",
+     "title": "基于迁移学习的高速列车轴承故障诊断研究"
+    },
+    {
+     "paper_id": "2025_E题-无监督迁移学习下的轴承故障诊断建模与优化",
+     "year": 2025,
+     "code": "E",
+     "pages": 69,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/E题-无监督迁移学习下的轴承故障诊断建模与优化/",
+     "title": "无监督迁移学习下的轴承故障诊断建模与优化"
+    },
+    {
+     "paper_id": "2025_E题-高速列车轴承智能故障诊断问题",
+     "year": 2025,
+     "code": "E",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/E题-高速列车轴承智能故障诊断问题/",
+     "title": "高速列车轴承智能故障诊断问题"
+    },
+    {
+     "paper_id": "2025_F题-1-江南古典园林的美学特征建模",
+     "year": 2025,
+     "code": "F",
+     "pages": 182,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2025/F题-1-江南古典园林的美学特征建模/",
+     "title": "江南古典园林的美学特征建模"
+    },
+    {
+     "paper_id": "2025_F题-2-江南古典园林的美学特征建模",
+     "year": 2025,
+     "code": "F",
+     "pages": 71,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2025/F题-2-江南古典园林的美学特征建模/",
+     "title": "江南古典园林的美学特征建模"
+    },
+    {
+     "paper_id": "2025_F题-多模态数据融合视角下江南古典园林美学特征量化建模研究",
+     "year": 2025,
+     "code": "F",
+     "pages": 116,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/graduate/2025/F题-多模态数据融合视角下江南古典园林美学特征量化建模研究/",
+     "title": "多模态数据融合视角下江南古典园林"
+    },
+    {
+     "paper_id": "2025_F题-江南古典园林美学特征的量化建模与分析",
+     "year": 2025,
+     "code": "F",
+     "pages": 94,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/graduate/2025/F题-江南古典园林美学特征的量化建模与分析/",
+     "title": "江南古典园林美学特征的量化建模与分析"
+    }
+   ]
+  }
+ },
+ "companion_reports": {
+  "使用指南": "assets-local/award-papers/参考论文使用指南.md",
+  "摘要深度分析": "assets-local/award-papers/摘要深度分析报告.md",
+  "图表配色分析": "assets-local/award-papers/图表配色分析报告.md",
+  "论文风格分析": "assets-local/award-papers/论文风格分析报告.md"
+ },
+ "mathorcup_bigdata": {
+  "key": "MathorCup大数据竞赛",
+  "full_name": "MathorCup大数据竞赛（大数据挑战赛）",
+  "contest_type": "bigdata",
+  "note": "大数据竞赛不是数模竞赛：本块语料只用于数据可视化/数据结构参考，数模格式规范链条不适用（用户裁决 2026-10-01）。",
+  "corpus": {
+   "built_date": "2026-10-01",
+   "window": "W2-CORPUS",
+   "papers_total": 49,
+   "years_covered": "2020-2025（2020 来自 YY 镜像；2021-2025 来自 MathorCup大数据历年优秀论文.zip）",
+   "sources": [
+    "MathorCup大数据竞赛历年优秀论文.zip（自媒体分享；封面 MCB 队号+赛道；每年 8 篇）",
+    "YY建模资料 github-mirror math-model/2-4mathorcup大数据/2020（9 篇）"
+   ],
+   "verification": {
+    "award_unverified": 49,
+    "award_evidence_present": 0,
+    "contest_evidence_yes": 48,
+    "contest_evidence_no": 1,
+    "policy": "无逐篇获奖佐证，全部 award_unverified，只作语料底座"
+   },
+   "manifest": "assets-local/award-papers/mathorcup-bigdata/corpus_manifest.json",
+   "papers_index": [
+    {
+     "paper_id": "2020_BD01",
+     "year": 2020,
+     "code": "A",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2020/BD01/",
+     "title": "基于时间序列聚类的小区分类及基站智能开关载频的研究"
+    },
+    {
+     "paper_id": "2020_BD02",
+     "year": 2020,
+     "code": "A",
+     "pages": 45,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2020/BD02/",
+     "title": "基于Kmeans 和Kshape、LSTM 和Cornish-Fisher 展式的基站流"
+    },
+    {
+     "paper_id": "2020_BD03",
+     "year": 2020,
+     "code": "A",
+     "pages": 42,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2020/BD03/",
+     "title": "基于流量预测的动态载频开关研究"
+    },
+    {
+     "paper_id": "2020_BD04",
+     "year": 2020,
+     "code": "A",
+     "pages": 39,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2020/BD04/",
+     "title": "基于流量数据分析的小区分类与节能策略"
+    },
+    {
+     "paper_id": "2020_BD05",
+     "year": 2020,
+     "code": "A",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2020/BD05/",
+     "title": "大规模移动通信基站时序多特征分类和休眠方法研究"
+    },
+    {
+     "paper_id": "2020_BD06",
+     "year": 2020,
+     "code": "B",
+     "pages": 37,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2020/BD06/",
+     "title": "探索基于UNet 模型的遥感图像地块分割与提取"
+    },
+    {
+     "paper_id": "2020_BD07",
+     "year": 2020,
+     "code": "B",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2020/BD07/",
+     "title": "遥感图像地块分割与提取"
+    },
+    {
+     "paper_id": "2020_BD08",
+     "year": 2020,
+     "code": "B",
+     "pages": 64,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2020/BD08/",
+     "title": "基于U-Net 卷积神经网络的遥感图像耕地地块分割与提取研究："
+    },
+    {
+     "paper_id": "2020_BD09",
+     "year": 2020,
+     "code": "B",
+     "pages": 30,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2020/BD09/",
+     "title": "基于多光谱数据的机器学习模式识别算法的优化评估"
+    },
+    {
+     "paper_id": "2021_BD01",
+     "year": 2021,
+     "code": "A",
+     "pages": 35,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2021/BD01/",
+     "title": "基于多模型Stacking 融合的二手车定价销售策略研究",
+     "team_id": "MCB2100090"
+    },
+    {
+     "paper_id": "2021_BD02",
+     "year": 2021,
+     "code": "B",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2021/BD02/",
+     "title": "信息流智能推荐算法中的序列评估问题",
+     "team_id": "MCB2102360"
+    },
+    {
+     "paper_id": "2021_BD03",
+     "year": 2021,
+     "code": "A",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2021/BD03/",
+     "title": "基于Stacking 模型的二手车价格预测",
+     "team_id": "MCB2100593"
+    },
+    {
+     "paper_id": "2021_BD04",
+     "year": 2021,
+     "code": "B",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2021/BD04/",
+     "title": "基于能量损失的Transformer 和相似用户模型的推荐序列评估算法",
+     "team_id": "MCB2102791"
+    },
+    {
+     "paper_id": "2021_BD05",
+     "year": 2021,
+     "code": "B",
+     "pages": 20,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2021/BD05/",
+     "title": "信息流智能推荐算法中序列收益评估模型的构建与研究",
+     "team_id": "MCB2102542"
+    },
+    {
+     "paper_id": "2021_BD06",
+     "year": 2021,
+     "code": "A",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2021/BD06/",
+     "title": "基于多模型融合与灰色关联分析的二手车交易问题研究",
+     "team_id": "MCB2102047"
+    },
+    {
+     "paper_id": "2021_BD07",
+     "year": 2021,
+     "code": "A",
+     "pages": 28,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2021/BD07/",
+     "title": "基于机器学习的二手车价格预测与销售策略研究",
+     "team_id": "MCB2100868"
+    },
+    {
+     "paper_id": "2021_BD08",
+     "year": 2021,
+     "code": "A",
+     "pages": 39,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2021/BD08/",
+     "title": "二手车估价及影响因素分析建模",
+     "team_id": "MCB2100805"
+    },
+    {
+     "paper_id": "2022_BD01",
+     "year": 2022,
+     "code": "B",
+     "pages": 27,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2022/BD01/",
+     "title": "基于决策树模型对北京移动用户体验影响因素研究",
+     "team_id": "MCB2200703"
+    },
+    {
+     "paper_id": "2022_BD02",
+     "year": 2022,
+     "code": "A",
+     "pages": 23,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2022/BD02/",
+     "title": "基于订单优先级与收益评估的多批次阿姨与订单分配算法",
+     "team_id": "MCB2200029"
+    },
+    {
+     "paper_id": "2022_BD03",
+     "year": 2022,
+     "code": "B",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2022/BD03/",
+     "title": "基于多模型调参优化的Stacking 用户评分预测集成学习",
+     "team_id": "MCB2201112"
+    },
+    {
+     "paper_id": "2022_BD04",
+     "year": 2022,
+     "code": "B",
+     "pages": 22,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2022/BD04/",
+     "title": "基于SVR 的业务评分预测模型",
+     "team_id": "MCB2201021"
+    },
+    {
+     "paper_id": "2022_BD05",
+     "year": 2022,
+     "code": "B",
+     "pages": 31,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2022/BD05/",
+     "title": "基于机器学习的北京移动用户满意度分析",
+     "team_id": "MCB2202628"
+    },
+    {
+     "paper_id": "2022_BD06",
+     "year": 2022,
+     "code": "B",
+     "pages": 29,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2022/BD06/",
+     "title": "北京移动用户体验影响因素研究",
+     "team_id": "MCB2201818"
+    },
+    {
+     "paper_id": "2022_BD07",
+     "year": 2022,
+     "code": "unavailable",
+     "pages": 18,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2022/BD07/",
+     "title": "基于贪婪算法的家政服务订单分配",
+     "team_id": "MCB2201899"
+    },
+    {
+     "paper_id": "2022_BD08",
+     "year": 2022,
+     "code": "B",
+     "pages": 32,
+     "contest_evidence": "no",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2022/BD08/",
+     "title": "基于SMOTEBAG 模型的用户满意度预测研究"
+    },
+    {
+     "paper_id": "2023_BD01",
+     "year": 2023,
+     "code": "A",
+     "pages": 38,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2023/BD01/",
+     "title": "基于深度学习的坑洼道路检测和识别研究",
+     "team_id": "MCB2302202"
+    },
+    {
+     "paper_id": "2023_BD02",
+     "year": 2023,
+     "code": "A",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2023/BD02/",
+     "title": "基于预训练的DenseNet-121 模型的坑洼道路检测识别",
+     "team_id": "MCB2303012"
+    },
+    {
+     "paper_id": "2023_BD03",
+     "year": 2023,
+     "code": "B",
+     "pages": 53,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2023/BD03/",
+     "title": "基于计算机视觉的坑洼道路检测和识别",
+     "team_id": "MCB2302973"
+    },
+    {
+     "paper_id": "2023_BD04",
+     "year": 2023,
+     "code": "A",
+     "pages": 62,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2023/BD04/",
+     "title": "基于多模型调参优化的坑洼道路分类识别方法研究",
+     "team_id": "MCB2300890"
+    },
+    {
+     "paper_id": "2023_BD05",
+     "year": 2023,
+     "code": "B",
+     "pages": 53,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2023/BD05/",
+     "title": "基于特征融合与集成学习的电商供应链分层预测方法",
+     "team_id": "MCB2302397"
+    },
+    {
+     "paper_id": "2023_BD06",
+     "year": 2023,
+     "code": "B",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2023/BD06/",
+     "title": "基于ARIMA 与LSTM 时间序列的电商产品需求量预测",
+     "team_id": "MCB2302926"
+    },
+    {
+     "paper_id": "2023_BD07",
+     "year": 2023,
+     "code": "B",
+     "pages": 43,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2023/BD07/",
+     "title": "基于指数平滑与DBSCAN 的多重特征电商需求时序预测模型",
+     "team_id": "MCB2301622"
+    },
+    {
+     "paper_id": "2023_BD08",
+     "year": 2023,
+     "code": "B",
+     "pages": 34,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2023/BD08/",
+     "title": "基于大数据驱动的电商零售商品需求预测",
+     "team_id": "MCB2302632"
+    },
+    {
+     "paper_id": "2024_BD01",
+     "year": 2024,
+     "code": "A",
+     "pages": 59,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2024/BD01/",
+     "title": "台风作为一种极端气象现象，对沿海地区的安全和经济活动构成了严重威胁。随着全",
+     "team_id": "MCB2400837"
+    },
+    {
+     "paper_id": "2024_BD02",
+     "year": 2024,
+     "code": "A",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2024/BD02/",
+     "title": "基于K-means 聚类与LSTM 时间序列的台风路径问题研究",
+     "team_id": "MCB2401349"
+    },
+    {
+     "paper_id": "2024_BD03",
+     "year": 2024,
+     "code": "A",
+     "pages": 48,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2024/BD03/",
+     "title": "基于多重气象特征的台风分类与路径预测：贝碧嘉案例分析",
+     "team_id": "MCB2401113"
+    },
+    {
+     "paper_id": "2024_BD04",
+     "year": 2024,
+     "code": "unavailable",
+     "pages": 59,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2024/BD04/",
+     "title": "基于机器学习的台风路径预测与特征关系分析的综合研究",
+     "team_id": "MCB2401985"
+    },
+    {
+     "paper_id": "2024_BD05",
+     "year": 2024,
+     "code": "B",
+     "pages": 52,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2024/BD05/",
+     "title": "基于大数据分析的电商货量预测与仓库分配优化研究",
+     "team_id": "MCB2403007"
+    },
+    {
+     "paper_id": "2024_BD06",
+     "year": 2024,
+     "code": "B",
+     "pages": 68,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2024/BD06/",
+     "title": "基于电商品类货量预测的品类分仓多目标规划研究",
+     "team_id": "MCB2400002"
+    },
+    {
+     "paper_id": "2024_BD07",
+     "year": 2024,
+     "code": "B",
+     "pages": 66,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2024/BD07/",
+     "title": "基于多模型优化调参和MOPSO 算法的商品库存管理",
+     "team_id": "MCB2400673"
+    },
+    {
+     "paper_id": "2024_BD08",
+     "year": 2024,
+     "code": "B",
+     "pages": 69,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2024/BD08/",
+     "title": "基于数据挖掘的电商品类货量预测与分仓规划研究",
+     "team_id": "MCB2401427"
+    },
+    {
+     "paper_id": "2025_BD01",
+     "year": 2025,
+     "code": "unavailable",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2025/BD01/",
+     "title": "针对复杂场景下集装箱外表面损伤的智能检测与分析系统",
+     "team_id": "MCB2500884"
+    },
+    {
+     "paper_id": "2025_BD02",
+     "year": 2025,
+     "code": "A",
+     "pages": 22,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2025/BD02/",
+     "title": "面向智慧港口的集装箱残损多维度视觉检测与评估模型",
+     "team_id": "MCB2500060"
+    },
+    {
+     "paper_id": "2025_BD03",
+     "year": 2025,
+     "code": "A",
+     "pages": 32,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2025/BD03/",
+     "title": "复杂港口环境下集装箱缺陷智能分类预测与分割技术研究",
+     "team_id": "MCB2500869"
+    },
+    {
+     "paper_id": "2025_BD04",
+     "year": 2025,
+     "code": "A",
+     "pages": 25,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2025/BD04/",
+     "title": "基于MobileNet 与YOLOv11 的集装箱智能破损检测研究"
+    },
+    {
+     "paper_id": "2025_BD05",
+     "year": 2025,
+     "code": "B",
+     "pages": 20,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2025/BD05/",
+     "title": "物流理赔风险标注分类及运单赔付预测研究",
+     "team_id": "MCB2500488"
+    },
+    {
+     "paper_id": "2025_BD06",
+     "year": 2025,
+     "code": "B",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2025/BD06/",
+     "title": "基于多模型集成的运单风险标注策略",
+     "team_id": "MCB2501209"
+    },
+    {
+     "paper_id": "2025_BD07",
+     "year": 2025,
+     "code": "B",
+     "pages": 33,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2025/BD07/",
+     "title": "物流理赔中MQBL 风险标注与Stacking 预测模型研究及不平衡数据优化",
+     "team_id": "MCB2501256"
+    },
+    {
+     "paper_id": "2025_BD08",
+     "year": 2025,
+     "code": "B",
+     "pages": 46,
+     "contest_evidence": "yes",
+     "dir": "assets-local/award-papers/mathorcup-bigdata/2025/BD08/",
+     "title": "基于机器学习的物流理赔风险识别与服务升级策略研究",
+     "team_id": "MCB2500116"
+    }
+   ]
+  },
+  "pending_third_contest": "YY math-model/2-3MathorCup（挑战赛 11 届 141 pdf）为第三赛事维度，本窗未入库，待裁决"
+ }
 }

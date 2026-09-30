@@ -87,6 +87,11 @@ node_modules/
 附件*.pdf
 # 2026-10-01 W1-REG：contest-regs 官方规范原件库按 assets-local 整区分发裁决放行（防吞）
 !assets-local/contest-regs/**/*.pdf
+# 2026-10-01 W2-CORPUS：研赛/大数据获奖论文 PDF 原件无再分发权，只落私有区（任务卡红线，
+# 与 62 篇国赛页面原件同为不入库口径）；入 git 的只有版面卡/清单/统计/带槽位模板。
+assets-local/award-papers/graduate/
+assets-local/award-papers/mathorcup-bigdata/
+assets-local/award-papers/_tmp_w2/
 CUMCM2026Problems/
 extracted_images/
 
