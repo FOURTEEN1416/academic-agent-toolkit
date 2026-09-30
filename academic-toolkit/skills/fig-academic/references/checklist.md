@@ -84,7 +84,7 @@ Run these checks first. They catch the issues reviewers flag most often and take
 
 **How to check:** Does the code include a vector export (`savefig(..., '*.pdf')`, `savefig(..., '*.svg')`, `ggsave('*.pdf')`, `ggsave('*.svg')`, `cairo_pdf()`, `pdf()`)? If only PNG/JPG export is present, FAIL.
 
-**Fix if FAIL:** Add vector export. Python: `fig.savefig('figure.pdf', bbox_inches='tight', dpi=300)`. R: `ggsave('figure.pdf', device=cairo_pdf)`.
+**Fix if FAIL:** Add vector export. Python: `fig.savefig('figure.pdf', dpi=300)`（护栏 standard）. R: `ggsave('figure.pdf', device=cairo_pdf)`.
 
 **Pass condition:** At least one vector format export (PDF/SVG/EPS) present in the code.
 
@@ -310,7 +310,7 @@ Passes 0-2 verify the **code**. Pass 3 verifies the **output**. These are proble
 
 **Fix if FAIL:**
 - Uneven panels 鈫?enforce explicit `width_ratios` and `height_ratios` in gridspec; use `sharex=True, sharey=True` for same-axis panels
-- Text cut off 鈫?increase figure margins: `gs.update(left=0.12, bottom=0.12)` or use `bbox_inches='tight'`
+- Text cut off 鈫?increase figure margins: `gs.update(left=0.12, bottom=0.12)` or adjust `bbox_inches`（⚠️ tight 仅预览；交付链路护栏 standard，治本靠 margins/figsize）
 - Uneven spacing 鈫?use consistent `wspace` and `hspace` values across the entire gridspec
 - One panel dominating 鈫?check if it's the intended hero panel; if not, adjust `height_ratios` or `width_ratios`
 

@@ -147,7 +147,7 @@ with plt.style.context('ggplot'):
 
 ### Creating Custom Style Sheets
 
-Create a file named `custom_style.mplstyle`:
+自定义样式建议**从基线派生**：复制 `academic.mplstyle` 后只改差异项（色板/字号护栏已在基线定版，勿另立）。下面演示自定义样式文件的语法：
 
 ```
 # custom_style.mplstyle
@@ -199,7 +199,7 @@ legend.fancybox: True
 
 # Savefig
 savefig.dpi: 300
-savefig.bbox: tight
+savefig.bbox: standard   # ⛔ 勿写 tight：axes 外文字会撑爆 PDF mediabox（基线护栏即为此）
 savefig.facecolor: white
 ```
 
@@ -215,17 +215,20 @@ plt.style.use('path/to/custom_style.mplstyle')
 ```python
 import matplotlib.pyplot as plt
 
+# 论文/交付图：先加载基线（值=基线值；真源 academic.mplstyle）
+plt.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
+
 # Configure globally
 plt.rcParams['figure.figsize'] = (10, 6)
-plt.rcParams['font.size'] = 12
-plt.rcParams['axes.labelsize'] = 14
+plt.rcParams['font.size'] = 11
+plt.rcParams['axes.labelsize'] = 12
 
 # Or update multiple at once
 plt.rcParams.update({
     'figure.figsize': (10, 6),
-    'font.size': 12,
-    'axes.labelsize': 14,
-    'axes.titlesize': 16,
+    'font.size': 11,
+    'axes.labelsize': 12,
+    'axes.titlesize': 13,
     'lines.linewidth': 2
 })
 ```
@@ -254,8 +257,9 @@ plt.rcParams['figure.constrained_layout.use'] = True
 **Font settings:**
 ```python
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Arial', 'Helvetica', 'DejaVu Sans']
-plt.rcParams['font.size'] = 12
+# 基线 CJK 链（值=academic.mplstyle；含中文标签必须保留链首 CJK，否则画成 □）
+plt.rcParams['font.sans-serif'] = ['Noto Sans SC', 'SimHei', 'Microsoft YaHei', 'Arial', 'Helvetica', 'DejaVu Sans']
+plt.rcParams['font.size'] = 11
 plt.rcParams['font.weight'] = 'normal'
 ```
 
@@ -265,8 +269,8 @@ plt.rcParams['axes.facecolor'] = 'white'
 plt.rcParams['axes.edgecolor'] = 'black'
 plt.rcParams['axes.linewidth'] = 1.5
 plt.rcParams['axes.grid'] = True
-plt.rcParams['axes.labelsize'] = 14
-plt.rcParams['axes.titlesize'] = 16
+plt.rcParams['axes.labelsize'] = 12   # = 基线值（academic.mplstyle）
+plt.rcParams['axes.titlesize'] = 13   # = 基线值
 plt.rcParams['axes.labelweight'] = 'normal'
 plt.rcParams['axes.spines.top'] = True
 plt.rcParams['axes.spines.right'] = True
@@ -284,7 +288,7 @@ plt.rcParams['lines.markersize'] = 6
 ```python
 plt.rcParams['savefig.dpi'] = 300
 plt.rcParams['savefig.format'] = 'png'
-plt.rcParams['savefig.bbox'] = 'tight'
+plt.rcParams['savefig.bbox'] = 'standard'   # ⛔ 禁 tight（mediabox 撑爆风险，基线护栏）
 plt.rcParams['savefig.pad_inches'] = 0.1
 plt.rcParams['savefig.transparent'] = False
 ```
@@ -511,26 +515,28 @@ plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1,
 
 ## Professional Publication Style
 
-Example configuration for publication-quality figures:
+正解：直接加载基线 `academic.mplstyle`（出版级参数已定版，含 CJK 链与护栏）。下面演示"从基线出发做局部覆盖"的写法：
 
 ```python
-# Publication style configuration
+plt.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
+
+# 局部覆盖示例（值与基线同口径；⚠️ 演示 serif/框线用，交付图慎改字体族）
 plt.rcParams.update({
     # Figure
     'figure.figsize': (8, 6),
     'figure.dpi': 100,
     'savefig.dpi': 300,
-    'savefig.bbox': 'tight',
+    'savefig.bbox': 'standard',   # ⛔ 禁 tight：axes 外文字会撑爆 PDF mediabox
     'savefig.pad_inches': 0.1,
 
-    # Font
+    # Font（基线 CJK 链）
     'font.family': 'sans-serif',
-    'font.sans-serif': ['Arial', 'Helvetica'],
+    'font.sans-serif': ['Noto Sans SC', 'SimHei', 'Microsoft YaHei', 'Arial', 'Helvetica', 'DejaVu Sans'],
     'font.size': 11,
 
     # Axes
     'axes.labelsize': 12,
-    'axes.titlesize': 14,
+    'axes.titlesize': 13,
     'axes.linewidth': 1.5,
     'axes.grid': False,
     'axes.spines.top': False,

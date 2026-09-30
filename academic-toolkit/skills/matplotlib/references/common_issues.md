@@ -76,7 +76,7 @@ plt.tight_layout()
 # Solution 3: Adjust margins manually
 plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15)
 
-# Solution 4: Save with bbox_inches='tight'
+# Solution 4: Save with bbox_inches='tight'（⚠️ 仅预览；交付链路用基线护栏 standard+pad）
 plt.savefig('figure.png', bbox_inches='tight')
 
 # Solution 5: Rotate long tick labels
@@ -209,6 +209,8 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 # Solution 4: Specify fallback fonts
 plt.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans', 'sans-serif']
+# 含中文标签的图：链首必须是 CJK 字体（Noto Sans SC/SimHei/Microsoft YaHei…），
+# 完整基线链见 academic.mplstyle；纯拉丁链会把中文画成 □
 ```
 
 ### Issue: LaTeX Rendering Errors
@@ -237,7 +239,7 @@ ax.text(x, y, r'$\int_0^\infty e^{-x} dx$')
 
 **Solutions:**
 ```python
-# Solution 1: Use bbox_inches='tight'
+# Solution 1: Use bbox_inches='tight'（⚠️ 仅预览；交付链路先调 margins/figsize，护栏 standard）
 plt.savefig('figure.png', bbox_inches='tight')
 
 # Solution 2: Adjust figure bounds

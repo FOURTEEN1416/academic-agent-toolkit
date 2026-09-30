@@ -1172,7 +1172,7 @@ sys.path.insert(0, '.')  # plain dot, NOT '.pdf'
 
 from _utils.plot_utils import setup_style, save_fig, PALETTE
 
-setup_style()  # defaults to Soft palette; alternatives: tableau/npg/nejm/science/colorblind
+setup_style()  # 默认 auto：版式/配色走仓库基线（academic.mplstyle 定版，随机去指纹）；显式点名才传 palette 名
 
 
 
@@ -1722,7 +1722,7 @@ fi
 
 1. 用 Read 读 vision 反馈里点名的那张图对应的 `figures/gen_fig_xxx.py`
 
-2. 按反馈用 Edit 改：标签被截断 → `save_fig` 已带 `bbox_inches='tight'`，多为 figsize 太小或字太大，调 `figsize`/`fontsize`；图例压数据 → 改 `legend(loc=...)` 或 `bbox_to_anchor` 移到画布外；刻度重叠 → `plt.xticks(rotation=30, ha='right')` 或减少刻度数；子图挤压 → `fig.tight_layout()` 或调 `figsize`
+2. 按反馈用 Edit 改：标签被截断 → `save_fig` 固定 `bbox_inches=None`（⛔ 不用 tight，防 axes 外标注撑爆 PDF mediabox），截断多为 figsize 太小或字太大，调 `figsize`/`fontsize`；图例压数据 → 改 `legend(loc=...)` 或 `bbox_to_anchor` 移到画布外；刻度重叠 → `plt.xticks(rotation=30, ha='right')` 或减少刻度数；子图挤压 → `fig.tight_layout()` 或调 `figsize`
 
 3. 重跑该脚本：`$PYTHON figures/gen_fig_xxx.py`，确认新 PDF 生成
 

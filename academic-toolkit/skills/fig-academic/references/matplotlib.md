@@ -8,10 +8,10 @@
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
+# 真源：academic.mplstyle（先加载基线），再叠本技能期刊印刷差异项：
+mpl.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
 mpl.rcParams.update({
-    "font.family": "sans-serif",
-    "font.sans-serif": ["Arial", "Helvetica"],
-    "font.size": 7,           # 印刷尺寸下的基础字号
+    "font.size": 7,           # 印刷尺寸下的基础字号（本技能差异项）
     "axes.linewidth": 0.6,
     "axes.spines.top": False,
     "axes.spines.right": False,
@@ -21,6 +21,9 @@ mpl.rcParams.update({
     "ytick.major.width": 0.6,
     "svg.fonttype": "none",   # 导出SVG时保留可编辑文本，而非转成路径
     "pdf.fonttype": 42,       # TrueType嵌入，避免PDF中字体变成图形
+    # 纯英文图可收窄为拉丁链；含中文标签 ⇒ 删除下面一行，沿用基线 CJK 链
+    # （Noto Sans SC→SimHei→…），否则中文渲染为 □
+    "font.sans-serif": ["Arial", "Helvetica"],
 })
 ```
 
@@ -36,8 +39,8 @@ fig, ax = plt.subplots(figsize=(89 * mm_to_inch, 70 * mm_to_inch))  # 单栏示�
 ## 导出
 
 ```python
-fig.savefig("figure.pdf", bbox_inches="tight", dpi=300)   # 矢量主图，投稿用
-fig.savefig("figure.png", bbox_inches="tight", dpi=300)   # 位图预览，聊天/汇报用
+fig.savefig("figure.pdf", dpi=300)   # 矢量主图，投稿用（护栏 standard；白边 pad_inches 控制）
+fig.savefig("figure.png", dpi=300)   # 位图预览，聊天/汇报用
 ```
 
 线图、散点图、箱线图等矢量元素优先用 PDF；如果图中包含大量数据点（如单细胞散点图 >10万点），可考虑 PDF 中栅格化数据层以控制文件体积：

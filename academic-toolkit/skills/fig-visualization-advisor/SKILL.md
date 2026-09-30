@@ -227,6 +227,8 @@ export_figure(
 1. 按优先级查中文字体：`Noto Sans CJK SC` > `Source Han Sans SC` > `SimHei` > `Microsoft YaHei`
 2. 修负号方框：`plt.rcParams['axes.unicode_minus'] = False`
 
+> 字体链与仓库基线 `skills/_utils/academic.mplstyle`（链首 Noto Sans SC，内置件随仓分发）同口径；直接用本脚本则以上述优先级为准。
+
 找不到任何 CJK 字体会抛清晰的安装提示（不会让你画完发现是方框）。
 
 **中文期刊的"宋体 + 数字 Times New Roman"混排**：传 `serif_for_zh=True`，优先选 Noto Serif CJK / Source Han Serif / SimSun。

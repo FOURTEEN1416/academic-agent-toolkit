@@ -1,20 +1,24 @@
 # Export Specifications
 
-> **BASELINE — COPY VERBATIM:** The code block below must be included in every generated script, placed after the typography baseline and before any plotting code.
+> **BASELINE — 单一真源 `academic.mplstyle` + 本技能导出差异项：** 先加载基线再叠下面差异；导出护栏（`savefig.bbox: standard`）随基线生效。
 
 ```python
-# Academic Figure Skill Export Baseline — COPY VERBATIM
+# Academic Figure Skill Export Baseline — 基线(academic.mplstyle) + 导出差异项
+import matplotlib as mpl
+mpl.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
 mpl.rcParams.update({
-    "pdf.fonttype": 42,         # TrueType font embedding
-    "svg.fonttype": "none",     # editable text in SVG
-    "savefig.bbox": "tight",    # trim whitespace
-    "savefig.dpi": 300,
+    "pdf.fonttype": 42,         # TrueType font embedding（本技能差异项）
+    "svg.fonttype": "none",     # editable text in SVG（本技能差异项）
+    "savefig.dpi": 300,         # 期刊 300dpi（基线 350）
+    # savefig.bbox 沿用基线 standard：⛔ 禁 tight——axes 外文字会把 PDF
+    # mediabox 撑爆成超长条（plot_utils 事故在案）；白边由 pad_inches 控制，
+    # 期刊若要求去白边在排版层（LaTeX/includegraphics trim）处理
 })
 
 def save_cns_figure(fig, filename):
     """Standard Academic Figure Skill export: vector PDF + 300dpi PNG preview."""
-    fig.savefig(f"{filename}.pdf", bbox_inches="tight", dpi=300)
-    fig.savefig(f"{filename}.png", bbox_inches="tight", dpi=300)
+    fig.savefig(f"{filename}.pdf", dpi=300)
+    fig.savefig(f"{filename}.png", dpi=300)
 ```
 
 ```r
@@ -47,23 +51,23 @@ save_cns_figure <- function(plot, filename, width_mm = 183, height_mm = NULL) {
 
 ```python
 # Vector master (submission-ready)
-fig.savefig("figure.pdf", bbox_inches="tight", dpi=300,
-            pdf.fonttype=42,    # Embed TrueType fonts as text, not outlines
-            svg.fonttype="none") # Keep text editable in SVG
+fig.savefig("figure.pdf", dpi=300)
+# ⛔ 不要写 pdf.fonttype=42 这类带点的 kwargs（SyntaxError）——
+#    fonttype/svg.fonttype 已由上方 rcParams 差异项定版
 
 # Raster preview
-fig.savefig("figure.png", bbox_inches="tight", dpi=300)
+fig.savefig("figure.png", dpi=300)
 
 # For scatter plots with very large point counts:
 ax.scatter(x, y, s=2, rasterized=True)  # rasterize data layer only
 ```
 
-Key matplotlib rcParams:
+Key matplotlib rcParams（基线 `academic.mplstyle` + 本技能导出差异项，与文件头基线块同口径）:
 ```python
 mpl.rcParams.update({
     "svg.fonttype": "none",     # Editable text in SVG
     "pdf.fonttype": 42,         # TrueType font embedding in PDF
-    "savefig.bbox": "tight",    # Trim whitespace
+    # savefig.bbox 沿用基线 standard（⛔ 禁 tight，mediabox 撑爆风险）
     "savefig.dpi": 300,
 })
 ```

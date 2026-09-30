@@ -273,11 +273,14 @@ setup_style()   # ← 就这样，不带参数
 
 ## 字体与排版
 
+字号/字体基线**唯一真源：`skills/_utils/academic.mplstyle`**（setup_style 已自动加载，无需手写）。基线值速览：`font.size 11 / label 12 / title 13 / tick·legend 10`、CJK 字体链（Noto Sans SC→SimHei→Microsoft YaHei→…）、`mathtext.fontset stix`。改基线去 mplstyle 文件；印刷字号换算见 plot_utils.py 注释区「嵌入宽反推 figsize」铁律。
+
 ```python
+# 仅当确需临时偏离基线时才手写覆盖（写明理由）：
 plt.rcParams.update({
-    'font.size': 11,                    # 正文字号
-    'axes.labelsize': 12,               # 坐标轴标签稍大
-    'axes.titlesize': 13,               # 标题再大一号
+    'font.size': 11,                    # = 基线值
+    'axes.labelsize': 12,               # = 基线值
+    'axes.titlesize': 13,               # = 基线值
     'xtick.labelsize': 10,
     'ytick.labelsize': 10,
     'legend.fontsize': 10,

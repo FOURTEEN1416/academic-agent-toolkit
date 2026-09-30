@@ -13,12 +13,12 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
 
-# Set publication quality parameters
-mpl.rcParams['figure.dpi'] = 300
+# 真源：academic.mplstyle（基线含 CJK 字体链/定版色板/保存护栏），先加载再叠差异项
+mpl.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
+
+# 本参考的期刊印刷差异项（纯英文图适用；含中文标签 ⇒ 保留基线 CJK 链，勿覆盖）
 mpl.rcParams['savefig.dpi'] = 300
 mpl.rcParams['font.size'] = 8
-mpl.rcParams['font.family'] = 'sans-serif'
-mpl.rcParams['font.sans-serif'] = ['Arial', 'Helvetica']
 mpl.rcParams['axes.labelsize'] = 9
 mpl.rcParams['axes.titlesize'] = 9
 mpl.rcParams['xtick.labelsize'] = 7
@@ -29,10 +29,11 @@ mpl.rcParams['xtick.major.width'] = 0.5
 mpl.rcParams['ytick.major.width'] = 0.5
 mpl.rcParams['lines.linewidth'] = 1.5
 
-# Use colorblind-friendly colors (Okabe-Ito palette)
+# 分类色：默认即基线定版 cycler（低饱和 elegant 8 色）。
+# 高可及性备选 Okabe-Ito（assets/color_palettes.py）；⛔ 禁 tab10 默认色环
 okabe_ito = ['#E69F00', '#56B4E9', '#009E73', '#F0E442',
              '#0072B2', '#D55E00', '#CC79A7', '#000000']
-mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=okabe_ito)
+# mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=okabe_ito)  # 需要时显式启用
 
 # Use perceptually uniform colormap
 mpl.rcParams['image.cmap'] = 'viridis'
@@ -58,9 +59,9 @@ def save_publication_figure(fig, filename, formats=['pdf', 'png'], dpi=300):
     """
     for fmt in formats:
         output_file = f"{filename}.{fmt}"
-        fig.savefig(output_file, dpi=dpi, bbox_inches='tight',
+        fig.savefig(output_file, dpi=dpi,
                    facecolor='white', edgecolor='none',
-                   transparent=False, format=fmt)
+                   transparent=False, format=fmt)  # 护栏 standard（基线），白边 pad_inches 控制
         print(f"Saved: {output_file}")
 ```
 
@@ -571,9 +572,9 @@ for i, ax in enumerate([ax_a, ax_b, ax_c, ax_d]):
             fontsize=9, fontweight='bold', va='top')
 
 # Save in Nature-preferred format
-fig.savefig('nature_figure.pdf', dpi=1000, bbox_inches='tight',
+fig.savefig('nature_figure.pdf', dpi=1000,
            facecolor='white', edgecolor='none')
-fig.savefig('nature_figure.png', dpi=300, bbox_inches='tight',
+fig.savefig('nature_figure.png', dpi=300,
            facecolor='white', edgecolor='none')
 
 plt.show()

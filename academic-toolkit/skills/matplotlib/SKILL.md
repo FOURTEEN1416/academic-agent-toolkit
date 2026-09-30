@@ -115,7 +115,7 @@ ax.legend()
 ax.grid(True, alpha=0.3)
 
 # Save and/or display
-fig.savefig('plot.png', dpi=300, bbox_inches='tight')
+fig.savefig('plot.png', dpi=300)
 plt.show()
 ```
 
@@ -239,20 +239,22 @@ For detailed styling options and colormap guidelines, see `references/styling_gu
 
 **Export to various formats:**
 ```python
-# High-resolution PNG for presentations/papers
-fig.savefig('figure.png', dpi=300, bbox_inches='tight', facecolor='white')
+# 仓库交付正解：基线已定版护栏（savefig.bbox=standard + pad_inches=0.1），直接存即可
+fig.savefig('figure.pdf')                      # 矢量主图（论文/交付）
+fig.savefig('figure.png', dpi=300)             # 位图预览
 
-# Vector format for publications (scalable)
-fig.savefig('figure.pdf', bbox_inches='tight')
-fig.savefig('figure.svg', bbox_inches='tight')
+# bbox_inches='tight' 仅限交互预览/屏幕截图——
+# ⛔ 交付链路禁用：图内 axes 外标注会把 PDF mediabox 撑爆成超长条
+#    （仓库事故在案，故基线锁 standard；白边用 pad_inches 控制）
+fig.savefig('preview.png', dpi=150, bbox_inches='tight')
 
-# Transparent background
-fig.savefig('figure.png', dpi=300, bbox_inches='tight', transparent=True)
+# Transparent background（预览用）
+fig.savefig('figure.png', dpi=300, transparent=True)
 ```
 
 **Important parameters:**
 - `dpi`: Resolution (300 for publications, 150 for web, 72 for screen)
-- `bbox_inches='tight'`: Removes excess whitespace
+- `bbox_inches='tight'`: Removes excess whitespace — ⛔ 交付链路禁用（mediabox 撑爆风险），基线护栏为 standard
 - `facecolor='white'`: Ensures white background (useful for transparent themes)
 - `transparent=True`: Transparent background
 
@@ -332,7 +334,7 @@ def create_analysis_plot(data, title):
 
 # Use the function
 fig, ax = create_analysis_plot(my_data, 'My Analysis')
-fig.savefig('analysis.png', dpi=300, bbox_inches='tight')
+fig.savefig('analysis.png', dpi=300)
 ```
 
 ## Quick Reference Scripts

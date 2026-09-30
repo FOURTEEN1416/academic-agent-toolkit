@@ -18,7 +18,7 @@ fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 **Key Methods:**
 - `fig.add_subplot(nrows, ncols, index)` - Add a subplot
 - `fig.add_axes([left, bottom, width, height])` - Add axes at specific position
-- `fig.savefig(filename, dpi=300, bbox_inches='tight')` - Save figure
+- `fig.savefig(filename, dpi=300)` - Save figure（基线护栏 standard；`bbox_inches='tight'` 仅预览用）
 - `fig.tight_layout()` - Adjust spacing to prevent overlaps
 - `fig.suptitle(title)` - Set figure title
 - `fig.legend()` - Create figure-level legend
@@ -242,21 +242,22 @@ ax.text(x, y, text,
 Common rcParams settings for global customization:
 
 ```python
-# Font settings
+# Font settings（值=仓库基线 academic.mplstyle；真源在该文件，改基线去那里。
+# 含中文标签的图必须保留链首 CJK 字体，纯拉丁链会把中文画成 □）
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Arial', 'Helvetica']
-plt.rcParams['font.size'] = 12
+plt.rcParams['font.sans-serif'] = ['Noto Sans SC', 'SimHei', 'Microsoft YaHei', 'Arial', 'Helvetica', 'DejaVu Sans']
+plt.rcParams['font.size'] = 11
 
 # Figure settings
 plt.rcParams['figure.figsize'] = (10, 6)
 plt.rcParams['figure.dpi'] = 100
 plt.rcParams['figure.facecolor'] = 'white'
 plt.rcParams['savefig.dpi'] = 300
-plt.rcParams['savefig.bbox'] = 'tight'
+plt.rcParams['savefig.bbox'] = 'standard'   # ⛔ 禁 tight：axes 外文字会撑爆 PDF mediabox
 
 # Axes settings
-plt.rcParams['axes.labelsize'] = 14
-plt.rcParams['axes.titlesize'] = 16
+plt.rcParams['axes.labelsize'] = 12
+plt.rcParams['axes.titlesize'] = 13
 plt.rcParams['axes.grid'] = True
 plt.rcParams['axes.grid.alpha'] = 0.3
 
