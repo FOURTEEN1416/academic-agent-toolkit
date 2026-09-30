@@ -1,0 +1,1525 @@
+
+
+
+
+
+
+
+<!DOCTYPE html><html lang="zh-CN">
+    
+
+
+
+
+
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="研创网,中国研究生,系列赛事,中国研究生教育学会,中国研究生创新实践系列大赛" />
+    <meta name="description" content="中国研究生创新实践系列大赛由教育部学位管理与研究生教育司指导，中国学位与研究生教育学会和中国科协青少年科技中心共同主办，是目前我国唯一被政府认可和指导的专门面向研究生群体的全国性赛事" />
+    <title>中国研究生创新实践系列大赛管理平台</title>
+    <base href="https://cpipc.acge.org.cn/">
+    <link href="source/index/cpipc.ico" rel="shortcut icon" type="image/x-icon">
+    <link rel="stylesheet" href="source/website/platform2025/css/bootstrap_2025.css">
+    <link rel="stylesheet" href="source/framework/fonts/ezfont.css">
+    <link rel="stylesheet" href="source/component/ckeditor2/contents.css">
+    <link rel="stylesheet" href="source/website/platform2025/css/animate.css">
+    <link rel="stylesheet" href="source/website/platform2025/css/reset.css">
+    <link rel="stylesheet" href="source/website/platform2025/css/swiper.min.css">
+    <link rel="stylesheet" href="source/website/platform2025/css/style.css?v=1.0.6">
+    <link rel="stylesheet" href="source/website/platform2025/css/inner.css?v=1.0.7">
+    <script src="source/website/platform2025/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="source/website/bdtj.js?v=1.0.1"></script>
+</head>
+    <body>
+    <div class="container">
+        
+
+
+
+
+
+
+
+
+
+<div class="head-box">
+    <div class="head head_pc">
+        <div class="logo">
+            <img src="source/website/platform2025/images/foot-logo.svg" alt="">
+        </div>
+        <div class="nav">
+            <div class="tp">
+                <ul>
+                    <li class="item">
+                        <img src="source/website/platform2025/images/head_event1.svg" alt="">
+                        <span class="tit-16 col-fff f-400">2026承办单位：西安交通大学</span>
+                    </li>
+                    <li class="item">
+                        <img src="source/website/platform2025/images/head3.svg" alt="">
+                        
+                            
+                                <span class="tit-16 col-fff f-400" style="cursor: pointer;" onclick="switchLanguage('en')">English</span>
+                            
+                            
+                        
+
+                        <img src="source/website/platform2025/images/head6.svg" alt="">
+                    </li>
+                    
+                    <li class="item">
+                        <!-- 数学建模新增证书验真 -->
+                        
+                            <a class="tit-16 col-fff f-400" style="cursor: pointer;" onclick="certificateValidation()" id="certificateValidation">证书验真</a>
+                        
+                        <!-- 研电赛新增证书验真 -->
+                        
+                    </li>
+                    
+                    <li class="item">
+                        <a href="">
+                            <img src="source/website/platform2025/images/head_event2.svg" alt="">
+                            <span class="tit-16 col-fff f-400">返回首页</span>
+                        </a>
+                    </li>
+                    
+                    <li class="item btn" >
+                        
+                            
+                            
+                                <a href="login/signUp" target="_blank"><span
+                                        class="tit-16 col-fff f-400">注册丨</span></a>
+                                <span class="tit-16 col-fff f-400"
+                                      onclick="loginEntrance4Register()">登录</span>
+                            
+                        
+
+                    </li>
+                    
+                </ul>
+            </div>
+            <div class="bt">
+                <ul>
+                    <li class="item">
+                        <a href="cw/contestIntrol/4" class="tit-20 col-fff f-400">
+                            赛事介绍
+                        </a>
+                    </li>
+                    <li class="item">
+                        <a href="cw/contestData/4/12" class="tit-20 col-fff f-400">
+                            组织架构
+                        </a>
+                    </li>
+                    <li class="item">
+                        <a href="cw/contestData/4/3" class="tit-20 col-fff f-400">
+                            常见问题
+                        </a>
+                    </li>
+                    <li class="item">
+                        <a href="cw/contestData/4/4" class="tit-20 col-fff f-400">
+                            联系我们
+                        </a>
+                    </li>
+                    
+                    <li class="item">
+                        <a onClick="registerContest('4')" class="tit-20 col-fff f-400">
+                            我要报名<img src="source/website/platform2025/images/head_event3.svg" alt="">
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+
+    </div>
+    <div class="head_ph">
+        <a class="logo">
+            <img src="source/website/platform2025/images/foot-logo.svg" alt="">
+        </a>
+        <div class="head_nav"><img src="source/website/platform2025/images/46.png" alt=""></div>
+    </div>
+
+
+    <div class="mh_nav">
+        <div class="close">
+            <img src="source/website/platform2025/images/out3.png">
+        </div>
+        <ul class="nav">
+            <li class="none">
+                <a href="cw/contestIntrol/4">赛事介绍</a>
+            </li>
+            <li class="none">
+                <a href="cw/contestData/4/12">组织架构</a>
+            </li>
+            <li class="none">
+                <a href="cw/contestData/4/3">常见问题</a>
+            </li>
+            <li class="none">
+                <a href="cw/contestData/4/4">联系我们</a>
+            </li>
+            
+            <li class="none">
+                <a onClick="registerContest('4')">我要报名</a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+
+<script src="source/component/jQuery.md5.js?v=1790745986270"></script>
+
+<style >
+    .no-padding{
+        padding: 0 !important;
+    }
+
+    .accountType-margin{
+        margin-left: 0.4rem;
+    }
+</style>
+
+<div class="id4_tc">
+    <div class="bj"></div>
+    <div class="tc_con">
+        <img src="source/website/platform2025/imgx/idtc_out.svg" class="out" alt="">
+        <div class="h tit-24">
+            登录
+        </div>
+        <!-- 错误提示信息 -->
+        <div id="warnMsg" style="height: 20px;"></div>
+        <div class="alert alert-danger login-msg hide" id="alertMsg">
+            <span class="icon-remove ui-margin-right"></span>
+            <span class="error-msg"></span>
+        </div>
+        <form id="tc_form">
+            <div class="input">
+                <div class="name tit-18">账号</div>
+                <input id="loginId" type="text" class="tit-18" placeholder="请输入您的手机号或登录账号">
+            </div>
+            <div class="input">
+                <div class="name tit-18">密码</div>
+                <input id="password" type="password" class="tit-18" placeholder="请输入您的密码">
+            </div>
+            <div class="input row no-gutters">
+                <div class="form-item col-xs-12" style="display:none"><label class="form-label required name tit-18 label-vertical" for="accountType">账户类型</label><input class="ezui ui-input" id="accountType" data-cls="tit-18 accountType-margin" data-toggle="radio" data-tag-id="radio_001" data-span="12" data-label="账户类型" data-label-align="right" data-tip-position="top" data-label-pos="top" data-required="true" data-readonly="false" data-disabled="false" data-hidden="true" data-pure-text="false" data-value-field="value" data-text-field="text" data-datas='[{"text":"其他账户","value":"1"},{"text":"学校管理员账户","value":"2"}]' data-horizontal="true" name="accountType" hidden></div>
+            </div>
+            <div class="input row no-gutters">
+                <input class="ezui ui-input" style="display:none" id="codeValue" data-cls="tit-18" data-toggle="textInput" data-tag-id="textInput_001" data-span="0" data-label-align="right" data-tip-position="top" data-label-pos="left" data-required="false" data-readonly="false" data-disabled="false" data-hidden="true" data-pure-text="false" data-size="lg" data-placeholder="验证码" data-icon="bgiconCls" name="codeValue" hidden><div class="has-feedback input-group input-group-lg" style="display:none"><input class="form-control tit-18 input-lg" type="text" placeholder="验证码"><span class="form-control-feedback icon-bgiconCls"></span><span class="input-group-addon code-img no-padding">
+                        <img id="codeImg" style="height: 34px;" class="tit-18"
+                             src="login/getIdentifyingCode?time=1790785059388"
+                             title="看不清楚，换一张" />
+                    </span></div>
+            </div>
+            <div class="p1 tit-14">
+                <span style="color:#0306EC"></span>
+                <span><a href="login/enterRetrievePwdIndex" target="_blank">找回密码</a></span>
+            </div>
+            <button id="submitLoginBtn" class="tit-18">提交</button>
+        </form>
+        <div class="p2 tit-16">
+            还没有参赛账号，<a href="login/signUp" target="_blank">立即注册 ></a><br>
+            还没有单位账号，<a href="login/applyUniversityLinkman" target="_blank">申请创建 ></a>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function showErrorMsg(msg) {
+        $("#warnMsg").hide();
+        $("#alertMsg").show().find(".error-msg").text(msg);
+    }
+
+    // 检测手机号码是否对应多账户
+    function changeAccount(value){
+        if(value){
+            if(StringUtils.validate(value,"phone").isValid){
+                var url = new Url("login/checkIsHasMoreAccountByMobile");
+                url.addParam("loginId", value);
+                $.req({
+                    url : url,
+                    modal : false,
+                    success : function(rtn){
+                        if(rtn == AppConstant.YES){
+                            get("accountType").show();
+                            $(".accountTypeDesc").show();
+                        }else{
+                            get("accountType").hide();
+                            $(".accountTypeDesc").hide();
+                        }
+                    }
+                });
+            }else{
+                get("accountType").hide();
+                $(".accountTypeDesc").hide();
+            }
+        }
+    }
+
+    $(function () {
+
+        $("#loginId").off("change").on("change", function() {
+            changeAccount($(this).val().trim());
+        });
+
+        $("#codeImg").click(function() {
+            $(".bgiconCls").hide();
+
+            var codeInp = get("codeValue");
+            codeInp.clear().focus();
+            var time = new Date().getTime();
+            $(this).attr("src", "login/getIdentifyingCode?time=" + time);
+        });
+
+        var _timer = null;
+
+        $("#codeValue").next("div").find("input").attr("maxLength", 4).on("keydown", function() {
+            if (_timer) {
+                clearTimeout(_timer);
+            }
+
+            var target = event.target || event.srcElement;
+            _timer = setTimeout(function(e) {
+                var value = $(target).val();
+                var codeFlag = $(".bgiconCls");
+                if (value.length == 4) {
+                    var url = new Url("login/checkIdentifyingCode", "code", value);
+                    $.req({
+                        url : url,
+                        modal : false
+                    },  function(rtn) {
+                        var flag = rtn.code == 1;
+                        if (!flag) {
+                            get("codeValue").focus();
+                            if (rtn.code == 4) {
+                                $("#codeImg").click();
+                            }
+                        }
+
+                        codeFlag.show().toggleClass("icon-check", flag).toggleClass("icon-remove", !flag);
+                    });
+                } else {
+                    codeFlag.hide();
+                }
+            }, 100);
+        });
+
+        $("#submitLoginBtn").off("click").on("click", function(e) {
+            // 阻止默认行为（关键代码）
+            e.preventDefault();
+            var $loginInp = $("#loginId");
+            var loginId = $loginInp.val();
+            if (!loginId) {
+                $loginInp.focus();
+                showErrorMsg('用户名不能为空');
+                return;
+            }
+
+            var $passwordInp = $("#password");
+            var password = $passwordInp.val();
+            if (!password) {
+                showErrorMsg('密码不能为空');
+                $passwordInp.focus();
+                return;
+            }
+
+            var codeInp = get("codeValue");
+            var needValidCode = !codeInp.isHidden();
+            if (needValidCode) {
+                var codeValue = codeInp.getValue();
+                if (! codeValue) {
+                    showErrorMsg('验证码不能为空');
+                    codeInp.focus();
+                    return;
+                }
+
+                var codeFlag = $(".bgiconCls");
+                if (codeFlag.hasClass("icon-remove")) {
+                    showErrorMsg('验证码不正确');
+                    codeInp.focus();
+                    return;
+                }
+            }
+
+            var accountTypeInp = get("accountType");
+            var needAccountType = !accountTypeInp.isHidden();
+            if (needAccountType) {
+                var accountType = accountTypeInp.getValue();
+                if (!accountTypeInp.validate()) {
+                    showErrorMsg('请选择登录账户类型');
+                    return;
+                }
+            }
+
+            var url = new Url("login/signin", "user", {
+                loginId : loginId,
+                password : $.md5(password)
+            });
+
+            if (needValidCode) {
+                url.addParam("code", codeInp.getValue());
+            }
+
+            if(needAccountType){
+                url.addParam("accountType", get("accountType").getValue());
+            }
+
+            $.req({
+                url: url,
+                headers: {screenWidth: window.screen.width, screenHeight: window.screen.height},
+                onLoadSuccess: function (rtn) {
+                    if (rtn.code === 1) {
+                        var redirectUrl = $(".id4_tc").data("redirectUrl") || "";
+                        if (redirectUrl == null || redirectUrl == "") {
+                            window.location.href = rtn.data;
+                        } else {
+                            window.location.href = redirectUrl;
+                        }
+
+                    } else if (rtn.code === 3) {
+                        showErrorMsg(rtn.msg);
+                        codeInp.focus();
+                        $("#codeImg").click();
+                        return;
+                    } else if (rtn.code === 9) {
+                        // 多账户
+                        showErrorMsg(rtn.msg);
+                        get("accountType").show();
+                        $(".accountTypeDesc").show();
+                        get("accountType").validate();
+                    } else {
+                        if (rtn.code === 6) {
+                            codeInp.toggle(true);
+                        }
+                        showErrorMsg(rtn.msg);
+                        $("#codeImg").click();
+                        return;
+                    }
+                }
+            });
+        });
+    });
+</script>
+<script>
+
+    function switchLanguage(lang) {
+        // 判断一下是否开放了英文访问
+        var language = '1';
+        var isOpenEnglish = '1';
+        if (AppConstant.LANGUAGE_CN == language &&  AppConstant.YES !=isOpenEnglish ) {
+            lang = "zh";
+        } else {
+            var baseUrl = $.util.getBaseUrl()+'cw/hp/'+'4';
+            var newUrl = baseUrl + '?lang=' + lang;
+            window.location.href = newUrl;
+        }
+    }
+
+    function registerContest(competeId) {
+        $.req({
+            url: "contestant/checkSignIn",
+            modal: true,
+            success: function(rtn) {
+                if(AppConstant.YES == rtn) {//已登录
+                    var url = new Url("contestant/checkCompeteReg");
+                    url.addParam("competeId", competeId);
+                    $.req({
+                        url: url,
+                        modal: true,
+                        success: function(rtn) {
+                            var flag = rtn.code == 1;
+                            if (flag) {
+                                $.openDialog({
+                                    url : "contestant/registerNote",
+                                    width : 800,
+                                    height : "auto",
+                                    title : "报名",
+                                    falign : 'center',
+                                    closeBtn : false,
+                                    buttons : [ {
+                                        text : '填写报名信息',
+                                        size : 'lg',
+                                        onClick : function() {
+                                            fillRegister(competeId);
+                                        }
+                                    } ]
+                                });
+                            } else {
+                                $.alert("当前大赛未到报名时间，请从大赛官网上确认大赛的报名信息");
+                            }
+                        }
+                    });
+                } else {
+                    _login($.util.getBaseUrl() + "/login/enterMain");
+                }
+            }
+        });
+    }
+
+    function certificateValidation(){
+        $.openDialog({
+            url : "contestant/enterCertificateValidation",
+            title : "证书验真",
+            closeBtn : false
+        });
+    }
+    // 证书验真研电赛->学生
+    function certificateValidationYds(){
+        $.openDialog({
+            url : "contestant/enterCertificateValidationYds",
+            title : "证书验真",
+            closeBtn : false
+        });
+    }
+
+    function fillRegister(competeId) {
+        $.req({
+            url: "contestant/checkRegister",
+            modal: true,
+            success: function(rtn) {
+                if(AppConstant.USER_TYPE_STUDENT == rtn) {
+
+                    //提示信息，只有队长才可以组队
+                    $.confirm("若您是队长，请点击【确认】按钮继续报名流程；若您为队员，请耐心等待队长的邀请，待队长建立队伍后，系统将给您发送短信通知到您，您在【我的赛事】中接受邀请即可。",function(flag){
+                        if(flag){
+                            $.closeDialog();
+                            var url = $.util.getBaseUrl() + "login/enterMain/contestant/myContest";
+
+                            $('<form>', {
+                                method: 'POST',
+                                action: url,
+                                css: { display: 'none' }
+                            }).append($('<input>', {
+                                type: 'hidden',
+                                name: 'competeId',
+                                value: competeId
+                            })).appendTo('body').submit();
+                        }
+                    });
+
+                } else {
+                    $.alert("仅参赛队员（学生）具有报名权限");
+                }
+            }
+        });
+    }
+
+</script>
+
+        <div class="content" style="background-color: #F2F6FB;">
+            <div class="ed1">
+                <div class="crumbs tit-16">
+                    <img src="source/website/platform2025/imgx/crumbs_icon.svg" alt="">
+                    <a href="" class="ahover">首页</a> / <a href="cw/hp/4">中国研究生数学建模竞赛</a> / <a>大赛通知</a>
+                </div>
+                <div class="con">
+                    <a href="cw/contestNews/list/4/0#contest_news_container" class="bk tit-18">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="8" height="16" viewBox="0 0 8 16" fill="none">
+                            <path d="M1.16788 8.03065C1.16788 7.96935 1.16788 7.96935 1.16788 8.03065L7.82482 14.9579C8.05839 15.2031 8.05839 15.5709 7.82482 15.8161C7.59124 16.0613 7.24088 16.0613 7.0073 15.8161L0.350366 8.82759C-0.116788 8.33716 -0.116788 7.60153 0.350366 7.17241L6.94891 0.183908C7.18248 -0.0613027 7.53285 -0.0613027 7.76642 0.183908C8 0.429119 8 0.796935 7.76642 1.04215L1.16788 8.03065Z"
+                                  fill="url(#paint0_linear_1066_14240)"/>
+                            <defs>
+                                <linearGradient id="paint0_linear_1066_14240" x1="-0.342857" y1="18.9" x2="12.5831"
+                                                y2="18.9163" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#A216F3"/>
+                                    <stop offset="0.461538" stop-color="#4346F4"/>
+                                    <stop offset="0.934914" stop-color="#0306EC"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        返回
+                    </a>
+                    <div class="top">
+                        <div class="h tit-38">“华为杯”第二十三届中国研究生数学建模竞赛开赛公告</div>
+                        <div class="p tit-16">
+                            <span>发布时间：2026-09-15</span>
+                            <span>来源：中国研究生数学建模竞赛</span>
+                            
+                                <span>阅读次数：55017</span>
+                            
+                            <span></span>
+                        </div>
+                    </div>
+                    <div class="con1 tit-16 articleContent">
+                            <p style="margin-top:8px; margin-bottom:8px; text-align:justify"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">各研究生培养单位、各参赛队：</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">为了保证</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">年&ldquo;华为杯&rdquo;第二十三届中国研究生数学建模竞赛顺利举行，现将竞赛开赛的相关事项通知如下：</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">一、时间节点</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">1.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">加密赛题开始下载时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">22</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">8:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，截止时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">27</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">12:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">；</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">2.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">赛题解密密码公布时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">23</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">8:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，截止时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">27</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">12:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">；</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">3.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">竞赛开始时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">23</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">8:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，截止时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">27</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">12:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">；</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">4.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">上传竞赛论文</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">MD5</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">码开始时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">26</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">12:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，截止时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">27</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">12:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">；</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="layout-grid-mode:char"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">5.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">竞赛论文</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">PDF</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">格式上传开始时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">27</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">14:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，截止时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">28</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">24:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">；</span></span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="layout-grid-mode:char"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">6.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">附件上传时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">29</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">8:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，截止时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">30</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">24:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">；</span></span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="layout-grid-mode:char"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">7.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">查看论文时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">29</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">8:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，截止时间：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">30</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">12:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">。</span></span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">二、队伍编号的生成</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">队伍编号是参赛队提交论文的重要信息码之一，将在</span></span></span><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">2026</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">年</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">9</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">月</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">22</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">日</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">8:00</span></span></span></b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">公布，届时队长可登录中国研究生创新实践系列大赛管理平台，进入&ldquo;个人中心&mdash;我的赛事&mdash;下载试题</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">/</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">上传论文&rdquo;功能中查看队伍编号，请各参赛队队长查看后牢记队伍编号。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">三、竞赛试题下载及论文上传流程</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">竞赛试题统一通过中国研究生创新实践系列大赛管理平台发布，队长登录账号，进入&ldquo;个人中心&mdash;我的赛事&rdquo;功能进行竞赛试题的下载及论文上传。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">具体流程详见《&ldquo;华为杯&rdquo;第二十三届中国研究生数学建模竞赛下载试题及上传论文操作手册》（附件</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">1</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">），请务必仔细阅读。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">四、论文要求</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:15.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">（一）格式要求</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">论文首先网上评审，后集中评审，请务必依照《&ldquo;华为杯&rdquo;第二十三届中国研究生数学建模竞赛论文格式规范》（附件</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">2</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">）、使用《&ldquo;华为杯&rdquo;第二十三届中国研究生数学建模竞赛论文模板》（附件</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">3</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">）进行论文编写，具体要求如下：</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">1.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">上传竞赛网站的电子版论文（包括摘要）</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">必须为</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:red">pdf</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">格式，不得压缩</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">2.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">论文命名格式：参赛试题编号</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">+</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">队伍编号，如</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">*26000010001.pdf</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，其中</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">*</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">为参赛试题编号，用</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">A</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">B</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">C</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">D</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">E</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">F</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">表示。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">3.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">论文必须按附件</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">3</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">模板进行编写，并确保提交的论文的首页为封皮（</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:red">不可删除</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，包含团队相关信息，</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">且</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">4</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">个</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">logo</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">图标</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">不能替换），第二页起为摘要页和正文页。除首页外其他页面中不允许出现单位、参赛人员姓名、队伍编号等信息，否则视为违规，论文无效。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">4.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">使用&ldquo;统一摘要页&rdquo;（附件</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">3</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">）。摘要是竞赛论文的重要组成部分，提醒参赛研究生注意，摘要需包含：建模思路、主要方法、模型、结果与结论、创新点等。摘要内容不超过两页。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:15.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">（二）提交要求</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">因参赛队伍较多，为缓解网络压力，本届大赛采用&ldquo;提交论文的</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">MD5</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">识别码&mdash;提交论文</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">pdf</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">文件&mdash;提交附件（</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">按照赛题的实际要求</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">）&rdquo;三步分时段依次进行，具体要求为：</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">1.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">竞赛提交论文的</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">MD5</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">识别码的开始时间是</span></span></span><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">2026</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">年</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">9</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">月</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">26</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">日</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">12:00</span></span></span></b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，截止时间是</span></span></span><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">2026</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">年</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">9</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">月</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">27</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">日</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">12:00</span></span></span></b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，请参赛研究生队在此时段之间提交识别码（</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">注意：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">MD5</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">识别码与提交论文对应，一旦提交</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">MD5</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">识别码，相应论文禁止修改，否则论文将无法成功上传</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">）。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">重要提醒：</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">请务必仔细阅读附件</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">1</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">：《</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">&ldquo;</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">华为杯</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">&rdquo;</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">第二十三届中国研究生数学建模竞赛下载试题</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">/</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">上传论文操作手册》中</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">2.5</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">章节，严格按照要求使用最终论文</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">PDF</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">文件生成论文</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">MD5</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">码并提交，提交后切勿对最终论文</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">PDF</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">进行任何操作，否则论文将无法成功上传。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">2.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">竞赛提交论文的开始时间为</span></span></span><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">2026</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">年</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">9</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">月</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">27</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">日</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">14:00</span></span></span></b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，截止时间是</span></span></span><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">2026</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">年</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">9</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">月</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">28</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">日</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">24:00</span></span></span></b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，请参赛研究生队在此期间内于竞赛系统中提交论文，</span></span></span><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">必须上传</span></span></span></b><b><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">pdf</span></span></span></b><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">文档，无需上传其他附件</span></span></span></b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">。论文上传成功后请</span></span></span><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">务必点击【提交】按钮</span></span></span></b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，提交成功后，后台方能收到论文。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">3.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">赛题中有明确要求上传附件或赛题虽然无明确要求，但参赛队认为上传附件有利于评审专家理解本参赛队研究成果的，并在论文中注明上传了附件，参赛队伍可在</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">29</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">8:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">&mdash;</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">30</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">24:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">期间在系统上传程序、计算结果等论文附件的压缩包。压缩包命名格式为：参赛试题编号</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">+</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">队伍编号，如</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">*26000010001.rar</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，其中</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">*</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">为参赛试题编号，用</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">A</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">B</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">C</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">D</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">E</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">F</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">表示。附件大小不得超过</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">50M</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">五、竞赛纪律及违规处理</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">1.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">参赛单位应责成有关职能部门负责竞赛的组织和纪律监督工作，保证本单位竞赛的规范、真实与公正。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">2.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">各参赛队应遵守竞赛纪律，竞赛期间严禁参赛队伍与任何教师交流赛题相关的任何问题，</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">严禁与队外任何人进行任何形式（包括网上）的赛题交流讨论</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，严禁抄袭、买卖论文，否则一律视为严重违反竞赛纪律。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:21.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">3.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">各参赛队可使用人工智能产品，仅作为答题的辅助工具，而非主导手段，不能代替参赛队伍的独立思考和竞赛答题的主体工作。所有参赛队应遵守科学道德与学术规范，正文、数学模型、公式引用等所有引用文献、引用程序（包括人工智能产品）均按规定注明来源（具体要求参见附件</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">4</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">）。竞赛专家委员会将对所有论文进行查重处理，重复率高于某阈值（由专家委员会确定）的论文，一般直接判定为&ldquo;违规论文&rdquo;，必要时进行人工判断，确定其是否为&ldquo;违规论文&rdquo;，引用他人程序也需明确标注引用来源，否则发现程序雷同，按抄袭认定为&ldquo;违规论文&rdquo;。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:21.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">4.</span></span></span><b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">各参赛队不得在竞赛期间将参赛论文进行网上查重</span></span></span></b><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">，否则造成论文泄露，后果自负。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:21.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">5.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">违纪情况一经核实认证后，将取消违纪队伍的参赛或获奖资格，强制停赛一年，并通报其参赛单位进行相应处罚。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">六、其他注意事项</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">1.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">此次竞赛论文，全部线上提交，请参赛队伍尽量提前提交，避开最终截止时间点的高峰，如因错过截止时间导致的问题，组委会一概不予处理。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">2.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">参赛队若在</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">&ldquo;</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">提交论文的</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">MD5</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">识别码</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">&rdquo;</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">环节遇到网络问题等不可控因素无法在截止时间（</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">27</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">日</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">12:00</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">）前上传，请将系统上传失败或错误的截图、论文</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">MD5</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">码、与</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">MD5</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">码相对应的论文</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">pdf</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">文件、队伍编号等相关信息发送至承办方邮箱：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">xjtusxjm2026@163.com</span></span></span><span style="font-size:14.0pt"><span style="font-family:仿宋_GB2312">，<b><span style="color:#ee0000">邮件发送截止时间为</span></b></span></span><b><span lang="EN-US" style="font-size:14.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">9</span></span></span></b><b><span style="font-size:14.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">月</span></span></span></b><b><span lang="EN-US" style="font-size:14.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">27</span></span></span></b><b><span style="font-size:14.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">日</span></span></span></b><b><span lang="EN-US" style="font-size:14.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:#ee0000">13:00</span></span></span></b><b><span style="font-size:14.0pt"><span style="font-family:仿宋_GB2312"><span style="color:#ee0000">，超过截止时间邮件无效</span></span></span></b><span style="font-size:14.0pt"><span style="font-family:仿宋_GB2312">。</span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">若确实由于网络原因提交失败，系统后台会有相关记录，组委会将比对系统后台记录与邮件内容，决定是否给予该队伍参赛资格。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">3.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">竞赛期间仅开放数学建模网（</span></span></span><a href="http://www.shumo.com/"><span style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black"><span style="text-decoration:none"><span style="text-underline:none">www.shumo.com</span></span></span></span></span></a><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">）论坛上提问（</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">QQ</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">群在竞赛期间禁言），如果对赛题的文字理解方面有问题，可以在论坛上提问，专家委员会将组织命题人员在网上解答，不应回答的，概不回答。请参赛研究生在提问前事先查看已经回答的问题以免重复。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify; text-indent:30.0pt"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">4.</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">竞赛奖励：竞赛设立一等奖、二等奖、三等奖、企业专项奖、&ldquo;数模之星&rdquo;冠亚季军、&ldquo;数模之星&rdquo;提名等奖项。其中一、二、三等奖获奖队数原则上不超过参赛队总数的</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">1.5%</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">13%</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">20%</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">。国（境）内外参赛队分开评奖，具体数量由组委会根据参赛情况确定。</span></span></span></span></span></span></span></p>
+
+<p style="text-align:justify"><span style="font-size:11pt"><span style="text-justify:inter-ideograph"><span style="line-height:28.0pt"><span style="font-family:等线">&nbsp;</span></span></span></span></p>
+
+<p style="text-indent:30.0pt"><span style="font-size:11pt"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">竞赛承办单位（西安交通大学）联系方式：</span></span></span></span></span></span></p>
+
+<p style="text-indent:30.0pt"><span style="font-size:11pt"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">电话：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">029-88965737</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">、</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">18092211302</span></span></span></span></span></span></p>
+
+<p style="text-indent:30.0pt"><span style="font-size:11pt"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">电子邮箱：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">xjtusxjm2026@163.com</span></span></span></span></span></span></p>
+
+<p style="text-indent:30.0pt"><span style="font-size:11pt"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">竞赛组委会秘书处（东南大学）联系方式：</span></span></span></span></span></span></p>
+
+<p style="text-indent:30.0pt"><span style="font-size:11pt"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">电话：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">025-83793783</span></span></span></span></span></span></p>
+
+<p style="text-indent:30.0pt"><span style="font-size:11pt"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">电子邮箱：</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">gscpc3</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">@</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">seu.edu.cn</span></span></span></span></span></span></p>
+
+<p><span style="font-size:11pt"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">附件：</span></span></span></span></span></span></p>
+
+<p><span style="font-size:18px;"><span style="text-indent:30.0pt;"><span style="line-height:28.0pt;"><span style="font-family:等线;"><span style="color:black;"><a href="https://cpipc.acge.org.cn/sysFile/downFile.do?fileId=1cb884ee3d3f4707a28b2fe0129ec627">附件1：&ldquo;华为杯&rdquo;第二十三届中国研究生数学建模竞赛下载试题及上传论文操作手册</a></span></span></span></span></span></p>
+
+<p><span style="font-size:18px;"><span style="line-height:28.0pt;"><span style="font-family:等线;"><span style="color:black;"><a href="https://cpipc.acge.org.cn/sysFile/downFile.do?fileId=97a93e3a9e074738aea95eea986508f2">附件2：&ldquo;华为杯&rdquo;第二十三届中国研究生数学建模竞赛论文格式规范</a></span></span></span></span></p>
+
+<p><span style="font-size:18px;"><span style="line-height:28.0pt;"><span style="font-family:等线;"><span style="color:black;"><a href="https://cpipc.acge.org.cn/sysFile/downFile.do?fileId=a730b312331e492baad17b248bad6b51">附件3：&ldquo;华为杯&rdquo;第二十三届中国研究生数学建模竞赛论文模板</a></span></span></span></span></p>
+
+<p><span style="font-size:18px;"><span style="line-height:28.0pt;"><span style="font-family:等线;"><span style="color:black;"><a href="https://cpipc.acge.org.cn/sysFile/downFile.do?fileId=4fc024f7a1504abb87fc056440c64a28">附件4：&ldquo;华为杯&rdquo;第二十三届中国研究生数学建模竞赛人工智能工具及输出使用规定</a></span></span></span></span></p>
+
+<h2 align="right" style="font-style:italic;"><span style="font-size:11pt"><span style="line-height:28.0pt"><span style="font-family:等线">&nbsp;</span></span></span></h2>
+
+<p align="right" style="text-align:right"><span style="font-size:11pt"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">中国研究生数学建模竞赛组委会</span></span></span></span></span></span></p>
+
+<p align="right" style="text-align:right"><span style="font-size:11pt"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">&ldquo;华为杯&rdquo;第二十三届中国研究生数学建模竞赛执行委员会</span></span></span></span></span></span></p>
+
+<p align="right" style="text-align:right"><span style="font-size:11pt"><span style="line-height:28.0pt"><span style="font-family:等线"><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">西安交通大学研究生院</span></span></span></span></span></span></p>
+
+<p align="right" style="text-align:right"><span style="font-size:11pt"><span style="line-height:28.0pt"><span style="font-family:等线"><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">2026</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">年</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">9</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">月</span></span></span><span lang="EN-US" style="font-size:15.0pt"><span style="font-family:&quot;Times New Roman&quot;,serif"><span style="color:black">16</span></span></span><span style="font-size:15.0pt"><span style="font-family:仿宋_GB2312"><span style="color:black">日</span></span></span></span></span></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+
+<div class="footer"  >
+    <div class="top">
+        <div class="img-box">
+            <div class="logo">
+                <img src="source/website/platform2025/images/foot-logo.svg" alt="">
+            </div>
+
+            <div class="foot-nav">
+                <div class="item">
+                    <div class="item-top">
+                        <div class="tit"><a>大赛概况</a></div>
+                        <div class="ico"><img src="source/website/platform2025/images/51.png" alt=""></div>
+                    </div>
+                    <div class="item-bot">
+                        <div class="lv2"><a href="pw/competition/introl" target="_blank">大赛沿革</a></div>
+                        <div class="lv2"><a href="https://cpipc.acge.org.cn/pw/preview2025/2c90800c8237fefe01823d7374a1044b" target="_blank">组织机构</a></div>
+                        <div class="lv2"><a href="pw/competition/regime" target="_blank">信息公开</a></div>
+                        <div class="lv2"><a onclick="jumpPlatformAnchor('partner');return false;">合作单位</a></div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="item-top">
+                        <div class="tit"><a>主题赛事</a></div>
+                        <div class="ico"><img src="source/website/platform2025/images/51.png" alt=""></div>
+                    </div>
+                    <div class="item-bot">
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/1"
+                                                                target="_blank">智慧城市技术与创意设计大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/3"
+                                                                target="_blank">未来飞行器创新大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/4"
+                                                                target="_blank">数学建模竞赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/6"
+                                                                target="_blank">电子设计竞赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/10"
+                                                                target="_blank">创“芯”大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/2c9080158ee9c272018f229208b610a6"
+                                                                target="_blank">创“芯”大赛-EDA精英挑战赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/2c9088a5696cbf370169a3f8101510bd"
+                                                                target="_blank">人工智能创新大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/2c9088a5696cbf370169a3f8934810be"
+                                                                target="_blank">机器人创新设计大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/7"
+                                                                target="_blank">能源装备创新设计大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/8"
+                                                                target="_blank">公共管理案例大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                    <div class="lv2"><a href="#" data-id="catalogParent"
+                                                        data-parentId="2c90800c7a132603017a137394d1036e">乡村振兴科技强农+创新大赛</a>
+                                    </div>
+                                
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/2c90800c8093eef401809d33b36f0652"
+                                                                target="_blank">网络安全创新大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/2c90800c8093eef401809d348f8b0653"
+                                                                target="_blank">“双碳”创新与创意大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/2c90800c8093eef401809d3501080654"
+                                                                target="_blank">金融科技创新大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/2c908018876ef068018774a9501a03fe"
+                                                                target="_blank">“美丽中国”创新设计大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/2c90801786cfa2b60186de4143390279"
+                                                                target="_blank">企业管理创新大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/2c9080178c7c917b018d1b1a0af61cd6"
+                                                                target="_blank">操作系统开源创新大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/2c9080178e896671018e97ce7525018b"
+                                                                target="_blank">“文化中国”两创大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/2c9080158e2ad864018e5fa55a450c49"
+                                                                target="_blank">国际中文教育案例大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                            
+                                
+                                
+                                    
+                                        
+                                        
+                                            <div class="lv2"><a href="cw/hp/2c90801795a92a850195d03b537b1bac"
+                                                                target="_blank">智能建造创新大赛</a>
+                                            </div>
+                                        
+                                    
+                                
+                            
+                        
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="item-top">
+                        <div class="tit"><a>大赛资讯</a></div>
+                        <div class="ico"><img src="source/website/platform2025/images/51.png" alt=""></div>
+                    </div>
+                    <div class="item-bot">
+                        <div class="lv2"><a href="pw/document/list/1" target="_blank">大赛文件</a></div>
+                        <div class="lv2"><a href="pw/news/list/1" target="_blank">大赛新闻</a></div>
+                        <div class="lv2"><a href="pw/notice/list/1" target="_blank">大赛通知</a></div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="item-top">
+                        <div class="tit"><a href="pw/notice/detail/2c9080179e403028019e484cf50210a6?page=0" target="_blank">赛程安排</a></div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="item-top">
+                        <div class="tit"><a
+                                href="https://cpipc.acge.org.cn/pw/preview2025/2c9080147bca2d84017be2e065422a96"
+                                target="_blank">联系我们</a></div>
+                    </div>
+                </div>
+            </div>
+
+            <ul>
+                <li class="item">
+                    <img src="source/website/platform2025/images/vx2.svg" alt="">
+                    <div class="pop">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="112" height="126"
+                             viewBox="0 0 112 126"
+                             fill="none">
+                            <path
+                                    d="M0 19.4526C0 16.1388 2.68629 13.4526 6 13.4526H41.1832C42.9676 13.4526 44.6595 12.6583 45.7994 11.2854L54.4613 0.853222C55.261 -0.109958 56.739 -0.109961 57.5387 0.853219L66.2006 11.2854C67.3405 12.6583 69.0324 13.4526 70.8168 13.4526H106C109.314 13.4526 112 16.1388 112 19.4526V120C112 123.314 109.314 126 106 126H6C2.68629 126 0 123.314 0 120V19.4526Z"
+                                    fill="#F8F8F8"/>
+                        </svg>
+                        <img class="bor" src="source/website/platform2025/images/bor.svg" alt="">
+                        <img class="qr" src="source/website/platform2025/images/gzh_qr.png" alt="">
+                    </div>
+                </li>
+                <li class="item">
+                    <img src="source/website/platform2025/images/sph_svg.svg" alt="">
+                    <div class="pop">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="112" height="126"
+                             viewBox="0 0 112 126"
+                             fill="none">
+                            <path
+                                    d="M0 19.4526C0 16.1388 2.68629 13.4526 6 13.4526H41.1832C42.9676 13.4526 44.6595 12.6583 45.7994 11.2854L54.4613 0.853222C55.261 -0.109958 56.739 -0.109961 57.5387 0.853219L66.2006 11.2854C67.3405 12.6583 69.0324 13.4526 70.8168 13.4526H106C109.314 13.4526 112 16.1388 112 19.4526V120C112 123.314 109.314 126 106 126H6C2.68629 126 0 123.314 0 120V19.4526Z"
+                                    fill="#F8F8F8"/>
+                        </svg>
+                        <img class="bor" src="source/website/platform2025/images/bor.svg" alt="">
+                        <img class="qr" src="source/website/platform2025/images/sph_qr.png" alt="">
+                    </div>
+                </li>
+                <li class="item">
+                    <img src="source/website/platform2025/images/bili.svg" alt="">
+                    <div class="pop">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="112" height="126"
+                             viewBox="0 0 112 126"
+                             fill="none">
+                            <path
+                                    d="M0 19.4526C0 16.1388 2.68629 13.4526 6 13.4526H41.1832C42.9676 13.4526 44.6595 12.6583 45.7994 11.2854L54.4613 0.853222C55.261 -0.109958 56.739 -0.109961 57.5387 0.853219L66.2006 11.2854C67.3405 12.6583 69.0324 13.4526 70.8168 13.4526H106C109.314 13.4526 112 16.1388 112 19.4526V120C112 123.314 109.314 126 106 126H6C2.68629 126 0 123.314 0 120V19.4526Z"
+                                    fill="#F8F8F8"/>
+                        </svg>
+                        <img class="bor" src="source/website/platform2025/images/bor.svg" alt="">
+                        <img class="qr" src="source/website/platform2025/images/bilibili_qr.png" alt="">
+                    </div>
+                </li>
+                <li class="item">
+                    <img src="source/website/platform2025/images/xhs2.svg" alt="">
+                    <div class="pop">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="112" height="126"
+                             viewBox="0 0 112 126"
+                             fill="none">
+                            <path
+                                    d="M0 19.4526C0 16.1388 2.68629 13.4526 6 13.4526H41.1832C42.9676 13.4526 44.6595 12.6583 45.7994 11.2854L54.4613 0.853222C55.261 -0.109958 56.739 -0.109961 57.5387 0.853219L66.2006 11.2854C67.3405 12.6583 69.0324 13.4526 70.8168 13.4526H106C109.314 13.4526 112 16.1388 112 19.4526V120C112 123.314 109.314 126 106 126H6C2.68629 126 0 123.314 0 120V19.4526Z"
+                                    fill="#F8F8F8"/>
+                        </svg>
+                        <img class="bor" src="source/website/platform2025/images/bor.svg" alt="">
+                        <img class="qr" src="source/website/platform2025/images/xhs_qr.png" alt="">
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="text" style="z-index: 2;"> 
+            <div class="items">
+                <span class="tit-20 col-fff f-300">大赛概况</span>
+                <ul>
+                    <li class="item">
+                        <a href="pw/competition/introl" class="tit-18 col-fff f-300">
+                            大赛沿革
+                        </a>
+                    </li>
+                    <li class="item">
+                        <a href="https://cpipc.acge.org.cn/pw/preview2025/2c90800c8237fefe01823d7374a1044b" class="tit-18 col-fff f-300">
+                            组织机构
+                        </a>
+                    </li>
+                    <li class="item">
+                        <a href="pw/competition/regime" class="tit-18 col-fff f-300">
+                            信息公开
+                        </a>
+                    </li>
+                    <li class="item">
+                        <a onclick="jumpPlatformAnchor('partner');return false;" class="tit-18 col-fff f-300">
+                            合作单位
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="items">
+                <span class="tit-20 col-fff f-300">主题赛事</span>
+                <div class="ullist">
+                    
+                        <ul>
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/1"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">智慧城市技术与创意设计大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/3"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">未来飞行器创新大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/4"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">数学建模竞赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/6"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">电子设计竞赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/10"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">创“芯”大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/2c9080158ee9c272018f229208b610a6"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">创“芯”大赛-EDA精英挑战赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/2c9088a5696cbf370169a3f8101510bd"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">人工智能创新大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/2c9088a5696cbf370169a3f8934810be"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">机器人创新设计大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/7"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">能源装备创新设计大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/8"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">公共管理案例大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                        </ul>
+                    
+                        <ul>
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                            
+                                
+                                    
+                                        
+                                            <li class="item"><a href="#" data-id="catalogParent"
+                                                                data-parentId="2c90800c7a132603017a137394d1036e"
+                                                                class="tit-18 col-fff f-300">乡村振兴科技强农+创新大赛</a>
+                                            </li>
+                                        
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/2c90800c8093eef401809d33b36f0652"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">网络安全创新大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/2c90800c8093eef401809d348f8b0653"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">“双碳”创新与创意大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/2c90800c8093eef401809d3501080654"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">金融科技创新大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/2c908018876ef068018774a9501a03fe"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">“美丽中国”创新设计大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/2c90801786cfa2b60186de4143390279"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">企业管理创新大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/2c9080178c7c917b018d1b1a0af61cd6"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">操作系统开源创新大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/2c9080178e896671018e97ce7525018b"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">“文化中国”两创大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/2c9080158e2ad864018e5fa55a450c49"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">国际中文教育案例大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                                
+                                    
+                                        
+                                        
+                                            
+                                                
+                                                
+                                                    <li class="item"><a href="cw/hp/2c90801795a92a850195d03b537b1bac"
+                                                                        target="_blank"
+                                                                        class="tit-18 col-fff f-300">智能建造创新大赛</a>
+                                                    </li>
+                                                
+                                            
+                                        
+                                    
+                                
+                            
+                        </ul>
+                    
+                </div>
+            </div>
+            <div class="items">
+                <span class="tit-20 col-fff f-300">大赛资讯</span>
+                <ul>
+                    <li class="item">
+                        <a href="pw/document/list/1" target="_blank" class="tit-18 col-fff f-300">
+                            大赛文件
+                        </a>
+                    </li>
+                    <li class="item">
+                        <a href="pw/news/list/1" target="_blank" class="tit-18 col-fff f-300">
+                            大赛新闻
+                        </a>
+                    </li>
+                    <li class="item">
+                        <a href="pw/notice/list/1" target="_blank" class="tit-18 col-fff f-300">
+                            大赛通知
+                        </a>
+                    </li>
+                </ul>
+                <span class="tit-20 col-fff f-300"><a href="pw/notice/detail/2c9080179e403028019e484cf50210a6?page=0" target="_blank" style="color:#fff;">赛程安排</a></span>
+                <span class="tit-20 col-fff f-300">
+                    <a href="https://cpipc.acge.org.cn/pw/preview2025/2c9080147bca2d84017be2e065422a96" target="_blank" style="color:#fff;">联系我们 </a>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="line"></div>
+    <div class="tips">
+        <div class="lf tit-16 col-fff f-300">
+
+        </div>
+        <div class="rg">
+            <span class="tit-16 col-fff f-300"><a href="" class="col-fff">京ICP备19019038号-2</a> 版权所有：中国学位与研究生教育学会</span>
+        </div>
+    </div>
+    <div class="bg">
+        <img src="source/website/platform2025/images/foot-bg.png" alt="">
+    </div>
+</div>
+
+<script src="source/website/platform2025/js/swiper.min.js"></script>
+<script src="source/website/platform2025/js/wow.min.js"></script>
+<script src="source/website/platform2025/js/public.js?v=1.0.6"></script>
+
+<script src="source/component/bootstrap/bootstrap.js"></script>
+<script src="source/framework/ezbase.js"></script>
+<script src="source/framework/ezui.js"></script>
+<script src="source/framework/ezuiExt.js"></script>
+<script src="source/component/chart/echarts.min.js"></script>
+<script src="source/component/chart/ez-echarts.js"></script>
+<script src="source/component/chart/ezuiChart.js"></script>
+<script src="source/component/chart/china.js"></script>
+<script src="source/component/vue.min.js"></script>
+<script src="source/component/jquery.fileDownload.js"></script>
+
+    </body>
+</html>

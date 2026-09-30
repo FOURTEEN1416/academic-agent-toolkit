@@ -278,10 +278,11 @@
       "url": "https://cpipc.acge.org.cn/cw/contestNews/detail/4/2c90801ca06f016101a0a47e06b77d9b?page=0",
       "located": "四（一）格式要求 1-4（PDF 不压缩/命名/首页封皮 4 logo/统一摘要页≤2页六要素）；四（二）提交要求（MD5→PDF→附件三步、附件≤50M）；五 3（AI 仅辅助、引用注明、查重违规）",
       "applicable_scope": "第 23 届（2026）当届",
-      "note": "2026-09-27 官方平台全文抓取；论文要求段无页数上限条款；candidate 线同文档渠道 cmathc.org.cn/cpmcm/news/642.html 并入本条",
+      "note": "2026-09-27 官方平台全文抓取；论文要求段无页数上限条款；candidate 线同文档渠道 cmathc.org.cn/cpmcm/news/642.html 并入本条；2026-10-01 同URL重抓快照入库并全文复核：三步时间窗（MD5 9/26 12:00→9/27 12:00；PDF 9/27 14:00→9/28 24:00；附件 9/29 8:00→9/30 24:00）、查看论文窗（9/29 8:00→9/30 12:00）、兜底邮箱 xjtusxjm2026@163.com（9/27 13:00 截止）、封皮4logo/论文无效条款均一手坐实；公告全文 0 命中「承诺书」「页数」「页边距」",
       "merged_from": [
         "SRC-003"
-      ]
+      ],
+      "path": "assets-local/contest-regs/huawei/23rd_2026/开赛公告_snapshot_cpipc_20261001抓取.html"
     },
     "hw23-att1-manual": {
       "kind": "official_direct",
@@ -289,10 +290,10 @@
       "retrieved_at": "2026-09-27",
       "verification": "full_text",
       "url": "https://cpipc.acge.org.cn/sysFile/downFile.do?fileId=1cb884ee3d3f4707a28b2fe0129ec627",
-      "path": "evidence/hw23_att1_manual.pdf",
+      "path": "assets-local/contest-regs/huawei/23rd_2026/附件1：第二十三届下载试题及上传论文操作手册.pdf",
       "located": "2.5 编写论文（模板/PDF/命名/MD5 工具 FileMD5.exe/生成后禁改）；2.6 提交识别码；2.7 上传论文（MD5 一致性校验）；2.8 上传附件（非必要环节，≤50M）",
       "applicable_scope": "第 23 届当届",
-      "note": "pypdf 全文提取；页限关键词（页数/不超过 N 页/页以内/上限）0 命中"
+      "note": "pypdf 全文提取；页限关键词（页数/不超过 N 页/页以内/上限）0 命中；2026-10-01 同 fileId 重抓入库（PDF 16页一致；时间窗不在本件、在开赛公告）"
     },
     "hw23-att3-template": {
       "kind": "official_direct",
@@ -300,10 +301,10 @@
       "retrieved_at": "2026-09-27",
       "verification": "binary_scan",
       "url": "https://cpipc.acge.org.cn/sysFile/downFile.do?fileId=a730b312331e492baad17b248bad6b51",
-      "path": "evidence/hw23_att3_template.doc",
+      "path": "assets-local/contest-regs/huawei/23rd_2026/附件3：第二十三届论文模板.doc",
       "located": "二进制关键词扫描（UTF-16LE/GBK）未命中页限字样",
       "applicable_scope": "第 23 届当届",
-      "note": "老式 OLE 二进制，未做全文核实——证据力弱，不支撑 verified 结论"
+      "note": "老式 OLE 二进制，未做全文核实——证据力弱，不支撑 verified 结论；2026-10-01 重抓入库（OLE .doc 894976B，元数据4页，与 09-27 扫描同源）"
     },
     "hw23-att4-ai": {
       "kind": "official_direct",
@@ -311,9 +312,10 @@
       "retrieved_at": "2026-09-27",
       "verification": "full_text",
       "url": "https://cpipc.acge.org.cn/sysFile/downFile.do?fileId=4fc024f7a1504abb87fc056440c64a28",
-      "path": "evidence/hw23_att4_ai_regulation.docx",
+      "path": "assets-local/contest-regs/huawei/23rd_2026/附件4：第二十三届人工智能工具及输出使用规定.docx",
       "located": "条款 1-9：AI 仅辅助不可替代独立思考；输出须消化后自述；模型/公式来源标注+参考文献列 AI 工具名称/版本/机构/日期；数据分析注释；编程注释声明；违规取消评奖资格",
-      "applicable_scope": "第 23 届当届"
+      "applicable_scope": "第 23 届当届",
+      "note": "2026-10-01 重抓入库并全文逐字复核：条款1-9 与 CHECKDESK G-07 引文一致；条款6 为条件条款（赛题有要求时提供 AI 输入内容及后续处理策略）；序言载明 21 届（2024）首颁、本届修订重颁"
     },
     "hw23-format-spec": {
       "kind": "official_direct",
@@ -321,10 +323,10 @@
       "retrieved_at": "2026-09-27",
       "verification": "full_text",
       "url": "https://cpipc.acge.org.cn/sysFile/downFile.do?fileId=97a93e3a9e074738aea95eea986508f2",
-      "path": "evidence/hw23_att2_format_spec.docx",
+      "path": "assets-local/contest-regs/huawei/23rd_2026/附件2：第二十三届论文格式规范.docx",
       "located": "全文 10 段：摘要页下一页起正文；页码自摘要页起页脚中部阿拉伯从 1；不能有页眉；不得出现身份标志；字体字号行距；参考文献书籍/期刊/网络三格式；摘要≤2页六要素无需英文；计算结果与源程序按题要求限时上传",
       "applicable_scope": "第 23 届当届",
-      "note": "docx 全文提取；全文唯一「不超过」= 摘要≤2页；与 cmathc.org.cn/cpmcm/news/644.html 网络版（Phase-1 已核）逐条一致，出处升级为官方平台附件原件；同文三渠道合并（E-MERGE-01）：官方平台附件 docx 原件（本条）+ cmathc.org.cn/cpmcm/news/644.html 网络版全文（draft 线 hw23-format-mirror 与 candidate 线 SRC-002，2026-09-27 抓取，逐条一致）。",
+      "note": "docx 全文提取；全文唯一「不超过」= 摘要≤2页；与 cmathc.org.cn/cpmcm/news/644.html 网络版（Phase-1 已核）逐条一致，出处升级为官方平台附件原件；同文三渠道合并（E-MERGE-01）：官方平台附件 docx 原件（本条）+ cmathc.org.cn/cpmcm/news/644.html 网络版全文（draft 线 hw23-format-mirror 与 candidate 线 SRC-002，2026-09-27 抓取，逐条一致）。；2026-10-01 重抓入库并全文逐字复核：全文唯一「不超过」=摘要≤2页一手坐实；0 命中页数上限/页边距/承诺书条款（负面证据一手）",
       "merged_from": [
         "hw23-format-mirror",
         "SRC-002"
@@ -386,6 +388,26 @@
       "located": "§III Changes for 2027「The MCM/ICM Contest now have a 25 page limit. The 25 page limit applies to the entire submission including the Summary Sheet, Solution, Reference List, Table of Contents, Notes, Appendices, Code and any problem specific requirements.」；§IV Rule 10「Papers must be within the 25 page limit.」；Use of AI Tools 节「append the Report on Use of AI … after your 25-page solution. This new section has no page limit and will not be counted as part of the 25-page solution.」；Preparing a Solution Document §4「A Table of Contents is encouraged and does count toward the page limit. Reference list … and any appendices count toward the page limit」；Submission §C「The attachment must be less than 25MB」",
       "applicable_scope": "2027 届 MCM（A/B/C）与 ICM（D/E/F）通用（官方声明 All rules and instructions apply to both）",
       "note": "2026-09-27 官方页在线全文抓取（firecrawl 实时）；v1「论文建议不超过25页」系官方硬上限被降格为建议，已修正"
+    },
+    "hw23-checkdesk": {
+      "kind": "third_party",
+      "title": "华为杯提交前自检清单 CHECKDESK（第23届官方规范逐字核对版，条款核对日期 2026-09-24）",
+      "retrieved_at": "2026-10-01",
+      "verification": "full_text",
+      "path": "本地YY资料区 YY网盘原件/增量/自检清单.md（机外私有件不入库；自媒体核对索引，非官方文件，非真源）",
+      "located": "G-01 匿名性（附件2+公告引文）；G-02 页眉页码；G-03 封皮与4logo（实测23届模板 media 恰4图）；G-04 字号行距；G-05 摘要六要素≤2页无需英文；G-06 参考文献三句式标点照抄+程序注明来源；G-07 AI合规（附件4 第2/3/7条引文）；G-08 三时间窗+MD5流程+兜底邮箱（9/27 13:00 截止）",
+      "applicable_scope": "第 23 届（2026）当届",
+      "note": "自媒体清单只做索引不做真源（红线）；其引文已与 2026-10-01 重抓入库的官方附件1/2/4 及公告快照逐一比对一致——独立二手逐字核对互证源，互证不升级、不冒充一手"
+    },
+    "hw-archive-15-22": {
+      "kind": "repo_artifact",
+      "title": "华为杯 15-23 届官方规范/模板一手原件库（assets-local 公开资产区）",
+      "retrieved_at": "2026-10-01",
+      "verification": "local_inspection",
+      "path": "assets-local/contest-regs/huawei/（15th_2018…22nd_2025 逐年规范+模板成对原件，收编自本地YY资料区 github-mirror/MathModel，cp 原样字节一致；23rd_2026/ 四件+公告快照为 2026-10-01 官方平台原路径重抓；人读清单 index.md）",
+      "located": "18→23 届格式七闸逐字稳定链原件；22nd_2025/附件4=22届AI规定（21届首颁→23届修订演进链一环）",
+      "applicable_scope": "15-23 届历史原件（当届口径以 comp_rules profiles 约束带为准；旧届条文不得直接标当届）",
+      "note": "assets-local 整区随公开仓分发（2026-09-28 用户裁决）；机检消费经 comp_rules，不直读二进制原件"
     }
   },
   "contests": {
@@ -875,7 +897,7 @@
       "tooling": {
         "template_cls": "gmcmthesis",
         "compiler": "XeLaTeX",
-        "note": "官方模板指针 skills/comp-paper-zh/_templates/huawei/official_docx/（gitignored）"
+        "note": "官方模板指针 skills/comp-paper-zh/_templates/huawei/official_docx/（2026-09-28 起随 assets-local 批次入库分发）；23 届附件1-4+公告快照一手件在 assets-local/contest-regs/huawei/23rd_2026/"
       },
       "profiles": [
         {
@@ -886,6 +908,7 @@
           "constraints": [
             {
               "id": "hw-page-limit",
+              "vintage": "2026-23rd",
               "kind": "page_limit",
               "status": "unknown",
               "value": null,
@@ -896,9 +919,11 @@
                 "hw23-format-spec",
                 "hw23-att3-template",
                 "hw23-att4-ai",
-                "hw23-reminder"
+                "hw23-reminder",
+                "hw23-checkdesk"
               ],
-              "note": "公告论文要求段、附件1全文（页限关键词 0 命中）、附件2全文（唯一「不超过」=摘要≤2页）、附件4全文、09-21 提醒均无页数上限条款；附件3模板仅二进制弱扫描。不能据此断言「当届全部文件无页限」——unknown 不等于无要求；历轮配置值与历史任务口径见 migration_evidence，运行时走任务级覆盖通道（MIGRATION.md M4）",
+              "source": "当届公开文件集五件全文负面证据（公告/附件1/2/4/提醒 0 命中页限条款）；CHECKDESK 互证",
+              "note": "公告论文要求段、附件1全文（页限关键词 0 命中）、附件2全文（唯一「不超过」=摘要≤2页）、附件4全文、09-21 提醒均无页数上限条款；附件3模板仅二进制弱扫描。不能据此断言「当届全部文件无页限」——unknown 不等于无要求；历轮配置值与历史任务口径见 migration_evidence，运行时走任务级覆盖通道（MIGRATION.md M4）；2026-10-01 复核：附件1/2/4+公告快照一手重抓全文再证 0 命中，CHECKDESK（二手逐字核对）同判",
               "locator": "负面证据收窄口径：23 届《论文格式规范》与《开赛公告》两件官方全文均无页数/篇幅上限条款；章程等其他官方件未检索；往届伪官方页数上限主张的证伪记录见 sources 与 migration_evidence",
               "evidence": {
                 "grade": "searched_no_clause",
@@ -907,6 +932,7 @@
             },
             {
               "id": "hw-page-order",
+              "vintage": "2026-23rd",
               "kind": "page_order",
               "status": "verified",
               "value": {
@@ -920,11 +946,14 @@
               "scope": "提交 PDF",
               "source_ids": [
                 "hw23-announce",
-                "hw23-reminder"
-              ]
+                "hw23-reminder",
+                "hw23-checkdesk"
+              ],
+              "source": "开赛公告 四（一）3 + 09-21提醒 第3条；CHECKDESK G-03"
             },
             {
               "id": "hw-first-page",
+              "vintage": "2026-23rd",
               "kind": "first_page",
               "status": "verified",
               "value": {
@@ -936,12 +965,15 @@
               "scope": "首页封皮",
               "source_ids": [
                 "hw23-announce",
-                "hw23-reminder"
+                "hw23-reminder",
+                "hw23-checkdesk"
               ],
+              "source": "开赛公告 四（一）3 + 09-21提醒 第3条；CHECKDESK G-03（4 logo 实测互证）",
               "note": "机检映射：v1 compliance.first_page=cover_with_logos_immutable（pack_submission 消费）"
             },
             {
               "id": "hw-anonymity",
+              "vintage": "2026-23rd",
               "kind": "identity_anonymity",
               "status": "verified",
               "value": {
@@ -953,25 +985,35 @@
                   "高校代码",
                   "学号"
                 ],
-                "violation": "论文无效"
+                "violation": "论文无效",
+                "check_locations": [
+                  "致谢（最后一页）",
+                  "附录代码注释",
+                  "截图与代码中的文件路径"
+                ]
               },
               "scope": "除首页外全部页面（含附件）",
               "source_ids": [
                 "hw23-announce",
-                "hw23-reminder"
-              ]
+                "hw23-reminder",
+                "hw23-checkdesk"
+              ],
+              "source": "附件2（身份标志条款）+ 公告（否则论文无效）+ 提醒 第3条；CHECKDESK G-01"
             },
             {
               "id": "hw-pledge",
+              "vintage": "2026-23rd",
               "kind": "pledge_page",
               "status": "unknown",
               "value": null,
               "scope": "论文提交件是否含承诺书（23 届当届口径）",
               "source_ids": [
                 "hw23-format-spec",
-                "hw23-template-21st"
+                "hw23-template-21st",
+                "hw23-checkdesk"
               ],
-              "note": "v1 机器口径 absent_in_official_template 的 23 届适用性未建立；判定语义移交 B 适配",
+              "source": "负面证据：当届五件官方全文 0 命中承诺书；CHECKDESK 全清单互证；21届模板无承诺书页仅辅助印证（旧届不证当届）",
+              "note": "v1 机器口径 absent_in_official_template 的 23 届适用性未建立；判定语义移交 B 适配；2026-10-01 复核：附件1/2/4+公告快照一手全文 0 命中「承诺书」，CHECKDESK G-01~G-08 全清单亦无承诺书环节（二手互证）——仍无明文条款，保持 unknown",
               "evidence": {
                 "grade": "searched_no_clause",
                 "reason": "23 届格式规范全文与开赛公告全文均无承诺书条款；第 21 届官方模板无承诺书页仅辅助印证——旧届模板不证明新届禁令（E-MERGE-01 裁决 4：按 unknown）"
@@ -979,6 +1021,7 @@
             },
             {
               "id": "hw-abstract",
+              "vintage": "2026-23rd",
               "kind": "abstract_page",
               "status": "verified",
               "value": {
@@ -998,11 +1041,14 @@
               "scope": "摘要页",
               "source_ids": [
                 "hw23-announce",
-                "hw23-format-spec"
-              ]
+                "hw23-format-spec",
+                "hw23-checkdesk"
+              ],
+              "source": "附件2 摘要段 + 公告 四（一）4；CHECKDESK G-05"
             },
             {
               "id": "hw-numbering",
+              "vintage": "2026-23rd",
               "kind": "page_numbering",
               "status": "verified",
               "value": {
@@ -1013,11 +1059,14 @@
               },
               "scope": "全文（自摘要页起算）",
               "source_ids": [
-                "hw23-format-spec"
-              ]
+                "hw23-format-spec",
+                "hw23-checkdesk"
+              ],
+              "source": "附件2（自摘要页起/页脚中部/阿拉伯从1连续/无页眉）；CHECKDESK G-02"
             },
             {
               "id": "hw-typography",
+              "vintage": "2026-23rd",
               "kind": "format_typography",
               "status": "verified",
               "value": {
@@ -1028,11 +1077,14 @@
               },
               "scope": "论文排版",
               "source_ids": [
-                "hw23-format-spec"
-              ]
+                "hw23-format-spec",
+                "hw23-checkdesk"
+              ],
+              "source": "附件2（三号黑体题/四号黑体一级居中/一律小四宋体/单倍行距）；CHECKDESK G-04"
             },
             {
               "id": "hw-references",
+              "vintage": "2026-23rd",
               "kind": "reference_styles",
               "status": "verified",
               "value": {
@@ -1043,15 +1095,20 @@
                 ],
                 "order": "按正文引用次序",
                 "in_text": "方括号标号",
-                "book_page_numbers": true
+                "book_page_numbers": true,
+                "program_citation": "引用程序须注明来源（附件2原文）",
+                "punctuation_immutable": true
               },
               "scope": "参考文献",
               "source_ids": [
-                "hw23-format-spec"
-              ]
+                "hw23-format-spec",
+                "hw23-checkdesk"
+              ],
+              "source": "附件2 参考文献段（三格式/方括号/书籍页码/程序注明来源）；CHECKDESK G-06（三种句式标点照抄，防文献管理工具导出格式替换）"
             },
             {
               "id": "hw-file-naming",
+              "vintage": "2026-23rd",
               "kind": "file_naming",
               "status": "verified",
               "value": {
@@ -1062,11 +1119,14 @@
               "scope": "提交文件",
               "source_ids": [
                 "hw23-announce",
-                "hw23-reminder"
-              ]
+                "hw23-reminder",
+                "hw23-checkdesk"
+              ],
+              "source": "公告 四（二）+ 附件1 §2.5；CHECKDESK G-08"
             },
             {
               "id": "hw-submission",
+              "vintage": "2026-23rd",
               "kind": "submission_process",
               "status": "verified",
               "value": {
@@ -1079,17 +1139,28 @@
                 "pdf_not_compressed": true,
                 "attachment_max_mb": 50,
                 "attachment_optional": "赛题要求或自认为有利于评审时；论文中注明已上传",
-                "submit_button": "必须点击【提交】"
+                "submit_button": "必须点击【提交】",
+                "time_windows_2026": {
+                  "md5_code": "2026-09-26 12:00 至 2026-09-27 12:00",
+                  "pdf_upload": "2026-09-27 14:00 至 2026-09-28 24:00",
+                  "attachment_upload": "2026-09-29 08:00 至 2026-09-30 24:00",
+                  "paper_view": "2026-09-29 08:00 至 2026-09-30 12:00",
+                  "note": "逐届重排；第 24 届按 next_check 优先重验"
+                },
+                "fallback_channel": "网络故障兜底：上传失败/错误截图+论文MD5码+对应PDF+队伍编号发承办方邮箱 xjtusxjm2026@163.com，2026-09-27 13:00 截止超时无效"
               },
               "scope": "竞赛系统三步分时段提交",
               "source_ids": [
                 "hw23-announce",
                 "hw23-att1-manual",
-                "hw23-reminder"
-              ]
+                "hw23-reminder",
+                "hw23-checkdesk"
+              ],
+              "source": "公告 一/四（二）（时间窗/三步分时段/MD5冻结/兜底邮箱）+ 附件1 §2.5-2.8；CHECKDESK G-08；2026-10-01 公告快照一手复核时间窗"
             },
             {
               "id": "hw-ai",
+              "vintage": "2026-23rd",
               "kind": "ai_declaration",
               "status": "verified",
               "value": {
@@ -1102,16 +1173,21 @@
                 ],
                 "reference_listing": "参考文献列出 AI 工具名称/版本型号/开发机构/发布日期",
                 "unverifiable_source_models": "无推导无引用一律不予认可（有不被评阅认可风险）",
-                "violation": "取消评奖资格"
+                "violation": "取消评奖资格",
+                "appendix_disclosure": "赛题有要求时：提供 AI 工具输入内容及对输出的后续处理策略（含开发框架/开源软件、技术路线、假设条件、参数与超参数）——附件4 第6条条件条款",
+                "lineage": "21届（2024）首颁 AI 规范 → 23届（2026-09-16）修订重颁（附件4 序言）；逐届演进，next_check 优先重验项"
               },
               "scope": "全部参赛队",
               "source_ids": [
                 "hw23-announce",
-                "hw23-att4-ai"
-              ]
+                "hw23-att4-ai",
+                "hw23-checkdesk"
+              ],
+              "source": "附件4 条款1-9（2026-09-16）+ 公告 五3；CHECKDESK G-07；2026-10-01 重抓逐字复核"
             },
             {
               "id": "hw-results-upload",
+              "vintage": "2026-23rd",
               "kind": "results_upload",
               "status": "verified",
               "value": {
@@ -1121,10 +1197,12 @@
               "scope": "计算结果与编程源程序",
               "source_ids": [
                 "hw23-format-spec"
-              ]
+              ],
+              "source": "附件2（计算结果与编程源程序按题要求限时上传）"
             },
             {
               "id": "hw-plagiarism",
+              "vintage": "2026-23rd",
               "kind": "plagiarism",
               "status": "verified",
               "value": {
@@ -1133,21 +1211,26 @@
               "scope": "纪律（全文查重）",
               "source_ids": [
                 "hw23-announce"
-              ]
+              ],
+              "source": "公告 五3（重复率高于专家委员会阈值一般直接判定违规论文）"
             },
             {
               "id": "hw-margins",
+              "vintage": "2026-23rd",
               "kind": "margins",
               "status": "unknown",
               "value": null,
               "scope": "页边距",
               "source_ids": [
-                "hw23-format-spec"
+                "hw23-format-spec",
+                "hw23-checkdesk"
               ],
+              "source": "负面证据：当届五件官方全文无页边距条款；CHECKDESK 互证；仓库 2.5cm 主张确认出自 22 届口径（huawei-official-format.md 来源2），未获 23 届原文支持",
               "evidence": {
                 "grade": "searched_no_clause",
                 "reason": "23 届规范与公告均无页边距条款；仓库 2.5cm 主张出自往届来源文档且未对照 23 届原文"
-              }
+              },
+              "note": "2026-10-01 复核：附件1/2/4+公告快照一手全文 0 命中页边距条款，CHECKDESK 全清单亦无（二手互证）——保持 unknown"
             }
           ],
           "guidance": [
@@ -1193,7 +1276,7 @@
       ],
       "lifecycle": {
         "status": "active",
-        "checked_at": "2026-09-27",
+        "checked_at": "2026-10-01",
         "current_edition": "第23届（2026）"
       },
       "migration_evidence": [
@@ -1238,7 +1321,8 @@
             "hw23-format-spec"
           ]
         }
-      ]
+      ],
+      "next_check": "第24届开赛公告发布时逐条重验，AI条款（附件4系）与提交时间窗优先；已验证规律：格式七闸（页眉页码/字号/摘要/匿名/参考文献句式）18→23 届逐字稳定（15-22 届原件归档 assets-local/contest-regs/huawei/ 支持逐届比对）"
     },
     "comp_apmcm": {
       "contest_id": "comp_apmcm",
