@@ -652,8 +652,29 @@ def compliance_conclusion(snapshot: dict[str, Any] | None, *, contest_intent: bo
 
 
 def load_entry(contest_id: str, rules_file: Path | None = None) -> dict[str, Any]:
-    """脚本消费者（quick_gates/pack_submission 等）的收敛入口：替代各自副本加载器。"""
-    return dict(_entry_for(contest_id, rules_file))
+    """脚本消费者（quick_gates/pack_submission 等）的收敛入口：替代各自副本加载器。
+
+    v2 profiles 形态：恰有一个 profile 时按该 profile 合成脚本视图（约束带提升到
+    顶层；compliance 视图仅在合成结果非空时挂载）——单 profile 无选择歧义；
+    多 profile 无请求维度不选择（选择语义归 resolve_profile，不猜）。
+    unknown 约束照旧 value=null 如实下传：空视图不挂载、不冒充方向（与
+    resolve_profile 的 hw_view=={} 契约一致），承诺书方向有值之日脚本管道即通。
+    （W1-REG 2026-10-01 修：此前原样返回赛事级条目，--compliance-profile 对
+    v2 单 profile 赛事拿到无约束带条目，页检/承诺书检在管道层静默 SKIP。）
+    """
+    entry = dict(_entry_for(contest_id, rules_file))
+    profiles = entry.get("profiles")
+    if isinstance(profiles, list) and len(profiles) == 1 and isinstance(profiles[0], dict):
+        entry, _ = _select_dimension_profile(contest_id, entry, None, None)
+        entry = dict(entry)
+        # profiles 键原样保留：脚本路径未走维度选择请求，消费者（pack_submission）
+        # 以此区分「分档档案未选形态」与「档案无维度」两种如实口径，不冒充已选
+        entry["profiles"] = profiles
+        if not isinstance(entry.get("compliance"), dict):
+            view = _v2_compliance_view(entry.get("constraints") or [])
+            if view:
+                entry["compliance"] = view
+    return entry
 
 
 def compliance_profile(entry: dict[str, Any] | None) -> dict[str, Any] | None:

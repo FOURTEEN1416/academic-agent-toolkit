@@ -1,11 +1,13 @@
 # “华为杯”研究生数学建模竞赛 — 官方论文格式硬约束（外部实证）
 
-> 采集日期：2026-09-25
+> 采集日期：2026-09-25（2026-10-01 W1-REG 口径收敛：机读值与届次标注对齐 comp_rules）
 > 来源（两条独立官方口径，互为印证）：
 > 1. 中国研究生创新实践系列大赛管理平台开赛公告（cpipc.acge.org.cn），21/22/23 届同口径
 > 2. 《“华为杯”第二十二届中国研究生数学建模竞赛论文格式规范》（中国研究生数学建模竞赛专家委员会，2025-09-15）
 >
-> 本文件是 comp_huawei 规则的证据备份（对应 comp_rules.json v2 的 profiles 约束；v1 时代的 contest 层 `compliance` 块已在 v2 废除）。
+> 本文件是 comp_huawei 规则的证据备份（对应 comp_rules.json v2 的 profiles 约束带；v1 时代的 contest 层 `compliance` 块已在 v2 废除）。
+> **现役机读口径以 `engine/modex-core/comp_rules.json` → `contests.comp_huawei` profiles 约束带为准（vintage: 2026-23rd，逐条带 vintage+source）；本文件标注「22届口径」的条目不得直接当 23 届条款引用。**
+> 23 届一手原件库：`assets-local/contest-regs/huawei/`（15-23 届规范+模板+23 届公告快照，清单见其 index.md）。
 > 改规则前先改这里；改完同步 `comp_rules.json`。
 
 ## 一、页面与版式
@@ -13,7 +15,7 @@
 | 项 | 官方规定 | 机检字段 |
 |---|---|---|
 | 纸张 | 白色 A4 | `typography.paper` |
-| 页边距 | **上下左右各 ≥ 2.5 cm** | `margins_min_mm: 25` |
+| 页边距 | 上下左右各 ≥ 2.5 cm（**22届口径**，见来源2；23 届官方全文无页边距条款 → comp_rules `hw-margins: unknown`，此值按工程保守值使用，不作 23 届官方主张） | comp_rules `contests.comp_huawei` 约束带 `hw-margins`（2026-23rd） |
 | 装订 | 从左侧装订 | `typography.binding` |
 | 页眉 | **论文不能有页眉** | `header: forbidden` |
 | 页码 | 从**摘要页**开始，位于**每页页脚中部**，阿拉伯数字从「1」连续编号 | `page_numbering` |
@@ -21,7 +23,7 @@
 | 身份信息 | 除首页外任何页面不得出现单位/姓名/队伍编号，**否则论文无效** | `identity_after_first_page: forbidden` |
 
 > ⚠️ 常见踩坑：模板默认 `\geometry{left=22.5mm,right=22.5mm}` **不满足 2.5 cm**，须显式覆盖为 25mm 以上。
-> （2026-09-25 在 `huawei2026d_zcode` 实测命中并修复。）
+> （2026-09-25 在 `huawei2026d_zcode` 实测命中并修复。2.5 cm 为 22 届口径/工程保守值——23 届官方全文无页边距条款，见 comp_rules `hw-margins`。）
 
 ## 二、字体与行距
 
@@ -62,7 +64,7 @@
 
 - 正文页数上限：**当届 unknown**（公告/附件/提醒均无页数条款；50 页为历届内部口径、不作官方主张，本轮任务口径走任务级覆盖）。附录单独计。
 - 图表总量参考区间 **30–46**（详见 `skills/_utils/figure_exemplars.md`）。
-- 承诺书页：**官方模板无此页**。承诺书是校级材料（签字盖章扫描件交培养单位），**不入论文**；
+- 承诺书页：官方模板无此页（21 届模板实测；23 届官方全文无承诺书条款 → comp_rules `hw-pledge: unknown`，实践口径不变）。承诺书是校级材料（签字盖章扫描件交培养单位），**不入论文**；
   论文中出现「承诺书」即偏离官方格式。
 
 ## 七、与 CUMCM（本科组）的关键差异

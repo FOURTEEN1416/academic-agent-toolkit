@@ -565,19 +565,19 @@ Use the template as-is. Only modify:
 
 **⛔ 华为杯官方格式硬约束（版式 / 摘要 / 引用 / 提交）** —— 完整证据见
 [`references/huawei-official-format.md`](references/huawei-official-format.md)，
-机检字段同步在 `engine/modex-core/comp_rules.json` → `comp_huawei.compliance`。
+机检字段同步在 `engine/modex-core/comp_rules.json` → `contests.comp_huawei` profiles 约束带（`hw-*` 条，vintage 2026-23rd）。
 写作完成后**逐项自检**：
 
 | 项 | 硬约束 | 自检命令/位置 |
 |---|---|---|
-| 页边距 | 上下左右各 **≥ 2.5 cm**（gmcmthesis.cls 默认已修 25mm，勿回退） | `grep -n "geometry" paper/main.tex` / `gmcmthesis.cls` |
+| 页边距 | 上下左右各 **≥ 2.5 cm**（22届口径/工程保守值，23届官方无页边距条款 → comp_rules `hw-margins: unknown`；gmcmthesis.cls 默认已修 25mm，勿回退） | `grep -n "geometry" paper/main.tex` / `gmcmthesis.cls` |
 | 页眉 | **禁止有页眉** | PDF 顶部 50pt 区无文字 |
 | 页码 | 自**摘要页**起、页脚中部、阿拉伯数字从 1 连续 | PDF 逐页页脚 |
 | 首页 | 封皮不可删，4 logo 不可替换；**除首页外不得出现单位/姓名/队号**（否则论文无效） | 全文检索校名/姓名/队号 |
 | 摘要 | **≤ 2 页**、**无需英文**、必须含 **建模思路/主要方法/模型/结果与结论/创新点/关键词** 六要素 | 摘要页 PDF 提取 |
 | 字体 | 题目三号黑体、一级标题四号黑体（均居中）、其余小四宋体、单倍行距 | cls 设置 |
 | 参考文献 | 方括号编号、**按正文引用次序**；书籍/期刊/网络三种表述；**引用程序须注明来源**（未标注且雷同按抄袭认定） | 文末 + 正文引用处 |
-| 承诺书 | 官方模板**无承诺书页**（校级材料，不入论文） | 前 3 页不得命中「承诺书」 |
+| 承诺书 | 官方模板无承诺书页（21届模板实测；23届 `hw-pledge: unknown`，实践口径不变：校级材料不入论文） | 前 3 页不得命中「承诺书」（命中转人工确认） |
 | 页数 | 当届 **unknown**（50 为历届内部口径不作官方主张；本轮任务口径经任务级覆盖通道下发） | `quick_gates --compliance-profile comp_huawei` |
 
 8. **⛔ 华为杯专属：模板与标题约束（gmcmthesis，只对华为杯生效）**：
