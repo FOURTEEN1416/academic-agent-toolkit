@@ -6760,6 +6760,15 @@
       "size": 4798,
       "wasted_bytes": 4798,
       "reason": "同源双技能共用分析脚本（plot-from-data/plot-from-image 改名副本，按技能边界各自持有）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/academic.mplstyle",
+        "academic-toolkit/skills/shared-scripts/academic.mplstyle"
+      ],
+      "size": 4843,
+      "wasted_bytes": 4843,
+      "reason": "双副本设计（_utils↔shared-scripts，风格基线随 plot_utils 双分发；已有 test_dual_copy_consistency/test_skill_smoke 守护同步）"
     }
   ]
 }

@@ -176,11 +176,11 @@ Store as `PYTHON_AVAILABLE`, `R_AVAILABLE`, `R_PATH`.
 
 ### Step 3: Style Baseline Injection (ALWAYS FIRST)
 
-Load these three files and copy their "COPY VERBATIM" code blocks into the script — in order, at the very top, before any panel logic:
+**基线真源：`academic-toolkit/skills/_utils/academic.mplstyle`** —— 先 `mpl.style.use()` 加载它，再按下面三份参考叠本技能差异项（旧「COPY VERBATIM 独立基线」口径已废，现均为「基线+差异项」）：
 
-1. `references/typography.md` — rcParams/theme block. Fonts, spines, ticks, legend defaults.
+1. `references/typography.md` — 期刊印刷字号差异项（7-9pt）+ CJK 链规则。含中文标签必须保留基线 CJK 字体链。
 2. `references/color-palettes.md` — PALETTE constants. All color variables.
-3. `references/export-specs.md` — font embedding + save function.
+3. `references/export-specs.md` — font embedding（pdf/svg fonttype）+ save function（护栏 standard）。
 
 Also read `references/journal-specs.md` for target dimensions (89mm single / 183mm double).
 
@@ -488,6 +488,7 @@ repo's driving protocol — no host installation path exists.
 
 | File | Purpose |
 |------|---------|
+| `../../_utils/academic.mplstyle` | 风格基线真源（字号阶/CJK 链/定版色板/保存护栏） |
 | `references/figure-contract.md` | Scientific claim, evidence chain, archetype, review risks |
 | `references/color-palettes.md` | Color selection |
 | `references/typography.md` | Font setup |
