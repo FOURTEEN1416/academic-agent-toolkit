@@ -2,6 +2,25 @@
 
 本项目所有显著变更记录于此，格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循语义化版本。更早的分节操作日志存于项目内部文档（2026-09-23 起移出公开仓，不随仓库分发）。
 
+## [Unreleased]
+
+> 2026-10-01 四窗批（W1-REG 规范真源 / W2-CORPUS 语料 / W3-WRITE 写作链 / W4-FIG 图表真源）与 W5-GOV 终局治理窗；逐批操作细录见内部 LOG（不分发）。
+
+### Added
+
+- **华为杯 15-23 届官方规范一手原件库**（`assets-local/contest-regs/huawei/`，8926c8d+860ff10）：历届格式规范/论文模板/使用规定原件 + `index.md` 索引 + 2026-23rd 抓取快照；`engine/modex-core/comp_rules.json` 华为杯口径按一手来源逐条核对升级（约束带 vintage 2026-23rd），`contest_profile.load_entry` 支持单 profile 合成脚本视图。
+- **获奖语料三批 735 篇入库**（d980526+d2d5649）：研赛/华为杯 686 篇 + MathorCup 大数据 49 篇（`data/award_paper_exemplars.json` 增 `graduate_contest`/`mathorcup_bigdata` 分型索引，奖项佐证 0 全部如实降级 `award_unverified`）；2022 批版面蒸馏 10 卡 + 目录章节树/定位器 v2；`skills/award-paper-mining/data/figure_table_conventions.md` 研赛图表惯例增量（题注「章-序」主流与国赛跨赛事不同流）。
+- **图表风格唯一真源**（b4d96f1+f14545f+5a4a042）：`skills/_utils/academic.mplstyle` 定版（CJK 字体链 + elegant 色板 + 印刷字号，色板择优量化对比在文件头）；`plot_utils.setup_style` 改加载 mplstyle（签名/行为不变）；四系绘图技能（fig-academic/matplotlib/paper-figure/scientific-visualization）收敛为「引用基线+差异项」，正面示范 tab10/默认色环清零；shared-scripts 双副本锁步。
+- **W5-GOV 台账登记**：`data/asset_catalog.json` 补登 `contest-regs-corpus`/`figure-table-conventions`/`academic-mplstyle` 三条（45→48）；查重台账补第 715 组。
+
+### Changed
+
+- **写作链停止生产 AI 套话**（646eedb+a1d7289）：中文套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）在 `_utils/ai_tell_check` 升 BANNED 硬拦并新增「随着…的发展」正则；comp-paper-zh(+docx) 六要素正例/摘要自检/骨架教学改因果衔接叙述；接获奖语料对标（动笔前读同赛事 2-3 篇）+ 人类痕迹四问 + 结构多样性纪律；docx 写作链同口径补齐。
+
+### Fixed
+
+- **W5-GOV 终局治理**（四窗改动面遗留清零）：W1 遗留 21st 官方模板 1.01MB 字节级重复组补登记（原件库证据件↔技能消费副本职责异构并存，消解 `test_duplicate_assets`/`test_project_health_check` 三挂）；W2 核验报告 `new_corpus_stats_2026-10-01.md` 补入库（修复 `award_paper_exemplars.json` `stats_report` 悬空指针）；全量 pytest **1011 passed / 0 failed** 复跑收口，`check_provenance`/`check_asset_utilization --strict`/`secret_scan --strict`/`project_health_check --strict` 全过。
+
 ## [v2.1.0] - 2026-09-27 —— 赛事档案 v2 隔离（跨赛事规则不再混用）
 
 > 定版范围：2026-09-27 赛事隔离主线（comp_rules v1→v2 + 规则选档接口 + 技能/模板对齐 + 文档基线 1005）。
