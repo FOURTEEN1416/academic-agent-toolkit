@@ -6769,6 +6769,15 @@
       "size": 4843,
       "wasted_bytes": 4843,
       "reason": "双副本设计（_utils↔shared-scripts，风格基线随 plot_utils 双分发；已有 test_dual_copy_consistency/test_skill_smoke 守护同步）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/comp-paper-zh/_templates/huawei/official_docx/huabei-21st-official-paper-template.doc",
+        "assets-local/contest-regs/huawei/21st_2024/附件3：“华为杯”第二十一届中国研究生数学建模竞赛论文模板.doc"
+      ],
+      "size": 1013206,
+      "wasted_bytes": 1013206,
+      "reason": "W1 一手原件库（contest-regs）按原件原样原则存证，与技能消费副本（comp-paper-zh official_docx 模板链）职责异构并存；原件库文件不容改写，技能副本供排版管线直接消费"
     }
   ]
 }

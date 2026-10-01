@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-09-23",
+  "updated": "2026-10-01",
   "note": "资产台账真源：智能体资产发现入口（boot/probe 暴露；check_asset_utilization 第六类审计对账）。path 为仓库根相对；local_only=true 表示 gitignored 私有资料区，公开 clone 缺席属语义缺位。",
   "assets": [
     {
@@ -654,6 +654,59 @@
         "comp-paper-zh-docx"
       ],
       "consumers": [],
+      "local_only": false
+    },
+    {
+      "id": "contest-regs-corpus",
+      "path": "assets-local/contest-regs/",
+      "zone": "assets-local",
+      "type": "corpus",
+      "description": "华为杯 15-23 届官方规范一手原件库（格式规范/论文模板/使用规定 DOC/DOCX 原件 + index.md 索引 + 2026-23rd 抓取快照），W1 入库",
+      "when_to_use": "comp_rules 口径仲裁、格式合规溯源、论文模板原件比对时取一手证据；原件不容改写",
+      "owner_skills": [
+        "comp-paper-zh"
+      ],
+      "consumers": [
+        "engine/modex-core/comp_rules.json",
+        "skills/comp-paper-zh/references/huawei-official-format.md"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "figure-table-conventions",
+      "path": "academic-toolkit/skills/award-paper-mining/data/figure_table_conventions.md",
+      "zone": "data",
+      "type": "reference-data",
+      "description": "研赛/华为杯真实获奖语料图表惯例归纳（题注格式/三线表/类型×场景/配色风格），W2 入库；二级佐证，格式合规以 contest-regs 官方规范为准",
+      "when_to_use": "comp-paper-zh(-docx) 写图表与版面板块前对标真实获奖论文惯例",
+      "owner_skills": [
+        "comp-paper-zh",
+        "comp-paper-zh-docx"
+      ],
+      "consumers": [
+        "skills/_utils/human_competition_paper_style.md",
+        "skills/comp-paper-zh/SKILL.md",
+        "skills/comp-paper-zh-docx/SKILL.md"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "academic-mplstyle",
+      "path": "academic-toolkit/skills/_utils/academic.mplstyle",
+      "zone": "skills-internal",
+      "type": "template-asset",
+      "description": "统一图表风格基线定版（CJK 字体链 + elegant 色板 + 印刷字号），四系绘图技能共同真源，W4 定版；shared-scripts 有孪生副本",
+      "when_to_use": "matplotlib 系绘图前 plt.style.use 加载；风格改动先改本文件并同步 shared-scripts 孪生（test_dual_copy_consistency 守护）",
+      "owner_skills": [
+        "fig-academic",
+        "matplotlib",
+        "paper-figure",
+        "scientific-visualization"
+      ],
+      "consumers": [
+        "skills/_utils/plot_utils.py",
+        "skills/shared-scripts/plot_utils.py"
+      ],
       "local_only": false
     }
   ]
