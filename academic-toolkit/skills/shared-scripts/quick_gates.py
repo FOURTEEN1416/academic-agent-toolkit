@@ -258,9 +258,8 @@ def _pledge_verdict(page_texts: list[str], profile: dict) -> tuple[str, str]:
                             "交培养单位，不入论文），出现即偏离官方格式，请移除后重编译")
         return "PASS", "前页无承诺书（华为杯官方模板结构：封皮+摘要/正文）"
     if not mode:
-        return "SKIP", ("档案未提供承诺书方向口径（schema v2 口径在 profiles 维度，"
-                        "脚本路径未选择届次/提交形态，或档案记载为 unknown）——"
-                        "不判通过/失败，人工确认")
+        return "SKIP", ("档案未提供承诺书方向口径（当届官方规范未公布该条款，"
+                        "档案如实记 unknown，不猜值）——不判通过/失败，人工确认")
     return "SKIP", f"compliance.pledge_page 口径未识别: {mode!r}（不判通过/失败）"
 
 
@@ -333,9 +332,10 @@ def main(argv: list[str] | None = None) -> int:
             plan.append(("pledge_page", lambda msg=profile_error: ("ERROR", msg)))
         elif not isinstance(entry.get("compliance"), dict):
             plan.append(("pledge_page", lambda: ("SKIP",
-                "档案条目无顶层 compliance 块（schema v2 合规口径在 profiles 维度，"
-                "脚本路径未选择届次/提交形态）——如实跳过不冒充通过；"
-                "绑定快照或人工确认承接")))
+                "该赛事档案无机器可执行合规视图（单 profile 档案已自动合成，"
+                "视图为空 = 相关口径在当届官方规范中未公布，档案如实记 unknown"
+                "不猜值）——如实跳过不冒充通过；口径有值之日管道即通，"
+                "当前由绑定快照或人工确认承接")))
         else:
             plan.append(("pledge_page",
                          lambda: _pledge_check(workspace, paper_pdf, entry["compliance"])))

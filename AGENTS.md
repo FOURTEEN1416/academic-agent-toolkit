@@ -78,6 +78,7 @@ L1 拦截式审计在无宿主 hook 时记为
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准 | 门禁 |
 
 - catalog 一致性由工具箱 asset 系测试 + `check_asset_utilization --strict` 守护。
+- **数字使用纪律（2026-10-02 用户裁决）**：基线数字唯一用途是防静默丢测试的漂移锚点；它不是完成验收证据——完成验收用与改动面直接相关的行为证据（功能实测/受影响链路跑通/真实命令输出）；对文档与技能正文类改动宣称「全量测试绿」不构成质量证明；禁止为 1-off 数字差异写考证（重跑 collect-only 以实跑为准）。验证服务效果与质量，不为过闸而过闸。
 - 基线演进历史见 `CHANGELOG.md` 与内部 `dev-docs/LOG.md`；`dev-docs/truth-index.md` 为内部副本，不入库。
 - `releases/` 永不进测试收集。
 - 新增技能必须：SKILL.md + catalog 映射 + CONTEST_SKILL_MAP 归类 + `build_skill_index.py --emit`。
