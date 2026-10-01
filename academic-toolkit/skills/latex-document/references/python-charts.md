@@ -138,7 +138,7 @@ ax.set_axisbelow(True)
 
 # Save with high resolution for LaTeX
 plt.tight_layout()
-plt.savefig('quarterly_sales.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('quarterly_sales.pdf', dpi=300)
 plt.close()
 ```
 
@@ -185,7 +185,7 @@ ax.grid(axis='y', alpha=0.3, linestyle='--')
 ax.set_axisbelow(True)
 
 plt.tight_layout()
-plt.savefig('yoy_comparison.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('yoy_comparison.pdf', dpi=300)
 plt.close()
 ```
 
@@ -215,7 +215,7 @@ ax.legend(fontsize=10)
 ax.grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('stacked_revenue.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('stacked_revenue.pdf', dpi=300)
 plt.close()
 ```
 
@@ -246,7 +246,7 @@ ax.set_xlim(0, 5)
 ax.grid(axis='x', alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('satisfaction_ratings.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('satisfaction_ratings.pdf', dpi=300)
 plt.close()
 ```
 
@@ -289,7 +289,7 @@ ax.annotate(f'Peak: {max(users)}k',
             fontsize=10, fontweight='bold', color='red')
 
 plt.tight_layout()
-plt.savefig('user_growth.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('user_growth.pdf', dpi=300)
 plt.close()
 ```
 
@@ -318,7 +318,7 @@ ax.legend(fontsize=10, loc='upper left', frameon=True, shadow=True)
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('product_trends.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('product_trends.pdf', dpi=300)
 plt.close()
 ```
 
@@ -350,7 +350,7 @@ ax.legend(fontsize=10)
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('confidence_interval.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('confidence_interval.pdf', dpi=300)
 plt.close()
 ```
 
@@ -382,7 +382,7 @@ ax.set_title('Relationship Between Study Time and Test Performance', fontsize=14
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('scatter_basic.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('scatter_basic.pdf', dpi=300)
 plt.close()
 ```
 
@@ -422,7 +422,7 @@ ax.legend(fontsize=10)
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('scatter_regression.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('scatter_regression.pdf', dpi=300)
 plt.close()
 ```
 
@@ -453,7 +453,7 @@ ax.set_title('Multi-dimensional Data Visualization', fontsize=14, fontweight='bo
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('scatter_colored.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('scatter_colored.pdf', dpi=300)
 plt.close()
 ```
 
@@ -490,7 +490,7 @@ for autotext in autotexts:
 ax.set_title('Traffic by Device Type', fontsize=14, fontweight='bold')
 
 plt.tight_layout()
-plt.savefig('device_pie.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('device_pie.pdf', dpi=300)
 plt.close()
 ```
 
@@ -526,7 +526,7 @@ for autotext in autotexts:
 ax.set_title('Department Budget Allocation', fontsize=14, fontweight='bold')
 
 plt.tight_layout()
-plt.savefig('budget_donut.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('budget_donut.pdf', dpi=300)
 plt.close()
 ```
 
@@ -573,7 +573,7 @@ for i in range(len(labels)):
 ax.set_title('Feature Correlation Heatmap', fontsize=14, fontweight='bold')
 
 plt.tight_layout()
-plt.savefig('heatmap.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('heatmap.pdf', dpi=300)
 plt.close()
 ```
 
@@ -604,7 +604,7 @@ ax.set_xlabel('Month', fontsize=12)
 ax.set_ylabel('Product', fontsize=12)
 
 plt.tight_layout()
-plt.savefig('sales_heatmap.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('sales_heatmap.pdf', dpi=300)
 plt.close()
 ```
 
@@ -639,7 +639,7 @@ ax.set_title('Performance Comparison Across Methods', fontsize=14, fontweight='b
 ax.grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('boxplot.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('boxplot.pdf', dpi=300)
 plt.close()
 ```
 
@@ -672,7 +672,7 @@ ax.set_title('Performance Distribution Across Methods', fontsize=14, fontweight=
 ax.grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('violinplot.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('violinplot.pdf', dpi=300)
 plt.close()
 ```
 
@@ -707,7 +707,7 @@ ax.legend(fontsize=10)
 ax.grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('histogram.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('histogram.pdf', dpi=300)
 plt.close()
 ```
 
@@ -741,7 +741,7 @@ ax.legend(fontsize=10, loc='upper left')
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('area_chart.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('area_chart.pdf', dpi=300)
 plt.close()
 ```
 
@@ -783,7 +783,7 @@ ax.set_title('Product Evaluation Radar Chart', fontsize=14, fontweight='bold', p
 ax.grid(True)
 
 plt.tight_layout()
-plt.savefig('radar_chart.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('radar_chart.pdf', dpi=300)
 plt.close()
 ```
 
@@ -821,7 +821,7 @@ ax.grid(True, alpha=0.3)
 plt.xticks(rotation=45)
 
 plt.tight_layout()
-plt.savefig('csv_chart.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('csv_chart.pdf', dpi=300)
 plt.close()
 ```
 
@@ -858,7 +858,7 @@ ax.legend(fontsize=10)
 ax.grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('csv_comparison.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('csv_comparison.pdf', dpi=300)
 plt.close()
 ```
 
@@ -897,13 +897,13 @@ fig, ax = plt.subplots(figsize=(SINGLE_COLUMN, SINGLE_COLUMN*0.75))
 
 ```python
 # High resolution for publication
-plt.savefig('chart.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('chart.pdf', dpi=300)
 
 # For screen display
-plt.savefig('chart.png', dpi=150, bbox_inches='tight')
+plt.savefig('chart.png', dpi=150)
 
 # Extra high resolution for posters
-plt.savefig('chart.pdf', dpi=600, bbox_inches='tight')
+plt.savefig('chart.pdf', dpi=600)
 ```
 
 ### Style Presets
@@ -943,8 +943,10 @@ import matplotlib.pyplot as plt
 # IBM colorblind-safe palette
 colors_ibm = ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000']
 
-# Tableau 10 (colorblind-safe)
-colors_tableau = plt.cm.tab10.colors
+# Okabe-Ito colorblind-safe palette (repo accessibility fallback,
+# same values as scientific-visualization assets/color_palettes.py)
+colors_okabe_ito = ['#E69F00', '#56B4E9', '#009E73', '#F0E442',
+                    '#0072B2', '#D55E00', '#CC79A7', '#000000']
 
 # Seaborn colorblind palette
 import seaborn as sns
@@ -985,7 +987,7 @@ plt.colorbar()
 - **Complex visualizations** (heatmaps with many cells)
 
 ```python
-plt.savefig('chart.png', dpi=300, bbox_inches='tight',
+plt.savefig('chart.png', dpi=300,
             facecolor='white', edgecolor='none')
 ```
 
@@ -997,17 +999,17 @@ plt.savefig('chart.png', dpi=300, bbox_inches='tight',
 - **When file size matters less**
 
 ```python
-plt.savefig('chart.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('chart.pdf', dpi=300)
 ```
 
 ### Best Practices
 
 ```python
-# Always use bbox_inches='tight' to avoid clipping
+# No-cropping by default (repo baseline academic.mplstyle savefig guard; bbox_inches='tight' is preview-only)
 # Set appropriate DPI (300 for print, 150 for screen)
 # Close figure after saving to free memory
 
-plt.savefig('output.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('output.pdf', dpi=300)
 plt.close()
 ```
 
@@ -1133,7 +1135,7 @@ ax.set_ylabel('Measurement (units)')
 ax.set_title('Experimental Results Over Time')
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig('figures/time_series.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('figures/time_series.pdf', dpi=300)
 plt.close()
 
 # Chart 2: Bar plot
@@ -1145,7 +1147,7 @@ ax.set_ylabel('Performance Score')
 ax.set_title('Method Comparison')
 ax.grid(axis='y', alpha=0.3)
 plt.tight_layout()
-plt.savefig('figures/method_comparison.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('figures/method_comparison.pdf', dpi=300)
 plt.close()
 
 print("Charts generated successfully!")

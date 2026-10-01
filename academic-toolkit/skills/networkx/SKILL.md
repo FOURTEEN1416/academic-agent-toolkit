@@ -247,8 +247,8 @@ nx.draw(G, pos=pos, node_color='lightblue', node_size=500,
 plt.title('Network Visualization', fontsize=16)
 plt.axis('off')
 plt.tight_layout()
-plt.savefig('network.png', dpi=300, bbox_inches='tight')
-plt.savefig('network.pdf', bbox_inches='tight')  # Vector format
+plt.savefig('network.png', dpi=300)
+plt.savefig('network.pdf')  # Vector format
 ```
 
 **Reference**: See `references/visualization.md` for extensive documentation on visualization techniques including layout algorithms, customization options, interactive visualizations with Plotly and PyVis, 3D networks, and publication-quality figure creation.

@@ -444,7 +444,7 @@ ax.plot_surface(X, Y, Z)
 # Add padding
 fig.tight_layout(pad=3.0)
 
-# Or save with tight bounding box
+# Or save with tight bounding box（⚠️ 仅预览；交付链路护栏 standard+pad）
 plt.savefig('3d_plot.png', bbox_inches='tight', pad_inches=0.5)
 ```
 

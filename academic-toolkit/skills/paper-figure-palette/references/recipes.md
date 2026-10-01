@@ -27,7 +27,7 @@ plt.rcParams.update({
     "xtick.direction": "in", "ytick.direction": "in",        # 刻度朝内
     "mathtext.fontset": "stix",
     "figure.dpi": 120, "savefig.dpi": 400,                   # 印刷 400dpi
-    "savefig.bbox": "tight", "savefig.pad_inches": 0.03,
+    "savefig.bbox": None,   # 不裁剪护栏（mediabox 事故；tight 仅屏幕预览用）
 })
 ```
 

@@ -53,7 +53,7 @@
 > 实际工作区的时间与文件版本以 `workspaces/<ws>/HANDOVER_交付交接.md` 与 `STATE.txt` 为准；
 > 本清单是通用防呆模板，赛区特殊要求冲突时**以赛区通知为准**并回填本文件。
 
-## 五、华为杯（GMCM）差异清单（2026-09-22 G2；口径真源 comp_rules.json `comp_huawei.compliance`）
+## 五、华为杯（GMCM）差异清单（2026-09-22 G2；口径真源 comp_rules.json `contests.comp_huawei` profiles 约束带，vintage 2026-23rd）
 
 > 华为杯链走到 S14（comp-final-audit, `compliance_profile: comp_huawei`）之后按本节组包。
 > **只列与 §一—四国赛口径不同或新增的项**；未列项（身份扫描、PDF 元数据、MD5、支撑材料

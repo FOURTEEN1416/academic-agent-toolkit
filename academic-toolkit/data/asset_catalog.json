@@ -691,6 +691,65 @@
       "local_only": false
     },
     {
+      "id": "abstract-golden-structure",
+      "path": "academic-toolkit/skills/award-paper-mining/data/abstract_golden_structure.md",
+      "zone": "data",
+      "type": "reference-data",
+      "description": "摘要黄金结构（2021 国奖 N=9 带出现率槽位模板，不含原文；award-paper-mining 批1 首建、后续批次累加）",
+      "when_to_use": "comp-paper-zh(-docx) 写摘要板块前对标黄金槽位与句式",
+      "owner_skills": [
+        "award-paper-mining"
+      ],
+      "consumers": [
+        "skills/comp-paper-zh/SKILL.md",
+        "skills/comp-paper-zh-docx/SKILL.md",
+        "skills/_utils/human_competition_paper_style.md",
+        "skills/shared-scripts/human_competition_paper_style.md",
+        "skills/award-paper-mining/references/layout-distillation-schema.md",
+        "skills/_utils/writing_rules.md",
+        "skills/shared-scripts/writing_rules.md"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "sentence-pattern-library",
+      "path": "academic-toolkit/skills/award-paper-mining/data/sentence_pattern_library.md",
+      "zone": "data",
+      "type": "reference-data",
+      "description": "句式模板库（2021 国奖 N=9 跨篇出现率，仅收跨≥2 篇模式，带槽位抽象模板）",
+      "when_to_use": "comp-paper-zh(-docx) 各章节写作时按章查句式模板",
+      "owner_skills": [
+        "award-paper-mining"
+      ],
+      "consumers": [
+        "skills/comp-paper-zh/SKILL.md",
+        "skills/comp-paper-zh-docx/SKILL.md",
+        "skills/_utils/human_competition_paper_style.md",
+        "skills/shared-scripts/human_competition_paper_style.md",
+        "skills/award-paper-mining/references/layout-distillation-schema.md"
+      ],
+      "local_only": false
+    },
+    {
+      "id": "typography-spec",
+      "path": "academic-toolkit/skills/award-paper-mining/data/typography_spec.md",
+      "zone": "data",
+      "type": "reference-data",
+      "description": "排版规格描述性统计（2021 国奖 N=9 目测口径）——非规范条文，格式合规以 comp_rules 官方约束带为准（文首效力口径已声明）",
+      "when_to_use": "版面排版风格参考；合规判断走 contest-regs 官方规范而非本表",
+      "owner_skills": [
+        "award-paper-mining"
+      ],
+      "consumers": [
+        "skills/comp-paper-zh/SKILL.md",
+        "skills/comp-paper-zh-docx/SKILL.md",
+        "skills/_utils/human_competition_paper_style.md",
+        "skills/shared-scripts/human_competition_paper_style.md",
+        "skills/award-paper-mining/references/layout-distillation-schema.md"
+      ],
+      "local_only": false
+    },
+    {
       "id": "academic-mplstyle",
       "path": "academic-toolkit/skills/_utils/academic.mplstyle",
       "zone": "skills-internal",

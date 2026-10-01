@@ -34,26 +34,30 @@ description: "Visualization Skill——把数据和模型结果画成”评委�
 
 **总数 12-15 张图，AAAI/中文学报标准**。
 
-## 配色方案（推荐）
+## 配色方案（真源引用，不自创）
 ```python
-# 国赛专用配色
+# 基线真源 skills/_utils/academic.mplstyle（elegant 定版色板 + CJK 字体链 + 印刷字号）；
+# 竞赛场景按 paper-figure-palette 统一注册表（skills/paper-figure-palette/assets/palette_registry.json）选板——色值不得自创。
+# 默认色环（tab10/#1f77b4 系）是"AI 默认味"来源，禁用。
 COLORS = {
-    'primary': '#1f77b4',     # 蓝
-    'secondary': '#ff7f0e',   # 橙
-    'success': '#2ca02c',     # 绿
-    'warning': '#d62728',     # 红
-    'neutral': '#7f7f7f',     # 灰
-    'palette': ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+    'primary': '#7AAEC8',     # 蓝
+    'secondary': '#E8945A',   # 橙
+    'success': '#7BC8A4',     # 绿
+    'warning': '#E0A0A0',     # 红
+    'neutral': '#8FAEC0',     # 灰蓝
+    'palette': ['#7AAEC8', '#E8945A', '#7BC8A4', '#E0A0A0', '#9B8EC4']
 }
 ```
 
 ## 字体设置（中文不乱码）
 ```python
+# 基线：skills/_utils/academic.mplstyle（setup_style() 一键加载——CJK 字体链、
+# 色板、印刷字号、savefig 不裁剪护栏均内置）；手动 rcParams 仅作差异项覆盖
 import matplotlib.pyplot as plt
-plt.rcParams['font.sans-serif'] = ['SimHei']      # 中文
+plt.rcParams['font.sans-serif'] = ['SimHei']      # 中文（基线已含 Noto Sans SC 链）
 plt.rcParams['axes.unicode_minus'] = False        # 负号
 plt.rcParams['figure.dpi'] = 300                  # 高清
-plt.rcParams['savefig.bbox'] = 'tight'            # 紧凑
+# savefig 不裁剪为交付护栏；bbox_inches='tight' 仅屏幕预览用
 ```
 
 ## 常用代码片段
@@ -93,7 +97,7 @@ sns.heatmap(df.corr(), annot=True, cmap='coolwarm')
 
 # 保存
 plt.tight_layout()
-plt.savefig('work/figures/xxx.png', dpi=300, bbox_inches='tight')
+plt.savefig('work/figures/xxx.png', dpi=300)
 ```
 
 ## 画图铁律

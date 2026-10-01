@@ -130,7 +130,7 @@ custom_template = go.layout.Template(
         font=dict(family='Arial', size=14),
         plot_bgcolor='#f0f0f0',
         paper_bgcolor='white',
-        colorway=['#1f77b4', '#ff7f0e', '#2ca02c'],
+        colorway=['#7AAEC8', '#E8945A', '#7BC8A4'],
         title_font_size=20
     )
 )

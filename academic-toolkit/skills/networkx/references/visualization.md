@@ -14,7 +14,7 @@ plt.show()
 
 # Save to file
 nx.draw(G)
-plt.savefig('graph.png', dpi=300, bbox_inches='tight')
+plt.savefig('graph.png', dpi=300)
 plt.close()
 ```
 

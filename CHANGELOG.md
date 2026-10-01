@@ -4,7 +4,7 @@
 
 ## [Unreleased]
 
-> 2026-10-01 四窗批（W1-REG 规范真源 / W2-CORPUS 语料 / W3-WRITE 写作链 / W4-FIG 图表真源）与 W5-GOV 终局治理窗；逐批操作细录见内部 LOG（不分发）。
+> 2026-10-01 四窗批（W1-REG 规范真源 / W2-CORPUS 语料 / W3-WRITE 写作链 / W4-FIG 图表真源）、comp_rules 规则审计修复批（三轮工作流）、W3 写作链工作流轮与 W5-GOV 终局治理（两轮）；逐批操作细录见内部 LOG（不分发）。
 
 ### Added
 
@@ -16,10 +16,13 @@
 ### Changed
 
 - **写作链停止生产 AI 套话**（646eedb+a1d7289）：中文套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）在 `_utils/ai_tell_check` 升 BANNED 硬拦并新增「随着…的发展」正则；comp-paper-zh(+docx) 六要素正例/摘要自检/骨架教学改因果衔接叙述；接获奖语料对标（动笔前读同赛事 2-3 篇）+ 人类痕迹四问 + 结构多样性纪律；docx 写作链同口径补齐。
+- **AI 痕迹词表证据级校准**（053584e）：`ai_tell_check` 按一手证据（AI 论痕检测词库/真实检测报告）增补硬拦词与泄漏构式模式，新增获奖论文正当句式反证白名单；735 篇真实获奖论文全量假阳实测治本——11 个领域字面义词（链路/上下游/复用/工作流等）自词级硬拦收窄为工程泄漏构式、参考文献区豁免、误伤 ≈1968→11（坏探针检出力无损）；docx 链摘要字数契约 400-600→600-800 对齐 `_utils/abstract_writing_contract.md` 真源；`writing_rules` 图注「优先承载发现」口径与旧教学矛盾（enumerate 双口径/教学正例带套话尾巴）清理。
 
 ### Fixed
 
 - **W5-GOV 终局治理**（四窗改动面遗留清零）：W1 遗留 21st 官方模板 1.01MB 字节级重复组补登记（原件库证据件↔技能消费副本职责异构并存，消解 `test_duplicate_assets`/`test_project_health_check` 三挂）；W2 核验报告 `new_corpus_stats_2026-10-01.md` 补入库（修复 `award_paper_exemplars.json` `stats_report` 悬空指针）；全量 pytest **1011 passed / 0 failed** 复跑收口，`check_provenance`/`check_asset_utilization --strict`/`secret_scan --strict`/`project_health_check --strict` 全过。
+- **comp_rules 规则审计修复**（c9d8f23）：`field_contract` 悬空指针（MIGRATION.md 从未落库）内联化、`hw-anonymity` 等 source_ids 与人读行对齐等十处；23 届「重要提醒」官方快照归档 `23rd_2026/`（第 24 届离线逐字重验依据）；图表量「硬下限」降格经验参考区间（对齐 guidance 经验层）；华为杯页数经验值 40-50→55-65 标注历届经验口径；AI 双件套在华为杯链改标仓库工程约定（官方=附件4 标注+第6条条件披露）。
+- **W5-GOV 第二轮治理**（本批，含 c9d8f23+053584e 改动面遗留）：`comp_rules.json` 19 处「去留见 MIGRATION.md M7」悬空 note 尾巴清除（note 自足化）；`submission_checklist.md` 废除块指针 `comp_huawei.compliance` 改 profiles 约束带；测试幻影文档引用 ×2 自足化；绘图规范收敛外溢残留清零——latex-document `python-charts.md` tab10「colorblind-safe」推荐改 Okabe-Ito + 30 处 `bbox_inches='tight'` 正向教学对齐不裁剪护栏、`visualization`/`networkx`/`plotly`/`seaborn`/`paper-figure-palette recipes` 默认色环与 tight 教学清零（复现域 plot-from-data/image 有出处标注者保留）；`CONTEST_SKILL_MAP.md` 外域行重复 token/过期计数（22→20、7→5）/过期「待合并 W3f 处理中」行修正；award-paper-mining 三库（摘要黄金结构/句式模板库/排版规格）补入 `asset_catalog.json`（48→51）；`typography_spec.md` 过程性注记清除。
 
 ## [v2.1.0] - 2026-09-27 —— 赛事档案 v2 隔离（跨赛事规则不再混用）
 

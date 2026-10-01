@@ -500,11 +500,11 @@ data_matrix = df.set_index('sample_id')[feature_columns]
 
 # Create color annotations
 row_colors = df.set_index('sample_id')['condition'].map({
-    'control': '#1f77b4',
-    'treatment': '#ff7f0e'
+    'control': '#7AAEC8',
+    'treatment': '#E8945A'
 })
 
-col_colors = pd.Series(['#2ca02c' if 'gene' in col else '#d62728'
+col_colors = pd.Series(['#7BC8A4' if 'gene' in col else '#E0A0A0'
                         for col in data_matrix.columns])
 
 # Plot

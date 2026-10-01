@@ -170,7 +170,7 @@ Plot.scale(**scales)
 p.scale(
     x=so.Continuous().tick(every=5),
     y=so.Continuous().label(like='{x:.1f}'),
-    color=so.Nominal(['#1f77b4', '#ff7f0e', '#2ca02c']),
+    color=so.Nominal(['#7AAEC8', '#E8945A', '#7BC8A4']),
     pointsize=(5, 10)  # Shorthand for range
 )
 ```
@@ -405,7 +405,7 @@ so.Bar(artist_kws=None, **kwargs)
 **Example:**
 ```python
 so.Plot(df, x='category', y='value').add(so.Bar())
-so.Plot(df, x='x', y='y').add(so.Bar(color='#1f77b4', width=0.5))
+so.Plot(df, x='x', y='y').add(so.Bar(color='#7AAEC8', width=0.5))
 ```
 
 ### Bars
@@ -804,7 +804,7 @@ so.Nominal(values=None, order=None)
 **Example:**
 ```python
 p.scale(
-    color=so.Nominal(['#1f77b4', '#ff7f0e', '#2ca02c']),
+    color=so.Nominal(['#7AAEC8', '#E8945A', '#7BC8A4']),
     marker=so.Nominal(['o', 's', '^']),
     x=so.Nominal(order=['Low', 'Medium', 'High'])
 )
@@ -836,7 +836,7 @@ p.scale(x=so.Temporal().tick(every=('month', 1)).label(concise=True))
     so.Plot(df, x='total_bill', y='tip', color='time')
     .add(so.Dot(), alpha=0.5)
     .add(so.Line(), so.PolyFit(order=2))
-    .scale(color=so.Nominal(['#1f77b4', '#ff7f0e']))
+    .scale(color=so.Nominal(['#7AAEC8', '#E8945A']))
     .label(x='Total Bill ($)', y='Tip ($)', title='Tips Analysis')
     .theme({**sns.axes_style('whitegrid')})
 )

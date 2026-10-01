@@ -197,7 +197,7 @@ def test_g1_huawei_compliance_pledge_and_page_budget():
     """华为杯口径实测钉住（schema v2）：承诺书方向 hw-pledge=unknown（不硬执行任一
     方向，人工确认）；首页封皮不可删 + 除首页外无身份信息已核验；正文页上限
     hw-page-limit=unknown（无官方记载）——历轮 80/50 只留 migration_evidence
-    不自动继承，新任务口径走显式通道（MIGRATION.md M4）。"""
+    不自动继承，新任务口径走显式通道（runtime_channel，见 comp_rules migration_evidence）。"""
     hw = _resolve("comp_huawei")
     pledge = _constraint(hw, "hw-pledge")
     assert pledge["status"] == "unknown" and pledge.get("value") is None, (

@@ -29,7 +29,7 @@ from execution.session import ExecutionSession
 
 def test_exact_id_resolves_real_profiles():
     assert "comp_cumcm" in known_contest_ids()
-    # v2（MIGRATION.md 不变式12）：cumcm 双 profile，空诉求 → 歧义拒绝（不静默取第一条）
+    # v2 契约：cumcm 双 profile，空诉求 → 歧义拒绝（不静默取第一条）
     with pytest.raises(ContestProfileError, match="2 个 profile"):
         resolve_profile("comp_cumcm", {})
     cumcm = resolve_profile("comp_cumcm", {"contest": {"edition": "2026",

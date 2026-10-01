@@ -109,7 +109,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 
 | 域 | 技能 | 不接入理由 |
 |----|------|-----------|
-| 科研套件（22） | paper-writing-pipeline, paper-peer-review-simulation, research-pipeline, dev-adversarial-code-review, meta-agent-harness, dev-ai-security, meta-premortem, dev-code-review, meta-deep-research, meta-entity-dossier, meta-experiment-design, grant-nih, lit-orientation, doc-notebooklm-control, ip-patent-search, dev-code-review, meta-topic-pulse, meta-research-router, meta-research-summarizer, data-statistics-analyst, data-statistics-analyst, course-syllabus-reading-list | 科研立项/申报/专利管线，非数模赛时 |
+| 科研套件（20） | paper-writing-pipeline, paper-peer-review-simulation, research-pipeline, dev-adversarial-code-review, meta-agent-harness, dev-ai-security, meta-premortem, dev-code-review, meta-deep-research, meta-entity-dossier, meta-experiment-design, grant-nih, lit-orientation, doc-notebooklm-control, ip-patent-search, meta-topic-pulse, meta-research-router, meta-research-summarizer, data-statistics-analyst, course-syllabus-reading-list | 科研立项/申报/专利管线，非数模赛时 |
 | 期刊套件（12） | paper-citation-verify, paper-data-availability, paper-figure-nature, paper-figure-planner, paper-manuscript-optimize, paper-project-bootstrap, paper-workflow-router, paper-journal-selection, paper-rebuttal-nature, paper-results-revision, paper-writing-scientific, paper-submission-audit | 期刊投稿口径，与国赛格式/审稿逻辑不符 |
 | spine-*（12） | spine 及其 11 个内部子技能 | 自媒体长文管线 |
 | latex-paper-*（8） | latex-paper-survey-writer 等 | arXiv/合作论文管线 |
@@ -117,9 +117,8 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 | lit-*（7） | lit-citation-verify / lit-obsidian-* / lit-daily-digest / lit-zotero-obsidian | 文献管理域（外域；kaggle-learner 亦此批具名） |
 | doc-*（2） | doc-coauthoring, doc-post-acceptance | 文档生产域 |
 | fig-*（1） | fig-publication-chart | 出版图表顾问（外域） |
-| paper-* 外域件（7） | paper-humanize, paper-polish-nature, paper-results-report, paper-sections-nature, paper-self-review, paper-template-organizer | 期刊写作族未接入件 |
+| paper-* 外域件（5） | paper-humanize, paper-polish-nature, paper-results-report, paper-sections-nature, paper-template-organizer | 期刊写作族未接入件（paper-self-review 在 §二 S13 推荐位，非外域） |
 | 散名（4） | idea-brainstorm, rebuttal, results-analysis, kaggle-learner | 单件外域 |
-| 待合并（3） | paper-write, paper-data-availability, paper-rebuttal-nature | W3f 真重复合并批处理中 |
 | dev-*（7） | dev-requirement → dev-selfcheck | 毕设/软件项目管线 |
 | 知识产权（5） | copyright-build/draft/source-materials, patent-build/draft | 软著专利域 |
 | 课程/人文（9） | course-paper, course-plan, course-report, course-report-plan, humanities-plan/write/write-latex, grant-proposal, thesis-proposal | 课程论文/人文/基金开题域 |

@@ -1342,7 +1342,7 @@
       "tooling": {
         "template_cls": "apmcmthesis",
         "compiler": "pdflatex",
-        "note": "迁移期保留（v1），去留见 MIGRATION.md M7"
+        "note": "迁移期保留（v1）"
       },
       "profiles": [
         {
@@ -1469,7 +1469,7 @@
       "tooling": {
         "template_cls": "MathorCupmodeling",
         "compiler": "XeLaTeX",
-        "note": "迁移期保留（v1），去留见 MIGRATION.md M7"
+        "note": "迁移期保留（v1）"
       },
       "profiles": [
         {
@@ -1553,7 +1553,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -1600,7 +1600,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -1674,7 +1674,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -1719,7 +1719,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -1765,7 +1765,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "cumcmthesis",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -1832,7 +1832,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [
         {
@@ -1959,7 +1959,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -2012,7 +2012,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -2065,7 +2065,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -2117,7 +2117,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [
         {
@@ -2249,7 +2249,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -2303,7 +2303,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -2355,7 +2355,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -2407,7 +2407,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "ctexart",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -2461,7 +2461,7 @@
       "language": "zh",
       "tooling": {
         "template_cls": "cumcmthesis",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -2520,7 +2520,7 @@
       "language": "en",
       "tooling": {
         "template_cls": "article",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
@@ -2565,7 +2565,7 @@
       "language": "en",
       "tooling": {
         "template_cls": "article",
-        "note": "引擎绑定字段（迁移期保留，去留见 MIGRATION.md M7）"
+        "note": "引擎绑定字段（迁移期保留）"
       },
       "profiles": [],
       "historical_notes": [
