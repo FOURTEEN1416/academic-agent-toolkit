@@ -7,7 +7,7 @@
 >
 > 本文件是 comp_huawei 规则的证据备份（对应 comp_rules.json v2 的 profiles 约束带；v1 时代的 contest 层 `compliance` 块已在 v2 废除）。
 > **现役机读口径以 `engine/modex-core/comp_rules.json` → `contests.comp_huawei` profiles 约束带为准（vintage: 2026-23rd，逐条带 vintage+source）；本文件标注「22届口径」的条目不得直接当 23 届条款引用。**
-> 23 届一手原件库：`assets-local/contest-regs/huawei/`（15-23 届规范+模板+23 届公告快照，清单见其 index.md）。
+> 23 届一手原件库：`assets-local/contest-regs/huawei/`（15-23 届规范+模板+23 届公告快照+09-21 重要提醒快照共六件，清单见其 index.md）。
 > 改规则前先改这里；改完同步 `comp_rules.json`。
 
 ## 一、页面与版式

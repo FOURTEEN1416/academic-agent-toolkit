@@ -178,7 +178,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 | 维度 | 国赛 comp_cumcm | 华为杯 comp_huawei |
 |------|----------------|-------------------|
 | 正文页数口径 | ≤30 页 | 当届官方无页数条款（comp_rules `hw-page-limit: unknown`，vintage 2026-23rd，不猜值）；历史任务裁决 80/50 只留 migration_evidence 不自动继承，任务口径显式下发（如 `--max-pages 80` / step metadata 通道）；D3 快检页口径经 workflow_runner→quality_gates 回落链取 bound 快照约束带（共享模板不承载页限默认，quick_gates_max_pages 键已删） |
-| 图表量 | ~24 张 | 30-46 张硬下限（A/B 40-46 / C/D 33-39 / E/F 35-41），真源 `_utils/figure_exemplars.md`（S5/S6 资产挂载） |
+| 图表量 | ~24 张 | 30-46 张经验参考区间（A/B 40-46 / C/D 33-39 / E/F 35-41；guidance 经验层，不进静态合同、非硬门禁），真源 `_utils/figure_exemplars.md`（自述仅供参考；S5/S6 资产挂载） |
 | 深度要求 | 常规 | 每子问题 ≥8-10 页 + 8-15 个编号公式，推导过程必展示 |
 | 灵敏度/推广 | 常规 | 4-5 页（≥3 页 + 3 图） |
 | 附录 | 不限 | 70-100 页正式产出（代码/关键数据/补充推导），不计正文 |

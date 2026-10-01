@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "artifact_status": "production",
-  "field_contract": "MIGRATION.md",
+  "field_contract": "内联于本文件 schema_notes（2026-10-01 审计修正：原指向的 MIGRATION.md 迁移说明文档从未落库，悬空指针移除；运行时页数通道定义见 comp_huawei.migration_evidence[].runtime_channel）",
   "generated_at": "2026-09-27",
   "generated_by": "E窗 E-MERGE-01 合并（merge_emerge01.py；输入=draft/candidate 两线候选，快照 archive_pre_merge_EMERGE01/）",
   "schema_notes": [
@@ -9,7 +9,7 @@
     "约束三态：verified=官方原文已核验（至少一份 full_text/full_text_image 来源）；unknown=依据未建立（value 恒 null，不等于无要求）；not_applicable=明确不适用（本轮未出现，保留枚举位）。",
     "原 attested/missing_evidence 证据不丢：来源质量见 sources.kind/verification 与约束 evidence.grade；缺证原因见 evidence.reason；快照/旧届值材料存 evidence.material 与 historical_notes，均非机检。",
     "来源统一顶层 sources 登记表；constraint.source_ids 逐项重连；来源可达不等于支持具体结论（未被引用的登记来源合法）。同一来源不同版本分条登记，不误合并。",
-    "页限 value.basis 区分 body/total 不得折叠；任务 80 只留 migration_evidence，运行时走step.metadata.quick_gates_max_pages 既有通道（MIGRATION.md M4）。",
+    "页限 value.basis 区分 body/total 不得折叠；任务 80 只留 migration_evidence，运行时走step.metadata.quick_gates_max_pages 既有通道（定义见 comp_huawei.migration_evidence[].runtime_channel）。",
     "经验配额只在 guidance；旧届快照/复制污染/v1 历史值隔离在赛事级 historical_notes，不进 constraints/guidance；文件格式（PDF/DOCX/大小）是约束（file_format/file_size 等），不在 submission_form 取值里。"
   ],
   "sources": {
@@ -199,11 +199,11 @@
     },
     "SRC-035": {
       "kind": "repo_artifact",
-      "title": "skills/comp-paper-zh/references/huawei-official-format.md（伪官方主张待修订）",
+      "title": "skills/comp-paper-zh/references/huawei-official-format.md（内部口径文档；原伪官方页数主张已于 2026-10-01 修订）",
       "retrieved_at": "2026-09-27",
       "verification": "local_inspection",
       "path": "academic-toolkit/skills/comp-paper-zh/references/huawei-official-format.md",
-      "located": ":63「正文（不含附录）上限50页」——被 SRC-002 证伪（23届规范全文无页数条款）；IR-E-C2 已立案"
+      "located": "原 :63「正文（不含附录）上限50页」伪官方主张被 SRC-002 证伪（23届规范全文无页数条款），已于 commit 860ff10（2026-10-01）修订：现 :63 为「## 六、页数与图表」、:65 为「正文页数上限：当届 unknown（50 页为历届内部口径、不作官方主张）」——证伪结论已落入文档本体"
     },
     "apmcm-faq": {
       "kind": "official_direct",
@@ -338,30 +338,31 @@
       "retrieved_at": "2026-09-27",
       "verification": "full_text",
       "url": "https://cpipc.acge.org.cn/cw/contestNews/detail/4/2c908017a0c0f0a801a0c30c2ee41707?page=0",
+      "path": "assets-local/contest-regs/huawei/23rd_2026/重要提醒_snapshot_cpipc_20261001抓取.html",
       "located": "第 3 条（首页封面不可删/4 LOGO 不可换/首页外禁身份信息含附件/首页摘要页正文页顺序不能变）；第 5 条（MD5 一致性，提交后禁改禁重新生成）",
       "applicable_scope": "第 23 届当届",
-      "note": "无页数条款"
+      "note": "无页数条款；2026-10-01 官方平台同URL抓取快照入库（全文含「高校代码、高校名称、队伍号、姓名、学号等信息，否则将判定为无效作品」「首页、摘要页、正文页顺序不能变」「提交MD5码后切记不要对PDF论文做任何内容和格式的修改，也不要重新生成PDF文件」原文），离线重验可逐字比对"
     },
     "hw23-task-ruling-80": {
       "kind": "task_ruling",
       "title": "【历史任务裁决·仅可追溯材料】华为杯页数门禁 80（2026-09-25 用户裁决）",
       "retrieved_at": "2026-09-27",
       "verification": "legacy_config",
-      "path": "workspaces/huawei2026d_zcode（2026-09-25 未提交 diff：max_pages 50→80 及自由文本页数备注，『S9 压缩延后』）+ dev-docs/LOG.md 续75",
+      "path": "workspaces/huawei2026d_zcode（2026-09-25 未提交 diff：max_pages 50→80 及自由文本页数备注，『S9 压缩延后』）+ dev-docs/LOG.md 2026-09-25「华为杯 D 题 ZCode 现场」条目",
       "located": "git diff HEAD -- academic-toolkit/engine/modex-core/comp_rules.json（2026-09-25 现场）",
       "applicable_scope": "仅 2026 第 23 届 D 题本轮投稿；非官方约束；后续轮次不得静默继承",
-      "note": "新裁决：80 不进全局官方/合规层（旧测试钉定不构成保留理由）；运行时由任务级覆盖承载（workflow step.metadata.quick_gates_max_pages=80 既有通道，workflow_runner.py:326），本数据文件不含该值；工作流数据库未改动",
+      "note": "新裁决：80 不进全局官方/合规层（旧测试钉定不构成保留理由）；运行时由任务级覆盖承载（workflow step.metadata.quick_gates_max_pages=80 既有通道，workflow_runner.py:338/1208 读取点），本数据文件不含该值；工作流数据库未改动",
       "merged_from": [
         "SRC-032"
       ]
     },
     "hw23-template-21st": {
       "kind": "repo_artifact",
-      "title": "第 21 届官方论文模板 PDF（4 页，gitignored 本地件）",
+      "title": "第 21 届官方论文模板 PDF（4 页，2026-09-28 起随 assets-local 批次入库分发）",
       "retrieved_at": "2026-09-25",
       "verification": "local_inspection",
       "path": "academic-toolkit/skills/comp-paper-zh/_templates/huawei/official_docx/huabei-21st-official-paper-template.pdf",
-      "located": "全 4 页无承诺书页（2026-09-25 HAS_PLEDGE=False 实测，dev-docs/LOG.md 续75 §一）",
+      "located": "全 4 页无承诺书页（2026-09-25 HAS_PLEDGE=False 实测，dev-docs/LOG.md 2026-09-25「华为杯 D 题 ZCode 现场」条目）",
       "applicable_scope": "第 21 届模板（辅助印证：论文内无承诺书）",
       "merged_from": [
         "SRC-033"
@@ -404,7 +405,7 @@
       "title": "华为杯 15-23 届官方规范/模板一手原件库（assets-local 公开资产区）",
       "retrieved_at": "2026-10-01",
       "verification": "local_inspection",
-      "path": "assets-local/contest-regs/huawei/（15th_2018…22nd_2025 逐年规范+模板成对原件，收编自本地YY资料区 github-mirror/MathModel，cp 原样字节一致；23rd_2026/ 四件+公告快照为 2026-10-01 官方平台原路径重抓；人读清单 index.md）",
+      "path": "assets-local/contest-regs/huawei/（15th_2018…22nd_2025 逐年规范+模板成对原件，收编自本地YY资料区 github-mirror/MathModel，cp 原样字节一致；23rd_2026/ 四件+公告快照+09-21 重要提醒快照为 2026-10-01 官方平台原路径重抓；人读清单 index.md）",
       "located": "18→23 届格式七闸逐字稳定链原件；22nd_2025/附件4=22届AI规定（21届首颁→23届修订演进链一环）",
       "applicable_scope": "15-23 届历史原件（当届口径以 comp_rules profiles 约束带为准；旧届条文不得直接标当届）",
       "note": "assets-local 整区随公开仓分发（2026-09-28 用户裁决）；机检消费经 comp_rules，不直读二进制原件"
@@ -923,7 +924,7 @@
                 "hw23-checkdesk"
               ],
               "source": "当届公开文件集五件全文负面证据（公告/附件1/2/4/提醒 0 命中页限条款）；CHECKDESK 互证",
-              "note": "公告论文要求段、附件1全文（页限关键词 0 命中）、附件2全文（唯一「不超过」=摘要≤2页）、附件4全文、09-21 提醒均无页数上限条款；附件3模板仅二进制弱扫描。不能据此断言「当届全部文件无页限」——unknown 不等于无要求；历轮配置值与历史任务口径见 migration_evidence，运行时走任务级覆盖通道（MIGRATION.md M4）；2026-10-01 复核：附件1/2/4+公告快照一手重抓全文再证 0 命中，CHECKDESK（二手逐字核对）同判",
+              "note": "公告论文要求段、附件1全文（页限关键词 0 命中）、附件2全文（唯一「不超过」=摘要≤2页）、附件4全文、09-21 提醒均无页数上限条款；附件3模板仅二进制弱扫描。不能据此断言「当届全部文件无页限」——unknown 不等于无要求；历轮配置值与历史任务口径见 migration_evidence，运行时走任务级覆盖通道（见 migration_evidence.runtime_channel）；2026-10-01 复核：附件1/2/4+公告快照一手重抓全文再证 0 命中，CHECKDESK（二手逐字核对）同判",
               "locator": "负面证据收窄口径：23 届《论文格式规范》与《开赛公告》两件官方全文均无页数/篇幅上限条款；章程等其他官方件未检索；往届伪官方页数上限主张的证伪记录见 sources 与 migration_evidence",
               "evidence": {
                 "grade": "searched_no_clause",
@@ -994,6 +995,7 @@
               },
               "scope": "除首页外全部页面（含附件）",
               "source_ids": [
+                "hw23-format-spec",
                 "hw23-announce",
                 "hw23-reminder",
                 "hw23-checkdesk"
@@ -1008,9 +1010,13 @@
               "value": null,
               "scope": "论文提交件是否含承诺书（23 届当届口径）",
               "source_ids": [
+                "hw23-announce",
+                "hw23-att1-manual",
                 "hw23-format-spec",
-                "hw23-template-21st",
-                "hw23-checkdesk"
+                "hw23-att4-ai",
+                "hw23-reminder",
+                "hw23-checkdesk",
+                "hw23-template-21st"
               ],
               "source": "负面证据：当届五件官方全文 0 命中承诺书；CHECKDESK 全清单互证；21届模板无承诺书页仅辅助印证（旧届不证当届）",
               "note": "v1 机器口径 absent_in_official_template 的 23 届适用性未建立；判定语义移交 B 适配；2026-10-01 复核：附件1/2/4+公告快照一手全文 0 命中「承诺书」，CHECKDESK G-01~G-08 全清单亦无承诺书环节（二手互证）——仍无明文条款，保持 unknown",
@@ -1044,7 +1050,8 @@
                 "hw23-format-spec",
                 "hw23-checkdesk"
               ],
-              "source": "附件2 摘要段 + 公告 四（一）4；CHECKDESK G-05"
+              "source": "附件2 摘要段 + 公告 四（一）4；CHECKDESK G-05",
+              "note": "两官方原件硬度不一致：附件2 原文「（注意篇幅一般不超过两页，且无需译成英文）」（软口径，本条 max_pages_qualifier 采此）；公告 四（一）4 原文「摘要内容不超过两页」（硬性表述，公告全文无「一般不超过」）——差异官方未澄清，执行侧保守按公告硬口径（≤2 页作硬约束）预检"
             },
             {
               "id": "hw-numbering",
@@ -1222,7 +1229,11 @@
               "value": null,
               "scope": "页边距",
               "source_ids": [
+                "hw23-announce",
+                "hw23-att1-manual",
                 "hw23-format-spec",
+                "hw23-att4-ai",
+                "hw23-reminder",
                 "hw23-checkdesk"
               ],
               "source": "负面证据：当届五件官方全文无页边距条款；CHECKDESK 互证；仓库 2.5cm 主张确认出自 22 届口径（huawei-official-format.md 来源2），未获 23 届原文支持",
@@ -1288,7 +1299,7 @@
           "sources": [
             "hw23-task-ruling-80"
           ],
-          "runtime_channel": "workflow step.metadata.quick_gates_max_pages（workflow_runner.py:326/1162 既有通道）+ quick_gates --max-pages 显式参数；新任务不得静默继承本值"
+          "runtime_channel": "workflow step.metadata.quick_gates_max_pages（workflow_runner.py:338/355/1208/1228，2026-10-01 行号快照）+ quick_gates --max-pages 显式参数；新任务不得静默继承本值"
         },
         {
           "legacy": "max_pages=50 为历轮配置基线；git 36934e5 曾以官方口径写入 compliance",
@@ -1301,7 +1312,7 @@
         },
         {
           "legacy": "engine/quality_gates.py:369 COMP_PAGES 硬编码 comp_huawei:50",
-          "disposition": "引擎写域，IR-E-B1 已立案（E窗不改）",
+          "disposition": "已删除（2026-09-27 B窗 B-02 承接 IR-E-B1）：页数口径唯一来自 comp_rules.json（经 engine/contest_profile）+ 工作流快照 operative 口径；条目缺口径时按「无页数合同」SKIP，不静默吐旧值、不默认国赛（quality_gates.py 现仅余删除注释）",
           "sources": [
             "SRC-031"
           ]
@@ -1322,7 +1333,7 @@
           ]
         }
       ],
-      "next_check": "第24届开赛公告发布时逐条重验，AI条款（附件4系）与提交时间窗优先；已验证规律：格式七闸（页眉页码/字号/摘要/匿名/参考文献句式）18→23 届逐字稳定（15-22 届原件归档 assets-local/contest-regs/huawei/ 支持逐届比对）"
+      "next_check": "第24届开赛公告发布时逐条重验，AI条款（附件4系）与提交时间窗优先；已验证规律：格式七闸（页眉页码/字号行距/摘要/匿名/封皮图标/参考文献句式/纪律红线）18→23 届逐字稳定（15-23 届原件归档 assets-local/contest-regs/huawei/ 支持逐届比对，23rd_2026 五件 2026-10-01 收编）"
     },
     "comp_apmcm": {
       "contest_id": "comp_apmcm",

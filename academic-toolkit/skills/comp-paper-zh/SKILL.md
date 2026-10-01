@@ -1815,7 +1815,7 @@ echo "当前章节: $chars 字符 (~$(echo "scale=1; $chars/900" | bc) 页)"
 
 - 模型评价 (2p): 3-4 strengths + 2-3 weaknesses + generalization directions. Pure text discussion, no figures or tables needed
 
-**华为杯一等奖 (40-50 pages)**: deeper derivations, more thorough analysis per sub-problem (8-10p each), 灵敏度分析 (4-5p), 模型评价 (3p, pure text, no figures) with comparison to other methods
+**华为杯一等奖 (55-65 pages typical, comp_rules guidance 历届经验口径，非官方规定)**: deeper derivations, more thorough analysis per sub-problem (8-10p each), 灵敏度分析 (4-5p), 模型评价 (3p, pure text, no figures) with comparison to other methods
 
 **统计建模获奖 (35-40 pages)** — chapter structure is content-driven, page allocation reference:
 
@@ -1845,7 +1845,7 @@ Common traits of award-winning papers:
 
 | 数模国赛 (30p limit) | 25-30 | 18000-25000 | ≥10 |
 
-| 华为杯 | 40-50 | 30000-40000 | ≥15 |
+| 华为杯（历届经验口径，非官方规定；对齐 comp_rules guidance） | 40-60（一等奖通常 55-65） | 30000-40000 | ≥15 |
 
 | MathorCup | 35-40 | 25000-35000 | ≥10 |
 
