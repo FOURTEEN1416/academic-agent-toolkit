@@ -46,7 +46,7 @@ that separates human-written papers from AI-generated ones.
 \end{table}
 
 表\ref{tab:sensitivity}显示，当参数$\alpha$从0.1变化到0.9时，目标函数值变化幅度
-不超过5\%，说明模型对该参数不敏感，具有较好的鲁棒性。
+不超过5\%，说明模型对该参数不敏感。
 ```
 
 ### Pattern (English example)
@@ -189,7 +189,7 @@ Also never write just: "如表所示，我们的方法表现最好" / "As shown 
 
 为验证模型的鲁棒性，对关键参数α进行了±20%的扰动。当α从0.8
 变化到1.2时，目标函数值波动不超过3.7%（图4），表明模型对参数
-扰动不敏感，具有良好的实用价值。
+扰动不敏感。
 ```
 
 **核心原则**：
@@ -206,7 +206,7 @@ Also never write just: "如表所示，我们的方法表现最好" / "As shown 
 - 结果图解释真实数值及意义，关系示意图解释必要对象和关系；不强迫无数值图补结论数字。
 
 **⛔ 图注（caption）只写简短标签，不当正文写（LaTeX 与 docx 通用）**：
-- caption 只写这张图/表**是什么**的简短名词短语。**中文 caption 主体 ≤20 字，英文 ≤14 词**（均不含"图 N／Figure N"编号前缀）。判据、公式、参数取值、坐标轴含义、结论、"如何得出"这类细节一律写进正文那段图解读里，绝不塞进 caption——caption 太长时，LaTeX 图下方会折成多行、docx 里图注居中加粗更是挤成一坨，都很难看。
+- caption 只写简短一行，**优先承载这张图的发现**（发现式名词短语或短结论，如「误差随噪声水平升高」；「XX 对比图／XX 结果图」式空标签禁用——与各 SKILL「图题写发现」条同口径），装不下的结论移正文图解读段。**中文 caption 主体 ≤20 字，英文 ≤14 词**（均不含"图 N／Figure N"编号前缀）。判据、公式、参数取值、坐标轴含义、"如何得出"这类细节一律写进正文那段图解读里，绝不塞进 caption——caption 太长时，LaTeX 图下方会折成多行、docx 里图注居中加粗更是挤成一坨，都很难看。
 - LaTeX 语法：`\caption{站点覆盖半径几何示意}`；docx 语法：`![图 3：站点覆盖半径几何示意](figures/fig3.png)`。
   - **❌ 超长反例**：`\caption{覆盖半径几何示意：站点为圆心、R=3km 覆盖圆、区域出车距离与响应时间判据}`（把判据/参数全堆进题注）。
   - **✅ 简短正例**：`\caption{站点覆盖半径几何示意}`（"R=3km 覆盖圆、出车距离与响应时间判据"移到正文图解读里讲）。
@@ -274,7 +274,7 @@ Also never write just: "如表所示，我们的方法表现最好" / "As shown 
 - **⛔ 图片宽度规则**：单张图 `width=0.9\textwidth`（默认），双栏并排 `width=0.48\textwidth`。不要用 `width=0.5\textwidth` 或更小的值——图会显得很小。如果图本身是宽幅的（如时序图、热力图），用 `width=0.95\textwidth`。
 - **⛔ 图片高度规则**：单张图不能超过页面高度的 70%（约 18cm）。如果数据条目多（如 20+ 个类别的柱状图），必须限制 figsize 高度或分成多张子图。Python 生成时 `figsize=(width, height)` 的 height 不要超过 8（英寸）。超长的横向柱状图（30+ 条目）改用 `figsize=(7, 6)` + 缩小字号，或者只展示 Top 15/20。
 - Float specifier（受控浮动）：图用 `[H]`（就地钉死），表用 `[H]`（就地），伪代码 `[H]`（均需 `\usepackage{float}`）。图用 `[H]` 是为了钉在引出文字正下方、从机制上杜绝"多图连排/浮动堆叠一页"（`[htbp]` 会让 LaTeX 把多张图攒到一页，最伤可读性）。代价：极少数"图接近整页高 + 恰好落页底"时 `[H]` 放不下就整块下移、上方留一段空白，但图已被 `keepaspectratio` 限高在 `0.9\textheight` 内、且每张图前后都要有引导/承接文字，此情形罕见，取舍上优于连排。模板已加载 `\usepackage[section]{placeins}`，每节末自动 `\FloatBarrier`（防残余浮动体跨节）。⛔ 表格同样别用 `[htbp]`：会被 `\FloatBarrier` 逼到节末，在表上方留半页空白。`\includegraphics` 用 `width=0.85\textwidth,keepaspectratio` 以宽为主，不要加 `height=0.38\textheight` 这种小限高（会把方图/竖图压得更小）；只有确实接近整页高、可能溢出的图才加 `height=0.9\textheight` 兜底
-- Figure/table captions: keep short (one line, ≤20 Chinese characters or ≤12 English words). Detailed descriptions go in the body text before/after the figure, not in the caption. Example: `\caption{残差诊断四联图}` not `\caption{Wiener 过程模型残差诊断。(a) Q-Q 图检验正态性;(b) 残差 vs 拟合值检验同方差性;(c) 残差直方图与标准正态分布对比;(d) 残差 vs 时间检验独立性。}`
+- Figure/table captions: keep short (one line, ≤20 Chinese characters or ≤14 English words). Detailed descriptions go in the body text before/after the figure, not in the caption; prefer a finding-style caption (e.g. `\caption{残差近似正态且相互独立}`) over empty type labels like `\caption{残差诊断四联图}`. Length-failure example: `\caption{Wiener 过程模型残差诊断。(a) Q-Q 图检验正态性;(b) 残差 vs 拟合值检验同方差性;(c) 残差直方图与标准正态分布对比;(d) 残差 vs 时间检验独立性。}`
 - **⛔ Caption 分隔符必须是空格，不能是冒号。** 中文论文的图表标题格式是"图 1 xxx"而不是"图 1: xxx"。在 preamble 中必须有 `\captionsetup{labelsep=quad}` 或 `\captionsetup{labelsep=space}`。如果模板已有此设置则不要重复添加。如果 Claude 自己写 main.tex，必须在 `\usepackage{caption}` 后加 `\captionsetup{labelsep=quad}`
 - Wide tables (≥6 columns or multiple `p{}` columns): wrap with `\resizebox{\textwidth}{!}{...}`
 - Narrow tables (≤4 columns): do not use `\resizebox` — it stretches text to full width, font becomes huge, table fills entire page
@@ -396,7 +396,7 @@ for text in ax.texts:
 - Table row endings: `\\` (double backslash), not `\` (single backslash — causes compile failure)
 - Do not redefine built-in math operators (`\sin`, `\cos`, `\tanh`, `\log`, `\exp`, `\max`, `\min`, etc.)
 - `math_commands.tex`: only define paper-specific new commands, never override existing ones
-- Avoid `\begin{itemize}` in body text (bullet-point lists read as AI-generated). Use `\begin{enumerate}` or flowing prose instead. Itemize is acceptable only in appendices
+- Avoid `\begin{itemize}` AND `\begin{enumerate}` in body text (bullet/numbered lists read as AI-generated). Use flowing prose or "（1）...（2）..." inline numbering instead. Lists are acceptable only for model assumptions, algorithm steps, and appendices (see next rule)
 - **⛔ 正文中禁止使用 `\begin{itemize}` 和 `\begin{enumerate}` 列表。** 黑点/编号列表是最典型的 AI 写作痕迹。学术论文正文必须用连贯的段落叙述。例外：模型假设（可用编号）、附录、算法步骤描述。
   - ❌ 错误：`\begin{itemize} \item 牛市：2023年7月至... \item 震荡市：2024年4月至... \end{itemize}`
   - ✅ 正确：将每个要点展开为完整段落，用自然衔接的因果/转折关系连缀成段，或用"（1）...（2）...（3）..."行内编号（不用"首先/其次"机械过渡链——那是过程式骨架 AI 痕迹）
@@ -487,7 +487,7 @@ for text in ax.texts:
 - **⛔ 摘要必须分段，不要写成一整段。** 按论文类型分段：
 
   **数模竞赛（cumcm/huawei/mathorcup/apmcm）：**
-  - 第 1 段：研究背景与问题概述（2-3 句）
+  - 第 1 段：研究背景与问题概述（1-2 句、约 45-75 字，开头不超过摘要正文 15%——见 `_utils/abstract_writing_contract.md` 共同原则 3）
   - 第 2 段：针对问题一，方法+模型+关键数值结果
   - 第 3 段：针对问题二，方法+模型+关键数值结果
   - 第 4 段：针对问题三，方法+模型+关键数值结果
@@ -518,6 +518,7 @@ for text in ax.texts:
 
 ### Competition papers (数模竞赛)
 - Chinese/CUMCM abstract: 600-800 characters (aim for 680-760), every sub-problem must have specific numerical results, and the compiled abstract plus keywords must stay on one physical page without looking visibly sparse
+- 动笔前对标语料：读 `data/award_paper_exemplars.json`（2021-2025 国赛优秀论文 62 篇，`priority_25` 为优先样本）中同赛事 2-3 篇结构化条目，对照 `skills/award-paper-mining/data/abstract_golden_structure.md` 的信息密度与节奏再写；只学密度与节奏，禁止照抄措辞
 - Summary Sheet (MCM/ICM): 300-400 words (aim for 330-380), self-contained with specific numbers, one full page
 
 ### English papers (ML venues)
@@ -594,21 +595,29 @@ Remove these AI writing artifacts before finalizing:
 
 **⛔ 禁用词与学术替代（写作时逐个替换，不要保留原词）**：
 
+⛔ **2026-10-01 三批语料校准**：735 篇真实获奖论文 PDF 全量扫描证实，下表多义词在获奖论文里大量作
+**字面义领域术语**（通信链路 38 篇、河流上下游 84 篇、频谱复用 34 篇、闭环控制 19 篇、误差修正项 11 篇、
+各维度上 54 篇、生产流水线调度、机械臂抓手、落地点坐标）。机检脚本已把这些词**收窄为只拦工程泄漏构式**
+（如「整个流水线分为三步」「业务闭环」「核心抓手」），字面义放行；其中**维度上/修正项**经同批反证
+（各维度上 54 篇、误差修正项为 ECM 标准术语 11 篇）无干净构式可区分泄漏与正用，机检**整体放行**、
+仅写作侧建议（见下表修正项行）。写作时同理——**只在讲自己建模流程时
+避开这些词，描述问题域的通信链路/河流上游/频谱复用该写就写**。参考文献区被引标题的措辞不可改，机检不扫。
+
 | 禁用 | 论文该说 |
 |---|---|
-| **口径**（225 次，头号） | 定义 / 取法 / 计算方式 / 统计范围 |
-| **闭环**（44 次） | 反馈校正 / 迭代修正 / 反馈回路 |
+| **口径**（225 次，头号；统计口径/数据口径等字面义放行） | 定义 / 取法 / 计算方式 / 统计范围 |
+| **闭环**（44 次；仅拦业务闭环/闭环管理等比喻义，闭环控制放行） | 反馈校正 / 迭代修正 / 写明具体反馈步骤 |
 | 清单 / 台账 | 条件 / 汇总表 / 一览表 |
 | 自检 / 对账 | 校验 / 一致性检验 / 复核 |
 | 兜底 / 回填 | 缺省处理 / 补充取值 / 默认取值 |
-| 上游 / 下游 | 前序 / 后续 / 前一阶段 / 后一阶段 |
-| 链路 | 传递路径 / 因果链 / 作用路径 |
-| 复用 | 沿用 / 采用 / 继续使用 |
-| 落地 / 打通 | 实现 / 贯通 / 完成 |
+| 上游 / 下游（仅流程环节义；河流、交通流、产业链上下游放行） | 写明具体输入来源或输出去向 |
+| 链路（仅拦全链路/决策链路等隐喻义；通信链路、链路预算放行） | 写明具体的模块间传递关系 |
+| 复用（仅拦代码/结论复用义；频谱复用、正交频分复用、特征复用放行） | 沿用 / 采用 / 写明沿用对象 |
+| 落地（仅拦方案落地义；落地点、落地浓度放行）/ 打通 | 实现 / 贯通 / 完成 |
 | 对齐 / 拉齐 | 统一 / 一致化 / 归一 |
-| 修正项 | 修正量 / 校正项（数学意义时可留「校正项」） |
+| 修正项（735 篇反证：误差修正项为 ECM 标准术语，机检整体放行；写作时下述表达更清晰） | 修正量 / 校正项（数学意义时可留「校正项」） |
 | 颗粒度 | 粒度 / 精细程度 / 分辨率 |
-| 抓手 / 赋能 / 维度上 | 直接删改为具体说法 |
+| 抓手（仅拦核心抓手等比喻义；机械臂抓手放行）/ 赋能 / 工作流（工作流程放行） | 直接删改为具体说法 |
 
 **⛔⛔ 内部标记绝不进正文（出现即返工）**：
 - 符号：`⛔` `✅` `❌` `⚠`（实测泄漏 12 次）
@@ -640,7 +649,7 @@ done
 ### Chinese
 - 具有重要的理论意义和实践价值
 - 深入探讨、创新性地、值得注意的是
-- Excessive use of 综上所述 to start paragraphs
+- 综上所述（硬拦，任何位置——确需收束时直接陈述具体结论，如"以上结果表明……"）
 - Consecutive paragraphs starting with 本文
 - 空洞修饰语 — replace with specific numbers and facts
 - "如表X所示" 后面没有分析 — 必须跟 2-3 句解读

@@ -234,7 +234,7 @@ if [ "$PASS" != true ]; then echo "⛔ 验证失败 — 必须修复后重跑"; 
 
 
 
-[400-600 字（数模）/ 500-700 字（统计建模）。**必须按问题分段**：
+[600-800 字（数模，硬范围、生成目标 680-760，单一契约 `_utils/abstract_writing_contract.md`）/ 500-700 字（统计建模）。**必须按问题分段**：
 
 - 第 1 段：背景概述
 
@@ -1206,7 +1206,7 @@ grep -A 100 'Claims-Evidence\|claim.*evidence\|claim-evidence\|观点.*证据' P
 
 - 控制「本文 / 我们」频次
 
-- 去掉 AI 写作痕迹（"值得注意的是" / "综上所述" 频繁出现）
+- 去掉 AI 写作痕迹（"值得注意的是" / "综上所述" 为硬拦套话，出现即按替代说法改写）
 
 **⛔ 机检必跑（人工通读会漏，必须机器扫）**：
 
@@ -1315,11 +1315,11 @@ $PYTHON "$REVIEWER_SCRIPT" --prompt-file _tmp/_review_prompt.txt --thread-file _
 
 ⛔ 摘要字数（按 AGENTS.md 关键词触发）：
 
-- 通用数模竞赛：**400-600 字**，按问题分段
+- 通用数模竞赛：**600-800 字**（硬范围，生成目标 680-760；单一契约 `_utils/abstract_writing_contract.md`），按问题分段
 
 - 统计建模：**500-700 字**
 
-- **丰满模式**：**1500-2200 字**，可跨两页 — 当 `CONTEST_ID = comp_huawei`（华为杯默认，赛事判据=下发的规范赛事 ID）或 `AGENTS.md` 含用户开关 `丰满模式` / `rich_mode` 时生效
+- **丰满模式**：**摘要规范不变**——仍按 **600-800 字**、同一物理页、每问一段执行（契约 `_utils/abstract_writing_contract.md`：丰满模式只增加正文建模/求解/结果论证深度，不得用它绕过摘要单页质量门）；触发条件：`CONTEST_ID = comp_huawei`（华为杯默认，赛事判据=下发的规范赛事 ID）或 `AGENTS.md` 含用户开关 `丰满模式` / `rich_mode`
 
   ```bash
 
@@ -1767,7 +1767,7 @@ except FileNotFoundError:
 
     sys.exit(0)
 
-# 只查正文（截到附录/参考文献为止），与 writing_check.sh 7b3 口径一致
+# 只查正文（截到附录/参考文献为止），与 writing_source_check.py 题注检查口径一致（>20 汉字或 >14 英文词告警）
 
 m = re.search(r'(?m)^##\s*(附录|参考文献|Appendix|References)', text)
 
@@ -1974,6 +1974,8 @@ N、结论与建议（结论 + 建议 + 创新与不足）
 - 灵敏度分析：2-3 页（≥ 2 个关键参数，每个变化曲线 + 分析段）
 
 - 模型评价：2 页（3-4 优点 + 2-3 不足 + 推广，纯文字无图）
+
+以上页数/字数只是体量参考而非配额；各板块的信息密度与节奏动笔前对标 `data/award_paper_exemplars.json` 同赛事 2-3 篇（见 Step 2 语料指令），不为凑量注水。
 
 
 
