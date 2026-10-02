@@ -16,6 +16,8 @@
 
 - **写作链停止生产 AI 套话**（646eedb+a1d7289）：中文套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）在 `_utils/ai_tell_check` 升 BANNED 硬拦并新增「随着…的发展」正则；comp-paper-zh(+docx) 六要素正例/摘要自检/骨架教学改因果衔接叙述；接获奖语料对标（动笔前读同赛事 2-3 篇）+ 人类痕迹四问 + 结构多样性纪律；docx 写作链同口径补齐。
 - **AI 痕迹词表证据级校准**（053584e）：`ai_tell_check` 按一手证据（AI 论痕检测词库/真实检测报告）增补硬拦词与泄漏构式模式，新增获奖论文正当句式反证白名单；735 篇真实获奖论文全量假阳实测治本——11 个领域字面义词（链路/上下游/复用/工作流等）自词级硬拦收窄为工程泄漏构式、参考文献区豁免、误伤 ≈1968→11（坏探针检出力无损）；docx 链摘要字数契约 400-600→600-800 对齐 `_utils/abstract_writing_contract.md` 真源；`writing_rules` 图注「优先承载发现」口径与旧教学矛盾（enumerate 双口径/教学正例带套话尾巴）清理。
+- **图表叙述闸挂进引擎强制链**（同上历遍批复核）：真实终版 20+ 图中 11+ 张"孤儿图"（贴进正文零引用零解读，图海堆砌=图表 AI 味首因，label/ref 对账无一假阳）。新增引擎 `figure_narrative` named gate（孤儿图零容忍——修复动作明确：补引用句/解读段/删图），comp_huawei/comp_cumcm 写作步挂闸；SKILL 图表嵌入规则补闸感知（每图同步写引用句+解读句）。
+- **内容级合同扩展至 7 个中文赛事模板**：骨架逐个核验后，apmcm_zh/mathorcup/yangtze/diangong/huashu/shuwei（专用中文内联摘要骨架）挂摘要导航词 contains；huazhong（复用 cumcm 骨架）加 cumcm 同款占位 forbidden；wuyi/dongsansheng/default 摘要非内联不动（防误拦）。teddy 等 6 赛事走档案指定 default/ 通用骨架（既有治理现状）。
 - **数模写作步合同升级为内容级**（承接前窗移交项）：`engine/output_contracts.py` 文件检查新增 `forbidden`（未完成占位/违规内容残留，对称 `contains`）；`comp_huawei`/`comp_cumcm` 写作步合同从裸 `min_bytes:5120` 升级——华为杯加摘要导航词「针对问题」+六要素「创新点」contains 与封面/摘要骨架占位 forbidden（新合同对真实终版实测当场抓到封面 5 字段占位残留，min_bytes 级合同对此失明）；国赛同口径。**骨架真源对齐**：cumcm 骨架摘要占位「关于问题一」改「针对问题一」，消除与 `abstract_writing_contract.md`（四套 Skill 单一事实源）的口径冲突；huawei 骨架补导航词与六要素口径。其余 16 赛事模板待骨架逐个核验后升级（不盲改）。
 
 ### Changed

@@ -3499,7 +3499,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "contains": ["针对问题"]
               }
             ]
           }
@@ -3808,7 +3809,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "contains": ["针对问题"]
               }
             ]
           }
@@ -5200,7 +5202,9 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "contains": ["针对问题"],
+                "forbidden": ["[开头段 1--2 句", "基于……方法"]
               }
             ]
           }
@@ -6113,7 +6117,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "contains": ["针对问题"]
               }
             ]
           }
@@ -6717,7 +6722,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "contains": ["针对问题"]
               }
             ]
           }
@@ -7019,7 +7025,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "contains": ["针对问题"]
               }
             ]
           }
@@ -7623,7 +7630,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "contains": ["针对问题"]
               }
             ]
           }

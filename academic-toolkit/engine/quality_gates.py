@@ -573,6 +573,7 @@ NAMED_CHECKS_REGISTRY: dict[str, str] = {
     "modeling_contract": "check_modeling_contract",
     "review_rounds": "check_review_rounds",
     "ai_flavor": "check_ai_flavor",
+    "figure_narrative": "check_figure_narrative",
 }
 
 
@@ -1353,6 +1354,39 @@ class QualityGate:
             return {"ok": False, "reason": "ai_tell_check 未找到正文（SKIP 语义不冒充通过）: " + "；".join(tail[-2:])}
         return {"ok": False, "reason": "AI 痕迹超获奖论文水平阈值（>3 处）——按输出行号逐条改写："
                                        + " | ".join(tail[-3:])}
+
+    def check_figure_narrative(self) -> dict:
+        """图表叙述闸：正文中的图/表必须有正文说明或 \ref 引用（零容忍）。
+
+        2026-10-02 历遍复核定标：真实终版 20+ 张图中 11+ 张是"孤儿图"
+        （贴进正文却从未被引用、无解读段）——图海堆砌正是图表侧 AI 味的
+        主要形态；获奖论文图表惯例（figure_table_conventions）每图承载叙述。
+        figure_narrative_check 的判据是"零叙述且零引用"，无宽容空间：
+        修复动作明确（补引用句/补解读段/删图），故不设阈值。
+        """
+        tool = PROJECT_ROOT / "skills" / "_utils" / "figure_narrative_check.py"
+        workspace = Path(self.workspace).resolve()
+        tex = workspace / "paper" / "main.tex"
+        md = workspace / "paper" / "main.md"
+        if not tex.is_file() and not md.is_file():
+            return {"ok": False, "reason": "未找到 paper/main.tex 或 paper/main.md（正文未成文）"}
+        if not tool.is_file():
+            return {"ok": False, "reason": f"闸工具缺席：{tool.relative_to(PROJECT_ROOT)}（不冒充通过）"}
+        try:
+            proc = subprocess.run(
+                [sys.executable, str(tool), str(workspace / "paper")],
+                capture_output=True, text=True, timeout=120, cwd=str(workspace),
+            )
+        except subprocess.TimeoutExpired:
+            return {"ok": False, "reason": "figure_narrative_check 超时（>120s）"}
+        lines = [l for l in (proc.stdout or "").splitlines() if l.strip()]
+        fails = [l.strip() for l in lines if "FAIL" in l]
+        if proc.returncode == 0:
+            return {"ok": True, "reason": "全部图表有正文说明或引用"}
+        if proc.returncode == 2:
+            return {"ok": False, "reason": "figure_narrative_check 未找到正文（SKIP 语义不冒充通过）"}
+        return {"ok": False, "reason": "%d 个图表缺正文说明或引用（孤儿图）——补 \\ref 引用句/解读段或删图: "
+                                       % len(fails) + " | ".join(fails[:3])}
 
     def check_citation_integrity(self) -> dict:
         """引用完整性：references.bib 条目存在、字段完整、DOI 格式合法。

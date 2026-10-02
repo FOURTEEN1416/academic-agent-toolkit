@@ -869,3 +869,29 @@ def test_ai_tell_check_max_errors_threshold():
         p = subprocess.run([_sys.executable, str(tool), "--strict", str(f)],
                            capture_output=True, text=True, timeout=60)
         assert p.returncode == 1
+
+
+def test_figure_narrative_gate_blocks_orphan_floats(tmp_path):
+    # 2026-10-02 图表批：真实终版 20+ 图中 11+ 张是孤儿图（贴进正文零引用零解读），
+    # figure_narrative 闸零容忍（修复动作明确：补引用句/解读段/删图）
+    from engine.quality_gates import QualityGate
+    paper = tmp_path / "paper"
+    paper.mkdir()
+    body = ("\\section{求解}\n正文叙述如图。\n\n"
+            "\\begin{figure}\n\\includegraphics{x}\n\\caption{测试图}\n\\label{fig:t1}\n\\end{figure}\n"
+            "图~\\ref{fig:t1} 显示结果随参数变化。\n\n" + "正文内容叙述。" * 100)
+    (paper / "main.tex").write_text(body, encoding="utf-8")
+    report = QualityGate(tmp_path).check_figure_narrative()
+    assert report["ok"], report["reason"]
+    # 真孤儿：两张图连续堆叠在文档尾，前无叙述后无内容且零引用 → 拦截
+    orphan = ("\\section{求解}\n" + "正文内容叙述。" * 5 + "\n\n"
+              "\\begin{figure}\n\\includegraphics{y}\n\\caption{堆砌图一}\n\\label{fig:t2}\n\\end{figure}\n"
+              "\\begin{figure}\n\\includegraphics{z}\n\\caption{堆砌图二}\n\\label{fig:t3}\n\\end{figure}\n")
+    (paper / "main.tex").write_text(orphan, encoding="utf-8")
+    report = QualityGate(tmp_path).check_figure_narrative()
+    assert not report["ok"] and "孤儿图" in report["reason"], report["reason"]
+    # 无正文 → 拦截
+    empty = tmp_path / "nowrite"
+    empty.mkdir()
+    report = QualityGate(empty).check_figure_narrative()
+    assert not report["ok"] and "正文未成文" in report["reason"]
