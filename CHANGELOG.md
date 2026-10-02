@@ -18,6 +18,10 @@
 - **AI 痕迹词表证据级校准**（053584e）：`ai_tell_check` 按一手证据（AI 论痕检测词库/真实检测报告）增补硬拦词与泄漏构式模式，新增获奖论文正当句式反证白名单；735 篇真实获奖论文全量假阳实测治本——11 个领域字面义词（链路/上下游/复用/工作流等）自词级硬拦收窄为工程泄漏构式、参考文献区豁免、误伤 ≈1968→11（坏探针检出力无损）；docx 链摘要字数契约 400-600→600-800 对齐 `_utils/abstract_writing_contract.md` 真源；`writing_rules` 图注「优先承载发现」口径与旧教学矛盾（enumerate 双口径/教学正例带套话尾巴）清理。
 - **数模写作步合同升级为内容级**（承接前窗移交项）：`engine/output_contracts.py` 文件检查新增 `forbidden`（未完成占位/违规内容残留，对称 `contains`）；`comp_huawei`/`comp_cumcm` 写作步合同从裸 `min_bytes:5120` 升级——华为杯加摘要导航词「针对问题」+六要素「创新点」contains 与封面/摘要骨架占位 forbidden（新合同对真实终版实测当场抓到封面 5 字段占位残留，min_bytes 级合同对此失明）；国赛同口径。**骨架真源对齐**：cumcm 骨架摘要占位「关于问题一」改「针对问题一」，消除与 `abstract_writing_contract.md`（四套 Skill 单一事实源）的口径冲突；huawei 骨架补导航词与六要素口径。其余 16 赛事模板待骨架逐个核验后升级（不盲改）。
 
+### Changed
+
+- **AI 痕迹闸挂进引擎强制链**（全仓历遍复核实锤后）：真实工作流执行记录（workflow.sqlite 10 份 evidence）显示写作质量闸（ai_tell_check/writing_check 全家桶等）在生产中零执行——引擎强制闸只卡证据格式、质量闸全靠自觉（"机械过闸"完整图景：强制的不管质量，管质量的不强制）。新增引擎 `ai_flavor` named gate（quality_gates 注册表）+ `ai_tell_check --max-errors` 阈值参数（默认 0 不变；闸定标 3 = 获奖论文抽样 0-2 处/篇的水平上界），comp_huawei/comp_cumcm 写作步 required_checks 挂闸——finish 时强制重扫，超阈值拒绝完成并附行号改写指引。获奖论文对照定标：8 篇抽样 0-2 处/篇 vs 旧终版 12 处（密度差约 10 倍）。
+
 ### Fixed
 
 - **AI 痕迹闸门空转修复**（本批）：`_utils/ai_tell_check.py` 目录形态参数（如 SKILL 教学的 `--strict paper/`）此前被「只认文件」过滤整批丢弃——零扫描 exit 2 被当"SKIP 不阻塞"，治理工具从未真正扫过按文档调用的工作区（真实终版实测残留 12 处必修 AI 痕迹）；新增目录递归发现（工作区根/paper 根/sections 均可），同一命令修复后实测从零扫描变为抓到全部 12 处。shared-scripts 双副本锁步（md5 一致）。
