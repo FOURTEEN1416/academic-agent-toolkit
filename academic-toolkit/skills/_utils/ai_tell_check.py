@@ -199,8 +199,15 @@ def _discover_dir(d: Path) -> list[Path]:
     真实工作区实测闸门零扫描（终稿 12 处 AI 痕迹因此漏拦进交付物）。
     目录与文件参数同等对待：目录递归发现正文，口径与无参 paper_mode 一致
     （_ 开头工作文件排除；paper 语义内 2_analysis.tex 等合法正文不按文件名排除）。
+
+    防误用（2026-10-02 复核补）：在无 paper/ 子目录的大目录（如仓库根）会递归
+    吸入全部 SKILL.md/文档（实测 1763 文件 20s 跑不完）——非 paper 语义目录
+    应用 EXCLUDE_NAME 排除（对齐无参根目录口径），且候选超 MAX_DIR_TARGETS
+    时拒绝扫描并指引正确用法。
     """
-    paper = d / "paper" if (d / "paper").is_dir() else d
+    MAX_DIR_TARGETS = 300
+    has_paper = (d / "paper").is_dir()
+    paper = d / "paper" if has_paper else d
     if (paper / "main.tex").is_file():
         try:
             srcs = active_sources(paper)
@@ -215,7 +222,16 @@ def _discover_dir(d: Path) -> list[Path]:
         for f in sorted(paper.rglob(pat)):
             if f.name.startswith("_"):
                 continue
+            # 非 paper 语义目录（用户直接传散文件目录/仓库根）按无参根目录口径
+            # 排除报告/审计类工程文件；paper 语义内 2_analysis.tex 等是合法正文不排。
+            if not has_paper and EXCLUDE_NAME.search(f.name):
+                continue
             out.append(f)
+    if len(out) > MAX_DIR_TARGETS:
+        print("⚠ 目录 %s 递归发现 %d 个候选正文（>%d）——疑似传错目录："
+              "请传工作区根、paper/ 目录或具体正文文件后重试。" % (d, len(out), MAX_DIR_TARGETS),
+              file=sys.stderr)
+        return []
     return out
 
 
