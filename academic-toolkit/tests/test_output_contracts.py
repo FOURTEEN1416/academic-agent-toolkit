@@ -211,3 +211,137 @@ def test_pipeline_paper_contracts_are_content_level():
         files = step["metadata"]["output_contract"]["files"][0]
         assert words <= set(files.get("contains", [])), (tid, files)
         assert files.get("forbidden"), (tid, "forbidden 缺失")
+
+
+# ---------------------------------------------------------------------------
+# W-ABSTRACT3（2026-10-02 三骨架摘要专项核验窗）：wuyi / dongsansheng / default。
+# 骨架实测：wuyi 与 default 的摘要都是 main.tex 内联手动排版段（非 \begin{abstract}
+# 环境但有稳定占位符），contains 挂 $primary 不误拦；dongsansheng 摘要在骨架声明死的
+# sections/abstract.tex（写作技能自检 glob *abstract*.tex 兜底同路径），contains 挂
+# main.tex 必误拦 → 合同钉显式路径。default 族骨架 3027B，合规成文 main.tex≈4.8KB，
+# 5120 下限处于合规区间内（临界误拦）→ 降至 3584（仍高于骨架原样 3027B）。
+# ---------------------------------------------------------------------------
+
+_WABS3_TEMPLATES_DIR = ROOT / "skills/comp-paper-zh/_templates"
+# (模板id, 骨架目录, 摘要占位特征)
+_WABS3_INLINE = [
+    ("comp_wuyi", "wuyi", "[中文摘要内容"),
+    ("comp_teddy", "default", "[摘要内容"),
+    ("comp_certcup", "default", "[摘要内容"),
+    ("comp_zhongqing", "default", "[摘要内容"),
+    ("comp_tianfu", "default", "[摘要内容"),
+    ("comp_shenzhen", "default", "[摘要内容"),
+    ("comp_huadong", "default", "[摘要内容"),
+]
+
+_WABS3_GOOD_ABSTRACT = (
+    "针对问题一，基于层次分析法与TOPSIS建立综合评价模型，从投人产出效率、服务质量、运营成本三个"
+    "准则层共选取12项指标构建评价体系，对5个备选方案全排序，求得最优方案为方案3，加权贴近度0.782；"
+    "灵敏度分析显示指标权重在±5%区间扰动时前两位排序保持稳定，结论可靠。\n"
+    "针对问题二，以成本最小化与交付及时率为双重目标建立多目标规划模型，采用NSGA-II算法求解，"
+    "种群规模200、迭代500代后得到含42个非支配解的Pareto前沿；与基准方案相比，推荐折中解使总成本"
+    "下降13.6%、平均交付周期缩短2.3天，验证了模型在多目标权衡上的有效性。\n"
+    "针对问题三，构建ARIMA-LSTM组合预测模型，以线性部分捕捉趋势、非线性部分修正残差，"
+    "滚动回测显示组合模型平均相对误差4.8%，优于单一ARIMA模型的9.1%与单一LSTM模型的6.3%；"
+    "据此给出未来三期的预测区间与相应的资源配置建议。\n"
+    "针对问题四，设计滚动时域动态调度策略应对需求波动，蒙特卡洛仿真1000次显示设备平均利用率"
+    "提升6.2个百分点，违约订单占比由7.4%降至2.1%，表明该策略在不确定环境下具有良好鲁棒性。\n"
+)
+
+
+def _wabs3_paper_contract(tid):
+    import json
+    tpl = json.loads((ROOT / "engine/modex-core/templates.json").read_text(encoding="utf-8"))
+    step = next(s for s in tpl[tid]["sub_steps"] if s["skill_name"] == "comp-paper-zh")
+    return step["metadata"]["output_contract"]
+
+
+def test_wabstract3_production_contracts_anchor():
+    # 生产合同防退化锚：八模板摘要内容级 + min_bytes 可达性一并钉死
+    for tid, _, token in _WABS3_INLINE:
+        files = _wabs3_paper_contract(tid)["files"]
+        assert files[0]["path"] == "$primary"
+        assert "针对问题" in files[0]["contains"], (tid, files)
+        assert files[0]["forbidden"] == [token], (tid, files)
+    # default 族六模板：下限必须低于合规成文区间（骨架3027B+最短合规摘要），高于骨架原样
+    for tid, _, _ in _WABS3_INLINE[1:]:
+        assert _wabs3_paper_contract(tid)["files"][0]["min_bytes"] == 3584, tid
+    # wuyi 骨架含承诺书页 5456B，5120 保留可达；骨架原样交付由 forbidden 拦
+    assert _wabs3_paper_contract("comp_wuyi")["files"][0]["min_bytes"] == 5120
+    # dongsansheng：main.tex 下限可达（骨架 1271B）+ 摘要条目钉骨架声明显式路径
+    files = _wabs3_paper_contract("comp_liaoning")["files"]
+    assert files[0]["path"] == "$primary" and files[0]["min_bytes"] == 1024
+    assert "contains" not in files[0], "contains 挂 main.tex 会误拦（摘要在 sections/abstract.tex）"
+    assert files[1]["path"] == "paper/sections/abstract.tex"
+    assert files[1]["min_bytes"] == 1200
+    assert "针对问题" in files[1]["contains"] and files[1]["forbidden"]
+
+
+@pytest.mark.parametrize("tid,skeleton_name,token", _WABS3_INLINE)
+def test_wabstract3_inline_abstract_three_judgments(tmp_path, tid, skeleton_name, token):
+    # 用真实骨架文件对生产合同三判（不是合成文本）
+    import re
+    contract = _wabs3_paper_contract(tid)
+    skeleton = (_WABS3_TEMPLATES_DIR / skeleton_name / "main.tex").read_text(encoding="utf-8")
+    paper = tmp_path / "paper"
+    paper.mkdir()
+
+    # 判1：骨架原样交付 → 违约。wuyi 骨架含承诺书页 5456B 过 min_bytes，由 forbidden 拦；
+    # default 族骨架 3027B 由 min_bytes 拦（require_file 低于下限即短路，不再评 contains/forbidden）
+    (paper / "main.tex").write_text(skeleton, encoding="utf-8")
+    report = check_output_contract(tmp_path, contract, primary_output="paper/main.tex")
+    assert not report["ok"], (tid, report["errors"])
+    if tid == "comp_wuyi":
+        assert any("未完成占位" in e and token in e for e in report["errors"]), report["errors"]
+    else:
+        assert any("低于实际合同下限" in e for e in report["errors"]), report["errors"]
+
+    # 判2：规范成文（占位替换+导航词写入原位）→ 通过
+    written = re.sub(r"\[" + re.escape(token[1:]) + r"[^\]]*\]", _WABS3_GOOD_ABSTRACT, skeleton)
+    assert token not in written and "针对问题" in written
+    (paper / "main.tex").write_text(written, encoding="utf-8")
+    report = check_output_contract(tmp_path, contract, primary_output="paper/main.tex")
+    assert report["ok"], (tid, report["errors"])
+
+    # 判3：占位残留 → 精确拦截
+    (paper / "main.tex").write_text(written + token + "：残留\n", encoding="utf-8")
+    report = check_output_contract(tmp_path, contract, primary_output="paper/main.tex")
+    assert not report["ok"]
+    assert any("未完成占位" in e and token in e for e in report["errors"])
+
+
+def test_wabstract3_liaoning_abstract_in_sections(tmp_path):
+    # 东三省骨架：main.tex 仅 \input{sections/abstract}，摘要在骨架声明的显式路径
+    contract = _wabs3_paper_contract("comp_liaoning")
+    skeleton = (_WABS3_TEMPLATES_DIR / "dongsansheng" / "main.tex").read_text(encoding="utf-8")
+    paper = tmp_path / "paper"
+    paper.mkdir()
+    (paper / "main.tex").write_text(skeleton, encoding="utf-8")
+
+    # 判1：骨架原样交付 → abstract.tex 缺文件违约（main.tex 1271B 过 1024 下限不误拦）
+    report = check_output_contract(tmp_path, contract, primary_output="paper/main.tex")
+    assert not report["ok"]
+    assert any("abstract.tex" in e and "缺文件" in e for e in report["errors"]), report["errors"]
+    assert not any(e.startswith("paper/main.tex") for e in report["errors"]), report["errors"]
+
+    # 判2：规范成文（sections/abstract.tex 导航词成文）→ 通过
+    secdir = paper / "sections"
+    secdir.mkdir()
+    good = _WABS3_GOOD_ABSTRACT + "关键词：层次分析法；NSGA-II；组合预测\n"
+    (secdir / "abstract.tex").write_text(good, encoding="utf-8")
+    report = check_output_contract(tmp_path, contract, primary_output="paper/main.tex")
+    assert report["ok"], report["errors"]
+
+    # 判2b：摘要成文但缺导航词 → contains 拦（作用点=abstract.tex 而非 main.tex）
+    (secdir / "abstract.tex").write_text(
+        "本文建立了三个模型并求解，结果良好，误差较小，方法稳定可靠。" + "字" * 1200,
+        encoding="utf-8")
+    report = check_output_contract(tmp_path, contract, primary_output="paper/main.tex")
+    assert not report["ok"]
+    assert any("abstract.tex" in e and "缺内容结构" in e for e in report["errors"]), report["errors"]
+
+    # 判3：占位残留 → 精确拦截
+    (secdir / "abstract.tex").write_text(good + "[摘要内容：残留]", encoding="utf-8")
+    report = check_output_contract(tmp_path, contract, primary_output="paper/main.tex")
+    assert not report["ok"]
+    assert any("未完成占位" in e and "[摘要内容" in e for e in report["errors"])
