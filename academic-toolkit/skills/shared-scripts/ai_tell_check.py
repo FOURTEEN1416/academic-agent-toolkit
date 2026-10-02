@@ -191,9 +191,51 @@ REF_SECTION = re.compile(
     r"|^[>#\s*]*(?:参考文献|References|Bibliography|REFERENCES)\s*$", re.M)
 
 
+def _discover_dir(d: Path) -> list[Path]:
+    """把目录参数展开为正文文件清单（工作区根 / paper 根 / sections 目录均可）。
+
+    2026-10-02 修复：目录形态参数（如 SKILL.md 教的 `--strict paper/`）此前被
+    「只认文件」过滤整批丢弃 → targets 为空 → exit 2 且一行"未找到正文"——
+    真实工作区实测闸门零扫描（终稿 12 处 AI 痕迹因此漏拦进交付物）。
+    目录与文件参数同等对待：目录递归发现正文，口径与无参 paper_mode 一致
+    （_ 开头工作文件排除；paper 语义内 2_analysis.tex 等合法正文不按文件名排除）。
+    """
+    paper = d / "paper" if (d / "paper").is_dir() else d
+    if (paper / "main.tex").is_file():
+        try:
+            srcs = active_sources(paper)
+        except Exception:
+            srcs = []
+        if srcs:
+            return srcs
+    if (paper / "main.md").is_file():
+        return [paper / "main.md"]
+    out = []
+    for pat in ("*.md", "*.tex"):
+        for f in sorted(paper.rglob(pat)):
+            if f.name.startswith("_"):
+                continue
+            out.append(f)
+    return out
+
+
 def find_targets(args_paths):
     if args_paths:
-        return [Path(p) for p in args_paths if Path(p).is_file()]
+        out = []
+        for p in args_paths:
+            pth = Path(p)
+            if pth.is_file():
+                out.append(pth)
+            elif pth.is_dir():
+                out.extend(_discover_dir(pth))
+        # 去重保序
+        seen, uniq = set(), []
+        for f in out:
+            k = f.resolve()
+            if k not in seen:
+                seen.add(k)
+                uniq.append(f)
+        return uniq
     # ⛔ 有 paper/ 就【只】扫 paper/，不要回落到根目录：
     #    根目录散落着 _format_reference.md、_s123.md 这类工作文件，
     #    它们本就该用工程语汇，扫了全是误报（实测踩到）。
@@ -297,7 +339,7 @@ def scan(path: Path):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("paths", nargs="*", help="要扫的文件；缺省自动找 paper/")
+    ap.add_argument("paths", nargs="*", help="要扫的文件或目录（paper/、工作区根均可，目录递归找正文）；缺省自动找 paper/")
     ap.add_argument("--strict", action="store_true", help="剩余空话（SOFT）也计入失败")
     ap.add_argument("--max-show", type=int, default=8, help="每类最多列几条")
     a = ap.parse_args()

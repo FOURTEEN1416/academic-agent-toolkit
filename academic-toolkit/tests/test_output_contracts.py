@@ -172,3 +172,42 @@ def test_errors_are_structured_not_pass_impression(tmp_path):
     assert report["ok"] is False
     assert report["checks"] >= 1
     assert report["errors"] and "ghost.md" in report["reason"]
+
+
+def test_files_forbidden_blocks_skeleton_delivery(tmp_path):
+    # 2026-10-02 内容级合同：forbidden 查骨架占位残留（min_bytes 挡不住骨架原样交付）
+    paper = tmp_path / "paper"
+    paper.mkdir()
+    (paper / "main.tex").write_text(
+        "\baominghao{[参赛队号]}\n针对问题一，求得最优解 3.14（创新点：分层解耦）。\n" + "x" * 6000,
+        encoding="utf-8")
+    contract = {"files": [{"path": "paper/main.tex", "min_bytes": 5120,
+                           "contains": ["针对问题", "创新点"],
+                           "forbidden": ["[参赛队号]", "[中文摘要内容"]}]}
+    report = check_output_contract(tmp_path, contract)
+    assert not report["ok"]
+    assert any("未完成占位" in e and "[参赛队号]" in e for e in report["errors"])
+    # 占位替换后同合同通过（contains 满足 + forbidden 清零）
+    (paper / "main.tex").write_text(
+        "\baominghao{D26000010001}\n针对问题一，求得最优解 3.14（创新点：分层解耦）。\n" + "x" * 6000,
+        encoding="utf-8")
+    report = check_output_contract(tmp_path, contract)
+    assert report["ok"], report["errors"]
+
+
+def test_pipeline_paper_contracts_are_content_level():
+    # 生产合同真身：两大数模模板写作步必须已升级为内容级（摘要导航词+占位残留），
+    # 防止合同退化回 min_bytes 空转（2026-10-02 前窗移交项落地锚）
+    import json
+    from pathlib import Path
+    tpl = json.loads((Path(__file__).resolve().parent.parent / "engine/modex-core/templates.json")
+                     .read_text(encoding="utf-8"))
+    expect = {
+        "comp_huawei": {"针对问题", "创新点"},
+        "comp_cumcm": {"针对问题"},
+    }
+    for tid, words in expect.items():
+        step = next(s for s in tpl[tid]["sub_steps"] if s["skill_name"] == "comp-paper-zh")
+        files = step["metadata"]["output_contract"]["files"][0]
+        assert words <= set(files.get("contains", [])), (tid, files)
+        assert files.get("forbidden"), (tid, "forbidden 缺失")

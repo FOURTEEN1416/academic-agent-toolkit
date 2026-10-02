@@ -1480,6 +1480,19 @@ mkdir -p _tmp
 
 ### Step 4: Write each chapter
 
+#### 先把这一章写好（写完再检查，检查不能代替写好）
+
+本章的产出是给评委读的论文，不是给闸门读的报文。下面六条是获奖论文的共同写法（提炼自 `_utils/human_competition_paper_style.md`，动笔前通读该文件；同赛事范文对照 `data/award_paper_exemplars.json` 取 2-3 篇）：
+
+1. **每段先给结论再给推导。** 段首句是本段要证明的判断（"问题三的瓶颈在充电窗口而非机队规模"），后续句子是支撑它的推导与数值。评委扫段首即可跟上全文逻辑。
+2. **数值嵌进叙述，不罗列。** 把数字写进因果句（"能量约束把可行载荷压到 2.31 t，比质量上限低 18%"），而不是"结果如下表"后甩一串数。表格承载全量数据，正文承载带方向和量级的判断。
+3. **章首段交代本章任务与路线。** 用 2-3 句说清本章解决哪个问、用什么模型族、按什么顺序展开——这是导航，不是背景重述。
+4. **写"为什么"不写"是什么"。** 假设要给理由（"忽略风载，因为巡航段风速上限 6 m/s 对能耗影响 <3%"），模型选择要给对比（为什么选 MILP 而不是启发式），符号表之外的记号首次出现即定义。
+5. **图题写发现。** 图题陈述该图揭示的结论（"误差随噪声水平升高呈指数增长"），"XX 对比图 / XX 结果图"式空标题禁用；图在正文中必须有指代句和解读段，不能"见图自明"。
+6. **段间衔接靠因果不靠连接词。** "首先/其次/最后"机械过渡链是 AI 痕迹；自然段之间用内容上的承接（上一段的结论是下一段的出发点）。
+
+数字纪律与结果读取方式见下方 CRITICAL 块——先读数据，再按上面六条写。
+
 **⛔ CRITICAL: ALL numerical results in the paper MUST come from `figures/*.json` or `RESULTS.md`.**
 
 **⛔ NEVER `cat figures/*_results.json`.** These result files often contain full-precision time-series arrays (tens of MB / hundreds of thousands of lines); reading them whole blows up the context — local models fail outright, and GPT-via-transit chokes on protocol translation of the oversized payload and stalls on repeated `api_retry`. **The paper text only uses scalar values (fitness / optimal solution / solve time / metrics); the giant arrays are for figures, not prose.** Before writing any result chapter, run the `summarize` script below to get a KB-level overview (scalars shown verbatim — zero precision loss — only big arrays compressed to "length + range + first 3 samples"):
@@ -2310,7 +2323,16 @@ done < _tmp/_cited_keys.txt
 
 ### Step 5.5: De-AI polish
 
-See `<de_ai_polish>` in `_utils/writing_rules.md`.
+全文写完后、编译前，按以下顺序做一轮改写（目标是把"程序验收话"改成"读者视角的事实"，不是同义词替换）：
+
+1. **跑机检定位**：`python _utils/ai_tell_check.py --strict paper/`（cwd=工作区根；目录参数已支持递归找正文）。exit 1 时逐条输出都有行号+改法建议。
+2. **按优先级改写**（替代表与实测规模见 `_utils/writing_rules.md` `<de_ai_polish>` 段）：
+   - 工程/质检语汇泄漏（实测第一大破绽，10 工作区 442 次）：口径→定义/取法/计算方式；自检→校验/一致性检验；兜底→缺省处理；链路(隐喻义)→写明具体传递关系。**改写方向是删掉"检查视角"，直接陈述被验证的事实**：不写"容量校验零越界"，写"最高利用率 0.992，仍有 0.8% 余量"；不写"单调性断言通过"，写"时延权重由 0 增至 20 后，迁移比例由 0.549 降至 0"。
+   - 空话套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）：整句删掉或改成带具体内容的陈述——套话删除后段落通常更紧凑，不需要补话。
+   - 内部标记（⛔✅❌⚠ / RESULTS.md 等文件名 / HC-01 类质检编号）：直接删除或改写成自然语言；论文自己定义过的编号（符号说明里的"假设 A1"）不受影响。
+3. **重跑到绿**：`ai_tell_check --strict paper/` exit 0 才算本步完成；人工风格对照 `_utils/human_competition_paper_style.md` 复核背景/重述/分析三章节的职责划分是否混写。
+
+领域术语不算泄漏（735 篇获奖论文反证）：通信链路、河流上下游、闭环控制、频谱复用、误差修正项等字面义该写就写；只在讲自己的建模流程时避开工程隐喻。改写完的段落自己读一遍——像给同行讲思路，不像交验收报告。
 
 ### Step 5.6: Write abstract NOW (after all chapters are complete)
 

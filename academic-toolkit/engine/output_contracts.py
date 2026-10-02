@@ -17,7 +17,7 @@ def check_output_contract(workspace: Path, contract: dict, *, primary_output: st
             raise ValueError("output contract path escapes workspace")
         return path
 
-    def require_file(name, minimum=1, contains=()):
+    def require_file(name, minimum=1, contains=(), forbidden=()):
         nonlocal checks
         name = primary_output if name == "$primary" else name
         checks += 1
@@ -25,14 +25,20 @@ def check_output_contract(workspace: Path, contract: dict, *, primary_output: st
         if not name or not path.is_file() or path.stat().st_size < minimum:
             errors.append(f"{name}: 缺文件或低于实际合同下限{minimum}B")
             return
-        if contains:
+        if contains or forbidden:
             text = path.read_text(encoding="utf-8", errors="replace")
             missing = [word for word in contains if word not in text]
             if missing:
                 errors.append(f"{name}: 缺内容结构 {missing}")
+            # forbidden 检骨架占位符等"未完成内容"残留（2026-10-02 内容级合同升级：
+            # min_bytes 挡不住骨架原样交付，占位符在=没写完；与 contains 对称）
+            hit = sorted({word for word in forbidden if word in text})
+            if hit:
+                errors.append(f"{name}: 含未完成占位/违规内容 {hit}")
 
     for item in contract.get("files", []):
-        require_file(item["path"], int(item.get("min_bytes", 1)), item.get("contains", []))
+        require_file(item["path"], int(item.get("min_bytes", 1)), item.get("contains", []),
+                     item.get("forbidden", ()))
     for item in contract.get("any_glob", []):
         checks += 1
         files = {p.resolve() for pattern in item["patterns"] for p in root.glob(pattern)

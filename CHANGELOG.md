@@ -4,8 +4,7 @@
 
 ## [Unreleased]
 
-> 2026-10-01 四窗批（W1-REG 规范真源 / W2-CORPUS 语料 / W3-WRITE 写作链 / W4-FIG 图表真源）、comp_rules 规则审计修复批（三轮工作流）、W3 写作链工作流轮与 W5-GOV 终局治理（两轮）；逐批操作细录见内部 LOG（不分发）。
-
+> 2026-10-01 四窗批（W1-REG 规范真源 / W2-CORPUS 语料 / W3-WRITE 写作链 / W4-FIG 图表真源）、comp_rules 规则审计修复批（三轮工作流）、W3 写作链工作流轮与 W5-GOV 终局治理（两轮）、2026-10-02 反形式主义+内容级合同批（闸门空转修复/写作层治本/合同升级）；逐批操作细录见内部 LOG（不分发）。
 ### Added
 
 - **华为杯 15-23 届官方规范一手原件库**（`assets-local/contest-regs/huawei/`，8926c8d+860ff10）：历届格式规范/论文模板/使用规定原件 + `index.md` 索引 + 2026-23rd 抓取快照；`engine/modex-core/comp_rules.json` 华为杯口径按一手来源逐条核对升级（约束带 vintage 2026-23rd），`contest_profile.load_entry` 支持单 profile 合成脚本视图。
@@ -17,12 +16,16 @@
 
 - **写作链停止生产 AI 套话**（646eedb+a1d7289）：中文套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）在 `_utils/ai_tell_check` 升 BANNED 硬拦并新增「随着…的发展」正则；comp-paper-zh(+docx) 六要素正例/摘要自检/骨架教学改因果衔接叙述；接获奖语料对标（动笔前读同赛事 2-3 篇）+ 人类痕迹四问 + 结构多样性纪律；docx 写作链同口径补齐。
 - **AI 痕迹词表证据级校准**（053584e）：`ai_tell_check` 按一手证据（AI 论痕检测词库/真实检测报告）增补硬拦词与泄漏构式模式，新增获奖论文正当句式反证白名单；735 篇真实获奖论文全量假阳实测治本——11 个领域字面义词（链路/上下游/复用/工作流等）自词级硬拦收窄为工程泄漏构式、参考文献区豁免、误伤 ≈1968→11（坏探针检出力无损）；docx 链摘要字数契约 400-600→600-800 对齐 `_utils/abstract_writing_contract.md` 真源；`writing_rules` 图注「优先承载发现」口径与旧教学矛盾（enumerate 双口径/教学正例带套话尾巴）清理。
+- **数模写作步合同升级为内容级**（承接前窗移交项）：`engine/output_contracts.py` 文件检查新增 `forbidden`（未完成占位/违规内容残留，对称 `contains`）；`comp_huawei`/`comp_cumcm` 写作步合同从裸 `min_bytes:5120` 升级——华为杯加摘要导航词「针对问题」+六要素「创新点」contains 与封面/摘要骨架占位 forbidden（新合同对真实终版实测当场抓到封面 5 字段占位残留，min_bytes 级合同对此失明）；国赛同口径。**骨架真源对齐**：cumcm 骨架摘要占位「关于问题一」改「针对问题一」，消除与 `abstract_writing_contract.md`（四套 Skill 单一事实源）的口径冲突；huawei 骨架补导航词与六要素口径。其余 16 赛事模板待骨架逐个核验后升级（不盲改）。
 
 ### Fixed
 
+- **AI 痕迹闸门空转修复**（本批）：`_utils/ai_tell_check.py` 目录形态参数（如 SKILL 教学的 `--strict paper/`）此前被「只认文件」过滤整批丢弃——零扫描 exit 2 被当"SKIP 不阻塞"，治理工具从未真正扫过按文档调用的工作区（真实终版实测残留 12 处必修 AI 痕迹）；新增目录递归发现（工作区根/paper 根/sections 均可），同一命令修复后实测从零扫描变为抓到全部 12 处。shared-scripts 双副本锁步（md5 一致）。
+- **写作步「检查压倒写作」结构倒挂矫正**：comp-paper-zh Step 4 开头前置六条正面写作心法（段首结论句/数值嵌叙述/图题写发现/因果衔接等，提炼自 `_utils/human_competition_paper_style.md`）；Step 5.5 De-AI polish 从 10 行指针扩为可执行改写卡（定位→按优先级改写→重跑到绿；改写方向=程序验收话改读者视角事实，非同义词替换）。
 - **W5-GOV 终局治理**（四窗改动面遗留清零）：W1 遗留 21st 官方模板 1.01MB 字节级重复组补登记（原件库证据件↔技能消费副本职责异构并存，消解 `test_duplicate_assets`/`test_project_health_check` 三挂）；W2 核验报告 `new_corpus_stats_2026-10-01.md` 补入库（修复 `award_paper_exemplars.json` `stats_report` 悬空指针）；全量 pytest **1011 passed / 0 failed** 复跑收口，`check_provenance`/`check_asset_utilization --strict`/`secret_scan --strict`/`project_health_check --strict` 全过。
 - **comp_rules 规则审计修复**（c9d8f23）：`field_contract` 悬空指针（MIGRATION.md 从未落库）内联化、`hw-anonymity` 等 source_ids 与人读行对齐等十处；23 届「重要提醒」官方快照归档 `23rd_2026/`（第 24 届离线逐字重验依据）；图表量「硬下限」降格经验参考区间（对齐 guidance 经验层）；华为杯页数经验值 40-50→55-65 标注历届经验口径；AI 双件套在华为杯链改标仓库工程约定（官方=附件4 标注+第6条条件披露）。
 - **W5-GOV 第二轮治理**（本批，含 c9d8f23+053584e 改动面遗留）：`comp_rules.json` 19 处「去留见 MIGRATION.md M7」悬空 note 尾巴清除（note 自足化）；`submission_checklist.md` 废除块指针 `comp_huawei.compliance` 改 profiles 约束带；测试幻影文档引用 ×2 自足化；绘图规范收敛外溢残留清零——latex-document `python-charts.md` tab10「colorblind-safe」推荐改 Okabe-Ito + 30 处 `bbox_inches='tight'` 正向教学对齐不裁剪护栏、`visualization`/`networkx`/`plotly`/`seaborn`/`paper-figure-palette recipes` 默认色环与 tight 教学清零（复现域 plot-from-data/image 有出处标注者保留）；`CONTEST_SKILL_MAP.md` 外域行重复 token/过期计数（22→20、7→5）/过期「待合并 W3f 处理中」行修正；award-paper-mining 三库（摘要黄金结构/句式模板库/排版规格）补入 `asset_catalog.json`（48→51）；`typography_spec.md` 过程性注记清除。
+
 
 ## [v2.1.0] - 2026-09-27 —— 赛事档案 v2 隔离（跨赛事规则不再混用）
 
