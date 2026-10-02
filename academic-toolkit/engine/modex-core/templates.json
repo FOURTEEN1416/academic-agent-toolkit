@@ -1764,14 +1764,16 @@
         "required_checks": [
           "literature",
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "literature",
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor"
           ],
           "display_name": "竞赛论文撰写",
           "companion_skills": [],
@@ -2850,14 +2852,16 @@
         "required_checks": [
           "literature",
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "literature",
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor"
           ],
           "display_name": "竞赛论文撰写",
           "companion_skills": [],

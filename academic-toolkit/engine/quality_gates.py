@@ -572,6 +572,7 @@ NAMED_CHECKS_REGISTRY: dict[str, str] = {
     "compilation_log": "check_compilation_log",
     "modeling_contract": "check_modeling_contract",
     "review_rounds": "check_review_rounds",
+    "ai_flavor": "check_ai_flavor",
 }
 
 
@@ -1316,6 +1317,42 @@ class QualityGate:
                     "reason": "论文正文未引用任何结果关键数字（可 `\\ref` 或直接写数值）"}
         return {"ok": True, "checked_numbers": len(result_numbers), "hits": hits,
                 "reason": f"论文引用 {hits}/{len(result_numbers)} 个结果关键数字"}
+
+    def check_ai_flavor(self) -> dict:
+        """AI 痕迹闸：正文工程/质检语汇与内部标记密度不得高于获奖论文水平。
+
+        2026-10-02 历遍复核实锤：写作质量闸（ai_tell_check/writing_check 等）在
+        真实工作流 10 份执行证据中零执行——质量闸全靠 LLM 自觉，真实终版残留
+        12 处 AI 痕迹，而获奖论文抽样 8 篇 0-2 处/篇（密度差约 10 倍）。本闸把
+        "AI 痕迹检查真的跑过且不超阈值" 变成引擎强制项，与证据格式闸对位：
+        强制的闸要管质量，管质量的闸必须强制。
+        阈值定标：获奖论文抽样分布 0-2 处/篇 → 容许上限 3（获奖水平上界）；
+        零容忍会连获奖水平论文一起拦（8 篇抽样 5 篇过不了零容忍）。
+        """
+        tool = PROJECT_ROOT / "skills" / "_utils" / "ai_tell_check.py"
+        # ⛔ resolve：workspace 可能以相对路径传入；subprocess 的 cwd 与 argv 各自
+        # 相对子进程 cwd 解析，相对路径拼接会指向不存在的位置（实测踩坑）
+        workspace = Path(self.workspace).resolve()
+        tex = workspace / "paper" / "main.tex"
+        md = workspace / "paper" / "main.md"
+        if not tex.is_file() and not md.is_file():
+            return {"ok": False, "reason": "未找到 paper/main.tex 或 paper/main.md（正文未成文）"}
+        if not tool.is_file():
+            return {"ok": False, "reason": f"闸工具缺席：{tool.relative_to(PROJECT_ROOT)}（不冒充通过）"}
+        try:
+            proc = subprocess.run(
+                [sys.executable, str(tool), "--strict", "--max-errors", "3", str(workspace / "paper")],
+                capture_output=True, text=True, timeout=120, cwd=str(workspace),
+            )
+        except subprocess.TimeoutExpired:
+            return {"ok": False, "reason": "ai_tell_check 超时（>120s）——检查正文规模是否异常"}
+        tail = [l for l in (proc.stdout or "").splitlines() if l.strip()][-6:]
+        if proc.returncode == 0:
+            return {"ok": True, "reason": "；".join(tail[-1:]) or "AI 痕迹密度在获奖论文水平内"}
+        if proc.returncode == 2:
+            return {"ok": False, "reason": "ai_tell_check 未找到正文（SKIP 语义不冒充通过）: " + "；".join(tail[-2:])}
+        return {"ok": False, "reason": "AI 痕迹超获奖论文水平阈值（>3 处）——按输出行号逐条改写："
+                                       + " | ".join(tail[-3:])}
 
     def check_citation_integrity(self) -> dict:
         """引用完整性：references.bib 条目存在、字段完整、DOI 格式合法。

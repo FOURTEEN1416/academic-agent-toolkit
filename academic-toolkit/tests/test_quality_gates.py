@@ -829,3 +829,43 @@ def test_role_agent_falls_back_across_providers(monkeypatch):
     result = agent.call("reviewer", "请复核")
     assert "fallback成功" in result
     assert attempts["n"] >= 2, "应尝试主 provider + fallback provider"
+
+
+def test_ai_flavor_gate_blocks_above_award_threshold(tmp_path):
+    # 2026-10-02 历遍复核：质量闸在生产执行证据中零执行（强制闸与质量闸错位），
+    # ai_flavor 把 AI 痕迹检查挂进引擎强制链。阈值定标=获奖论文抽样 0-2 处/篇。
+    from engine.quality_gates import QualityGate
+    paper = tmp_path / "paper"
+    paper.mkdir()
+    # 获奖水平正文（1 处 SOFT 命中 ≤ 3）→ 通过
+    body = "\n\n".join(
+        "针对问题%d，建立某某模型并求解，结果为 3.14 与 42.7，误差 1.2%%。" % i + "正文叙述。" * 40
+        for i in range(1, 5))
+    (paper / "main.tex").write_text(body + "\n值得注意的是本模型稳健。", encoding="utf-8")
+    report = QualityGate(tmp_path).check_ai_flavor()
+    assert report["ok"], report["reason"]
+    # 超阈值（大量硬拦词）→ 拦截且 reason 带改写指引
+    (paper / "main.tex").write_text(
+        "本文口径统一。我们自检了全部约束并兜底处理，链路闭环。" * 30, encoding="utf-8")
+    report = QualityGate(tmp_path).check_ai_flavor()
+    assert not report["ok"] and "超获奖论文水平" in report["reason"]
+    # 无正文 → 拦截（SKIP 语义不冒充通过）
+    empty = tmp_path / "nowrite"
+    empty.mkdir()
+    report = QualityGate(empty).check_ai_flavor()
+    assert not report["ok"] and "正文未成文" in report["reason"]
+
+
+def test_ai_tell_check_max_errors_threshold():
+    # --max-errors 阈值参数：获奖论文抽样 0-2 处/篇 → 闸用 3 定标
+    import subprocess, sys as _sys, tempfile
+    tool = Path(__file__).resolve().parent.parent / "skills" / "_utils" / "ai_tell_check.py"
+    with tempfile.TemporaryDirectory() as td:
+        f = Path(td) / "main.md"
+        f.write_text("正常叙述。值得注意的是一点补充。\n" + "正文内容。" * 200, encoding="utf-8")
+        p = subprocess.run([_sys.executable, str(tool), "--strict", "--max-errors", "3", str(f)],
+                           capture_output=True, text=True, timeout=60)
+        assert p.returncode == 0 and "阈值内" in p.stdout
+        p = subprocess.run([_sys.executable, str(tool), "--strict", str(f)],
+                           capture_output=True, text=True, timeout=60)
+        assert p.returncode == 1

@@ -357,6 +357,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("paths", nargs="*", help="要扫的文件或目录（paper/、工作区根均可，目录递归找正文）；缺省自动找 paper/")
     ap.add_argument("--strict", action="store_true", help="剩余空话（SOFT）也计入失败")
+    ap.add_argument("--max-errors", type=int, default=0,
+                    help="容许通过的最大命中数（默认 0=零容忍）。引擎闸定标：真实获奖论文"
+                         "抽样 8 篇硬伤+空话 0-2 处/篇，阈值 3 ≈ 获奖水平上界（2026-10-02 实测）")
     ap.add_argument("--max-show", type=int, default=8, help="每类最多列几条")
     a = ap.parse_args()
 
@@ -403,8 +406,11 @@ def main():
         print("最多的词：" + "、".join("%s×%d" % (w, n) for w, n in top))
 
     fail = tot_hard + tot_mark + (tot_soft if a.strict else 0)
-    if fail == 0:
-        print("✅ PASS — 正文无 AI 痕迹措辞")
+    if fail <= a.max_errors:
+        if fail == 0:
+            print("✅ PASS — 正文无 AI 痕迹措辞")
+        else:
+            print("✅ PASS（阈值内）— %d 处命中 ≤ 容许上限 %d（获奖论文水平）" % (fail, a.max_errors))
         sys.exit(0)
     print("\n⛔ 共 %d 处必修 — 逐条按替代说法改写，改完重跑本脚本。" % fail)
     print("   替代表见《shared-scripts/writing_rules.md》De-AI Polish 一节。")
