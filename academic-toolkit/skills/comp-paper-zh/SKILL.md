@@ -246,71 +246,21 @@ Fixed sections that must be kept: 表格清单, 插图清单, 中英文摘要, �
 
 ### Step 0: Backup + resume check + upstream validation
 
-**⛔ 上游输出完整性检查（写论文前必做）：**
+**⛔ 上游输出完整性（写论文前必做）：** `PROBLEM_ANALYSIS.md`、`MODELING_REPORT.md`、`RESULTS.md` 必须存在且非空壳——缺失或过小说明上游未交付，停下补上游，不带病开写。子问题覆盖度交叉核对（引擎没有的检查，唯一保留项）：
 
 ```bash
-
-echo "=== 上游输出完整性检查 ==="
-
-UPSTREAM_OK=true
-
-# 1. 核心文件是否存在
-
-for f in PROBLEM_ANALYSIS.md MODELING_REPORT.md RESULTS.md; do
-
-    if [ -f "$f" ]; then
-
-        sz=$(wc -c < "$f")
-
-        echo "✅ $f ($sz 字符)"
-
-        [ "$sz" -lt 500 ] && echo "  ⚠ 文件过小，内容可能不完整"
-
-    else
-
-        echo "❌ $f 不存在！"
-
-        UPSTREAM_OK=false
-
-    fi
-
-done
-
-# 2. 子问题覆盖度：赛题分析 vs 建模报告 vs 代码结果
-
-#    统一口径（历史 bug：这里正则漏了 0-9，"问题1/问题2"数不出来 → 覆盖度检查静默失效）
 
 PROB_COUNT=$(bash _utils/count_subproblems.sh PROBLEM_ANALYSIS.md)
 
 MODEL_COUNT=$(bash _utils/count_subproblems.sh MODELING_REPORT.md)
 
-RESULT_FILES=$(ls figures/problem_*_results.json 2>/dev/null | wc -l)
+echo "子问题数: 分析=$PROB_COUNT, 建模=$MODEL_COUNT"
 
-echo "子问题数: 分析=$PROB_COUNT, 建模=$MODEL_COUNT, 代码结果=$RESULT_FILES"
-
-[ "$MODEL_COUNT" -lt "$PROB_COUNT" ] && echo "⚠ 建模报告覆盖子问题数少于赛题分析"
-
-[ "$RESULT_FILES" -lt "$PROB_COUNT" ] && echo "⚠ 代码结果文件数少于子问题数"
-
-# 3. 图表文件是否存在
-
-PDF_COUNT=$(ls figures/*.pdf 2>/dev/null | wc -l)
-
-echo "PDF 图表: $PDF_COUNT 个"
-
-[ "$PDF_COUNT" -eq 0 ] && echo "⚠ 没有 PDF 图表，论文将缺少图片"
-
-# 4. all_results.json 是否存在
-
-[ -f figures/all_results.json ] && echo "✅ all_results.json 存在" || echo "⚠ all_results.json 不存在，论文数值可能不准确"
-
-# 5. latex_includes.tex 是否存在
-
-[ -f figures/latex_includes.tex ] && echo "✅ latex_includes.tex 存在" || echo "⚠ latex_includes.tex 不存在，图表嵌入代码缺失"
-
-echo "=== 上游检查完成 ==="
+[ "$MODEL_COUNT" -lt "$PROB_COUNT" ] && echo "⚠ 建模报告覆盖子问题数少于赛题分析——回上游补齐再写"
 
 ```
+
+> 结果数据缺席由引擎在本步 finish 强制拦截（`paper_consistency`：论文无结果数字来源即拒绝完成）；图表缺席由编译阶段引用检查兜底。这是安全网，不是豁免——动笔前确认上游齐套，`figures/all_results.json` 与 `figures/latex_includes.tex` 缺席就先回上游。
 
 **⛔⛔ 能力验收闸门（写论文前必做，承接全链合同的最后一环，零额度两模式都跑）：** 论文是最终交付物，绝不能把没做到/做砸的能力写成成果。写正文前先核编码阶段的能力验收总账：
 
@@ -326,37 +276,7 @@ PCC=$?   # 0=全通过可写 1=有能力项未通过(FAIL/严格模式PENDING,�
 
 > `PCC=1` 说明有能力项在编码阶段验收就没通过（FAIL/PENDING）——**回到 comp-code 把它真做到 PASS，再来写论文**，别把没做成的能力写进最终稿。写完正文后本闸会再跑一次（见 Step 6），那次还会扫正文有没有"吹了没通过的能力"。⛔ 承上启下收口：赛题分析定合同 → 建模认领 → 编码实现验收 → **论文只如实书写验收通过的成果**。
 
-Back up existing `paper/`. Check for incomplete sections from previous runs:
-
-```bash
-
-echo "=== 断点续写检查 ==="
-
-if [ -d "paper/sections" ]; then
-
-    for f in paper/sections/*.tex; do
-
-        [ -f "$f" ] || continue
-
-        chars=$(wc -c < "$f")
-
-        if [ "$chars" -lt 500 ]; then
-
-            echo "⚠ 占位符: $(basename $f) ($chars 字符) — 需要续写"
-
-        else
-
-            echo "✅ 已完成: $(basename $f) ($chars 字符)"
-
-        fi
-
-    done
-
-fi
-
-```
-
-Resume rules: only write placeholder sections (<500 chars or contains "待补充"/"placeholder"), skip completed ones (>2000 chars). Save each chapter immediately — do not accumulate in memory.
+Back up existing `paper/`. 断点续写口径：`paper/sections/*.tex` 里 <500 字符或含"待补充/placeholder"的是占位章——续写它；>2000 字符的已完成章跳过不重写。每写完一章立即落盘，不在内存里攒。
 
 ### Step 1: Select template（规范 CONTEST_ID → 模板目录；拒绝猜测，无默认）
 
@@ -443,91 +363,11 @@ fi
 
 ```bash
 
-echo "=== 模板完整性验证 ==="
-
-if [ ! -f paper/main.tex ]; then
-
-    echo "❌ CRITICAL: paper/main.tex 不存在！模板复制失败"
-
-else
-
-    # 通用检查
-
-    grep -q 'documentclass' paper/main.tex && echo "✅ documentclass 存在" || echo "❌ 缺少 documentclass"
-
-    grep -q '\\input{sections/' paper/main.tex && echo "✅ sections input 存在" || echo "❌ 缺少 sections input"
-
-    grep -q 'thebibliography\|bibliography{' paper/main.tex && echo "✅ 参考文献结构存在" || echo "❌ 缺少参考文献"
-
-    grep -q 'appendices\|\\appendix' paper/main.tex && echo "✅ 附录结构存在" || echo "❌ 缺少附录"
-
-    # ⛔ 模板指纹校验：对比 paper/main.tex 和模板原文，确认是复制的不是 执行 Agent 自己写的
-
-    TMPL_BASE="_templates"
-
-    [ -d "$TMPL_BASE" ] || TMPL_BASE="templates"
-
-    # 找到当前使用的模板原文
-
-    TMPL_MAIN=""
-
-    for d in "$TMPL_BASE"/*/; do
-
-        [ -f "${d}main.tex" ] || continue
-
-        # 用 documentclass 行匹配
-
-        TMPL_CLS=$(grep 'documentclass' "${d}main.tex" 2>/dev/null | head -1)
-
-        PAPER_CLS=$(grep 'documentclass' paper/main.tex 2>/dev/null | head -1)
-
-        if [ "$TMPL_CLS" = "$PAPER_CLS" ]; then
-
-            TMPL_MAIN="${d}main.tex"
-
-            break
-
-        fi
-
-    done
-
-    if [ -n "$TMPL_MAIN" ]; then
-
-        echo "模板原文: $TMPL_MAIN"
-
-        # 对比前 20 行（preamble 部分），如果差异超过 5 行说明被重写了
-
-        DIFF_COUNT=$(diff <(head -20 "$TMPL_MAIN") <(head -20 paper/main.tex) 2>/dev/null | grep -c '^[<>]')
-
-        if [ "$DIFF_COUNT" -gt 10 ]; then
-
-            echo "❌ CRITICAL: paper/main.tex 的 preamble 和模板差异过大（$DIFF_COUNT 行不同）— 可能被重写了！"
-
-            echo "⛔ 强制从模板重新复制..."
-
-            cp paper/main.tex paper/main.tex.broken 2>/dev/null
-
-            TMPL_DIR=$(dirname "$TMPL_MAIN")
-
-            cp "$TMPL_DIR"/* paper/ 2>/dev/null
-
-            echo "✅ 模板已重新复制（旧文件备份为 main.tex.broken）"
-
-        else
-
-            echo "✅ 模板指纹校验通过（preamble 差异 $DIFF_COUNT 行，在允许范围内）"
-
-        fi
-
-    else
-
-        echo "⚠ 未找到匹配的模板原文，跳过指纹校验"
-
-    fi
-
-fi
+python _utils/template_integrity_check.py --fingerprint 2>/dev/null || python skills/_utils/template_integrity_check.py --fingerprint
 
 ```
+
+`--fingerprint` 按 documentclass 行定位模板原文，对比 paper/main.tex 前 20 行 preamble：差异过大（>10 行）说明骨架被重写——必须从模板重新复制、只替换占位符（字体/边距/编号/引用格式都在 preamble 里调好，重写必炸）。
 
 Read the copied template to understand its structure before writing:
 
@@ -582,51 +422,15 @@ Use the template as-is. Only modify:
 
 8. **⛔ 华为杯专属：模板与标题约束（gmcmthesis，只对华为杯生效）**：
 
-   下面这段自检脚本**仅在华为杯工作流执行**（用 grep huawei 包住，其他竞赛跳过保持原本行为）：
+   标题机检（仅 `CONTEST_ID=comp_huawei` 时跑，其他竞赛跳过保持原本行为）：
 
    ```bash
 
-   # 仅华为杯触发以下标题检查（其他竞赛跳过）；判据=下发的规范赛事 ID，非文本猜测
-
-   if [ "$CONTEST_ID" = "comp_huawei" ]; then
-
-       title_line=$(grep -oE '\\title\{[^}]+\}' paper/main.tex | head -1)
-
-       echo "[华为杯] Title: $title_line"
-
-       # 1. 禁止 \\ 强制换行（避免第二行字号变小 bug，gmcmthesis v1.5.0+ 已支持自动按宽度换行）
-
-       if echo "$title_line" | grep -qE '\\\\'; then
-
-           echo "⛔ [华为杯] \\title{} 含 \\\\ 强制换行 — 改成单行让 cls 自动换行"
-
-       fi
-
-       # 2. 拦截 AI 美化标题（华为杯严禁自创标题，必须用赛题官方原标题）
-
-       if echo "$title_line" | grep -qE '(基于.*的|.*的研究|.*的应用|.*的探索|.*：一种)'; then
-
-           echo "⚠ [华为杯] 标题含 AI 风格修饰词 — 华为杯必须严格使用赛题官方标题，不能自创"
-
-           echo "  反例：⛔ '基于 X 的 Y 研究' / ⛔ 'Y 的探索与应用' / ⛔ 'Y：一种基于 X 的方法'"
-
-           echo "  正确：直接抄赛题题面给的官方标题（不改一个字）"
-
-       fi
-
-       # 3. 提示对照赛题原始文本
-
-       if ls user_data/*_extracted.txt >/dev/null 2>&1; then
-
-           echo "[华为杯] 赛题文件前 5 行（请确认 \\title{} 与赛题官方标题一致）:"
-
-           head -5 user_data/*_extracted.txt 2>/dev/null | head -15
-
-       fi
-
-   fi
+   python _utils/template_integrity_check.py --full 2>/dev/null || python skills/_utils/template_integrity_check.py --full
 
    ```
+
+   脚本拦两类标题问题并打印赛题原文前几行供对照：① `\title{}` 含 `\\` 强制换行（gmcmthesis v1.5.0+ 已支持按宽度自动换行，多行字号会不一致）；② AI 风格自创标题（"基于 X 的 Y / Y 的研究 / Y 的探索与应用 / Y：一种基于 X 的方法"）。
 
    **⛔ 华为杯标题硬约束（其他竞赛保持原本，不受影响）**：
 
@@ -810,285 +614,17 @@ Correct format for cumcm/stats templates (already in template):
 
 ```
 
-⛔ **写完摘要后跑自检（检测→修复→再检测闭环，用 `python` 不是 `python3`）**：
+⛔ **写完摘要后跑自检（检测→修复→再检测闭环）**：
 
 ```bash
 
-# 中文竞赛摘要通常在 main.tex 的 \begin{abstract} 环境（国赛/华中杯/MathorCup）
-
-# 或 main.tex 手动排版段（五一杯），少数模板在 sections/0_*.tex — 定位逻辑已内置，直接跑：
-
-python - <<'PY'
-
-import re, os, glob, sys
-
-BS = chr(92)  # 反斜杠。不要在本脚本里写双反斜杠——经 bash 传输可能被折叠成单反斜杠，弄坏正则
-
-def locate_abstract():
-
-    """按优先级提取摘要文本，返回 (文本, 位置描述)；找不到返回 (None, None)"""
-
-    mt = "paper/main.tex"
-
-    if os.path.isfile(mt):
-
-        s = open(mt, encoding="utf-8", errors="ignore").read()
-
-        # 1) abstract 环境（国赛/华中杯/MathorCup）：用字符串 find，避免正则转义
-
-        beg, end = BS + "begin{abstract}", BS + "end{abstract}"
-
-        i0, i1 = s.find(beg), s.find(end)
-
-        if i0 != -1 and i1 > i0:
-
-            inner = s[i0 + len(beg) : i1]
-
-            if "针对问题" in inner:
-
-                return inner, "paper/main.tex 的 abstract 环境"
-
-        # 2) 五一杯手动排版：从"摘…要"标记（容忍 quad/hspace/全角空格）到 section/关键词 为止
-
-        m = re.search("摘[^要]{0,16}要", s)
-
-        if m:
-
-            tail = s[m.end():]
-
-            stops = [x for x in (tail.find(BS + "section"), tail.find("关键词")) if x != -1]
-
-            seg = tail[: min(stops)] if stops else tail[:4000]
-
-            if "针对问题" in seg:
-
-                return seg, "paper/main.tex 的手动排版摘要段"
-
-    # 3) 兜底：个别模板把摘要放 sections/
-
-    for pat in ("paper/sections/0_*.tex", "paper/sections/*abstract*.tex"):
-
-        for f in sorted(glob.glob(pat)):
-
-            s = open(f, encoding="utf-8", errors="ignore").read()
-
-            if "针对问题" in s:
-
-                return s, f
-
-    return None, None
-
-text, where = locate_abstract()
-
-if text is None:
-
-    print("⚠ 未定位到含'针对问题'的摘要文本（可能尚未写摘要），跳过自检"); sys.exit(0)
-
-bad = []
-
-for i, para in enumerate(re.split(r"\n\s*\n", text), 1):
-
-    if len(re.findall(r"针对问题", para)) > 1:
-
-        bad.append((i, para.strip()[:80]))
-
-if bad:
-
-    print(f"❌ 摘要（{where}）中 {len(bad)} 个段落挤了多个'针对问题' — 必须每个独立成段（段间空一行）：")
-
-    for i, snip in bad:
-
-        print(f"  段 {i}: {snip}...")
-
-    sys.exit(1)
-
-print(f"✓ 摘要按问题分段正确（{where}）")
-
-# ── 新增：写作风格量化检查 ──
-print()
-print("=== Writing Style Quantitative Check ===")
-
-# 1) 短句占比 (<20字)
-import re, os
-BS = chr(92)
-mt = "paper/main.tex"
-s, where = None, None
-if os.path.isfile(mt):
-    with open(mt, encoding="utf-8", errors="ignore") as f:
-        s = f.read()
-    beg, end = BS + "begin{abstract}", BS + "end{abstract}"
-    i0, i1 = s.find(beg), s.find(end)
-    if i0 != -1 and i1 > i0:
-        s = s[i0 + len(beg):i1]
-        where = "paper/main.tex abstract environment"
-    else:
-        m = re.search("摘[^要]{0,16}要", s)
-        if m:
-            tail = s[m.end():]
-            stops = [x for x in (tail.find(BS + "section"), tail.find("关键词")) if x != -1]
-            seg = tail[:min(stops)] if stops else tail[:4000]
-            if "针对问题" in seg:
-                s = seg
-                where = "paper/main.tex manual paragraph"
-
-if s is None:
-    print("⚠ 未定位到摘要，跳过风格检查")
-else:
-    # 按双新行分割段落
-    paragraphs = re.split(r"\n\s*\n", s)
-    short_sentences = 0
-    for p in paragraphs:
-        clean = re.sub(r"\\.[^\\s]*|{[^}]*}", "", p)
-        clean = re.sub(r"\\s+", "", clean)
-        if len(clean) > 0 and len(clean) < 20:
-            short_sentences += 1
-    short_ratio = short_sentences / len(paragraphs) if len(paragraphs) > 0 else 0
-    print(f"段落数: {len(paragraphs)}, 短句(<20字): {short_sentences}, 占比: {short_ratio:.1%}")
-    if short_ratio > 0.5:
-        print("⚠ 短句占比过高 (>50%)——可能过于口语化，建议加大学术词汇连接")
-    else:
-        print("✓ 短句占比适中")
-
-    # 2) 学术词汇密度
-    academic_kw = ["建立", "提出", "采用", "模型", "算法", "分析", "结果", "结论", "理论", "方法", "研究", "实验", "数据", "统计", "回归", "优化", "证明", "推导", "公式", "方程"]
-    clean_text = re.sub(r"\\\[.*?\\\]", "", s)
-    clean_text = re.sub(r"\\\\begin.*?\\\\end", "", clean_text, flags=re.DOTALL)
-    clean_text = re.sub(r"\\\(.*?\\\)", "", clean_text)
-    clean_text = re.sub(r"\\\\text\{.*?\\\\}", "", clean_text)
-    ac_count = 0
-    for kw in academic_kw:
-        ac_count += len(re.findall(kw, clean_text))
-    char_count = len(clean_text)
-    if char_count > 0:
-        acad_density = ac_count / char_count * 1000
-        print(f"学术词汇密度: {acad_density:.2f} per 1000 chars (建议: ≥1.0%)")
-        if acad_density < 1.0:
-            print("⚠ 学术词汇密度偏低——建议加入更多学术词汇")
-        else:
-            print("✓ 学术词汇密度健康")
-
-    # 3) 被动语态占比
-    passive_patterns = [r"是.*?(?:得到|产生|形成|获得)", r"由.*?所构成", r"被.*?模型", r"可被|可以被"]
-    passive_count = 0
-    for pat in passive_patterns:
-        passive_count += len(re.findall(pat, s))
-    passive_ratio = passive_count / len(paragraphs) if len(paragraphs) > 0 else 0
-    print(f"被动语态检测项: {passive_count} 处，占比估计: {passive_ratio:.1%}")
-    if passive_ratio > 0.05:
-        print("⚠ 被动语态占比偏高——建议精简，改用主动语态")
-    else:
-        print("✓ 被动语态占比适度")
-
-    # 4) 高频连接词检查
-    conn_kw = ["通过", "基于", "针对", "考虑", "作为", "因此", "但是", "然而"]
-    conn_count = 0
-    for kw in conn_kw:
-        conn_count += len(re.findall(kw, s))
-    print(f"高频连接词出现: {conn_count} 次（'通过'/'基于'/'针对'为Top 3）")
-    unique_conn = len(set(re.findall(conn_kw[0] + "|" + conn_kw[1] + "|" + conn_kw[2], s)))
-    print(f"Top3连接词变体: {unique_conn} 处")
-
-print("=== Writing Style Quantitative Check END ===")
-# NEW_ABSTRACT_CHECK_BLOCK_START
-print()
-print("=== Abstract Quality Self-Check ===")
-def check_abstract_elements(text, mode="unknown"):
-    issues = []
-    # Problem statement: 每问开头一句话说清「要解决什么+怎么解决+量化结果」
-    purpose_kw = ["针对", "旨在", "要解决", "待解决"]
-    has_purpose = any(kw in text for kw in purpose_kw)
-    if not has_purpose:
-        issues.append("WARNING: 未写清「要解决什么」— 每问开头应一句话交代问题对象、方法路线与量化目标")
-    if re.search(r"随着.{0,16}的(?:快速)?发展", text):
-        issues.append("FAIL: 「随着…的发展」式开头是 AI 套话（ai_tell_check 硬拦）— 首句直接给现实矛盾或数据事实")
-    # Method
-    method_kw = ["建立", "提出", "采用", "模型", "算法"]
-    has_method = any(kw in text for kw in method_kw)
-    if not has_method:
-        issues.append("WARNING: No explicit method description")
-    # Results
-    result_count = len(re.findall(r"\\textbf\{[0-9.%,\s]+\}", text))
-    if result_count < 3:
-        issues.append("Results only " + str(result_count) + " numbers")
-    else:
-        print("OK: Abstract result count " + str(result_count) + " (>=3)")
-    # Conclusion
-    conclusion_kw = ["表明", "验证", "证明", "得出", "结论"]
-    has_conclusion = any(kw in text for kw in conclusion_kw)
-    if not has_conclusion:
-        issues.append("WARNING: No concluding summary")
-    return issues
-
-# Locate abstract
-BS = chr(92)
-mt = "paper/main.tex"
-text, where = None, None
-if os.path.isfile(mt):
-    s = open(mt, encoding="utf-8", errors="ignore").read()
-    beg, end = BS + "begin{abstract}", BS + "end{abstract}"
-    i0, i1 = s.find(beg), s.find(end)
-    if i0 != -1 and i1 > i0:
-        text = s[i0 + len(beg):i1]
-        where = "paper/main.tex of abstract environment"
-    else:
-        m = re.search("摘[^要]{0,16}要", s)
-        if m:
-            tail = s[m.end():]
-            stops = [x for x in (tail.find(BS + "section"), tail.find("关键词")) if x != -1]
-            seg = tail[:min(stops)] if stops else tail[:4000]
-            if "针对问题" in seg:
-                text = seg
-                where = "paper/main.tex of manual abstract paragraph"
-    if text is None:
-        for pat in ("paper/sections/0_*.tex", "paper/sections/*abstract*.tex"):
-            for f in sorted(glob.glob(pat)):
-                s2 = open(f, encoding="utf-8", errors="ignore").read()
-                if "针对问题" in s2:
-                    text = s2
-                    where = f
-                    break
-        if text: break
-
-if text is None:
-    print("Warning: Cannot locate abstract, skipping element check")
-    import sys; sys.exit(0)
-
-issues = check_abstract_elements(text, where or "unknown")
-if issues:
-    print("The following elements need attention:")
-    for i in issues:
-        print("  " + i)
-    print("Non-blocking but recommended to fix during writing.")
-else:
-    print("OK: All 4 abstract elements present: problem/method/results/conclusion")
-
-# 2) Re-count results
-result_count = len(re.findall(r"\\textbf\{[0-9.%,\s]+\}", text))
-if result_count < 3:
-    print("Warning: Abstract has only " + str(result_count) + " numbers (<3)")
-else:
-    print("OK: Abstract has " + str(result_count) + " numbers, sufficient")
-
-# 3) Check per-question lead: 要解决什么 + 怎么解决 + 量化结果（「随着/最近」式背景开头不再加分）
-qs = re.findall(r"针对问题[一二三四五六七八九十]", text)
-qs_solved = re.findall(r"针对问题[一二三四五六七八九十][^。\n]{0,150}?(?:建立|构建|采用|提出)[^。\n]{0,150}?[0-9]", text)
-if not qs:
-    print("Warning: 摘要未按「针对问题 X」分段，评委无法按问快速定位与核对工作量")
-elif len(qs_solved) < len(qs):
-    print("Warning: %d 问中仅 %d 问一句话交代「要解决什么+怎么解决+量化结果」" % (len(qs), len(qs_solved)))
-else:
-    print("OK: 每问开头均有「问题-方法-量化结果」引导句")
-if re.search(r"随着.{0,16}的(?:快速)?发展", text[:200]):
-    print("⛔: 「随着…的发展」式开头是 AI 套话（ai_tell_check 硬拦）— 改为直接给现实矛盾或数据事实")
-
-print("=== Abstract Quality Self-Check END ===")
-# NEW_ABSTRACT_CHECK_BLOCK_END-->
-
-PY
+python _utils/abstract_paragraph_check.py 2>/dev/null || python skills/_utils/abstract_paragraph_check.py
 
 ```
 
-⛔ **闭环规则：若自检 `exit 1`（检测到挤段），立即回到检测输出括号里指出的摘要位置（main.tex 的 abstract 环境或手动排版段），在每个"针对问题 X"前补一个 LaTeX 空行拆成独立段落，然后重跑上面的自检，直到输出"✓ 摘要按问题分段正确"为止，方可进入下一步。**
+检测"针对问题 X"是否每问独立成段（含定位逻辑：abstract 环境 → 手动排版摘要段 → sections/ 兜底）。exit 1 时在每个"针对问题 X"前补一个 LaTeX 空行拆成独立段落，重跑直到输出"✓ 摘要按问题分段正确"，方可进入下一步。
+
+> 其余摘要质量线由机器分工：「随着…的发展」式 AI 套话开头由引擎 `ai_flavor` 强制闸硬拦——现在就别写；摘要加粗克制度由 `abstract_emphasis_check`（writing_check.sh 全家桶）把关；字数/六要素/分段骨架的唯一事实源见 `_utils/abstract_writing_contract.md`。
 
 **⛔⛔ 丰满模式摘要标准（华为杯默认 / 任意竞赛开启丰满模式时生效，1500-2200 字，跨两页）**：
 
@@ -1098,17 +634,7 @@ PY
 
 - `丰满模式` / `rich_mode` — 任意竞赛通过前端"丰满模式"开关启用（用户开关，读 AGENTS.md 合法）
 
-**自检命令**：
-
-```bash
-
-if [ "$CONTEST_ID" = "comp_huawei" ] || grep -qiE "丰满模式|rich_mode" AGENTS.md 2>/dev/null; then
-
-    echo "[丰满模式触发] 摘要按 1500-2200 字 + 6 项要素 + 5 段骨架写"
-
-fi
-
-```
+**触发自检**：`CONTEST_ID = comp_huawei`，或 AGENTS.md 含 `丰满模式`/`rich_mode` 用户开关 ⇒ 摘要按 1500-2200 字 + 6 项要素 + 5 段骨架写。
 
 丰满模式下官方允许/鼓励摘要跨两页，**字数压在通用 600-800 字会让评委觉得工作量不够**。
 
@@ -1198,31 +724,9 @@ Before writing any chapter, build a complete inventory of available figures:
 
 ```bash
 
-echo "=== Available PDF figures ==="
+ls figures/*.pdf figures/TABLE_*.tex figures/TABLE_*.md figures/tikz_*.pdf 2>/dev/null
 
-ls -la figures/*.pdf 2>/dev/null || echo "No PDF figures found"
-
-echo ""
-
-echo "=== Available table files (PDF模式: .tex / Word模式: .md) ==="
-
-ls -la figures/TABLE_*.tex figures/TABLE_*.md 2>/dev/null || echo "No TABLE files found"
-
-echo ""
-
-echo "=== latex_includes.tex content (figure→PDF mapping) ==="
-
-cat figures/latex_includes.tex 2>/dev/null || echo "No latex_includes.tex"
-
-echo ""
-
-echo "=== TikZ 几何/算法/架构图 ==="
-
-# TikZ 由 paper-figure-drawio 生成为 figures/tikz_diagrams.tex → 编译成 figures/tikz_diagrams.pdf（多图则 tikz_*.pdf / tikz_diagrams_N.pdf）
-
-# 它们的 \includegraphics 图块已写进 latex_includes.tex，按 latex_includes.tex 嵌入即可。
-
-ls figures/tikz_*.pdf 2>/dev/null && echo "→ 有 TikZ 图，必须嵌入" || echo "No TikZ diagrams"
+cat figures/latex_includes.tex 2>/dev/null   # figure→PDF 映射真源：每个 \begin{figure} 块从这里复制
 
 ```
 
@@ -1314,147 +818,19 @@ DrawIO 图（技术路线图、求解流程图、Pipeline 图等）的 `\begin{f
 
 把 fig_flow_q1~q5 五张图全塞进问题分析章节，是最常见也最难看的错误：一个章节连插 5 张大图，LaTeX 浮动机制会把它们全推到章节开头层层堆叠，正文被挤到后面，排版严重失衡。正确做法：`fig_flow_q1` → `5_problem1.tex`、`fig_flow_q2` → `6_problem2.tex`、…、`fig_flow_q5` → `9_problem5.tex`，每章一张、紧跟该问题的引导文字之后。问题分析章节(2_analysis)**最多只放整体技术路线图 fig_roadmap 一张**，其余流程图一律不许出现在该章节。
 
-**写完所有章节后，必须运行以下检查确认 DrawIO/TikZ 图全部嵌入：**
+**写完所有章节后（以及每写完一章），运行布局检查：**
 
 ```bash
 
-echo "=== DrawIO/TikZ 嵌入检查 ==="
-
-for pdf in figures/fig_roadmap.pdf figures/fig_flow_*.pdf figures/fig_pipeline*.pdf figures/fig_framework*.pdf; do
-
-    [ -f "$pdf" ] || continue
-
-    bn=$(basename "$pdf")
-
-    if grep -rq "$bn" paper/sections/*.tex paper/main.tex 2>/dev/null; then
-
-        echo "✅ $bn 已嵌入"
-
-    else
-
-        echo "❌ $bn 未嵌入 — 必须立即修复！"
-
-    fi
-
-done
-
-# ⛔ TikZ 图检查（按 PDF 文件名核对，最可靠）
-
-for tpdf in figures/tikz_diagrams.pdf figures/tikz_diagrams_*.pdf figures/tikz_*.pdf; do
-
-    [ -f "$tpdf" ] || continue
-
-    tbn=$(basename "$tpdf")
-
-    if grep -rq "$tbn" paper/sections/*.tex paper/main.tex 2>/dev/null; then
-
-        echo "✅ TikZ $tbn 已嵌入"
-
-    else
-
-        echo "❌ TikZ $tbn 未嵌入 — 必须立即修复！"
-
-    fi
-
-done
-
-# ⛔ 流程图堆叠检查：问题分析章节(2_analysis)里的子问题流程图数量必须 ≤1，
-
-#    否则就是把 fig_flow_q1~q5 违规堆在了分析章节（见上文铁律）。
-
-_analysis_tex=$(ls paper/sections/2_*.tex 2>/dev/null | head -1)
-
-if [ -n "$_analysis_tex" ]; then
-
-    _flow_in_analysis=$(grep -oE 'fig_flow_q[0-9]+' "$_analysis_tex" 2>/dev/null | sort -u | wc -l)
-
-    if [ "$_flow_in_analysis" -ge 2 ]; then
-
-        echo "❌ 问题分析章节含 $_flow_in_analysis 张子问题流程图 — 违反铁律！必须把 fig_flow_q1~q5 分散到各自问题章节(5_problem1.tex 等)，分析章节最多留 fig_roadmap 一张。"
-
-    else
-
-        echo "✅ 流程图未堆叠在问题分析章节"
-
-    fi
-
-fi
+python _utils/figure_layout_check.py paper/ 2>/dev/null || python skills/_utils/figure_layout_check.py paper/
 
 ```
 
-**如果有任何 ❌，必须立即修复后再继续写下一章。不要等到最后才修复。**
+覆盖三件引擎不查的事：① `figures/*.pdf` 全部被正文引用（`figure_narrative` 引擎闸只查"已嵌入但零叙述零引用"的孤儿图，查不到从未嵌入的文件）；② FIGURE_MANIFEST 对账——规划了几张就必须产出几张并嵌入几张，一张不漏；③ 流程图堆叠——问题分析章节里 `fig_flow_qN` ≥2 张即违约（见上方铁律）。任何 ❌ 立即修复后再继续写下一章，不要等到最后。
 
-Also scan `figures/*.tex` for all `\begin{figure}` / `\begin{table}` blocks with their `\label{}`. After writing, verify all are embedded:
+TikZ 图通过 `latex_includes.tex` 里的 `\includegraphics{tikz_diagrams.pdf}` 图块嵌入（不要用 `\input`），位置同上表。
 
-```bash
-
-grep -oh '\\label{[^}]*}' figures/*.tex 2>/dev/null | sort -u > _tmp/all_fig_labels.txt
-
-grep -oh '\\label{[^}]*}' paper/sections/*.tex paper/main.tex 2>/dev/null | sort -u > _tmp/embedded_labels.txt
-
-comm -23 _tmp/all_fig_labels.txt _tmp/embedded_labels.txt  # should be empty
-
-```
-
-**⛔ 图连排检查（防「两张图连在一起中间没文字」）**：检测是否有两个 figure/table 环境直接相邻、中间无正文：
-
-```bash
-
-echo "=== 图表连排检查 ==="
-
-for f in paper/sections/*.tex; do
-
-    [ -f "$f" ] || continue
-
-    # 把每个 \end{figure|table} 到下一个 \begin{figure|table} 之间的正文抠出来，若只有空白/注释则判为连排
-
-    # ⛔ 反斜杠用 chr(92)+re.escape 构造：本机 bash heredoc 会吞裸反斜杠，直接写 \\end 会 re.error
-
-    python - "$f" << 'PYEOF'
-
-import re, sys
-
-t = open(sys.argv[1], encoding='utf-8', errors='ignore').read()
-
-BS = chr(92)
-
-END = re.escape(BS + 'end') + r'\{(?:figure|table)\}'
-
-BEG = re.escape(BS + 'begin') + r'\{(?:figure|table)\}'
-
-bad = 0
-
-for g in re.finditer(END + r'(.*?)' + BEG, t, re.DOTALL):
-
-    body = re.sub(r'%[^\n]*', '', g.group(1))   # 去注释
-
-    body = re.sub(r'\s+', '', body)             # 去空白
-
-    if len(body) < 80:                          # 夹缝实际正文 < 80 字符 → 敷衍（连排或一句话带过）
-
-        bad += 1
-
-if bad:
-
-    print("  X %s: 有 %d 处图间正文过少（<80字，疑似敷衍/一句话带过）——每张图后必须有充分解读：具体数值+对比或趋势+推论或衔接，不许单句收尾" % (sys.argv[1], bad))
-
-PYEOF
-
-done
-
-echo "（无输出=未发现连排）"
-
-```
-
-**如发现连排，必须在两图之间补写引导/过渡正文后再继续。**
-
-TikZ 图通过 `latex_includes.tex` 里的 `\includegraphics{tikz_diagrams.pdf}` 图块嵌入（不要用 `\input`）。按图的内容映射到章节：
-
-- 技术路线图/研究框架图/问题关系图 → 问题重述章节末尾（`1_restatement.tex`），不要放到后面的子问题章节
-
-- 各子问题求解流程图/几何示意图 → 对应子问题章节开头（`4_problem1.tex`、`5_problem2.tex`、`6_problem3.tex` 等）
-
-- 模型架构图 → 对应模型章节
+> 图连排（两个 figure/table 环境相邻、中间无正文）由 `figure_narrative` 引擎闸在 finish 全量重扫——float 前后可读字符量不足直接拒绝完成。写的时候就守上方连排禁令，别等闸拦。
 
 ### Step 3.5: 文献预检索（写正文之前必须完成）
 
@@ -1503,41 +879,7 @@ mkdir -p _tmp
 
 cat RESULTS.md
 
-python3 - <<'PY'
-
-import json, os, glob
-
-def summarize(v, depth=0):
-
-    if isinstance(v, list):
-
-        n=len(v); nums=[x for x in v if isinstance(x,(int,float))]
-
-        if nums: return f'list[{n}] range=[{min(nums):.4g},{max(nums):.4g}] sample={v[:3]}'
-
-        if v and isinstance(v[0], (list,dict)): return f'list[{n}] of {type(v[0]).__name__}, first_shape={len(v[0]) if hasattr(v[0],"__len__") else "?"}'
-
-        return f'list[{n}] sample={str(v[:3])[:80]}'
-
-    if isinstance(v, dict) and depth<2:
-
-        return 'dict{'+', '.join(f'{k}: {summarize(x,depth+1)}' for k,x in list(v.items())[:6])+'}'
-
-    return f'{type(v).__name__}={str(v)[:60]}'
-
-for f in sorted(glob.glob('figures/*_results.json')):
-
-    sz=os.path.getsize(f); d=json.load(open(f,encoding='utf-8'))
-
-    print(f'\n=== {os.path.basename(f)} ({sz//1024}KB) ===')
-
-    if isinstance(d, dict):
-
-        for k,v in d.items(): print(f'  {k}: {summarize(v)}')
-
-    else: print(f'  {summarize(d)}')
-
-PY
+python _utils/summarize_results.py 2>/dev/null || python skills/_utils/summarize_results.py
 
 ```
 
@@ -1672,43 +1014,9 @@ $x_i$ & 第$i$个变量 & --- \\
 
 ```
 
-⛔ **写完符号说明章节后必跑自检**（在 paper/sections/ 里扫表格浮动反例）：
+自检已由 `symbol_layout_check`（writing_check.sh 全家桶）接管符号节形状；另守一条：任何 section 文件里出现 `egin{table}[!ht]` / `[ht]` / `[htbp]` 漂浮选项都要改——短表（<半页）用 `egin{table}[H]` 强制就地，长表/符号说明用 `egin{longtable}`。
 
-```bash
-
-# 1. 符号说明文件不应该有 \begin{table}（必须用 longtable）
-
-for f in paper/sections/*symbol*.tex paper/sections/*符号*.tex paper/sections/4_*.tex; do
-
-    [ -f "$f" ] || continue
-
-    if grep -q '\\begin{table}' "$f" 2>/dev/null; then
-
-        echo "❌ $(basename $f): 用了 \\begin{table}，必须改成 \\begin{longtable}"
-
-        echo "   会导致华为杯 'placeins[section]' 强制 FloatBarrier 时表格漂到节末，留大段空白"
-
-    fi
-
-done
-
-# 2. 任何章节里的 \begin{table}[!ht] / [ht] / [htbp] 漂浮选项警告
-
-BAD_FLOAT=$(grep -rEn '\\begin\{table\}\[(!?ht?|htbp|tb|b|p)\]' paper/sections/ 2>/dev/null)
-
-if [ -n "$BAD_FLOAT" ]; then
-
-    echo "⚠ 检测到表格用了漂浮选项（可能引发空白页）："
-
-    echo "$BAD_FLOAT" | head -5
-
-    echo "   建议：短表（< 半页）改用 \\begin{table}[H]（强制就地），长表 / 符号说明用 \\begin{longtable}"
-
-fi
-
-```
-
-- 符号控制在 15-20 个以内，表格控制在半页以内
+- 符号控制在 15-20 个以内- 符号控制在 15-20 个以内，表格控制在半页以内
 
 **⛔ 写每个章节前，先读 MODELING_REPORT.md 和 RESULTS.md 对应部分的内容。** 不要凭记忆写——数值结果、公式推导、算法步骤都必须从这些文档中提取。
 
@@ -1800,19 +1108,7 @@ Follow the interleaving, embedding, and LaTeX rules from `_utils/writing_rules.m
 
 > ⛔ 长表格处理规则以上方「长表格处理规则（>12 行的数据表格）」一处为唯一口径（含缩略版示例 + 汇总统计行 + 附录 longtable + compile_utils.sh 兜底）；此处不重复，禁止另立 >15 行之类矛盾阈值。
 
-After each chapter, check character count:
-
-```bash
-
-chars=$(wc -c < "paper/sections/当前章节.tex")
-
-echo "当前章节: $chars 字符 (~$(echo "scale=1; $chars/900" | bc) 页)"
-
-# Chinese LaTeX ≈ 800-1000 chars per page
-
-# If chapter expected 5 pages but only 2000 chars (~2.5 pages), expand immediately
-
-```
+每写完一章自查体量：`wc -c paper/sections/当前章节.tex`（中文 LaTeX ≈900 字符/页）。预期 5 页的章只有 ~2000 字符就当场扩写，不留到最后。
 
 <exemplar_depth>
 
@@ -2148,16 +1444,6 @@ $\sum_j x_{ij}=1$，$\sum_i d_ix_{ij}\le Q_j$，$x_{ij},y_j\in\{0,1\}$，
 **⛔ 诚实边界**：解析下界／松弛界**不是可行方案**，它与最优解的差值只能用来确认"最优解没有
 异常偏低"，**不能解读成"还有这么多优化空间"**。这条写错是硬伤。
 
-**结果分析 chapters**（以解释证据为准，不设篇幅比例）:
-- Every result must have: numerical presentation (table/figure) → interpretation (2-3 paragraphs, not just "as shown in Table X") → comparison with expectations / other methods → reasoning
-- Multi-model comparison: horizontal comparison table + rationale for selecting the best model
-
-**结论与建议**:
-- Main conclusions (echo research objectives) → Policy / application recommendations (specific and actionable) → Innovation points → Limitations and future work
-- "Innovation & limitations" can be inside the conclusion or a standalone chapter (Example B style)
-- ⛔ 结论章禁止复述摘要：不复述各问数值结果，必须给出局限性与适用边界（模型在哪类场景失效、对哪个假设/参数最敏感、结论在什么范围内成立）
-</chapter_writing_points>
-
 **Expansion strategies** when content is thin (not padding — substantive content):
 - Formula listed without derivation → add step-by-step derivation with physical meaning explanation
 - Result with only "如表所示" → add 2-3 paragraphs of interpretation (numerical meaning, comparison with expectations, reasoning, comparison with other methods)
@@ -2205,18 +1491,6 @@ $\sum_j x_{ij}=1$，$\sum_i d_ix_{ij}\le Q_j$，$x_{ij},y_j\in\{0,1\}$，
 
 </chapter_writing_points>
 
-**Expansion strategies** when content is thin (not padding — substantive content):
-
-- Formula listed without derivation → add step-by-step derivation with physical meaning explanation
-
-- Result with only "如表所示" → add 2-3 paragraphs of interpretation (numerical meaning, comparison with expectations, reasoning, comparison with other methods)
-
-- Assumptions as bare list → add justification for each assumption
-
-- Algorithm as pseudocode only → add explanation of key steps, complexity analysis, convergence discussion
-
-- Literature review only lists papers → add method summary for each and connection to this work
-
 ### Step 5: References
 
 Follow the `<references_workflow>` in `_utils/writing_rules.md`.
@@ -2225,25 +1499,7 @@ Stats papers: ≥20 references. The stats template uses `natbib` with `[numbers,
 
 **⛔ 使用 scholar_fetch.py 工具获取所有参考文献的 BibTeX。禁止凭记忆编造 BibTeX。**
 
-**⛔ 引用编号必须按正文出现顺序排列（1, 2, 3, 4...），不能跳着来。** 使用 `\begin{thebibliography}` 的模板：`\bibitem` 的排列顺序必须跟正文中 `\cite{}` 首次出现的顺序一致。使用 `\bibliography{references}` 的模板：BibTeX 会自动按引用顺序编号（gbt7714-numerical / plainnat 都支持）。写完所有章节后，检查引用编号是否连续递增，如果不是，调整 `\bibitem` 顺序或 `.bib` 文件中的条目顺序。
-
-**⛔⛔ 正文中引用编号必须全局递增出现（严格，不可违反）：**
-
-写正文时每个引用编号必须比之前所有已出现的编号大（即首次引用必须按 [1], [2], [3], [4]... 顺序）：
-
-- ✅ 正确：全文第一个引用 [1]，第二个 [2]，第三个 [3]...
-
-- ❌ 错误：正文中先出现 [3]，然后出现 [8]，又回到 [1] — 引用编号跳跃
-
-- ❌ 错误：前文已出现 [5]，后文再出现新引用为 [3] — 编号回退
-
-**如何保证递增：**
-
-- 所有引用的 key 在 .bib 文件或 thebibliography 环境中的排列顺序 = 它们在正文中首次出现的顺序
-
-- 如果写作时发现某处需要一个新引用，它的编号会自动是当前已用编号的最大值+1
-
-- 写完所有章节后，逐段扫描正文，确认引用编号 [N] 严格递增（只允许重复已出现的编号）
+**⛔⛔ 引用编号必须全局递增（严格，不可违反）：** 全文首次引用必须按 [1], [2], [3]... 顺序出现；先 [3] 后 [8] 再回 [1]、或已现 [5] 后又出新引用 [3]，都是编号跳跃/回退，均不可违反。保证方法：key 在 .bib / thebibliography 里的排列顺序 = 正文首次出现顺序（`\begin{thebibliography}` 模板手工排，`\bibliography{references}` 模板 BibTeX 自动排）；写作中新加的引用编号自然排到当前最大值+1；写完全文逐段扫一遍编号确认严格递增（只许重复已出现的编号）。
 
 **⛔ 引用格式规则（中文竞赛论文必须上标）：**
 
@@ -2253,29 +1509,7 @@ Stats papers: ≥20 references. The stats template uses `natbib` with `[numbers,
 
 - 禁止：非上标样式 + 直接 `\cite{}` → 引用会显示为 `[1]` 而非上标 `¹`
 
-**⛔ 多引用合并规则（合并必须按编号升序）：**
-
-同一处引用多篇文献时：
-
-- ✅ 正确：`方法A\cite{a,b,c}` — 一个 \cite 命令，多个 key 用逗号分隔，**且 a,b,c 对应的编号必须升序**（如 [1,2,5]）
-
-- ✅ 正确：`方法A\cite{a}\cite{b}` — 如果 a,b 编号不相邻（如 [3] 和 [7]），也可以分开写
-
-- ❌ 错误：`方法A\cite{a}\cite{b}\cite{c}` — 多个连续 \cite 且编号相邻，必须合并成 `\cite{a,b,c}`
-
-- ❌ 错误：`方法A\cite{c,a,b}` — 编号顺序错乱（如 [5,1,2]），必须改成 `\cite{a,b,c}`（[1,2,5]）
-
-- ❌ 错误：`方法A\cite{a,b}` 但 a=[3]、b=[1] — 编号降序，必须改成 `\cite{b,a}`（[1,3]）
-
-**合并的判定规则（严格）：**
-
-1. 多引用里的 key 必须按其编号升序排列 → 如 [1,2,5] 对应 `\cite{key_of_1, key_of_2, key_of_5}`
-
-2. 如果两个引用编号不相邻（中间差 > 1），建议合并为一个 `\cite{}` 保持整洁
-
-3. 如果不能保证升序，**宁愿分开写** `\cite{a}\cite{b}` 也不要错序合并
-
-4. 写作时难以预知最终编号，可先按 key 的出现逻辑合并，编译后用 compile_check.sh 检查并调整
+**⛔ 多引用合并规则（合并必须按编号升序）：** `方法A\cite{a,b,c}` 一个命令逗号分隔，且 key 顺序必须对应编号升序（[1,2,5]）；编号不相邻（如 [3] 与 [7]）可分开写 `\cite{a}\cite{b}`；连续相邻的多个 `\cite` 必须合并；**宁愿分开写也不要错序合并**（`\cite{c,a,b}` 对应 [5,1,2] 是错误）。写作时难以预知最终编号，先按 key 出现逻辑合并，编译后用 compile_check.sh 检查调整。
 
 **⛔ 引用写法规则：写正文时，citation key 必须包含描述性关键词，格式为 `作者姓_年份_主题关键词`。**
 
@@ -2370,37 +1604,7 @@ PCC=$?   # 此时正文已成型：会扫未通过能力名是否出现在正文
 
 Also check:
 
-```bash
-
-source .env_skill 2>/dev/null || true  # 页数上限以 contest_profile 下发的 PAGE_CAP 为准，不读环境默认
-
-echo "=== 各章节字符数 ==="
-
-total=0
-
-for f in paper/sections/*.tex; do
-
-    chars=$(wc -c < "$f")
-
-    total=$((total + chars))
-
-    echo "  $(basename $f): $chars 字符 (~$(echo "scale=1; $chars/900" | bc) 页)"
-
-done
-
-echo "  总计: $total 字符 (~$(echo "scale=1; $total/900" | bc) 页)"
-
-# ⛔ 页数是否达标以下方「正文页数预检」为唯一权威判断（统一按 900 字符/页）。
-
-#    这里只打印各章明细供定位最薄章节，不再给"×800"的独立目标——之前 800/900 两套
-
-#    口径并存会让 AI 看到自相矛盾的目标（同段 /900 估页却按 ×800 判达标）而反复纠结。
-
-echo "  （页数达标判断见下方「正文页数预检」，统一按 900 字符/页；本段仅看各章明细找最薄章节）"
-
-```
-
-- 用上面的各章明细找出最薄的 1-2 章优先扩充；页数是否达标以下方「正文页数预检」为准
+- `wc -c paper/sections/*.tex` 看各章明细（≈900 字符/页），找出最薄的 1-2 章优先扩充；页数是否达标以下方「正文页数预检」为唯一权威
 
 - Any sub-problem chapter <3500 chars (~4 pages) needs expansion
 
@@ -2444,79 +1648,11 @@ Read PROBLEM_ANALYSIS.md (or the original problem statement in user_data/) and c
 
 ```bash
 
-source .env_skill 2>/dev/null || true  # 页数上限以 contest_profile 下发的 PAGE_CAP 为准，不读环境默认
-
-echo "=== 正文页数预检（只查 paper/sections/，不含附录代码）==="
-
-# 1. sections/ 不应该含代码块（lstlisting / \begin{python} / \begin{verbatim}）
-
-code_in_body=0
-
-for f in paper/sections/*.tex; do
-
-    [ -f "$f" ] || continue
-
-    if grep -qE '\\begin\{(lstlisting|verbatim|minted|python|matlab)\}' "$f" 2>/dev/null; then
-
-        code_in_body=$((code_in_body + 1))
-
-        echo "  ⚠️ $f 含代码块 — 代码必须放 paper/appendix/，不能放正文"
-
-    fi
-
-done
-
-if [ "$code_in_body" -gt 0 ]; then
-
-    echo "⛔ CRITICAL: $code_in_body 个正文章节含代码块，必须移到 paper/appendix/"
-
-    echo "  原因：正文页数预检按字符 / 900 估算，代码块行多但表达密度低，会让 est_pages 虚高 → 实际正文单薄"
-
-fi
-
-# 2. 正文字符统计 + 估算页数
-
-total_chars=0
-
-for f in paper/sections/*.tex; do
-
-    [ -f "$f" ] || continue
-
-    chars=$(wc -c < "$f")
-
-    total_chars=$((total_chars + chars))
-
-done
-
-est_pages=$((total_chars / 900))
-
-if [ -n "$PAGE_CAP" ]; then
-    echo "正文字符: $total_chars (est ~$est_pages 页); 上限: <= $PAGE_CAP 页, 口径: $PAGE_SCOPE, 性质: ${PAGE_CAP_STATUS:-未上报}"
-else
-    echo "⛔ PAGE_CAP 缺失：contest_profile.gate_page_cap 未下发（该赛事无 operative 页数合同或历史裁决不继承）——页数上限未知（待核实），禁止编默认值。"
-fi
-
-# 3. 附录单独统计（仅信息）
-
-if [ -d paper/appendix ]; then
-
-    appendix_chars=0
-
-    for f in paper/appendix/*.tex; do
-
-        [ -f "$f" ] || continue
-
-        appendix_chars=$((appendix_chars + $(wc -c < "$f")))
-
-    done
-
-    appendix_pages=$((appendix_chars / 900))
-
-    echo "（附录字符: $appendix_chars, 估算 ~$appendix_pages 页，不计入页数上限检查）"
-
-fi
+python _utils/page_precheck.py --workspace . 2>/dev/null || python skills/_utils/page_precheck.py --workspace .
 
 ```
+
+脚本做三件事：①代码块（lstlisting/verbatim 等）混进 sections/ 即违约——代码属 appendix/，混入会让估页虚高而实际正文薄；②字符估页（sections/ 900 字符/页）对照 PAGE_CAP，超限即违约；③附录单独统计不计入。cap 缺失=上限未知（待核实），禁止编默认值。finish 时 quick_gates 会以真实 PDF 按同一合同终检。
 
 不为凑任何页数目标扩写充数；章节完整性由写作合同保证（每个子问题覆盖、论断有证据支撑），篇幅随建模与论证需要自然形成。
 
@@ -2606,27 +1742,17 @@ fi
 
 | **不确定性量化** | 蒙特卡洛 / Bootstrap / 贝叶斯后验 | N≥500 次重复 |
 
-⛔ **仅当本轮确实扩展了章节，才立即重跑 facts_audit**（即时验证扩展内容没引入虚构数字）：
+⛔ **仅当本轮确实扩展了章节，才立即重跑 facts_audit**（扩完当场抓虚构数字）：
 
-> ⛔ **去重说明**：这份 `paper` 阶段审计与下面 Step 7 的 `facts_audit.py --stage paper` 是**同一份检查**（[13][14][15][16]）。Step 7 的是**权威终检、一定会跑**。所以这里**只在"页数不足→你本轮真的动手扩展了章节"时才补跑**——目的是扩完当场抓虚构数字，不用等到 Step 7。**如果页数已达标、本轮没扩展任何章节，跳过这里**（Step 7 会兜底，不重复跑，省时省额度）。
+> ⛔ **去重说明**：这与数据可追溯性一节的 `facts_audit.py --stage paper` 是**同一份检查**（[13][14][15][16]），后者是**权威终检、一定会跑**。本轮没扩展任何章节就跳过这里，不重复跑。
 
 ```bash
 
-# 仅在本轮发生了章节扩展后执行；未扩展则跳过（Step 7 --stage paper 权威兜底）
-
-# WORKSPACE_DIR = academic-toolkit 根目录（_utils/facts_audit.py 所在处）；按实际部署路径修改
-
-WORKSPACE_DIR="<academic-toolkit 根目录路径>"
-
-cd "$WORKSPACE_DIR"
-
-python3 _utils/facts_audit.py paper  # 重检 [13][14][15][16] 数字溯源 / 事件源 / 约束闭环
+cd <academic-toolkit 根目录> && python skills/_utils/facts_audit.py paper
 
 ```
 
-[15] 会抽 60 个 2 位以上小数浮点数核对是否能在 results.json / PROBLEM_FACTS.json 找到。
-
-**审计 FAIL 不允许结束**，必须把不能溯源的数字改回真实值或删掉。
+[15] 会抽 60 个 2 位以上小数浮点数核对溯源。**审计 FAIL 不允许结束**，必须把不能溯源的数字改回真实值或删掉。
 
 ⛔ **乱码防护（LaTeX 模式）**：
 
@@ -2640,185 +1766,25 @@ python3 _utils/facts_audit.py paper  # 重检 [13][14][15][16] 数字溯源 / �
 
 - 公式中含中文用 `\text{...}`（如 `\sum_{i \in \text{测试集}}`）
 
-**Figure embedding verification (must pass before finishing)**:
+**Figure embedding verification（必须全绿才能进入 Step 7）**：
 
 ```bash
 
-echo "=== 图表嵌入检查 ==="
-
-missing=0
-
-for pdf in figures/*.pdf; do
-
-    [ -f "$pdf" ] || continue
-
-    bn=$(basename "$pdf")
-
-    if ! grep -rq "$bn" paper/sections/*.tex paper/main.tex 2>/dev/null; then
-
-        echo "MISSING: $bn 未嵌入任何章节"
-
-        missing=$((missing + 1))
-
-    fi
-
-done
-
-for fig_tex in figures/*.tex; do
-
-    [ -f "$fig_tex" ] || continue
-
-    for lbl in $(grep -oh '\\label{[^}]*}' "$fig_tex" 2>/dev/null); do
-
-        if ! grep -rq "$lbl" paper/sections/*.tex paper/main.tex 2>/dev/null; then
-
-            echo "MISSING: $lbl (from $(basename $fig_tex)) 未嵌入"
-
-            missing=$((missing + 1))
-
-        fi
-
-    done
-
-done
-
-echo "缺失: $missing"
-
-# ⛔ FIGURE_MANIFEST 对账: 规划了几张就必须画几张并嵌入
-
-echo ""
-
-echo "=== FIGURE_MANIFEST 对账 ==="
-
-PLAN_FILE=""
-
-for f in PROBLEM_ANALYSIS.md PAPER_PLAN.md MODELING_REPORT.md; do
-
-  [ -f "$f" ] && grep -q '<!-- BEGIN FIGURE_MANIFEST -->' "$f" && { PLAN_FILE="$f"; break; }
-
-done
-
-if [ -n "$PLAN_FILE" ]; then
-
-    START=$(grep -n '<!-- BEGIN FIGURE_MANIFEST -->' "$PLAN_FILE" | head -1 | cut -d: -f1)
-
-    END=$(grep -n '<!-- END FIGURE_MANIFEST -->' "$PLAN_FILE" | head -1 | cut -d: -f1)
-
-    EXPECTED_FIGS=$(sed -n "${START},${END}p" "$PLAN_FILE" | grep -oE '^[[:space:]]*-[[:space:]]+(fig_[a-zA-Z0-9_]+|tikz_[a-zA-Z0-9_]+)' | sed 's/^[[:space:]]*-[[:space:]]*//')
-
-    manifest_missing=0
-
-    for name in $EXPECTED_FIGS; do
-
-        if ! ls figures/${name}.pdf figures/${name}.png 2>/dev/null | head -1 | grep -q .; then
-
-            echo "❌ MANIFEST: $name 文件不存在"
-
-            manifest_missing=$((manifest_missing + 1))
-
-        elif ! grep -rqE "${name}\.(pdf|png)" paper/sections/ paper/main.tex 2>/dev/null; then
-
-            echo "❌ MANIFEST: $name 文件存在但论文未引用"
-
-            manifest_missing=$((manifest_missing + 1))
-
-        fi
-
-    done
-
-    if [ "$manifest_missing" -gt 0 ]; then
-
-        echo "⛔ FIGURE_MANIFEST 对账失败 ($manifest_missing 张): 必须把这些图都画出来 + 嵌入正文"
-
-        missing=$((missing + manifest_missing))
-
-    else
-
-        echo "✅ FIGURE_MANIFEST 全部嵌入"
-
-    fi
-
-else
-
-    echo "(没有 FIGURE_MANIFEST, 跳过对账)"
-
-fi
-
-echo "总缺失: $missing"
+python _utils/figure_layout_check.py paper/ 2>/dev/null || python skills/_utils/figure_layout_check.py paper/
 
 ```
 
-If any figures are missing, go back and embed them into the appropriate sections before finishing. **⛔ Do NOT proceed to Step 7 until missing = 0.** Repeat the check after each fix.
+终检版覆盖：figures/*.pdf 全部被正文引用、FIGURE_MANIFEST 对账（规划→产出→嵌入逐环核对）、流程图堆叠。任何 ❌ 回对应章节补嵌/补画后再跑，直到全绿。
 
-**⛔ 模板完整性自检（写完所有章节后必须检查 main.tex 没有被破坏）：**
+**⛔ 模板完整性自检（写完所有章节后必须跑，确认 main.tex 没有被破坏）：**
 
 ```bash
 
-echo "=== main.tex 模板完整性检查 ==="
-
-TMPL_OK=0
-
-TMPL_FAIL=0
-
-# 通用检查（所有模板）
-
-grep -q 'documentclass' paper/main.tex && { echo "✅ documentclass"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 缺少 documentclass"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-grep -q '\\input{sections/' paper/main.tex && { echo "✅ sections input"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 缺少 sections input"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-grep -q 'thebibliography\|bibliography{' paper/main.tex && { echo "✅ 参考文献"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 缺少参考文献"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-grep -q 'appendices\|\\\\appendix' paper/main.tex && { echo "✅ 附录"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 缺少附录"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-grep -q 'superscript\|\\@cite\|setcitestyle.*super' paper/main.tex && { echo "✅ 上标引用"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 缺少上标引用定义"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-# 五一杯特有检查（判据=规范赛事 ID）
-
-if [ "$CONTEST_ID" = "comp_wuyi" ]; then
-
-    grep -q '承诺书' paper/main.tex && { echo "✅ 五一杯承诺书页"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 五一杯缺少承诺书页"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-    grep -q 'image2' paper/main.tex && { echo "✅ 五一杯封面logo"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 五一杯缺少封面logo"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-    grep -q '关键词' paper/main.tex && { echo "✅ 五一杯关键词"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 五一杯缺少关键词"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-fi
-
-# MathorCup 特有检查（判据=规范赛事 ID）
-
-if [ "$CONTEST_ID" = "comp_mathorcup" ]; then
-
-    grep -q 'MathorCupmodeling' paper/main.tex && { echo "✅ MathorCup cls"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ MathorCup 未使用正确 cls"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-    grep -q '\\bianhao\|\\tihao\|\\timu' paper/main.tex && { echo "✅ MathorCup 队伍信息"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ MathorCup 缺少队伍信息"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-fi
-
-# 亚太赛中文 (APMCM) 特有检查 — 复用 MathorCupmodeling 文档类（判据=规范赛事 ID）
-
-if [ "$CONTEST_ID" = "comp_apmcm_zh" ]; then
-
-    grep -q 'MathorCupmodeling' paper/main.tex && { echo "✅ APMCM(中文) cls"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ APMCM(中文) 未使用正确 cls (应为 MathorCupmodeling)"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-    grep -q '\\bianhao\|\\tihao\|\\timu' paper/main.tex && { echo "✅ APMCM(中文) 队伍信息"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ APMCM(中文) 缺少队伍信息"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-fi
-
-# 华中杯特有检查（判据=规范赛事 ID）
-
-if [ "$CONTEST_ID" = "comp_huazhong" ]; then
-
-    grep -q 'cumcmthesis' paper/main.tex && { echo "✅ 华中杯 cls"; TMPL_OK=$((TMPL_OK+1)); } || { echo "❌ 华中杯未使用 cumcmthesis"; TMPL_FAIL=$((TMPL_FAIL+1)); }
-
-fi
-
-echo ""
-
-echo "模板检查: $TMPL_OK 通过, $TMPL_FAIL 失败"
-
-[ "$TMPL_FAIL" -gt 0 ] && echo "⛔ 必须修复所有失败项！可能是 main.tex 被意外重写了，请从模板重新复制并只替换占位符。"
+python _utils/template_integrity_check.py --full 2>/dev/null || python skills/_utils/template_integrity_check.py --full
 
 ```
+
+通用五项（documentclass / sections input / 参考文献结构 / 附录结构 / 上标引用定义）+ 按 `CONTEST_ID` 自动带赛事专属检查（五一杯承诺书页与封面 logo、MathorCup·APMCM 的 cls 与队伍信息、华中杯 cls、华为杯标题约束）。任一失败 = main.tex 可能被意外重写，从模板重新复制、只替换占位符。
 
 ### Step 7: Output
 
@@ -2878,141 +1844,19 @@ echo "模板检查: $TMPL_OK 通过, $TMPL_FAIL 失败"
 
 4. 描述任何"依赖载体 / 上游变量动态变化的派生属性"（作用范围 / 时变参数 / 状态依赖容量 / 时变转化率等）时，**禁止**简化成"以静态点为中心的固定区域"或"取均值后当常数"，除非确为静态实体且已显式声明简化条件
 
-写完正文前自检：
+写完正文前自检（数据追溯）：
 
 ```bash
 
-# 1. 检查 RESULTS.md 末尾凭证 + 可疑虚构数字清零
+grep -q '<!-- AUDIT_OK source=' RESULTS.md || echo "❌ 缺 AUDIT_OK 凭证 — 先回 comp-code 跑约束审计"
 
-grep -q '<!-- AUDIT_OK source=' RESULTS.md || { echo "❌ 缺 AUDIT_OK 凭证 — 先回 comp-code 跑约束审计"; }
+ls results_v*.json results_old.json *_backup.json 2>/dev/null && echo "⚠ 历史版本 JSON 残留（版本漂移源），确认后删除"
 
-if grep -q 'n_suspicious_numbers=' RESULTS.md; then
-
-    grep -qE 'n_suspicious_numbers=0([^0-9]|$)' RESULTS.md \
-
-        && echo "✅ 审计凭证完整（含虚构数字清零确认）" \
-
-        || echo "❌ 凭证里 n_suspicious_numbers > 0，存在虚构嫌疑数字，先回 comp-code 跑 facts_audit_v2 清理"
-
-else
-
-    echo "✅ 审计凭证存在（旧版凭证，未含虚构数字字段）"
-
-fi
-
-# 1c. ⛔ 普适审计（所有题型必跑：参数密集型 / 简单题 / 普通学术 / 课程论文 / 人文社科）
-
-#     facts_audit.py 在 paper stage 有简化模式：无 PROBLEM_FACTS.json 时
-
-#     仍能跑 [13] 正文结论一致性 + [14] 事件源归属（自动跳过不适用题型）+ [15] 正文数字溯源
-
-#     ⛔ 修复历史 bug：之前 if 是 [-f PROBLEM_FACTS.json]，导致简单题 + PDF 中文工作流
-
-#        全程无 paper 阶段审计，凭印象的虚构数字漏网。改为按 _utils/facts_audit.py 存在判断。
-
-if [ -f _utils/facts_audit.py ]; then
-
-    python3 _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
-
-    PAPER_RC=${PIPESTATUS[0]}
-
-    if [ $PAPER_RC -eq 1 ]; then
-
-        echo "❌ Step 5 结论审计失败：正文结论性陈述与 results.json 不一致 / 含虚构数字。先修正文，再编译。"
-
-    fi
-
-fi
-
-# 1d. ⛔ 含多种事件源的题目必查（防"写稿脑补事件源"）
-
-#     凡是涉及"谁做了什么 N 次"的指向性陈述，必须能在 results.json 的 verb_to_sources
-
-#     映射 + events 列表里反推；不允许凭计数器变量名脑补来源。
-
-#     facts_audit --stage paper 的 [14] 项会自动跑事件源归属审计；若 results.json
-
-#     未声明 verb_to_sources/events 字段，本检查跳过（本题不涉及多事件源）。
-
-echo "(事件源归属审计已包含在 facts_audit --stage paper 的 [14] 项里)"
-
-# 2. 检查历史文件残留
-
-HIST=$(ls results_v*.json results_old.json *_backup.json 2>/dev/null | wc -l)
-
-[ "$HIST" -gt 0 ] && echo "⚠ 发现 $HIST 个历史 JSON 文件，可能造成版本漂移：$(ls results_v*.json results_old.json *_backup.json 2>/dev/null)" || echo "✅ 无历史 JSON 残留"
-
-# 3. 数字溯源兜底：⛔ 仅当 facts_audit.py 不可用时才跑这段简化版（30 采样）。
-
-#    facts_audit --stage paper 的 [15] 项已含更全的 60 采样 + 容差匹配 + 溯源；两者都跑会
-
-#    因采样数不同(30 vs 60)给出不一致结论 → AI 反复回查。facts_audit 在时以它为准，不在时
-
-#    这段兜底保证数字溯源不缺席（不降检查覆盖）。
-
-if [ ! -f _utils/facts_audit.py ]; then
-
-python3 -c "
-
-import os, re, json
-
-# 找正文（按优先级试候选路径，任一存在即用；全部不存在则跳过）
-
-text = ''
-
-for p in ('paper/main.tex', 'paper/main.md', 'RESULTS.md', 'main.tex', 'main.md'):
-
-    if os.path.exists(p):
-
-        text = open(p, encoding='utf-8').read()
-
-        print(f'读取正文: {p}')
-
-        break
-
-if not text:
-
-    print('⚠ 未找到正文文件（paper/main.tex / main.md / RESULTS.md），跳过数字溯源检查')
-
-    raise SystemExit(0)
-
-# 合并多份结果 JSON（results.json + figures/all_results.json + 任何 results_*.json 当前版）
-
-results_str = ''
-
-for p in ('results.json', 'figures/all_results.json', 'figures/results.json'):
-
-    if os.path.exists(p):
-
-        try:
-
-            results_str += json.dumps(json.load(open(p, encoding='utf-8')), ensure_ascii=False)
-
-        except Exception as e:
-
-            print(f'⚠ 读取 {p} 失败: {e}')
-
-if not results_str:
-
-    print('⚠ 未找到 results.json / figures/all_results.json，无法做数字溯源校验')
-
-    raise SystemExit(0)
-
-nums = re.findall(r'[-+]?\d+\.\d{2,}', text)[:30]
-
-miss = [n for n in nums if n not in results_str]
-
-print(f'抽样 {len(nums)} 个数字，{len(nums)-len(miss)} 个能在结果 JSON 中找到')
-
-if miss:
-
-    print(f'⚠ 找不到的: {miss[:5]}{\"...\" if len(miss)>5 else \"\"}')
-
-"
-
-fi
+python skills/_utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
 
 ```
+
+`facts_audit --stage paper` 是权威终检：[13] 正文结论一致性、[14] 事件源归属（谁做了什么 N 次的指向性陈述必须能从 results.json 的 verb_to_sources/events 反推）、[15] 数字溯源（60 采样+容差匹配）。**exit 1 = 正文有与 results.json 不一致或无法溯源的数字——改回真实值或删除，禁止带病编译。**
 
 ## 退出判据（Verification）
 

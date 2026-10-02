@@ -14,6 +14,7 @@
 
 ### Changed
 
+- **comp-paper-zh/SKILL.md 整体瘦身（W-SLIM，"治本不闸门"落地批）**：3039→1883 行（-38%），闸门类标记 391→133，正文回归"教写作"本职。内嵌检查脚本外提为五个 `_utils` 独立工具（`template_integrity_check`/`figure_layout_check`/`page_precheck`/`summarize_results`/`abstract_paragraph_check`，shared-scripts 双副本 md5 锁步，各带最小正反例 pytest）；引擎已等价覆盖的内嵌块（上游存在性 ceremony、图连排检查、溯源 30 采样兜底等）删除并留一行闸感知；Step 4 重复块与"算法伪代码扩写"矛盾条目清除；写作质量指导（六条心法/图表 Rules/优化三要素/四问/丰满模式）零删除。新增 `tests/test_slim_extracted_checks.py`（9 测试）。
 - **写作链停止生产 AI 套话**（646eedb+a1d7289）：中文套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）在 `_utils/ai_tell_check` 升 BANNED 硬拦并新增「随着…的发展」正则；comp-paper-zh(+docx) 六要素正例/摘要自检/骨架教学改因果衔接叙述；接获奖语料对标（动笔前读同赛事 2-3 篇）+ 人类痕迹四问 + 结构多样性纪律；docx 写作链同口径补齐。
 - **AI 痕迹词表证据级校准**（053584e）：`ai_tell_check` 按一手证据（AI 论痕检测词库/真实检测报告）增补硬拦词与泄漏构式模式，新增获奖论文正当句式反证白名单；735 篇真实获奖论文全量假阳实测治本——11 个领域字面义词（链路/上下游/复用/工作流等）自词级硬拦收窄为工程泄漏构式、参考文献区豁免、误伤 ≈1968→11（坏探针检出力无损）；docx 链摘要字数契约 400-600→600-800 对齐 `_utils/abstract_writing_contract.md` 真源；`writing_rules` 图注「优先承载发现」口径与旧教学矛盾（enumerate 双口径/教学正例带套话尾巴）清理。
 - **图表叙述闸挂进引擎强制链**（同上历遍批复核）：真实终版 20+ 图中 11+ 张"孤儿图"（贴进正文零引用零解读，图海堆砌=图表 AI 味首因，label/ref 对账无一假阳）。新增引擎 `figure_narrative` named gate（孤儿图零容忍——修复动作明确：补引用句/解读段/删图），comp_huawei/comp_cumcm 写作步挂闸；SKILL 图表嵌入规则补闸感知（每图同步写引用句+解读句）。
