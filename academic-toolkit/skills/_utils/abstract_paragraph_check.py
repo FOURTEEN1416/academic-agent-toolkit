@@ -58,8 +58,8 @@ def locate_abstract() -> tuple[str | None, str | None]:
 def main() -> int:
     text, where = locate_abstract()
     if text is None:
-        print("⚠ 未定位到含'针对问题'的摘要文本（可能尚未写摘要），跳过自检")
-        return 0
+        print("⚠ SKIP: 未定位到含'针对问题'的摘要文本（可能尚未写摘要）；SKIP 不冒充通过，exit 2")
+        return 2
     bad = []
     for i, para in enumerate(re.split(r"\n\s*\n", text), 1):
         if len(re.findall(r"针对问题", para)) > 1:

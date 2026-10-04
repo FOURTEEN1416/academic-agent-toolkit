@@ -105,7 +105,13 @@ def run_full(paper: Path, contest_id: str) -> int:
             fail += 1
 
     check("documentclass", "documentclass" in text)
-    check("sections input", "\\input{sections/" in text)
+    # comp_cumcm 骨架本体为全内联设计（无 \input{sections/}）；老实复制骨架
+    # 曾被本检查误判 FAIL，逼着写手重写 main.tex 反而违反"不要重写 main.tex"。
+    # 本检查对 comp_cumcm 不要求 sections-input（写手内联或拆 sections 均放行）。
+    if contest_id == "comp_cumcm":
+        check("cumcm 骨架完整（内联设计，免 sections-input）", "documentclass" in text)
+    else:
+        check("sections input", "\\input{sections/" in text)
     check("参考文献结构", ("thebibliography" in text) or ("bibliography{" in text))
     check("附录结构", ("appendices" in text) or ("\\appendix" in text))
     check("上标引用定义", ("superscript" in text) or ("\\@cite" in text) or re.search(r"setcitestyle.*super", text))

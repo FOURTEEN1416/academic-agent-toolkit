@@ -73,6 +73,8 @@ The three skills create a closed loop: the literature survey reveals the gap and
 
 ---
 
+- **De-AI polish（反AI味，强制）**：正文/成稿定稿前必读 `cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rules.md` 的 `<de_ai_polish>` 段（工程/质检语汇泄漏、模板开头、AI 过渡词；中英文正文同样适用），并按其执行改写。
+
 ## Voice and Editorial Rules
 
 执行 Agent MUST read these files from this skill's directory. They contain the detailed rules with examples.

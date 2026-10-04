@@ -356,8 +356,8 @@ def main(argv: list[str] | None = None) -> int:
     paper_dir = Path(args.paper_dir)
     targets = find_targets(paper_dir)
     if not targets:
-        print("  (未找到论文正文，跳过人类作者文风检查)")
-        return 0
+        print("  SKIP: 未找到论文正文，跳过人类作者文风检查（SKIP 不冒充通过，exit 2）")
+        return 2
     issues = check(paper_dir)
     if not issues:
         print("  OK: 问题重述、问题分析、数学结论与正文标点符合读者文稿规范")

@@ -28,8 +28,8 @@ except Exception:
 try:
     import pandas as pd
 except ImportError:
-    print("[data_profile] 缺 pandas，跳过建档（不阻断）")
-    sys.exit(0)
+    print("[data_profile] SKIP: 缺 pandas，无法建档（SKIP 不冒充通过，exit 2）")
+    sys.exit(2)
 
 CSV_ENCODINGS = ["utf-8", "utf-8-sig", "gbk", "gb2312", "latin-1"]
 CHUNK = 100_000          # CSV 分块行数，控内存

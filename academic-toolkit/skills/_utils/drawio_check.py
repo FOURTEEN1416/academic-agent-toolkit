@@ -531,19 +531,19 @@ def check_generic(content, filename):
 
 def main():
     if len(sys.argv) < 3:
-        print("用法: python3 drawio_check.py <file.drawio> <roadmap|flow|generic>")
-        sys.exit(0)
-    
+        print("用法: python3 drawio_check.py <file.drawio> <roadmap|flow|generic>（参数缺失不冒充通过）")
+        sys.exit(2)
+
     filepath = sys.argv[1]
     check_type = sys.argv[2]
-    
+
     try:
         with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
             content = f.read()
     except FileNotFoundError:
-        print(f"文件不存在: {filepath}")
-        sys.exit(0)
-    
+        print(f"SKIP: 文件不存在: {filepath}（SKIP 不冒充通过）")
+        sys.exit(2)
+
     if check_type == 'roadmap':
         issues = check_roadmap(content, filepath)
     elif check_type == 'flow':
@@ -551,8 +551,8 @@ def main():
     elif check_type == 'generic':
         issues = check_generic(content, filepath)
     else:
-        print(f"未知检查类型: {check_type}，支持 roadmap、flow 或 generic")
-        sys.exit(0)
+        print(f"SKIP: 未知检查类型: {check_type}，支持 roadmap、flow 或 generic（不冒充通过）")
+        sys.exit(2)
     
     critical = sum(1 for i in issues if i.startswith('CRITICAL'))
     warning = sum(1 for i in issues if i.startswith('WARNING'))

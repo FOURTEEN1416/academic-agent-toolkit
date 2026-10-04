@@ -237,5 +237,19 @@ def test_abstract_paragraph_skip_when_absent(tmp_path):
     (ws / "paper").mkdir()
     (ws / "paper" / "main.tex").write_text("no abstract yet", encoding="utf-8")
     r = _run("abstract_paragraph_check.py", [], ws)
-    assert r.returncode == 0
-    assert "跳过" in r.stdout
+    # 2026-10-05 对抗扫描批：SKIP 不冒充通过——缺席语义统一 exit 2
+    assert r.returncode == 2
+    assert "SKIP" in r.stdout
+
+
+def test_template_integrity_cumcm_inline_skeleton_not_failed(tmp_path):
+    # 2026-10-05 格式批：cumcm 骨架本体全内联（无 \input{sections/}）——
+    # 老实复制骨架曾被 --full 误判 FAIL（逼写手重写 main.tex）。
+    # comp_cumcm 免 sections-input；其他赛事缺 \input 仍 FAIL。
+    inline = "\\documentclass[12pt]{cumcmthesis}\n\\begin{document}\n\\begin{thebibliography}{99}\\end{thebibliography}\n\\begin{appendices}\\end{appendices}\n\\def\\@cite#1#2{#1}\n\\end{document}\n"
+    cumcm = _seed_paper(tmp_path / "cumcm", inline)
+    r = _run("template_integrity_check.py", ["--full", "--contest", "comp_cumcm"], cumcm)
+    assert r.returncode == 0, r.stdout + r.stderr
+    other = _seed_paper(tmp_path / "other", inline)
+    r = _run("template_integrity_check.py", ["--full", "--contest", "comp_huawei"], other)
+    assert r.returncode == 1 and "sections input" in r.stdout, r.stdout

@@ -131,8 +131,8 @@ def main():
     plan_map = parse_plan(plans)
     if not plan_map:
         if not a.quiet:
-            print('INFO recipe_audit: 未找到规划文档或规划里没有 fig_ 条目，跳过对账')
-        return 0
+            print('SKIP recipe_audit: 未找到规划文档或规划里没有 fig_ 条目，跳过对账（SKIP 不冒充通过，exit 2）')
+        return 2
 
     issues, checked = audit(plan_map, a.figdir, a.quiet)
 

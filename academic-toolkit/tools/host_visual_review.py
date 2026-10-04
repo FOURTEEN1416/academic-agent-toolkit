@@ -334,3 +334,11 @@ def main_stub(backend: str, usage: str, checklist: list[str] | None = None) -> i
         return 2
     return run(backend, image_args[0], review=review, workspace=workspace,
                collect_only=collect_only, checklist=checklist)
+
+
+if __name__ == "__main__":
+    # 裸执行本文件不是有效入口（真实入口：data_fig_vision_check.py /
+    # drawio_vision_check.py / tikz_vision_check.py）；零输出 exit 0 会被当通过。
+    print("SKIP: host_visual_review.py 是任务卡/证据库模块，无直接 CLI 语义；"
+          "请用 tools/data_fig_vision_check.py 等入口（exit 2）")
+    raise SystemExit(2)

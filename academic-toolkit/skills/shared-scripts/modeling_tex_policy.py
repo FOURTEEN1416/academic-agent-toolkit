@@ -263,14 +263,14 @@ def main() -> int:
     main_tex = paper_dir / "main.tex"
     main_md = paper_dir / "main.md"
     if not main_tex.exists() and not main_md.exists():
-        print(f"SKIP: neither {main_tex} nor {main_md} exists")
-        return 0
+        print(f"SKIP: neither {main_tex} nor {main_md} exists（SKIP 不冒充通过，exit 2）")
+        return 2
 
     source_path = main_tex if main_tex.exists() else main_md
     source = source_path.read_text(encoding="utf-8", errors="ignore")
     if not is_modeling_paper(paper_dir, source):
-        print("SKIP: non-modeling paper")
-        return 0
+        print("SKIP: non-modeling paper（非建模论文不适用本检查，exit 2）")
+        return 2
 
     if source_path == main_md:
         markers = markdown_directory_markers(source)

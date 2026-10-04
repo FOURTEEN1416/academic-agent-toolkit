@@ -261,6 +261,16 @@ def find_targets(args_paths):
     if paper_mode and Path("paper/main.md").is_file():
         return [Path("paper/main.md")]
     dirs = [Path("paper")] if paper_mode else [Path(".")]
+    if not paper_mode:
+        # ⛔ 治理文档哨兵：无 paper/ 且顶层有仓库治理文件 → 大概率是仓库根，
+        #    无参扫描会把 AGENTS.md 等工程文档当论文正文判（实测误报 exit 1）。
+        governance = [n for n in ("AGENTS.md", "CONTEST_SKILL_MAP.md", "README.md")
+                      if (Path(".") / n).is_file()]
+        if governance:
+            print("⚠ 当前目录像是仓库/工程根（发现 %s）而非论文工作区——无参扫描会误把"
+                  "治理文档当正文。请显式传入论文路径（paper/、工作区根或具体 .tex/.md 文件）。"
+                  % "、".join(governance), file=sys.stderr)
+            sys.exit(2)
     out = []
     for d in dirs:
         if not d.is_dir():

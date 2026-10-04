@@ -895,3 +895,52 @@ def test_figure_narrative_gate_blocks_orphan_floats(tmp_path):
     empty.mkdir()
     report = QualityGate(empty).check_figure_narrative()
     assert not report["ok"] and "正文未成文" in report["reason"]
+
+
+def test_registered_gates_are_wired_to_templates():
+    # 2026-10-05 对抗扫描批：figure_narrative 曾是死闸（注册+实现+测试齐全，
+    # templates.json 零引用，SKILL.md 宣称"引擎强制闸"实为假）。单向测试
+    # （引用⊆注册）防不住这一侧——补反向对账：注册的闸必须被至少一个模板挂载，
+    # 例外仅限引擎 run_all 自动挂载（review/review_rounds）。
+    import json
+    from engine.quality_gates import NAMED_CHECKS_REGISTRY
+    templates = json.loads(
+        (Path(__file__).resolve().parent.parent / "engine" / "modex-core" / "templates.json")
+        .read_text(encoding="utf-8"))
+    referenced: set[str] = set()
+    for pipeline in templates.values():
+        for step in (pipeline.get("sub_steps") or []):
+            referenced.update(step.get("required_checks") or [])
+            meta = step.get("metadata") or {}
+            referenced.update(meta.get("required_checks") or [])
+    auto_mounted = {"review", "review_rounds"}
+    orphans = sorted(set(NAMED_CHECKS_REGISTRY) - referenced - auto_mounted)
+    assert not orphans, f"孤儿闸（注册但无模板挂载）: {orphans}"
+    unknown = sorted(referenced - set(NAMED_CHECKS_REGISTRY))
+    assert not unknown, f"死挂（模板引用但未注册）: {unknown}"
+
+
+def test_figure_narrative_check_skip_and_zero_ref_orphan(tmp_path):
+    # 2026-10-05 判据升级：零引用孤儿零容忍（旁有叙述不豁免）+ SKIP 语义 exit 2
+    import subprocess, sys as _sys
+    tool = Path(__file__).resolve().parent.parent / "skills" / "_utils" / "figure_narrative_check.py"
+    # 空目录 → SKIP exit 2（不冒充通过）
+    p = subprocess.run([_sys.executable, str(tool), str(tmp_path / "none")],
+                       capture_output=True, text=True, timeout=60)
+    assert p.returncode == 2 and "SKIP" in p.stdout, (p.returncode, p.stdout)
+    # 有叙述但全文零 \ref → 零引用孤儿 FAIL
+    paper = tmp_path / "paper"
+    paper.mkdir()
+    body = ("\\section{求解}\n下图给出了结果的可视化分析，可以观察到明显的变化趋势。\n\n"
+            "\\begin{figure}\n\\includegraphics{x}\n\\caption{测试图}\n\\label{fig:t1}\n\\end{figure}\n\n"
+            + "正文内容叙述。" * 50)
+    (paper / "main.tex").write_text(body, encoding="utf-8")
+    p = subprocess.run([_sys.executable, str(tool), str(paper)],
+                       capture_output=True, text=True, timeout=60)
+    assert p.returncode == 1 and "零引用孤儿" in p.stdout, (p.returncode, p.stdout)
+    # 补上 \ref → 通过（正例不误拦）
+    (paper / "main.tex").write_text(
+        body + "\n图~\\ref{fig:t1} 显示结果随参数变化。\n", encoding="utf-8")
+    p = subprocess.run([_sys.executable, str(tool), str(paper)],
+                       capture_output=True, text=True, timeout=60)
+    assert p.returncode == 0, (p.returncode, p.stdout)

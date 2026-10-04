@@ -22,6 +22,8 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, Skill
 
 若任务已有工作流 ID，恢复该工作流，不重复创建。没有工作流时，用 `python -m engine.workflow_cli start --template <模板> --workspace <工作区> --params <业务参数JSON>` 创建，再用 `next` 领取当前步骤。
 
+- **De-AI polish（反AI味，强制）**：正文/成稿定稿前必读 `cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rules.md` 的 `<de_ai_polish>` 段（工程/质检语汇泄漏、模板开头、AI 过渡词；中英文正文同样适用），并按其执行改写。
+
 ## 执行边界
 
 `next` 提供当前步骤的目标、产物、必要技能及执行会话。仅执行当前步骤，不提前调用后续写作、编译或评审。业务产出用会话的 `read/write/edit/run` 完成，`finish` 自动记录与验收并给下一步。

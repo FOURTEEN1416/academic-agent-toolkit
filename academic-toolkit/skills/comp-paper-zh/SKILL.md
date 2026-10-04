@@ -750,7 +750,7 @@ FIGURE EMBEDDING PLAN:
 
 **Rules:**
 
-- **⛔ 图表嵌入受引擎 `figure_narrative` 强制闸**：finish 时全量重扫正文，凡「零正文说明且零 `\ref` 引用」的孤儿图直接拒绝完成（真实终版曾 20+ 图中 11+ 张孤儿——图海堆砌是图表 AI 味首因）。嵌入每张图时**同步写两句**：引用句（"图~\ref{fig:xxx} 显示……"）+ 解读句（该图揭示的结论）。没有解读可写的图不要嵌入。
+- **⛔ 图表嵌入受引擎 `figure_narrative` 强制闸**：finish 时全量重扫正文，凡「全文零 `\ref` 引用」的**零引用孤儿**（旁有叙述不豁免——"如下图所示"不算引用）与「被引用但零解读」的图直接拒绝完成（真实终版曾 20+ 图中 11+ 张孤儿——图海堆砌是图表 AI 味首因）。嵌入每张图时**同步写两句**：引用句（"图~\ref{fig:xxx} 显示……"）+ 解读句（该图揭示的结论）。没有解读可写的图不要嵌入。
 
 - **⛔ 图表 caption 必须是中文**（中文论文）。如果 `latex_includes.tex` 里的 caption 是英文，嵌入时必须翻译成中文
 
@@ -826,11 +826,11 @@ python skills/_utils/figure_layout_check.py paper/ 2>/dev/null || python academi
 
 ```
 
-覆盖三件引擎不查的事：① `figures/*.pdf` 全部被正文引用（`figure_narrative` 引擎闸只查"已嵌入但零叙述零引用"的孤儿图，查不到从未嵌入的文件）；② FIGURE_MANIFEST 对账——规划了几张就必须产出几张并嵌入几张，一张不漏；③ 流程图堆叠——问题分析章节里 `fig_flow_qN` ≥2 张即违约（见上方铁律）。任何 ❌ 立即修复后再继续写下一章，不要等到最后。
+覆盖三件引擎不查的事：① `figures/*.pdf` 全部被正文引用（`figure_narrative` 引擎闸只查"已嵌入正文"的图——零引用孤儿与零叙述都拦，查不到从未嵌入的文件）；② FIGURE_MANIFEST 对账——规划了几张就必须产出几张并嵌入几张，一张不漏；③ 流程图堆叠——问题分析章节里 `fig_flow_qN` ≥2 张即违约（见上方铁律）。任何 ❌ 立即修复后再继续写下一章，不要等到最后。
 
 TikZ 图通过 `latex_includes.tex` 里的 `\includegraphics{tikz_diagrams.pdf}` 图块嵌入（不要用 `\input`），位置同上表。
 
-> 图连排（两个 figure/table 环境相邻、中间无正文）由 `figure_narrative` 引擎闸在 finish 全量重扫——float 前后可读字符量不足直接拒绝完成。写的时候就守上方连排禁令，别等闸拦。
+> 图连排（两个 figure/table 环境相邻、中间无正文）若还零 `\ref` 引用，由 `figure_narrative` 引擎闸在 finish 全量重扫直接拒绝完成；被引用的连排引擎不拦——写的时候就守上方连排禁令，别等闸拦。
 
 ### Step 3.5: 文献预检索（写正文之前必须完成）
 

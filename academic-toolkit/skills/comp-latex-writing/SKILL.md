@@ -1,6 +1,6 @@
 ---
 name: comp-latex-writing
-description: "国赛 LaTeX 写作（Latex Writing for CUMCM）——数学建模竞赛论文专用的 LaTeX 技能。封装 CTeX 中文模板 + 公式/表格/算法三件套 + 国赛摘要页精修。"
+description: "国赛 LaTeX 写作（Latex Writing for CUMCM）——数模竞赛论文写作方法技能（公式/表格/算法三件套+摘要页精修）；骨架一律走 comp-paper-zh 主线 _templates，禁止自造 preamble。"
 ---
 
 # 国赛 LaTeX 写作（Latex Writing for CUMCM）
@@ -14,15 +14,14 @@ description: "国赛 LaTeX 写作（Latex Writing for CUMCM）——数学建模
 
 ## 核心资产
 
-### 1. 国赛专用模板（CUMCM）
+### 1. 国赛专用模板（CUMCM）——一律用主线骨架，禁止自造 preamble
+
+⛔ 本技能不再内嵌模板：竞赛论文骨架唯一来源是 `academic-toolkit/skills/comp-paper-zh/_templates/<赛事>/`（cumcmthesis/gmcmthesis 等官方 cls，页码/摘要页/边距/匿名要求已烧进骨架，想错都难）。自造 `ctexart`+`natbib` 裸模板会绕过赛事版式基线（承诺书/编号页/无目录/页码位置），历史上曾造成格式违约。写作方法（公式/表格/算法速查）照常使用本技能，preamble 一律以主线骨架为准。
+
 ```latex
-\documentclass[11pt,a4paper]{ctexart}
-\usepackage{amsmath,amssymb,amsfonts}
-\usepackage{geometry,graphicx,booktabs,longtable}
-\usepackage{algorithm,algpseudocode}
-\usepackage[sort&compress,numbers]{natbib}
-\usepackage[hidelinks]{hyperref}
-\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+% 骨架获取（在技能正文步中）：
+% cp academic-toolkit/skills/comp-paper-zh/_templates/cumcm/* paper/
+% 完整赛事清单见 comp-paper-zh/SKILL.md 模板表；禁止另行手写 documentclass
 ```
 
 ### 2. 数学公式速查（国赛高频）

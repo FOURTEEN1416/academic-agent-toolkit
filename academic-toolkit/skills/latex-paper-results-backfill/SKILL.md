@@ -38,6 +38,8 @@ placeholders and the user has run experiments outside the AI session.
 - Refined prose (RF1)
 - Compiled `main.pdf`
 
+- **De-AI polish（反AI味，强制）**：正文/成稿定稿前必读 `cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rules.md` 的 `<de_ai_polish>` 段（工程/质检语汇泄漏、模板开头、AI 过渡词；中英文正文同样适用），并按其执行改写。
+
 ## Non-Negotiable Rules
 1. **No fabrication**: Only use data from actual result files. Never invent numbers.
 2. **Verify before claiming**: Only upgrade `(hypothesis)` to factual claim when CSV data confirms the result.

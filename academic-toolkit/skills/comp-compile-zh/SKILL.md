@@ -534,7 +534,7 @@ Check items:
 
 3. **Abstract exists** (数模竞赛: at least Chinese; 统计建模: both Chinese and English)
 
-4. **TOC exists** (required by MathorCup etc.)
+4. **TOC exists** — 仅当消费的赛事快照 verified 要求目录时检查；MathorCup 的目录要求未核验（档案 historical_notes 存档未确认），核验前不作为硬检查项
 
 5. **Code appendix exists**
 

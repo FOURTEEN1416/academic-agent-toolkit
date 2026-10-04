@@ -691,8 +691,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     if not args.fig_dir.is_dir():
-        print("  (未找到 figures 目录，跳过图 PDF 终检)")
-        return 0
+        print("  SKIP: 未找到 figures 目录，跳过图 PDF 终检（SKIP 不冒充通过，exit 2）")
+        return 2
     overrides = _load_overrides(args.fig_dir, args.override)
     failures, warnings = check_directory(args.fig_dir, args.paper, only=args.only, referenced_only=args.referenced_only, overrides=overrides)
     for item in warnings[:12]:

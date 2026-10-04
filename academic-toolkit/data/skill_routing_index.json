@@ -222,8 +222,8 @@
     "comp-latex-writing": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "国赛 LaTeX 写作（Latex Writing for CUMCM）——数学建模竞赛论文专用的 LaTeX 技能。封装 CTeX 中文模板 + 公式/表格/算法三件套 + 国赛摘要页精修。",
-      "full_description": "国赛 LaTeX 写作（Latex Writing for CUMCM）——数学建模竞赛论文专用的 LaTeX 技能。封装 CTeX 中文模板 + 公式/表格/算法三件套 + 国赛摘要页精修。",
+      "resident_description": "国赛 LaTeX 写作（Latex Writing for CUMCM）——数模竞赛论文写作方法技能（公式/表格/算法三件套+摘要页精修）；骨架一律走 comp-paper-zh 主线 _templates，禁止自造 preamble。",
+      "full_description": "国赛 LaTeX 写作（Latex Writing for CUMCM）——数模竞赛论文写作方法技能（公式/表格/算法三件套+摘要页精修）；骨架一律走 comp-paper-zh 主线 _templates，禁止自造 preamble。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-latex-writing/SKILL.md"
     },

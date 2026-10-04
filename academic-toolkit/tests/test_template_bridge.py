@@ -43,7 +43,7 @@ def test_cumcm_template_has_14_ordered_executable_stages_and_gate_bindings():
     assert steps[2]["required_checks"] == ["step_manifest", "modeling_contract"]
     assert steps[3]["required_checks"] == ["step_manifest"]
     assert steps[4]["required_checks"] == ["figure_provenance"]
-    assert steps[7]["required_checks"] == ["literature", "step_manifest", "paper_consistency", "ai_flavor"]
+    assert steps[7]["required_checks"] == ["literature", "step_manifest", "paper_consistency", "ai_flavor", "figure_narrative"]
     assert steps[8]["required_checks"] == ["consistency"]
     assert steps[9]["required_checks"] == ["literature", "consistency", "step_manifest", "compilation_log"]
     assert steps[12]["required_checks"] == ["review"]

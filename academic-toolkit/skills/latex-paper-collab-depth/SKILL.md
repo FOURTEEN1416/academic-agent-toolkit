@@ -99,6 +99,8 @@ Paper-mode templates (top of the file):
 
 Each template specifies its input sources, output artifact mappings, and constraints.
 
+- **De-AI polish（反AI味，强制）**：正文/成稿定稿前必读 `cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rules.md` 的 `<de_ai_polish>` 段（工程/质检语汇泄漏、模板开头、AI 过渡词；中英文正文同样适用），并按其执行改写。
+
 ## Verification
 - Cross-check both collaborators: use the `check-collaborators` skill
 - Smoke-test the bridge: `python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --help`

@@ -3,9 +3,18 @@
 
 Usage: python figure_narrative_check.py paper/
 
+Two criteria, both zero-tolerance (orphan-figure iron rule):
+1. zero-reference orphan: the float carries a label but the full paper never
+   \\refs it. Prose next to the float does not excuse a missing citation --
+   "as shown below" style narration is not a reference.
+2. no narrative: the float is referenced but has no readable prose around it.
+
 The check is deliberately content-oriented rather than line-oriented: LaTeX
 paragraphs are often one physical line.  It measures readable characters before
 and after each float, bounded by nearby floats or section headings.
+
+Skip semantics: when no TeX body is found the script prints SKIP and exits 2
+(skip must never masquerade as a pass; the engine wrapper treats 2 the same).
 """
 
 from __future__ import annotations
@@ -38,12 +47,13 @@ def _readable_length(text: str) -> int:
     return len(re.findall(r"[\u3400-\u9fffA-Za-z0-9]", text))
 
 
-def check_text(text: str, location) -> list[str]:
+def check_text(text: str, location, references: set[str] | None = None) -> list[str]:
     floats = list(FLOAT_RE.finditer(text))
     outside = FLOAT_RE.sub("", text)
-    references = {name.strip() for group in re.findall(
-        r"\\(?:ref|autoref|cref|Cref|pageref)\s*\{([^{}]+)\}", outside
-    ) for name in group.split(",")}
+    if references is None:
+        references = {name.strip() for group in re.findall(
+            r"\\(?:ref|autoref|cref|Cref|pageref)\s*\{([^{}]+)\}", outside
+        ) for name in group.split(",")}
     issues: list[str] = []
     for index, match in enumerate(floats):
         kind = match.group("kind").lower()
@@ -74,10 +84,15 @@ def check_text(text: str, location) -> list[str]:
         # elsewhere. Do not require a paragraph on both sides of every float.
         labels = re.findall(r"\\label\s*\{([^{}]+)\}", match.group())
         referenced = any(label in references for label in labels)
-        if readable == 0 and lead_readable == 0 and not referenced:
+        if not referenced:
             issues.append(
-                f"{location(match.start())} {match.group('kind')} 缺少正文说明或引用"
-                "（前后及正文引用均未找到；不要求两侧各写一段）"
+                f"{location(match.start())} {match.group('kind')} 零引用孤儿：全文无 \\ref 引用该浮动体的"
+                " label（旁有叙述不豁免，「如下图所示」不算引用）——补 \\ref 引用句或删图"
+            )
+        elif readable == 0 and lead_readable == 0:
+            issues.append(
+                f"{location(match.start())} {match.group('kind')} 被引用但前后无解读文字"
+                "（不要求两侧各写一段）"
             )
     return issues
 
@@ -87,19 +102,40 @@ def check_file(path: Path) -> list[str]:
     return check_text(text, lambda offset: f"{path.name}:{text.count(chr(10), 0, offset) + 1}")
 
 
-def check_paper(paper_dir: Path) -> list[str]:
-    return [issue for document in expanded_documents(paper_dir)
-            for issue in check_text(document.text, lambda offset: document.location(offset, paper_dir))]
+def collect_references(documents) -> set[str]:
+    refs: set[str] = set()
+    for document in documents:
+        outside = FLOAT_RE.sub("", document.text)
+        for group in re.findall(r"\\(?:ref|autoref|cref|Cref|pageref)\s*\{([^{}]+)\}", outside):
+            refs.update(name.strip() for name in group.split(","))
+    return refs
+
+
+def check_paper(paper_dir: Path):
+    documents = expanded_documents(paper_dir)
+    if not documents:
+        return None
+    references = collect_references(documents)
+    return [issue for document in documents
+            for issue in check_text(document.text,
+                                    lambda offset, doc=document: doc.location(offset, paper_dir),
+                                    references=references)]
 
 
 def main() -> int:
     paper_dir = Path(sys.argv[1] if len(sys.argv) > 1 else "paper")
+    if not paper_dir.is_dir():
+        print(f"  SKIP: 未找到论文目录 {paper_dir}（SKIP 不冒充通过，exit 2）")
+        return 2
     issues = check_paper(paper_dir)
+    if issues is None:
+        print(f"  SKIP: {paper_dir} 下未找到 TeX 正文（SKIP 不冒充通过，exit 2）")
+        return 2
     if issues:
         for issue in issues:
             print(f"  FAIL {issue}")
         return 1
-    print("  OK: figures/tables have surrounding explanation or a body reference")
+    print("  OK: 每个图/表均被正文引用且有叙述")
     return 0
 
 

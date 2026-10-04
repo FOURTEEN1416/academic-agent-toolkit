@@ -1765,7 +1765,8 @@
           "literature",
           "step_manifest",
           "paper_consistency",
-          "ai_flavor"
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
@@ -1773,7 +1774,8 @@
             "literature",
             "step_manifest",
             "paper_consistency",
-            "ai_flavor"
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "companion_skills": [],
@@ -2853,7 +2855,8 @@
           "literature",
           "step_manifest",
           "paper_consistency",
-          "ai_flavor"
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
@@ -2861,7 +2864,8 @@
             "literature",
             "step_manifest",
             "paper_consistency",
-            "ai_flavor"
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "companion_skills": [],
@@ -3476,13 +3480,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "assets": [
@@ -3786,13 +3794,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "assets": [
@@ -4280,13 +4292,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "论文撰写",
           "skill_binding": {
@@ -4582,13 +4598,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "skill_binding": {
@@ -4886,13 +4906,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "skill_binding": {
@@ -5190,13 +5214,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "skill_binding": {
@@ -5494,13 +5522,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "skill_binding": {
@@ -5798,13 +5830,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "assets": [
@@ -6109,13 +6145,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "skill_binding": {
@@ -6412,13 +6452,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "skill_binding": {
@@ -6716,13 +6760,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "skill_binding": {
@@ -7019,13 +7067,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "skill_binding": {
@@ -7322,13 +7374,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "skill_binding": {
@@ -7626,13 +7682,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "skill_binding": {
@@ -7929,13 +7989,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "skill_binding": {
@@ -8233,13 +8297,17 @@
         "checkpoint_type": "approve",
         "required_checks": [
           "step_manifest",
-          "paper_consistency"
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
         ],
         "metadata": {
           "requires_subagent": false,
           "required_checks": [
             "step_manifest",
-            "paper_consistency"
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
           ],
           "display_name": "竞赛论文撰写",
           "skill_binding": {

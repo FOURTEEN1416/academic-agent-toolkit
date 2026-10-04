@@ -786,8 +786,8 @@ def main(argv: list[str]) -> int:
         if args.compiled:
             print("  FAIL: 未定位到摘要；最终编译产物不得跳过摘要质量门")
             return 1
-        print("  (未定位到摘要，草稿阶段跳过摘要重点检查)")
-        return 0
+        print("  SKIP: 未定位到摘要，草稿阶段跳过摘要重点检查（SKIP 不冒充通过，exit 2）")
+        return 2
     text, kind, path = located
     source = path.read_text(encoding="utf-8", errors="ignore")
     errors = validate(text, kind) + validate_length(text, source)
