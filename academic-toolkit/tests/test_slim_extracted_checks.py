@@ -112,6 +112,22 @@ def test_figure_layout_extensionless_includegraphics_not_a_violation(tmp_path):
     assert "fig_q1.pdf 未嵌入" in r.stdout
 
 
+def test_figure_layout_svg_output_matches_engine_contract(tmp_path):
+    """复核批回归：svg 产出/引用形态与引擎 output_contracts 口径一致（pdf/png/svg）。"""
+    ws = tmp_path
+    (ws / "figures").mkdir()
+    (ws / "figures" / "fig_only_svg.svg").write_bytes(b"<svg/>")
+    paper = ws / "paper" / "sections"
+    paper.mkdir(parents=True)
+    (ws / "paper" / "main.tex").write_text("main\n", encoding="utf-8")
+    (paper / "1_x.tex").write_text("见图 fig_only_svg。\n", encoding="utf-8")
+    (ws / "PROBLEM_ANALYSIS.md").write_text(
+        "<!-- BEGIN FIGURE_MANIFEST -->\n- fig_only_svg\n<!-- END FIGURE_MANIFEST -->\n",
+        encoding="utf-8")
+    r = _run("figure_layout_check.py", ["paper"], ws)
+    assert r.returncode == 0, r.stdout  # 仅 svg 产出+引用不得报违约
+
+
 def test_figure_layout_manifest_and_stacking(tmp_path):
     ws = tmp_path
     (ws / "figures").mkdir()

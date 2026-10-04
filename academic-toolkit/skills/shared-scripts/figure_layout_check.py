@@ -30,10 +30,11 @@ MANIFEST_PLAN_FILES = ("PROBLEM_ANALYSIS.md", "PAPER_PLAN.md", "MODELING_REPORT.
 
 
 def _referenced(name: str, text: str) -> bool:
-    """正文引用判定：fig_x.pdf / fig_x.png / 无扩展名形态（LaTeX includegraphics
+    """正文引用判定：fig_x.pdf / .png / .svg / 无扩展名形态（LaTeX includegraphics
     合法省略扩展名，实测冻结稿 28/31 图无扩展名引用）均算已引用；
+    扩展名集合与引擎 output_contracts 口径一致（pdf/png/svg）；
     否定先行防前缀误配（fig_q1 不得匹配 fig_q10）。"""
-    return bool(re.search(rf"{re.escape(name)}(?:\.(?:pdf|png))?(?![A-Za-z0-9_])", text))
+    return bool(re.search(rf"{re.escape(name)}(?:\.(?:pdf|png|svg))?(?![A-Za-z0-9_])", text))
 
 
 def _paper_text(paper: Path) -> str:
@@ -75,21 +76,25 @@ def main() -> int:
         print("[SKIP] 未找到 paper/main.tex 或 sections/*.tex（正文未成文）")
         return 2
     figures_dir = workspace / "figures"
-    pdfs = sorted(figures_dir.glob("*.pdf")) if figures_dir.is_dir() else []
-    if not pdfs:
-        print("[SKIP] figures/ 无 PDF 图表")
+    fig_files = sorted(f for f in (figures_dir.glob("*.*") if figures_dir.is_dir() else [])
+                       if f.suffix.lower() in (".pdf", ".png", ".svg"))
+    if not fig_files:
+        print("[SKIP] figures/ 无 PDF/PNG/SVG 图表")
         return 2
 
     failures: list[str] = []
 
     print("=== 图表嵌入完整性 ===")
-    for pdf in pdfs:
-        stem = pdf.stem
+    # 判据单位=逻辑图（stem）：同一图的 pdf/png 双格式并存不重复计数
+    by_stem: dict[str, list] = {}
+    for fig in fig_files:
+        by_stem.setdefault(fig.stem, []).append(fig)
+    for stem, variants in by_stem.items():
         if _referenced(stem, text):
-            print(f"✅ {pdf.name} 已嵌入")
+            print(f"✅ {stem} ({', '.join(v.name for v in variants)}) 已嵌入")
         else:
-            print(f"❌ {pdf.name} 未嵌入任何章节")
-            failures.append(f"未嵌入: {pdf.name}")
+            print(f"❌ {variants[0].name} 未嵌入任何章节")
+            failures.append(f"未嵌入: {variants[0].name}")
 
     print("=== FIGURE_MANIFEST 对账 ===")
     manifest = _manifest_entries(workspace)
@@ -98,7 +103,7 @@ def main() -> int:
     else:
         plan_name, names = manifest
         for name in names:
-            produced = any((figures_dir / f"{name}.{ext}").is_file() for ext in ("pdf", "png"))
+            produced = any((figures_dir / f"{name}.{ext}").is_file() for ext in ("pdf", "png", "svg"))
             referenced = _referenced(name, text)
             if not produced:
                 print(f"❌ MANIFEST: {name} 文件不存在（{plan_name}）")

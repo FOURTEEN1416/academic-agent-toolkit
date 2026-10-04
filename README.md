@@ -7,7 +7,7 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v2.1.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-1035_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
+[![Tests](https://img.shields.io/badge/tests-1036_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-313-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-255_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
@@ -163,7 +163,7 @@ python academic-toolkit/tools/plotting_env_check.py
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-# 口径一（仓库根，回归门禁口径）：1035 collected（2026-10-02 W-SLIM 瘦身批 +9 外提脚本自测；验收批 +1 无扩展名回归；并行窗在途新增一并计入）；最近实跑记录见 pytest.ini；本轮临时目录保留
+# 口径一（仓库根，回归门禁口径）：1036 collected（W-SLIM 瘦身批 +9 自测、验收批 +1 无扩展名回归、复核批 +1 svg 口径回归；并行窗在途新增一并计入）；最近实跑记录见 pytest.ini；本轮临时目录保留
 python -m pytest -q
 # 口径二（工具箱内，技能验收基线口径）：同一 tests 范围，实跑结果见 pytest.ini
 cd academic-toolkit && python -m pytest -q
@@ -178,7 +178,7 @@ python tools/check_provenance.py             # → 117/117 UPSTREAM+vendor 台�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）117/117 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **私有基准层** | 真实竞赛题面基准仅本地私有，不入库、不随仓库分发 |
-| ✅ **测试基线** | 仓库根 **1035 collected**（2026-10-03 W-SLIM 验收批后）；最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言；收集数不等于通过数）。**唯一真源 = `pytest.ini` 注释**；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
+| ✅ **测试基线** | 仓库根 **1036 collected**（2026-10-03 W-SLIM 复核批后）；最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言；收集数不等于通过数）。**唯一真源 = `pytest.ini` 注释**；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
 | 🧬 **逐技能 C2 覆盖** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
 | 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + 宿主适配器（可选）+ TOOL_GAP→工具铸造 |
 

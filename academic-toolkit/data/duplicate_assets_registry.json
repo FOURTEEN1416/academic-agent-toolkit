@@ -6784,9 +6784,9 @@
         "academic-toolkit/skills/_utils/figure_layout_check.py",
         "academic-toolkit/skills/shared-scripts/figure_layout_check.py"
       ],
-      "size": 5578,
-      "wasted_bytes": 5578,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）；W-SLIM 外提脚本入库时漏登记，验收批补登"
+      "size": 6026,
+      "wasted_bytes": 6026,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）；W-SLIM 外提脚本入库时漏登记，验收批补登；复核批 svg 口径对齐引擎后更新 size"
     },
     {
       "paths": [
