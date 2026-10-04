@@ -58,7 +58,7 @@ echo "FAST_MODE=$FAST_MODE"
 
 ```bash
 
-cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rules.md
+cat skills/_utils/writing_rules.md 2>/dev/null || cat academic-toolkit/skills/_utils/writing_rules.md 2>/dev/null || cat ../../skills/_utils/writing_rules.md
 
 ```
 
@@ -250,9 +250,9 @@ Fixed sections that must be kept: 表格清单, 插图清单, 中英文摘要, �
 
 ```bash
 
-PROB_COUNT=$(bash _utils/count_subproblems.sh PROBLEM_ANALYSIS.md)
+PROB_COUNT=$(bash skills/_utils/count_subproblems.sh PROBLEM_ANALYSIS.md 2>/dev/null || bash academic-toolkit/skills/_utils/count_subproblems.sh PROBLEM_ANALYSIS.md 2>/dev/null || bash ../../skills/_utils/count_subproblems.sh PROBLEM_ANALYSIS.md)
 
-MODEL_COUNT=$(bash _utils/count_subproblems.sh MODELING_REPORT.md)
+MODEL_COUNT=$(bash skills/_utils/count_subproblems.sh MODELING_REPORT.md 2>/dev/null || bash academic-toolkit/skills/_utils/count_subproblems.sh MODELING_REPORT.md 2>/dev/null || bash ../../skills/_utils/count_subproblems.sh MODELING_REPORT.md)
 
 echo "子问题数: 分析=$PROB_COUNT, 建模=$MODEL_COUNT"
 
@@ -268,7 +268,7 @@ echo "子问题数: 分析=$PROB_COUNT, 建模=$MODEL_COUNT"
 
 FAST_MODE=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
-python _utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper/sections --fast $FAST_MODE
+python skills/_utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper/sections --fast $FAST_MODE 2>/dev/null || python academic-toolkit/skills/_utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper/sections --fast $FAST_MODE 2>/dev/null || python ../../skills/_utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper/sections --fast $FAST_MODE
 
 PCC=$?   # 0=全通过可写 1=有能力项未通过(FAIL/严格模式PENDING,不该写) 2=无总账跳过
 
@@ -363,7 +363,7 @@ fi
 
 ```bash
 
-python _utils/template_integrity_check.py --fingerprint 2>/dev/null || python skills/_utils/template_integrity_check.py --fingerprint
+python skills/_utils/template_integrity_check.py --fingerprint --template-base skills/comp-paper-zh/_templates 2>/dev/null || python academic-toolkit/skills/_utils/template_integrity_check.py --fingerprint --template-base academic-toolkit/skills/comp-paper-zh/_templates 2>/dev/null || python ../../skills/_utils/template_integrity_check.py --fingerprint --template-base ../../skills/comp-paper-zh/_templates
 
 ```
 
@@ -426,7 +426,7 @@ Use the template as-is. Only modify:
 
    ```bash
 
-   python _utils/template_integrity_check.py --full 2>/dev/null || python skills/_utils/template_integrity_check.py --full
+   python skills/_utils/template_integrity_check.py --full 2>/dev/null || python academic-toolkit/skills/_utils/template_integrity_check.py --full 2>/dev/null || python ../../skills/_utils/template_integrity_check.py --full
 
    ```
 
@@ -618,7 +618,7 @@ Correct format for cumcm/stats templates (already in template):
 
 ```bash
 
-python _utils/abstract_paragraph_check.py 2>/dev/null || python skills/_utils/abstract_paragraph_check.py
+python skills/_utils/abstract_paragraph_check.py 2>/dev/null || python academic-toolkit/skills/_utils/abstract_paragraph_check.py 2>/dev/null || python ../../skills/_utils/abstract_paragraph_check.py
 
 ```
 
@@ -822,7 +822,7 @@ DrawIO 图（技术路线图、求解流程图、Pipeline 图等）的 `\begin{f
 
 ```bash
 
-python _utils/figure_layout_check.py paper/ 2>/dev/null || python skills/_utils/figure_layout_check.py paper/
+python skills/_utils/figure_layout_check.py paper/ 2>/dev/null || python academic-toolkit/skills/_utils/figure_layout_check.py paper/ 2>/dev/null || python ../../skills/_utils/figure_layout_check.py paper/
 
 ```
 
@@ -879,7 +879,7 @@ mkdir -p _tmp
 
 cat RESULTS.md
 
-python _utils/summarize_results.py 2>/dev/null || python skills/_utils/summarize_results.py
+python skills/_utils/summarize_results.py 2>/dev/null || python academic-toolkit/skills/_utils/summarize_results.py 2>/dev/null || python ../../skills/_utils/summarize_results.py
 
 ```
 
@@ -1028,7 +1028,7 @@ $x_i$ & 第$i$个变量 & --- \\
 
 Read RESULTS.md for exact numbers — ensure paper numbers match computation results.
 
-**⛔ 图文数值一致性规则：** 描述图表内容时（如"从图X可以看出，模型A的RMSE为0.023"），数值必须从 `figures/*.json` 或 `RESULTS.md` 中读取，不要凭记忆编写。写完后用 `bash _utils/writing_check.sh paper/` 检查一致性。
+**⛔ 图文数值一致性规则：** 描述图表内容时（如"从图X可以看出，模型A的RMSE为0.023"），数值必须从 `figures/*.json` 或 `RESULTS.md` 中读取，不要凭记忆编写。写完后用 `bash ../../skills/_utils/writing_check.sh paper/`（cwd=工作区根）检查一致性。
 
 **⛔ 长表格处理规则（>12 行的数据表格）：**
 
@@ -1561,7 +1561,7 @@ done < _tmp/_cited_keys.txt
 
 全文写完后、编译前，按以下顺序做一轮改写（目标是把"程序验收话"改成"读者视角的事实"，不是同义词替换）：
 
-1. **跑机检定位**：`python _utils/ai_tell_check.py --strict paper/`（cwd=工作区根；目录参数已支持递归找正文）。exit 1 时逐条输出都有行号+改法建议。**本步受引擎 `ai_flavor` 强制闸**：finish 时自动全量重扫，硬伤+空话 >3 处（获奖论文水平上界）直接拒绝完成——所以别等闸拦，现在就改到位。
+1. **跑机检定位**：`python ../../skills/_utils/ai_tell_check.py --strict paper/`（cwd=工作区根；目录参数已支持递归找正文）。exit 1 时逐条输出都有行号+改法建议。**本步受引擎 `ai_flavor` 强制闸**：finish 时自动全量重扫，硬伤+空话 >3 处（获奖论文水平上界）直接拒绝完成——所以别等闸拦，现在就改到位。
 2. **按优先级改写**（替代表与实测规模见 `_utils/writing_rules.md` `<de_ai_polish>` 段）：
    - 工程/质检语汇泄漏（实测第一大破绽，10 工作区 442 次）：口径→定义/取法/计算方式；自检→校验/一致性检验；兜底→缺省处理；链路(隐喻义)→写明具体传递关系。**改写方向是删掉"检查视角"，直接陈述被验证的事实**：不写"容量校验零越界"，写"最高利用率 0.992，仍有 0.8% 余量"；不写"单调性断言通过"，写"时延权重由 0 增至 20 后，迁移比例由 0.549 降至 0"。
    - 空话套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）：整句删掉或改成带具体内容的陈述——套话删除后段落通常更紧凑，不需要补话。
@@ -1584,7 +1584,7 @@ Read `_utils/writing_rules.md` for abstract format rules (分段、首行缩进�
 
 ```bash
 
-bash _utils/writing_check.sh paper/ 2>/dev/null || bash skills/shared-scripts/writing_check.sh paper/
+bash skills/_utils/writing_check.sh paper/ 2>/dev/null || bash academic-toolkit/skills/_utils/writing_check.sh paper/ 2>/dev/null || bash ../../skills/_utils/writing_check.sh paper/
 
 ```
 
@@ -1594,7 +1594,7 @@ bash _utils/writing_check.sh paper/ 2>/dev/null || bash skills/shared-scripts/wr
 
 FAST_MODE=0; grep -q 'MH_FAST_MODE=1' AGENTS.md 2>/dev/null && FAST_MODE=1
 
-python _utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper/sections --fast $FAST_MODE
+python skills/_utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper/sections --fast $FAST_MODE 2>/dev/null || python academic-toolkit/skills/_utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper/sections --fast $FAST_MODE 2>/dev/null || python ../../skills/_utils/paper_claim_check.py --audit CAPABILITY_AUDIT.md --checklist CAPABILITY_CHECKLIST.json --sections paper/sections --fast $FAST_MODE
 
 PCC=$?   # 此时正文已成型：会扫未通过能力名是否出现在正文(WARN),并复核验收状态(FAIL阻断)
 
@@ -1648,11 +1648,11 @@ Read PROBLEM_ANALYSIS.md (or the original problem statement in user_data/) and c
 
 ```bash
 
-python _utils/page_precheck.py --workspace . 2>/dev/null || python skills/_utils/page_precheck.py --workspace .
+python skills/_utils/page_precheck.py --workspace . 2>/dev/null || python academic-toolkit/skills/_utils/page_precheck.py --workspace . 2>/dev/null || python ../../skills/_utils/page_precheck.py --workspace .
 
 ```
 
-脚本做三件事：①代码块（lstlisting/verbatim 等）混进 sections/ 即违约——代码属 appendix/，混入会让估页虚高而实际正文薄；②字符估页（sections/ 900 字符/页）对照 PAGE_CAP，超限即违约；③附录单独统计不计入。cap 缺失=上限未知（待核实），禁止编默认值。finish 时 quick_gates 会以真实 PDF 按同一合同终检。
+脚本做三件事：①代码块（lstlisting/verbatim 等）混进 sections/ 即违约——代码属 appendix/，混入会让估页虚高而实际正文薄；②字符估页（sections/ 900 字符/页）对照 PAGE_CAP，超限即违约；③附录单独统计不计入。cap 缺失=上限未知（待核实），禁止编默认值。finish 时 quick_gates 会以真实 PDF 按同一合同终检。cwd 语义：`--workspace .` 要求在工作区根执行；从工具箱根跑时改传 `--workspace workspaces/<工作区名>`。
 
 不为凑任何页数目标扩写充数；章节完整性由写作合同保证（每个子问题覆盖、论断有证据支撑），篇幅随建模与论证需要自然形成。
 
@@ -1748,7 +1748,7 @@ python _utils/page_precheck.py --workspace . 2>/dev/null || python skills/_utils
 
 ```bash
 
-cd <academic-toolkit 根目录> && python skills/_utils/facts_audit.py paper
+python skills/_utils/facts_audit.py --stage paper 2>/dev/null || python academic-toolkit/skills/_utils/facts_audit.py --stage paper 2>/dev/null || python ../../skills/_utils/facts_audit.py --stage paper
 
 ```
 
@@ -1770,7 +1770,7 @@ cd <academic-toolkit 根目录> && python skills/_utils/facts_audit.py paper
 
 ```bash
 
-python _utils/figure_layout_check.py paper/ 2>/dev/null || python skills/_utils/figure_layout_check.py paper/
+python skills/_utils/figure_layout_check.py paper/ 2>/dev/null || python academic-toolkit/skills/_utils/figure_layout_check.py paper/ 2>/dev/null || python ../../skills/_utils/figure_layout_check.py paper/
 
 ```
 
@@ -1780,7 +1780,7 @@ python _utils/figure_layout_check.py paper/ 2>/dev/null || python skills/_utils/
 
 ```bash
 
-python _utils/template_integrity_check.py --full 2>/dev/null || python skills/_utils/template_integrity_check.py --full
+python skills/_utils/template_integrity_check.py --full 2>/dev/null || python academic-toolkit/skills/_utils/template_integrity_check.py --full 2>/dev/null || python ../../skills/_utils/template_integrity_check.py --full
 
 ```
 
@@ -1799,7 +1799,7 @@ python _utils/template_integrity_check.py --full 2>/dev/null || python skills/_u
 ## Key Rules
 
 - ⛔ **AI 申报双件套自动生成（合规硬要求）**：竞赛要求正文参考文献前放“AI 工具使用声明”+ 独立支撑材料《AI工具使用详情.pdf》。生成/核验必须用确定性脚本 `_utils/build_ai_disclosure.py`（双副本同 shared-scripts/，规范见 `_utils/ai_disclosure_rules.md`）：工具/型号/日期/用途只来自用户确认的清单（`.mh/ai_disclosure.json`），禁止语言模型自由编写详情；正文声明位置在参考文献之前；交付前必跑 `--check-only` 反查闸。未使用 AI 时用脚本生成“未使用”声明并清理旧详情文件。
-- ⛔ **AI 痕迹自检（交稿前必跑）**：`python _utils/ai_tell_check.py --strict paper/`（双副本同 shared-scripts/）——工程/质检语汇（口径/闭环等）从提示词流进正文是实测最高频 AI 痕迹（10 工作区 442 次命中）；中文套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）与工程词同级硬拦，`--strict` 下剩余空话（由此可见/换言之等）也计失败；exit 1 时必修。人工风格对照 `_utils/human_competition_paper_style.md`，风格检查 `python _utils/human_paper_style_check.py paper/`。
+- ⛔ **AI 痕迹自检（交稿前必跑）**：`python ../../skills/_utils/ai_tell_check.py --strict paper/`（cwd=工作区根；双副本同 shared-scripts/）——工程/质检语汇（口径/闭环等）从提示词流进正文是实测最高频 AI 痕迹（10 工作区 442 次命中）；中文套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）与工程词同级硬拦，`--strict` 下剩余空话（由此可见/换言之等）也计失败；exit 1 时必修。人工风格对照 `_utils/human_competition_paper_style.md`，风格检查 `python ../../skills/_utils/human_paper_style_check.py paper/`。
 - **防过度/辩护性写作（修订轮主动推荐）**：修订或压缩页数时调 `anti-defensive-writing` 技能，删不必要的 hedge/免责声明/道歉式框架/过度解释——保留必要的范围、误差与方法学限定，删的是"可能在一定程度上"式空转措辞；深度检测可加跑 `anti-ai-detection` 技能（8 维度 AI 特征分析+改写建议）。与 ai_tell_check 互补：一个删 AI 痕迹语汇、一个删防御性冗余。
 
 - Use templates from `templates/`, do not write main.tex from scratch
@@ -1852,7 +1852,7 @@ grep -q '<!-- AUDIT_OK source=' RESULTS.md || echo "❌ 缺 AUDIT_OK 凭证 — 
 
 ls results_v*.json results_old.json *_backup.json 2>/dev/null && echo "⚠ 历史版本 JSON 残留（版本漂移源），确认后删除"
 
-python skills/_utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
+(python skills/_utils/facts_audit.py --stage paper 2>/dev/null || python academic-toolkit/skills/_utils/facts_audit.py --stage paper 2>/dev/null || python ../../skills/_utils/facts_audit.py --stage paper) 2>&1 | tee -a AUDIT_REPORT.md
 
 ```
 

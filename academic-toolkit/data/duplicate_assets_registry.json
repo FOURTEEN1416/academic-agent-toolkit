@@ -6778,6 +6778,33 @@
       "size": 1013206,
       "wasted_bytes": 1013206,
       "reason": "W1 一手原件库（contest-regs）按原件原样原则存证，与技能消费副本（comp-paper-zh official_docx 模板链）职责异构并存；原件库文件不容改写，技能副本供排版管线直接消费"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/figure_layout_check.py",
+        "academic-toolkit/skills/shared-scripts/figure_layout_check.py"
+      ],
+      "size": 5578,
+      "wasted_bytes": 5578,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）；W-SLIM 外提脚本入库时漏登记，验收批补登"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/page_precheck.py",
+        "academic-toolkit/skills/shared-scripts/page_precheck.py"
+      ],
+      "size": 5408,
+      "wasted_bytes": 5408,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）；W-SLIM 外提脚本入库时漏登记，验收批补登"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/template_integrity_check.py",
+        "academic-toolkit/skills/shared-scripts/template_integrity_check.py"
+      ],
+      "size": 6866,
+      "wasted_bytes": 6866,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）；W-SLIM 外提脚本入库时漏登记，验收批补登"
     }
   ]
 }

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Figure embedding & layout checks for comp-paper-zh (extracted from SKILL.md).
+r"""Figure embedding & layout checks for comp-paper-zh (extracted from SKILL.md).
 
 Covers the embedding-side checks that no engine gate owns today
 (figure_narrative checks embedded-but-unnarrated floats; output_contract
 figure_outputs checks manifest files exist -- neither checks "every produced
 figure / manifest figure is actually referenced by the paper"):
 
-1. embed completeness -- every figures/*.pdf must be referenced (basename) in
-   paper/main.tex or paper/sections/*.tex;
+1. embed completeness -- every figures/*.pdf must be referenced in
+   paper/main.tex or paper/sections/*.tex (with or without extension: LaTeX
+   ``\includegraphics{../figures/fig_x}`` is legal and common);
 2. FIGURE_MANIFEST reconciliation -- every ``- fig_x`` / ``- tikz_x`` entry in
    the manifest block (PROBLEM_ANALYSIS.md / PAPER_PLAN.md / MODELING_REPORT.md)
    must exist in figures/ AND be referenced by the paper;
@@ -26,6 +27,13 @@ import sys
 from pathlib import Path
 
 MANIFEST_PLAN_FILES = ("PROBLEM_ANALYSIS.md", "PAPER_PLAN.md", "MODELING_REPORT.md")
+
+
+def _referenced(name: str, text: str) -> bool:
+    """正文引用判定：fig_x.pdf / fig_x.png / 无扩展名形态（LaTeX includegraphics
+    合法省略扩展名，实测冻结稿 28/31 图无扩展名引用）均算已引用；
+    否定先行防前缀误配（fig_q1 不得匹配 fig_q10）。"""
+    return bool(re.search(rf"{re.escape(name)}(?:\.(?:pdf|png))?(?![A-Za-z0-9_])", text))
 
 
 def _paper_text(paper: Path) -> str:
@@ -76,12 +84,12 @@ def main() -> int:
 
     print("=== 图表嵌入完整性 ===")
     for pdf in pdfs:
-        bn = pdf.name
-        if bn in text:
-            print(f"✅ {bn} 已嵌入")
+        stem = pdf.stem
+        if _referenced(stem, text):
+            print(f"✅ {pdf.name} 已嵌入")
         else:
-            print(f"❌ {bn} 未嵌入任何章节")
-            failures.append(f"未嵌入: {bn}")
+            print(f"❌ {pdf.name} 未嵌入任何章节")
+            failures.append(f"未嵌入: {pdf.name}")
 
     print("=== FIGURE_MANIFEST 对账 ===")
     manifest = _manifest_entries(workspace)
@@ -91,7 +99,7 @@ def main() -> int:
         plan_name, names = manifest
         for name in names:
             produced = any((figures_dir / f"{name}.{ext}").is_file() for ext in ("pdf", "png"))
-            referenced = bool(re.search(rf"{re.escape(name)}\.(?:pdf|png)", text))
+            referenced = _referenced(name, text)
             if not produced:
                 print(f"❌ MANIFEST: {name} 文件不存在（{plan_name}）")
                 failures.append(f"MANIFEST 未产出: {name}")

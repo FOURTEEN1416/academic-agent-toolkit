@@ -91,6 +91,27 @@ def test_figure_layout_embed_and_manifest(tmp_path):
     assert r.returncode == 0, r.stdout + r.stderr
 
 
+def test_figure_layout_extensionless_includegraphics_not_a_violation(tmp_path):
+    """验收修复回归：\\includegraphics{../figures/fig_x}（无扩展名，LaTeX 合法）
+    不得报"未嵌入/未引用"（冻结稿实测 28/31 图此形态，曾致 59 条违约中大多假阳）。"""
+    ws = tmp_path
+    (ws / "figures").mkdir()
+    (ws / "figures" / "fig_q1_bisection.pdf").write_bytes(b"%PDF")
+    (ws / "figures" / "fig_q1.pdf").write_bytes(b"%PDF")
+    paper = ws / "paper" / "sections"
+    paper.mkdir(parents=True)
+    (ws / "paper" / "main.tex").write_text("main\n", encoding="utf-8")
+    (paper / "5_problem1.tex").write_text(
+        "\\includegraphics[width=0.92\\textwidth]{../figures/fig_q1_bisection}\n"
+        "\\includegraphics[width=0.9\\textwidth]{../figures/fig_q10_x}\n",  # 前缀歧义探针
+        encoding="utf-8")
+    r = _run("figure_layout_check.py", ["paper"], ws)
+    assert r.returncode == 1, r.stdout  # fig_q10_x 无产出文件，仍须违约
+    assert "fig_q1_bisection.pdf 未嵌入" not in r.stdout
+    # fig_q1 不得因 fig_q10_x 的出现而被误判已引用
+    assert "fig_q1.pdf 未嵌入" in r.stdout
+
+
 def test_figure_layout_manifest_and_stacking(tmp_path):
     ws = tmp_path
     (ws / "figures").mkdir()
