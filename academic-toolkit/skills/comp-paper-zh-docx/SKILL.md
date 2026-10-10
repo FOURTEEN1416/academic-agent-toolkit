@@ -1803,6 +1803,26 @@ cap_rc=$?
 
 [ "$cap_rc" -eq 3 ] && echo "⛔ 图注过长：把 alt 文字压成简短标签、细节移入正文后，重跑本检测直到输出 ✅ 才能结束"
 
+
+
+# 12. ⛔ docx 收尾格式探针（管页码域/身份泄漏/行距三查；docx 在场才跑，缺席 SKIP 不冒充通过）
+
+DOCX_PROBE=""
+
+for f in _utils/docx_format_probe.py skills/shared-scripts/docx_format_probe.py; do
+
+  [ -f "$f" ] && { DOCX_PROBE="$f"; break; }
+
+done
+
+PROBE_RC=0
+
+[ -n "$DOCX_PROBE" ] && { python "$DOCX_PROBE" .; PROBE_RC=$?; }
+
+[ "$PROBE_RC" -eq 1 ] && echo "⛔ docx 格式探针 FAIL（页码缺域/身份泄漏）：按上面 [页码域]/[身份泄漏] 提示修复后重跑本探针直到退出码 0 才能结束（rc=2 无 docx 为 SKIP，不冒充通过）"
+
+# 退出码：0=干净  1=有 FAIL（⛔ 行硬拦，修完重跑）  2=无 docx（SKIP，不冒充通过）
+
 ```
 
 

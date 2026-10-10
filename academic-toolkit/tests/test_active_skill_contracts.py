@@ -447,7 +447,7 @@ def _run_case_selection(skill: str, contest_id: str, dirs, tmpl_base=None):
         (Path(td) / "case.sh").write_text(script, encoding="utf-8")
         r = subprocess.run([bash, "case.sh"], cwd=td,
                            env={**os.environ, "CONTEST_ID": contest_id},
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, encoding="utf-8", timeout=30)
         out = r.stdout.strip().splitlines()
         main_tex = Path(td) / "paper" / "main.tex"
         main_sha = hashlib.sha1(main_tex.read_bytes()).hexdigest() if main_tex.is_file() else ""

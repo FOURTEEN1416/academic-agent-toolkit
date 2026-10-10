@@ -13,6 +13,39 @@
     "经验配额只在 guidance；旧届快照/复制污染/v1 历史值隔离在赛事级 historical_notes，不进 constraints/guidance；文件格式（PDF/DOCX/大小）是约束（file_format/file_size 等），不在 submission_form 取值里。"
   ],
   "sources": {
+    "sw11-announce": {
+      "kind": "official_direct",
+      "title": "2026年第十一届数维杯大学生数学建模挑战赛（春季赛）开赛公告（组委会，2026-04-30）",
+      "retrieved_at": "2026-10-09",
+      "verification": "full_text",
+      "url": "https://www.nmmcm.org.cn/News/184.html",
+      "located": "第四部分论文格式 1-6 条（中文写作/正文宋体小四行距1.5倍/标题三号黑体/正文页数一般控制在30页以内附录页数不限/正文每页页眉必须显示队伍号和页码 Team # SHUWEI2600001 Page 1 of 9 式/第一页摘要专用页含题目关键词不需英文翻译单独一页不超一页/学生指导教师机构名称不得出现在任何页面除队伍号外无其他标识）+ 第五部分（不收纸质全部线上提交/竞赛系统或备用邮箱 mcm@nmmcm.org.cn/可重复提交以最后一次为准）",
+      "applicable_scope": "第十一届春季赛（2026）当届——秋季赛（第十二届）属不同场次届次文件，未并入本档案",
+      "note": "官网 nmmcm.org.cn（数维杯官方域名）新闻页直读，发布方数维杯大学生数学建模竞赛组委会，落款 2026 年 4 月；公告 PDF 附件（/static/upload/file/20260430/1777530942137248.pdf）下载后逐字核对同文；快照 md5 见 assets-local/contest-regs/shuwei/11th_spring_2026/SNAPSHOTS.md5",
+      "path": "assets-local/contest-regs/shuwei/11th_spring_2026/开赛公告_snapshot_nmmcm_20261009抓取.pdf"
+    },
+    "moc16-spec-pdf": {
+      "kind": "official_direct",
+      "title": "2026年第十六届MathorCup数学应用挑战赛论文格式及提交规范（组委会文件，2026年4月修订）",
+      "retrieved_at": "2026-10-09",
+      "verification": "full_text",
+      "url": "https://publicqn.saikr.com/2026/04/16/contest/59c017c1305e07bfd2f87198b60224e51776325205059.pdf",
+      "located": "全文 2 页直读：论文格式 1-7 条（第一页=题目摘要关键词/第二页=目录页/页码自正文起页脚中部阿拉伯数字/无页眉/禁个人信息/必须中文/正文控制在30页左右/附录页数不限/参考文献方括号三格式/排版不做统一要求）+ 提交规范 1-5 条（报名系统提交/PDF/#MC*******.pdf/承诺书独立文件 PDF或JPG/#MC*******附件.rar/计算结果.xlsx）+ 罚则段（不符合规范视为违反竞赛规则无条件取消评奖资格）",
+      "applicable_scope": "第十六届（2026）当届",
+      "note": "组委会在官方指定报名平台赛氪（saikr.com/vse/mathorcup2026，官网 notice 指向）发布的格式规范公告附件 PDF，发布方 MathorCup数学应用挑战赛组委会；与公告页 moc16-spec-notice 同文互证；本地快照 md5 见 assets-local/contest-regs/mathorcup/16th_2026/SNAPSHOTS.md5",
+      "path": "assets-local/contest-regs/mathorcup/16th_2026/论文格式及提交规范_snapshot_saikr_20261009抓取.pdf"
+    },
+    "moc16-spec-notice": {
+      "kind": "platform_official_snapshot",
+      "title": "【论文格式及提交规范】2026年第十六届MathorCup数学应用挑战赛（论文模板和承诺书见附件）",
+      "retrieved_at": "2026-10-09",
+      "verification": "full_text",
+      "url": "https://www.saikr.com/c/nd/41852",
+      "located": "公告发布方 MathorCup组委会，2026.04.16 15:40；正文条款与附件 PDF（moc16-spec-pdf）一致；附件：论文模板.doc、承诺书.docx、格式规范.pdf",
+      "applicable_scope": "第十六届（2026）当届",
+      "note": "saikr 为 MathorCup 官方指定报名与提交平台（官网 mathorcup.org/notice 第16届竞赛通知与官网提交规范均指向该平台）；官网主赛道未检索到第十六届同文规范页",
+      "path": "assets-local/contest-regs/mathorcup/16th_2026/格式规范公告页_snapshot_saikr_20261009抓取.html"
+    },
     "SRC-004": {
       "kind": "official_direct",
       "title": "关于暂停举办2026年“深圳杯”数学建模挑战赛的通知",
@@ -409,6 +442,16 @@
       "located": "18→23 届格式七闸逐字稳定链原件；22nd_2025/附件4=22届AI规定（21届首颁→23届修订演进链一环）",
       "applicable_scope": "15-23 届历史原件（当届口径以 comp_rules profiles 约束带为准；旧届条文不得直接标当届）",
       "note": "assets-local 整区随公开仓分发（2026-09-28 用户裁决）；机检消费经 comp_rules，不直读二进制原件"
+    },
+    "zq8-submit-notice": {
+      "kind": "official_direct",
+      "title": "2026年第八届中青杯全国大学生数学建模竞赛论文提交流程及备用邮箱（官网新闻页，发布 2026-06-04）",
+      "retrieved_at": "2026-10-09",
+      "verification": "full_text",
+      "url": "https://www.cycmcm.com/（中青杯官网新闻页；页面完整 URL 未随快照留存，快照存正文全文）",
+      "located": "论文提交流程三步+注意事项 1-3（命名示例/选题勾选/承诺书勾选）+备用邮箱段",
+      "path": "assets-local/contest-regs/zhongqing/8th_2026/论文提交通知_snapshot_cycmcm_20261009抓取.html",
+      "note": "发布方中青杯全国大学生数学建模竞赛组委会（官网 cycmcm.com，皖ICP备2024057061号-4）；参赛通知与新闻列表快照同目录留存，md5 见 SNAPSHOTS.md5"
     }
   },
   "contests": {
@@ -1555,7 +1598,275 @@
         "template_cls": "ctexart",
         "note": "引擎绑定字段（迁移期保留）"
       },
-      "profiles": [],
+      "profiles": [
+        {
+          "profile_id": "comp_mathorcup_2026_electronic",
+          "edition": "2026",
+          "submission_form": "electronic",
+          "rules_revision": "第十六届论文格式及提交规范（组委会 2026年4月修订）",
+          "constraints": [
+            {
+              "id": "mc16-page-order",
+              "vintage": "2026-16th",
+              "kind": "page_order",
+              "status": "verified",
+              "value": {
+                "sequence": [
+                  "first_page_title_abstract_keywords",
+                  "toc_page",
+                  "body"
+                ],
+                "toc_required": true,
+                "order_immutable": true
+              },
+              "scope": "论文整体页序：第 1 页=题目+摘要+关键词，第 2 页=目录页，目录页之后开始正文",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「论文题目、摘要和关键词写在论文第一页上，第二页为目录页，目录页之后开始正文」",
+              "note": "与 cumcm 相反：MathorCup 必须有目录页（第 2 页）；v1 历史文本亦载目录页（historical_notes）"
+            },
+            {
+              "id": "mc16-first-page",
+              "vintage": "2026-16th",
+              "kind": "first_page",
+              "status": "verified",
+              "value": {
+                "contains": [
+                  "论文题目",
+                  "摘要",
+                  "关键词"
+                ],
+                "page": 1
+              },
+              "scope": "论文第一页",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「论文题目、摘要和关键词写在论文第一页上」"
+            },
+            {
+              "id": "mc16-page-limit",
+              "vintage": "2026-16th",
+              "kind": "page_limit",
+              "status": "verified",
+              "value": {
+                "basis": "body",
+                "limit": 30,
+                "limit_qualifier": "soft_around"
+              },
+              "scope": "正文（自目录页之后起）控制在 30 页左右——「左右」为官方软性控制目标，非硬上限；目录页不计入正文；附录页数不限另列（mc16-appendix）",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「论文写作必须采用中文。(正文控制在30页左右，附录页数不限)」",
+              "note": "v1 历史值 30 与当届官方数值一致（v1 口径未经官方核验，见 historical_notes）；引擎按 verified+body 口径取 30，软性性质见 limit_qualifier 与 scope"
+            },
+            {
+              "id": "mc16-page-numbering",
+              "vintage": "2026-16th",
+              "kind": "page_numbering",
+              "status": "verified",
+              "value": {
+                "start": "body",
+                "start_number": 1,
+                "position": "footer_center",
+                "style": "arabic_sequential"
+              },
+              "scope": "正文页码（自正文第一页起编）",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「请从正文开始编写页码；页码必须位于每页页脚中部，用阿拉伯数字从“1”开始连续编号」"
+            },
+            {
+              "id": "mc16-page-header",
+              "vintage": "2026-16th",
+              "kind": "page_header",
+              "status": "verified",
+              "value": {
+                "presence": "forbidden"
+              },
+              "scope": "论文全部页面",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「论文不能有页眉」"
+            },
+            {
+              "id": "mc16-anonymity",
+              "vintage": "2026-16th",
+              "kind": "identity_anonymity",
+              "status": "verified",
+              "value": {
+                "identity_forbidden": true,
+                "forbidden_items": [
+                  "答题人身份",
+                  "所在学校等个人信息"
+                ]
+              },
+              "scope": "论文全部页面",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「不能出现答题人身份和所在学校等个人信息」",
+              "note": "罚则为规范总则：不符合本格式规范的论文将被视为违反竞赛规则，无条件取消评奖资格（见 mc16-submission-flow）"
+            },
+            {
+              "id": "mc16-language",
+              "vintage": "2026-16th",
+              "kind": "submission_language",
+              "status": "verified",
+              "value": {
+                "language": "zh"
+              },
+              "scope": "论文写作",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「论文写作必须采用中文」"
+            },
+            {
+              "id": "mc16-appendix",
+              "vintage": "2026-16th",
+              "kind": "appendix_limit",
+              "status": "verified",
+              "value": {
+                "limit": null,
+                "rule": "unlimited",
+                "must_contain": [
+                  "实际使用的软件名称",
+                  "命令",
+                  "编写的全部计算机源程序（若有的话）"
+                ]
+              },
+              "scope": "正文之后附录",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「(正文控制在30页左右，附录页数不限)」「在论文附录中，应提供参赛者实际使用的软件名称、命令和编写的全部计算机源程序(若有的话)」",
+              "note": "所有源程序文件必须保存至正式获奖名单公布，以备检验需要"
+            },
+            {
+              "id": "mc16-references",
+              "vintage": "2026-16th",
+              "kind": "reference_styles",
+              "status": "verified",
+              "value": {
+                "formats": [
+                  "书籍",
+                  "期刊",
+                  "网络资源"
+                ],
+                "order": "按正文中的引用次序",
+                "in_text": "方括号标示编号（如[1][3]）",
+                "book_page_numbers": true
+              },
+              "scope": "参考文献（正文引用处+文献表）",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「正文引用处用方括号标示参考文献的编号，如[1][3]等；引用书籍还必须指出页码。参考文献按正文中的引用次序列出」"
+            },
+            {
+              "id": "mc16-typography",
+              "vintage": "2026-16th",
+              "kind": "format_typography",
+              "status": "verified",
+              "value": {
+                "font_rule": "字号、字体、行距、颜色等排版格式官方明文不做统一要求",
+                "requirement": "保持页面美观"
+              },
+              "scope": "论文排版",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「本规范中未作规定的，如排版格式(字号、字体、行距、颜色等)不做统一要求，但要保持页面美观」"
+            },
+            {
+              "id": "mc16-file-format",
+              "vintage": "2026-16th",
+              "kind": "file_format",
+              "status": "verified",
+              "value": {
+                "format": "pdf",
+                "applies_to": "论文文件",
+                "single_file": true
+              },
+              "scope": "论文提交件",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「参赛队论文统一提交PDF文件」"
+            },
+            {
+              "id": "mc16-file-naming",
+              "vintage": "2026-16th",
+              "kind": "file_naming",
+              "status": "verified",
+              "value": {
+                "paper": "#MC*******.pdf（#为题号，MC*******为参赛队号）",
+                "example": "AMC2600001.pdf",
+                "attachment": "#MC*******附件.rar",
+                "attachment_optional": true,
+                "results_file": "题号+参赛编号+计算结果.xlsx",
+                "results_when": "题目要求提交数据附件时（赛题另有要求从其规定）"
+              },
+              "scope": "提交文件命名",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「论文文件的名称为“#MC*******.pdf”…例：“AMC2600001.pdf”或者“DMC2600001.pdf”」「文件名称为“#MC*******附件.rar”」"
+            },
+            {
+              "id": "mc16-pledge",
+              "vintage": "2026-16th",
+              "kind": "pledge_page",
+              "status": "verified",
+              "value": {
+                "presence": "forbidden",
+                "separate_file": {
+                  "formats": [
+                    "pdf",
+                    "jpg"
+                  ],
+                  "naming": "#MC*******承诺书",
+                  "example": "AMC2600001承诺书",
+                  "signatures": "每个队员手写或者电子签名，扫描或照片生成"
+                }
+              },
+              "scope": "论文不含承诺书页（第一页为题目摘要关键词）；承诺书为独立提交文件随电子档上传",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「承诺书…需每个队员手写或者电子签名，然后通过扫描或者照片的形式把签名的承诺书生成PDF文件或JPG图片。承诺书的名称为“#MC*******承诺书”」",
+              "note": "引擎 compliance 视图按 presence=forbidden 映射（论文内无承诺书页，与 cumcm 电子版同向）；独立文件要求记录在 separate_file"
+            },
+            {
+              "id": "mc16-submission-flow",
+              "vintage": "2026-16th",
+              "kind": "submission_flow",
+              "status": "verified",
+              "value": {
+                "channel": "竞赛报名系统（队长赛氪账号电脑登录 saikr.com/vse/mathorcup2026）",
+                "submits": [
+                  "电子版论文",
+                  "承诺书",
+                  "支撑材料"
+                ],
+                "support_material_optional": "题目无明确要求时不作为必须提交的材料",
+                "penalty": "不符合本格式规范的论文将被视为违反竞赛规则，无条件取消评奖资格"
+              },
+              "scope": "电子档提交流程与罚则",
+              "source_ids": [
+                "moc16-spec-pdf"
+              ],
+              "locator": "「参赛队伍通过竞赛报名系统提交电子版论文、承诺书、支撑材料」「不符合本格式规范的论文将被视为违反竞赛规则，无条件取消评奖资格」"
+            }
+          ],
+          "guidance": []
+        }
+      ],
       "historical_notes": [
         {
           "kind": "legacy_config",
@@ -1566,12 +1877,19 @@
           "source_ids": [
             "legacy-comp-rules-20260927"
           ]
+        },
+        {
+          "kind": "correction_record",
+          "note": "2026-10-09 第十六届官方格式规范 PDF 全文直读：正文控制在 30 页左右（软性控制目标）+附录页数不限——v1 数值 30 与当届官方数值一致，但 v1 的硬上限口径未经官方核验，本记录修正证据基础",
+          "source_ids": [
+            "moc16-spec-pdf"
+          ]
         }
       ],
       "migration_evidence": [
         {
           "legacy": "v1 max_pages=30（无官方出处）",
-          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；2026-10-09 第十六届官方格式规范 PDF 直读坐实正文 30 页左右软性口径，缺证状态解除（见 constraints/mc16-page-limit）",
           "sources": [
             "legacy-comp-rules-20260927"
           ]
@@ -1579,18 +1897,20 @@
       ],
       "lifecycle": {
         "status": "active",
-        "checked_at": "2026-09-27"
+        "checked_at": "2026-10-09"
       },
       "evidence_summary": {
-        "status": "missing_evidence",
-        "summary": "官网（mathorcup.org）2026 第七届章程页直读：正文条款在附件 PDF 内未直读；第六届规范仅第三方转载（称承诺书+编号专用页、A4、2.5cm）",
+        "status": "resolved",
+        "summary": "2026-10-09 第十六届《论文格式及提交规范》组委会 PDF 全文直读（官方指定报名平台赛氪公告附件，发布方 MathorCup数学应用挑战赛组委会），论文格式/页数/承诺书/命名/提交渠道全部坐实；见 profiles/comp_mathorcup_2026_electronic",
         "search_log": [
           "官网 detail/2495 直读（2026-09-27）：条款在 PDF 附件",
-          "检索『MathorCup 论文格式规范 页数』：第六届规范仅 scribd 第三方转载"
+          "检索『MathorCup 论文格式规范 页数』：第六届规范仅 scribd 第三方转载",
+          "定位第十六届官方公告：赛氪 /c/nd/41852 直读（2026-10-09），发布方 MathorCup组委会 2026.04.16 15:40",
+          "公告附件 PDF 全文直读（2026-10-09）：2 页逐条摘录，快照+md5 存 assets-local/contest-regs/mathorcup/16th_2026/"
         ],
         "open_questions": [
-          "当届章程 PDF 内容（页数/承诺书/提交形式）",
-          "第六届规范第三方转载的官方性确认"
+          "竞赛章程（组织性文件）全文仍未直读——不影响论文格式约束，格式维度已由当届格式规范 PDF 解决",
+          "第六届规范第三方转载官方性未确认——当届一手证据已覆盖格式维度，不再追认旧届"
         ]
       }
     },
@@ -1961,7 +2281,157 @@
         "template_cls": "ctexart",
         "note": "引擎绑定字段（迁移期保留）"
       },
-      "profiles": [],
+      "profiles": [
+        {
+          "profile_id": "comp_shuwei_2026_spring_electronic",
+          "edition": "2026",
+          "submission_form": "electronic",
+          "submit_stage": "spring",
+          "rules_revision": "第十一届春季赛开赛公告论文格式条款（组委会 2026-04-30）",
+          "constraints": [
+            {
+              "id": "sw11-page-limit",
+              "vintage": "2026-11th-spring",
+              "kind": "page_limit",
+              "status": "verified",
+              "value": {
+                "basis": "body",
+                "limit": 30,
+                "limit_qualifier": "soft_general"
+              },
+              "scope": "正文页数一般控制在 30 页以内——「一般…以内」为官方软性控制口径，非逐页硬闸；附录另列（sw11-appendix）",
+              "source_ids": [
+                "sw11-announce"
+              ],
+              "locator": "「正文页数一般控制在 30 页以内，附录页数不限」",
+              "note": "v1 历史值 30 与当届官方数值一致（v1 口径未经官方核验，见 historical_notes）"
+            },
+            {
+              "id": "sw11-appendix",
+              "vintage": "2026-11th-spring",
+              "kind": "appendix_limit",
+              "status": "verified",
+              "value": {
+                "limit": null,
+                "rule": "unlimited"
+              },
+              "scope": "正文之后附录",
+              "source_ids": [
+                "sw11-announce"
+              ],
+              "locator": "「正文页数一般控制在 30 页以内，附录页数不限」"
+            },
+            {
+              "id": "sw11-abstract",
+              "vintage": "2026-11th-spring",
+              "kind": "abstract_page",
+              "status": "verified",
+              "value": {
+                "elements": [
+                  "题目",
+                  "关键词"
+                ],
+                "english": "not_required",
+                "max_pages": 1
+              },
+              "scope": "摘要专用页（论文第一页，单独一页）",
+              "source_ids": [
+                "sw11-announce"
+              ],
+              "locator": "「论文第一页为摘要专用页（含题目和关键词，不需要英文翻译）」「摘要专用页必须单独一页，且篇幅不超过一页」",
+              "note": "公告未单列『摘要』二字于 elements（原文括注含题目和关键词）；论文题目用三号黑体（版式见 sw11-typography）"
+            },
+            {
+              "id": "sw11-page-header",
+              "vintage": "2026-11th-spring",
+              "kind": "page_header",
+              "status": "verified",
+              "value": {
+                "template": "Team # SHUWEI2600001 Page 1 of 9",
+                "every_page": true,
+                "content": [
+                  "参赛队队伍号",
+                  "页码"
+                ],
+                "placeholder_forbidden": "切勿保留示例队伍号"
+              },
+              "scope": "正文每一页页眉",
+              "source_ids": [
+                "sw11-announce"
+              ],
+              "locator": "「正文每一页的页眉必须显示正确的参赛队队伍号和页码。格式如下（示例）：Team # SHUWEI2600001 Page 1 of 9」"
+            },
+            {
+              "id": "sw11-anonymity",
+              "vintage": "2026-11th-spring",
+              "kind": "identity_anonymity",
+              "status": "verified",
+              "value": {
+                "identity_forbidden": true,
+                "forbidden_items": [
+                  "学生",
+                  "指导教师",
+                  "机构名称"
+                ],
+                "allowed_identifier": "参赛队伍号"
+              },
+              "scope": "论文全部页面",
+              "source_ids": [
+                "sw11-announce"
+              ],
+              "locator": "「学生、指导教师、机构名称不得出现在论文的任何页面上。除参赛队伍号外，不得出现任何其他标识性信息」"
+            },
+            {
+              "id": "sw11-typography",
+              "vintage": "2026-11th-spring",
+              "kind": "format_typography",
+              "status": "verified",
+              "value": {
+                "body_font": "宋体小四",
+                "line_spacing": "1.5 倍",
+                "heading_font": "三号黑体（含论文题目）",
+                "font_rule": "正文宋体小四行间距1.5倍；标题/论文题目三号黑体（官方明文规定，与 MathorCup 不统一要求相反）"
+              },
+              "scope": "论文正文与标题版式",
+              "source_ids": [
+                "sw11-announce"
+              ],
+              "locator": "「正文：宋体小四，行间距 1.5 倍」「标题：三号黑体」「论文题目用三号黑体」"
+            },
+            {
+              "id": "sw11-language",
+              "vintage": "2026-11th-spring",
+              "kind": "submission_language",
+              "status": "verified",
+              "value": {
+                "language": "zh"
+              },
+              "scope": "论文写作",
+              "source_ids": [
+                "sw11-announce"
+              ],
+              "locator": "「论文写作必须采用中文」"
+            },
+            {
+              "id": "sw11-submission-flow",
+              "vintage": "2026-11th-spring",
+              "kind": "submission_flow",
+              "status": "verified",
+              "value": {
+                "paper_form": "全部线上提交，不收纸质论文",
+                "channel": "竞赛系统提交（官网拥堵时备用邮箱 mcm@nmmcm.org.cn）",
+                "resubmit": "竞赛期间可重复提交，最终以最后一次提交时间为准"
+              },
+              "scope": "提交通道与重复提交规则",
+              "source_ids": [
+                "sw11-announce"
+              ],
+              "locator": "「本次竞赛不收取纸质论文，全部线上提交」+公告第三/五部分（系统提交状态须『已提交』、备用邮箱、重复提交以最后一次为准）"
+            }
+          ],
+          "guidance": []
+        }
+      ],
       "historical_notes": [
         {
           "kind": "legacy_config",
@@ -1984,7 +2454,7 @@
       "migration_evidence": [
         {
           "legacy": "v1 max_pages=30（无官方出处）",
-          "disposition": "移出有效规则；值留本赛事 historical_notes；当届规则缺证见 evidence_summary",
+          "disposition": "移出有效规则；值留本赛事 historical_notes；2026-10-09 第十一届春季赛开赛公告直读坐实正文 30 页以内软性口径，缺证状态解除（见 constraints/sw11-page-limit）",
           "sources": [
             "legacy-comp-rules-20260927"
           ]
@@ -1992,17 +2462,20 @@
       ],
       "lifecycle": {
         "status": "active",
-        "checked_at": "2026-09-27"
+        "checked_at": "2026-10-09"
       },
       "evidence_summary": {
-        "status": "missing_evidence",
-        "summary": "官网首页直读：2026 秋季赛提交截止 2026-11-24；官网存在《参赛规则(2026年修订稿)》与《论文格式规范》（快照），正文未直读；PDF 命名快照称『题号XSWBMCM+队伍编号.pdf』",
+        "status": "resolved",
+        "summary": "2026-10-09 第十一届春季赛开赛公告（官网 nmmcm.org.cn 组委会发布）全文直读+PDF 附件逐字核对：页数/摘要专用页/页眉/排版/匿名/语言/提交通道坐实；见 profiles/comp_shuwei_2026_spring_electronic",
         "search_log": [
           "官网首页直读（2026-09-27）：无规则文档链接",
-          "检索『数维杯 论文格式 页数』：nmmcm.org.cn 规则快照，正文未获"
+          "检索『数维杯 论文格式 页数』：nmmcm.org.cn 规则快照，正文未获",
+          "第十一届春季赛开赛公告直读（2026-10-09）：官网 News/184.html + PDF 附件同文核对，快照存 assets-local"
         ],
         "open_questions": [
-          "论文格式规范原文（页数/承诺书/摘要）"
+          "《论文格式规范》与《参赛规则（2026年修订稿）》单行本正文仍未直读——本档案条款以开赛公告为准",
+          "公告未涉及：PDF 文件格式要求、文件命名规则（搜索摘要曾见 XSWBMCM 式命名但未在公告正文坐实）、承诺书格式、目录要求——保持缺席",
+          "秋季赛（第十二届，2026-11-24 截止）格式条款未取证，未并入本档案（submit_stage=spring 锚定春季赛）"
         ]
       }
     },
@@ -2014,7 +2487,70 @@
         "template_cls": "ctexart",
         "note": "引擎绑定字段（迁移期保留）"
       },
-      "profiles": [],
+      "profiles": [
+        {
+          "profile_id": "comp_zhongqing_2026_electronic",
+          "edition": "2026",
+          "submission_form": "electronic",
+          "rules_revision": "第八届论文提交通知（官网新闻页 2026-06-04）",
+          "guidance": [],
+          "constraints": [
+            {
+              "id": "zq8-file-format",
+              "vintage": "2026-8th",
+              "kind": "file_format",
+              "status": "verified",
+              "value": {
+                "format": "pdf",
+                "applies_to": "论文文件",
+                "single_file": true
+              },
+              "scope": "提交件格式",
+              "source_ids": [
+                "zq8-submit-notice"
+              ],
+              "locator": "「论文命名格式：B 2026 01234.pdf」（命名示例即 PDF 文件）"
+            },
+            {
+              "id": "zq8-file-naming",
+              "vintage": "2026-8th",
+              "kind": "file_naming",
+              "status": "verified",
+              "value": {
+                "paper": "题号+年份+队号.pdf（示例 B 2026 01234.pdf；同页并列紧凑形态 A202601234）",
+                "example": "B 2026 01234.pdf",
+                "attachment": "题号+年份+队号材料.rar 或 .zip"
+              },
+              "scope": "提交文件命名（题号+参赛队编号，选错选题后果自负）",
+              "source_ids": [
+                "zq8-submit-notice"
+              ],
+              "locator": "「论文命名格式：B 2026 01234.pdf 材料命名格式：B 2026 01234材料.rar或B 2026 01234材料.zip」「如果你选了A题，就是A202601234」"
+            },
+            {
+              "id": "zq8-submission-flow",
+              "vintage": "2026-8th",
+              "kind": "submission_flow",
+              "status": "verified",
+              "value": {
+                "channel": "官网 cycmcm.com 参赛学生登录→个人中心【提交论文】（电脑端，手机无法提交）",
+                "submits": [
+                  "电子版论文",
+                  "支撑材料"
+                ],
+                "resubmission": "可重新上传覆盖，以最后一次提交为准",
+                "backup_channel": "3303055935@qq.com（仅官网无法提交时使用；评审以官网提交为准）",
+                "pledge": "在线勾选【我已查看承诺书并同意】后方可上传"
+              },
+              "scope": "电子档提交流程与承诺确认",
+              "source_ids": [
+                "zq8-submit-notice"
+              ],
+              "locator": "「先选择题目，再上传论文及支撑材料」「确认队伍信息并填写身份证号，查看承诺书勾选【我已查看承诺书并同意】」「评审以官网提交的论文为主」"
+            }
+          ]
+        }
+      ],
       "historical_notes": [
         {
           "kind": "legacy_config",
@@ -2045,17 +2581,19 @@
       ],
       "lifecycle": {
         "status": "active",
-        "checked_at": "2026-09-27"
+        "checked_at": "2026-10-09"
       },
       "evidence_summary": {
-        "status": "missing_evidence",
-        "summary": "官网 cycmcm.com 2026 第八届存活；提交流程快照：上传须勾选【我已查看承诺书并同意】；直读失败（SSL 握手失败）；页数条款未见",
+        "status": "partial",
+        "summary": "2026-10-09 官网提交通知页快照直读：文件命名（题号+年份+队号.pdf）、PDF 单件、官网个人中心提交+在线承诺勾选、备用邮箱通道坐实；论文格式正文条款（页数/版式/摘要）在《参赛通知》PDF 附件内未直读；提交通知正文引用的截止时间为第七届日期，未采用",
         "search_log": [
           "检索×3：仅获提交流程快照与承诺书勾选机制",
-          "官网直读失败（ERR_SSL_SSLV3_ALERT_HANDSHAKE_FAILURE）"
+          "官网直读失败（ERR_SSL_SSLV3_ALERT_HANDSHAKE_FAILURE）",
+          "2026-10-09 补：官网三页快照（参赛通知/新闻列表/论文提交通知）留存 assets-local/contest-regs/zhongqing/8th_2026/"
         ],
         "open_questions": [
-          "当届论文格式规范原文（页数/格式）"
+          "当届论文格式规范正文（页数/版式/摘要页/目录）——在《关于举办2026年第八届中青杯…的通知》PDF 附件内，未直读",
+          "第八届论文提交截止时间——提交通知正文引用的是第七届（6月7日17:00），当届日期未在快照中见"
         ]
       }
     },

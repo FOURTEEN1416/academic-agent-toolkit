@@ -1128,6 +1128,7 @@ def _convert_with_python(content: str, source_md: Path, output_path: Path, style
 
     doc = Document()
     _setup_page(doc, profile)
+    _add_page_number_footer(doc)
     _render_markdown(doc, lines, profile, workspace)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1156,6 +1157,29 @@ def _setup_page(doc: Document, profile: dict):
         sectPr.append(parse_xml(f'<w:cols {nsdecls("w")} w:num="{cols}" w:space="{space_twips}" w:equalWidth="1"/>'))
         return None
     return None
+
+
+def _add_page_number_footer(doc: Document):
+    '''给默认节页脚加居中页码（PAGE 域）。
+
+    python-docx 无页码原生 API：用 OxmlElement 构造 <w:fldSimple w:instr="PAGE">
+    挂到页脚段落，Word/WPS/LibreOffice 打开时由域引擎渲染实际页码。
+    run 内预置占位文本「1」，防止不刷新域的查看器显示空白。
+    '''
+    from docx.oxml import OxmlElement
+    footer = doc.sections[0].footer
+    footer.is_linked_to_previous = False   # 显式 footer part，避免悬空链接导致 XML 缺 footer*.xml
+    para = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
+    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    para.paragraph_format.first_line_indent = Pt(0)
+    fld = OxmlElement('w:fldSimple')
+    fld.set(qn('w:instr'), 'PAGE')
+    run = OxmlElement('w:r')
+    t = OxmlElement('w:t')
+    t.text = '1'
+    run.append(t)
+    fld.append(run)
+    para._p.append(fld)
 
 
 def _text_column_width_cm(profile: dict) -> float:

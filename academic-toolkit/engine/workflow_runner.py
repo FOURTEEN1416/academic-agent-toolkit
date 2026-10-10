@@ -293,8 +293,17 @@ class WorkflowRunner:
                 if path.stat().st_size < int(spec.get("min_bytes", 0)):
                     errors.append(f"低于最低规格 {spec['min_bytes']}B（{spec.get('rationale', '目录级薄产物不可验收')}）")
                 words = spec.get("require_any", [])
-                if words and not any(str(w).lower() in path.read_text(encoding="utf-8", errors="ignore").lower() for w in words):
+                spec_text = path.read_text(encoding="utf-8", errors="ignore")
+                if words and not any(str(w).lower() in spec_text.lower() for w in words):
                     errors.append(f"未含任何实质内容特征词 {words}")
+                # contains 全命中判据（2026-10-09 弱判据收紧批）：require_any 任一命中挡不住
+                # 纯空话占位产物（单字「问题」任何赛题分析必中=空判据），迁移为多词全命中；
+                # 口径与 output_contracts.require_file 的 contains 一致——原文精确匹配、缺一即违约
+                need_all = spec.get("contains", [])
+                if need_all:
+                    missing = [str(w) for w in need_all if str(w) not in spec_text]
+                    if missing:
+                        errors.append(f"缺内容结构特征词（须全部出现） {missing}")
             checks[f"output_spec:{name}"] = {"ok": not errors, "reason": "D7 产物规格下限: " + "; ".join(errors)}
         if step.metadata.get("output_contract"):
             from .output_contracts import check_output_contract

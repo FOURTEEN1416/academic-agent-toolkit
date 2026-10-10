@@ -144,7 +144,7 @@ _OUTLINE_BY_WORKFLOW = {'competition_zh': [(1, '论文题目'),
                        (2, '参考文献'),
                        (2, '附录（可选）')]}
 
-_SUMMARY_BY_WORKFLOW = {'competition_zh': '数学建模竞赛中文论文（对标 cumcmthesis.cls）：A4 纸 25mm 边距，正文宋体小四 12pt 1.5 倍行距，章节用「一、二、三、」中文序号。',
+_SUMMARY_BY_WORKFLOW = {'competition_zh': '数学建模竞赛中文论文（对标 cumcmthesis.cls）：A4 纸 25mm 边距，正文宋体小四 12pt 1.38 倍行距，章节用「一、二、三、」中文序号。',
  'competition_en': 'Mathematical Contest in Modeling (English): A4 paper, body 12pt double-line, sections '
                    'numbered with Arabic numerals.',
  'thesis_proposal': '研究生开题报告：A4 纸左 30mm 其余 25mm 边距，正文宋体小四 12pt 1.5 倍行距，含国内外研究现状/技术路线/进度安排。',

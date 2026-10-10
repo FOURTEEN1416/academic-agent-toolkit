@@ -453,7 +453,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -702,7 +703,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -933,7 +935,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -1289,7 +1292,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -1415,11 +1419,9 @@
           "output_specs": {
             "PROBLEM_ANALYSIS.md": {
               "min_bytes": 4000,
-              "require_any": [
-                "假设",
+              "contains": [
                 "模型",
-                "求解",
-                "问题"
+                "假设"
               ],
               "rationale": "P5 退出判据：赛题分析必须落到假设/模型/求解三件事，拦'题目复述'式薄产物"
             }
@@ -1821,7 +1823,7 @@
                 "path": "$primary",
                 "min_bytes": 5120,
                 "contains": ["针对问题"],
-                "forbidden": ["[开头段 1--2 句", "基于……方法"]
+                "forbidden": ["[开头段 1--2 句", "基于……方法", "TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -2406,7 +2408,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -2495,11 +2498,9 @@
           "output_specs": {
             "PROBLEM_ANALYSIS.md": {
               "min_bytes": 4000,
-              "require_any": [
-                "假设",
+              "contains": [
                 "模型",
-                "求解",
-                "问题"
+                "假设"
               ],
               "rationale": "P5 退出判据：赛题分析必须落到假设/模型/求解三件事，拦'题目复述'式薄产物"
             }
@@ -2911,7 +2912,7 @@
                 "path": "$primary",
                 "min_bytes": 5120,
                 "contains": ["针对问题", "创新点"],
-                "forbidden": ["[参赛队号]", "[学校名称]", "[成员A]", "[成员B]", "[成员C]", "[中文摘要内容"]
+                "forbidden": ["[参赛队号]", "[学校名称]", "[成员A]", "[成员B]", "[成员C]", "[中文摘要内容", "TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -3508,7 +3509,8 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"]
+                "contains": ["针对问题"],
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -3822,7 +3824,8 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"]
+                "contains": ["针对问题"],
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -4093,7 +4096,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -4312,7 +4316,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -4620,7 +4625,7 @@
                 "path": "$primary",
                 "min_bytes": 3584,
                 "contains": ["针对问题"],
-                "forbidden": ["[摘要内容"]
+                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -4928,7 +4933,7 @@
                 "path": "$primary",
                 "min_bytes": 3584,
                 "contains": ["针对问题"],
-                "forbidden": ["[摘要内容"]
+                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -5236,7 +5241,7 @@
                 "path": "$primary",
                 "min_bytes": 5120,
                 "contains": ["针对问题"],
-                "forbidden": ["[开头段 1--2 句", "基于……方法"]
+                "forbidden": ["[开头段 1--2 句", "基于……方法", "TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -5544,7 +5549,7 @@
                 "path": "$primary",
                 "min_bytes": 3584,
                 "contains": ["针对问题"],
-                "forbidden": ["[摘要内容"]
+                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -5859,7 +5864,7 @@
                 "path": "$primary",
                 "min_bytes": 5120,
                 "contains": ["针对问题"],
-                "forbidden": ["[中文摘要内容"]
+                "forbidden": ["[中文摘要内容", "TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -6166,7 +6171,8 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"]
+                "contains": ["针对问题"],
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -6474,7 +6480,7 @@
                 "path": "$primary",
                 "min_bytes": 3584,
                 "contains": ["针对问题"],
-                "forbidden": ["[摘要内容"]
+                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -6781,7 +6787,8 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"]
+                "contains": ["针对问题"],
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -7088,7 +7095,8 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"]
+                "contains": ["针对问题"],
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -7396,7 +7404,7 @@
                 "path": "$primary",
                 "min_bytes": 3584,
                 "contains": ["针对问题"],
-                "forbidden": ["[摘要内容"]
+                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -7703,7 +7711,8 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"]
+                "contains": ["针对问题"],
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -8011,7 +8020,7 @@
                 "path": "$primary",
                 "min_bytes": 3584,
                 "contains": ["针对问题"],
-                "forbidden": ["[摘要内容"]
+                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -8317,13 +8326,14 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 1024
+                "min_bytes": 1024,
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               },
               {
                 "path": "paper/sections/abstract.tex",
                 "min_bytes": 1200,
                 "contains": ["针对问题"],
-                "forbidden": ["[摘要内容"]
+                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）", "……"]
               }
             ]
           }
@@ -8625,7 +8635,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -8919,7 +8930,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }
@@ -10115,7 +10127,8 @@
             "files": [
               {
                 "path": "$primary",
-                "min_bytes": 5120
+                "min_bytes": 5120,
+                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
               }
             ]
           }

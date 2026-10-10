@@ -262,7 +262,9 @@ def test_wabstract3_production_contracts_anchor():
         files = _wabs3_paper_contract(tid)["files"]
         assert files[0]["path"] == "$primary"
         assert "针对问题" in files[0]["contains"], (tid, files)
-        assert files[0]["forbidden"] == [token], (tid, files)
+        # 2026-10-09 收紧批：forbidden 允许合并扩展（通用占位词 TODO/待补/此处补充/（略）），
+        # 但原占位 token 必须仍在且居首（既有词不覆盖的原判不变）
+        assert files[0]["forbidden"][0] == token, (tid, files)
     # default 族六模板：下限必须低于合规成文区间（骨架3027B+最短合规摘要），高于骨架原样
     for tid, _, _ in _WABS3_INLINE[1:]:
         assert _wabs3_paper_contract(tid)["files"][0]["min_bytes"] == 3584, tid
@@ -345,3 +347,184 @@ def test_wabstract3_liaoning_abstract_in_sections(tmp_path):
     report = check_output_contract(tmp_path, contract, primary_output="paper/main.tex")
     assert not report["ok"]
     assert any("未完成占位" in e and "[摘要内容" in e for e in report["errors"])
+
+
+# ---------------------------------------------------------------------------
+# 合同判据收紧批（2026-10-09 用户裁决）：对抗实验坐实 min_bytes+单导航词 contains
+# 挡不住纯空话占位摘要——「针对问题」重复多次+约 6KB 即可过合同。本批：
+# ① 论文正文类合同 forbidden 补通用占位词 TODO/待补/此处补充/（略）（防误拦安全项）；
+# ② 省略号「……」只挂摘要专用条目（liaoning sections/abstract.tex，短文内省略号
+#    ≈占位残留），不挂 $primary 全文条目：5120B 合规正文可合法含列举/题面省略号
+#    （复核实测：cumcm 骨架省略号 10 处、huazhong 骨架 0 处挂载无骨架依据；合规正文
+#    9518B 仅一处列举省略号即被误拦）——「基于……方法」是骨架占位句的连续子串匹配，
+#    与「任何省略号都命中」判据强度完全不同，不构成挂载依据；
+# ③ comp_cumcm/comp_huawei 的 comp-problem-analysis output_specs 弱 require_any
+#    （单字「问题」任何赛题分析必中=空判据）迁移为 contains ["模型","假设"] 全命中。
+# ---------------------------------------------------------------------------
+
+_PLACE_WORDS = ("TODO", "待补", "此处补充", "（略）")
+
+
+def _tightened_paper_contract(tid):
+    import json
+    tpl = json.loads((ROOT / "engine/modex-core/templates.json").read_text(encoding="utf-8"))
+    step = next(s for s in tpl[tid]["sub_steps"] if s["skill_name"] == "comp-paper-zh")
+    return step["metadata"]["output_contract"]
+
+
+def test_tighten_empty_placeholder_abstract_rejected(tmp_path):
+    """a) 纯空话占位摘要（「针对问题」多次+「……」+「待补」）→ 收紧后合同 FAIL；
+    同文本在旧判据（min_bytes+单导航词，无 forbidden）下通过——拦截确由收紧生效。"""
+    contract = _tightened_paper_contract("comp_cumcm")
+    filler = ("针对问题一，本文针对问题展开分析，针对问题建立模型并求解，"
+              "得到了针对问题的结果，对问题进行了针对问题的讨论。" * 40)
+    body = filler + "其余部分基于……方法从略。\n待补：完整推导后续补充。\n"
+    assert body.count("针对问题") >= 10 and "……" in body and "待补" in body
+    assert len(body.encode("utf-8")) >= 5120
+    paper = tmp_path / "paper"
+    paper.mkdir()
+    (paper / "main.tex").write_text(body, encoding="utf-8")
+
+    report = check_output_contract(tmp_path, contract, primary_output="paper/main.tex")
+    assert not report["ok"], report["reason"]
+    assert any("未完成占位" in e and "待补" in e for e in report["errors"]), report["errors"]
+    # 拦截由骨架占位短语「基于……方法」+「待补」生效（裸「……」不挂 $primary，见锚测试）
+    assert any("基于……方法" in e for e in report["errors"]), report["errors"]
+
+    # 旧判据反证（对抗实验复现）：同文本 min_bytes+contains 可过
+    legacy = {"files": [{"path": "$primary", "min_bytes": 5120, "contains": ["针对问题"]}]}
+    assert check_output_contract(tmp_path, legacy, primary_output="paper/main.tex")["ok"], \
+        "反证失效：文本本身应能过旧判据，否则本测试未证明收紧作用"
+
+
+def test_tighten_compliant_abstract_not_blocked(tmp_path):
+    """b) 合规摘要不误拦：六七百字、针对问题一/二/三/四分段、含数值结果、无占位词。
+    双合同验证——liaoning 摘要专用条目（forbidden 含「……」，防误拦语义最严格面）+
+    cumcm $primary（5120B 下限的全文合规交付）。"""
+    good_abstract = _WABS3_GOOD_ABSTRACT + "关键词：层次分析法；NSGA-II；ARIMA-LSTM 组合预测\n"
+    assert all(w not in good_abstract for w in _PLACE_WORDS) and "……" not in good_abstract
+    assert len(good_abstract.encode("utf-8")) >= 1200
+
+    # 面一：liaoning 摘要专用条目（正文骨架来自真实模板，合规摘要落 sections/abstract.tex）
+    contract = _tightened_paper_contract("comp_liaoning")
+    skeleton = (_WABS3_TEMPLATES_DIR / "dongsansheng" / "main.tex").read_text(encoding="utf-8")
+    paper = tmp_path / "paper"
+    paper.mkdir()
+    (paper / "main.tex").write_text(skeleton, encoding="utf-8")
+    (paper / "sections").mkdir()
+    (paper / "sections" / "abstract.tex").write_text(good_abstract, encoding="utf-8")
+    report = check_output_contract(tmp_path, contract, primary_output="paper/main.tex")
+    assert report["ok"], report["errors"]
+
+    # 面二：cumcm $primary——同合规摘要填充至 5120B 下限之上，验证占位词不误拦正文；
+    # 并覆盖收紧前测试盲区：合规正文合法含列举省略号（审阅复现的误拦面）不得被拦
+    full = tmp_path / "cumcm_ws"
+    full.mkdir()
+    contract2 = _tightened_paper_contract("comp_cumcm")
+    body = good_abstract * 4 + "\n数据预处理时将缺失样本序号记为 0, 1, 2, ……, n-1，全部参与拟合。\n"
+    assert len(body.encode("utf-8")) >= 5120
+    assert "……" in body and all(w not in body for w in _PLACE_WORDS), "盲区样本失效"
+    (full / "paper").mkdir()
+    (full / "paper" / "main.tex").write_text(body, encoding="utf-8")
+    report = check_output_contract(full, contract2, primary_output="paper/main.tex")
+    assert report["ok"], report["errors"]
+
+
+def test_tighten_ellipsis_not_on_primary_fulltext():
+    """防退化锚：裸「……」不得挂任何 $primary 全文条目的 forbidden——5120B 合规正文
+    可合法含列举/题面省略号（cumcm 骨架实测 10 处、huazhong 骨架 0 处挂载无骨架依据）；
+    骨架占位残留由「基于……方法」等连续短语承担，摘要专用短条目（liaoning
+    sections/abstract.tex）保留「……」。"""
+    import json
+    tpl = json.loads((ROOT / "engine/modex-core/templates.json").read_text(encoding="utf-8"))
+    offenders = []
+    abstract_hits = []
+    for tid, prof in tpl.items():
+        if not isinstance(prof, dict) or "sub_steps" not in prof:
+            continue
+        for step in prof["sub_steps"]:
+            files = (step.get("metadata", {}).get("output_contract") or {}).get("files", [])
+            for entry in files:
+                if "……" not in entry.get("forbidden", []):
+                    continue
+                if entry.get("path") == "$primary":
+                    offenders.append(tid)
+                else:
+                    abstract_hits.append((tid, entry.get("path")))
+    assert not offenders, f"「……」不得挂 $primary 全文条目：{offenders}"
+    assert ("comp_liaoning", "paper/sections/abstract.tex") in abstract_hits, \
+        "「……」应保留在摘要专用条目（省略号判据不整体弱化）"
+
+
+def _spec_runner(tmp_path, specs, text):
+    """最小 runner 基建（对齐 test_output_specs.py 同款结构）用于 c) 行为级验证。"""
+    import hashlib
+
+    from engine.agent_bridge import StepResult
+    from engine.workflow_runner import WorkflowRunner
+    from engine.workflow_store import WorkflowStore
+
+    skills = tmp_path / "skills"
+    for name in ("comp-problem-analysis", "comp-modeling"):
+        skill = skills / name / "SKILL.md"
+        skill.parent.mkdir(parents=True, exist_ok=True)
+        skill.write_text("skill", encoding="utf-8")
+    catalog = {"demo": {"sub_steps": [
+        {"skill_name": "comp-problem-analysis", "primary_output": "PROBLEM_ANALYSIS.md",
+         "output_files": ["PROBLEM_ANALYSIS.md"], "has_checkpoint": False,
+         "checkpoint_type": None,
+         "output_specs": {"PROBLEM_ANALYSIS.md": specs}},
+        {"skill_name": "comp-modeling", "primary_output": "MODEL.md",
+         "output_files": ["MODEL.md"], "has_checkpoint": False},
+    ]}}
+    store = WorkflowStore(tmp_path / "workflow.sqlite")
+    runner = WorkflowRunner(store, catalog, skills)
+    wf = runner.start("demo", tmp_path / "workspace", {}).id
+    action = runner.next_action(wf).action
+    assert action is not None
+    for output in action.output_files:
+        path = action.workspace / output
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+    result = runner.complete_step(wf, StepResult(
+        ok=True, artifacts=list(action.output_files),
+        metadata={"execution_evidence": {
+            "schema_version": 1, "agent": "OpenCode Desktop",
+            "step_id": action.step_id, "skill_name": action.skill_name,
+            "skill_sha256": hashlib.sha256(action.skill_path.read_bytes()).hexdigest(),
+            "commands": [{"command": "python analysis.py", "returncode": 0, "cwd": "."}],
+            "inputs": [], "outputs": list(action.output_files),
+        }},
+    ))
+    return result
+
+
+_MIGRATED_SPEC = {"min_bytes": 4000, "contains": ["模型", "假设"],
+                  "rationale": "P5 退出判据：赛题分析必须落到假设/模型/求解三件事"}
+
+
+def test_tighten_problem_analysis_missing_word_rejected(tmp_path):
+    """c) 迁移后 contains 全命中（runner 行为级）：缺「假设」→ FAIL；
+    「模型」「假设」齐备 → 推进。"""
+    thin = "本文建立模型并求解，模型结果良好，模型误差可控。" + "x" * 4500
+    result = _spec_runner(tmp_path, dict(_MIGRATED_SPEC), thin)
+    assert result.status == "failed", result.message
+    assert "缺内容结构特征词" in result.message and "假设" in result.message, result.message
+
+    good = ("模型假设：题设数据真实可信。建立模型并求解，模型一致性检验通过，"
+            "假设合理性与模型稳定性均已验证。" + "x" * 4500)
+    result = _spec_runner(tmp_path, dict(_MIGRATED_SPEC), good)
+    assert result.status in ("advanced", "completed"), result.message
+
+
+def test_tighten_production_problem_analysis_specs_migrated():
+    """生产模板防退化锚：comp_cumcm/comp_huawei 的空判据 require_any 已迁移为
+    contains 全命中；且两模板保持一致（test_huawei_output_specs_match_cumcm 口径）。"""
+    import json
+    tpl = json.loads((ROOT / "engine/modex-core/templates.json").read_text(encoding="utf-8"))
+    for tid in ("comp_cumcm", "comp_huawei"):
+        step = next(s for s in tpl[tid]["sub_steps"] if s["skill_name"] == "comp-problem-analysis")
+        spec = step["metadata"]["output_specs"]["PROBLEM_ANALYSIS.md"]
+        assert spec.get("contains") == ["模型", "假设"], (tid, spec)
+        assert "require_any" not in spec, (tid, "单字「问题」必中的空判据不得回流")
+        assert spec.get("rationale"), tid

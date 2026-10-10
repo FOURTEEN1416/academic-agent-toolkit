@@ -61,8 +61,15 @@ HISTORICAL_KINDS = {"legacy_config", "copy_artifact", "superseded_edition",
 LIFECYCLE_STATUS = {"active", "suspended", "unverified"}
 
 # 页限约束只允许出现在有届次限定官方证据或当届缺证显式声明的赛事上（扩集须改本测试并附证据）
+# comp_mathorcup 扩集证据（2026-10-09）：第十六届《论文格式及提交规范》组委会 PDF 全文直读
+# （官方指定报名平台赛氪公告附件，moc16-spec-pdf，assets-local/contest-regs/mathorcup/16th_2026/
+# 有快照+md5），原文「正文控制在30页左右，附录页数不限」。
+# comp_shuwei 扩集证据（2026-10-09）：第十一届春季赛开赛公告官网直读+PDF 附件同文核对
+# （sw11-announce，assets-local/contest-regs/shuwei/11th_spring_2026/ 有快照+md5），
+# 原文「正文页数一般控制在 30 页以内，附录页数不限」。
 PAGE_LIMIT_CONTESTS = {"comp_cumcm", "comp_mcm", "comp_huawei", "comp_apmcm",
-                       "comp_apmcm_zh", "comp_huadong", "comp_diangong"}
+                       "comp_apmcm_zh", "comp_huadong", "comp_diangong",
+                       "comp_mathorcup", "comp_shuwei"}
 
 
 def iter_constraints():
@@ -376,7 +383,10 @@ def test_electronic_scope_matches_electronic_page_order():
 
 def test_absorbed_candidate_findings_keep_unknown_strength():
     """裁决 5：candidate 线独有发现逐条在档且不自动升级 verified——
-    华东杯/电工杯 2026 档案约束全部 unknown（快照级），缺证原因带材料。"""
+    华东杯/电工杯 2026 档案约束全部 unknown（快照级），缺证原因带材料。
+    mathorcup 同为 candidate 线赛事，2026-10-09 已由当届官方 PDF 直读坐实
+    （moc16-spec-pdf 全文级来源），档案允许 verified——但必须钉死证据等级，
+    防止快照级材料在别的赛事上被照搬升级。"""
     for ck in ("comp_huadong", "comp_diangong"):
         profs = CONTESTS[ck]["profiles"]
         assert len(profs) == 1 and profs[0]["edition"] == "2026", f"{ck} 当届档案缺失"
@@ -384,7 +394,13 @@ def test_absorbed_candidate_findings_keep_unknown_strength():
             assert con["status"] == "unknown", f"{ck}/{con['id']} 快照级证据被升级"
         setup = [c for c in profs[0]["constraints"] if c["kind"] in ("page_setup",)][0]
         assert setup.get("evidence", {}).get("material"), f"{ck} 快照值材料丢失"
-    assert not CONTESTS["comp_mathorcup"]["profiles"], "mathorcup 缺证却出现档案"
+    mc_profs = CONTESTS["comp_mathorcup"]["profiles"]
+    assert len(mc_profs) == 1 and mc_profs[0]["edition"] == "2026", "mathorcup 当届档案缺失"
+    mc_pl = [c for c in mc_profs[0]["constraints"] if c["kind"] == "page_limit"]
+    assert len(mc_pl) == 1 and mc_pl[0]["status"] == "verified" \
+        and mc_pl[0]["value"]["basis"] == "body", \
+        "mathorcup 页限须为 verified+body 口径（第十六届官方 PDF 直读）"
+    assert "moc16-spec-pdf" in mc_pl[0]["source_ids"], "mathorcup 页限未挂官方全文来源"
 
 
 def test_selection_semantics_cumcm_dual_profile():
@@ -397,8 +413,8 @@ def test_selection_semantics_cumcm_dual_profile():
     pp = [c for c in p["constraints"] if c["kind"] == "pledge_page"][0]
     assert ep["value"]["presence"] == "forbidden", "电子版承诺书应禁止"
     assert pp["value"]["presence"] == "required", "纸质版承诺书应必备"
-    # 无档案赛事不得有默认口径可选中
-    assert CONTESTS["comp_mathorcup"]["profiles"] == []
+    # 无档案赛事不得有默认口径可选中（comp_mathorcup 2026-10-09 已建档，改用 comp_teddy 钉语义）
+    assert CONTESTS["comp_teddy"]["profiles"] == []
 
 
 # ---------------------------------------------------------------- 旧键防回流

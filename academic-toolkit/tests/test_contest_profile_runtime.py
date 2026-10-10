@@ -156,9 +156,10 @@ def test_profiles_dimension_request_without_match_fails_loudly(tmp_path: Path):
 
 
 def test_selection_request_without_dimension_is_pending_not_label():
-    """档案无 profiles/edition 维度时（v2 15 个无档案赛事），请求值只记待数据，
-    不冒充已选规则。comp_mcm 已有 profiles 维度（仅 2027），改用无档案赛事钉语义。"""
-    p = resolve_profile("comp_mathorcup", {"contest": {"edition": "2026", "submission_form": "electronic"}})
+    """档案无 profiles/edition 维度时，请求值只记待数据，
+    不冒充已选规则。comp_mcm（仅 2027）与 comp_mathorcup（2026-10-09 建档）先后
+    获得 profiles 维度，改用 comp_teddy（无档案赛事）钉语义。"""
+    p = resolve_profile("comp_teddy", {"contest": {"edition": "2026", "submission_form": "electronic"}})
     assert p.edition is None and p.submission_form is None
     assert "edition" in p.missing_fields and "submission_form" in p.missing_fields
     assert "edition_selection_unavailable" in p.missing_fields
@@ -169,17 +170,23 @@ def test_selection_request_without_dimension_is_pending_not_label():
 
 def test_unverified_caps_are_not_upgraded_and_guidance_separate():
     """v2：性质只来自档案记载——cumcm 电子版带内全 verified（30 官方核验）；
-    无档案赛事（如 mathorcup）无约束带、无口径 → unverified 不升级；guidance
-    独立成带下发（nature=experience），不与 constraints 混装。"""
+    无档案赛事（如 teddy）无约束带、无口径 → unverified 不升级；mathorcup
+    2026-10-09 建档后由当届官方 PDF 直读坐实（official_verified）；
+    guidance 独立成带下发（nature=experience），不与 constraints 混装。"""
     cumcm = resolve_profile("comp_cumcm", {"contest": {"edition": "2026",
                                                        "submission_form": "electronic"}})
     assert cumcm.page_cap_status == "official_verified"
     statuses = {c["name"]: c["status"] for c in cumcm.constraints}
     assert statuses and set(statuses.values()) <= {"verified"}, statuses
     assert cumcm.guidance and all(g["nature"] == "experience" for g in cumcm.guidance)
-    bare = resolve_profile("comp_mathorcup", {})
+    bare = resolve_profile("comp_teddy", {})
     assert bare.max_total_pages is None and bare.page_cap_status == "unverified"
     assert bare.constraints == () and bare.guidance == ()
+    mc = resolve_profile("comp_mathorcup", {})
+    assert mc.profile_id == "comp_mathorcup_2026_electronic", "mathorcup 建档后单档案应可选中"
+    assert mc.page_cap_status == "official_verified", "mathorcup 页限由当届官方 PDF 坐实"
+    assert mc.max_body_pages == 30 and mc.max_total_pages is None, "mathorcup 口径=正文30页左右"
+    assert mc.gate_page_cap == 30 and mc.gate_page_scope == "body"
 
 
 def test_e_candidate_bands_drive_status_and_non_inheritance(tmp_path: Path):

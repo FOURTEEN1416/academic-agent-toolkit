@@ -6805,6 +6805,15 @@
       "size": 6866,
       "wasted_bytes": 6866,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）；W-SLIM 外提脚本入库时漏登记，验收批补登"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/docx_format_probe.py",
+        "academic-toolkit/skills/shared-scripts/docx_format_probe.py"
+      ],
+      "size": 13529,
+      "wasted_bytes": 13529,
+      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）；合同判据收紧批新增 docx 格式探针，入库即登记（吸取 W-SLIM 漏登教训）"
     }
   ]
 }
