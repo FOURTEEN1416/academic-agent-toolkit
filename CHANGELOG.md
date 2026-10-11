@@ -4,13 +4,15 @@
 
 ## [Unreleased]
 
-> 2026-10-01 四窗批（W1-REG 规范真源 / W2-CORPUS 语料 / W3-WRITE 写作链 / W4-FIG 图表真源）、comp_rules 规则审计修复批（三轮工作流）、W3 写作链工作流轮与 W5-GOV 终局治理（两轮）、2026-10-02 反形式主义+内容级合同批（闸门空转修复/写作层治本/合同升级）；逐批操作细录见内部 LOG（不分发）。
+> 2026-10-01 四窗批（W1-REG 规范真源 / W2-CORPUS 语料 / W3-WRITE 写作链 / W4-FIG 图表真源）、comp_rules 规则审计修复批（三轮工作流）、W3 写作链工作流轮与 W5-GOV 终局治理（两轮）、2026-10-02 反形式主义+内容级合同批（闸门空转修复/写作层治本/合同升级）、2026-10-05 对抗扫描批（死闸接线/SKIP 语义统一/格式五修/AI 味三修）、2026-10-09~11 三轨遗留治理批（弱判据收紧/docx 格式补齐/三赛事官方取证）；逐批操作细录见内部 LOG（不分发）。
 ### Added
 
 - **华为杯 15-23 届官方规范一手原件库**（`assets-local/contest-regs/huawei/`，8926c8d+860ff10）：历届格式规范/论文模板/使用规定原件 + `index.md` 索引 + 2026-23rd 抓取快照；`engine/modex-core/comp_rules.json` 华为杯口径按一手来源逐条核对升级（约束带 vintage 2026-23rd），`contest_profile.load_entry` 支持单 profile 合成脚本视图。
 - **获奖语料三批 735 篇入库**（d980526+d2d5649）：研赛/华为杯 686 篇 + MathorCup 大数据 49 篇（`data/award_paper_exemplars.json` 增 `graduate_contest`/`mathorcup_bigdata` 分型索引，奖项佐证 0 全部如实降级 `award_unverified`）；2022 批版面蒸馏 10 卡 + 目录章节树/定位器 v2；`skills/award-paper-mining/data/figure_table_conventions.md` 研赛图表惯例增量（题注「章-序」主流与国赛跨赛事不同流）。
 - **图表风格唯一真源**（b4d96f1+f14545f+5a4a042）：`skills/_utils/academic.mplstyle` 定版（CJK 字体链 + elegant 色板 + 印刷字号，色板择优量化对比在文件头）；`plot_utils.setup_style` 改加载 mplstyle（签名/行为不变）；四系绘图技能（fig-academic/matplotlib/paper-figure/scientific-visualization）收敛为「引用基线+差异项」，正面示范 tab10/默认色环清零；shared-scripts 双副本锁步。
 - **W5-GOV 台账登记**：`data/asset_catalog.json` 补登 `contest-regs-corpus`/`figure-table-conventions`/`academic-mplstyle` 三条（45→48）；查重台账补第 715 组。
+- **闸门体系接线与 SKIP 语义统一**（2026-10-05 对抗扫描批 2e4c58b，四路对抗扫描坐实后修复）：`figure_narrative` 死闸接线——引擎注册/实现/测试齐全但 templates.json 零引用、SKILL 宣称"引擎强制闸"为假，18 个 comp-paper-zh 步补挂 `figure_narrative`+`ai_flavor`（顶层+metadata 双数组），新增注册闸反向对账测试（孤儿闸/死挂双向防再发生）；`figure_narrative_check` 判据升级为零引用孤儿零容忍（label 存在全文零 `\ref` 即拦，旁有叙述不豁免；真实冻结稿 12→20 孤儿全抓）+ SKIP exit 2；9+1 检查脚本 SKIP-as-pass 统一为 exit 2 明示"不冒充通过"（含 host_visual_review 裸执行保护），双副本 md5 锁步；`ai_tell_check` 无参治理文档哨兵（仓库根拒扫防误报）。**格式五修**：cumcm 骨架删 16 骨架中唯一活 `\tableofcontents`（违反自家 toc:false 基线）；`template_integrity_check` comp_cumcm 内联分支（拔除"老实复制骨架被判 FAIL vs 不要重写 main.tex"两难）；comp-latex-writing 第三套冲突模板改指主线骨架；mcm 队号占位 4→7 位对齐官方；MathorCup TOC 硬断言条件化。**AI 味三修**：`cumcm_section_prompts.json` 摘要"随着…的发展"万能开头具体化；`anti_ai_detector` 删与 `de_ai_writer` 保护表冲突的正当词+权威口径声明；14 个零覆盖写作技能（latex-paper-*×8+paper-writing*×6）补 `writing_rules <de_ai_polish>` 强制指针。
+- **三轨遗留治理**（2026-10-09~11 批 762d463，工作流双子智能体执行+换人复核）：论文正文类合同判据收紧——forbidden 补通用占位词（TODO/待补/此处补充/（略），「……」仅摘要专用条目防误拦题面省略号，换人复核曾抓到 $primary 误拦高危已修），赛题分析空判据 require_any 迁移 contains[模型,假设] 全命中，runner output_specs 增 contains 判据（原文精确匹配）；docx 路线格式补齐——`docx_export` 页脚 PAGE 域页码、行距 profile 1.5→1.38 对齐 cumcmthesis.cls、新增 `docx_format_probe` 双层探针（A 层免转换 XML 检查：页码域/身份泄漏/行距；B 层 soffice 在场才转 PDF，缺席诚实 SKIP）+孪生+两 SKILL 收尾硬拦接线（真实 docx 实测抓 3 项 FAIL）；三赛事官方取证入 comp_rules——MathorCup 16 届 14 条（组委会规范 PDF 全文直读）/数维杯 11 届春季赛 7 条（官网公告直读）/中青杯 8 届 3 条（提交通知快照；页数版式未直读保持缺席），快照+MD5 按整区分发裁决入根原件库。全量 1050 passed / 0 failed。
 
 ### Changed
 
@@ -20,9 +22,6 @@
 - **图表叙述闸挂进引擎强制链**（同上历遍批复核）：真实终版 20+ 图中 11+ 张"孤儿图"（贴进正文零引用零解读，图海堆砌=图表 AI 味首因，label/ref 对账无一假阳）。新增引擎 `figure_narrative` named gate（孤儿图零容忍——修复动作明确：补引用句/解读段/删图），comp_huawei/comp_cumcm 写作步挂闸；SKILL 图表嵌入规则补闸感知（每图同步写引用句+解读句）。
 - **内容级合同扩展至 7 个中文赛事模板**：骨架逐个核验后，apmcm_zh/mathorcup/yangtze/diangong/huashu/shuwei（专用中文内联摘要骨架）挂摘要导航词 contains；huazhong（复用 cumcm 骨架）加 cumcm 同款占位 forbidden；wuyi/dongsansheng/default 摘要非内联不动（防误拦）。teddy 等 6 赛事走档案指定 default/ 通用骨架（既有治理现状）。
 - **数模写作步合同升级为内容级**（承接前窗移交项）：`engine/output_contracts.py` 文件检查新增 `forbidden`（未完成占位/违规内容残留，对称 `contains`）；`comp_huawei`/`comp_cumcm` 写作步合同从裸 `min_bytes:5120` 升级——华为杯加摘要导航词「针对问题」+六要素「创新点」contains 与封面/摘要骨架占位 forbidden（新合同对真实终版实测当场抓到封面 5 字段占位残留，min_bytes 级合同对此失明）；国赛同口径。**骨架真源对齐**：cumcm 骨架摘要占位「关于问题一」改「针对问题一」，消除与 `abstract_writing_contract.md`（四套 Skill 单一事实源）的口径冲突；huawei 骨架补导航词与六要素口径。其余 16 赛事模板待骨架逐个核验后升级（不盲改）。
-
-### Changed
-
 - **AI 痕迹闸挂进引擎强制链**（全仓历遍复核实锤后）：真实工作流执行记录（workflow.sqlite 10 份 evidence）显示写作质量闸（ai_tell_check/writing_check 全家桶等）在生产中零执行——引擎强制闸只卡证据格式、质量闸全靠自觉（"机械过闸"完整图景：强制的不管质量，管质量的不强制）。新增引擎 `ai_flavor` named gate（quality_gates 注册表）+ `ai_tell_check --max-errors` 阈值参数（默认 0 不变；闸定标 3 = 获奖论文抽样 0-2 处/篇的水平上界），comp_huawei/comp_cumcm 写作步 required_checks 挂闸——finish 时强制重扫，超阈值拒绝完成并附行号改写指引。获奖论文对照定标：8 篇抽样 0-2 处/篇 vs 旧终版 12 处（密度差约 10 倍）。
 
 ### Fixed

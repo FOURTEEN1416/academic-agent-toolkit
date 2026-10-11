@@ -56,15 +56,15 @@ L1 拦截式审计在无宿主 hook 时记为
 | `academic-toolkit/` | 产品主体：skills/execution/engine/tools/tests/hooks/data |
 | `capabilities/catalog.json` | 能力目录（技能须全部映射；一致性由工具箱 asset 系门禁 + `check_asset_utilization --strict` 守护） |
 | `dev-docs/` | 内部真源根（gitignored 私有，公开仓不分发）：**操作日志 `dev-docs/LOG.md`（唯一记账真源）· 任务计划 `dev-docs/task_plan.md` · 审计报告** |
-| `releases/`（本地 dated 快照，不入库）、`SECURITY.md`、`CHANGELOG.md` | 发布快照 / 安全策略 / 公开版本记录 |
-| `assets-local/award-papers/`、`workspaces/` 等 | 本地材料与产物（不入 git） |
+| `SECURITY.md`、`CHANGELOG.md` | 安全策略 / 公开版本记录 |
+| `assets-local/award-papers/`、`workspaces/`（根=历史工作区、academic-toolkit/workspaces=华为杯冻结区）、`extracted_images/`（809MB 获奖论文版面抽取中间产物，`build_asset_ledger.py` 引用、蒸馏 todo 依赖）等 | 本地材料与产物（不入 git） |
 
 ## 硬性规则（冲突时以主控文档为准）
 
 1. 引擎（engine/）只编排不执行；执行者是当前驱动 Agent。
 2. 完成步骤使用执行会话 `finish`，由引擎从实际操作构造证据；禁止伪造审核产物。
 3. 改代码后跑 `python -m pytest -q`（仓库根）+ `python academic-toolkit/tools/check_provenance.py`。
-4. `dev-docs/` 是内部真源根，默认私有；`vendor/` 不入 git。
+4. `dev-docs/` 是内部真源根，全私有零入库；`vendor/` 已按收编裁决入库（fork→vendor 改名激活，溯源走 `tools/check_provenance.py`）。
 5. 文档治理遵守 `meta-doc-governance`：全文读完、污染必清。
 6. **路径/密钥卫生**：tracked 配置不得写本机绝对路径；`.env` 永不入库；
    `python academic-toolkit/tools/secret_scan.py --strict` 机检。
@@ -80,5 +80,5 @@ L1 拦截式审计在无宿主 hook 时记为
 - catalog 一致性由工具箱 asset 系测试 + `check_asset_utilization --strict` 守护。
 - **数字使用纪律（2026-10-02 用户裁决）**：基线数字唯一用途是防静默丢测试的漂移锚点；它不是完成验收证据——完成验收用与改动面直接相关的行为证据（功能实测/受影响链路跑通/真实命令输出）；对文档与技能正文类改动宣称「全量测试绿」不构成质量证明；禁止为 1-off 数字差异写考证（重跑 collect-only 以实跑为准）。验证服务效果与质量，不为过闸而过闸。
 - 基线演进历史见 `CHANGELOG.md` 与内部 `dev-docs/LOG.md`；`dev-docs/truth-index.md` 为内部副本，不入库。
-- `releases/` 永不进测试收集。
+- `norecursedirs` 防线（pytest.ini）永不放松；`releases/` 目录现已不存在（历史发布快照叙事见 CHANGELOG）。
 - 新增技能必须：SKILL.md + catalog 映射 + CONTEST_SKILL_MAP 归类 + `build_skill_index.py --emit`。
