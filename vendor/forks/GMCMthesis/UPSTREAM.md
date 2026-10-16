@@ -2,7 +2,7 @@
 
 - Upstream: **GMCMthesis**（LaTeX 论文模板，latexstudio.net 原始作者；andy123t 维护版）
 - 上游版本线索：`gmcmthesis.cls` 头部 `\ProvidesClass{gmcmthesis}[2023/09/19 v2.4 update by andy123t]`
-- 本地副本：`D:\Desktop\GMCMthesis\GMCMthesis-master`（master 压缩包解出，**无 `.git`，无 pinned commit 可读**）
+- 本地副本来源：上游 master 压缩包解出后并入本仓 `vendor/forks/GMCMthesis/`（**无 `.git`，无 pinned commit 可读**）
   → 以 **版本号 + 日期（v2.4 / 2023-09-19）** 作为 pin 代理，如实登记"无 commit 可核验"
 - License: **上游未附 LICENSE 文件**（仓库内无许可声明）；原样保留，不主张再分发边界
 - 收编日期: 2026-10-16（"四项桌面材料收编"批）
