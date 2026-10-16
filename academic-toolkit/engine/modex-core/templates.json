@@ -454,7 +454,12 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -704,7 +709,12 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -936,7 +946,12 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -1293,7 +1308,12 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -1822,8 +1842,17 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"],
-                "forbidden": ["[开头段 1--2 句", "基于……方法", "TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "[开头段 1--2 句",
+                  "基于……方法",
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -2409,7 +2438,12 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -2911,8 +2945,22 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题", "创新点"],
-                "forbidden": ["[参赛队号]", "[学校名称]", "[成员A]", "[成员B]", "[成员C]", "[中文摘要内容", "TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题",
+                  "创新点"
+                ],
+                "forbidden": [
+                  "[参赛队号]",
+                  "[学校名称]",
+                  "[成员A]",
+                  "[成员B]",
+                  "[成员C]",
+                  "[中文摘要内容",
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -3509,8 +3557,15 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"],
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -3824,8 +3879,15 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"],
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -4097,7 +4159,12 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -4317,7 +4384,12 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -4624,8 +4696,16 @@
               {
                 "path": "$primary",
                 "min_bytes": 3584,
-                "contains": ["针对问题"],
-                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "[摘要内容",
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -4932,8 +5012,16 @@
               {
                 "path": "$primary",
                 "min_bytes": 3584,
-                "contains": ["针对问题"],
-                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "[摘要内容",
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -5240,8 +5328,17 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"],
-                "forbidden": ["[开头段 1--2 句", "基于……方法", "TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "[开头段 1--2 句",
+                  "基于……方法",
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -5548,8 +5645,16 @@
               {
                 "path": "$primary",
                 "min_bytes": 3584,
-                "contains": ["针对问题"],
-                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "[摘要内容",
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -5863,8 +5968,16 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"],
-                "forbidden": ["[中文摘要内容", "TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "[中文摘要内容",
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -6171,8 +6284,15 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"],
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -6479,8 +6599,16 @@
               {
                 "path": "$primary",
                 "min_bytes": 3584,
-                "contains": ["针对问题"],
-                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "[摘要内容",
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -6787,8 +6915,15 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"],
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -7095,8 +7230,15 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"],
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -7403,8 +7545,16 @@
               {
                 "path": "$primary",
                 "min_bytes": 3584,
-                "contains": ["针对问题"],
-                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "[摘要内容",
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -7711,8 +7861,15 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "contains": ["针对问题"],
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -8019,8 +8176,16 @@
               {
                 "path": "$primary",
                 "min_bytes": 3584,
-                "contains": ["针对问题"],
-                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "[摘要内容",
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -8327,13 +8492,27 @@
               {
                 "path": "$primary",
                 "min_bytes": 1024,
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               },
               {
                 "path": "paper/sections/abstract.tex",
                 "min_bytes": 1200,
-                "contains": ["针对问题"],
-                "forbidden": ["[摘要内容", "TODO", "待补", "此处补充", "（略）", "……"]
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "[摘要内容",
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）",
+                  "……"
+                ]
               }
             ]
           }
@@ -8636,7 +8815,12 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -8931,7 +9115,12 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -10128,7 +10317,12 @@
               {
                 "path": "$primary",
                 "min_bytes": 5120,
-                "forbidden": ["TODO", "待补", "此处补充", "（略）"]
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
               }
             ]
           }
@@ -11274,6 +11468,377 @@
           "review_scope": "grant_proposal"
         },
         "requires_subagent": true
+      }
+    ]
+  },
+  "comp_csf": {
+    "pipeline_skill": "comp-problem-analysis",
+    "display_name": "仿真建模应用挑战赛（CSF）",
+    "sub_steps": [
+      {
+        "skill_name": "comp-problem-analysis",
+        "display_name": "赛题分析",
+        "output_files": [
+          "PROBLEM_ANALYSIS.md"
+        ],
+        "primary_output": "PROBLEM_ANALYSIS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "赛题分析",
+          "assets": [
+            {
+              "name": "实战经验库·赛前通读",
+              "note": "真实参赛复盘：典型场景/决策依据/踩坑与避坑（用后随 evidence 申报）",
+              "path": "academic-toolkit/data/contest_lessons.md"
+            },
+            {
+              "name": "CSF 官方提交规范",
+              "note": "四件套/命名/视频规格/匿名/提交节点（论文版式缺口已显式登记）",
+              "path": "academic-toolkit/skills/comp-paper-zh/references/csf-official-format.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "PROBLEM_ANALYSIS.md",
+                "min_bytes": 1500
+              }
+            ],
+            "figure_manifest": "PROBLEM_ANALYSIS.md"
+          }
+        }
+      },
+      {
+        "skill_name": "comp-modeling",
+        "display_name": "建模求解",
+        "output_files": [
+          "MODELING_REPORT.md"
+        ],
+        "primary_output": "MODELING_REPORT.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "feedback",
+        "required_checks": [
+          "step_manifest",
+          "modeling_contract"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "modeling_contract"
+          ],
+          "display_name": "建模求解",
+          "skill_binding": {
+            "main_required": true
+          },
+          "companion_skills": [
+            "sympy"
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "MODELING_REPORT.md",
+                "min_bytes": 1500
+              }
+            ]
+          }
+        }
+      },
+      {
+        "skill_name": "comp-simulation",
+        "display_name": "仿真建模与校核验证",
+        "output_files": [
+          "SIM_MANIFEST.json"
+        ],
+        "primary_output": "SIM_MANIFEST.json",
+        "has_checkpoint": true,
+        "checkpoint_type": "approval",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "仿真建模与校核验证",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "仿真方法选型与 V&V 清单",
+              "note": "方法选型决策树 + 校准/验证/确认检查清单（按需加载）",
+              "path": "academic-toolkit/skills/comp-simulation/references/vv-checklist.md"
+            }
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "SIM_MANIFEST.json",
+                "min_bytes": 400
+              }
+            ],
+            "note": "契约校验：python skills/comp-simulation/scripts/sim_manifest_check.py SIM_MANIFEST.json（exit 2=缺件不冒充通过）"
+          }
+        }
+      },
+      {
+        "skill_name": "comp-code",
+        "display_name": "编程实现",
+        "output_files": [
+          "code/main.py",
+          "RESULTS.md"
+        ],
+        "primary_output": "RESULTS.md",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest"
+          ],
+          "display_name": "编程实现",
+          "skill_binding": {
+            "main_required": true
+          },
+          "companion_skills": [
+            "data-statistics-report"
+          ],
+          "output_contract": {
+            "files": [
+              {
+                "path": "RESULTS.md",
+                "min_bytes": 1024
+              },
+              {
+                "path": "code/main.py",
+                "min_bytes": 500
+              }
+            ],
+            "any_glob": [
+              {
+                "patterns": [
+                  "figures/*.json"
+                ],
+                "min_count": 1
+              }
+            ],
+            "subproblem_outputs": true
+          }
+        }
+      },
+      {
+        "skill_name": "paper-figure",
+        "display_name": "图表生成",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "图表生成",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "多场景色板映射与禁用清单（机器真源，改配色前先查）",
+              "path": "academic-toolkit/skills/paper-figure-palette/assets/palette_registry.json"
+            },
+            {
+              "name": "配色场景与使用规范",
+              "note": "三步选色法/10 条规范/禁用清单（人读真源）",
+              "path": "academic-toolkit/skills/paper-figure-palette/references/scenarios.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          },
+          "companion_skills": [
+            "fig-plot-edit-lite",
+            "fig-aesthetics-craft",
+            "paper-figure-palette"
+          ],
+          "output_contract": {
+            "figure_outputs": "data"
+          }
+        }
+      },
+      {
+        "skill_name": "paper-figure-drawio",
+        "display_name": "流程与架构图绘制",
+        "output_files": [
+          "figures/latex_includes.tex"
+        ],
+        "primary_output": "figures/",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "figure_provenance"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "figure_provenance"
+          ],
+          "display_name": "流程与架构图绘制",
+          "assets": [
+            {
+              "name": "统一配色注册表",
+              "note": "架构图配色同样受注册表约束（分类色/禁用清单）",
+              "path": "academic-toolkit/skills/paper-figure-palette/assets/palette_registry.json"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_contract": {
+            "figure_outputs": "diagram"
+          }
+        }
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核",
+          "skill_binding": {
+            "main_required": true
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "academic-toolkit/skills/_utils/anti_rationalization.md"
+            }
+          ]
+        },
+        "required_checks": [
+          "review"
+        ]
+      },
+      {
+        "skill_name": "comp-paper-zh",
+        "display_name": "竞赛论文撰写",
+        "output_files": [
+          "paper/main.tex"
+        ],
+        "primary_output": "paper/main.tex",
+        "has_checkpoint": true,
+        "checkpoint_type": "approve",
+        "required_checks": [
+          "step_manifest",
+          "paper_consistency",
+          "ai_flavor",
+          "figure_narrative"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "paper_consistency",
+            "ai_flavor",
+            "figure_narrative"
+          ],
+          "display_name": "竞赛论文撰写",
+          "assets": [
+            {
+              "name": "CSF 论文骨架",
+              "note": "ctexart 骨架：摘要第一页 / 代码入附录同文件 / 匿名；版式缺口保持保守默认",
+              "path": "academic-toolkit/skills/comp-paper-zh/_templates/csf/main.tex"
+            },
+            {
+              "name": "CSF 官方提交规范",
+              "note": "提交与交付约束真源",
+              "path": "academic-toolkit/skills/comp-paper-zh/references/csf-official-format.md"
+            }
+          ],
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "$primary",
+                "min_bytes": 5120,
+                "contains": [
+                  "针对问题"
+                ],
+                "forbidden": [
+                  "TODO",
+                  "待补",
+                  "此处补充",
+                  "（略）"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "skill_name": "comp-compile-zh",
+        "display_name": "编译与合规检查",
+        "output_files": [
+          "paper/main.pdf"
+        ],
+        "primary_output": "paper/main.pdf",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "required_checks": [
+          "step_manifest",
+          "compilation_log"
+        ],
+        "metadata": {
+          "requires_subagent": false,
+          "required_checks": [
+            "step_manifest",
+            "compilation_log"
+          ],
+          "display_name": "编译与合规检查",
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_contract": {
+            "files": [
+              {
+                "path": "paper/main.pdf",
+                "min_bytes": 100000
+              }
+            ]
+          }
+        }
       }
     ]
   }

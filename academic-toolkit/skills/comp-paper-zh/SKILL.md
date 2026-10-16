@@ -310,6 +310,7 @@ case "$CONTEST_ID" in
     comp_diangong)   TMPL="diangongbei" ;;
     comp_liaoning)   TMPL="dongsansheng" ;; # 辽宁/东三省联赛
     comp_shuwei)     TMPL="shuweibei" ;;
+    comp_csf)        TMPL="csf" ;;          # 仿真建模应用挑战赛（ctexart + csf.sty；官方《论文规范》未取证，版式保持保守默认）
     comp_teddy|comp_certcup|comp_zhongqing|comp_tianfu|comp_shenzhen|comp_huadong)
         # 档案 template_cls: ctexart，暂无专用目录 → 通用 ctexart 骨架（_templates/default/）。
         # 这是档案指定文档类对应的通用骨架，不是跨赛事套用；专用模板入库后改回专属目录。

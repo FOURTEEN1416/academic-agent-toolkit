@@ -56,14 +56,6 @@ def _checked_universe() -> set[str]:
     return _all_step_skills() | AUXILIARY_SKILLS
 
 
-# 本地私有技能：被根 .gitignore 隔离、不随公开仓交付（公开 clone 上其 SKILL.md 缺席）。
-# 扫描分母据此收敛为「盘上存在」者，公开 clone 不再因缺文件整段失败；
-# 本机完整仓内这些技能存在即被扫，契约强度不降（清单腐化由下方断言拦截）。
-LOCAL_ONLY_SKILLS = frozenset({
-    "eco-community-plots",  # 根 .gitignore:165（无 License 上游件，隔离不分发）
-})
-
-
 def _shipped_universe() -> set[str]:
     """检查分母：_checked_universe() 中在盘（随公开仓交付）的技能。"""
     return {n for n in _checked_universe() if (SKILLS_DIR / n / "SKILL.md").is_file()}
@@ -118,14 +110,13 @@ def test_every_template_skill_exists_on_disk():
 
 
 def test_auxiliary_skill_list_exists_on_disk():
-    """辅助/变体技能清单必须真实：缺席者只能是登记在册的本地私有技能。
+    """辅助/变体技能清单必须真实：每个名字都必须在盘有 SKILL.md。
 
     既防清单腐化成别名目录，也防改名后扫描分母被静默缩小——
-    公开 clone 上仅允许 LOCAL_ONLY_SKILLS 缺席，其余名字缺席一律硬失败。
+    任何名字缺席一律硬失败。
     """
-    absent = {n for n in AUXILIARY_SKILLS if not (SKILLS_DIR / n / "SKILL.md").is_file()}
-    unregistered = sorted(absent - LOCAL_ONLY_SKILLS)
-    assert not unregistered, f"辅助清单引用但缺 SKILL.md 且未登记为本地私有: {unregistered}"
+    absent = sorted(n for n in AUXILIARY_SKILLS if not (SKILLS_DIR / n / "SKILL.md").is_file())
+    assert not absent, f"辅助清单引用但缺 SKILL.md: {absent}"
 
 
 def test_template_and_step_counts_are_dynamic_and_sane():
@@ -472,12 +463,13 @@ def test_template_selection_branch_table_zh():
     模板目录；空值/裸值/跨语言键失败。程序化注入待 B 接口落地（INTERFACE_REQUEST_TO_B.md）。"""
     rules = json.loads((ROOT / "engine" / "modex-core" / "comp_rules.json").read_text(encoding="utf-8"))
     dirs = ["cumcm", "wuyi", "huawei", "mathorcup", "apmcm_zh", "stats",
-            "changsanjiao", "huashubei", "diangongbei", "dongsansheng", "shuweibei", "default"]
+            "changsanjiao", "huashubei", "diangongbei", "dongsansheng", "shuweibei", "csf", "default"]
     expect = {
         "comp_cumcm": "cumcm", "comp_huazhong": "cumcm", "comp_wuyi": "wuyi",
         "comp_huawei": "huawei", "comp_mathorcup": "mathorcup", "comp_apmcm_zh": "apmcm_zh",
         "comp_stats": "stats", "comp_yangtze": "changsanjiao", "comp_huashu": "huashubei",
         "comp_diangong": "diangongbei", "comp_liaoning": "dongsansheng", "comp_shuwei": "shuweibei",
+        "comp_csf": "csf",
         "comp_teddy": "default", "comp_certcup": "default", "comp_zhongqing": "default",
         "comp_tianfu": "default", "comp_shenzhen": "default", "comp_huadong": "default",
     }

@@ -1,0 +1,136 @@
+% =====================================================================
+% 全国大学生仿真建模应用挑战赛（CSF）论文骨架 — 2026 第二届
+% ---------------------------------------------------------------------
+% [CSF] 提交硬约束（已取证；真源 skills/comp-paper-zh/references/csf-official-format.md）：
+%   1) 文件仅 PDF、不压缩、只交 1 个文件；命名「题号+队伍号+pdf」（例 ACSF2600001.pdf）
+%   2) 摘要必须是论文文件的第一页，不能拆成两个文件
+%   3) 源程序作为附录放在正文之后，与正文编辑在同一个文件中（同时另放入支撑材料）
+%   4) 承诺书是独立件，绝不能并入本论文文件
+%   5) 任何页面不得出现姓名/学校等身份信息（匿名评审）
+% ---------------------------------------------------------------------
+% [CSF] 版式缺口声明（禁止臆测）：官方《论文规范》单行本截至 2026-10-16 未公开直读，
+%   故 页边距/字体字号/行距/页眉页脚/页码/摘要页要素/参考文献体例/是否出目录
+%   全部保持「模板默认保守值」，**不作官方主张**。取得正式件后必须复核本骨架并回填
+%   engine/modex-core/comp_rules.json → contests.comp_csf。
+%   本骨架的保守默认：A4、四边 2.5cm、摘要独占首页、不出目录、页脚居中页码、无身份信息。
+% =====================================================================
+\documentclass[12pt,a4paper]{ctexart}
+% [CSF] 赛事样式补丁集中于此（版式缺口待官方《论文规范》单点回填）
+\usepackage{csf}
+
+% === 页面设置 ===
+\usepackage[top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% === 字体 ===
+\ctexset{
+    section/format = \centering\zihao{3}\heiti,
+    subsection/format = \zihao{4}\heiti,
+    subsubsection/format = \zihao{-4}\heiti,
+}
+
+% === 常用宏包 ===
+\usepackage{amsmath,amssymb,amsthm}
+% ⛔ 固定中文引号字体：防加粗段引号跟随 \textbf→黑体、开引号字形像后引号。
+%   独立引号族 zhquote(宋体)+newunicodechar，加粗/西文环境字形都开闭分明。
+\setCJKfamilyfont{zhquote}[AutoFakeBold]{SimSun}
+\usepackage{newunicodechar}
+\newunicodechar{“}{{\CJKfamily{zhquote}\char"201C}}
+\newunicodechar{”}{{\CJKfamily{zhquote}\char"201D}}
+\newunicodechar{‘}{{\CJKfamily{zhquote}\char"2018}}
+\newunicodechar{’}{{\CJKfamily{zhquote}\char"2019}}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage[section]{placeins}
+\usepackage{needspace}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{labelsep=space}  % "图 1 xxx" 而非 "图 1: xxx"
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+\usepackage{algorithm2e}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{longtable}
+
+% === TikZ ===
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+
+% === 代码 ===
+\usepackage{listings}
+\lstset{
+    language=Python,
+    basicstyle=\small\ttfamily,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+}
+
+% === 定理环境 ===
+\newtheorem{definition}{定义}[section]
+\newtheorem{theorem}{定理}[section]
+
+% === 页眉页脚 ===
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[C]{\zihao{5}\songti 仿真建模应用挑战赛论文}
+\fancyfoot[C]{\thepage}
+
+\title{\heiti\zihao{2} [论文标题]}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+% === 摘要 ===
+\begin{center}
+{\zihao{3}\heiti 摘\hspace{2em}要}
+\end{center}
+\vspace{0.5em}
+\zihao{-4}\songti
+
+[摘要内容：600--800字，写满且收在一页；每个子问题独立一段，包含具名方法和真实数值结果，并用 \textbf{} 各突出1--3处关键方法/结果]
+
+\vspace{0.5em}
+\noindent\textbf{关键词：}[关键词1]；[关键词2]；[关键词3]
+
+% === 摘要与正文之间的换页（竞赛模板不出目录）===
+\newpage
+% ⛔ 不要在这里加回 \tableofcontents：竞赛论文统一不出目录页。
+%   旁边的 \newpage/\clearpage 是摘要与正文之间的换页，删了正文会挤上来。
+\clearpage
+
+% === 正文 ===
+\input{sections/1_restatement}
+\input{sections/2_analysis}
+\input{sections/3_assumptions}
+\input{sections/4_symbols}
+\input{sections/5_problem1}
+\input{sections/6_problem2}
+\input{sections/7_problem3}
+\input{sections/8_sensitivity}
+\input{sections/9_evaluation}
+
+% === 参考文献 ===
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+% === 附录（源程序必须与正文处于同一个 PDF 文件——CSF 硬约束）===
+\appendix
+\input{sections/A_code}
+
+% === [CSF] 仿真专章槽位（本骨架不含该章；按赛题在 sections/ 内新增并 \input）===
+% 建议章节：问题与机理 / 模型规格五要素 / 校准与 V&V / 实验设计 /
+%          结果与情景对比（含置信带）/ 敏感性·稳健性 / 管理启示
+% 方法与产物契约见技能 comp-simulation（SIM_MANIFEST.json + 结果账本）
+
+\end{document}

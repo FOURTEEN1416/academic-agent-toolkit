@@ -45,10 +45,15 @@ sys.path.insert(0, str(TOOLBOX_ROOT / "tools"))
 import skill_trigger_audit as sta  # noqa: E402
 
 # ── 预算（2026-09-19 标定：实测 74,607 → 目标留 15% 余量后设天花板） ──────
-TOTAL_DESC_CEILING = 34_000      # 全库**常驻** description 合计字符上限（分层后实测 32,773 + 4% 余量）
+TOTAL_DESC_CEILING = 35_600      # 全库**常驻** description 合计字符上限
+# 标定史：2026-09-19 分层后实测 32,773 → 34,000（+3.7% 余量）；
+# 2026-10-16 仿真建模赛（全国大学生仿真建模应用挑战赛）能力补齐批 +7 技能
+#   （comp-simulation / figure-craft + 仿真引擎簇 simpy/pymoo/stable-baselines3/pymc/experimental-design，
+#    后 5 件为 MIT 上游收编、描述已归一化到 ≤120 字符），实测 34,156 → 35,600（+4.2% 余量）。
+# 纪律：本上限是**防静默膨胀**的锚点，不是"每加技能就抬"——抬升必须同批给出新增技能清单与实测值。
+PER_SKILL_DESC_CEILING = 512     # 核心层单条上限（本地自研）
 # 分层上限（2026-09-19 技能分层常驻落地）：按需层压到短索引，完整描述移入
 # data/skill_routing_index.json 按需读取。核心层保持完整（压缩核心层＝拿路由准确率换指标）。
-PER_SKILL_DESC_CEILING = 512     # 核心层单条上限（本地自研）
 ONDEMAND_DESC_CEILING = 132      # 按需层单条上限（build_skill_index.OND_RESEARCH_CAP + 余量）
 INDEX_PATH = TOOLBOX_ROOT / "data" / "skill_routing_index.json"
 

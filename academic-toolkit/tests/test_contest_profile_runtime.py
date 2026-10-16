@@ -451,7 +451,7 @@ _v2_on_disk = pytest.mark.skipif(not V2_RULES_FILE.is_file(),
 @_v2_on_disk
 def test_v2_candidate_unwraps_contests_and_has_22_ids():
     ids = cp.known_contest_ids(V2_RULES_FILE)
-    assert len(ids) == 22, f"候选赛事数漂移: {len(ids)}"
+    assert len(ids) == 23, f"候选赛事数漂移: {len(ids)}"
     assert "comp_cumcm" in ids and "comp_huawei" in ids
     assert "contests" not in ids and "sources" not in ids, "包裹键不得当作赛事ID"
 

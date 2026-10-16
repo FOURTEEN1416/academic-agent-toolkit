@@ -157,7 +157,8 @@ class TestAutoReviewPatch:
 class TestGlobalInvariants:
     def test_no_duplicate_template_ids(self, catalog):
         # JSON 对象键天然唯一；此断言锁定"44→46 只增不重"的收编口径
-        assert len(catalog) == 46
+        # 2026-10-16：新增 comp_csf（仿真建模应用挑战赛管线）后 46→47
+        assert len(catalog) == 47
 
     def test_new_templates_resolve(self, catalog):
         from engine.template_resolver import resolve_template

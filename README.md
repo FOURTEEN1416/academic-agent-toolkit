@@ -7,9 +7,9 @@
 *一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
 
 [![Release](https://img.shields.io/badge/release-v2.1.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-1050_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
-[![Capabilities](https://img.shields.io/badge/capabilities-313-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-255_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
+[![Tests](https://img.shields.io/badge/tests-1066_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
+[![Capabilities](https://img.shields.io/badge/capabilities-320-0ea5e9?style=flat-square)](capabilities/catalog.json)
+[![Skills](https://img.shields.io/badge/skills-262_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始)
 [![Hosts](https://img.shields.io/badge/hosts-Any_Agent-1f2937?style=flat-square)](#快速开始)
@@ -19,7 +19,7 @@
 ---
 
 > [!TIP]
-> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（255 个随仓技能）自主完成
+> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（262 个随仓技能）自主完成
 > 建模 → 编码 → 绘图 → 写作 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯**。
 
 ## ✨ 为什么不是又一个提示词合集
@@ -49,22 +49,22 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 </td></tr>
 </table>
 
-## 🗺️ 六大能力域 + Agent 运行时 · 313 项能力
+## 🗺️ 六大能力域 + Agent 运行时 · 320 项能力
 
 | | 能力域 | 条目 | 代表能力 |
 |--|--------|-----:|----------|
-| 🎓 | **课程与研究材料** | 83 | 课程论文 · 实验报告 · 教学大纲 |
+| 🎓 | **课程与研究材料** | 88 | 课程论文 · 实验报告 · 教学大纲 |
 | 📝 | **学术论文** | 75 | 写作 · 评审 · 润色 · 投稿准备（含 Nature 工作流） |
 | 🔬 | **文献与研究** | 41 | 文献检索 · 综述 · 深度研究 · 实验设计 |
-| 🏆 | **数模竞赛** | 37 | CUMCM 14 步端到端流水线 |
-| 📊 | **图表与文档生产** | 63 | 期刊级科研绘图 · 信息图 · LaTeX |
+| 🏆 | **数模竞赛** | 38 | CUMCM 14 步端到端流水线 |
+| 📊 | **图表与文档生产** | 64 | 期刊级科研绘图 · 信息图 · LaTeX |
 | ©️ | **知识产权材料** | 12 | 软著 · 专利 · 基金申请书 |
 | 🧩 | **Agent 运行时** | 2 | 宿主无关自举 · 自适应工具铸造 |
 
-> 域表与 `capabilities/catalog.json` 对齐：37/75/41/83/12/63/2 = **313**（与徽章一致；2026-09-24 复核实测）。
+> 域表与 `capabilities/catalog.json` 对齐：38/75/41/88/12/64/2 = **320**（与徽章一致；2026-10-16 复核实测：仿真建模赛补齐批 +7 能力）。
 
 > [!NOTE]
-> **技能计数口径**（唯一）：徽章与正文统一为 `git ls-files` 口径的技能 SKILL.md 数（**clone 即所见**）；2026-09-28 起该 5 件经本地化改写（各附 ADAPTATION.md）入库，口径并入 255。
+> **技能计数口径**（唯一）：徽章与正文统一为 `git ls-files` 口径的技能 SKILL.md 数（**clone 即所见**）；2026-09-28 起该 5 件经本地化改写（各附 ADAPTATION.md）入库，口径并入 255；2026-10-16 仿真建模赛（CSF）补齐批 +7 技能（comp-simulation / figure-craft / simpy / pymoo / stable-baselines3 / pymc / experimental-design），现行 **262**。
 
 <details>
 <summary><b>📊 科研绘图栈（v1.1 新扩展，9 个上游技能）</b></summary>
@@ -163,7 +163,7 @@ python academic-toolkit/tools/plotting_env_check.py
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-# 口径一（仓库根，回归门禁口径）：1050 collected（W-SLIM 瘦身批 +9 自测、验收批 +1、复核批 +1、对抗扫描批 +3、合同判据收紧批 +11）；最近实跑记录见 pytest.ini；本轮临时目录保留
+# 口径一（仓库根，回归门禁口径）：1066 collected（W-SLIM 瘦身批 +9 自测、验收批 +1、复核批 +1、对抗扫描批 +3、合同判据收紧批 +11）；最近实跑记录见 pytest.ini；本轮临时目录保留
 python -m pytest -q
 # 口径二（工具箱内，技能验收基线口径）：同一 tests 范围，实跑结果见 pytest.ini
 cd academic-toolkit && python -m pytest -q
@@ -178,7 +178,7 @@ python tools/check_provenance.py             # → 117/117 UPSTREAM+vendor 台�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）117/117 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **私有基准层** | 真实竞赛题面基准仅本地私有，不入库、不随仓库分发 |
-| ✅ **测试基线** | 仓库根 **1050 collected**（2026-10-09 合同判据收紧批后）；最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言；收集数不等于通过数）。**唯一真源 = `pytest.ini` 注释**；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
+| ✅ **测试基线** | 仓库根 **1066 collected**（2026-10-16 仿真建模赛补齐批后）；最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言；收集数不等于通过数）。**唯一真源 = `pytest.ini` 注释**；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
 | 🧬 **逐技能 C2 覆盖** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
 | 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + 宿主适配器（可选）+ TOOL_GAP→工具铸造 |
 

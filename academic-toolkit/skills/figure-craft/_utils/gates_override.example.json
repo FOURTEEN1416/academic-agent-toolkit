@@ -1,0 +1,14 @@
+{
+  "_comment": "闸门阈值豁免表（D4 机制）。figure_pdf_quality_check.py 会在字号 FAIL 判定前读此文件：命中且 final_p10 >= threshold 时降级为 WARN（附 rationale），其余检查（字体嵌入/对比度/重叠/出界/留白）不受影响。",
+  "_usage": "将本文件复制到工程根（fig_dir 的父目录，即 main.pdf 同层）或 figures/ 下，或用 --override <path> 显式指定。label 用图相对 figures 的路径（如 fig_convergence.pdf），大小写不敏感。",
+  "figure_pdf_quality": {
+    "fig_convergence.pdf": {
+      "threshold": 6.5,
+      "rationale": "示例：对齐图1视觉字号带（0.5–0.6× 正文），官方 cumcm_2026_format 无统一字号规定"
+    },
+    "palette_preview.pdf": {
+      "threshold": 7.5,
+      "rationale": "示例：不入论文的诊断图板，无需满足正文字号下限"
+    }
+  }
+}

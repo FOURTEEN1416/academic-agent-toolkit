@@ -89,12 +89,12 @@ def select_profile(ck, edition, form):
 
 # ---------------------------------------------------------------- 结构
 def test_schema_v2_structure():
-    """schema_version=2；comp_* 索引；22 条目（quality_gates.json 哨兵 _COMP_RULES_count=22
-    是真实消费契约）；赛事必备字段；档案层可为空但缺证赛事必有 evidence_summary。"""
+    """schema_version=2；comp_* 索引；23 条目（quality_gates.json 哨兵 _COMP_RULES_count=23
+    是真实消费契约；2026-10-16 新建 comp_csf 后 22→23）；赛事必备字段；档案层可为空但缺证赛事必有 evidence_summary。"""
     assert RULES["schema_version"] == 2
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", RULES["generated_at"])
     assert all(re.fullmatch(r"comp_[a-z0-9_]+", k) for k in CONTESTS), "非规范 comp_* ID"
-    assert len(CONTESTS) == 22, f"赛事条目数漂移: {len(CONTESTS)}"
+    assert len(CONTESTS) == 23, f"赛事条目数漂移: {len(CONTESTS)}"
     for k, e in CONTESTS.items():
         assert e["contest_id"] == k, f"{k} contest_id 与索引键不一致"
         assert e.get("name") and e.get("language"), f"{k} 缺 name/language"

@@ -435,13 +435,13 @@
     },
     "hw-archive-15-22": {
       "kind": "repo_artifact",
-      "title": "华为杯 15-23 届官方规范/模板一手原件库（assets-local 公开资产区）",
+      "title": "华为杯 23 届官方规范/模板一手原件库（assets-local 公开资产区）",
       "retrieved_at": "2026-10-01",
       "verification": "local_inspection",
-      "path": "assets-local/contest-regs/huawei/（15th_2018…22nd_2025 逐年规范+模板成对原件，收编自本地YY资料区 github-mirror/MathModel，cp 原样字节一致；23rd_2026/ 四件+公告快照+09-21 重要提醒快照为 2026-10-01 官方平台原路径重抓；人读清单 index.md）",
-      "located": "18→23 届格式七闸逐字稳定链原件；22nd_2025/附件4=22届AI规定（21届首颁→23届修订演进链一环）",
-      "applicable_scope": "15-23 届历史原件（当届口径以 comp_rules profiles 约束带为准；旧届条文不得直接标当届）",
-      "note": "assets-local 整区随公开仓分发（2026-09-28 用户裁决）；机检消费经 comp_rules，不直读二进制原件"
+      "path": "assets-local/contest-regs/huawei/23rd_2026/（四件原件 + 开赛公告快照 + 09-21 重要提醒快照，2026-10-01 官方平台原路径重抓；人读清单 index.md）",
+      "located": "23 届现行件；历史 15-22 届原件已于 2026-10-16 按用户裁定移出本库（仓外备份 D:/Desktop/学术工作流_huawei往届备份_20261016）",
+      "applicable_scope": "23 届当届（口径以 comp_rules profiles 约束带为准）",
+      "note": "assets-local 整区随公开仓分发（2026-09-28 用户裁决）；机检消费经 comp_rules，不直读二进制原件。⚠️ 2026-10-16 变更：15-22 届原件移出，「18→23 届格式七闸逐字稳定」的逐届比对原件已不在库内，该规律此后仅存结论、失去一手比对件。"
     },
     "zq8-submit-notice": {
       "kind": "official_direct",
@@ -452,9 +452,379 @@
       "located": "论文提交流程三步+注意事项 1-3（命名示例/选题勾选/承诺书勾选）+备用邮箱段",
       "path": "assets-local/contest-regs/zhongqing/8th_2026/论文提交通知_snapshot_cycmcm_20261009抓取.html",
       "note": "发布方中青杯全国大学生数学建模竞赛组委会（官网 cycmcm.com，皖ICP备2024057061号-4）；参赛通知与新闻列表快照同目录留存，md5 见 SNAPSHOTS.md5"
+    },
+    "csf26-jlufe-notice": {
+      "kind": "official_direct",
+      "title": "关于举办2026年第二届全国大学生仿真建模应用挑战赛的通知（主办单位吉林财经大学官网，发布 2026-08-27）",
+      "retrieved_at": "2026-10-16",
+      "verification": "full_text",
+      "url": "https://www.jlufe.edu.cn/info/1046/16717.htm",
+      "located": "二、时间安排；三、竞赛组织形式；四、竞赛内容及要求（A/B/C 三赛道定位与技术体系）；五、参赛对象；六、参赛费用；八、奖项设置",
+      "path": "assets-local/contest-regs/csf/2nd_2026/通知_吉林财经大学官网_snapshot_20261016抓取.md",
+      "note": "发布方=主办单位吉林财经大学（与中国仿真学会联合主办）；盖章版通知 / 集体报名表 / 《章程（2026年修订）》三件附件为下载件、未随快照留存，正文条款已全文直读"
+    },
+    "csf26-participant-notice": {
+      "kind": "third_party",
+      "title": "官方发布|2026第二届全国大学生仿真建模应用挑战赛参赛须知（自媒体转载组委会官方件，发布 2026-10-09）",
+      "retrieved_at": "2026-10-16",
+      "verification": "full_text",
+      "url": "https://www.toutiao.com/article/7694465210769310259",
+      "located": "二、关于参赛作品的提交说明 1（四件套组成/命名示例/视频规格/特别提醒 1-4）+ 2.1/2.2 提交时间节点 + 奖项设置",
+      "path": "assets-local/contest-regs/csf/2nd_2026/参赛须知_转载_snapshot_20261016抓取.md",
+      "note": "转载方为第三方自媒体（自称『官方发布』），本档案按 third_party 保守登记——条款与主办单位通知无冲突，但**再分发边界由使用者自判**；四件套命名与视频规格仅本件载明，无第二来源交叉核对"
+    },
+    "csf26-charter-2026": {
+      "kind": "third_party",
+      "title": "全国大学生仿真建模应用挑战赛章程（2026年修订）转载全文（自媒体，2026 赛季前发布）",
+      "retrieved_at": "2026-10-16",
+      "verification": "full_text",
+      "url": "https://dy.163.com/article/L5B69E4C05530N05.html",
+      "located": "第三章 参赛细则 第六条参赛对象 / 第七条参赛基础能力 / 第八条参赛方式 / 第九条竞赛内容 / 第十条作品要求",
+      "path": "assets-local/contest-regs/csf/2nd_2026/章程2026修订_转载_snapshot_20261016抓取.md",
+      "note": "转载渠道为第三方（网易订阅）；原文自标『章程(2026年修订)』。**不含** AIGC/相似比数值阈值——该数值仅见于 2025 首届通知（csf25-1st-notice），已按 superseded_edition 隔离于 historical_notes"
+    },
+    "csf25-1st-notice": {
+      "kind": "official_direct",
+      "title": "关于举办2025年全国大学生仿真建模应用挑战赛的通知（首届，组委会发布）",
+      "retrieved_at": "2026-10-16",
+      "verification": "full_text",
+      "url": "https://mojing.yeeaf.net/uploads/admin/202508/689effc905b68.pdf",
+      "located": "四、竞赛内容及要求 6（参赛成品要求：论文规范指向 + AIGC/相似比阈值 + 取消资格）",
+      "note": "**首届（2025）**官方件，与第二届（2026）不同届：其中的 AIGC>30% / 总相似比>50% 数值阈值**不得直接标为 2026 当届硬阈值**，仅作 superseded_edition 材料保留；2026 当届该数值未在已取证文件中复现"
+    },
+    "csf26-mojing-portal": {
+      "kind": "official_portal_snapshot",
+      "title": "2026年第二届全国大学生仿真建模应用挑战赛报名与提交官网（模竞平台）",
+      "retrieved_at": "2026-10-16",
+      "verification": "snapshot",
+      "url": "https://www.mojinghub.com/competitions/csf/2026",
+      "located": "赛事详情页（SPA 动态渲染，静态抓取仅得页壳，未取得条款正文）",
+      "applicable_scope": "报名/下载赛题/提交作品系统（另有 csfjm/2026 别名路径）；条款结论不以本页为据",
+      "note": "仅作系统可达性登记，**未被任何约束引用**；《赛项说明》与《全国大学生仿真建模应用挑战赛论文规范》为赛前/赛题包内发布件，截至建档时未公开可直读，见 evidence_summary.open_questions"
     }
   },
   "contests": {
+    "comp_csf": {
+      "contest_id": "comp_csf",
+      "name": "全国大学生仿真建模应用挑战赛（中国仿真学会 CSF）",
+      "language": "zh",
+      "tooling": {
+        "template_cls": "ctexart",
+        "note": "官方未发布专用 LaTeX 模板类；论文规范单行本未公开直读，暂以通用中文论文装载（_templates/csf/）"
+      },
+      "profiles": [
+        {
+          "profile_id": "comp_csf_2026_electronic",
+          "edition": "2026",
+          "submission_form": "electronic",
+          "rules_revision": "第二届（2026）参赛须知·作品提交说明（2026-10-09）+ 主办单位通知（2026-08-27）+ 章程（2026年修订）",
+          "constraints": [
+            {
+              "id": "csf26-competition-form",
+              "vintage": "2026-2nd",
+              "kind": "submission_flow",
+              "status": "verified",
+              "value": {
+                "delivery_mode": "通讯方式，全国统一命题，自主选择场地",
+                "tracks": [
+                  "A：多智能体复杂系统仿真",
+                  "B：全域数字孪生建模与治理仿真",
+                  "C：数据驱动仿真融合与智能优化决策"
+                ],
+                "choose_tracks": 1,
+                "dataset_release": "竞赛启动后官方统一开放各赛道数据集下载权限",
+                "task_depth": "模型构建 + 仿真推演 + 方案设计 + 成果报告撰写",
+                "team": "每队 1—3 名学生 + 1 名指导教师，不允许跨校组队，不可重复组队",
+                "coding_tools": "Python / C++ / MATLAB 或其他等效仿真编程工具（组委会不承担软件授权义务）"
+              },
+              "scope": "竞赛形式、赛道选择与参赛基础要求（非论文版式约束）",
+              "source_ids": [
+                "csf26-jlufe-notice",
+                "csf26-charter-2026",
+                "csf26-participant-notice"
+              ],
+              "locator": "通知「竞赛采用通讯方式，全国统一命题」「设置A、B、C三个赛道，参赛队伍选择其中一个作答」「竞赛启动后，官方统一开放各赛道数据集下载权限」+ 章程第七条参赛基础能力",
+              "note": "赛道三选一是**赛制**约束而非产出版式约束；2025 首届为 A/B 双赛道，第二届扩为 A/B/C 三赛道——不得用首届赛道集反推当届"
+            },
+            {
+              "id": "csf26-components",
+              "vintage": "2026-2nd",
+              "kind": "submission_flow",
+              "status": "verified",
+              "value": {
+                "components": [
+                  "参赛电子版论文",
+                  "承诺书",
+                  "支撑材料",
+                  "仿真视频文件"
+                ],
+                "required": [
+                  "参赛电子版论文",
+                  "承诺书",
+                  "仿真视频文件"
+                ],
+                "optional": [
+                  "支撑材料"
+                ],
+                "channel": "四个独立文件分别通过竞赛系统对应功能提交",
+                "support_material_rule": "确无支撑材料时该项可空缺（可不上传）"
+              },
+              "scope": "参赛成果四件套组成与必要性",
+              "source_ids": [
+                "csf26-participant-notice"
+              ],
+              "locator": "「通常有『参赛电子版论文』『承诺书』『支撑材料』『仿真视频文件』四部分，以四个独立文件形式分别通过竞赛系统对应功能提交。其中『参赛电子版论文』『承诺书』『仿真视频文件』是必要的」+ 特别提醒（3）"
+            },
+            {
+              "id": "csf26-paper-file-format",
+              "vintage": "2026-2nd",
+              "kind": "file_format",
+              "status": "verified",
+              "value": {
+                "allowed": [
+                  "pdf"
+                ],
+                "single_file": true,
+                "compression": "forbidden（不要压缩）",
+                "image_pdf": "discouraged（建议用非图片PDF格式）",
+                "pledge_inside_paper": "forbidden（参赛论文中不能包含承诺书）"
+              },
+              "scope": "参赛电子版论文文件格式",
+              "source_ids": [
+                "csf26-participant-notice"
+              ],
+              "locator": "「参赛论文中不能包含承诺书，文件格式只能用PDF(建议用非图片PDF格式),不要压缩，只接收一个PDF文件」"
+            },
+            {
+              "id": "csf26-file-naming",
+              "vintage": "2026-2nd",
+              "kind": "file_naming",
+              "status": "verified",
+              "value": {
+                "pattern": "题号+队伍号+后缀",
+                "paper": "题号+队伍号+pdf（例：ACSF2600001.pdf）",
+                "pledge": "题号+队伍号+cns（例：ACSF2600001cns.pdf/.jpg/.png）",
+                "support_material": "题号+队伍号+fj（例：ACSF2600001fj，rar/zip）",
+                "video": "题号+队伍号+fz（例：ACSF2600001fz，mp4）",
+                "prefix_means": "题号取赛道字母 A/B/C，接赛事代号 CSF、年份号 26 与队伍号"
+              },
+              "scope": "四件套文件命名（命名以系统实际下发的队伍号为准）",
+              "source_ids": [
+                "csf26-participant-notice"
+              ],
+              "locator": "「论文命名格式为：题号+队伍号+pdf，例如ACSF2600001.pdf」「承诺书的命名格式为：题号+队伍号+cns」「支撑材料命名格式：题号+队伍号+fj」「视频文件命名格式：以『题号+队伍号+fz』的形式命名」",
+              "note": "示例串中的数字段为队伍号，非固定值；本仓交付工具只做『题号+队伍号+后缀』的形态校验，不代填队伍号"
+            },
+            {
+              "id": "csf26-page-order",
+              "vintage": "2026-2nd",
+              "kind": "page_order",
+              "status": "verified",
+              "value": {
+                "sequence": [
+                  "abstract_page（论文文件第一页）",
+                  "body",
+                  "appendix（源程序，紧随正文之后）"
+                ],
+                "order_immutable": true,
+                "appendix_same_file": true
+              },
+              "scope": "论文文件页序：摘要第一页 → 正文 → 源程序附录",
+              "source_ids": [
+                "csf26-participant-notice"
+              ],
+              "locator": "「摘要(summary)必须是论文文件的第一页，不能分为两个文件」「源程序应作为附录放入参赛论文正文之后，与论文正文编辑在同一个文件中」"
+            },
+            {
+              "id": "csf26-first-page",
+              "vintage": "2026-2nd",
+              "kind": "first_page",
+              "status": "verified",
+              "value": {
+                "contains": [
+                  "摘要"
+                ],
+                "page": 1,
+                "separate_file_forbidden": true
+              },
+              "scope": "论文第一页（摘要页，不得拆分为独立文件）",
+              "source_ids": [
+                "csf26-participant-notice"
+              ],
+              "locator": "「摘要(summary)必须是论文文件的第一页，不能分为两个文件」"
+            },
+            {
+              "id": "csf26-source-code",
+              "vintage": "2026-2nd",
+              "kind": "results_upload",
+              "status": "verified",
+              "value": {
+                "appendix_in_paper": true,
+                "also_in_support_material": true,
+                "support_material_single_archive": true,
+                "archive_formats": [
+                  "zip",
+                  "rar"
+                ],
+                "support_material_content": "所有可运行的源程序代码 + 查阅使用的数据 + 难以从公开渠道查询的相关资料"
+              },
+              "scope": "源程序双落位（论文附录 + 支撑材料）与支撑材料打包",
+              "source_ids": [
+                "csf26-participant-notice"
+              ],
+              "locator": "「源程序除应作为附录放入参赛论文中之外，还应放入支撑材料中」「所有必要内容需压缩为一个文件 (ZIP或RAR格式)」"
+            },
+            {
+              "id": "csf26-pledge",
+              "vintage": "2026-2nd",
+              "kind": "pledge_page",
+              "status": "verified",
+              "value": {
+                "required": true,
+                "separate_file": true,
+                "inside_paper": "forbidden",
+                "accepted_formats": [
+                  "pdf",
+                  "jpg",
+                  "png"
+                ],
+                "signing": "队员填写相关信息后电子签名，或打印后手写签名再拍照/扫描",
+                "source_of_template": "赛题包内《2026全国大学生仿真建模应用挑战赛承诺书》"
+              },
+              "scope": "承诺书独立件（与论文分离，不得并入论文）",
+              "source_ids": [
+                "csf26-participant-notice"
+              ],
+              "locator": "「参赛论文中不能包含承诺书」「承诺书…需要每个队伍电子签名或打印之后手写签名，通过拍照或扫描的形式把承诺书生成PDF、JPG或PNG文件」"
+            },
+            {
+              "id": "csf26-video-spec",
+              "vintage": "2026-2nd",
+              "kind": "file_format",
+              "status": "verified",
+              "value": {
+                "container": "mp4",
+                "max_duration_s": 180,
+                "duration_rule": "原则上控制在 3 分钟内；建议前 30 秒介绍作品概况",
+                "min_resolution": "1280x720",
+                "max_size_mb": 300,
+                "required_content": [
+                  "模型界面与功能模块介绍",
+                  "运行过程演示（屏幕录制或软件内录屏）",
+                  "结果分析与可视化（结果/数据分析/重要图表曲线）"
+                ]
+              },
+              "scope": "仿真视频文件规格与内容要素",
+              "source_ids": [
+                "csf26-participant-notice"
+              ],
+              "locator": "「视频时长：原则上控制在3分钟内」「统一采用MP4格式」「分辨率不低于1280×720，建议控制在300MB以内」+ 视频内容三段要点"
+            },
+            {
+              "id": "csf26-anonymity",
+              "vintage": "2026-2nd",
+              "kind": "identity_anonymity",
+              "status": "verified",
+              "value": {
+                "identity_forbidden": true,
+                "forbidden_items": [
+                  "姓名",
+                  "学校"
+                ],
+                "applies_to": "任何提交材料"
+              },
+              "scope": "全部提交材料（论文/承诺书/支撑材料/视频）",
+              "source_ids": [
+                "csf26-participant-notice"
+              ],
+              "locator": "「严格遵守大赛纪律，不得出现任何可能透露参赛队伍个人信息的内容（如姓名、学校等）」",
+              "note": "官方表述为『任何可能透露…个人信息的内容』并举例姓名/学校——承诺书本身需签名，属**规则明确豁免的独立件**，不与本约束冲突"
+            },
+            {
+              "id": "csf26-originality",
+              "vintage": "2026-2nd",
+              "kind": "plagiarism",
+              "status": "verified",
+              "value": {
+                "originality_review": true,
+                "nonconforming_paper": "不予参评（格式规范不符合《论文规范》者）",
+                "independent_work": "指导教师不得直接参与赛题求解/模型构建/代码编写/论文撰写",
+                "ip_infringement": "不得侵犯他人知识产权"
+              },
+              "scope": "原创性与独立性审查（数值阈值当届未取证，见 historical_notes）",
+              "source_ids": [
+                "csf26-charter-2026",
+                "csf26-participant-notice"
+              ],
+              "locator": "章程第十条「竞赛论文的格式与规范要求详见《全国大学生仿真建模应用挑战赛论文规范》，不符合规范的竞赛论文不予参评。组委会将对所有提交论文进行原创性审查」+ 参赛须知特别提醒（4）",
+              "note": "**AIGC>30% / 总相似比>50% 的数值阈值属 2025 首届条款**（csf25-1st-notice），2026 当届已取证文件中未复现——不得按当届硬阈值执行，故不写入 value"
+            },
+            {
+              "id": "csf26-submission-deadline",
+              "vintage": "2026-2nd",
+              "kind": "submission_process",
+              "status": "verified",
+              "value": {
+                "paper_pledge_support_deadline": "2026-10-20T20:00+08:00",
+                "video_deadline": "2026-10-21T20:00+08:00",
+                "resubmit_allowed": true,
+                "resubmit_rule": "以最后一次提交时间为准",
+                "late_rule": "过时无效（逾期视为弃权）",
+                "channel": "竞赛系统（https://www.mojinghub.com/competitions/csf/2026）"
+              },
+              "scope": "提交时间节点与重复提交规则",
+              "source_ids": [
+                "csf26-participant-notice",
+                "csf26-jlufe-notice"
+              ],
+              "locator": "参赛须知 2.1「务必在 2026年10月20日20:00 之前」/ 2.2「务必在 2026年10月21日20:00 前」+「比赛期间…可以重复提交，以最后一次提交时间为准」；通知三.2（逾期视为弃权）"
+            }
+          ],
+          "guidance": []
+        }
+      ],
+      "historical_notes": [
+        {
+          "kind": "superseded_edition",
+          "note": "2025 首届（A/B 双赛道）条款，非当届：①赛道集为『仿真建模应用赛道（连续型/离散型/概率类仿真）+ 数学建模与仿真赛道』，第二届已重构为 A/B/C 三赛道；②原创性阈值『全文疑似 AIGC 生成比例超过 30% 或全文总相似比超过 50%，视为雷同论文，取消评奖资格』；③竞赛时长 72 小时（第二届改为 2026-10-16 20:00 至 10-20 20:00，约 96 小时）。以上均不得直接应用于 2026 当届",
+          "material": {
+            "edition": "2025-1st",
+            "aigc_threshold": 0.30,
+            "similarity_threshold": 0.50,
+            "tracks": [
+              "仿真建模应用赛道",
+              "数学建模与仿真赛道"
+            ]
+          },
+          "source_ids": [
+            "csf25-1st-notice"
+          ]
+        }
+      ],
+      "lifecycle": {
+        "status": "active",
+        "checked_at": "2026-10-16"
+      },
+      "evidence_summary": {
+        "status": "resolved",
+        "summary": "2026-10-16 三源交叉取证：①主办单位吉林财经大学官网通知（2026-08-27）全文直读——赛制/赛道/时间/参赛对象/奖项坐实；②组委会官方参赛须知转载件（2026-10-09）全文直读——四件套组成/命名/文件格式/视频规格/匿名/原创性/提交节点坐实；③《章程（2026年修订）》转载全文直读——作品要求与独立性条款坐实。见 profiles/comp_csf_2026_electronic",
+        "search_log": [
+          "检索『2026年第二届全国大学生仿真建模应用挑战赛 官网 赛题』：命中模竞报名页与多所高校转发通知（2026-10-16）",
+          "吉林财经大学官网通知直读（jlufe.edu.cn/info/1046/16717.htm）全文（2026-10-16）",
+          "报名官网 mojinghub.com/competitions/csf/2026 静态抓取：SPA 仅返回页壳，条款正文未获（登记为 official_portal_snapshot，未被引用）",
+          "检索『参赛须知』：命中组委会官方件转载全文（四件套/命名/视频规格来源），按 third_party 保守登记（2026-10-16）",
+          "检索『章程 2026年修订』：命中转载全文（第三章参赛细则/第十条作品要求）",
+          "检索首届（2025）通知 PDF：命中 mojing.yeeaf.net 官方件全文，用于 superseded_edition 隔离（非当届依据）"
+        ],
+        "open_questions": [
+          "《全国大学生仿真建模应用挑战赛论文规范》（章程第十条指向的唯一格式真源）单行本**未公开直读**——页数上限、版式（字体/行距/页边距/页码）、摘要页要素、参考文献体例、目录要求等**全部保持缺席**，不得臆测；赛题包内应含正式件，取得后须回填 constraints 并同步 skills/comp-paper-zh/references/csf-official-format.md",
+          "《2026年第二届全国大学生仿真建模应用挑战赛赛项说明》（各赛道任务书与成果要求）赛前发布，截至建档未获取——赛道级产出要求（如仿真视频的必要内容要素之外的建模深度）待补",
+          "A 赛道与 C 赛道的赛道级差异化评审标准未公开；B 赛道『虚实联动/双向赋能』的可核验形态未定义",
+          "承诺书模板为赛题包内件，未获取其字段与签名栏形态",
+          "提交系统的具体上传形态（四件套是否为四个上传入口、大小限制实现口径）未实测"
+        ]
+      }
+    },
     "comp_cumcm": {
       "contest_id": "comp_cumcm",
       "name": "全国大学生数学建模竞赛 (CUMCM)",
@@ -1376,7 +1746,7 @@
           ]
         }
       ],
-      "next_check": "第24届开赛公告发布时逐条重验，AI条款（附件4系）与提交时间窗优先；已验证规律：格式七闸（页眉页码/字号行距/摘要/匿名/封皮图标/参考文献句式/纪律红线）18→23 届逐字稳定（15-23 届原件归档 assets-local/contest-regs/huawei/ 支持逐届比对，23rd_2026 五件 2026-10-01 收编）"
+      "next_check": "第24届开赛公告发布时逐条重验，AI条款（附件4系）与提交时间窗优先；已验证规律：格式七闸（页眉页码/字号行距/摘要/匿名/封皮图标/参考文献句式/纪律红线）23 届逐字稳定（⚠️ 2026-10-16：15-22 届比对原件已按用户裁定移出，该规律自此仅存结论、无一手比对件；23rd_2026 五件 2026-10-01 收编）"
     },
     "comp_apmcm": {
       "contest_id": "comp_apmcm",

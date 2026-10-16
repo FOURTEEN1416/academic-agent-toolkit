@@ -53,12 +53,20 @@
 
 **赛后/场外情境推荐**（不在 14 步内）：`contest-retrospective`（赛后复盘与经验沉淀——留痕取证→场景/坑/清单三分类→每条归因仓库内真实强制点→双写经验库→机检闭环；**每个赛事周期结束后应跑一次**）、`paper-slides`/`paper-poster`/`doc-poster-latex`（答辩幻灯与海报）、`team-coordination`（三人分工时）、`feishu-notify`（进度通知）、`rebuttal`（答辩质询应答结构）。
 
-## 三、情境可用（79 个，按需加载）
+## 三、情境可用（86 个，按需加载）
 
 `paper-writing-clinical`（通用科学写作）、`paper-plan`/`paper-analysis`/`assets-inventory`（科研链资产管线，有既有材料时）、`paper-write-zh`/`paper-write-zh-docx`（Markdown 路线写文）、`paper-writing`/`paper-writing-paragraph-standards`（科研写作方法论参考）、`training-check`（产出训练自检）、`editor-agent`/`experiment-agent`（代理执行模式）、`lit-citation-manage`（引用管理方法论）、`latex-pdf-accessible`/`latex-cleanup`/`paper-presubmit-checks`（PDF 可及性/LaTeX 清理/预提交检查——投稿向但方法通用）、`novelty-check`（新颖性论证参考）、`idea-creator`（创意法参考）、`auto-paper-improvement-loop`（改进循环，第 12 步后可选）、`paper-writing-paragraphs`（科学写作规范）、
 `palette-health-check`（配色「去灰提彩」体检——把"发灰/发闷/太深"翻译成可机检的 C*/C*max 去灰指标、`deepen` 替代 `darken`、色带入带序单调性复核；S5 出图后或 S11 视觉审查时按需加载，脚本在 `skills/palette-health-check/bin/`）。
 `comp-cumcm-disclosure`（CUMCM AI 工具使用申报双件套入口与门禁——生成/校验《AI工具使用详情.pdf》与正文 AI 使用声明、声明↔详情口径一致双硬闸；配套确定性脚本 `skills/_utils/build_ai_disclosure.py` 与唯一真源 `ai_disclosure_rules.md`，S14 终审前后按需加载）、
 `comp-cumcm-package`（提交打包沙演与合规终审——支撑材料语料/身份扫描（文件名/目录名/PDF 文档属性）/论文与包各 ≤20MB/MD5/`--zip` 沙演防呆闸，人工项见其 `references/submission_checklist.md`，S14 后上传前使用；**两族通用**：华为杯链跑 `--compliance-profile comp_huawei`（承诺书方向 hw-pledge=unknown 出现「承诺书」转人工确认不硬判、页限当届无官方条款 hw-page-limit=unknown 任务口径须显式声明），口径真源 `engine/modex-core/comp_rules.json` profiles 约束带（vintage 2026-23rd））、
+`comp-simulation`（**仿真建模主链**——2026-10-16 新建，补仿真建模类赛事（全国大学生仿真建模应用挑战赛 A 多智能体 / B 数字孪生 / C 数据驱动仿真）的能力缺口。管"仿真特有的四件事"：①**方法选型**（ABM 多智能体 / DES 离散事件 / SD 系统动力学 / 连续系统 / 蒙特卡洛 / 数据驱动融合及其组合的角色声明）②**五要素规格化**（实体-规则-环境-时钟-观测量）+ 随机性纪律（显式 Generator + 种子表 + 重复次数 N）③**校准·验证·确认 V&V + 不确定性量化**（含基线对照硬要求）④**实验设计与敏感性/稳健性**（DOE、Sobol、结论翻转判定）。产物契约 = `SIM_MANIFEST.json`（校验器 `scripts/sim_manifest_check.py`）+ 结果账本。定了型之后的求解与写作仍回既有 `comp-modeling` → `comp-code` → `paper-figure` → `comp-paper-zh` 主链；本技能**不含**仿真引擎本体，执行按 `references/engine-routing.md` 路由到 Mesa/SimPy/Salabim/PySD/pymoo/stable-baselines3/PyMC 等（缺席如实记 unavailable，方法论层纯标准库可执行）。开场先跑 `scripts/sim_env_probe.py`）、
+`figure-craft`（出版级**优化制图**总控——版面级图重绘/优化（只搬运数值、不重算模型）：图型选型多样化（柱状→棒棒糖/点阵/差值带/渐变条）、"质感三件套"渐变画法（浅渐变填充+同族加深描边+外扩荧光，API 自带于 `_utils/figstyle.py`）、统一配色注册表与场景化选色、四道验收 + 视觉复审。2026-10-16 **增量收编**自本地包（独有件=figstyle.py + 两套色板 + 七篇方法文档；与工具箱 `skills/_utils/` 共享的绘图脚本与配方**不复制第二份**，改引唯一真源，溯源见其 `SOURCE.md`）。与 `fig-aesthetics-craft`/`paper-figure-palette` 互补：后者是"画图技法与配色规范"，本技能是"把已有图提升到投稿质感"的编排入口；S5 出图后 / S11 视觉审查前按需加载）、
+**仿真/科学计算引擎簇（5 个，2026-10-16 收编自 vendor/forks/scientific-agent-skills@36d8f13，MIT；溯源各自 `references/UPSTREAM.md`）**——为仿真建模类赛事（A 多智能体 / B 数字孪生 / C 数据驱动仿真）补齐引擎层；执行前先跑 `comp-simulation/scripts/sim_env_probe.py` 探测本机实装，缺席如实记 `unavailable` 不阻断：
+`simpy`（离散事件仿真 DES：事件/资源/中断/监控/重复运行与热身期，B、C 赛道流程层主力）、
+`pymoo`（多目标优化：NSGA-II/III、MOEA/D、Pareto 前沿与约束处理，C 赛道参数与调度寻优）、
+`stable-baselines3`（强化学习：PPO/SAC/DQN 等标准实现，C 赛道智能决策策略学习）、
+`pymc`（贝叶斯校准与不确定性量化：MCMC/变分推断/后验检验，C 赛道参数校准与 UQ）、
+`experimental-design`（实验设计 DOE：因子/部分因子/响应面/序贯设计，仿真与数据采集前的方案设计）、
 `paper-figure-palette`（**统一配色体系（多场景）**——先按数据类型选分类/顺序/发散，再按场景（竞赛/期刊投稿/学位与课程/幻灯海报/Office 内嵌）落地；真源 `assets/palette_registry.json`（9 套色板）+ `references/scenarios.md`（三步选色法/10 条规范/禁用清单），机检 `palette_kit.py registry-verify`；本地 8 色板「夏日海滩」同源，与 `palette-health-check` 配套，绘图/视觉审查按需加载）。
 
 **§二修剪移入（41 个）**——被步骤推荐清单移出的结构性冗余/低频技能，
@@ -88,7 +96,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 - 其他单点（3）：`ablation-planner`（消融实验规划，长周期科研按需）、`paper-illustration`（论文概念插图/示意图）、`problem-selection`（赛题选择——开引擎前选题决策环节，与 §一 comp-pipeline 前置衔接）
 
 **整技能收编（1 个）**——上游 Adkid-Zephyr/oral-paper-skill 收编
-（无 LICENSE 文件如实登记，pinned a2c4bc4，status experimental；catalog disposition `routed`，
+（上游登记：pinned a2c4bc4，status experimental；catalog disposition `routed`，
 公开再发布待上游授权）：
 
 - 学术写作（1）：`paper-oral-exemplar`（对照 883 篇顶会 Oral 蒸馏的七项做法做稿件对照改进/学习复盘，
@@ -146,8 +154,9 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 
 **机检首匹配归段口径**（技能名按首次出现的段落计一次，跨段引用不重复计；词边界 + 斜杠缩写展开 +
 前缀域 fnmatch，与 `tools/check_asset_utilization.py` 的 `load_map_coverage` 完全同口径）：
-主链家族 20 + 每步推荐 18 + 情境可用 78 + 外域 137 + 未接入库 2 = **255**，
-与 skills/ 下含 SKILL.md 的目录实测数（255；tracked clone 255——2026-09-28 起 5 件无 License 技能经本地化改写入库）逐一相符：零幽灵名、零漏网。
+主链家族 20 + 每步推荐 18 + 情境可用 85 + 外域 137 + 未接入库 2 = **262**，
+与 skills/ 下含 SKILL.md 的目录实测数（262）逐一相符：零幽灵名、零漏网。
+（2026-10-16 仿真建模赛补齐批 +7：`comp-simulation`、`figure-craft` 与仿真引擎簇 `simpy`/`pymoo`/`stable-baselines3`/`pymc`/`experimental-design`，均归 §三 情境可用。）
 口径说明（避免读者对不上数）：§三 标题"79 个"是**具名条目数**，其中
 `paper-figure-palette` 首现于 §二 step5 必用位故首匹配归 §二（79→78）；§四 标题不再钉固定数
 （外域件随改名/合并演进），其前缀域（`spine-*`/`latex-paper-*`/`dev-*`/`meta-*`/`lit-*`/`doc-*`/`fig-*`/`paper-*`）

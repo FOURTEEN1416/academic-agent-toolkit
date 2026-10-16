@@ -159,14 +159,15 @@ def test_comp_rules_loaded():
 
     2026-09-27 收口迁移：旧断言 len(rules) >= 20 是宽松下限；E-MERGE-01 合并后
     真源/候选均为 22 赛事，收紧为精确数防静默增删。真源切换（v1→v2，包裹在
-    contests 键下）由 E 窗执行，切换前后本测试都须绿。"""
+    contests 键下）由 E 窗执行，切换前后本测试都须绿。
+    2026-10-16：新建 comp_csf（仿真建模挑战赛，第二届 2026）后 22→23。"""
     import json
     rules_file = ROOT / "engine" / "modex-core" / "comp_rules.json"
     assert rules_file.exists(), "comp_rules.json 不存在"
     rules = json.loads(rules_file.read_text(encoding="utf-8"))
     contests = (rules["contests"] if isinstance(rules, dict)
                 and isinstance(rules.get("contests"), dict) else rules)
-    assert len(contests) == 22, f"竞赛规则数漂移 ({len(contests)} != 22)"
+    assert len(contests) == 23, f"竞赛规则数漂移 ({len(contests)} != 23)"
 
 
 def test_quality_gates_config_loaded():

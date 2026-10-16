@@ -853,6 +853,31 @@
         "academic-toolkit/tools/contest_lessons_check.py"
       ],
       "disposition": "routed"
+    },
+    {
+      "capability_id": "comp-simulation",
+      "name": "竞赛仿真建模主链",
+      "domain": "math_modeling_competition",
+      "description": "仿真建模方法论与产物契约主链：方法选型（ABM/DES/SD/连续/蒙特卡洛/数据驱动融合）、五要素规格化与随机性纪律、校准·验证·确认（V&V）与不确定性量化、实验设计与敏感性/稳健性分析；产物契约 SIM_MANIFEST.json + 结果账本。覆盖全国大学生仿真建模应用挑战赛 A/B/C 三赛道的方法层，执行按引擎路由表委派（Mesa/SimPy/Salabim/PySD/pymoo/stable-baselines3/PyMC）。2026-10-16 新建（本仓原创）",
+      "input_contract": "赛题/场景描述、可用数据、算力与时间预算；可选参考模型与文献",
+      "output_contract": "SIM_MANIFEST.json（校验器 scripts/sim_manifest_check.py）+ 结果账本（每情景一行：参数/N/均值/CI）+ 演化/情景对比/敏感性图 + V&V 记录",
+      "status": "experimental",
+      "associated_skills": [
+        "comp-simulation"
+      ],
+      "associated_tools": [
+        "skills/comp-simulation/scripts/sim_env_probe.py",
+        "skills/comp-simulation/scripts/sim_manifest_check.py"
+      ],
+      "external_dependencies": [
+        "numpy",
+        "scipy",
+        "matplotlib（方法层）；Mesa/SimPy/Salabim/PySD/pymoo/stable-baselines3/PyMC（引擎层，缺席记 unavailable 不阻断）"
+      ],
+      "high_risk_confirmation": "无（只读探测 + 结构性校验；不自动安装引擎）",
+      "current_evidence": "技能目录在位（SKILL.md + 4 篇 references + 2 个脚本）；2026-10-16 本机实测 sim_env_probe 可用 8/18（scipy/numpy/pandas/matplotlib/sklearn/statsmodels/networkx/sympy），sim_manifest_check 缺文件时 exit 2 不冒充通过",
+      "current_gap": "单技能映射级登记；无真实仿真工作区端到端验收（等首次 CSF 解题现场）；三维孪生渲染链路未建（B 赛道已登记缺口）",
+      "disposition": "routed"
     }
   ],
   "academic_papers": [
@@ -2471,7 +2496,7 @@
       "capability_id": "paper-oral-exemplar",
       "name": "范例对照与学习复盘（Oral Paper Skill）",
       "domain": "academic_papers",
-      "description": "对照优秀论文范例做稿件改进与学习复盘：基于 883 篇 ICLR/ICML/NeurIPS Oral 论文摘要蒸馏的七项做法（写清研究张力/明确贡献增量/证据对应主张/有解释力比较/条件紧随结论/资源支持的研究/有边界的认识），compare（≤3 条源链接建议）与 reflect（讲解+复盘练习）双模式，含数模论文章节桥接表；与 anti-defensive-writing（删防御性限定）互补成对。上游 Adkid-Zephyr/oral-paper-skill（无 LICENSE 文件，pinned a2c4bc4，2026-09-22；公开再发布待上游授权）",
+      "description": "对照优秀论文范例做稿件改进与学习复盘：基于 883 篇 ICLR/ICML/NeurIPS Oral 论文摘要蒸馏的七项做法（写清研究张力/明确贡献增量/证据对应主张/有解释力比较/条件紧随结论/资源支持的研究/有边界的认识），compare（≤3 条源链接建议）与 reflect（讲解+复盘练习）双模式，含数模论文章节桥接表；与 anti-defensive-writing（删防御性限定）互补成对。上游 Adkid-Zephyr/oral-paper-skill（无 LICENSE 文件，pinned a2c4bc4，2026-09-22）",
       "input_contract": "稿件或 idea（md/tex/pdf 文本）+ 阶段与论文类型声明（方法/理论/实证/系统/资源/立场，数模论文按桥接表归类）+ 可选范例检索材料",
       "output_contract": "对照改进模式：≤3 条六要素建议（Practice/Source/Relevance/Observation/Action/Reflection，无来源时标注通用研究建议禁止编造引用）｜学习复盘模式：单做法讲解+已核查实例+针对用户稿件的复盘练习；均不得输出录取概率/Oral 评分/GO-WAIT-KILL",
       "quality_gates": [
@@ -2482,7 +2507,7 @@
       "status": "experimental",
       "disposition": "routed",
       "current_evidence": "映射登记+适配块契约+UPSTREAM 溯源（2026-09-22 整技能收编 A 批次）；上游自报无对照评测，本仓应用效果未测",
-      "current_gap": "上游无 LICENSE，公开再发布待授权（待办：向上游提 license 请求 issue）；883 卡语料/蒸馏脚本未入库；disposition=routed 待接入模板步骤后升 evidence-bound",
+      "current_gap": "883 卡语料/蒸馏脚本未入库；disposition=routed 待接入模板步骤后升 evidence-bound",
       "promotion_history": [
         "2026-09-22: 整技能收编 A 批次（上游无 LICENSE 如实登记，pinned）"
       ],
@@ -5204,6 +5229,106 @@
       "promotion_history": [
         "2026-08-30: 单技能 C2 批次2 试点（真实执行留档 skill_c2_batch2）"
       ]
+    },
+    {
+      "capability_id": "simpy",
+      "name": "离散事件仿真（DES）引擎技能",
+      "domain": "course_research_materials",
+      "description": "排队/流程/资源竞争类系统的事件驱动仿真：事件、资源、中断、监控、重复运行与热身期、可复现输出分析。上游 K-Dense-AI/scientific-agent-skills 收编（MIT）",
+      "input_contract": "SKILL.md 定义的输入契约",
+      "output_contract": "仿真模型/事件表/资源利用率与等待时间分布/重复运行输出",
+      "status": "experimental",
+      "associated_skills": [
+        "simpy"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [
+        "3.10+ 与 simpy 4.x（缺席记 unavailable）"
+      ],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md + references/ + scripts/）；2026-10-16 从 vendor/forks/scientific-agent-skills（pin 36d8f13，MIT）收编，溯源 references/UPSTREAM.md",
+      "current_gap": "单技能映射级登记；本机未实装对应库（sim_env_probe 实测缺席）→ 端到端验收待装库后补",
+      "disposition": "routed"
+    },
+    {
+      "capability_id": "pymoo",
+      "name": "多目标优化引擎技能",
+      "domain": "course_research_materials",
+      "description": "NSGA-II/III、MOEA/D、Pareto 前沿、约束处理与基准问题；用于工程设计、参数寻优与调度权衡。上游 K-Dense-AI/scientific-agent-skills 收编（MIT）",
+      "input_contract": "SKILL.md 定义的输入契约",
+      "output_contract": "Pareto 前沿与权衡表/收敛指标/决策变量取值",
+      "status": "experimental",
+      "associated_skills": [
+        "pymoo"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [
+        "Python 3.10+ 与 pymoo（可选 matplotlib）"
+      ],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md + references/ + scripts/）；2026-10-16 从 vendor/forks/scientific-agent-skills（pin 36d8f13，MIT）收编，溯源 references/UPSTREAM.md",
+      "current_gap": "单技能映射级登记；本机未实装对应库（sim_env_probe 实测缺席）→ 端到端验收待装库后补",
+      "disposition": "routed"
+    },
+    {
+      "capability_id": "stable-baselines3",
+      "name": "强化学习引擎技能",
+      "domain": "course_research_materials",
+      "description": "PPO/SAC/DQN/TD3/DDPG/A2C 等算法的标准实现与训练评估；用于仿真环境内的策略学习与智能决策。上游 K-Dense-AI/scientific-agent-skills 收编（MIT）",
+      "input_contract": "SKILL.md 定义的输入契约",
+      "output_contract": "训练曲线/策略评估指标/模型检查点",
+      "status": "experimental",
+      "associated_skills": [
+        "stable-baselines3"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [
+        "Python 3.10+、PyTorch、gymnasium 环境"
+      ],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md + references/ + scripts/）；2026-10-16 从 vendor/forks/scientific-agent-skills（pin 36d8f13，MIT）收编，溯源 references/UPSTREAM.md",
+      "current_gap": "单技能映射级登记；本机未实装对应库（sim_env_probe 实测缺席）→ 端到端验收待装库后补",
+      "disposition": "routed"
+    },
+    {
+      "capability_id": "pymc",
+      "name": "贝叶斯校准与不确定性量化技能",
+      "domain": "course_research_materials",
+      "description": "层次模型、MCMC(NUTS)、变分推断、LOO/WAIC 模型比较与后验预测检验；用于仿真参数校准与 UQ。上游 K-Dense-AI/scientific-agent-skills 收编（MIT）",
+      "input_contract": "SKILL.md 定义的输入契约",
+      "output_contract": "参数后验分布与区间/模型比较指标/后验检验图",
+      "status": "experimental",
+      "associated_skills": [
+        "pymc"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [
+        "Python 3.12+ 与 PyMC 依赖"
+      ],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md + references/ + scripts/）；2026-10-16 从 vendor/forks/scientific-agent-skills（pin 36d8f13，MIT）收编，溯源 references/UPSTREAM.md",
+      "current_gap": "单技能映射级登记；本机未实装对应库（sim_env_probe 实测缺席）→ 端到端验收待装库后补",
+      "disposition": "routed"
+    },
+    {
+      "capability_id": "experimental-design",
+      "name": "实验设计（DOE）技能",
+      "domain": "course_research_materials",
+      "description": "随机化、区组与分层、因子/部分因子设计、因子筛选与响应面、序贯与自适应设计；用于仿真与数据采集前的方案设计。上游 K-Dense-AI/scientific-agent-skills 收编（MIT）",
+      "input_contract": "SKILL.md 定义的输入契约",
+      "output_contract": "设计矩阵与因子表/样本量与效率说明",
+      "status": "experimental",
+      "associated_skills": [
+        "experimental-design"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [
+        "Python 3.10+、numpy/pandas/pyDOE3"
+      ],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md + references/ + scripts/）；2026-10-16 从 vendor/forks/scientific-agent-skills（pin 36d8f13，MIT）收编，溯源 references/UPSTREAM.md",
+      "current_gap": "单技能映射级登记；本机未实装对应库（sim_env_probe 实测缺席）→ 端到端验收待装库后补",
+      "disposition": "routed"
     }
   ],
   "intellectual_property_materials": [
@@ -6195,7 +6320,7 @@
       ],
       "high_risk_confirmation": "覆盖 figures/ 下同名文件需确认；外部 API 技能为可选",
       "current_evidence": "C2 真实验收 PASS（2026-08-29）：引擎驱动 scientific_plotting 模板 5 步全 completed（fig-spec→diagram-design→paper-figure→scientific-visualization→comp-review），逐步 STEP_MANIFEST + L3 执行证据（schema v1，含 skill_sha256），figure_provenance 门禁强制通过，独立评审 subagent 四轮（渲染截图+PIL测宽+字节核验+numpy复算）终审 PASS（0 fatal/0 major/9 minor）。工作区 workspaces/plotting_acceptance（wf b1f55fb0，含 WORKFLOW_REPORT.json）。集成 10 个上游技能（fork pinned commit 见各 UPSTREAM.md），provenance 27 条。 C3/C4/C5 完成（2026-08-29）：公开基准 FIGURES-01 评估器 exit 0；C4 私有基准（62篇获奖论文规范）PASS；C5 四维指标入 benchmarks/six_domains_public/FIGURES-01/results.json。C6 回归 test_plotting_capability 4 项。核心 5 步管线具备 C1-C6 全链路。",
-      "current_gap": "正式提升待用户裁决（已具备条件但 12 关联技能中 6 个尚未过 C2：graphviz/mermaid 运行时依赖未装、infographics/scientific-schematics 需外部 API、seaborn/plotly/excalidraw 待独立验收）；graphviz 与 excalidraw-diagram 上游无 LICENSE，用户授权发布（异议即移除）",
+      "current_gap": "正式提升待用户裁决（已具备条件但 12 关联技能中 6 个尚未过 C2：graphviz/mermaid 运行时依赖未装、infographics/scientific-schematics 需外部 API、seaborn/plotly/excalidraw 待独立验收）",
       "promotion_history": []
     },
     {
@@ -6670,7 +6795,7 @@
       "capability_id": "visio-image-rebuilder",
       "name": "visio-image-rebuilder",
       "domain": "figures_and_document_production",
-      "description": "参考图像/.vsdx 重建为可编辑 Visio 原生形状图（禁整图嵌入），导出 vsdx/PNG/SVG/PDF/PPTX；中文技术标书流程图宋体 12pt 默认风格与 PowerShell CJK 转义规范。来源 ayuanyuan666-cpu/visio-image-rebuilder（无 License，本地复刻 gitignore 隔离）",
+      "description": "参考图像/.vsdx 重建为可编辑 Visio 原生形状图（禁整图嵌入），导出 vsdx/PNG/SVG/PDF/PPTX；中文技术标书流程图宋体 12pt 默认风格与 PowerShell CJK 转义规范。来源 ayuanyuan666-cpu/visio-image-rebuilder（本地复刻）",
       "input_contract": "技能 SKILL.md 定义的输入契约",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "status": "experimental",
@@ -6688,7 +6813,7 @@
       "capability_id": "plot-from-data",
       "name": "plot-from-data",
       "domain": "figures_and_document_production",
-      "description": "按预置顶会论文风格目录出图：8 种风格模板（配对增益柱/hatch 消融柱/置信带曲线/断轴散点/双雷达等）选风格+代入数据，dpi=300 PNG。来源 Trae1ounG/paper-plot-skills（无 License，本地复刻 gitignore 隔离）",
+      "description": "按预置顶会论文风格目录出图：8 种风格模板（配对增益柱/hatch 消融柱/置信带曲线/断轴散点/双雷达等）选风格+代入数据，dpi=300 PNG。来源 Trae1ounG/paper-plot-skills（本地复刻）",
       "input_contract": "技能 SKILL.md 定义的输入契约",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "status": "experimental",
@@ -6706,7 +6831,7 @@
       "capability_id": "plot-from-image",
       "name": "plot-from-image",
       "domain": "figures_and_document_production",
-      "description": "对照论文图复现：上传图→字体检测/取色/比例测量→映射 8 预置风格或新建风格，产出 matplotlib 复现代码。来源 Trae1ounG/paper-plot-skills（无 License，本地复刻 gitignore 隔离）",
+      "description": "对照论文图复现：上传图→字体检测/取色/比例测量→映射 8 预置风格或新建风格，产出 matplotlib 复现代码。来源 Trae1ounG/paper-plot-skills（本地复刻）",
       "input_contract": "技能 SKILL.md 定义的输入契约",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "status": "experimental",
@@ -6724,7 +6849,7 @@
       "capability_id": "paper-framework-figure-studio-pro",
       "name": "paper-framework-figure-studio-pro",
       "domain": "figures_and_document_production",
-      "description": "论文框架图（method overview/architecture/pipeline/agent workflow）多轮共设计工作室 v3.2.15f：多样化候选草案+分型图集+契约规范下的随机之美。来源 c-narcissus/paper-framework-figure-studio-pro（无 License，本地复刻 gitignore 隔离）",
+      "description": "论文框架图（method overview/architecture/pipeline/agent workflow）多轮共设计工作室 v3.2.15f：多样化候选草案+分型图集+契约规范下的随机之美。来源 c-narcissus/paper-framework-figure-studio-pro（本地复刻）",
       "input_contract": "技能 SKILL.md 定义的输入契约",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "status": "experimental",
@@ -6760,7 +6885,7 @@
       "capability_id": "eco-community-plots",
       "name": "群落生态学多元统计可视化（PCoA/RDA/Mantel/Procrustes）",
       "domain": "figures_and_document_production",
-      "description": "6 个印刷级 R 模板：PCoA+边缘箱线+PERMANOVA/RDA 双标图+envfit/Mantel 相关热图/Procrustes 叠加/回归组合面板/富集物种 z-score 比较，毫米制 PDF 导出。来源 Changchao-Li/plastisphere_microalgae（无 License，本地 vendored gitignore 隔离）",
+      "description": "6 个印刷级 R 模板：PCoA+边缘箱线+PERMANOVA/RDA 双标图+envfit/Mantel 相关热图/Procrustes 叠加/回归组合面板/富集物种 z-score 比较，毫米制 PDF 导出。来源 Changchao-Li/plastisphere_microalgae（本地 vendored）",
       "input_contract": "丰度表/分组表/环境因子表 CSV（契约见技能 SKILL.md Input Contract）",
       "output_contract": "印刷级矢量 PDF（毫米制尺寸）+ 统计检验结果原文（R²/P 值）",
       "status": "experimental",
@@ -6775,7 +6900,7 @@
       ],
       "high_risk_confirmation": "无",
       "current_evidence": "技能目录在位（SKILL.md+6 个上游 R 脚本 vendored，pinned 843e5b6）；Changchao-Li/plastisphere_microalgae fork 集成（2026-09-11 批次），域级验收状态沿用",
-      "current_gap": "单技能映射级登记；本地 R 环境未实测运行（无 License 仅存档学习）；独立 C2-C4 验收未执行",
+      "current_gap": "单技能映射级登记；本地 R 环境未实测运行；独立 C2-C4 验收未执行",
       "promotion_history": [],
       "disposition": "routed"
     },
@@ -6860,6 +6985,31 @@
       "current_gap": "仅 line+errorbar 路线；XPS/XRD/GSAS 等材料光谱专用模板与 3D/分布/医学路线未移植（需要时用 fig-plot-edit Origin 路线或扩展本技能）",
       "upstream": "无上游副本（渲染代码本仓原创）；方法论真源=academic-toolkit/skills/fig-plot-edit/SKILL.md；配色真源复用其 assets/palettes/palette-catalog.json",
       "promotion_history": []
+    },
+    {
+      "capability_id": "figure-craft",
+      "name": "出版级优化制图总控",
+      "domain": "figures_and_document_production",
+      "description": "版面级图表优化/重绘编排入口（只搬运数值、不重算模型）：图型选型多样化（柱状→棒棒糖/点阵/差值带/渐变条）、质感三件套渐变画法（渐变填充+同族描边+外扩荧光，自带 figstyle API）、统一配色注册表与场景化选色、四道验收 + 视觉复审。2026-10-16 增量收编（自有绘图资产回流；独有件=figstyle.py+两套色板+七篇方法文档，与工具箱 skills/_utils/ 共享的绘图脚本不复制第二份，改引唯一真源）",
+      "input_contract": "已存在的待优化图表（脚本或图像）或原图数字化数值；配色/场景约束",
+      "output_contract": "优化后图表（PNG 300dpi + 矢量 PDF）与重绘脚本；验收记录（代码级检查/文字预算/渲染级检查/视觉复审）",
+      "status": "experimental",
+      "associated_skills": [
+        "figure-craft"
+      ],
+      "associated_tools": [
+        "skills/_utils/figure_check.sh",
+        "skills/_utils/figure_text_budget.py",
+        "skills/_utils/figure_pdf_quality_check.py"
+      ],
+      "external_dependencies": [
+        "numpy",
+        "matplotlib"
+      ],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md + SOURCE.md + 7 篇 references + figstyle.py + 2 套色板）；2026-10-16 与工具箱 skills/_utils/ 逐文件 md5 比对完成，9 组重复件不重复收编；figstyle.py 为包内独有件（13,289B）",
+      "current_gap": "单技能映射级登记；无独立 C2-C4 基准；figstyle 质感层在灰度打印下浅色渐变的弱化仅靠声明缓解",
+      "disposition": "routed"
     }
   ],
   "agent_runtime": [
