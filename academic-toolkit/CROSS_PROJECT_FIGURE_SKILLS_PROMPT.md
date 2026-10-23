@@ -33,7 +33,7 @@
 
 | 技能 | 用途 |
 |------|------|
-| `plot-from-data` ⚠ | 8 种顶会风格模板（配对增益柱/置信带曲线/断轴散点/双雷达等），选风格+代入数据，dpi=300 |
+| `plot-from-data` | 8 种顶会风格模板（配对增益柱/置信带曲线/断轴散点/双雷达等），选风格+代入数据，dpi=300 |
 | `fig-visualization-advisor` | CNS 级图表精修 |
 | `fig-academic` | 学术图表范式与 84M 图集参考 |
 
@@ -42,7 +42,7 @@
 | 技能 | 用途 |
 |------|------|
 | `agent-figure-gallery` | 图库选参考 |
-| `plot-from-image` ⚠ | 从参考图逆向复现 |
+| `plot-from-image` | 从参考图逆向复现 |
 | `paper-illustration` | 论文插图设计 |
 
 **D. 科学数据图工具链**
@@ -51,7 +51,7 @@
 |------|------|
 | `scientific-visualization` | matplotlib/seaborn/plotly 出版规范：多面板、误差棒、显著性标记、色盲安全、PDF/EPS/TIFF 导出 |
 | `matplotlib` / `seaborn` / `plotly` | 三大绘图库语法规范 |
-| `eco-community-plots` ⚠ | 群落生态多元统计 R 模板 6 件：PCoA+边缘箱线+PERMANOVA / RDA 双标图+envfit / Mantel 热图 / Procrustes / 回归组合面板 / 富集 z-score（毫米制印刷导出） |
+| `eco-community-plots` | 群落生态多元统计 R 模板 6 件：PCoA+边缘箱线+PERMANOVA / RDA 双标图+envfit / Mantel 热图 / Procrustes / 回归组合面板 / 富集 z-score（毫米制印刷导出） |
 | `fig-publication-chart` | 期刊级图表 |
 | `visualization` | 通用可视化方法 |
 
@@ -59,8 +59,8 @@
 
 | 技能 | 用途 |
 |------|------|
-| `paper-framework-figure-studio-pro` ⚠ | 高规格框架图 |
-| `visio-image-rebuilder` ⚠ | Visio 风格图重建 |
+| `paper-framework-figure-studio-pro` | 高规格框架图 |
+| `visio-image-rebuilder` | Visio 风格图重建 |
 | `diagram-design` | 结构化图示设计 |
 | `scientific-schematics` | 科学示意图 |
 | `graphviz` / `mermaid-diagram` / `excalidraw-diagram` | 三种声明式/手绘风图引擎 |
@@ -73,8 +73,6 @@
 | `fig-critique` | 外部图审批判清单 |
 | `fig-spec` | 图规格核对 |
 | `comp-visual-review` | 视觉审查流程 |
-
-⚠ = 无 License 技能（见隔离纪律第 4 条）。
 
 ### 三、选型决策树
 
@@ -99,9 +97,8 @@
 1. **产物落点**：一切产物只落**你当前项目的工作区**；禁止向 Academic Agent Toolkit 仓库根（`<REPO_ROOT>`）下任何路径写入、创建、修改或删除文件——包括技能库内、其 `workspaces/`、`dev-docs/` 等一切位置。
 2. **只读借用**：技能库文件一律只读；不要把工作目录 cd 到该仓库，用绝对路径引用即可。
 3. **门禁不外溢**：技能文档中出现的 STEP_MANIFEST、operations.jsonl、complete_step、C1 申报闸等，属于该仓库自身的引擎质量门禁——外部项目**不触发也不伪造**它们；过程留痕（如有）落你自己的项目。
-4. **License 红线**：标 ⚠ 的 5 个技能（plot-from-data、plot-from-image、visio-image-rebuilder、paper-framework-figure-studio-pro、eco-community-plots）上游未声明 License，只可本地只读使用，**禁止复制进其它仓库再分发**；其余技能未经许可同样不得整体搬运。
-5. **零干扰**：该仓库可能有赛时会话并行运行——任何写入（含 git 操作、日志、缓存）都可能造成冲突，因此除 Read 之外不对该仓库做任何文件系统操作。
-6. **网络与依赖自担**：技能运行所需环境（Python/matplotlib、R/vegan、draw.io、graphviz 等）安装与配置在你自己的项目环境完成，不在技能库内做任何安装动作。
+4. **零干扰**：该仓库可能有赛时会话并行运行——任何写入（含 git 操作、日志、缓存）都可能造成冲突，因此除 Read 之外不对该仓库做任何文件系统操作。
+5. **网络与依赖自担**：技能运行所需环境（Python/matplotlib、R/vegan、draw.io、graphviz 等）安装与配置在你自己的项目环境完成，不在技能库内做任何安装动作。
 
 ### 六、真源与同步
 

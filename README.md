@@ -2,17 +2,17 @@
 
 # ⚗️ Academic Agent Toolkit
 
-### academic-toolkit · 让 Agent 像科研人员一样工作
+### 让 Agent 像科研人员一样工作
 
-*一套带质量门禁、审计证据链与溯源台账的科研 Agent 工程系统*
+*262 个随仓技能 · 宿主无关引擎 · 可复现证据链 · 对齐赛题得分*
 
 [![Release](https://img.shields.io/badge/release-v2.1.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-1066_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
+[![Tests](https://img.shields.io/badge/tests-1089_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-320-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-262_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始)
-[![Hosts](https://img.shields.io/badge/hosts-Any_Agent-1f2937?style=flat-square)](#快速开始)
+[![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#快速开始宿主无关)
+[![Hosts](https://img.shields.io/badge/hosts-Any_Agent-1f2937?style=flat-square)](#快速开始宿主无关)
 
 </div>
 
@@ -20,7 +20,20 @@
 
 > [!TIP]
 > **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（262 个随仓技能）自主完成
-> 建模 → 编码 → 绘图 → 写作 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯**。
+> 建模 → 编码 → 绘图 → 写作 → 评分 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯，且按赛题得分维度被真正测量**。
+
+## 🆕 2026-10-23 整仓升级（本批要点）
+
+依据全仓诊断（54 条发现 + 9 条历史结论核验）与用户裁决落地的四批升级，主线是**把资源还给产出**：
+
+- **得分导向**——九维赛题评分卡（模型贴合/验证强度/差异化等合计 0.35 权重）前移到初稿步产出，`comp-editor` 按失分清单改稿，终审复核闭环；此前这些维度从未被真正测量。
+- **写作减负**——`comp-paper-zh` 的 11 步 Workflow 外移到 `references/step_*.md`，单步开工载荷峰值 −63%，规则按段按需读取。
+- **出图统一**——全部模板收敛到 `academic.mplstyle` 单一真源（R 侧有对等 `_eco_style.R`），3D 配方不再照抄即塌。
+- **创新链落地**——查重评分单调化 + 获奖语料方法频次表（26 类/457 篇）接入建模步。
+- **竞赛链补齐**——21 条短赛事链补齐与国赛同口径的 6 个收口步骤；重复形式检查从终审降级。
+- **工程卫生**——死产物清理、1.47 GiB 实验原始数据冷存（哈希溯源链保留）、基线数字单源化。
+
+逐批细录见 [CHANGELOG.md](./CHANGELOG.md)；诊断与执行报告存于项目内部文档（不分发）。
 
 ## ✨ 为什么不是又一个提示词合集
 
@@ -28,18 +41,18 @@
 <tr><td width="50%" valign="top">
 
 #### 🧠 技能即知识
-每个 `skills/<name>/SKILL.md` 是一份**可执行的专业作业规程**——含工具调用、输出契约、门禁标准。Agent 读完后自主执行，而非等逐步指令。
+每个 `skills/<name>/SKILL.md` 是一份**可执行的专业作业规程**——含工具调用、输出契约、质量标准。Agent 读完后自主执行，而非等逐步指令。
 
 </td><td width="50%" valign="top">
 
 #### ⚙️ 引擎只编排
-`engine/` 是状态机不是执行者：workflow 状态推进、质量门禁、STEP_MANIFEST 溯源、审计存储。**执行永远在 Agent，记忆永远在引擎。**
+`engine/` 是状态机不是执行者：workflow 状态推进、质量门禁、STEP_MANIFEST 溯源、审计存储。**执行永远在 Agent，记忆永远在引擎**；完成步骤的执行证据由引擎从真实操作自动组装，模型零手填。
 
 </td></tr>
 <tr><td width="50%" valign="top">
 
-#### 🚧 门禁保质量
-页数、伴随文件、产物大小、审稿证据——每步产出强制过 named gates，**不达标自动重做**。论文里的图表没有数据来源？过不了 `figure_provenance` 门。
+#### 🎯 门禁对准得分
+页数、伴随文件、产物哈希、**九维赛题评分**——门禁检查的是"论文能不能得分"，不是"流程有没有走完"；不达标在成稿前就被打回改稿。
 
 </td><td width="50%" valign="top">
 
@@ -56,15 +69,15 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 | 🎓 | **课程与研究材料** | 88 | 课程论文 · 实验报告 · 教学大纲 |
 | 📝 | **学术论文** | 75 | 写作 · 评审 · 润色 · 投稿准备（含 Nature 工作流） |
 | 🔬 | **文献与研究** | 41 | 文献检索 · 综述 · 深度研究 · 实验设计 |
-| 🏆 | **数模竞赛** | 38 | CUMCM 14 步端到端流水线 |
+| 🏆 | **数模竞赛** | 38 | CUMCM / 华为杯 14 步端到端流水线 · 23 赛事档案 |
 | 📊 | **图表与文档生产** | 64 | 期刊级科研绘图 · 信息图 · LaTeX |
 | ©️ | **知识产权材料** | 12 | 软著 · 专利 · 基金申请书 |
 | 🧩 | **Agent 运行时** | 2 | 宿主无关自举 · 自适应工具铸造 |
 
-> 域表与 `capabilities/catalog.json` 对齐：38/75/41/88/12/64/2 = **320**（与徽章一致；2026-10-16 复核实测：仿真建模赛补齐批 +7 能力）。
+> 域表与 `capabilities/catalog.json` 对齐：88/75/41/38/64/12/2 = **320**（与徽章一致）。
 
 > [!NOTE]
-> **技能计数口径**（唯一）：徽章与正文统一为 `git ls-files` 口径的技能 SKILL.md 数（**clone 即所见**）；2026-09-28 起该 5 件经本地化改写（各附 ADAPTATION.md）入库，口径并入 255；2026-10-16 仿真建模赛（CSF）补齐批 +7 技能（comp-simulation / figure-craft / simpy / pymoo / stable-baselines3 / pymc / experimental-design），现行 **262**。
+> **技能计数口径**（唯一）：徽章与正文统一为 `git ls-files` 口径的技能 SKILL.md 数（**clone 即所见**，现行 **262**）；数字由 `tools/sync_baselines.py` 单源传播，不再手工多处同步。
 
 <details>
 <summary><b>📊 科研绘图栈（v1.1 新扩展，9 个上游技能）</b></summary>
@@ -93,15 +106,18 @@ flowchart LR
         S["📖 读取 SKILL.md<br/>专业作业规程"]
     end
     A -->|"执行工具调用"| W["🛠️ 产物<br/>论文 · 代码 · 图表"]
-    A <-->|"complete_step<br/>执行证据申报"| E
+    A <-->|"session run/write/edit<br/>真实执行自动留痕"| E
     subgraph E["⚙️ Engine（只编排，不执行）"]
         R["workflow_runner<br/>状态机"] --- G["quality_gates<br/>质量门禁"]
         G --- M["step_manifest<br/>输入输出哈希"]
         M --- AU["audit_store<br/>审计存储"]
     end
     W -->|"每步强制过门禁"| G
-    E -->|"审计证据链"| D[(".engine/<br/>evidence · operations.jsonl")]
+    E -->|"证据链自动组装"| D[(".engine/<br/>evidence · operations.jsonl")]
 ```
+
+> 完成一步只需 `session finish` 一次验收：证据（命令、字节快照、资源哈希、依赖）由引擎从持久操作记录**机械组装**，
+> 门禁与终审在引擎内一次跑完——执行者不为"证明做过"而生产任何东西。
 
 ## 🚀 快速开始（宿主无关）
 
@@ -120,7 +136,7 @@ python -m engine.workflow_cli probe
 2. `boot` 取得驱动契约；`probe` 查看能力与 TOOL_GAP
 3. 缺工具时 `python -m engine.workflow_cli forge --tool <name> --purpose "..."`
 4. 竞赛/长流程：`start --template comp_cumcm` → `next`（自动给本步技能正文与会话）→ `session run --session FILE --plan PLAN --finish`（真实执行自动留证、依赖复用、一次验收与推进；需批准时仍暂停）
-5. 单技能：按路由表读 `skills/<name>/SKILL.md`
+5. 单技能：按路由表读 `skills/<name>/SKILL.md`（根 `AGENTS.md` §三 有高频意图直达表）
 
 自举：`academic-toolkit/skills/agent-bootstrap/` · 铸造：`academic-toolkit/skills/tool-forge/`
 适配器：协议不依赖；需要适配器元数据时 `python -m engine.workflow_cli forge --adapter <name>` 本地生成
@@ -163,9 +179,9 @@ python academic-toolkit/tools/plotting_env_check.py
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-# 口径一（仓库根，回归门禁口径）：1066 collected（W-SLIM 瘦身批 +9 自测、验收批 +1、复核批 +1、对抗扫描批 +3、合同判据收紧批 +11）；最近实跑记录见 pytest.ini；本轮临时目录保留
+# 口径一（仓库根，回归门禁口径）：1089 collected；最近实跑记录见 pytest.ini
 python -m pytest -q
-# 口径二（工具箱内，技能验收基线口径）：同一 tests 范围，实跑结果见 pytest.ini
+# 口径二（工具箱内，技能验收基线口径）：同一 tests 范围
 cd academic-toolkit && python -m pytest -q
 python tools/check_provenance.py             # → 117/117 UPSTREAM+vendor 台账通过
 ```
@@ -174,11 +190,12 @@ python tools/check_provenance.py             # → 117/117 UPSTREAM+vendor 台�
 
 | 机制 | 一句话 |
 |------|--------|
-| 🚧 **Named Gates** | `paper_consistency` · `citation_integrity` · `experiment_reproduc` · `figure_provenance` · `compilation_log` |
+| 🚧 **Named Gates** | `paper_consistency` · `citation_integrity` · `experiment_reproduc` · `figure_provenance` · `figure_narrative` · `compilation_log` · `ai_flavor` |
+| 🎯 **九维赛题评分** | 初稿步产出每维 0-5 分 + 正文/图/表位置证据 → 编辑按失分清单改稿 → 终审复核闭环（0.35 权重的模型贴合/验证强度/差异化不再缺席） |
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
-| 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）117/117 校验通过（URL 源强制哈希级 Pinned commit），外部集成的每一行代码都能回答"从哪来" |
+| 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）117/117 校验通过——外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **私有基准层** | 真实竞赛题面基准仅本地私有，不入库、不随仓库分发 |
-| ✅ **测试基线** | 仓库根 **1066 collected**（2026-10-16 仿真建模赛补齐批后）；最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言；收集数不等于通过数）。**唯一真源 = `pytest.ini` 注释**；覆盖宿主无关协议（boot/probe/forge）、可选适配器、状态机/门禁/审计 |
+| ✅ **测试基线** | 仓库根 **1089 collected**（2026-10-23 整仓升级批后实测 1089 passed）；**唯一真源 = `pytest.ini`**，数字由 `tools/sync_baselines.py` 单源传播（`--check` 比对 / `--accept` 回写），不再手工多处同步 |
 | 🧬 **逐技能 C2 覆盖** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
 | 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + 宿主适配器（可选）+ TOOL_GAP→工具铸造 |
 
@@ -186,11 +203,14 @@ python tools/check_provenance.py             # → 117/117 UPSTREAM+vendor 台�
 
 ```
 academic-agent-toolkit/
-├── academic-toolkit/     ★ 产品主体  skills · engine · tools · tests
-├── capabilities/      能力目录 catalog.json
-├── SECURITY.md        安全策略
-├── AGENTS.md          Agent 入口：宿主无关驱动协议 + 适配器矩阵
-└── CHANGELOG.md       版本记录
+├── academic-toolkit/     ★ 产品主体  skills · engine · execution · tools · tests
+├── capabilities/         能力目录 catalog.json（320 项，技能 100% 映射）
+├── assets-local/         本地材料区（部分入库）：获奖论文语料 · 赛事官方原件 · 版面蒸馏卡
+├── vendor/               上游 fork 收编（pinned commit + UPSTREAM.md 溯源）
+├── third_party/          第三方子项目
+├── SECURITY.md           安全策略
+├── AGENTS.md             Agent 入口：宿主无关驱动协议 + 适配器矩阵
+└── CHANGELOG.md          版本记录
 ```
 
 <details>
@@ -198,18 +218,19 @@ academic-agent-toolkit/
 
 <br>
 
-**v2.1.0（2026-09-27）** —— 赛事档案 v2 隔离：`comp_rules.json` 升级 schema v2 并切生产（22 赛事 / 8 profile / 51 约束 = 36 verified + 15 unknown）· 规则选档接口（`contests[id].profiles[]` 按 edition/submission_form + region/stage 精确选择，禁用模糊回落）· `contest_profile.py` v2 解析器与 execution 受控缓存 · 命令环境注入 `CONTEST_ID`/`PAGE_CAP`/`PAGE_SCOPE`/`PAGE_CAP_STATUS`/`EDITION`（智能体不再转录）· 技能正文与模板对齐（`certcup_en` 独立骨架、三族分支 fail-fast、`claim_code_check` 双副本同步、移除共享 `quick_gates_max_pages`）· 研赛/华为杯分型入库骨架。修复跨赛事规则混用与 P1 假绿。文档基线 **1005 collected**；详见 [CHANGELOG.md](./CHANGELOG.md)。
+**2026-10-23 整仓升级批（Unreleased）** —— 依据全仓诊断与用户裁决的四批执行：九维评分卡前移并被编辑消费、21 条短赛事链补齐收口、comp-paper-zh 写作分片（单步峰值 −63%）、出图样式收敛单一真源（含 R 侧对等规范）、method-map 12 张方法落地卡、novelty_checker 单调化 + 方法频次表、死产物清理 + 1.47 GiB 实验原始数据冷存（哈希溯源不断）、基线单源化。终态实测 **1089 passed / 0 failed**；详见 [CHANGELOG.md](./CHANGELOG.md)。
 
-**v2.0.0（2026-09-23）** —— 整仓彻底重构：套件目录 `科研工具箱/`→`academic-toolkit/` · 技能命名法（139 件改名 + 9 对真重复合并，264→255）· 资产激活机制（asset_catalog 台账 + boot/probe/bootstrap 资产暴露 + 三方对账）· 私有资料区统一 `assets-local/` · 第三方子项目独立 `third_party/` · 上游 fork `vendor/forks/` · 内容融入（287 自查表 / 范文包 / 板块提示词 / 88 色板）· 新增 `award-paper-mining`。**破坏性变更**，迁移指引见 [CHANGELOG.md](./CHANGELOG.md)。（后续技能清洗与 GPL 件 clean-room 收编，当时 tracked 口径 **250**；2026-09-28 起 5 个无 License 件经本地化改写入库，现行 **255**，见上方徽章。）
+**v2.1.0（2026-09-27）** —— 赛事档案 v2 隔离：`comp_rules.json` 升级 schema v2 并切生产（22 赛事 / 8 profile / 51 约束 = 36 verified + 15 unknown）· 规则选档接口（`contests[id].profiles[]` 按 edition/submission_form + region/stage 精确选择，禁用模糊回落）· `contest_profile.py` v2 解析器与 execution 受控缓存 · 命令环境注入 `CONTEST_ID`/`PAGE_CAP`/`PAGE_SCOPE`/`PAGE_CAP_STATUS`/`EDITION`（智能体不再转录）· 技能正文与模板对齐。修复跨赛事规则混用与 P1 假绿；详见 [CHANGELOG.md](./CHANGELOG.md)。
 
-**v1.3.0（2026-09-22）** —— 宿主无关协议（boot/probe/forge + agents/adapters，旧宿主降为可选适配器）· 基线基础设施加固（secret_scan / lint_ratchet / duplicate_assets / 工具冒烟闸 + CI 加固）· 系统性升级五项（实战经验库 / 统一配色 / 技能触发审计）· 华为杯管线补齐（与国赛同构 14 步）· 四批并行收编。
+**v2.0.0（2026-09-23）** —— 整仓彻底重构：套件目录 `科研工具箱/`→`academic-toolkit/` · 技能命名法（139 件改名 + 9 对真重复合并）· 资产激活机制（asset_catalog 台账 + boot/probe/bootstrap 资产暴露 + 三方对账）· 私有资料区统一 `assets-local/` · 第三方子项目独立 `third_party/` · 上游 fork `vendor/forks/` · 内容融入（287 自查表 / 范文包 / 板块提示词 / 88 色板）· 新增 `award-paper-mining`。**破坏性变更**，迁移指引见 [CHANGELOG.md](./CHANGELOG.md)。
+
+**v1.3.0（2026-09-22）** —— 宿主无关协议（boot/probe/forge + agents/adapters）· 基线基础设施加固（secret_scan / lint_ratchet / duplicate_assets / 工具冒烟闸 + CI 加固）· 系统性升级五项 · 华为杯管线补齐（与国赛同构 14 步）· 四批并行收编。
 
 **v1.2.0（2026-08-30）** —— 三条学术管线 C2 闭环 · 科研绘图域闭环。完整记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
 | 范围 | 许可证 |
 |------|--------|
 | 仓库核心（技能/工具/引擎/配置） | [CC-BY-NC-4.0](./LICENSE)（+ 附加限制：禁商用 · 禁 AI 训练） |
-| 历史基准集（已于 2026-09-19 移除，不随仓库分发） | 曾以 CC-BY-4.0 发布 |
 | Vendored 第三方组件 | 随各自许可证，见各目录 `UPSTREAM.md` / `LICENSE` |
 
 </details>

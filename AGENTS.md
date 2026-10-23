@@ -14,6 +14,14 @@
 5. 多步流程：`start` → `next`（自动给执行会话及技能正文）→ `session run/write`（自动记录）→ `session finish`（一次验收/推进）；旧 `complete --evidence` 仅兼容外部集成
 6. 单技能任务：按 `academic-toolkit/AGENTS.md` §三 路由表直接读 SKILL.md
 
+高频意图直达（对应 `academic-toolkit/AGENTS.md` §三 路由表；单技能，直接读对应 SKILL.md）：
+
+| 用户意图 | 直达技能 |
+|---|---|
+| 引用格式 / 参考文献规范 | `academic-toolkit/skills/citation-check/SKILL.md` |
+| 机制图 / 架构图 | `academic-toolkit/skills/paper-figure-drawio/SKILL.md` |
+| 数值一致性 / 前后数字核对 | `academic-toolkit/skills/comp-consistency/SKILL.md` |
+
 **主控 = 当前驱动本项目的 Agent。** 同一时刻只有一个主控；引擎（engine/）只编排不执行；
 不存在「调用另一个 agent runtime」的逻辑。
 
@@ -57,7 +65,7 @@ L1 拦截式审计在无宿主 hook 时记为
 | `capabilities/catalog.json` | 能力目录（技能须全部映射；一致性由工具箱 asset 系门禁 + `check_asset_utilization --strict` 守护） |
 | `dev-docs/` | 内部真源根（gitignored 私有，公开仓不分发）：**操作日志 `dev-docs/LOG.md`（唯一记账真源）· 任务计划 `dev-docs/task_plan.md` · 审计报告** |
 | `SECURITY.md`、`CHANGELOG.md` | 安全策略 / 公开版本记录 |
-| `assets-local/award-papers/`、`workspaces/`（根=历史工作区、academic-toolkit/workspaces=华为杯冻结区）、`extracted_images/`（809MB 获奖论文版面抽取中间产物，`build_asset_ledger.py` 引用、蒸馏 todo 依赖）等 | 本地材料与产物（不入 git） |
+| `assets-local/award-papers/`（获奖论文与研赛语料；版面蒸馏台账 `layout-distill/progress.json`，18/62 完成）、`academic-toolkit/workspaces/`（华为杯等工作区）等 | 本地材料与产物（不入 git） |
 
 ## 硬性规则（冲突时以主控文档为准）
 
@@ -73,8 +81,8 @@ L1 拦截式审计在无宿主 hook 时记为
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `academic-toolkit/tests` | **1066 collected**（W-SLIM 瘦身批 +9 自测；验收批 +1；复核批 +1；对抗扫描批 +3；合同判据收紧批 +11；仿真建模赛补齐批 +17 后）；最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言 | 仓库级回归 |
-| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **1066 collected**（相同 tests 收集范围；实跑结果见唯一真源 `pytest.ini`） | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `academic-toolkit/tests` | **1089 collected**（W-SLIM 瘦身批 +9 自测；验收批 +1；复核批 +1；对抗扫描批 +3；合同判据收紧批 +11；仿真建模赛补齐批 +17；W1/W2/W5 测试批 +19；W6 基线单源批 +4 后）；最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言 | 仓库级回归 |
+| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **1089 collected**（相同 tests 收集范围；实跑结果见唯一真源 `pytest.ini`） | 技能验收基线（硬规则 3 口径） |
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准 | 门禁 |
 
 - catalog 一致性由工具箱 asset 系测试 + `check_asset_utilization --strict` 守护。

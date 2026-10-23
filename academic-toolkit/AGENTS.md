@@ -12,7 +12,7 @@
 | 执行侧 | 资源读取、文件编辑、真实工具运行、依赖复用、评审收发 | `execution/` |
 | 引擎 | 合同解析、状态、唯一验收、检查点与审计 | `engine/` |
 | 工具 | 检索、求解、编译、格式化等具体操作 | `tools/` |
-| 目录与资产 | 能力、技能索引、数据和参考材料 | `capabilities/`、`data/`、`assets-local/` |
+| 目录与资产 | 能力、技能索引、数据和参考材料 | `data/`；`../capabilities/`、`../assets-local/`（仓库根，本表其余路径相对 `academic-toolkit/`） |
 
 引擎只编排不执行Agent。执行侧不决定研究结论，也不自行批准。工作流SQLite是状态真源，操作表记录真实执行；没有证据不能写成成功。
 
@@ -63,7 +63,8 @@ python -m engine.workflow_cli next --wf <工作流ID> --db <数据库>
 - 资产台账：`data/asset_catalog.json`，按用途/所属步骤查资料、工具、模型与范文。
 - 历史题型：`data/historical_problems.json`、`data/case_patterns.md`。
 - 赛事规范：`engine/modex-core/comp_rules.json` 与对应官方格式摘要。
-- 写作参考、获奖论文、板块提示与专利原件：`assets-local/`，公开仓不交付的资料缺席须如实说明。
+- 写作参考、获奖论文、板块提示与专利原件：`../assets-local/`（仓库根），公开仓不交付的资料缺席须如实说明。
+- 获奖版面卡索引：`data/award_layout_cards.json`（`local_only`，18/62 张 `status=done` 卡的投影；公开 clone 不交付，缺席须如实说明）。
 - 图形细分能力：`fig-visualization-advisor`、`fig-academic`、`fig-plot-edit`、`fig-plot-edit-lite`、`paper-framework-figure-studio-pro`、`agent-figure-gallery`。
 - 论文改进参考：`paper-oral-exemplar`、`anti-defensive-writing`；PDF等单项工具按实际技能路由。
 
@@ -91,7 +92,7 @@ PLAN 的 `nodes` 声明 `id/argv/inputs/outputs`，`depends_on` 指定依赖。�
 
 ## 五、评审与批准
 
-`session review-request` 指定实际输入、输出和rubric，生成版本绑定任务。宿主提供独立上下文执行，只评不改。`session review-receive` 接收真实原文、评审者和实际宿主调用标识；稿件版本变化必须重新评审。
+`session review-request` 指定实际输入、输出和rubric，生成版本绑定任务。宿主提供独立上下文执行，只评不改。`session review-receive` 接收真实原文、评审者和实际宿主调用标识；稿件版本变化必须重新评审。终审执行证据用 `session review-evidence --roles` 从工作区真实输出文件计算四角色哈希并生成 `REVIEW_EXECUTION_EVIDENCE.json`；哈希与时间戳不接受手填（`completed_at` 是证据固化时刻，不区分各角色完成时刻）。
 
 收发记录证明收到什么、针对哪个版本；不能声称独立认证了模型身份。没有独立上下文则明确缺席，不冒用主控自己做的裁定。研究内部的评审-修订可循环，但不重启整条工作流。
 
@@ -132,5 +133,15 @@ python -m pytest -q
 python tools/check_provenance.py
 python tools/project_health_check.py --strict
 ```
+
+**基线、终检与清理入口**（2026-10-23 W6 批；三者均从仓库根调用，退出码可直接用于门禁）：
+
+| 工具 | 作用 | 用法 |
+|------|------|------|
+| `tools/sync_baselines.py` | 基线数字单源传播：实测 tests/skills/capabilities，比对 `pytest.ini` 与全部权威文档；`--accept` 只改写 `DRIFT_SOURCES` 捕获组（历史横幅行跳过） | `--check`（不一致 exit 1）/ `--accept` / `--accept --dry-run` |
+| `tools/final_check.py` | 统一终检：固定仓库根跑 `pytest -q` + `check_provenance` + `secret_scan --strict`，命令/退出码/耗时/尾 40 行写 `dev-docs/FINAL_CHECK.json`；任一步失败 exit 1。**全量 pytest 只由本脚本执行** | `--background`（分离进程）/ `--status`（读最近结果）/ `--only <step>`（调试） |
+| `tools/safe_cleanup.py` | 缓存与失败残留清理：显式 allowlist + `git ls-files` 为空 + 工作区内三重核验；默认 dry-run，`--apply` 才删除并追加 `dev-docs/DELETION_LOG.md` | `--dry-run`（默认）/ `--apply` |
+
+`python tools/project_health_check.py --print-baselines` 一行输出实测基线（`tests=… skills=… capabilities=…`），供脚本消费，不跑组件检查。
 
 内部操作与技术决策写 `dev-docs/LOG.md`；任务计划为 `dev-docs/task_plan.md`。保留原始历史记录，但它们不参与当前执行契约。

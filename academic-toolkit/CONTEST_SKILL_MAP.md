@@ -1,6 +1,6 @@
 # CUMCM 竞赛技能全库地图（CONTEST_SKILL_MAP）
 
-> **定位**：全库 255 个技能（含 SKILL.md 的目录；tracked 255）× comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
+> **定位**：全库 262 个技能（含 SKILL.md 的目录；tracked 262）× comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
 > `companion_skills` 字段每步主动给出本步推荐；本文件是全量真源，
 > 含"情境可用"、"外域不接入"与"未接入库"的完整分类账——**任何一个技能都不允许处于"无人知晓"状态**。
 > 维护纪律：新增技能入库时必须归入下列五类之一并同步本文件与引擎
@@ -29,7 +29,7 @@
 
 ## 二、每步推荐（StepAction.companion_skills 同步给出）
 
-> 步骤推荐槽位现为 12（S5 另含必用位 `paper-figure-palette`）——结构性冗余的 41 个技能全部移入 §三在册
+> 步骤推荐槽位现为 12（S5 另含必用位 `paper-figure-palette`）——结构性冗余的 39 个技能全部移入 §三在册
 > （修剪 ≠ 弃用，按需加载照常留痕），地图↔引擎集合一致性由
 > `tests/test_asset_utilization.py::test_map_section2_matches_engine_companions` 机检锁定。
 > 修剪依据全文见内部 LOG 续20/续21；利用率账本：`python tools/check_asset_utilization.py`。
@@ -53,7 +53,7 @@
 
 **赛后/场外情境推荐**（不在 14 步内）：`contest-retrospective`（赛后复盘与经验沉淀——留痕取证→场景/坑/清单三分类→每条归因仓库内真实强制点→双写经验库→机检闭环；**每个赛事周期结束后应跑一次**）、`paper-slides`/`paper-poster`/`doc-poster-latex`（答辩幻灯与海报）、`team-coordination`（三人分工时）、`feishu-notify`（进度通知）、`rebuttal`（答辩质询应答结构）。
 
-## 三、情境可用（86 个，按需加载）
+## 三、情境可用（按需加载）
 
 `paper-writing-clinical`（通用科学写作）、`paper-plan`/`paper-analysis`/`assets-inventory`（科研链资产管线，有既有材料时）、`paper-write-zh`/`paper-write-zh-docx`（Markdown 路线写文）、`paper-writing`/`paper-writing-paragraph-standards`（科研写作方法论参考）、`training-check`（产出训练自检）、`editor-agent`/`experiment-agent`（代理执行模式）、`lit-citation-manage`（引用管理方法论）、`latex-pdf-accessible`/`latex-cleanup`/`paper-presubmit-checks`（PDF 可及性/LaTeX 清理/预提交检查——投稿向但方法通用）、`novelty-check`（新颖性论证参考）、`idea-creator`（创意法参考）、`auto-paper-improvement-loop`（改进循环，第 12 步后可选）、`paper-writing-paragraphs`（科学写作规范）、
 `palette-health-check`（配色「去灰提彩」体检——把"发灰/发闷/太深"翻译成可机检的 C*/C*max 去灰指标、`deepen` 替代 `darken`、色带入带序单调性复核；S5 出图后或 S11 视觉审查时按需加载，脚本在 `skills/palette-health-check/bin/`）。
@@ -69,7 +69,7 @@
 `experimental-design`（实验设计 DOE：因子/部分因子/响应面/序贯设计，仿真与数据采集前的方案设计）、
 `paper-figure-palette`（**统一配色体系（多场景）**——先按数据类型选分类/顺序/发散，再按场景（竞赛/期刊投稿/学位与课程/幻灯海报/Office 内嵌）落地；真源 `assets/palette_registry.json`（9 套色板）+ `references/scenarios.md`（三步选色法/10 条规范/禁用清单），机检 `palette_kit.py registry-verify`；本地 8 色板「夏日海滩」同源，与 `palette-health-check` 配套，绘图/视觉审查按需加载）。
 
-**§二修剪移入（41 个）**——被步骤推荐清单移出的结构性冗余/低频技能，
+**§二修剪移入（39 个）**——被步骤推荐清单移出的结构性冗余/低频技能，
 功能多已被主技能合同、内建脚本（data_check/constraint_audit/facts_audit/ai_tell_check）或
 其他步骤承接；赛时确需使用时按情境技能对待并照常留痕：
 
@@ -152,16 +152,16 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 
 ## 六、统计（check_asset_utilization.py 机对账）
 
-**机检首匹配归段口径**（技能名按首次出现的段落计一次，跨段引用不重复计；词边界 + 斜杠缩写展开 +
-前缀域 fnmatch，与 `tools/check_asset_utilization.py` 的 `load_map_coverage` 完全同口径）：
-主链家族 20 + 每步推荐 18 + 情境可用 85 + 外域 137 + 未接入库 2 = **262**，
+**机检对账口径**（词边界 + 斜杠缩写展开 + 前缀域 fnmatch，与 `tools/check_asset_utilization.py` 的
+`load_map_coverage` 完全同口径）：§一主链 / §二推荐 / §三情境 / §四外域 / §五未接入库五段合并覆盖全库，
+`python tools/check_asset_utilization.py --strict` 实跑 **实存 262 技能 / 覆盖 262 / 漏网 0（前缀域 11 个）**，
 与 skills/ 下含 SKILL.md 的目录实测数（262）逐一相符：零幽灵名、零漏网。
 （2026-10-16 仿真建模赛补齐批 +7：`comp-simulation`、`figure-craft` 与仿真引擎簇 `simpy`/`pymoo`/`stable-baselines3`/`pymc`/`experimental-design`，均归 §三 情境可用。）
-口径说明（避免读者对不上数）：§三 标题"79 个"是**具名条目数**，其中
-`paper-figure-palette` 首现于 §二 step5 必用位故首匹配归 §二（79→78）；§四 标题不再钉固定数
-（外域件随改名/合并演进），其前缀域（`spine-*`/`latex-paper-*`/`dev-*`/`meta-*`/`lit-*`/`doc-*`/`fig-*`/`paper-*`）
-按前缀展开计入外域——精确数一律以 §六末机检为准。
-修剪只改变"哪一步主动推荐"（现 12 槽位），不改变任何技能的可知性——全部 41 个移入 §三在册。
+口径说明（避免读者对不上数）：§三/§四 标题不钉条目数——技能增删/改名会让分节计数漂移，精确数一律以机检实跑为准；
+`paper-figure-palette` 首现于 §二 step5 必用位，按首匹配归 §二；§四 的前缀域
+（`spine-*`/`latex-paper-*`/`dev-*`/`meta-*`/`lit-*`/`doc-*`/`fig-*`/`paper-*`）
+按前缀展开计入外域。
+修剪只改变"哪一步主动推荐"（现 12 槽位），不改变任何技能的可知性——全部 39 个移入 §三在册。
 **P4 技能绑定**：comp_cumcm 全部 14 步声明 `metadata.skill_binding`（`main_required` =
 主技能契约必须留真实读取痕迹）；step5 另声明 `mandatory: [paper-figure-palette]`（必用、不可 skipped）。
 其余步骤的推荐位仍是"申报即可跳过、跳过须给理由"（C1 闸），不做过度强制——
@@ -172,7 +172,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 （如 `copyright-build/draft/source-materials`），未接入库 = §五具名。
 **零漏网对账已固化为机检**（词边界+斜杠展开+前缀 fnmatch）：
 `python tools/check_asset_utilization.py --strict` + `tests/test_asset_utilization.py::test_real_map_covers_all_skills_zero_missing`。
-全库技能 255（改名合并后实存；tracked 255（原 250）——`scholar-critique-manuscript` 已并入 `paper-self-review`）；
+全库技能 262（实存 262 / tracked 262；`scholar-critique-manuscript` 已并入 `paper-self-review`）；
 计数以本机 `check_asset_utilization` 机检为准。
 ——任何改动本文件的维护者必须跑过机检后方可保留本节统计行。
 
