@@ -20,12 +20,18 @@ agent_created: true
 
 ## 0. 输入契约
 
+评审类输入（`COMP_REVIEW_VERDICT.json` / `VISUAL_REVIEW_VERDICT.json` / `FINAL_REVIEW_VERDICT.json` / `EDITOR_CHANGELOG.md`）取自待复盘工作区根目录。
+
 | 输入 | 必需 | 说明 |
 |------|------|------|
 | 工作区路径 | ✅ | 待复盘的工作区（含 `.engine/`、产物、交付文档） |
 | 复盘范围 | 可选 | 默认全链路；可限定为某个阶段（day1/day2/day3/submission） |
 | 既有经验库 | ✅ | `academic-toolkit/data/contest_lessons.{json,md}`（不存在则按其 schema 新建） |
 | 外部诊断报告 | 可选 | 第三方报告；**必须逐条研判，不得整篇照抄** |
+| `COMP_REVIEW_VERDICT.json` | 可选（有则必读） | 写稿前评审的机器裁定：`findings[].category`（取值以 `academic-toolkit/skills/comp-review/SKILL.md` 的裁定 schema 为准）/`severity`/`where`/`evidence`/`fix` + `fatal_count`；`category` 是 §6 归类回灌的键 |
+| `VISUAL_REVIEW_VERDICT.json` | 可选（有则必读） | 图评审的机器裁定：`findings[]` + `fatal_count` + `status`（`pass\|fail\|manual_review\|unavailable`）；`unavailable` 只记缺口，不得按 pass 计入复盘结论 |
+| `FINAL_REVIEW_VERDICT.json` | 可选（有则必读） | 终审的机器裁定：`findings[]` + `fatal_count` + `scores`/`weighted_total`/`fatal_dimensions`/`selfcheck_failures`；缺 `scores` 记"未测量"，不得补造分数 |
+| `EDITOR_CHANGELOG.md` | 可选（有则必读） | 逐 finding 的处置（`fixed`/`unresolved`/`not_applicable`）、改动文件与验证命令；用于区分"已改掉"与"未落地"的 finding |
 
 ## 1. 取证（不信任自述）
 
@@ -115,6 +121,7 @@ pytest academic-toolkit/tests/test_contest_lessons.py -q           # 回归护�
 | 结论形态 | 回灌位置 |
 |----------|----------|
 | 某步骤的操作规范 | 对应 `skills/<name>/SKILL.md`（步骤/铁律段） |
+| 评审 finding（写作/建模/出图类缺陷） | 按 `finding.category` 归类（`COMP_REVIEW_VERDICT` 自带 category；`VISUAL_REVIEW_VERDICT`/`FINAL_REVIEW_VERDICT` 按 finding 内容归入同一组）→ 落到 `academic-toolkit/skills/comp-paper-zh/references/step_4_chapters.md` 章节清单 / `academic-toolkit/skills/comp-modeling/` 方法表（真源 `academic-toolkit/skills/math-modeling-contest-route-selection/references/method-map.md`；`academic-toolkit/skills/comp-modeling/references/methods_table.md` 仅为兼容指针）/ `academic-toolkit/skills/paper-figure/references/pitfalls-and-intent.md` 选图规范。**这是内容资产输入，不新增闸门** |
 | 资产/技能/配色等登记类 | `engine/modex-core/templates.json` 对应步骤 `metadata` |
 | 新工具/新机检 | `tools/` + `tests/` + `AGENTS.md` 工具链调用规范 |
 | 跨届可复用的判断经验 | 本经验库 `scenarios` |

@@ -1,5 +1,4 @@
 
-
 ### 的PCoA
 rm(list=ls())
 
@@ -9,6 +8,19 @@ library(ggplot2)
 library(grid)
 library(digest)
 
+# ---- 统一样式入口：字体链 / base_size / 色板唯一来源 scripts/_eco_style.R ----
+# 定位本脚本目录：RStudio source() 走 sys.frame(1)$ofile，Rscript 走 --file=，
+# 都拿不到时退回当前工作目录（此时请把 _eco_style.R 放在工作目录）。
+.eco_ofile <- tryCatch(sys.frame(1)$ofile, error = function(e) NULL)
+.eco_here <- if (!is.null(.eco_ofile) && nzchar(.eco_ofile)) {
+  dirname(normalizePath(.eco_ofile))
+} else {
+  .eco_args <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
+  if (length(.eco_args)) dirname(normalizePath(sub("^--file=", "", .eco_args[1]))) else getwd()
+}
+source(file.path(.eco_here, "_eco_style.R"))
+
+theme_set(eco_theme(100))   # 画布宽 100 mm：theme_classic(base_family = eco_font())
 
 groups <- read.csv("metadata.csv", header = T, row.names = 1)
 comm <- read.csv("otutab.csv", row.names = 1)
@@ -22,7 +34,8 @@ pcoa<- pcoa(data, correction = "none", rn = NULL)
 PCA1 = pcoa$vectors[,1]
 PCA2 = pcoa$vectors[,2]
 
-cbbPalette <- c("#BD554E","#96B6C5")
+# Okabe-Ito 前两色：蓝=主组、橙=对照组（色盲安全最强对比对）
+cbbPalette <- eco_pal(2)
 
 plotdata <- data.frame(rownames(pcoa$vectors),PCA1,PCA2,groups$Carrier,groups$Region)
 #设置行名称
@@ -45,11 +58,11 @@ fit1 <- aov(PCA1~Carrier,data = plotdata)
 
 library(multcomp)
 tuk1<-glht(fit1,linfct=mcp(Carrier="Tukey"))
-res1 <- cld(tuk1,alpah=0.05)
+res1 <- cld(tuk1,level=0.05)
 
 fit2 <- aov(PCA2~Carrier,data = plotdata)
 tuk2<-glht(fit2,linfct=mcp(Carrier="Tukey"))
-res2 <- cld(tuk2,alpah=0.05)
+res2 <- cld(tuk2,level=0.05)
 
 
 test <- data.frame(PCA1 = res1$mcletters$Letters,PCA2 = res2$mcletters$Letters,
@@ -57,38 +70,27 @@ test <- data.frame(PCA1 = res1$mcletters$Letters,PCA2 = res2$mcletters$Letters,
 test$Carrier <- factor(test$Carrier,levels = c("Plastisphere","Seawater"))
 
 box1 <- ggplot(plotdata,aes(Carrier,PCA1)) +
-  geom_boxplot(aes(fill = Carrier),alpha = 0.8) +
+  geom_boxplot(aes(fill = Carrier),alpha = 0.8,
+               linewidth = eco_sizes(100)$line_mm) +
   geom_text(data = test,aes(x = Carrier,y = yd1,label = PCA1),
-            size = 3,color = "black",fontface = "bold") +
+            size = eco_text_mm(8),color = "black",fontface = "bold") +
   coord_flip() +
   scale_fill_manual(values=cbbPalette) +
-  theme_bw()+
-  theme(axis.ticks.length = unit(0.1,"lines"), 
-        axis.ticks = element_line(color='black'),
-        axis.line = element_line(colour = "black"), 
-        axis.title.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_text(colour='black',size=8),
-        axis.text.x=element_blank(),
+  theme(axis.title = element_blank(),
+        axis.text.x = element_blank(),
         legend.position = "none")
 
 
 box2 <- ggplot(plotdata,aes(Carrier,PCA2)) +
-  geom_boxplot(aes(fill = Carrier),alpha = 0.8) +
+  geom_boxplot(aes(fill = Carrier),alpha = 0.8,
+               linewidth = eco_sizes(100)$line_mm) +
   geom_text(data = test,aes(x = Carrier,y = yd2,label = PCA2),
-            size = 3,color = "black",fontface = "bold") +
+            size = eco_text_mm(8),color = "black",fontface = "bold") +
   scale_fill_manual(values=cbbPalette) +
-  theme_bw()+
-  theme(axis.ticks.length = unit(0.1,"lines"), 
-        axis.ticks = element_line(color='black'),
-        axis.line = element_line(colour = "black"), 
-        axis.title.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.x=element_text(colour='black',size=8,angle = 45,
-                                 vjust = 1,hjust = 1),
-        axis.text.y=element_blank(),
+  theme(axis.title = element_blank(),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        axis.text.y = element_blank(),
         legend.position = "none")
-
 
 
 
@@ -96,29 +98,17 @@ box2 <- ggplot(plotdata,aes(Carrier,PCA2)) +
 p2<-ggplot(plotdata, aes(PCA1, PCA2)) +
 
   geom_point(aes(color=Carrier),
-             size=2,
+             size=eco_sizes(100)$point_mm,
              alpha = 0.8)+
-  stat_ellipse(aes(color=Carrier),linetype = 1, linewidth = 0.5,  alpha = 0.5)+
-  scale_fill_manual(values=cbbPalette)+scale_color_manual(values=cbbPalette)+
-  scale_shape_manual(values = c(15,19))+
-  xlab(paste("PCoA1 ( ",pca1,"%"," )",sep="")) + 
+  stat_ellipse(aes(color=Carrier),linetype = 1,
+               linewidth = 1.5 * eco_sizes(100)$line_mm,  alpha = 0.5)+
+  scale_color_manual(values=cbbPalette)+
+  xlab(paste("PCoA1 ( ",pca1,"%"," )",sep="")) +
   ylab(paste("PCoA2 ( ",pca2,"%"," )",sep="")) +
-  theme(text=element_text(size=8))+
   geom_vline(aes(xintercept = 0),linetype="dotted")+
   geom_hline(aes(yintercept = 0),linetype="dotted")+
-  theme(panel.background = element_rect(fill='white', colour='black'),
-        panel.grid=element_blank(), 
-        axis.title = element_text(color='black',size=9),
-        axis.ticks.length = unit(0.1,"lines"), axis.ticks = element_line(color='black'),
-        axis.line = element_line(colour = "black"), 
-        axis.title.x=element_text(colour='black', size=8,vjust = 12),
-        axis.title.y=element_text(colour='black', size=8,vjust = -8),
-        axis.text=element_text(colour='black',size=8),
-        legend.title=element_text(size = 8,face = "bold"),
-        legend.text=element_text(size=8),
-        legend.key=element_blank(),legend.position = c(0.76,0.18),
-        #legend.background = element_rect(colour = "black"),
-        legend.key.height=unit(0.1,"cm")) +
+  theme(legend.position = c(0.76,0.18),
+        legend.key = element_blank()) +
   guides(fill = guide_legend(ncol = 1))
 p2
 
@@ -133,11 +123,9 @@ adonis<-paste("PERMANOVA:\nR2=",round(R2,4),
 
 p4 <- ggplot(plotdata, aes(PCA1, PCA2)) +
   geom_text(aes(x = -0.5,y = 0.6,label = adonis),
-            size = 2) +
-  theme_bw() +
+            size = eco_text_mm(8)) +
   xlab("") + ylab("") +
-  theme(panel.grid=element_blank(), 
-        axis.title = element_blank(),
+  theme(axis.title = element_blank(),
         axis.line = element_blank(),
         axis.ticks = element_blank(),
         axis.text = element_blank())
@@ -147,21 +135,11 @@ p4
 library(patchwork)
 
 
-pcoa <- box1 + p4 + p2 + box2 + 
+pcoa <- box1 + p4 + p2 + box2 +
   plot_layout(heights = c(1,4),widths = c(4,1),ncol = 2,nrow = 2)
 pcoa
 
 
-ggsave(plot = pcoa, "PCoA_carrier.pdf", height = 100, width = 106, units = "mm")
-
-
-
-
-
-
-
-
-
-
-
-
+# 成品 100 × 106 mm；width 必须写在 height 之前（check_dimensions 解析口径）
+ggsave(plot = pcoa, "PCoA_carrier.pdf", width = 100, height = 106,
+       units = "mm", device = cairo_pdf)

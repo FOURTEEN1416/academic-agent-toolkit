@@ -1,18 +1,28 @@
 """
 Reproduce: image6.png — AIME avg@32 training curve
 Two lines with vertical breakpoint markers + horizontal reference line.
-Style: sans-serif, 4-spine box, no grid, right-bottom legend.
+Style: 4-spine box, no grid, right-bottom legend.
+
+薄壳模板：字体族/字号阶梯/线宽/配色循环/保存护栏统一由
+academic-toolkit/skills/_utils/plot_utils.py 的 setup_style + save_fig 提供；
+本文件只保留该图型的语法差异（曲线、断点线、四边框、图例位置）。
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.lines as mlines
+import sys
+from pathlib import Path
 
-plt.rcParams.update({
-    'font.family': 'sans-serif',
-    'font.sans-serif': ['DejaVu Sans', 'Arial', 'Helvetica'],
-    'text.usetex': False,
-})
+import matplotlib.pyplot as plt
+import numpy as np
+
+_SKILLS_DIR = Path(__file__).resolve().parents[2]
+if str(_SKILLS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SKILLS_DIR))
+
+from _utils.plot_utils import save_fig, set_paper_placement, setup_style
+
+setup_style()
+
+OUTPUT = 'figures/fig_line_aime.png'
 
 rng = np.random.default_rng(42)
 
@@ -58,13 +68,13 @@ ax.axvline(STEP_NODYN, color=C_NODYN, lw=1.5, linestyle='--', alpha=0.85, zorder
 ax.set_xlim(-100, 9200)
 ax.set_ylim(-0.01, 0.47)
 ax.set_xticks([0, 2000, 4000, 6000, 8000])
-ax.set_xticklabels(['0', '2000', '4000', '6000', '8000'], fontsize=10)
+ax.set_xticklabels(['0', '2000', '4000', '6000', '8000'])
 ax.set_yticks([0.0, 0.1, 0.2, 0.3, 0.4])
-ax.tick_params(labelsize=10, direction='out', length=4, width=0.8)
-ax.set_xlabel('Step', fontsize=12)
-ax.set_ylabel('AIME avg@32', fontsize=12)
+ax.tick_params(direction='out', length=4, width=0.8)
+ax.set_xlabel('Step')
+ax.set_ylabel('AIME avg@32')
 
-# 四边框（all spines visible）
+# 四边框（该图型签名，覆盖随机版式族的 L 形默认）
 for sp in ax.spines.values():
     sp.set_visible(True)
     sp.set_linewidth(1.0)
@@ -72,9 +82,8 @@ for sp in ax.spines.values():
 ax.grid(False)
 
 # ---- 图例 ----
-leg = ax.legend(
+ax.legend(
     loc='lower right',
-    fontsize=9.5,
     frameon=True,
     facecolor='white',
     edgecolor='#AAAAAA',
@@ -85,10 +94,5 @@ leg = ax.legend(
     handletextpad=0.5,
 )
 
-fig.tight_layout(pad=0.8)
-fig.savefig(
-    '/Users/bytedance/gitcode/paper_experiment_plot_skills/repro/line_aime_repro.png',
-    dpi=300, facecolor='white',
-)
-plt.close(fig)
-print('saved: line_aime_repro.png')
+set_paper_placement(fig)
+save_fig(fig, OUTPUT)

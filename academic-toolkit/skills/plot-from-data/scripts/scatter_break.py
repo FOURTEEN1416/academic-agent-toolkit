@@ -2,19 +2,29 @@
 Reproduce: image9.png — Broken-axis scatter plot (Meta-Harness style)
 X-axis has a break between ~50k and 115k.
 Uses two side-by-side axes with shared y-axis.
+
+薄壳模板：字体族/字号阶梯/线宽/配色循环/保存护栏统一由
+academic-toolkit/skills/_utils/plot_utils.py 的 setup_style + save_fig 提供；
+本文件只保留该图型的语法差异（折断轴双区版式、marker 系列、折断符号）。
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+import sys
+from pathlib import Path
+
 import matplotlib.lines as mlines
+import matplotlib.pyplot as plt
+import numpy as np
 from scipy.interpolate import make_interp_spline
 
-plt.rcParams.update({
-    'font.family': 'sans-serif',
-    'font.sans-serif': ['DejaVu Sans', 'Arial', 'Helvetica'],
-    'text.usetex': False,
-})
+_SKILLS_DIR = Path(__file__).resolve().parents[2]
+if str(_SKILLS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SKILLS_DIR))
+
+from _utils.plot_utils import save_fig, set_paper_placement, setup_style
+
+setup_style()
+
+OUTPUT = 'figures/fig_scatter_break.png'
 
 # ---- 模拟数据 ----
 rng = np.random.default_rng(42)
@@ -53,11 +63,13 @@ C_ZS       = '#5B2D8E'   # 深紫（zero-shot）
 C_DASH     = '#F0A0A0'   # 粉色虚线
 
 # ---- 布局：左宽（0-50k）右窄（115k, 200k）----
+# 折断轴要求两区 wspace≈0，手工版式：禁止保存钩子重跑 tight_layout
 fig, (ax1, ax2) = plt.subplots(
     1, 2,
     figsize=(9.5, 5.5),
     gridspec_kw={'width_ratios': [5, 1.3], 'wspace': 0.05},
 )
+fig._mh_manual_layout = True
 fig.subplots_adjust(left=0.09, right=0.97, top=0.93, bottom=0.13)
 
 YLIM = (25, 51)
@@ -91,11 +103,10 @@ ax1.scatter(pareto_x, pareto_y,
             marker='*', s=200, color=C_PARETO,
             zorder=5, linewidths=0.8, edgecolors='black')
 
-ax1.set_xlabel('Additional context (chars)', fontsize=13, fontweight='bold', labelpad=4)
-ax1.set_ylabel('Test accuracy', fontsize=13, fontweight='bold')
+ax1.set_xlabel('Additional context (chars)', fontweight='bold', labelpad=4)
+ax1.set_ylabel('Test accuracy', fontweight='bold')
 ax1.set_xticks([0, 10000, 20000, 30000, 40000, 50000])
-ax1.set_xticklabels(['0', '10k', '20k', '30k', '40k', '50k'], fontsize=10)
-ax1.tick_params(labelsize=10)
+ax1.set_xticklabels(['0', '10k', '20k', '30k', '40k', '50k'])
 
 # spines: 左/下
 ax1.spines['top'].set_visible(False)
@@ -112,8 +123,7 @@ ax2.scatter([ace_x], [ace_y], marker='D', s=90, color=C_ACE, zorder=5,
             linewidths=0.8, edgecolors='black')
 
 ax2.set_xticks([115000, 200000])
-ax2.set_xticklabels(['115k', '200k'], fontsize=10)
-ax2.tick_params(labelsize=10)
+ax2.set_xticklabels(['115k', '200k'])
 ax2.set_yticks([])
 
 # spines: 只保留下边
@@ -148,10 +158,9 @@ legend_elements = [
                   markersize=8, label='Few-shot', linestyle='None'),
 ]
 
-leg = ax1.legend(
+ax1.legend(
     handles=legend_elements,
     loc='lower right',
-    fontsize=9.0,
     frameon=True,
     facecolor='white',
     edgecolor='#CCCCCC',
@@ -161,9 +170,5 @@ leg = ax1.legend(
     handletextpad=0.4,
 )
 
-fig.savefig(
-    '/Users/bytedance/gitcode/paper_experiment_plot_skills/repro/scatter_break_repro.png',
-    dpi=300, facecolor='white',
-)
-plt.close(fig)
-print('saved: scatter_break_repro.png')
+set_paper_placement(fig)
+save_fig(fig, OUTPUT)

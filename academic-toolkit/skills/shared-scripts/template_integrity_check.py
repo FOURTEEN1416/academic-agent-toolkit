@@ -73,7 +73,8 @@ def _huawei_title_checks(main_text: str, paper: Path) -> list[str]:
     problems: list[str] = []
     m = re.search(r"\\title\{([^}]*)\}", main_text)
     title_line = f"\\title{{{m.group(1)}}}" if m else ""
-    print(f"[华为杯] Title: {title_line or '(未找到 \\title)'}")
+    missing_title = "(未找到 \\title)"
+    print(f"[华为杯] Title: {title_line or missing_title}")
     if m and "\\\\" in m.group(1):
         problems.append("\\title{} 含 \\\\ 强制换行 — 改成单行让 cls 自动换行（v1.5.0+ 支持按宽度换行）")
     if m and re.search(r"(基于.*的|.*的研究|.*的应用|.*的探索|.*：一种)", m.group(1)):

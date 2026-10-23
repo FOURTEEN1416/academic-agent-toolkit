@@ -1,11 +1,19 @@
 # ==================================================================
-# academic.mplstyle — 学术图表统一风格基线（单一真源 · W4-FIG 定版 2026-10-01）
+# academic.mplstyle — 学术图表 rcParams 基线（W4-FIG 定版 2026-10-01）
 # ==================================================================
-# 【定位】本仓库所有产图技能的 rcParams 基线。
+# 【定位】本仓库 matplotlib 出图的 rcParams 基线；fig-academic /
+#   scientific-visualization / matplotlib / paper-figure 等技能文档引用本文件
+#   并只声明差异项，不在各自文档里另立字号/字体/数据色板真源。
 #   · skills/_utils/plot_utils.py 的 setup_style() 加载本文件作基线，
 #     再叠加动态层（可用字体检测 / 配色选择 / 随机版式族 / Nature 反解）；
-#   · fig-academic / scientific-visualization / matplotlib 等技能文档引用
-#     本文件并只声明差异项，不在各自文档里另立字号/字体/色板真源。
+#   · 技能自带的风格入口只能是**可选叠加层**：默认回落本基线，显式开启才允许
+#     覆盖字体 / 字号阶梯 / 数据色板。现有叠加层在
+#     skills/figure-craft/_utils/figstyle.py：setup_style(overlay=True) 叠 figure-craft
+#     衬线字体族与字号阶梯，setup_style(palette="v6") 叠 v6 色板作数据系列色；
+#   · 质感技法（渐变填充 / 同族描边 / 荧光边）是 plot_utils.py「质感层（可选）」
+#     段的可选函数，不改变本文件的任何默认值；
+#   · 非 matplotlib 生态（R/ggplot2、Origin 等）不受本文件约束，其样式口径在
+#     对应技能的 reference 内定义。
 #   直接消费方式：
 #     import matplotlib.pyplot as plt
 #     plt.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")

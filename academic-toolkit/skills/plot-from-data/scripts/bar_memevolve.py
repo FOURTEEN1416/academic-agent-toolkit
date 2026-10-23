@@ -2,24 +2,27 @@
 复现 image1: MemEvolve 论文风格柱状图
 特征：配对柱（baseline vs method）+ 箭头 + 红色百分比标注 + 虚线参考线
 来源：MemEvolve: Meta-Evolution of Agent Memory Systems
+
+薄壳模板：字体族/字号阶梯/线宽/配色循环/保存护栏统一由
+academic-toolkit/skills/_utils/plot_utils.py 的 setup_style + save_fig 提供；
+本文件只保留该图型的语法差异（几何、标注、边框可见性、图例位置）。
 """
 
+import sys
+from pathlib import Path
+
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import matplotlib.ticker as ticker
 import numpy as np
 
-# ── 预分析结论 ─────────────────────────────────────────────
-# 字体：serif，双层 'a'，衬线精细 → Computer Modern 风格
-#       matplotlib 中最接近的可用字体：STIXGeneral / DejaVu Serif
-# 加粗：标题(bold) | 增益标注(bold) | 轴标签/刻度(normal)
-# 间距：两柱紧贴，gap≈0，柱宽约占 group 的 28%
-# 分辨率：300 dpi
-plt.rcParams.update({
-    'font.family': 'serif',
-    'font.serif': ['STIXGeneral', 'DejaVu Serif', 'Times New Roman'],
-    'mathtext.fontset': 'stix',
-})
+_SKILLS_DIR = Path(__file__).resolve().parents[2]
+if str(_SKILLS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SKILLS_DIR))
+
+from _utils.plot_utils import save_fig, set_paper_placement, setup_style
+
+setup_style()
+
+OUTPUT = 'figures/fig_bar_memevolve.png'
 
 # ── 颜色系统 ──────────────────────────────────────────────
 COLOR_BASELINE = '#A8C8E8'   # 浅钢蓝，baseline 柱
@@ -48,7 +51,6 @@ panels = [
 
 # ── 画布 ─────────────────────────────────────────────────
 fig, axes = plt.subplots(1, 2, figsize=(10, 4.5), sharey=False)
-fig.subplots_adjust(wspace=0.35)
 
 BAR_W    = 0.28
 GAP      = 0.01      # 两柱几乎紧贴（原图约为 0）
@@ -63,10 +65,10 @@ for ax, panel in zip(axes, panels):
     x        = np.arange(n)
 
     # 柱体
-    bars_b = ax.bar(x - (BAR_W + GAP) / 2, baseline, width=BAR_W,
-                    color=COLOR_BASELINE, zorder=3)
-    bars_m = ax.bar(x + (BAR_W + GAP) / 2, method,   width=BAR_W,
-                    color=COLOR_METHOD,   zorder=3)
+    ax.bar(x - (BAR_W + GAP) / 2, baseline, width=BAR_W,
+           color=COLOR_BASELINE, zorder=3)
+    ax.bar(x + (BAR_W + GAP) / 2, method,   width=BAR_W,
+           color=COLOR_METHOD,   zorder=3)
 
     # 虚线参考线（baseline 高度）
     for i, (bl, me) in enumerate(zip(baseline, method)):
@@ -82,28 +84,26 @@ for ax, panel in zip(axes, panels):
         # 红色百分比标注
         ax.text(x[i] + (BAR_W + GAP) / 2, me + 0.6,
                 delta[i], color=COLOR_DELTA,
-                ha='center', va='bottom', fontsize=9.5, fontweight='bold')
+                ha='center', va='bottom', fontweight='bold')
 
     # 轴装饰：原图轴标签明显加粗
     ax.set_xticks(x)
-    ax.set_xticklabels(groups, fontsize=10.5, fontweight='bold')
-    ax.set_ylabel('Accuracy (Pass@1)', fontsize=10.5, fontweight='bold')
+    ax.set_xticklabels(groups, fontweight='bold')
+    ax.set_ylabel('Accuracy (Pass@1)', fontweight='bold')
     ax.set_ylim(*panel['ylim'])
     ax.yaxis.set_major_locator(plt.MultipleLocator(5))
 
-    # 四边框全显，线宽偏厚（原图有明显框线）
+    # 四边框全显（该图型签名，覆盖随机版式族的 L 形默认）
     for spine in ax.spines.values():
+        spine.set_visible(True)
         spine.set_linewidth(1.5)
         spine.set_color('black')
     ax.tick_params(length=0)
     ax.set_axisbelow(True)
 
-    # 标题（左上角）：粗体 serif，颜色深蓝对应原图
+    # 标题（左上角）：粗体，颜色深蓝对应原图
     ax.text(0.04, 0.97, panel['title'], transform=ax.transAxes,
-            fontsize=12, fontweight='bold', va='top', ha='left',
-            color='#003F6C', fontfamily='serif')
+            fontweight='bold', va='top', ha='left', color='#003F6C')
 
-plt.savefig('/Users/bytedance/gitcode/paper_experiment_plot_skills/repro/bar_memevolve_repro.png',
-            dpi=300, bbox_inches='tight', facecolor='white')
-plt.close()
-print('saved: bar_memevolve_repro.png')
+set_paper_placement(fig)
+save_fig(fig, OUTPUT)

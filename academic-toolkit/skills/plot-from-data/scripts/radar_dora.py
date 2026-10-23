@@ -1,18 +1,30 @@
 """
 Reproduce: image8.png — DoRA vs LoRA Radar Chart
-Style: sans-serif, dashed octagonal grid, white-bg value annotations,
+Style: dashed octagonal grid, white-bg value annotations,
        semi-transparent fill, legend: black text + colored line segment.
+
+薄壳模板：字体族/字号阶梯/线宽/配色循环/保存护栏统一由
+academic-toolkit/skills/_utils/plot_utils.py 的 setup_style + save_fig 提供；
+本文件只保留该图型的语法差异（极坐标八边形网格、扇区归一化、手工图例行）。
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.lines as mlines
+import sys
+from pathlib import Path
 
-plt.rcParams.update({
-    'font.family': 'sans-serif',
-    'font.sans-serif': ['DejaVu Sans', 'Arial', 'Helvetica'],
-    'text.usetex': False,
-})
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.collections import LineCollection
+from matplotlib.patches import Polygon
+
+_SKILLS_DIR = Path(__file__).resolve().parents[2]
+if str(_SKILLS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SKILLS_DIR))
+
+from _utils.plot_utils import save_fig, set_paper_placement, setup_style
+
+setup_style()
+
+OUTPUT = 'figures/fig_radar_dora.png'
 
 # ---- 数据（顺时针从正上方开始）----
 CATEGORIES = [
@@ -57,6 +69,8 @@ def close(arr):
 # 原图 1032×850 → 宽高比 1.21
 fig, ax = plt.subplots(figsize=(7.0, 5.8),
                        subplot_kw=dict(projection='polar'))
+fig._mh_manual_layout = True   # 顶部手工图例行占位：禁止保存钩子重跑 tight_layout
+fig.subplots_adjust(left=0.03, right=0.97, top=0.84, bottom=0.02)
 
 ax.set_theta_zero_location('N')
 ax.set_theta_direction(-1)
@@ -64,14 +78,21 @@ ax.set_yticks([])
 ax.set_xticks([])
 
 # ---- 同心正八边形网格（虚线），非圆形 ----
+# 网格属于背景装饰而非数据：用 Polygon/LineCollection 绘制，
+# 与数据折线区分（save_fig 只把 Line2D 数据/参考线当遮挡障碍）。
 for r in [0.4, 0.55, 0.7, 0.85, 1.0]:
-    ax.plot(close(angles), close(np.full(N, r)),
-            color='#CCCCCC', lw=0.8, linestyle='--', zorder=1)
+    ax.add_patch(Polygon(
+        np.column_stack([close(angles), close(np.full(N, r))]),
+        closed=True, fill=False, edgecolor='#CCCCCC',
+        linewidth=0.8, linestyle='--', zorder=1,
+    ))
 
-# 射线
-for ang in angles:
-    ax.plot([ang, ang], [0, 1.0],
-            color='#CCCCCC', lw=0.8, linestyle='--', zorder=1)
+# 射线（极坐标数据坐标：x=角度, y=半径）
+ax.add_collection(LineCollection(
+    [[(ang, 0.0), (ang, 1.0)] for ang in angles],
+    colors='#CCCCCC', linewidths=0.8, linestyles='--', zorder=1,
+    transform=ax.transData,
+))
 
 C_DORA = '#5A8A5A'   # 深绿，与原图一致
 C_LORA = '#4169E1'   # 皇家蓝，原图 LoRA 为真蓝色
@@ -93,23 +114,23 @@ def fmt(v):
 
 for i, ang in enumerate(angles):
     # DoRA 数值（折线外侧）
-    r_d = dora_r[i] + 0.08
+    r_d = dora_r[i] + 0.12
     ax.text(ang, r_d, fmt(DORA_raw[i]),
             ha='center', va='center',
-            fontsize=7.8, color=C_DORA, zorder=6,
+            color=C_DORA, zorder=6,
             bbox=dict(boxstyle='round,pad=0.12',
                       facecolor='white', edgecolor='none', alpha=0.85))
     # LoRA 数值（折线内侧）
-    r_l = lora_r[i] - 0.09
+    r_l = lora_r[i] - 0.13
     ax.text(ang, r_l, fmt(LORA_raw[i]),
             ha='center', va='center',
-            fontsize=7.8, color=C_LORA, zorder=6,
+            color=C_LORA, zorder=6,
             bbox=dict(boxstyle='round,pad=0.12',
                       facecolor='white', edgecolor='none', alpha=0.85))
 
 # ---- 轴标签 ----
-# 原图 label 紧贴多边形外圈（约 1.13），字体相对图幅偏小
-label_r = 1.13
+# 原图 label 紧贴多边形外圈；数值标注在 1.0 圈外，类名再外移避免相撞
+label_r = 1.30
 for i, (ang, cat) in enumerate(zip(angles, CATEGORIES)):
     if abs(np.sin(ang)) < 0.15:
         ha = 'center'
@@ -119,33 +140,28 @@ for i, (ang, cat) in enumerate(zip(angles, CATEGORIES)):
         ha = 'right'
     ax.text(ang, label_r, cat,
             ha=ha, va='center',
-            fontsize=8.5, color='#333333',
+            color='#333333',
             multialignment='center')
 
 # ---- 图例：黑色系列名 + 彩色线段 ----
 # DoRA 图例行（粗绿线 + 黑色加粗文字）
 fig.text(0.09, 0.91,
-         '────  ', color=C_DORA, fontsize=11,
+         '────  ', color=C_DORA,
          fontweight='bold', va='center', ha='left')
 fig.text(0.155, 0.91,
-         'DoRA', color='black', fontsize=10,
+         'DoRA', color='black',
          fontweight='bold', va='center', ha='left')
 
 # LoRA 图例行（细蓝线 + 黑色普通文字）
 fig.text(0.09, 0.875,
-         '─────', color=C_LORA, fontsize=8.5,
+         '─────', color=C_LORA,
          va='center', ha='left')
 fig.text(0.155, 0.875,
-         'LoRA', color='black', fontsize=10,
+         'LoRA', color='black',
          va='center', ha='left')
 
-ax.set_ylim(0, 1.32)   # 缩小上下留白，让多边形撑满
+ax.set_ylim(0, 1.50)   # 给外圈数值与两行类名留出径向空间
 ax.set_frame_on(False)
 
-fig.subplots_adjust(left=0.10, right=0.90, top=0.86, bottom=0.06)
-fig.savefig(
-    '/Users/bytedance/gitcode/paper_experiment_plot_skills/repro/radar_dora_repro.png',
-    dpi=300, facecolor='white',
-)
-plt.close(fig)
-print('saved: radar_dora_repro.png')
+set_paper_placement(fig)
+save_fig(fig, OUTPUT)

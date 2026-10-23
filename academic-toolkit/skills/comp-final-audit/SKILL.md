@@ -33,7 +33,7 @@ Integrity anchor (anti-Goodhart): every gate, template, and test lives inside th
 
 本步完成前逐项自检（不达标即视为未完成）：
 
-- [ ] 证据链完整：每步有产物、命令、哈希与事件
+- [ ] 中央主张逐条有 RESULTS/figures 账本支撑；评审卡 weighted_total/fatal_dimensions 已记录；未解决 fatal=0（每步产物/命令/哈希/事件的证据链仍是核对输入，但不再单独作为通过判据）
 - [ ] 门禁结论逐项列出，不得只写一句「通过」
 - [ ] 交付文件清单与实际文件一致（含体积与格式合规）
 - [ ] 不得存在 skip_ 类豁免参数；存在即判定交付阻断

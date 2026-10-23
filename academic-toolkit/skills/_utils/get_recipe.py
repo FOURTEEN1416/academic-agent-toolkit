@@ -8,7 +8,9 @@
   python3 _utils/get_recipe.py academic 3      # 提取 academic #3 ablation 表
   python3 _utils/get_recipe.py competition 16  # 提取 competition #16 网络路径图
 
-输出: 对应配方的完整 markdown 章节（包含代码块和注意事项）
+输出: 对应配方的完整 markdown 章节（包含代码块和注意事项）；
+      末尾附带文件头「⛔⛔ 抄本文件代码前必读」小节（该小节位于 `## 1.` 之前，
+      不在任何单段抽取范围内，若配方文件没有该小节则不附加）。
 """
 import os, sys, re
 
@@ -19,6 +21,9 @@ RECIPE_FILES = {
     'empirical': 'figure_recipes_empirical.md',
     'academic': 'figure_recipes_academic.md',
 }
+
+# 文件头「必读」小节：位于首个 `## N.` 配方之前，标题含「必读」且不是编号配方。
+PRELUDE_NOTES_BANNER = '──── ⛔⛔ 文件头「抄本文件代码前必读」 (抽取自配方文件开头，落地前逐条核对) ────'
 
 def find_recipe_file(category):
     """在 _utils/ 或 skills/shared-scripts/ 中查找配方文件"""
@@ -43,6 +48,20 @@ def extract_section(content, number):
     if match:
         return match.group(0).strip()
     return None
+
+def extract_prelude_notes(content):
+    """提取首个 `## N.` 配方之前的「必读」小节（原样，不做改写）。"""
+    first_recipe = re.search(r'^## \d+\.', content, re.MULTILINE)
+    head = content[:first_recipe.start()] if first_recipe else content
+    heading = re.search(r'^## .*必读.*$', head, re.MULTILINE)
+    if not heading:
+        return None
+    rest = head[heading.start():]
+    offset = len(heading.group(0))
+    next_heading = re.search(r'^## ', rest[offset:], re.MULTILINE)
+    block = rest[:offset + next_heading.start()] if next_heading else rest
+    block = re.sub(r'\n-{3,}\s*$', '', block.rstrip())
+    return block.strip() or None
 
 def main():
     if len(sys.argv) < 3:
@@ -86,6 +105,13 @@ def main():
         sys.exit(1)
 
     print(section)
+
+    notes = extract_prelude_notes(content)
+    if notes:
+        print()
+        print(PRELUDE_NOTES_BANNER)
+        print()
+        print(notes)
 
 if __name__ == '__main__':
     # Windows 控制台 UTF-8 输出

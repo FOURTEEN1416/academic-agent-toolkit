@@ -1429,6 +1429,159 @@ def _lighten(hex_color, amount=0.4):
     return f'#{r:02x}{g:02x}{b:02x}'
 
 
+# ============================================================
+# 质感层（可选）：浅色渐变填充 + 同族饱和描边 + 外扩荧光
+# ============================================================
+# 定位：本段只提供**可选函数**——不注册任何 rcParams、不改变默认出图行为；
+#   颜色一律由调用方显式传入（数据系列色仍取 PALETTE / academic.mplstyle 定版
+#   的 prop_cycle）。三条质感铁律：
+#     ① 大面积填充用浅色渐变，禁纯色平涂；
+#     ② 每个填充块配同族饱和描边 + 外圈半透明加宽描边（"荧光"边）；
+#     ③ 细线/文字取同族深端（deepen），浅色不作细线或文字色。
+# figure-craft/_utils/figstyle.py 的同名函数直接委托本段，不另存一份算法。
+
+
+def lighten(color, t=0.4):
+    """颜色变浅：t=0 不变，t=1 变白。返回 '#RRGGBB'（任意 matplotlib 颜色输入）。"""
+    from matplotlib.colors import to_rgb
+    r, g, b = to_rgb(color)
+    return _rgb01_2hex((r + (1 - r) * t, g + (1 - g) * t, b + (1 - b) * t))
+
+
+def deepen(color, t=0.45):
+    """颜色压暗到同族深端（作描边/文字墨色）。返回 '#RRGGBB'。"""
+    from matplotlib.colors import to_rgb
+    r, g, b = to_rgb(color)
+    return _rgb01_2hex((r * (1 - t), g * (1 - t), b * (1 - t)))
+
+
+def _texture_rgba(color, alpha):
+    from matplotlib.colors import to_rgb
+    r, g, b = to_rgb(color)
+    return (r, g, b, alpha)
+
+
+def gradient_box(ax, x, y, w, h, pastel, *, vertical=True, rounding=0.12,
+                 glow=0.30, lw=1.3, zorder=2, alpha_top=0.62):
+    """浅色渐变填充 + 同族饱和描边 + 外圈半透明荧光（流程图/卡片框首选）。
+
+    pastel: ``(fill, edge)`` 二元组；坐标为 ax 数据系。
+    返回 ``FancyBboxPatch``——可 ``set_clip_path`` 后在其上放文字。
+    """
+    from matplotlib.colors import LinearSegmentedColormap
+    from matplotlib.patches import FancyBboxPatch
+    fill, edge = pastel
+    bot = fill
+    top = lighten(fill, alpha_top)
+    cmap = LinearSegmentedColormap.from_list("gb", [bot, top] if vertical else [top, bot])
+    rs = min(w, h) * rounding
+    style = f"round,pad=0,rounding_size={rs}"
+    halo = FancyBboxPatch((x, y), w, h, boxstyle=style,
+                          facecolor="none", edgecolor=edge,
+                          linewidth=lw + 3.2, alpha=glow, zorder=zorder - 0.5)
+    ax.add_patch(halo)
+    n = 64
+    g = np.linspace(0, 1, n)
+    grad = (g.reshape(-1, 1) if vertical else g.reshape(1, -1))
+    im = ax.imshow(grad, cmap=cmap, extent=(x, x + w, y, y + h),
+                   origin="lower" if vertical else "upper", aspect="auto", zorder=zorder)
+    box = FancyBboxPatch((x, y), w, h, boxstyle=style,
+                         facecolor="none", edgecolor=edge, linewidth=lw,
+                         zorder=zorder + 0.6, mutation_aspect=1)
+    ax.add_patch(box)
+    im.set_clip_path(box)
+    return box
+
+
+def gradient_bar(ax, x0, y0, w, h, color, *, horizontal=False, fade=0.78,
+                 lw=1.0, glow=0.30, zorder=3):
+    """渐变柱体（替代纯色平涂）：远离基线端饱和、基线端渐浅，同色荧光边。
+
+    ``horizontal=True`` 沿 x 方向渐变（右端饱和）。
+    ⚠ 替换原 ``ax.bar`` 后回查图例：Rectangle 手柄易丢。
+    """
+    from matplotlib.colors import LinearSegmentedColormap
+    from matplotlib.patches import Rectangle
+    top, bot = color, lighten(color, fade)
+    cmap = LinearSegmentedColormap.from_list("gb2", [bot, top])
+    rect = Rectangle((x0, y0), w, h, facecolor="none", edgecolor=color,
+                     linewidth=lw, zorder=zorder + 0.6)
+    halo = Rectangle((x0, y0), w, h, facecolor="none", edgecolor=color,
+                     linewidth=lw + 2.6, alpha=glow, zorder=zorder - 0.5)
+    ax.add_patch(halo)
+    ax.add_patch(rect)
+    n = 48
+    grad = (np.linspace(0, 1, n).reshape(1, -1) if horizontal
+            else np.linspace(0, 1, n).reshape(-1, 1))
+    im = ax.imshow(grad, cmap=cmap, extent=(x0, x0 + w, y0, y0 + h),
+                   origin="lower", aspect="auto", zorder=zorder)
+    im.set_clip_path(rect)
+    return rect
+
+
+def gradient_area(ax, x, y, color, *, baseline=0.0, max_alpha=0.5, zorder=1):
+    """曲线下渐变填充：贴曲线处有色、向基线渐隐（替代纯色 fill_between）。
+
+    ``baseline`` 可为标量或同长数组——传另一条线即得"差值渐变带"；
+    方向按两端均值自动翻转。
+    """
+    from matplotlib.colors import LinearSegmentedColormap
+    from matplotlib.path import Path as _MPath
+    from matplotlib.patches import PathPatch
+    x = np.asarray(x, float)
+    y = np.asarray(y, float)
+    bl = np.broadcast_to(np.asarray(baseline, float), x.shape)
+    verts = np.vstack([np.column_stack([x, y]),
+                       np.column_stack([x[::-1], bl[::-1]])])
+    patch = PathPatch(_MPath(verts), facecolor="none", edgecolor="none", zorder=zorder)
+    ax.add_patch(patch)
+    lo = min(float(np.min(y)), float(np.min(bl)))
+    hi = max(float(np.max(y)), float(np.max(bl)))
+    y_up = float(np.mean(y)) >= float(np.mean(bl))
+    c0 = _texture_rgba(color, 0.02) if y_up else _texture_rgba(color, max_alpha)
+    c1 = _texture_rgba(color, max_alpha) if y_up else _texture_rgba(color, 0.02)
+    cmap = LinearSegmentedColormap.from_list("ga", [c0, c1])
+    grad = np.linspace(0, 1, 64).reshape(-1, 1)
+    im = ax.imshow(grad, cmap=cmap, extent=(float(x.min()), float(x.max()), lo, hi),
+                   origin="lower", aspect="auto", zorder=zorder)
+    im.set_clip_path(patch)
+    return patch
+
+
+def fade_area_x(ax, x_curve, y, color, *, max_alpha=0.38, zorder=1):
+    """横向渐变面：x 越靠近曲线值越饱和、向 x=0 渐隐（垂直剖面/廓线用）。"""
+    from matplotlib.colors import LinearSegmentedColormap
+    from matplotlib.path import Path as _MPath
+    from matplotlib.patches import PathPatch
+    x_curve = np.asarray(x_curve, float)
+    y = np.asarray(y, float)
+    pts = np.column_stack([np.concatenate([x_curve, np.zeros_like(y[::-1])]),
+                           np.concatenate([y, y[::-1]])])
+    patch = PathPatch(_MPath(pts), facecolor="none", edgecolor="none", zorder=zorder)
+    ax.add_patch(patch)
+    cmap = LinearSegmentedColormap.from_list(
+        "fx", [_texture_rgba(color, 0.03), _texture_rgba(color, max_alpha)])
+    g = np.linspace(0, 1, 64).reshape(1, -1)
+    im = ax.imshow(g, cmap=cmap,
+                   extent=(0, float(x_curve.max()), float(y.min()), float(y.max())),
+                   origin="lower", aspect="auto", zorder=zorder)
+    im.set_clip_path(patch)
+    return patch
+
+
+def glow_scatter(ax, x, y, color, *, s=42, alpha=0.26, scale=2.8, zorder=3, **kw):
+    """荧光标记：同色大半透明点垫底 + 实心点在上（棒棒糖头、得分点阵）。"""
+    ax.scatter(x, y, s=s * scale, c=color, alpha=alpha, linewidths=0, zorder=zorder - 0.3)
+    return ax.scatter(x, y, s=s, c=color, zorder=zorder, **kw)
+
+
+def glow_line(ax, x, y, color, *, lw=1.8, alpha=0.22, zorder=3, **kw):
+    """荧光线：加宽半透明同色线垫底 + 主线在上。"""
+    ax.plot(x, y, lw=lw + 2.8, color=color, alpha=alpha,
+            solid_capstyle="round", zorder=zorder - 0.3)
+    return ax.plot(x, y, lw=lw, color=color, zorder=zorder, **kw)
+
+
 def _rgba_over(foreground, background):
     """Composite an RGBA foreground over an opaque RGB/RGBA background."""
     fg = tuple(float(v) for v in foreground)

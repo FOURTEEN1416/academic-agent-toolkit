@@ -22,4 +22,4 @@
 - Pinned commit: 1df9940dd01ac939f072b12fe28d6353b79b90f9（2026-07-12 上游 HEAD）
 - License: **Apache-2.0**（含 NOTICE 义务，保留于 vendor/forks/academic-figure-skill）
 - Local use: composition-patterns.md 增补（期刊栏宽 89/183mm 锚点 + 多面板反冗余三原则：三层递进/Hero Panel/叙事排序）
-- 两源评估总账：`dev-docs/figure-skills-batch-assessment.md`（含无 License 三库仅本地对照的裁定）
+- 两源评估总账：`dev-docs/figure-skills-batch-assessment.md`

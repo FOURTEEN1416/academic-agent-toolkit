@@ -59,9 +59,9 @@ For each actual figure, record in `FIGURE_REPORT.md` its question/scenario, gene
 
 - ✅ **A small number of hand-picked coordinated hex colors are OK** for special highlights / reference lines (≤ 2 per figure, must visually harmonize with the active palette)
 
-- ❌ Never use matplotlib's `tab10` defaults — bright blue `#1f77b4`, orange `#ff7f0e`, green `#2ca02c` are the unmistakable "default style" reviewers spot in 1 second
+- ⚠️ "Looks like software defaults" is **not a violation** — the award corpus shows default-looking styles dominate (`skills/award-paper-mining/data/figure_table_conventions.md` §5, N=9). Do not swap palettes per figure just to avoid "looking default"; consistent role colors matter more. Mechanism boundary: `figure_check.sh` hard-fails literal `#1f77b4` and CSS bright names, so express a default look through `setup_style()`'s palette (omit `color=`) or `PALETTE[n]`; if you truly need the tab10 sequence, use `matplotlib.colormaps['tab10'].colors` — never literal tab10 hex
 
-- ❌ Never use CSS bright color names (`'blue'`, `'red'`, `'green'`, `'orange'`) — same `tab10` aesthetic
+- ❌ Never pass CSS bright color names (`'blue'`, `'red'`, `'green'`, `'orange'`) — `figure_check.sh` treats them as CRITICAL (same default aesthetic). Use `PALETTE[n]` / `COLORS[...]`; explicit hex only for ≤2 hand-picked highlights (>2 hardcoded hex is CRITICAL). `'red'`/`'green'` as data-series colors also fall under the red-green taboo below
 
 - ❌ Never use ugly colormaps (`RdYlGn` traffic-light, `RdBu_r` too dark, `dark_background` theme)
 
@@ -69,7 +69,7 @@ For each actual figure, record in `FIGURE_REPORT.md` its question/scenario, gene
 
 
 
-**Competition paper color constraint**: use white background (`#FFFFFF`) with light-gray grid (runtime baseline `COLORS['grid']='#E0E0E0'` in `plot_utils.py`; 62 篇获奖论文样本主流 `#dadada` 同级), and limit data series colors to ≤6 low-saturation pastel colors (e.g. `#7AAEC8` dusty-blue, `#E8945A` warm-orange, `#7BC8A4` mint, `#9B8EC4` lavender, `#F4A261` warm-cream). Never use pure red `#FF0000` / pure green `#008000` as data series colors — all winning papers avoid red-green combinations for colorblind safety.⛔⛔ **The real rule**: figures must NOT look like "ran with matplotlib defaults". `setup_style()` swaps in the `elegant` palette (`#7AAEC8` dusty-blue / `#E8945A` warm-orange / `#7BC8A4` mint / `#9B8EC4` lavender) which is calibrated for academic publication（样式唯一真源：`skills/_utils/academic.mplstyle`——字号阶/CJK 字体链/定版色板/保存护栏与色板择优理由均在其文件头）. You may augment with creative coordinated hex (e.g. `#FFB347` warm highlight, `#A8DADC` accent) — what's forbidden is the *specific* combination that says "I never customized".
+**Competition paper color rule（赛事配色，语义优先）**: white background (`#FFFFFF`) with light-gray grid stays (`COLORS['grid']='#E0E0E0'` in `plot_utils.py`; 获奖语料主流 `#dadada` 同级). ① **语义映射优先**：多系列对比图先按 `references/semantic-palette.md` 把颜色绑定到数据角色（本队方法/基线/改进），语义色一旦选定就全篇一致。② **语义中性时不要求自定义配色**：`skills/award-paper-mining/data/figure_table_conventions.md` §5（N=9，2021 国奖样本；N=60 是第 6 节的研赛结构样本，不是配色观察）显示获奖论文以 Excel 蓝橙灰、matplotlib tab10、MATLAB 蓝的默认观感为主——"像默认"**不是违规**，不必为"去默认感"强行换色。机制边界：`figure_check.sh` 对字面 `#1f77b4` 与 CSS 鲜艳名判 CRITICAL，所以默认观感请走 `setup_style()` 的调色板（省略 `color=`）或 `PALETTE[n]`，不要把 tab10 hex 写死。③ **自定义低饱和色是可选增强**：想提升观感时走 `setup_style()` 的 `elegant` 调色板（`#7AAEC8` dusty-blue / `#E8945A` warm-orange / `#7BC8A4` mint / `#9B8EC4` lavender；样式唯一真源 `skills/_utils/academic.mplstyle`——字号阶/CJK 字体链/定版色板/保存护栏与色板择优理由均在其文件头），数据系列 ≤6 色，把配色预算花在少数重点图而不是全篇；单图手挑协调 hex 仍以 ≤2 处为限。④ **唯一硬禁忌是红绿禁忌**：数据系列不得用纯红 `#FF0000` / 纯绿 `#008000`，也不得用红绿对照编码（色盲不安全；获奖语料一致回避）。**不再有"必须不像 matplotlib 默认"的一票否决**——按语义需要选默认色或自定义色，评委看的是信息表达。
 
 
 
@@ -295,17 +295,86 @@ fi
 
 
 
-1. Read the full style guide (color schemes + figure selection decision table + anti-patterns + DrawIO/TikZ color schemes — all in one file):
+0. **⛔ 必读：赛事图表惯例（先于风格指南，决定题注/编号/目录页/路线图规划）**
 
 ```bash
 
-# ⛔ 直接 cat 整个 figure_style_guide.md (~50KB) 容易把 context 顶到上限触发 thrashing
+# 只读第 5 节（配色观察）+ 第 6 节（研赛题注/目录页/泳道图），不整篇读
+# 三级路径覆盖三种执行 cwd：academic-toolkit/、仓库根、工作区（../../skills）
+CONV=skills/award-paper-mining/data/figure_table_conventions.md
+[ -f "$CONV" ] || CONV=academic-toolkit/skills/award-paper-mining/data/figure_table_conventions.md
+[ -f "$CONV" ] || CONV=../../skills/award-paper-mining/data/figure_table_conventions.md
+if [ -f "$CONV" ]; then
+    sed -n '/^## 五、/,$p' "$CONV"
+else
+    echo "⛔ 语料惯例文件缺失：$CONV —— 如实记缺失并按通用规则出图，不要凭记忆编造赛事惯例" >&2
+fi
 
-# 改用 head 取前 1500 行的核心规则部分; 需要更细规则时再 grep 或 Read 工具按需读
-
-(cat _utils/figure_style_guide.md 2>/dev/null || cat skills/shared-scripts/figure_style_guide.md) | head -1500
+# 赛事身份：引擎 bound 快照经 .engine/contest_env 注入（未 bound 则为空，不猜）
+[ -n "${CONTEST_ID:-}" ] || CONTEST_ID=$(sed -n 's/^CONTEST_ID=//p' .engine/contest_env 2>/dev/null | head -1)
+echo "CONTEST_ID=${CONTEST_ID:-<unbound>}"
 
 ```
+
+按 `CONTEST_ID`（= `contest_profile.contest_id`，仅 `contest_profile.status == "bound"` 时有效；未下发/未知 ⇒ 只走通用规则，不猜、不回退国赛）落到规划清单：
+
+| CONTEST_ID | 题注 / 编号 / 版面动作 |
+|---|---|
+| `comp_cumcm` | 图表**全文连续编号**（图1/表1，无章节前缀；语料 7/9，2022 批 8/10） |
+| `comp_huawei` | 题注用 **「图{章号}-{序号}」/「表{章号}-{序号}」**（研赛主流：图 54%、表 52%）；规划中登记**目录页**（前 8 页、点线引导；语料 38/60≈63%，目录页由写作侧（comp-paper-zh / comp-paper-zh-docx）排版，本步只登记交付要求）；**题目 ≥4 问**时规划一张**全页泳道式技术路线图**（每问一条横向泳道，算法与评价指标用虚线框分组；研赛特色，语料 8/60≈13%） |
+| 其他 / 未下发 | 通用规则：图题在图下、表题在表上、全文连续编号；不套用上述两赛事专属惯例 |
+
+问数先判文件存在再取口径（`count_subproblems.sh` 对缺失文件输出 0，不能把 0 当真实问数）：
+
+```bash
+
+# 计数脚本先按三级路径解析（与 comp-paper-zh 同口径），再判输入文件存在
+CNT=""
+for c in skills/_utils/count_subproblems.sh academic-toolkit/skills/_utils/count_subproblems.sh ../../skills/_utils/count_subproblems.sh; do
+    [ -f "$c" ] && CNT="$c" && break
+done
+if [ -z "$CNT" ]; then NQ=""; echo "⚠️ 问数未知：count_subproblems.sh 三级路径（skills/、academic-toolkit/skills/、../../skills/）均未命中——华为杯泳道路线图分支不触发，如实记录未知" >&2
+elif [ -f PROBLEM_ANALYSIS.md ]; then NQ=$(bash "$CNT" PROBLEM_ANALYSIS.md)
+elif [ -f PAPER_PLAN.md ]; then NQ=$(bash "$CNT" PAPER_PLAN.md)
+else NQ=""; echo "⚠️ 问数未知：PROBLEM_ANALYSIS.md / PAPER_PLAN.md 均缺失——华为杯泳道路线图分支不触发，如实记录未知" >&2; fi
+echo "NQ=${NQ:-unknown}"
+
+```
+
+仅当 `NQ` 为数字且 ≥4 时才规划全页泳道技术路线图；`NQ` 为空/未知时不猜测。题注与编号在 Step 6 写 `\caption` / `latex_includes.tex` 时落实（华为杯章内编号：`\numberwithin{figure}{section}` + `\renewcommand{\thefigure}{\thesection-\arabic{figure}}`，表同理；得到「图1-1」而非「图1.1」）。
+
+⛔ **赛事惯例优先于审美偏好**：题注位置、编号制、目录页、路线图形态按上表与语料执行；风格指南只负责图内视觉，不改赛事版面外壳。研赛格式合规最终以一级官方规范（`comp_rules.json` / `graduate_contest` 档案）为准，语料为二级佐证。
+
+1. Read the style guide **by section, never in full** — the file is 1461 行 / 90KB，旧的 `head -1500` 实际等于整篇读入，已废弃。先取目录，再只读三类规划相关段落：
+
+```bash
+
+GUIDE=_utils/figure_style_guide.md
+[ -f "$GUIDE" ] || GUIDE=skills/shared-scripts/figure_style_guide.md
+[ -f "$GUIDE" ] || GUIDE=academic-toolkit/skills/shared-scripts/figure_style_guide.md
+[ -f "$GUIDE" ] || GUIDE=../../skills/shared-scripts/figure_style_guide.md
+
+# ① 目录：先看有哪些 ## / ###，按标题定位（行号会漂移，别写死）
+grep -n '^## \|^### ' "$GUIDE"
+
+# ② 配色/字体（约 4KB）：## 配色范围与验收 + ## 配色方案 + ## 字体与排版
+sed -n '/^## 配色范围与验收/,/^## 论文落地版面五条基线/p' "$GUIDE"
+sed -n '/^## 配色方案/,/^## 让图表更高级的技巧/p' "$GUIDE"   # 含「配色方案」「字体与排版」两节
+# 配色细则中的 `### ⛔ 颜色使用通用规则` 位于下方 ③ 的决策表段内，会一并读到
+
+# ③ 图型选择决策表（约 18KB）：## Data → Figure Type Decision Table
+#    （含 ### By data shape / ### By problem domain (competition) / ### Anti-patterns）
+sed -n '/^## Data → Figure Type Decision Table/,/^## 配色方案/p' "$GUIDE"
+
+# ④ 按图型 recipes：只读规划中实际选中的 ### 小节，不读整节
+#    先列标题：
+sed -n '/^## 让图表更高级的技巧/,/^## 避免的常见丑图/p' "$GUIDE" | grep '^### '
+#    再按标题取单节，例如分组柱：
+#    sed -n '/^### 6\. 分组柱状图加误差棒/,/^### 7\./p' "$GUIDE"
+
+```
+
+**Step 1 不读**：`## 避免的常见丑图`、`## ⛔ 防遮挡规则`、`## SciencePlots 库`、`## TikZ 技术路线图/架构图参考`（防遮挡由 Step 4/10 的检查器兜底；TikZ/SciencePlots 只在真要用时按标题单读）。
 
 2. Scan recipe file headings to know what templates are available:
 
@@ -313,27 +382,27 @@ fi
 
 echo "=== Advanced ==="
 
-(cat _utils/figure_recipes_advanced.md 2>/dev/null || cat skills/shared-scripts/figure_recipes_advanced.md 2>/dev/null) | grep '^## '
+(cat _utils/figure_recipes_advanced.md 2>/dev/null || cat skills/shared-scripts/figure_recipes_advanced.md 2>/dev/null || cat academic-toolkit/skills/shared-scripts/figure_recipes_advanced.md 2>/dev/null || cat ../../skills/shared-scripts/figure_recipes_advanced.md 2>/dev/null) | grep '^## '
 
 echo "=== Basic ==="
 
-(cat _utils/figure_recipes_basic.md 2>/dev/null || cat skills/shared-scripts/figure_recipes_basic.md 2>/dev/null) | grep '^## '
+(cat _utils/figure_recipes_basic.md 2>/dev/null || cat skills/shared-scripts/figure_recipes_basic.md 2>/dev/null || cat academic-toolkit/skills/shared-scripts/figure_recipes_basic.md 2>/dev/null || cat ../../skills/shared-scripts/figure_recipes_basic.md 2>/dev/null) | grep '^## '
 
 echo "=== Academic ==="
 
-(cat _utils/figure_recipes_academic.md 2>/dev/null || cat skills/shared-scripts/figure_recipes_academic.md 2>/dev/null) | grep '^## '
+(cat _utils/figure_recipes_academic.md 2>/dev/null || cat skills/shared-scripts/figure_recipes_academic.md 2>/dev/null || cat academic-toolkit/skills/shared-scripts/figure_recipes_academic.md 2>/dev/null || cat ../../skills/shared-scripts/figure_recipes_academic.md 2>/dev/null) | grep '^## '
 
 echo "=== Competition ==="
 
-(cat _utils/figure_recipes_competition.md 2>/dev/null || cat skills/shared-scripts/figure_recipes_competition.md 2>/dev/null) | grep '^## '
+(cat _utils/figure_recipes_competition.md 2>/dev/null || cat skills/shared-scripts/figure_recipes_competition.md 2>/dev/null || cat academic-toolkit/skills/shared-scripts/figure_recipes_competition.md 2>/dev/null || cat ../../skills/shared-scripts/figure_recipes_competition.md 2>/dev/null) | grep '^## '
 
 echo "=== Empirical ==="
 
-(cat _utils/figure_recipes_empirical.md 2>/dev/null || cat skills/shared-scripts/figure_recipes_empirical.md 2>/dev/null) | grep '^## '
+(cat _utils/figure_recipes_empirical.md 2>/dev/null || cat skills/shared-scripts/figure_recipes_empirical.md 2>/dev/null || cat academic-toolkit/skills/shared-scripts/figure_recipes_empirical.md 2>/dev/null || cat ../../skills/shared-scripts/figure_recipes_empirical.md 2>/dev/null) | grep '^## '
 
 echo "=== Basic (fallback only) ==="
 
-(cat _utils/figure_recipes_basic.md 2>/dev/null || cat skills/shared-scripts/figure_recipes_basic.md 2>/dev/null) | grep '^## '
+(cat _utils/figure_recipes_basic.md 2>/dev/null || cat skills/shared-scripts/figure_recipes_basic.md 2>/dev/null || cat academic-toolkit/skills/shared-scripts/figure_recipes_basic.md 2>/dev/null || cat ../../skills/shared-scripts/figure_recipes_basic.md 2>/dev/null) | grep '^## '
 
 ```
 
@@ -992,6 +1061,10 @@ For each planned figure, create a Figure Type Audit Table. The "Chosen Type" sho
 
 
 
+**华为杯（`CONTEST_ID=comp_huawei`）FIGURE_MANIFEST 数量经验区间（经验参考，非硬门禁）**：图表总量 30-46（A/B 40-46、C/D 33-39、E/F 35-41），其中**数据图 8-12**、过程图 6-12、表 8-12，鼓励多面板组合。来源：`engine/modex-core/comp_rules.json` → `contests.comp_huawei.profiles[].guidance` 的 `figure_quota`（`nature: experience`，零代码消费）。**只用于规划自查**：不接 `figure_check` / `figure_provenance` 的新规则；实际张数以题目与 FIGURE_MANIFEST 为准，少几张或多几张都不判失败。
+
+
+
 ### Step 3: Generate figure scripts
 
 
@@ -1312,7 +1385,7 @@ def cn(s):
 
 
 
-⛔⛔ **MANDATORY: run figure_check.sh BEFORE executing any gen_fig script.** Exit code 0 is required to proceed. Non-zero means CRITICAL violations exist (missing `setup_style`, hardcoded colors, `#1f77b4` matplotlib-default blue, etc.) — fix them and re-run until exit code is 0.
+⛔⛔ **MANDATORY: run figure_check.sh BEFORE executing any gen_fig script.** Exit code 0 is required to proceed. Non-zero means CRITICAL violations exist (missing `setup_style`, literal `1f77b4`, CSS bright names, >2 hardcoded hex, etc.) — fix them and re-run until exit code is 0. **Note**: `figure_check.sh` rules are mechanical — literal `1f77b4` anywhere = CRITICAL; CSS bright names = CRITICAL; `color='#xxxxxx'` hardcoded hex ≤2 = INFO and >2 = CRITICAL. These are *hardcoding* rules, not an anti-defaultness rule: default-looking output is fine when expressed through `setup_style()` / `PALETTE`.
 
 
 
@@ -1353,9 +1426,9 @@ If violations found (especially CRITICAL), fix and re-check before executing:
 
 - Hardcoded color (`color='#XXXXXX'` not from PALETTE/COLORS) → `PALETTE[n]` or `COLORS['up'/'down'/'grid'/'text']`
 
-- Named CSS color (`color='blue'`, `'red'`, `'green'`) → `PALETTE[n]`
+- Named CSS color (`color='blue'`, `'red'`, `'green'`) → `PALETTE[n]` / `COLORS[...]`; explicit hex only for ≤2 hand-picked highlights (>2 hardcoded hex is CRITICAL); `'red'`/`'green'` as data-series colors still hard-fails the red-green taboo
 
-- matplotlib default blue `#1f77b4` (and the rest of tab10) → use `PALETTE` (just calling `setup_style()` auto-applies it to all subsequent `ax.bar/plot/scatter` without `color=` arg)
+- Literal `#1f77b4` → remove it: omit `color=` so `setup_style()` applies the workspace palette, or use `PALETTE[0]`. If a tab10 sequence is genuinely needed, use `matplotlib.colormaps['tab10'].colors` (no literal hex). Default-looking output is not itself a violation
 
 - `plt.title()` → remove (caption in LaTeX only)
 
@@ -2027,7 +2100,7 @@ For each fig_xxx.pdf, answer:
 
    - Enough spacing between data points/bars? (not crammed together)
 
-   - Uses PALETTE colors, not matplotlib default blue?
+   - Colors follow the semantic mapping first; if semantics are neutral, default-looking colors are acceptable (not a failure)
 
    - Has light-fill + solid-border premium look? (not plain solid blocks + white edges)
 
@@ -2061,7 +2134,7 @@ For each fig_xxx.pdf, answer:
 
    - Has premium elements from recipe? (gradient fills, KDE backgrounds, annotation boxes, smart_labels, etc.)
 
-   - If plain matplotlib default style (blue bars, no annotations, no fills), must rewrite using recipe
+   - If plain unannotated style (no value labels, no fills, no uncertainty), rewrite using a recipe — default-looking colors alone are not a failure
 
 
 

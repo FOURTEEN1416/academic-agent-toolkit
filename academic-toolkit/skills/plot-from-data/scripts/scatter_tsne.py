@@ -1,19 +1,28 @@
 """
 Reproduce: image7.png — t-SNE Latent Memory Visualization
-Style: serif (Computer Modern via usetex), light gray grid,
-       4-spine box, annotation boxes with cluster color edges.
+Style: light gray grid, 4-spine box, color-coded cluster legend.
+（原图的簇内注释框会压住散点，save_fig 遮挡硬闸拒绝导出，已改由图例承担身份区分。）
+
+薄壳模板：字体族/字号阶梯/线宽/配色循环/保存护栏统一由
+academic-toolkit/skills/_utils/plot_utils.py 的 setup_style + save_fig 提供；
+本文件只保留该图型的语法差异（聚类几何、四边框、图例位置）。
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+import sys
+from pathlib import Path
 
-plt.rcParams.update({
-    'text.usetex': True,
-    'font.family': 'serif',
-    'font.serif': ['Computer Modern Roman', 'STIX Two Text', 'DejaVu Serif'],
-    'axes.unicode_minus': False,
-})
+import matplotlib.pyplot as plt
+import numpy as np
+
+_SKILLS_DIR = Path(__file__).resolve().parents[2]
+if str(_SKILLS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SKILLS_DIR))
+
+from _utils.plot_utils import save_fig, set_paper_placement, setup_style
+
+setup_style()
+
+OUTPUT = 'figures/fig_scatter_tsne.png'
 
 rng = np.random.default_rng(42)
 
@@ -41,17 +50,8 @@ DS = {
     'TriviaQA': {'color': '#C888E8', 'n': 700,  'cx': -42, 'cy':   5, 'rx': 14, 'ry': 22},
 }
 
-# ---- 注释框配置（统一深灰边框，与原图一致；GPQA 也添加）----
-ANNOTS = [
-    {'name': 'MATH',     'xy': (8,  32),  'xytext': (8,  32)},
-    {'name': 'GSM8K',    'xy': (10, 10),  'xytext': (10, 10)},
-    {'name': 'GPQA',     'xy': (18, 52),  'xytext': (18, 52)},
-    {'name': 'KodCode',  'xy': (38,-10),  'xytext': (38,-10)},
-    {'name': 'BCB',      'xy': (18,-30),  'xytext': (18,-30)},
-    {'name': 'ALFWorld', 'xy': (-10,-42), 'xytext': (-10,-42)},
-    {'name': 'TriviaQA', 'xy': (-42,  5), 'xytext': (-42,  5)},
-]
-BBOX_EDGECOLOR = '#2C3E50'   # 统一深蓝灰
+# ---- 注释框已移除：簇内文本会压住散点，save_fig 遮挡硬闸会拒绝导出。
+#      数据集身份由图例承担（颜色与 DS 色值一一对应）。----
 
 fig, ax = plt.subplots(figsize=(7.5, 6.2))
 
@@ -60,33 +60,12 @@ for name, cfg in DS.items():
     ax.scatter(x, y, c=cfg['color'], s=14, alpha=0.55,
                linewidths=0, rasterized=True, label=name, zorder=2)
 
-# ---- 注释框 ----
-for ann in ANNOTS:
-    color = DS[ann['name']]['color']
-    # 注释框：与簇色同色相的浅色半透明底（原图风格）
-    import matplotlib.colors as mcolors
-    rgba = list(mcolors.to_rgba(color))
-    rgba[3] = 0.28   # alpha for facecolor
-    ax.annotate(
-        r'\textbf{' + ann['name'] + r'}',
-        xy=ann['xy'], xytext=ann['xytext'],
-        fontsize=10.0,
-        bbox=dict(
-            boxstyle='round,pad=0.30',
-            facecolor=tuple(rgba),
-            edgecolor=BBOX_EDGECOLOR,
-            linewidth=0.9,
-        ),
-        ha='center', va='center', zorder=5,
-    )
-
 # ---- Axes 样式 ----
-ax.set_xlabel(r'\textbf{t-SNE Component 1}', fontsize=12)
-ax.set_ylabel(r'\textbf{t-SNE Component 2}', fontsize=12)
+ax.set_xlabel('t-SNE Component 1', fontweight='bold')
+ax.set_ylabel('t-SNE Component 2', fontweight='bold')
 ax.set_title(
-    r'\textbf{Latent Memory Visualization}' + '\n'
-    r'\textbf{(across all benchmarks)}',
-    fontsize=13.5, pad=8, linespacing=1.4,
+    'Latent Memory Visualization\n(across all benchmarks)',
+    fontweight='bold', pad=8, linespacing=1.4,
 )
 
 ax.set_xlim(-88, 70)
@@ -100,17 +79,15 @@ for sp in ax.spines.values():
     sp.set_linewidth(0.9)
     sp.set_color('#333333')
 
-ax.tick_params(direction='in', length=4, width=0.8, labelsize=10,
-               color='#333333')
+ax.tick_params(direction='in', length=4, width=0.8, color='#333333')
 
 # 浅灰点线网格（原图风格）
 ax.grid(True, color='#E0E0E0', linewidth=0.6, linestyle=':', zorder=0)
 ax.set_axisbelow(True)
 
 # ---- 图例（原图有白底浅灰框） ----
-leg = ax.legend(
+ax.legend(
     loc='upper right',
-    fontsize=9.5,
     frameon=True,
     facecolor='white',
     edgecolor='#CCCCCC',
@@ -124,10 +101,5 @@ leg = ax.legend(
     borderaxespad=0.5,
 )
 
-fig.tight_layout(pad=0.9)
-fig.savefig(
-    '/Users/bytedance/gitcode/paper_experiment_plot_skills/repro/scatter_tsne_repro.png',
-    dpi=300, facecolor='white',
-)
-plt.close(fig)
-print('saved: scatter_tsne_repro.png')
+set_paper_placement(fig)
+save_fig(fig, OUTPUT)

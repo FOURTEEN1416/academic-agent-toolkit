@@ -536,14 +536,17 @@ save_fig(fig, 'figures/fig_radar.pdf')
 
 ```python
 import numpy as np, matplotlib.pyplot as plt
-from _utils.plot_utils import setup_style, save_fig, PALETTE, COLORS
+from _utils.plot_utils import setup_style, save_fig, auto_legend, PALETTE, COLORS
 setup_style()
 
 x = np.linspace(-3, 3, 100); y = np.linspace(-3, 3, 100)
 X, Y = np.meshgrid(x, y)
 Z = np.sin(X)*np.cos(Y) + 0.5*np.sin(2*X)*np.cos(2*Y) + np.random.normal(0, 0.02, X.shape)
 
-fig = plt.figure(figsize=(8, 6))
+# ⛔ 3D 轴不调 tight_layout（会挤塌曲面）；colorbar 独占底部一行，不压 z 轴标签与刻度；
+#   布局交 constrained，字号交 setup_style 字号阶；
+#   figsize 按横向档收窄（原生 6.4in → 上页约 5.85in，缩放比 0.91）
+fig = plt.figure(figsize=(6.4, 4.8), layout='constrained')
 ax = fig.add_subplot(111, projection='3d')
 surf = ax.plot_surface(X, Y, Z, cmap='coolwarm', alpha=0.85, edgecolor='none', antialiased=True)
 ax.contour(X, Y, Z, zdir='z', offset=Z.min()-0.3, cmap='coolwarm', alpha=0.3, levels=15)
@@ -553,13 +556,12 @@ min_idx = np.unravel_index(Z.argmin(), Z.shape)
 ax.scatter([X[min_idx]], [Y[min_idx]], [Z[min_idx]], color=COLORS['down'], s=80,
            edgecolor='white', linewidth=1.5, zorder=10, label=f'最优点 ({X[min_idx]:.1f}, {Y[min_idx]:.1f})')
 
-ax.set_xlabel('参数 $x_1$', fontsize=10, labelpad=6)
-ax.set_ylabel('参数 $x_2$', fontsize=10, labelpad=6)
-ax.set_zlabel('目标函数值', fontsize=10, labelpad=6)
-ax.view_init(elev=30, azim=135); ax.tick_params(labelsize=8)
-ax.legend(fontsize=9, loc='best')
-fig.colorbar(surf, shrink=0.45, aspect=15, pad=0.12)
-fig.tight_layout()
+ax.set_xlabel('参数 $x_1$', labelpad=6)
+ax.set_ylabel('参数 $x_2$', labelpad=6)
+ax.set_zlabel('目标函数值', labelpad=6)
+ax.view_init(elev=30, azim=135)
+auto_legend(ax)
+fig.colorbar(surf, ax=ax, location='bottom', shrink=0.5, aspect=25, pad=0.02)
 save_fig(fig, 'figures/fig_3d_surface.pdf')
 ```
 
@@ -1276,7 +1278,7 @@ save_fig(fig, 'figures/fig_spatiotemporal.pdf')
 
 ```python
 import numpy as np, matplotlib.pyplot as plt
-from _utils.plot_utils import setup_style, save_fig, PALETTE, COLORS
+from _utils.plot_utils import setup_style, save_fig, auto_legend, PALETTE, COLORS
 setup_style()
 np.random.seed(42)
 
@@ -1294,21 +1296,24 @@ other_f1 = np.random.uniform(0.2, 1.0, 100)
 other_f2 = np.random.uniform(0.2, 1.0, 100)
 other_f3 = np.random.uniform(0.2, 1.0, 100)
 
-fig = plt.figure(figsize=(8, 6))
+# ⛔ 3D 轴不调 tight_layout（会挤塌曲面）；colorbar 独占底部一行，不压 z 轴标签与刻度；
+#   布局交 constrained，字号交 setup_style 字号阶；
+#   figsize 按横向档收窄（原生 6.4in → 上页约 5.85in，缩放比 0.91）
+fig = plt.figure(figsize=(6.4, 4.8), layout='constrained')
 ax = fig.add_subplot(111, projection='3d')
-# 非支配解
-ax.scatter(other_f1, other_f2, other_f3, s=8, alpha=0.15, color=COLORS['neutral'])
+# 非 Pareto 解
+ax.scatter(other_f1, other_f2, other_f3, s=8, alpha=0.15, color=COLORS['neutral'],
+           label='非 Pareto 解')
 # Pareto 前沿
 sc = ax.scatter(f1, f2, f3, c=f3, cmap='coolwarm', s=25, alpha=0.7,
-                edgecolor='white', linewidth=0.3, zorder=3)
+                edgecolor='white', linewidth=0.3, zorder=3, label='Pareto 前沿')
 
-ax.set_xlabel('目标 f₁', fontsize=10, labelpad=6)
-ax.set_ylabel('目标 f₂', fontsize=10, labelpad=6)
-ax.set_zlabel('目标 f₃', fontsize=10, labelpad=8)
-ax.view_init(elev=25, azim=135); ax.tick_params(labelsize=8)
-ax.legend(fontsize=9, loc='best')
-fig.colorbar(sc, shrink=0.5, aspect=15, pad=0.1, label='f₃ 值')
-fig.tight_layout()
+ax.set_xlabel('目标 $f_1$', labelpad=6)
+ax.set_ylabel('目标 $f_2$', labelpad=6)
+ax.set_zlabel('目标 $f_3$', labelpad=8)
+ax.view_init(elev=25, azim=135)
+auto_legend(ax)
+fig.colorbar(sc, ax=ax, location='bottom', shrink=0.5, aspect=25, pad=0.02, label='$f_3$ 值')
 save_fig(fig, 'figures/fig_pareto_3d.pdf')
 ```
 
@@ -1718,7 +1723,7 @@ save_fig(fig, 'figures/fig_scatter_marginal.pdf')
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from _utils.plot_utils import setup_style, save_fig, PALETTE, COLORS
+from _utils.plot_utils import setup_style, save_fig, auto_legend, PALETTE, COLORS
 setup_style()
 np.random.seed(42)
 
@@ -1728,7 +1733,9 @@ n_per = 60
 X = np.vstack([c + np.random.randn(n_per, 3)*0.8 for c in centers])
 labels = np.repeat(range(4), n_per)
 
-fig = plt.figure(figsize=(8, 6))
+# ⛔ 3D 轴不调 tight_layout（会挤塌曲面）；布局交 constrained，字号交 setup_style 字号阶，
+#   figsize 按横向档收窄（原生 6.4in → 上页约 5.85in，缩放比 0.91）
+fig = plt.figure(figsize=(6.4, 4.8), layout='constrained')
 ax = fig.add_subplot(111, projection='3d')
 
 for k in range(4):
@@ -1738,12 +1745,11 @@ for k in range(4):
     ax.scatter(*centers[k], s=150, color=PALETTE[k], marker='X',
               edgecolor='white', linewidth=2, zorder=5)
 
-ax.set_xlabel('维度 1', fontsize=11, labelpad=6)
-ax.set_ylabel('维度 2', fontsize=11, labelpad=6)
-ax.set_zlabel('维度 3', fontsize=11, labelpad=8)
+ax.set_xlabel('维度 1', labelpad=6)
+ax.set_ylabel('维度 2', labelpad=6)
+ax.set_zlabel('维度 3', labelpad=8)
 ax.view_init(elev=20, azim=45)
-ax.legend(loc='upper left', fontsize=10, framealpha=0.9)
-fig.tight_layout()
+auto_legend(ax)
 save_fig(fig, 'figures/fig_3d_cluster.pdf')
 ```
 

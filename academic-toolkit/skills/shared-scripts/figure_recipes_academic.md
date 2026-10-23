@@ -597,7 +597,7 @@ save_fig(fig, 'figures/fig_raincloud.pdf')
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
-from _utils.plot_utils import setup_style, save_fig, PALETTE, COLORS, _lighten
+from _utils.plot_utils import setup_style, save_fig, auto_legend, PALETTE, COLORS, _lighten
 setup_style()
 
 x = np.linspace(-2, 2, 80)
@@ -605,7 +605,10 @@ y = np.linspace(-2, 2, 80)
 X, Y = np.meshgrid(x, y)
 Z = 0.5 * (X ** 2 + Y ** 2) - 0.3 * np.cos(2 * np.pi * X) * np.cos(2 * np.pi * Y) + 1
 
-fig = plt.figure(figsize=(8, 6))
+# ⛔ 3D 轴不调 tight_layout（会挤塌曲面）；colorbar 独占底部一行，不压 z 轴标签与刻度；
+#   布局交 constrained，字号交 setup_style 字号阶；
+#   figsize 按横向档收窄（原生 6.4in → 上页约 5.85in，缩放比 0.91）
+fig = plt.figure(figsize=(6.4, 4.8), layout='constrained')
 ax = fig.add_subplot(111, projection='3d')
 surf = ax.plot_surface(X, Y, Z, cmap='coolwarm', alpha=0.65, edgecolor='none',
                        antialiased=True, rstride=2, cstride=2)
@@ -648,22 +651,19 @@ ax.scatter([traj_x[-1]], [traj_y[-1]], [traj_z[-1]], color=COLORS['up'], s=80,
 ax.scatter([0], [0], [Z.min()], color=COLORS['down'], s=120, marker='*',
            edgecolor='white', zorder=5, label='Global Min')
 
-# Saddle point annotations
+# Saddle points（语义进图例：3D 曲面会遮住写在图内的文字）
 saddle_pts = [(-1, 0), (0, -1), (1, 0)]
-for sx, sy in saddle_pts:
+for k, (sx, sy) in enumerate(saddle_pts):
     sz = 0.5 * (sx ** 2 + sy ** 2) - 0.3 * np.cos(2 * np.pi * sx) * np.cos(2 * np.pi * sy) + 1
     ax.scatter([sx], [sy], [sz], color=PALETTE[2], s=40, marker='o',
-               edgecolor='white', zorder=5)
-    ax.text(sx, sy, sz + 0.15, 'saddle', fontsize=6, color=COLORS['ref_line'], ha='center')
+               edgecolor='white', zorder=5, label='Saddle' if k == 0 else None)
 
-ax.set_xlabel('θ₁', fontsize=10, labelpad=6)
-ax.set_ylabel('θ₂', fontsize=10, labelpad=6)
-ax.set_zlabel('Loss', fontsize=10, labelpad=6)
+ax.set_xlabel('$\\theta_1$', labelpad=6)
+ax.set_ylabel('$\\theta_2$', labelpad=6)
+ax.set_zlabel('Loss', labelpad=6)
 ax.view_init(elev=30, azim=135)
-ax.tick_params(labelsize=8)
-ax.legend(fontsize=8, loc='best')
-fig.colorbar(surf, shrink=0.4, aspect=15, pad=0.12)
-fig.tight_layout()
+auto_legend(ax)
+fig.colorbar(surf, ax=ax, location='bottom', shrink=0.5, aspect=25, pad=0.02)
 save_fig(fig, 'figures/fig_loss_landscape.pdf')
 ```
 
@@ -848,7 +848,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from _utils.plot_utils import setup_style, save_fig, PALETTE
+from _utils.plot_utils import setup_style, save_fig, auto_legend, PALETTE
 setup_style()
 
 np.random.seed(42)
@@ -862,7 +862,9 @@ for i, (cls, center) in enumerate(zip(classes, centers)):
     all_labels.extend([cls] * n_per)
 all_pts_arr = np.vstack(all_pts)
 
-fig = plt.figure(figsize=(8, 7))
+# ⛔ 3D 轴不调 tight_layout（会挤塌曲面）；布局交 constrained，字号交 setup_style 字号阶，
+#   figsize 按近方档收窄（原生 5.7in → 上页约 5.20in，缩放比 0.91）
+fig = plt.figure(figsize=(5.7, 5.0), layout='constrained')
 ax = fig.add_subplot(111, projection='3d')
 
 for i, (cls, pts) in enumerate(zip(classes, all_pts)):
@@ -897,16 +899,14 @@ for i, (cls, pts) in enumerate(zip(classes, all_pts)):
 
     # Class center label
     cx, cy, cz = pts.mean(axis=0)
-    ax.text(cx, cy, cz + 0.5, cls, fontsize=8, fontweight='bold', color=PALETTE[i],
+    ax.text(cx, cy, cz + 0.5, cls, fontweight='bold', color=PALETTE[i],
             ha='center', va='bottom')
 
-ax.set_xlabel('Dim 1', fontsize=10, labelpad=6)
-ax.set_ylabel('Dim 2', fontsize=10, labelpad=6)
-ax.set_zlabel('Dim 3', fontsize=10, labelpad=6)
+ax.set_xlabel('Dim 1', labelpad=6)
+ax.set_ylabel('Dim 2', labelpad=6)
+ax.set_zlabel('Dim 3', labelpad=6)
 ax.view_init(elev=20, azim=135)
-ax.tick_params(labelsize=8)
-ax.legend(fontsize=9, markerscale=3)
-fig.tight_layout()
+auto_legend(ax, markerscale=3)
 save_fig(fig, 'figures/fig_3d_features.pdf')
 ```
 

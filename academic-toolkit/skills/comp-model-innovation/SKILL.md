@@ -25,11 +25,12 @@ tools:
 
 调用 `python tools/novelty_checker.py --method "your method"`
 - 输入：拟用方法名（如 "遗传算法 + 局部搜索"）
-- 输出：**新颖度**评分（novelty，越高越新颖；与工具输出 `novelty_score` 同一口径，勿按"相似度"反读）
-- 判定：
-  - 新颖度 ≥ 0.7 → **新颖度高**，可作为卖点
-  - 新颖度 0.5 左右 → **可接受**（与 2 个常见方法组合），强调差异化
-  - 新颖度 ≤ 0.3 → **风险高**（与 3+ 个历年国一常见方法重合），需魔改/组合/加新机制
+- 输出：与离线常见方法名字面表的命中数（`common_method_hits`）与单调反向分（`novelty_score`：命中越多分越低）。该分**不是新颖性证明**
+- 判定（与 `academic-toolkit/data/case_patterns.md` §3"烂大街"清单同一口径：纯用标准方法、无改进/无组合/无新机制 = 没创新）：
+  - 命中 0 个 → **未知**：离线表未收录 ≠ 新颖，需人工/语料比对（`academic-toolkit/data/historical_problems.json` + 获奖论文语料）
+  - 命中 1 个 → 常见基础方法，单用不构成创新点；要在论文里写清改进点与差异
+  - 命中 ≥2 个 → 分数随命中数单调下降；组合本身不等于创新，须给出组合必要性与量化优势
+- 边界：工具只做字面命中，**无法判断"有无改进"**；"纯 GA/PSO/SA = 没创新"这类判断以 §3 清单为准，不由分数推出
 
 #### 能力 3：魔改/组合/自创的 prompt 模板
 
@@ -74,7 +75,8 @@ Step 4: 在论文"模型改进"章节写：
 
 ### 离线兜底
 
-无网络时，用 `data/case_patterns.md`（20 个常见创新套路）做启发。
+无网络时，用 `academic-toolkit/data/case_patterns.md`（§3 常见方法清单 + §4 创新方向）做启发；
+真题与题型分布的真源是 `academic-toolkit/data/historical_problems.json`。
 
 ### 约束
 
@@ -84,25 +86,36 @@ Step 4: 在论文"模型改进"章节写：
 
 ### 输出格式
 
+`novelty_check` 必须来自实跑 `python tools/novelty_checker.py --method "<名称>" --json`，不得自行估分；
+离线未命中时 `novelty_score` 填 `null`、`verdict` 填"未知"。
+
 ```json
 {
   "main_method": "遗传算法",
   "innovation_options": [
     {
       "type": "经典魔改",
-      "name": "GA + 注意力机制",
+      "name": "遗传算法 + 注意力机制",
       "arxiv_papers": ["...", "..."],
-      "novelty_score": 0.6,
+      "novelty_check": {
+        "common_method_hits": 1,
+        "novelty_score": 0.5,
+        "verdict": "命中离线常见方法名"
+      },
       "implementation_difficulty": "中"
     },
     {
       "type": "跨模型组合",
-      "name": "GA + 强化学习微调",
+      "name": "遗传算法 + 强化学习微调",
       "arxiv_papers": ["..."],
-      "novelty_score": 0.8,
+      "novelty_check": {
+        "common_method_hits": 2,
+        "novelty_score": 0.33,
+        "verdict": "命中离线常见方法名"
+      },
       "implementation_difficulty": "高"
     }
   ],
-  "recommended": ["GA + 注意力机制"]
+  "recommended": ["遗传算法 + 注意力机制"]
 }
 ```

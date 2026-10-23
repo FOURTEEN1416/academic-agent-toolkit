@@ -1,38 +1,133 @@
-"""figstyle — 出版级"质感三件套"共享绘图规范（figure-craft 真源）。
+"""figstyle — figure-craft 质感叠加层（样式底层 = 同仓 skills/_utils 唯一真源）。
 
-三条铁律（对标高水平参考图集逐像素取色后确立）：
+分层约定：
+  · 底层（字体族 / 字号阶梯 / 数据系列色板 / 保存护栏）由
+    `academic-toolkit/skills/_utils/academic.mplstyle` 定版，经
+    `academic-toolkit/skills/_utils/plot_utils.py` 的 `setup_style()` 加载。
+    本模块不定义、也不默认覆盖它们。
+  · 叠加层（本模块）：质感三件套、v6 色板 token，以及可选的字体/字号阶梯。
+    叠加层一律显式开启——`setup_style(overlay=True)` 才把 figure-craft 字体族与
+    字号阶梯压到基线之上；`setup_style(palette="v6")` 才把 v6 色板用作数据系列色。
+  · 质感算法真源在 `plot_utils.py`「质感层（可选）」段，本模块只做薄封装。
+
+三条质感铁律（对标高水平参考图集逐像素取色后确立）：
   ① 大面积填充一律浅色渐变（浅端→更浅端），禁止纯色平涂；
   ② 每个填充块配同族饱和描边（边缘"荧光"效果 = 描边外再叠一层半透明加宽描边）；
   ③ 细线/文字用墨色系（ink_of / deepen），浅色严禁直接作细线或文字色。
 
-色板真源：../assets/palette_v6.json（夏日海滩 v6；T4=底色渐变、T2=卡片渐变底、
-TACC=荧光描边角色）。相对本文件定位，加载失败回退内置同值——零外部依赖。
+v6 色板 token：../assets/palette_v6.json（夏日海滩 v6；T4=底色渐变、T2=卡片渐变底、
+TACC=荧光描边角色）。相对本文件定位，加载失败回退内置同值。
 
 用法（gen_fig_*.py 顶部）：
     import figstyle as fs
-    fs.apply(ax)                                   # 统一坐标轴/网格/刻度
+    fs.setup_style()                               # 底层基线（academic.mplstyle）
+    fs.apply(ax)                                   # 坐标轴/网格/刻度
     fs.gradient_box(ax, x, y, w, h, fs.PASTEL["green"])   # 流程图/卡片
     fs.save_fig(fig, "out/fig.png", "out/fig.pdf")
+需要 figure-craft 的字体/字号阶梯时显式叠加：fs.setup_style(overlay=True)。
 """
 import json
+import sys
 from pathlib import Path
 
-import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib import font_manager
-from matplotlib.colors import to_rgb, LinearSegmentedColormap
-from matplotlib.patches import FancyBboxPatch
 
-# ---- 字体：衬线拉丁 + 中文衬线跨 family 回退（含中文串禁混 $...$ mathtext）----
-_avail = {f.name for f in font_manager.fontManager.ttflist}
-_fams = [n for n in ("Times New Roman", "Noto Serif SC", "Source Han Serif SC",
-                     "SimSun", "DejaVu Serif") if n in _avail]
-plt.rcParams["font.family"] = _fams or ["DejaVu Serif"]
-plt.rcParams["axes.unicode_minus"] = False
+# ---- 底层基线定位（同仓 skills/_utils 唯一真源；缺失时回落 mplstyle / 内置）----
+_BASE_MODULE = None
+_BASE_LOAD_FAILED = False
+_OVERLAY_ACTIVE = False
 
-# ---- 字号阶梯（按"插入文档后 ≥8pt"反推，画布约 6.1 in；窄画布需整体再上调）----
+# 仅在找不到 plot_utils.py 与 academic.mplstyle 时才用的最小兜底
+_FALLBACK_BASELINE = {
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Noto Sans SC", "NotoSansSC", "SimHei", "Microsoft YaHei",
+                        "PingFang SC", "Heiti SC", "WenQuanYi Micro Hei",
+                        "Arial", "Helvetica", "DejaVu Sans"],
+    "axes.unicode_minus": False,
+    "figure.facecolor": "white",
+    "savefig.facecolor": "white",
+    "savefig.bbox": "standard",
+    "savefig.pad_inches": 0.1,
+}
+
+
+def _candidate_dirs():
+    """可能存放 plot_utils.py / academic.mplstyle 的目录（仓库内优先）。"""
+    dirs = []
+    try:
+        skills = Path(__file__).resolve().parents[2]   # <toolkit>/skills
+        dirs += [skills / "_utils", skills / "shared-scripts"]
+    except IndexError:
+        pass
+    cwd = Path.cwd()
+    dirs += [cwd / "skills" / "_utils", cwd / "skills" / "shared-scripts",
+             cwd / "academic-toolkit" / "skills" / "_utils",
+             cwd / "academic-toolkit" / "skills" / "shared-scripts"]
+    seen, out = set(), []
+    for d in dirs:
+        key = str(d)
+        if key not in seen:
+            seen.add(key)
+            out.append(d)
+    return out
+
+
+def _base():
+    """加载同仓唯一真源 plot_utils（含 academic.mplstyle 基线）；缺失返回 None。"""
+    global _BASE_MODULE, _BASE_LOAD_FAILED
+    if _BASE_MODULE is not None:
+        return _BASE_MODULE
+    if _BASE_LOAD_FAILED:
+        return None
+    import importlib
+    for d in _candidate_dirs():
+        if not (d / "plot_utils.py").is_file():
+            continue
+        if str(d) not in sys.path:
+            sys.path.insert(0, str(d))
+        try:
+            mod = importlib.import_module("plot_utils")
+        except Exception:
+            continue
+        if hasattr(mod, "setup_style") and hasattr(mod, "PALETTES"):
+            _BASE_MODULE = mod
+            return mod
+    _BASE_LOAD_FAILED = True
+    return None
+
+
+def _mplstyle_path():
+    for d in _candidate_dirs():
+        p = d / "academic.mplstyle"
+        if p.is_file():
+            return p
+    return None
+
+
+def _apply_baseline():
+    """无 plot_utils 时也按同一份 academic.mplstyle 起底（口径不分裂）。"""
+    p = _mplstyle_path()
+    if p is not None:
+        matplotlib.rcParams.update(
+            matplotlib.rc_params_from_file(str(p), use_default_template=False))
+        return str(p)
+    matplotlib.rcParams.update(_FALLBACK_BASELINE)
+    return "builtin-fallback"
+
+
+def style_source():
+    """当前底层基线来源：'plot_utils' | mplstyle 路径 | 'builtin-fallback'。"""
+    if _base() is not None:
+        return "plot_utils"
+    p = _mplstyle_path()
+    return str(p) if p is not None else "builtin-fallback"
+
+
+# ---- 字号阶梯（叠加层口径：按"插入文档后 ≥8pt"反推，画布约 6.1 in；
+#      窄画布需整体再上调。默认不生效，见 setup_style(overlay=True)）----
 FS_TITLE = 11.0
 FS_LABEL = 10.5
 FS_TICK = 9.5
@@ -40,7 +135,7 @@ FS_LEGEND = 9.5
 FS_ANNO = 9.0
 FS_NOTE = 8.5
 
-# ---- v6 色板（相对加载，失败回退内置同值）----
+# ---- v6 色板 token（相对加载，失败回退内置同值；只作显式取色，不设全局）----
 _V6 = Path(__file__).resolve().parent.parent / "assets" / "palette_v6.json"
 try:
     _p = json.load(open(_V6, encoding="utf-8"))
@@ -87,6 +182,14 @@ PC_INK = [COOL.DEEP, "#2CC8BC", WARM.MID, "#A35B31"]
 # 青绿族文字/小元素墨色（#00B4AD 只作线/填充，不作小字）
 AQUA_INK = "#0F7E78"
 
+# 可选叠加色板（仅 setup_style(palette=...) 显式点名时生效；默认色板以
+# academic.mplstyle 的 elegant 8 色为准）
+FIG_PALETTES = {
+    "v6": list(PC),
+    "v6_warm": list(WARM_SEQ),
+    "v6_cool": list(COOL_SEQ),
+}
+
 
 def ink_of(hexv):
     """浅色填充 → 同色系墨色（描边/文字用）。"""
@@ -105,140 +208,123 @@ PASTEL = {
 }
 
 
-def _rgb2hex(rgb):
-    return "#%02X%02X%02X" % tuple(max(0, min(255, int(round(v * 255)))) for v in rgb)
+# ---- 字体 / 字号叠加层 ----
+def _overlay_fonts():
+    """figure-craft 衬线字体链（仅叠加层用；基线用 academic.mplstyle 的 CJK 链）。"""
+    avail = {f.name for f in font_manager.fontManager.ttflist}
+    fams = [n for n in ("Times New Roman", "Noto Serif SC", "Source Han Serif SC",
+                        "SimSun", "DejaVu Serif") if n in avail]
+    return fams or ["DejaVu Serif"]
 
 
-def lighten(hexv, t):
-    r, g, b = to_rgb(hexv)
-    return _rgb2hex((r + (1 - r) * t, g + (1 - g) * t, b + (1 - b) * t))
+def _rc_pt(key, fallback):
+    """读 rcParams 字号（'medium' 之类命名档按 font.size × 倍率换算）。"""
+    v = matplotlib.rcParams.get(key, fallback)
+    if isinstance(v, (int, float)):
+        return float(v)
+    try:
+        scale = float(font_manager.font_scalings[v])
+    except Exception:
+        return float(fallback)
+    base = matplotlib.rcParams.get("font.size", fallback)
+    return float(base if isinstance(base, (int, float)) else fallback) * scale
 
 
-def deepen(hexv, t=0.45):
-    r, g, b = to_rgb(hexv)
-    return _rgb2hex((r * (1 - t), g * (1 - t), b * (1 - t)))
+_FS_ROLES = {
+    "title": ("axes.titlesize", FS_TITLE),
+    "label": ("axes.labelsize", FS_LABEL),
+    "tick": ("xtick.labelsize", FS_TICK),
+    "legend": ("legend.fontsize", FS_LEGEND),
+    "anno": ("font.size", FS_ANNO),
+}
 
 
-def gradient_box(ax, x, y, w, h, pastel, *, vertical=True, rounding=0.12,
-                 glow=0.30, lw=1.3, zorder=2, alpha_top=0.62):
-    """浅色渐变填充 + 同族饱和描边 + 外圈半透明"荧光"描边（质感三件套）。
+def _pt(role):
+    """字号：叠加层开启用 figure-craft 阶梯，否则回落基线 rcParams。"""
+    key, overlay_value = _FS_ROLES[role]
+    return overlay_value if _OVERLAY_ACTIVE else _rc_pt(key, overlay_value)
 
-    pastel: (fill, edge) 二元组，如 PASTEL["green"]；坐标为 ax 数据系。
-    返回 FancyBboxPatch（可 set_clip 后放文字）。流程图/卡片框首选。
+
+def _ink():
+    """文字色：叠加层开启用 v6 墨色，否则回落基线 text.color。"""
+    return INK if _OVERLAY_ACTIVE else matplotlib.rcParams.get("text.color", "black")
+
+
+def _apply_overlay():
+    global _OVERLAY_ACTIVE
+    matplotlib.rcParams["font.family"] = _overlay_fonts()
+    matplotlib.rcParams["axes.unicode_minus"] = False
+    matplotlib.rcParams.update({
+        "font.size": FS_ANNO,
+        "axes.titlesize": FS_TITLE,
+        "axes.labelsize": FS_LABEL,
+        "xtick.labelsize": FS_TICK,
+        "ytick.labelsize": FS_TICK,
+        "legend.fontsize": FS_LEGEND,
+        "legend.frameon": True,
+    })
+    _OVERLAY_ACTIVE = True
+
+
+# ---- 质感 API：薄封装，算法真源在 plot_utils「质感层（可选）」----
+def _texture(name):
+    pu = _base()
+    if pu is None or not hasattr(pu, name):
+        raise ImportError(
+            "figstyle 质感层依赖同仓 plot_utils 的 %s()——请确认 "
+            "academic-toolkit/skills/_utils/plot_utils.py 在位（本仓内恒在）" % name
+        )
+    return getattr(pu, name)
+
+
+def lighten(*args, **kwargs):
+    """颜色变浅：t=0 不变，t=1 变白（实现见 plot_utils.lighten）。"""
+    return _texture("lighten")(*args, **kwargs)
+
+
+def deepen(*args, **kwargs):
+    """颜色压暗到同族深端（实现见 plot_utils.deepen）。"""
+    return _texture("deepen")(*args, **kwargs)
+
+
+def gradient_box(*args, **kwargs):
+    """浅色渐变填充 + 同族饱和描边 + 外圈荧光（流程图/卡片框）。
+
+    签名与实现见 plot_utils.gradient_box：pastel=(fill, edge)，坐标为 ax 数据系。
     """
-    fill, edge = pastel
-    top = lighten(fill, alpha_top)
-    bot = fill
-    cmap = LinearSegmentedColormap.from_list("gb", [bot, top] if vertical else [top, bot])
-    rs = min(w, h) * rounding
-    style = f"round,pad=0,rounding_size={rs}"
-    halo = FancyBboxPatch((x, y), w, h, boxstyle=style,
-                          facecolor="none", edgecolor=edge,
-                          linewidth=lw + 3.2, alpha=glow, zorder=zorder - 0.5)
-    ax.add_patch(halo)
-    n = 64
-    g = np.linspace(0, 1, n)
-    grad = (g.reshape(-1, 1) if vertical else g.reshape(1, -1))
-    im = ax.imshow(grad, cmap=cmap, extent=(x, x + w, y, y + h),
-                   origin="lower" if vertical else "upper", aspect="auto", zorder=zorder)
-    box = FancyBboxPatch((x, y), w, h, boxstyle=style,
-                         facecolor="none", edgecolor=edge, linewidth=lw,
-                         zorder=zorder + 0.6, mutation_aspect=1)
-    ax.add_patch(box)
-    im.set_clip_path(box)
-    return box
+    return _texture("gradient_box")(*args, **kwargs)
 
 
-def _rgba(hexv, a):
-    r, g, b = to_rgb(hexv)
-    return (r, g, b, a)
+def gradient_bar(*args, **kwargs):
+    """渐变柱体（替代纯色平涂）。签名见 plot_utils.gradient_bar。
+
+    ⚠ 替换原 ax.bar 后回查图例：Rectangle 手柄易丢。
+    """
+    return _texture("gradient_bar")(*args, **kwargs)
 
 
-def gradient_bar(ax, x0, y0, w, h, color, *, horizontal=False, fade=0.78,
-                 lw=1.0, glow=0.30, zorder=3):
-    """渐变柱体（替代纯色平涂）。
-
-    远离基线的一端取饱和色、基线端渐浅；同色加宽半透明描边作"荧光"边。
-    horizontal=True 时沿 x 方向渐变（右端饱和）。
-    ⚠ 替换原 ax.bar 后回查图例：Rectangle 手柄易丢。"""
-    from matplotlib.patches import Rectangle
-    top, bot = color, lighten(color, fade)
-    cmap = LinearSegmentedColormap.from_list("gb2", [bot, top])
-    rect = Rectangle((x0, y0), w, h, facecolor="none", edgecolor=color,
-                     linewidth=lw, zorder=zorder + 0.6)
-    halo = Rectangle((x0, y0), w, h, facecolor="none", edgecolor=color,
-                     linewidth=lw + 2.6, alpha=glow, zorder=zorder - 0.5)
-    ax.add_patch(halo)
-    ax.add_patch(rect)
-    n = 48
-    grad = (np.linspace(0, 1, n).reshape(1, -1) if horizontal
-            else np.linspace(0, 1, n).reshape(-1, 1))
-    im = ax.imshow(grad, cmap=cmap, extent=(x0, x0 + w, y0, y0 + h),
-                   origin="lower", aspect="auto", zorder=zorder)
-    im.set_clip_path(rect)
-    return rect
+def gradient_area(*args, **kwargs):
+    """曲线下/差值渐变带（替代 fill_between）。签名见 plot_utils.gradient_area。"""
+    return _texture("gradient_area")(*args, **kwargs)
 
 
-def gradient_area(ax, x, y, color, *, baseline=0.0, max_alpha=0.5, zorder=1):
-    """曲线下渐变填充：贴曲线处有色、向基线渐隐（替代纯色 fill_between）。
-
-    baseline 可为标量或同长数组——传另一条线即得"差值渐变带"；
-    方向按两端均值自动翻转。"""
-    from matplotlib.patches import Path, PathPatch
-    x = np.asarray(x, float)
-    y = np.asarray(y, float)
-    bl = np.broadcast_to(np.asarray(baseline, float), x.shape)
-    verts = np.vstack([np.column_stack([x, y]),
-                       np.column_stack([x[::-1], bl[::-1]])])
-    patch = PathPatch(Path(verts), facecolor="none", edgecolor="none", zorder=zorder)
-    ax.add_patch(patch)
-    lo = min(float(np.min(y)), float(np.min(bl)))
-    hi = max(float(np.max(y)), float(np.max(bl)))
-    y_up = float(np.mean(y)) >= float(np.mean(bl))
-    c0 = _rgba(color, 0.02) if y_up else _rgba(color, max_alpha)
-    c1 = _rgba(color, max_alpha) if y_up else _rgba(color, 0.02)
-    cmap = LinearSegmentedColormap.from_list("ga", [c0, c1])
-    grad = np.linspace(0, 1, 64).reshape(-1, 1)
-    im = ax.imshow(grad, cmap=cmap, extent=(float(x.min()), float(x.max()), lo, hi),
-                   origin="lower", aspect="auto", zorder=zorder)
-    im.set_clip_path(patch)
-    return patch
+def fade_area_x(*args, **kwargs):
+    """垂直剖面的水平淡出面。签名见 plot_utils.fade_area_x。"""
+    return _texture("fade_area_x")(*args, **kwargs)
 
 
-def fade_area_x(ax, x_curve, y, color, *, max_alpha=0.38, zorder=1):
-    """横向渐变面：x 越靠近曲线值越饱和、向 x=0 渐隐（垂直剖面/廓线用）。"""
-    from matplotlib.path import Path as MPath
-    from matplotlib.patches import PathPatch
-    x_curve = np.asarray(x_curve, float)
-    y = np.asarray(y, float)
-    pts = np.column_stack([np.concatenate([x_curve, np.zeros_like(y[::-1])]),
-                           np.concatenate([y, y[::-1]])])
-    patch = PathPatch(MPath(pts), facecolor="none", edgecolor="none", zorder=zorder)
-    ax.add_patch(patch)
-    cmap = LinearSegmentedColormap.from_list(
-        "fx", [_rgba(color, 0.03), _rgba(color, max_alpha)])
-    g = np.linspace(0, 1, 64).reshape(1, -1)
-    im = ax.imshow(g, cmap=cmap, extent=(0, float(x_curve.max()), float(y.min()), float(y.max())),
-                   origin="lower", aspect="auto", zorder=zorder)
-    im.set_clip_path(patch)
-    return patch
+def glow_scatter(*args, **kwargs):
+    """荧光标记：同色大半透明点垫底 + 实心点在上。签名见 plot_utils.glow_scatter。"""
+    return _texture("glow_scatter")(*args, **kwargs)
 
 
-def glow_scatter(ax, x, y, color, *, s=42, alpha=0.26, scale=2.8, zorder=3, **kw):
-    """荧光标记：同色大半透明点垫底 + 实心点在上（棒棒糖头、得分点阵）。"""
-    ax.scatter(x, y, s=s * scale, c=color, alpha=alpha, linewidths=0, zorder=zorder - 0.3)
-    return ax.scatter(x, y, s=s, c=color, zorder=zorder, **kw)
-
-
-def glow_line(ax, x, y, color, *, lw=1.8, alpha=0.22, zorder=3, **kw):
-    """荧光线：加宽半透明同色线垫底 + 主线在上。"""
-    ax.plot(x, y, lw=lw + 2.8, color=color, alpha=alpha,
-            solid_capstyle="round", zorder=zorder - 0.3)
-    return ax.plot(x, y, lw=lw, color=color, zorder=zorder, **kw)
+def glow_line(*args, **kwargs):
+    """荧光线：加宽半透明同色线垫底 + 主线在上。签名见 plot_utils.glow_line。"""
+    return _texture("glow_line")(*args, **kwargs)
 
 
 def apply(ax, *, grid=True, boxed=False, bg=None):
-    """统一坐标轴风格：左+下轴线、极浅网格；bg=面板浅底色（如 '#FDFBF6'）。"""
+    """统一坐标轴风格：左+下轴线、极浅网格；字号继承当前基线。"""
     ax.spines["top"].set_visible(bool(boxed))
     ax.spines["right"].set_visible(bool(boxed))
     ax.spines["left"].set_color("#8A8A8A"); ax.spines["left"].set_linewidth(0.8)
@@ -248,7 +334,7 @@ def apply(ax, *, grid=True, boxed=False, bg=None):
             ax.spines[s].set_color("#C9C9C9"); ax.spines[s].set_linewidth(0.6)
     if grid:
         ax.grid(True, color=GRID, linewidth=0.6, zorder=0)
-    ax.tick_params(labelsize=FS_TICK, length=3, color="#8A8A8A")
+    ax.tick_params(labelsize=_pt("tick"), length=3, color="#8A8A8A")
     ax.set_axisbelow(True)
     ax.set_facecolor(bg) if bg else ax.patch.set_facecolor("white")
     return ax
@@ -256,41 +342,63 @@ def apply(ax, *, grid=True, boxed=False, bg=None):
 
 def label(ax, *, xlabel=None, ylabel=None):
     if xlabel:
-        ax.set_xlabel(xlabel, fontsize=FS_LABEL, color=INK)
+        ax.set_xlabel(xlabel, fontsize=_pt("label"), color=_ink())
     if ylabel:
-        ax.set_ylabel(ylabel, fontsize=FS_LABEL, color=INK)
+        ax.set_ylabel(ylabel, fontsize=_pt("label"), color=_ink())
 
 
 def legend(ax, *, loc="upper right", **kw):
-    return ax.legend(fontsize=FS_LEGEND, frameon=True, framealpha=0.92,
-                     edgecolor=NEU, fancybox=False, loc=loc, **kw)
+    """图例：字号继承基线（叠加层开启时用 figure-craft 阶梯）。
+
+    边框开关随 rcParams.legend.frameon（基线默认无框；叠加层开启有框）。
+    """
+    return ax.legend(fontsize=_pt("legend"), loc=loc,
+                     framealpha=0.92, edgecolor=NEU, fancybox=False, **kw)
 
 
 def panel_title(ax, text):
     """仅多面板图的 (a)(b) 顶部小标题；单面板图禁止调用（结论进 caption）。"""
-    ax.set_title(text, fontsize=FS_TITLE, pad=6, color=INK)
+    ax.set_title(text, fontsize=_pt("title"), pad=6, color=_ink())
 
 
 def save_fig(fig, path_png, path_pdf=None):
-    fig.savefig(path_png, dpi=300, bbox_inches="tight", facecolor="white")
+    """PNG + 可选矢量 PDF 双出；保存护栏随学术基线（禁 bbox_inches='tight'）。
+
+    PNG 的 DPI / 面底色继承 rcParams（academic.mplstyle: savefig.dpi=350）。
+    先调 setup_style() 再保存，才能拿到 plot_utils 挂在 Figure.savefig 上的
+    布局 / 字号自检 hook。
+    """
+    _bbox = matplotlib.rcParams.get("savefig.bbox")
+    if _bbox in ("standard", "tight"):
+        _bbox = None      # ⛔ 基线禁 tight（axes 外文字会把 PDF mediabox 撑爆）
+    fig.savefig(path_png, bbox_inches=_bbox)
     if path_pdf:
-        fig.savefig(path_pdf, bbox_inches="tight", facecolor="white")
+        fig.savefig(path_pdf, bbox_inches=_bbox)
     plt.close(fig)
 
 
-def setup_style(palette="elegant", **kw):
-    """出图脚本统一风格入口（figure_check.sh 认这个 token）。
+def setup_style(palette="auto", *, overlay=False):
+    """初始化出图风格：底层走唯一真源，figure-craft 字体/字号/色板是可选叠加层。
 
-    同包内有 plot_utils 时委托其 setup_style（PALETTES 全家桶：nature/tableau/
-    npg/nejm/colorblind…），否则仅保证本模块的字体与字号 rcParams 已生效。
-    坐标轴级样式仍由 apply(ax) 负责，两者不冲突。"""
-    try:
-        from plot_utils import setup_style as _ps
-        return _ps(palette=palette, **kw)
-    except Exception:
-        plt.rcParams["font.family"] = _fams or ["DejaVu Serif"]
-        plt.rcParams["axes.unicode_minus"] = False
-        return None
+    palette 接受 plot_utils.setup_style 的全部取值（'auto'/'elegant'/… 或颜色
+    列表），另接受 figure-craft 可选色板 'v6'/'v6_warm'/'v6_cool'。
+    overlay=True 才把 figure-craft 衬线字体族与字号阶梯压到基线之上（默认不叠）。
+    """
+    global _OVERLAY_ACTIVE
+    _pal = list(FIG_PALETTES[palette]) if isinstance(palette, str) and palette in FIG_PALETTES else palette
+    pu = _base()
+    if pu is not None:
+        result = pu.setup_style(palette=_pal)
+    else:
+        _apply_baseline()
+        if isinstance(_pal, (list, tuple)) and _pal:
+            matplotlib.rcParams["axes.prop_cycle"] = matplotlib.cycler(color=list(_pal))
+        result = None
+    if overlay:
+        _apply_overlay()
+    else:
+        _OVERLAY_ACTIVE = False
+    return result
 
 
 save = save_fig  # 简写别名

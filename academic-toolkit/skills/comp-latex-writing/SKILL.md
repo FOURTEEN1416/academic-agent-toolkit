@@ -5,8 +5,10 @@ description: "国赛 LaTeX 写作（Latex Writing for CUMCM）——数模竞赛
 
 # 国赛 LaTeX 写作（Latex Writing for CUMCM）
 
+> **一切以 `academic-toolkit/skills/comp-paper-zh/SKILL.md` 主线模板与口径为准。** 本技能定位为公式/表格/算法速查，与主线冲突时按主线执行。
+
 ## 定位
-数学建模竞赛论文专用的 LaTeX 技能。封装 CTeX 中文模板 + 公式/表格/算法三件套 + 国赛摘要页精修。
+数学建模竞赛论文的 LaTeX 速查技能：公式/表格/算法三件套 + 国赛摘要页精修；模板一律走主线骨架（见下）。
 
 ## 依赖
 - `doc-poster-latex`（scientific-agent-skills 子 skill）— 通用 LaTeX 排版
@@ -21,7 +23,7 @@ description: "国赛 LaTeX 写作（Latex Writing for CUMCM）——数模竞赛
 ```latex
 % 骨架获取（在技能正文步中）：
 % cp academic-toolkit/skills/comp-paper-zh/_templates/cumcm/* paper/
-% 完整赛事清单见 comp-paper-zh/SKILL.md 模板表；禁止另行手写 documentclass
+% 完整赛事清单见 academic-toolkit/skills/comp-paper-zh/SKILL.md 模板表；禁止另行手写 documentclass
 ```
 
 ### 2. 数学公式速查（国赛高频）
@@ -36,7 +38,7 @@ description: "国赛 LaTeX 写作（Latex Writing for CUMCM）——数模竞赛
 
 ### 3. 三线表
 ```latex
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption{标题}
   \begin{tabular}{lccc}
@@ -48,10 +50,11 @@ description: "国赛 LaTeX 写作（Latex Writing for CUMCM）——数模竞赛
   \end{tabular}
 \end{table}
 ```
+短表用 `[H]` 就地；符号表/跨页长表用 `longtable`。禁 `[htbp]`（主线全文级禁令）。
 
 ### 4. 算法伪代码
 ```latex
-\begin{algorithm}[htbp]
+\begin{algorithm}[H]
   \caption{算法名称}
   \begin{algorithmic}[1]
     \State 初始化
@@ -80,8 +83,8 @@ description: "国赛 LaTeX 写作（Latex Writing for CUMCM）——数模竞赛
 6. **模型评价**（优缺点+改进）
 
 ## 国赛要点
-- 摘要页单独一页，不编号，300-500 字
-- 公式必须编号 `\tag{1}`，文中引用 `\eqref{1}`
+- 摘要页单独一页，不编号；字数按 `academic-toolkit/skills/_utils/abstract_writing_contract.md`（摘要合同单一事实源）：硬范围 600-800 字，生成目标 680-760 字，按问题分段
+- 展示公式必须编号，但不手写固定数字：用非星号 `equation`/`align`，被引用的公式加 `\label{eq:语义名}`，正文用 `\eqref{eq:语义名}` 引用（禁 `\tag{1}` 式手写编号）
 - 图表放文中，不要集中附录
 - 目录可选，页码从正文开始
 - 参考文献 GB/T 7714 格式

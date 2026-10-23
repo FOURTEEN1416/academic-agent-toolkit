@@ -41,10 +41,15 @@
 ### ABM（Mesa · 骨架已按 3.5.1 实测校准）
 
 ```python
-# ⚠️ 2026-10-16 在本机 mesa 3.5.1 实跑校准（不是抄文档）：
+# 本机 mesa 3.5.1 实跑通过（2026-10-23；下方两条自检命令即验证方式）：
 #   · Model.__init__ 签名 = (self, *args, seed=None, rng=None, scenario=None, **kwargs)
 #     → **推荐 rng=**（传 np.random.default_rng(seed)）；`seed=` 已 deprecated
 #       （传 seed= 会发 FutureWarning: "The use of the `seed` keyword argument is deprecated, use `rng` instead"）。
+#   · 模型上有**两个随机源，API 不同且各自独立推进，别混用**：
+#       self.rng    = numpy.random.Generator → .integers(low, high)（high 开区间）/ .random() / .normal()
+#       self.random = stdlib random.Random    → .randrange(n) / .randint(a, b)（b 闭区间）/ .random()
+#     self.random 是 mesa 用 rng 抽出的种子另建的标准库流（AgentSet 打乱顺序用它），
+#     它**没有 .integers**，写成 self.random.integers(...) 必 AttributeError。模型自己的抽样统一走 self.rng。
 #   · mesa.AgentSet 顶层**不可用**（hasattr(mesa,'AgentSet')=False）；实例上 model.agents 是 AgentSet 派生类，有 do/shuffle_do。
 #   · 顶层 mesa.time 提供 Event / EventList / Schedule / Priority / EventGenerator（事件调度 API）。
 #   · Model.run_for / run_until 可用；mesa.DataCollector 可用；mesa.space 提供 ContinuousSpace 等。
@@ -61,19 +66,27 @@ class World(mesa.Model):
     def __init__(self, n=40, seed=1):
         super().__init__(rng=np.random.default_rng(seed))   # ← 用 rng，不用 seed
         for _ in range(n):
-            Actor(self, int(self.random.integers(0, 10)))
+            Actor(self, int(self.rng.integers(0, 10)))      # ← numpy Generator 用 .integers
         self.log: list[float] = []
     def step(self):
         self.agents.do("step")          # AgentSet API（打乱顺序用 shuffle_do）
-        self.log.append(float(self.random.random()))   # 记录观测量
-
-# 自检两件事（写完全局必跑）：
-#   1) 同种子复现：两次 World(seed=1) 跑同样步数，log 必须逐位一致
-#   2) 零告警：`python -W error::FutureWarning` 下不得报错（能抓出 deprecated 形态）
+        self.log.append(float(self.rng.random()))   # 记录观测量（与抽样同一条 rng 流）
 ```
 
-> **随机源纪律**：`rng=np.random.default_rng(seed)` 是唯一推荐形式；`self.random`（实例属性）由 mesa 从该 rng 派生，
-> 可用但**不要**另建全局 `np.random`。种子表写进 `SIM_MANIFEST.json.randomness.seeds`。
+**自检（骨架存为当前目录的 `abm_min.py` 后，两行可直接粘贴执行）**：
+
+```bash
+# 1) 同种子逐位复现：两次 World(seed=1) 的 log 必须逐位一致
+python -c "import abm_min as m; a=m.World(seed=1); b=m.World(seed=1); a.run_for(50); b.run_for(50); assert [x.hex() for x in a.log]==[x.hex() for x in b.log], 'same seed diverged'; print('OK 同种子逐位一致:', a.log[:4])"
+
+# 2) 零告警：FutureWarning 升级为错误（能抓出 seed= 等 deprecated 形态）
+python -W error::FutureWarning -c "import abm_min as m; m.World(seed=1).run_for(50); print('OK 无 FutureWarning')"
+```
+
+> **随机源纪律**：`rng=np.random.default_rng(seed)` 是唯一推荐形式，模型抽样统一用 `self.rng`。
+> `self.random` 是 mesa 用 rng 抽出的种子另建的 stdlib `random.Random` 流（供 AgentSet 打乱顺序），
+> 与 `self.rng` **互不推进**且 API/区间口径不同（`.randint(a,b)` 含 b，`.integers(low,high)` 不含 high），
+> 同一模型只用一个；**不要**另建全局 `np.random`。种子表写进 `SIM_MANIFEST.json.randomness.seeds`。
 
 ### DES（SimPy）
 

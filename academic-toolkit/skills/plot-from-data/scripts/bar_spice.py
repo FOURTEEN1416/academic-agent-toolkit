@@ -2,28 +2,28 @@
 复现 image5: SPICE 论文风格柱状图
 特征：分组柱 + 斜线填充（主方法）+ 柱顶数值标注（最优加粗）+ 灰色网格
 来源：SPICE: Self-play in corpus environments improves reasoning
+
+薄壳模板：字体族/字号阶梯/线宽/配色循环/保存护栏统一由
+academic-toolkit/skills/_utils/plot_utils.py 的 setup_style + save_fig 提供；
+本文件只保留该图型的语法差异（分组几何、斜线编码、柱顶数值、边框与图例位置）。
 """
 
-import matplotlib.pyplot as plt
+import sys
+from pathlib import Path
+
 import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
 import numpy as np
 
-# ── 预分析结论 ─────────────────────────────────────────────
-# 字体：原图更接近 LaTeX/Computer Modern，而不是 Times
-#       这里直接启用 usetex，优先还原论文图常见的 TeX 字体气质
-# 加粗：面板标题(normal) | 图例 SPICE 条目(bold) | 其他图例(normal)
-#       主方法数值(bold+深红) | 其他数值(normal+黑)
-# 间距：三柱较细，组间留白明显，子图整体更扁，接近原图长宽比
-# 边框：四边框都保留，且柱子层级低于边框
-# 分辨率：300 dpi
-plt.rcParams.update({
-    'text.usetex': True,
-    'font.family': 'serif',
-    'font.serif': ['Computer Modern Roman', 'STIX Two Text', 'DejaVu Serif'],
-    'axes.unicode_minus': False,
-    'hatch.color': 'white',     # 原图是白色斜线刻在红底上
-    'hatch.linewidth': 1.4,
-})
+_SKILLS_DIR = Path(__file__).resolve().parents[2]
+if str(_SKILLS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SKILLS_DIR))
+
+from _utils.plot_utils import save_fig, set_paper_placement, setup_style
+
+setup_style()
+
+OUTPUT = 'figures/fig_bar_spice.png'
 
 # ── 颜色 & 填充 ───────────────────────────────────────────
 # 左图 (ablation)
@@ -38,6 +38,8 @@ LABELS_CMP   = ['R-Zero', 'Absolute Zero', 'SPICE']
 
 # ── 数据 ─────────────────────────────────────────────────
 benchmarks = ['MATH500', "AIME'25", 'GPQA-Diamond', 'MMLU-Pro']
+# 最终印刷字号不低于 8pt 后，长类名在单栏宽内放不下 → 在连字符处断行（不缩字号）
+benchmarks_display = [b.replace('-', '-\n') for b in benchmarks]
 
 data_abl = {
     'SPICE (Fixed Challenger)': [68.2,  6.7, 26.3, 51.6],
@@ -65,7 +67,6 @@ def draw_panel(
     xlim,
     legend_anchor,
 ):
-    n_groups  = len(benchmarks)
     n_methods = len(labels)
     x         = np.array(x_positions)
     bar_w     = total_w / n_methods
@@ -75,29 +76,35 @@ def draw_panel(
         offset = (i - n_methods / 2 + 0.5) * bar_w
         bars   = ax.bar(x + offset, vals, width=bar_w,
                         color=color, hatch=hatch,
-                        edgecolor='white',
+                        edgecolor='white',   # 斜线颜色随 edgecolor（本仓基线不另设 hatch.color）
                         linewidth=0.8, zorder=2, label=label)
 
         is_best = (label == BEST_METHOD)
-        for bar, v in zip(bars, vals):
-            ax.text(bar.get_x() + bar.get_width() / 2,
-                    v + 0.5, f'{v}',
-                    ha='center', va='bottom',
-                    fontsize=8.7,
-                    fontweight='bold' if is_best else 'normal',
-                    color='black',   # 原图数值全部黑色，仅粗细区分
-                    zorder=3)
+        if is_best:
+            # 只标主方法柱值：三柱并排在印刷字号下放不下逐柱数值，
+            # 次要柱的数值读结果表，图面保留"最优加粗"的语义（save_fig 遮挡硬闸要求）
+            for bar, v in zip(bars, vals):
+                ax.text(bar.get_x() + bar.get_width() / 2,
+                        v + 2.0, f'{v}',
+                        ha='center', va='bottom',
+                        fontweight='bold',
+                        color='black',
+                        zorder=3,
+                        # 白底板：save_fig 的对比度修复以 text bbox 底色判定墨色，
+                        # 深红柱顶的标签需要明确的白底才不会再被改成浅灰
+                        bbox=dict(boxstyle='square,pad=0.12',
+                                  facecolor='white', edgecolor='none'))
 
     # 轴
     ax.set_xticks(x)
-    ax.set_xticklabels(benchmarks, fontsize=10.8)
-    ax.set_xlabel('Benchmark', fontsize=11.2)
-    ax.set_ylabel(r'Accuracy (\%)', fontsize=11.2)
+    ax.set_xticklabels(benchmarks_display)
+    ax.set_xlabel('Benchmark')
+    ax.set_ylabel(r'Accuracy (\%)')
     ax.set_ylim(0, 85)
     ax.set_xlim(*xlim)
-    ax.set_title(title, fontsize=13.2, pad=5)
+    ax.set_title(title, pad=5)
 
-    # 网格（仅 y 轴浅灰实线）
+    # 网格（仅 y 轴浅灰虚线）
     ax.yaxis.grid(True, color='#EBEBEB', linewidth=0.7, linestyle='--', zorder=0)
     ax.set_axisbelow(True)
 
@@ -110,14 +117,14 @@ def draw_panel(
             spine.set_color('#333333')
             spine.set_zorder(4)
 
-    ax.tick_params(length=0, labelsize=10.2)
+    ax.tick_params(length=0)
 
     # 图例
     handles = [mpatches.Patch(facecolor=c, hatch=h,
-                               edgecolor='white', linewidth=0.8,
-                               label=l)
+                              edgecolor='white', linewidth=0.8,
+                              label=l)
                for l, c, h in zip(labels, colors, hatches)]
-    leg = ax.legend(handles=handles, fontsize=8.9, loc='upper right',
+    leg = ax.legend(handles=handles, loc='upper right',
                     bbox_to_anchor=legend_anchor,
                     framealpha=1.0, facecolor='white',
                     edgecolor='#C8C8C8', fancybox=False,
@@ -131,8 +138,10 @@ def draw_panel(
 
 
 # ── 画布 ─────────────────────────────────────────────────
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.8, 4.35))
-fig.subplots_adjust(left=0.05, right=0.985, bottom=0.15, top=0.86, wspace=0.16)
+# 画布宽 8in：按 academic.mplstyle 的“画时字号 = 印刷目标 × figsize宽 / 嵌入宽”
+# 反推（12pt × 8in / 5.5in ≈ 8.25pt），避免 save_fig 为 12.8in 画布把字号整体放大后
+# 图例压住左上柱顶数值。
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.0, 2.72))
 
 draw_panel(
     ax1,
@@ -159,7 +168,5 @@ draw_panel(
     legend_anchor=(0.992, 0.986),
 )
 
-plt.savefig('/Users/bytedance/gitcode/paper_experiment_plot_skills/repro/bar_spice_repro.png',
-            dpi=300, facecolor='white')
-plt.close()
-print('saved: bar_spice_repro.png')
+set_paper_placement(fig)
+save_fig(fig, OUTPUT)

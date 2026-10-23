@@ -3,25 +3,29 @@
 image2: 连续训练曲线 + 置信区间阴影 + 水平参考线
 image3: 离散点折线 + 置信区间阴影（模型规模 scaling）
 来源：Reinforcement learning via self-distillation
+
+薄壳模板：字体族/字号阶梯/线宽/配色循环/保存护栏统一由
+academic-toolkit/skills/_utils/plot_utils.py 的 setup_style + save_fig 提供；
+本文件只保留该图型的语法差异（置信带、四边框、向内刻度、图例位置）。
 """
+
+import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 
-# ── 预分析结论 ─────────────────────────────────────────────
-# 字体：serif，接近 LaTeX Computer Modern，启用 usetex
-# 加粗：标题 normal | 图例 SDPO bold | 其他 normal
-# Spine：只保留左/下（开口式）
-# Grid：无
-# 颜色：绿 #3A8B3A (SDPO) | 蓝 #3B6BB5 (GRPO) | 灰 #999999 (base)
-# 阴影：主线颜色 alpha=0.15 的半透明填充
-plt.rcParams.update({
-    'text.usetex': True,
-    'font.family': 'serif',
-    'font.serif': ['Computer Modern Roman', 'STIX Two Text', 'DejaVu Serif'],
-    'axes.unicode_minus': False,
-})
+_SKILLS_DIR = Path(__file__).resolve().parents[2]
+if str(_SKILLS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SKILLS_DIR))
+
+from _utils.plot_utils import save_fig, set_paper_placement, setup_style
+
+setup_style()
+
+OUTPUT_V6 = 'figures/fig_line_selfdistill_v6.png'
+OUTPUT_SCALING = 'figures/fig_line_selfdistill_scaling.png'
 
 C_SDPO  = '#2CA02C'   # matplotlib tab green
 C_GRPO  = '#1F77B4'   # matplotlib tab blue
@@ -60,7 +64,7 @@ ax2.fill_between(steps, sdpo_mean - sdpo_std, sdpo_mean + sdpo_std,
                  color=C_SDPO, alpha=0.20)
 ax2.fill_between(steps, grpo_mean - grpo_std, grpo_mean + grpo_std,
                  color=C_GRPO, alpha=0.20)
-ax2.plot(steps, sdpo_mean, color=C_SDPO, lw=2.5, label=r'\textbf{SDPO}')
+ax2.plot(steps, sdpo_mean, color=C_SDPO, lw=2.5, label='SDPO')
 ax2.plot(steps, grpo_mean, color=C_GRPO, lw=2.5, label='GRPO')
 # 原图 Claude 参考线为稀疏圆点线，非虚线
 ax2.axhline(0.406, color='#AAAAAA', lw=1.8,
@@ -68,40 +72,36 @@ ax2.axhline(0.406, color='#AAAAAA', lw=1.8,
 
 ax2.set_xlim(0, 20000)
 ax2.set_ylim(0.28, 0.52)
-ax2.set_xlabel('Number of Generations', fontsize=13)
-ax2.set_ylabel('Accuracy', fontsize=13)
-ax2.set_title('LiveCodeBench v6', fontsize=15, pad=7)
+ax2.set_xlabel('Number of Generations')
+ax2.set_ylabel('Accuracy')
+ax2.set_title('LiveCodeBench v6', pad=7)
 
 ax2.xaxis.set_major_formatter(ticker.FuncFormatter(
     lambda x, _: f'{int(x/1000)}k' if x > 0 else '0'))
 ax2.xaxis.set_major_locator(ticker.MultipleLocator(5000))
 ax2.yaxis.set_major_locator(ticker.MultipleLocator(0.05))
 
-leg2 = ax2.legend(fontsize=11, loc='lower right',
+leg2 = ax2.legend(loc='lower right',
                   framealpha=0, edgecolor='none',
                   handlelength=2.2, borderaxespad=0.5, labelspacing=0.3)
 for text in leg2.get_texts():
     if 'SDPO' in text.get_text():
         text.set_fontweight('bold')
 
-# 四边框 + 向内刻度（与原图一致）
+# 四边框 + 向内刻度（该图型签名，覆盖随机版式族）
 for sp in ax2.spines.values():
     sp.set_visible(True)
     sp.set_linewidth(1.5)
-ax2.tick_params(direction='in', length=5, width=1.2, labelsize=11)
+ax2.tick_params(direction='in', length=5, width=1.2)
 ax2.grid(False)
 
-fig2.tight_layout(pad=0.9)
-fig2.savefig('/Users/bytedance/gitcode/paper_experiment_plot_skills/repro/line_selfdistill_v6_repro.png',
-             dpi=300, facecolor='white')
-plt.close(fig2)
-print('saved: line_selfdistill_v6_repro.png')
+set_paper_placement(fig2)
+save_fig(fig2, OUTPUT_V6)
 
 # ══════════════════════════════════════════════════════════
 # 图 3：模型 scaling 折线（Model scaling Qwen3）
 # ══════════════════════════════════════════════════════════
 param_labels = ['0.6', '1.7', '4', '8']
-param_x      = [0.6,   1.7,   4,   8]
 x_pos        = [0, 1, 2, 3]   # 等间距排列，x 轴用 param_labels
 
 sdpo_pts = [0.215, 0.333, 0.450, 0.490]
@@ -126,7 +126,7 @@ MEC = 'black'   # 原图标记点有黑色描边
 ax3.plot(x_pos, sdpo_pts, color=C_SDPO, lw=2.5,
          marker='o', ms=7, mfc=C_SDPO,
          markeredgecolor=MEC, markeredgewidth=1.0,
-         label=r'\textbf{SDPO}')
+         label='SDPO')
 ax3.plot(x_pos, grpo_pts, color=C_GRPO, lw=2.5,
          marker='o', ms=7, mfc=C_GRPO,
          markeredgecolor=MEC, markeredgewidth=1.0,
@@ -137,16 +137,16 @@ ax3.plot(x_pos, base_pts, color=C_BASE, lw=2.5,   # 与主线同粗
          label='base model')
 
 ax3.set_xticks(x_pos)
-ax3.set_xticklabels(param_labels, fontsize=11)
+ax3.set_xticklabels(param_labels)
 ax3.set_xlim(-0.35, 3.35)
 ax3.set_ylim(0.08, 0.51)   # 与原图 0.1~0.5 刻度对齐，留极小顶部空
-ax3.set_xlabel('Model parameters (B)', fontsize=13)
-ax3.set_ylabel(r'\textit{Accuracy}', fontsize=13)
-ax3.set_title('Model scaling (Qwen3)', fontsize=15, pad=7)
+ax3.set_xlabel('Model parameters (B)')
+ax3.set_ylabel('Accuracy', fontstyle='italic')
+ax3.set_title('Model scaling (Qwen3)', pad=7)
 ax3.yaxis.set_major_locator(ticker.MultipleLocator(0.1))
 
 # 图例移右下（原图位置）
-leg3 = ax3.legend(fontsize=11, loc='lower right',
+leg3 = ax3.legend(loc='lower right',
                   bbox_to_anchor=(0.98, 0.02),
                   framealpha=0, edgecolor='none',
                   handlelength=2.2, borderaxespad=0.5, labelspacing=0.3)
@@ -158,11 +158,8 @@ for text in leg3.get_texts():
 for sp in ax3.spines.values():
     sp.set_visible(True)
     sp.set_linewidth(1.5)
-ax3.tick_params(direction='in', length=5, width=1.2, labelsize=11)
+ax3.tick_params(direction='in', length=5, width=1.2)
 ax3.grid(False)
 
-fig3.tight_layout(pad=0.9)
-fig3.savefig('/Users/bytedance/gitcode/paper_experiment_plot_skills/repro/line_selfdistill_scaling_repro.png',
-             dpi=300, facecolor='white')
-plt.close(fig3)
-print('saved: line_selfdistill_scaling_repro.png')
+set_paper_placement(fig3)
+save_fig(fig3, OUTPUT_SCALING)

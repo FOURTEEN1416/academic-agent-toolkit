@@ -1,13 +1,13 @@
 ---
 name: quality-check
 description: "学术写作质量审查。检查论文/报告的字数、结构、引用、格式问题并生成审查报告。Use when user says \"质量检查\", \"quality check\", \"审稿\", \"review\"."
-argument-hint: [target-markdown-file]
+argument-hint: [target-source-file]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 ---
 
 # 学术写作质量审查
 
-对以下 Markdown 文档进行质量审查：**$ARGUMENTS**
+对以下正文文档（Markdown 或 LaTeX 源）进行质量审查：**$ARGUMENTS**
 
 ## 常量
 
@@ -31,16 +31,53 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 ### Step 1: 自动检测目标文件
 
 ```bash
-# 按优先级查找待审查的 Markdown 文件
-for candidate in PROPOSAL.md LITERATURE_REVIEW.md COURSE_PAPER.md COURSE_REPORT.md paper/main.md; do
+# 按优先级查找待审查的正文文件：编译产物本体（paper/main.*）优先。
+# 竞赛主链与论文工作区的交付物都在 paper/；Windows 大小写不敏感，literature_review.md
+# 会命中 LITERATURE_REVIEW.md，若排在前面会把 LaTeX 主链挤出自动检测。
+TARGET_FILE=""; TARGET_KIND=""
+for candidate in paper/main.tex paper/main.md PROPOSAL.md LITERATURE_REVIEW.md COURSE_PAPER.md COURSE_REPORT.md; do
     if [ -f "$candidate" ]; then
         echo "Found target: $candidate"
         TARGET_FILE="$candidate"
+        case "$candidate" in
+            *.tex) TARGET_KIND="latex" ;;
+            *)     TARGET_KIND="markdown" ;;
+        esac
         break
     fi
 done
-[ -z "$TARGET_FILE" ] && echo "ERROR: No target Markdown file found" && exit 1
+[ -z "$TARGET_FILE" ] && echo "ERROR: No target source found (looked for paper/main.tex, paper/main.md and course documents)" && exit 1
 ```
+
+### Step 1b: LaTeX 分支（TARGET_KIND=latex）
+
+存在 `paper/main.tex` 时按 LaTeX 主链审查：不再要求 `paper/main.md`，也不因缺少 Markdown 文件而 `exit 1`。取证只用仓库现有两个检查器，**不新增阻塞阈值**——脚本退出码与输出原样写入报告：
+
+```bash
+if [ "$TARGET_KIND" = "latex" ]; then
+    # 源级检查：引用/结构/图注/AI 套话/符号与假设版式
+    WC=""
+    for cand in skills/_utils/writing_check.sh academic-toolkit/skills/_utils/writing_check.sh ../../skills/_utils/writing_check.sh; do
+        [ -f "$cand" ] && WC="$cand" && break
+    done
+    [ -z "$WC" ] && echo "WARN: writing_check.sh not found; record as CHECK_UNAVAILABLE" || bash "$WC" paper/
+    # PDF 数字-账本一致性（RESULTS.md / figures/all_results.json）
+    # 工作区根 cwd（如 academic-toolkit/workspaces/<name>）下命中 ../../tools/paper_data_check.py
+    PDC=""
+    for cand in academic-toolkit/tools/paper_data_check.py tools/paper_data_check.py ../../tools/paper_data_check.py; do
+        [ -f "$cand" ] && PDC="$cand" && break
+    done
+    [ -z "$PDC" ] && echo "WARN: paper_data_check.py not found; record as CHECK_UNAVAILABLE" || python "$PDC" --mode pdf --workspace .
+fi
+```
+
+退出码口径（原样写入报告，**不新增判定阈值**）：
+
+- `writing_check.sh`：`0` = 无命中；`1` = 内容级检查命中（风格/一致/版式等，脚本自标 advisory，只记为审查发现，不直接判论文失败）；`3` = `CHECK_UNAVAILABLE`（脚本缺失或崩溃，不得据此改写论文）。
+- `paper_data_check.py`：`0` = 无 fatal；`1` = 它自己报告的 fatal 数据不一致（原样记录输出）；其他非零的调用错误同样记 `CHECK_UNAVAILABLE`。
+- 两种脚本的退出码都只是证据，不改写 Step 9 的既有四条判定。
+
+LaTeX 分支下 Step 2–7 中的 Markdown 专用口径（正文字数、`## 章节` 标题提取、`![`/表管道计数、Markdown 残留标记）统一在报告中记「不适用（LaTeX 源）」而非判失败；其证据以上面两个脚本的输出为准。报告仍按 Step 8 汇总到同一个 `QUALITY_REPORT.md`，Step 9 仍只按既有四条判定，不因 LaTeX 分支新增门槛。
 
 ### Step 2: 字数统计
 
@@ -216,6 +253,8 @@ done
 1. [阻塞] ...
 2. [警告] ...
 ```
+
+LaTeX 分支：在报告中追加一节 `## 七、LaTeX 源级检查`，原样粘贴 `writing_check.sh` 与 `paper_data_check.py --mode pdf` 的输出与退出码；Markdown 专用小节写「不适用（LaTeX 源）」。输出文件仍为 `QUALITY_REPORT.md`。
 
 ### Step 9: 阻塞判定
 

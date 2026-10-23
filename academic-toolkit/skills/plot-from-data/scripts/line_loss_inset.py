@@ -2,21 +2,29 @@
 Reproduce: image10.png — Loss curve with zoom inset (SiameseNorm paper style)
 Main plot: L-shaped spine (left+bottom) + axis arrows, 3 lines.
 Inset: zoomed blue+green in right panel.
-Style: serif, tab10 colors, black dashed connection lines.
+
+薄壳模板：字体族/字号阶梯/线宽/配色循环/保存护栏统一由
+academic-toolkit/skills/_utils/plot_utils.py 的 setup_style + save_fig 提供；
+本文件只保留该图型的语法差异（手工双区版式、L 形轴、inset、连接线）。
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.patches import ConnectionPatch, FancyArrowPatch
-from mpl_toolkits.axes_grid1.inset_locator import mark_inset, inset_axes
+import sys
+from pathlib import Path
 
-plt.rcParams.update({
-    'text.usetex': True,
-    'font.family': 'serif',
-    'font.serif': ['Computer Modern Roman', 'STIX Two Text', 'DejaVu Serif'],
-    'axes.unicode_minus': False,
-})
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import ConnectionPatch
+
+_SKILLS_DIR = Path(__file__).resolve().parents[2]
+if str(_SKILLS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SKILLS_DIR))
+
+from _utils.plot_utils import save_fig, set_paper_placement, setup_style
+
+setup_style()
+
+OUTPUT = 'figures/fig_line_loss_inset.png'
 
 rng = np.random.default_rng(7)
 
@@ -49,7 +57,6 @@ y_green = 7.2 * np.exp(-steps / 360) + 2.1
 y_green += rng.normal(0, 0.05, len(steps))
 y_green = np.clip(y_green, 1.8, 9.0)
 
-# tab10 colors
 C_ORANGE = '#FF7F0E'
 C_BLUE   = '#1F77B4'
 C_GREEN  = '#2CA02C'
@@ -57,6 +64,7 @@ C_GREEN  = '#2CA02C'
 # ---- 主图 ----
 # 原图 952×368 → 宽高比 2.59；复现目标 10.5×4.05"
 fig = plt.figure(figsize=(10.5, 4.05))
+fig._mh_manual_layout = True   # 手工 add_axes 版式：禁止保存钩子重跑 tight_layout
 ax_main = fig.add_axes([0.08, 0.16, 0.50, 0.78])
 
 ax_main.plot(steps, y_hybrid, color=C_ORANGE, lw=1.3, label='HybridNorm', zorder=3)
@@ -65,12 +73,12 @@ ax_main.plot(steps, y_green,  color=C_GREEN,  lw=1.3, label='SiameseNorm (Ours)'
 
 ax_main.set_xlim(-50, 5600)
 ax_main.set_ylim(1.5, 14.5)   # 与原图 ~2-14 对齐
-ax_main.set_xlabel(r'Step', fontsize=10)
-ax_main.set_ylabel(r'Loss', fontsize=10)
+ax_main.set_xlabel('Step')
+ax_main.set_ylabel('Loss')
 ax_main.set_xticks([0, 1000, 2000, 3000, 4000, 5000])
-ax_main.tick_params(labelsize=9.0, direction='out', length=3.5, width=0.8)
+ax_main.tick_params(direction='out', length=3.5, width=0.8)
 
-# L 形 spine（左+下），无上右
+# L 形 spine（左+下）
 ax_main.spines['top'].set_visible(False)
 ax_main.spines['right'].set_visible(False)
 ax_main.spines['left'].set_linewidth(1.0)
@@ -85,9 +93,8 @@ ax_main.plot(0, 1, '^k', transform=ax_main.get_xaxis_transform(),
 ax_main.grid(True, color='#E0E0E0', linewidth=0.5, linestyle=':')
 ax_main.set_axisbelow(True)
 
-leg = ax_main.legend(
+ax_main.legend(
     loc='upper right',
-    fontsize=9.0,
     frameon=True,
     facecolor='white',
     edgecolor='#DDDDDD',
@@ -122,7 +129,7 @@ ax_inset.plot(steps_z, y_green[mask_z], color=C_GREEN, lw=1.2, zorder=4)
 ax_inset.set_xlim(zoom_x1 - 50, zoom_x2 + 50)
 ax_inset.set_ylim(zoom_y1 - 0.1, zoom_y2 + 4.0)   # 原图 inset y: ~1.8~8.5
 ax_inset.set_xticks([3000, 4000, 5000])
-ax_inset.tick_params(labelsize=8.5, direction='out', length=3.5, width=0.8)
+ax_inset.tick_params(direction='out', length=3.5, width=0.8)
 
 for sp in ax_inset.spines.values():
     sp.set_visible(True)
@@ -149,9 +156,5 @@ con2 = ConnectionPatch(
 fig.add_artist(con1)
 fig.add_artist(con2)
 
-fig.savefig(
-    '/Users/bytedance/gitcode/paper_experiment_plot_skills/repro/line_loss_inset_repro.png',
-    dpi=300, facecolor='white',
-)
-plt.close(fig)
-print('saved: line_loss_inset_repro.png')
+set_paper_placement(fig)
+save_fig(fig, OUTPUT)
