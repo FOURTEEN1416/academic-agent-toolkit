@@ -92,11 +92,6 @@ def _rank(query: str, skill: str) -> int | None:
 
 @pytest.mark.parametrize("query,expected", SHOULD_ROUTE)
 def test_query_routes_to_expected_skill(query: str, expected: str) -> None:
-    # 公开 clone 不交付被根 .gitignore 隔离的技能（无 License 上游件）——
-    # 该目标的"必须命中"用例无从验证，按语义 skip；其余用例仍严格校验，
-    # 不放宽 _rank1 判据本身。
-    if expected not in RECORDS:
-        pytest.skip(f"非完整本地仓：技能 {expected} 不随公开仓交付")
     assert _rank1(query) == expected, f"{query!r} → {_rank1(query)!r}，期望 {expected!r}"
 
 

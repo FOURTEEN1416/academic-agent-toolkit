@@ -112,15 +112,10 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "tools" / "extract_pdf_figures_UPSTREAM.md",
     # #16 registry 补登包（2026-09-22）：V1 盘点的"吸收了没记账"三件已入库包
     # （academic-figure/agent-figure-gallery/scipilot，均带上游 LICENSE）。
-    # 刻意不注册：paper-framework-figure-studio-pro / visio-image-rebuilder /
-    # plot-from-data+plot-from-image 为 local-only 未入 git（上游无 License，
-    # 禁再分发红线），注册会令 CI 缺件 FAIL——台账见 dev-docs/vendor-asset-index.md。
     ROOT / "skills" / "fig-academic" / "UPSTREAM.md",
     ROOT / "skills" / "agent-figure-gallery" / "UPSTREAM.md",
     ROOT / "skills" / "fig-visualization-advisor" / "UPSTREAM.md",
-    # paper-oral-exemplar 整技能收编（2026-09-22 A 批次）：上游无 LICENSE 已在 UPSTREAM.md/
-    # catalog 如实登记，用户裁决收编入 git（与上方"无 License 不入 git"判例的差异：
-    # 本件已随 git 交付故注册不致 CI 缺件；公开再分发待上游授权，见 catalog upstream 字段）
+    # paper-oral-exemplar 整技能收编（2026-09-22 A 批次）：已在 UPSTREAM.md/catalog 如实登记。
     ROOT / "skills" / "paper-oral-exemplar" / "references" / "UPSTREAM.md",
     # 2026-09-23 v2.0 收尾"全部吸收"批：Math-model-skills 四件参考收编（vendor-asset-index #5 既定路径）
     ROOT / "skills" / "comp-problem-analysis" / "references" / "mml-skills" / "UPSTREAM.md",
@@ -156,13 +151,6 @@ UPSTREAM_REGISTRY += [
 VENDOR_DIRS: list[Path] = [
     ROOT / "third_party" / "codesucker-core",
 ]
-
-# local-only 台账件：宿主技能本体被 .gitignore 整目录豁免（无 License 禁再分发红线），
-# UPSTREAM.md 只存在于完整本地仓。公开 clone/CI 缺位 = 语义 SKIP（与
-# test_asset_utilization 的"缺 gitignored 技能即 skip"同款口径），本地在位则照常全检。
-LOCAL_ONLY_UPSTREAM: frozenset[Path] = frozenset([
-    ROOT / "skills" / "eco-community-plots" / "references" / "UPSTREAM.md",
-])
 
 REQUIRED_FIELDS = ("Upstream:", "Pinned commit:", "License:")
 REQUIRED_VENDOR_FILES = ("LICENSE", "NOTICE", "UPSTREAM.md")
@@ -235,11 +223,6 @@ def run(scope: str) -> dict:
     failures: list[str] = []
     if scope in ("upstream", "all"):
         for path in UPSTREAM_REGISTRY:
-            if path in LOCAL_ONLY_UPSTREAM and not path.is_file():
-                reports.append({"kind": "upstream", "path": _display(path), "ok": True,
-                                "skip": "local-only 台账件未随公开 clone 交付（gitignored），缺位记 SKIP",
-                                "missing": []})
-                continue
             result = check_upstream(path)
             reports.append({"kind": "upstream", **result})
             if not result["ok"]:
@@ -263,11 +246,10 @@ def main() -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
         total = len(result["reports"])
-        skipped = sum(1 for r in result["reports"] if r.get("skip"))
-        passed = total - len(result["failures"]) - skipped
-        print(f"Provenance 审计: {passed}/{total} 通过（SKIP {skipped}，不计通过不计失败）")
+        passed = total - len(result["failures"])
+        print(f"Provenance 审计: {passed}/{total} 通过")
         for report in result["reports"]:
-            status = "SKIP" if report.get("skip") else ("OK" if report["ok"] else "FAIL")
+            status = "OK" if report["ok"] else "FAIL"
             detail = f" ({', '.join(report.get('missing', []))})" if report.get("missing") else ""
             print(f"  [{status}] {report['kind']}: {report['path']}{detail}")
         if result["failures"]:

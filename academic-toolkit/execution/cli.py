@@ -1,12 +1,58 @@
 """统一命令行适配；业务实现位于session/workspace/resources/commands。"""
 from __future__ import annotations
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 import sqlite3
 import sys
+from engine.step_manifest import atomic_write_json
 from engine.workflow_store import WorkflowStore, StepStatus
 from .presentation import user_view
 SUITE = Path(__file__).resolve().parents[1]
+
+REVIEW_EVIDENCE_FILE = "REVIEW_EXECUTION_EVIDENCE.json"
+REVIEW_ROLES = ("reviewer", "visual_reviewer", "editor", "final_reviewer")
+
+
+def _load_review_roles(path: Path) -> dict:
+    """读角色声明文件；角色必须显式命名，不从产物文件名反推。
+
+    接受 {"reviewer": {...}, ...} 或 {"roles": {...}}；四角色必须全员到齐，
+    每条只取 session_id/model/output_file（哈希与完成时间由脚本生成）。
+    """
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("roles JSON 必须是对象")
+    roles = payload.get("roles") if isinstance(payload.get("roles"), dict) else payload
+    missing = sorted(set(REVIEW_ROLES) - set(roles))
+    extra = sorted(set(roles) - set(REVIEW_ROLES))
+    if missing:
+        raise ValueError(f"roles JSON 缺少角色: {', '.join(missing)}")
+    if extra:
+        raise ValueError(f"roles JSON 含未知角色: {', '.join(extra)}")
+    cleaned = {}
+    for role in REVIEW_ROLES:
+        record = roles[role]
+        if not isinstance(record, dict):
+            raise ValueError(f"{role} 角色记录必须是对象")
+        cleaned[role] = {field: record.get(field, "") for field in
+                         ("session_id", "model", "output_file")}
+    return cleaned
+
+
+def write_review_evidence(workspace: Path, roles_file: Path) -> dict:
+    """由脚本生成 REVIEW_EXECUTION_EVIDENCE.json：哈希与 completed_at 不由模型手填。"""
+    from engine.quality_gates import build_review_execution_evidence
+    roles = _load_review_roles(roles_file)
+    evidence = build_review_execution_evidence(
+        workspace, roles, completed_at=datetime.now(timezone.utc).isoformat())
+    atomic_write_json(Path(workspace) / REVIEW_EVIDENCE_FILE, evidence)
+    return {"status": "ok", "path": REVIEW_EVIDENCE_FILE,
+            "roles": {role: {"output_file": record["output_file"],
+                             "output_sha256": record["output_sha256"],
+                             "completed_at": record["completed_at"]}
+                      for role, record in evidence["roles"].items()}}
+
 
 def register_parser(subparsers):
     parser = subparsers.add_parser("session", help="统一执行会话：阅读/创作/命令/完成")
@@ -16,7 +62,7 @@ def register_parser(subparsers):
     context.add_argument("--db", required=True)
     context.add_argument("--query", default="")
     context.add_argument("--audit-root", default="")
-    for name in ("read", "write", "edit", "run", "finish", "status", "recover", "review-request", "review-receive"):
+    for name in ("read", "write", "edit", "run", "finish", "status", "recover", "review-request", "review-receive", "review-evidence"):
         command = sub.add_parser(name)
         command.add_argument("--session", required=True)
         if name == "read":
@@ -48,6 +94,9 @@ def register_parser(subparsers):
             command.add_argument("--response", required=True)
             command.add_argument("--reviewer", required=True)
             command.add_argument("--host-call-id", required=True)
+        elif name == "review-evidence":
+            command.add_argument("--roles", required=True,
+                                 help="角色声明 JSON（四角色各填 session_id/model/output_file）")
         elif name == "recover":
             command.add_argument("--operation-id", required=True)
             command.add_argument("--reason", required=True)
@@ -92,6 +141,8 @@ def run_command(args):
                 result = session.review.request(args.input, args.output, args.rubric)
             elif args.operation == "review-receive":
                 result = session.review.receive(args.task, args.response, args.reviewer, args.host_call_id)
+            elif args.operation == "review-evidence":
+                result = write_review_evidence(session.workspace, Path(args.roles))
             elif args.operation == "status":
                 result = {"status": "ok", "operations": store.execution_operations(action.step_id, action.attempt_id)}
             elif args.operation == "recover":

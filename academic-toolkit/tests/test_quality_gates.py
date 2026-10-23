@@ -944,3 +944,57 @@ def test_figure_narrative_check_skip_and_zero_ref_orphan(tmp_path):
     p = subprocess.run([_sys.executable, str(tool), str(paper)],
                        capture_output=True, text=True, timeout=60)
     assert p.returncode == 0, (p.returncode, p.stdout)
+
+
+def test_paper_consistency_reads_numbers_from_active_sections(tmp_path):
+    r"""W5：正文数字在 \input 分章里也算命中，且统计落到各自 section。"""
+    paper = tmp_path / "paper"
+    sections = paper / "sections"
+    sections.mkdir(parents=True)
+    (paper / "main.tex").write_text(
+        r"\documentclass{article}\begin{document}\input{sections/result}\end{document}",
+        encoding="utf-8")
+    (sections / "result.tex").write_text("模型的平均绝对误差为 0.0423。", encoding="utf-8")
+    (tmp_path / "figures").mkdir()
+    (tmp_path / "figures" / "all_results.json").write_text(
+        json.dumps({"mae": 0.0423}), encoding="utf-8")
+
+    result = QualityGate(tmp_path).check_paper_consistency()
+
+    assert result["ok"] is True, result
+    assert result["hits"] == 1
+    assert result["section_hits"] == {"sections/result.tex": 1}
+    assert "main.tex" in result["sections"] and "sections/result.tex" in result["sections"]
+
+
+def test_paper_consistency_ignores_sections_not_in_assembly(tmp_path):
+    r"""未被 \input/\include 的分章不属于 active sections，不得冒充正文命中。"""
+    paper = tmp_path / "paper"
+    (paper / "sections").mkdir(parents=True)
+    (paper / "main.tex").write_text(
+        r"\documentclass{article}\begin{document}正文无结果数字。\end{document}",
+        encoding="utf-8")
+    (paper / "sections" / "orphan.tex").write_text("平均绝对误差 0.0423。", encoding="utf-8")
+    (tmp_path / "figures").mkdir()
+    (tmp_path / "figures" / "all_results.json").write_text(
+        json.dumps({"mae": 0.0423}), encoding="utf-8")
+
+    result = QualityGate(tmp_path).check_paper_consistency()
+
+    assert result["ok"] is False
+    assert result["section_hits"] == {}
+    assert "sections/orphan.tex" not in result["sections"]
+
+
+def test_paper_consistency_still_supports_markdown_only_papers(tmp_path):
+    paper = tmp_path / "paper"
+    paper.mkdir()
+    (paper / "main.md").write_text("平均绝对误差为 0.0423。", encoding="utf-8")
+    (tmp_path / "figures").mkdir()
+    (tmp_path / "figures" / "all_results.json").write_text(
+        json.dumps({"mae": 0.0423}), encoding="utf-8")
+
+    result = QualityGate(tmp_path).check_paper_consistency()
+
+    assert result["ok"] is True
+    assert result["section_hits"] == {"main.md": 1}

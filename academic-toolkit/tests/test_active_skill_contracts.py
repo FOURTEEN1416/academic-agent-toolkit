@@ -409,16 +409,55 @@ def _extract_case_block(text: str) -> str:
     return "\n".join(lines[start:end + 1]) + "\n"
 
 
+def _find_bash():
+    """定位可执行 bash：优先 Git for Windows，退化时才用 PATH/POSIX 安装位。
+
+    两种环境陷阱都会让三个行为级用例整批假红：
+    ① 终检进程以不含 Git 的干净 PATH 启动，`shutil.which("bash")` 找不到；
+    ② WindowsApps 里的 `bash.exe` 是 WSL 启动器且排在 Git 前面，WSL bash 对
+       CRLF 脚本会报 `syntax error near unexpected token '$\'in\\r\''`。
+    因此先按安装位找 Git Bash，最后才用 `shutil.which`；找到后照常真实执行，
+    验证强度不变。
+    """
+    import os
+    import shutil
+    program_files = os.environ.get("ProgramFiles", r"C:\Program Files")
+    candidates = [
+        Path(program_files) / "Git" / "usr" / "bin" / "bash.exe",
+        Path(program_files) / "Git" / "bin" / "bash.exe",
+        Path(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")) / "Git" / "bin" / "bash.exe",
+    ]
+    local_appdata = os.environ.get("LOCALAPPDATA")
+    if local_appdata:
+        candidates.append(Path(local_appdata) / "Programs" / "Git" / "bin" / "bash.exe")
+    candidates += [Path("/bin/bash"), Path("/usr/bin/bash")]
+    found = shutil.which("bash")
+    if found:
+        candidates.append(Path(found))
+    seen = set()
+    for candidate in candidates:
+        key = str(candidate).lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        if candidate.is_file():
+            return str(candidate)
+    return None
+
+
 def _run_case_selection(skill: str, contest_id: str, dirs, tmpl_base=None):
     """执行提取出的选择块（真实下发字段 → 模板目录）。tmpl_base=None 时在临时目录
     播种假模板；否则直接指向真实模板库。返回 (exit, 尾行输出, paper/main.tex sha1)。"""
     import hashlib
     import os
-    import shutil
     import subprocess
     import tempfile
-    bash = shutil.which("bash")
-    assert bash, "行为级验证需要 bash（本仓库交付环境内置 Git Bash）"
+    bash = _find_bash()
+    # 找不到 bash 仍是硬失败（行为级验证不能静默跳过）；兜底搜索只为消除
+    # 「bash 已装但 PATH 未带 Git」造成的假红。
+    assert bash, ("行为级验证需要 bash（本仓库交付环境内置 Git Bash）：PATH 与 "
+                  "%ProgramFiles%\\Git\\{usr\\bin,bin}、%LOCALAPPDATA%\\Programs\\Git\\bin "
+                  "均未找到 bash.exe")
     header = (f'TMPL_BASE="{tmpl_base}"\n' if tmpl_base else 'TMPL_BASE="_templates"\n') + "mkdir -p paper\n"
     if skill == "comp-paper-zh":
         tail = ('\n[ -d "$TMPL_BASE/$TMPL" ] || { echo "MISSING_DIR:$TMPL"; exit 3; }\n'
@@ -435,9 +474,17 @@ def _run_case_selection(skill: str, contest_id: str, dirs, tmpl_base=None):
         for d in dirs:
             (base / d).mkdir(parents=True)
             (base / d / f"mark_{d}.tex").write_text("c", encoding="utf-8")
-        (Path(td) / "case.sh").write_text(script, encoding="utf-8")
+        # 显式 LF：Windows 文本模式默认写 CRLF，WSL/部分 bash 会把行尾 \r 当
+        # 命令内容（`syntax error near unexpected token`），造成与选择逻辑无关的假红。
+        (Path(td) / "case.sh").write_text(script, encoding="utf-8", newline="\n")
+        env = {**os.environ, "CONTEST_ID": contest_id}
+        # 安装位兜底找到 bash 时，PATH 可能同样不含 Git 的 coreutils 目录
+        # （cp/ls/grep/mkdir），补上 bash 自身目录保证脚本可执行。
+        bash_dir = str(Path(bash).parent)
+        if bash_dir not in env.get("PATH", "").split(os.pathsep):
+            env["PATH"] = bash_dir + (os.pathsep + env["PATH"] if env.get("PATH") else "")
         r = subprocess.run([bash, "case.sh"], cwd=td,
-                           env={**os.environ, "CONTEST_ID": contest_id},
+                           env=env,
                            capture_output=True, text=True, encoding="utf-8", timeout=30)
         out = r.stdout.strip().splitlines()
         main_tex = Path(td) / "paper" / "main.tex"

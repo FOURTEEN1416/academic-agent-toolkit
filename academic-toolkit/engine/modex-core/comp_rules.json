@@ -381,7 +381,7 @@
       "title": "【历史任务裁决·仅可追溯材料】华为杯页数门禁 80（2026-09-25 用户裁决）",
       "retrieved_at": "2026-09-27",
       "verification": "legacy_config",
-      "path": "workspaces/huawei2026d_zcode（2026-09-25 未提交 diff：max_pages 50→80 及自由文本页数备注，『S9 压缩延后』）+ dev-docs/LOG.md 2026-09-25「华为杯 D 题 ZCode 现场」条目",
+      "path": "academic-toolkit/workspaces/huawei2026d_zcode（工作区自记 2026-09-25 现场：EDITOR_CHANGELOG.md:115、FINAL_REVIEW.md:97 记 2026-09-25 用户裁决（S9 压缩延后）与本数据文件的 max_pages 原值 50→80 备注）+ dev-docs/LOG.md 2026-09-25「华为杯 D 题 ZCode 现场」条目",
       "located": "git diff HEAD -- academic-toolkit/engine/modex-core/comp_rules.json（2026-09-25 现场）",
       "applicable_scope": "仅 2026 第 23 届 D 题本轮投稿；非官方约束；后续轮次不得静默继承",
       "note": "新裁决：80 不进全局官方/合规层（旧测试钉定不构成保留理由）；运行时由任务级覆盖承载（workflow step.metadata.quick_gates_max_pages=80 既有通道，workflow_runner.py:338/1208 读取点），本数据文件不含该值；工作流数据库未改动",

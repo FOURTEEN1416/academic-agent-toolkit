@@ -3,6 +3,7 @@
 B3-1 关键断言走 CLI 子进程（真实每命令一进程路径），其余按既有测试惯例 in-process。
 索引与数据库一律落 tmp_path，不污染仓库根 .engine/。
 """
+import hashlib
 import json
 import subprocess
 import sys
@@ -116,6 +117,101 @@ def test_complete_failure_persists_run_log(tmp_path, monkeypatch):
 
     entries = _run_log(workspace, workflow_id)
     assert any(e["event"] == "failed" for e in entries)
+
+
+# ---------- W1: review-evidence 子命令（哈希/时间戳由脚本生成） ----------
+
+def _activate_session_ticket(monkeypatch, capsys, workflow_id, db) -> str:
+    """跑 next + context 取得真实 ticket：review-evidence 只接受活动会话的 ticket。"""
+    monkeypatch.setattr(sys, "argv", [
+        "workflow_cli", "next", "--wf", workflow_id, "--db", str(db),
+    ])
+    assert workflow_cli.main() == 0
+    capsys.readouterr()
+    monkeypatch.setattr(sys, "argv", [
+        "workflow_cli", "session", "context", "--wf", workflow_id, "--db", str(db),
+    ])
+    assert workflow_cli.main() == 0
+    return json.loads(capsys.readouterr().out)["session"]
+
+
+def _write_review_outputs(workspace: Path) -> dict:
+    bodies = {"COMP_REVIEW.md": "comp review body", "VISUAL_REVIEW.md": "visual review body",
+              "EDITOR_CHANGELOG.md": "editor changelog body", "FINAL_REVIEW.md": "final review body"}
+    for name, body in bodies.items():
+        (workspace / name).write_text(body, encoding="utf-8")
+    return bodies
+
+
+def _review_roles(drop: str = "", override: dict | None = None) -> dict:
+    mapping = {"reviewer": "COMP_REVIEW.md", "visual_reviewer": "VISUAL_REVIEW.md",
+               "editor": "EDITOR_CHANGELOG.md", "final_reviewer": "FINAL_REVIEW.md"}
+    mapping.update(override or {})
+    return {role: {"session_id": f"s-{role}", "model": f"m-{role}", "output_file": name}
+            for role, name in mapping.items() if role != drop}
+
+
+def test_review_evidence_generates_file_with_real_hashes(tmp_path, monkeypatch, capsys):
+    """完整四角色：脚本落盘 REVIEW_EXECUTION_EVIDENCE.json，哈希与产物一致、时间戳非空。"""
+    workflow_id, db = _start_in_tmp(tmp_path, monkeypatch, capsys)
+    workspace = tmp_path / "ws"
+    ticket = _activate_session_ticket(monkeypatch, capsys, workflow_id, db)
+    bodies = _write_review_outputs(workspace)
+    roles_file = tmp_path / "review_roles.json"
+    roles_file.write_text(json.dumps(_review_roles()), encoding="utf-8")
+
+    monkeypatch.setattr(sys, "argv", [
+        "workflow_cli", "session", "review-evidence",
+        "--session", ticket, "--roles", str(roles_file),
+    ])
+    assert workflow_cli.main() == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["status"] == "ok"
+
+    evidence = json.loads((workspace / "REVIEW_EXECUTION_EVIDENCE.json").read_text(encoding="utf-8"))
+    assert set(evidence["roles"]) == {"reviewer", "visual_reviewer", "editor", "final_reviewer"}
+    for role, record in evidence["roles"].items():
+        expected = hashlib.sha256(bodies[record["output_file"]].encode("utf-8")).hexdigest()
+        assert record["output_sha256"] == expected, role
+        assert record["completed_at"], role
+
+
+def test_review_evidence_rejects_missing_role(tmp_path, monkeypatch, capsys):
+    """缺角色：直接拒绝并 exit 2，不按文件名猜角色、不落盘半成品证据。"""
+    workflow_id, db = _start_in_tmp(tmp_path, monkeypatch, capsys)
+    workspace = tmp_path / "ws"
+    ticket = _activate_session_ticket(monkeypatch, capsys, workflow_id, db)
+    _write_review_outputs(workspace)
+    roles_file = tmp_path / "review_roles.json"
+    roles_file.write_text(json.dumps(_review_roles(drop="editor")), encoding="utf-8")
+
+    monkeypatch.setattr(sys, "argv", [
+        "workflow_cli", "session", "review-evidence",
+        "--session", ticket, "--roles", str(roles_file),
+    ])
+    assert workflow_cli.main() == 2
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["status"] == "error" and "editor" in payload["message"]
+    assert not (workspace / "REVIEW_EXECUTION_EVIDENCE.json").exists()
+
+
+def test_review_evidence_rejects_missing_output_file(tmp_path, monkeypatch, capsys):
+    """角色齐备但产物缺失：同样拒绝（output_file 不存在 → exit 2）。"""
+    workflow_id, db = _start_in_tmp(tmp_path, monkeypatch, capsys)
+    workspace = tmp_path / "ws"
+    ticket = _activate_session_ticket(monkeypatch, capsys, workflow_id, db)
+    _write_review_outputs(workspace)
+    roles_file = tmp_path / "review_roles.json"
+    roles_file.write_text(json.dumps(
+        _review_roles(override={"final_reviewer": "FINAL_REVIEW_MISSING.md"})), encoding="utf-8")
+
+    monkeypatch.setattr(sys, "argv", [
+        "workflow_cli", "session", "review-evidence",
+        "--session", ticket, "--roles", str(roles_file),
+    ])
+    assert workflow_cli.main() == 2
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["status"] == "error" and "FINAL_REVIEW_MISSING.md" in payload["message"]
 
 
 # ---------- B3-2 workflow-index 原子写 + 回退 ----------

@@ -1,5 +1,6 @@
 import hashlib
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -7,7 +8,11 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from engine.execution_protocol import validate_execution_evidence, write_execution_evidence
+from engine.execution_protocol import (
+    normalize_legacy_evidence,
+    validate_execution_evidence,
+    write_execution_evidence,
+)
 from engine.agent_bridge import StepAction, StepResult
 
 
@@ -87,11 +92,50 @@ def test_validate_execution_evidence_rejects_malformed_evidence(tmp_path, overri
 
 def test_validate_execution_evidence_requires_all_fields(tmp_path):
     action = make_action(tmp_path)
-    payload = evidence(action)
-    del payload["agent"]
+    for field in ("schema_version", "commands", "inputs", "outputs"):
+        payload = evidence(action)
+        del payload[field]
+        with pytest.raises(ValueError, match=f"missing required fields: {field}"):
+            validate_execution_evidence(
+                action.workspace, action,
+                StepResult(ok=True, metadata={"execution_evidence": payload}))
 
-    with pytest.raises(ValueError, match="missing required fields: agent"):
+
+def test_identity_fields_backfilled_from_step_action_never_invent_execution(tmp_path):
+    """W5：引擎已知身份可回填；commands/inputs/outputs 永不代填。"""
+    action = replace(make_action(tmp_path), attempt_id="att-1", expected_revision=3,
+                     params={"agent": "runner-bot"})
+    assert normalize_legacy_evidence(action, {"schema_version": 1}) == {
+        "schema_version": 1, "step_id": "step", "attempt_id": "att-1",
+        "expected_revision": 3, "skill_name": "demo",
+        "skill_sha256": hashlib.sha256(action.skill_path.read_bytes()).hexdigest(),
+        "agent": "runner-bot",
+    }
+    payload = {"schema_version": 1,
+               "commands": [{"command": "python solve.py", "returncode": 0, "cwd": "."}],
+               "inputs": [], "outputs": ["out.txt"]}
+    validated = validate_execution_evidence(
+        action.workspace, action,
+        StepResult(ok=True, artifacts=["out.txt"], metadata={"execution_evidence": payload}))
+    assert validated["step_id"] == "step" and validated["attempt_id"] == "att-1"
+    assert validated["expected_revision"] == 3 and validated["agent"] == "runner-bot"
+    assert validated["skill_sha256"] == normalize_legacy_evidence(action, {})["skill_sha256"]
+
+
+def test_identity_backfill_keeps_conflicting_values_for_explicit_rejection(tmp_path):
+    action = make_action(tmp_path)
+    payload = evidence(action, step_id="another-step")
+    with pytest.raises(ValueError, match="does not match the active step"):
         validate_execution_evidence(action.workspace, action, StepResult(ok=True, metadata={"execution_evidence": payload}))
+
+
+def test_identity_backfill_does_not_rescue_missing_commands(tmp_path):
+    action = make_action(tmp_path)
+    payload = {"schema_version": 1, "inputs": [], "outputs": ["out.txt"]}
+    with pytest.raises(ValueError, match="missing required fields: commands"):
+        validate_execution_evidence(
+            action.workspace, action,
+            StepResult(ok=True, artifacts=["out.txt"], metadata={"execution_evidence": payload}))
 
 
 def test_validate_execution_evidence_rejects_failed_command_in_successful_step(tmp_path):

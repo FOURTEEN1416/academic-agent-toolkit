@@ -19,9 +19,8 @@ sys.path.insert(0, str(ROOT / "tools"))
 import check_asset_utilization as cau
 
 
-# 公开 clone 不交付的两类本地资产（均被根 .gitignore 隔离）：
-#   1) 无 License 上游技能（侵权红线隔离，5 个）
-#   2) 私有资料区 assets-local/（award-papers / reference-figures / cumcm-templates）
+# 公开 clone 不交付的本地资产（被根 .gitignore 隔离）：
+#   私有资料区 assets-local/（award-papers / reference-figures / cumcm-templates）
 #      与赛时预置区 CUMCM2026Problems（2026-09-23 v2.0 改造统一布局）
 # 只对实际缺席的私有资源记录 unavailable，不能连带跳过现存技能地图和公开资产校验。
 # 分发技能以 git 跟踪清单为真源；本地额外技能只要在盘，同样纳入地图检查。

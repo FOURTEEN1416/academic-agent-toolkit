@@ -661,7 +661,7 @@
       "path": "assets-local/contest-regs/",
       "zone": "assets-local",
       "type": "corpus",
-      "description": "华为杯 15-23 届官方规范一手原件库（格式规范/论文模板/使用规定 DOC/DOCX 原件 + index.md 索引 + 2026-23rd 抓取快照），W1 入库；2026-10-09 增补 MathorCup 16 届（组委会规范 PDF+公告页快照）/数维杯 11 届春季赛（开赛公告 PDF+页面快照）/中青杯 8 届（提交通知等三页快照），SNAPSHOTS.md5 留痕，comp_rules 三赛事约束带同步建档",
+      "description": "华为杯 23 届官方规范一手原件库（格式规范/论文模板/使用规定 DOC/DOCX 原件 + index.md 索引 + 2026-23rd 抓取快照；15-22 届原件已于 2026-10-16 按用户裁定移出），W1 入库；2026-10-09 增补 MathorCup 16 届（组委会规范 PDF+公告页快照）/数维杯 11 届春季赛（开赛公告 PDF+页面快照）/中青杯 8 届（提交通知等三页快照），SNAPSHOTS.md5 留痕，comp_rules 三赛事约束带同步建档",
       "when_to_use": "comp_rules 口径仲裁、格式合规溯源、论文模板原件比对时取一手证据；原件不容改写",
       "owner_skills": [
         "comp-paper-zh"
@@ -767,6 +767,23 @@
         "skills/shared-scripts/plot_utils.py"
       ],
       "local_only": false
+    },
+    {
+      "id": "award-layout-cards",
+      "path": "academic-toolkit/data/award_layout_cards.json",
+      "zone": "data",
+      "type": "reference-data",
+      "description": "获奖论文版面卡检索索引（layout-distill 中 status=done 的 18/62 张卡投影：题型/章节树/摘要槽位/图表题注惯例/句式模板/可迁移要点，附卡源 path 与 sha256）；源卡属 assets-local 私有语料，生成物登记为 local_only，公开 clone 不交付",
+      "when_to_use": "本地写作步按题型检索版面结构与密度参照；按 paper_id 回查原始版面卡与页面目录",
+      "owner_skills": [
+        "comp-paper-zh",
+        "comp-modeling"
+      ],
+      "consumers": [
+        "comp_cumcm:S7",
+        "comp_huawei:S7"
+      ],
+      "local_only": true
     }
   ]
 }

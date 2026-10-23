@@ -374,6 +374,48 @@ class WorkflowRunner:
                   "step_id": step.id, "attempt_id": step.attempt_id, "expected_revision": step.revision}
         return report, evidence, manifest, gate, manifest_data
 
+    def validate_recorded_step(self, workflow_id: str, step_id: str, attempt_id: str,
+                               revision: int, *, subagent_session: str = "") -> dict[str, Any]:
+        """只读取证预检：按 ticket 身份机械组装证据并验收，不落库、不推进。
+
+        与 complete_recorded_step 共用 collect_execution_evidence + _validate_step；
+        complete_recorded_step 仍是唯一提交路径。本方法不写证据/清单/工作流状态，
+        供 CLI preflight --session 使用（读侧命令不得制造完成事实）。
+        """
+        from .execution_protocol import collect_execution_evidence
+        workflow = self.store.get_workflow(workflow_id)
+        target = StepResult(ok=True, step_id=step_id, attempt_id=attempt_id, expected_revision=revision)
+        try:
+            step = self._result_target(workflow_id, target)
+        except (ValueError, KeyError) as exc:
+            return {"ok": False, "checks": {"target": {"ok": False, "reason": str(exc)}}}
+        action = self._action_for_step(workflow, step)
+        try:
+            evidence = collect_execution_evidence(self.store, workflow, action, subagent_session=subagent_session)
+        except (ValueError, KeyError) as exc:
+            return {"ok": False, "checks": {"collection": {"ok": False, "reason": str(exc)}}}
+        result = StepResult(ok=True, artifacts=list(evidence.get("outputs", [])),
+                            step_id=step_id, attempt_id=attempt_id, expected_revision=revision,
+                            metadata={"execution_evidence": evidence})
+        report = self._validate_step(
+            workflow, step, result,
+            FingerprintSession(Path(workflow.metadata["workspace"])))[0]
+        report["recorded"] = "execution-session-v1"
+        return report
+
+    def recorded_final_candidate(self, workflow_id: str, step_id: str, attempt_id: str,
+                                 revision: int, *, subagent_session: str = "") -> dict[str, Any]:
+        """终审候选只读取证：collect + final_audit_candidate，不写报告、不推进状态。"""
+        from .execution_protocol import collect_execution_evidence
+        workflow = self.store.get_workflow(workflow_id)
+        target = StepResult(ok=True, step_id=step_id, attempt_id=attempt_id, expected_revision=revision)
+        step = self._result_target(workflow_id, target)
+        if step.name != "comp-final-audit":
+            raise ValueError("candidate evidence requires the current final-audit step")
+        action = self._action_for_step(workflow, step)
+        evidence = collect_execution_evidence(self.store, workflow, action, subagent_session=subagent_session)
+        return self.final_audit_candidate(workflow_id, evidence)
+
     def complete_recorded_step(self, workflow_id: str, step_id: str, attempt_id: str,
                                revision: int, *, subagent_session: str = "") -> RunResult:
         """执行者只交操作身份；证据构造、终审生成与唯一验收链均由引擎拥有。"""

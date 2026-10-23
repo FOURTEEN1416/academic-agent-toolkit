@@ -34,7 +34,9 @@ class StepAction:
     # 本步引擎显式给出的非技能资产（数据/参考论文/工具脚本/参考图集），
     # 每项 {"name", "path", "note"}；path 为仓库根相对路径（2026-09-12 C2 资产机制）。
     assets: list[dict[str, str]] = field(default_factory=list)
-    # D3 门禁前移（2026-09-13）：本步完成后必须先跑 quick_gates 轻检（页数/图字号/泄漏），
+    # D3 门禁前移（2026-09-13；2026-10 W5 改为单入口）：quick_gates=true 声明本步
+    # 需要页数/图字号/泄漏轻检，但检查由引擎在 finish 的 early_quality 程序化执行，
+    # 不再要求 agent 先手跑 quick_gates 脚本再回报（同一次检查不双跑）。
     # 由模板步骤 metadata.quick_gates=true 声明，设计挂 step 5（出图后）与 step 8（成文后）。
     quick_gates: bool = False
     # quick_gates 页数上限的任务/步骤级显式覆盖通道（2026-09-22 引入；B-CLOSE-01 语义更新）：
@@ -102,13 +104,13 @@ class StepAction:
             )
             lines.append(f"  本步资产(路径为仓库根相对;用则留痕,完成申报 used/skipped): {rendered}")
         if self.quick_gates:
-            max_pages_flag = (f" --max-pages {self.quick_gates_max_pages}"
+            # W5 单入口：轻检由引擎在 finish 的 early_quality 程序化执行，
+            # 不再要求 agent 先手跑脚本再回报（同一次检查不双跑）。
+            max_pages_note = (f"（本次页数口径 --max-pages {self.quick_gates_max_pages}）"
                               if self.quick_gates_max_pages else "")
             lines.append(
-                "  ⛔ D3 门禁前移轻检（本步完成后、回报 complete 前必跑）: "
-                f"python skills/_utils/quick_gates.py --workspace {self.workspace}"
-                f"{max_pages_flag}"
-                "（FAIL 先处理再回报——页数/字号问题越早暴露修复越便宜）")
+                "  早检已程序化：finish 的 early_quality 已含页数/字号/泄漏检查"
+                f"{max_pages_note}，无需另跑 quick_gates。")
         if self.has_checkpoint:
             lines.append(f"  ⚠️ 完成后需暂停等待用户{'批准' if self.checkpoint_type == 'approve' else '反馈'}")
         return "\n".join(lines)

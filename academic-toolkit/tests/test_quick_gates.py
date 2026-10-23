@@ -105,7 +105,13 @@ def test_page_check_without_cap_skips_and_states_no_default(tmp_path):
 # ── 引擎挂载：StepAction.quick_gates 透传与指令下发 ─────────────────────
 
 def test_step_action_quick_gates_instruction_line():
-    """quick_gates=True 的 StepAction，instructions 必含轻检命令提示行。"""
+    """quick_gates=True 的 StepAction，instructions 必须说明轻检已程序化。
+
+    2026-10-23 W5→W6 同步：D3 轻检改为单入口——引擎在 finish 的 early_quality
+    程序化执行页数/字号/泄漏检查，不再要求 agent 先手跑 quick_gates.py 再回报
+    （同一次检查不双跑）。旧断言（`quick_gates.py` / `回报 complete 前必跑`）
+    随行为变更同步，负向断言防止旧文案回流。
+    """
     from engine.agent_bridge import StepAction
     action = StepAction(
         workflow_id="w", step_id="s", position=4, skill_name="paper-figure",
@@ -113,8 +119,11 @@ def test_step_action_quick_gates_instruction_line():
         output_files=["figures/latex_includes.tex"], primary_output="figures/",
         has_checkpoint=False, checkpoint_type=None, quick_gates=True)
     text = action.execution_instructions()
-    assert "quick_gates.py" in text
-    assert "回报 complete 前必跑" in text
+    assert "早检已程序化" in text
+    assert "early_quality" in text and "页数/字号/泄漏" in text
+    assert "无需另跑 quick_gates" in text
+    assert "quick_gates.py" not in text
+    assert "回报 complete 前必跑" not in text
 
 
 def test_step_action_without_quick_gates_has_no_gate_line():

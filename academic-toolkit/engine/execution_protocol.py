@@ -179,6 +179,40 @@ def normalize_command_record(command: dict[str, Any], workspace: Path) -> dict[s
     return normalized
 
 
+def _is_blank_identity(value: Any) -> bool:
+    """空串/None 视为"未提供"；0 与 False 是合法值，不算缺失。"""
+    return value is None or (isinstance(value, str) and not value.strip())
+
+
+def normalize_legacy_evidence(action: StepAction, evidence: dict[str, Any]) -> dict[str, Any]:
+    """只用引擎已知身份回填 legacy evidence；绝不生成执行事实。
+
+    旧接入（手工 `complete --evidence`）过去要求模型手抄 step_id / skill_sha256 /
+    expected_revision 等身份字段——这些值引擎本来就有，抄错或抄漏只会制造噪声失败。
+    这里补的只有"我是谁"：step_id/attempt_id/expected_revision/skill_name/
+    skill_sha256/agent。commands/inputs/outputs/returncode 一律不生成、不补默认值，
+    缺真实命令仍在 required-field 校验处被拒绝；已提供且冲突的值原样保留，
+    由后续校验显式报冲突（不静默覆盖执行者声明）。
+    """
+    normalized = dict(evidence)
+    # StepAction 在技能文件缺席时 skill_sha256 为空；有文件则按文件实况计算——
+    # 这是引擎已拥有的身份，不是替执行者编造执行事实。
+    skill_sha = action.skill_sha256 or (
+        _file_sha256(action.skill_path) if action.skill_path.is_file() else "")
+    defaults: dict[str, Any] = {
+        "step_id": action.step_id,
+        "attempt_id": action.attempt_id,
+        "expected_revision": action.expected_revision,
+        "skill_name": action.skill_name,
+        "skill_sha256": skill_sha,
+        "agent": str((action.params or {}).get("agent") or "execution-session"),
+    }
+    for field, value in defaults.items():
+        if field not in normalized or _is_blank_identity(normalized[field]):
+            normalized[field] = value
+    return normalized
+
+
 def validate_execution_evidence(
     workspace: Path, action: StepAction, result: StepResult, *, store=None, fingerprint_session=None
 ) -> dict[str, Any]:
@@ -186,6 +220,8 @@ def validate_execution_evidence(
     evidence = result.metadata.get("execution_evidence")
     if not isinstance(evidence, dict):
         raise ValueError("execution evidence must be an object")
+    # 单入口身份回填（W5）：引擎已知的身份字段不必由模型手抄；执行事实不代填。
+    evidence = normalize_legacy_evidence(action, evidence)
     missing = sorted(_REQUIRED_FIELDS - evidence.keys())
     if missing:
         raise ValueError(f"execution evidence missing required fields: {', '.join(missing)}")

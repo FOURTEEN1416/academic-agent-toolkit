@@ -22,6 +22,7 @@ lint 棘轮 / 重复资产守护），但**散在各处**：
   python tools/project_health_check.py --json         # 机读
   python tools/project_health_check.py --strict       # 任一 FAIL/漂移 → exit 1
   python tools/project_health_check.py --skip-slow    # 跳过 pytest 收集（离线/提速）
+  python tools/project_health_check.py --print-baselines   # 一行机读基线（tests/skills/capabilities）
 
 退出码：默认 0（报告件）；--strict 时 FAIL 或漂移 exit 1。
 """
@@ -70,7 +71,13 @@ DRIFT_SOURCES: tuple[tuple[str, str, str], ...] = (
     ("README.md", r"badge/skills-(\d+)_tracked", "skills"),
     ("README.md", r"(\d+) 个随仓技能", "skills"),
     ("README.md", r"badge/capabilities-(\d+)-", "capabilities"),
+    # 2026-10-23 W6：README 安装节"口径一"行与 AGENTS 测试口径表第二行（工具箱内口径）
+    # 此前只有散文没有锚点——实测扫描证实两行数字不会被任何既有模式命中（2026-10-23
+    # 逐条 regex 扫描：README:166 / AGENTS.md:77 零命中），导致 sync_baselines --accept
+    # 传播不到它们。两条模式按"口径标签"锚定，不匹配历史段落。
+    ("README.md", r"口径一（仓库根，回归门禁口径）：(\d+) (?:collected|passed / 0 failed)", "tests"),
     ("AGENTS.md", r"仓库根[^\n]{0,240}?\*\*(\d+) (?:collected|passed / 0 failed)\*\*", "tests"),
+    ("AGENTS.md", r"工具箱自有 tests \| \*\*(\d+) (?:collected|passed / 0 failed)\*\*", "tests"),
     ("pytest.ini", r"本机完整仓 \*\*(\d+) (?:collected|passed / 0 failed)\*\*", "tests"),
     ("dev-docs/truth-index.md",
      r"本机完整仓\*\* `pytest -q` = \*\*(\d+) (?:collected|passed / 0 failed)\*\*", "tests"),
@@ -139,7 +146,7 @@ def _actual_skill_count() -> dict:
     `academic-toolkit/skills/*/SKILL.md` 会把捆绑在技能内的子技能
     （`<技能>/modules/<模块>/SKILL.md`，如 paper-writing-clinical 的 15 件 modules）
     一并计为顶级技能，使计数虚高（2026-09-23 实锤：虚高口径 265 vs 真值 250）。
-    clone 即所见口径**不含** .gitignore 隔离的本地独占技能（红线隔离的上游无 License 件），
+    clone 即所见口径**不含** .gitignore 隔离的本地独占技能，
     故 250 不等于本机盘面 255——两者差异是设计使然，不是漂移。
     """
     try:
@@ -171,13 +178,14 @@ def _actual_capability_count() -> dict:
 
 
 def _actual_counts(skip_slow: bool = False) -> dict:
-    """三个指标的实测值。skip_slow 只跳过最慢的 pytest 收集（技能/能力数为毫秒级，始终实测）。"""
-    return {
-        "tests": {"available": False, "reason": "已跳过（--skip-slow）", "count": None}
-        if skip_slow else _actual_test_count(),
-        "skills": _actual_skill_count(),
-        "capabilities": _actual_capability_count(),
-    }
+    """三个指标的实测值。
+
+    唯一实现 = `sync_baselines.measure()`（2026-10-23 W6）——健康检查与基线同步器
+    共用同一组实测原语，避免两处口径分叉。函数内导入是为了避开循环依赖：
+    sync_baselines 模块级复用本模块的 DRIFT_SOURCES / HISTORICAL_MARKERS。
+    """
+    import sync_baselines
+    return sync_baselines.measure(skip_slow=skip_slow)
 
 
 def _drift(actual) -> dict:
@@ -287,7 +295,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", action="store_true", dest="as_json", help="输出机读 JSON")
     parser.add_argument("--strict", action="store_true", help="FAIL 或漂移时 exit 1")
     parser.add_argument("--skip-slow", action="store_true", help="跳过 pytest 收集（离线/提速）")
+    parser.add_argument("--print-baselines", action="store_true",
+                        help="一行输出实测基线（tests=… skills=… capabilities=…），不跑组件检查")
     args = parser.parse_args(argv)
+    if args.print_baselines:
+        counts = _actual_counts(skip_slow=args.skip_slow)
+        print(" ".join(f"{name}={data['count'] if data.get('available') else 'unknown'}"
+                       for name, data in counts.items()))
+        return 0
     res = run(skip_slow=args.skip_slow)
     if args.as_json:
         print(json.dumps(res, ensure_ascii=False, indent=2))

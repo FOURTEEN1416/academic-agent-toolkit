@@ -15,8 +15,8 @@
   "counts": {
     "core": 52,
     "ondemand": 210,
-    "resident_chars": 30283,
-    "full_chars": 64315
+    "resident_chars": 30315,
+    "full_chars": 64347
   },
   "skills": {
     "ablation-planner": {
@@ -198,8 +198,8 @@
     "comp-editor": {
       "tier": "core",
       "reason": "comp_cumcm 主链步骤",
-      "resident_description": "Use when a mathematical modeling competition draft needs controlled edits in response to documented reviewer findings.",
-      "full_description": "Use when a mathematical modeling competition draft needs controlled edits in response to documented reviewer findings.",
+      "resident_description": "Use when a mathematical modeling competition draft needs controlled edits in response to documented reviewer findings and nine-dimension score losses.",
+      "full_description": "Use when a mathematical modeling competition draft needs controlled edits in response to documented reviewer findings and nine-dimension score losses.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/comp-editor/SKILL.md"
     },

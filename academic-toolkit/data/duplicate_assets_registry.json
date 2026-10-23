@@ -6772,15 +6772,6 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/comp-paper-zh/_templates/huawei/official_docx/huabei-21st-official-paper-template.doc",
-        "assets-local/contest-regs/huawei/21st_2024/附件3：“华为杯”第二十一届中国研究生数学建模竞赛论文模板.doc"
-      ],
-      "size": 1013206,
-      "wasted_bytes": 1013206,
-      "reason": "W1 一手原件库（contest-regs）按原件原样原则存证，与技能消费副本（comp-paper-zh official_docx 模板链）职责异构并存；原件库文件不容改写，技能副本供排版管线直接消费"
-    },
-    {
-      "paths": [
         "academic-toolkit/skills/_utils/figure_layout_check.py",
         "academic-toolkit/skills/shared-scripts/figure_layout_check.py"
       ],
@@ -6814,6 +6805,15 @@
       "size": 13529,
       "wasted_bytes": 13529,
       "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）；合同判据收紧批新增 docx 格式探针，入库即登记（吸取 W-SLIM 漏登教训）"
+    },
+    {
+      "paths": [
+        "academic-toolkit/skills/_utils/get_recipe.py",
+        "academic-toolkit/skills/shared-scripts/get_recipe.py"
+      ],
+      "size": 5021,
+      "wasted_bytes": 5021,
+      "reason": "双副本设计（_utils↔shared-scripts，配方查询脚本按两个引用入口各持一份；已有 test_dual_copy_consistency 逐字节守护同步）；W 批新增时漏登记，第 1 轮修复补登"
     }
   ]
 }

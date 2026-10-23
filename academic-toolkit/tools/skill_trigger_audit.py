@@ -22,6 +22,8 @@
   python tools/skill_trigger_audit.py --json          # 机读 JSON
   python tools/skill_trigger_audit.py --strict        # 存在 ERROR 时 exit 1
   python tools/skill_trigger_audit.py --min-jaccard 0.25 --min-shared 5
+  python tools/skill_trigger_audit.py --route "画机制示意图" --template comp_cumcm
+                                                      # 在当前模板可达子集内做路由诊断
 
 退出码：默认恒 0（报告件）；--strict 时发现 ERROR exit 1。
 """
@@ -243,6 +245,39 @@ def audit_contract_sections(skills_root: Path) -> dict:
 
 
 ROUTING_INDEX_PATH = TOOLBOX_ROOT / "data" / "skill_routing_index.json"
+TEMPLATES_PATH = TOOLBOX_ROOT / "engine" / "modex-core" / "templates.json"
+
+
+def template_skill_pool(template: str | None = None) -> set[str] | None:
+    """`templates.json` 的「模板可达技能」：各步 main + companion 的并集。
+
+    `template=None` 取全部模板的并集；给定模板键时只取该模板。返回 `None` 表示
+    **模板上下文不可得**（文件缺失/解析失败），调用方据此退回全库；返回空集表示
+    模板键不存在或该模板无技能步骤——这是明确的空候选，不退化成全库误排。
+    """
+    try:
+        data = json.loads(TEMPLATES_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if template is None:
+        templates = [tpl for tpl in data.values() if isinstance(tpl, dict)]
+    else:
+        tpl = data.get(template)
+        if not isinstance(tpl, dict):
+            return set()
+        templates = [tpl]
+    reachable: set[str] = set()
+    for tpl in templates:
+        for step in tpl.get("sub_steps") or []:
+            if not isinstance(step, dict):
+                continue
+            name = step.get("skill_name")
+            if name:
+                reachable.add(str(name))
+            metadata = step.get("metadata") or {}
+            for companion in metadata.get("companion_skills") or []:
+                reachable.add(str(companion))
+    return reachable
 
 
 def load_routing_index() -> dict[str, dict]:
@@ -272,13 +307,22 @@ def augmented_records(records: dict | None = None) -> dict:
 
 
 def route(query: str, records: dict | None = None, top_k: int = 3,
-          with_index: bool = False) -> list[dict]:
+          with_index: bool = False, template: str | None = None,
+          all_templates: bool = False, all_skills: bool = False) -> list[dict]:
     """确定性词法路由（用于回归测试与人工诊断）。
 
     **定位与诚实边界**：宿主真实的路由是语义的（模型读 description 判断）。本函数用
     纯词法重叠给候选排序，因此它测的是"描述是否具备足够的**词法可分性**"——
     这是正确路由的**必要条件而非充分条件**：词法都分不开的一对技能，语义路由也必然
     摇摆；反之词法分开不等于语义一定分对。
+
+    **候选池**：全库 262 个技能里多数永不进入模板，词法兜底把它们放进候选只会制造误排。
+    给定模板上下文时先收窄再排序：
+      - `template="comp_cumcm"`：只保留该模板 `sub_steps` 的 main + companion 并集；
+      - `all_templates=True`：保留 `templates.json` 全部模板的 main + companion 并集；
+      - 无模板上下文（两者都不给）或 `all_skills=True`：退回全库；
+      - 模板文件不可读：如实退回全库；指定模板键不存在：空候选（不退回全库误排）。
+    显式传入 `records` 视为调用方已声明候选池；按模板收窄请传 `template=`。
 
     计分：重叠词元数 / sqrt(描述词元数)——除以长度是必要的，否则长描述仅凭"词多"
     就能压倒精准的短描述（这与我们刚做的常驻瘦身同一动机）。
@@ -287,6 +331,15 @@ def route(query: str, records: dict | None = None, top_k: int = 3,
     用它做"判别词翻转"回归（给出含判别词的请求，正确技能必须排到对手之前）。
     """
     pool = augmented_records(records) if with_index else         (records if records is not None else audit_skills(SKILLS_ROOT)["records"])
+    if not all_skills:
+        if all_templates:
+            allowed = template_skill_pool(None)
+        elif template is not None:
+            allowed = template_skill_pool(template)
+        else:
+            allowed = None  # 无模板上下文：保持全库
+        if allowed is not None:
+            pool = {name: rec for name, rec in pool.items() if name in allowed}
     q = route_tokens(query)
     if not q:
         return []
@@ -413,11 +466,21 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--route", default="", help="诊断：给一句用户原话，看词法路由会把哪些技能排前面")
     parser.add_argument("--with-index", action="store_true",
                         help="路由时并入按需层完整描述（分层常驻的索引通道）")
+    parser.add_argument("--template", default=None,
+                        help="路由诊断限定到该模板的 main+companion 可达子集（templates.json 键）")
+    parser.add_argument("--all-templates", action="store_true", dest="all_templates",
+                        help="路由诊断限定到全部模板的 main+companion 并集")
+    parser.add_argument("--all-skills", action="store_true", dest="all_skills",
+                        help="路由诊断不收窄候选池，按全库排序")
     args = parser.parse_args(argv)
 
     if args.route:
-        hits = route(args.route, audit_skills(Path(args.skills))["records"],
-                     with_index=args.with_index)
+        skills_root = Path(args.skills)
+        records = (None if skills_root.resolve() == SKILLS_ROOT.resolve()
+                   else audit_skills(skills_root)["records"])
+        hits = route(args.route, records, with_index=args.with_index,
+                     template=args.template, all_templates=args.all_templates,
+                     all_skills=args.all_skills)
         print(f"词法路由诊断：{args.route!r}")
         for i, hit in enumerate(hits, 1):
             print(f"  {i}. {hit['skill']:<40} score={hit['score']}  匹配={hit['matched']}")

@@ -25,6 +25,7 @@ FAMILIES = {  # 模板 key -> (_templates 目录名, 期望 documentclass)
 }
 
 SKILL_MD = (ROOT / "skills" / "comp-paper-zh" / "SKILL.md").read_text(encoding="utf-8")
+STEP1_REF = (ROOT / "skills" / "comp-paper-zh" / "references" / "step_1_template.md").read_text(encoding="utf-8")
 
 
 def _paper_step(fam):
@@ -32,10 +33,12 @@ def _paper_step(fam):
                 if s["skill_name"] == "comp-paper-zh")
 
 
-def test_lowfreq_pipeline_keeps_8_steps():
-    """三族管线步数与技能链钉死（8 步低频链；缩减须显式改本测试）。"""
-    expected = ["comp-problem-analysis", "comp-modeling", "comp-code", "paper-figure",
-                "paper-figure-drawio", "comp-review", "comp-paper-zh", "comp-compile-zh"]
+def test_lowfreq_pipeline_keeps_14_steps():
+    """三族管线步数与技能链钉死（14 步全链；缩减须显式改本测试）。"""
+    expected = ["comp-problem-analysis", "comp-literature", "comp-modeling", "comp-code",
+                "paper-figure", "paper-figure-drawio", "comp-review", "comp-paper-zh",
+                "comp-consistency", "comp-compile-zh", "comp-visual-review", "comp-editor",
+                "comp-final-review", "comp-final-audit"]
     for fam in FAMILIES:
         chain = [s["skill_name"] for s in TEMPLATES[fam]["sub_steps"]]
         assert chain == expected, f"{fam}: {chain}"
@@ -77,8 +80,9 @@ def test_lowfreq_assets_all_exist():
 
 def test_skill_md_branch_fail_fast_no_silent_cp():
     """SKILL.md 三族分支（2026-09-27 起为通用 $TMPL 分派 + 逐文件复制）：
-    三族各有 TMPL="{族目录}" case 分支；复制前有目录存在性断言；
-    逐文件 cp 带 || { … exit 1; } 显式失败，不再 2>/dev/null 吞错。"""
+    三族各有 TMPL="{族目录}" case 分支；复制循环自 W-SLIM 起外提到
+    references/step_1_template.md（复制前有目录存在性断言，逐文件 cp
+    带 || { … exit 1; } 显式失败，不再 2>/dev/null 吞错）。"""
     # 三族 case 分支仍在（映射到 _templates/<族>/ 目录）
     for _fam, (d, _cls) in FAMILIES.items():
         branch_re = re.compile(r'TMPL="' + re.escape(d) + r'"')
@@ -88,11 +92,11 @@ def test_skill_md_branch_fail_fast_no_silent_cp():
         r'for _f in "\$TMPL_BASE/\$TMPL/"\*\.tex[^\n]*\n'
         r'[^\n]*\[ -e "\$_f" \] \|\| continue\n'
         r'[ \t]*cp "\$_f" paper/ \|\| \{ [^\n]*exit 1; \}')
-    m = loop_re.search(SKILL_MD)
+    m = loop_re.search(STEP1_REF)
     assert m, "未找到无吞错的逐文件 cp 循环（可能仍是整目录 glob 或 2>/dev/null 式静默）"
     assert "2>/dev/null" not in m.group(0), "复制循环不得 2>/dev/null 吞错"
     # 复制前的目录存在性断言（守护语义：模板目录缺失须显式失败）
-    guard = SKILL_MD[max(0, m.start() - 400):m.start()]
+    guard = STEP1_REF[max(0, m.start() - 400):m.start()]
     assert '[ -d "$TMPL_BASE/$TMPL" ]' in guard, "复制循环前缺目录存在性断言"
 
 

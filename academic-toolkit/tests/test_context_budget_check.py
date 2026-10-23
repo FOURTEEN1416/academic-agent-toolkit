@@ -49,10 +49,9 @@ def test_real_repo_has_no_local_pollution() -> None:
 def test_real_repo_reports_resident_tax() -> None:
     """常驻税必须被量化报告（这是本工具存在的理由）。
 
-    下限取公开交付口径 **250**（2026-09-24 实测 clone 即所见口径；本机盘面 255 =
-    250 + 5 个被 gitignore 隔离的无 License 技能）。⚠️ 棘轮必须按 **clone 口径**
-    设——硬编码本机盘面数会让 CI（clone 无隔离件）必红，且本机因隔离件垫高而
-    假绿（2026-09-24 实锤：W3 清洗 255→250 后此断言未随批下调，CI 连续红一天）。
+    下限取公开交付口径 **250**（2026-09-24 实测 clone 即所见口径）。⚠️ 棘轮必须按
+    **clone 口径**设——硬编码本机盘面数会让 CI（clone 缺隔离件）必红，且本机因
+    隔离件垫高而假绿（2026-09-24 实锤：W3 清洗 255→250 后此断言未随批下调，CI 连续红一天）。
     """
     res = cb.measure()
     assert res["est_resident_tokens"] > 0

@@ -486,6 +486,28 @@ def _number_candidates(value: float) -> list[str]:
     return candidates
 
 
+_PAPER_SOURCE_SCOPE = None
+
+
+def _paper_source_scope_module():
+    """加载技能侧唯一 active-sections 解析器（与编译/检查脚本同一份实现）。
+
+    不复制一份 TeX 解析规则到引擎：分章范围口径必须与 skills/_utils 的
+    paper_source_scope 一致，避免引擎与检查器各认一套装配面。
+    """
+    global _PAPER_SOURCE_SCOPE
+    if _PAPER_SOURCE_SCOPE is None:
+        import importlib.util
+        path = PROJECT_ROOT / "skills" / "_utils" / "paper_source_scope.py"
+        if not path.is_file():
+            raise ImportError(f"active sections 解析器缺席: {path}")
+        spec = importlib.util.spec_from_file_location("acat_paper_source_scope", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _PAPER_SOURCE_SCOPE = module
+    return _PAPER_SOURCE_SCOPE
+
+
 def _body_citation_markers(text: str) -> list[str]:
     """从论文全文提取「正文区」的 [n] 引用标记。
 
@@ -1283,13 +1305,42 @@ class QualityGate:
 
         这是 comp-paper-zh/en 在写作阶段的门禁，避免写完才发现数字与结果脱节。
         完整的一致性合同（CONSISTENCY_REPORT.json）仍由 comp-consistency 步骤负责（check_consistency_evidence）。
+
+        W5：正文范围从"只看 paper/main.tex 装配壳"改为全部 active sections
+        （main.tex 的 \\input/\\include 递归展开，\\includeonly 生效）——分章正文
+        里的数字漂移才能在写作步被抓到，而不是等编译后人工发现。通过条件不变：
+        至少命中一个结果关键数字；不设每问/每节阈值。
         """
-        tex = self.workspace / "paper" / "main.tex"
-        md = self.workspace / "paper" / "main.md"
-        paper = tex if tex.is_file() else (md if md.is_file() else None)
-        if paper is None:
+        paper_dir = self.workspace / "paper"
+        tex = paper_dir / "main.tex"
+        md = paper_dir / "main.md"
+        contents: dict[str, str] = {}
+        scope_note = ""
+        scope = None
+        if tex.is_file():
+            sources: list[Path] = []
+            try:
+                scope = _paper_source_scope_module()
+                sources = scope.active_sources(paper_dir)
+            except (OSError, ValueError, ImportError, AttributeError) as exc:
+                scope_note = f"active sections 解析失败，退回 main.tex：{exc}"
+            if not sources:
+                sources = [tex]
+            for path in sources:
+                try:
+                    label = (scope.source_label(path, paper_dir).as_posix()
+                             if scope is not None else Path(path).name)
+                except (ValueError, OSError):
+                    label = Path(path).name
+                try:
+                    contents[label] = Path(path).read_text(encoding="utf-8", errors="ignore")
+                except OSError:
+                    continue
+        elif md.is_file():
+            contents["main.md"] = md.read_text(encoding="utf-8", errors="ignore")
+        if not contents:
             return {"ok": False, "reason": "未找到 paper/main.tex 或 paper/main.md"}
-        paper_text = paper.read_text(encoding="utf-8", errors="ignore")
+        paper_text = "\n".join(contents.values())
 
         result_numbers: list[float] = []
         results_json = self.workspace / "figures" / "all_results.json"
@@ -1308,16 +1359,25 @@ class QualityGate:
 
         paper_numbers = {float(m) for m in re.findall(r"-?\d+(?:\.\d+)?", paper_text) if _moderate_number(float(m))}
         hits = 0
+        section_hits: dict[str, int] = {}
         for value in result_numbers:
-            for candidate in _number_candidates(value):
-                if candidate in paper_text:
-                    hits += 1
-                    break
+            candidates = _number_candidates(value)
+            matched_sections = [label for label, text in contents.items()
+                                if any(candidate in text for candidate in candidates)]
+            if matched_sections:
+                hits += 1
+                for label in matched_sections:
+                    section_hits[label] = section_hits.get(label, 0) + 1
+        detail = {"checked_numbers": len(result_numbers), "hits": hits,
+                  "sections": list(contents), "section_hits": section_hits}
+        if scope_note:
+            detail["scope_note"] = scope_note
         if hits == 0:
-            return {"ok": False, "paper_numbers": len(paper_numbers),
+            return {"ok": False, "paper_numbers": len(paper_numbers), **detail,
                     "reason": "论文正文未引用任何结果关键数字（可 `\\ref` 或直接写数值）"}
-        return {"ok": True, "checked_numbers": len(result_numbers), "hits": hits,
-                "reason": f"论文引用 {hits}/{len(result_numbers)} 个结果关键数字"}
+        return {"ok": True, **detail,
+                "reason": f"论文引用 {hits}/{len(result_numbers)} 个结果关键数字"
+                          f"（active sections: {len(contents)} 个文件）"}
 
     def check_ai_flavor(self) -> dict:
         """AI 痕迹闸：正文工程/质检语汇与内部标记密度不得高于获奖论文水平。

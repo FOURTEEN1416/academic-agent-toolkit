@@ -8,6 +8,7 @@
   4. **DEGRADED 不折算为 PASS**（TOOL_GAP 原则）：检查件因缺依赖跑不起来时必须
      单独标注，不允许当成通过。
 """
+import re
 import subprocess
 
 import pytest
@@ -19,6 +20,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools"))
 
 import project_health_check as phc  # noqa: E402
+import sync_baselines as sb  # noqa: E402
 
 
 # 真仓体检含 pytest 收集（~5s）+ 7 个子进程，整个文件只跑一次并缓存
@@ -225,3 +227,121 @@ def test_cli_skip_slow_runs_fast(cli_health_proc) -> None:
 
 def test_cli_strict_returns_zero_on_healthy_repo(cli_health_proc) -> None:
     assert cli_health_proc.returncode == 0, cli_health_proc.stdout[-500:]
+
+
+# ---------- 基线单源同步器（sync_baselines，2026-10-23 W6 批） ----------
+
+def _fake_repo(tmp_path: Path) -> None:
+    """最小权威文档面：当前基线 999 + 一条历史横幅行（790）。
+
+    README 用 CRLF 写入：`--accept` 必须原样保留行尾（2026-10-23 首跑实测曾把
+    整文件 CRLF 折成 LF，本 fixture 钉住该回归）。
+    """
+    (tmp_path / "dev-docs").mkdir()
+    readme = (
+        "![Tests](https://img.shields.io/badge/tests-999_collected-22c55e)\n"
+        "![Capabilities](https://img.shields.io/badge/capabilities-320-0ea5e9)\n"
+        "![Skills](https://img.shields.io/badge/skills-262_tracked-8b5cf6)\n"
+        "> **一句话**：262 个随仓技能\n"
+        "# 口径一（仓库根，回归门禁口径）：999 collected（散文保持不变）\n"
+        "| ✅ **测试基线** | 仓库根 **999 collected**（散文保持不变） |\n"
+    )
+    (tmp_path / "README.md").write_bytes(readme.replace("\n", "\r\n").encode("utf-8"))
+    (tmp_path / "AGENTS.md").write_text(
+        "| 仓库根 `pytest -q` | x | **999 collected** | y |\n"
+        "| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **999 collected** | y |\n",
+        encoding="utf-8")
+    (tmp_path / "pytest.ini").write_text(
+        "# 本机完整仓 **999 collected**（当前基线）\n"
+        "# 历史：本机完整仓 **790 passed / 0 failed**（保留作历史）\n",
+        encoding="utf-8")
+    (tmp_path / "dev-docs" / "truth-index.md").write_text(
+        "- 测试：**本机完整仓** `pytest -q` = **999 collected**\n"
+        "- 主控收口轮记录保留作历史：**本机完整仓** `pytest -q` = **790 passed / 0 failed**\n",
+        encoding="utf-8")
+
+
+def _fake_counts(tests: int = 1085, skills: int = 263, capabilities: int = 321) -> dict:
+    return {name: {"available": True, "reason": "", "count": value}
+            for name, value in (("tests", tests), ("skills", skills),
+                                ("capabilities", capabilities))}
+
+
+def test_sync_baselines_check_reports_every_authoritative_location(tmp_path, monkeypatch) -> None:
+    _fake_repo(tmp_path)
+    monkeypatch.setattr(sb, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(sb, "measure", lambda skip_slow=False: _fake_counts())
+    res = sb.check()
+    assert not res["ok"]
+    failing = {(row["file"], row["line"]) for row in res["rows"] if not row["ok"]}
+    assert ("pytest.ini", 1) in failing
+    assert ("README.md", 6) in failing       # 仓库根 **999 collected**
+    assert ("AGENTS.md", 2) in failing       # 工具箱内口径行（2026-10-23 前的锚点盲区）
+    assert ("dev-docs/truth-index.md", 1) in failing
+    assert res["measured"] == {"tests": 1085, "skills": 263, "capabilities": 321}
+
+
+def test_sync_baselines_accept_rewrites_only_capture_groups(tmp_path, monkeypatch) -> None:
+    _fake_repo(tmp_path)
+    monkeypatch.setattr(sb, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(sb, "measure", lambda skip_slow=False: _fake_counts())
+
+    dry = sb.accept(dry_run=True)
+    assert dry["changes"]
+    assert (tmp_path / "pytest.ini").read_text(encoding="utf-8").count("999") == 1, \
+        "dry-run 不得写盘"
+
+    sb.accept(dry_run=False)
+    readme = (tmp_path / "README.md").read_text(encoding="utf-8")
+    agents = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+    pytest_ini = (tmp_path / "pytest.ini").read_text(encoding="utf-8")
+    truth = (tmp_path / "dev-docs" / "truth-index.md").read_text(encoding="utf-8")
+    # 捕获组数字全部换成实测值
+    assert "tests-1085_collected" in readme
+    assert "capabilities-321-" in readme
+    assert "skills-263_tracked" in readme
+    assert "263 个随仓技能" in readme
+    assert "：1085 collected" in readme and "仓库根 **1085 collected**" in readme
+    assert "工具箱自有 tests | **1085 collected**" in agents
+    assert "本机完整仓 **1085 collected**" in pytest_ini
+    assert "= **1085 collected**" in truth
+    # prose 与历史横幅原样保留
+    assert "散文保持不变" in readme
+    assert "（当前基线）" in pytest_ini
+    assert "本机完整仓 **790 passed / 0 failed**（保留作历史）" in pytest_ini
+    assert "记录保留作历史：**本机完整仓** `pytest -q` = **790 passed / 0 failed**" in truth
+    # 同步后 check 必须自洽
+    after = sb.check()
+    assert after["ok"], after["problems"]
+    # 行尾必须原样保留（README fixture 为 CRLF）
+    raw = (tmp_path / "README.md").read_bytes()
+    assert raw.count(b"\r\n") == 6, "CRLF 行尾被改写"
+    assert b"\n" not in raw.replace(b"\r\n", b""), "混入裸 LF"
+
+
+def test_drift_sources_anchor_readme_install_line_and_agents_toolbox_row() -> None:
+    """2026-10-23 实测：这两行曾无任何漂移锚点（regex 扫描零命中），
+    sync_baselines --accept 因此传播不到——本用例钉住锚点覆盖。"""
+    readme = (ROOT.parent / "README.md").read_text(encoding="utf-8")
+    agents = (ROOT.parent / "AGENTS.md").read_text(encoding="utf-8")
+    readme_targets = [ln for ln in readme.splitlines() if "回归门禁口径" in ln]
+    agents_targets = [ln for ln in agents.splitlines() if "工具箱自有 tests" in ln]
+    assert readme_targets and agents_targets
+
+    def anchored(rel: str, line: str) -> bool:
+        return any(re.search(pattern, line)
+                   for src, pattern, _metric in sb._sources() if src == rel)
+
+    assert all(anchored("README.md", ln) for ln in readme_targets)
+    assert all(anchored("AGENTS.md", ln) for ln in agents_targets)
+
+
+def test_print_baselines_cli_emits_one_machine_readable_line() -> None:
+    proc = subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "project_health_check.py"),
+         "--print-baselines", "--skip-slow"],
+        cwd=str(ROOT), capture_output=True, text=True, encoding="utf-8",
+        errors="replace", timeout=120)
+    assert proc.returncode == 0, proc.stderr[-400:]
+    assert re.fullmatch(r"tests=unknown skills=\d+ capabilities=\d+", proc.stdout.strip()), \
+        proc.stdout

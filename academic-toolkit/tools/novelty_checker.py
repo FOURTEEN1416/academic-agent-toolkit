@@ -4,7 +4,11 @@ novelty_checker.py - 查重（避免和历年国一撞方法）
 
 用法：
   python novelty_checker.py --method "遗传算法"
-  python novelty_checker.py --method "ARIMA" --check
+  python novelty_checker.py --method "ARIMA" --json
+  python novelty_checker.py --list-common
+
+口径：novelty_score 是"与离线常见方法名字面表的重合度反向指标"，
+命中数越多分越低；0 命中输出"未知"，需人工/语料比对，不构成新颖性结论。
 """
 
 import argparse
@@ -12,7 +16,8 @@ import json
 import sys
 
 
-# 历年国一常见方法（基于近 5 年公开数据 + 公开获奖论文统计）
+# 离线常见方法名字面表（手工维护，约 73 条；不接入仓内 2021-2025 获奖论文语料，
+# 故只能做字面重合检测，不能作为新颖性判据）
 COMMON_NSF_METHODS = {
     "优化类": [
         "线性规划", "整数规划", "动态规划", "遗传算法", "蚁群算法", "粒子群",
@@ -43,61 +48,75 @@ COMMON_NSF_METHODS = {
 }
 
 
-def detect_category(method: str) -> str:
-    """根据方法名猜测题型"""
+def _matched_common_methods(method: str) -> list:
+    """返回 method 字面命中的离线常见方法名（跨题型去重）。
+
+    只做字面包含匹配：库内方法名出现在 method 中即算命中。
+    若某命中名是另一命中名的子串（如 SARIMA→ARIMA、图神经网络→神经网络），
+    只保留更长者，避免单一方法被重复计数。
+    """
     method_lower = method.lower()
-    for cat, methods in COMMON_NSF_METHODS.items():
+    matched = []
+    for methods in COMMON_NSF_METHODS.values():
         for m in methods:
-            if m.lower() in method_lower or method_lower in m.lower():
-                return cat
+            if m.lower() in method_lower and m not in matched:
+                matched.append(m)
+    return [
+        m for m in matched
+        if not any(m != other and m.lower() in other.lower() for other in matched)
+    ]
+
+
+def detect_category(method: str) -> str:
+    """按命中方法所属题型给出提示性分类（编辑性口径，非官方题型分类）"""
+    matched = _matched_common_methods(method)
+    for cat, methods in COMMON_NSF_METHODS.items():
+        if any(m in methods for m in matched):
+            return cat
     return "未知"
 
 
 def calculate_novelty(method: str) -> dict:
-    """计算方法的新颖度（0-1，1 = 完全新颖）"""
+    """计算与离线常见方法库的字面重合度（单调口径：命中越多，分越低）。
+
+    novelty_score 不是新颖性证明：工具无法判断"有无改进"，
+    0 命中只代表离线表未收录，一律输出"未知"。
+    """
+    matched = _matched_common_methods(method)
+    hits = len(matched)
     category = detect_category(method)
-    if category == "未知":
-        return {
-            "method": method,
-            "category": "未知",
-            "novelty_score": 0.5,
-            "is_common": False,
-            "suggestion": "未识别的方法，建议人工评估"
-        }
-
-    # 检查是否在常见国一方法中
-    common_methods = COMMON_NSF_METHODS[category]
-
-    # 基于"包含多少个常见方法"打分
-    hits = sum(1 for m in common_methods if m.lower() in method.lower())
 
     if hits == 0:
-        novelty = 0.9  # 完全没见过的
-        is_common = False
-    elif hits == 1:
-        novelty = 0.7  # 单方法
-        is_common = True
-    elif hits == 2:
-        novelty = 0.5  # 组合 2 个
-        is_common = True
-    else:
-        novelty = 0.3  # 组合 3+ 个（很常见）
-        is_common = True
+        return {
+            "method": method,
+            "category": category,
+            "common_method_hits": 0,
+            "common_methods_matched": [],
+            "novelty_score": None,
+            "is_common": None,
+            "verdict": "未知",
+            "suggestion": (
+                "离线方法库未命中：未命中不等于新颖，不构成创新性结论。"
+                "需人工/语料比对后再判断是否与历年国一撞方法"
+                "（真源：academic-toolkit/data/historical_problems.json + 获奖论文语料）。"
+            ),
+        }
 
-    # 判定
-    if novelty <= 0.3:
-        suggestion = f"风险高：'{method}' 与历年国一方法高度雷同，必须创新（魔改/组合/加新机制）"
-    elif novelty < 0.7:
-        suggestion = f"可接受：'{method}' 较常见，建议在论文中强调'为什么选这个方法 + 差异化点'"
-    else:
-        suggestion = f"新颖度高：'{method}' 不常见，可作为卖点"
-
+    novelty = round(1.0 / (1 + hits), 2)
     return {
         "method": method,
         "category": category,
+        "common_method_hits": hits,
+        "common_methods_matched": matched,
         "novelty_score": novelty,
-        "is_common": is_common,
-        "suggestion": suggestion
+        "is_common": True,
+        "verdict": "命中离线常见方法名",
+        "suggestion": (
+            f"离线库命中 {hits} 个常见方法名（{'、'.join(matched)}），命中越多分越低。"
+            "纯用标准方法（无改进/无差异化）不构成创新点，判断口径见 "
+            "academic-toolkit/data/case_patterns.md §3；"
+            "工具无法识别'有无改进'，差异化点需人工说明并给出量化验证。"
+        ),
     }
 
 
@@ -124,7 +143,7 @@ def main():
     args = parser.parse_args()
 
     if args.list_common:
-        print("\n=== 历年国一常见方法库 ===\n")
+        print("\n=== 离线常见方法名字面表（手工维护）===\n")
         for cat, methods in COMMON_NSF_METHODS.items():
             print(f"[{cat}]")
             for m in methods:
@@ -145,10 +164,19 @@ def main():
 
     print(f"\n[方法] {result['method']}")
     print(f"[题型] {result['category']}")
-    print(f"[新颖度] {result['novelty_score']:.2f} / 1.00")
-    print(f"[是否常见] {'是' if result['is_common'] else '否'}")
+    print(f"[命中常见方法数] {result['common_method_hits']}")
+    if result["common_methods_matched"]:
+        print(f"[命中方法] {'、'.join(result['common_methods_matched'])}")
+    if result["novelty_score"] is None:
+        print("[新颖度] 未知（离线库未命中，需人工/语料比对）")
+    else:
+        print(f"[新颖度] {result['novelty_score']:.2f} / 1.00（越高=字面重合越少，不是新颖性证明）")
+    if result["is_common"] is None:
+        print("[是否常见] 未知")
+    else:
+        print(f"[是否常见] {'是' if result['is_common'] else '否'}")
     print(f"\n[建议]\n  {result['suggestion']}\n")
-    print("[创新方向建议]")
+    print("[创新方向套路（启发用，非结论）]")
     for i, s in enumerate(result["innovation_suggestions"], 1):
         print(f"  {i}. {s}")
 

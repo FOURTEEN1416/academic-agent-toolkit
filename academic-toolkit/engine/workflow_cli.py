@@ -227,6 +227,59 @@ def _read_json_input(inline: str, file_path: str, option: str) -> Any:
     return json.loads(inline)
 
 
+_SESSION_TICKET_FIELDS = ("database", "workflow_id", "step_id", "attempt_id", "revision")
+
+
+def _load_session_ticket(path: str) -> dict[str, Any]:
+    """读取执行会话 ticket（context 落盘的真实身份）；缺字段即拒绝，不猜。"""
+    value = str(path or "").strip()
+    if not value:
+        raise WorkflowCliError("--session 需要 ticket 路径（工作区 .engine/sessions/<attempt_id>.json）")
+    try:
+        ticket = json.loads(Path(value).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise WorkflowCliError(f"--session ticket 读取失败: {exc}") from None
+    if not isinstance(ticket, dict):
+        raise WorkflowCliError("--session ticket 必须是 JSON 对象")
+    missing = [name for name in _SESSION_TICKET_FIELDS if ticket.get(name) in (None, "")]
+    if missing:
+        raise WorkflowCliError(f"--session ticket 缺少字段: {', '.join(missing)}")
+    try:
+        int(ticket["revision"])
+    except (TypeError, ValueError):
+        raise WorkflowCliError("--session ticket 的 revision 必须是整数") from None
+    return ticket
+
+
+def _session_identity(ticket: dict[str, Any]) -> tuple[str, str, str, int]:
+    return (str(ticket["workflow_id"]), str(ticket["step_id"]),
+            str(ticket["attempt_id"]), int(ticket["revision"]))
+
+
+def _reject_handbuilt_final_evidence(store, step_id: str, evidence: dict) -> None:
+    """终审/终审复审不接受无持久 collection 的手拼证据。
+
+    这两个步骤的证据必须来自真实执行集合（--session / execution.session finish），
+    或由集成方提供带 collection 的完整记录；手拼 commands 无法证明"审计真的跑过"。
+    其他步骤保留 legacy 兼容（身份字段已由引擎回填）。
+    """
+    if isinstance(evidence.get("collection"), dict) and evidence.get("collection"):
+        return
+    target = str(step_id or evidence.get("step_id") or "")
+    if not target:
+        return  # 身份缺失由 runner 的 target 校验显式拒绝
+    try:
+        step = store.get_step(target)
+    except (KeyError, ValueError):
+        return
+    if step.name in {"comp-final-audit", "comp-final-review"}:
+        raise WorkflowCliError(
+            f"步骤 {step.name} 不接受没有执行集合（collection）的手拼 evidence。"
+            "终审/终审复审证据只能由引擎按真实操作取证：改用 "
+            "--session <工作区/.engine/sessions/<attempt_id>.json>"
+            "（preflight 只读验收 / complete 提交），或经 execution.session finish 提交。")
+
+
 def _action_payload(action) -> dict:
     """StepAction 的 CLI JSON 序列化（next/retry 共用，保持输出风格一致）。"""
     return {
@@ -256,7 +309,8 @@ def _action_payload(action) -> dict:
         "companion_skills": action.companion_skills,
         # C2 资产机制（2026-09-12）：每步非技能资产清单随 next/retry 输出下发
         "assets": action.assets,
-        # D3 门禁前移（2026-09-13）：true 时 agent 须在回报 complete 前跑 quick_gates 轻检
+        # D3 门禁前移（2026-09-13；W5 起改由引擎执行）：true 时 finish 的
+        # early_quality 直接跑页数/字号/泄漏轻检，不再要求 agent 先手跑脚本。
         "quick_gates": action.quick_gates,
         "instructions": action.execution_instructions(),
     }
@@ -327,32 +381,37 @@ def _build_parser() -> argparse.ArgumentParser:
         "complete",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "evidence 最小示例（schema 校验字段不可省）：\n"
-            '  --evidence \'{"schema_version": 1, "agent": "my-agent", "step_id": "<next 返回的 step_id>",\n'
-            "    \"skill_name\": \"comp-prob-analysis\", \"skill_sha256\": \"<该步 SKILL.md 的 SHA-256>\",\n"
-            "    \"commands\": [{\"command\": \"python scripts/build_analysis.py\", \"returncode\": 0, \"cwd\": \".\"}],\n"
-            "    \"inputs\": [], \"outputs\": [\"PROBLEM_ANALYSIS.md\"],\n"
-            "    \"companion_skills\": {\"used\": [], \"skipped\": []}}\'\n"
-            "Windows 引号地狱时改用文件版：--evidence-file evidence.json"
+            "首选：--session <ticket>（execution.session context 落盘的 .engine/sessions/<attempt_id>.json）\n"
+            "  python -m engine.workflow_cli complete --session .engine/sessions/<attempt_id>.json\n"
+            "  身份与证据由引擎按真实操作机械组装，无需手填哈希/返回码。\n"
+            "旧式手工证据（legacy 兼容；comp-final-audit / comp-final-review 拒绝无 collection 的手拼证据）：\n"
+            "  --evidence-file evidence.json（schema_version + commands/inputs/outputs 必须真实提供）；\n"
+            "  agent/attempt_id/expected_revision/skill_name/skill_sha256 由引擎从 StepAction 回填，不必手抄；\n"
+            "  commands 缺真实命令、或写成描述性伪命令，照旧拒绝。"
         ),
+
     )
-    complete.add_argument("--wf", required=True)
+    complete.add_argument("--wf", default="", help="工作流 ID（--session 时从 ticket 读取）")
     complete.add_argument("--ok", default="true")
     complete.add_argument("--artifacts", default="")
     complete.add_argument("--stderr", default="")
-    complete.add_argument("--evidence", default="{}", help="Desktop execution evidence as a JSON object")
+    complete.add_argument("--session", default="",
+                          help="执行会话 ticket 路径（首选入口；身份/证据由引擎取证）")
+    complete.add_argument("--evidence", default="{}", help="legacy：手工 execution evidence JSON 对象")
     complete.add_argument("--evidence-file", default="",
-                          help="从 JSON 文件读取 execution evidence（与 --evidence 二选一）")
+                          help="legacy：从 JSON 文件读取 execution evidence（与 --evidence 二选一）")
     complete.add_argument("--db", default="")
     complete.add_argument("--step-id", default="", help="next 返回的 step_id，失败回报也必须指定")
     complete.add_argument("--attempt-id", default="")
     complete.add_argument("--expected-revision", type=int, default=None)
     complete.add_argument("--request-id", default="", help="同一提交重发使用同一标识")
     preflight = sub.add_parser("preflight", help="只读批量验收，不推进工作流")
-    preflight.add_argument("--wf", required=True)
+    preflight.add_argument("--wf", default="", help="工作流 ID（--session 时从 ticket 读取）")
     preflight.add_argument("--db", default="")
     preflight.add_argument("--artifacts", default="")
-    preflight.add_argument("--evidence", default="{}")
+    preflight.add_argument("--session", default="",
+                           help="执行会话 ticket 路径：引擎取证后只读验收，不写状态")
+    preflight.add_argument("--evidence", default="{}", help="legacy：手工 execution evidence JSON 对象")
     preflight.add_argument("--evidence-file", default="")
 
     # 重试失败步骤（A2 审计修复：FAILED 后此前无带内恢复路径，恢复被迫手改 SQLite）
@@ -406,12 +465,15 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # 最终交付审计
     final_audit = sub.add_parser("final-audit")
-    final_audit.add_argument("--workspace", required=True)
+    final_audit.add_argument("--workspace", default="",
+                             help="工作区路径（--session 时可从工作流元数据反查）")
     final_audit.add_argument("--db", default="")
     final_audit.add_argument("--wf", default="", help="绑定指定工作流；缺省按工作区选择")
     final_audit.add_argument("--out", default="")
+    final_audit.add_argument("--session", default="",
+                             help="执行会话 ticket 路径：引擎取证的只读候选预审")
     final_audit.add_argument("--evidence-file", default="",
-                             help="当前最终步骤的真实候选 evidence；仅预审对账，不接受产物、不推进状态")
+                             help="legacy：手工候选 evidence 文件；仅预审对账，不接受产物、不推进状态")
 
     # 操作审计（读取 plugin 的 operations.jsonl + SQLite + evidence）
     audit = sub.add_parser("audit")
@@ -478,10 +540,22 @@ def _run_command(args, parser) -> int:
     # 以下命令需要完整引擎（store/runner/quality_gates）
     WorkflowRunner, WorkflowStore = _load_runner_types()
 
+    # 单入口会话（W5）：--session 从 ticket 读取真实身份，--wf/--db 不再是必要条件。
+    ticket = None
+    if args.command in {"complete", "preflight", "final-audit"} and getattr(args, "session", ""):
+        ticket = _load_session_ticket(args.session)
+        args.wf = str(ticket["workflow_id"])
+        args.db = str(ticket["database"])
+    elif args.command in {"complete", "preflight"} and not str(getattr(args, "wf", "") or "").strip():
+        raise WorkflowCliError(f"{args.command} 需要 --session <ticket> 或 --wf <工作流 ID>")
+    if args.command == "final-audit" and ticket is None \
+            and not str(getattr(args, "workspace", "") or "").strip():
+        raise WorkflowCliError("final-audit 需要 --workspace <工作区> 或 --session <ticket>")
+
     workspace_for_db = Path(args.workspace) if args.command in {"start", "audit", "final-audit"} else None
     if args.db:
         db = Path(args.db)
-    elif workspace_for_db is not None:
+    elif workspace_for_db is not None and str(getattr(args, "workspace", "") or "").strip():
         db = default_workflow_db(workspace_for_db)
     elif args.command in {"next", "complete", "preflight", "retry", "report", "stall", "backfill"}:
         try:
@@ -554,10 +628,31 @@ def _run_command(args, parser) -> int:
             return 0 if result.status in ("advanced", "completed") else 1
 
         if args.command in {"complete", "preflight"}:
+            if ticket is not None:
+                identity = _session_identity(ticket)
+                if args.command == "preflight":
+                    # 只读取证验收：collect_execution_evidence + _validate_step，不落库不推进
+                    report = runner.validate_recorded_step(*identity)
+                    print(json.dumps(report, ensure_ascii=False, indent=2))
+                    return 0 if report["ok"] else 1
+                result = runner.complete_recorded_step(*identity)
+                _save_run_log(runner, args.wf)
+                output = {
+                    "status": result.status,
+                    "step_id": result.step_id,
+                    "message": result.message,
+                }
+                output["diagnostics"] = result.diagnostics
+                output["replayed"] = result.replayed
+                if result.checkpoint_id:
+                    output["checkpoint_id"] = result.checkpoint_id
+                print(json.dumps(output, ensure_ascii=False, indent=2))
+                return 0 if result.status in ("advanced", "completed", "waiting_checkpoint") else 1
             evidence = _read_json_input(args.evidence, str(getattr(args, "evidence_file", "") or ""),
                                         "--evidence-file")
             if not isinstance(evidence, dict):
                 raise WorkflowCliError("execution evidence 必须是 JSON 对象")
+            _reject_handbuilt_final_evidence(store, str(getattr(args, "step_id", "") or ""), evidence)
             step_result = StepResult(
                 ok=str(getattr(args, "ok", "true")).lower() == "true",
                 artifacts=[a.strip() for a in args.artifacts.split(",") if a.strip()],
@@ -671,10 +766,20 @@ def _run_command(args, parser) -> int:
 
         if args.command == "final-audit":
             from .audit_store import write_final_audit_report
-            workspace = Path(args.workspace)
+            workspace = Path(args.workspace) if str(getattr(args, "workspace", "") or "").strip() else None
+            if workspace is None:
+                workspace = _workflow_workspace(store, args.wf)
+                if workspace is None:
+                    raise WorkflowCliError("无法从工作流元数据反查工作区；请显式提供 --workspace")
             out = Path(args.out) if args.out else None
             candidate = None
-            if args.evidence_file:
+            if ticket is not None:
+                # 引擎取证的只读候选预审：证据来自真实执行集合，不写库、不推进
+                try:
+                    candidate = runner.recorded_final_candidate(*_session_identity(ticket))
+                except (ValueError, KeyError) as exc:
+                    raise WorkflowCliError(f"候选预审证据无效: {exc}") from None
+            elif args.evidence_file:
                 if not args.wf:
                     raise WorkflowCliError("候选预审必须通过 --wf 指定工作流")
                 evidence = _read_json_input("", args.evidence_file, "--evidence-file")
