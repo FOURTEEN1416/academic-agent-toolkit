@@ -454,11 +454,19 @@ def test_runner_approval_call_site_passes_store_guard(tmp_path, monkeypatch):
     assert approved[0]["payload"]["attributed_event_count"] == 1
 
 
+# G4/G2 设计文档在 dev-docs/（内部真源根，全私有零入库）：公开 clone 缺席时只丢
+# 设计文档那半段断言，tracked 生产资料 APPROVAL_BOUNDARY 照常断言——口径同
+# test_award_layout_index.py（gitignored 私有资产缺席按语义 SKIP，不得以文件缺失红 CI）。
+DESIGN_DOC = (ROOT.parent / "dev-docs" / "designs"
+              / "2026-10-23-G4-G2-引擎改造设计.md")
+
+
 def test_approval_boundary_is_documented():
-    design = (ROOT.parent / "dev-docs" / "designs"
-              / "2026-10-23-G4-G2-引擎改造设计.md").read_text(encoding="utf-8")
+    assert "恶意本地进程残余类" in APPROVAL_BOUNDARY
+    assert "不是沙箱" in APPROVAL_BOUNDARY
+    if not DESIGN_DOC.is_file():
+        pytest.skip("G4/G2 设计文档为 dev-docs 私有真源（零入库），公开 clone 语义缺位")
+    design = DESIGN_DOC.read_text(encoding="utf-8")
     assert "恶意本地进程残余类，进程内无法防御" in design
     assert "不是沙箱" in design
     assert "可追溯检测" in design
-    assert "恶意本地进程残余类" in APPROVAL_BOUNDARY
-    assert "不是沙箱" in APPROVAL_BOUNDARY
