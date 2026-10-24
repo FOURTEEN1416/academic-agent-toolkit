@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import sys
 import tempfile
@@ -14,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from engine.workflow_runner import WorkflowRunner  # noqa: E402
 from engine.workflow_store import WorkflowStore  # noqa: E402
+from execution.commands import _fs_path, _reproduction_short_id  # noqa: E402
 from execution.context import digest  # noqa: E402
 from execution.session import ExecutionSession  # noqa: E402
 
@@ -24,16 +26,15 @@ def _sha(data: bytes) -> str:
 
 @pytest.fixture
 def workdir():
-    # 复现目录含 candidate/hash/attempt/submission 四段；Windows MAX_PATH 下
-    # pytest 的深层 tmp_path 会超长，用短前缀临时目录承载真实工作区。
+    # 短前缀临时目录承载真实工作区，避免测试自身路径影响长路径用例的边界。
     path = Path(tempfile.mkdtemp(prefix="g2-repro-"))
     try:
         yield path
     finally:
-        shutil.rmtree(path, ignore_errors=True)
+        shutil.rmtree(_fs_path(path), ignore_errors=True)
 
 
-def make_session(tmp_path, skill_name="demo"):
+def make_session(tmp_path, skill_name="demo", workspace=None):
     skills = tmp_path / f"suite/skills/{skill_name}"
     skills.mkdir(parents=True)
     (skills / "SKILL.md").write_text("Real task instructions for the step.", encoding="utf-8")
@@ -46,7 +47,7 @@ def make_session(tmp_path, skill_name="demo"):
         "metadata": {"skill_binding": {"main_required": True}},
     }]}}
     runner = WorkflowRunner(store, catalog, tmp_path / "suite/skills", audit_root=tmp_path)
-    workflow = runner.start(skill_name, tmp_path / "work", {})
+    workflow = runner.start(skill_name, workspace or (tmp_path / "work"), {})
     session = ExecutionSession(runner, workflow.id)
     session.context()
     return store, workflow, session
@@ -119,11 +120,76 @@ def test_execute_reproduction_copies_inputs_runs_once_and_records_payload(workdi
     assert record["target"] == "mid.txt"
     assert record["hash_match"] is True
     assert record["after_sha256"] == target_sha
-    assert record["mapped_path"].startswith(
-        f"_reproduction/{candidate.id}/{digest(recipe)}/{session.action.attempt_id}/")
+    mapped_root = reproduction["mapped_root"]
+    assert mapped_root["candidate_id"] == candidate.id
+    assert mapped_root["recipe_sha256"] == digest(recipe)
+    assert mapped_root["attempt_id"] == session.action.attempt_id
+    assert mapped_root["submission_id"]
+    short_id = _reproduction_short_id(
+        candidate.id, digest(recipe), session.action.attempt_id, mapped_root["submission_id"])
+    expected_root = f"_reproduction/{short_id}"
+    assert len(expected_root.removeprefix("_reproduction/")) == 16
+    assert mapped_root["path"] == expected_root
+    assert reproduction["mapped_root_path"] == expected_root
+    assert record["mapped_path"] == f"{expected_root}/mid.txt"
+    map_doc = json.loads((session.workspace / expected_root / "map.json").read_text(encoding="utf-8"))
+    assert map_doc["schema"] == "reproduction-map-v1"
+    assert map_doc["mapped_root"] == expected_root
+    assert map_doc["logical_root"] == mapped_root["logical_path"]
+    assert map_doc["candidate_id"] == candidate.id
+    assert map_doc["recipe_sha256"] == digest(recipe)
+    assert map_doc["attempt_id"] == session.action.attempt_id
+    assert map_doc["submission_id"] == mapped_root["submission_id"]
     assert (session.workspace / record["mapped_path"]).read_bytes() == b"X\n1\n2\n"
     # 源工作区只读：候选根没有被复现命令改写。
     assert not (session.workspace / "mid.txt").exists()
+    store.close()
+
+
+def test_fs_path_helper_uses_extended_prefix_only_for_long_absolute_paths():
+    if os.name != "nt":
+        assert _fs_path("/tmp/example.txt") == "/tmp/example.txt"
+        return
+    assert _fs_path("C:\\short.txt") == "C:\\short.txt"
+    long_abs = "C:\\" + "\\".join(["segment" * 8] * 6) + "\\result.txt"
+    assert len(long_abs) > 240
+    extended = _fs_path(long_abs)
+    assert extended.startswith("\\\\?\\")
+    assert "/" not in extended
+    unc = "\\\\server\\share\\" + "x" * 250
+    assert _fs_path(unc).startswith("\\\\?\\UNC\\")
+
+
+def test_reproduction_succeeds_in_deep_workspace(workdir):
+    """工作区绝对路径 >200 字符、复现文件路径 >260 字符时仍可真实执行。"""
+    deep = workdir
+    for _ in range(4):
+        deep = deep / ("nested_" + "x" * 33)
+    workspace = deep / "work"
+    try:
+        Path(_fs_path(workspace)).mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        pytest.skip(f"本机不允许创建深路径，长路径 helper 已由单元用例覆盖: {exc}")
+    store, workflow, session = make_session(workdir, workspace=workspace)
+    raw = b"deep"
+    script = b"from pathlib import Path; Path('out.txt').write_text(Path('raw.csv').read_text() + '!')\n"
+    (session.workspace / "raw.csv").write_bytes(raw)
+    (session.workspace / "solve.py").write_bytes(script)
+    recipe = {"argv": [sys.executable, "solve.py"], "cwd": ".",
+              "inputs": ["solve.py", "raw.csv"], "outputs": ["out.txt"], "mutates": [],
+              "inputs_snapshot": {"raw.csv": _sha(raw), "solve.py": _sha(script)}}
+    candidate = make_candidate(store, workflow, session, recipe=recipe,
+                               target="out.txt", target_sha=_sha(b"deep!"),
+                               inputs={"raw.csv": raw, "solve.py": script})
+
+    result = session.commands.execute_reproduction(_plan(recipe, "out.txt"), candidate.id)
+
+    assert len(str(session.workspace)) > 200
+    assert result["ok"] is True and result["status"] == "succeeded", result
+    record = result["recipes"][0]["targets"][0]
+    mapped_abs = session.workspace / record["mapped_path"]
+    assert len(str(mapped_abs)) > 240
+    assert mapped_abs.read_bytes() == b"deep!"
     store.close()
 
 
@@ -147,8 +213,37 @@ def test_each_reproduction_uses_a_fresh_submission_directory(workdir):
     first_path = first["recipes"][0]["targets"][0]["mapped_path"]
     second_path = second["recipes"][0]["targets"][0]["mapped_path"]
     assert first_path != second_path
+    assert len(first_path.split("/")[1]) == 16
+    assert len(second_path.split("/")[1]) == 16
     assert (session.workspace / first_path).is_file()
     assert (session.workspace / second_path).is_file()
+    store.close()
+
+
+def test_existing_short_reproduction_directory_is_rejected(workdir, monkeypatch):
+    import execution.commands as commands_module
+
+    store, workflow, session = make_session(workdir)
+    raw = b"seed"
+    script = b"from pathlib import Path; Path('out.txt').write_text('x')\n"
+    (session.workspace / "raw.csv").write_bytes(raw)
+    (session.workspace / "solve.py").write_bytes(script)
+    recipe = {"argv": [sys.executable, "solve.py"], "cwd": ".",
+              "inputs": ["solve.py", "raw.csv"], "outputs": ["out.txt"], "mutates": [],
+              "inputs_snapshot": {"raw.csv": _sha(raw), "solve.py": _sha(script)}}
+    candidate = make_candidate(store, workflow, session, recipe=recipe,
+                               target="out.txt", target_sha=_sha(b"x"),
+                               inputs={"raw.csv": raw, "solve.py": script})
+
+    class FixedUUID:
+        hex = "a" * 32
+
+    monkeypatch.setattr(commands_module, "uuid4", lambda: FixedUUID())
+    short_id = _reproduction_short_id(candidate.id, digest(recipe),
+                                      session.action.attempt_id, FixedUUID.hex)
+    (session.workspace / "_reproduction" / short_id).mkdir(parents=True)
+    with pytest.raises(ValueError, match="复现目录已存在"):
+        session.commands.execute_reproduction(_plan(recipe, "out.txt"), candidate.id)
     store.close()
 
 

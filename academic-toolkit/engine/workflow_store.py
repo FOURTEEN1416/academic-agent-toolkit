@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 import threading
@@ -23,6 +24,84 @@ def _json(value: Any) -> str:
 
 def _load(value: str) -> Any:
     return json.loads(value)
+
+
+def _candidate_event_sha256(candidate_id: str, event_type: str, payload: Any,
+                            created_at: str, prev_sha256: str) -> str:
+    """Canonical digest for one candidate event (append-only hash chain).
+
+    ``payload`` may be the stored JSON text or an in-memory mapping; the digest
+    is always computed over the canonical JSON form of the payload object so
+    whitespace/key order cannot create a second valid encoding.
+    """
+    if isinstance(payload, str):
+        try:
+            payload_value: Any = json.loads(payload)
+        except (TypeError, ValueError):
+            payload_value = payload
+    elif isinstance(payload, Mapping):
+        payload_value = dict(payload)
+    else:
+        payload_value = payload
+    material = _json({
+        "candidate_id": str(candidate_id),
+        "event_type": str(event_type),
+        "payload": payload_value,
+        "created_at": str(created_at),
+        "prev_sha256": str(prev_sha256),
+    })
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()
+
+
+_LEGACY_CANDIDATE_EVENT_INSERT = "INSERT INTO CANDIDATE_EVENTS VALUES (?, ?, ?, ?, ?, ?, ?)"
+_CANDIDATE_EVENT_INSERT = (
+    "INSERT INTO candidate_events (id, candidate_id, checkpoint_id, step_id, event_type, "
+    "payload, created_at, prev_sha256, event_sha256) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+)
+
+
+class _WorkflowConnection(sqlite3.Connection):
+    """SQLite connection that keeps pre-chain raw inserts chain-consistent.
+
+    Older engine code (and regression fixtures) used
+    ``INSERT INTO candidate_events VALUES (?, ...7 values)``.  A plain SQLite
+    INSERT cannot omit the two additive chain columns, so this compatibility
+    shim upgrades exactly that legacy statement shape and computes the digest
+    through the same helper as the store's normal insert path.  Direct
+    ``sqlite3.connect`` writes still bypass the engine entirely (documented
+    malicious-local-process residual).
+    """
+
+    def execute(self, sql: str, parameters: Any = (), /) -> sqlite3.Cursor:
+        upgraded = _upgrade_legacy_candidate_event_insert(self, sql, parameters)
+        if upgraded is not None:
+            return super().execute(_CANDIDATE_EVENT_INSERT, upgraded)
+        return super().execute(sql, parameters)
+
+
+def _upgrade_legacy_candidate_event_insert(connection: sqlite3.Connection, sql: str,
+                                           parameters: Any) -> tuple[Any, ...] | None:
+    text = " ".join(str(sql or "").split()).rstrip(";")
+    if text.upper() != _LEGACY_CANDIDATE_EVENT_INSERT:
+        return None
+    try:
+        values = tuple(parameters)
+    except TypeError:
+        return None
+    if len(values) != 7:
+        return None
+    event_id, candidate_id, checkpoint_id, step_id, event_type, payload, created_at = values
+    payload_text = payload if isinstance(payload, str) else _json(payload)
+    try:
+        row = connection.execute(
+            "SELECT event_sha256 FROM candidate_events WHERE candidate_id=? "
+            "ORDER BY created_at DESC, rowid DESC LIMIT 1", (candidate_id,)).fetchone()
+    except sqlite3.Error:
+        return None
+    prev_sha256 = str(row[0] or "") if row is not None else ""
+    digest = _candidate_event_sha256(candidate_id, event_type, payload_text, created_at, prev_sha256)
+    return (event_id, candidate_id, checkpoint_id, step_id, event_type, payload_text,
+            created_at, prev_sha256, digest)
 
 
 def _normalize_candidate_event(value: Mapping[str, Any] | None) -> dict[str, Any] | None:
@@ -173,7 +252,8 @@ class WorkflowStore:
         self.db_path = str(db_path)
         self._lock = threading.RLock()
         target = Path(db_path).resolve().as_uri() + "?mode=ro" if read_only else self.db_path
-        self._connection = sqlite3.connect(target, uri=read_only, timeout=30, check_same_thread=False)
+        self._connection = sqlite3.connect(target, uri=read_only, timeout=30,
+                                           check_same_thread=False, factory=_WorkflowConnection)
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA busy_timeout = 30000")
         if read_only:
@@ -268,6 +348,8 @@ class WorkflowStore:
                 event_type TEXT NOT NULL,
                 payload TEXT NOT NULL,
                 created_at TEXT NOT NULL,
+                prev_sha256 TEXT NOT NULL DEFAULT '',
+                event_sha256 TEXT NOT NULL DEFAULT '',
                 UNIQUE(candidate_id, checkpoint_id, event_type)
             );
             CREATE INDEX IF NOT EXISTS candidate_approval_binding
@@ -280,7 +362,38 @@ class WorkflowStore:
             self._connection.execute("ALTER TABLE workflow_steps ADD COLUMN revision INTEGER NOT NULL DEFAULT 0")
         if "attempt_id" not in columns:
             self._connection.execute("ALTER TABLE workflow_steps ADD COLUMN attempt_id TEXT NOT NULL DEFAULT ''")
+        # Additive hash-chain migration: legacy databases gain the two columns and
+        # a one-time baseline chain over their existing candidate events.  The
+        # backfill runs only when a column was just added, so later blank hashes
+        # are never silently repaired (they are tamper evidence).
+        candidate_columns = {row[1] for row in
+                             self._connection.execute("PRAGMA table_info(candidate_events)")}
+        chain_columns_added = False
+        for column in ("prev_sha256", "event_sha256"):
+            if column not in candidate_columns:
+                self._connection.execute(
+                    f"ALTER TABLE candidate_events ADD COLUMN {column} TEXT NOT NULL DEFAULT ''")
+                chain_columns_added = True
+        if chain_columns_added:
+            self._backfill_candidate_event_chain()
         self._connection.commit()
+
+    def _backfill_candidate_event_chain(self) -> None:
+        """Anchor legacy rows into a baseline chain during additive migration."""
+        candidate_ids = [row[0] for row in self._connection.execute(
+            "SELECT DISTINCT candidate_id FROM candidate_events")]
+        for candidate_id in candidate_ids:
+            previous = ""
+            rows = self._connection.execute(
+                "SELECT id, event_type, payload, created_at FROM candidate_events "
+                "WHERE candidate_id=? ORDER BY created_at, rowid", (candidate_id,)).fetchall()
+            for row in rows:
+                digest = _candidate_event_sha256(
+                    candidate_id, row["event_type"], row["payload"], row["created_at"], previous)
+                self._connection.execute(
+                    "UPDATE candidate_events SET prev_sha256=?, event_sha256=? WHERE id=?",
+                    (previous, digest, row["id"]))
+                previous = digest
 
     def create_workflow(self, name: str, metadata: Mapping[str, Any] | None = None,
                         *, candidate_id: str = "") -> Workflow:
@@ -901,10 +1014,18 @@ class WorkflowStore:
         if candidate["delivery_workflow_id"] and candidate["delivery_workflow_id"] != checkpoint["workflow_id"]:
             raise ValueError("candidate event checkpoint does not belong to the delivery workflow")
         event_id = str(uuid4())
+        created_at = timestamp or _now()
+        payload_json = _json(dict(payload))
+        previous = self._connection.execute(
+            "SELECT event_sha256 FROM candidate_events WHERE candidate_id=? "
+            "ORDER BY created_at DESC, rowid DESC LIMIT 1", (candidate_id,)).fetchone()
+        prev_sha256 = str(previous["event_sha256"] or "") if previous is not None else ""
+        event_sha256 = _candidate_event_sha256(
+            candidate_id, event_type, payload_json, created_at, prev_sha256)
         self._connection.execute(
-            "INSERT INTO candidate_events VALUES (?, ?, ?, ?, ?, ?, ?)",
+            _CANDIDATE_EVENT_INSERT,
             (event_id, candidate_id, checkpoint_id, step_id, event_type,
-             _json(dict(payload)), timestamp or _now()))
+             payload_json, created_at, prev_sha256, event_sha256))
         return event_id
 
     def candidate_events(self, candidate_id: str, *, cross_validate: bool = True) -> list[dict[str, Any]]:
@@ -922,7 +1043,9 @@ class WorkflowStore:
         events = [{"id": row["id"], "candidate_id": row["candidate_id"],
                    "checkpoint_id": row["checkpoint_id"], "step_id": row["step_id"],
                    "event_type": row["event_type"], "payload": _load(row["payload"]),
-                   "created_at": row["created_at"]} for row in rows]
+                   "created_at": row["created_at"],
+                   "prev_sha256": row["prev_sha256"], "event_sha256": row["event_sha256"]}
+                  for row in rows]
         if cross_validate:
             for event in events:
                 event["orphan"] = False
@@ -945,6 +1068,54 @@ class WorkflowStore:
                         break
                 event["orphan"] = not matched
         return events
+
+    def verify_candidate_event_chain(self, candidate_id: str) -> dict[str, Any]:
+        """Verify the append-only SHA-256 chain of one candidate's events.
+
+        Rows are linked in ``(created_at, rowid)`` order — the same order used by
+        the insert path and :meth:`candidate_events`.  The first row must carry
+        ``prev_sha256 == ""``; every later row must point at the previous
+        ``event_sha256`` and its own digest must recompute exactly.
+
+        Returns ``{"ok": bool, "broken_at": str | None, "events": int}`` where
+        ``broken_at`` is the id of the first non-matching row and ``events`` is
+        the total number of events inspected.  A legacy read-only database whose
+        chain columns were never migrated fails closed (``broken_at`` names the
+        schema problem) instead of pretending the chain is intact.  Tail
+        truncation is not detectable from the chain alone; the delivery report
+        records :meth:`candidate_event_chain_root` as an external anchor.
+        """
+        try:
+            rows = self._connection.execute(
+                "SELECT id, candidate_id, event_type, payload, created_at, "
+                "prev_sha256, event_sha256 FROM candidate_events "
+                "WHERE candidate_id=? ORDER BY created_at, rowid", (candidate_id,)).fetchall()
+        except sqlite3.OperationalError as exc:
+            return {"ok": False, "broken_at": f"schema:chain_columns_missing:{exc}",
+                    "events": 0}
+        expected_prev = ""
+        for row in rows:
+            stored_prev = str(row["prev_sha256"] or "")
+            stored_sha = str(row["event_sha256"] or "")
+            if stored_prev != expected_prev:
+                return {"ok": False, "broken_at": str(row["id"]), "events": len(rows)}
+            recomputed = _candidate_event_sha256(
+                str(row["candidate_id"]), str(row["event_type"]), row["payload"],
+                str(row["created_at"]), expected_prev)
+            if not stored_sha or stored_sha != recomputed:
+                return {"ok": False, "broken_at": str(row["id"]), "events": len(rows)}
+            expected_prev = stored_sha
+        return {"ok": True, "broken_at": None, "events": len(rows)}
+
+    def candidate_event_chain_root(self, candidate_id: str) -> str:
+        """Return the last ``event_sha256`` for a candidate ("" when no events)."""
+        try:
+            row = self._connection.execute(
+                "SELECT event_sha256 FROM candidate_events WHERE candidate_id=? "
+                "ORDER BY created_at DESC, rowid DESC LIMIT 1", (candidate_id,)).fetchone()
+        except sqlite3.OperationalError:
+            return ""
+        return str(row["event_sha256"] or "") if row is not None else ""
 
     def abandon_workflow(self, workflow_id: str, reason: str, by: str = "") -> Workflow:
         """Abandon a workflow without deleting any execution fact.

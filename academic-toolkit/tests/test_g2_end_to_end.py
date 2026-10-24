@@ -226,10 +226,9 @@ def test_g2_explore_promote_candidate_delivery_approve_and_immutable_release(tmp
     catalog = _catalog()
     db = tmp_path / "workflow.sqlite"
     store = WorkflowStore(db)
-    # The reproduction directory embeds the real candidate/recipe/attempt/
-    # submission ids. Use a short temp prefix (outside pytest's long tmp_path)
-    # so the real subprocess cwd stays inside the Windows MAX_PATH limit on
-    # machines without long-path opt-in; the candidate id is not shortened.
+    # The reproduction directory is a short hashed segment; keep the real
+    # workspace on a short temp prefix so the fixture exercises the normal path
+    # while the >240-char helper is covered by dedicated tests.
     workspace = Path(tempfile.mkdtemp(prefix="g2e2e-"))
     try:
         runner = WorkflowRunner(store, catalog, skills, audit_root=tmp_path)
@@ -288,6 +287,13 @@ def test_g2_explore_promote_candidate_delivery_approve_and_immutable_release(tmp
             "ORDER BY rowid DESC LIMIT 1", (delivery.id,)).fetchone()["payload"])
         assert repro_payload["reproduction"]["fresh_outputs"] is True
         assert repro_payload["reproduction"]["recipe_sha256"]
+        mapped_root = repro_payload["reproduction"]["mapped_root"]
+        assert len(mapped_root["path"].split("/")[1]) == 16
+        assert (workspace / mapped_root["path"] / "map.json").is_file()
+        repro_map = json.loads(
+            (workspace / mapped_root["path"] / "map.json").read_text(encoding="utf-8"))
+        assert repro_map["candidate_id"] == candidate.id
+        assert repro_map["submission_id"] == mapped_root["submission_id"]
         assert reproduction.finish()["status"] in {"advanced", "completed"}
 
         # 5) required reviews, each with a real version-bound review operation.

@@ -877,6 +877,20 @@ def _candidate_gate(ok: bool, reason: str = "", *, missing: list[str] | None = N
             "missing": list(missing or []), **detail}
 
 
+def _candidate_event_chain_status(store: Any, candidate_id: str) -> dict[str, Any]:
+    """Fail-closed wrapper around the store's candidate event chain verifier."""
+    verify = getattr(store, "verify_candidate_event_chain", None)
+    if not callable(verify):
+        return {"ok": False, "broken_at": "store:verify_unavailable", "events": 0}
+    try:
+        result = verify(str(candidate_id))
+    except Exception as exc:  # noqa: BLE001 — unreadable chain must not pass
+        return {"ok": False, "broken_at": f"verify_error:{exc}", "events": 0}
+    if not isinstance(result, dict):
+        return {"ok": False, "broken_at": "store:invalid_verify_result", "events": 0}
+    return result
+
+
 def _canonical_sha256(value: Any) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=True).encode()).hexdigest()
 
@@ -1026,11 +1040,33 @@ def _candidate_reproduction_gate(store: Any, candidate: Any) -> dict[str, Any]:
                 continue
             if reproduction.get("fresh_outputs") is not True:
                 continue
+            # 复现目录方案可演进（短哈希段 / 旧四段）：以 payload 自带的 mapped_root 为准，
+            # 仅在缺少元数据时回退旧前缀，避免门禁与目录方案硬耦合。
+            root_meta = reproduction.get("mapped_root")
+            root_path = ""
+            root_candidate = ""
+            root_recipe = ""
+            if isinstance(root_meta, dict):
+                root_path = str(root_meta.get("path") or "").replace("\\", "/").rstrip("/")
+                root_candidate = str(root_meta.get("candidate_id") or "")
+                root_recipe = str(root_meta.get("recipe_sha256") or "")
+            else:
+                root_path = str(reproduction.get("mapped_root_path") or "").replace("\\", "/").rstrip("/")
+            if root_candidate and root_candidate != candidate.id:
+                continue
+            if root_recipe and root_recipe not in expected_shas:
+                continue
+            legacy_prefix = f"_reproduction/{candidate.id}/"
             for produced in reproduction.get("targets") or []:
                 if not isinstance(produced, dict) or str(produced.get("target") or "") != path:
                     continue
                 mapped = str(produced.get("mapped_path") or "").replace("\\", "/")
-                if not mapped.startswith(f"_reproduction/{candidate.id}/"):
+                if root_path:
+                    if not root_path.startswith("_reproduction/"):
+                        continue
+                    if not mapped.startswith(root_path + "/"):
+                        continue
+                elif not mapped.startswith(legacy_prefix):
                     continue
                 if produced.get("hash_match") is True and str(produced.get("after_sha256") or "") == digest:
                     satisfied = True
@@ -1175,6 +1211,10 @@ def _candidate_approval_gate(store: Any, candidate: Any, workspace: Path) -> dic
     acceptance = candidate.acceptance if isinstance(candidate.acceptance, dict) else {}
     policy = acceptance.get("approval_policy") if isinstance(acceptance.get("approval_policy"), dict) else {}
     approvers = [str(value) for value in (policy.get("approvers") or []) if str(value).strip()]
+    chain = _candidate_event_chain_status(store, candidate.id)
+    if chain.get("ok") is not True:
+        return _candidate_gate(
+            False, f"candidate event hash chain broken at {chain.get('broken_at') or 'unknown'}")
     events = store.candidate_events(candidate.id, cross_validate=True)
     if not events:
         return _candidate_gate(False, "candidate has no approval event")
@@ -1239,20 +1279,41 @@ def candidate_readiness(workspace: Path, project_root: Path, workflow_db: Path |
     project_root = Path(project_root).resolve()
     gates = {name: _candidate_gate(False, "candidate is missing")
              for name in ("candidate_frozen", "candidate_closure",
-                          "candidate_reproduction", "candidate_review", "candidate_approval")}
+                          "candidate_reproduction", "candidate_review",
+                          "candidate_approval", "candidate_event_chain")}
     if not delivery_candidate_id:
         return {"ok": False, "gates": gates, "missing": sorted(gates), "roots": [],
-                "acceptance_sha256": "", "candidate_status": ""}
+                "acceptance_sha256": "", "candidate_status": "",
+                "candidate_chain_root": "",
+                "candidate_event_chain": {"ok": False, "broken_at": "candidate_missing",
+                                          "events": 0}}
     candidate = None
+    chain_status: dict[str, Any] = {"ok": False, "broken_at": "candidate_missing", "events": 0}
+    chain_root = ""
     try:
         with WorkflowStore(workflow_db, read_only=True) as store:
             candidate = store.get_candidate(delivery_candidate_id)
+            chain_status = _candidate_event_chain_status(store, candidate.id)
+            gates["candidate_event_chain"] = _candidate_gate(
+                chain_status.get("ok") is True,
+                f"candidate event hash chain broken at "
+                f"{chain_status.get('broken_at') or 'unknown'}",
+                events=int(chain_status.get("events", 0) or 0),
+                broken_at=chain_status.get("broken_at"))
+            root_getter = getattr(store, "candidate_event_chain_root", None)
+            if callable(root_getter):
+                try:
+                    chain_root = str(root_getter(candidate.id) or "")
+                except Exception:  # noqa: BLE001 — root is informational, chain gate governs
+                    chain_root = ""
             gates["candidate_frozen"] = _candidate_frozen_gate(workspace, project_root, candidate)
             gates["candidate_closure"] = _candidate_closure_gate(candidate)
             gates["candidate_reproduction"] = _candidate_reproduction_gate(store, candidate)
             gates["candidate_review"] = _candidate_review_gate(store, candidate, workspace)
             gates["candidate_approval"] = _candidate_approval_gate(store, candidate, workspace)
     except (KeyError, OSError, ValueError) as exc:
+        chain_status = {"ok": False, "broken_at": f"candidate_readiness_unavailable:{exc}",
+                        "events": 0}
         for name in gates:
             gates[name] = _candidate_gate(False, f"candidate readiness unavailable: {exc}")
     missing = [name for name, gate in gates.items() if not gate.get("ok")]
@@ -1263,6 +1324,8 @@ def candidate_readiness(workspace: Path, project_root: Path, workflow_db: Path |
         "roots": list(candidate.roots) if candidate is not None else [],
         "acceptance_sha256": candidate.acceptance_sha256 if candidate is not None else "",
         "candidate_status": candidate.status if candidate is not None else "",
+        "candidate_chain_root": chain_root,
+        "candidate_event_chain": chain_status,
     }
 
 
@@ -1532,7 +1595,8 @@ def build_final_audit_report(workspace: Path, project_root: Path,
     if delivery_candidate_id and isinstance(readiness, dict):
         candidate_gates = readiness.get("gates") if isinstance(readiness.get("gates"), dict) else {}
         for name in ("candidate_frozen", "candidate_closure",
-                     "candidate_reproduction", "candidate_review"):
+                     "candidate_reproduction", "candidate_review",
+                     "candidate_event_chain"):
             gate = candidate_gates.get(name) if isinstance(candidate_gates.get(name), dict) else {}
             gate_outcomes[name] = "pass" if gate.get("ok") is True else "fail"
         # 预审阶段不要求 candidate_approval：批准发生在终审步骤之后，否则会
@@ -1546,7 +1610,8 @@ def build_final_audit_report(workspace: Path, project_root: Path,
         delivery_decision = "explore_only"
     elif delivery_candidate_id:
         required_gates = ["candidate_frozen", "candidate_closure",
-                          "candidate_reproduction", "candidate_review"]
+                          "candidate_reproduction", "candidate_review",
+                          "candidate_event_chain"]
         if not pre_audit:
             required_gates.append("candidate_approval")
         delivery_ready = (
@@ -1598,6 +1663,13 @@ def build_final_audit_report(workspace: Path, project_root: Path,
             "pre_completion" if pre_audit else "delivery"),
         "contract_tier": contract_tier,
         "candidate_id": delivery_candidate_id,
+        # Tamper-evidence: the last event_sha256 of the candidate event chain.
+        # Gate outcome ``candidate_event_chain`` fails when any earlier link
+        # does not recompute (broken_at names the first offending event id).
+        "candidate_chain_root": (str(readiness.get("candidate_chain_root") or "")
+                                 if isinstance(readiness, dict) else ""),
+        "candidate_event_chain": (readiness.get("candidate_event_chain", {})
+                                  if isinstance(readiness, dict) else {}),
         "release_id": release_id,
         "immutable": delivery_decision == "ready",
         "candidate": ({
@@ -1606,6 +1678,8 @@ def build_final_audit_report(workspace: Path, project_root: Path,
             "acceptance_sha256": readiness.get("acceptance_sha256", "") if isinstance(readiness, dict) else "",
             "gates": readiness.get("gates", {}) if isinstance(readiness, dict) else {},
             "missing": readiness.get("missing", []) if isinstance(readiness, dict) else [],
+            "chain_root": readiness.get("candidate_chain_root", "") if isinstance(readiness, dict) else "",
+            "event_chain": readiness.get("candidate_event_chain", {}) if isinstance(readiness, dict) else {},
         } if delivery_candidate_id else {}),
         "candidate_evidence_scope": candidate_action or {},
         "pre_audit_step_id": incomplete[0]["id"] if pre_audit else "",

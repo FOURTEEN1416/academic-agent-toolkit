@@ -9,6 +9,8 @@ to avoid an import cycle: the direction is ``workflow_store -> approvals``.
 What this module guarantees (normal path):
 
 * the candidate is bound to the workflow that is being approved;
+* the candidate's existing event hash chain verifies (a broken chain invalidates
+  the approval; ``broken_at`` is reported in the error);
 * only the last ``comp-final-audit`` step may be approved;
 * ``approval_checkpoint_id`` is the *old blocked* checkpoint of that step, its
   manifest still validates, and it is the latest checkpoint for the step;
@@ -33,6 +35,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import sqlite3
 from collections.abc import Mapping
 from datetime import datetime, timezone
 from pathlib import Path
@@ -87,6 +90,7 @@ def assert_candidate_approval_allowed(
         _validate_audit_event_identity(store, workflow, candidate, step, approval_checkpoint_id)
         return
 
+    _require_intact_candidate_event_chain(store, candidate)
     _require_final_audit_step(store, workflow_id, step)
     _require_old_blocked_checkpoint(
         store, workflow, step, approval_checkpoint_id, transition_checkpoint_id)
@@ -380,6 +384,26 @@ def _require_approver(policy: Mapping[str, Any], approved_by: str) -> str:
     if hit:
         raise CandidateApprovalError(f"approved_by 命中 agent 自指词「{hit}」，禁止 agent 自批")
     return approver
+
+
+def _require_intact_candidate_event_chain(store: Any, candidate: Any) -> None:
+    """Fail closed when the candidate's prior events no longer chain.
+
+    The approval itself is appended by the store after this guard returns, so
+    checking here covers every approval-shaped path before any row is written.
+    A store without the verifier is treated as unavailable, never as intact.
+    """
+    verify = getattr(store, "verify_candidate_event_chain", None)
+    if not callable(verify):
+        raise CandidateApprovalError("候选事件哈希链校验不可用，不能批准")
+    try:
+        result = verify(str(candidate.id))
+    except (sqlite3.Error, OSError, ValueError) as exc:
+        raise CandidateApprovalError(f"候选事件哈希链校验失败：{exc}") from exc
+    if not isinstance(result, dict) or result.get("ok") is not True:
+        broken_at = result.get("broken_at") if isinstance(result, dict) else "unknown"
+        raise CandidateApprovalError(
+            f"候选事件哈希链断裂（broken_at={broken_at or 'unknown'}），拒绝批准")
 
 
 def _bound_candidate(store: Any, workflow: Any, candidate_id: str) -> Any:

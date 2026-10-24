@@ -1,6 +1,7 @@
 """真实命令与依赖计划执行；不组装提交证据、不决定步骤验收。"""
 from __future__ import annotations
 import hashlib
+import json
 import os
 from pathlib import Path
 import re
@@ -27,6 +28,37 @@ _BASE_ENV_KEYS = ("PATH", "PATHEXT", "SYSTEMROOT", "SYSTEMDRIVE", "COMSPEC", "WI
 _NETWORK_TOOLS = {"curl", "wget", "ping", "ssh", "scp", "sftp", "ftp", "telnet",
                   "pip", "pip3", "npm", "yarn", "pnpm", "gem", "cargo",
                   "git", "svn", "gh", "rsync", "bower"}
+
+# Windows MAX_PATH 兜底阈值：留出文件名余量，超过即使用扩展长度路径。
+_WINDOWS_LONG_PATH_THRESHOLD = 240
+
+
+def _fs_path(path: str | os.PathLike[str]) -> str:
+    """返回可安全交给文件系统调用的路径。
+
+    POSIX 原样返回；Windows 下绝对路径超过 240 字符时加 ``\\\\?\\`` 前缀，
+    UNC 路径改写为 ``\\\\?\\UNC\\...``。扩展长度命名空间只接受绝对路径，
+    且分隔符必须是反斜杠；短路径/相对路径保持原样，避免无谓改变调用语义。
+    """
+    raw = os.fspath(path)
+    if os.name != "nt":
+        return raw
+    absolute = os.path.abspath(raw)
+    if absolute.startswith("\\\\?\\"):
+        return absolute
+    if len(absolute) <= _WINDOWS_LONG_PATH_THRESHOLD:
+        return raw
+    if absolute.startswith("\\\\"):
+        return "\\\\?\\UNC\\" + absolute[2:]
+    return "\\\\?\\" + absolute.replace("/", "\\")
+
+
+def _reproduction_short_id(candidate_id: str, recipe_hash: str, attempt_id: str,
+                           submission_id: str) -> str:
+    """复现目录短标识：四元组规范化串的 sha256 前 16 位 hex。"""
+    normalized = "|".join((candidate_id, recipe_hash, attempt_id, submission_id))
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:16]
+
 
 class CommandExecutor:
     def __init__(self, context):
@@ -122,8 +154,9 @@ class CommandExecutor:
         for arg in argv[1:]:
             try:
                 candidate = (cwd / arg).resolve()
-                if candidate.is_file() and not candidate.is_relative_to(self.workspace):
-                    external_files[str(candidate)] = hashlib.sha256(candidate.read_bytes()).hexdigest()
+                if os.path.isfile(_fs_path(candidate)) and not candidate.is_relative_to(self.workspace):
+                    external_files[str(candidate)] = hashlib.sha256(
+                        Path(_fs_path(candidate)).read_bytes()).hexdigest()
             except (OSError, ValueError):
                 continue
         from importlib.metadata import distributions
@@ -142,7 +175,8 @@ class CommandExecutor:
         key_payload = {"workspace": str(self.workspace), "argv": argv, "cwd": cwd_rel,
                        "inputs": before, "outputs": outputs,
                        "contract": self.context.execution_relevant_contract(),
-                       "executable_sha256": hashlib.sha256(Path(argv[0]).read_bytes()).hexdigest(),
+                       "executable_sha256": hashlib.sha256(
+                           Path(_fs_path(argv[0])).read_bytes()).hexdigest(),
                        "environment": digest(controlled_env) if controlled_env is not None else "",
                        "dependencies": dependencies, "external_tools": external_files}
         cache_key = digest(key_payload) if cacheable else ""
@@ -164,7 +198,8 @@ class CommandExecutor:
         op = self.context.begin("command", node_key, payload, cache_key)
         start = time.perf_counter()
         producer_path = self.workspace / "STEP_MANIFEST.json"
-        producer_before = producer_path.read_bytes() if producer_path.is_file() else None
+        producer_before = (Path(_fs_path(producer_path)).read_bytes()
+                           if os.path.isfile(_fs_path(producer_path)) else None)
         try:
             if cacheable and not force:
                 for old in self.store.reusable_operations(cache_key):
@@ -249,7 +284,8 @@ class CommandExecutor:
                     })
                 reproduction["targets"] = target_records
                 reproduction["fresh_outputs"] = fresh_all
-            producer_after = producer_path.read_bytes() if producer_path.is_file() else None
+            producer_after = (Path(_fs_path(producer_path)).read_bytes()
+                              if os.path.isfile(_fs_path(producer_path)) else None)
             if producer_after is not None and producer_after != producer_before:
                 import json
                 from engine.step_manifest import atomic_write_json, validate_manifest
@@ -372,10 +408,16 @@ class CommandExecutor:
             group = groups[recipe_id]
             recipe = group["recipe"]
             recipe_hash = digest(recipe)
-            repro_rel = (f"_reproduction/{candidate.id}/{recipe_hash}/"
-                         f"{self.action.attempt_id}/{submission_id}")
+            # 旧的四段目录（candidate/recipe/attempt/submission）在深工作区会顶到
+            # Windows 260 字符上限；实际目录只保留四元组 hash 的前 16 位，完整
+            # 四元组写入 payload.reproduction.mapped_root 与目录内 map.json。
+            logical_root = (f"_reproduction/{candidate.id}/{recipe_hash}/"
+                            f"{self.action.attempt_id}/{submission_id}")
+            short_id = _reproduction_short_id(candidate.id, recipe_hash,
+                                              self.action.attempt_id, submission_id)
+            repro_rel = f"_reproduction/{short_id}"
             repro_abs = self.workspace / repro_rel
-            if repro_abs.exists():
+            if os.path.exists(_fs_path(repro_abs)):
                 raise ValueError(f"复现目录已存在，拒绝复用旧目录: {repro_rel}")
             argv = recipe.get("argv")
             if not isinstance(argv, list) or not argv or any(not isinstance(token, str) or not token
@@ -397,21 +439,35 @@ class CommandExecutor:
                     if name not in input_names:
                         input_names.append(name)
             cwd_name = self.context.relative(str(recipe.get("cwd") or "."))
-            repro_abs.mkdir(parents=True, exist_ok=False)
+            Path(_fs_path(repro_abs)).mkdir(parents=True, exist_ok=False)
+            map_payload = {
+                "schema": "reproduction-map-v1",
+                "mapped_root": repro_rel,
+                "logical_root": logical_root,
+                "candidate_id": candidate.id,
+                "recipe_sha256": recipe_hash,
+                "attempt_id": self.action.attempt_id,
+                "submission_id": submission_id,
+                "targets": [{"target": entry["target"], "sha256": entry["sha256"]}
+                            for entry in group["targets"]],
+            }
+            Path(_fs_path(repro_abs / "map.json")).write_text(
+                json.dumps(map_payload, sort_keys=True, ensure_ascii=False, indent=2),
+                encoding="utf-8")
             cwd_abs = repro_abs if cwd_name == "." else repro_abs / cwd_name
-            cwd_abs.mkdir(parents=True, exist_ok=True)
+            Path(_fs_path(cwd_abs)).mkdir(parents=True, exist_ok=True)
             for name in input_names:
                 source = self.workspace / name
-                if not source.is_file():
+                if not os.path.isfile(_fs_path(source)):
                     raise ValueError(f"复现输入不存在: {name}")
-                actual = hashlib.sha256(source.read_bytes()).hexdigest()
+                actual = hashlib.sha256(Path(_fs_path(source)).read_bytes()).hexdigest()
                 expected_input = self._frozen_input_sha(candidate, recipe, name)
                 if expected_input and actual != expected_input:
                     raise ValueError(f"复现输入与候选冻结版本不一致: {name}")
                 destination = repro_abs / name
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(source, destination)
-                if hashlib.sha256(destination.read_bytes()).hexdigest() != actual:
+                Path(_fs_path(destination.parent)).mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(_fs_path(source), _fs_path(destination))
+                if hashlib.sha256(Path(_fs_path(destination)).read_bytes()).hexdigest() != actual:
                     raise ValueError(f"复现输入复制后哈希不一致: {name}")
             mutation_set = set(mutates_rel)
             before_versions: dict[str, str] = {}
@@ -419,14 +475,14 @@ class CommandExecutor:
                 mapped = f"{repro_rel}/{name}"
                 if name in mutation_set:
                     path = self.workspace / mapped
-                    if not path.is_file():
+                    if not os.path.isfile(_fs_path(path)):
                         raise ValueError(f"mutates 输出必须由已复制的输入提供: {name}")
-                    actual = hashlib.sha256(path.read_bytes()).hexdigest()
+                    actual = hashlib.sha256(Path(_fs_path(path)).read_bytes()).hexdigest()
                     expected_before = self._frozen_input_sha(candidate, recipe, name)
                     if expected_before and actual != expected_before:
                         raise ValueError(f"mutates 输入版本与候选冻结值不一致: {name}")
                     before_versions[mapped] = actual
-                elif (self.workspace / mapped).exists():
+                elif os.path.exists(_fs_path(self.workspace / mapped)):
                     raise ValueError(f"复现输出在运行前已存在: {mapped}")
             rewritten_argv = [argv[0]]
             for token in argv[1:]:
@@ -435,7 +491,7 @@ class CommandExecutor:
                         name = self.context.relative(token)
                     except ValueError:
                         raise ValueError(f"命令参数含工作区外绝对路径，无法映射: {token}") from None
-                    rewritten_argv.append(str(repro_abs / name))
+                    rewritten_argv.append(_fs_path(repro_abs / name))
                 else:
                     rewritten_argv.append(token)
             reproduction = {
@@ -443,6 +499,15 @@ class CommandExecutor:
                 "recipe_sha256": recipe_hash,
                 "recipe": dict(recipe),
                 "argv_rewrite": "workspace-absolute-to-repro-map-v1",
+                "mapped_root": {
+                    "path": repro_rel,
+                    "logical_path": logical_root,
+                    "candidate_id": candidate.id,
+                    "recipe_sha256": recipe_hash,
+                    "attempt_id": self.action.attempt_id,
+                    "submission_id": submission_id,
+                },
+                "mapped_root_path": repro_rel,
                 "targets": [{
                     "target": entry["target"],
                     "mapped_path": f"{repro_rel}/{entry['target']}",
