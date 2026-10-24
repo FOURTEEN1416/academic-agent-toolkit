@@ -120,9 +120,15 @@ class ExecutionSession:
                 self.workflow.name, self.workflow.metadata.get("params"))
         else:
             contest_view = None
+        contract = self.workflow.metadata.get("execution_contract")
+        contract = contract if isinstance(contract, dict) else {}
+        delivery_candidate = self.workflow.metadata.get("delivery_candidate")
+        delivery_candidate = delivery_candidate if isinstance(delivery_candidate, dict) else {}
         return {"session": str(ticket), "task": self.action.display_name,
                 "review_scope": self.action.review_scope, "parameters": self.workflow.metadata.get("params", {}),
                 "outputs": self.action.output_files, "quality_requirements": self.action.required_checks,
+                "contract_tier": str(contract.get("tier") or "delivery"),
+                "delivery_candidate_id": str(delivery_candidate.get("candidate_id") or ""),
                 "documents": documents, "resources": self.resources.resources(query),
                 "contest_profile": contest_view,
                 "in_step_resume": self._in_step_resume(),
@@ -131,10 +137,17 @@ class ExecutionSession:
                     "llm_owned": ["任务理解与领域推理", "方案/方法/论证与实质产出", "结果解释与语义质量", "独立评审和人工决策所需内容"],
                     "quality_ownership": "执行记录、摘要和清单由程序生成；领域检查由合同指定的检查器或真实review/check操作完成。",
                 },
-                "instructions": "阅读材料用read(kind=workspace)，创作/精确修订用write/edit，工具操作用run。完成后finish一次验收，不手填证据/哈希、不必先preflight；人工批准不可代替。工作区内的 *STATE.json 是技能业务上下文，只用于步内续作；步骤完成与否以引擎状态为准，不得据其自动重开已完成任务。"}
+                "instructions": ("阅读材料用read(kind=workspace)，创作/精确修订用write/edit，工具操作用run。"
+                    "写/编辑须用 inputs 显式声明真实依据文件（须先 read）；未声明的读取只留痕（trace_only），"
+                    "不建依赖边、不参与 finish 对账。完成后finish一次验收，不手填证据/哈希、不必先preflight；"
+                    "人工批准不可代替。工作区内的 *STATE.json 是技能业务上下文，只用于步内续作；"
+                    "步骤完成与否以引擎状态为准，不得据其自动重开已完成任务。")}
 
 
     def finish(self, *, subagent_session=""):
+        workflow = self.store.get_workflow(self.workflow_id)
+        if workflow.status == "abandoned":
+            raise ValueError("会话已失效：工作流已放弃（abandoned），旧 ticket 不能继续提交")
         existing = self.store.get_step(self.action.step_id)
         if existing.attempt_id == self.action.attempt_id and existing.status in {StepStatus.COMPLETED, StepStatus.BLOCKED}:
             result = self.runner.next_action(self.workflow_id)
@@ -154,3 +167,38 @@ class ExecutionSession:
                         and not following.action.requires_subagent):
                     payload["machine_audit"] = session.finish()
         return payload
+
+    def abandon(self, reason: str, by: str = ""):
+        """放弃当前（仅 explore）工作流；操作事实保留，旧 ticket 随即失效。"""
+        result = self.runner.abandon_workflow(self.workflow_id, reason, by)
+        return {"status": result.status, "message": result.message}
+
+    def reproduce(self, plan_path: str, candidate_id: str = ""):
+        """按 REPRODUCTION_PLAN.json 在新目录重跑候选冻结 recipe，并写报告。"""
+        self.operations.require_active()
+        path = Path(plan_path)
+        if not path.is_absolute():
+            path = self.workspace / path
+        try:
+            plan = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(f"reproduction plan 读取失败: {exc}") from None
+        if not isinstance(plan, dict) or not isinstance(plan.get("targets"), list):
+            raise ValueError("reproduction plan 必须是 {targets: [...]} 对象")
+        candidate = candidate_id or str(plan.get("candidate_id") or "")
+        if not candidate:
+            raise ValueError("reproduce 需要 candidate_id（plan 内或 --candidate）")
+        if not hasattr(self.commands, "execute_reproduction"):
+            raise ValueError("reproduce 未接入：CommandExecutor.execute_reproduction 尚不可用")
+        result = self.commands.execute_reproduction(plan, candidate)
+        report = {
+            "candidate_id": candidate,
+            "status": "succeeded" if result.get("ok") is True else "failed",
+            "targets": result.get("targets", []),
+            "argv_rewrite": result.get("argv_rewrite", ""),
+            "error": result.get("error", ""),
+        }
+        written = self.files.write("REPRODUCTION_REPORT.json",
+                                   json.dumps(report, ensure_ascii=False, indent=2),
+                                   inputs=[])
+        return {"reproduction": result, "report": written}

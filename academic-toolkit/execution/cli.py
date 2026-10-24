@@ -62,7 +62,8 @@ def register_parser(subparsers):
     context.add_argument("--db", required=True)
     context.add_argument("--query", default="")
     context.add_argument("--audit-root", default="")
-    for name in ("read", "write", "edit", "run", "finish", "status", "recover", "review-request", "review-receive", "review-evidence"):
+    for name in ("read", "write", "edit", "run", "finish", "status", "recover",
+                 "review-request", "review-receive", "review-evidence", "abandon", "reproduce"):
         command = sub.add_parser(name)
         command.add_argument("--session", required=True)
         if name == "read":
@@ -74,17 +75,27 @@ def register_parser(subparsers):
             source = command.add_mutually_exclusive_group(required=True)
             source.add_argument("--from-file")
             source.add_argument("--stdin", action="store_true")
+            command.add_argument("--input", action="append", default=[],
+                                 help="显式依赖输入（工作区相对路径，须先 read；可重复）")
         elif name == "edit":
             command.add_argument("--path", required=True)
             change = command.add_mutually_exclusive_group(required=True)
             change.add_argument("--changes-file")
             change.add_argument("--stdin", action="store_true")
+            command.add_argument("--input", action="append", default=[],
+                                 help="显式依赖输入（工作区相对路径，须先 read；可重复）")
         elif name == "run":
             command.add_argument("--plan", required=True)
             command.add_argument("--force", action="store_true")
             command.add_argument("--finish", action="store_true")
         elif name == "finish":
             command.add_argument("--review-session", default="")
+        elif name == "abandon":
+            command.add_argument("--reason", required=True)
+            command.add_argument("--by", default="")
+        elif name == "reproduce":
+            command.add_argument("--plan", required=True)
+            command.add_argument("--candidate", default="")
         elif name == "review-request":
             command.add_argument("--input", action="append", required=True)
             command.add_argument("--output", required=True)
@@ -133,10 +144,12 @@ def run_command(args):
                 result = session.files.read_file(args.name) if args.kind == "workspace" else session.resources.read_resource(args.name, args.kind, args.member)
             elif args.operation == "edit":
                 change = json.loads(sys.stdin.read() if args.stdin else Path(args.changes_file).read_text(encoding="utf-8"))
-                result = session.files.edit(args.path, change["old"], change["new"])
+                result = session.files.edit(args.path, change["old"], change["new"],
+                                            inputs=getattr(args, "input", None))
             elif args.operation == "write":
                 result = session.files.write(args.path, sys.stdin.read() if args.stdin else
-                                       Path(args.from_file).read_text(encoding="utf-8"))
+                                       Path(args.from_file).read_text(encoding="utf-8"),
+                                       inputs=getattr(args, "input", None))
             elif args.operation == "review-request":
                 result = session.review.request(args.input, args.output, args.rubric)
             elif args.operation == "review-receive":
@@ -151,6 +164,10 @@ def run_command(args):
                     raise ValueError("operation不属于当前步骤")
                 store.interrupt_operation(args.operation_id, args.reason)
                 result = {"status": "recovered", "execution_success": False}
+            elif args.operation == "abandon":
+                result = session.abandon(args.reason, args.by)
+            elif args.operation == "reproduce":
+                result = session.reproduce(args.plan, args.candidate)
             elif args.operation == "run":
                 result = session.commands.run_plan(json.loads(Path(args.plan).read_text(encoding="utf-8")), force=args.force)
                 if args.finish and result["status"] == "executed":

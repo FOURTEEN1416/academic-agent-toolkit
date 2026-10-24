@@ -270,8 +270,13 @@ def _reject_handbuilt_final_evidence(store, step_id: str, evidence: dict) -> Non
         return  # 身份缺失由 runner 的 target 校验显式拒绝
     try:
         step = store.get_step(target)
+        workflow = store.get_workflow(step.workflow_id)
     except (KeyError, ValueError):
         return
+    if isinstance(workflow.metadata.get("delivery_candidate"), dict):
+        raise WorkflowCliError(
+            f"候选交付工作流不接受任何步骤的 legacy --evidence-file 手拼 evidence（步骤 {step.name}）。"
+            "候选验收必须走 --session <ticket> 的真实执行集合（preflight/complete）。")
     if step.name in {"comp-final-audit", "comp-final-review"}:
         raise WorkflowCliError(
             f"步骤 {step.name} 不接受没有执行集合（collection）的手拼 evidence。"
@@ -280,13 +285,16 @@ def _reject_handbuilt_final_evidence(store, step_id: str, evidence: dict) -> Non
             "（preflight 只读验收 / complete 提交），或经 execution.session finish 提交。")
 
 
-def _action_payload(action) -> dict:
-    """StepAction 的 CLI JSON 序列化（next/retry 共用，保持输出风格一致）。"""
+def _action_payload(action, *, contract_tier: str = "", requires_collection: bool | None = None) -> dict:
+    """StepAction 的 CLI JSON 序列化（next/retry/approve 共用，保持输出风格一致）。"""
     return {
         "workflow_id": action.workflow_id,
         "step_id": action.step_id,
         "attempt_id": action.attempt_id,
         "expected_revision": action.expected_revision,
+        "contract_tier": contract_tier or getattr(action, "contract_tier", None) or "delivery",
+        "requires_collection": (bool(getattr(action, "requires_collection", False))
+                                if requires_collection is None else requires_collection),
         "skill_sha256": action.skill_sha256,
         "required_checks": action.required_checks,
         "output_specs": action.output_specs,
@@ -370,6 +378,26 @@ def _build_parser() -> argparse.ArgumentParser:
     start.add_argument("--workspace", required=True)
     start.add_argument("--db", default="")
     start.add_argument("--params", default="{}")
+    start.add_argument("--mode", choices=["delivery", "explore"], default="delivery",
+                       help="交付档 delivery（默认）/ 探索档 explore（剔除终审、无步内 checkpoint）")
+    start.add_argument("--candidate", default="",
+                       help="候选 ID：只建 promotion-carry/复现/review/终审步骤（审批人白名单只来自候选冻结值）")
+
+    # G2 promotion：从已完成 explore 工作流冻结交付候选（不提供 promote-approve）
+    promote = sub.add_parser("promote")
+    promote.add_argument("--wf", required=True, help="源 explore 工作流 ID")
+    promote.add_argument("--root", action="append", required=True,
+                         help="交付根产物（工作区相对路径，可多次）")
+    promote.add_argument("--by", required=True, help="promote 操作者署名")
+    promote.add_argument("--template", default="", help="交付模板（缺省沿用源工作流模板）")
+    promote.add_argument("--db", default="")
+
+    # G2 abandon：仅 explore 档；保留操作事实并使旧 ticket 失效
+    abandon = sub.add_parser("abandon")
+    abandon.add_argument("--wf", required=True)
+    abandon.add_argument("--reason", required=True)
+    abandon.add_argument("--by", required=True)
+    abandon.add_argument("--db", default="")
 
     # 获取下一步动作
     next_cmd = sub.add_parser("next")
@@ -557,7 +585,8 @@ def _run_command(args, parser) -> int:
         db = Path(args.db)
     elif workspace_for_db is not None and str(getattr(args, "workspace", "") or "").strip():
         db = default_workflow_db(workspace_for_db)
-    elif args.command in {"next", "complete", "preflight", "retry", "report", "stall", "backfill"}:
+    elif args.command in {"next", "complete", "preflight", "retry", "report", "stall",
+                          "backfill", "promote", "abandon"}:
         try:
             db = resolve_workflow_db(args.wf)
         except KeyError as exc:
@@ -594,18 +623,53 @@ def _run_command(args, parser) -> int:
             except json.JSONDecodeError as exc:
                 raise WorkflowCliError(f"--params JSON 无效: {exc}") from None
             try:
-                workflow = runner.start(args.template, Path(args.workspace), params)
+                workflow = runner.start(args.template, Path(args.workspace), params,
+                                        mode=str(getattr(args, "mode", "delivery") or "delivery"),
+                                        candidate_id=str(getattr(args, "candidate", "") or ""))
             except KeyError as exc:
                 raise WorkflowCliError(f"无法启动工作流: {_keyerror_message(exc)}") from None
+            except ValueError as exc:
+                raise WorkflowCliError(f"无法启动工作流: {exc}") from None
             register_workflow_database(workflow.id, db)
             _save_run_log(runner, workflow.id)
             result = json.dumps({
                 "workflow_id": workflow.id,
                 "status": workflow.status,
                 "created_at": workflow.created_at,
+                "execution_contract": workflow.metadata.get("execution_contract", {}),
+                **({"delivery_candidate": workflow.metadata["delivery_candidate"]}
+                   if isinstance(workflow.metadata.get("delivery_candidate"), dict) else {}),
             }, ensure_ascii=False, indent=2)
             print(result)
             return 0
+
+        if args.command == "promote":
+            try:
+                candidate = runner.promote(args.wf, [root for root in args.root if root.strip()],
+                                           by=str(args.by or "").strip(),
+                                           template=str(getattr(args, "template", "") or ""))
+            except (KeyError, ValueError, OSError) as exc:
+                raise WorkflowCliError(f"promote 失败: {exc}") from None
+            _save_run_log(runner, args.wf)
+            payload = {
+                "status": "ok",
+                "candidate_id": getattr(candidate, "id", ""),
+                "candidate_status": getattr(candidate, "status", ""),
+                "source_workflow_id": getattr(candidate, "source_workflow_id", args.wf),
+                "acceptance_sha256": getattr(candidate, "acceptance_sha256", ""),
+                "roots": getattr(candidate, "roots", []),
+                "missing": getattr(candidate, "missing", []),
+            }
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return 0
+
+        if args.command == "abandon":
+            result = runner.abandon_workflow(args.wf, str(args.reason or "").strip(),
+                                             str(args.by or "").strip())
+            _save_run_log(runner, args.wf)
+            print(json.dumps({"status": result.status, "message": result.message},
+                             ensure_ascii=False, indent=2))
+            return 0 if result.status == "abandoned" else 1
 
         if args.command == "next":
             result = runner.next_action(args.wf)
@@ -616,7 +680,12 @@ def _run_command(args, parser) -> int:
                 "diagnostics": result.diagnostics,
             }
             if result.action:
-                output["action"] = _action_payload(result.action)
+                workflow = store.get_workflow(args.wf)
+                contract = (workflow.metadata.get("execution_contract")
+                            if isinstance(workflow.metadata.get("execution_contract"), dict) else {})
+                output["action"] = _action_payload(
+                    result.action, contract_tier=str(contract.get("tier") or "delivery"),
+                    requires_collection=bool(workflow.metadata.get("delivery_candidate")))
                 # 默认下发可执行上下文；不让Agent重复计算hash或手建证据。
                 from execution.session import ExecutionSession
                 from execution.presentation import user_view
@@ -690,7 +759,12 @@ def _run_command(args, parser) -> int:
                 "diagnostics": result.diagnostics,
             }
             if result.action:
-                output["action"] = _action_payload(result.action)
+                workflow = store.get_workflow(args.wf)
+                contract = (workflow.metadata.get("execution_contract")
+                            if isinstance(workflow.metadata.get("execution_contract"), dict) else {})
+                output["action"] = _action_payload(
+                    result.action, contract_tier=str(contract.get("tier") or "delivery"),
+                    requires_collection=bool(workflow.metadata.get("delivery_candidate")))
             print(json.dumps(output, ensure_ascii=False, indent=2))
             return 0 if result.status in ("advanced", "completed") else 1
 
@@ -746,11 +820,17 @@ def _run_command(args, parser) -> int:
                     "python -m engine.workflow_cli approve --checkpoint <UUID> "
                     "[--db <workflow.sqlite 路径>] --by <批准人>"
                 )
-            result = runner.approve_checkpoint(args.checkpoint, {"approved": True, "approved_by": by})
+            result = runner._approve_checkpoint(args.checkpoint, {"approved": True, "approved_by": by})
             _save_run_log(runner, _checkpoint_workflow_id(store, args.checkpoint))
             output = {"status": result.status, "message": result.message}
             if result.action:
-                output["action"] = _action_payload(result.action)
+                owner = _checkpoint_workflow_id(store, args.checkpoint) or result.workflow_id
+                workflow = store.get_workflow(owner)
+                contract = (workflow.metadata.get("execution_contract")
+                            if isinstance(workflow.metadata.get("execution_contract"), dict) else {})
+                output["action"] = _action_payload(
+                    result.action, contract_tier=str(contract.get("tier") or "delivery"),
+                    requires_collection=bool(workflow.metadata.get("delivery_candidate")))
             print(json.dumps(output, ensure_ascii=False, indent=2))
             return 0 if result.status in ("advanced", "completed") else 1
 
@@ -765,13 +845,37 @@ def _run_command(args, parser) -> int:
             return 0
 
         if args.command == "final-audit":
-            from .audit_store import write_final_audit_report
+            from .audit_store import write_explore_report, write_final_audit_report
             workspace = Path(args.workspace) if str(getattr(args, "workspace", "") or "").strip() else None
             if workspace is None:
                 workspace = _workflow_workspace(store, args.wf)
                 if workspace is None:
                     raise WorkflowCliError("无法从工作流元数据反查工作区；请显式提供 --workspace")
             out = Path(args.out) if args.out else None
+            tier = "delivery"
+            audit_workflow_id = str(args.wf or "")
+            if not audit_workflow_id:
+                # --workspace 模式：取该工作区最新工作流的档位（与
+                # write_final_audit_report 的“最新工作流”选择口径一致）。
+                rows = store._connection.execute(
+                    "SELECT id, metadata FROM workflows ORDER BY created_at DESC, rowid DESC").fetchall()
+                for row in rows:
+                    meta = json.loads(row["metadata"])
+                    if Path(meta.get("workspace", "")).resolve() == workspace.resolve():
+                        audit_workflow_id = row["id"]
+                        break
+            if audit_workflow_id:
+                audit_workflow = store.get_workflow(audit_workflow_id)
+                contract = (audit_workflow.metadata.get("execution_contract")
+                            if isinstance(audit_workflow.metadata.get("execution_contract"), dict) else {})
+                tier = str(contract.get("tier") or "delivery")
+            if tier == "explore":
+                if ticket is not None or args.evidence_file:
+                    raise WorkflowCliError("explore 工作流不接受交付候选预审；只生成 EXPLORE_REPORT.json")
+                target = write_explore_report(workspace, ROOT.parent, workflow_db=db,
+                                              workflow_id=args.wf or None)
+                print(f"探索报告已保存: {target}（explore_only）")
+                return 1
             candidate = None
             if ticket is not None:
                 # 引擎取证的只读候选预审：证据来自真实执行集合，不写库、不推进

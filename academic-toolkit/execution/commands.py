@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import time
+from uuid import uuid4
 from engine.execution_protocol import normalize_command_record
 from engine.workflow_store import StepStatus
 from .context import digest, snapshot
@@ -34,7 +35,7 @@ class CommandExecutor:
         self.action = context.action
         self.workspace = context.workspace
 
-    def execute(self, spec: dict, *, force: bool = False) -> dict:
+    def execute(self, spec: dict, *, force: bool = False, no_cache: bool = False) -> dict:
         """运行执行者已选择的命令；只有显式完整依赖+纯计算的命令才允许复用。
 
         产出归属唯一依据是"执行窗口+字节"：命令窗口内输出字节发生变化即归因
@@ -92,6 +93,9 @@ class CommandExecutor:
         stable_inputs = [i for i in inputs if i not in mutations]
         cacheable = (spec.get("pure") is True and spec.get("complete_inputs") is True
                      and bool(inputs) and not mutations and mode == "produce")
+        # 复现命令必须每次真实重跑：禁用缓存资格，也不写缓存键。
+        if no_cache:
+            cacheable = False
         # Windows 下可执行文件带 .exe/.cmd/.bat 等扩展名，先规范化再识别工具。
         executable_stem = Path(argv[0]).stem.lower()
         # 先确定最终复用资格：网络/包管理命令、独立评审/终审步骤、未声明受控
@@ -153,6 +157,9 @@ class CommandExecutor:
                    "mutates": sorted(mutations), "cacheable": cacheable,
                    "outputs_before": output_versions, **inherited,
                    "dependency_boundary": "caller-declared; not an OS sandbox"}
+        # 复现命令的静态标记由 execute_reproduction 预置，运行后再补 after/hash 判定。
+        if isinstance(spec.get("reproduction"), dict):
+            payload["reproduction"] = spec["reproduction"]
         node_key = "check:" + node if mode == "check" else "command:" + digest(sorted(outputs))
         op = self.context.begin("command", node_key, payload, cache_key)
         start = time.perf_counter()
@@ -211,9 +218,37 @@ class CommandExecutor:
             if untouched:
                 retained = self.context.trace_lineage({p: payload["outputs_snapshot"][p] for p in untouched})
                 if set(retained["source_operations"]) != set(untouched):
-                    raise ValueError("命令未产生声明输出，且没有可追溯的既有生产者；不能用成功空命令接收旧文件")
+                    # 复现场景下 mutates 原地未变是合法的「保留旧字节」，由
+                    # reproduction.fresh_outputs=false 判定为未复现；普通命令仍拒绝认领。
+                    if not (isinstance(spec.get("reproduction"), dict)
+                            and set(untouched) <= mutations):
+                        raise ValueError("命令未产生声明输出，且没有可追溯的既有生产者；不能用成功空命令接收旧文件")
                 payload["retained_from"] = retained["source_operations"]
                 payload["lineage_inputs"] = {**payload.get("lineage_inputs", {}), **retained["lineage_inputs"]}
+            if isinstance(payload.get("reproduction"), dict):
+                # after/hash_match 只能由真实执行窗口的 outputs_snapshot 产生；mutates
+                # 且 before==after 时 hash_match 可以为真但 fresh_outputs=false。
+                reproduction = payload["reproduction"]
+                target_records = []
+                fresh_all = bool(reproduction.get("targets"))
+                for record in reproduction.get("targets") or []:
+                    if not isinstance(record, dict):
+                        fresh_all = False
+                        continue
+                    mapped = str(record.get("mapped_path") or "")
+                    after = payload["outputs_snapshot"].get(mapped, "")
+                    expected = str(record.get("expected_sha256") or "")
+                    before_value = str(record.get("before_sha256") or "")
+                    hash_match = bool(after) and after == expected
+                    fresh = hash_match and (not record.get("mutates") or after != before_value)
+                    fresh_all = fresh_all and fresh
+                    target_records.append({
+                        **{key: value for key, value in record.items() if key != "expected_sha256"},
+                        "after_sha256": after,
+                        "hash_match": hash_match,
+                    })
+                reproduction["targets"] = target_records
+                reproduction["fresh_outputs"] = fresh_all
             producer_after = producer_path.read_bytes() if producer_path.is_file() else None
             if producer_after is not None and producer_after != producer_before:
                 import json
@@ -235,6 +270,243 @@ class CommandExecutor:
                                        "duration_seconds": time.perf_counter() - start})
             raise
 
+
+    @staticmethod
+    def _recipe_entry(recipe: dict, recipe_id: str) -> dict | None:
+        """在候选冻结 recipe 中按 id 取条目（兼容 dict / list / {"recipes": ...}）。"""
+        if not isinstance(recipe, dict):
+            return None
+        container = recipe.get("recipes")
+        if not isinstance(container, (dict, list)):
+            container = recipe
+        if isinstance(container, dict):
+            entry = container.get(recipe_id)
+            if isinstance(entry, dict):
+                return entry
+            for value in container.values():
+                if isinstance(value, dict) and str(value.get("recipe_id") or "") == recipe_id:
+                    return value
+        elif isinstance(container, list):
+            for value in container:
+                if isinstance(value, dict) and str(value.get("recipe_id") or "") == recipe_id:
+                    return value
+        return None
+
+    @staticmethod
+    def _frozen_input_sha(candidate, recipe: dict, name: str) -> str:
+        """复现输入的冻结版本：recipe 快照优先，其次候选 inputs，最后 frozen_versions。"""
+        snapshot_value = recipe.get("inputs_snapshot")
+        if isinstance(snapshot_value, dict) and name in snapshot_value:
+            return str(snapshot_value[name])
+        inputs = candidate.inputs if isinstance(candidate.inputs, dict) else {}
+        meta = inputs.get(name)
+        if isinstance(meta, dict) and meta.get("sha256"):
+            return str(meta["sha256"])
+        frozen = candidate.frozen_versions if isinstance(candidate.frozen_versions, dict) else {}
+        return str(frozen.get(name) or "")
+
+    def execute_reproduction(self, plan: dict, candidate_id: str) -> dict:
+        """按候选冻结 recipe 在独立目录重跑，产出可核对的复现事实。
+
+        plan 是已解析的 ``{"targets":[{"target","recipe_id","spec"}]}``。同一 recipe
+        只执行一次；每次调用生成新的 submission_id，重试绝不复用旧目录。只有
+        真实执行后的 ``outputs_snapshot[mapped_path]`` 与候选冻结 sha 一致才算
+        ``hash_match``；mutates 且 before==after 时 ``fresh_outputs=false``。
+        """
+        self.context.require_active()
+        if not isinstance(plan, dict) or not isinstance(plan.get("targets"), list) or not plan["targets"]:
+            raise ValueError("reproduction plan 必须包含非空 targets 数组")
+        candidate_id = str(candidate_id or "")
+        if not candidate_id:
+            raise ValueError("execute_reproduction 需要 candidate_id")
+        try:
+            candidate = self.store.get_candidate(candidate_id)
+        except KeyError:
+            raise ValueError(f"候选不存在: {candidate_id}") from None
+        if candidate.delivery_workflow_id and candidate.delivery_workflow_id != self.action.workflow_id:
+            raise ValueError("候选绑定的交付工作流与当前会话不一致")
+        acceptance = candidate.acceptance if isinstance(candidate.acceptance, dict) else {}
+        frozen_targets = {
+            str(item.get("path")): item
+            for item in (acceptance.get("reproduction_targets") or [])
+            if isinstance(item, dict) and item.get("path")
+        }
+        groups: dict[str, dict] = {}
+        order: list[str] = []
+        for item in plan["targets"]:
+            if not isinstance(item, dict):
+                raise ValueError("plan.targets 每项必须是对象")
+            target = self.context.relative(str(item.get("target") or ""))
+            spec = item.get("spec")
+            if not isinstance(spec, dict):
+                raise ValueError(f"target {target} 缺少 recipe spec")
+            recipe_id = str(spec.get("recipe_id") or item.get("recipe_id") or "")
+            if not recipe_id:
+                raise ValueError(f"target {target} 缺少 recipe_id")
+            recipe = self._recipe_entry(candidate.recipe if isinstance(candidate.recipe, dict) else {},
+                                        recipe_id)
+            if recipe is None:
+                raise ValueError(f"候选未冻结 recipe: {recipe_id}")
+            declared = {key: value for key, value in spec.items() if key != "recipe_id"}
+            frozen_recipe = {key: value for key, value in recipe.items() if key != "recipe_id"}
+            if digest(declared) != digest(frozen_recipe):
+                raise ValueError(f"plan recipe 与候选冻结 recipe 不一致: {recipe_id}")
+            frozen = frozen_targets.get(target)
+            if frozen is not None and str(frozen.get("recipe_id") or "") not in {"", recipe_id}:
+                raise ValueError(f"target {target} 的 recipe_id 与候选冻结值不一致")
+            expected = str((frozen or {}).get("sha256")
+                           or (candidate.frozen_versions or {}).get(target) or "")
+            if not expected:
+                raise ValueError(f"候选未冻结 target 版本: {target}")
+            group = groups.setdefault(recipe_id, {"recipe": dict(recipe), "targets": []})
+            if recipe_id not in order:
+                order.append(recipe_id)
+            if all(entry["target"] != target for entry in group["targets"]):
+                group["targets"].append({"target": target, "sha256": expected})
+
+        submission_id = uuid4().hex
+        results: list[dict] = []
+        all_ok = True
+        error = ""
+        for recipe_id in order:
+            group = groups[recipe_id]
+            recipe = group["recipe"]
+            recipe_hash = digest(recipe)
+            repro_rel = (f"_reproduction/{candidate.id}/{recipe_hash}/"
+                         f"{self.action.attempt_id}/{submission_id}")
+            repro_abs = self.workspace / repro_rel
+            if repro_abs.exists():
+                raise ValueError(f"复现目录已存在，拒绝复用旧目录: {repro_rel}")
+            argv = recipe.get("argv")
+            if not isinstance(argv, list) or not argv or any(not isinstance(token, str) or not token
+                                                              for token in argv):
+                raise ValueError(f"recipe {recipe_id} 的 argv 必须是非空字符串数组")
+            outputs_rel = [self.context.relative(str(value)) for value in recipe.get("outputs") or []]
+            if not outputs_rel:
+                raise ValueError(f"recipe {recipe_id} 必须声明 outputs")
+            mutates_rel = [self.context.relative(str(value)) for value in recipe.get("mutates") or []]
+            input_names: list[str] = []
+            for value in recipe.get("inputs") or []:
+                name = self.context.relative(str(value))
+                if name not in input_names:
+                    input_names.append(name)
+            inputs_snapshot = recipe.get("inputs_snapshot")
+            if isinstance(inputs_snapshot, dict):
+                for value in inputs_snapshot:
+                    name = self.context.relative(str(value))
+                    if name not in input_names:
+                        input_names.append(name)
+            cwd_name = self.context.relative(str(recipe.get("cwd") or "."))
+            repro_abs.mkdir(parents=True, exist_ok=False)
+            cwd_abs = repro_abs if cwd_name == "." else repro_abs / cwd_name
+            cwd_abs.mkdir(parents=True, exist_ok=True)
+            for name in input_names:
+                source = self.workspace / name
+                if not source.is_file():
+                    raise ValueError(f"复现输入不存在: {name}")
+                actual = hashlib.sha256(source.read_bytes()).hexdigest()
+                expected_input = self._frozen_input_sha(candidate, recipe, name)
+                if expected_input and actual != expected_input:
+                    raise ValueError(f"复现输入与候选冻结版本不一致: {name}")
+                destination = repro_abs / name
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, destination)
+                if hashlib.sha256(destination.read_bytes()).hexdigest() != actual:
+                    raise ValueError(f"复现输入复制后哈希不一致: {name}")
+            mutation_set = set(mutates_rel)
+            before_versions: dict[str, str] = {}
+            for name in outputs_rel:
+                mapped = f"{repro_rel}/{name}"
+                if name in mutation_set:
+                    path = self.workspace / mapped
+                    if not path.is_file():
+                        raise ValueError(f"mutates 输出必须由已复制的输入提供: {name}")
+                    actual = hashlib.sha256(path.read_bytes()).hexdigest()
+                    expected_before = self._frozen_input_sha(candidate, recipe, name)
+                    if expected_before and actual != expected_before:
+                        raise ValueError(f"mutates 输入版本与候选冻结值不一致: {name}")
+                    before_versions[mapped] = actual
+                elif (self.workspace / mapped).exists():
+                    raise ValueError(f"复现输出在运行前已存在: {mapped}")
+            rewritten_argv = [argv[0]]
+            for token in argv[1:]:
+                if Path(token).is_absolute():
+                    try:
+                        name = self.context.relative(token)
+                    except ValueError:
+                        raise ValueError(f"命令参数含工作区外绝对路径，无法映射: {token}") from None
+                    rewritten_argv.append(str(repro_abs / name))
+                else:
+                    rewritten_argv.append(token)
+            reproduction = {
+                "candidate_id": candidate.id,
+                "recipe_sha256": recipe_hash,
+                "recipe": dict(recipe),
+                "argv_rewrite": "workspace-absolute-to-repro-map-v1",
+                "targets": [{
+                    "target": entry["target"],
+                    "mapped_path": f"{repro_rel}/{entry['target']}",
+                    "before_sha256": before_versions.get(f"{repro_rel}/{entry['target']}", ""),
+                    "expected_sha256": entry["sha256"],
+                    "mutates": entry["target"] in mutation_set,
+                } for entry in group["targets"]],
+                "fresh_outputs": False,
+            }
+            command_spec = {
+                "id": f"repro:{recipe_id}",
+                "argv": rewritten_argv,
+                "cwd": repro_rel if cwd_name == "." else f"{repro_rel}/{cwd_name}",
+                "inputs": [f"{repro_rel}/{name}" for name in input_names],
+                "outputs": [f"{repro_rel}/{name}" for name in outputs_rel],
+                "mutates": [f"{repro_rel}/{name}" for name in mutates_rel],
+                "pure": False,
+                "complete_inputs": False,
+                "reproduction": reproduction,
+            }
+            if isinstance(recipe.get("timeout"), (int, float)):
+                command_spec["timeout"] = recipe["timeout"]
+            operation = None
+            try:
+                operation = self.execute(command_spec, force=True, no_cache=True)
+            except (OSError, ValueError) as exc:
+                error = error or str(exc)
+                all_ok = False
+            target_records: list[dict] = []
+            if operation is not None:
+                recorded = operation.get("reproduction")
+                recorded = recorded if isinstance(recorded, dict) else reproduction
+                target_records = [
+                    {key: value for key, value in record.items() if key != "expected_sha256"}
+                    for record in recorded.get("targets") or [] if isinstance(record, dict)
+                ]
+                if operation.get("status") != "succeeded":
+                    error = error or str(operation.get("error") or "command_failed")
+                    all_ok = False
+                if recorded.get("fresh_outputs") is not True:
+                    all_ok = False
+            results.append({
+                "recipe_id": recipe_id,
+                "recipe_sha256": recipe_hash,
+                "status": ("succeeded" if operation is not None
+                           and operation.get("status") == "succeeded" else "failed"),
+                "operation_id": (operation or {}).get("operation_id", ""),
+                "targets": target_records,
+            })
+            if operation is None:
+                break
+        summary = {
+            "ok": all_ok,
+            "status": "succeeded" if all_ok else "failed",
+            "candidate_id": candidate.id,
+            "argv_rewrite": "workspace-absolute-to-repro-map-v1",
+            "targets": [record for item in results for record in item["targets"]],
+            "recipes": results,
+        }
+        if error:
+            summary["error"] = error
+        elif not all_ok:
+            summary["error"] = "reproduction target hash mismatch"
+        return summary
 
     def run_plan(self, plan: dict, *, force: bool = False) -> dict:
         nodes = plan.get("nodes", [])

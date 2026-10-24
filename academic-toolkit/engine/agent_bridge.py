@@ -60,6 +60,11 @@ class StepAction:
     requires_subagent: bool = False
     skill_sha256: str = ""
     review_scope: str = ""
+    # G2 执行合同档位与候选交付采集要求（旧接入默认 delivery/false）。
+    # 候选交付工作流的所有步骤 requires_collection=True，只能接受
+    # execution-session-v1 的真实操作集合，legacy 手拼证据一律拒绝。
+    contract_tier: str | None = "delivery"
+    requires_collection: bool = False
 
     def binding_requirements(self) -> list[str]:
         """把绑定声明渲染成人类可读的强制要求行（供指令与错误信息复用）。"""

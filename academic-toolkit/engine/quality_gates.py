@@ -637,8 +637,11 @@ def assembly_faces(main_tex: Path) -> list[Path]:
 class QualityGate:
     """质量门禁系统 — 检查每个步骤产出"""
 
-    def __init__(self, workspace: Path):
+    def __init__(self, workspace: Path, audit_report_path: Path | None = None):
         self.workspace = Path(workspace)
+        # G2：所有工作流优先读 workflow-scoped 预审报告，避免复用工作区时
+        # 误读上一轮 ready 的根 AUDIT_REPORT.json。缺省保持旧单测的根路径行为。
+        self._audit_report_path = Path(audit_report_path) if audit_report_path else None
 
     def check_min_size(self, skill_name: str, primary_output: str) -> dict:
         """检查产出文件是否达到最小大小"""
@@ -1158,13 +1161,23 @@ class QualityGate:
         return {"ok": True, "claims": len(report["claims"]), "reason": "代码-论文一致性报告通过"}
 
     def check_final_audit_report(self) -> dict:
-        """Require a manifest-backed delivery decision, not a presence-only JSON file."""
-        path = self.workspace / "AUDIT_REPORT.json"
+        """Require a manifest-backed delivery decision, not a presence-only JSON file.
+
+        预审报告固定优先读 workflow-scoped 的 ``reports/<workflow_id>/AUDIT_REPORT.json``；
+        仅当该文件不存在时才回落根 AUDIT_REPORT.json（兼容旧工作区/旧测试）。
+        """
+        path = self._audit_report_path or (self.workspace / "AUDIT_REPORT.json")
         delivery = self.workspace / "DELIVERY_REPORT.json"
+        if not path.is_file():
+            path = self.workspace / "AUDIT_REPORT.json"
+        # 非最终审计步骤验收（工作流已进入 ready 派生视图阶段）继续读根
+        # DELIVERY_REPORT.json；最终审计步骤验收时 active_final_step_id 非空，
+        # 必须读 workflow-scoped 预审源，不能误读上一轮 ready 根。
         if not getattr(self, "_active_final_step_id", "") and delivery.is_file():
             path = delivery
         if not path.is_file():
-            return {"ok": False, "reason": "缺少 AUDIT_REPORT.json"}
+            expected = self._audit_report_path or (self.workspace / "AUDIT_REPORT.json")
+            return {"ok": False, "reason": f"缺少最终审计报告: {expected}"}
         try:
             report = json.loads(path.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
@@ -1173,6 +1186,10 @@ class QualityGate:
         missing = sorted(required - report.keys()) if isinstance(report, dict) else sorted(required)
         if missing:
             return {"ok": False, "missing": missing, "reason": f"最终审计报告字段不完整: {', '.join(missing)}"}
+        if report.get("contract_tier") == "explore" or report["delivery_decision"] == "explore_only":
+            return {"ok": False, "failed_gates": ["contract_tier"],
+                    "reason": ("explore 档报告（delivery_decision=explore_only）不能作为交付验收："
+                               "探索只需 EXPLORE_REPORT.json，正式交付必须 promote 为候选后走 delivery 档")}
         if not isinstance(report["artifacts"], list) or not report["artifacts"]:
             return {"ok": False, "reason": "最终审计报告 artifacts 为空"}
         for artifact in report["artifacts"]:
@@ -1209,6 +1226,21 @@ class QualityGate:
                                "（审核类步骤必须真实完成，不可豁免）。")}
         failed_gates = [name for name, outcome in report["gate_outcomes"].items() if outcome != "pass"]
         if failed_gates:
+            candidate_gates = [name for name in failed_gates if name.startswith("candidate_")]
+            if candidate_gates:
+                detail = (report.get("candidate") or {}).get("gates") or {}
+                reasons = {
+                    name: str((detail.get(name) or {}).get("reason") or "")
+                    for name in candidate_gates if isinstance(detail.get(name), dict)
+                }
+                degraded = any("L1" in reason or "degraded" in reason.lower()
+                               for reason in reasons.values())
+                return {"ok": False, "failed_gates": failed_gates,
+                        "candidate_gates": reasons,
+                        "degraded_host_attestation": degraded,
+                        "reason": ("候选交付就绪门未通过: " + ", ".join(
+                            f"{name}({reasons.get(name, '')})" if reasons.get(name) else name
+                            for name in candidate_gates))}
             return {"ok": False, "failed_gates": failed_gates,
                     "reason": f"最终审计存在未通过门禁: {', '.join(failed_gates)}"}
         if report["delivery_decision"] != "ready":
@@ -1783,7 +1815,8 @@ class QualityGate:
                 fingerprint_session=None, manifest_data=None, active_final_step_id: str = "",
                 quick_gates: bool = False, quick_gates_max_pages: int | None = None,
                 compliance_profile: str = "", page_contract: dict | None = None,
-                compliance_block: dict | None = None) -> dict:
+                compliance_block: dict | None = None,
+                audit_report_path: Path | None = None) -> dict:
         """运行所有门禁检查"""
         # Keep the existing positional ``run_all(skill, comp_name)`` call valid.
         if isinstance(declared_outputs, str) and not comp_name:
@@ -1793,6 +1826,8 @@ class QualityGate:
         self._fingerprint_session = fingerprint_session
         self._manifest_data = manifest_data
         self._active_final_step_id = active_final_step_id
+        if audit_report_path is not None:
+            self._audit_report_path = Path(audit_report_path)
         results = {}
         if declared_outputs is not None:
             artifact_result = ArtifactManifest.validate(self.workspace, declared_outputs, session=fingerprint_session)

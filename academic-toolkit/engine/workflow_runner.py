@@ -3,7 +3,7 @@
 引擎不执行，只编排：
   - next_action() → 告诉 agent 下一步做什么
   - complete_step() → agent 做完后回报结果
-  - approve_checkpoint() → 用户确认后继续
+  - _approve_checkpoint()（仅 workflow_cli approve 调用）→ 用户确认后继续
 
 Agent（当前驱动本项目的 Agent）按 StepAction 执行，然后调用 complete_step()。
 """
@@ -32,6 +32,15 @@ from .step_manifest import atomic_write_json, build_manifest, get_step_manifest
 def _norm_skill_token(name: str) -> str:
     """技能名归一化口径（与 used 痕迹校验一致）：去首尾空白、小写、'-' 与 '_' 等价。"""
     return str(name).strip().lower().replace("-", "_")
+
+
+def _workflow_tier(workflow: Workflow) -> str:
+    """读取工作流合同档位；旧工作流无 metadata 字段按 delivery 处理。"""
+    contract = workflow.metadata.get("execution_contract")
+    tier = contract.get("tier") if isinstance(contract, dict) else "delivery"
+    if tier not in {"delivery", "explore"}:
+        raise ValueError(f"unknown execution contract tier: {tier!r}")
+    return str(tier)
 
 
 @dataclass(frozen=True)
@@ -76,27 +85,114 @@ class WorkflowRunner:
             except Exception:
                 pass
 
-    def start(self, template: str, workspace: Path, params: dict[str, Any]) -> Workflow:
+    def start(self, template: str, workspace: Path, params: dict[str, Any], *,
+              mode: str = "delivery", candidate_id: str = "") -> Workflow:
         """创建持久化工作流；调用 next_action() 获取第一个 StepAction。
 
-        B-02：启动即把有效赛事档案冻结进 metadata（contest_profile_snapshot），
-        此后全部消费者读同一份快照；显式声明错误（身份冲突/未知ID/届次无匹配）
-        在此直接失败，不创建带错误身份的工作流。
+        G2 合同档位：
+        - ``mode="delivery"``（默认）保持现有交付语义；``mode="explore"`` 在启动时
+          剔除终审步骤并关闭步内人工 checkpoint，产物只写 EXPLORE_REPORT.json。
+        - ``candidate_id`` 非空时只建 promotion-carry / candidate-reproduction /
+          候选验收合同中的 review 步骤 / comp-final-audit，不重跑会改写候选根的生产步骤。
         """
+        if mode not in {"delivery", "explore"}:
+            raise ValueError(f"unknown execution mode: {mode!r}")
+        if candidate_id and mode != "delivery":
+            raise ValueError("candidate binding requires delivery mode")
         self.start_params = params
         steps = resolve_template(template, params, self.catalog)
         workspace = Path(workspace).resolve()
         workspace.mkdir(parents=True, exist_ok=True)
+        contract: dict[str, Any] = {"tier": mode, "version": 1}
+        if mode == "explore":
+            excluded_steps = [s["skill_name"] for s in steps
+                              if s.get("skill_name") == "comp-final-audit"
+                              or "final_audit" in (s.get("required_checks") or [])
+                              or "AUDIT_REPORT.json" in (s.get("output_files") or [])]
+            steps = [s for s in steps if s["skill_name"] not in set(excluded_steps)]
+            if not steps:
+                raise ValueError("explore 模板没有可执行步骤（终审步骤被剔除后为空）")
+            contract["excluded_steps"] = excluded_steps
+            contract["excluded_checkpoints"] = [
+                {"step": s["skill_name"], "checkpoint_type": s.get("checkpoint_type")}
+                for s in steps if s.get("has_checkpoint")]
+            for s in steps:
+                s["has_checkpoint"] = False
+                s["checkpoint_type"] = None
         metadata: dict[str, Any] = {
             "workspace": str(workspace),
             "params": params,
             "template": template,
+            "execution_contract": contract,
         }
+        candidate = None
+        if candidate_id:
+            candidate = self.store.get_candidate(candidate_id)
+            if candidate.status != "not_ready":
+                raise ValueError("delivery candidate is not available for binding")
+            acceptance = candidate.acceptance if isinstance(candidate.acceptance, dict) else {}
+            frozen_params = acceptance.get("params") if isinstance(acceptance.get("params"), dict) else {}
+            if any(key.startswith("skip_") and bool(value)
+                   for key, value in frozen_params.items()):
+                raise ValueError("候选验收合同含 skip_ 参数，不能启动交付工作流")
+            unsupported = {key: value for key, value in params.items()
+                           if key != "agent" and frozen_params.get(key) != value}
+            if unsupported:
+                raise ValueError(f"候选交付参数以 acceptance.params 为准，额外参数仅允许 agent: {sorted(unsupported)}")
+            if not (acceptance.get("approval_policy") or {}).get("approvers"):
+                raise ValueError("候选验收合同缺少 approval_policy 审批人白名单，请重新 promote")
+            required_reviews = acceptance.get("required_reviews") or []
+            if not isinstance(required_reviews, list) or not required_reviews:
+                raise ValueError("候选验收合同缺少 required_reviews，请重新 promote")
+            review_names = [str(item.get("skill_name") if isinstance(item, dict) else item)
+                            for item in required_reviews]
+            delivery_steps = []
+            for raw_spec in acceptance.get("delivery_steps") or []:
+                if not isinstance(raw_spec, dict):
+                    continue
+                nested = raw_spec.get("metadata") if isinstance(raw_spec.get("metadata"), dict) else {}
+                delivery_steps.append({**nested, **raw_spec})
+            by_name = {str(s.get("skill_name") or ""): s for s in delivery_steps}
+            selected: list[dict[str, Any]] = []
+            for name in review_names:
+                spec = by_name.get(name)
+                if spec is None:
+                    raise ValueError(f"候选验收合同缺少 review 步骤定义: {name}")
+                selected.append(spec)
+            final_spec = by_name.get("comp-final-audit")
+            if final_spec is None or final_spec.get("has_checkpoint") is not True:
+                raise ValueError("候选验收合同缺少带人工 checkpoint 的 comp-final-audit，请重新 promote")
+            selected.append(final_spec)
+            roots = {str(root.get("path", "")) for root in candidate.roots if isinstance(root, dict)}
+            for spec in selected:
+                overlap = roots & {str(path) for path in (spec.get("output_files") or [])}
+                if overlap:
+                    raise ValueError("候选交付步骤不得把候选根作为 outputs: " + ", ".join(sorted(overlap)))
+            steps = ([{"skill_name": "promotion-carry", "display_name": "候选承接",
+                       "output_files": [], "primary_output": "", "has_checkpoint": False,
+                       "checkpoint_type": None, "required_checks": [], "output_specs": {},
+                       "carrier": True},
+                      {"skill_name": "candidate-reproduction", "display_name": "候选复现",
+                       "output_files": ["REPRODUCTION_REPORT.json"],
+                       "primary_output": "REPRODUCTION_REPORT.json",
+                       "has_checkpoint": False, "checkpoint_type": None,
+                       "required_checks": [], "output_specs": {}}]
+                     + [dict(spec) for spec in selected])
+            metadata["delivery_candidate"] = {
+                "candidate_id": candidate.id,
+                "source_workflow_id": candidate.source_workflow_id,
+                "acceptance_sha256": candidate.acceptance_sha256,
+                "roots": list(candidate.roots),
+                "inputs": dict(candidate.inputs),
+                "reproduction_targets": list(acceptance.get("reproduction_targets") or []),
+            }
+            metadata["approval_policy"] = dict(acceptance.get("approval_policy") or {})
+            metadata["params"] = {**frozen_params, **({"agent": params["agent"]} if "agent" in params else {})}
         from .contest_profile import resolve_profile
-        profile = resolve_profile(template, params)  # 显式错误直接抛，不静默
+        profile = resolve_profile(template, metadata["params"])  # 显式错误直接抛，不静默
         if profile is not None:
             metadata["contest_profile_snapshot"] = profile.to_snapshot()
-        workflow = self.store.create_workflow(template, metadata)
+        workflow = self.store.create_workflow(template, metadata, candidate_id=candidate_id)
         if profile is not None:
             # C→B 接口（B-CLOSE-01，2026-09-27）：bound 快照的机械字段由程序注入
             # 执行环境（.engine/contest_env），LLM 不转录；pending_binding 与非赛事
@@ -106,10 +202,12 @@ class WorkflowRunner:
         if self.logger is None:
             self.logger = RunLogger(workspace / ".engine" / "logs")
         self._log(workflow.id, None, None, "started",
-                  f"工作流 {template} 启动（{len(steps)} 步）", agent=params.get("agent", ""))
+                  f"工作流 {template} 启动（{len(steps)} 步，tier={mode}）",
+                  agent=metadata["params"].get("agent", ""))
         self._audit_record(type="engine_event", event="workflow_started", workflow_id=workflow.id,
                            template=template, workspace=str(workspace), step_count=len(steps),
-                           agent=params.get("agent", ""))
+                           contract_tier=mode, candidate_id=candidate_id,
+                           agent=metadata["params"].get("agent", ""))
         step_specs = []
         for s in steps:
             meta = dict(s)
@@ -119,11 +217,53 @@ class WorkflowRunner:
             meta["checkpoint_type"] = s.get("checkpoint_type")
             meta["display_name"] = s.get("display_name", s["skill_name"])
             step_specs.append({"name": s["skill_name"], "metadata": meta})
-        self.store.add_steps(workflow.id, step_specs)
+        created = self.store.add_steps(workflow.id, step_specs)
+        if candidate is not None:
+            self._carry_over_candidate(workflow, created[0], candidate, workspace)
         return workflow
+
+    def _carry_over_candidate(self, workflow: Workflow, carry_step, candidate, workspace: Path) -> None:
+        """把候选根作为本交付工作流的已接受版本（不重跑生产者）。"""
+        running = self.store.transition_step(carry_step.id, StepStatus.RUNNING)
+        root_artifacts = [
+            {"name": Path(str(root.get("path", ""))).name, "path": str(root.get("path", "")),
+             "metadata": {"sha256": str(root.get("sha256", ""))}}
+            for root in candidate.roots if isinstance(root, dict) and root.get("path")
+        ]
+        manifest = {"artifacts": [{"path": item["path"], "sha256": item["metadata"]["sha256"]}
+                                  for item in root_artifacts]}
+        self.store.transition_step_with_checkpoint(
+            workflow.id, carry_step.id, StepStatus.COMPLETED,
+            {"status": "completed", "carrier": True, "candidate_id": candidate.id},
+            artifacts=root_artifacts,
+            event={"type": "step_completed", "carrier": True,
+                   "candidate_id": candidate.id, "manifest": manifest},
+            expected_revision=running.revision,
+        )
+        recipe_map = candidate.recipe if isinstance(candidate.recipe, dict) else {}
+        targets = []
+        acceptance = candidate.acceptance if isinstance(candidate.acceptance, dict) else {}
+        for target in acceptance.get("reproduction_targets") or []:
+            if not isinstance(target, dict) or not target.get("path"):
+                continue
+            recipe_id = str(target.get("recipe_id") or "")
+            spec = recipe_map.get(recipe_id)
+            if not isinstance(spec, dict):
+                continue
+            targets.append({"target": str(target["path"]), "recipe_id": recipe_id,
+                            "spec": {**spec, "recipe_id": recipe_id}})
+        atomic_write_json(workspace / "REPRODUCTION_PLAN.json",
+                          {"candidate_id": candidate.id, "targets": targets})
 
     def next_action(self, workflow_id: str) -> RunResult:
         """返回下一个要执行的 StepAction，或告知工作流已完成/失败。"""
+        workflow = self.store.get_workflow(workflow_id)
+        if workflow.status == "abandoned":
+            return RunResult(workflow_id, "abandoned", message="工作流已放弃（abandoned）；旧会话与旧 ticket 均已失效")
+        if workflow.status == "completed":
+            delivery = self._refresh_delivery(workflow_id)
+            return RunResult(workflow_id, "completed", message="所有步骤已完成",
+                             diagnostics={"delivery": delivery} if delivery else {})
         running = self._last_running_step(workflow_id)
         if running is not None:
             workflow = self.store.get_workflow(workflow_id)
@@ -167,6 +307,9 @@ class WorkflowRunner:
                          action=self._action_for_step(workflow, step))
 
     def _result_target(self, workflow_id: str, result: StepResult):
+        workflow = self.store.get_workflow(workflow_id)
+        if workflow.status != "active":
+            raise ValueError("stale completion: workflow is no longer active")
         raw = result.metadata.get("execution_evidence", {})
         raw = raw if isinstance(raw, dict) else {}
         target = result.step_id or raw.get("step_id")
@@ -220,16 +363,23 @@ class WorkflowRunner:
         if step.name != "comp-final-audit":
             raise ValueError("candidate evidence requires the current final-audit step")
         action = self._action_for_step(workflow, step)
-        normalized = validate_execution_evidence(Path(workflow.metadata["workspace"]), action, result, store=self.store)
+        normalized = validate_execution_evidence(
+            Path(workflow.metadata["workspace"]), action, result, store=self.store,
+            require_collection=bool(workflow.metadata.get("delivery_candidate")))
         return self._final_candidate(action, normalized)
 
     def _validate_step(self, workflow, step, result, session):
         workspace = Path(workflow.metadata["workspace"])
+        tier = _workflow_tier(workflow)
+        delivery_candidate = workflow.metadata.get("delivery_candidate")
+        delivery_candidate = delivery_candidate if isinstance(delivery_candidate, dict) else {}
         action = self._action_for_step(workflow, step)
         checks: dict[str, Any] = {}
         evidence: dict[str, Any] = {}
         try:
-            evidence = validate_execution_evidence(workspace, action, result, store=self.store, fingerprint_session=session)
+            evidence = validate_execution_evidence(
+                workspace, action, result, store=self.store, fingerprint_session=session,
+                require_collection=bool(delivery_candidate))
             checks["protocol"] = {"ok": True}
         except (ValueError, OSError, TypeError) as exc:
             checks["protocol"] = {"ok": False, "reason": f"invalid execution evidence: {exc}"}
@@ -320,11 +470,16 @@ class WorkflowRunner:
                                                         workflow_id=workflow.id, fingerprint_session=session,
                                                         candidate=self._final_candidate(action, evidence)
                                                         if checks["protocol"]["ok"] else None)
-                saved_audit = json.loads((workspace / "AUDIT_REPORT.json").read_text(encoding="utf-8"))
+                # 所有工作流优先读 workflow-scoped 预审源；根 AUDIT_REPORT.json 只在
+                # 该文件缺席时兼容回退，避免复用工作区时读到上一轮 ready 的根报告。
+                scoped_audit = workspace / "reports" / workflow.id / "AUDIT_REPORT.json"
+                audit_source = scoped_audit if scoped_audit.is_file() else workspace / "AUDIT_REPORT.json"
+                saved_audit = json.loads(audit_source.read_text(encoding="utf-8")) if audit_source.is_file() else {}
                 checks["final_audit_binding"] = {"ok": isinstance(saved_audit, dict)
                     and saved_audit.get("workflow_id") == workflow.id
                     and saved_audit.get("artifacts") == current_audit["artifacts"],
-                    "reason": "预审必须绑定当前 workflow 与当前验收产物集合"}
+                    "reason": "预审必须绑定当前 workflow 与当前验收产物集合",
+                    "audit_report_path": str(audit_source)}
                 checks["final_audit_live_state"] = {
                     "ok": current_audit["delivery_decision"] in {"eligible", "ready"},
                     "reason": "当前工作流与全部前置门禁的实时验收", "gate_outcomes": current_audit["gate_outcomes"]}
@@ -351,6 +506,15 @@ class WorkflowRunner:
                 page_contract = {**page_contract, "cap": int(explicit_cap), "scope": "body",
                                  "status": "explicit_task",
                                  "reason": "任务/步骤显式口径（只影响当前任务）"}
+            if delivery_candidate:
+                roots = {str(root.get("path", "")) for root in delivery_candidate.get("roots") or []
+                         if isinstance(root, dict)}
+                overlap = roots & set(declared)
+                checks["candidate_roots"] = {
+                    "ok": not overlap,
+                    "reason": "" if not overlap else
+                    "候选交付步骤不得把候选根作为 outputs（改内容必须新建 candidate）: "
+                    + ", ".join(sorted(overlap))}
             gate = QualityGate(workspace).run_all(
                 step.name, declared_outputs=declared,
                 comp_name=contest_id if (step.metadata.get("revalidate_paper_pages")
@@ -364,13 +528,32 @@ class WorkflowRunner:
                 quick_gates_max_pages=step.metadata.get("quick_gates_max_pages"),
                 compliance_profile=quick_gates_profile,
                 compliance_block=dict(snapshot.get("compliance") or {}) if bound else None,
+                audit_report_path=workspace / "reports" / workflow.id / "AUDIT_REPORT.json",
             )
             checks.update({f"quality:{k}": v for k, v in gate["checks"].items()})
             session.assert_unchanged()
         except (ValueError, OSError, TypeError) as exc:
             gate = {"ok": False, "checks": {"validation": {"ok": False, "reason": str(exc)}}}
             checks["validation"] = gate["checks"]["validation"]
-        report = {"ok": all(c.get("ok") is True for c in checks.values()), "checks": checks,
+        advisories: list[str] = []
+        if tier == "explore":
+            # 探索档：内容质量/产物规格/申报痕迹类检查只留痕不阻断本步完成；
+            # independent_review / final_audit_binding / final_audit_live_state
+            # 等防伪造与终审实时验收保持 hard（探索不降低安全硬约束）。
+            advisory_names = {
+                name for name in checks
+                if name.startswith(("quality:", "output_spec:"))
+                or name in {"companion", "binding", "assets_usage",
+                            "additional_skills", "business_outputs"}
+            }
+            hard = {name: check for name, check in checks.items() if name not in advisory_names}
+            advisories = sorted(name for name in advisory_names
+                                if checks[name].get("ok") is not True)
+            ok = all(check.get("ok") is True for check in hard.values())
+        else:
+            ok = all(check.get("ok") is True for check in checks.values())
+        report = {"ok": ok, "checks": checks, "advisories": advisories,
+                  "contract_tier": tier,
                   "step_id": step.id, "attempt_id": step.attempt_id, "expected_revision": step.revision}
         return report, evidence, manifest, gate, manifest_data
 
@@ -425,7 +608,7 @@ class WorkflowRunner:
         step = self._result_target(workflow_id, target)
         action = self._action_for_step(workflow, step)
         evidence = collect_execution_evidence(self.store, workflow, action, subagent_session=subagent_session)
-        if step.name == "comp-final-audit":
+        if step.name == "comp-final-audit" and _workflow_tier(workflow) == "delivery":
             from .audit_store import write_final_audit_report
             candidate = self.final_audit_candidate(workflow_id, evidence)
             write_final_audit_report(action.workspace, self.audit_root,
@@ -480,9 +663,14 @@ class WorkflowRunner:
         message = (f"步骤 {step.name} 完成，等待用户确认" if waiting else f"步骤 {step.name} 完成") if good else "; ".join(
             f"{name}: {check.get('reason', 'failed')}" for name, check in report["checks"].items() if check.get("ok") is not True)
         response = {"status": status, "step_id": step.id, "message": message, "diagnostics": report}
-        state = {"status": status, "attempt_id": step.attempt_id, "validation": report, "quality_gates": gate}
+        state = {"status": status, "attempt_id": step.attempt_id, "validation": report,
+                 "quality_gates": gate, "contract_tier": report.get("contract_tier", "delivery"),
+                 "advisories": list(report.get("advisories") or [])}
         event = {"type": "step_completed" if good else "step_failed", "quality_gates": gate,
-                 "attempt_id": step.attempt_id, "validation": report, "stderr": "" if good else message}
+                 "attempt_id": step.attempt_id, "validation": report,
+                 "contract_tier": report.get("contract_tier", "delivery"),
+                 "advisories": list(report.get("advisories") or []),
+                 "stderr": "" if good else message}
         def prepare_evidence():
             session.assert_unchanged()
             collection = evidence.get("collection")
@@ -777,14 +965,108 @@ class WorkflowRunner:
             obligations.append("assets")
         return obligations
 
-    def approve_checkpoint(self, checkpoint_id: str, response: dict[str, Any]) -> RunResult:
-        """用户批准检查点后继续工作流。"""
+    @staticmethod
+    def _approval_event_pattern(command: str) -> bool:
+        """L1 自批/绕过检测 a–f：命中任一即视为 agent 参与批准。"""
+        text = str(command or "").lower()
+        if not text:
+            return False
+        write_words = ("insert", "update", "sqlite3", "execute", "executemany", "delete", "drop")
+        if "workflow_cli approve" in text:
+            return True
+        if "approve_checkpoint" in text:
+            return True
+        if "workflow_runner" in text and "approve" in text:
+            return True
+        if ("candidate_approved" in text or "candidate_events" in text) and any(w in text for w in write_words):
+            return True
+        if "workflow.sqlite" in text and any(w in text for w in write_words):
+            return True
+        # f) 路径归属命令的脚本/可执行名或参数含 approve（包装脚本）
+        if re.search(r"(?:^|[\\/\s\"'=])approve[\w.-]*", text):
+            return True
+        return False
+
+    def _candidate_l1_evidence(self, workflow: Workflow, current: Any, checkpoint_id: str,
+                               approved_by: str) -> dict[str, Any]:
+        """收集候选终审批准所需的 L1 归属证据（window + workspace path）。
+
+        pathless 事件不能支撑 ``l1_available``；只有 detail.command/filePath 指向
+        当前工作区的宿主事件才进入归属集合，避免共享 L1 日志跨工作区冒充。
+        """
+        from datetime import datetime, timezone
+        from .audit_store import _parse_event_ts, _workflow_window_start
+
+        workspace = Path(workflow.metadata["workspace"]).resolve()
+        workflow_created = _parse_event_ts(workflow.created_at) or datetime.now(timezone.utc)
+        lower = _workflow_window_start(workspace)
+        window_start = max(workflow_created, lower) if lower else workflow_created
+        events = self._audit.events() if self._audit is not None else []
+        ws_norm = str(workspace).replace("\\", "/").lower()
+        attributed: list[dict[str, Any]] = []
+        for event in events:
+            if event.get("type") not in {"tool_call", "tool_result"}:
+                continue
+            ts = _parse_event_ts(event.get("ts"))
+            if ts is None or ts < window_start:
+                continue
+            detail = event.get("detail") if isinstance(event.get("detail"), dict) else {}
+            command = str(detail.get("command") or "")
+            file_path = str(detail.get("filePath") or "")
+            attributed_here = bool(command) and ws_norm in command.replace("\\", "/").lower()
+            if file_path:
+                try:
+                    attributed_here = attributed_here or Path(file_path).resolve().is_relative_to(workspace)
+                except (OSError, ValueError):
+                    pass
+            if attributed_here:
+                attributed.append(event)
+        agent_approve_seen = False
+        approve_sessions: set[str] = set()
+        executing_sessions: set[str] = set()
+        for event in attributed:
+            detail = event.get("detail") if isinstance(event.get("detail"), dict) else {}
+            command = str(detail.get("command") or "")
+            session_id = str(detail.get("sessionID") or event.get("sessionID") or "")
+            if command and self._approval_event_pattern(command):
+                agent_approve_seen = True
+                if session_id:
+                    approve_sessions.add(session_id)
+            elif session_id:
+                executing_sessions.add(session_id)
+        same_session_approve = bool(approve_sessions & executing_sessions) or bool(approve_sessions)
+        policy_sha = hashlib.sha256(json.dumps(
+            workflow.metadata.get("approval_policy") or {}, sort_keys=True,
+            ensure_ascii=True).encode()).hexdigest()
+        return {
+            "l1_available": bool(attributed),
+            "agent_approve_seen": agent_approve_seen,
+            "same_session_approve": same_session_approve,
+            "degraded_host_attestation": not bool(attributed),
+            "l1_window_start": window_start.isoformat(),
+            "attributed_event_count": len(attributed),
+            "approval_policy_sha256": policy_sha,
+            "approved_by": approved_by,
+        }
+
+    def _record_candidate_approval_event(self, candidate_id: str, checkpoint_id: str,
+                                         step_id: str, event_type: str, payload: dict[str, Any]) -> None:
+        try:
+            self.store._record_candidate_event(candidate_id, checkpoint_id, step_id,
+                                               event_type, payload)
+        except (ValueError, KeyError):
+            # 同一 checkpoint 的同类事件已落账（UNIQUE）时保持原事实，不覆盖。
+            pass
+
+    def _approve_checkpoint(self, checkpoint_id: str, response: dict[str, Any]) -> RunResult:
+        """用户批准检查点后继续工作流（公开入口只有 workflow_cli approve）。"""
         candidates = [c for c in self.store.resume_candidates() if c.checkpoint.id == checkpoint_id]
         if not candidates:
             raise KeyError(f"unknown checkpoint: {checkpoint_id}")
         candidate = candidates[0]
         current = self.store.get_step(candidate.step_id)
-        approval_workspace = Path(self.store.get_workflow(candidate.workflow_id).metadata["workspace"])
+        approval_workflow = self.store.get_workflow(candidate.workflow_id)
+        approval_workspace = Path(approval_workflow.metadata["workspace"])
         approval_session = FingerprintSession(approval_workspace)
         if (current.status != StepStatus.BLOCKED
                 or self._latest_checkpoint_id(current.id) != checkpoint_id
@@ -825,6 +1107,46 @@ class WorkflowRunner:
                              "人类确认检查点禁止 agent 自批（视同伪造审核证据）。"
                              "请由操作者本人（如 默默）执行 approve")
 
+        candidate_meta = approval_workflow.metadata.get("delivery_candidate")
+        candidate_meta = candidate_meta if isinstance(candidate_meta, dict) else {}
+        candidate_event = None
+        if candidate_meta:
+            # 候选批准只认 comp-final-audit 的最后一步 checkpoint；普通步骤提前
+            # 批准不得写 candidate_approved，也不得满足 candidate_approval。
+            last = self.store._connection.execute(
+                "SELECT id FROM workflow_steps WHERE workflow_id=? ORDER BY position DESC LIMIT 1",
+                (candidate.workflow_id,)).fetchone()
+            if current.name != "comp-final-audit" or last is None or last["id"] != current.id:
+                return RunResult(candidate.workflow_id, "blocked", current.id,
+                                 "批准被拒：候选批准只能发生在 comp-final-audit 的最后一步 checkpoint")
+            policy = approval_workflow.metadata.get("approval_policy")
+            policy = policy if isinstance(policy, dict) else {}
+            approvers = [str(value) for value in (policy.get("approvers") or [])
+                         if str(value).strip()]
+            if approved_by not in approvers:
+                return RunResult(candidate.workflow_id, "blocked", current.id,
+                                 "批准被拒：approved_by 不在候选冻结的审批人白名单内")
+            l1 = self._candidate_l1_evidence(approval_workflow, current, checkpoint_id, approved_by)
+            candidate_id = str(candidate_meta.get("candidate_id") or "")
+            if not l1["l1_available"]:
+                self._record_candidate_approval_event(
+                    candidate_id, checkpoint_id, current.id, "candidate_approval_degraded", l1)
+                return RunResult(candidate.workflow_id, "blocked", current.id,
+                                 "批准被拒：当前工作流时间窗内没有路径归属的宿主 L1 事件，"
+                                 "无法核验人工批准（degraded_host_attestation=true）",
+                                 diagnostics={**l1, "candidate_id": candidate_id})
+            if l1["agent_approve_seen"] or l1["same_session_approve"]:
+                self._record_candidate_approval_event(
+                    candidate_id, checkpoint_id, current.id, "candidate_approval_rejected", l1)
+                return RunResult(candidate.workflow_id, "blocked", current.id,
+                                 "批准被拒：L1 检测到 agent/同会话执行 approve 或直写审批事实",
+                                 diagnostics={**l1, "candidate_id": candidate_id})
+            candidate_event = {
+                "event_type": "candidate_approved", "candidate_id": candidate_id,
+                "approved_by": approved_by,
+                "payload": {**l1, "approved_by": approved_by, "candidate_id": candidate_id},
+            }
+
         if current.name == "comp-final-audit":
             from .audit_store import build_final_audit_report
             live = build_final_audit_report(
@@ -846,6 +1168,8 @@ class WorkflowRunner:
                 event={"type": "checkpoint_approved", "approved_by": approved_by,
                        "approved_checkpoint_id": checkpoint_id},
                 expected_revision=current.revision, expected_checkpoint_id=checkpoint_id,
+                approval_checkpoint_id=checkpoint_id if candidate_event else "",
+                candidate_event=candidate_event,
                 prepare_evidence=approval_session.assert_unchanged, finalize_if_complete=True,
             )
         except (ValueError, OSError, sqlite3.Error) as exc:
@@ -898,6 +1222,38 @@ class WorkflowRunner:
         return RunResult(workflow_id, "advanced", step.id,
                          message=f"步骤 {step.name} 已复位为 RUNNING，重新执行后 complete",
                          action=self._action_for_step(workflow, step))
+
+    def abandon_workflow(self, workflow_id: str, reason: str, by: str = "") -> RunResult:
+        """放弃 explore 工作流：保留全部操作事实，但旧 ticket 立即失效。"""
+        workflow = self.store.get_workflow(workflow_id)
+        if _workflow_tier(workflow) != "explore":
+            return RunResult(workflow_id, "blocked",
+                             message="abandon 仅允许 explore 档；delivery 必须走 retry/返修，不得逃避交付")
+        if not str(reason).strip() or not str(by).strip():
+            return RunResult(workflow_id, "blocked",
+                             message="abandon 需要非空 reason 与 by（放弃也要留痕）")
+        try:
+            abandoned = self.store.abandon_workflow(workflow_id, str(reason), str(by))
+        except (KeyError, ValueError) as exc:
+            return RunResult(workflow_id, "blocked", message=f"abandon 被拒：{exc}")
+        self._log(workflow_id, None, None, "abandoned",
+                  f"工作流已放弃：{str(reason).strip()}", agent=str(by).strip())
+        self._audit_record(type="engine_event", event="workflow_abandoned",
+                           workflow_id=workflow_id, reason=str(reason).strip(), by=str(by).strip())
+        return RunResult(workflow_id, "abandoned", message=(
+            f"工作流 {abandoned.name} 已放弃（abandoned）；操作事实保留，旧会话/旧 ticket 全部失效"))
+
+    def promote(self, workflow_id: str, roots: list[str], *, by: str, template: str = "") -> Any:
+        """从已完成的 explore 工作流冻结交付候选（委托 promotion 模块）。"""
+        try:
+            from .promotion import freeze_candidate
+        except ImportError as exc:  # fail-closed：缺冻结实现时不产生半候选
+            raise ValueError("promotion module is unavailable; cannot freeze delivery candidate") from exc
+        project_root = self.skills_root.parent.parent
+        return freeze_candidate(
+            self.store, workflow_id, roots, by=str(by).strip(), template=template,
+            catalog=self.catalog, project_root=project_root,
+            skills_root=self.skills_root, rules_root=self.skills_root.parent / "engine/modex-core")
 
     # ── D1 断链告警与手工补录（2026-09-13 原仓库缺陷修复建议 D1 落地） ─────
     # 背景：engine_step.log（2026-09-12）显示 14 步 runner 推进到 step 3 等待
@@ -982,6 +1338,9 @@ class WorkflowRunner:
            step_backfilled 事件 payload 三处留痕，复审可逐条追问豁免理由。
         """
         workflow = self.store.get_workflow(workflow_id)
+        if isinstance(workflow.metadata.get("delivery_candidate"), dict):
+            return RunResult(workflow_id, "failed",
+                             message="候选交付禁止 legacy/backfill：候选验收必须走执行会话的真实操作与复现")
         row = self.store._connection.execute(
             "SELECT * FROM workflow_steps WHERE workflow_id = ? AND name = ? "
             "ORDER BY position LIMIT 1",
@@ -1267,7 +1626,7 @@ class WorkflowRunner:
         return None
 
     def _action_for_step(self, workflow: Workflow, step: Any) -> StepAction:
-        return StepAction(
+        values = dict(
             workflow_id=workflow.id, step_id=step.id, position=step.position, skill_name=step.name,
             display_name=step.metadata.get("display_name", step.name),
             workspace=Path(workflow.metadata["workspace"]), skill_path=self.skills_root / step.name / "SKILL.md",
@@ -1291,6 +1650,17 @@ class WorkflowRunner:
             skill_sha256=hashlib.sha256((self.skills_root / step.name / "SKILL.md").read_bytes()).hexdigest()
                 if (self.skills_root / step.name / "SKILL.md").is_file() else "",
         )
+        # agent_bridge.StepAction 的 G2 字段由并行合同层补入；本层用 dataclass
+        # 字段探测保持向前/向后兼容，避免在旧接口上 TypeError。
+        if "contract_tier" in StepAction.__dataclass_fields__:
+            # delivery 直连保持旧接入的 None（证据侧按 workflow metadata 判别）；
+            # explore 与候选交付显式下发档位，防止手拼证据挂错档。
+            tier = _workflow_tier(workflow)
+            values["contract_tier"] = (tier if tier != "delivery"
+                                       or workflow.metadata.get("delivery_candidate") else None)
+        if "requires_collection" in StepAction.__dataclass_fields__:
+            values["requires_collection"] = bool(workflow.metadata.get("delivery_candidate"))
+        return StepAction(**values)
 
     def _prepare_step_manifest(self, workflow, step, evidence, declared_outputs, session):
         workspace = Path(workflow.metadata["workspace"])
@@ -1357,11 +1727,20 @@ class WorkflowRunner:
         workflow = self.store.get_workflow(workflow_id)
         if workflow.status != "completed":
             return {}
-        from .audit_store import write_final_audit_report
+        from .audit_store import write_explore_report, write_final_audit_report
         workspace = Path(workflow.metadata["workspace"])
-        if not (workspace / "AUDIT_REPORT.json").is_file():
-            return {}
         try:
+            if _workflow_tier(workflow) == "explore":
+                # 探索档只写 EXPLORE_REPORT.json；绝不产出 AUDIT/DELIVERY 报告，
+                # 也绝不进入不可变 release 命名空间。
+                path = write_explore_report(workspace, self.audit_root,
+                    workflow_db=Path(self.store.db_path), workflow_id=workflow_id)
+                return {"report": path.name, "decision": "explore_only"}
+            # 交付档仍以真实预审报告为派生前提；没有预审源时不伪造报告
+            # （避免为生成工作副本额外读取产物字节）。
+            if not ((workspace / "reports" / workflow_id / "AUDIT_REPORT.json").is_file()
+                    or (workspace / "AUDIT_REPORT.json").is_file()):
+                return {}
             path = write_final_audit_report(workspace, self.audit_root,
                 out=workspace / "DELIVERY_REPORT.json", workflow_db=Path(self.store.db_path),
                 workflow_id=workflow_id)

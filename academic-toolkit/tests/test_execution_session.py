@@ -116,7 +116,7 @@ def test_checkpoint_still_requires_human_approval(tmp_path):
     result = session.finish()
     assert result["status"] == "waiting_checkpoint"
     assert session.finish()["status"] == "blocked"
-    assert runner.approve_checkpoint(result["checkpoint_id"], {"approved": True, "approved_by": "operator"}).status == "completed"
+    assert runner._approve_checkpoint(result["checkpoint_id"], {"approved": True, "approved_by": "operator"}).status == "completed"
     store.close()
 
 
@@ -212,8 +212,8 @@ def test_workspace_read_exact_edit_and_writing_dependency(tmp_path):
     store, runner, wf, session = make_session(tmp_path)
     session.files.write("source.txt", "observed evidence")
     assert session.files.read_file("source.txt")["content"] == "observed evidence"
-    session.files.write("result.txt", "supported result, initial wording")
-    session.files.edit("result.txt", "initial wording", "revised wording")
+    session.files.write("result.txt", "supported result, initial wording", inputs=["source.txt"])
+    session.files.edit("result.txt", "initial wording", "revised wording", inputs=["source.txt"])
     assert (session.workspace / "result.txt").read_text() == "supported result, revised wording"
     with pytest.raises(ValueError, match="唯一匹配"):
         session.files.edit("result.txt", "not present", "replacement")
@@ -221,8 +221,109 @@ def test_workspace_read_exact_edit_and_writing_dependency(tmp_path):
     assert session.finish()["status"] == "needs_work"
     session.files.read_file("source.txt")
     session.files.write("source.txt", "changed evidence")
-    session.files.write("result.txt", "revised result with current evidence")
+    session.files.write("result.txt", "revised result with current evidence", inputs=["source.txt"])
     assert session.finish()["status"] == "completed"
+    store.close()
+
+
+def test_unrelated_read_does_not_create_write_dependency(tmp_path):
+    store, runner, wf, session = make_session(tmp_path)
+    (session.workspace / "notes.txt").write_text("unrelated notes")
+    observed = session.files.read_file("notes.txt")
+    result = session.files.write("result.txt", "independent result")
+    assert "notes.txt" not in result["inputs_snapshot"]
+    assert result["trace_only_observations"]["notes.txt"] == observed["sha256"]
+    assert result["declared_inputs"] == []
+    assert result["dependency_policy"] == "explicit-declared-inputs-v1"
+    (session.workspace / "notes.txt").write_text("changed unrelated notes")
+    assert session.finish()["status"] == "completed"
+    store.close()
+
+
+def test_declared_input_must_be_observed(tmp_path):
+    store, runner, wf, session = make_session(tmp_path)
+    with pytest.raises(ValueError, match="显式输入必须先读取"):
+        session.files.write("result.txt", "unsupported", inputs=["never_read.txt"])
+    assert not (session.workspace / "result.txt").exists()
+    operations = store.current_operations(session.action.step_id, session.action.attempt_id)
+    assert not [row for row in operations if row["kind"] == "write"]
+    store.close()
+
+
+def test_declared_input_cannot_be_write_target(tmp_path):
+    store, runner, wf, session = make_session(tmp_path)
+    session.files.write("self.txt", "draft")
+    session.files.read_file("self.txt")
+    with pytest.raises(ValueError, match="写入目标自身"):
+        session.files.edit("self.txt", "draft", "revised", inputs=["self.txt"])
+    assert (session.workspace / "self.txt").read_text() == "draft"
+    store.close()
+
+
+def test_changed_declared_input_blocks_before_write(tmp_path):
+    store, runner, wf, session = make_session(tmp_path)
+    session.files.write("source.txt", "observed evidence")
+    session.files.read_file("source.txt")
+    (session.workspace / "source.txt").write_text("changed evidence")
+    with pytest.raises(ValueError, match="已阅读的依据文件发生变化"):
+        session.files.write("result.txt", "result", inputs=["source.txt"])
+    assert not (session.workspace / "result.txt").exists()
+    store.close()
+
+
+def test_declared_input_keeps_transitive_lineage(tmp_path):
+    store, runner, wf, session = make_session(tmp_path)
+    session.files.write("input.txt", "7")
+    up = {"id": "up", "argv": [sys.executable, "-c",
+        "from pathlib import Path;Path('mid.txt').write_text(Path('input.txt').read_text())"],
+        "inputs": ["input.txt"], "outputs": ["mid.txt"], "pure": True, "complete_inputs": True}
+    assert session.commands.execute(up)["status"] == "succeeded"
+    mid = session.files.read_file("mid.txt")
+    result = session.files.write("report.txt", "report over mid", inputs=["mid.txt"])
+    assert result["declared_inputs"] == ["mid.txt"]
+    assert result["inputs_snapshot"]["mid.txt"] == mid["sha256"]
+    assert "input.txt" in result["inputs_snapshot"]
+    store.close()
+
+
+def test_trace_only_observations_not_in_evidence_inputs(tmp_path):
+    store, runner, wf, session = make_session(tmp_path)
+    (session.workspace / "notes.txt").write_text("unrelated notes")
+    (session.workspace / "source.txt").write_text("declared source")
+    observed = session.files.read_file("notes.txt")
+    session.files.read_file("source.txt")
+    session.files.write("result.txt", "independent result", inputs=["source.txt"])
+    evidence = collect_execution_evidence(store, store.get_workflow(wf), session.action)
+    assert evidence["inputs"] == ["source.txt"]
+    observations = {entry["path"]: entry for entry in evidence["workspace_observations"]}
+    assert observations["notes.txt"]["edge"] is False
+    assert observations["notes.txt"]["sha256"] == observed["sha256"]
+    assert observations["notes.txt"]["operation_id"]
+    rows = store.current_operations(session.action.step_id, session.action.attempt_id)
+    written = next(row for row in rows
+                   if row["kind"] == "write" and row["payload"]["path"] == "result.txt")
+    assert written["payload"]["trace_only_observations"]["notes.txt"] == observed["sha256"]
+    assert written["payload"]["dependency_policy"] == "explicit-declared-inputs-v1"
+    assert written["payload"]["declared_inputs"] == ["source.txt"]
+    store.close()
+
+
+def test_observation_role_neutral_until_declared(tmp_path):
+    store, runner, wf, session = make_session(tmp_path)
+    session.files.write("data.txt", "v1")
+    first = session.files.read_file("data.txt")
+    assert first["observation_role"] == "trace_only"
+    assert "edge_eligible" not in first
+    result = session.files.write("result.txt", "from data", inputs=["data.txt"])
+    assert result["inputs_snapshot"]["data.txt"] == first["sha256"]
+    second = session.files.read_file("data.txt")
+    observations = [row for row in store.current_operations(
+        session.action.step_id, session.action.attempt_id)
+        if row["kind"] == "observation" and row["payload"]["path"] == "data.txt"]
+    assert len(observations) == 1
+    assert observations[0]["payload"]["observation_role"] == "trace_only"
+    assert "edge_eligible" not in observations[0]["payload"]
+    assert observations[0]["payload"]["sha256"] == second["sha256"]
     store.close()
 
 

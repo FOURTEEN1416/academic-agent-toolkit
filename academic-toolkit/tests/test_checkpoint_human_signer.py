@@ -54,7 +54,7 @@ def _step_status(store, step_id):
 def test_approve_signed_by_agent_is_blocked(tmp_path):
     """agent 自指署名（英文词）批准 → blocked，无状态转移、无批准事件。"""
     store, runner, wf_id, cp_id, step_id = _make_waiting_checkpoint(tmp_path)
-    r = runner.approve_checkpoint(cp_id, {"approved": True,
+    r = runner._approve_checkpoint(cp_id, {"approved": True,
                                           "approved_by": "G3-runner-subagent(批次G3预授权代批)"})
     assert r.status == "blocked", f"agent 署名竟被放行: {r.status} {r.message}"
     assert _approved_events(store) == []
@@ -64,7 +64,7 @@ def test_approve_signed_by_agent_is_blocked(tmp_path):
 def test_approve_signed_with_cjk_agent_word_is_blocked(tmp_path):
     """中文自指词（智能体/机器人/自动）同样硬拦——与 A7R-F1 词表同源。"""
     store, runner, wf_id, cp_id, step_id = _make_waiting_checkpoint(tmp_path)
-    r = runner.approve_checkpoint(cp_id, {"approved": True, "approved_by": "数模智能体"})
+    r = runner._approve_checkpoint(cp_id, {"approved": True, "approved_by": "数模智能体"})
     assert r.status == "blocked", f"中文自指署名竟被放行: {r.status}"
     assert _approved_events(store) == []
 
@@ -72,9 +72,9 @@ def test_approve_signed_with_cjk_agent_word_is_blocked(tmp_path):
 def test_approve_without_signer_is_blocked(tmp_path):
     """approved_by 缺失/空白一律拒——禁止无痕批准（CLI 已锁 --by 必填，此处封引擎直调旁路）。"""
     store, runner, wf_id, cp_id, step_id = _make_waiting_checkpoint(tmp_path)
-    r = runner.approve_checkpoint(cp_id, {"approved": True})
+    r = runner._approve_checkpoint(cp_id, {"approved": True})
     assert r.status == "blocked", "无署名批准竟被放行"
-    r2 = runner.approve_checkpoint(cp_id, {"approved": True, "approved_by": "   "})
+    r2 = runner._approve_checkpoint(cp_id, {"approved": True, "approved_by": "   "})
     assert r2.status == "blocked"
     assert _approved_events(store) == []
 
@@ -82,7 +82,7 @@ def test_approve_without_signer_is_blocked(tmp_path):
 def test_approve_with_human_signer_still_completes(tmp_path):
     """人类署名路径行为不变：批准事件在位、工作流推进（防红线误伤正常路径）。"""
     store, runner, wf_id, cp_id, step_id = _make_waiting_checkpoint(tmp_path)
-    r = runner.approve_checkpoint(cp_id, {"approved": True, "approved_by": "默默"})
+    r = runner._approve_checkpoint(cp_id, {"approved": True, "approved_by": "默默"})
     assert r.status in ("completed", "advanced"), f"人类署名被误伤: {r.status} {r.message}"
     events = _approved_events(store)
     assert len(events) == 1 and events[0]["approved_by"] == "默默"

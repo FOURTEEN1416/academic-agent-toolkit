@@ -245,6 +245,27 @@ def test_unrelated_rule_change_does_not_force_recompute(tmp_path):
     store.close()
 
 
+def test_trace_lineage_reports_producers_external_inputs_and_depths(tmp_path):
+    store, runner, wf, session = make_session(tmp_path)
+    session.files.write("input.txt", "7")
+    (session.workspace / "raw.csv").write_text("external", encoding="utf-8")
+    session.files.read_file("raw.csv")
+    up = {"id": "up", "argv": [sys.executable, "-c",
+        "from pathlib import Path;Path('mid.txt').write_text(Path('input.txt').read_text())"],
+        "inputs": ["input.txt"], "outputs": ["mid.txt"], "pure": True, "complete_inputs": True}
+    assert session.commands.execute(up)["status"] == "succeeded"
+    session.files.read_file("mid.txt")
+    result = session.files.write("report.txt", "report", inputs=["mid.txt", "raw.csv"])
+    assert result["producer_operations"]["mid.txt"]
+    assert result["producer_operations"]["input.txt"]
+    assert "raw.csv" not in result["producer_operations"]
+    assert result["external_inputs"]["raw.csv"] == sha("external")
+    assert result["input_depths"]["mid.txt"] == 0
+    assert result["input_depths"]["raw.csv"] == 0
+    assert result["input_depths"]["input.txt"] >= 1
+    store.close()
+
+
 def test_upstream_change_cannot_be_whitewashed_by_downstream_edit(tmp_path):
     store, runner, wf, session = make_session(tmp_path)
     session.files.write("input.txt", "7")
@@ -253,14 +274,14 @@ def test_upstream_change_cannot_be_whitewashed_by_downstream_edit(tmp_path):
         "inputs": ["input.txt"], "outputs": ["mid.txt"], "pure": True, "complete_inputs": True}
     session.commands.execute(up)
     session.files.read_file("mid.txt")
-    session.files.write("result.txt", "conclusion drawn from mid version one")
+    session.files.write("result.txt", "conclusion drawn from mid version one", inputs=["mid.txt"])
     (session.workspace / "input.txt").write_text("9")
     with pytest.raises(ValueError, match="上游输入已变化"):
-        session.files.edit("result.txt", "conclusion", "revised conclusion")
+        session.files.edit("result.txt", "conclusion", "revised conclusion", inputs=["mid.txt"])
     # 正路：重算上游 -> 重新阅读 -> 重新写作，谱系按当前有效版本接续
     session.commands.execute(up)
     session.files.read_file("mid.txt")
-    session.files.write("result.txt", "conclusion drawn from mid version two")
+    session.files.write("result.txt", "conclusion drawn from mid version two", inputs=["mid.txt"])
     assert (session.workspace / "result.txt").read_text().endswith("two")
     store.close()
 
@@ -273,12 +294,12 @@ def test_adopt_cannot_rewrite_transitive_dependencies(tmp_path):
         "inputs": ["input.txt"], "outputs": ["mid.txt"], "pure": True, "complete_inputs": True}
     session.commands.execute(up)
     session.files.read_file("mid.txt")
-    session.files.write("report.txt", "findings based on mid v1")
+    session.files.write("report.txt", "findings based on mid v1", inputs=["mid.txt"])
     (session.workspace / "input.txt").write_text("v2")
     # 场景A：不重算中间结果，只重读原始输入 v2 后修订 → 阻断，且不产生改写记录
     session.files.read_file("input.txt")
     with pytest.raises(ValueError, match="上游输入已变化"):
-        session.files.edit("report.txt", "findings", "revised findings")
+        session.files.edit("report.txt", "findings", "revised findings", inputs=["mid.txt"])
     reports = [r["payload"]["outputs_snapshot"]["report.txt"] for r in
                store.current_operations(session.action.step_id, session.action.attempt_id)
                if r["kind"] == "write" and r["payload"]["path"] == "report.txt"]
@@ -286,11 +307,11 @@ def test_adopt_cannot_rewrite_transitive_dependencies(tmp_path):
     # 场景B：连中间结果一起重读（仍是未重算的 v1）→ 同样阻断
     session.files.read_file("mid.txt")
     with pytest.raises(ValueError, match="上游输入已变化"):
-        session.files.write("report.txt", "findings from mid v1 with new input v2")
+        session.files.write("report.txt", "findings from mid v1 with new input v2", inputs=["mid.txt"])
     # 正路：重算上游 → 重新阅读 → 更新报告；新谱系按新链如实记录
     session.commands.execute(up)
     session.files.read_file("mid.txt")
-    result = session.files.write("report.txt", "findings based on mid v2")
+    result = session.files.write("report.txt", "findings based on mid v2", inputs=["mid.txt"])
     assert result["inputs_snapshot"]["mid.txt"] == sha("v2")
     assert result["inputs_snapshot"]["input.txt"] == sha("v2")
     store.close()
@@ -310,15 +331,15 @@ def test_lineage_across_completed_steps(tmp_path):
     session2 = ExecutionSession(runner, wf.id)
     session2.context()
     session2.files.read_file("mid.txt")
-    session2.files.write("report.txt", "findings from step2")
+    session2.files.write("report.txt", "findings from step2", inputs=["mid.txt"])
     (session2.workspace / "input.txt").write_text("v2")
     # 已完成步骤里的上游生产者仍在来源链上：上游变化阻断新步骤的下游修订
     with pytest.raises(ValueError, match="上游输入已变化"):
-        session2.files.edit("report.txt", "findings", "revised findings")
+        session2.files.edit("report.txt", "findings", "revised findings", inputs=["mid.txt"])
     # 正路跨步骤同样成立：本步骤重算 → 重读 → 更新
     session2.commands.execute(up)
     session2.files.read_file("mid.txt")
-    session2.files.write("report.txt", "findings from step2 v2")
+    session2.files.write("report.txt", "findings from step2 v2", inputs=["mid.txt"])
     assert (session2.workspace / "report.txt").read_text(encoding="utf-8").endswith("v2")
     store.close()
 

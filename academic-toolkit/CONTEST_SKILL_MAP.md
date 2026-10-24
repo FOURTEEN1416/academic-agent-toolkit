@@ -1,6 +1,6 @@
 # CUMCM 竞赛技能全库地图（CONTEST_SKILL_MAP）
 
-> **定位**：全库 262 个技能（含 SKILL.md 的目录；tracked 262）× comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
+> **定位**：全库 263 个技能（含 SKILL.md 的目录；tracked 263）× comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
 > `companion_skills` 字段每步主动给出本步推荐；本文件是全量真源，
 > 含"情境可用"、"外域不接入"与"未接入库"的完整分类账——**任何一个技能都不允许处于"无人知晓"状态**。
 > 维护纪律：新增技能入库时必须归入下列五类之一并同步本文件与引擎
@@ -133,7 +133,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 | 科研选题与实验（10） | idea-discovery, idea-discovery-robotics, research-pipeline, research-refine, research-refine-pipeline, research-review, experiment-plan, experiment-bridge, monitor-experiment, run-experiment | 长周期科研管线，赛时 3 天用不上 |
 | 英文/期刊写作变体（5） | paper-write, paper-write-docx, paper-write-nature, paper-write-nature-docx, paper-compile | 国赛中文链已有 comp-paper-zh/comp-compile-zh |
 | scholar 期刊投稿系（6） | arxiv-metadata, arxiv-submission-package, latex-bib-doi-toggle, lit-citation-verify-latex, doi-bibtex, openalex-search | arXiv/DOI 投稿工具 |
-| 基础设施（5 + shared-scripts 目录） | meta-skill-creator, meta-doc-governance, ip-source-extractor, agent-bootstrap, tool-forge, shared-scripts(目录，非技能) | 仓库治理/技能开发/宿主无关自举与工具铸造/软著，非解题用 |
+| 基础设施（6 + shared-scripts 目录） | meta-skill-creator, meta-doc-governance, ip-source-extractor, agent-bootstrap, tool-forge, candidate-reproduction, shared-scripts(目录，非技能) | 仓库治理/技能开发/宿主无关自举与工具铸造/候选交付复现/软著，非解题用 |
 | 其他（1） | pixel-art | 像素画风，与学术图规范冲突 |
 | Origin 可编辑绘图（1） | fig-plot-edit | 需本机 Origin/OriginPro 2021+ 商业软件 + Windows COM 自动化，非赛时工具；学术科研域按需（整技能收编自 hang-jin/editaplot，Apache-2.0；本机 Origin 未装、登记待用；runtime 引擎在 vendor/forks/editaplot 不入库） |
 | 语料挖掘（1） | award-paper-mining | 获奖论文语料挖掘与统计沉淀（赛后/赛前语料建设用） |
@@ -154,8 +154,8 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 
 **机检对账口径**（词边界 + 斜杠缩写展开 + 前缀域 fnmatch，与 `tools/check_asset_utilization.py` 的
 `load_map_coverage` 完全同口径）：§一主链 / §二推荐 / §三情境 / §四外域 / §五未接入库五段合并覆盖全库，
-`python tools/check_asset_utilization.py --strict` 实跑 **实存 262 技能 / 覆盖 262 / 漏网 0（前缀域 11 个）**，
-与 skills/ 下含 SKILL.md 的目录实测数（262）逐一相符：零幽灵名、零漏网。
+`python tools/check_asset_utilization.py --strict` 实跑 **实存 263 技能 / 覆盖 263 / 漏网 0（前缀域 11 个）**，
+与 skills/ 下含 SKILL.md 的目录实测数（263）逐一相符：零幽灵名、零漏网。
 （2026-10-16 仿真建模赛补齐批 +7：`comp-simulation`、`figure-craft` 与仿真引擎簇 `simpy`/`pymoo`/`stable-baselines3`/`pymc`/`experimental-design`，均归 §三 情境可用。）
 口径说明（避免读者对不上数）：§三/§四 标题不钉条目数——技能增删/改名会让分节计数漂移，精确数一律以机检实跑为准；
 `paper-figure-palette` 首现于 §二 step5 必用位，按首匹配归 §二；§四 的前缀域
@@ -172,7 +172,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 （如 `copyright-build/draft/source-materials`），未接入库 = §五具名。
 **零漏网对账已固化为机检**（词边界+斜杠展开+前缀 fnmatch）：
 `python tools/check_asset_utilization.py --strict` + `tests/test_asset_utilization.py::test_real_map_covers_all_skills_zero_missing`。
-全库技能 262（实存 262 / tracked 262；`scholar-critique-manuscript` 已并入 `paper-self-review`）；
+全库技能 263（实存 263 / tracked 263；`scholar-critique-manuscript` 已并入 `paper-self-review`）；
 计数以本机 `check_asset_utilization` 机检为准。
 ——任何改动本文件的维护者必须跑过机检后方可保留本节统计行。
 

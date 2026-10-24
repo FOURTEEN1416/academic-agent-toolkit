@@ -164,7 +164,7 @@ def test_runner_pauses_at_checkpoint_and_resumes(tmp_path):
         assert store.resume_candidates()
         # 用户批准（2026-09-22 人类署名红线：approve 须人类署名）
         checkpoint = store.resume_candidates()[0].checkpoint
-        r2 = runner.approve_checkpoint(checkpoint.id, {"approved": True, "approved_by": "默默"})
+        r2 = runner._approve_checkpoint(checkpoint.id, {"approved": True, "approved_by": "默默"})
         assert r2.status == "completed", f"expected completed, got {r2.status}"
 
 
@@ -193,7 +193,7 @@ def test_runner_blocks_next_action_at_pending_checkpoint(tmp_path):
         assert r2.action is None, "checkpoint 未批准时不得返回下一步动作"
         # 批准后恢复推进：第 2 步可正常开始
         checkpoint = store.resume_candidates()[0].checkpoint
-        runner.approve_checkpoint(checkpoint.id, {"approved": True, "approved_by": "默默"})
+        runner._approve_checkpoint(checkpoint.id, {"approved": True, "approved_by": "默默"})
         r3 = runner.next_action(workflow.id)
         assert r3.status == "advanced", f"after approve: {r3.status} {r3.message}"
         assert r3.action.skill_name == "comp-modeling"
@@ -417,7 +417,7 @@ def test_retry_rejects_old_attempt_and_old_failed_checkpoint(tmp_path):
     stale = _reported(old)
     assert runner.complete_step(wf, stale).status == "failed"
     assert store.get_step(old.step_id).status.value == "running"
-    assert runner.approve_checkpoint(failed.checkpoint_id, {"approved": True, "approved_by": "operator"}).status == "blocked"
+    assert runner._approve_checkpoint(failed.checkpoint_id, {"approved": True, "approved_by": "operator"}).status == "blocked"
     assert runner.complete_step(wf, _reported(new)).status == "waiting_checkpoint"
 
 
@@ -430,7 +430,7 @@ def test_approval_rechecks_bytes_even_with_same_size_and_mtime(tmp_path):
     before = path.stat()
     path.write_bytes(b"x" * before.st_size)
     os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
-    blocked = runner.approve_checkpoint(complete.checkpoint_id, {"approved": True, "approved_by": "operator"})
+    blocked = runner._approve_checkpoint(complete.checkpoint_id, {"approved": True, "approved_by": "operator"})
     assert blocked.status == "blocked"
     assert store.get_step(action.step_id).status.value == "blocked"
 
@@ -613,10 +613,10 @@ def test_blocked_retry_revalidates_changed_output_and_expires_old_checkpoint(tmp
     (new.workspace / new.output_files[0]).write_text("new result" * 30, encoding="utf-8")
     write_manifest(new.workspace, new.skill_name, config={}, outputs=[new.workspace / new.output_files[0]],
                    backend="fixture", commands=[{"command": "python generate.py", "exitCode": 0}])
-    assert runner.approve_checkpoint(first.checkpoint_id, {"approved": True, "approved_by": "operator"}).status == "blocked"
+    assert runner._approve_checkpoint(first.checkpoint_id, {"approved": True, "approved_by": "operator"}).status == "blocked"
     current = runner.complete_step(wf, result)
     assert current.status == "waiting_checkpoint", current.message
-    assert runner.approve_checkpoint(current.checkpoint_id, {"approved": True, "approved_by": "operator"}).status == "completed"
+    assert runner._approve_checkpoint(current.checkpoint_id, {"approved": True, "approved_by": "operator"}).status == "completed"
 
 
 @pytest.mark.parametrize("with_l1", [False, True])
@@ -690,7 +690,7 @@ def test_final_audit_real_completion_approval_delivery_cycle(tmp_path, with_l1, 
         if with_l1:
             audit.record({"type": "tool_call", "tool": "bash", "detail": {
                 "command": f'python -m engine.workflow_cli approve --checkpoint {complete.checkpoint_id} --by operator --db "{store.db_path}"'}})
-        approved = runner.approve_checkpoint(complete.checkpoint_id, {"approved": True, "approved_by": "operator"})
+        approved = runner._approve_checkpoint(complete.checkpoint_id, {"approved": True, "approved_by": "operator"})
         assert approved.status == "completed", approved.message
         assert report_path.read_bytes() == before
         delivery = json.loads((final.workspace / "DELIVERY_REPORT.json").read_text(encoding="utf-8"))
@@ -738,7 +738,7 @@ def test_approval_rejects_change_before_transaction(tmp_path, monkeypatch):
         return commit(*args, **kwargs)
     monkeypatch.setattr(store, "transition_step_with_checkpoint", mutate_then_commit)
     before = store.workflow_timeline(wf)
-    result = runner.approve_checkpoint(complete.checkpoint_id, {"approved": True, "approved_by": "operator"})
+    result = runner._approve_checkpoint(complete.checkpoint_id, {"approved": True, "approved_by": "operator"})
     assert result.status == "blocked" and "changed during validation" in result.message
     assert store.workflow_timeline(wf) == before
 

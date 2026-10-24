@@ -16,10 +16,31 @@ from .step_manifest import atomic_write_json
 
 
 SCHEMA_VERSION = 1
+CONTRACT_TIERS = ("delivery", "explore")
 _REQUIRED_FIELDS = {
     "schema_version", "agent", "step_id", "skill_name", "skill_sha256",
     "commands", "inputs", "outputs",
 }
+
+
+def _workflow_contract_tier(workflow_metadata: Any) -> str:
+    """Read the workflow's execution contract tier (legacy workflows are delivery).
+
+    An explicitly declared unknown tier is an error: silently downgrading it to
+    delivery would let a typo disable explore semantics.
+    """
+    contract = workflow_metadata.get("execution_contract") if isinstance(workflow_metadata, dict) else None
+    if contract is None:
+        return "delivery"
+    if not isinstance(contract, dict):
+        raise ValueError("execution_contract metadata must be an object")
+    if "tier" not in contract:
+        return "delivery"
+    tier = contract.get("tier")
+    if tier not in CONTRACT_TIERS:
+        raise ValueError(f"unknown execution contract tier: {tier!r}")
+    return tier
+
 
 # Windows 盘符（C:\、C:/）——冒号是路径语法不是描述性分隔符（A5 误杀②修复：
 # `C:/Program Files/draw.io/draw.io.EXE -x ...` 曾被 ':' 规则误杀）
@@ -214,9 +235,15 @@ def normalize_legacy_evidence(action: StepAction, evidence: dict[str, Any]) -> d
 
 
 def validate_execution_evidence(
-    workspace: Path, action: StepAction, result: StepResult, *, store=None, fingerprint_session=None
+    workspace: Path, action: StepAction, result: StepResult, *, store=None, fingerprint_session=None,
+    require_collection: bool = False,
 ) -> dict[str, Any]:
-    """Validate and normalize version 1 evidence reported by the executing agent."""
+    """Validate and normalize version 1 evidence reported by the executing agent.
+
+    ``require_collection`` (or ``StepAction.requires_collection``) restricts the
+    caller to ``execution-session-v1`` evidence: candidate delivery must never
+    accept hand-built legacy evidence.  Non-candidate workflows stay compatible.
+    """
     evidence = result.metadata.get("execution_evidence")
     if not isinstance(evidence, dict):
         raise ValueError("execution evidence must be an object")
@@ -235,11 +262,36 @@ def validate_execution_evidence(
         raise ValueError("execution evidence skill_sha256 does not match the skill file")
 
     normalized = dict(evidence)
+    # 证据真实性两档同严；tier 只是标记，必须与当前步骤一致，防止把探索档
+    # 证据挂到交付档（或反之）导致验收策略错位。旧 evidence 无该字段时按
+    # action 的档位补齐；action 也来自旧接入时回落 delivery。
+    action_tier = getattr(action, "contract_tier", None)
+    if action_tier is not None and action_tier not in CONTRACT_TIERS:
+        raise ValueError(f"unknown execution contract tier: {action_tier!r}")
+    declared_tier = evidence.get("contract_tier") or None
+    if declared_tier is None:
+        normalized["contract_tier"] = action_tier or "delivery"
+    else:
+        if declared_tier not in CONTRACT_TIERS:
+            raise ValueError(f"unsupported execution contract tier: {declared_tier!r}")
+        if action_tier is not None and declared_tier != action_tier:
+            raise ValueError("execution evidence contract_tier does not match the active step")
+        normalized["contract_tier"] = declared_tier
+
     collection = evidence.get("collection")
+    if collection is None and (require_collection or bool(getattr(action, "requires_collection", False))):
+        raise ValueError(
+            "candidate delivery requires execution-session-v1 collection; legacy evidence is rejected")
     if collection is not None:
+        if not isinstance(collection, dict) or collection.get("source") != "execution-session-v1":
+            raise ValueError("execution collection must use execution-session-v1")
         _validate_collected_operations(workspace, action, evidence, store, fingerprint_session)
     elif evidence.get("resource_reads"):
         raise ValueError("resource_reads requires a persisted execution collection")
+    elif evidence.get("workspace_observations"):
+        # 观察清单只能来自执行会话的持久操作行；手写清单无法与任何
+        # current_operations 对账，不能作为审计可见性证据。
+        raise ValueError("workspace_observations requires a persisted execution collection")
     for field in ("inputs", "outputs"):
         paths = evidence[field]
         if not isinstance(paths, list):
@@ -276,20 +328,28 @@ def validate_execution_evidence(
     return normalized
 
 
-def execution_contract(action, step_metadata, workflow_params, rules_root: Path) -> str:
-    """执行语义合同（scope 2）：只绑定"改变即影响执行"的要素。
+def execution_contract(action, step_metadata, workflow_params, rules_root: Path,
+                       tier: str = "delivery") -> str:
+    """执行语义合同：只绑定"改变即影响执行"的要素。
 
-    B窗 2026-09-27 分流（总调度收口1）：技能契约与 params 是执行语义输入——
-    变化即须重跑；required_checks/companion_skills/output_specs/quick_gates 等
-    步骤 metadata 质量字段与 modex-core 规则文件是纯质量规则——变化只在验收时
-    由 quality_gates/output_contracts 按当前规则实时重验适用检查，不要求模型
-    重跑命令刷新合同，也不回写历史操作记录。
+    delivery 档保持 scope 2 原哈希（历史/在途操作仍按原值对账）；explore 档
+    使用 scope 3 并显式携带 ``contract_tier="explore"``，使探索操作不会与
+    交付操作混用合同。两档都只绑 skill/params，不绑纯质量规则：
+    required_checks/companion_skills/output_specs 等 metadata 质量字段与
+    modex-core 规则文件变化只在验收时由 quality_gates/output_contracts 按
+    当前规则实时重验，不要求模型重跑命令刷新合同。
+
     兼容：历史/在途记录携带的是 scope 1（全量）合同，对账走 legacy_execution_contract。
     """
-    body = {"contract_scope": 2,
+    tier = tier or "delivery"
+    if tier not in CONTRACT_TIERS:
+        raise ValueError(f"unknown execution contract tier: {tier!r}")
+    body = {"contract_scope": 3 if tier == "explore" else 2,
             "params": workflow_params,
             "skill": _file_sha256(action.skill_path),
             "session_protocol": 1}
+    if tier == "explore":
+        body["contract_tier"] = "explore"
     return hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=True).encode()).hexdigest()
 
 
@@ -308,6 +368,10 @@ def collect_execution_evidence(store, workflow, action, *, subagent_session="") 
     pending = [row for row in rows if row["status"] not in {"succeeded", "reused"}]
     if pending:
         raise ValueError("尚有失败/中断操作，修复后重跑相应任务: " + ", ".join(row["node_key"] for row in pending))
+    workflow_metadata = workflow.metadata if isinstance(workflow.metadata, dict) else {}
+    delivery_candidate = workflow_metadata.get("delivery_candidate")
+    if not isinstance(delivery_candidate, dict):
+        delivery_candidate = {}
     resources = [row["payload"] for row in rows if row["kind"] == "resource"]
     consulted = {r["name"] for r in resources if r["kind"] == "skill"}
     all_assets = {r["name"] for r in resources if r["kind"] == "asset"}
@@ -320,6 +384,13 @@ def collect_execution_evidence(store, workflow, action, *, subagent_session="") 
         "step_id": action.step_id, "attempt_id": action.attempt_id,
         "expected_revision": action.expected_revision, "skill_name": action.skill_name,
         "skill_sha256": action.skill_sha256,
+        "contract_tier": _workflow_contract_tier(workflow_metadata),
+        "delivery_candidate_id": str(delivery_candidate.get("candidate_id") or ""),
+        "workspace_observations": [
+            {"operation_id": row["id"], "path": row["payload"].get("path"),
+             "sha256": row["payload"].get("sha256"),
+             "bytes": row["payload"].get("bytes", 0), "edge": False}
+            for row in rows if row["kind"] == "observation" and row["status"] == "succeeded"],
         "commands": [row["payload"]["command_record"] for row in rows if row["kind"] == "command"],
         "inputs": list(dict.fromkeys(path for row in rows for path in row["payload"].get("inputs_snapshot", {}))),
         "outputs": outputs, "resource_reads": resources,
@@ -373,16 +444,44 @@ def _validate_collected_operations(workspace, action, evidence, store, fingerpri
     workflow_row = store._connection.execute("SELECT metadata FROM workflows WHERE id=?", (action.workflow_id,)).fetchone()
     workflow = {"metadata": json.loads(workflow_row[0])}
     rules_root = action.skill_path.parents[2] / "engine/modex-core"
-    current_contract = execution_contract(action, store.get_step(action.step_id).metadata,
-        workflow["metadata"].get("params", {}), rules_root)
-    # 双口径对账：scope 2（执行语义面）为当前基线；历史/在途记录携带的 scope 1
-    # 全量合同按 legacy 口径重算核对——不回写历史操作记录。纯质量规则变化
-    # （scope 2 不含的 metadata 质量字段/规则文件）不再触发"合同变化要求重跑"。
-    legacy_contract = legacy_execution_contract(action, store.get_step(action.step_id).metadata,
-        workflow["metadata"].get("params", {}), rules_root)
-    if any(r["kind"] == "command" and r["payload"].get("contract") not in {current_contract, legacy_contract}
+    step = store.get_step(action.step_id)
+    workflow_params = workflow["metadata"].get("params", {})
+    tier = _workflow_contract_tier(workflow["metadata"])
+    declared_tier = evidence.get("contract_tier") or None
+    if declared_tier is not None and declared_tier != tier:
+        raise ValueError("execution evidence contract_tier does not match the workflow")
+    # 当前档执行语义合同：只绑 skill/params，不绑纯质量规则（metadata 质量字段/
+    # modex-core 规则文件变化只在验收时实时重验，不要求重跑命令）。
+    current_contract = execution_contract(action, step.metadata, workflow_params, rules_root, tier=tier)
+    # 三集合对账：当前档合同 + delivery scope 2（explore 工作流里历史/跨档
+    # 操作仍须可对账，不能只算 scope 3）+ scope 1 历史全量合同。不能无条件
+    # 放行任意 contract；只有这三个可复算值之一才通过。
+    delivery_contract = execution_contract(action, step.metadata, workflow_params, rules_root, tier="delivery")
+    legacy_contract = legacy_execution_contract(action, step.metadata, workflow_params, rules_root)
+    accepted_contracts = {current_contract, delivery_contract, legacy_contract}
+    if any(r["kind"] == "command" and r["payload"].get("contract") not in accepted_contracts
            for r in rows):
         raise ValueError("execution collection contract changed")
+    if "workspace_observations" in evidence:
+        # 只与 current_operations 折叠后的 observation 行对账：路径/哈希/
+        # operation_id。不比对当前磁盘字节（观察只证明"当时读过"），也不并入
+        # evidence["inputs"]（依赖边只由 write/edit 的 declared_inputs 决定）。
+        observations = evidence["workspace_observations"]
+        if not isinstance(observations, list):
+            raise ValueError("execution evidence workspace_observations must be a list")
+        expected_observations = sorted(
+            (str(r["payload"].get("path", "")), str(r["payload"].get("sha256", "")), str(r["id"]))
+            for r in rows if r["kind"] == "observation" and r["status"] == "succeeded")
+        actual_observations = []
+        for observation in observations:
+            if not isinstance(observation, dict):
+                raise ValueError("execution evidence workspace_observations entries must be objects")
+            actual_observations.append((
+                str(observation.get("path", "")),
+                str(observation.get("sha256", "")),
+                str(observation.get("operation_id", ""))))
+        if sorted(actual_observations) != expected_observations:
+            raise ValueError("execution collection workspace observations mismatch")
     commands = [r["payload"]["command_record"] for r in rows if r["kind"] == "command"]
     reads = [r["payload"] for r in rows if r["kind"] == "resource"]
     reviews = [r["payload"] for r in rows if r["kind"] == "review"]

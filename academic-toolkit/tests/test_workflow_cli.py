@@ -1,3 +1,4 @@
+import io
 import json
 import sys
 from pathlib import Path
@@ -8,6 +9,7 @@ sys.path.insert(0, str(ROOT))
 from engine import workflow_cli
 from engine.workflow_runner import WorkflowRunner
 from engine.workflow_store import WorkflowStore
+from execution.session import ExecutionSession
 
 
 def _session_workspace(tmp_path, monkeypatch, step_name="demo"):
@@ -142,4 +144,102 @@ def test_ordinary_step_keeps_legacy_evidence_path(tmp_path, monkeypatch, capsys)
     output = json.loads(capsys.readouterr().out)
     assert output["status"] != "error", "普通步骤的手拼证据不得被 CLI 层拒绝"
     assert output["status"] in {"failed", "needs_work"}
+    store.close()
+
+
+def test_action_payload_exposes_contract_tier(tmp_path, monkeypatch):
+    store, runner, workflow, action, _ticket, _db = _session_workspace(tmp_path, monkeypatch)
+    payload = workflow_cli._action_payload(action, contract_tier="explore",
+                                           requires_collection=True)
+    assert payload["contract_tier"] == "explore"
+    assert payload["requires_collection"] is True
+    payload = workflow_cli._action_payload(action)
+    assert payload["contract_tier"] == "delivery"
+    assert payload["requires_collection"] is False
+    store.close()
+
+
+def test_start_parser_has_mode_and_candidate_but_no_approvers():
+    parser = workflow_cli._build_parser()
+    start_help = next(action for action in parser._actions
+                      if getattr(action, "dest", "") == "command").choices["start"].format_help()
+    assert "--mode" in start_help and "--candidate" in start_help
+    assert "--approvers" not in start_help
+    assert "promote-approve" not in parser.format_help()
+
+
+def test_cli_start_explore_and_abandon(tmp_path, monkeypatch, capsys):
+    suite = tmp_path / "suite"
+    skills = suite / "skills"
+    for name in ("solve", "comp-final-audit"):
+        (skills / name).mkdir(parents=True)
+        (skills / name / "SKILL.md").write_text("fixture skill", encoding="utf-8")
+    catalog = {"demo": {"sub_steps": [
+        {"skill_name": "solve", "output_files": ["out.txt"], "has_checkpoint": True,
+         "checkpoint_type": "approve"},
+        {"skill_name": "comp-final-audit", "output_files": ["AUDIT_REPORT.json"],
+         "has_checkpoint": True, "checkpoint_type": "approve",
+         "required_checks": ["final_audit"]},
+    ]}}
+    config = suite / "engine/modex-core/templates.json"
+    config.parent.mkdir(parents=True)
+    config.write_text(json.dumps(catalog), encoding="utf-8")
+    monkeypatch.setattr(workflow_cli, "ROOT", suite)
+    workspace = tmp_path / "ws"
+    db = tmp_path / "state.sqlite"
+    monkeypatch.setattr(sys, "argv", ["workflow_cli", "start", "--template", "demo",
+        "--workspace", str(workspace), "--db", str(db), "--mode", "explore"])
+    assert workflow_cli.main() == 0
+    payload = json.loads(capsys.readouterr().out)
+    workflow_id = payload["workflow_id"]
+    assert payload["execution_contract"]["tier"] == "explore"
+    with WorkflowStore(db) as store:
+        workflow = store.get_workflow(workflow_id)
+        rows = store._connection.execute(
+            "SELECT name FROM workflow_steps WHERE workflow_id=? ORDER BY position",
+            (workflow_id,)).fetchall()
+        assert [row["name"] for row in rows] == ["solve"]
+        assert workflow.metadata["execution_contract"]["excluded_steps"] == ["comp-final-audit"]
+
+    monkeypatch.setattr(sys, "argv", ["workflow_cli", "abandon", "--wf", workflow_id,
+        "--db", str(db), "--reason", "direction changed", "--by", "operator"])
+    assert workflow_cli.main() == 0
+    output = json.loads(capsys.readouterr().out)
+    assert output["status"] == "abandoned"
+    with WorkflowStore(db) as store:
+        assert store.get_workflow(workflow_id).status == "abandoned"
+
+
+def test_session_cli_write_edit_accepts_repeated_input(tmp_path, monkeypatch, capsys):
+    """G4：session write/edit CLI 的 --input 必须落进 declared_inputs（可重复）。"""
+    store, runner, workflow, action, ticket, _db = _session_workspace(tmp_path, monkeypatch)
+    workspace = Path(workflow.metadata["workspace"])
+    (workspace / "source.txt").write_text("source body", encoding="utf-8")
+    (workspace / "second.txt").write_text("second body", encoding="utf-8")
+    session = ExecutionSession(runner, workflow.id, action)
+    session.files.read_file("source.txt")
+    session.files.read_file("second.txt")
+
+    monkeypatch.setattr(sys, "argv", ["workflow_cli", "session", "write", "--session", str(ticket),
+        "--path", "result.txt", "--stdin", "--input", "source.txt", "--input", "second.txt"])
+    monkeypatch.setattr(sys, "stdin", io.StringIO("result body"))
+    assert workflow_cli.main() == 0
+    capsys.readouterr()
+    rows = store.current_operations(action.step_id, action.attempt_id)
+    written = next(row for row in rows
+                   if row["kind"] == "write" and row["payload"]["path"] == "result.txt")
+    assert written["payload"]["declared_inputs"] == ["source.txt", "second.txt"]
+    assert set(written["payload"]["inputs_snapshot"]) >= {"source.txt", "second.txt"}
+
+    change = tmp_path / "change.json"
+    change.write_text(json.dumps({"old": "result", "new": "revised result"}), encoding="utf-8")
+    monkeypatch.setattr(sys, "argv", ["workflow_cli", "session", "edit", "--session", str(ticket),
+        "--path", "result.txt", "--changes-file", str(change), "--input", "source.txt"])
+    assert workflow_cli.main() == 0
+    capsys.readouterr()
+    rows = store.current_operations(action.step_id, action.attempt_id)
+    edited = next(row for row in rows
+                  if row["kind"] == "write" and row["payload"]["operation"] == "edit")
+    assert edited["payload"]["declared_inputs"] == ["source.txt"]
+    assert (workspace / "result.txt").read_text(encoding="utf-8") == "revised result body"
     store.close()

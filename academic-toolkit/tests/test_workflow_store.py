@@ -184,3 +184,95 @@ def test_transition_with_checkpoint_is_atomic_on_artifact_failure(tmp_path):
 
     assert status == StepStatus.RUNNING.value
     assert checkpoints == 0
+
+
+def _candidate_payload(store, workflow, step):
+    return dict(
+        source_workflow_id=workflow.id,
+        source_step_id=step.id,
+        source_attempt_id="attempt-1",
+        roots=[{"path": "paper/main.pdf", "sha256": "a" * 64}],
+        inputs={"raw.csv": {"sha256": "b" * 64, "producer_operation_id": None,
+                            "kind": "external", "depth": 1}},
+        frozen_versions={"paper/main.pdf": "a" * 64, "raw.csv": "b" * 64},
+        lineage={"producer_operations": {}, "external_inputs": {"raw.csv": "b" * 64}},
+        recipe={"recipe-1": {"argv": ["python", "solve.py"], "cwd": ".",
+                             "inputs": ["raw.csv"], "outputs": ["paper/main.pdf"],
+                             "mutates": []}},
+        acceptance={"delivery_steps": [], "required_reviews": [],
+                    "approval_policy": {"approvers": ["operator"], "require_human": True}},
+        acceptance_sha256="c" * 64,
+        missing=["reproduction", "review", "approval"],
+        created_by="tester",
+    )
+
+
+def test_delivery_candidate_lifecycle_and_cas(tmp_path):
+    with WorkflowStore(tmp_path / "workflow.sqlite3") as store:
+        source = store.create_workflow("explore")
+        source_step = store.add_steps(source.id, [{"name": "solve"}])[0]
+
+        candidate = store.create_candidate(**_candidate_payload(store, source, source_step))
+        assert candidate.status == "not_ready"
+        assert candidate.delivery_workflow_id == ""
+        assert candidate.frozen_versions == {"paper/main.pdf": "a" * 64, "raw.csv": "b" * 64}
+
+        delivery = store.create_workflow("delivery", {"workspace": "ws"}, candidate_id=candidate.id)
+        bound = store.get_candidate(candidate.id)
+        assert bound.status == "in_delivery"
+        assert bound.delivery_workflow_id == delivery.id
+
+        assert store.set_candidate_status(candidate.id, "in_delivery", "ready",
+                                          release_id="rel-1", release_report_path="releases/rel-1") is True
+        ready = store.get_candidate(candidate.id)
+        assert ready.status == "ready" and ready.release_id == "rel-1"
+        assert ready.roots == candidate.roots and ready.frozen_versions == candidate.frozen_versions
+        # Stale CAS can never move an already-ready candidate.
+        assert store.set_candidate_status(candidate.id, "in_delivery", "ready") is False
+        with pytest.raises(ValueError, match="invalid candidate transition"):
+            store.set_candidate_status(candidate.id, "ready", "abandoned")
+
+
+def test_candidate_binding_is_atomic_and_single_use(tmp_path):
+    with WorkflowStore(tmp_path / "workflow.sqlite3") as store:
+        source = store.create_workflow("explore")
+        source_step = store.add_steps(source.id, [{"name": "solve"}])[0]
+        candidate = store.create_candidate(**_candidate_payload(store, source, source_step))
+        store.create_workflow("delivery", {}, candidate_id=candidate.id)
+        before = store._connection.execute("SELECT COUNT(*) FROM workflows").fetchone()[0]
+        with pytest.raises(ValueError, match="not available"):
+            store.create_workflow("delivery-2", {}, candidate_id=candidate.id)
+        after = store._connection.execute("SELECT COUNT(*) FROM workflows").fetchone()[0]
+        assert after == before
+        assert store.get_candidate(candidate.id).status == "in_delivery"
+
+
+def test_abandon_workflow_excluded_from_resume_and_invalidates_operations(tmp_path):
+    with WorkflowStore(tmp_path / "workflow.sqlite3") as store:
+        workflow = store.create_workflow("explore", {"execution_contract": {"tier": "explore"}})
+        step = store.add_steps(workflow.id, [{"name": "solve"}])[0]
+        running = store.transition_step(step.id, StepStatus.RUNNING)
+        store.create_checkpoint(workflow.id, step.id, {"status": "running"})
+        operation_id = store.begin_operation(
+            workflow.id, step.id, running.attempt_id, running.revision,
+            "command", "node-1", {"command_record": {"command": "python solve.py"}})
+        assert store.resume_candidates()
+
+        abandoned = store.abandon_workflow(workflow.id, "探索方向放弃", by="operator")
+        assert abandoned.status == "abandoned"
+        assert store.resume_candidates() == []
+        assert store._connection.execute(
+            "SELECT COUNT(*) FROM execution_operations WHERE workflow_id=?",
+            (workflow.id,)).fetchone()[0] == 1
+        with pytest.raises(ValueError, match="stale execution operation target"):
+            store.begin_operation(workflow.id, step.id, running.attempt_id, running.revision,
+                                  "write", "node-2", {})
+        with pytest.raises(ValueError, match="no longer active"):
+            store.finish_operation(operation_id, "succeeded", {"ok": True})
+        # Failed is still allowed so interruption recovery can close the row.
+        store.finish_operation(operation_id, "failed", {"error": "abandoned"})
+        events = store.workflow_timeline(workflow.id)["events"]
+        assert any(event["type"] == "workflow_abandoned" for event in events)
+        assert store._connection.execute(
+            "SELECT COUNT(*) FROM execution_operations WHERE workflow_id=?",
+            (workflow.id,)).fetchone()[0] == 1

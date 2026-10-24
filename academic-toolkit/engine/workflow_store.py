@@ -25,6 +25,17 @@ def _load(value: str) -> Any:
     return json.loads(value)
 
 
+def _normalize_candidate_event(value: Mapping[str, Any] | None) -> dict[str, Any] | None:
+    """Accept both {event_type,...} and {type,...} candidate event spellings."""
+    if value is None:
+        return None
+    data = dict(value)
+    data["event_type"] = str(data.get("event_type") or data.get("type") or "")
+    if not isinstance(data.get("payload"), Mapping):
+        data["payload"] = {}
+    return data
+
+
 class StepStatus(str, Enum):
     PENDING = "pending"
     RUNNING = "running"
@@ -93,6 +104,59 @@ class ResumeCandidate:
     checkpoint: Checkpoint
     artifacts: list[Artifact]
     events: list[Event]
+
+
+CANDIDATE_STATUSES = ("not_ready", "in_delivery", "ready", "superseded", "abandoned")
+
+_CANDIDATE_TRANSITIONS = {
+    "not_ready": {"in_delivery", "superseded", "abandoned"},
+    "in_delivery": {"ready", "superseded", "abandoned"},
+    "ready": {"superseded"},
+    "superseded": set(),
+    "abandoned": set(),
+}
+
+
+@dataclass(frozen=True)
+class DeliveryCandidate:
+    """Frozen promotion record; roots/inputs/acceptance never change after insert."""
+
+    id: str
+    source_workflow_id: str
+    source_step_id: str
+    source_attempt_id: str
+    delivery_workflow_id: str
+    status: str
+    logical_target: str
+    roots: list[dict[str, Any]]
+    inputs: dict[str, Any]
+    frozen_versions: dict[str, str]
+    lineage: dict[str, Any]
+    recipe: dict[str, Any]
+    acceptance: dict[str, Any]
+    acceptance_sha256: str
+    release_id: str
+    release_report_path: str
+    missing: list[str]
+    created_by: str
+    created_at: str
+    updated_at: str
+
+    @property
+    def candidate_id(self) -> str:
+        """Alias used by readiness/report callers."""
+        return self.id
+
+
+@dataclass(frozen=True)
+class CandidateEvent:
+    id: str
+    candidate_id: str
+    checkpoint_id: str
+    step_id: str
+    event_type: str
+    payload: dict[str, Any]
+    created_at: str
 
 
 _TRANSITIONS = {
@@ -172,6 +236,42 @@ class WorkflowStore:
                 checkpoint_id TEXT NOT NULL REFERENCES checkpoints(id), event_type TEXT NOT NULL,
                 payload TEXT NOT NULL, created_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS delivery_candidates (
+                id TEXT PRIMARY KEY,
+                source_workflow_id TEXT NOT NULL REFERENCES workflows(id),
+                source_step_id TEXT NOT NULL REFERENCES workflow_steps(id),
+                source_attempt_id TEXT NOT NULL,
+                delivery_workflow_id TEXT,
+                status TEXT NOT NULL,
+                logical_target TEXT NOT NULL,
+                roots_json TEXT NOT NULL,
+                inputs_json TEXT NOT NULL,
+                frozen_versions_json TEXT NOT NULL,
+                lineage_json TEXT NOT NULL,
+                recipe_json TEXT NOT NULL,
+                acceptance_json TEXT NOT NULL,
+                acceptance_sha256 TEXT NOT NULL,
+                release_id TEXT NOT NULL DEFAULT '',
+                release_report_path TEXT NOT NULL DEFAULT '',
+                missing_json TEXT NOT NULL DEFAULT '[]',
+                created_by TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS delivery_candidate_source
+                ON delivery_candidates(source_workflow_id, logical_target, status);
+            CREATE TABLE IF NOT EXISTS candidate_events (
+                id TEXT PRIMARY KEY,
+                candidate_id TEXT NOT NULL REFERENCES delivery_candidates(id),
+                checkpoint_id TEXT NOT NULL REFERENCES checkpoints(id),
+                step_id TEXT NOT NULL REFERENCES workflow_steps(id),
+                event_type TEXT NOT NULL,
+                payload TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(candidate_id, checkpoint_id, event_type)
+            );
+            CREATE INDEX IF NOT EXISTS candidate_approval_binding
+                ON candidate_events(candidate_id, checkpoint_id, step_id, event_type);
             """
         )
         # Additive migration: existing workspace databases and their history stay intact.
@@ -182,14 +282,44 @@ class WorkflowStore:
             self._connection.execute("ALTER TABLE workflow_steps ADD COLUMN attempt_id TEXT NOT NULL DEFAULT ''")
         self._connection.commit()
 
-    def create_workflow(self, name: str, metadata: Mapping[str, Any] | None = None) -> Workflow:
+    def create_workflow(self, name: str, metadata: Mapping[str, Any] | None = None,
+                        *, candidate_id: str = "") -> Workflow:
+        """Create a workflow; candidate binding and status transition are atomic.
+
+        A candidate-bound delivery workflow is created and the candidate moves
+        ``not_ready -> in_delivery`` in one ``BEGIN IMMEDIATE`` transaction, so a
+        crash cannot produce a half-bound workflow or a half-bound candidate.
+        """
         workflow_id, timestamp = str(uuid4()), _now()
-        self._connection.execute(
-            "INSERT INTO workflows VALUES (?, ?, ?, ?, ?, ?)",
-            (workflow_id, name, "active", _json(dict(metadata or {})), timestamp, timestamp),
-        )
-        self._connection.commit()
-        return Workflow(workflow_id, name, "active", dict(metadata or {}), timestamp, timestamp)
+        payload = dict(metadata or {})
+        with self._lock:
+            try:
+                self._connection.execute("BEGIN IMMEDIATE")
+                if candidate_id:
+                    candidate = self._connection.execute(
+                        "SELECT status, delivery_workflow_id FROM delivery_candidates WHERE id=?",
+                        (candidate_id,)).fetchone()
+                    if candidate is None:
+                        raise KeyError(f"unknown delivery candidate: {candidate_id}")
+                    if candidate["status"] != "not_ready" or candidate["delivery_workflow_id"]:
+                        raise ValueError("delivery candidate is not available for binding")
+                self._connection.execute(
+                    "INSERT INTO workflows VALUES (?, ?, ?, ?, ?, ?)",
+                    (workflow_id, name, "active", _json(payload), timestamp, timestamp),
+                )
+                if candidate_id:
+                    updated = self._connection.execute(
+                        "UPDATE delivery_candidates SET status='in_delivery', delivery_workflow_id=?, "
+                        "updated_at=? WHERE id=? AND status='not_ready' "
+                        "AND (delivery_workflow_id IS NULL OR delivery_workflow_id='')",
+                        (workflow_id, timestamp, candidate_id))
+                    if updated.rowcount != 1:
+                        raise ValueError("delivery candidate status changed during binding")
+                self._connection.commit()
+            except Exception:
+                self._connection.rollback()
+                raise
+        return Workflow(workflow_id, name, "active", payload, timestamp, timestamp)
 
     def add_steps(self, workflow_id: str, steps: Iterable[Mapping[str, Any]]) -> list[WorkflowStep]:
         result = []
@@ -272,19 +402,74 @@ class WorkflowStore:
         state: Mapping[str, Any],
         artifacts: Iterable[Mapping[str, Any]] | None = None,
         event: Mapping[str, Any] | None = None,
+        *,
+        approval_checkpoint_id: str = "",
+        candidate_event: Mapping[str, Any] | None = None,
     ) -> Checkpoint:
+        """Create a checkpoint; candidate approvals run through the store guard.
+
+        ``candidate_event`` is never a bypass: a ``candidate_approved`` event may
+        only be written by the approval guard through the private recorder.
+        """
         checkpoint_id, timestamp = str(uuid4()), _now()
-        self._connection.execute("INSERT INTO checkpoints VALUES (?, ?, ?, ?, ?)", (checkpoint_id, workflow_id, step_id, _json(dict(state)), timestamp))
-        for artifact in artifacts or []:
-            self._connection.execute(
-                "INSERT INTO artifacts VALUES (?, ?, ?, ?, ?, ?)",
-                (str(uuid4()), workflow_id, checkpoint_id, str(artifact["name"]), str(artifact["path"]), _json(dict(artifact.get("metadata", {})))),
-            )
-        if event:
-            event_type = str(event.get("type", "checkpoint_created"))
-            payload = dict(event)
-            self._connection.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?, ?)", (str(uuid4()), workflow_id, checkpoint_id, event_type, _json(payload), timestamp))
-        self._connection.commit()
+        with self._lock:
+            try:
+                self._connection.execute("BEGIN IMMEDIATE")
+                workflow_row = self._connection.execute(
+                    "SELECT metadata FROM workflows WHERE id=?", (workflow_id,)).fetchone()
+                if workflow_row is None:
+                    raise KeyError(f"unknown workflow: {workflow_id}")
+                workflow_metadata = _load(workflow_row["metadata"])
+                candidate_id = self._candidate_id_from_metadata(workflow_metadata)
+                event_payload = dict(event) if event else None
+                candidate_payload = _normalize_candidate_event(candidate_event)
+                if candidate_payload is not None:
+                    if not candidate_id:
+                        raise ValueError("candidate events require a candidate-bound workflow")
+                    if candidate_payload.get("event_type") == "candidate_approved":
+                        raise ValueError("candidate_approved must be written by the approval guard")
+                needs_guard = bool(candidate_payload) or bool(
+                    event_payload and event_payload.get("type") == "checkpoint_approved"
+                    and candidate_id)
+                if needs_guard:
+                    self._assert_candidate_approval_allowed(
+                        workflow_id=workflow_id, step_id=step_id,
+                        approval_checkpoint_id=approval_checkpoint_id,
+                        transition_checkpoint_id=checkpoint_id,
+                        candidate_id=str((candidate_payload or {}).get("candidate_id") or candidate_id),
+                        approved_by=str((candidate_payload or {}).get("approved_by")
+                                        or ((candidate_payload or {}).get("payload") or {}).get("approved_by")
+                                        or (event_payload or {}).get("approved_by") or ""),
+                        event_type=str((candidate_payload or {}).get("event_type")
+                                       or (event_payload or {}).get("type") or ""),
+                        event_payload=candidate_payload or event_payload or {})
+                self._connection.execute(
+                    "INSERT INTO checkpoints VALUES (?, ?, ?, ?, ?)",
+                    (checkpoint_id, workflow_id, step_id, _json(dict(state)), timestamp))
+                for artifact in artifacts or []:
+                    self._connection.execute(
+                        "INSERT INTO artifacts VALUES (?, ?, ?, ?, ?, ?)",
+                        (str(uuid4()), workflow_id, checkpoint_id, str(artifact["name"]),
+                         str(artifact["path"]), _json(dict(artifact.get("metadata", {})))))
+                if event_payload:
+                    self._connection.execute(
+                        "INSERT INTO events VALUES (?, ?, ?, ?, ?, ?)",
+                        (str(uuid4()), workflow_id, checkpoint_id,
+                         str(event_payload.get("type", "checkpoint_created")),
+                         _json(event_payload), timestamp))
+                if candidate_payload:
+                    self._insert_candidate_event(
+                        candidate_id=str(candidate_payload.get("candidate_id") or candidate_id),
+                        checkpoint_id=approval_checkpoint_id or checkpoint_id,
+                        step_id=step_id,
+                        event_type=str(candidate_payload["event_type"]),
+                        payload=candidate_payload.get("payload", {}),
+                        timestamp=timestamp,
+                    )
+                self._connection.commit()
+            except Exception:
+                self._connection.rollback()
+                raise
         return Checkpoint(checkpoint_id, workflow_id, step_id, dict(state), timestamp)
 
     def transition_step_with_checkpoint(
@@ -301,8 +486,15 @@ class WorkflowStore:
         receipt: Mapping[str, Any] | None = None,
         prepare_evidence: Callable[[], None] | None = None,
         finalize_if_complete: bool = False,
+        approval_checkpoint_id: str = "",
+        candidate_event: Mapping[str, Any] | None = None,
     ) -> tuple[WorkflowStep, Checkpoint]:
-        """Atomically transition a versioned step and persist its checkpoint evidence."""
+        """Atomically transition a versioned step and persist its checkpoint evidence.
+
+        Candidate approvals are validated by ``approvals.assert_candidate_approval_allowed``
+        inside this same transaction; the new transition checkpoint is linked to the
+        old blocked checkpoint through ``approved_checkpoint_id`` in the event payload.
+        """
         target = StepStatus(status)
         checkpoint_id, timestamp = str(uuid4()), _now()
         with self._lock:
@@ -314,6 +506,39 @@ class WorkflowStore:
                 ).fetchone()
                 if row is None:
                     raise KeyError(f"unknown step: {step_id}")
+                workflow_row = self._connection.execute(
+                    "SELECT metadata FROM workflows WHERE id=?", (workflow_id,)).fetchone()
+                if workflow_row is None:
+                    raise KeyError(f"unknown workflow: {workflow_id}")
+                workflow_metadata = _load(workflow_row["metadata"])
+                candidate_id = self._candidate_id_from_metadata(workflow_metadata)
+                event_payload = dict(event) if event else None
+                candidate_payload = _normalize_candidate_event(candidate_event)
+                if candidate_payload is not None:
+                    if not candidate_id:
+                        raise ValueError("candidate events require a candidate-bound workflow")
+                    # candidate_approved is accepted here only after the approval
+                    # guard below has validated the old checkpoint / L1 evidence.
+                needs_guard = bool(candidate_payload) or bool(
+                    event_payload and event_payload.get("type") == "checkpoint_approved"
+                    and candidate_id)
+                if needs_guard:
+                    if event_payload and event_payload.get("type") == "checkpoint_approved":
+                        bound = str(event_payload.get("approved_checkpoint_id") or "")
+                        if bound != approval_checkpoint_id:
+                            raise ValueError(
+                                "checkpoint_approved payload must bind the old blocked checkpoint")
+                    self._assert_candidate_approval_allowed(
+                        workflow_id=workflow_id, step_id=step_id,
+                        approval_checkpoint_id=approval_checkpoint_id,
+                        transition_checkpoint_id=checkpoint_id,
+                        candidate_id=str((candidate_payload or {}).get("candidate_id") or candidate_id),
+                        approved_by=str((candidate_payload or {}).get("approved_by")
+                                        or ((candidate_payload or {}).get("payload") or {}).get("approved_by")
+                                        or (event_payload or {}).get("approved_by") or ""),
+                        event_type=str((candidate_payload or {}).get("event_type")
+                                       or (event_payload or {}).get("type") or ""),
+                        event_payload=candidate_payload or event_payload or {})
                 current = StepStatus(row["status"])
                 if target not in _TRANSITIONS[current]:
                     raise ValueError(f"invalid step transition: {current.value} -> {target.value}")
@@ -356,6 +581,15 @@ class WorkflowStore:
                         "INSERT INTO events VALUES (?, ?, ?, ?, ?, ?)",
                         (str(uuid4()), workflow_id, checkpoint_id,
                          str(payload.get("type", "checkpoint_created")), _json(payload), timestamp),
+                    )
+                if candidate_payload:
+                    self._insert_candidate_event(
+                        candidate_id=str(candidate_payload.get("candidate_id") or candidate_id),
+                        checkpoint_id=approval_checkpoint_id or checkpoint_id,
+                        step_id=step_id,
+                        event_type=str(candidate_payload["event_type"]),
+                        payload=candidate_payload.get("payload", {}),
+                        timestamp=timestamp,
                     )
                 if receipt:
                     response = dict(receipt["response"])
@@ -410,6 +644,10 @@ class WorkflowStore:
         with self._lock:
             try:
                 self._connection.execute("BEGIN IMMEDIATE")
+                workflow_status = self._connection.execute(
+                    "SELECT status FROM workflows WHERE id=?", (workflow_id,)).fetchone()
+                if workflow_status is None or workflow_status["status"] != "active":
+                    raise ValueError("stale execution operation target")
                 step = self.get_step(step_id)
                 if (step.workflow_id != workflow_id or step.status != StepStatus.RUNNING
                         or step.attempt_id != attempt_id or step.revision != revision):
@@ -434,12 +672,28 @@ class WorkflowStore:
         if status not in {"succeeded", "failed", "reused"}:
             raise ValueError("invalid execution operation outcome")
         with self._lock:
-            changed = self._connection.execute(
-                "UPDATE execution_operations SET status=?, payload=?, updated_at=? WHERE id=? AND status='running'",
-                (status, _json(dict(payload)), _now(), operation_id))
-            self._connection.commit()
-            if changed.rowcount != 1:
-                raise ValueError("execution operation is absent or already finalized")
+            try:
+                self._connection.execute("BEGIN IMMEDIATE")
+                row = self._connection.execute(
+                    "SELECT o.status AS operation_status, w.status AS workflow_status "
+                    "FROM execution_operations o JOIN workflows w ON w.id = o.workflow_id "
+                    "WHERE o.id=?", (operation_id,)).fetchone()
+                if row is None or row["operation_status"] != "running":
+                    raise ValueError("execution operation is absent or already finalized")
+                # After abandon/completion an operation may still be closed as failed
+                # (interruption recovery), but it can never become a new success fact.
+                if status in {"succeeded", "reused"} and row["workflow_status"] != "active":
+                    raise ValueError("workflow is no longer active; operation cannot succeed")
+                changed = self._connection.execute(
+                    "UPDATE execution_operations SET status=?, payload=?, updated_at=? "
+                    "WHERE id=? AND status='running'",
+                    (status, _json(dict(payload)), _now(), operation_id))
+                if changed.rowcount != 1:
+                    raise ValueError("execution operation is absent or already finalized")
+                self._connection.commit()
+            except Exception:
+                self._connection.rollback()
+                raise
 
     def execution_operations(self, step_id: str, attempt_id: str) -> list[dict[str, Any]]:
         rows = self._connection.execute(
@@ -472,11 +726,279 @@ class WorkflowStore:
             "AND status='succeeded' ORDER BY rowid DESC LIMIT 10", (cache_key,)).fetchall()
         return [{**dict(row), "payload": _load(row["payload"])} for row in rows]
 
+    # ---------- delivery candidates（G2 promotion / delivery） ----------
+    def create_candidate(
+        self,
+        source_workflow_id: str,
+        source_step_id: str,
+        source_attempt_id: str,
+        roots: Iterable[Mapping[str, Any]],
+        inputs: Mapping[str, Any],
+        frozen_versions: Mapping[str, str],
+        lineage: Mapping[str, Any],
+        recipe: Mapping[str, Any],
+        acceptance: Mapping[str, Any],
+        acceptance_sha256: str,
+        *,
+        missing: Iterable[str] = (),
+        created_by: str = "",
+        logical_target: str = "",
+        status: str = "not_ready",
+    ) -> DeliveryCandidate:
+        """Insert a frozen candidate and supersede older candidates of the same target.
+
+        Candidate content columns are insert-only; only status/release fields can
+        change through :meth:`set_candidate_status`.
+        """
+        import hashlib
+
+        if status not in CANDIDATE_STATUSES:
+            raise ValueError(f"unknown delivery candidate status: {status}")
+        roots_list = [dict(root) for root in roots]
+        if not roots_list:
+            raise ValueError("delivery candidate requires at least one root")
+        logical = logical_target or hashlib.sha256(
+            _json(sorted(str(root.get("path", "")) for root in roots_list)).encode("utf-8")).hexdigest()
+        candidate_id, timestamp = str(uuid4()), _now()
+        missing_list = [str(item) for item in missing]
+        with self._lock:
+            try:
+                self._connection.execute("BEGIN IMMEDIATE")
+                if self._connection.execute(
+                        "SELECT 1 FROM workflows WHERE id=?", (source_workflow_id,)).fetchone() is None:
+                    raise KeyError(f"unknown source workflow: {source_workflow_id}")
+                if self._connection.execute(
+                        "SELECT 1 FROM workflow_steps WHERE id=? AND workflow_id=?",
+                        (source_step_id, source_workflow_id)).fetchone() is None:
+                    raise KeyError(f"unknown source step: {source_step_id}")
+                self._connection.execute(
+                    "UPDATE delivery_candidates SET status='superseded', updated_at=? "
+                    "WHERE source_workflow_id=? AND logical_target=? "
+                    "AND status IN ('not_ready','in_delivery','ready')",
+                    (timestamp, source_workflow_id, logical))
+                self._connection.execute(
+                    "INSERT INTO delivery_candidates VALUES "
+                    "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (candidate_id, source_workflow_id, source_step_id, source_attempt_id,
+                     None, status, logical, _json(roots_list), _json(dict(inputs)),
+                     _json(dict(frozen_versions)), _json(dict(lineage)), _json(dict(recipe)),
+                     _json(dict(acceptance)), str(acceptance_sha256), "", "",
+                     _json(missing_list), str(created_by), timestamp, timestamp))
+                self._connection.commit()
+            except Exception:
+                self._connection.rollback()
+                raise
+        return self.get_candidate(candidate_id)
+
+    def get_candidate(self, candidate_id: str) -> DeliveryCandidate:
+        row = self._connection.execute(
+            "SELECT * FROM delivery_candidates WHERE id=?", (candidate_id,)).fetchone()
+        if row is None:
+            raise KeyError(f"unknown delivery candidate: {candidate_id}")
+        return self._candidate_from_row(row)
+
+    def candidates_for_workflow(self, workflow_id: str,
+                                *, statuses: Iterable[str] | None = None) -> list[DeliveryCandidate]:
+        query = ("SELECT * FROM delivery_candidates WHERE (source_workflow_id=? OR delivery_workflow_id=?)")
+        params: list[Any] = [workflow_id, workflow_id]
+        if statuses is not None:
+            wanted = [str(value) for value in statuses]
+            if wanted:
+                query += " AND status IN (" + ",".join("?" for _ in wanted) + ")"
+                params.extend(wanted)
+        query += " ORDER BY created_at, rowid"
+        return [self._candidate_from_row(row) for row in
+                self._connection.execute(query, params).fetchall()]
+
+    def bind_candidate_workflow(self, candidate_id: str, workflow_id: str) -> DeliveryCandidate:
+        """Bind an unbound candidate to an existing delivery workflow (CAS)."""
+        timestamp = _now()
+        with self._lock:
+            try:
+                self._connection.execute("BEGIN IMMEDIATE")
+                if self._connection.execute(
+                        "SELECT 1 FROM workflows WHERE id=?", (workflow_id,)).fetchone() is None:
+                    raise KeyError(f"unknown workflow: {workflow_id}")
+                updated = self._connection.execute(
+                    "UPDATE delivery_candidates SET status='in_delivery', delivery_workflow_id=?, updated_at=? "
+                    "WHERE id=? AND status='not_ready' "
+                    "AND (delivery_workflow_id IS NULL OR delivery_workflow_id='')",
+                    (workflow_id, timestamp, candidate_id))
+                if updated.rowcount != 1:
+                    raise ValueError("delivery candidate is not available for binding")
+                self._connection.commit()
+            except Exception:
+                self._connection.rollback()
+                raise
+        return self.get_candidate(candidate_id)
+
+    def set_candidate_status(self, candidate_id: str, expected_status: str, new_status: str, *,
+                             release_id: str | None = None,
+                             release_report_path: str | None = None) -> bool:
+        """Compare-and-set candidate status; content columns remain immutable."""
+        if expected_status not in CANDIDATE_STATUSES or new_status not in CANDIDATE_STATUSES:
+            raise ValueError("unknown delivery candidate status")
+        if new_status not in _CANDIDATE_TRANSITIONS[expected_status]:
+            raise ValueError(f"invalid candidate transition: {expected_status} -> {new_status}")
+        assignments = ["status=?", "updated_at=?"]
+        params: list[Any] = [new_status, _now()]
+        if release_id is not None:
+            assignments.append("release_id=?")
+            params.append(str(release_id))
+        if release_report_path is not None:
+            assignments.append("release_report_path=?")
+            params.append(str(release_report_path))
+        params.extend([candidate_id, expected_status])
+        with self._lock:
+            changed = self._connection.execute(
+                "UPDATE delivery_candidates SET " + ", ".join(assignments) +
+                " WHERE id=? AND status=?", params)
+            self._connection.commit()
+            return changed.rowcount == 1
+
+    def _record_candidate_event(self, candidate_id: str, checkpoint_id: str, step_id: str,
+                                event_type: str, payload: Mapping[str, Any], *,
+                                internal_guard: bool = False) -> str:
+        """Private recorder; caller owns the SQLite transaction.
+
+        ``candidate_approved`` is only accepted from the approval guard
+        (``internal_guard=True``); rejected/degraded events may be recorded by
+        engine paths, but still require both checkpoint and step identity.
+        """
+        if event_type == "candidate_approved" and not internal_guard:
+            raise ValueError("candidate_approved must be written by the approval guard")
+        if not checkpoint_id or not step_id:
+            raise ValueError("candidate events require checkpoint_id and step_id")
+        if not self._connection.in_transaction:
+            with self._lock:
+                try:
+                    self._connection.execute("BEGIN IMMEDIATE")
+                    event_id = self._insert_candidate_event(
+                        candidate_id, checkpoint_id, step_id, event_type, payload, _now())
+                    self._connection.commit()
+                    return event_id
+                except Exception:
+                    self._connection.rollback()
+                    raise
+        return self._insert_candidate_event(candidate_id, checkpoint_id, step_id,
+                                           event_type, payload, _now())
+
+    def _insert_candidate_event(self, candidate_id: str, checkpoint_id: str, step_id: str,
+                                event_type: str, payload: Mapping[str, Any],
+                                timestamp: str | None = None) -> str:
+        """Insert without committing; used inside guarded transactions."""
+        candidate = self._connection.execute(
+            "SELECT delivery_workflow_id FROM delivery_candidates WHERE id=?",
+            (candidate_id,)).fetchone()
+        if candidate is None:
+            raise KeyError(f"unknown delivery candidate: {candidate_id}")
+        checkpoint = self._connection.execute(
+            "SELECT workflow_id, step_id FROM checkpoints WHERE id=?", (checkpoint_id,)).fetchone()
+        if checkpoint is None:
+            raise KeyError(f"unknown checkpoint: {checkpoint_id}")
+        if checkpoint["step_id"] != step_id:
+            raise ValueError("candidate event checkpoint does not belong to the step")
+        if candidate["delivery_workflow_id"] and candidate["delivery_workflow_id"] != checkpoint["workflow_id"]:
+            raise ValueError("candidate event checkpoint does not belong to the delivery workflow")
+        event_id = str(uuid4())
+        self._connection.execute(
+            "INSERT INTO candidate_events VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (event_id, candidate_id, checkpoint_id, step_id, event_type,
+             _json(dict(payload)), timestamp or _now()))
+        return event_id
+
+    def candidate_events(self, candidate_id: str, *, cross_validate: bool = True) -> list[dict[str, Any]]:
+        """Return candidate events; optionally mark orphan approvals.
+
+        An orphan ``candidate_approved`` is a candidate event whose
+        ``checkpoint_id`` (the old blocked checkpoint) has no matching workflow
+        ``checkpoint_approved`` event carrying
+        ``payload.approved_checkpoint_id``. The workflow event row itself is
+        attached to the new transition checkpoint, so row ids intentionally differ.
+        """
+        rows = self._connection.execute(
+            "SELECT * FROM candidate_events WHERE candidate_id=? ORDER BY created_at, rowid",
+            (candidate_id,)).fetchall()
+        events = [{"id": row["id"], "candidate_id": row["candidate_id"],
+                   "checkpoint_id": row["checkpoint_id"], "step_id": row["step_id"],
+                   "event_type": row["event_type"], "payload": _load(row["payload"]),
+                   "created_at": row["created_at"]} for row in rows]
+        if cross_validate:
+            for event in events:
+                event["orphan"] = False
+                event["checkpoint_approved_payload"] = None
+                if event["event_type"] != "candidate_approved":
+                    continue
+                matched = False
+                for workflow_event in self._connection.execute(
+                        "SELECT payload FROM events WHERE workflow_id=? AND event_type='checkpoint_approved'",
+                        (self._connection.execute(
+                            "SELECT workflow_id FROM checkpoints WHERE id=?",
+                            (event["checkpoint_id"],)).fetchone()["workflow_id"],)).fetchall():
+                    try:
+                        payload = _load(workflow_event["payload"])
+                    except (TypeError, ValueError):
+                        continue
+                    if str(payload.get("approved_checkpoint_id") or "") == event["checkpoint_id"]:
+                        matched = True
+                        event["checkpoint_approved_payload"] = payload
+                        break
+                event["orphan"] = not matched
+        return events
+
+    def abandon_workflow(self, workflow_id: str, reason: str, by: str = "") -> Workflow:
+        """Abandon a workflow without deleting any execution fact.
+
+        The engine runner restricts this to explore workflows; the store enforces
+        non-empty reason and terminal-state safety so old tickets cannot continue.
+        """
+        if not str(reason).strip():
+            raise ValueError("abandon requires a reason")
+        timestamp = _now()
+        with self._lock:
+            try:
+                self._connection.execute("BEGIN IMMEDIATE")
+                workflow_row = self._connection.execute(
+                    "SELECT * FROM workflows WHERE id=?", (workflow_id,)).fetchone()
+                if workflow_row is None:
+                    raise KeyError(f"unknown workflow: {workflow_id}")
+                if workflow_row["status"] != "active":
+                    raise ValueError("only an active workflow can be abandoned")
+                step = self._connection.execute(
+                    "SELECT * FROM workflow_steps WHERE workflow_id=? "
+                    "ORDER BY CASE status WHEN 'running' THEN 0 ELSE 1 END, position DESC LIMIT 1",
+                    (workflow_id,)).fetchone()
+                if step is None:
+                    raise ValueError("workflow has no step to anchor the abandonment event")
+                operation_count = self._connection.execute(
+                    "SELECT COUNT(*) FROM execution_operations WHERE workflow_id=?",
+                    (workflow_id,)).fetchone()[0]
+                checkpoint_id = str(uuid4())
+                state = {"status": "abandoned", "reason": str(reason), "by": str(by)}
+                event_payload = {"type": "workflow_abandoned", "reason": str(reason),
+                                 "by": str(by), "operation_count": operation_count,
+                                 "step": step["name"]}
+                self._connection.execute(
+                    "UPDATE workflows SET status='abandoned', updated_at=? WHERE id=?",
+                    (timestamp, workflow_id))
+                self._connection.execute(
+                    "INSERT INTO checkpoints VALUES (?, ?, ?, ?, ?)",
+                    (checkpoint_id, workflow_id, step["id"], _json(state), timestamp))
+                self._connection.execute(
+                    "INSERT INTO events VALUES (?, ?, ?, ?, ?, ?)",
+                    (str(uuid4()), workflow_id, checkpoint_id, "workflow_abandoned",
+                     _json(event_payload), timestamp))
+                self._connection.commit()
+            except Exception:
+                self._connection.rollback()
+                raise
+        return self.get_workflow(workflow_id)
+
     def resume_candidates(self) -> list[ResumeCandidate]:
         rows = self._connection.execute(
             """SELECT c.* FROM checkpoints c JOIN workflow_steps s ON s.id = c.step_id
                JOIN workflows w ON w.id = c.workflow_id
-               WHERE s.status != 'completed' AND w.status != 'completed'
+               WHERE s.status != 'completed' AND w.status NOT IN ('completed','abandoned')
                ORDER BY c.created_at DESC"""
         ).fetchall()
         candidates = []
@@ -514,6 +1036,38 @@ class WorkflowStore:
                 for row in events
             ],
         }
+
+    @staticmethod
+    def _candidate_id_from_metadata(metadata: Mapping[str, Any] | None) -> str:
+        if not isinstance(metadata, Mapping):
+            return ""
+        candidate = metadata.get("delivery_candidate")
+        return str(candidate.get("candidate_id") or "") if isinstance(candidate, Mapping) else ""
+
+    @staticmethod
+    def _candidate_from_row(row: sqlite3.Row) -> DeliveryCandidate:
+        return DeliveryCandidate(
+            id=row["id"], source_workflow_id=row["source_workflow_id"],
+            source_step_id=row["source_step_id"], source_attempt_id=row["source_attempt_id"],
+            delivery_workflow_id=row["delivery_workflow_id"] or "",
+            status=row["status"], logical_target=row["logical_target"],
+            roots=_load(row["roots_json"]), inputs=_load(row["inputs_json"]),
+            frozen_versions=_load(row["frozen_versions_json"]),
+            lineage=_load(row["lineage_json"]), recipe=_load(row["recipe_json"]),
+            acceptance=_load(row["acceptance_json"]),
+            acceptance_sha256=row["acceptance_sha256"],
+            release_id=row["release_id"], release_report_path=row["release_report_path"],
+            missing=_load(row["missing_json"]), created_by=row["created_by"],
+            created_at=row["created_at"], updated_at=row["updated_at"],
+        )
+
+    def _assert_candidate_approval_allowed(self, **kwargs: Any) -> None:
+        """Delegate to the single approval guard without creating a store import cycle."""
+        try:
+            from . import approvals
+        except ImportError as exc:  # fail-closed: no guard means no candidate approval
+            raise ValueError("candidate approval guard is unavailable") from exc
+        approvals.assert_candidate_approval_allowed(self, **kwargs)
 
     @staticmethod
     def _step_from_row(row: sqlite3.Row) -> WorkflowStep:

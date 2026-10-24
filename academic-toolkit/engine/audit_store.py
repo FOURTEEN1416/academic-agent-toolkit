@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
 import shlex
@@ -232,13 +233,16 @@ def _workflow_control_call(command: str, workspace: Path, scope: dict[str, Any])
         "next": {"--wf", "--db"},
         "retry": {"--wf", "--db", "--by"},
         "approve": {"--checkpoint", "--db", "--by"},
+        "promote": {"--wf", "--db", "--root", "--by", "--template"},
+        "start": {"--template", "--workspace", "--db", "--params", "--mode", "--candidate"},
+        "abandon": {"--wf", "--db", "--reason", "--by"},
     }
     args = tokens[4:]
     if operation not in options or len(args) % 2:
         return None
     parsed = {}
     for key, value in zip(args[::2], args[1::2]):
-        if (key not in options[operation] or (key in parsed and key != "--artifact")
+        if (key not in options[operation] or (key in parsed and key not in {"--artifact", "--root", "--input"})
                 or not value or value.startswith("--")):
             return None
         parsed[key] = value
@@ -250,6 +254,17 @@ def _workflow_control_call(command: str, workspace: Path, scope: dict[str, Any])
         return None
     if operation == "approve":
         if parsed.get("--checkpoint") not in scope.get("checkpoint_ids", set()):
+            return None
+    elif operation == "start":
+        # 工作流尚未创建：只校验工作区与数据库归属，不要求 --wf。
+        if not same_path(parsed.get("--workspace"), workspace):
+            return None
+    elif operation == "promote":
+        # promote 发生在交付工作流创建前，--wf 指向源 explore 工作流；
+        # control_scope 必须显式携带 source_workflow_ids 才认。
+        allowed = {str(scope.get("workflow_id") or "")}
+        allowed.update(str(value) for value in (scope.get("source_workflow_ids") or []))
+        if parsed.get("--wf") not in allowed:
             return None
     elif parsed.get("--wf") != scope["workflow_id"]:
         return None
@@ -279,11 +294,13 @@ def _session_control_call(tokens: list[str], workspace: Path, scope: dict) -> st
     operation, args = rest[0], rest[1:]
     options = {"context": {"--wf", "--db", "--query", "--audit-root"},
                "read": {"--session", "--kind", "--name", "--member"},
-               "write": {"--session", "--path", "--from-file"},
-               "edit": {"--session", "--path", "--changes-file"},
+               "write": {"--session", "--path", "--from-file", "--input"},
+               "edit": {"--session", "--path", "--changes-file", "--input"},
                "run": {"--session", "--plan"},
                "finish": {"--session", "--review-session"},
                "status": {"--session"},
+               "reproduce": {"--session", "--plan", "--candidate"},
+               "abandon": {"--session", "--reason", "--by"},
                "review-request": {"--session", "--input", "--output", "--rubric"},
                "review-receive": {"--session", "--task", "--response", "--reviewer", "--host-call-id"}}
     if operation not in options:
@@ -813,6 +830,442 @@ def _accepted_coverage(workspace: Path, batches: list[list[dict[str, Any]]]):
     return leaves, coverage, list(errors.values())
 
 
+def _accepted_event_batches(checkpoints: list[dict[str, Any]],
+                            events: list[dict[str, Any]]) -> tuple[dict[str, list[dict[str, Any]]], set[str]]:
+    """Fold step manifests from the event timeline into per-step accepted batches."""
+    cp_steps = {c["id"]: c["step_id"] for c in checkpoints}
+    accepted_artifacts: dict[str, list[dict[str, Any]]] = {}
+    evidence_paths: set[str] = set()
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        payload = event.get("payload", {})
+        if not isinstance(payload, dict):
+            continue
+        step_id = cp_steps.get(event.get("checkpoint_id"), "unknown")
+        manifest = payload.get("manifest")
+        if isinstance(manifest, dict) and manifest.get("artifacts"):
+            if event.get("type") in {"step_completed", "step_backfilled"}:
+                accepted_artifacts.pop(step_id, None)
+                accepted_artifacts[step_id] = list(manifest["artifacts"])
+                evidence_paths.update(str(payload[k]) for k in
+                                      ("evidence_path", "binding_evidence_path") if payload.get(k))
+        if event.get("type") in {"step_failed", "step_retry"}:
+            accepted_artifacts.pop(step_id, None)
+    return accepted_artifacts, evidence_paths
+
+
+def accepted_artifacts_by_path(workspace: Path, checkpoints: list[dict[str, Any]],
+                               events: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Return the latest accepted artifact per logical path (promotion/audit shared).
+
+    Never falls back to filesystem mtime: only event-referenced manifests can
+    attest an accepted version.
+    """
+    batches, _ = _accepted_event_batches(checkpoints, events)
+    leaves, _coverage, _errors = _accepted_coverage(workspace, list(batches.values()))
+    return leaves
+
+
+# =====================================================
+# G2 candidate readiness：冻结/闭包/复现/审核/批准 五道门
+# =====================================================
+
+def _candidate_gate(ok: bool, reason: str = "", *, missing: list[str] | None = None,
+                    **detail: Any) -> dict[str, Any]:
+    return {"ok": bool(ok), "reason": "" if ok else reason,
+            "missing": list(missing or []), **detail}
+
+
+def _canonical_sha256(value: Any) -> str:
+    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=True).encode()).hexdigest()
+
+
+def _read_sha256(path: Path) -> str:
+    try:
+        return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    except OSError:
+        return ""
+
+
+def _candidate_frozen_gate(workspace: Path, project_root: Path,
+                           candidate: Any) -> dict[str, Any]:
+    """Candidate content and acceptance contract must still match their frozen bytes."""
+    acceptance = candidate.acceptance if isinstance(candidate.acceptance, dict) else {}
+    if _canonical_sha256(acceptance) != candidate.acceptance_sha256:
+        return _candidate_gate(False, "candidate acceptance digest does not match frozen acceptance")
+    missing: list[str] = []
+    skills_root = Path(project_root) / str(acceptance.get("skills_root") or "academic-toolkit/skills")
+    for step in acceptance.get("delivery_steps") or []:
+        if not isinstance(step, dict):
+            continue
+        name = str(step.get("skill_name") or "")
+        frozen_sha = str(step.get("skill_sha256") or "")
+        if name and frozen_sha:
+            current = _read_sha256(skills_root / name / "SKILL.md")
+            if current != frozen_sha:
+                missing.append(f"skill:{name}")
+    rules_root = Path(project_root) / str(acceptance.get("rules_root") or "academic-toolkit/engine/modex-core")
+    rules = acceptance.get("rule_files") or acceptance.get("rules") or {}
+    if isinstance(rules, dict):
+        for relative, frozen_sha in rules.items():
+            current = _read_sha256(rules_root / str(relative))
+            if str(frozen_sha) != current:
+                missing.append(f"rule:{relative}")
+    policy = acceptance.get("approval_policy") if isinstance(acceptance.get("approval_policy"), dict) else {}
+    if not policy or policy.get("require_human") is not True:
+        missing.append("approval_policy")
+    else:
+        config = Path(workspace) / ".engine" / "approvers.json"
+        if not config.is_file() or _read_sha256(config) != str(policy.get("config_sha256") or ""):
+            missing.append("approval_policy_config")
+    review_inputs = {path for path, meta in (candidate.inputs or {}).items()
+                     if isinstance(meta, dict) and meta.get("kind") == "review_input"}
+    roots = {str(root.get("path", "")) for root in candidate.roots if isinstance(root, dict)}
+    for path, digest in (candidate.frozen_versions or {}).items():
+        if path in review_inputs and path not in roots:
+            continue
+        target = Path(workspace) / str(path)
+        try:
+            target.resolve().relative_to(Path(workspace).resolve())
+        except (OSError, ValueError):
+            missing.append(str(path))
+            continue
+        if not target.is_file() or _read_sha256(target) != str(digest):
+            missing.append(str(path))
+    return _candidate_gate(not missing,
+                           "candidate frozen roots/inputs or acceptance contract changed",
+                           missing=missing)
+
+
+def _candidate_closure_gate(candidate: Any) -> dict[str, Any]:
+    unknown = []
+    lineage = candidate.lineage if isinstance(candidate.lineage, dict) else {}
+    candidate_unknown = lineage.get("unknown_inputs")
+    if isinstance(candidate_unknown, list):
+        unknown.extend(str(item) for item in candidate_unknown)
+    if "closure" in (candidate.missing or []):
+        unknown.append("closure")
+    return _candidate_gate(not unknown,
+                           "unknown write inputs: dependency closure cannot be proven",
+                           missing=unknown)
+
+
+def _candidate_recipe_entry(candidate: Any, recipe_id: str) -> Any:
+    recipe = candidate.recipe if isinstance(candidate.recipe, dict) else {}
+    entries = recipe.get("recipes") if isinstance(recipe.get("recipes"), dict) else recipe
+    if isinstance(entries, dict):
+        if recipe_id in entries:
+            return entries[recipe_id]
+        for value in entries.values():
+            if isinstance(value, dict) and str(value.get("recipe_id") or "") == recipe_id:
+                return value
+    if isinstance(recipe.get("recipes"), list):
+        for value in recipe["recipes"]:
+            if isinstance(value, dict) and str(value.get("recipe_id") or "") == recipe_id:
+                return value
+    return None
+
+
+def _recipe_sha_candidates(candidate: Any, recipe_id: str) -> set[str]:
+    entry = _candidate_recipe_entry(candidate, recipe_id)
+    if entry is None:
+        return set()
+    values = {_canonical_sha256(entry)}
+    if isinstance(entry, dict) and "recipe_id" in entry:
+        values.add(_canonical_sha256({k: v for k, v in entry.items() if k != "recipe_id"}))
+    return values
+
+
+def _candidate_reproduction_gate(store: Any, candidate: Any) -> dict[str, Any]:
+    acceptance = candidate.acceptance if isinstance(candidate.acceptance, dict) else {}
+    targets = acceptance.get("reproduction_targets") or []
+    if not isinstance(targets, list) or not targets:
+        return _candidate_gate(False, "candidate has no command reproduction targets")
+    workflow_id = candidate.delivery_workflow_id
+    if not workflow_id:
+        return _candidate_gate(False, "candidate is not bound to a delivery workflow")
+    rows = store._connection.execute(
+        "SELECT o.payload AS payload, s.status AS step_status FROM execution_operations o "
+        "JOIN workflow_steps s ON s.id=o.step_id WHERE o.workflow_id=? AND o.kind='command' "
+        "AND o.status='succeeded'", (workflow_id,)).fetchall()
+    operations = []
+    for row in rows:
+        try:
+            operations.append((json.loads(row["payload"]), row["step_status"]))
+        except (TypeError, json.JSONDecodeError):
+            continue
+    missing: list[str] = []
+    matched_targets = 0
+    for target in targets:
+        if not isinstance(target, dict):
+            missing.append("invalid_target")
+            continue
+        path = str(target.get("path") or "")
+        digest = str(target.get("sha256") or "")
+        recipe_id = str(target.get("recipe_id") or "")
+        if not path or str((candidate.frozen_versions or {}).get(path) or "") != digest:
+            missing.append(f"target_not_frozen:{path or '?'}")
+            continue
+        expected_shas = _recipe_sha_candidates(candidate, recipe_id)
+        if not expected_shas:
+            missing.append(f"recipe_missing:{recipe_id or '?'}")
+            continue
+        satisfied = False
+        for payload, step_status in operations:
+            if step_status != "completed":
+                continue
+            reproduction = payload.get("reproduction")
+            if not isinstance(reproduction, dict):
+                continue
+            if str(reproduction.get("candidate_id") or "") != candidate.id:
+                continue
+            if str(reproduction.get("recipe_sha256") or "") not in expected_shas:
+                continue
+            if reproduction.get("argv_rewrite") != "workspace-absolute-to-repro-map-v1":
+                continue
+            if reproduction.get("fresh_outputs") is not True:
+                continue
+            for produced in reproduction.get("targets") or []:
+                if not isinstance(produced, dict) or str(produced.get("target") or "") != path:
+                    continue
+                mapped = str(produced.get("mapped_path") or "").replace("\\", "/")
+                if not mapped.startswith(f"_reproduction/{candidate.id}/"):
+                    continue
+                if produced.get("hash_match") is True and str(produced.get("after_sha256") or "") == digest:
+                    satisfied = True
+                    break
+            if satisfied:
+                break
+        if satisfied:
+            matched_targets += 1
+        else:
+            missing.append(f"target:{path}")
+    return _candidate_gate(not missing,
+                           "missing fresh reproduction covering every frozen command target",
+                           missing=missing, matched_targets=matched_targets,
+                           target_count=len(targets))
+
+
+def _review_step_rows(store: Any, workflow_id: str) -> list[Any]:
+    return store._connection.execute(
+        "SELECT id, name, position, status FROM workflow_steps WHERE workflow_id=? ORDER BY position",
+        (workflow_id,)).fetchall()
+
+
+def _accepted_origin_by_path(checkpoints: list[dict[str, Any]],
+                             events: list[dict[str, Any]]) -> dict[str, str]:
+    """Map accepted logical path -> the step id whose accepted manifest last set it."""
+    cp_steps = {c["id"]: c["step_id"] for c in checkpoints}
+    origin: dict[str, str] = {}
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        payload = event.get("payload", {})
+        if not isinstance(payload, dict):
+            continue
+        step_id = cp_steps.get(event.get("checkpoint_id"), "")
+        if event.get("type") in {"step_completed", "step_backfilled"}:
+            manifest = payload.get("manifest")
+            if isinstance(manifest, dict):
+                for artifact in manifest.get("artifacts") or []:
+                    if isinstance(artifact, dict) and artifact.get("path"):
+                        origin[str(artifact["path"]).lower().replace("\\", "/")] = step_id
+        elif event.get("type") in {"step_failed", "step_retry"} and step_id:
+            for path in [p for p, owner in origin.items() if owner == step_id]:
+                origin.pop(path, None)
+    return origin
+
+
+def _candidate_review_gate(store: Any, candidate: Any, workspace: Path) -> dict[str, Any]:
+    acceptance = candidate.acceptance if isinstance(candidate.acceptance, dict) else {}
+    required = acceptance.get("required_reviews") or []
+    if not isinstance(required, list) or not required:
+        return _candidate_gate(False, "candidate acceptance has no required review steps")
+    workflow_id = candidate.delivery_workflow_id
+    if not workflow_id:
+        return _candidate_gate(False, "candidate is not bound to a delivery workflow")
+    steps = _review_step_rows(store, workflow_id)
+    step_by_name = {str(step["name"]): step for step in steps}
+    checkpoints = [dict(row) for row in store._connection.execute(
+        "SELECT id, step_id, state, created_at FROM checkpoints WHERE workflow_id=? ", (workflow_id,)).fetchall()]
+    events = []
+    for row in store._connection.execute(
+            "SELECT id, checkpoint_id, event_type, payload, created_at FROM events WHERE workflow_id=?",
+            (workflow_id,)).fetchall():
+        try:
+            event_payload = json.loads(row["payload"])
+        except (TypeError, json.JSONDecodeError):
+            event_payload = {}
+        events.append({"id": row["id"], "checkpoint_id": row["checkpoint_id"],
+                       "type": row["event_type"], "payload": event_payload,
+                       "created_at": row["created_at"]})
+    accepted_by_path, _coverage, _errors = _accepted_coverage(
+        workspace, list(_accepted_event_batches(checkpoints, events)[0].values()))
+    origin = _accepted_origin_by_path(checkpoints, events)
+    review_skill_names = {str(item.get("skill_name") if isinstance(item, dict) else item)
+                          for item in required}
+    prior_outputs_by_step: dict[str, dict[str, str]] = {}
+    for path, artifact in accepted_by_path.items():
+        owner = origin.get(str(path).lower().replace("\\", "/"))
+        if owner and owner in {step["id"] for step in steps if str(step["name"]) in review_skill_names}:
+            prior_outputs_by_step.setdefault(owner, {})[str(artifact["path"])] = str(artifact["sha256"])
+    frozen = {str(path): str(digest) for path, digest in (candidate.frozen_versions or {}).items()}
+    roots = {str(root.get("path", "")): str(root.get("sha256", ""))
+             for root in candidate.roots if isinstance(root, dict)}
+    missing: list[str] = []
+    for item in required:
+        if isinstance(item, dict):
+            skill_name = str(item.get("skill_name") or "")
+            role = str(item.get("role") or "review")
+        else:
+            skill_name, role = str(item), "review"
+        step = step_by_name.get(skill_name)
+        if step is None or step["status"] != "completed":
+            missing.append(f"review_step:{skill_name}")
+            continue
+        operations = store._connection.execute(
+            "SELECT payload FROM execution_operations WHERE step_id=? AND kind='review' AND status='succeeded'",
+            (step["id"],)).fetchall()
+        allowed = dict(frozen)
+        for previous in steps:
+            if previous["position"] >= step["position"]:
+                continue
+            allowed.update(prior_outputs_by_step.get(previous["id"], {}))
+        satisfied = False
+        for row in operations:
+            try:
+                payload = json.loads(row["payload"])
+            except (TypeError, json.JSONDecodeError):
+                continue
+            inputs_snapshot = payload.get("inputs_snapshot")
+            if not isinstance(inputs_snapshot, dict) or not inputs_snapshot:
+                continue
+            if any(str(path) not in allowed or str(digest) != allowed[str(path)]
+                   for path, digest in inputs_snapshot.items()):
+                continue
+            if role == "final" and any(
+                    str(path) not in inputs_snapshot or str(inputs_snapshot[str(path)]) != digest
+                    for path, digest in roots.items()):
+                continue
+            satisfied = True
+            break
+        if not satisfied:
+            missing.append(f"review:{skill_name}")
+    return _candidate_gate(not missing,
+                           "required review steps missing, stale, or reading outside frozen versions",
+                           missing=missing)
+
+
+def _agent_self_reference(value: str) -> bool:
+    text = str(value or "").strip().lower()
+    if not text:
+        return True
+    try:
+        from .workflow_runner import _agent_self_reference_hit
+        return bool(_agent_self_reference_hit(value))
+    except (ImportError, AttributeError, TypeError):
+        pass
+    tokens = re.split(r"[^0-9a-z\u4e00-\u9fff]+", text)
+    return any(token in {"agent", "assistant", "claude", "gpt", "codex", "openai", "模型", "助手"}
+               for token in tokens)
+
+
+def _candidate_approval_gate(store: Any, candidate: Any, workspace: Path) -> dict[str, Any]:
+    acceptance = candidate.acceptance if isinstance(candidate.acceptance, dict) else {}
+    policy = acceptance.get("approval_policy") if isinstance(acceptance.get("approval_policy"), dict) else {}
+    approvers = [str(value) for value in (policy.get("approvers") or []) if str(value).strip()]
+    events = store.candidate_events(candidate.id, cross_validate=True)
+    if not events:
+        return _candidate_gate(False, "candidate has no approval event")
+    event = events[-1]
+    if event.get("event_type") != "candidate_approved":
+        return _candidate_gate(False, "latest candidate event is not candidate_approved")
+    if event.get("orphan"):
+        return _candidate_gate(False, "orphan candidate_approved without workflow checkpoint event")
+    payload = event.get("payload") if isinstance(event.get("payload"), dict) else {}
+    by = str(payload.get("approved_by") or payload.get("by") or "")
+    if not by or by not in approvers or _agent_self_reference(by):
+        return _candidate_gate(False, "approver is empty, outside frozen whitelist, or agent-like")
+    workflow_approval = event.get("checkpoint_approved_payload")
+    if not isinstance(workflow_approval, dict):
+        return _candidate_gate(False, "workflow checkpoint_approved event is missing")
+    event_by = str(workflow_approval.get("approved_by") or workflow_approval.get("by") or "")
+    if not event_by or event_by not in approvers:
+        return _candidate_gate(False, "workflow event approver is outside the frozen whitelist")
+    if payload.get("l1_available") is not True:
+        return _candidate_gate(False, "L1 host attestation is unavailable")
+    for flag in ("agent_approve_seen", "same_session_approve", "degraded_host_attestation"):
+        if payload.get(flag) is not False:
+            return _candidate_gate(False, f"approval rejected by {flag}")
+    checkpoint = store._connection.execute(
+        "SELECT * FROM checkpoints WHERE id=?", (event["checkpoint_id"],)).fetchone()
+    if checkpoint is None:
+        return _candidate_gate(False, "approval checkpoint is missing")
+    try:
+        checkpoint_state = json.loads(checkpoint["state"])
+    except (TypeError, json.JSONDecodeError):
+        checkpoint_state = {}
+    if not isinstance(checkpoint_state, dict) or checkpoint_state.get("status") != "waiting_checkpoint":
+        return _candidate_gate(False, "approval checkpoint is not an old blocked checkpoint")
+    step = store._connection.execute(
+        "SELECT * FROM workflow_steps WHERE id=?", (event["step_id"],)).fetchone()
+    if step is None or step["name"] != "comp-final-audit":
+        return _candidate_gate(False, "approval is not bound to comp-final-audit")
+    last = store._connection.execute(
+        "SELECT id FROM workflow_steps WHERE workflow_id=? ORDER BY position DESC LIMIT 1",
+        (step["workflow_id"],)).fetchone()
+    if last is None or last["id"] != step["id"]:
+        return _candidate_gate(False, "approval is not bound to the final workflow step")
+    workflow = store.get_workflow(step["workflow_id"])
+    window_start = _parse_event_ts(payload.get("l1_window_start"))
+    workflow_created = _parse_event_ts(workflow.created_at)
+    if window_start is None or workflow_created is None or window_start < workflow_created:
+        return _candidate_gate(False, "L1 window does not start at the candidate delivery workflow")
+    manifest = checkpoint_state.get("manifest") if isinstance(checkpoint_state.get("manifest"), dict) else {}
+    from .artifact_manifest import ArtifactManifest
+    validated = ArtifactManifest.validate(workspace, list(manifest.get("artifacts") or []))
+    if not validated.get("ok") or not manifest.get("artifacts"):
+        return _candidate_gate(False, "old checkpoint manifest is missing or changed")
+    return _candidate_gate(True, approved_by=by)
+
+
+def candidate_readiness(workspace: Path, project_root: Path, workflow_db: Path | str,
+                        delivery_candidate_id: str) -> dict[str, Any]:
+    """Evaluate all candidate gates against persisted candidate/delivery facts."""
+    from .workflow_store import WorkflowStore
+
+    workspace = Path(workspace).resolve()
+    project_root = Path(project_root).resolve()
+    gates = {name: _candidate_gate(False, "candidate is missing")
+             for name in ("candidate_frozen", "candidate_closure",
+                          "candidate_reproduction", "candidate_review", "candidate_approval")}
+    if not delivery_candidate_id:
+        return {"ok": False, "gates": gates, "missing": sorted(gates), "roots": [],
+                "acceptance_sha256": "", "candidate_status": ""}
+    candidate = None
+    try:
+        with WorkflowStore(workflow_db, read_only=True) as store:
+            candidate = store.get_candidate(delivery_candidate_id)
+            gates["candidate_frozen"] = _candidate_frozen_gate(workspace, project_root, candidate)
+            gates["candidate_closure"] = _candidate_closure_gate(candidate)
+            gates["candidate_reproduction"] = _candidate_reproduction_gate(store, candidate)
+            gates["candidate_review"] = _candidate_review_gate(store, candidate, workspace)
+            gates["candidate_approval"] = _candidate_approval_gate(store, candidate, workspace)
+    except (KeyError, OSError, ValueError) as exc:
+        for name in gates:
+            gates[name] = _candidate_gate(False, f"candidate readiness unavailable: {exc}")
+    missing = [name for name, gate in gates.items() if not gate.get("ok")]
+    return {
+        "ok": not missing,
+        "gates": gates,
+        "missing": missing,
+        "roots": list(candidate.roots) if candidate is not None else [],
+        "acceptance_sha256": candidate.acceptance_sha256 if candidate is not None else "",
+        "candidate_status": candidate.status if candidate is not None else "",
+    }
+
+
 def build_final_audit_report(workspace: Path, project_root: Path,
                              workflow_db: Path | None = None, *,
                              workflow_id: str | None = None, fingerprint_session=None,
@@ -868,7 +1321,7 @@ def build_final_audit_report(workspace: Path, project_root: Path,
                 }
                 # 时间线信息（工作流元数据/事件流）仍取最新工作流，展示口径不变。
                 candidates = store._connection.execute(
-                    "SELECT id, metadata FROM workflows ORDER BY created_at DESC, id DESC"
+                    "SELECT id, metadata FROM workflows ORDER BY created_at DESC, rowid DESC"
                 ).fetchall()
                 latest = next((r for r in candidates if
                     (not requested_workflow_id or r["id"] == requested_workflow_id)
@@ -906,11 +1359,18 @@ def build_final_audit_report(workspace: Path, project_root: Path,
         checkpoints = timeline_report.get("checkpoints", []) if isinstance(timeline_report.get("checkpoints", []), list) else []
         events = timeline_report.get("events", []) if isinstance(timeline_report.get("events", []), list) else []
 
+    contract_tier = "delivery"
+    contract_metadata = workflow_metadata.get("execution_contract")
+    if isinstance(contract_metadata, dict) and contract_metadata.get("tier") in {"delivery", "explore"}:
+        contract_tier = str(contract_metadata["tier"])
+    delivery_candidate_metadata = (workflow_metadata.get("delivery_candidate")
+                                   if isinstance(workflow_metadata.get("delivery_candidate"), dict) else {})
+    delivery_candidate_id = str(delivery_candidate_metadata.get("candidate_id") or "")
+
     gate_outcomes: dict[str, str] = {}
     latest_artifacts: list[dict[str, Any]] = []
     cp_steps = {c["id"]: c["step_id"] for c in checkpoints}
     latest_checks: dict[str, dict[str, Any]] = {}
-    accepted_artifacts: dict[str, list[dict[str, Any]]] = {}
     evidence_paths: set[str] = set()
     for event in events:
         if not isinstance(event, dict):
@@ -926,14 +1386,8 @@ def build_final_audit_report(workspace: Path, project_root: Path,
             if event.get("type") == "step_backfilled":
                 latest_checks[step_id]["backfill_verification"] = {
                     "ok": payload.get("validation", {}).get("ok") is True}
-        manifest = payload.get("manifest")
-        if isinstance(manifest, dict) and manifest.get("artifacts"):
-            if event.get("type") in {"step_completed", "step_backfilled"}:
-                accepted_artifacts.pop(step_id, None)
-                accepted_artifacts[step_id] = list(manifest["artifacts"])
-                evidence_paths.update(str(payload[k]) for k in ("evidence_path", "binding_evidence_path") if payload.get(k))
-        if event.get("type") in {"step_failed", "step_retry"}:
-            accepted_artifacts.pop(step_id, None)
+
+    accepted_artifacts, evidence_paths = _accepted_event_batches(checkpoints, events)
 
     # Current accepted outputs across all steps, with later writers superseding
     # the same logical path. Never select a report merely because its mtime is newer.
@@ -962,6 +1416,18 @@ def build_final_audit_report(workspace: Path, project_root: Path,
         for a in latest_artifacts
         if a.get("path") and re.fullmatch(r"[0-9a-fA-F]{64}", str(a.get("sha256", "")))
     ]
+    readiness: dict[str, Any] | None = None
+    if delivery_candidate_id:
+        # Candidate delivery reports only the frozen roots; review verdicts are
+        # gate evidence, not delivery artifacts.
+        readiness = candidate_readiness(workspace, project_root, workflow_db, delivery_candidate_id)
+        candidate_roots = readiness.get("roots") if isinstance(readiness.get("roots"), list) else []
+        report_artifacts = [
+            {"path": str(root.get("path", "")), "sha256": str(root.get("sha256", ""))}
+            for root in candidate_roots
+            if isinstance(root, dict) and root.get("path")
+            and re.fullmatch(r"[0-9a-fA-F]{64}", str(root.get("sha256", "")))
+        ]
 
     # Only persisted event references may attest an accepted delivery. A candidate
     # may explain L1 operations for the running final pre-audit, never its outputs.
@@ -979,11 +1445,18 @@ def build_final_audit_report(workspace: Path, project_root: Path,
                 or candidate_action.get("expected_revision") != running_final["revision"]
                 or candidate_evidence.get("step_id") != running_final["id"]):
             raise ValueError("candidate evidence must match the current RUNNING final step/attempt/revision")
-    gate_outcomes["accepted_artifact_coverage"] = "pass" if accepted_by_path and not coverage_errors else "fail"
+    gate_outcomes["accepted_artifact_coverage"] = (
+        "pass" if report_artifacts and not coverage_errors else "fail")
     # A2 补丁2：防绕过检测结果接入交付判定——工作区归属的未申报操作直接 blocked。
+    # 候选交付还要把源 explore 工作流纳入 control_scope，否则 promote 会被误判
+    # 为未申报 bash。
+    source_workflow_ids = sorted({str(value) for value in (
+        delivery_candidate_metadata.get("source_workflow_id"),
+        workflow_id) if str(value or "")})
     unreported = detect_unreported_operations(workspace, project_root, evidence_paths=evidence_paths,
         candidate_evidence=candidate_evidence,
         control_scope={"workflow_id": workflow_id, "database": workflow_db,
+                       "source_workflow_ids": source_workflow_ids,
                        "checkpoint_ids": {c["id"] for c in checkpoints}} if workflow_id else None)
     blocking_unreported = _workspace_scoped_unreported(workspace, unreported)
     operation_audit_ok = (
@@ -1056,9 +1529,49 @@ def build_final_audit_report(workspace: Path, project_root: Path,
         expected = list(metadata.get("required_checks") or [])
         if expected and not all(name in latest_checks.get(step["id"], {}) for name in expected):
             gate_outcomes["required_check_coverage"] = "fail"
-    delivery_ready = bool(report_artifacts) and bool(gate_outcomes) and all(
-        v == "pass" for v in gate_outcomes.values()
-    )
+    if delivery_candidate_id and isinstance(readiness, dict):
+        candidate_gates = readiness.get("gates") if isinstance(readiness.get("gates"), dict) else {}
+        for name in ("candidate_frozen", "candidate_closure",
+                     "candidate_reproduction", "candidate_review"):
+            gate = candidate_gates.get(name) if isinstance(candidate_gates.get(name), dict) else {}
+            gate_outcomes[name] = "pass" if gate.get("ok") is True else "fail"
+        # 预审阶段不要求 candidate_approval：批准发生在终审步骤之后，否则会
+        # 被候选批准门自己锁死。audit_phase=delivery 时才计入。
+        if not pre_audit:
+            gate = candidate_gates.get("candidate_approval") if isinstance(
+                candidate_gates.get("candidate_approval"), dict) else {}
+            gate_outcomes["candidate_approval"] = "pass" if gate.get("ok") is True else "fail"
+    if contract_tier == "explore":
+        delivery_ready = False
+        delivery_decision = "explore_only"
+    elif delivery_candidate_id:
+        required_gates = ["candidate_frozen", "candidate_closure",
+                          "candidate_reproduction", "candidate_review"]
+        if not pre_audit:
+            required_gates.append("candidate_approval")
+        delivery_ready = (
+            bool(report_artifacts) and bool(gate_outcomes)
+            and all(value == "pass" for value in gate_outcomes.values())
+            and all(gate_outcomes.get(name) == "pass" for name in required_gates)
+        )
+        delivery_decision = ("eligible" if pre_audit else "ready") if delivery_ready else "blocked"
+    else:
+        delivery_ready = bool(report_artifacts) and bool(gate_outcomes) and all(
+            value == "pass" for value in gate_outcomes.values())
+        delivery_decision = ("eligible" if pre_audit else "ready") if delivery_ready else "blocked"
+    release_id = ""
+    if delivery_decision == "ready":
+        if delivery_candidate_id:
+            release_id = hashlib.sha256((
+                delivery_candidate_id + str(readiness.get("acceptance_sha256") or "")
+                + json.dumps(sorted((str(root.get("path")), str(root.get("sha256")))
+                                    for root in (readiness.get("roots") or [])),
+                             sort_keys=True, ensure_ascii=True)).encode()).hexdigest()
+        else:
+            release_id = hashlib.sha256((
+                str(workflow_id) + json.dumps(sorted((a["path"], a["sha256"])
+                                                     for a in report_artifacts),
+                                              sort_keys=True, ensure_ascii=True)).encode()).hexdigest()
     report_data = {
         "workflow_id": workflow_id or str(workflow_name or workspace.name),
         "artifacts": report_artifacts,
@@ -1080,8 +1593,20 @@ def build_final_audit_report(workspace: Path, project_root: Path,
                               "comp-final-review）必须真实完成，不允许豁免。"),
             "hit_params": waivers,
         },
-        "delivery_decision": ("eligible" if pre_audit else "ready") if delivery_ready else "blocked",
-        "audit_phase": "pre_completion" if pre_audit else "delivery",
+        "delivery_decision": delivery_decision,
+        "audit_phase": "explore" if contract_tier == "explore" else (
+            "pre_completion" if pre_audit else "delivery"),
+        "contract_tier": contract_tier,
+        "candidate_id": delivery_candidate_id,
+        "release_id": release_id,
+        "immutable": delivery_decision == "ready",
+        "candidate": ({
+            "candidate_id": delivery_candidate_id,
+            "status": readiness.get("candidate_status", "") if isinstance(readiness, dict) else "",
+            "acceptance_sha256": readiness.get("acceptance_sha256", "") if isinstance(readiness, dict) else "",
+            "gates": readiness.get("gates", {}) if isinstance(readiness, dict) else {},
+            "missing": readiness.get("missing", []) if isinstance(readiness, dict) else [],
+        } if delivery_candidate_id else {}),
         "candidate_evidence_scope": candidate_action or {},
         "pre_audit_step_id": incomplete[0]["id"] if pre_audit else "",
         "step_gate_outcomes": scoped_outcomes,
@@ -1113,20 +1638,215 @@ def build_final_audit_report(workspace: Path, project_root: Path,
     return report_data
 
 
+def _read_json_report(path: Path) -> dict[str, Any] | None:
+    try:
+        value = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def _report_identity(report: dict[str, Any]) -> tuple[str, tuple[tuple[str, str], ...]]:
+    artifacts = report.get("artifacts") if isinstance(report.get("artifacts"), list) else []
+    return (str(report.get("workflow_id") or ""),
+            tuple(sorted((str(item.get("path", "")), str(item.get("sha256", "")))
+                         for item in artifacts if isinstance(item, dict))))
+
+
+def _archive_release(workspace: Path, release_id: str, audit_bytes: bytes | None,
+                     delivery_report: dict[str, Any]) -> Path:
+    """Archive immutable copies; never overwrite an existing archive."""
+    from .step_manifest import atomic_write_json
+    directory = Path(workspace) / "releases" / release_id
+    directory.mkdir(parents=True, exist_ok=True)
+    audit_path = directory / "AUDIT_REPORT.json"
+    delivery_path = directory / "DELIVERY_REPORT.json"
+    if audit_bytes is not None and not audit_path.exists():
+        audit_path.write_bytes(audit_bytes)
+    if not delivery_path.exists():
+        atomic_write_json(delivery_path, delivery_report)
+    return delivery_path
+
+
+def write_explore_report(workspace: Path, project_root: Path,
+                         workflow_db: Path | None = None, *,
+                         workflow_id: str | None = None) -> Path:
+    """Write ``EXPLORE_REPORT.json`` for an explore workflow.
+
+    Explore never writes ``AUDIT_REPORT.json`` / ``DELIVERY_REPORT.json`` and
+    never enters the immutable release namespace.
+    """
+    from .workflow_store import WorkflowStore
+    from .step_manifest import atomic_write_json
+
+    workspace = Path(workspace).resolve()
+    if workflow_db is None:
+        workflow_db = workspace / ".engine" / "workflow.sqlite"
+    with WorkflowStore(workflow_db, read_only=True) as store:
+        workflows = store._connection.execute(
+            "SELECT id, name, metadata FROM workflows ORDER BY created_at DESC, rowid DESC").fetchall()
+        selected = None
+        for row in workflows:
+            if workflow_id and row["id"] != workflow_id:
+                continue
+            metadata = json.loads(row["metadata"])
+            contract = metadata.get("execution_contract") if isinstance(metadata, dict) else None
+            tier = contract.get("tier") if isinstance(contract, dict) else "delivery"
+            if tier != "explore":
+                continue
+            if Path(metadata.get("workspace", "")).resolve() != workspace:
+                continue
+            selected = (row, metadata)
+            break
+        if selected is None:
+            raise ValueError("no matching explore workflow for workspace/workflow_id")
+        row, metadata = selected
+        timeline = store.workflow_timeline(row["id"])
+        operations = store._connection.execute(
+            "SELECT kind, status, COUNT(*) AS count FROM execution_operations "
+            "WHERE workflow_id=? GROUP BY kind, status", (row["id"],)).fetchall()
+        operation_summary = [{"kind": item["kind"], "status": item["status"],
+                              "count": item["count"]} for item in operations]
+    checkpoints = timeline.get("checkpoints", [])
+    events = timeline.get("events", [])
+    accepted = accepted_artifacts_by_path(workspace, checkpoints, events)
+    advisories: set[str] = set()
+    for event in events:
+        payload = event.get("payload") if isinstance(event.get("payload"), dict) else {}
+        quality = payload.get("quality_gates") if isinstance(payload.get("quality_gates"), dict) else {}
+        checks = quality.get("checks") if isinstance(quality.get("checks"), dict) else {}
+        advisories.update(str(name) for name, check in checks.items()
+                          if not (isinstance(check, dict) and check.get("ok") is True))
+    accepted_artifacts = [
+        {"path": str(artifact.get("path")), "sha256": str(artifact.get("sha256"))}
+        for artifact in accepted.values() if artifact.get("path") and artifact.get("sha256")
+    ]
+    report = {
+        "generated_at": _now(),
+        "workflow_id": row["id"],
+        "workflow_name": row["name"],
+        "contract_tier": "explore",
+        "delivery_decision": "explore_only",
+        "audit_phase": "explore",
+        "release_id": "",
+        "immutable": False,
+        "accepted_artifacts": accepted_artifacts,
+        "operations_summary": operation_summary,
+        "advisories": sorted(advisories),
+    }
+    target = workspace / "EXPLORE_REPORT.json"
+    atomic_write_json(target, report)
+    return target
+
+
 def write_final_audit_report(workspace: Path, project_root: Path, out: Path | None = None,
                              workflow_db: Path | None = None, *, workflow_id: str | None = None,
                              candidate: dict[str, Any] | None = None) -> Path:
-    """Keep the accepted pre-audit immutable; derive a separate delivery report."""
+    """Write delivery reports with workflow-scoped pre-audit and immutable releases."""
+    from .step_manifest import atomic_write_json
+    from .workflow_store import WorkflowStore
+
+    workspace = Path(workspace).resolve()
     report = build_final_audit_report(workspace, project_root, workflow_db=workflow_db,
                                      workflow_id=workflow_id, candidate=candidate)
-    final_completed = any(s["name"] == "comp-final-audit" and s["status"] == "completed"
-                          for s in report["workflow_steps"])
-    target = Path(out) if out else Path(workspace) / ("DELIVERY_REPORT.json" if final_completed else "AUDIT_REPORT.json")
-    if (final_completed or any(s["name"] == "comp-final-audit" and s["status"] == "blocked"
-                               for s in report["workflow_steps"])) and target.resolve() == (Path(workspace) / "AUDIT_REPORT.json").resolve():
-        raise ValueError("已验收预审不可覆盖；请输出 DELIVERY_REPORT.json，或 retry 后重新预审")
-    from .step_manifest import atomic_write_json
-    atomic_write_json(target, report)
+    if report.get("contract_tier") == "explore":
+        raise ValueError("explore workflows use write_explore_report; delivery reports are forbidden")
+    report_workflow_id = str(report.get("workflow_id") or "")
+    report_dir = workspace / "reports" / report_workflow_id
+    report_dir.mkdir(parents=True, exist_ok=True)
+    root_audit = workspace / "AUDIT_REPORT.json"
+    root_delivery = workspace / "DELIVERY_REPORT.json"
+    explicit_out = Path(out) if out is not None else None
+    final_completed = any(step["name"] == "comp-final-audit" and step["status"] == "completed"
+                          for step in report["workflow_steps"])
+    final_blocked = any(step["name"] == "comp-final-audit" and step["status"] == "blocked"
+                        for step in report["workflow_steps"])
+    decision = str(report.get("delivery_decision") or "blocked")
+    old_delivery = _read_json_report(root_delivery)
+    old_ready = bool(old_delivery and old_delivery.get("delivery_decision") == "ready")
+
+    if decision in {"blocked", "eligible"}:
+        atomic_write_json(report_dir / "AUDIT_REPORT.json", report)
+        if old_ready:
+            # Root stays the latest ready release; this run is only a working copy.
+            working = report_dir / "DELIVERY_REPORT.json"
+            atomic_write_json(working, report)
+            if explicit_out and explicit_out.resolve() not in {root_audit.resolve(), root_delivery.resolve()}:
+                atomic_write_json(explicit_out, report)
+                return explicit_out
+            return working
+        existing_audit = _read_json_report(root_audit)
+        if (not root_audit.exists() or not existing_audit
+                or existing_audit.get("delivery_decision") == "blocked"):
+            if explicit_out and explicit_out.resolve() == root_audit.resolve():
+                raise ValueError("已验收预审不可覆盖；请输出 DELIVERY_REPORT.json，或 retry 后重新预审")
+            atomic_write_json(root_audit, report)
+        if final_completed or final_blocked:
+            existing_delivery = _read_json_report(root_delivery)
+            if (not root_delivery.exists() or not existing_delivery
+                    or existing_delivery.get("delivery_decision") == "blocked"):
+                atomic_write_json(root_delivery, report)
+        if explicit_out:
+            if explicit_out.resolve() == root_audit.resolve():
+                raise ValueError("已验收预审不可覆盖；请输出 DELIVERY_REPORT.json，或 retry 后重新预审")
+            atomic_write_json(explicit_out, report)
+            return explicit_out
+        return root_delivery if final_completed else root_audit
+
+    if decision != "ready":
+        raise ValueError(f"unsupported delivery decision: {decision}")
+
+    # Ready: pre-audit source must describe the same workflow/artifacts, but its
+    # phase fields (eligible/pre_completion/release_id="") are expected to differ.
+    source_path = None
+    for candidate_path in (report_dir / "AUDIT_REPORT.json", root_audit):
+        candidate_report = _read_json_report(candidate_path)
+        if candidate_report is not None and _report_identity(candidate_report) == _report_identity(report):
+            source_path = candidate_path
+            break
+    if source_path is None:
+        source_bytes = json.dumps(report, ensure_ascii=False, indent=2).encode("utf-8")
+    else:
+        source_bytes = Path(source_path).read_bytes()
+    release_id = str(report.get("release_id") or "")
+    if not release_id:
+        raise ValueError("ready report is missing release_id")
+    archive_delivery = workspace / "releases" / release_id / "DELIVERY_REPORT.json"
+    if release_id and archive_delivery.is_file():
+        existing = _read_json_report(archive_delivery)
+        if existing and existing.get("release_id") == release_id:
+            # Idempotent replay: never rewrite bytes. The archived copy is the
+            # authoritative immutable release (root may already point elsewhere
+            # only if newer releases were written later).
+            return archive_delivery
+    if old_ready and old_delivery.get("release_id"):
+        _archive_release(workspace, str(old_delivery["release_id"]),
+                         root_audit.read_bytes() if root_audit.is_file() else None,
+                         old_delivery)
+    if explicit_out and explicit_out.resolve() == root_audit.resolve():
+        raise ValueError("AUDIT_REPORT.json 必须保留预审内容；ready 报告写入 DELIVERY_REPORT.json")
+    atomic_write_json(root_delivery, report)
+    if source_path is None:
+        source_path = report_dir / "AUDIT_REPORT.json"
+        source_path.write_bytes(source_bytes)
+    if source_path.resolve() != root_audit.resolve():
+        root_audit.write_bytes(source_bytes)
+    _archive_release(workspace, release_id, source_bytes, report)
+    if explicit_out and explicit_out.resolve() not in {root_audit.resolve(), root_delivery.resolve()}:
+        atomic_write_json(explicit_out, report)
+        target = explicit_out
+    else:
+        target = root_delivery
+    candidate_id = str(report.get("candidate_id") or "")
+    if candidate_id:
+        with WorkflowStore(workflow_db) as store:
+            candidate_row = store.get_candidate(candidate_id)
+            if candidate_row.status == "ready" and candidate_row.release_id == release_id:
+                pass
+            elif not store.set_candidate_status(candidate_id, "in_delivery", "ready",
+                                                release_id=release_id,
+                                                release_report_path=str(target)):
+                raise ValueError("delivery candidate was superseded/abandoned; ready report not promoted")
     return target
 
 

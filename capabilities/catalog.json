@@ -7055,6 +7055,27 @@
       "current_evidence": "2026-09-20 落地 tool_forge CLI（--tool/--skill/--adapter/--gap）与骨架模板",
       "current_gap": "铸造产物的真实领域实现与跨 Agent 实战样本待补充",
       "disposition": "routed"
+    },
+    {
+      "capability_id": "candidate-reproduction",
+      "name": "候选交付复现",
+      "domain": "agent_runtime",
+      "description": "按 REPRODUCTION_PLAN.json 在独立 _reproduction 目录重跑候选冻结 recipe，逐 target 核对冻结 sha 与 fresh_outputs，产出 REPRODUCTION_REPORT.json。触发词：候选复现、复现计划、REPRODUCTION_PLAN、candidate reproduction",
+      "input_contract": "REPRODUCTION_PLAN.json（candidate_id + targets[target/recipe_id/spec]）与会话 ticket",
+      "output_contract": "REPRODUCTION_REPORT.json + 带 payload[\"reproduction\"] 的真实 command 操作记录",
+      "status": "experimental",
+      "associated_skills": [
+        "candidate-reproduction"
+      ],
+      "associated_tools": [
+        "engine/workflow_cli.py",
+        "execution/commands.py"
+      ],
+      "external_dependencies": [],
+      "high_risk_confirmation": "复现只读候选根；禁止手改 REPRODUCTION_REPORT.json、复用旧 _reproduction 目录或改写候选根文件",
+      "current_evidence": "2026-10-23 G2 设计 §2.2.4：按 recipe 分组执行、冻结输入复制、mutates before/after 语义、payload.reproduction 记录",
+      "current_gap": "候选 promotion 冻结侧与端到端 delivery 工作流验收仍由并行批次推进",
+      "disposition": "routed"
     }
   ]
 }

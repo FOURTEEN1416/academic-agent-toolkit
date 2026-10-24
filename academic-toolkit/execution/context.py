@@ -33,6 +33,9 @@ class OperationContext:
         self.workflow_id = action.workflow_id
 
     def require_active(self) -> None:
+        workflow = self.store.get_workflow(self.workflow_id)
+        if workflow.status != "active":
+            raise ValueError("会话已失效：工作流已放弃或结束（abandoned/completed），旧 ticket 不能继续操作")
         step = self.store.get_step(self.action.step_id)
         if (step.status != StepStatus.RUNNING or step.attempt_id != self.action.attempt_id
                 or step.revision != self.action.expected_revision):
@@ -74,6 +77,9 @@ class OperationContext:
         结果的生产依赖是其产出时刻的事实，不因下游重新阅读而改记（中间结果 v1
         的原始输入仍记 v1，重读 v2 只是新资料，不洗白旧链）。
         reused 行只是复用凭证，不是生产者：溯源穿透到原始执行行。
+        返回值除 source_operations/lineage_inputs 外，还给出 producer_operations
+        （路径→生产操作）、external_inputs（无生产者的外部叶子）与 input_depths
+        （路径→最短依赖深度），供候选冻结复用同一份谱系。
         """
         rows = self.store._connection.execute(
             "SELECT o.* FROM execution_operations o JOIN workflow_steps s ON s.id=o.step_id "
@@ -87,9 +93,11 @@ class OperationContext:
             by_id[row["id"]] = payload
         adopt = dict(adopt or {})
         sources, dependencies = {}, {}
+        producer_operations, external_inputs, input_depths = {}, {}, {}
         queue, enqueued = [], set()
 
         def enqueue(name: str, version: str, depth: int) -> None:
+            input_depths[name] = min(input_depths.get(name, depth), depth)
             if (name, version, depth) not in enqueued:
                 enqueued.add((name, version, depth))
                 queue.append((name, version, depth))
@@ -105,6 +113,23 @@ class OperationContext:
                 record = (record[1]["reused_from"], origin)
                 hops += 1
             return record
+
+        def record_dependencies(payload: dict, seen: set) -> dict:
+            """G4 写/编辑记录的直接边是 declared_inputs，而不是被展平的
+            inputs_snapshot；否则重新阅读上游后，旧快照里的传递输入会与新
+            版本冲突。previous_sha256 指回同路径上一版本，继续继承其谱系。
+            旧式记录没有 declared_inputs，按历史口径合并两份快照。"""
+            if "declared_inputs" not in payload:
+                return {**payload.get("lineage_inputs", {}), **payload.get("inputs_snapshot", {})}
+            versions = payload.get("inputs_snapshot", {})
+            edges = {name: versions[name] for name in payload["declared_inputs"] if name in versions}
+            previous = payload.get("previous_sha256")
+            if previous:
+                prior = producer_of(str(payload.get("path", "")), previous)
+                if prior is not None and prior[0] not in seen:
+                    seen.add(prior[0])
+                    edges = {**record_dependencies(prior[1], seen), **edges}
+            return edges
 
         for name, version in anchors.items():
             enqueue(name, version, 0)
@@ -122,15 +147,16 @@ class OperationContext:
                 if name in dependencies and dependencies[name] != version:
                     raise ValueError(f"产物的传递输入版本冲突: {name}")
                 dependencies[name] = version
+                external_inputs[name] = version
                 continue
+            producer_operations[name] = record[0]
             if name in anchors and anchors[name] == version and name not in sources:
                 sources[name] = record[0]
             if depth >= 1:
                 if name in dependencies and dependencies[name] != version:
                     raise ValueError(f"产物的传递输入版本冲突: {name}")
                 dependencies[name] = version
-            for dependency, value in {**record[1].get("lineage_inputs", {}),
-                                      **record[1].get("inputs_snapshot", {})}.items():
+            for dependency, value in record_dependencies(record[1], {record[0]}).items():
                 if dependency in record[1].get("mutates", []) or dependency == name:
                     continue
                 if depth == 0 and dependency in adopt and adopt[dependency] != value:
@@ -140,22 +166,41 @@ class OperationContext:
                 enqueue(dependency, value, depth + 1)
         if snapshot(self.workspace, list(dependencies)) != dependencies:
             raise ValueError("既有产物上游输入已变化，先重算生产步骤，不能仅修订下游洗白")
-        return {"source_operations": sources, "lineage_inputs": dependencies}
+        return {"source_operations": sources, "lineage_inputs": dependencies,
+                "producer_operations": producer_operations,
+                "external_inputs": external_inputs,
+                "input_depths": input_depths}
+
+    def execution_policy(self) -> dict[str, str]:
+        """当前工作流的执行档位与候选身份（旧工作流按 delivery 处理）。"""
+        workflow = self.store.get_workflow(self.workflow_id)
+        contract = workflow.metadata.get("execution_contract")
+        contract = contract if isinstance(contract, dict) else {}
+        candidate = workflow.metadata.get("delivery_candidate")
+        candidate = candidate if isinstance(candidate, dict) else {}
+        return {"tier": str(contract.get("tier") or "delivery"),
+                "candidate_id": str(candidate.get("candidate_id") or "")}
 
     def execution_relevant_contract(self) -> str:
         """缓存键使用的执行相关合同子集：步骤元数据、业务参数与主技能正文。
 
         全赛种规则摘要仍完整保存于操作记录（contract 字段）；规则变化改变
         验收门禁，不构成确定性命令的重算依据，避免全库规则无条件成为
-        每个命令的生产依赖。
+        每个命令的生产依赖。explore 档与候选交付必须带档位/候选身份，
+        防止探索操作被交付工作流当作等价缓存复用。
         """
         body = {"metadata": self.store.get_step(self.action.step_id).metadata,
                 "params": self.store.get_workflow(self.workflow_id).metadata.get("params", {}),
                 "skill": self.action.skill_sha256, "session_protocol": 1}
+        policy = self.execution_policy()
+        if policy["tier"] != "delivery" or policy["candidate_id"]:
+            body["contract_tier"] = policy["tier"]
+            body["candidate_id"] = policy["candidate_id"]
         return digest(body)
 
     def contract(self):
         workflow = self.store.get_workflow(self.workflow_id)
         step = self.store.get_step(self.action.step_id)
         rules = self.action.skill_path.parents[2] / "engine/modex-core"
-        return execution_contract(self.action, step.metadata, workflow.metadata.get("params", {}), rules)
+        return execution_contract(self.action, step.metadata, workflow.metadata.get("params", {}), rules,
+                                  tier=self.execution_policy()["tier"])
