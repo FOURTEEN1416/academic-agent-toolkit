@@ -4,6 +4,7 @@ import hashlib
 import json
 from dataclasses import asdict
 from pathlib import Path
+from engine import delivery_ledger
 from engine.step_manifest import atomic_write_json
 from engine.workflow_store import StepStatus
 from .context import OperationContext
@@ -78,7 +79,11 @@ class ExecutionSession:
                             "recorded_progress": progress, "verdict": verdict, "guidance": guidance})
         return {"authority": "engine_workflow_store", "engine": engine, "state_files": entries}
 
-    def context(self, query: str = "") -> dict:
+    def context(self, query: str = "", channel: str = "context") -> dict:
+        # channel 只是账本归因来源（next / context / finish_next），不参与任何判定；
+        # 非法值属调用方编程错误，显式拒绝（不会静默吞掉归因）。
+        if channel not in delivery_ledger.DELIVERY_CHANNELS:
+            raise ValueError(f"unknown delivery channel: {channel!r}")
         self.operations.require_active()
         required = list(dict.fromkeys([self.action.skill_name, *self.action.skill_binding.get("mandatory", [])]))
         documents = [self.resources.read_resource(name) for name in required]
@@ -124,6 +129,20 @@ class ExecutionSession:
         contract = contract if isinstance(contract, dict) else {}
         delivery_candidate = self.workflow.metadata.get("delivery_candidate")
         delivery_candidate = delivery_candidate if isinstance(delivery_candidate, dict) else {}
+        # P0 投递账本（零判定变更）：成功返回前对主技能 + mandatory 各记一条投递；
+        # 资产不记（资产不应去重，验收只数 skill 类）。埋点自身失败逐条收口——
+        # 不改变返回给模型的上下文内容，也不让账本击穿主链路。
+        for document in documents:
+            if document.get("kind") != "skill":
+                continue
+            try:
+                delivery_ledger.record_delivery(
+                    self.store, self.workflow_id, self.action.step_id,
+                    self.action.attempt_id, channel, str(document["name"]),
+                    str(document["sha256"]), int(document["bytes"]), "full",
+                    str(document["operation_id"]))
+            except Exception:
+                pass
         return {"session": str(ticket), "task": self.action.display_name,
                 "review_scope": self.action.review_scope, "parameters": self.workflow.metadata.get("params", {}),
                 "outputs": self.action.output_files, "quality_requirements": self.action.required_checks,
@@ -161,7 +180,7 @@ class ExecutionSession:
             following = self.runner.next_action(self.workflow_id)
             if following.action is not None:
                 session = ExecutionSession(self.runner, self.workflow_id, following.action)
-                payload["next"] = session.context()
+                payload["next"] = session.context(channel="finish_next")
                 step = self.store.get_step(following.action.step_id)
                 if (step.name == "comp-final-audit" and step.metadata.get("machine_audit_only") is True
                         and not following.action.requires_subagent):

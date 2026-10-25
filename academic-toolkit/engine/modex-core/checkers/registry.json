@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "stage": "active",
+  "note": "P3 闸门下沉（裁决 6.3-A，P2a 复核批收口）：技能正文的可程序化判据由引擎按 (template, step) 自动挂载。六项均为 active=blocking，承接被替换的技能硬门禁（paper-compile Step 7 / paper-analysis Step 6 / paper-figure Step 6 / comp-modeling Step 5.5 / paper-write-zh 完成铁律 / comp-paper-zh 九维评分件）；探索档的留痕降级由 workflow_runner 按 execution_contract 统一处理，不靠把判据改软。source_ref 使用章节锚点（不再写行号，避免技能正文裁剪后指针漂移）。template 逐条列模板名，不用 per-skill 通配，避免把同名步骤在不同模板下的合同差异折叠。",
+  "checkers": [
+    {
+      "name": "paper_final_gate",
+      "implementation": "check_paper_final_gate",
+      "severity": "blocking",
+      "stage": "active",
+      "source_ref": "skills/paper-compile/SKILL.md § Step 7: Final gate — engine `paper_final_gate`",
+      "fix_hint": "按 diagnostics.violations 逐项修：PDF 体量/bib/cite/未嵌入图/占位符/overfull/itemize/未定义引用/图堆叠/TOC/模板前言/TikZ 嵌入/计划图数/数值对账/claims 覆盖/meta 泄漏；疑似完美值按条确认后写进 RESULTS.md。",
+      "single_run": "cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check paper_final_gate（退出码 0=pass 1=fail 3=unknown）",
+      "applies_to": [
+        {"template": "paper_writing", "step": "paper-compile"},
+        {"template": "nature_writing", "step": "paper-compile"},
+        {"template": "full_pipeline", "step": "paper-compile"},
+        {"template": "paper_from_assets", "step": "paper-compile"}
+      ],
+      "manual_items": [
+        "图表版式与视觉美观判断（图堆叠判据之外的观感）",
+        "claims 关键词命中之外的论证充分性判断",
+        "模板前言差异属等价改写还是篡改的语义判断",
+        "可疑完美值结合研究背景确认是否真合理"
+      ]
+    },
+    {
+      "name": "result_sanity_check",
+      "implementation": "check_result_sanity_check",
+      "severity": "blocking",
+      "stage": "active",
+      "source_ref": "skills/paper-analysis/SKILL.md § ⛔ 结果约束审计（写入 RESULTS.md 前必做）; skills/comp-paper-zh/SKILL.md § ⛔ 数据可追溯性（写稿强制规则）",
+      "fix_hint": "硬错误（NaN/Inf、负误差、R²<0.5、p>1）必须修模型或重算；RESULTS.md 末尾补 <!-- AUDIT_OK source=... rechecked_at=... -->；历史版本 JSON 确认后删除；疑似完美值结合背景写明理由。",
+      "single_run": "cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check result_sanity_check（退出码 0=pass 1=fail 3=unknown）",
+      "applies_to": [
+        {"template": "paper_writing", "step": "paper-analysis"},
+        {"template": "paper_writing_zh", "step": "paper-analysis"},
+        {"template": "nature_writing", "step": "paper-analysis"},
+        {"template": "course_paper", "step": "paper-analysis"},
+        {"template": "course_report", "step": "paper-analysis"},
+        {"template": "humanities_paper", "step": "paper-analysis"},
+        {"template": "paper_from_assets", "step": "paper-analysis"},
+        {"template": "comp_cumcm", "step": "comp-paper-zh"},
+        {"template": "comp_huawei", "step": "comp-paper-zh"},
+        {"template": "comp_apmcm_zh", "step": "comp-paper-zh"},
+        {"template": "comp_mathorcup", "step": "comp-paper-zh"},
+        {"template": "comp_stats", "step": "comp-paper-zh"},
+        {"template": "comp_teddy", "step": "comp-paper-zh"},
+        {"template": "comp_certcup", "step": "comp-paper-zh"},
+        {"template": "comp_huazhong", "step": "comp-paper-zh"},
+        {"template": "comp_huadong", "step": "comp-paper-zh"},
+        {"template": "comp_wuyi", "step": "comp-paper-zh"},
+        {"template": "comp_shuwei", "step": "comp-paper-zh"},
+        {"template": "comp_zhongqing", "step": "comp-paper-zh"},
+        {"template": "comp_yangtze", "step": "comp-paper-zh"},
+        {"template": "comp_diangong", "step": "comp-paper-zh"},
+        {"template": "comp_shenzhen", "step": "comp-paper-zh"},
+        {"template": "comp_huashu", "step": "comp-paper-zh"},
+        {"template": "comp_tianfu", "step": "comp-paper-zh"},
+        {"template": "comp_liaoning", "step": "comp-paper-zh"},
+        {"template": "comp_csf", "step": "comp-paper-zh"}
+      ],
+      "manual_items": [
+        "结合研究背景的 9 问合理性审查（paper-analysis Step 1.5）",
+        "R² 阈值之外的任务类型适配判断（分类/回归口径不同）",
+        "历史版本 JSON 残留是否可删的人工确认",
+        "正文结论与 results.json 的语义一致性（facts_audit --stage paper 权威终检）"
+      ]
+    },
+    {
+      "name": "figure_plan_reconciliation",
+      "implementation": "check_figure_plan_reconciliation",
+      "severity": "blocking",
+      "stage": "active",
+      "source_ref": "skills/paper-figure-drawio/SKILL.md § Step 6: Plan reconciliation（引擎承接）; skills/paper-write-zh/SKILL.md § FIGURE_MANIFEST 对账（规划了几张就必须嵌入几张）",
+      "fix_hint": "按 diagnostics.missing_files/missing_sources/unembedded 回 Step 3 补图：每张规划图都要有产物文件 + 图示的可编辑源（.drawio/.tex）+ 正文 includegraphics 引用。",
+      "single_run": "cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check figure_plan_reconciliation（退出码 0=pass 1=fail 3=unknown）",
+      "applies_to": [
+        {"template": "paper_writing", "step": "paper-figure-drawio"},
+        {"template": "paper_writing_zh", "step": "paper-figure-drawio"},
+        {"template": "nature_writing", "step": "paper-figure-drawio"},
+        {"template": "full_pipeline", "step": "paper-figure-drawio"},
+        {"template": "comp_cumcm", "step": "paper-figure-drawio"},
+        {"template": "comp_mcm", "step": "paper-figure-drawio"},
+        {"template": "comp_huawei", "step": "paper-figure-drawio"},
+        {"template": "comp_apmcm_zh", "step": "paper-figure-drawio"},
+        {"template": "comp_mathorcup", "step": "paper-figure-drawio"},
+        {"template": "comp_apmcm", "step": "paper-figure-drawio"},
+        {"template": "comp_stats", "step": "paper-figure-drawio"},
+        {"template": "comp_teddy", "step": "paper-figure-drawio"},
+        {"template": "comp_certcup", "step": "paper-figure-drawio"},
+        {"template": "comp_huazhong", "step": "paper-figure-drawio"},
+        {"template": "comp_huadong", "step": "paper-figure-drawio"},
+        {"template": "comp_wuyi", "step": "paper-figure-drawio"},
+        {"template": "comp_shuwei", "step": "paper-figure-drawio"},
+        {"template": "comp_zhongqing", "step": "paper-figure-drawio"},
+        {"template": "comp_yangtze", "step": "paper-figure-drawio"},
+        {"template": "comp_diangong", "step": "paper-figure-drawio"},
+        {"template": "comp_shenzhen", "step": "paper-figure-drawio"},
+        {"template": "comp_huashu", "step": "paper-figure-drawio"},
+        {"template": "comp_tianfu", "step": "paper-figure-drawio"},
+        {"template": "comp_liaoning", "step": "paper-figure-drawio"},
+        {"template": "comp_certcup_en", "step": "paper-figure-drawio"},
+        {"template": "comp_shuwei_en", "step": "paper-figure-drawio"},
+        {"template": "thesis_proposal", "step": "paper-figure-drawio"},
+        {"template": "course_paper", "step": "paper-figure-drawio"},
+        {"template": "course_report", "step": "paper-figure-drawio"},
+        {"template": "humanities_paper", "step": "paper-figure-drawio"},
+        {"template": "paper_from_assets", "step": "paper-figure-drawio"},
+        {"template": "comp_csf", "step": "paper-figure-drawio"},
+        {"template": "paper_writing_zh", "step": "paper-write-zh"}
+      ],
+      "manual_items": [
+        "DrawIO 视觉自检与几何居中判断（Step 4 / 5.7）",
+        "图类型选型（DrawIO vs TikZ）判断",
+        "3 轮自检失败后的跨工具降级决策"
+      ]
+    },
+    {
+      "name": "modeling_machine_contract",
+      "implementation": "check_modeling_machine_contract",
+      "severity": "blocking",
+      "stage": "active",
+      "source_ref": "skills/comp-modeling/SKILL.md § Step 5.5: ⛔ 合理性预验证 + 结果预期范围表（建模完成后必做）; skills/comp-modeling/SKILL.md § 方法声称清单（METHOD_CLAIMS）",
+      "fix_hint": "MODELING_REPORT.md 补 METHOD_CLAIMS_MACHINE（每条带 must 签名）、LOGIC_CONTRACT_MACHINE（可解析 JSON），并为 CAPABILITY_CHECKLIST.json 的每个能力 id 写明建模着落。",
+      "single_run": "cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check modeling_machine_contract（退出码 0=pass 1=fail 3=unknown）",
+      "applies_to": [
+        {"template": "comp_cumcm", "step": "comp-modeling"},
+        {"template": "comp_mcm", "step": "comp-modeling"},
+        {"template": "comp_huawei", "step": "comp-modeling"},
+        {"template": "comp_apmcm_zh", "step": "comp-modeling"},
+        {"template": "comp_mathorcup", "step": "comp-modeling"},
+        {"template": "comp_apmcm", "step": "comp-modeling"},
+        {"template": "comp_teddy", "step": "comp-modeling"},
+        {"template": "comp_certcup", "step": "comp-modeling"},
+        {"template": "comp_huazhong", "step": "comp-modeling"},
+        {"template": "comp_huadong", "step": "comp-modeling"},
+        {"template": "comp_wuyi", "step": "comp-modeling"},
+        {"template": "comp_shuwei", "step": "comp-modeling"},
+        {"template": "comp_zhongqing", "step": "comp-modeling"},
+        {"template": "comp_yangtze", "step": "comp-modeling"},
+        {"template": "comp_diangong", "step": "comp-modeling"},
+        {"template": "comp_shenzhen", "step": "comp-modeling"},
+        {"template": "comp_huashu", "step": "comp-modeling"},
+        {"template": "comp_tianfu", "step": "comp-modeling"},
+        {"template": "comp_liaoning", "step": "comp-modeling"},
+        {"template": "comp_certcup_en", "step": "comp-modeling"},
+        {"template": "comp_shuwei_en", "step": "comp-modeling"},
+        {"template": "comp_csf", "step": "comp-modeling"}
+      ],
+      "manual_items": [
+        "方法声称与 must/forbid 签名的语义等价判断（由 comp-code 的 claim_code_check 执行）",
+        "参数口径表跨子问题换算一致性（同一物理量唯一值/唯一语义）",
+        "经典问题升级三段式决策与理由充分性",
+        "目标/约束原文溯源的语义核对"
+      ]
+    },
+    {
+      "name": "paper_write_gate",
+      "implementation": "check_paper_write_gate",
+      "severity": "blocking",
+      "stage": "active",
+      "source_ref": "skills/paper-write-zh/SKILL.md § 完成铁律（产出契约）; skills/paper-write-zh/SKILL.md § Step 7: Final verification",
+      "fix_hint": "补主产物到 ≥5KB、每章 ≥500 字符；摘要里出现的小数必须在正文（不含摘要）或 RESULTS.md 出现；代码块移到 paper/appendix/；配置了 MAX_PAGES 时扩充最薄章节。",
+      "single_run": "cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check paper_write_gate（退出码 0=pass 1=fail 3=unknown）",
+      "applies_to": [
+        {"template": "paper_writing_zh", "step": "paper-write-zh"}
+      ],
+      "manual_items": [
+        "写作风格/文风与 AI 痕迹语义判断（ai_tell_check --strict 执行）",
+        "摘要结构与中英文长度语感",
+        "claims 表格内容与正文论证的一致性"
+      ]
+    },
+    {
+      "name": "paper_scoring_contract",
+      "implementation": "check_paper_scoring_contract",
+      "severity": "blocking",
+      "stage": "active",
+      "source_ref": "skills/comp-paper-zh/SKILL.md § 九维自评评分件（PAPER_SCORING.json，模板声明 paper_scoring: true 时必产）",
+      "fix_hint": "按 9 维评分框架补齐 PAPER_SCORING.json 的 scores（非空、每维含 score 与正文/图/表位置）、weighted_total（数值）、fatal_dimensions（数组）、selfcheck_failures；空对象或非法 JSON 直接判不合格。",
+      "single_run": "cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check paper_scoring_contract（退出码 0=pass 1=fail 3=unknown）",
+      "applies_to": [
+        {"template": "comp_cumcm", "step": "comp-paper-zh"},
+        {"template": "comp_huawei", "step": "comp-paper-zh"},
+        {"template": "comp_csf", "step": "comp-paper-zh"}
+      ],
+      "manual_items": [
+        "各维度分数与正文证据位置是否真的一致（语义判断）",
+        "fatal_dimensions 是否漏记必须回流的失分",
+        "分数是否被人为抬高（需对照评分框架锚点复核）"
+      ]
+    }
+  ]
+}

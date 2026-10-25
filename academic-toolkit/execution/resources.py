@@ -37,9 +37,20 @@ class ResourceCatalog:
         if len(raw) > 256_000:
             raise ValueError("资源超过上下文预算，请通过任务工具提取需要的段落，不整包灌入")
         text = raw.decode("utf-8-sig")
+        # P0 只读埋点：本 attempt 内同一资源的第几次读取（统计口径 = kind+name+
+        # 解析路径；技能即 kind+name）。只加字段，不改读取行为、不加缓存——
+        # 每次读取仍产生一条新的资源操作（未偷偷去重）。
+        prior_reads = self.context.store._connection.execute(
+            "SELECT COUNT(*) FROM execution_operations WHERE workflow_id=? AND step_id=? "
+            "AND attempt_id=? AND kind='resource' AND node_key=?",
+            (self.action.workflow_id, self.action.step_id, self.action.attempt_id,
+             f"resource:{kind}:{name}:{path}")).fetchone()[0]
+        read_ordinal = int(prior_reads) + 1
         record = {"kind": kind, "name": name, "path": str(path),
                   "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw),
-                  "observation": "content_returned_to_executor"}
+                  "observation": "content_returned_to_executor",
+                  "read_ordinal": read_ordinal,
+                  "first_read_in_attempt": read_ordinal == 1}
         op = self.context.begin("resource", f"resource:{kind}:{name}:{path}", record)
         self.context.finish(op, "succeeded", record)
         return {**record, "content": text, "operation_id": op}

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "enforce": true,
+  "limits": {
+    "blocking": 5,
+    "fixable": 3,
+    "unknown": 2,
+    "same_fingerprint": 4
+  },
+  "rationale": "裁决 6.5-A：预算按 (workflow, step) 跨 attempt 计，finish 路径是接收者（先落轮次、再判定）。出厂即启用 enforce=true：安全上限取 blocking=5 / fixable=3 / unknown=2 / same_fingerprint=4——总轮次超过 5（第 6 轮）或同一失败指纹超过 4 轮（第 5 轮）时转 FAILED 并要求 --override-reason，既给真实返修留足轮次，又让 6.5 的验收行为在出厂配置下可达。数值仍是保守占位，P0 账本采集到真实轮次分布（评估项 E4）后再校准。文件必须留在 checkers/ 子目录：modex-core 根下 glob(\"*.json\") 与 _RULE_FILE_NAMES 会进 legacy 合同/候选 acceptance 哈希。"
+}
