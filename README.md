@@ -4,10 +4,10 @@
 
 ### 让 Agent 像科研人员一样工作
 
-*263 个随仓技能 · 宿主无关引擎 · 可复现证据链 · 对齐赛题得分*
+*263 个随仓技能 · 6 大能力域 · 宿主无关引擎 · 每一步产物可审计*
 
 [![Release](https://img.shields.io/badge/release-v2.1.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-1178_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
+[![Tests](https://img.shields.io/badge/tests-1291_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-321-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-263_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
@@ -19,21 +19,22 @@
 ---
 
 > [!TIP]
-> **一句话**：给它一道竞赛题、一个研究任务或一份代码仓库，它按专业作业规程（263 个随仓技能）自主完成
-> 建模 → 编码 → 绘图 → 写作 → 评分 → 审稿 → 编译 → 交付审计的全流程——**每一步产物可复现、可审计、可追溯，且按赛题得分维度被真正测量**。
+> **一句话**：把一件事交给它——一道数模赛题、一个研究课题、一份课程作业、一篇待投稿论文、一批待出图的资料，
+> 或一份软著／专利／基金申请材料——它按专业作业规程（263 个随仓技能）自主走完
+> **检索 → 建模／实验 → 编码 → 绘图 → 写作 → 自评 → 审稿 → 编译 → 交付审计**；
+> 每一步的产物可复现、可审计、可追溯，并按真实评分维度被测量。
 
-## 🆕 2026-10-23 整仓升级（本批要点）
+它既不是提示词合集，也不是某个大模型的套壳：**技能是知识，引擎是记忆，执行者是 Agent**——三者分开，才谈得上"每一步可复现"。
 
-依据全仓诊断（54 条发现 + 9 条历史结论核验）与用户裁决落地的四批升级，主线是**把资源还给产出**：
+## 🔁 一次任务从进到出
 
-- **得分导向**——九维赛题评分卡（模型贴合/验证强度/差异化等合计 0.35 权重）前移到初稿步产出，`comp-editor` 按失分清单改稿，终审复核闭环；此前这些维度从未被真正测量。
-- **写作减负**——`comp-paper-zh` 的 11 步 Workflow 外移到 `references/step_*.md`，单步开工载荷峰值 −63%，规则按段按需读取。
-- **出图统一**——全部模板收敛到 `academic.mplstyle` 单一真源（R 侧有对等 `_eco_style.R`），3D 配方不再照抄即塌。
-- **创新链落地**——查重评分单调化 + 获奖语料方法频次表（26 类/457 篇）接入建模步。
-- **竞赛链补齐**——21 条短赛事链补齐与国赛同口径的 6 个收口步骤；重复形式检查从终审降级。
-- **工程卫生**——死产物清理、1.47 GiB 实验原始数据冷存（哈希溯源链保留）、基线数字单源化。
-
-逐批细录见 [CHANGELOG.md](./CHANGELOG.md)；诊断与执行报告存于项目内部文档（不分发）。
+| 阶段 | 谁在做 | 发生了什么 |
+|------|--------|-----------|
+| ① 领规程 | Agent | 读 `skills/<name>/SKILL.md`——一份**可执行的专业作业规程**（工具调用、输出契约、质量标准），读完自主执行，不必等逐步指令 |
+| ② 领任务 | 引擎 | `workflow_cli next` 给出本步技能正文与会话；`session run/write` 真实执行，操作自动留痕、依赖自动复用 |
+| ③ 过门禁 | 引擎 | 页数、伴随文件、产物哈希、论文一致性、图-文叙述、AI 味、九维评分——不达标在成稿前打回改稿，而不是交付后才发现 |
+| ④ 一次验收 | 引擎 | `session finish` 时从持久操作记录**机械组装**证据（命令、字节快照、资源哈希、依赖）——执行者不为"证明做过"额外生产任何东西 |
+| ⑤ 交付审计 | 引擎 | L2 编排留痕与 L3 执行申报交叉比对，"伪造审核产物"无从落地 |
 
 ## ✨ 为什么不是又一个提示词合集
 
@@ -41,18 +42,18 @@
 <tr><td width="50%" valign="top">
 
 #### 🧠 技能即知识
-每个 `skills/<name>/SKILL.md` 是一份**可执行的专业作业规程**——含工具调用、输出契约、质量标准。Agent 读完后自主执行，而非等逐步指令。
+每个 `skills/<name>/SKILL.md` 是一份可执行的专业作业规程——含工具调用、输出契约、质量标准。Agent 读完后自主判断与执行，而非等人喂逐步指令。
 
 </td><td width="50%" valign="top">
 
 #### ⚙️ 引擎只编排
-`engine/` 是状态机不是执行者：workflow 状态推进、质量门禁、STEP_MANIFEST 溯源、审计存储。**执行永远在 Agent，记忆永远在引擎**；完成步骤的执行证据由引擎从真实操作自动组装，模型零手填。
+`engine/` 是状态机不是执行者：workflow 状态推进、质量门禁、STEP_MANIFEST 溯源、审计存储。**执行永远在 Agent，记忆永远在引擎**；完成步骤的证据由引擎从真实操作自动组装，模型零手填。
 
 </td></tr>
 <tr><td width="50%" valign="top">
 
-#### 🎯 门禁对准得分
-页数、伴随文件、产物哈希、**九维赛题评分**——门禁检查的是"论文能不能得分"，不是"流程有没有走完"；不达标在成稿前就被打回改稿。
+#### 🎯 门禁对准产出
+页数、伴随文件、产物哈希、九维评分——门禁检查的是"这份论文/报告能不能得分、能不能被复算"，不是"流程有没有走完"；不达标在成稿前就被打回。
 
 </td><td width="50%" valign="top">
 
@@ -72,12 +73,12 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 | 🏆 | **数模竞赛** | 38 | CUMCM / 华为杯 14 步端到端流水线 · 23 赛事档案 |
 | 📊 | **图表与文档生产** | 64 | 期刊级科研绘图 · 信息图 · LaTeX |
 | ©️ | **知识产权材料** | 12 | 软著 · 专利 · 基金申请书 |
-| 🧩 | **Agent 运行时** | 2 | 宿主无关自举 · 自适应工具铸造 |
+| 🧩 | **Agent 运行时** | 3 | 宿主无关自举 · 自适应工具铸造 · 候选交付复现 |
 
 > 域表与 `capabilities/catalog.json` 对齐：88/75/41/38/64/12/3 = **321**（与徽章一致）。
 
 > [!NOTE]
-> **技能计数口径**（唯一）：徽章与正文统一为 `git ls-files` 口径的技能 SKILL.md 数（**clone 即所见**，现行 **262**）；数字由 `tools/sync_baselines.py` 单源传播，不再手工多处同步。
+> **技能计数口径**（唯一）：徽章与正文统一为 `git ls-files` 口径的技能 SKILL.md 数（**clone 即所见**，现行 **263**）；数字由 `tools/sync_baselines.py` 单源传播，不再手工多处同步。
 
 <details>
 <summary><b>📊 科研绘图栈（v1.1 新扩展，9 个上游技能）</b></summary>
@@ -96,6 +97,14 @@ L1 拦截式审计在**可选**宿主适配器（OpenCode 插件 / ZCode hook）
 全部集成带 **pinned-commit 溯源**（`UPSTREAM.md` 台账 + vendor，`tools/check_provenance.py` 一键校验 117/117）。
 
 </details>
+
+## 🔄 最近更新（2026-10）
+
+- **引擎层（10-23~24）**：交付候选冻结 + 候选批准 guard + 候选事件哈希链 + 复现路径短段化（Windows 长路径适配）——"候选"从口头承诺变成可校验的冻结物。
+- **产出效果（10-23 四批）**：九维评分卡前移到初稿步并被 `comp-editor` 消费 · 21 条短赛事链补齐 6 个收口步骤 · 写作分片（单步开工载荷峰值 −63%）· 出图样式收敛到 `academic.mplstyle` 单一真源（R 侧有对等规范）· 创新链接入获奖语料方法频次表（26 类方法 / 457 篇）。
+- **工程卫生**：基线数字单源化（`tools/sync_baselines.py`）· 死产物清理 · 1.47 GiB 实验原始数据转仓外冷存（哈希溯源链不断）。
+
+逐批细录见 [CHANGELOG.md](./CHANGELOG.md)；诊断与执行报告存于项目内部文档（不分发）。
 
 ## 🏗️ 架构
 
@@ -179,7 +188,7 @@ python academic-toolkit/tools/plotting_env_check.py
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-# 口径一（仓库根，回归门禁口径）：1178 collected；最近实跑记录见 pytest.ini
+# 口径一（仓库根，回归门禁口径）：1291 collected；最近全量实跑记录见 pytest.ini
 python -m pytest -q
 # 口径二（工具箱内，技能验收基线口径）：同一 tests 范围
 cd academic-toolkit && python -m pytest -q
@@ -190,26 +199,27 @@ python tools/check_provenance.py             # → 117/117 UPSTREAM+vendor 台�
 
 | 机制 | 一句话 |
 |------|--------|
-| 🚧 **Named Gates** | `paper_consistency` · `citation_integrity` · `experiment_reproduc` · `figure_provenance` · `figure_narrative` · `compilation_log` · `ai_flavor` |
-| 🎯 **九维赛题评分** | 初稿步产出每维 0-5 分 + 正文/图/表位置证据 → 编辑按失分清单改稿 → 终审复核闭环（0.35 权重的模型贴合/验证强度/差异化不再缺席） |
+| 🚧 **命名门禁（16 项）** | `paper_consistency` · `citation_integrity` · `experiment_reproduc` · `figure_provenance` · `figure_narrative` · `compilation_log` · `ai_flavor` · `step_manifest` · `modeling_contract` · `review_rounds` 等，注册表在 `engine/gates/quality_gates.py`，技能正文可声明、模板步可挂载 |
+| 🎯 **九维评分** | 初稿步产出每维 0-5 分 + 正文/图/表位置证据 → 编辑按失分清单改稿 → 终审复核闭环（模型贴合/验证强度/差异化合计 0.35 权重不再缺席） |
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）117/117 校验通过——外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **私有基准层** | 真实竞赛题面基准仅本地私有，不入库、不随仓库分发 |
-| ✅ **测试基线** | 仓库根 **1178 collected**（2026-10-23 整仓升级批后实测 1089 passed）；**唯一真源 = `pytest.ini`**，数字由 `tools/sync_baselines.py` 单源传播（`--check` 比对 / `--accept` 回写），不再手工多处同步 |
-| 🧬 **逐技能 C2 覆盖** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
+| ✅ **测试基线** | 仓库根 **1291 collected**；**唯一真源 = `pytest.ini`**，数字由 `tools/sync_baselines.py` 单源传播（`--check` 比对 / `--accept` 回写），不再手工多处同步。它是防静默丢测试的漂移锚点，不是完成验收证据 |
+| 🧩 **逐技能登记** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
 | 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + 宿主适配器（可选）+ TOOL_GAP→工具铸造 |
 
 ## 📁 仓库地图
 
 ```
 academic-agent-toolkit/
-├── academic-toolkit/     ★ 产品主体  skills · engine · execution · tools · tests
+├── academic-toolkit/     ★ 产品主体：skills · engine · execution · tools · tests
+│   └── third_party/      五个内嵌第三方引擎（pinned commit + UPSTREAM.md 溯源）
 ├── capabilities/         能力目录 catalog.json（321 项，技能 100% 映射）
-├── assets-local/         本地材料区（部分入库）：获奖论文语料 · 赛事官方原件 · 版面蒸馏卡
-├── vendor/               上游 fork 收编（pinned commit + UPSTREAM.md 溯源）
-├── third_party/          第三方子项目
-├── SECURITY.md           安全策略
+├── assets-local/         随仓参考资料区：获奖论文语料（部分子集本地保留）· 赛事官方原件 · 版面蒸馏卡
+├── vendor/               上游 fork 收编（pinned commit + UPSTREAM.md 溯源，与 third_party 合计 117 项）
+├── SECURITY.md           安全策略与漏洞上报
 ├── AGENTS.md             Agent 入口：宿主无关驱动协议 + 适配器矩阵
+├── pytest.ini            测试口径唯一真源（含防漂移基线锚点）
 └── CHANGELOG.md          版本记录
 ```
 
@@ -218,7 +228,7 @@ academic-agent-toolkit/
 
 <br>
 
-**2026-10-23 整仓升级批（Unreleased）** —— 依据全仓诊断与用户裁决的四批执行：九维评分卡前移并被编辑消费、21 条短赛事链补齐收口、comp-paper-zh 写作分片（单步峰值 −63%）、出图样式收敛单一真源（含 R 侧对等规范）、method-map 12 张方法落地卡、novelty_checker 单调化 + 方法频次表、死产物清理 + 1.47 GiB 实验原始数据冷存（哈希溯源不断）、基线单源化。终态实测 **1089 passed / 0 failed**；详见 [CHANGELOG.md](./CHANGELOG.md)。
+**未发布批（2026-10-23~24）** —— 整仓升级四批（九维评分卡前移并被编辑消费、21 条短赛事链补齐收口、comp-paper-zh 写作分片 −63%、出图样式收敛单一真源含 R 侧对等规范、method-map 12 张方法落地卡、novelty_checker 单调化 + 方法频次表、死产物清理 + 1.47 GiB 实验原始数据冷存、基线单源化；终态实测 1089 passed / 0 failed）+ 引擎层 G2/G4 三批（交付候选冻结、候选批准 guard、候选事件哈希链、复现路径短段化）。详见 [CHANGELOG.md](./CHANGELOG.md)。
 
 **v2.1.0（2026-09-27）** —— 赛事档案 v2 隔离：`comp_rules.json` 升级 schema v2 并切生产（22 赛事 / 8 profile / 51 约束 = 36 verified + 15 unknown）· 规则选档接口（`contests[id].profiles[]` 按 edition/submission_form + region/stage 精确选择，禁用模糊回落）· `contest_profile.py` v2 解析器与 execution 受控缓存 · 命令环境注入 `CONTEST_ID`/`PAGE_CAP`/`PAGE_SCOPE`/`PAGE_CAP_STATUS`/`EDITION`（智能体不再转录）· 技能正文与模板对齐。修复跨赛事规则混用与 P1 假绿；详见 [CHANGELOG.md](./CHANGELOG.md)。
 
