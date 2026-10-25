@@ -129,11 +129,11 @@ English abstract: 350-500 words, faithful translation covering the same structur
 
 
 
-## ⛔⛔⛔ 完成铁律（最高优先级，违反则本步骤失败）
+## 完成铁律（产出契约）
 
 
 
-**根据 `params.output_format` 决定主产物路径**：
+**根据 `params.output_format` 决定主产物路径**（`AGENTS.md` 含「Word（.docx）」即 docx 模式，否则 PDF）：
 
 
 
@@ -143,20 +143,7 @@ English abstract: 350-500 words, faithful translation covering the same structur
 
 
 
-⛔ **如何识别当前模式**：
-
-```bash
-
-grep -q "Word（.docx）" AGENTS.md && echo "MODE=docx" || echo "MODE=pdf"
-
-```
-
-
-
-
-产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
-
-**如果验证失败,继续补全产出而不是退出**。
+产出结构、存在性与最低完整性由 `finish` 按模板 `output_contract` 自动核验（引擎检查 `paper_write_gate`，finish 自动跑；交付档 blocking——未过不得 finish，探索档 advisory 留痕；单跑 `cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check paper_write_gate`），按返回的 fix_hint 补全产出，不自行复制验证脚本。
 
 
 
@@ -171,99 +158,24 @@ grep -q "Word（.docx）" AGENTS.md && echo "MODE=docx" || echo "MODE=pdf"
 
 
 
-**⛔ 上游输出完整性检查（写论文前必做）：**
-
-```bash
-
-echo "=== 上游输出完整性检查 ==="
-
-UPSTREAM_OK=true
+**上游输出预检（写论文前必做）：**
 
 
+上游各步的产物已由各自的 output_contract / `figure_provenance` 在 finish 时核验；写稿前仍按此清单确认，缺件不要凭记忆补：
 
-# 1. 核心文件是否存在
 
-for f in PAPER_PLAN.md RESULTS.md; do
+- `PAPER_PLAN.md`、`RESULTS.md` — 存在且 ≥500 字符；`PAPER_PLAN.md` 缺失时用最小大纲兜底
 
-    if [ -f "$f" ]; then
+- `figures/all_results.json`（缺则数值可能不准，改依赖 `RESULTS.md` / `experiment_results.md`）
 
-        sz=$(wc -c < "$f")
+- `figures/*.pdf` 张数与 `figures/latex_includes.tex` — 0 张 PDF 说明论文将无图，缺 `latex_includes.tex` 说明图表嵌入代码缺失
 
-        echo "✅ $f ($sz 字符)"
 
-        [ "$sz" -lt 500 ] && { echo "  ⚠ 文件过小，内容可能不完整"; UPSTREAM_OK=false; }
-
-    else
-
-        echo "⚠ $f 不存在（将使用最小大纲兜底）"
-
-    fi
-
-done
+文件过小或缺失时继续执行，但结果可能欠佳——按上面的缺件项回溯上游，不要在写稿步伪造上游产物。
 
 
 
-# 2. 实验数据文件
-
-[ -f figures/all_results.json ] && echo "✅ figures/all_results.json" || echo "⚠ 无 all_results.json，数值可能不准确"
-
-[ -f experiment_results.md ] && echo "✅ experiment_results.md" || echo "  （无 experiment_results.md，将依赖 RESULTS.md）"
-
-
-
-# 3. 图表文件
-
-PDF_COUNT=$(ls figures/*.pdf 2>/dev/null | wc -l)
-
-echo "PDF 图表: $PDF_COUNT 张"
-
-[ "$PDF_COUNT" -eq 0 ] && echo "⚠ 无 PDF 图表，论文将缺少图片"
-
-
-
-# 4. latex_includes.tex
-
-[ -f figures/latex_includes.tex ] && echo "✅ figures/latex_includes.tex" || echo "⚠ 无 latex_includes.tex，图表嵌入代码缺失"
-
-
-
-echo "=== 上游检查完成 ==="
-
-$UPSTREAM_OK || echo "⚠ 部分上游文件不完整，继续执行但结果可能欠佳"
-
-```
-
-
-
-Back up existing `paper/` to `paper-backup-{timestamp}/`. Check for incomplete sections:
-
-```bash
-
-echo "=== 断点续写检查 ==="
-
-if [ -d "paper/sections" ]; then
-
-    for f in paper/sections/*.tex; do
-
-        [ -f "$f" ] || continue
-
-        chars=$(wc -c < "$f")
-
-        if [ "$chars" -lt 500 ]; then
-
-            echo "⚠ 占位符: $(basename $f) ($chars 字符) — 需要续写"
-
-        else
-
-            echo "✅ 已完成: $(basename $f) ($chars 字符)"
-
-        fi
-
-    done
-
-fi
-
-```
+Back up existing `paper/` to `paper-backup-{timestamp}/`；章节是否完成由引擎 `paper_write_gate` 按「每章 ≥500 字符」判定（finish 自动跑），据此决定续写还是跳过。
 
 Resume: only write placeholder sections (<500 chars or contains "待补充"/"placeholder"), skip completed ones (>2000 chars). See `<resume_strategy>` in writing_rules.md for full details.
 
@@ -773,21 +685,7 @@ See `<de_ai_polish>` in `_utils/writing_rules.md`.
 
 
 
-写完后自检：摘要里每个数字必须在正文中出现。
-
-
-
-```bash
-
-for n in $(grep -oE '[0-9]+\.[0-9]+' paper/sections/0_abstract.tex | sort -u); do
-
-  grep -q "$n" paper/sections/*.tex RESULTS.md 2>/dev/null \
-
-    || echo "⛔ 摘要数字 $n 未在正文中出现 — 疑似编造"
-
-done
-
-```
+摘要里每个数字必须在正文中出现（引擎 `paper_write_gate` 核验摘要数字溯源，finish 自动跑）。
 
 
 
@@ -853,157 +751,15 @@ bash _utils/writing_check.sh paper/ 2>/dev/null || bash skills/shared-scripts/wr
 
 
 
-Also verify:
+字符数、`paper/references.bib`、估算页数与图表对账的机器判据由引擎承接，finish 自动跑（单跑 `cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check paper_write_gate`，图表对账项把 `--check` 的值换成 `figure_plan_reconciliation`）：每章 ≥ 500 字符、配了 MAX_PAGES 时估算页数不低于目标 80%、规划清单每张图要有产物文件 + 可编辑源（.drawio/.tex）+ 正文引用（missing_files / missing_sources / unembedded 三类缺口逐项补到 0）；未达标的扩充最薄章节。
 
-```bash
 
-source .env_skill 2>/dev/null || true  # 加载 MAX_PAGES 等数值参数
 
-echo "=== 各章节字符数 ==="
+不在上述检查器覆盖范围、仍需人工核实：模板括号占位符（`[论文标题]`、`[作者]` 等）全部替换；章节文件不出现 `\input{../figures/...}`（图表走 `figures/latex_includes.tex` 图块）；无 FIGURE_MANIFEST 时确认 `figures/` 每张 PDF 与 `\label{}` 都已落到正文。
 
-total=0
 
-for f in paper/sections/*.tex; do
 
-    chars=$(wc -c < "$f")
-
-    total=$((total + chars))
-
-    echo "  $(basename $f): $chars 字符"
-
-done
-
-echo "  总计: $total 字符"
-
-echo "  目标: ≥ ${MAX_PAGES:-30} × 800 = $((${MAX_PAGES:-30} * 800)) 字符"
-
-```
-
-- Total chars ≥ MAX_PAGES × 800 (expand thinnest sections if not)
-
-- references.bib exists and non-empty
-
-- No template bracket placeholders remaining
-
-- All figures/*.pdf referenced in sections
-
-- No `\input{../figures/...}` in section files
-
-
-
-**Figure embedding verification (must pass before finishing)**:
-
-```bash
-
-echo "=== 图表嵌入检查 ==="
-
-missing=0
-
-for pdf in figures/*.pdf; do
-
-    [ -f "$pdf" ] || continue
-
-    bn=$(basename "$pdf")
-
-    if ! grep -rq "$bn" paper/sections/*.tex paper/main.tex 2>/dev/null; then
-
-        echo "MISSING: $bn 未嵌入任何章节"
-
-        missing=$((missing + 1))
-
-    fi
-
-done
-
-for fig_tex in figures/*.tex; do
-
-    [ -f "$fig_tex" ] || continue
-
-    for lbl in $(grep -oh '\\label{[^}]*}' "$fig_tex" 2>/dev/null); do
-
-        if ! grep -rq "$lbl" paper/sections/*.tex paper/main.tex 2>/dev/null; then
-
-            echo "MISSING: $lbl (from $(basename $fig_tex)) 未嵌入"
-
-            missing=$((missing + 1))
-
-        fi
-
-    done
-
-done
-
-echo "缺失: $missing"
-
-```
-
-If any figures are missing, go back and embed them into the appropriate sections before finishing. **⛔ Do NOT finish until missing = 0.**
-
-
-
-**⛔ Page count pre-check (MUST pass before finishing):**
-
-
-
-> ⛔ **MAX_PAGES 指正文页数**（章节 1 - 结论，含图表）— 不含 摘要 / 目录 / 参考文献 / **附录代码**。
-
-> 检查只统计 `paper/sections/*.tex`，附录代码归 `paper/appendix/*.tex`。
-
-
-
-```bash
-
-source .env_skill 2>/dev/null || true  # 加载 MAX_PAGES 等数值参数
-
-
-
-# 1. sections/ 不应该含代码块
-
-code_in_body=0
-
-for f in paper/sections/*.tex; do
-
-    [ -f "$f" ] || continue
-
-    if grep -qE '\\begin\{(lstlisting|verbatim|minted|python|matlab)\}' "$f" 2>/dev/null; then
-
-        code_in_body=$((code_in_body + 1))
-
-        echo "  ⚠️ $f 含代码块 — 代码应放 paper/appendix/"
-
-    fi
-
-done
-
-
-
-# 2. 正文字符与页数
-
-total=0
-
-for f in paper/sections/*.tex; do
-
-    [ -f "$f" ] || continue
-
-    chars=$(wc -c < "$f")
-
-    total=$((total + chars))
-
-done
-
-est_pages=$((total / 900))
-
-echo "正文字符: $total, 估算页数: ~$est_pages, 目标: ≥ ${MAX_PAGES:-30}"
-
-if [ -n "$MAX_PAGES" ] && [ "$est_pages" -lt "$((MAX_PAGES * 80 / 100))" ]; then
-
-    echo "⛔ 正文页数低于目标 80%，必须扩充最薄章节（不要靠附录代码凑数）"
-
-fi
-
-```
-
-If estimated pages < 80% of MAX_PAGES, expand the thinnest chapters before finishing.
+**页数口径**：⛔ **MAX_PAGES 指正文页数**（章节 1 - 结论，含图表）— 不含 摘要 / 目录 / 参考文献 / **附录代码**；统计面只有 `paper/sections/*.tex`，附录代码归 `paper/appendix/*.tex`。正文估算页数（字符数 ÷ 900）与「正文含代码块」同样由 `paper_write_gate` 承接（finish 自动跑，单跑同上、`--check paper_write_gate`）；估算页数低于 MAX_PAGES 80% 时扩充最薄章节，不要把代码挪进正文凑页数。
 
 
 
@@ -1049,63 +805,26 @@ If estimated pages < 80% of MAX_PAGES, expand the thinnest chapters before finis
 
 
 
-## ⛔ FIGURE_MANIFEST 对账（写完正文必跑，规划了几张就必须嵌入几张）
+## FIGURE_MANIFEST 对账（规划了几张就必须嵌入几张）
 
 
 
-```bash
+规划清单藏在 `PROBLEM_ANALYSIS.md` / `PAPER_PLAN.md` / `MODELING_REPORT.md` / `TOPIC_PLAN.md` 任一文件的 `<!-- BEGIN FIGURE_MANIFEST -->` 与 `<!-- END FIGURE_MANIFEST -->` 之间，每行一张图。清单里的每张图都要三对齐：
 
-echo "=== FIGURE_MANIFEST 对账 ==="
 
-PLAN_FILE=""
+- 产物文件存在（`figures/<name>.pdf|png|svg`，`tikz_*` 同样适用）
 
-for f in PROBLEM_ANALYSIS.md PAPER_PLAN.md MODELING_REPORT.md TOPIC_PLAN.md; do
+- 图类条目有可编辑源（`figures/<name>.drawio` 或 `figures/<name>.tex`）
 
-  [ -f "$f" ] && grep -q "<!-- BEGIN FIGURE_MANIFEST -->" "$f" && { PLAN_FILE="$f"; break; }
+- 正文以 `\includegraphics` 引用了该文件名
 
-done
 
-if [ -n "$PLAN_FILE" ]; then
 
-    START=$(grep -n "<!-- BEGIN FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
+三类缺口分别对应 missing_files / missing_sources / unembedded。缺哪类补哪类；靠删清单条目「过关」等于丢掉规划过的图。
 
-    END=$(grep -n "<!-- END FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
 
-    EXPECTED_FIGS=$(sed -n "${START},${END}p" "$PLAN_FILE" | grep -oE "^[[:space:]]*-[[:space:]]+(fig_[a-zA-Z0-9_]+|tikz_[a-zA-Z0-9_]+)" | sed "s/^[[:space:]]*-[[:space:]]*//")
 
-    manifest_missing=0
-
-    for name in $EXPECTED_FIGS; do
-
-        if ! ls figures/${name}.pdf figures/${name}.png 2>/dev/null | head -1 | grep -q .; then
-
-            echo "❌ MANIFEST: $name 文件不存在"
-
-            manifest_missing=$((manifest_missing + 1))
-
-        elif ! grep -rqE "${name}\.(pdf|png)" paper/sections/ paper/main.tex 2>/dev/null; then
-
-            echo "❌ MANIFEST: $name 文件存在但论文未引用"
-
-            manifest_missing=$((manifest_missing + 1))
-
-        fi
-
-    done
-
-    if [ "$manifest_missing" -gt 0 ]; then
-
-        echo "⛔ FIGURE_MANIFEST 对账失败 ($manifest_missing 张): 必须把这些图都画出来 + 嵌入正文后再结束"
-
-    else
-
-        echo "✅ FIGURE_MANIFEST 全部嵌入"
-
-    fi
-
-fi
-
-```
+对账由引擎 `figure_plan_reconciliation` 承接（finish 自动跑；单跑 `cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check figure_plan_reconciliation`），fix_hint 即三类缺口的修复口径。
 
 
 

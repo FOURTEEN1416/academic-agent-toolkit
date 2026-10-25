@@ -21,7 +21,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 
 | 内容 | 路径 |
 |---|---|
-| 当前执行契约 | `academic-toolkit/AGENTS.md`、`engine/agent_protocol.py` |
+| 当前执行契约 | `academic-toolkit/AGENTS.md`、`engine/host/agent_protocol.py` |
 | 模板与业务产出要求 | `engine/modex-core/templates.json`、质量检查实现 |
 | 能力与资源 | `capabilities/catalog.json`、`data/asset_catalog.json`、技能路由索引 |
 | 当前计划 | `dev-docs/task_plan.md` |

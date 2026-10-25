@@ -100,7 +100,7 @@ PLAN 的 `nodes` 声明 `id/argv/inputs/outputs`，`depends_on` 指定依赖。�
 
 ## 六、质量与恢复
 
-- `engine/quality_gates.py` 与 `output_contracts.py` 是确定性检查实现；返回具体问题，不以打印PASS代表通过。
+- `engine/gates/quality_gates.py` 与 `engine/contracts/output_contracts.py` 是确定性检查实现；返回具体问题，不以打印PASS代表通过。
 - `AUDIT_REPORT.json` 的eligible为预审；当前 `DELIVERY_REPORT.json` 的ready才是机器交付结论。机器结论不等于科学质量获认可。
 - `status` 查看真实事实；只有确认进程已停，才能 `recover --operation-id ID --reason REASON --confirm-stopped`，不自动杀进程或清历史。
 - `retry` 用于真实失败/批准后版本更新，旧attempt不能写入新步骤。未经验证的历史补录不当作交付成功。

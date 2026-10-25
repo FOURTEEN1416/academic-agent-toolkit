@@ -83,7 +83,7 @@
       "decision": "每步 completion 强制申报本步推荐技能的 used/skipped（skipped 须给非空理由），且 used 必须留真实痕迹",
       "rationale": "回忆不可信、不可审计；申报成本低（一行 JSON），收益是 AI 使用申报素材与能力利用率账本可自动沉淀",
       "evidence": "workspaces/cumcm2026a-workbuddy/原仓库缺陷修复建议_20260912.md D2",
-      "enforced_by": "academic-toolkit/engine/workflow_runner.py"
+      "enforced_by": "academic-toolkit/engine/orchestration/workflow_runner.py"
     },
     {
       "id": "S6",
@@ -105,7 +105,7 @@
       "decision": "审核类步骤必须派发只读子智能体、申报真实 subagent_session 与含真实工具调用的 commands",
       "rationale": "独立视角曾抓出 2 fatal + 1 major（漏用附件、跨问矛盾、过拟合）与 6 major（图表硬伤），全部被'自审 PASS'掩盖——自审恒等于表演",
       "evidence": "dev-docs/LESSONS_FROM_CUMCM_Practice_2026-08.md 教训 1",
-      "enforced_by": "academic-toolkit/engine/workflow_runner.py"
+      "enforced_by": "academic-toolkit/engine/orchestration/workflow_runner.py"
     },
     {
       "id": "S8",
@@ -115,8 +115,8 @@
       "trigger": "检查点审批异常时直接改数据库状态绕过",
       "decision": "只走 CLI 带内通道推进；确需人工修复必须记录原因；跳过/伪造/绕过一律显式申报",
       "rationale": "改库绕过会让状态与事件链脱节，事后无法复盘'是谁在什么依据下放行'",
-      "evidence": "dev-docs/LESSONS_FROM_CUMCM_Practice_2026-08.md 教训 3 + engine/audit_store.py 状态-事件一致性核查",
-      "enforced_by": "academic-toolkit/engine/workflow_runner.py"
+      "evidence": "dev-docs/LESSONS_FROM_CUMCM_Practice_2026-08.md 教训 3 + engine/audit/audit_store.py 状态-事件一致性核查",
+      "enforced_by": "academic-toolkit/engine/orchestration/workflow_runner.py"
     },
     {
       "id": "S9",
@@ -153,7 +153,7 @@
       "root_cause": "runner 无心跳/断链检测；手工完成步骤也没有补录通道，断链静默发生",
       "impact": "评审若要求'每步可复盘'则断档——产物在、证据链不在",
       "prevention": "detect_stalled 停滞告警（running/blocked 超时即告警）+ backfill_step 带内补录（只补真实存在产物，事件类型 step_backfilled 与在环执行可区分）；竞赛解题一律经引擎启动",
-      "enforced_by": "academic-toolkit/engine/workflow_runner.py"
+      "enforced_by": "academic-toolkit/engine/orchestration/workflow_runner.py"
     },
     {
       "id": "P03",
@@ -165,7 +165,7 @@
       "root_cause": "evidence 校验只验格式（schema/哈希/命令真实性），不验'审核内容是否来自独立视角'；执行者与审核申报者无强制隔离",
       "impact": "验证场景退化为验证表演——真实审核首轮就抓出 2 fatal + 1 major + 6 major 图表硬伤，全被假审核掩盖",
       "prevention": "模板 requires_subagent 标记 + complete_step 强校验 subagent_session 非空 + commands 必须含真实工具调用（禁 echo 冒充）；视觉审查必须实际调 --review 模式",
-      "enforced_by": "academic-toolkit/engine/workflow_runner.py"
+      "enforced_by": "academic-toolkit/engine/orchestration/workflow_runner.py"
     },
     {
       "id": "P04",
@@ -201,7 +201,7 @@
       "root_cause": "模板只声明 output_files 存在性，不声明内容规格；产物存在即过闸",
       "impact": "14 步形式合规而实质缺位——评审读到的是目录而不是工作",
       "prevention": "步骤 metadata.output_specs 声明 {min_bytes, require_any, rationale}，逐项机检；未声明的步骤零影响（向后兼容）",
-      "enforced_by": "academic-toolkit/engine/workflow_runner.py"
+      "enforced_by": "academic-toolkit/engine/orchestration/workflow_runner.py"
     },
     {
       "id": "P07",
@@ -213,7 +213,7 @@
       "root_cause": "推荐是'建议'不是'申报项'；无字段承载 used/skipped",
       "impact": "能力利用率不可审计；AI 使用申报素材无法自动沉淀",
       "prevention": "C1 辅助技能强制申报（used ∪ skipped 恰好覆盖推荐清单，skipped 须非空理由）+ used 技能痕迹绑定（技能名须出现在命令或产物/输入路径，伪报 used 直接过闸已被禁止）",
-      "enforced_by": "academic-toolkit/engine/workflow_runner.py"
+      "enforced_by": "academic-toolkit/engine/orchestration/workflow_runner.py"
     },
     {
       "id": "P08",
@@ -297,7 +297,7 @@
       "root_cause": "命令字段只校验'非空字符串 + returncode=0'",
       "impact": "执行证据链可被廉价伪造，L3 申报层失去意义",
       "prevention": "描述性伪命令启发式检测（句号结尾/箭头/自然语言动词/无 shell 结构）+ 审核步骤 commands 必须含 tools/ 或 skills/_utils/ 真实工具调用",
-      "enforced_by": "academic-toolkit/engine/execution_protocol.py"
+      "enforced_by": "academic-toolkit/engine/contracts/execution_protocol.py"
     },
     {
       "id": "P15",
@@ -309,7 +309,7 @@
       "root_cause": "批准记录与步骤完成不在同一事务",
       "impact": "状态与事件链脱节，'谁批准了'与'步骤完成'无法互证",
       "prevention": "transition_step_with_checkpoint 单事务（批准记录 + 步骤完成原子提交），BLOCKED→COMPLETED 纳入合法转换表",
-      "enforced_by": "academic-toolkit/engine/workflow_store.py"
+      "enforced_by": "academic-toolkit/engine/storage/workflow_store.py"
     },
     {
       "id": "P16",
@@ -321,7 +321,7 @@
       "root_cause": "豁免参数被当作'合法旁路'而非'审计对象'",
       "impact": "审核链可被一条参数整体抹除，交付可信度归零",
       "prevention": "豁免只留痕、不放行：存在任何 skip_ 豁免参数时交付一律 blocked，需以不含 skip_ 参数的工作流重跑被豁免步骤",
-      "enforced_by": "academic-toolkit/engine/quality_gates.py"
+      "enforced_by": "academic-toolkit/engine/gates/quality_gates.py"
     }
   ],
   "checklists": [

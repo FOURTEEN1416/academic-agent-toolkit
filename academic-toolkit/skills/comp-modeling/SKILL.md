@@ -67,34 +67,15 @@ echo "FAST_MODE=$FAST_MODE"
 
 2. **user_data/** — 赛题附件数据
 
-## ⛔⛔⛔ 完成铁律（最高优先级，违反则本步骤失败）
+## 完成铁律
 
-**本步骤必须产出 `MODELING_REPORT.md`（≥ 1.5KB，完整的建模与求解报告）**。
+**本步骤必须产出 `MODELING_REPORT.md`（≥ 1.5KB，完整的建模与求解报告），且必须是真实落盘的文件**——只调 Read/Bash 就结束，等同本步未完成。
 
-⛔ **MANDATORY: 用 `Write` 工具直接写出 `MODELING_REPORT.md`。不要只调 Read/Bash 工具就 end_turn — 这是本步骤失败的 #1 原因。产出必须是真实落盘的文件。**
+**读上传的文献/数据时不要 `cat` 整个 `_extracted.md/.txt`**：用 `Read` 的 offset/limit 或 `Grep` 按关键词提取；AGENTS.md 已有上传文件清单与字数，优先清单 + 局部读。
 
-⛔ **读用户上传的文献/数据时**：
+产出结构、存在性与最低完整性由 `session finish` 按模板合同自动核验（`output_contract` ≥1500B、`step_manifest`，以及模板声明时生效的 `output_specs` 最低规格——如 ≥5000B 且含假设/模型/求解/结论）；修复返回的具体问题即可，不复制验证脚本。
 
-- 不要 `cat` 整个 `_extracted.md/.txt` 文件 — 一个大文件就能把 context budget 吃光，没空间产出主文件。
-
-- 用 `Read` 工具带 offset/limit 范围读，或用 `Grep` 工具按关键词提取。
-
-- AGENTS.md 已列出所有上传文件清单 + 字数，**优先用清单 + Read 局部，不要全量 cat**。
-
-
-产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
-
-⛔⛔ **建模覆盖核对（承接赛题分析的合同，结束前必跑，零额度两模式都跑）**：赛题分析阶段产出的 `CAPABILITY_CHECKLIST.json` 是贯穿全链的合同。建模报告**必须为每条能力项给出对应建模方案**，并在该处标注其能力 id（如『针对能力 P1-C1 事件五元组抽取，采用序列标注 BERT-CRF……』）：
-
-```bash
-
-python _utils/modeling_coverage_check.py --checklist CAPABILITY_CHECKLIST.json --modeling MODELING_REPORT.md
-
-MC=$?   # 0=每条能力项都有建模着落 1=有能力项被整条无视(必修) 2=无清单跳过
-
-```
-
-> `MC=1`（某能力项在建模报告里找不到）说明**建模阶段就把题目要求的能力悄悄简化/跳过了**——这正是"任务降维"最上游的发作点，必须回去为每条能力项补建模方案再结束本步骤，别让它一路歪到编码和论文。⛔ 承上启下：赛题分析定合同 → 本步认领每条能力 → comp-code 按能力清单实现并最终验收。
+**能力认领（承接赛题分析的合同）**：赛题分析产出的 `CAPABILITY_CHECKLIST.json` 是贯穿全链的合同，报告须为每条能力项写出对应建模方案并标注能力 id（如『针对能力 P1-C1 事件五元组抽取，采用序列标注 BERT-CRF……』）。引擎检查 `modeling_machine_contract` 在 `session finish` 时核（单跑：`cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check modeling_machine_contract`）。漏掉某条能力项 = 建模阶段就把题目要求悄悄降维，是一路歪到编码和论文的最上游发作点；赛题分析定合同 → 本步认领每条能力 → comp-code 按清单实现并终验。
 
 ### Step 1: 读取分析报告 + 方法对照 + 防错审查
 
@@ -137,31 +118,7 @@ MC=$?   # 0=每条能力项都有建模着落 1=有能力项被整条无视(必�
 
 - **经典问题升级确认表**（明确标注"初步映射 X → 最终模型 Y"）
 
-**⛔ 执行步骤：**
-
-```bash
-
-echo "=== 审视赛题分析的升级结论 ==="
-
-echo ""
-
-echo "--- 标为⚠️/❌的覆盖度缺口（需要在建模中审视是否补上）---"
-
-grep -A 1 '⚠️\|❌' PROBLEM_ANALYSIS.md | head -40
-
-echo ""
-
-echo "--- 经典问题升级表（需要审视是否采用最终模型）---"
-
-sed -n '/经典问题升级/,/^##/p' PROBLEM_ANALYSIS.md | head -30
-
-echo ""
-
-echo "--- 反向对照的升级要求 ---"
-
-sed -n '/反向对照/,/^##/p' PROBLEM_ANALYSIS.md | head -30
-
-```
+**执行方式**：先读 `PROBLEM_ANALYSIS.md` 的「覆盖度检查表」「反向对照检查」「经典问题升级确认表」（Step 5.6 产出），逐条审视后再动手。
 
 **⛔ 三段式决策流程（每个升级建议都必须走完）：**
 
@@ -241,7 +198,7 @@ sed -n '/反向对照/,/^##/p' PROBLEM_ANALYSIS.md | head -30
 
 不能以"简化"为名把升级完全去掉。
 
-**⛔ 防错审查（必做）：** 读取 `_utils/error_prevention.md`，根据本题涉及的题型（优化/微分方程/统计/评价/图论/几何/动态规划），对照对应章节的"必须做"和"禁止做"条目。在 MODELING_REPORT.md 末尾写一行：`本题涉及题型：[X, Y, Z]，已对照防错手册审查。`
+**防错审查：** 按本题题型（优化/微分方程/统计/评价/图论/几何/动态规划）读 `_utils/error_prevention.md` 对应章节的"必须做"和"禁止做"条目，并在报告中标注本题涉及题型，供 comp-review 对照。
 
 **📚 按需查阅章节（覆盖竞赛全流程常见坑）**：
 
@@ -623,27 +580,7 @@ M3 | must: \.encode\(, embedding, faiss | forbid: TfidfVectorizer, difflib
 
 > - 天花板：若赛题分析那步就把某概念理解歪了，这里两边可能都错（同源）——所以 comp-review 会带着题目原文独立复核这张表（见 comp-review 第6类）。
 
-**⛔⛔⛔ 建模阶段强制修复原则（不可跳过）：**
-
-审查中发现任何问题，**必须当场修复模型再继续**，不能留给 comp-code 阶段：
-
-- 模型缺少约束 → 立即补充约束条件
-
-- 开环积分可能漂移 → 立即加入反馈/阻尼/去漂移机制
-
-- 守恒律不满足 → 立即补充遗漏项
-
-- 极端输入导致发散 → 立即加入饱和/截断/正则化
-
-**⛔ 禁止的做法：**
-
-- ❌ 发现问题但写"留给 comp-code 阶段处理"
-
-- ❌ 在预期范围表里写了修正方案但不修改模型本身
-
-- ❌ 只在文字中提到"需要注意XXX"但模型公式没变
-
-**⛔ 检测到问题 = 必须修复。解释原因 ≠ 处理完毕。本步骤不允许带着已知问题输出 MODELING_REPORT.md。**
+**建模阶段发现的问题须当场修模型再往下写**（编码阶段只执行建模阶段的预案）：模型缺约束→立即补约束；开环积分可能漂移→立即加反馈/阻尼/去漂移；守恒律不满足→立即补遗漏项；极端输入发散→立即加饱和/截断/正则化。只在文字里写"留给 comp-code 处理""需要注意 XXX"或在预期范围表写修正方案、而模型公式没变，都等于没修；解释原因 ≠ 处理完毕，不带着已知问题输出报告。
 
 **同时产出可检索的实现提示块**：`METHOD_CLAIMS_MACHINE` 的 `must`/`forbid` 签名帮助定位实现，不能仅凭关键词缺失就断言没有实现，也不能把其他子问题或基线中的同名方法误判为当前模型。真实方法一致性以函数调用、输入输出、结果与 CAPABILITY_CHECKLIST 的逐项证据为准；静态未知项在已有语义核对中确认，不另起全流程。
 
@@ -653,109 +590,21 @@ M3 | must: \.encode\(, embedding, faiss | forbid: TfidfVectorizer, difflib
 
 **⛔ 必须将 PROBLEM_ANALYSIS.md 中的图表预规划带入 MODELING_REPORT.md。** 在报告末尾附上图表预规划章节（从 PROBLEM_ANALYSIS.md 复制或更新），确保 paper-figure 能读到完整的图表清单。如果建模过程中发现需要额外的图表（如灵敏度分析曲线、模型对比热力图），在此处补充。
 
-**⛔ MANDATORY: 输出前自检（写完 MODELING_REPORT.md 后必须逐项检查）：**
+**输出自检的机器部分已由引擎承接**：`session finish` 会按模板跑 `output_contract`、`step_manifest`、`modeling_contract`（METHOD_CLAIMS_MACHINE 含 assumptions/scope）、模板声明时生效的 `output_specs` 与 `modeling_machine_contract`（METHOD_CLAIMS_MACHINE 每条 must 签名、LOGIC_CONTRACT_MACHINE 为合法 JSON、能力 id 认领）；结构与实质内容按 Step 2—6 的契约写全，收到 diagnostics 按具体项修即可。
+
+**问题递进性（跨问递进；引擎无等价检查，属建模判断）**：后续问题的结果若与前问几乎相同，先回查该问新增的变量/资源/约束是否真的进了模型、是否对目标有边际效益；没有就回 `PROBLEM_ANALYSIS.md` 的假设预检重审，别把"问题没递进"留到编码阶段。
+
+**参数密集型题目（题面参数 ≥ 20）仍须跑题面保真审计**（无引擎等价检查器）：
 
 ```bash
-
-echo "=== 建模报告自检 ==="
-
-[ -f MODELING_REPORT.md ] || { echo "❌ MODELING_REPORT.md 不存在！"; exit 1; }
-
-# 1. 子问题覆盖度（统一口径：只数标题行声明的子问题，中文/阿拉伯/英文编号都支持，
-
-#    避免历史 bug：PROB_COUNT 用全文松匹配虚高、MODEL_SECTIONS 用标题匹配，两个口径比大小恒误报）
-
-PROB_COUNT=$(bash _utils/count_subproblems.sh PROBLEM_ANALYSIS.md)
-
-MODEL_SECTIONS=$(bash _utils/count_subproblems.sh MODELING_REPORT.md)
-
-echo "赛题子问题数: $PROB_COUNT, 建模报告覆盖: $MODEL_SECTIONS"
-
-[ "$MODEL_SECTIONS" -lt "$PROB_COUNT" ] && echo "❌ 有子问题未建模！"
-
-# 2. 每个子问题是否有目标函数或模型公式
-
-OBJ_COUNT=$(grep -c '目标函数\|min\|max\|最小化\|最大化\|objective\|模型公式\|数学模型' MODELING_REPORT.md 2>/dev/null || echo 0)
-
-echo "目标函数/模型公式出现次数: $OBJ_COUNT"
-
-[ "$OBJ_COUNT" -eq 0 ] && echo "❌ 未找到任何目标函数或模型公式！"
-
-# 3. 约束条件（优化类必须有）
-
-CONSTRAINT_COUNT=$(grep -c '约束\|s\.t\.\|subject to\|限制条件\|≤\|≥' MODELING_REPORT.md 2>/dev/null || echo 0)
-
-echo "约束条件出现次数: $CONSTRAINT_COUNT"
-
-# 4. 符号说明表是否存在
-
-grep -q '符号.*说明\|符号.*含义\|Symbol.*Description' MODELING_REPORT.md && echo "✅ 符号说明表存在" || echo "❌ 缺少符号说明表"
-
-# 5. 灵敏度分析方案是否存在
-
-grep -qi '灵敏度\|sensitivity\|鲁棒性\|robustness\|稳健性' MODELING_REPORT.md && echo "✅ 灵敏度/鲁棒性分析方案存在" || echo "⚠ 缺少灵敏度分析方案（评审加分项）"
-
-# 6. 图表预规划是否带入
-
-grep -qi '图表预规划\|fig_\|TABLE_\|DrawIO' MODELING_REPORT.md && echo "✅ 图表预规划已带入" || echo "❌ 缺少图表预规划（paper-figure 步骤需要）"
-
-# 7. 编程实现要点是否存在
-
-grep -qi '编程\|实现要点\|Python\|算法步骤\|伪代码' MODELING_REPORT.md && echo "✅ 编程实现要点存在" || echo "⚠ 缺少编程实现要点（comp-code 步骤需要）"
-
-# 8. 问题递进性检查（最关键）
-
-echo ""
-
-echo "=== 问题递进性检查 ==="
-
-echo "⛔ 人工审查：在你的模型下，每个问题的结果是否比前一个有明显变化？"
-
-echo "   如果某个后续问题的结果和前一个几乎相同，说明模型假设可能有问题。"
-
-echo "   特别检查：新增的变量/资源/约束是否对目标函数有边际效益？"
-
-echo "   如果没有 → 回到 PROBLEM_ANALYSIS.md 的假设预检重新审视。"
-
-# 9. 假设参数化检查
-
-PARAM_COUNT=$(grep -c '参数化:\|ALLOW_\|ENABLE_\|USE_\|开关变量' MODELING_REPORT.md 2>/dev/null || echo 0)
-
-echo "假设参数化标记数: $PARAM_COUNT"
-
-[ "$PARAM_COUNT" -eq 0 ] && echo "⚠ 未找到假设参数化标记——关键假设应该在代码中做成可切换参数"
-
-```
-
-**如果有 ❌ 项，必须补充后再结束本步骤。⚠ 项建议补充但不强制。**
-
-**⛔⛔⛔ 参数密集型题目必跑（题面参数 ≥ 20 时）：**
-
-```bash
-
-# 1) 复审前置步骤的 facts/OCR 一致性（防 Step 1 通过后中途篡改）
-
-# 2) 新增审计 MODELING_REPORT.md 数字溯源 + rules 覆盖度
-
 python3 _utils/facts_audit.py --stage modeling 2>&1 | tee AUDIT_REPORT.md
-
 RC=${PIPESTATUS[0]}
-
-if [ $RC -eq 1 ]; then
-
-    echo "⛔ Step 2 审计失败：MODELING_REPORT.md 含 facts 中找不到的数字（疑似建模凭印象），或 rules 段规则没体现在建模中。必须修复后重新跑，不要结束本步骤。"
-
-fi
-
-# 在 MODELING_REPORT.md 末尾追加凭证（facts_traced = 报告中能溯源到 facts 的数字数；rules_covered = facts.rules[] 中已在 MODELING_REPORT 中体现的规则数）
-
-echo "" >> MODELING_REPORT.md
-
-echo "<!-- MODELING_OK facts_traced=N rules_covered=M source=PROBLEM_FACTS.json rechecked_at=$(date -Iseconds) -->" >> MODELING_REPORT.md
-
+[ $RC -eq 1 ] && echo "⛔ 报告含 facts 中找不到的数字（疑似凭印象），或 rules 段规则没体现在建模中；修复后重跑。"
+# 通过后在 MODELING_REPORT.md 末尾追加：
+# <!-- MODELING_OK facts_traced=N rules_covered=M source=PROBLEM_FACTS.json rechecked_at=$(date -Iseconds) -->
 ```
 
-**为什么 Step 2 也要跑审计**：MODELING_REPORT.md 引用 facts 数值时，AI 可能凭印象写错（例如把 facts.weapons[0].targets[0].p_detect=0.95 写成 0.9）。Step 2 不抓 = 错误数值流到 Step 3 建模实现，污染整个 code。
+报告引用 facts 数值时可能凭印象写错（如 p_detect=0.95 写成 0.9）；本步不抓会把错误数字带进代码。
 
 
 ## 执行与产出
@@ -817,53 +666,7 @@ echo "<!-- MODELING_OK facts_traced=N rules_covered=M source=PROBLEM_FACTS.json 
 
     ```
 
-  - **写完每段含公式的章节后必须自检**（在 heredoc 写入 MODELING_REPORT.md 之后立即跑）：
-
-    ```bash
-
-    # 扫描裸 LaTeX 命令（反斜杠开头）但当前行不在 $$ 块内
-
-    python3 - <<'PY'
-
-    import re
-
-    text = open("MODELING_REPORT.md", encoding="utf-8").read()
-
-    # 移除已正确包围的 $$...$$ 块和 $...$ 行内公式以及代码块
-
-    cleaned = re.sub(r'```.*?```', '', text, flags=re.DOTALL)
-
-    cleaned = re.sub(r'\$\$[\s\S]*?\$\$', '', cleaned)
-
-    cleaned = re.sub(r'\$[^\n$]+\$', '', cleaned)
-
-    # 在剩余文本里找 \tag{ / \sqrt / \hat / \frac / \dot / \begin{ 等典型 LaTeX 命令
-
-    bad = []
-
-    for i, line in enumerate(cleaned.split('\n'), 1):
-
-        if re.search(r'\\(tag|sqrt|hat|frac|tfrac|dot|begin|cdot|pm|in|exists|forall|big|cap)\b', line):
-
-            bad.append((i, line.strip()[:80]))
-
-    if bad:
-
-        print(f"❌ 发现 {len(bad)} 处裸 LaTeX（缺 $$ 包围）：")
-
-        for ln, s in bad[:10]:
-
-            print(f"  L{ln}: {s}")
-
-    else:
-
-        print("✓ 公式包围检查通过")
-
-    PY
-
-    ```
-
-    **报告 ❌ = 必须立即用 Edit 工具把那几行包进 `$$...$$`，再继续往下写。**
+  - **写完含公式的章节后扫一遍**：`\tag` / `\sqrt` / `\hat` / `\frac` / `\dot` / `\begin` 等反斜杠命令若出现在 `$$` 块外，渲染器会原样显示 LaTeX 代码——发现即用 Edit 把那几行包进 `$$...$$`（引擎暂无等价检查）。
 
 - 模型假设是评审重点：合理、必要、有说服力
 
@@ -893,12 +696,7 @@ echo "<!-- MODELING_OK facts_traced=N rules_covered=M source=PROBLEM_FACTS.json 
 
 ## 退出判据（Verification）
 
-本步完成前逐项自检（不达标即视为未完成）：
-
-- [ ] 符号表完整，与正文/代码命名一致
-- [ ] 每条假设给出依据与影响范围
-- [ ] 模型公式可被独立复算（含参数取值来源）
-- [ ] 跨问衔接已声明（复用/差异/剪枝关系）
+机器可核部分由 `session finish` 执行（`step_manifest`、`modeling_contract`、`modeling_machine_contract`；单跑 `cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check modeling_machine_contract`）。人工判据只有四条，均已在对应章节给出做法：符号表完整且与正文/代码命名一致（Step 4）、每条假设有依据与影响范围（Step 2）、公式可被独立复算且参数取值有来源（关键规则）、跨问复用/差异/剪枝关系已声明（`CROSS_PROBLEM_LEDGER.json` 与 Step 5.5）。
 
 ## 常见合理化（Common Rationalizations）
 

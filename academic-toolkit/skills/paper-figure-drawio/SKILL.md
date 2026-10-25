@@ -11,9 +11,9 @@ Generate DrawIO architecture diagrams and TikZ figures for: **$ARGUMENTS**
 
 This is a **lightweight sub-step** split from paper-figure. It ONLY handles non-data diagrams (DrawIO + TikZ). Data figures (matplotlib/seaborn) were already generated in the previous paper-figure step.
 
-> 高规格路由：需要人工在多候选间裁决的框架图/架构图 → `paper-framework-figure-studio-pro`（S0-S5 候选生成+人审终局）；需可编辑 Visio 交付物 → `visio-image-rebuilder`。
+> 高规格路由：需要人工在多候选间裁决的框架图/架构图 → `skills/paper-framework-figure-studio-pro/SKILL.md`（S0-S5 候选生成+人审终局）；需可编辑 Visio 交付物 → `skills/visio-image-rebuilder/SKILL.md`。
 
-> 出图即检：本步产出的每个 TikZ/drawio 成品**当场**跑 `tikz_structure_check.py <file>` + `tikz_palette_check.py`（双副本同 shared-scripts/）——结构/配色问题在第 6 步就地修，不要拖到第 10 步编译才暴露。
+> 出图即检：本步产出的每个 TikZ/drawio 成品**当场**跑 `skills/shared-scripts/tikz_structure_check.py <file>` + `skills/shared-scripts/tikz_palette_check.py`——结构/配色问题就地修，不要拖到编译才暴露。
 
 ## ⚡ 快速模式检测（开头先跑）
 
@@ -32,11 +32,11 @@ echo "FAST_MODE=$FAST_MODE"
 
 ## ⛔⛔⛔ Output Contract (highest priority)
 
-**Must produce at least 1 `figures/*.drawio` or `figures/tikz_*.tex` and corresponding PDF, plus updated `figures/latex_includes.tex`**.
+**至少产出 1 个 `figures/*.drawio` 或 `figures/tikz_*.tex` + 对应 PDF，并更新 `figures/latex_includes.tex`**。
 
-⛔ **特殊豁免**：如果 PAPER_PLAN.md 明确无架构图/流程图需求（纯文字论文/数据分析报告），允许跳过此 skill 的产物要求；但仍要保留已有的 `figures/latex_includes.tex` 不破坏。
+⛔ **豁免**：PAPER_PLAN.md 明确无架构图需求（纯文字/数据分析报告）时可跳过产物要求，但保留已有 `figures/latex_includes.tex`。
 
-产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
+产出结构/存在性/完整性由 `finish` 按 `output_contract` 核验；`figure_provenance`（溯源）与 `figure_plan_reconciliation`（规划对账）由引擎在 finish 自动跑，单跑命令见 Step 6。
 
 ## 执行与产出
 
@@ -284,16 +284,11 @@ cat _utils/example_flow.drawio 2>/dev/null | head -50
 echo "... (参考完整 XML 结构后再生成)"
 ```
 
-**⛔ 每张图生成后立即验证文件存在：**
-```bash
-[ -f figures/fig_roadmap.drawio ] && echo "✅ fig_roadmap.drawio created" || echo "❌ MISSING"
-```
+产物存在性、可编辑源与正文嵌入由引擎检查 `figure_plan_reconciliation` 对账（见 Step 6）。
 
-### Step 4: Export to PDF + self-check + fix loop (⛔ 最多 3 轮)
+### Step 4: Export to PDF + self-check/fix loop（⛔ 最多 3 轮）
 
-**每张 .drawio 文件必须经过：导出 → 自检 → 修复 → 重新导出的循环，最多 3 轮。**
-
-对每张 .drawio 文件，执行以下循环：
+**每张 .drawio：导出→自检→修复→重导出，最多 3 轮；逐张执行：**
 
 ```
 FOR each figures/*.drawio file:
@@ -316,9 +311,9 @@ FOR each figures/*.drawio file:
 END FOR
 ```
 
-**⛔ 首次批量并行导出（省时，可选加速）：** 所有 `.drawio` 相互独立、无依赖，首次导出可并行——draw.io 多实例各自导到不同 `figures/${bn}.pdf`。并发度限 **2**（draw.io 是 Electron 应用，多实例并发偶发抢占用户配置/锁文件，2 是稳妥值）。每张仍挂 60s 超时。跑完后下面逐张循环首轮发现 PDF 已存在即跳过导出、直接自检，**只有自检失败重写 XML 后才对该张重新单独导出**（修复轮内绝不并行）。
+**⛔ 首次可并行导出（可选）**：并发限 **2**（多实例抢配置/锁文件），每张 60s；PDF 已存在即跳过，**自检失败重写后才单独重导**（修复轮不并行）。
 
-> ⚠ **兜底：并行导出是"锦上添花"，不是必须。** 若这段并行导出报错、卡住或某些图没导出成功，**不要纠结**——下面的逐张循环（Step 4 FOR each drawio）会对"缺 PDF 的图"自动补导（单张、可靠）。所以并行块只当"能快就快"，导出失败的交给逐张循环兜底，绝不阻塞。
+> ⚠ 并行仅为加速：失败/漏导不阻塞，逐张循环会补导。
 
 ```bash
 _export_one() {
@@ -339,7 +334,7 @@ wait
 echo "✅ 首次批量并行导出完成（缺 PDF 的图会在下面逐张循环补导，导出失败不阻塞）"
 ```
 
-**单张导出命令（修复轮内重导 / 批量遗漏补导用）：**
+**单张导出（修复轮/补导用）：**
 ```bash
 draw.io.exe --export --format pdf --crop --output "figures/${bn}.pdf" "$drawio_file" 2>&1 &
 DRAWIO_PID=$!
@@ -349,23 +344,23 @@ wait $DRAWIO_PID 2>/dev/null
 kill $TIMER_PID 2>/dev/null
 ```
 
-**自检清单（每轮都过一遍）：**
+**自检判据：**
 
 ```
-1. [重叠检查] 同行节点：(x1 + width1 + 30) ≤ x2；上下层：(y1 + height1 + 30) ≤ y2
-2. [连线遮挡] 所有连线 jumpStyle=arc;jumpSize=6;rounded=1，不穿过节点
-3. [文字溢出] 中文 width ≥ 字数×16+40，英文 width ≥ 字符数×8+40，whiteSpace=wrap
-4. [间距一致] 同层节点间距差异 ≤ 10px
-5. [样式一致] 同类节点 fillColor/strokeColor/fontSize 一致，fontstyle=1
-6. [尺寸检查] 总宽度 ≤ pageWidth，总高度 ≤ pageHeight
-7. [⛔ 居中检查] 中栏子框和节点必须在虚线框内居中分布，不要左对齐留大片空白。计算：左边距 = (容器宽度 - 内容总宽度) / 2。特别检查：只有 2-3 个节点的行、最后一行（结论阶段）
+1. 重叠：同行 x1+width1+30 ≤ x2；上下 y1+height1+30 ≤ y2
+2. 连线：jumpStyle=arc;jumpSize=6;rounded=1，不穿节点
+3. 文字：中文 width ≥ 字数×16+40，英文 ≥ 字符数×8+40，whiteSpace=wrap
+4. 同层间距差 ≤ 10px
+5. 同类节点 fillColor/strokeColor/fontSize 一致，fontstyle=1
+6. 总宽 ≤ pageWidth、总高 ≤ pageHeight
+7. 居中：左边距=(容器宽-内容宽)/2；重点查 2-3 节点行与最后一行，勿左对齐留白
 ```
 
-**⛔ 发现问题必须立即修改 XML 并重新导出，不能跳过。3 轮都失败 → 降级到 TikZ 兜底。**
+**⛔ 有问题立即改 XML 重导出；3 轮失败降级 TikZ。**
 
-### Step 5: Structure validation loop (⛔ MUST PASS)
+### Step 5: Structure validation loop（⛔ 必须通过）
 
-对技术路线图和求解流程图运行结构自检脚本。**如果不通过，必须读取示例文件参考后重写，然后重新导出+重新自检，最多 3 轮。**
+路线图/求解流程图跑结构自检；不过则读示例重写 → 重导出 → 重检，最多 3 轮。
 
 ```bash
 # 解析可用 Python：优先用后端注入的 $MH_PYTHON（已排除 Windows 商店占位符 python3），
@@ -416,16 +411,9 @@ for flow in figures/fig_flow_*.drawio; do
 done
 ```
 
-**⛔ 关键：上面的 bash 脚本只是检测框架。执行 Agent 在看到 `⛔ 不合格` 输出后，必须：**
-1. **`cat _utils/example_roadmap_stats.drawio` 或 `_utils/example_roadmap_hex.drawio`** 读取完整示例（4 个模板任选一个，与初次生成时所选模板保持一致）
-2. **重写 .drawio XML**（修复结构问题）
-3. **重新导出 PDF**（`draw.io.exe --export ...`）
-4. **重新运行 drawio_check.py** 验证
-5. **重复直到通过或 3 轮用完**
+**⛔ `不合格` 后：读示例（同初次所选）→ 重写 XML → 重导出 → 重跑 `drawio_check.py`，最多 3 轮，仍不过降级 TikZ；不许见 CRITICAL 跳过。**
 
-**不允许看到 CRITICAL 后跳过不修。**
-
-**其余架构 / pipeline / framework / hierarchy 图也必须过通用 XML、字号和重叠检查**：
+**其余架构/pipeline/framework/hierarchy 图同样过通用 XML、字号、重叠检查**：
 ```bash
 # 解析可用 Python：在候选里挑一个能真正执行的（宿主中性探测）。
 PYTHON=""
@@ -446,12 +434,12 @@ done
 
 ### Step 5.7: DrawIO 视觉自检（宿主独立窗口视觉模型，自动修复，⛔ 不阻塞）
 
-**结构自检（drawio_check.py）只看 XML 结构，看不出导出 PDF 后的真实视觉效果。这一步由宿主独立窗口的视觉模型真正"看图"，检查文字溢出/节点重叠/连线穿越/布局松散/配色等结构检查发现不了的问题。最多 3 轮修复。**
+**结构自检只看 XML；本步由宿主视觉模型查溢出/重叠/穿线/留白/配色，最多 3 轮。**
 
-⛔ **执行原则（避免边缘问题）：**
-- **只对 DrawIO 产物跑**：遍历 `figures/*.drawio`，对每个取同名 `.pdf` 跑视觉自检；**不要对数据图 `gen_fig_*` 的 PDF 跑**（那是 matplotlib 图，不归这步管）。
-- **vision 不可用不阻塞**：脚本退出码 `2` = API 未配置/PDF 无法转图/调用失败 → 记录为未审并继续；免费结构/几何检查仍必须通过。退出码 `0` = 通过，`1` = 有视觉问题需修复。
-- **vision 已明确发现的问题必须闭环**：退出码 `1` 时最多修 3 轮；仍未解决写入 `_tmp/drawio_vision_unresolved.txt`，由最终质量门判失败，不能把已知遮挡当成合格。
+⛔ **执行原则：**
+- **只跑 DrawIO**：`*.drawio` 取同名 `.pdf`；数据图 PDF 不归本步。
+- **vision 不可用不阻塞**：`2`=未审继续（结构/几何须过）；`0`=通过，`1`=需修。
+- **问题必须闭环**：`1` 最多 3 轮；未解决写 `_tmp/drawio_vision_unresolved.txt`，最终 gate 判失败。
 
 ```bash
 # 解析可用 Python：优先用后端注入的 $MH_PYTHON（已排除 Windows 商店占位符 python3），
@@ -516,50 +504,19 @@ for drawio_src in "${DRAWIO_VISION_SRCS[@]}"; do
 done
 ```
 
-**⛔ 当某张图返回 `ISSUE`（VEXIT=1）时，你必须逐步执行修复（不是只跑上面的检测脚本）：**
-1. 用 **Read 工具**读取该图的 `.drawio` XML（如 `figures/fig_roadmap.drawio`）
-2. 根据 vision 反馈的每条 ISSUE 定位问题并修改 XML：
-   - "文字溢出/截断" → 加大节点 `width` 或缩短文字、加 `whiteSpace=wrap`
-   - "节点重叠/紧贴" → 调整 `x/y` 坐标拉开间距（同行边到边 ≥30px）
-   - "连线穿过节点" → 改走向、加 `jumpStyle=arc`、绕行
-   - "布局左对齐留白" → 重算居中坐标（左边距=(容器宽-内容宽)/2）
-   - "出现 HTML 代码/黑背景" → 检查 `html=1`、去掉 `shadow=1`、`background=none`
-3. **重新导出 PDF**：`draw.io.exe --export --format pdf --crop --output "figures/${bn}.pdf" "figures/${bn}.drawio"`
-4. 回到本步骤循环开头，对该图**重新跑 vision 自检**验证
-5. 重复直到通过或 3 轮用完（用完仍不过也继续，不阻塞）
+**⛔ `ISSUE`（VEXIT=1）**：Read `.drawio` → 改 XML → 重导出 → 重跑，最多 3 轮。
+- 文字溢出/截断 → 加 `width`/缩短文字/`whiteSpace=wrap`
+- 节点重叠/紧贴 → 调 `x/y` 拉开（同行边到边 ≥30px）
+- 连线穿节点 → 改走向、`jumpStyle=arc`、绕行
+- 左侧留白 → 居中：左边距=(容器宽-内容宽)/2
+- HTML 代码/黑背景 → `html=1`、去 `shadow=1`、`background=none`
+- 重导出：`draw.io.exe --export --format pdf --crop --output "figures/${bn}.pdf" "figures/${bn}.drawio"`
 
-### Step 6: Plan reconciliation loop (⛔ 缺一不可)
+### Step 6: Plan reconciliation（引擎承接）
 
-**逐条对照规划清单，缺失的必须补生成。循环直到全部齐全。**
+规划图对账由 `figure_plan_reconciliation`（交付档 blocking；探索档 advisory 留痕）承接（finish 自动跑；单跑 `cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check figure_plan_reconciliation`）。判据：每张规划图有产物、可编辑源（`.drawio`/`.tex`）、正文引用（未成文跳过嵌入）；diagnostics 三类缺失即返修清单。
 
-```bash
-echo "=== DrawIO plan reconciliation ==="
-echo "Planned:"
-grep -E 'DrawIO-[0-9]' PROBLEM_ANALYSIS.md 2>/dev/null
-echo ""
-echo "Generated:"
-ls -1 figures/*.drawio 2>/dev/null
-echo ""
-echo "Exported PDFs:"
-ls -1 figures/fig_roadmap.pdf figures/fig_flow_*.pdf figures/fig_pipeline*.pdf figures/fig_framework*.pdf figures/fig_index_*.pdf figures/fig_model_*.pdf figures/fig_network*.pdf 2>/dev/null
-```
-
-**⛔ 对照上面的输出：**
-1. 规划清单中的每一条，是否都有对应的 `.drawio` 文件？
-2. 每个 `.drawio` 文件是否都有对应的 `.pdf`？
-3. 如果有缺失 → **立即回到 Step 3 补生成该图的 .drawio XML → 导出 PDF → 自检**
-4. **重复本步骤直到所有规划项都有 .drawio + .pdf**
-5. 如果某张图反复失败（3 轮），启用跨工具兜底：DrawIO 失败 → TikZ，TikZ 失败 → DrawIO（简化版）
-
-**⛔ 校验完成后，更新 DRAWIO PLAN CHECKLIST 状态：**
-```
-DRAWIO PLAN CHECKLIST (reconciliation):
-[✅] 1. fig_roadmap — figures/fig_roadmap.drawio + figures/fig_roadmap.pdf (exists, XXX bytes)
-[✅] 2. fig_flow_q1 — figures/fig_flow_q1.drawio + figures/fig_flow_q1.pdf (exists)
-[❌] 3. fig_flow_q2 — MISSING — need to generate
-[✅] 4. fig_pipeline — figures/fig_pipeline.drawio + figures/fig_pipeline.pdf (exists)
-Result: 3/4 complete, 1 MISSING → go back to Step 3 for fig_flow_q2
-```
+回 Step 3 补图→导出→自检后重跑；3 轮失败走 DrawIO↔TikZ。
 
 ### Step 7: Generate TikZ diagrams (if planned)
 
@@ -649,25 +606,19 @@ done
 
 **⛔ tikz_check.sh 报告的所有 CRITICAL 必须修复后重新编译。不允许带着 CRITICAL 完成步骤。**
 
-**手动内容自检（编译成功 + tikz_check 通过后过一遍）：**
-- [ ] 所有节点文字完整可见，没有被截断
-- [ ] 连线没有穿过其他节点或文字
-- [ ] 箭头方向正确（因果关系/数据流向）
-- [ ] 数学公式渲染正确（变量名/希腊字母/上下标）
-- [ ] 配色与论文整体风格一致（参考 tikz_rules.md 配色方案）
-- [ ] 节点间距均匀，整图居中
+**内容质量要求（编译成功 + `tikz_check.sh` 通过后人工判断）**：节点文字完整可见；连线不穿节点或文字；箭头方向符合因果/数据流；公式渲染正确（变量名/希腊字母/上下标）；配色与论文一致（参考 `_utils/tikz_rules.md`）；节点间距均匀且整图居中。
 
 **如果没有 TikZ 图需要生成 → 跳过此步骤。**
 
 ### Step 7.5: TikZ 视觉自检（宿主独立窗口视觉模型，自动修复）
 
-**对每个编译成功的 TikZ PDF，由宿主独立窗口的视觉模型检查布局质量。最多 3 轮修复。**
+**每个 TikZ PDF 由宿主视觉模型查布局，最多 3 轮。**
 
-**⛔ 本块任何模式都要执行（含快速模式）**：块内会自行 detect FAST_MODE——快速模式下清空待审列表使循环一次不进（跳 vision 省 API），但仍会执行 `rm -f` 清空标记文件、由最终 gate 跑几何自检。**不要因为是快速模式就整块不跑**，否则标记文件残留会让最终 gate 误判。
+**⛔ 任何模式都执行**：块内 detect FAST_MODE；快速模式清空待审列表使循环不进，但仍 `rm -f` 清标记并跑 gate 几何自检（防残留误判）。
 
-**⛔ 如果独立窗口证据未就绪（exit 2），跳过此步骤，不阻塞流程。**
+**⛔ 证据未就绪（exit 2）→ 跳过，不阻塞。**
 
-**⛔ 执行方式：这不是一个完整的 bash 脚本。你需要逐步执行：先运行 PDF→PNG + vision 检查，如果返回 ISSUE，你必须用 Read 工具读取 TikZ .tex 源码，根据 vision 反馈修改（调整坐标/间距/节点宽度/颜色），用 Write/Edit 工具写回，然后重新编译 xelatex，再重新检查。每轮都是：检查→修改→编译→再检查。**
+**⛔ 逐步执行**：PDF→PNG + vision；`ISSUE` 就 Read `.tex` 改坐标/间距/宽度/颜色，写回、重编译、再查。
 
 ```bash
 # 解析可用 Python：优先用后端注入的 $MH_PYTHON（已排除 Windows 商店占位符 python3），
@@ -906,13 +857,15 @@ DUPS=$(grep -oh '\\label{[^}]*}' figures/latex_includes.tex 2>/dev/null | sort |
 
 ### Step 9: Final quality gate
 
+引擎 finish 承接 `figure_provenance`（溯源/blocking）与 `figure_plan_reconciliation`（对账/交付档 blocking，探索档 advisory）。自查版式账本/结构脚本/视觉未解决项/PDF 字体压盖/latex_includes/体量；❌ 按 diagnostics 修。
+
 ```bash
 echo "=========================================="
 echo "  DRAWIO/TIKZ QUALITY GATE"
 echo "=========================================="
 GATE_FAIL=0
 
-# DrawIO diagrams
+# DrawIO 产物/PDF 配对（规划项对账另见 figure_plan_reconciliation）
 DRAWIO_COUNT=$(ls figures/*.drawio 2>/dev/null | wc -l)
 DRAWIO_PDF=0
 for df in figures/*.drawio; do
@@ -922,10 +875,8 @@ for df in figures/*.drawio; do
 done
 if [ "$DRAWIO_COUNT" -gt 0 ] && [ "$DRAWIO_PDF" -eq "$DRAWIO_COUNT" ]; then
     echo "✅ DrawIO: $DRAWIO_COUNT .drawio files, all exported to PDF"
-elif [ "$DRAWIO_COUNT" -gt 0 ]; then
-    echo "❌ DrawIO: $DRAWIO_COUNT .drawio but only $DRAWIO_PDF PDFs"; GATE_FAIL=$((GATE_FAIL+1))
 else
-    echo "❌ No DrawIO diagrams generated"; GATE_FAIL=$((GATE_FAIL+1))
+    echo "❌ DrawIO: $DRAWIO_COUNT .drawio / $DRAWIO_PDF PDFs"; GATE_FAIL=$((GATE_FAIL+1))
 fi
 
 # ⛔ 版式账本硬门：ledger 缺失/非法 → 阻断
@@ -1041,22 +992,7 @@ echo ""
 [ "$GATE_FAIL" -eq 0 ] && echo "✅ ALL PASSED" || echo "❌ $GATE_FAIL FAILURES — fix and re-run"
 ```
 
-**⛔ If GATE_FAIL > 0:**
-1. **逐个修复每个 ❌ 项**（重新生成 .drawio → 导出 → 自检，或重新编译 TikZ，或追加 latex_includes）
-2. **重新运行本质量门脚本**
-3. **重复直到 GATE_FAIL = 0**
-4. **不允许带着任何 ❌ 结束本步骤。** 如果某张图反复失败，启用跨工具兜底（DrawIO↔TikZ）
-
-**⛔ 质量门全部通过后，输出最终 CHECKLIST 确认：**
-```
-DRAWIO PLAN CHECKLIST (FINAL):
-[✅] 1. fig_roadmap — figures/fig_roadmap.pdf (XX KB) — drawio_check PASS
-[✅] 2. fig_flow_q1 — figures/fig_flow_q1.pdf (XX KB) — drawio_check PASS
-[✅] 3. fig_flow_q2 — figures/fig_flow_q2.pdf (XX KB) — drawio_check PASS
-[✅] 4. fig_pipeline — figures/fig_pipeline.pdf (XX KB)
-[✅] latex_includes.tex — contains 4 DrawIO entries
-ALL COMPLETE — paper-figure-drawio step finished successfully
-```
+**⛔ 有 ❌ 逐项返修后重跑，直到 `GATE_FAIL=0`；反复失败走 DrawIO↔TikZ。**
 
 ## Key Rules
 
@@ -1065,7 +1001,7 @@ ALL COMPLETE — paper-figure-drawio step finished successfully
 - All edges: `jumpStyle=arc;jumpSize=6;rounded=1`
 - ⛔ Edges must NOT cross nodes or obscure text
 - Component spacing 30-50px, grid alignment (`gridSize=10`)
-- Default color scheme: academic blue `#dae8fc`/`#6c8ebf`
+- Default color scheme: academic blue `#dae8fc`/`#6c8ebf`；分类色/禁用清单以 `skills/paper-figure-palette/assets/palette_registry.json` 为准
 - Each mxCell id must be globally unique
 - Chinese text in UTF-8, XML special chars must be escaped
 - ⛔ No `shadow=1`, no XML comments, no `shape=callout`
@@ -1075,11 +1011,11 @@ ALL COMPLETE — paper-figure-drawio step finished successfully
 
 ## 退出判据（Verification）
 
-本步完成前逐项自检（不达标即视为未完成）：
+引擎已承接可程序化项（`figure_provenance`、`figure_plan_reconciliation`）；以下语义项由出图人逐项自检（不达标即视为未完成）：
 
 - [ ] 架构图与正文所述模块/流程一致
 - [ ] 图形为矢量可编辑（非截图）
-- [ ] 配色取自统一注册表
+- [ ] 配色取自 `skills/paper-figure-palette/assets/palette_registry.json`
 - [ ] 图注与正文引用一致
 
 ## 常见合理化（Common Rationalizations）

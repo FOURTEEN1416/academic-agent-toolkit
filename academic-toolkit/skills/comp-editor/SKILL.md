@@ -7,11 +7,11 @@ description: Use when a mathematical modeling competition draft needs controlled
 
 ## Inputs
 
-Read `PAPER_SCORING.json` (the nine-dimension scoring detail produced by the paper-writing step `comp-paper-zh`, step 8 in `comp_cumcm`: each dimension's `score` with its body/figure/table location, plus `fatal_dimensions` and the resulting loss list), `COMP_REVIEW_VERDICT.json`, `VISUAL_REVIEW_VERDICT.json`, the associated markdown reports, the current paper sources, captions, and the canonical result ledger. Treat a missing report or invalid verdict as a blocking issue, not an invitation to infer reviewer intent. When the workflow's paper-writing step is `comp-paper-zh`, a missing or unparseable `PAPER_SCORING.json` is equally blocking. If the workflow predates the scoring artifact or uses `comp-paper-en`, record the absence in `EDITOR_CHANGELOG.md` and work from the verdict findings only — never invent scores.
+Read `PAPER_SCORING.json` (the nine-dimension scoring detail produced by the paper-writing step `comp-paper-zh`, step 8 in `comp_cumcm`: each dimension's `score` with its body/figure/table location, plus `fatal_dimensions` and the resulting loss list), `COMP_REVIEW_VERDICT.json`, `VISUAL_REVIEW_VERDICT.json`, the associated markdown reports, the current paper sources, captions, and the canonical result ledger. Treat a missing report or invalid verdict as a blocking issue, not an invitation to infer reviewer intent. `PAPER_SCORING.json` is a conditional input keyed by the workflow template's explicit `paper_scoring` declaration: when the template declares `paper_scoring: true` (its `comp-paper-zh` step lists `PAPER_SCORING.json` in `output_files`), a missing or unparseable scoring file is blocking; when it declares `paper_scoring: false` — or the workflow predates the scoring artifact, or uses `comp-paper-en` — record the absence in `EDITOR_CHANGELOG.md` and work from the verdict findings only, never inventing scores. **No-verdict fallback:** some chains (e.g. `comp_stats`) have no `comp-review` step, so `COMP_REVIEW_VERDICT.json` has no producer. In that case record the precondition in `EDITOR_CHANGELOG.md` and run the edit pass from the current paper plus the `RESULTS.md` self-audit instead; do not treat an artifact the chain cannot produce as a blocking input.
 
 ## Execution
 
-1. Build two worklists: (a) unresolved finding IDs and their requested fixes; (b) loss dimensions from `PAPER_SCORING.json`. A dimension enters worklist (b) when it appears in `fatal_dimensions` or scores below the 5-point signal of the scoring framework. Prioritize `fatal_dimensions` and dimensions at or below the 3-point signal; a 4-point dimension gets only evidence-located small fixes, not restructuring.
+1. Build two worklists: (a) unresolved finding IDs and their requested fixes; (b) loss dimensions from `PAPER_SCORING.json` — only when the template declares `paper_scoring: true` and the file is present. A dimension enters worklist (b) when it appears in `fatal_dimensions` or scores below the 5-point signal of the scoring framework. Prioritize `fatal_dimensions` and dimensions at or below the 3-point signal; a 4-point dimension gets only evidence-located small fixes, not restructuring.
 2. For every loss dimension, choose the edit action from the mapping table below. Every edit must cite either a finding ID or a dimension name plus its scoring evidence location.
 3. Modify prose, captions, layout, references, or declared delivery materials only for those IDs and dimensions.
 4. Do not alter data, model outputs, equations, or headline metrics without a new computation, updated result ledger, and fresh execution evidence from the responsible step.
@@ -49,7 +49,7 @@ Write `EDITOR_CHANGELOG.md`. For every reviewed finding ID and every loss dimens
 
 - [ ] 每条修改可追溯（改了什么、依据哪条意见或哪个失分维度）
 - [ ] 只改被指出的问题，不顺手改结构
-- [ ] `PAPER_SCORING.json` 的每个失分维度都已处置：改稿闭环，或写明需回流的步骤与理由
+- [ ] 模板声明 `paper_scoring: true` 时，`PAPER_SCORING.json` 的每个失分维度都已处置：改稿闭环，或写明需回流的步骤与理由；声明 `false` 时已在 `EDITOR_CHANGELOG.md` 记明缺件理由并按既判发现处置
 - [ ] 失分定位（段落/图/表）与改动一一对应，未用措辞掩盖需重算的失分
 - [ ] 改动后与正文数值/结论保持一致
 - [ ] 不引入新的事实性断言

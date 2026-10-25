@@ -22,45 +22,22 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 
 ## ⛔ 结果约束审计（写入 RESULTS.md 前必做）
 
-
-
 > **核心问题：「优化/求解/统计推断的结果」与「正文图表引用的结果」不一致是常见 bug。**
 
-> 详见 `_utils/error_prevention.md` 第九章（comp-modeling 防错手册）。
+**适用**：优化求解 / 参数估计 / 置信区间 / 硬物理或业务约束 / 因果识别（IV、DiD 等）/ 仿真实验必做；纯描述统计或可视化 EDA 只需第 1 条，约束条数记 `n_constraints=0`。
 
-
-
-**触发条件**：本步骤涉及优化求解 / 参数估计 / 置信区间 / 硬物理或业务约束 / 因果识别（IV、DiD 等）/ 仿真实验时，**必做**以下复核；
-
-若任务只是纯描述统计或可视化 EDA，**仅需完成第 1、3、4 项，第 2 项可写 `n_constraints=0` 跳过**。
-
-
-
-1. **从最终落盘的 JSON 重新计算合理性**（不要信任求解器的 "converged=True" 标记，也不要相信进程内变量）
-
-2. **物理/业务约束硬边界复核**（变量范围、符号、守恒律、单调性等；对纯 EDA 任务可填 `n_constraints=0`）
-
-3. **历史产物清理**：跑前删除 `*_v[0-9]*.json`、`*_old.json` 等旧版本，确保只有当前一次跑的结果
-
-4. **RESULTS.md 末尾必须有审计凭证**：
+1. **从最终落盘的 JSON 重新计算合理性** — 不要信任求解器的 `converged=True` 标记，也不要相信进程内变量
+2. **物理/业务约束硬边界复核** — 变量范围、符号、守恒律、单调性等（无约束任务填 `n_constraints=0`）
+3. **历史产物清理** — 跑前删除 `*_v[0-9]*.json`、`*_old.json` 等旧版本，确保只有当前一次跑的结果
+4. **RESULTS.md 末尾写审计凭证**（格式契约，`n_constraints` 为本次复核通过的约束条数）：
 
    ```html
-
    <!-- AUDIT_OK source=<json路径> rechecked_at=<timestamp> n_constraints=<N> -->
-
    ```
 
-   `n_constraints` 为本次复核通过的约束条数（无约束任务填 0）；缺这一行：本步骤不通过。
+判据口径：归一化指标（R²/accuracy/precision/recall/f1/auc）> 0.99 → 疑似过拟合/数据泄漏，逐条结合背景确认；R² < 0.5 → 模型形式或预处理有错，必须换模型；误差为负、NaN/Inf、p 值 > 1 → 硬错误；提升幅度 > 100% → 必须说明来源。
 
-
-
-具体约束的可机器审计 lambda 形式 + 模板代码：见 `_utils/error_prevention.md` 第九章。
-
-
-
----
-
-
+**引擎承接**：机器可判部分由 `result_sanity_check` 负责（`session finish` 自动跑；单跑 `cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check result_sanity_check`），覆盖凭证缺失、NaN/Inf、负误差、R² < 0.5、p 值越界与历史 JSON 残留；修复提示见检查器 `fix_hint`。具体约束的可机器审计 lambda 形式 + 模板代码见 `academic-toolkit/skills/_utils/error_prevention.md` 第九章。
 
 ## 输入
 
@@ -76,30 +53,14 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent
 
 
 
-## ⛔⛔⛔ 完成铁律（最高优先级，违反则本步骤失败）
+## 产出契约
 
-
-
-**本步骤必须产出 `RESULTS.md`（≥ 1KB）+ 至少 1 个 `figures/*.json`**。否则下游步骤拿不到数据。
-
-
-
-**任何理由都不能绕过这条铁律**。具体来说：
-
-
+**本步骤必须产出 `RESULTS.md`（≥ 1KB）+ 至少 1 个 `figures/*.json`**，否则下游步骤拿不到数据。
 
 1. **不要"边写边算"**：先用 Python 脚本算完所有结果落到 `figures/all_results.json`，再统一写 `RESULTS.md`
-
 2. **不要在工作流末尾才创建文件**：每完成一个分析任务立刻 `cat << EOF >> RESULTS.md` 追加（避免 token 用完时整个 RESULTS.md 还没写）
 
-
-
-
 产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
-
-**如果验证失败,继续补全产出而不是退出**。执行 Agent 必须看到"✅"才能结束本步骤。
-
-
 
 ## 执行与产出
 
@@ -490,151 +451,9 @@ python -m code.main
 
 ### Step 6: 结果验证 + 完整性检查
 
+**⛔ 第一步：自动化"太完美"检测（引擎承接）**
 
-
-**⛔ 第一步：自动化"太完美"检测（查 AI 编造结果 / 过拟合）：**
-
-
-
-```python
-
-# code/sanity_check.py — 检测不合理数值
-
-import json, os, sys, math
-
-
-
-results = {}
-
-for f in sorted(os.listdir('figures')):
-
-    if f.endswith('_results.json') or f == 'all_results.json':
-
-        try:
-
-            with open(f'figures/{f}', 'r') as fh:
-
-                results[f] = json.load(fh)
-
-        except: pass
-
-
-
-errors, warnings, suspicious = [], [], []
-
-
-
-def check_unrealistic(name, val):
-
-    if not isinstance(val, (int, float)) or isinstance(val, bool): return
-
-    key = name.lower()
-
-    # 归一化指标：R²/accuracy/precision/recall/f1/auc（>0.99 标记）
-
-    if any(w in key for w in ['r2', 'r_squared', 'accuracy', 'acc', 'precision', 'recall', 'f1', 'auc']):
-
-        if val > 0.99:
-
-            suspicious.append(f"🚩 {name} = {val:.4f}（>0.99），请在审查中确认是否过拟合")
-
-        elif val < 0:
-
-            errors.append(f"❌ {name} = {val} 负值（模型比均值预测还差，必须换模型）")
-
-        elif val < 0.5 and any(w in key for w in ['r2', 'r_squared']):
-
-            errors.append(f"❌ {name} = {val:.4f}（R² < 0.5，模型解释力极弱，必须改进模型或检查数据预处理）")
-
-    # 误差类：RMSE/MAE/MSE/Loss
-
-    if any(w in key for w in ['rmse', 'mae', 'mse', 'loss']):
-
-        if val == 0:
-
-            suspicious.append(f"🚩 {name} = 0 完美误差，请确认训练/测试是否分开")
-
-        elif val < 0:
-
-            errors.append(f"❌ {name} = {val} 误差不应为负")
-
-    # 提升百分比（>100% 标记）
-
-    if any(w in key for w in ['improvement', 'speedup', 'gain', '提升', '改进']):
-
-        if val > 1:  # >100%
-
-            suspicious.append(f"🚩 {name} = {val:.2f}（提升 {val*100:.0f}%），请结合研究背景确认")
-
-    # p-value
-
-    if 'p_value' in key or 'pvalue' in key or 'p值' in key:
-
-        if val == 0:
-
-            suspicious.append(f"🚩 {name} = 0 完美显著（应 > 1e-16），请确认")
-
-        elif val > 1:
-
-            errors.append(f"❌ {name} = {val} p 值 > 1 不可能")
-
-
-
-def walk(obj, path=""):
-
-    if isinstance(obj, dict):
-
-        for k, v in obj.items(): walk(v, f"{path}.{k}")
-
-    elif isinstance(obj, list):
-
-        for i, v in enumerate(obj): walk(v, f"{path}[{i}]")
-
-    elif isinstance(obj, (int, float)):
-
-        if isinstance(obj, float):
-
-            if math.isnan(obj): errors.append(f"❌ {path} 为 NaN")
-
-            elif math.isinf(obj): errors.append(f"❌ {path} 为 Inf")
-
-        check_unrealistic(path, obj)
-
-
-
-for fname, data in results.items():
-
-    walk(data, fname)
-
-
-
-for e in errors: print(e)
-
-for s in suspicious: print(s)
-
-if errors:
-
-    print(f"\n❌ {len(errors)} 个硬错误 — 必须修复"); sys.exit(1)
-
-if suspicious:
-
-    print(f"\n🚩 {len(suspicious)} 个可疑的'完美'结果 — 逐条确认：")
-
-    print("  1. 训练/测试是否真的分开了？（数据泄漏最常见的原因）")
-
-    print("  2. 样本量是否足够？（<100 时 R²>0.95 通常是过拟合）")
-
-    print("  3. 自变量是否含因变量函数？（回归中最易犯的错）")
-
-    print("  4. 如果确实合理（物理仿真/确定性问题），在 RESULTS.md 中明确说明")
-
-elif not errors:
-
-    print("✅ 所有数值通过 sanity check")
-
-```
-
-
+由引擎检查 `result_sanity_check` 承接（`session finish` 自动跑；单跑 `cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check result_sanity_check`）。判据口径：归一化指标 > 0.99 → 疑似过拟合/数据泄漏，逐条结合背景确认；R² < 0.5 → 换模型或查预处理；误差为负 / NaN / Inf / p 值 > 1 → 硬错误；零误差、p 值 = 0、提升 > 100% → 逐条说明。修复提示见检查器 `fix_hint`。
 
 **⛔ 第 1.5 步：结合研究背景的全面合理性审查（最关键）：**
 
@@ -880,229 +699,28 @@ Q9. [与研究设计一致] 实际结果是否与 PAPER_PLAN.md 中的研究设�
 
 
 
-**⛔ 第二步：智能自检（代码跑完后，你必须逐项回答以下问题）：**
-
-
-
-读取 PAPER_PLAN.md（或 TOPIC_PLAN.md）和 RESULTS.md，对照研究设计逐项自检。
-
-
-
-**通用检查（必做）：**
-
-```
-
-=== 通用自检 ===
-
-1. [研究覆盖] 论文大纲中规划的分析任务是否全部完成？缺了哪个？
-
-2. [数值合理] 结果数值是否符合领域常识？（回归系数方向、效应大小）
-
-3. [NaN/Inf] JSON 结果中是否有 NaN、Inf、null？
-
-4. [统计规范] 是否报告了所有必要的统计量？（系数、标准误、p值、R²、样本量）
-
-5. [数据一致] 描述性统计的样本量是否与回归分析一致？
-
-```
-
-
-
-**统计/实证类检查（论文写作场景必做）：**
-
-```
-
-=== 统计/实证类 ===
-
-S1. [多重共线性] VIF 是否有 > 10 的变量？
-
-S2. [内生性] 是否考虑了遗漏变量/反向因果？
-
-S3. [异方差] 是否用了稳健标准误？
-
-S4. [p值分布] 是否所有 p 值都 < 0.001？（太完美=可疑）
-
-S5. [样本量] 截面 ≥ 200？面板 ≥ 30×10？时间序列 ≥ 100？
-
-S6. [稳健性] 是否做了至少一种稳健性检验？
-
-S7. [过拟合] R² < 0.99？训练集和测试集差距 < 10%？
-
-```
-
-
-
-对每项回答 ✅ 或 ❌ + 原因。如果有 ❌，修改代码重跑。
-
-
-
-**⛔ MANDATORY: 对照 Step 1 的分析清单，逐项验证：**
-
-
-
-```bash
-
-echo "=== 分析清单对照 ==="
-
-echo "检查结果文件："
-
-for f in figures/descriptive_stats.json figures/all_results.json figures/robustness_results.json; do
-
-    if [ -f "$f" ] && [ -s "$f" ]; then
-
-        echo "  ✅ $f ($(wc -c < "$f") bytes)"
-
-    else
-
-        echo "  ❌ $f — MISSING or EMPTY"
-
-    fi
-
-done
-
-echo ""
-
-echo "检查分析结果 JSON："
-
-ls -la figures/analysis_*_results.json 2>/dev/null || echo "  (无)"
-
-echo ""
-
-echo "检查代码文件："
-
-for f in code/*.py; do
-
-    [ -f "$f" ] && echo "  ✅ $(basename $f)" || echo "  ❌ $(basename $f)"
-
-done
-
-```
-
-
-
-**如果有 ❌，必须回去补完再继续。**
-
-
-
-**⛔ MANDATORY: 下游预期检查（paper-figure / paper-write 需要什么）：**
-
-
-
-```bash
-
-echo "=== 下游预期检查 ==="
-
-# 1. 图表规划中的每张图是否都有对应 JSON 数据
-
-if [ -f PAPER_PLAN.md ]; then
-
-    echo "--- 图表规划 vs JSON 数据 ---"
-
-    # 提取规划中的图表文件名（fig_xxx 或 fig_yyy 形式）
-
-    PLANNED_FIGS=$(grep -o 'fig_[a-zA-Z_0-9]*' PAPER_PLAN.md 2>/dev/null | sort -u)
-
-    for fig in $PLANNED_FIGS; do
-
-        # 对应的 JSON 是否存在或 all_results.json 中有对应 key
-
-        if [ -f figures/all_results.json ] && grep -q "$fig\|${fig#fig_}" figures/all_results.json 2>/dev/null; then
-
-            echo "  ✅ $fig — 在 all_results.json 中找到对应数据"
-
-        elif [ -f "figures/${fig}_results.json" ]; then
-
-            echo "  ✅ $fig — 有独立 JSON 文件"
-
-        else
-
-            echo "  ⚠ $fig — 未找到支撑数据（paper-figure 将难以画图）"
-
-        fi
-
-    done
-
-fi
-
-
-
-# 2. Claims-Evidence 回填：PAPER_PLAN.md 中每个 claim 是否都有 evidence
-
-if [ -f PAPER_PLAN.md ]; then
-
-    echo ""
-
-    echo "--- Claims-Evidence 回填检查 ---"
-
-    python3 -c "
-
-import re, json, os
-
-try:
-
-    plan = open('PAPER_PLAN.md', 'r', encoding='utf-8').read()
-
-except: exit(0)
-
-# 提取 claims-evidence 表格（| Claim | Evidence | ... |）
-
-rows = re.findall(r'\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|', plan)
-
-# 过滤表头和分隔符
-
-claims = [(c.strip(), e.strip()) for c, e in rows if c.strip() not in ('Claim', '---') and '---' not in c and len(c.strip()) > 5]
-
-if not claims:
-
-    print('  （未检测到 Claims-Evidence 矩阵）')
-
-    exit(0)
-
-# 加载实验数据
-
-results_text = ''
-
-for f in ['figures/all_results.json', 'RESULTS.md', 'experiment_results.md']:
-
-    if os.path.exists(f):
-
-        try: results_text += open(f, 'r', encoding='utf-8').read()
-
-        except: pass
-
-missing = []
-
-for c, e in claims[:10]:  # 最多检查前 10 个
-
-    # Evidence 里提到的关键词是否在结果数据中出现
-
-    keywords = re.findall(r'[a-zA-Z_]{4,}|[\u4e00-\u9fff]{2,}', e)[:3]
-
-    if not any(kw.lower() in results_text.lower() for kw in keywords):
-
-        missing.append(c[:40])
-
-if missing:
-
-    print(f'  ⚠ {len(missing)}/{len(claims)} claims 在实验数据中找不到对应证据:')
-
-    for m in missing[:5]: print(f'    - {m}')
-
-else:
-
-    print(f'  ✅ {len(claims)} claims 在实验数据中都能找到对应证据')
-
-" 2>/dev/null || echo "  (Python 检查失败，跳过)"
-
-fi
-
-```
-
-
-
-如果下游预期检查发现缺失，考虑补充对应的分析代码再重跑，或在 RESULTS.md 中明确标注该 claim 需要的数据还没算。
-
-
+**语义审查与下游对账（机器判不了的部分）**
+
+通用：
+- **研究覆盖**：PAPER_PLAN.md 规划的分析任务全部完成，方法没有被偷换成更简单的替代
+- **统计规范**：每个模型报告系数、标准误、p 值、R²/拟合指标、样本量；描述性统计与回归分析的样本量口径一致
+- **稳健性**：至少一种稳健性检验，且与主模型方向一致；方向相反或差异巨大说明主模型不可靠
+
+统计/实证类（论文写作场景）：
+- **多重共线性**：VIF > 10 的变量必须处理（删变量/合并/正则化）
+- **内生性**：检查遗漏变量与反向因果
+- **异方差**：使用稳健标准误
+- **p 值分布**：全部 p 值 < 0.001 是可疑信号（过拟合或数据泄漏）
+- **样本量**：截面 ≥ 200、面板 ≥ 30×10、时间序列 ≥ 100
+- **过拟合**：R² < 0.99；训练集与测试集指标差距 < 10%
+
+产物清单（存在性与最低完整性由 `finish` 按 `output_contract` 核验）：
+- `figures/descriptive_stats.json`、`figures/all_results.json`、`figures/robustness_results.json`、按任务拆分的 `figures/analysis_*_results.json`
+- `code/*.py`，入口 `code/main.py`
+
+下游预期（paper-figure / paper-write 的消费面）：
+- PAPER_PLAN.md 图表预规划里的每张 `fig_*` 都必须在 `figures/all_results.json`（或 `figures/<fig>_results.json`）有支撑数据，否则 paper-figure 画不出来
+- PAPER_PLAN.md 的 claims-evidence 矩阵每条 claim 都要能在结果数据中找到证据；缺的在 RESULTS.md 标注"该 claim 数据待补"
 
 ### Step 7: 结果汇总
 

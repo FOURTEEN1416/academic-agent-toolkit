@@ -101,38 +101,30 @@ done
 
 ## 赛事合规硬门禁（写稿前必读；不随结构细则进 playbook）
 
-**⛔ 国赛提交文件命名规则（仅 `comp_cumcm` 适用；以下两条规则均为国赛专属，其他赛事按各自官方要求执行，不套用）**：
+**⛔ 国赛提交文件命名（仅 `comp_cumcm`；其他赛事按各自官方要求，不套用）**：
 
-1. **所有提交文件必须以中文命名**，例如：`论文.pdf`、`代码说明.txt`、`支撑材料.pdf`、`AI工具使用详情.pdf`
-2. **禁止使用英文文件名**提交，如 `paper.pdf`、`code_description.txt` 等
-3. **程序说明仅使用 TXT 文件**（`代码说明.txt`），不使用 Markdown 或其他格式
-4. **压缩包命名**：`参赛编号+队号.zip`（如 `20260001_A01.zip`），内部文件中文命名
+1. 所有提交文件与压缩包内文件一律中文命名（`论文.pdf`、`代码说明.txt`、`支撑材料.pdf`、`AI工具使用详情.pdf`），禁止 `paper.pdf` / `code_description.txt` 类英文名
+2. 程序说明只用 TXT（`代码说明.txt`），不用 Markdown 或其他格式
+3. 压缩包命名 `参赛编号+队号.zip`（如 `20260001_A01.zip`）
 
-**⛔ AI工具使用声明规则（按赛事档案裁决，不静默跳过）**：
+**⛔ AI 工具使用声明（双件套：正文声明 + 独立支撑材料《AI工具使用详情.pdf》；按赛事档案裁决，不静默跳过）**：
 
 - **`comp_cumcm`（2026 国赛强制，档案已入库规定）**：
-1. **声明位置**：AI工具使用声明必须放在**参考文献之前**，不能放在附录中
-2. **声明内容**：用途逐项**如实**来自用户确认的使用记录（`.mh/ai_disclosure.json`，存在时）——实际使用了哪些环节（资料查询/语言润色/代码调试/图表制作/建模求解等）就声明哪些；**不得隐瞒实际发生的 AI 用途**（隐瞒或虚假声明按当届规程可取消评奖资格），也不得虚构未发生的用途
-3. **唯一生成通道**：`comp-cumcm-disclosure` 技能 / `skills/_utils/build_ai_disclosure.py` 程序化生成——禁止手写声明正文、禁止事后手工改写产物；声明正文与详情 PDF 口径必须一致（`--check-only` 会反查一致性）
-4. 格式骨架（由程序生成，此处仅为结构示意，勿照抄为终稿）：
+  1. 位置：**参考文献之前**，不得放附录
+  2. 内容：用途逐项**如实**取自用户确认的使用记录（`.mh/ai_disclosure.json`，存在时）——实际用了哪些环节（资料查询/语言润色/代码调试/图表制作/建模求解等）就声明哪些；隐瞒实际用途或虚构未发生用途均按当届规程可取消评奖资格
+  3. 唯一生成通道：`comp-cumcm-disclosure` 技能 / `skills/_utils/build_ai_disclosure.py` 程序化生成（规范见 `skills/_utils/ai_disclosure_rules.md`，双副本同 `skills/shared-scripts/`）；禁止手写声明正文、禁止事后手工改写产物；正文声明与详情 PDF 口径必须一致（`--check-only` 反查）。**未使用 AI 时同样用脚本生成"未使用"声明并清理旧详情文件。**
+  4. 骨架（程序生成的示意，勿照抄终稿）：
 
 ```latex
 \section*{AI工具使用声明}
 （由 build_ai_disclosure.py 依 .mh/ai_disclosure.json 如实生成）
 ```
 
-- **其他赛事**：档案（`contest_profile.compliance`）无当届 AI 声明规定 ⇒ **不得静默不生成、也不得套用国赛格式冒充合规**——在交付/交接说明中显式上报待核实项：`AI_USE_REPORT: 待核实（comp_<x> 当届 AI 声明规定未入库，提交前对照当届官方规程核实）`。内容一律只依据用户确认的记录（`.mh/ai_disclosure.json`，存在时），不虚构工具、日期、用途。用户关闭 AI_DISCLOSURE 开关只影响是否生成声明内容，不免除上述待核实上报。
+- **其他赛事**：档案（`contest_profile.compliance`）无当届 AI 声明规定 ⇒ 不得静默不生成、也不得套用国赛格式冒充合规——在交付/交接说明显式上报 `AI_USE_REPORT: 待核实（comp_<x> 当届 AI 声明规定未入库，提交前对照当届官方规程核实）`。内容只依据用户确认的记录（`.mh/ai_disclosure.json`，存在时），不虚构工具、日期、用途；关闭 AI_DISCLOSURE 开关只影响是否生成声明，不免除待核实上报。
 
 ## ⛔⛔⛔ 完成铁律（最高优先级）
 
-**根据 `params.output_format` 决定主产物**：
-
-- **PDF 模式（默认）**：`paper/main.tex`（≥ 5KB）+ `paper/sections/*.tex` + `paper/references.bib`
-
-- **docx 模式**：`paper/main.md`（单文件，≥ 5KB）。**禁止产 paper/main.tex**
-
-
-产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
+`params.output_format` 定：PDF（默认）= `paper/main.tex`（≥5KB）+ `paper/sections/*.tex` + `paper/references.bib`；docx = `paper/main.md`（单文件 ≥5KB，**禁止产 paper/main.tex**）。结构/存在性/完整性由 `finish` 按 `output_contract` 核验（`output_spec` / `min_size`），按 diagnostics 逐项修、不复制验证脚本；章节命名与落盘细则见 Step 7。
 
 
 ## 引用命令（全技能单一真源）
@@ -263,7 +255,7 @@ esac
 
 **触发**：全文写完、编译前。**细则**：`skills/comp-paper-zh/references/step_5_5_deai.md`
 
-- `python ../../skills/_utils/ai_tell_check.py --strict paper/` 必须 exit 0（本步受引擎 `ai_flavor` 闸：硬伤 + 空话 >3 处直接拒绝完成）。
+- 引擎 `ai_flavor` 闸在 `finish` 时按同一判据核验（`ai_tell_check --strict`，硬伤 + 空话 >3 处即拒绝完成）；单跑修：`python ../../skills/_utils/ai_tell_check.py --strict paper/`。
 - 工程 / 质检语汇、中文套话、内部标记（⛔✅❌ / RESULTS.md 等文件名 / HC-01 类编号）清零。
 
 ### Step 5.6: 写摘要（现在）
@@ -294,8 +286,8 @@ esac
 
 ## Key Rules
 
-- ⛔ **AI 申报双件套自动生成（合规硬要求）**：竞赛要求正文参考文献前放“AI 工具使用声明”+ 独立支撑材料《AI工具使用详情.pdf》。生成/核验必须用确定性脚本 `_utils/build_ai_disclosure.py`（双副本同 shared-scripts/，规范见 `_utils/ai_disclosure_rules.md`）：工具/型号/日期/用途只来自用户确认的清单（`.mh/ai_disclosure.json`），禁止语言模型自由编写详情；正文声明位置在参考文献之前；交付前必跑 `--check-only` 反查闸。未使用 AI 时用脚本生成“未使用”声明并清理旧详情文件。
-- ⛔ **AI 痕迹自检（交稿前必跑）**：`python ../../skills/_utils/ai_tell_check.py --strict paper/`（cwd=工作区根；双副本同 shared-scripts/）——工程/质检语汇（口径/闭环等）从提示词流进正文是实测最高频 AI 痕迹（10 工作区 442 次命中）；中文套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）与工程词同级硬拦，`--strict` 下剩余空话（由此可见/换言之等）也计失败；exit 1 时必修。人工风格对照 `_utils/human_competition_paper_style.md`，风格检查 `python ../../skills/_utils/human_paper_style_check.py paper/`。
+- ⛔ **AI 申报双件套**：正文「AI 工具使用声明」+《AI工具使用详情.pdf》——位置、如实申报口径与唯一生成通道见上文「赛事合规硬门禁」§AI 工具使用声明（工具/型号/日期/用途只取自 `.mh/ai_disclosure.json`，禁止语言模型自由编写）。
+- **AI 痕迹判据口径**（`ai_flavor` 闸的判定内容）：工程/质检语汇（口径/闭环等）从提示词流进正文是实测最高频 AI 痕迹（10 工作区 442 次命中）；中文套话（值得注意的是/综上所述/不难发现/显而易见/在此基础上/随着…的发展）与工程词同级硬拦，`--strict` 下剩余空话（由此可见/换言之等）也计失败。人工风格对照 `skills/_utils/human_competition_paper_style.md`，风格检查 `python ../../skills/_utils/human_paper_style_check.py paper/`。
 - **防过度/辩护性写作（修订轮主动推荐）**：修订或压缩页数时调 `anti-defensive-writing` 技能，删不必要的 hedge/免责声明/道歉式框架/过度解释——保留必要的范围、误差与方法学限定，删的是"可能在一定程度上"式空转措辞；深度检测可加跑 `anti-ai-detection` 技能（8 维度 AI 特征分析+改写建议）。与 ai_tell_check 互补：一个删 AI 痕迹语汇、一个删防御性冗余。
 
 - Use templates from `templates/`, do not write main.tex from scratch
@@ -328,31 +320,28 @@ esac
 
 ## ⛔ 数据可追溯性（写稿强制规则）
 
-> 防止「图文表面自洽但数据是历史版本」的 bug。详见 `_utils/error_prevention.md` 第九章。
+> 防「图文表面自洽但数据是历史版本」；详见 `skills/_utils/error_prevention.md` 第九章。
 
-正文/图表/附录引用的**每一个具体数字**必须满足：
+正文/图表/附录引用的**每一个具体数字**必须能在当前 `results.json` 或 `figures/all_results.json` 溯源，RESULTS.md 末尾带 `<!-- AUDIT_OK source=results.json rechecked_at=<timestamp> -->` 凭证，且工作区无 `results_v*.json` / `results_old.json` / `*_backup.json` 残留。这三条由引擎 `result_sanity_check` 在 `finish` 核验（另含 NaN/Inf、负误差、R²<0.5、p 值越界），单跑 `cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check result_sanity_check`；数字是否真进了正文由 `paper_consistency` 核验。
 
-1. 能在当前 `results.json` 或 `figures/all_results.json` 里 `grep` 到
+对**派生属性**（依赖载体 / 上游变量动态变化的作用范围、时变参数、状态依赖容量、时变转化率等），**禁止**简化成"以静态点为中心的固定区域"或"取均值后当常数"，除非确为静态实体且已显式声明简化条件。
 
-2. RESULTS.md 末尾有 `<!-- AUDIT_OK source=results.json rechecked_at=<timestamp> -->` 凭证
+语义终检仍归 `facts_audit`（无语义等价检查器），cwd=工作区根单跑：`(python skills/_utils/facts_audit.py --stage paper 2>/dev/null || python academic-toolkit/skills/_utils/facts_audit.py --stage paper 2>/dev/null || python ../../skills/_utils/facts_audit.py --stage paper) 2>&1 | tee -a AUDIT_REPORT.md`——[13] 正文结论一致性、[14] 事件源归属（"谁做了什么 N 次"须能从 results.json 的 verb_to_sources/events 反推）、[15] 数字溯源（60 采样+容差匹配）。**exit 1 = 有与 results.json 不一致或无法溯源的数字——改回真实值或删除，禁止带病编译。**
 
-3. 工作区没有 `results_v*.json` / `results_old.json` 等历史文件残留
+## 九维自评评分件（PAPER_SCORING.json，模板声明 paper_scoring: true 时必产）
 
-4. 描述任何"依赖载体 / 上游变量动态变化的派生属性"（作用范围 / 时变参数 / 状态依赖容量 / 时变转化率等）时，**禁止**简化成"以静态点为中心的固定区域"或"取均值后当常数"，除非确为静态实体且已显式声明简化条件
+完成初稿即按 `academic-toolkit/skills/math-modeling-contest-route-selection/references/paper-scoring-framework.md` 的 9 维逐维打 0-5 分，每维必须引用正文/图/表位置，写入 `PAPER_SCORING.json`：
 
-写完正文前自检（数据追溯）：
+- `scores`：非空对象，键为 9 个维度名，值含 `score` 与证据位置（正文/图/表）；
+- `weighted_total`：数值；
+- `fatal_dimensions`：数组（无致命维度写 `[]`）；
+- `selfcheck_failures`：数组。
 
-```bash
+引擎 `paper_scoring_contract` 在 `finish` 解析这三个字段（单跑 `cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check paper_scoring_contract`）；空对象、非法 JSON、缺字段均按 blocking 处理，不得只交一个存在但不可用的文件。仅模板显式 `paper_scoring: true`（`comp_cumcm` / `comp_huawei` / `comp_csf`）要求本文件；声明 `false` 的链不产评分件。
 
-grep -q '<!-- AUDIT_OK source=' RESULTS.md || echo "❌ 缺 AUDIT_OK 凭证 — 先回 comp-code 跑约束审计"
+## 本步引擎承接的判据
 
-ls results_v*.json results_old.json *_backup.json 2>/dev/null && echo "⚠ 历史版本 JSON 残留（版本漂移源），确认后删除"
-
-(python skills/_utils/facts_audit.py --stage paper 2>/dev/null || python academic-toolkit/skills/_utils/facts_audit.py --stage paper 2>/dev/null || python ../../skills/_utils/facts_audit.py --stage paper) 2>&1 | tee -a AUDIT_REPORT.md
-
-```
-
-`facts_audit --stage paper` 是权威终检：[13] 正文结论一致性、[14] 事件源归属（谁做了什么 N 次的指向性陈述必须能从 results.json 的 verb_to_sources/events 反推）、[15] 数字溯源（60 采样+容差匹配）。**exit 1 = 正文有与 results.json 不一致或无法溯源的数字——改回真实值或删除，禁止带病编译。**
+`finish` 自动跑：`result_sanity_check`（见上）、`paper_consistency`（正文引用结果数字）、`ai_flavor`（Step 5.5）、`figure_narrative`（Step 3）、`step_manifest`；`comp_cumcm` / `comp_huawei` 另有 `literature`，模板声明页数复核时 `paper_pages`（`PAGE_CAP` / `PAGE_SCOPE`）。语义判据留在正文规则：章序同模板 `\input`（§赛事结构）、摘要只写正文已有数值（Step 5.6）、扩写只往建模深度（Step 6）。
 
 ## 退出判据（Verification）
 

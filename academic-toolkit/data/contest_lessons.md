@@ -63,7 +63,7 @@
 - **触发**：审计文档自述"人肉按需取用，没有走每步申报 used/skipped 的闸门"，差距清单赛后才回忆补齐。
 - **决策**：每步完成强制申报本步推荐技能的 `used`/`skipped`（skipped 须非空理由），used 必须留真实痕迹。
 - **依据**：回忆不可信、不可审计；申报成本一行 JSON，收益是 AI 使用申报素材与能力利用率账本自动沉淀。
-- **强制点**：`academic-toolkit/engine/workflow_runner.py`
+- **强制点**：`academic-toolkit/engine/orchestration/workflow_runner.py`
 
 ### S6 · 工具箱自设阈值 vs 官方硬性规定
 
@@ -78,14 +78,14 @@
 - **决策**：审核类步骤必须派发**只读子智能体**，申报真实 `subagent_session` 与含真实工具调用的 `commands`。
 - **依据**：独立视角曾抓出 2 fatal + 1 major（漏用附件、跨问矛盾、过拟合）与 6 major 图表硬伤，
   全部被"自审 PASS"掩盖——自审恒等于表演。
-- **强制点**：`academic-toolkit/engine/workflow_runner.py`
+- **强制点**：`academic-toolkit/engine/orchestration/workflow_runner.py`
 
 ### S8 · 检查点是用户裁决点，不是"推进一下"的关卡
 
 - **触发**：检查点审批异常时直接改数据库状态绕过。
 - **决策**：只走 CLI **带内通道**推进；确需人工修复必须记录原因；跳过/伪造/绕过一律显式申报。
 - **依据**：改库绕过会让状态与事件链脱节，事后无法复盘"谁在什么依据下放行"。
-- **强制点**：`academic-toolkit/engine/workflow_runner.py`
+- **强制点**：`academic-toolkit/engine/orchestration/workflow_runner.py`
 
 ### S9 · 提交时间节点没有前置登记
 

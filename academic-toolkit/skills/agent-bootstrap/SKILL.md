@@ -71,7 +71,7 @@ MiMo Desktop / OpenCode / ZCode / 自写脚本）如何在 5 分钟内合法接�
 
 ## 关联
 
-- 协议实现: `academic-toolkit/engine/agent_protocol.py`
-- 能力探测: `academic-toolkit/engine/capability_probe.py`
+- 协议实现: `academic-toolkit/engine/host/agent_protocol.py`
+- 能力探测: `academic-toolkit/engine/host/capability_probe.py`
 - 工具铸造: `skills/tool-forge`
 - 可选适配器: 协议不依赖（`forge --adapter` 可本地生成）

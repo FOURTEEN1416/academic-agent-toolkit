@@ -73,9 +73,9 @@ agent_created: true
 缺陷：正文页数超限晚期才发现
   → 强制点：academic-toolkit/skills/_utils/quick_gates.py        （门禁前移）
 缺陷：审核产物可被主 Agent 手写伪造
-  → 强制点：academic-toolkit/engine/workflow_runner.py            （requires_subagent 强校验）
+  → 强制点：academic-toolkit/engine/orchestration/workflow_runner.py            （requires_subagent 强校验）
 缺陷：推荐技能用与不用零留痕
-  → 强制点：academic-toolkit/engine/workflow_runner.py            （C1 强制申报 + 痕迹绑定）
+  → 强制点：academic-toolkit/engine/orchestration/workflow_runner.py            （C1 强制申报 + 痕迹绑定）
 ```
 
 **找不到强制点怎么办**（三条出路，按优先级）：

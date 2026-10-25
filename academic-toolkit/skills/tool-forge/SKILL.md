@@ -64,7 +64,7 @@ status: active
 
 ## 关联
 
-- 实现: `academic-toolkit/engine/tool_forge.py`
-- 探测: `academic-toolkit/engine/capability_probe.py`
+- 实现: `academic-toolkit/engine/host/tool_forge.py`
+- 探测: `academic-toolkit/engine/host/capability_probe.py`
 - 自举: `skills/agent-bootstrap`
 - 目录: `capabilities/catalog.json`
