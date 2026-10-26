@@ -546,6 +546,7 @@ class WorkflowRunner:
                     step.name, declared_outputs=declared,
                     comp_name=contest_id if (step.metadata.get("revalidate_paper_pages")
                         or step.name in {"comp-compile-zh", "comp-compile-en"}) else "",
+                    contract_tier=_workflow_tier(workflow),
                     page_contract=page_contract,
                     requires_figures=step.name.startswith("paper-figure"),
                     required_checks=action.required_checks, primary_output=action.primary_output,

@@ -78,3 +78,26 @@ def test_missing_target_does_not_crash(tmp_path):
     ws = _ws(tmp_path, "\\input{nope_chapter}\n\\input{01_intro}\n")
     _write(ws / "paper" / "01_intro.tex", 300)
     assert [p.name for p in assembly_faces(ws / "paper" / "main.tex")] == ["01_intro.tex"]
+
+
+def test_sections_layout_without_input_is_measured(tmp_path):
+    """sections/ 兜底回归：main.tex 无 \\input、正文全在 sections/ 时不得静默放行。
+
+    旧实现 glob 兜底取 p.name 回拼 root，sections/ 前缀丢失 → 装配面恒为空，
+    分章布局的体量/引用判据形同虚设（2026-10-26 P4 收尾批观察在案，本批修复）。
+    """
+    ws = _ws(tmp_path, "\\begin{document}\n\\end{document}\n")
+    _write(ws / "paper" / "sections" / "01_intro.tex", 8000)
+    _write(ws / "paper" / "sections" / "02_method.tex", 8000)
+    faces = assembly_faces(ws / "paper" / "main.tex")
+    assert sorted(p.name for p in faces) == ["01_intro.tex", "02_method.tex"]
+    got = QualityGate(ws).check_min_size(SKILL, "paper/main.tex")
+    assert got["ok"] is True, got
+
+
+def test_sections_shell_without_body_still_fails(tmp_path):
+    """反向用例（牙）：sections/ 目录存在但无分章正文时，兜底修正不得放行薄壳。"""
+    (tmp_path / "paper" / "sections").mkdir(parents=True, exist_ok=True)
+    ws = _ws(tmp_path, "\\begin{document}\n\\end{document}\n")
+    got = QualityGate(ws).check_min_size(SKILL, "paper/main.tex")
+    assert got["ok"] is False and got["size"] < MIN_SIZE, got

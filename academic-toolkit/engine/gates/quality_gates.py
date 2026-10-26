@@ -1239,7 +1239,10 @@ def assembly_faces(main_tex: Path) -> list[Path]:
     except OSError:
         return []
     targets = [t.strip().replace("\\", "/") for t in TEX_TARGET_RE.findall(text)]
-    targets += [p.name for p in sorted((root / "sections").glob("*.tex"))]
+    # sections/ 约定兜底必须保留相对前缀：取 p.name 回拼 root 会把 sections/01_x.tex
+    # 解析成 root/01_x.tex——main.tex 无 \input、正文全在 sections/ 时装配面恒为空，
+    # 分章布局的体量/引用判据静默放行。
+    targets += [p.relative_to(root).as_posix() for p in sorted((root / "sections").glob("*.tex"))]
     for name in targets:
         if not name or ".." in Path(name).parts:
             continue
