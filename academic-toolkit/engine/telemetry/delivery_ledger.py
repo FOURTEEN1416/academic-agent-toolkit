@@ -4,7 +4,10 @@
 
 - ``record_delivery`` 记录一次技能正文投递。``channel`` 区分
   ``next``（workflow_cli next 注入）/ ``context``（显式 context 领取）/
-  ``finish_next``（finish 推进后自动注入下一步）。
+  ``finish_next``（finish 推进后自动注入下一步）；``delivered`` 区分
+  ``full``（完整正文）与 ``continuation``（P1 单次投递下的续接说明）。
+- ``last_full_delivery`` 只读查询本 attempt 内某技能是否已投过正文，供 P1
+  判定「本次只发续接说明」。
 - ``record_validation_round`` 记录一次 needs_work 返修轮次：round 在
   ``BEGIN IMMEDIATE`` 事务内分配（该 (workflow, step) 已有行数 + 1 后同事务
   INSERT），UNIQUE 冲突时事务内重分配；只计数，不改 status、不推进 attempt、
@@ -25,10 +28,12 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 # 投递来源：next=workflow_cli next 注入；context=显式 context；finish_next=finish 后的下一步注入。
+# channel 与 delivered 正交：channel 记来源，delivered 记本次投的是正文还是续接说明。
 DELIVERY_CHANNELS = ("next", "context", "finish_next")
 
-# delivered 取值：full=完整正文（P0 仍然全量投递）；P1 省略策略上线后才会出现 continuation。
-DELIVERY_MODES = ("full",)
+# delivered 取值：full=完整正文；continuation=本 attempt 内已投过正文，本次只投续接说明
+# （P1 单次投递，出厂关闭；开启后同一 attempt 的后续 context() 不再重发正文）。
+DELIVERY_MODES = ("full", "continuation")
 
 
 def _now() -> str:
@@ -68,6 +73,28 @@ def record_delivery(store, workflow_id: str, step_id: str, attempt_id: str, chan
             connection.rollback()
             raise
     return ordinal
+
+
+def last_full_delivery(store, workflow_id: str, step_id: str, attempt_id: str,
+                       name: str) -> dict | None:
+    """查本 attempt 内某技能的首次全量投递；无记录（含旧库缺表/读取失败）返回 None。
+
+    只读查询，不写库、不改判定。返回 ``name/sha256/bytes/operation_id``：正文的身份
+    （sha256/bytes）与首次读取操作号，供 P1 续接说明引用「仍然有效的那份正文」。
+    无记录时调用方按现状全量投递——埋点失败不会导致正文被省略。
+    """
+    try:
+        row = store._connection.execute(
+            "SELECT name, sha256, bytes, operation_id FROM context_deliveries "
+            "WHERE workflow_id=? AND step_id=? AND attempt_id=? AND name=? AND delivered='full' "
+            "ORDER BY rowid LIMIT 1",
+            (workflow_id, step_id, attempt_id, str(name))).fetchone()
+    except sqlite3.Error:
+        return None
+    if row is None:
+        return None
+    return {"name": str(row["name"]), "sha256": str(row["sha256"]),
+            "bytes": int(row["bytes"]), "operation_id": str(row["operation_id"])}
 
 
 def record_validation_round(store, workflow_id: str, step_id: str, attempt_id: str,

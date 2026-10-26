@@ -5,6 +5,7 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 from engine import delivery_ledger
+from engine.telemetry import context_delivery
 from engine.step_manifest import atomic_write_json
 from engine.workflow_store import StepStatus
 from .context import OperationContext
@@ -86,7 +87,32 @@ class ExecutionSession:
             raise ValueError(f"unknown delivery channel: {channel!r}")
         self.operations.require_active()
         required = list(dict.fromkeys([self.action.skill_name, *self.action.skill_binding.get("mandatory", [])]))
-        documents = [self.resources.read_resource(name) for name in required]
+        # P1 技能正文单次投递（出厂关闭，裁决 6.1 门控前提）：开关关闭时逐字节走
+        # 现状（每次全量重读+重发）；开启时同一 attempt 内已投过正文的技能不再重读，
+        # 改发续接说明（声明首条消息里的技能说明仍然有效、本次不重发）。
+        # 正文原先的 sha256/bytes/operation_id 来自账本的首次 full 投递：埋点缺失即
+        # 回落全量投递，不会因账本故障省略正文。
+        try:
+            single_delivery = context_delivery.single_delivery_enabled()
+        except Exception:  # 开关读取异常一律按出厂关闭，走现状全量投递
+            single_delivery = False
+        documents = []
+        for name in required:
+            prior = (delivery_ledger.last_full_delivery(
+                self.store, self.workflow_id, self.action.step_id,
+                self.action.attempt_id, name) if single_delivery else None)
+            if prior is None:
+                documents.append(self.resources.read_resource(name))
+                continue
+            documents.append({
+                "kind": "skill", "name": name,
+                "path": str((self.resources.skills_root / name / "SKILL.md").resolve()),
+                "sha256": prior["sha256"], "bytes": prior["bytes"],
+                "observation": "content_omitted_continuation", "content_omitted": True,
+                "read_ordinal": None, "first_read_in_attempt": False,
+                "operation_id": prior["operation_id"],
+                "content": context_delivery.continuation_notice(
+                    name, prior["sha256"], prior["bytes"])})
         documents.extend(self.resources.read_resource(a["name"], "asset") for a in self.action.assets if a.get("mandatory"))
         ticket = self.workspace / ".engine/sessions" / f"{self.action.attempt_id}.json"
         atomic_write_json(ticket, {"database": str(Path(self.store.db_path).resolve()),
@@ -132,14 +158,19 @@ class ExecutionSession:
         # P0 投递账本（零判定变更）：成功返回前对主技能 + mandatory 各记一条投递；
         # 资产不记（资产不应去重，验收只数 skill 类）。埋点自身失败逐条收口——
         # 不改变返回给模型的上下文内容，也不让账本击穿主链路。
+        # P1：续接说明记 delivered=continuation（bytes=说明文本字节，sha256 保留正文身份），
+        # 与 full 行在同一账本里分别可数；channel 仍记来源（next/context/finish_next）。
         for document in documents:
             if document.get("kind") != "skill":
                 continue
             try:
+                delivered = "continuation" if document.get("content_omitted") else "full"
+                delivered_bytes = (len(str(document.get("content", "")).encode("utf-8"))
+                                   if delivered == "continuation" else int(document["bytes"]))
                 delivery_ledger.record_delivery(
                     self.store, self.workflow_id, self.action.step_id,
                     self.action.attempt_id, channel, str(document["name"]),
-                    str(document["sha256"]), int(document["bytes"]), "full",
+                    str(document["sha256"]), delivered_bytes, delivered,
                     str(document["operation_id"]))
             except Exception:
                 pass

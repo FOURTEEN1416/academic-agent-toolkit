@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "single_delivery": false,
+  "rationale": "裁决 6.1 门控前提：P1 单次投递机制先落地、出厂关闭；默认路径必须与 P0 现状逐字节等价。仅当 V4 宿主 A/B（ZCode/OpenCode 各 20 次 next，传/不传 sha）证明读取次数真的下降且产出质量无退化后，才允许把 single_delivery 改为 true。文件必须留在 checkers/ 子目录：modex-core 根下 glob(\"*.json\") 与 _RULE_FILE_NAMES 会进 legacy 合同/候选 acceptance 哈希，根级新增 json 会改变哈希面。"
+}
