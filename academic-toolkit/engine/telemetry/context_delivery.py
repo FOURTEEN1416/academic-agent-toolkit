@@ -9,6 +9,15 @@
   说明——参照 Modex ``_continuation_prompt`` 语义：声明首条消息里的技能说明仍然
   有效、本次不再重发。
 
+配置查找顺序（``resolve_policy``）：工作区级 ``<workspace>/.engine/context_delivery.json``
+（存在且合法时优先——供 V4 宿主 A/B 在单个工作区开跑，不动全局出厂值）→ 全局
+``checkers/context_delivery.json`` → 出厂关闭。工作区文件缺失/非法时跳过并回落
+全局（非法不得启用，fail-open 只指向关闭）。
+
+``channel="resend"`` 是配套的求救通道：模型在上下文丢失时声明 ``SKILL_LOST``，
+执行方以 ``context(channel="resend")``（CLI：``next --resend``）强制重发全文，
+账本按 channel=resend 归因。
+
 配置放进 ``checkers/`` 子目录而非 modex-core 根：根下 ``glob("*.json")`` 会进
 legacy 合同/候选 acceptance 哈希，新增根级 json 会静默改变哈希面。
 
@@ -30,6 +39,12 @@ DEFAULT_POLICY = {"version": 1, "single_delivery": False}
 
 # 续接说明的稳定前缀（测试与人工排查都按它识别）。
 CONTINUATION_PREFIX = "【技能正文续接说明】"
+
+# 模型侧求救标记：上下文重置/压缩丢失了首条消息里的技能正文时声明（见 continuation_notice）。
+SKILL_LOST_MARKER = "SKILL_LOST"
+
+# 工作区级覆盖文件的固定位置（相对工作区根）。
+WORKSPACE_OVERRIDE_REL = Path(".engine") / "context_delivery.json"
 
 
 def policy_from_mapping(data: object) -> dict:
@@ -69,9 +84,30 @@ def single_delivery_enabled(policy: dict | None = None) -> bool:
     return current.get("single_delivery") is True
 
 
+def resolve_policy(workspace: Path | str | None = None) -> dict:
+    """按『工作区覆盖 → 全局 → 出厂』解析生效策略。
+
+    工作区文件存在且合法时其 ``single_delivery`` 优先（供 V4 宿主 A/B 单工作区
+    开跑）；缺失/非法时跳过并回落全局——非法的工作区文件不得启用未验证行为，
+    fail-open 只指向关闭。返回值附 ``source``/``status`` 供诊断。
+    """
+    if workspace is not None:
+        override = load_policy(Path(workspace) / WORKSPACE_OVERRIDE_REL)
+        if override.get("status") == "ok":
+            return override
+    return load_policy()
+
+
 def continuation_notice(name: str, sha256: str, skill_bytes: int) -> str:
-    """同一 attempt 后续投递的续接说明：正文仍然有效，本次不重发。"""
+    """同一 attempt 后续投递的续接说明：正文仍然有效，本次不重发。
+
+    附 SKILL_LOST 求救协议：模型上下文若因会话重置/压缩丢失了首条消息里的正文，
+    声明 SKILL_LOST，执行方以 ``context(channel="resend")``（CLI ``next --resend``）
+    强制重发全文。
+    """
     digest = str(sha256 or "")[:12]
     return (f"{CONTINUATION_PREFIX}技能 `{name}` 的完整正文已在本 attempt 的首条消息中投递"
             f"（sha256={digest}…，{int(skill_bytes)} B），该说明仍然有效，本次不再重复投递。"
-            "请按已收到的正文继续执行；如确需核对原文，用 read 重新读取该技能。")
+            "请按已收到的正文继续执行；如确需核对原文，用 read 重新读取该技能。"
+            f"若你的上下文中已看不到上述正文（会话重置或压缩丢失），请在回复首行声明 "
+            f"`{SKILL_LOST_MARKER}`，执行方将重发全文。")

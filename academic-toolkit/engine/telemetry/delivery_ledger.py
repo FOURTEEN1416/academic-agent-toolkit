@@ -27,9 +27,11 @@ import sqlite3
 from datetime import datetime, timezone
 from uuid import uuid4
 
-# 投递来源：next=workflow_cli next 注入；context=显式 context；finish_next=finish 后的下一步注入。
+# 投递来源：next=workflow_cli next 注入；context=显式 context；finish_next=finish 后的下一步注入；
+# resend=执行方在模型声明 SKILL_LOST（会话重置/压缩丢失正文）后请求的全量重发——
+# channel 值本身即重发语义：session.context() 见到 resend 一律投全文，绕过单次投递去重。
 # channel 与 delivered 正交：channel 记来源，delivered 记本次投的是正文还是续接说明。
-DELIVERY_CHANNELS = ("next", "context", "finish_next")
+DELIVERY_CHANNELS = ("next", "context", "finish_next", "resend")
 
 # delivered 取值：full=完整正文；continuation=本 attempt 内已投过正文，本次只投续接说明
 # （P1 单次投递，出厂关闭；开启后同一 attempt 的后续 context() 不再重发正文）。

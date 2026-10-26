@@ -92,15 +92,20 @@ class ExecutionSession:
         # 改发续接说明（声明首条消息里的技能说明仍然有效、本次不重发）。
         # 正文原先的 sha256/bytes/operation_id 来自账本的首次 full 投递：埋点缺失即
         # 回落全量投递，不会因账本故障省略正文。
+        # 开关按『工作区 .engine/context_delivery.json 覆盖 → 全局 checkers/ 配置』解析；
+        # channel="resend"（模型声明 SKILL_LOST 后执行方的求救重发）一律投全文，
+        # 不受单次投递去重约束，账本按 resend 通道归因。
         try:
-            single_delivery = context_delivery.single_delivery_enabled()
+            single_delivery = context_delivery.single_delivery_enabled(
+                context_delivery.resolve_policy(self.workspace))
         except Exception:  # 开关读取异常一律按出厂关闭，走现状全量投递
             single_delivery = False
         documents = []
         for name in required:
             prior = (delivery_ledger.last_full_delivery(
                 self.store, self.workflow_id, self.action.step_id,
-                self.action.attempt_id, name) if single_delivery else None)
+                self.action.attempt_id, name)
+                if single_delivery and channel != "resend" else None)
             if prior is None:
                 documents.append(self.resources.read_resource(name))
                 continue

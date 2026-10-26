@@ -233,3 +233,88 @@ def test_invalid_or_missing_policy_falls_back_to_full_delivery(tmp_path, monkeyp
     assert session.context()["documents"][0]["content"] == "Real task instructions for demo."
     assert len(_resource_reads(store, session.action.step_id, session.action.attempt_id)) == 4
     store.close()
+
+
+def test_continuation_notice_carries_skill_lost_protocol(tmp_path, monkeypatch):
+    """续接说明必须带 SKILL_LOST 求救协议：上下文丢失可请求重发，而不是静默盲飞。"""
+    notice = context_delivery.continuation_notice("demo", "a" * 64, 12345)
+    assert context_delivery.CONTINUATION_PREFIX in notice
+    assert context_delivery.SKILL_LOST_MARKER in notice
+    assert "重发" in notice
+
+    _enable(monkeypatch, tmp_path)
+    store, runner = _runner(tmp_path, [_demo_step("demo", "result.txt")], ["demo", "extra"])
+    workflow = runner.start("demo", tmp_path / "ws", {})
+    session = ExecutionSession(runner, workflow.id)
+    session.context()
+    second = session.context()
+    assert all(context_delivery.SKILL_LOST_MARKER in doc["content"] for doc in second["documents"])
+    store.close()
+
+
+def test_resend_channel_forces_full_redelivery(tmp_path, monkeypatch):
+    """channel="resend"（SKILL_LOST 求救）绕过单次投递去重：重发全文并入账本。"""
+    _enable(monkeypatch, tmp_path)
+    store, runner = _runner(tmp_path, [_demo_step("demo", "result.txt")], ["demo", "extra"])
+    workflow = runner.start("demo", tmp_path / "ws", {})
+    session = ExecutionSession(runner, workflow.id)
+    session.context()            # 首投 full
+    session.context()            # 续接 continuation
+
+    resent = session.context(channel="resend")
+    assert [doc["content"] for doc in resent["documents"]] == [
+        "Real task instructions for demo.", "Real task instructions for extra."]
+    assert not any(doc.get("content_omitted") for doc in resent["documents"])
+    # 重发真的重读了技能文件（+2 条 resource 操作），不是拿旧缓存冒充。
+    assert len(_resource_reads(store, session.action.step_id, session.action.attempt_id)) == 4
+
+    rows = _ledger_rows(store, workflow.id, session.action.step_id, session.action.attempt_id)
+    resend_rows = [row for row in rows if row["channel"] == "resend"]
+    assert len(resend_rows) == 2
+    assert {row["delivered"] for row in resend_rows} == {"full"}
+    assert {row["delivery_ordinal"] for row in resend_rows} == {3}
+    # 非法通道仍被显式拒绝（resend 是枚举成员，不是万能旁路）。
+    try:
+        session.context(channel="bogus")
+        raised = False
+    except ValueError:
+        raised = True
+    assert raised
+    store.close()
+
+
+def test_workspace_override_resolution(tmp_path, monkeypatch):
+    """工作区级覆盖：合法即优先（V4 单工作区开跑）；非法跳过回落全局，不得启用。"""
+    global_off = tmp_path / "global_off.json"
+    global_off.write_text(json.dumps({"version": 1, "single_delivery": False}), encoding="utf-8")
+    monkeypatch.setattr(context_delivery, "POLICY_PATH", global_off)
+
+    workspace = tmp_path / "ws"
+    override = workspace / ".engine" / "context_delivery.json"
+
+    # 无工作区文件 → 全局（关）。
+    assert context_delivery.resolve_policy(workspace)["single_delivery"] is False
+    # 工作区合法 true → 覆盖全局（开）。
+    override.parent.mkdir(parents=True, exist_ok=True)
+    override.write_text(json.dumps({"version": 1, "single_delivery": True}), encoding="utf-8")
+    resolved = context_delivery.resolve_policy(workspace)
+    assert resolved["single_delivery"] is True and resolved["status"] == "ok"
+    # 工作区非法 → 跳过回落全局（关），fail-open 只指向关闭。
+    override.write_text("{not json", encoding="utf-8")
+    assert context_delivery.resolve_policy(workspace)["single_delivery"] is False
+    # 工作区显式 false + 全局 true → 工作区赢（显式关闭优先）。
+    global_on = tmp_path / "global_on.json"
+    global_on.write_text(json.dumps({"version": 1, "single_delivery": True}), encoding="utf-8")
+    monkeypatch.setattr(context_delivery, "POLICY_PATH", global_on)
+    override.write_text(json.dumps({"version": 1, "single_delivery": False}), encoding="utf-8")
+    assert context_delivery.resolve_policy(workspace)["single_delivery"] is False
+
+    # 端到端：全局关 + 工作区开 → session 第二次 context() 走续接（session 真用覆盖链）。
+    monkeypatch.setattr(context_delivery, "POLICY_PATH", global_off)
+    override.write_text(json.dumps({"version": 1, "single_delivery": True}), encoding="utf-8")
+    store, runner = _runner(tmp_path, [_demo_step("demo", "result.txt")], ["demo", "extra"])
+    workflow = runner.start("demo", workspace, {})
+    session = ExecutionSession(runner, workflow.id)
+    session.context()
+    assert session.context()["documents"][0]["content_omitted"] is True
+    store.close()

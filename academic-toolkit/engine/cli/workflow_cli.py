@@ -404,6 +404,9 @@ def _build_parser() -> argparse.ArgumentParser:
     next_cmd = sub.add_parser("next")
     next_cmd.add_argument("--wf", required=True, help="工作流 ID")
     next_cmd.add_argument("--db", default="")
+    # SKILL_LOST 求救重发：模型上下文丢失技能正文时，执行方带 --resend 重拉全量
+    next_cmd.add_argument("--resend", action="store_true",
+                          help="强制重发技能正文全文（模型声明 SKILL_LOST 后使用）")
 
     # 完成当前步骤（agent 执行后调用）
     complete = sub.add_parser(
@@ -691,11 +694,13 @@ def _run_command(args, parser) -> int:
                     result.action, contract_tier=str(contract.get("tier") or "delivery"),
                     requires_collection=bool(workflow.metadata.get("delivery_candidate")))
                 # 默认下发可执行上下文；不让Agent重复计算hash或手建证据。
-                # channel 仅为投递账本归因（P0 只读埋点），不改变下发内容。
+                # channel 仅为投递账本归因（P0 只读埋点），不改变下发内容；
+                # --resend（SKILL_LOST 求救）时投全文并按 resend 通道入账本。
                 from execution.session import ExecutionSession
                 from execution.presentation import user_view
                 output["execution"] = user_view(ExecutionSession(
-                    runner, args.wf, result.action).context(channel="next"))
+                    runner, args.wf, result.action).context(
+                        channel="resend" if getattr(args, "resend", False) else "next"))
             if result.checkpoint_id:
                 # A5 ⑦ 修复：blocked 时直接给出待批 checkpoint UUID
                 output["checkpoint_id"] = result.checkpoint_id
