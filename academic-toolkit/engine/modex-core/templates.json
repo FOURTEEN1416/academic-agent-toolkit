@@ -1387,6 +1387,18 @@
     "display_name": "国赛数学建模 (CUMCM)",
     "paper_scoring": true,
     "paper_scoring_reason": "本链建立评分生产者合同：comp-paper-zh 第 8 步产出 PAPER_SCORING.json 并列入该步 output_files；comp-editor 与 comp-final-review 以九维评分和失分清单为输入，故显式声明 paper_scoring=true（必需）。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "PAPER_SCORING.json",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -2203,6 +2215,17 @@
     "display_name": "美赛 (MCM/ICM)",
     "paper_scoring": false,
     "paper_scoring_reason": "本链写作步是 comp-paper-en，output_files 不含 PAPER_SCORING.json，链内没有评分生产者；comp-editor 按 COMP_REVIEW_VERDICT.json 的既判发现改稿。显式声明 paper_scoring=false，避免 legacy 缺省把不存在的评分件变成候选冻结的隐性阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -2844,6 +2867,18 @@
     "display_name": "华为杯研究生数学建模",
     "paper_scoring": true,
     "paper_scoring_reason": "本链建立评分生产者合同：comp-paper-zh 第 8 步产出 PAPER_SCORING.json 并列入该步 output_files；comp-editor 与 comp-final-review 以九维评分和失分清单为输入，故显式声明 paper_scoring=true（必需）。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "PAPER_SCORING.json",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -3674,6 +3709,17 @@
     "display_name": "亚太地区数学建模 (APMCM 中文赛项)",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -4329,6 +4375,17 @@
     "display_name": "MathorCup 数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -4984,6 +5041,17 @@
     "display_name": "亚太数学建模 (APMCM)",
     "paper_scoring": false,
     "paper_scoring_reason": "本链写作步是 comp-paper-en，output_files 不含 PAPER_SCORING.json，链内没有评分生产者；comp-editor 按 COMP_REVIEW_VERDICT.json 的既判发现改稿。显式声明 paper_scoring=false，避免 legacy 缺省把不存在的评分件变成候选冻结的隐性阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -5244,6 +5312,51 @@
             "figure_outputs": "diagram"
           }
         }
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md",
+          "COMP_REVIEW_VERDICT.json"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核",
+          "companion_skills": [],
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "COMP_REVIEW.md": {
+              "min_bytes": 1500,
+              "require_any": [
+                "major",
+                "minor",
+                "fatal",
+                "结论"
+              ],
+              "rationale": "P5 退出判据：逻辑复核必须留下分级问题清单，拦'总体没问题'式空审"
+            }
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "academic-toolkit/skills/_utils/anti_rationalization.md"
+            }
+          ]
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-en",
@@ -5593,7 +5706,18 @@
     "pipeline_skill": "comp-statistics-topic",
     "display_name": "统计建模大赛",
     "paper_scoring": false,
-    "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json；且本链没有 comp-review 步，COMP_REVIEW_VERDICT.json 无生产者——comp-editor 按正文、RESULTS.md 与既有审稿材料自审改稿，并在 EDITOR_CHANGELOG.md 记明无评分/无 verdict 的前提；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-statistics-topic",
@@ -5806,6 +5930,51 @@
             "figure_outputs": "diagram"
           }
         }
+      },
+      {
+        "skill_name": "comp-review",
+        "display_name": "逻辑对抗复核",
+        "output_files": [
+          "COMP_REVIEW.md",
+          "COMP_REVIEW_VERDICT.json"
+        ],
+        "primary_output": "COMP_REVIEW.md",
+        "has_checkpoint": false,
+        "checkpoint_type": null,
+        "requires_subagent": true,
+        "metadata": {
+          "requires_subagent": true,
+          "required_checks": [
+            "review"
+          ],
+          "display_name": "逻辑对抗复核",
+          "companion_skills": [],
+          "skill_binding": {
+            "main_required": true
+          },
+          "output_specs": {
+            "COMP_REVIEW.md": {
+              "min_bytes": 1500,
+              "require_any": [
+                "major",
+                "minor",
+                "fatal",
+                "结论"
+              ],
+              "rationale": "P5 退出判据：逻辑复核必须留下分级问题清单，拦'总体没问题'式空审"
+            }
+          },
+          "assets": [
+            {
+              "name": "反合理化表",
+              "note": "跳过步骤的常见借口与反驳（本项目事故实证）；动手指令/写结论前先扫一遍",
+              "path": "academic-toolkit/skills/_utils/anti_rationalization.md"
+            }
+          ]
+        },
+        "required_checks": [
+          "review"
+        ]
       },
       {
         "skill_name": "comp-paper-zh",
@@ -6160,6 +6329,17 @@
     "display_name": "泰迪杯数据挖掘挑战赛",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -6809,6 +6989,17 @@
     "display_name": "认证杯数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -7458,6 +7649,17 @@
     "display_name": "华中杯数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -8108,6 +8310,17 @@
     "display_name": "华东杯数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -8757,6 +8970,17 @@
     "display_name": "五一杯数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -9413,6 +9637,17 @@
     "display_name": "数维杯数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -10061,6 +10296,17 @@
     "display_name": "中青杯数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -10710,6 +10956,17 @@
     "display_name": "长三角数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -11358,6 +11615,17 @@
     "display_name": "电工杯数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -12006,6 +12274,17 @@
     "display_name": "深圳杯数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -12655,6 +12934,17 @@
     "display_name": "华数杯数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -13303,6 +13593,17 @@
     "display_name": "天府杯数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -13952,6 +14253,17 @@
     "display_name": "辽宁省/东三省数学建模",
     "paper_scoring": false,
     "paper_scoring_reason": "本链未建立评分生产者合同：comp-paper-zh 步 output_files 不含 PAPER_SCORING.json，comp-editor 依据 COMP_REVIEW_VERDICT.json 的既判发现改稿；显式声明 paper_scoring=false，不虚增不存在的评分产物，也不让缺件成为静默阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -14612,6 +14924,17 @@
     "display_name": "认证杯国际赛 (小美赛)",
     "paper_scoring": false,
     "paper_scoring_reason": "本链写作步是 comp-paper-en，output_files 不含 PAPER_SCORING.json，链内没有评分生产者；comp-editor 按 COMP_REVIEW_VERDICT.json 的既判发现改稿。显式声明 paper_scoring=false，避免 legacy 缺省把不存在的评分件变成候选冻结的隐性阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -15253,6 +15576,17 @@
     "display_name": "数维杯国际赛",
     "paper_scoring": false,
     "paper_scoring_reason": "本链写作步是 comp-paper-en，output_files 不含 PAPER_SCORING.json，链内没有评分生产者；comp-editor 按 COMP_REVIEW_VERDICT.json 的既判发现改稿。显式声明 paper_scoring=false，避免 legacy 缺省把不存在的评分件变成候选冻结的隐性阻塞。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",
@@ -18212,6 +18546,18 @@
     "display_name": "仿真建模应用挑战赛（CSF）",
     "paper_scoring": true,
     "paper_scoring_reason": "本链建立评分生产者合同：comp-paper-zh 第 9 步产出 PAPER_SCORING.json 并列入该步 output_files；comp-editor 与 comp-final-review 以九维评分和失分清单为输入，故显式声明 paper_scoring=true（必需）。",
+    "review_inputs": [
+      "paper/main.tex",
+      "paper/main.pdf",
+      "RESULTS.md",
+      "figures/all_results.json",
+      "CONSISTENCY_REPORT.json",
+      "LITERATURE.md",
+      "PAPER_SCORING.json",
+      "COMP_REVIEW_VERDICT.json",
+      "VISUAL_REVIEW_VERDICT.json",
+      "EDITOR_CHANGELOG.md"
+    ],
     "sub_steps": [
       {
         "skill_name": "comp-problem-analysis",

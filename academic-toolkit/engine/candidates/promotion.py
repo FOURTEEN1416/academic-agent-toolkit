@@ -33,8 +33,11 @@ _REVIEW_ROLES = {
 
 # comp-final-review/SKILL.md 的固定读取清单。清单外的评审输入必须由
 # ``--root`` 显式覆盖，否则 candidate_review 会因读取集合外路径而失败。
-# PAPER_SCORING.json 是条件输入：只有模板顶层显式声明 ``paper_scoring: true``
-# 的链才要求它（裁决 6.6-A：3 真 / 16 假）；未声明按 legacy 口径仍要求。
+# P4-1（裁决 6.6-A）：每个 comp_* 模板顶层必须显式声明 ``review_inputs``
+# （允许空列表），冻结读取集合由声明推导；本元组只作为**未声明模板**的
+# legacy 缺省，保持 2026-10-25 改造前的行为。PAPER_SCORING.json 是条件输入：
+# 声明 ``paper_scoring: true`` 的链在自己的 review_inputs 里显式列入；
+# 未声明模板仍按 legacy 口径要求它（false 声明时由 paper_scoring 条件跳过）。
 _REVIEW_INPUTS = (
     "paper/main.tex",
     "paper/main.pdf",
@@ -49,6 +52,32 @@ _REVIEW_INPUTS = (
 )
 
 _RULE_FILE_NAMES = ("comp_rules.json", "quality_gates.json", "contest_models.json")
+
+
+def _review_inputs_for(template_name: str, catalog: Mapping[str, Any]) -> tuple[str, ...]:
+    """按模板显式声明推导候选冻结的评审输入清单。
+
+    P4-1：``review_inputs`` 是模板级契约（允许空列表）。字段缺席时回退到
+    ``_REVIEW_INPUTS``（legacy 口径），由 tests 层的一致性测试锁死「comp_*
+    模板必须显式声明」，避免新模板作者漏写后静默少冻结。
+    """
+    template = catalog.get(template_name) if isinstance(catalog, Mapping) else None
+    if not isinstance(template, dict) or "review_inputs" not in template:
+        return _REVIEW_INPUTS
+    raw = template["review_inputs"]
+    if not isinstance(raw, list):
+        raise PromotionError(
+            f"模板 {template_name} 的 review_inputs 必须是数组（允许空）: {type(raw).__name__}")
+    declared: list[str] = []
+    for item in raw:
+        if not isinstance(item, str) or not item.strip():
+            raise PromotionError(
+                f"模板 {template_name} 的 review_inputs 含非法条目（需非空字符串）: {item!r}")
+        name = item.strip()
+        if name in declared:
+            raise PromotionError(f"模板 {template_name} 的 review_inputs 重复声明: {name}")
+        declared.append(name)
+    return tuple(declared)
 
 
 def _canonical_json(value: Any) -> str:
@@ -163,13 +192,16 @@ def _trace_lineage(store, workflow_id: str, source, workspace: Path, roots: list
 
 def _freeze_inputs(lineage: Mapping[str, Any], roots: list[dict[str, Any]],
                    accepted: Mapping[str, Mapping[str, Any]],
-                   missing: list[str], *, paper_scoring_required: bool = True) -> dict[str, dict[str, Any]]:
-    """lineage 输入 + comp-final-review 固定读取清单，统一成 inputs_json。
+                   missing: list[str], *, paper_scoring_required: bool = True,
+                   review_inputs: Iterable[str] | None = None) -> dict[str, dict[str, Any]]:
+    """lineage 输入 + 模板声明的评审输入清单，统一成 inputs_json。
 
+    ``review_inputs`` 为 None 时按 legacy 元组处理（未声明模板的旧行为）。
     ``paper_scoring_required=False``（模板显式声明 ``paper_scoring: false``）时
     不把 PAPER_SCORING.json 记入必需输入，也不因它缺件写 missing；该文件若真的
     被生产过，仍会作为普通 lineage 输入进入 inputs。
     """
+    declared_inputs = _REVIEW_INPUTS if review_inputs is None else tuple(review_inputs)
     root_paths = {_norm_path(root["path"]) for root in roots}
     inputs: dict[str, dict[str, Any]] = {}
     producer_operations = lineage.get("producer_operations") if isinstance(
@@ -185,7 +217,7 @@ def _freeze_inputs(lineage: Mapping[str, Any], roots: list[dict[str, Any]],
             "kind": "produced" if producer_id else "external",
             "depth": int(depths.get(path, 1) or 1),
         }
-    for name in _REVIEW_INPUTS:
+    for name in declared_inputs:
         if name == "PAPER_SCORING.json" and not paper_scoring_required:
             continue
         if _norm_path(name) in root_paths:
@@ -414,11 +446,13 @@ def freeze_candidate(store, workflow_id: str, roots: Iterable[str], *, by: str,
         paper_scoring_required = template_paper_scoring(template_name, catalog)
     except ValueError as exc:
         raise PromotionError(str(exc)) from None
+    review_inputs = _review_inputs_for(template_name, catalog)
 
     lineage = _trace_lineage(store, workflow_id, source, workspace, root_records, project_root)
     missing: list[str] = []
     inputs = _freeze_inputs(lineage, root_records, accepted, missing,
-                           paper_scoring_required=paper_scoring_required)
+                           paper_scoring_required=paper_scoring_required,
+                           review_inputs=review_inputs)
     frozen_versions = {path: str(meta["sha256"]) for path, meta in inputs.items()}
     frozen_versions.update({root["path"]: root["sha256"] for root in root_records})
 
@@ -449,6 +483,7 @@ def freeze_candidate(store, workflow_id: str, roots: Iterable[str], *, by: str,
         "lineage_inputs": dict(lineage.get("lineage_inputs") or {}),
         "unknown_inputs": unknown_inputs,
         "paper_scoring_required": paper_scoring_required,
+        "review_inputs": list(review_inputs),
         "source_step_id": source["id"],
         "source_attempt_id": source["attempt_id"],
     }

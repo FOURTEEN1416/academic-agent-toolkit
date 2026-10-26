@@ -191,13 +191,13 @@ def test_comp_editor_wording_is_conditional():
     assert "a missing or unparseable `PAPER_SCORING.json` is equally blocking" not in text
 
 
-def test_comp_stats_reason_does_not_claim_a_verdict_producer_it_lacks():
-    """comp_stats 没有 comp-review → COMP_REVIEW_VERDICT.json 无生产者，理由不得写实。"""
+def test_comp_stats_reason_no_longer_claims_a_missing_verdict_producer():
+    """comp_stats 已补 comp-review（P4-4）→ 理由不得再声称无 verdict 生产者。"""
     skills = {step.get("skill_name") for step in CATALOG["comp_stats"]["sub_steps"]}
-    assert "comp-review" not in skills
+    assert "comp-review" in skills
     reason = CATALOG["comp_stats"]["paper_scoring_reason"]
-    assert "没有 comp-review 步" in reason
-    assert "COMP_REVIEW_VERDICT.json 无生产者" in reason
+    assert "没有 comp-review 步" not in reason
+    assert "COMP_REVIEW_VERDICT.json 无生产者" not in reason
 
 
 # ── 解析器契约 ─────────────────────────────────────────────────────────
@@ -315,3 +315,200 @@ def test_promotion_rejects_non_boolean_declaration(tmp_path):
     with pytest.raises(PromotionError, match="paper_scoring"):
         _freeze(tmp_path, "comp_cumcm", include_scoring=False,
                 catalog={"comp_cumcm": bad})
+
+
+# ── P4-1：review_inputs 声明矩阵与 promotion 消费对账 ─────────────────
+
+# comp-final-review/SKILL.md 的固定读取清单（测试侧字面量，不跟随实现漂移）。
+FIXED_REVIEW_INPUTS = [
+    "paper/main.tex",
+    "paper/main.pdf",
+    "RESULTS.md",
+    "figures/all_results.json",
+    "CONSISTENCY_REPORT.json",
+    "LITERATURE.md",
+    "PAPER_SCORING.json",
+    "COMP_REVIEW_VERDICT.json",
+    "VISUAL_REVIEW_VERDICT.json",
+    "EDITOR_CHANGELOG.md",
+]
+COMP_TEMPLATES = sorted(name for name in CATALOG if name.startswith("comp_"))
+
+
+def _declared_review_inputs(template: str) -> list[str]:
+    declared = CATALOG[template].get("review_inputs")
+    assert isinstance(declared, list), f"{template} 缺少 review_inputs 声明"
+    return declared
+
+
+def _missing_review_input_declarations(catalog: dict) -> list[str]:
+    """一致性守卫本体：任何 comp_* 模板漏写 review_inputs 都要被点名。"""
+    return sorted(name for name in catalog
+                  if name.startswith("comp_") and "review_inputs" not in catalog[name])
+
+
+def test_every_comp_template_declares_review_inputs():
+    missing = _missing_review_input_declarations(CATALOG)
+    assert not missing, f"以下 comp_* 模板漏写 review_inputs（必须显式，允许空）: {missing}"
+
+
+def test_missing_declaration_fixture_turns_the_check_red():
+    """构造「删掉某模板声明」的 fixture，证明守卫真的会红并点名模板。"""
+    broken = {name: dict(template) for name, template in CATALOG.items()}
+    broken["comp_stats"].pop("review_inputs")
+    assert _missing_review_input_declarations(broken) == ["comp_stats"]
+
+
+def test_declaration_matrix_matches_each_chains_final_review_reads():
+    """有 comp-final-review 的链，其固定读取清单 ⊆ 声明输入；逐链精确对账。
+
+    paper_scoring=false 的链不把 PAPER_SCORING.json 写进声明（该链没有评分
+    生产者）；promotion 的 paper_scoring 条件对未声明模板仍保持 legacy 口径。
+    """
+    union: set[str] = set()
+    for template in COMP_TEMPLATES:
+        skills = {step.get("skill_name") for step in CATALOG[template]["sub_steps"]}
+        assert "comp-final-review" in skills, template
+        expected = ([item for item in FIXED_REVIEW_INPUTS if item != PAPER_SCORING]
+                    if CATALOG[template].get("paper_scoring") is False
+                    else list(FIXED_REVIEW_INPUTS))
+        declared = _declared_review_inputs(template)
+        assert declared == expected, f"{template} 的 review_inputs 与终审读取清单不符"
+        assert len(declared) == len(set(declared)), f"{template} 的 review_inputs 有重复"
+        union |= set(declared)
+    assert set(FIXED_REVIEW_INPUTS) <= union, (
+        f"终审固定读取清单未被任何链声明覆盖: {sorted(set(FIXED_REVIEW_INPUTS) - union)}")
+
+
+def test_promotion_consumes_exactly_the_declared_review_inputs():
+    """声明与 promotion 消费对账：声明多少就冻结多少，缺一不多。"""
+    from engine.promotion import _freeze_inputs
+
+    for template in COMP_TEMPLATES:
+        declared = _declared_review_inputs(template)
+        accepted = {path: {"sha256": "a" * 64} for path in declared}
+        missing: list[str] = []
+        inputs = _freeze_inputs(
+            {"producer_operations": {}, "input_depths": {}, "lineage_inputs": {}},
+            [], accepted, missing,
+            paper_scoring_required=template_paper_scoring(template, CATALOG),
+            review_inputs=declared)
+        assert set(inputs) == set(declared), template
+        assert all(meta["kind"] == "review_input" for meta in inputs.values()), template
+        assert missing == [], template
+
+
+def test_promotion_records_exact_missing_for_each_declared_input():
+    from engine.promotion import _freeze_inputs
+
+    for template in COMP_TEMPLATES:
+        declared = _declared_review_inputs(template)
+        accepted = {path: {"sha256": "a" * 64} for path in declared if path != VERDICT}
+        missing: list[str] = []
+        _freeze_inputs(
+            {"producer_operations": {}, "input_depths": {}, "lineage_inputs": {}},
+            [], accepted, missing,
+            paper_scoring_required=template_paper_scoring(template, CATALOG),
+            review_inputs=declared)
+        assert missing == [f"review_input:{VERDICT}"], (template, missing)
+
+
+def test_empty_review_inputs_is_explicitly_allowed():
+    """schema 允许空列表（显式声明「本链不冻结额外评审输入」）。"""
+    from engine.promotion import _review_inputs_for
+
+    template = {"sub_steps": [], "review_inputs": []}
+    assert _review_inputs_for("empty_demo", {"empty_demo": template}) == ()
+
+
+def test_undeclared_template_falls_back_to_legacy_review_inputs():
+    from engine.promotion import _REVIEW_INPUTS, _freeze_inputs, _review_inputs_for
+
+    assert _review_inputs_for("legacy_demo", {"legacy_demo": {"sub_steps": []}}) == _REVIEW_INPUTS
+    accepted = {path: {"sha256": "a" * 64} for path in FIXED_REVIEW_INPUTS}
+    missing: list[str] = []
+    inputs = _freeze_inputs(
+        {"producer_operations": {}, "input_depths": {}, "lineage_inputs": {}},
+        [], accepted, missing)
+    assert set(inputs) == set(FIXED_REVIEW_INPUTS)
+    assert missing == []
+
+
+@pytest.mark.parametrize("template", ["comp_apmcm", "comp_stats"])
+def test_freeze_records_declaration_and_exact_review_input_missing(tmp_path, template):
+    candidate = _freeze(tmp_path, template, include_scoring=False)
+    declared = _declared_review_inputs(template)
+    assert candidate.lineage["review_inputs"] == declared
+    expected = sorted(f"review_input:{path}" for path in declared if path != "paper/main.pdf")
+    actual = sorted(item for item in candidate.missing if item.startswith("review_input:"))
+    assert actual == expected, (template, actual)
+
+
+@pytest.mark.parametrize("bad", ["not-a-list", [""], ["a", "a"], [123]])
+def test_promotion_rejects_malformed_review_inputs(tmp_path, bad):
+    catalog = {"comp_cumcm": {**CATALOG["comp_cumcm"], "review_inputs": bad}}
+    with pytest.raises(PromotionError, match="review_inputs"):
+        _freeze(tmp_path, "comp_cumcm", include_scoring=False, catalog=catalog)
+
+
+# ── P4-4：comp_apmcm / comp_stats 补 comp-review 步（沿用 comp_cumcm 块） ─
+
+CUMCM_REVIEW_STEP = _step("comp_cumcm", "comp-review")
+
+
+@pytest.mark.parametrize("template", ["comp_apmcm", "comp_stats"])
+def test_short_chain_review_step_is_the_cumcm_block(template):
+    steps = CATALOG[template]["sub_steps"]
+    skills = [step["skill_name"] for step in steps]
+    assert skills.count("comp-review") == 1, f"{template} 的 comp-review 步数异常"
+    index = skills.index("comp-review")
+    assert skills[index - 1] == "paper-figure-drawio", f"{template} 的步序不对: {skills}"
+    assert skills[index + 1] in {"comp-paper-zh", "comp-paper-en"}, f"{template} 的步序不对"
+    step = steps[index]
+    assert step == CUMCM_REVIEW_STEP, f"{template} 的 comp-review 块未沿用 comp_cumcm"
+    assert step["output_files"] == ["COMP_REVIEW.md", VERDICT]
+    assert step["primary_output"] == "COMP_REVIEW.md"
+    assert step["has_checkpoint"] is False
+    assert step["requires_subagent"] is True
+    assert step["required_checks"] == ["review"]
+    assert step["metadata"]["requires_subagent"] is True
+    assert step["metadata"]["required_checks"] == ["review"]
+    assert step["metadata"]["skill_binding"] == {"main_required": True}
+
+
+@pytest.mark.parametrize("template", ["comp_apmcm", "comp_stats"])
+def test_resolver_exposes_review_step_with_both_outputs(template):
+    steps = resolve_template(template, {}, CATALOG)
+    review = [step for step in steps if step.get("skill_name") == "comp-review"]
+    assert len(review) == 1, template
+    assert review[0]["output_files"] == ["COMP_REVIEW.md", VERDICT]
+    assert review[0]["metadata"]["requires_subagent"] is True
+
+
+@pytest.mark.parametrize("template", ["comp_apmcm", "comp_stats"])
+def test_started_chain_reports_precise_missing_companion_pair(tmp_path, template):
+    """新启动链跑到 comp-review 步：缺 COMP 对必须报精确缺件（非无名失败）。"""
+    from engine.quality_gates import QualityGate
+    from engine.workflow_runner import WorkflowRunner
+    from engine.workflow_store import WorkflowStore
+
+    workspace = tmp_path / "ws"
+    store = WorkflowStore(tmp_path / "workflow.sqlite")
+    runner = WorkflowRunner(store, CATALOG, ROOT / "skills")
+    workflow = runner.start(template, workspace, {}, mode="delivery")
+    names = [row["name"] for row in store._connection.execute(
+        "SELECT name FROM workflow_steps WHERE workflow_id=? ORDER BY position", (workflow.id,))]
+    assert "comp-review" in names, names
+    assert names.index("comp-review") == names.index("paper-figure-drawio") + 1, names
+
+    report = QualityGate(workspace).run_all(
+        "comp-review",
+        declared_outputs=["COMP_REVIEW.md", VERDICT],
+        required_checks=["review"])
+    artifacts = report["checks"]["artifacts"]
+    assert artifacts["ok"] is False
+    assert artifacts["missing"] == ["COMP_REVIEW.md", VERDICT], artifacts
+    review = report["checks"]["review"]
+    assert review["ok"] is False
+    assert "COMP_REVIEW.md" in review["reason"] and VERDICT in review["reason"], review["reason"]
+

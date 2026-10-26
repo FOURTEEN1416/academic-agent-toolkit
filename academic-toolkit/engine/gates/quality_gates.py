@@ -617,6 +617,12 @@ SEVERITY_FIXABLE = "fixable"
 SEVERITY_ADVISORY = "advisory"
 CHECK_SEVERITIES = (SEVERITY_BLOCKING, SEVERITY_FIXABLE, SEVERITY_ADVISORY)
 CHECK_STATUSES = ("pass", "fail", "unknown")
+# 合同档位（P4-6）：legacy = 改造前行为（默认）；legacy/explore 保留 rglob 兜底，
+# delivery 收紧主产物判据：禁用「随便一个大 md」兜底，并按声明产物扩展名挂载
+# 可解析性检查。档位语义与 execution_contract.tier 对齐。
+CONTRACT_TIERS = ("legacy", "explore", "delivery")
+DELIVERY_TIER = "delivery"
+PRIMARY_PARSEABLE_SUFFIXES = (".json", ".pdf", ".tex")
 
 # 裁决 6.3-A：这十项永不降级（硬编码，守护断言拒绝任何 advisory/fixable 改动）。
 NEVER_DOWNGRADE_CHECKS = frozenset({
@@ -680,6 +686,7 @@ CHECK_SEVERITY_REGISTRY: dict[str, str] = {
     "artifacts": SEVERITY_BLOCKING,
     "min_size": SEVERITY_BLOCKING,
     "companions": SEVERITY_BLOCKING,
+    "primary_parseable": SEVERITY_BLOCKING,
     "figures": SEVERITY_BLOCKING,
     "paper_pages": SEVERITY_BLOCKING,
     "early_quality": SEVERITY_BLOCKING,
@@ -1123,8 +1130,15 @@ class QualityGate:
         # 误读上一轮 ready 的根 AUDIT_REPORT.json。缺省保持旧单测的根路径行为。
         self._audit_report_path = Path(audit_report_path) if audit_report_path else None
 
-    def check_min_size(self, skill_name: str, primary_output: str) -> dict:
-        """检查产出文件是否达到最小大小"""
+    def check_min_size(self, skill_name: str, primary_output: str,
+                       contract_tier: str = "legacy") -> dict:
+        """检查产出文件是否达到最小大小。
+
+        ``contract_tier="delivery"``（P4-6）：未声明 primary_output 时禁用
+        ``workspace.rglob("*.md")`` 兜底——交付档的主产物必须由模板显式声明，
+        不能让工作区里任意一个够大的 markdown 冒充主产物。legacy/explore 保留
+        既有兜底行为（默认参数不改既有调用方语义）。
+        """
         min_size = get_min_size(skill_name)
         if min_size <= 0:
             return {"ok": True, "reason": f"技能 {skill_name} 无最小大小要求"}
@@ -1145,12 +1159,85 @@ class QualityGate:
                     "reason": f"产出 {primary_output} = {size}B {'✅' if ok else f'❌ 需≥{min_size}B'}"}
         if primary_output:
             return {"ok": False, "reason": f"未找到指定产出 {primary_output} 或其大小不足 {min_size}B"}
+        if contract_tier == DELIVERY_TIER:
+            return {"ok": False, "min": min_size,
+                    "reason": (f"交付档未声明 primary_output：已禁用 rglob 兜底，"
+                               f"不接受工作区内任意 ≥{min_size}B 的 markdown 冒充主产物")}
         # Legacy calls without a declared primary output retain best-effort discovery.
         for f in self.workspace.rglob("*.md"):
             if f.stat().st_size >= min_size:
                 return {"ok": True, "size": f.stat().st_size, "min": min_size,
                         "reason": f"找到产出 {f.name} = {f.stat().st_size}B ✅"}
         return {"ok": False, "reason": f"未找到 ≥{min_size}B 的产出文件"}
+
+    def check_primary_parseable(self, primary_output: str) -> dict:
+        """交付档主产物可解析性（P4-6）：按声明产物扩展名选择判据。
+
+        - ``.json`` → ``json.loads`` 必须成功（存在但不可解析 = 不合格）；
+        - ``.pdf``  → 文件头必须是 ``%PDF-``，且页数可解析且 > 0；
+        - ``.tex``  → 「main 非空 OR 装配面非空」。只判装配面会误杀单文件论文
+          （``assembly_faces`` 对无 ``\\input`` 的 main.tex 返回空列表——V10 口径）；
+        - 其他扩展名/目录主产物 → 显式 skip（无对应解析判据，不冒充核验）。
+        """
+        name = str(primary_output or "").strip()
+        if not name:
+            return {"ok": False, "reason": "未声明 primary_output，无法核验主产物可解析性"}
+        path = self.workspace / name
+        if not path.is_file():
+            return {"ok": False, "reason": f"未找到主产物 {name}，无法核验其可解析性"}
+        suffix = path.suffix.lower()
+        if suffix == ".json":
+            try:
+                json.loads(path.read_text(encoding="utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                return {"ok": False, "kind": "json",
+                        "reason": f"主产物 {name} 不是合法 JSON: {exc}"}
+            return {"ok": True, "kind": "json", "reason": f"主产物 {name} JSON 可解析"}
+        if suffix == ".pdf":
+            try:
+                header = path.open("rb").read(8)
+            except OSError as exc:
+                return {"ok": False, "status": "unknown", "action": "fix_tool",
+                        "reason": f"主产物 {name} 无法读取文件头: {exc}"}
+            if not header.startswith(b"%PDF-"):
+                return {"ok": False, "kind": "pdf",
+                        "reason": f"主产物 {name} 缺少 PDF 文件头（前 8 字节 {header!r}）"}
+            pages = None
+            try:
+                document = _fitz.open(str(path))
+                pages = int(document.page_count)
+                document.close()
+            except Exception:  # noqa: BLE001 — 解析器异常 = 页数未核验
+                pages = None
+            if pages is None:
+                return {"ok": False, "status": "unknown", "action": "fix_tool",
+                        "reason": f"主产物 {name} 文件头合法，但页数无法解析（未核验）"}
+            ok = pages > 0
+            return {"ok": ok, "kind": "pdf", "pages": pages,
+                    "reason": f"主产物 {name} PDF 文件头合法，{pages} 页"
+                              f"{'✅' if ok else '❌ 零页 PDF'}"}
+        if suffix == ".tex":
+            try:
+                main_text = path.read_text(encoding="utf-8", errors="ignore")
+            except OSError as exc:
+                return {"ok": False, "status": "unknown", "action": "fix_tool",
+                        "reason": f"主产物 {name} 无法读取: {exc}"}
+            faces = assembly_faces(path)
+            main_nonempty = bool(main_text.strip())
+            faces_nonempty = any(
+                p.read_text(encoding="utf-8", errors="ignore").strip()
+                for p in faces
+                if p.is_file()
+            )
+            ok = main_nonempty or faces_nonempty
+            return {"ok": ok, "kind": "tex", "main_nonempty": main_nonempty,
+                    "assembly_faces": len(faces),
+                    "reason": (f"主产物 {name} TeX {'可装配' if ok else '为空'}："
+                               f"main {'非空' if main_nonempty else '空'}，"
+                               f"装配面 {len(faces)} 个文件"
+                               f"{'（至少一处非空）✅' if ok else '（main 与装配面均为空）❌'}")}
+        return {"ok": True, "skipped": True, "kind": suffix or "none",
+                "reason": f"主产物 {name} 的扩展名无解析判据，跳过可解析性检查"}
 
     def check_companions(self, skill_name: str) -> dict:
         """检查必需伴随文件是否存在"""
@@ -2834,8 +2921,15 @@ class QualityGate:
                 compliance_profile: str = "", page_contract: dict | None = None,
                 compliance_block: dict | None = None,
                 audit_report_path: Path | None = None,
-                template_name: str = "") -> dict:
-        """运行所有门禁检查"""
+                template_name: str = "", contract_tier: str = "legacy") -> dict:
+        """运行所有门禁检查
+
+        ``contract_tier``（P4-6）：默认 ``legacy`` 保持改造前行为；``delivery``
+        收紧主产物判据（min_size 禁用 rglob 兜底 + 按扩展名挂载可解析性检查）。
+        """
+        if contract_tier not in CONTRACT_TIERS:
+            raise ValueError(f"未知合同档位 contract_tier={contract_tier!r}，"
+                             f"允许: {', '.join(CONTRACT_TIERS)}")
         # Keep the existing positional ``run_all(skill, comp_name)`` call valid.
         if isinstance(declared_outputs, str) and not comp_name:
             comp_name = declared_outputs
@@ -2860,10 +2954,18 @@ class QualityGate:
                 primary = declared_outputs[0] if declared_outputs else None
             if isinstance(primary, dict):
                 primary = primary.get("path")
-            results["min_size"] = self._run_check("min_size", lambda: self.check_min_size(skill_name, primary))
+            results["min_size"] = self._run_check(
+                "min_size", lambda: self.check_min_size(skill_name, primary, contract_tier))
+            # P4-6：交付档按声明产物扩展名自动挂载可解析性检查；legacy/explore
+            # 不新增判据（默认参数保持旧行为，避免打断既有调用方）。
+            if contract_tier == DELIVERY_TIER and primary and \
+                    Path(str(primary)).suffix.lower() in PRIMARY_PARSEABLE_SUFFIXES:
+                results["primary_parseable"] = self._run_check(
+                    "primary_parseable", lambda: self.check_primary_parseable(primary))
             results["companions"] = self._run_check("companions", lambda: self.check_companions(skill_name))
         else:
-            results["min_size"] = self._run_check("min_size", lambda: self.check_min_size(skill_name, None))
+            results["min_size"] = self._run_check(
+                "min_size", lambda: self.check_min_size(skill_name, None, contract_tier))
             results["companions"] = self._run_check("companions", lambda: self.check_companions(skill_name))
         results["figures"] = self._run_check("figures", lambda: self.check_figure_health() if requires_figures else {
             "ok": True, "skipped": True, "reason": "未声明需要图表检查"
