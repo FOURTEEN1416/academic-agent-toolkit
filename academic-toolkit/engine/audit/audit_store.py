@@ -1329,6 +1329,87 @@ def candidate_readiness(workspace: Path, project_root: Path, workflow_db: Path |
     }
 
 
+# P2b-1：终审 gate_outcomes 消费 severity（additive，不改旧值语义）。
+# 同一检查名跨步骤出现多次时按「越严重越保留」合并，避免后出现的 advisory
+# 覆盖先前的 fail（旧实现是「非 pass 一律覆盖」，会把 fail 洗成 advisory）。
+GATE_OUTCOME_ORDER = {"pass": 0, "advisory": 1, "fixable_open": 2, "fail": 3}
+_GATE_SEVERITIES = ("blocking", "fixable", "advisory", "unknown")
+_GATE_STATUSES = ("pass", "fail", "unknown")
+_GATE_OUTCOMES = ("pass", "fail", "advisory", "fixable_open")
+
+
+def _gate_outcome(check: Any, *, receiver_has: bool) -> tuple[str, str, str]:
+    """单条检查结果 → (outcome, severity, status)。
+
+    - advisory 失败 → ``advisory``（留痕，不算 fail）；
+    - fixable 失败且链上有接收者 → ``fixable_open``；无接收者 → ``fail``
+      （P2b-2：fixable 只在有接收者时降级，否则保持 blocking）；
+    - status=unknown（检查器没跑成）→ ``fail``（fail-closed，不当可返修）；
+    - 历史事件（P2a 之前）没有 severity → severity 记 ``unknown``，outcome 按旧口径。
+    """
+    if not isinstance(check, dict):
+        return "fail", "unknown", "fail"
+    status = check.get("status")
+    if status not in _GATE_STATUSES:
+        status = "pass" if check.get("ok") is True else "fail"
+    severity = check.get("severity")
+    if severity not in ("blocking", "fixable", "advisory"):
+        severity = "unknown"
+    if status == "pass":
+        return "pass", severity, status
+    if status == "unknown":
+        return "fail", severity, status
+    if severity == "advisory":
+        return "advisory", severity, status
+    if severity == "fixable" and receiver_has:
+        return "fixable_open", severity, status
+    return "fail", severity, status
+
+
+def _with_defaults(counts: dict[str, int], keys) -> dict[str, int]:
+    return {key: int(counts.get(key, 0)) for key in keys}
+
+
+def _gate_outcome_summary(details: dict[str, dict[str, str]]) -> dict[str, Any]:
+    """汇总终审检查的 severity/status/outcome 计数与占比（P2b-1 报告字段）。"""
+    total = len(details)
+    by_severity_raw = Counter(item.get("severity", "unknown") for item in details.values())
+    by_status_raw = Counter(item.get("status", "unknown") for item in details.values())
+    by_outcome_raw = Counter(item.get("outcome", "fail") for item in details.values())
+    by_severity = _with_defaults(by_severity_raw, _GATE_SEVERITIES)
+    by_status = _with_defaults(by_status_raw, _GATE_STATUSES)
+    by_outcome = _with_defaults(by_outcome_raw, _GATE_OUTCOMES)
+
+    def _shares(counts: dict[str, int]) -> dict[str, float]:
+        return {key: (round(value / total, 4) if total else 0.0)
+                for key, value in counts.items()}
+
+    return {
+        "total": total,
+        "by_severity": by_severity,
+        "severity_shares": _shares(by_severity),
+        "by_status": by_status,
+        "status_shares": _shares(by_status),
+        "by_outcome": by_outcome,
+        "outcome_shares": _shares(by_outcome),
+        # 任务口径：blocking/fixable/advisory 之外的 unknown 必须单独可见。
+        # unknown_share = 状态未核验（检查器没跑成）占比；
+        # unlabeled_severity_share = 历史事件没有 severity 标注、档位未知的占比。
+        "unknown_share": round(by_status["unknown"] / total, 4) if total else 0.0,
+        "unlabeled_severity_share": (round(by_severity["unknown"] / total, 4)
+                                     if total else 0.0),
+    }
+
+
+def _outcome_cleared(name: str, outcome: str, signed_checks: set[str]) -> bool:
+    """交付判定：pass/advisory 视为清除；fixable_open 仅在已签署时清除。"""
+    if outcome in {"pass", "advisory"}:
+        return True
+    if outcome == "fixable_open":
+        return name in signed_checks
+    return False
+
+
 def build_final_audit_report(workspace: Path, project_root: Path,
                              workflow_db: Path | None = None, *,
                              workflow_id: str | None = None, fingerprint_session=None,
@@ -1457,12 +1538,28 @@ def build_final_audit_report(workspace: Path, project_root: Path,
     accepted_by_path, directory_coverage, coverage_errors = _accepted_coverage(
         workspace, list(accepted_artifacts.values()))
     scoped_outcomes: dict[str, str] = {}
+    # P2b-2：终审汇总与 runner 共用同一套接收者判定（静态链 + 交付报告）。
+    # 无接收者的 fixable 失败不得在终审报告里被降级为 fixable_open。
+    from ..validation_policy import receiver_of, signed_open_items
+    receiver = receiver_of(
+        {"id": workflow_id, "name": workflow_name, "metadata": workflow_metadata},
+        steps=workflow_steps, workspace=workspace)
+    receiver_has = bool(receiver.get("has_receiver"))
+    gate_outcome_details: dict[str, dict[str, str]] = {}
     for step_id, checks in latest_checks.items():
         for name, check in checks.items():
-            outcome = "pass" if isinstance(check, dict) and check.get("ok") is True else "fail"
+            outcome, severity, status = _gate_outcome(check, receiver_has=receiver_has)
             scoped_outcomes[f"{step_id}:{name}"] = outcome
-            if name not in gate_outcomes or outcome != "pass":
+            existing = gate_outcomes.get(name)
+            if (existing is None
+                    or GATE_OUTCOME_ORDER[outcome] > GATE_OUTCOME_ORDER.get(existing, 0)):
                 gate_outcomes[name] = outcome
+            prior = gate_outcome_details.get(name)
+            if (prior is None
+                    or GATE_OUTCOME_ORDER[outcome] >= GATE_OUTCOME_ORDER.get(
+                        str(prior.get("outcome")), 0)):
+                gate_outcome_details[name] = {
+                    "severity": severity, "status": status, "outcome": outcome}
 
     # No filesystem/mtime fallback: orphan evidence and freshly hashed files
     # cannot manufacture an accepted artifact version.
@@ -1598,13 +1695,46 @@ def build_final_audit_report(workspace: Path, project_root: Path,
                      "candidate_reproduction", "candidate_review",
                      "candidate_event_chain"):
             gate = candidate_gates.get(name) if isinstance(candidate_gates.get(name), dict) else {}
-            gate_outcomes[name] = "pass" if gate.get("ok") is True else "fail"
+            outcome = "pass" if gate.get("ok") is True else "fail"
+            gate_outcomes[name] = outcome
+            gate_outcome_details[name] = {
+                "severity": "blocking",
+                "status": "pass" if outcome == "pass" else "fail",
+                "outcome": outcome}
         # 预审阶段不要求 candidate_approval：批准发生在终审步骤之后，否则会
         # 被候选批准门自己锁死。audit_phase=delivery 时才计入。
         if not pre_audit:
             gate = candidate_gates.get("candidate_approval") if isinstance(
                 candidate_gates.get("candidate_approval"), dict) else {}
-            gate_outcomes["candidate_approval"] = "pass" if gate.get("ok") is True else "fail"
+            outcome = "pass" if gate.get("ok") is True else "fail"
+            gate_outcomes["candidate_approval"] = outcome
+            gate_outcome_details["candidate_approval"] = {
+                "severity": "blocking",
+                "status": "pass" if outcome == "pass" else "fail",
+                "outcome": outcome}
+    # P2b-1：未签署 open item 数据面（additive）。fixable_open 项若在已有交付
+    # 报告中有人工签署，则不算未签署；签署信息只读消费，不回写旧报告。
+    signed_items = signed_open_items(workspace, workflow_id)
+    signed_checks = {str(item.get("check") or "") for item in signed_items
+                     if str(item.get("check") or "")}
+    open_items: list[dict[str, Any]] = []
+    for name, outcome in sorted(gate_outcomes.items()):
+        if outcome != "fixable_open":
+            continue
+        detail = gate_outcome_details.get(name, {})
+        signed_item = next((item for item in signed_items
+                            if str(item.get("check") or "") == name), {})
+        open_items.append({
+            "check": name,
+            "severity": detail.get("severity", "fixable"),
+            "status": detail.get("status", "fail"),
+            "outcome": outcome,
+            "signed": name in signed_checks,
+            "signed_by": str(signed_item.get("signed_by")
+                             or signed_item.get("accepted_by") or ""),
+            "signed_at": str(signed_item.get("signed_at")
+                             or signed_item.get("accepted_at") or ""),
+        })
     if contract_tier == "explore":
         delivery_ready = False
         delivery_decision = "explore_only"
@@ -1616,13 +1746,16 @@ def build_final_audit_report(workspace: Path, project_root: Path,
             required_gates.append("candidate_approval")
         delivery_ready = (
             bool(report_artifacts) and bool(gate_outcomes)
-            and all(value == "pass" for value in gate_outcomes.values())
-            and all(gate_outcomes.get(name) == "pass" for name in required_gates)
+            and all(_outcome_cleared(name, value, signed_checks)
+                    for name, value in gate_outcomes.items())
+            and all(_outcome_cleared(name, gate_outcomes.get(name, "fail"), signed_checks)
+                    for name in required_gates)
         )
         delivery_decision = ("eligible" if pre_audit else "ready") if delivery_ready else "blocked"
     else:
         delivery_ready = bool(report_artifacts) and bool(gate_outcomes) and all(
-            value == "pass" for value in gate_outcomes.values())
+            _outcome_cleared(name, value, signed_checks)
+            for name, value in gate_outcomes.items())
         delivery_decision = ("eligible" if pre_audit else "ready") if delivery_ready else "blocked"
     release_id = ""
     if delivery_decision == "ready":
@@ -1644,6 +1777,18 @@ def build_final_audit_report(workspace: Path, project_root: Path,
         "coverage_errors": coverage_errors,
         "legacy_directory_policy": "无逐文件回执的历史目录保留整树校验；合法子文件更新后须重验父目录",
         "gate_outcomes": gate_outcomes,
+        # P2b-1（additive）：每个检查的 severity/status 明细、分档占比汇总、
+        # 未签署 open item 与接收者判定。旧消费方按 gate_outcomes 的 pass/fail
+        # 读取不受影响；advisory 不再被算作 fail。
+        "gate_outcome_details": gate_outcome_details,
+        "gate_outcome_summary": _gate_outcome_summary(gate_outcome_details),
+        "open_items": open_items,
+        "receiver": receiver,
+        "receiver_policy": (
+            "fixable 仅在链上存在接收者时降级为 fixable_open：① 当前/后续步骤带 "
+            "final_audit 检查；② DELIVERY_REPORT.json open_items 有人工签署；"
+            "③ comp-final-review full gate。三者皆无 → fixable 保持 fail（blocking）。"
+        ),
         "contest_compliance_detail": {
             **contest_conclusion,
             "blocking_rule": "contest_compliance=unknown（待绑定或约束 unverified）不计 pass："

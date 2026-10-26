@@ -28,6 +28,7 @@ from ..gates.quality_gates import (QualityGate, _agent_self_reference_hit, annot
 from ..gates import repair_budget
 from ..telemetry.run_logger import RunLogger
 from ..contracts.template_resolver import resolve_template
+from ..validation_policy import receiver_of
 from ..storage.workflow_store import StepStatus, Workflow, WorkflowStore
 from ..storage.step_manifest import atomic_write_json, build_manifest, get_step_manifest
 
@@ -587,32 +588,51 @@ class WorkflowRunner:
                                 if checks[name].get("ok") is not True)
             ok = all(check.get("ok") is True for check in hard.values())
             blocking_failures = sorted(name for name in hard if hard[name].get("ok") is not True)
+            fixable: list[str] = []
             fixable_open: list[str] = []
+            fixable_blocked: list[str] = []
+            receiver = {"has_receiver": True, "skipped": "explore 档不启用 fixable 接收者判定"}
         else:
-            # 交付档按 severity + status 判定（裁决 6.3-A / P2b 接收者接线后）：
+            # 交付档按 severity + status 判定（裁决 6.3-A / P2b-2 显式接收者）：
             #   blocking 失败       → 阻断；
-            #   fixable 失败        → 进 needs_work：finish 路径会先落轮次再按
-            #                         P2b 返修预算判定，预算即 fixable 的接收者；
-            #                         legacy complete 没有接收者，按 FAILED 处理；
+            #   fixable 失败        → 仅在链上存在接收者时进 needs_work（finish 路径
+            #                         先落轮次再按 P2b 返修预算判定）；无接收者时
+            #                         保持 blocking（fixable_blocked → FAILED），
+            #                         不得把「没人消费」的问题当可返修；
             #   fixable + unknown   → 按 blocking 处理（检查器没跑成不等于判据满足，
             #                         不得把「未核验」当成可返修放行）；
             #   advisory 失败       → 不进失败消息、不阻断，但在 diagnostics 留痕。
+            receiver = receiver_of(
+                workflow, step,
+                steps=self._workflow_chain(workflow.id),
+                workspace=getattr(session, "workspace", None))
             blocking_failures = sorted(
                 name for name, check in checks.items()
                 if check.get("status") != "pass" and (
                     check.get("severity") == SEVERITY_BLOCKING
                     or (check.get("severity") == SEVERITY_FIXABLE
                         and check.get("status") == "unknown")))
-            fixable_open = sorted(
+            fixable_failures = sorted(
                 name for name, check in checks.items()
                 if check.get("severity") == SEVERITY_FIXABLE and check.get("status") == "fail")
+            # fixable 只在有接收者时计入返修口径；否则按 blocking 处理（裁决 6.3-A
+            # 附带条件「fixable 仅 P2b 且须有接收者」）。``fixable`` 保留全部 fixable
+            # 失败（兼容既有诊断口径：是否可返修看 fixable_open / fixable_blocked）。
+            fixable = fixable_failures
+            if receiver.get("has_receiver"):
+                fixable_open = fixable_failures
+                fixable_blocked: list[str] = []
+            else:
+                fixable_open = []
+                fixable_blocked = fixable_failures
             advisories = sorted(
                 name for name, check in checks.items()
                 if check.get("severity") == SEVERITY_ADVISORY and check.get("status") != "pass")
-            ok = not blocking_failures and not fixable_open
+            ok = not blocking_failures and not fixable_open and not fixable_blocked
         # 返修指令只回传 blocking + fixable（裁决 6.5-A）：advisory 失败只留在
         # checks/advisories 里可追溯，不进待修清单，也不进失败消息。
-        issue_names = sorted(set(blocking_failures) | set(fixable_open))
+        # 无接收者的 fixable 已按 blocking 处理，仍须回传失败理由（不能静默失败）。
+        issue_names = sorted(set(blocking_failures) | set(fixable_open) | set(fixable_blocked))
         repair_issues = [{
             "check": name,
             "severity": checks[name].get("severity"),
@@ -621,11 +641,33 @@ class WorkflowRunner:
             "action": checks[name].get("action", ""),
         } for name in issue_names]
         report = {"ok": ok, "checks": checks, "advisories": advisories,
-                  "fixable": fixable_open, "blocking_failures": blocking_failures,
+                  "fixable": fixable, "fixable_open": fixable_open,
+                  "fixable_blocked": fixable_blocked,
+                  "blocking_failures": blocking_failures,
+                  "receiver": receiver,
                   "repair_issues": repair_issues,
                   "contract_tier": tier,
                   "step_id": step.id, "attempt_id": step.attempt_id, "expected_revision": step.revision}
         return report, evidence, manifest, gate, manifest_data
+
+    def _workflow_chain(self, workflow_id: str) -> list[dict[str, Any]]:
+        """只读取当前工作流步骤链（接收者判定的静态结构输入）。
+
+        与 ``start`` 落库的 metadata 同形（模板解析结果 + skip 参数已在
+        resolve_template 中生效）；不改状态、不写库。
+        """
+        rows = self.store._connection.execute(
+            "SELECT id, name, position, status, metadata FROM workflow_steps "
+            "WHERE workflow_id = ? ORDER BY position", (workflow_id,)).fetchall()
+        chain: list[dict[str, Any]] = []
+        for row in rows:
+            item = dict(row)
+            try:
+                item["metadata"] = json.loads(item.get("metadata") or "{}")
+            except (TypeError, ValueError):
+                item["metadata"] = {}
+            chain.append(item)
+        return chain
 
     def validate_recorded_step(self, workflow_id: str, step_id: str, attempt_id: str,
                                revision: int, *, subagent_session: str = "") -> dict[str, Any]:
@@ -715,8 +757,18 @@ class WorkflowRunner:
         override 重置靠时间边界（最近一次 repair_override 事件之后才算数），
         不删历史行。配置损坏或查询异常一律收口为「不阻断」并把错误放进
         diagnostics——预算故障不得击穿 finish 主链路。
+
+        P2b-2：无接收者的 fixable（``fixable_blocked``）不进入返修轮次账本——
+        没有任何环节会消费它，计入预算只会让无接收者的链空转。混合失败时
+        原生 blocking 仍正常计数。
         """
-        round_number = self._record_validation_round(workflow_id, step, report)
+        budget_report = report
+        fixable_blocked = set(report.get("fixable_blocked") or [])
+        if fixable_blocked and isinstance(report.get("checks"), dict):
+            budget_report = {**report, "checks": {
+                name: check for name, check in report["checks"].items()
+                if name not in fixable_blocked}}
+        round_number = self._record_validation_round(workflow_id, step, budget_report)
         try:
             policy = self._budget_policy()
             override = self.store.last_repair_override(workflow_id, step.id) or {}
@@ -777,7 +829,11 @@ class WorkflowRunner:
             evidence, manifest, gate, manifest_data = {}, {"artifacts": []}, {}, None
         good = report["ok"]
         budget: dict[str, Any] | None = None
-        if not good and keep_running_on_validation_error:
+        # 可返修集合 = 原生 blocking 失败 + 有接收者的 fixable（fixable_open）。
+        # 仅 fixable_blocked（无接收者）时不得进 needs_work——没有环节会消费，
+        # 继续返修只会空转；混合失败时原生 blocking 仍保留返修通道。
+        repairable = bool(report.get("blocking_failures")) or bool(report.get("fixable_open"))
+        if not good and keep_running_on_validation_error and repairable:
             # 单入口自动核验：产物仍可返修。返修预算按 (workflow, step) 跨 attempt
             # 计数（裁决 6.5-A）；出厂 enforce=true，显式关闭时只登记不阻断。
             budget = self._evaluate_repair_budget(workflow_id, step, report)
@@ -801,15 +857,16 @@ class WorkflowRunner:
         ).fetchone()[0]
         status = "failed" if not good else ("waiting_checkpoint" if waiting else ("advanced" if other_incomplete else "completed"))
         # 失败消息只回传真正阻断项（explore=hard 集合；delivery=blocking + fixable，
-        # 后者已进 needs_work，必须把待修理由回传给执行者）；advisory 失败不进消息
-        # （不回传），但仍留在 diagnostics 里可追溯。
+        # 后者已进 needs_work，必须把待修理由回传给执行者；无接收者的 fixable 同样
+        # 是阻断项）；advisory 失败不进消息（不回传），但仍留在 diagnostics 里可追溯。
         failure_names = report.get("blocking_failures")
         if failure_names is None:
             failure_names = [name for name, check in report["checks"].items()
                              if check.get("ok") is not True]
         else:
             failure_names = list(dict.fromkeys(
-                [*failure_names, *(report.get("fixable") or [])]))
+                [*failure_names, *(report.get("fixable") or []),
+                 *(report.get("fixable_blocked") or [])]))
         if good:
             message = f"步骤 {step.name} 完成，等待用户确认" if waiting else f"步骤 {step.name} 完成"
         elif report.get("failure_kind") == "repair_budget_exhausted":

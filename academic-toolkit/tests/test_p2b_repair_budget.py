@@ -355,11 +355,17 @@ def test_default_policy_fixable_failure_enters_needs_work_and_budget(tmp_path, m
     monkeypatch.setattr(QualityGate, "check_consistency_evidence",
                         lambda self: {"ok": False, "reason": "一致性报告未通过"})
     store, runner, workflow = _setup(tmp_path, required_checks=["consistency"])
+    # P2b-2：fixable 降级必须有显式接收者。本用例验证「有接收者」路径（预算计数），
+    # 以交付报告的人工签署 open_item 声明接收者（不再依赖 finish 路径的隐式接收）。
+    (tmp_path / "ws" / "DELIVERY_REPORT.json").write_text(json.dumps({
+        "open_items": [{"check": "quality:consistency", "signed": True,
+                        "signed_by": "fixture-reviewer"}]}), encoding="utf-8")
     session = _session(runner, workflow.id, content="substantive output " * 20)
     result = session.finish()
     assert result["status"] == "needs_work", result["message"]
     diagnostics = result["diagnostics"]
     assert "quality:consistency" in diagnostics["fixable"]
+    assert "quality:consistency" in diagnostics["fixable_open"]
     assert diagnostics["repair_budget"]["total"] == 1
     assert diagnostics["repair_budget"]["enforced"] is True
     assert "quality:consistency" in result["message"]

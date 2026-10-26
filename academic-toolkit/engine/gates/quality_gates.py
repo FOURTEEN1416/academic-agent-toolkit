@@ -1707,7 +1707,19 @@ class QualityGate:
                                "静默删除审核步骤，审核防线从未运行过，交付一律 blocked。"
                                "解除方式：以不含 skip_ 参数的方式重新执行完整工作流"
                                "（审核类步骤必须真实完成，不可豁免）。")}
-        failed_gates = [name for name, outcome in report["gate_outcomes"].items() if outcome != "pass"]
+        # P2b-1：终审 gate_outcomes 已消费 severity（additive）。advisory 只留痕，
+        # 不阻断交付；fixable_open 仅在 open_items 中已人工签署时才视为清除；
+        # fail/unknown 一律阻断（无接收者的 fixable 在 audit_store 已记 fail）。
+        signed_checks = {
+            str(item.get("check") or "")
+            for item in (report.get("open_items") or [])
+            if isinstance(item, dict) and item.get("signed") is True
+        }
+        failed_gates = [
+            name for name, outcome in report["gate_outcomes"].items()
+            if not (outcome in {"pass", "advisory"}
+                    or (outcome == "fixable_open" and name in signed_checks))
+        ]
         if failed_gates:
             candidate_gates = [name for name in failed_gates if name.startswith("candidate_")]
             if candidate_gates:
