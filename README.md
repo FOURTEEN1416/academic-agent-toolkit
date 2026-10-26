@@ -7,7 +7,7 @@
 *263 个随仓技能 · 6 大能力域 · 宿主无关引擎 · 每一步产物可审计*
 
 [![Release](https://img.shields.io/badge/release-v2.1.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-1291_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
+[![Tests](https://img.shields.io/badge/tests-1357_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
 [![Capabilities](https://img.shields.io/badge/capabilities-321-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-263_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
@@ -188,7 +188,7 @@ python academic-toolkit/tools/plotting_env_check.py
 **验证安装**（两种 pytest 口径，唯一真源 = `pytest.ini` 注释）：
 
 ```bash
-# 口径一（仓库根，回归门禁口径）：1291 collected；最近全量实跑记录见 pytest.ini
+# 口径一（仓库根，回归门禁口径）：1357 collected；最近全量实跑记录见 pytest.ini
 python -m pytest -q
 # 口径二（工具箱内，技能验收基线口径）：同一 tests 范围
 cd academic-toolkit && python -m pytest -q
@@ -204,7 +204,7 @@ python tools/check_provenance.py             # → 117/117 UPSTREAM+vendor 台�
 | 🧾 **STEP_MANIFEST** | 每步记录输入/输出哈希、命令、配置、依赖——产物可复现 |
 | 📜 **Provenance 台账** | UPSTREAM.md + vendor（pinned commit + license）117/117 校验通过——外部集成的每一行代码都能回答"从哪来" |
 | 🎯 **私有基准层** | 真实竞赛题面基准仅本地私有，不入库、不随仓库分发 |
-| ✅ **测试基线** | 仓库根 **1291 collected**；**唯一真源 = `pytest.ini`**，数字由 `tools/sync_baselines.py` 单源传播（`--check` 比对 / `--accept` 回写），不再手工多处同步。它是防静默丢测试的漂移锚点，不是完成验收证据 |
+| ✅ **测试基线** | 仓库根 **1357 collected**；**唯一真源 = `pytest.ini`**，数字由 `tools/sync_baselines.py` 单源传播（`--check` 比对 / `--accept` 回写），不再手工多处同步。它是防静默丢测试的漂移锚点，不是完成验收证据 |
 | 🧩 **逐技能登记** | 技能 100% 登记 catalog 映射（schema 硬校验；含 agent-bootstrap / tool-forge 宿主无关能力）；真实执行证据为主，外部依赖项诚实标注 blocked-by-dependency，零伪造 |
 | 🧩 **宿主无关协议** | `workflow_cli boot/probe/forge` + 宿主适配器（可选）+ TOOL_GAP→工具铸造 |
 
