@@ -138,6 +138,25 @@ def test_registry_missing_file_is_empty_not_crash(tmp_path):
     assert load_checker_registry(tmp_path / "absent.json")["checkers"] == []
 
 
+def test_registry_registers_items_that_were_silently_softened():
+    """P3 判等修复：被降级/转人工的判据必须在 registry.manual_items 明文登记。"""
+    final_gate = " ".join(ENTRIES["paper_final_gate"]["manual_items"])
+    assert "mtime" in final_gate and "复制/恢复工作区" in final_gate
+
+    figure = " ".join(ENTRIES["figure_plan_reconciliation"]["manual_items"])
+    assert "占位符" in figure
+    assert "input{../figures" in figure
+
+    write_gate = " ".join(ENTRIES["paper_write_gate"]["manual_items"])
+    assert "MAX_PAGES" in write_gate and "SKIP" in write_gate
+    assert "references.bib" in " ".join(
+        ENTRIES["paper_write_gate"]["manual_items"]
+        + [ENTRIES["paper_write_gate"]["fix_hint"]])
+
+    modeling = " ".join(ENTRIES["modeling_machine_contract"]["manual_items"])
+    assert "真可解" in modeling
+
+
 def test_auto_checks_for_uses_template_step_pair():
     assert [e["name"] for e in auto_checks_for("paper_writing", "paper-compile")] == ["paper_final_gate"]
     assert [e["name"] for e in auto_checks_for("comp_cumcm", "comp-paper-zh")] == [
@@ -239,6 +258,56 @@ def test_paper_final_gate_numeric_and_claims(tmp_path):
            + "\\includegraphics{fig_a.pdf}\n")
     fixed = QualityGate(tmp_path).check_paper_final_gate()
     assert fixed["status"] == "pass", fixed["reason"]
+
+
+def test_paper_final_gate_flat_layout_reads_input_subfiles(tmp_path):
+    """flat 布局（无 paper/sections/）：\\input 的平铺子文件必须纳入正文计量面。
+
+    旧实现只读 paper/main.tex，装配进来的 values.tex 被漏掉，claims 关键词因此误报
+    未覆盖（laya 与旧口径 4/27 → 5/27 的差异即此类）。
+    """
+    from engine.quality_gates import _paper_files, _paper_text
+
+    _write(tmp_path / "paper/main.tex",
+           "\\documentclass{article}\n\\input{values}\n\\begin{document}\n"
+           "\\cite{demo}\n\\includegraphics{fig_a.pdf}\n\\end{document}\n")
+    _write(tmp_path / "paper/values.tex", "% 宏文件\n")
+    _write_bytes(tmp_path / "paper/main.pdf", b"%PDF-1.4\n" + b"0" * 60000)
+    _write(tmp_path / "paper/main.log", "This is pdfTeX\n")
+    _write(tmp_path / "paper/main.bbl",
+           "\\begin{thebibliography}{1}\n\\bibitem{demo} Demo.\n\\end{thebibliography}\n")
+    _write_bytes(tmp_path / "figures/fig_a.pdf", b"%PDF-1.4\n")
+    _write(tmp_path / "RESULTS.md", "# 结果\n\n## 合理性审查\n\n一致。\n")
+    _write(tmp_path / "PAPER_PLAN.md",
+           "| Claim | Evidence |\n|---|---|\n"
+           "| 本文提出注意力融合框架用于长序列预测 | fig_a |\n")
+
+    names = [p.name for p in _paper_files(tmp_path)]
+    assert names[0] == "main.tex" and "values.tex" in names
+    first = QualityGate(tmp_path).check_paper_final_gate()
+    assert any("planned claims not covered" in v for v in first["violations"])
+
+    _write(tmp_path / "paper/values.tex", "本文提出注意力融合框架用于长序列预测。\n")
+    assert "注意力融合框架" in _paper_text(tmp_path)
+    fixed = QualityGate(tmp_path).check_paper_final_gate()
+    assert fixed["status"] == "pass", fixed["reason"]
+
+
+def test_paper_final_gate_stale_figure_mtime_is_advisory(tmp_path):
+    """旧脚本按 GATE_FAIL++ 阻断的 mtime 判据：复制/恢复工作区必误报，现只作 advisory。"""
+    import os
+
+    _clean_paper_workspace(tmp_path)
+    results = tmp_path / "figures/all_results.json"
+    _write(results, json.dumps({"model": {"accuracy": 0.9321}}))
+    json_time = results.stat().st_mtime
+    os.utime(tmp_path / "figures/fig_a.pdf", (json_time - 120, json_time - 120))
+    result = QualityGate(tmp_path).check_paper_final_gate()
+    assert result["status"] == "pass", result["reason"]
+    assert any("older than all_results.json" in item for item in result["advisories"])
+    assert not any("older than" in item for item in result["violations"])
+    assert any("复制/恢复工作区" in item
+               for item in ENTRIES["paper_final_gate"]["manual_items"])
 
 
 # ---------------------------------------------------------------
@@ -345,14 +414,56 @@ def test_figure_plan_reconciliation_drawio_marker_fallback(tmp_path):
     assert fixed["status"] == "pass", fixed["reason"]
 
 
+def test_figure_plan_reconciliation_checks_unplanned_generated_pdfs(tmp_path):
+    """承接旧 paper-write-zh 阻断项：所有 figures/*.pdf 都要被正文引用。
+
+    manifest 只登记了 3 张时，第 4 张已产出的 PDF 不得因“不在清单”而判 pass
+    （huawei 实测漏嵌 1 张孤儿图，旧判据直到 paper_final_gate 才抓到）。
+    """
+    _write(tmp_path / "PAPER_PLAN.md", "# 规划\n\n" + MANIFEST)
+    for name in ("fig_curve.pdf", "fig_flow.pdf", "tikz_geom.pdf", "fig_orphan.pdf"):
+        _write_bytes(tmp_path / f"figures/{name}", b"%PDF-1.4\n")
+    _write(tmp_path / "figures/fig_flow.drawio", "<mxGraphModel/>\n")
+    _write(tmp_path / "figures/tikz_geom.tex", "\\begin{tikzpicture}\\end{tikzpicture}\n")
+    _write(tmp_path / "paper/sections/1_intro.tex",
+           "\\includegraphics{fig_curve.pdf}\\includegraphics{fig_flow.pdf}"
+           "\\includegraphics{tikz_geom.pdf}\n")
+    orphan = QualityGate(tmp_path).check_figure_plan_reconciliation()
+    assert orphan["status"] == "fail"
+    assert orphan["unembedded"] == ["fig_orphan"]
+    assert orphan["extra_pdfs"] == ["fig_orphan"]
+    assert "未嵌入正文" in orphan["reason"]
+
+    _write(tmp_path / "paper/sections/1_intro.tex",
+           "\\includegraphics{fig_curve.pdf}\\includegraphics{fig_flow.pdf}"
+           "\\includegraphics{tikz_geom.pdf}\\includegraphics{fig_orphan.pdf}\n")
+    assert QualityGate(tmp_path).check_figure_plan_reconciliation()["status"] == "pass"
+
+
 # ---------------------------------------------------------------
 # ②d modeling_machine_contract（comp-modeling Step 5.5）
 # ---------------------------------------------------------------
 
 def test_modeling_machine_contract_positive(tmp_path):
+    # 前置文档：子问题覆盖判据按标题行口径取 PROBLEM_ANALYSIS.md
+    _write(tmp_path / "PROBLEM_ANALYSIS.md", "# 赛题分析\n\n## 问题一 事件抽取\n\n...\n")
     _write(tmp_path / "MODELING_REPORT.md", """# 建模报告
 
+## 问题一 事件抽取
+
+目标函数：min 交叉熵损失。
+
 针对能力 P1-C1 事件抽取，采用序列标注模型。
+
+## 符号说明
+
+| 符号 | 含义 |
+|---|---|
+| x | 输入 |
+
+## 图表预规划
+
+- fig_curve：训练曲线
 
 <!-- METHOD_CLAIMS_MACHINE
 M1 | must: LpInteger, cat=.Integer | forbid: linprog
@@ -367,6 +478,8 @@ M1 | must: LpInteger, cat=.Integer | forbid: linprog
     result = QualityGate(tmp_path).check_modeling_machine_contract()
     assert result["status"] == "pass", result["reason"]
     assert result["capability_missing"] == []
+    assert result["claims_lines"] == 1
+    assert result["subproblems"] == {"expected": 1, "modeled": 1}
 
 
 def test_modeling_machine_contract_negative(tmp_path):
@@ -395,6 +508,117 @@ M1 | forbid: linprog
     result = QualityGate(tmp_path).check_modeling_machine_contract()
     assert result["status"] == "fail"
     assert any("must" in v for v in result["violations"])
+
+
+# P3 判等修复：真实工作区的块形状（huawei2026d / huawei2026d_zcode）
+# 表头 claims_scope: 与逐声称 assumptions/scope 续行不是“缺 must 的声称行”。
+_MODELING_SELFCHECK = """
+## 问题一 载荷反解
+
+目标函数：min 总能耗。
+
+## 符号说明
+
+| 符号 | 含义 |
+|---|---|
+| q | 载荷 |
+
+## 图表预规划
+
+- fig_curve：灵敏度曲线
+"""
+
+
+def test_modeling_machine_contract_header_and_assumption_rows_are_not_must_rows(tmp_path):
+    _write(tmp_path / "PROBLEM_ANALYSIS.md", "# 赛题\n\n## 问题一 载荷反解\n")
+    _write(tmp_path / "MODELING_REPORT.md", "# 建模报告\n" + _MODELING_SELFCHECK + """
+<!-- METHOD_CLAIMS_MACHINE
+M1 | must: brentq, root_scalar | forbid: 直接取最大载重
+claims_scope:
+ M1 | assumptions: Phi(q)在[0,Q_g]单调连续可反解 | scope: Q1-Q4 全部能量-载荷反解
+ M2 | assumptions: 整箱不可拆且每箱恰一次 | scope: Q1 组批
+-->
+
+```json
+{"LOGIC_CONTRACT_MACHINE": {"bounds": [{"quantity": "q", "is": "upper"}]}}
+```
+""")
+    result = QualityGate(tmp_path).check_modeling_machine_contract()
+    assert result["status"] == "pass", result["reason"]
+    assert result["claims_lines"] == 1
+    assert result["assumption_lines"] == 3  # claims_scope: 表头 + 2 条续行
+    assert not any("must 铁证" in v for v in result["violations"])
+
+    # zcode 形状：scope:/assumptions: 直接做块表头，M 行才是签名行
+    _write(tmp_path / "MODELING_REPORT.md", "# 建模报告\n" + _MODELING_SELFCHECK + """
+<!-- METHOD_CLAIMS_MACHINE
+scope: Q1~Q4 全部子问题
+assumptions: A-RHO 0.20
+M1 | must: eq_range, 3\\.6e6 | forbid: 固定能耗常数
+M2 | must: LpProblem, pulp | forbid: even_split
+P1-C1 | must: sympy | forbid: handwave
+-->
+
+```json
+{"LOGIC_CONTRACT_MACHINE": {"bounds": []}}
+```
+""")
+    zcode = QualityGate(tmp_path).check_modeling_machine_contract()
+    assert zcode["status"] == "pass", zcode["reason"]
+    assert zcode["claims_lines"] == 3
+    assert zcode["assumption_lines"] == 2
+
+
+def test_modeling_machine_contract_covers_old_output_selfcheck_items(tmp_path):
+    """旧 comp-modeling 输出自检的 4 项可程序化 ❌ 判据必须有结论，不能静默消失。"""
+    _write(tmp_path / "PROBLEM_ANALYSIS.md",
+           "# 赛题\n\n## 问题一 甲\n\n## 问题二 乙\n\n## 问题三 丙\n")
+    _write(tmp_path / "MODELING_REPORT.md", """# 建模报告
+
+## 问题一 甲
+
+<!-- METHOD_CLAIMS_MACHINE
+M1 | must: solver | forbid: guess
+-->
+
+```json
+{"LOGIC_CONTRACT_MACHINE": {"bounds": []}}
+```
+""")
+    result = QualityGate(tmp_path).check_modeling_machine_contract()
+    joined = " ".join(result["violations"])
+    assert result["status"] == "fail"
+    assert "子问题覆盖不足" in joined and "1/3" in joined
+    assert "目标函数或模型公式" in joined
+    assert "符号说明表" in joined
+    assert "图表预规划" in joined
+    # 语义项（是否真可解）必须留在 manual_items，不得硬造判据
+    assert any("真可解" in item for item in ENTRIES["modeling_machine_contract"]["manual_items"])
+
+
+def test_modeling_machine_contract_prose_claim_still_needs_must(tmp_path):
+    """散文式声称行（有编号、无 must/forbid 字段）仍必须补 must 签名。"""
+    _write(tmp_path / "MODELING_REPORT.md", "# 建模报告\n" + _MODELING_SELFCHECK + """
+<!-- METHOD_CLAIMS_MACHINE
+M1 | must: solver | forbid: guess
+M2 | 声称用了整数规划
+-->
+
+```json
+{"LOGIC_CONTRACT_MACHINE": {"bounds": []}}
+```
+""")
+    result = QualityGate(tmp_path).check_modeling_machine_contract()
+    assert result["status"] == "fail"
+    assert any("M2" in v and "must" in v for v in result["violations"])
+
+
+def test_count_subproblems_matches_shared_script_semantics():
+    from engine.quality_gates import _count_subproblems
+    text = ("# 问题一 甲\n\n正文提到问题二但不算标题。\n\n### 问题2 乙\n"
+            "## Problem 3\n## Question 4\n## 问题一 甲（续）\n")
+    # 问题一（出现两次同编号去重）/问题2/Problem 3/Question 4 = 4
+    assert _count_subproblems(text) == 4
 
 
 # ---------------------------------------------------------------
@@ -428,6 +652,86 @@ def test_paper_write_gate_docx_mode(tmp_path):
     _write(tmp_path / "paper/main.md", "# 论文\n" + "正文内容。" * 1200)
     result = QualityGate(tmp_path).check_paper_write_gate()
     assert result["status"] == "pass" and result["mode"] == "docx"
+
+
+def _clean_paper_write_workspace(tmp_path: Path) -> None:
+    _write(tmp_path / "paper/main.tex", "\\documentclass{article}\n" + "% 模板\n" * 800)
+    _write(tmp_path / "paper/references.bib", "@article{demo, title={Demo}, author={A}}\n")
+    _write(tmp_path / "paper/sections/1_intro.tex", "正文。" + "内容" * 300)
+
+
+def test_paper_write_gate_rejects_empty_references_bib(tmp_path):
+    """旧判据是 exists and non-empty：0B 空书目不得静默通过。"""
+    _clean_paper_write_workspace(tmp_path)
+    _write(tmp_path / "paper/references.bib", "")
+    empty = QualityGate(tmp_path).check_paper_write_gate()
+    assert empty["status"] == "fail"
+    assert any("references.bib 为空" in v for v in empty["violations"])
+    _write(tmp_path / "paper/references.bib", "@article{demo, title={D}}\n")
+    assert QualityGate(tmp_path).check_paper_write_gate()["status"] == "pass"
+
+
+def test_paper_write_gate_figure_labels_must_be_covered(tmp_path):
+    """语义 label 判据：正文 \\ref / 同名 label / 图已嵌入三者任一即承接。
+
+    旧判法拿 figures/*.tex 的 \\label 字面量与正文 \\label 比对（正文用 \\ref），
+    huawei 实测 37 条误报；注释掉的图块也不算已定义。
+    """
+    _clean_paper_write_workspace(tmp_path)
+    _write(tmp_path / "figures/latex_includes.tex",
+           "\\begin{figure}\n\\includegraphics{figures/fig_x.pdf}\n"
+           "\\caption{X}\\label{fig:x}\n\\end{figure}\n"
+           "% \\begin{figure}\n% \\includegraphics{figures/fig_old.pdf}\n"
+           "% \\caption{old}\\label{fig:old}\n% \\end{figure}\n")
+    missing = QualityGate(tmp_path).check_paper_write_gate()
+    assert missing["status"] == "fail"
+    assert any("fig:x@latex_includes.tex" in v for v in missing["violations"])
+    assert not any("fig:old" in v for v in missing["violations"])
+
+    # 正文 \ref → 承接
+    _write(tmp_path / "paper/sections/1_intro.tex",
+           "正文见 图~\\ref{fig:x}。" + "内容" * 300)
+    assert QualityGate(tmp_path).check_paper_write_gate()["status"] == "pass"
+
+    # 正文自带同名 label（图块被正文接管）→ 承接
+    _write(tmp_path / "paper/sections/1_intro.tex",
+           "\\begin{figure}\\includegraphics{figures/fig_x.pdf}\\label{fig:x}\\end{figure}"
+           + "内容" * 300)
+    assert QualityGate(tmp_path).check_paper_write_gate()["status"] == "pass"
+
+    # label 命名不同但对应图已嵌入正文（huawei 源池连字符 vs 正文下划线）→ 承接
+    _write(tmp_path / "figures/latex_includes.tex",
+           "\\begin{figure}\n\\includegraphics{figures/fig_y.pdf}\n"
+           "\\caption{Y}\\label{fig:y-source}\n\\end{figure}\n")
+    _write(tmp_path / "paper/sections/1_intro.tex",
+           "\\includegraphics{figures/fig_y.pdf}" + "内容" * 300)
+    assert QualityGate(tmp_path).check_paper_write_gate()["status"] == "pass"
+
+    # 表格按 \input{figures/TABLE_x.tex} 装配：整文件已进正文 → 承接
+    _write(tmp_path / "figures/TABLE_cmp.tex",
+           "\\begin{table}\\caption{C}\\label{tab:cmp}\\end{table}\n")
+    _write(tmp_path / "paper/sections/1_intro.tex",
+           "\\includegraphics{figures/fig_y.pdf}\\input{figures/TABLE_cmp.tex}"
+           + "内容" * 300)
+    table = QualityGate(tmp_path).check_paper_write_gate()
+    assert table["status"] == "pass", table["reason"]
+    assert table["counts"]["uncovered_figure_labels"] == 0
+
+
+def test_paper_write_gate_max_pages_absent_is_explicit_skip(tmp_path):
+    """未配置 MAX_PAGES → 页数判据 SKIP，但必须在结果里写明“不等于通过”。"""
+    _clean_paper_write_workspace(tmp_path)
+    result = QualityGate(tmp_path).check_paper_write_gate()
+    assert result["status"] == "pass"
+    page_check = result["page_check"]
+    assert page_check["status"] == "skip"
+    assert "MAX_PAGES" in page_check["reason"] and "不等于通过" in page_check["reason"]
+    assert any("页数判据 SKIP" in item for item in result["advisories"])
+
+    _write(tmp_path / ".env_skill", "MAX_PAGES=1\n")
+    configured = QualityGate(tmp_path).check_paper_write_gate()
+    assert configured["page_check"]["status"] == "checked"
+    assert configured["page_check"]["max_pages"] == 1
 
 
 # ---------------------------------------------------------------

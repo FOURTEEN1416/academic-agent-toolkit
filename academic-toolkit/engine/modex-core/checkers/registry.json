@@ -9,7 +9,7 @@
       "severity": "blocking",
       "stage": "active",
       "source_ref": "skills/paper-compile/SKILL.md § Step 7: Final gate — engine `paper_final_gate`",
-      "fix_hint": "按 diagnostics.violations 逐项修：PDF 体量/bib/cite/未嵌入图/占位符/overfull/itemize/未定义引用/图堆叠/TOC/模板前言/TikZ 嵌入/计划图数/数值对账/claims 覆盖/meta 泄漏；疑似完美值按条确认后写进 RESULTS.md。",
+      "fix_hint": "按 diagnostics.violations 逐项修：PDF 体量/bib/cite/未嵌入图/占位符/overfull/itemize/未定义引用/图堆叠/TOC/模板前言/TikZ 嵌入/计划图数/数值对账/claims 覆盖/meta 泄漏；疑似完美值按条确认后写进 RESULTS.md。图表 mtime 陈旧只作 advisory（复制/恢复工作区必误报），按 manual_items 人工确认是否真陈旧。",
       "single_run": "cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check paper_final_gate（退出码 0=pass 1=fail 3=unknown）",
       "applies_to": [
         {"template": "paper_writing", "step": "paper-compile"},
@@ -21,7 +21,8 @@
         "图表版式与视觉美观判断（图堆叠判据之外的观感）",
         "claims 关键词命中之外的论证充分性判断",
         "模板前言差异属等价改写还是篡改的语义判断",
-        "可疑完美值结合研究背景确认是否真合理"
+        "可疑完美值结合研究背景确认是否真合理",
+        "figures/*.pdf 与 all_results.json 的 mtime 先后：旧脚本按 GATE_FAIL++ 阻断，但复制/恢复工作区后时间戳不代表真实先后，现只作 advisory，需人工确认数据是否陈旧"
       ]
     },
     {
@@ -73,7 +74,7 @@
       "severity": "blocking",
       "stage": "active",
       "source_ref": "skills/paper-figure-drawio/SKILL.md § Step 6: Plan reconciliation（引擎承接）; skills/paper-write-zh/SKILL.md § FIGURE_MANIFEST 对账（规划了几张就必须嵌入几张）",
-      "fix_hint": "按 diagnostics.missing_files/missing_sources/unembedded 回 Step 3 补图：每张规划图都要有产物文件 + 图示的可编辑源（.drawio/.tex）+ 正文 includegraphics 引用。",
+      "fix_hint": "按 diagnostics.missing_files/missing_sources/unembedded 回 Step 3 补图：每张规划图都要有产物文件 + 图示的可编辑源（.drawio/.tex）+ 正文 includegraphics 引用；嵌入核验取「规划清单 ∪ figures/*.pdf」并集，清单外已产出的 PDF 同样必须嵌入（不得靠不登记 manifest 豁免）。",
       "single_run": "cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check figure_plan_reconciliation（退出码 0=pass 1=fail 3=unknown）",
       "applies_to": [
         {"template": "paper_writing", "step": "paper-figure-drawio"},
@@ -113,7 +114,10 @@
       "manual_items": [
         "DrawIO 视觉自检与几何居中判断（Step 4 / 5.7）",
         "图类型选型（DrawIO vs TikZ）判断",
-        "3 轮自检失败后的跨工具降级决策"
+        "3 轮自检失败后的跨工具降级决策",
+        "模板括号占位符（[论文标题]、[作者] 等）是否全部替换（人工项，机器判据易误伤正文方括号）",
+        "章节文件是否出现 \\input{../figures/...}（图表应走 figures/latex_includes.tex 图块；路径形态随模板而异，人工核对）",
+        "figures/*.tex 的 label 与正文引用：正文按“图 N”文字引用属合法，引擎只判“有 \\ref / 同名 label / 对应图已嵌入”，旧 \\label 字面量比对法因正文写 \\ref 在 huawei 误报 37 条，已废"
       ]
     },
     {
@@ -121,8 +125,8 @@
       "implementation": "check_modeling_machine_contract",
       "severity": "blocking",
       "stage": "active",
-      "source_ref": "skills/comp-modeling/SKILL.md § Step 5.5: ⛔ 合理性预验证 + 结果预期范围表（建模完成后必做）; skills/comp-modeling/SKILL.md § 方法声称清单（METHOD_CLAIMS）",
-      "fix_hint": "MODELING_REPORT.md 补 METHOD_CLAIMS_MACHINE（每条带 must 签名）、LOGIC_CONTRACT_MACHINE（可解析 JSON），并为 CAPABILITY_CHECKLIST.json 的每个能力 id 写明建模着落。",
+      "source_ref": "skills/comp-modeling/SKILL.md § Step 5.5: ⛔ 合理性预验证 + 结果预期范围表（建模完成后必做）; skills/comp-modeling/SKILL.md § 方法声称清单（METHOD_CLAIMS）; skills/comp-modeling/SKILL.md § Step 6: 输出",
+      "fix_hint": "MODELING_REPORT.md 补 METHOD_CLAIMS_MACHINE（每条声称带 must 签名；claims_scope/scope/assumptions 表头与假设续行不要求 must）、LOGIC_CONTRACT_MACHINE（可解析 JSON），并为 CAPABILITY_CHECKLIST.json 的每个能力 id 写明建模着落；同时补齐旧输出自检的四项：子问题覆盖（标题行口径）≥PROBLEM_ANALYSIS.md、目标函数/模型公式存在、符号说明表、图表预规划带入。",
       "single_run": "cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check modeling_machine_contract（退出码 0=pass 1=fail 3=unknown）",
       "applies_to": [
         {"template": "comp_cumcm", "step": "comp-modeling"},
@@ -152,7 +156,8 @@
         "方法声称与 must/forbid 签名的语义等价判断（由 comp-code 的 claim_code_check 执行）",
         "参数口径表跨子问题换算一致性（同一物理量唯一值/唯一语义）",
         "经典问题升级三段式决策与理由充分性",
-        "目标/约束原文溯源的语义核对"
+        "目标/约束原文溯源的语义核对",
+        "目标函数/模型公式是否真可解、是否与子问题同一目标（引擎只判存在性，语义正确性人工核）"
       ]
     },
     {
@@ -160,8 +165,8 @@
       "implementation": "check_paper_write_gate",
       "severity": "blocking",
       "stage": "active",
-      "source_ref": "skills/paper-write-zh/SKILL.md § 完成铁律（产出契约）; skills/paper-write-zh/SKILL.md § Step 7: Final verification",
-      "fix_hint": "补主产物到 ≥5KB、每章 ≥500 字符；摘要里出现的小数必须在正文（不含摘要）或 RESULTS.md 出现；代码块移到 paper/appendix/；配置了 MAX_PAGES 时扩充最薄章节。",
+      "source_ref": "skills/paper-write-zh/SKILL.md § 完成铁律（产出契约）; skills/paper-write-zh/SKILL.md § Step 2: Figure inventory; skills/paper-write-zh/SKILL.md § Step 7: Final verification",
+      "fix_hint": "补主产物到 ≥5KB、每章 ≥500 字符；paper/references.bib 必须存在且非空（0B 直接判不合格）；摘要里出现的小数必须在正文（不含摘要）或 RESULTS.md 出现；figures/*.tex 的 label 要在正文有承接（\\ref、正文同名 label 或对应图已嵌入）；代码块移到 paper/appendix/；配置了 MAX_PAGES 时扩充最薄章节（未配置时页数判据 SKIP，不等于通过）。",
       "single_run": "cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check paper_write_gate（退出码 0=pass 1=fail 3=unknown）",
       "applies_to": [
         {"template": "paper_writing_zh", "step": "paper-write-zh"}
@@ -169,7 +174,9 @@
       "manual_items": [
         "写作风格/文风与 AI 痕迹语义判断（ai_tell_check --strict 执行）",
         "摘要结构与中英文长度语感",
-        "claims 表格内容与正文论证的一致性"
+        "claims 表格内容与正文论证的一致性",
+        "MAX_PAGES 未配置时页数判据 SKIP（不等于通过）：旧 ${MAX_PAGES:-30} 默认口径与旧“总字符 ≥ MAX_PAGES×800”桶均不再默认启用；现行口径只认显式 MAX_PAGES，按字符÷900 估算且低于目标 80% 才判不合格（估算非实测页数）",
+        "paper/references.bib 的条目真实性与格式（引擎只判存在且非空）"
       ]
     },
     {

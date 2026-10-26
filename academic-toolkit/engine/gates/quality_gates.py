@@ -923,14 +923,24 @@ def _read_text(path: Path) -> str:
 
 
 def _paper_files(workspace: Path) -> list[Path]:
+    """正文计量面：main.tex + 分章文件。
+
+    flat 布局（无 paper/sections/）下正文与宏文件平铺在 paper/ 目录，`\\input{values}`
+    指向的也是同目录文件；只读 main.tex 会漏掉真正装配进来的正文（claims/数值判据
+    因此误报）。这里在无 sections/ 时补取 paper/*.tex，判据与阈值不变，只修计量面。
+    """
     paper = Path(workspace) / "paper"
     files: list[Path] = []
-    if (paper / "main.tex").is_file():
-        files.append(paper / "main.tex")
-    sections = paper / "sections"
-    if sections.is_dir():
-        files.extend(sorted(sections.glob("*.tex")))
-    return files
+    main_tex = paper / "main.tex"
+    if main_tex.is_file():
+        files.append(main_tex)
+    sections_dir = paper / "sections"
+    sections_tex = sorted(sections_dir.glob("*.tex")) if sections_dir.is_dir() else []
+    if sections_tex:
+        files.extend(sections_tex)
+    elif main_tex.is_file():
+        files.extend(sorted(paper.glob("*.tex")))
+    return _unique_paths(files)
 
 
 def _paper_text(workspace: Path) -> str:
@@ -1084,6 +1094,131 @@ def _read_max_pages(workspace: Path) -> int | None:
     env = _read_text(Path(workspace) / ".env_skill")
     match = re.search(r"^\s*(?:export\s+)?MAX_PAGES\s*=\s*(\d+)", env, re.M)
     return int(match.group(1)) if match else None
+
+
+# -----------------------------------------------------
+# 建模报告 / 图表 label 的语义判据辅助（P3 判等修复批）
+# -----------------------------------------------------
+
+_SUBPROBLEM_HEADING_RE = re.compile(r"^#{1,4}[ \t]+(.*)$", re.M)
+_SUBPROBLEM_CN_RE = re.compile(r"问题[一二三四五六七八九十0-9]+")
+_SUBPROBLEM_EN_RE = re.compile(r"(problem|question)\s*[0-9]+", re.I)
+_CLAIM_ID_RE = re.compile(r"^[A-Za-z]{1,4}\d+[A-Za-z]?(?:[-_][A-Za-z0-9]+)*$")
+_CLAIM_SIGNATURE_KEYS = frozenset({"must", "forbid"})
+
+_TEX_LABEL_RE = re.compile(r"\\label\{([^}]+)\}")
+_TEX_REF_RE = re.compile(r"\\(?:ref|eqref|autoref|cref|Cref|pageref|subref)\{([^}]+)\}")
+_TEX_INCLUDEGRAPHICS_RE = re.compile(r"\\includegraphics(?:\[[^\]]*\])?\{([^}]+)\}")
+_TEX_FLOAT_BEGIN_RE = re.compile(r"\\begin\{(?:figure|table)\*?\}")
+# 未转义的 % 才是注释起点：LaTeX 里 \% 是字面量百分号。
+_TEX_COMMENT_RE = re.compile(r"(?<!\\)%.*$", re.M)
+
+
+def _count_subproblems(text: str) -> int:
+    """子问题数（与 skills/_utils/count_subproblems.sh 同口径）。
+
+    只数标题行，按「问题X / Problem N / Question N」编号去重；正文里
+    “针对问题一……”不算，避免全文出现次数虚高。
+    """
+    seen: set[str] = set()
+    for match in _SUBPROBLEM_HEADING_RE.finditer(text or ""):
+        heading = match.group(1)
+        cn = _SUBPROBLEM_CN_RE.search(heading)
+        if cn:
+            seen.add(cn.group(0))
+            continue
+        en = _SUBPROBLEM_EN_RE.search(heading)
+        if en:
+            seen.add(re.sub(r"\s+", "", en.group(0).lower()))
+    return len(seen)
+
+
+def _method_claim_rows(block_text: str) -> tuple[list[str], list[str]]:
+    """拆分 METHOD_CLAIMS_MACHINE 块：声称行 vs 表头/逐声称假设续行。
+
+    规范声称行是 ``M1 | must: ... | forbid: ...``；同一块里也合法地写
+    ``claims_scope:`` 表头与 ``M1 | assumptions: ... | scope: ...`` 续行。
+    旧判据对每个非空行都要求 must，于是表头与假设续行被当成“缺铁证”
+    （huawei 实块误报 8 条、zcode 实块误报 2 条，同块另由
+    ``check_modeling_contract`` 判 ok）。判定：
+
+    - 带 must/forbid 字段 → 声称签名行（必须有 must）；
+    - 带编号但只有 assumptions/scope 字段 → 假设续行（不要求 must）；
+    - 带编号、无字段（散文式声称）→ 仍算声称行（必须补 must 签名）；
+    - 无编号或表头键行 → 跳过。
+    """
+    assumption_keys = frozenset({"assumptions", "scope", "claims_scope"})
+    rows: list[str] = []
+    skipped: list[str] = []
+    for raw in (block_text or "").splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        head = line.split("|", 1)[0].strip()
+        fields = set()
+        for part in line.split("|")[1:]:
+            key, sep, _value = part.partition(":")
+            if sep:
+                fields.add(key.strip().lower())
+        if not _CLAIM_ID_RE.match(head):
+            skipped.append(line)
+        elif _CLAIM_SIGNATURE_KEYS & fields:
+            rows.append(line)
+        elif fields and fields <= assumption_keys:
+            skipped.append(line)
+        else:
+            rows.append(line)
+    return rows, skipped
+
+
+def _strip_tex_comments(text: str) -> str:
+    """剥掉 LaTeX 注释行内容（保留行结构），注释掉的图块不参与判据。"""
+    return _TEX_COMMENT_RE.sub("", text or "")
+
+
+def _figure_label_gaps(workspace: Path, body_text: str) -> list[dict]:
+    r"""figures/*.tex 定义的 ``\label`` 在正文是否有承接（语义口径）。
+
+    旧写作检查拿 figures/*.tex 的 ``\label{x}`` 字面量与正文的 ``\label{...}``
+    比对，而正文引用写的是 ``\ref{x}``，于是真正嵌入的图也全被判未嵌入
+    （huawei 实测 37 条误报，判据因此被整块删除）。语义口径下，一个浮动体
+    label 视为已承接，当且仅当正文满足任一：
+
+    ① ``\ref{label}``（含 eqref/autoref/cref/Cref/pageref/subref）；
+    ② 正文自带同名 ``\label{label}``（图块被正文接管、label 未改名）；
+    ③ 该浮动体 ``\includegraphics`` 的图已嵌进正文（label 命名不同不影响
+       “图已进正文”这一事实，如 huawei 源池用连字符、正文用下划线）；
+    ④ 该 figures/*.tex 文件本身被正文 ``\input``/``\include``（表格常按
+       ``\input{figures/TABLE_x.tex}`` 装配，整文件即已进正文）。
+
+    解析前先剥注释：注释掉的图块不算已定义（laya 的 fig_lambda/fig_dose）。
+    """
+    figures_dir = Path(workspace) / "figures"
+    if not figures_dir.is_dir():
+        return []
+    body = _strip_tex_comments(body_text or "")
+    refs = set(_TEX_REF_RE.findall(body))
+    own_labels = set(_TEX_LABEL_RE.findall(body))
+    embedded = {Path(name).stem for name in _TEX_INCLUDEGRAPHICS_RE.findall(body)}
+    input_files = {Path(name.replace("\\", "/")).stem
+                   for name in TEX_TARGET_RE.findall(body)}
+    gaps: list[dict] = []
+    for path in sorted(figures_dir.glob("*.tex")):
+        if path.stem in input_files:
+            continue
+        text = _strip_tex_comments(_read_text(path))
+        for block in re.split(r"(?=\\begin\{(?:figure|table)\*?\})", text):
+            if not _TEX_FLOAT_BEGIN_RE.search(block):
+                continue
+            artifacts = [Path(name).stem
+                         for name in _TEX_INCLUDEGRAPHICS_RE.findall(block)]
+            for label in _TEX_LABEL_RE.findall(block):
+                if label in refs or label in own_labels:
+                    continue
+                if any(stem in embedded for stem in artifacts):
+                    continue
+                gaps.append({"label": label, "file": path.name, "figures": artifacts})
+    return gaps
 
 
 TEX_TARGET_RE = re.compile(r"\\(?:input|include)\{([^}]+)\}")
@@ -2412,12 +2547,16 @@ class QualityGate:
         else:
             unverified.append("RESULTS.md 缺失：合理性审查章节未核验")
         # 14) 数据新鲜度（mtime 判据降 advisory：复制/恢复工作区必误报）
+        # 旧脚本按 GATE_FAIL++ 阻断；mtime 在复制/恢复工作区后不代表真实先后，
+        # 故只作 advisory，并由 registry manual_items 要求人工确认数据是否陈旧。
         if all_results.is_file() and figures_dir.is_dir():
             json_time = all_results.stat().st_mtime
             stale = [p.name for p in figures_dir.glob("*.pdf")
                      if p.stat().st_mtime < json_time - 60]
             if stale:
-                advisories.append(f"{len(stale)} figures older than all_results.json（可能数据陈旧）")
+                advisories.append(
+                    f"{len(stale)} figures older than all_results.json"
+                    f"（可能数据陈旧；复制/恢复工作区场景时间戳不可信，需人工确认）")
         # 15) meta 泄漏
         leak_re = (r"RESULTS\.md|AGENTS\.md|MODELING_REPORT|PROBLEM_ANALYSIS|"
                    r"PAPER_PLAN|latex_includes|all_results\.json")
@@ -2535,6 +2674,8 @@ class QualityGate:
 
         规划清单里每张图都必须：产物文件存在 → 图类型有可编辑源（图表 .drawio/.tex）
         → 正文引用。无 FIGURE_MANIFEST 时跳过（无规划合同，不硬造判据）。
+        嵌入核验取「规划清单 ∪ figures/*.pdf」并集：清单外已产出的图同样必须进正文，
+        避免漏登 manifest 就静默豁免（承接旧 paper-write-zh 的孤儿图阻断项）。
         """
         ws = self.workspace
         plan_path = None
@@ -2561,10 +2702,21 @@ class QualityGate:
         # 此时无正文是正常时序，不能据此误报"未嵌入"。
         can_check_embedding = bool(paper_text.strip())
         figures_dir = ws / "figures"
+        # 承接旧 paper-write-zh 的阻断项「所有 figures/*.pdf 被正文引用」：
+        # 规划清单是下限不是白名单——清单外已产出的 PDF 同样必须嵌入正文，
+        # 否则 manifest 漏登记就形成静默豁免（huawei 实测漏嵌 1 张孤儿图，
+        # 旧判据在 paper_final_gate 才抓到）。manifest ∪ figures/*.pdf 取并集，
+        # 只做一次嵌入核验，避免两处各判一遍重复阻断。
+        planned_names = [entry["name"] for entry in entries]
+        extra_entries: list[dict] = []
+        if figures_dir.is_dir():
+            extra_entries = [{"name": pdf.stem, "kind": "extra"}
+                             for pdf in sorted(figures_dir.glob("*.pdf"))
+                             if pdf.stem not in planned_names]
         missing_files: list[str] = []
         missing_sources: list[str] = []
         unembedded: list[str] = []
-        for entry in entries:
+        for entry in entries + extra_entries:
             name, kind = entry["name"], entry["kind"]
             artifacts = [p for ext in ("pdf", "png", "svg")
                          if (p := figures_dir / f"{name}.{ext}").is_file() and p.stat().st_size]
@@ -2588,16 +2740,17 @@ class QualityGate:
             violations.append(f"❌ 已生成但未嵌入正文: {', '.join(unembedded[:5])}")
         status = "fail" if violations else "pass"
         return {"ok": status == "pass", "status": status, "planned": len(entries),
+                "extra_pdfs": [entry["name"] for entry in extra_entries],
                 "missing_files": missing_files, "missing_sources": missing_sources,
                 "unembedded": unembedded,
                 "reason": "FIGURE_MANIFEST 对账: " + ("; ".join(violations) if violations else "全部齐全")}
 
     def check_modeling_machine_contract(self) -> dict:
         """comp-modeling Step 5.5 的机器可核合同：METHOD_CLAIMS_MACHINE + LOGIC_CONTRACT_MACHINE
-        + CAPABILITY_CHECKLIST 能力项认领。
+        + CAPABILITY_CHECKLIST 能力项认领 + 旧输出前自检的可程序化四项。
 
-        判的是「合同块存在且可被下游脚本消费」，不判方法是否真实现（那是 comp-code 的
-        claim_code_check 与语义审查，登记为 manual_items）。
+        判的是「合同块存在且可被下游脚本消费」与「输出自检的机器部分」，不判方法是否
+        真实现（那是 comp-code 的 claim_code_check 与语义审查，登记为 manual_items）。
         """
         ws = self.workspace
         report = ws / "MODELING_REPORT.md"
@@ -2608,15 +2761,17 @@ class QualityGate:
         violations: list[str] = []
         unverified: list[str] = []
         claims_block = re.search(r"<!--\s*METHOD_CLAIMS_MACHINE(.*?)-->", text, re.S)
-        claims_lines: list[str] = []
+        claim_rows: list[str] = []
+        skipped_lines: list[str] = []
         if not claims_block:
             violations.append("缺少 METHOD_CLAIMS_MACHINE 注释块")
         else:
-            claims_lines = [line.strip() for line in claims_block.group(1).splitlines()
-                            if line.strip()]
-            if not claims_lines:
-                violations.append("METHOD_CLAIMS_MACHINE 块为空")
-            for line in claims_lines:
+            claim_rows, skipped_lines = _method_claim_rows(claims_block.group(1))
+            if not claim_rows:
+                violations.append(
+                    "METHOD_CLAIMS_MACHINE 块内没有任何 must 签名行"
+                    "（每条声称须给 must: 签名；表头/assumptions/scope 续行不冒充声称行）")
+            for line in claim_rows:
                 if not re.search(r"\bmust\s*:?\s*\S", line):
                     violations.append(f"METHOD_CLAIMS_MACHINE 行缺 must 铁证: {line[:40]}")
         logic_ok = False
@@ -2654,10 +2809,29 @@ class QualityGate:
                 violations.append(
                     f"❌ {len(capability_missing)} 条能力项在建模报告中无着落: "
                     f"{', '.join(capability_missing[:5])}")
+        # 旧 comp-modeling「输出前自检」的四项可程序化 ❌ 判据此前无引擎承接
+        # （vendor model-formulation § 输出前自检 1/2/4/6）。语义项（目标函数是否
+        # 真可解、公式是否对应同一子问题）登记在 registry manual_items，不硬造判据。
+        prob_source = ws / "PROBLEM_ANALYSIS.md"
+        prob_count = _count_subproblems(_read_text(prob_source)) if prob_source.is_file() else 0
+        model_count = _count_subproblems(text)
+        if prob_count and model_count < prob_count:
+            violations.append(
+                f"❌ 子问题覆盖不足：MODELING_REPORT.md 只建模 {model_count}/{prob_count} 个"
+                f"（标题行口径，与 count_subproblems.sh 一致）")
+        if not re.search(
+                r"目标函数|最小化|最大化|objective|模型公式|数学模型|"
+                r"(?<![A-Za-z])(?:min|max)(?:imi[sz]e)?(?![A-Za-z])", text, re.I):
+            violations.append("❌ 未找到任何目标函数或模型公式（建模报告缺公式主体）")
+        if not re.search(r"符号.*说明|符号.*含义|Symbol.*Description", text, re.I):
+            violations.append("❌ 缺少符号说明表（符号/说明 或 Symbol/Description）")
+        if not re.search(r"图表预规划|fig_|TABLE_|DrawIO", text, re.I):
+            violations.append("❌ 缺少图表预规划（题图清单未带入建模报告）")
         status = "fail" if violations else ("unknown" if unverified else "pass")
         return {"ok": status == "pass", "status": status, "violations": violations,
                 "capability_missing": capability_missing, "unverified": unverified,
-                "claims_lines": len(claims_lines),
+                "claims_lines": len(claim_rows), "assumption_lines": len(skipped_lines),
+                "subproblems": {"expected": prob_count, "modeled": model_count},
                 "reason": "建模机器合同: " + ("; ".join(violations) if violations else "合同块齐全")}
 
     def check_paper_write_gate(self) -> dict:
@@ -2666,7 +2840,10 @@ class QualityGate:
         - PDF 模式：paper/main.tex ≥5KB，sections/*.tex 每章 ≥500 字符；
         - docx 模式：paper/main.md ≥5KB（单文件）；
         - 摘要里的每个小数必须在正文（不含摘要自身）或 RESULTS.md 出现；
-        - sections 不应含代码块（⚠ 级）、配置 MAX_PAGES 时估算页数不得低于 80%。
+        - paper/references.bib 必须存在且非空（旧判据 exists and non-empty）；
+        - figures/*.tex 的 label 必须在正文有承接（\\ref / 同名 label / 图已嵌入）；
+        - sections 不应含代码块（⚠ 级）、配置 MAX_PAGES 时估算页数不得低于 80%；
+          未配置 MAX_PAGES 时页数判据显式 SKIP（不等于通过），不默认任何赛事页数。
         写作风格/摘要语感等登记为 manual_items。
         """
         ws = self.workspace
@@ -2690,8 +2867,12 @@ class QualityGate:
         counts["main_tex_bytes"] = main_tex.stat().st_size
         if counts["main_tex_bytes"] < 5000:
             violations.append(f"❌ paper/main.tex {counts['main_tex_bytes']}B < 5000B")
-        if not (paper / "references.bib").is_file():
+        bib = paper / "references.bib"
+        if not bib.is_file():
             violations.append("❌ 缺少 paper/references.bib")
+        elif bib.stat().st_size <= 0:
+            # 旧判据是 exists and non-empty；只判存在会让 0B 空书目静默通过。
+            violations.append("❌ paper/references.bib 为空（0B；旧判据 exists and non-empty）")
         if not sections:
             violations.append("❌ 缺少 paper/sections/*.tex")
         thin = [p.name for p in sections if len(_read_text(p)) < 500]
@@ -2717,18 +2898,37 @@ class QualityGate:
         for path in sections:
             if re.search(r"\\begin\{(?:lstlisting|verbatim|minted|python|matlab)\}", _read_text(path)):
                 advisories.append(f"⚠️ {path.name} 含代码块 — 代码应放 paper/appendix/")
-        # 页数预检（仅当显式配置 MAX_PAGES）
+        # figures/*.tex 的 label 必须被正文承接（旧写作检查的阻断项，语义口径重做）
+        body_text = _read_text(main_tex) + "\n" + "\n".join(_read_text(p) for p in sections)
+        label_gaps = _figure_label_gaps(ws, body_text)
+        counts["uncovered_figure_labels"] = len(label_gaps)
+        if label_gaps:
+            detail = ", ".join(f"{gap['label']}@{gap['file']}" for gap in label_gaps[:5])
+            violations.append(
+                f"❌ figures/*.tex 的 label 未被正文承接（无 \\ref、无同名 label、"
+                f"对应图也未嵌入）: {detail}")
+        # 页数预检（仅当显式配置 MAX_PAGES；无配置时显式 SKIP，不默认任何赛事页数）
         max_pages = _read_max_pages(ws)
         if max_pages:
             total = sum(p.stat().st_size for p in sections)
             estimated = total // 900
             counts["estimated_pages"] = estimated
+            page_check = {"status": "checked", "max_pages": max_pages,
+                          "estimated_pages": estimated}
             if estimated < max_pages * 80 // 100:
                 violations.append(
                     f"⛔ 正文估算页数 {estimated} 低于目标 {max_pages} 的 80%")
+        else:
+            page_check = {
+                "status": "skip",
+                "reason": ("未配置 MAX_PAGES → 页数判据 SKIP（不等于通过）；"
+                           "默认口径（旧 ${MAX_PAGES:-30}）已按「不默认任何赛事页数」裁决取消"),
+            }
+            advisories.append(page_check["reason"])
         status = "fail" if violations else "pass"
         return {"ok": status == "pass", "status": status, "mode": "pdf",
                 "violations": violations, "advisories": advisories, "counts": counts,
+                "page_check": page_check,
                 "reason": "paper-write 完成铁律: " + ("; ".join(violations) if violations else "通过")}
 
     def check_paper_scoring_contract(self) -> dict:
