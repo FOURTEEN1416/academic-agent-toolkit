@@ -519,21 +519,9 @@ Look for:
 
 ## Additional Resources
 
-### Reference Files
+### In-Repo Assets
 
-For detailed information, consult:
-
-- **`references/server-types.md`** - Deep dive on each server type
-- **`references/authentication.md`** - Authentication patterns and OAuth
-- **`references/tool-usage.md`** - Using MCP tools in commands and agents
-
-### Example Configurations
-
-Working examples in `examples/`:
-
-- **`stdio-server.json`** - Local stdio MCP server
-- **`sse-server.json`** - Hosted SSE server with OAuth
-- **`http-server.json`** - REST API with token auth
+本技能为孤本集成（上游 galaxy 系技能包不可得），原文引用的 `references/`（server-types / authentication / tool-usage）与 `examples/`（stdio / sse / http 示例配置）三类深化资产在任何可得上游渠道均不存在，缺口已在 `ASSET-GAP.md` 登记审计（2026-09-09）。深化资料请直接使用官方文档：
 
 ### External Resources
 
