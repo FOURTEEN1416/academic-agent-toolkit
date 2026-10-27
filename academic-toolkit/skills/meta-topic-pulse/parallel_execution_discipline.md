@@ -114,7 +114,7 @@ For production services with SLAs and dedicated quotas, aggressive retry pattern
 
 ## Concurrent Execution in Practice
 
-The skill calls phases concurrently via the harness's native parallelism (Claude's tool-call batching). The mechanical pattern:
+The skill calls phases concurrently via the execution environment's native parallelism (the driving agent's tool-call batching). The mechanical pattern:
 
 ```
 1. Build the query list for each platform after intake.

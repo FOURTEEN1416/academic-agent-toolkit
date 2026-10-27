@@ -1,18 +1,19 @@
 ---
 name: latex-paper-collab-depth
-description: "Use the Claude Code CLI as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression and deep evidence analysis (depth over breadth). 只用于逐点深挖/论证收敛；方向发散与选题扩展场景改用 latex-paper-collab-breadth. Optional collaborator, skips when CLI absent."
+description: "Use an external CLI agent as a depth-analysis co-pilot for paper-from-zero. Primary role: claim tree compression and deep evidence analysis (depth over breadth). 只用于逐点深挖/论证收敛；方向发散与选题扩展场景改用 latex-paper-collab-breadth. Optional collaborator, skips when CLI absent."
 metadata:
-  short-description: Depth co-pilot (Claude) for paper-from-zero
+  short-description: Depth co-pilot (external CLI) for paper-from-zero
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（collaborating-with-claude + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
-# Collaborating with Claude Code (Codex)
+<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（collaborating-with-claude + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-10-27 宿主叙事中性化（B′ 批遗留）：宿主/产品叙事改写为「外部协作者 CLI（当前示例实现为 claude，可替换）」口径；功能逻辑与参数未动。-->
+# Collaborating with an External CLI (Depth Mode)
 
-Use Claude Code CLI as a **depth-analysis** collaborator for paper-from-zero,
-or as a generic code collaborator in fallback mode.
+Use an external CLI collaborator as a **depth-analysis** collaborator for
+paper-from-zero, or as a generic code collaborator in fallback mode.
+（当前示例实现以 Anthropic `claude` CLI 为例；可按需替换为任意同类协作者 CLI。）
 
-> **ACAT 宿主中立声明**：本技能把 claude CLI 当作**外部评审桥协作者**调用（可选增强），不预设执行宿主；`claude` 不在 PATH 时跳过该协作者、由当前 Agent 自审降级，不阻断流程。
+> **协作者定位**：本技能把 claude CLI 当作**外部评审桥协作者**调用（可选增强），不预设执行环境；`claude` 不在 PATH 时跳过该协作者、由当前 Agent 自审降级，不阻断流程。
 
 
 This skill provides a lightweight bridge script (`scripts/claude_bridge.py`)
@@ -21,8 +22,8 @@ that returns structured JSON and supports multi-turn sessions via `SESSION_ID`.
 > **Shared rules**: This skill inherits all shared rules from
 > `../../_shared/collaboration-base.md` (core rules, candidates-only
 > constraint, fallback code-collaboration mode, safety guardrails, and
-> collaboration state capsule format).  Only Claude-specific additions
-> are listed below.
+> collaboration state capsule format).  Only collaborator-CLI-specific
+> additions (for the current `claude` example) are listed below.
 
 ## When to Use
 - contribution-map initial draft needs claim-level stress testing.
@@ -37,21 +38,21 @@ that returns structured JSON and supports multi-turn sessions via `SESSION_ID`.
 - Generating `ref.bib` entries or verified citations.
 - Tasks requiring breadth exploration rather than depth analysis.
 
-## Claude-Specific Rules
+## Collaborator CLI Rules (Current Example: `claude`)
 - Always run the bridge script with `--help` first if you are unsure of parameters.
 - Prefer file/line references; run the bridge with `--cd` set to the repo root.
-  Use `--add-dir` when Claude needs access to additional directories.
+  Use `--add-dir` when the collaborator needs access to additional directories.
 - For automation, prefer `--SESSION_ID` (resume). Session selectors are mutually
   exclusive: choose one of `--SESSION_ID`, `--continue`, or `--session-id`.
-- Ensure Claude Code is logged in before running headless commands (run `claude`
-  and `/login` once if needed).
+- Ensure the collaborator CLI is logged in before running headless commands
+  (for the `claude` example: run `claude` and `/login` once if needed).
 - Streamed JSON requires `--verbose`; the bridge enables this automatically.
 
 ## Model Selection
 
-Claude Code supports model aliases, so you can use `--model sonnet` / `--model opus` instead of hard-coding versioned model IDs.
+The `claude` CLI (current example) supports model aliases, so you can use `--model sonnet` / `--model opus` instead of hard-coding versioned model IDs.
 
-- If you omit `--model`, the driving agent uses its configured default model (see your host's model configuration; in this repo the engine adapter decides).
+- If you omit `--model`, the driving agent uses its configured default model (see the engine model configuration `engine/modex-core/contest_models.json`; otherwise the current agent's default model applies).
 - If you need strict reproducibility, pass a full model name via `--model <full-name>`.
 - For `claim-stress-test` and `route-review-vs-empirical` templates, prefer `opus`.
 - For `evidence-sufficiency-audit`, `sonnet` is sufficient.
@@ -66,7 +67,7 @@ Review src/auth.py around login() and propose fixes.
 OUTPUT: Unified Diff Patch ONLY.
 EOF
 )"
-python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --cd "." --model sonnet --PROMPT "$PROMPT" --output-format stream-json
+python3 scripts/claude_bridge.py --cd "." --model sonnet --PROMPT "$PROMPT" --output-format stream-json
 ```
 
 **Output:** JSON with `success`, `SESSION_ID`, `agent_messages`, and optional `error` / `all_messages`.
@@ -79,14 +80,14 @@ PROMPT="$(cat <<'EOF'
 Analyze the bug in foo(). Keep it short.
 EOF
 )"
-python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --cd "." --PROMPT "$PROMPT" --output-format stream-json
+python3 scripts/claude_bridge.py --cd "." --PROMPT "$PROMPT" --output-format stream-json
 
 # Continue the same session
 PROMPT="$(cat <<'EOF'
 Now propose a minimal fix as Unified Diff Patch ONLY.
 EOF
 )"
-python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --cd "." --SESSION_ID "<SESSION_ID>" --PROMPT "$PROMPT" --output-format stream-json
+python3 scripts/claude_bridge.py --cd "." --SESSION_ID "<SESSION_ID>" --PROMPT "$PROMPT" --output-format stream-json
 ```
 
 ## Prompting Patterns (Paper Mode)
@@ -103,7 +104,7 @@ Each template specifies its input sources, output artifact mappings, and constra
 
 ## Verification
 - Cross-check both collaborators: use the `check-collaborators` skill
-- Smoke-test the bridge: `python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --help`
+- Smoke-test the bridge: `python3 scripts/claude_bridge.py --help`
 - For session testing: run one prompt with `--output-format stream-json` and confirm JSON contains `success: true` and a `SESSION_ID`.
 
 ## References

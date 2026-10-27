@@ -6,9 +6,9 @@ license: "MIT"
 
 # Scientific Writer
 
-> **[ACAT 适配说明 · 2026-09-09 资产补齐审计]** 本 SKILL.md 是一份上游 Claude.ai 定制打包版的孤本路由器：正文引用的 `references/<module>.md`（合并单文件）与 `assets/<module>/`、`scripts/<module>/` 平铺结构在该打包版中从未随仓库公开发行。本仓库已改以 `modules/<module>/` 目录交付同一批内容（每模块自带 SKILL.md + references/ + assets/ + scripts/），来源为上游 [K-Dense-AI/claude-scientific-writer](https://github.com/K-Dense-AI/claude-scientific-writer) v2.9.1（MIT，fork FOURTEEN1416 @ 0c72606，2026-09-09 拉取），详见本目录 UPSTREAM.md。
+> **[ACAT 适配说明 · 2026-09-09 资产补齐审计]** 本 SKILL.md 是一份上游定制打包版的孤本路由器：正文引用的 `references/<module>.md`（合并单文件）与 `assets/<module>/`、`scripts/<module>/` 平铺结构在该打包版中从未随仓库公开发行。本仓库已改以 `modules/<module>/` 目录交付同一批内容（每模块自带 SKILL.md + references/ + assets/ + scripts/），来源为上游 [K-Dense-AI/claude-scientific-writer](https://github.com/K-Dense-AI/claude-scientific-writer) v2.9.1（MIT，fork FOURTEEN1416 @ 0c72606，2026-09-09 拉取），详见本目录 UPSTREAM.md。
 > **资产查找口径**：下文 Module map 与工作流中的 `references/<module>.md`、`assets/<module>/...`、`scripts/<module>/...` 一律按 `modules/<module>/` 前缀解析（该模块的 references/ 下可能是多个主题文件而非单个合并文件，按主题就近选取）；`scripts/` 下依赖外部 API 的脚本（ANTHROPIC_API_KEY / Parallel CLI / OPENROUTER_API_KEY）在本仓库无 API 环境，不可直接运行，遵循下方 Global Rule 1 的占位符替代口径。
-> **适应性改造**：模块正文中引用的未随包兄弟模块（pdf/pptx/research-lookup/parallel-web/generate-image/scientific-schematics 等）按 `modules/ADAPTATION.md` 的映射表替代（宿主 document-skills、web_search/web_fetch、本仓库 scientific-schematics/infographics 技能等）；API 依赖门与降级口径同见该文件 §2。
+> **适应性改造**：模块正文中引用的未随包兄弟模块（pdf/pptx/research-lookup/parallel-web/generate-image/scientific-schematics 等）按 `modules/ADAPTATION.md` 的映射表替代（执行环境的 document 处理能力、web_search/web_fetch 类检索工具、本仓库 scientific-schematics/infographics 技能等）；API 依赖门与降级口径同见该文件 §2。
 
 A consolidated scientific writing toolkit covering 15 modules: from manuscript drafting through peer review, citation management, clinical documentation, grant proposals, posters, slides, and beyond. Each module is self-contained as a reference file under `references/`. Read only the module(s) you need for the current task.
 
@@ -17,7 +17,7 @@ A consolidated scientific writing toolkit covering 15 modules: from manuscript d
 This SKILL.md is a **router**. It does three things:
 
 1. Tells you **which reference file to load** for the user's task (see "Module map" below).
-2. Defines **global rules** that apply across all modules (writing style, API substitutions, integration with Claude.ai's native tools).
+2. Defines **global rules** that apply across all modules (writing style, API substitutions, integration with the executing environment's native tools).
 3. Points you to **assets and scripts** for templates, checklists, and helper code.
 
 **Workflow:** Identify the task → match it to a module in the table below → `view` the corresponding `references/<module>.md` → follow that module's instructions → use any listed assets/scripts as needed.
@@ -56,13 +56,13 @@ For complex tasks spanning multiple modules (e.g., write a Nature paper + peer-r
 
 Some modules originally depended on several external APIs (Perplexity Sonar Pro, Parallel CLI, Google Nano Banana Pro, FLUX, OpenRouter, Gemini direct calls). **Those modules and bash invocations have been stripped.** Whenever a reference file contains a command like:
 
-- `python scripts/generate_schematic.py "..."` → 改用宿主的图像检索/生成能力（工具名随宿主），或用内联可视化工具生成 SVG，或描述图由用户外部产出。
+- `python scripts/generate_schematic.py "..."` → 改用当前 Agent 环境的图像检索/生成能力（工具名随环境而定），或用内联可视化工具生成 SVG，或描述图由用户外部产出。
 - `python scripts/generate_image.py "..."` → same as above; use `image_search` or external generation.
-- `python scripts/research_lookup.py "..."` or any "research-lookup skill" reference → 使用宿主的网页检索/抓取能力（工具名随宿主）。
+- `python scripts/research_lookup.py "..."` or any "research-lookup skill" reference → 使用当前 Agent 环境的网页检索/抓取能力（工具名随环境而定）。
 - `parallel-cli` invocations → use `web_search` / `web_fetch`.
-- `markitdown` references → 多数宿主可原生读取常见文件格式（PDF, DOCX, PPTX, XLSX），交给宿主的文件读取能力处理。
+- `markitdown` references → 多数执行环境可原生读取常见文件格式（PDF, DOCX, PPTX, XLSX），交给执行环境的文件读取能力处理。
 
-**Treat every figure-generation or research-lookup bash command in the reference files 作为宿主等价原生能力（检索/生成/读文件）的占位符.** Do not error out, do not tell the user to install the original CLI — silently substitute.
+**Treat every figure-generation or research-lookup bash command in the reference files 作为执行环境等价原生能力（检索/生成/读文件）的占位符.** Do not error out, do not tell the user to install the original CLI — silently substitute.
 
 ### 2. Writing style invariants (apply to all manuscript modules)
 
@@ -85,7 +85,7 @@ The user works bilingually:
 
 ### 4. File creation defaults
 
-- Final deliverables (manuscript, cover letter, response-to-reviewers, treatment plan, poster) → produce a `.docx` or `.pdf` file via the appropriate Claude.ai skill (docx, pdf, pptx, xlsx as relevant).
+- Final deliverables (manuscript, cover letter, response-to-reviewers, treatment plan, poster) → produce a `.docx` or `.pdf` file via the available document-format capability (docx/pdf/pptx/xlsx as relevant).
 - Drafts in chat are markdown.
 - LaTeX output (posters, venue templates, scientific reports) → write `.tex` files and either provide them directly or build a PDF if the LaTeX toolchain is available.
 
@@ -170,4 +170,4 @@ scientific-writer/
 
 ## Notes
 
-This Claude.ai package consolidates 15 modules for scientific authorship and removes API-dependent functionality (research-lookup via Perplexity/Parallel, image generation via Nano Banana / FLUX / Gemini, paper-2-web, parallel-web, infographics) along with `markitdown` and `document-skills` which Claude.ai provides natively.
+This upstream package consolidates 15 modules for scientific authorship and removes API-dependent functionality (research-lookup via Perplexity/Parallel, image generation via Nano Banana / FLUX / Gemini, paper-2-web, parallel-web, infographics) along with `markitdown` and `document-skills` which the original packaging environment provided natively.

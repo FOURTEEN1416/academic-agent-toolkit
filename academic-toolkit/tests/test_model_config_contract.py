@@ -1,14 +1,8 @@
-"""模型配置契约测试（**宿主无关**，2026-09-24 自 test_zcode_host_compat.py 拆出）。
-
-⚠️ 拆分缘由（2026-09-24 审计裁决 D3）：本文件守的是 **engine.quality_gates 的宿主无关
-契约**——模型三级解析（contest 配置槽 > 宿主 agents > 无配置）与 strict 门禁联动。
-原先与 ZCode 专有面（L1 hook 行为 + .zcode/config.json 注册契约）混装在一个宿主命名
-文件里，将来"去宿主化"整文件删除会连带丢掉本契约守卫。C/D 段仍留
-`test_zcode_host_compat.py`（ZCode 可选适配器守护）。
+"""模型配置契约测试（宿主无关）。
 
 覆盖：
-  A. 模型配置三级解析，仓库出厂零预设；
-  B. strict 门禁在"配置槽填了模型"后恢复硬拦截、在"两处皆空"时降级 warn。
+  A. 模型三级解析（配置槽 > 角色定义目录 > 无配置），仓库出厂零预设；
+  B. strict 门禁联动：配置槽填了模型后恢复硬拦截，两处皆空时降级 warn。
 """
 from __future__ import annotations
 
@@ -64,7 +58,7 @@ def test_contest_slot_wins_over_agents_dir(tmp_path, monkeypatch):
     for f in ("数模审稿人.md", "数模视觉审查.md", "数模编辑.md", "数模专家.md"):
         (agents / f).write_text("---\nmodel: host/wrong-model\n---\n", encoding="utf-8")
     monkeypatch.setenv("ACAT_CONTEST_MODELS", str(contest))
-    monkeypatch.setenv("OPENCODE_AGENTS_DIR", str(agents))
+    monkeypatch.setenv("ACAT_AGENT_ROLES_DIR", str(agents))
 
     models = load_configured_role_models()
     assert models == {r: f"contest/{r}-model" for r in ROLES}
@@ -72,7 +66,7 @@ def test_contest_slot_wins_over_agents_dir(tmp_path, monkeypatch):
 
 
 def test_fallback_to_agents_per_role(tmp_path, monkeypatch):
-    """配置槽只填一个角色 → 该角色用配置槽，其余回退宿主 agents 目录。"""
+    """配置槽只填一个角色 → 该角色用配置槽，其余回退角色定义目录（agents 目录）。"""
     contest = tmp_path / "models.json"
     contest.write_text(json.dumps({"roles": {"visual_reviewer": "glm/glm-vision-flash"}}),
                        encoding="utf-8")
@@ -80,7 +74,7 @@ def test_fallback_to_agents_per_role(tmp_path, monkeypatch):
     agents.mkdir()
     (agents / "数模审稿人.md").write_text("---\nmodel: host/reviewer-x\n---\n", encoding="utf-8")
     monkeypatch.setenv("ACAT_CONTEST_MODELS", str(contest))
-    monkeypatch.setenv("OPENCODE_AGENTS_DIR", str(agents))
+    monkeypatch.setenv("ACAT_AGENT_ROLES_DIR", str(agents))
 
     models = load_configured_role_models()
     assert models["visual_reviewer"] == "glm/glm-vision-flash"
@@ -88,13 +82,13 @@ def test_fallback_to_agents_per_role(tmp_path, monkeypatch):
     assert models["editor"] == ""
     prov = model_config_provenance()
     assert prov["visual_reviewer"] == "contest_models"
-    assert prov["reviewer"] in {"host_adapter", "opencode_agents"}
+    assert prov["reviewer"] == "agent_roles_dir"
     assert prov["editor"] == "none"
 
 
 def test_missing_slot_file_degrades_to_agents(tmp_path, monkeypatch):
     monkeypatch.setenv("ACAT_CONTEST_MODELS", str(tmp_path / "not_exist.json"))
-    monkeypatch.setenv("OPENCODE_AGENTS_DIR", str(tmp_path / "no_agents"))
+    monkeypatch.setenv("ACAT_AGENT_ROLES_DIR", str(tmp_path / "no_agents"))
     assert load_configured_role_models() == {r: "" for r in ROLES}
 
 
@@ -144,7 +138,7 @@ def test_strict_blocks_against_contest_slot_model(tmp_path, monkeypatch):
 def test_strict_warns_without_blocking_when_unconfigured(tmp_path, monkeypatch):
     """两处皆空（未做比赛配置）→ strict 无从比对：warn 留痕、不阻断、更不默认放行成静默。"""
     monkeypatch.setenv("ACAT_CONTEST_MODELS", str(tmp_path / "absent.json"))
-    monkeypatch.setenv("OPENCODE_AGENTS_DIR", str(tmp_path / "no_agents"))
+    monkeypatch.setenv("ACAT_AGENT_ROLES_DIR", str(tmp_path / "no_agents"))
     _review_files(tmp_path)
     models = {r: "whatever/model-at-contest" for r in ROLES}
     (tmp_path / "REVIEW_EXECUTION_EVIDENCE.json").write_text(

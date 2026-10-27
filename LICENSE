@@ -1,10 +1,10 @@
 # 许可证（License）
 
-本仓库及历史发布包（`releases/v1`、`releases/v1.1` 为**本地 dated 快照，不入库**，clone 中不存在）由两部分构成，适用不同许可证：
+本仓库由核心代码与技能（CC-BY-NC-4.0）构成；历史发布包 `releases/v1`、`releases/v1.1` 原为本地 dated 快照，现已不在仓库中，发布记录见 `CHANGELOG.md`。历史基准集曾适用另一许可证，留痕见下：
 
 ## 1. 核心代码与技能（CC-BY-NC-4.0）
 
-academic-toolkit（skills/、engine/、tools/、tests/）与根目录配置（opencode.json、README.md）采用
+academic-toolkit（skills/、engine/、tools/、execution/、hooks/、data/、baseline/、tests/；third_party/ 与 vendor/ 见第 4 节）与仓库根文档与配置（README.md、AGENTS.md、pytest.ini、requirements-dev.txt、capabilities/）采用
 [Creative Commons Attribution-NonCommercial 4.0 International (CC-BY-NC-4.0)](https://creativecommons.org/licenses/by-nc/4.0/)：
 
 - ✅ 可自由共享、改编、再利用（含商用场景除外）
@@ -31,10 +31,12 @@ benchmarks/cumcm_public/（P01-P03 合成样例题、交付合同、评分量表
 
 ## 3. 明确排除（不随公开仓库分发）
 
-- 真实竞赛题面与演练产物（workspaces/、赛前试炼任务/、参考论文/）——本地私有。
+- 真实竞赛题面与演练产物（`academic-toolkit/workspaces/`、`assets-local/award-papers/graduate/`、`assets-local/award-papers/mathorcup-bigdata/`）——本地私有。
 - 内部开发真相文档（dev-docs/）——不随包分发。
 
 ## 4. 第三方组件
 
 - 各技能可能引用第三方库（scipy/numpy/pandas/matplotlib/ortools 等），遵循其各自许可证。
 - 技能文档中引用的外部服务（API）使用受其各自服务条款约束。
+- `assets-local/` 的获奖论文、竞赛规范原件、模板与参考图自 2026-09-28 起随公开仓分发；版权归原权利人，不适用本仓 CC-BY-NC-4.0，再利用前请核对原始出处授权。
+- `vendor/forks/` 收编的上游 fork 保留各自上游许可证，本仓 CC-BY-NC-4.0 不覆盖这些第三方内容；具体授权见各目录随附的 `LICENSE` / `UPSTREAM.md`，缺失授权文件的目录须先补齐台账。

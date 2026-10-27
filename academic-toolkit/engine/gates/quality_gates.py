@@ -35,12 +35,10 @@ GATES_FILE = MODEX_CORE / "quality_gates.json"
 
 # =====================================================
 # 审稿角色 → 配置模型 解析（软校验用）
-# 宿主中立（2026-09-09 用户裁定：不预设任何视觉/LLM 模型，比赛时再配置；
-# 2026-09-20 泛化改造：可选宿主适配器不再是硬回退）：
 #   1. ACAT_CONTEST_MODELS 环境变量指向的 JSON（最高，测试/临时注入用）
 #   2. engine/modex-core/contest_models.json（仓库内竞赛配置槽，比赛时填写）
-#   3. agents/adapters/*/models.json（任意宿主/通道可声明角色模型）
-#   4. 可选宿主 agent 目录中的 *.md model: 行（.opencode/.claude/agents/roles 等）
+#   3. 驱动方自定义 agent 目录中的 *.md model: 行（ACAT_AGENT_ROLES_DIR /
+#      ACAT_ADAPTER_AGENTS_DIRS 指定，默认 agents/roles）
 # 皆空 → 该角色无配置模型，strict 比对降级为跳过（warn 不阻断）。
 # =====================================================
 ROLE_AGENT_FILES = {
@@ -52,24 +50,24 @@ ROLE_AGENT_FILES = {
 
 CONTEST_MODELS_FILE = RULES_FILE.parent / "contest_models.json"
 
-# 可选宿主适配器的 agent 定义目录（均非驱动前提）。
-# OPENCODE_AGENTS_DIR 保留兼容旧测试/部署；ACAT_ADAPTER_AGENTS_DIRS 可追加自定义目录（os.pathsep 分隔）。
-OPENCODE_AGENTS_DIR = os.environ.get(
-    "OPENCODE_AGENTS_DIR",
-    str(PROJECT_ROOT.parent / ".opencode" / "agents"),
+# 角色定义目录：默认仓库内中性目录 agents/roles；ACAT_AGENT_ROLES_DIR 可覆盖，
+# ACAT_ADAPTER_AGENTS_DIRS 可追加自定义目录（os.pathsep 分隔）。均非驱动前提。
+AGENT_ROLES_DIR = os.environ.get(
+    "ACAT_AGENT_ROLES_DIR",
+    str(PROJECT_ROOT.parent / "agents" / "roles"),
 )
 
 
 def _optional_adapter_agents_dirs() -> list[Path]:
-    """收集可选适配器的 agent 定义目录。
+    """收集驱动方自定义的角色定义目录。
 
-    - 显式设置 `ACAT_ADAPTER_AGENTS_DIRS` 或 `OPENCODE_AGENTS_DIR` 时：只用显式列表
-      （测试/部署可完全屏蔽仓库内可选宿主目录，避免“配置了却仍读到默认宿主”的污染）。
-    - 未显式设置时：自动发现常见可选宿主目录（仍非驱动前提）。
+    - 显式设置 `ACAT_AGENT_ROLES_DIR` 或 `ACAT_ADAPTER_AGENTS_DIRS` 时：只用显式列表
+      （测试/部署可完全屏蔽仓库内遗留目录，避免读到仓库内遗留目录的污染）。
+    - 未显式设置时：默认 agents/roles（仍非驱动前提）。
     """
     dirs: list[Path] = []
     env_extra = os.environ.get("ACAT_ADAPTER_AGENTS_DIRS", "").strip()
-    explicit_opencode = os.environ.get("OPENCODE_AGENTS_DIR", "").strip()
+    explicit_roles = os.environ.get("ACAT_AGENT_ROLES_DIR", "").strip()
 
     if env_extra:
         for part in env_extra.split(os.pathsep):
@@ -77,18 +75,13 @@ def _optional_adapter_agents_dirs() -> list[Path]:
             if part:
                 dirs.append(Path(part))
 
-    if explicit_opencode:
-        dirs.append(Path(explicit_opencode))
+    if explicit_roles:
+        dirs.append(Path(explicit_roles))
+        return _unique_paths(dirs)
+    if env_extra:
         return _unique_paths(dirs)
 
-    dirs.append(Path(OPENCODE_AGENTS_DIR))
-    repo = PROJECT_ROOT.parent
-    for candidate in (
-        repo / ".opencode" / "agents",
-        repo / ".claude" / "agents",
-        repo / "agents" / "roles",
-    ):
-        dirs.append(candidate)
+    dirs.append(Path(AGENT_ROLES_DIR))
     return _unique_paths(dirs)
 
 
@@ -103,27 +96,6 @@ def _unique_paths(dirs: list[Path]) -> list[Path]:
     return unique
 
 
-def _adapter_models_json() -> dict[str, str]:
-    """读取 agents/adapters/*/models.json 中的 roles 字段。"""
-    adapters_dir = PROJECT_ROOT.parent / "agents" / "adapters"
-    merged: dict[str, str] = {}
-    if not adapters_dir.is_dir():
-        return merged
-    for path in sorted(adapters_dir.glob("*/models.json")):
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
-        roles = data.get("roles") if isinstance(data, dict) else {}
-        if not isinstance(roles, dict):
-            continue
-        for role in ROLE_AGENT_FILES:
-            value = str(roles.get(role, "") or "").strip()
-            if value and not merged.get(role):
-                merged[role] = value
-    return merged
-
-
 def _parse_agent_model(agent_file: Path) -> str | None:
     """从 agent markdown frontmatter 解析 model 字段（provider/model 或 model）。"""
     try:
@@ -135,7 +107,7 @@ def _parse_agent_model(agent_file: Path) -> str | None:
 
 
 def _load_contest_models() -> dict[str, str]:
-    """读取竞赛配置槽（仓库中立，宿主无关）。ACAT_CONTEST_MODELS 可指向替代文件。"""
+    """读取竞赛配置槽（仓库中立，与驱动方无关）。ACAT_CONTEST_MODELS 可指向替代文件。"""
     path = Path(os.environ.get("ACAT_CONTEST_MODELS", str(CONTEST_MODELS_FILE)))
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -146,16 +118,15 @@ def _load_contest_models() -> dict[str, str]:
 
 
 def load_configured_role_models() -> dict[str, str]:
-    """四审稿角色的当前配置模型——宿主中立多级解析（见 ROLE_AGENT_FILES 上方注释）。
+    """四审稿角色的当前配置模型——与驱动方无关的多级解析（见 ROLE_AGENT_FILES 上方注释）。
 
-    竞赛配置槽优先；其后 adapters/*/models.json；最后可选宿主 agent 目录。
+    竞赛配置槽优先；其后驱动方自定义 agent 目录。
     返回 {角色: 模型}，无配置为空串。
     """
     contest = _load_contest_models()
-    adapters = _adapter_models_json()
     result: dict[str, str] = {}
     for role in ROLE_AGENT_FILES:
-        model = contest.get(role, "") or adapters.get(role, "")
+        model = contest.get(role, "")
         if not model:
             for agents_dir in _optional_adapter_agents_dirs():
                 parsed = _parse_agent_model(agents_dir / ROLE_AGENT_FILES[role])
@@ -167,21 +138,17 @@ def load_configured_role_models() -> dict[str, str]:
 
 
 def model_config_provenance() -> dict[str, str]:
-    """报告每个角色配置模型的来源（contest/adapters/host_adapter/none），供审计与体检输出。"""
+    """报告每个角色配置模型的来源（contest_models/agent_roles_dir/none），供审计与体检输出。"""
     contest = _load_contest_models()
-    adapters = _adapter_models_json()
     out: dict[str, str] = {}
     for role, filename in ROLE_AGENT_FILES.items():
         if contest.get(role):
             out[role] = "contest_models"
             continue
-        if adapters.get(role):
-            out[role] = "adapters"
-            continue
         source = "none"
         for agents_dir in _optional_adapter_agents_dirs():
             if _parse_agent_model(agents_dir / filename):
-                source = "host_adapter"
+                source = "agent_roles_dir"
                 break
         out[role] = source
     return out
@@ -258,7 +225,7 @@ def record_role_call_actual(workspace: Path | str, role: str, base_url: str, mod
 
 
 # =====================================================
-# 视觉人工复核记录校验（A7-M5 修复：宿主开不出独立视觉窗口时的受控降级路径）
+# 视觉人工复核记录校验（A7-M5 修复：无法提供独立视觉审核上下文时的受控降级路径）
 # =====================================================
 VISUAL_MANUAL_CHECK_FILE = "VISUAL_REVIEW_MANUAL_CHECK.md"
 _MANUAL_CHECK_MIN_ITEMS = 5
@@ -436,7 +403,7 @@ def detect_capabilities() -> dict:
         caps["pillow"] = True
     except ImportError:
         pass
-    # 4. API Key（仅出图类；视觉审核已换驱动：宿主独立窗口执行，不做 key 探测）
+    # 4. API Key（仅出图类；视觉审核已换驱动：执行方独立上下文窗口执行，不做 key 探测）
     if env_get("GPT_IMAGE_API_KEY"):
         caps["gpt_image_api"] = True
     return caps
@@ -1139,7 +1106,7 @@ def _method_claim_rows(block_text: str) -> tuple[list[str], list[str]]:
     规范声称行是 ``M1 | must: ... | forbid: ...``；同一块里也合法地写
     ``claims_scope:`` 表头与 ``M1 | assumptions: ... | scope: ...`` 续行。
     旧判据对每个非空行都要求 must，于是表头与假设续行被当成“缺铁证”
-    （huawei 实块误报 8 条、zcode 实块误报 2 条，同块另由
+    （华为杯 D 题两个工作区实块误报 8/2 条，同块另由
     ``check_modeling_contract`` 判 ok）。判定：
 
     - 带 must/forbid 字段 → 声称签名行（必须有 must）；
@@ -1749,7 +1716,7 @@ class QualityGate:
                                        f"（需 pass|fail|manual_review|unavailable）: {name}。"
                                        "正确示例: {\"findings\": [], \"fatal_count\": 0, \"status\": \"pass\"}")}
                 if status == "manual_review":
-                    # A7-M5 受控降级：宿主开不出独立视觉窗口 → 人工按检查单逐项目检，
+                    # A7-M5 受控降级：无法提供独立视觉审核上下文 → 人工按检查单逐项目检，
                     # 记录 VISUAL_REVIEW_MANUAL_CHECK.md（approved_by 非空 + ≥5 条逐项记录）才放行。
                     manual_result = validate_visual_manual_check(self.workspace / VISUAL_MANUAL_CHECK_FILE)
                     if not manual_result["ok"]:
@@ -1761,7 +1728,7 @@ class QualityGate:
                 elif status != "pass":
                     return {"ok": False, "fatal_count": fatal_count, "mode": mode,
                             "reason": f"视觉审查未通过（status={status}），终审不得放行: {name}。"
-                                      "宿主开不出独立视觉窗口时的合法降级路径见 comp-visual-review SKILL.md"
+                                      "无法提供独立视觉审核上下文时的合法降级路径见 comp-visual-review SKILL.md"
                                       "（人工复核 → manual_review + VISUAL_REVIEW_MANUAL_CHECK.md）"}
         provenance_ok = True
         provenance_reason = ""
@@ -1784,7 +1751,7 @@ class QualityGate:
                 if set(roles) != required_roles:
                     raise ValueError("角色集合不完整")
                 sessions = []
-                # 软校验：证据声明的模型 vs 配置模型（竞赛配置槽优先，宿主 agents 回退）
+                # 软校验：证据声明的模型 vs 配置模型（竞赛配置槽优先，自定义 agent 目录回退）
                 configured_models = load_configured_role_models()
                 for role_name, role in roles.items():
                     if not all(role.get(field) for field in ("session_id", "model", "output_sha256", "completed_at", "output_file")):
@@ -1810,7 +1777,7 @@ class QualityGate:
                         # 仓库不预设模型（2026-09-09 裁定）：未配置时 strict 无从比对，
                         # 显式 warn 留痕——比赛时填 contest_models.json 后此闸自动恢复硬拦截。
                         provenance_warnings.append(
-                            f"{role_name}: 无配置模型（contest_models.json 未填写且宿主无 agent 配置），"
+                            f"{role_name}: 无配置模型（contest_models.json 未填写且自定义 agent 目录无配置），"
                             f"模型比对跳过，证据声明为 {claimed!r}")
                     # A6-F4 硬校验：引擎记录的实际调用模型 vs 证据声明模型。
                     # fallback 备用通道产生的输出若被申报成主通道模型，在这里被拦
@@ -1846,7 +1813,7 @@ class QualityGate:
         if ok and manual_review_notes:
             reason += "；" + "; ".join(manual_review_notes)
         # B窗 2026-09-27 收口4：实际调用事实采集状态独立披露。当前只有引擎内置
-        # RoleAgent 通道自动采集；宿主独立评审通道尚无采集源——缺席时交叉核对
+        # RoleAgent 通道自动采集；独立评审通道尚无采集源——缺席时交叉核对
         # 无从执行，model/session 字段停留在申报值。显式记为 absent，不模拟通过。
         return {"ok": ok, "fatal_count": fatal_count, "mode": mode,
                 "reason": reason, "warnings": provenance_warnings,
@@ -3392,14 +3359,14 @@ class RoleAgent:
 
 
 # =====================================================
-# P6: 视觉能力（2026-09-23 换驱动：宿主独立窗口视觉审核）
+# P6: 视觉能力（2026-09-23 换驱动：执行方独立上下文窗口视觉审核）
 # =====================================================
 
 class VisionAgent:
-    """视觉能力 — 宿主独立窗口视觉审核（不再调用外部 Vision LLM API）。
+    """视觉能力 — 执行方独立上下文窗口视觉审核（不再调用外部 Vision LLM API）。
 
     2026-09-23 第三次用户裁定：视觉审核驱动从「填 APIKey 调外部视觉 API」
-    整体置换为「项目驱动宿主自身视觉能力 LLM 在独立窗口读图审核」。
+    整体置换为「执行方自带的视觉能力模型在独立上下文窗口读图审核」。
     本类不再持有 api_key/base_url，不再发起任何网络请求；职责收敛为
     任务卡生成（派发独立窗口）与证据收集（解析 verdict）。
     """
@@ -3411,7 +3378,7 @@ class VisionAgent:
         """生成独立窗口审核任务卡并返回派发指引（不再调用外部 Vision API）。"""
         card = self.check_figure_quality(image_path)
         lines = [
-            "宿主独立窗口视觉审核任务已就绪（本引擎不调用外部视觉 API）：",
+            "执行方独立上下文窗口视觉审核任务已就绪（本引擎不调用外部视觉 API）：",
             f"- 待审图件: {image_path}",
             f"- 上下文: {context}" if context else "- 上下文: （无）",
         ]
@@ -3421,7 +3388,7 @@ class VisionAgent:
         return "\n".join(lines)
 
     def check_figure_quality(self, image_path: str) -> dict:
-        """检查图表质量（重叠/截断/美观）— 经 tikz_vision_check.py 宿主窗口驱动。"""
+        """检查图表质量（重叠/截断/美观）— 经 tikz_vision_check.py 独立上下文窗口驱动。"""
         result = subprocess.run(
             [sys.executable, str(TOOLS_DIR / "tikz_vision_check.py"), image_path],
             capture_output=True, text=True, timeout=120)

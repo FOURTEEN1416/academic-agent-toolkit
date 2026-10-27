@@ -55,15 +55,57 @@ S0_SEMANTIC_PRECISION_POLICY = {
 }
 FORBIDDEN_TARGET_IMAGE_KINDS = {"svg", "html", "mermaid", "canvas", "pptx", "pdf"}
 FORBIDDEN_TARGET_IMAGE_EXTS = {".svg", ".html", ".htm", ".mmd", ".pptx", ".pdf"}
-RUNTIME_ENVIRONMENTS = {"unknown", "chatgpt_web", "codex", "claude_code", "other"}
-IMAGE_GENERATION_ROUTES = {
+class _CapabilitySet(set):
+    """Canonical capability set that also accepts legacy aliases on membership tests.
+
+    Iteration yields only canonical values, so CLI ``choices`` stay host-neutral;
+    ``in`` checks still accept legacy state during migration.
+    """
+
+    def __init__(self, canonical: set[str], aliases: dict[str, str]) -> None:
+        super().__init__(canonical)
+        self._aliases = dict(aliases)
+
+    def __contains__(self, item: object) -> bool:
+        return set.__contains__(self, item) or item in self._aliases
+
+    def __iter__(self):
+        return iter(sorted(set.__iter__(self)))
+
+
+RUNTIME_ENVIRONMENT_CAPABILITIES = {
     "unknown",
-    "chatgpt_create_image",
-    "codex_image_gen",
-    "codex_imagegen",  # alias accepted only for migration; new state writes codex_image_gen.
-    "approved_image_api",
-    "user_supplied_api_required",
+    "builtin_image_gen",
+    "web_image_chat",
+    "approved_api",
+    "none",
 }
+# Legacy environment labels are accepted only for migrating existing state;
+# new state writes capability values.
+RUNTIME_ENVIRONMENT_ALIASES = {
+    "chatgpt_web": "web_image_chat",
+    "codex": "builtin_image_gen",
+    "claude_code": "approved_api",
+    "other": "approved_api",
+}
+RUNTIME_ENVIRONMENTS = _CapabilitySet(RUNTIME_ENVIRONMENT_CAPABILITIES, RUNTIME_ENVIRONMENT_ALIASES)
+
+IMAGE_GENERATION_ROUTE_CAPABILITIES = {
+    "unknown",
+    "builtin_image_gen",
+    "web_image_chat",
+    "approved_api",
+}
+# Legacy route labels are accepted only for migrating existing state;
+# new state writes capability values.
+IMAGE_GENERATION_ROUTE_ALIASES = {
+    "chatgpt_create_image": "web_image_chat",
+    "codex_image_gen": "builtin_image_gen",
+    "codex_imagegen": "builtin_image_gen",
+    "approved_image_api": "approved_api",
+    "user_supplied_api_required": "approved_api",
+}
+IMAGE_GENERATION_ROUTES = _CapabilitySet(IMAGE_GENERATION_ROUTE_CAPABILITIES, IMAGE_GENERATION_ROUTE_ALIASES)
 IMAGE_GENERATION_EVENT_GENERATORS = {"image_gen", "imagegen", "create-image", "approved-image-api"}
 
 CANDIDATE_STATUS_VALUES = {
@@ -92,9 +134,9 @@ MAX_SECOND_ROUND_CANDIDATES = 2
 MAX_CANDIDATE_COUNT_BY_STEP = {"S2-SKETCH-EXPLORE": 4, "S5-CANDIDATE-IMAGE": MAX_SECOND_ROUND_CANDIDATES}
 # Image-only target candidates are row-atomic: one prompt-index row per image-generation call.
 # This prevents a single broad/batch prompt from collapsing multiple candidates into one orphan/composite image.
-CHATGPT_WEB_IMAGE_CHUNK_LIMIT = 1
-CHATGPT_WEB_RECOMMENDED_IMAGE_CHUNK_SIZE = 1
-CODEX_IMAGE_CHUNK_LIMIT = 1
+CHAT_IMAGE_CHUNK_LIMIT = 1
+CHAT_IMAGE_RECOMMENDED_IMAGE_CHUNK_SIZE = 1
+CLI_IMAGE_CHUNK_LIMIT = 1
 IMAGE_ONLY_ROW_ATOMICITY_POLICY = {
     "row_atomic_generation_required": True,
     "one_candidate_per_image_call": True,
@@ -375,5 +417,5 @@ ATLAS_BOARD_IDS = (
 ATLAS_DISPLAY_POLICY = (
     "Whenever a reply mentions subtype/category atlas boards, layout grammar, visual communication styles, "
     "reader-role detail, or subtype overview, embed the corresponding saved PNG board with Markdown. "
-    "Do not build generated web pages in any environment, including Codex."
+    "Do not build generated web pages in any environment."
 )

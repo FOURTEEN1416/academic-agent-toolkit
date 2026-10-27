@@ -56,7 +56,7 @@ def test_core_skills_have_content():
 
 
 def test_modeling_closure_skills_have_required_frontmatter():
-    """数模闭环步骤必须能被 OpenCode 技能扫描器发现。"""
+    """数模闭环步骤的 frontmatter 必须可被技能扫描器发现。"""
     closure_skills = [
         "comp-literature", "comp-consistency", "comp-visual-review",
         "comp-editor", "comp-final-review", "comp-final-audit",

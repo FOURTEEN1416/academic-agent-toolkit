@@ -14,15 +14,15 @@ description: "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实
 >（验证基线 2024b）。**本机未装 Origin 时本技能不可用——如实报告缺口，不伪造通过**
 >（TOOL_GAP 纪律）。Origin 的安装永远是用户手动完成的系统级变更，本技能不代装。
 
-## 一、本仓适配（与上游 Codex 版的差异，优先级最高）
+## 一、执行边界（本仓口径，优先级最高）
 
-上游 SKILL.md 与 references/runtime.md、references/origin-safety.md 中的 **Codex 沙箱流程**
-（`origin_codex_sandbox_context`、formal local-execution request、auto-reviewer handoff）
+上游 SKILL.md 与 references/runtime.md、references/origin-safety.md 中的 **沙箱审批流程**
+（`origin_codex_sandbox_context` 错误码、formal local-execution request、auto-reviewer handoff）
 在本仓**不适用，整体替换**为本仓三段式边界：
 
 | 上游概念 | 本仓替代 |
 |---|---|
-| Codex 沙箱审批 handoff | 读数据/分析/规划＝Always 自走；**启动 Origin COM（origin-smoke/render）＝跨工具操作，Ask first**：首次渲染前向用户要方向；同一会话内用户已确认目标后，setup→doctor→smoke→render→verify 连续执行不重复询问 |
+| 上游执行器的沙箱审批 handoff | 读数据/分析/规划＝Always 自走；**启动 Origin COM（origin-smoke/render）＝跨工具操作，Ask first**：首次渲染前向用户要方向；同一会话内用户已确认目标后，setup→doctor→smoke→render→verify 连续执行不重复询问 |
 | formal request / auto-reviewer | 用户主权：用户说画就画；渲染产生的文件写入是可逆操作，无需逐文件审批 |
 | （上游红线） | **保留为 Never 硬停**：不请求管理员权限；不改 DCOM/注册表/防火墙/用户组/Origin 安装；不用鼠标自动化；不重置/覆盖/关闭用户自有 Origin 工程（`attach_existing` 仅显式高级模式，退出用 detach 不强杀）；不把选中文件上传任何网络服务 |
 
@@ -31,14 +31,14 @@ description: "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实
 1. **启动器路径**：一律 `vendor/forks/editaplot/editaplot.cmd`（相对仓库根；脚本内用绝对路径时按当前检出解析）。不要求用户选 Python 解释器，不直接调 `scripts/editaplot.py`。
 2. **产物去向**：默认沿用上游规则——源数据同目录自动建 `<源文件名>_EditaPlot_YYYYMMDD_HHMMSS/`；不重定向到仓库、技能目录或全局共享目录。若任务走工作流引擎（StepAction 指定 workspace），将产物**复制登记**到该 workspace 并在 evidence 中注明两处路径。
 3. **执行会话协议**：被引擎工作流调用时，实际命令经执行会话 `run` 下发（声明命令、依赖与产物路径），真实返回码、输入输出与内容指纹由程序采集；完成后 `session finish` 统一验收并推进。模型不手填 execution_evidence、返回码或哈希；无真实运行记录＝未执行。
-4. **宿主中立**：references 副本中残留的 Codex 字样一律按本节规则替换理解，不再逐文件修改（避免与上游 diff 失真）。
-5. **语言**：与用户交流用中文；命令、字段名、错误码保留原文。
+4. **语言**：与用户交流用中文；命令、字段名、错误码保留原文。
 
 ## 二、环境启动（每次新工作流）
 
 ```powershell
 # 首次使用（一次）：装 Python 依赖到项目级 .editaplot-venv（绝不装/改 Origin）
-vendor\forks\editaplot\editaplot.cmd setup
+# 一律显式指定目标；不指定时上游默认写用户级技能目录，本仓调用不依赖该默认。
+vendor\forks\editaplot\editaplot.cmd setup --target <技能目录或用户指定目录>
 # 每个新工作流（只读体检，不启动 Origin）：
 vendor\forks\editaplot\editaplot.cmd doctor
 # 缺依赖时仅允许项目级修复，范围不扩大：

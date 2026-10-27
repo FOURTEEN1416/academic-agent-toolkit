@@ -112,7 +112,7 @@ Order changes by priority within each file.
 
 ```bash
 # Use backup script
-skills/meta-skill-improve/scripts/backup-skill.sh <skill-path>（ACAT-GOVERNANCE：上游脚本未随本仓库集成，宿主安装路径已废弃；2026-09-23 宿主中性化改写，改用本仓技能目录内路径）
+skills/meta-skill-improve/scripts/backup-skill.sh <skill-path>（ACAT-GOVERNANCE：上游脚本未随本仓库集成，不可直接调用；改用本仓技能目录内路径）
 ```
 
 **Apply changes:**
@@ -130,7 +130,7 @@ skills/meta-skill-improve/scripts/backup-skill.sh <skill-path>（ACAT-GOVERNANCE
 
 ```bash
 # Use verify script
-skills/meta-skill-improve/scripts/verify-update.sh <skill-path>（ACAT-GOVERNANCE：上游脚本未随本仓库集成，宿主安装路径已废弃；2026-09-23 宿主中性化改写，改用本仓技能目录内路径）
+skills/meta-skill-improve/scripts/verify-update.sh <skill-path>（ACAT-GOVERNANCE：上游脚本未随本仓库集成，不可直接调用；改用本仓技能目录内路径）
 ```
 
 **Generate update-report-{skill-name}-{timestamp}.md** documenting:
@@ -227,7 +227,7 @@ Quality Report (validation)
 ```
 User: "Apply improvements from improvement-plan-git-workflow.md"
 
-[Claude executes the workflow:]
+[执行方（当前驱动 Agent）执行工作流：]
 1. Reads improvement-plan-git-workflow.md
 2. Parses all improvement items
 3. Groups changes by file
@@ -243,7 +243,7 @@ User: "Apply improvements from improvement-plan-git-workflow.md"
 ```
 User: "Update my api-helper skill based on quality report"
 
-[Claude:]
+[执行方（当前驱动 Agent）：]
 1. Locates improvement-plan-api-helper.md
 2. Applies all recommended changes
 3. Verifies skill structure

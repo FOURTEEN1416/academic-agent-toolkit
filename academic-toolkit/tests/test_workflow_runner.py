@@ -43,7 +43,7 @@ def execute_action(runner, wf_id, fake_ok=True, fake_stderr="", output_text="x" 
         artifacts=action.output_files,
         metadata={"execution_evidence": {
             "schema_version": 1,
-            "agent": "OpenCode Desktop",
+            "agent": "acat-agent",
             "step_id": action.step_id,
             "skill_name": action.skill_name,
             "skill_sha256": hashlib.sha256(action.skill_path.read_bytes()).hexdigest(),
@@ -135,7 +135,7 @@ def test_runner_uses_step_primary_output_for_quality_gate(tmp_path):
             workflow.id,
             StepResult(ok=True, artifacts=action.output_files, metadata={"execution_evidence": {
                 "schema_version": 1,
-                "agent": "OpenCode Desktop",
+                "agent": "acat-agent",
                 "step_id": action.step_id,
                 "skill_name": action.skill_name,
                 "skill_sha256": hashlib.sha256(action.skill_path.read_bytes()).hexdigest(),
@@ -248,7 +248,7 @@ def test_runner_rejects_claimed_artifact_that_is_not_declared_output(tmp_path):
             workflow.id,
             StepResult(ok=True, artifacts=["invented.md"], metadata={"execution_evidence": {
                 "schema_version": 1,
-                "agent": "OpenCode Desktop",
+                "agent": "acat-agent",
                 "step_id": action.step_id,
                 "skill_name": action.skill_name,
                 "skill_sha256": hashlib.sha256(action.skill_path.read_bytes()).hexdigest(),
@@ -654,8 +654,8 @@ def test_final_audit_real_completion_approval_delivery_cycle(tmp_path, with_l1, 
             audit = AuditStore(tmp_path)
             audit.record({"type": "tool_call", "tool": "bash", "detail": {"command": command}})
             audit.record({"type": "tool_call", "tool": "write", "detail": {"filePath": str(final.workspace / "AUDIT_REPORT.json")}})
-            # Host PreToolUse records orchestration before it can finish. These
-            # calls are not completed scientific execution and have no fake rc=0.
+            # L1 审计层在工具调用前记录编排调用；这些调用不是已完成的科研执行，
+            # 也没有伪造 rc=0。
             for operation, options in (
                 ("final-audit", f'--workspace "{final.workspace}" --wf {wf.id}'),
                 ("backfill" if via_backfill else "complete", f'--wf {wf.id} --evidence-file "{tmp_path / "candidate.json"}"'),

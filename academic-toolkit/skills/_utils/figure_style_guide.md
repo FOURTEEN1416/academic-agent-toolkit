@@ -1,6 +1,6 @@
 ﻿# 科研图表风格指南
 
-Claude 画图时参考此文件，提升图表的学术美观度。所有图表必须达到 SCI/Nature 发表水准。
+驱动 Agent 画图时参考此文件，提升图表的学术美观度。所有图表必须达到 SCI/Nature 发表水准。
 
 ## 配色范围与验收
 
@@ -259,7 +259,7 @@ setup_style()   # ← 就这样，不带参数
 
 只有这几种情况才传具体配色名：
 
-1. **用户明确点名了配色**：工具箱构建不读取任何宿主前端标记，直接把配色名或十六进制列表显式传给 `setup_style(palette=...)`。
+1. **用户明确点名了配色**：工具箱构建不读取任何外部前端标记，直接把配色名或十六进制列表显式传给 `setup_style(palette=...)`。
 2. **用户要求色盲无障碍**：`setup_style(palette='colorblind')`。
 3. **调试/复现某套特定配色**：临时传名字，正式出图前改回裸调。
 
@@ -836,7 +836,7 @@ TikZ 图质量差的根因通常不是“颜色不够多”，而是信息拓扑
 
 - 模板 1 的场景 → 用模板 4 或模板 9
 - 模板 2 的场景 → 用模板 10（管道式）
-- 模板 3 的场景 → Claude 自由画架构图，遵守防遮挡规则即可
+- 模板 3 的场景 → 驱动 Agent 自由画架构图，遵守防遮挡规则即可
 
 ### 历史示例 4：分阶段分组结构（仅参考语法）
 
@@ -1058,7 +1058,7 @@ All schemes share the same structural rules: white background, dashed boxes, rou
 \end{figure}
 ```
 
-**架构要点（Claude 画技术路线图时必须遵循）：**
+**架构要点（驱动 Agent 画技术路线图时必须遵循）：**
 1. **不依赖 `backgrounds` 和 `fit` 库**——只用 `tikz` + `arrows.meta` + `positioning` + `shapes.geometric` + `calc`
 2. **不要灰色大背景 `\fill`**——白底最安全，不会出现黑色外围
 3. 虚线框用 `dashbox` 样式（手动坐标 + minimum width/height），极浅灰填充 `rgb(248,249,250)`

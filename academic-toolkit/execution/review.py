@@ -1,4 +1,4 @@
-"""宿主独立评审任务与版本绑定。记录程序可观察事实，不声称能认证模型身份。"""
+"""独立上下文评审任务与版本绑定。记录程序可观察事实，不声称能认证模型身份。"""
 from __future__ import annotations
 import hashlib
 import json
@@ -59,7 +59,7 @@ class ReviewExchange:
         if task.get("status") != "awaiting_independent_context":
             raise ValueError("评审任务已经接收，不能覆盖")
         if not reviewer.strip() or not host_call_id.strip():
-            raise ValueError("必须记录实际评审者和宿主调用标识，不能自动编造")
+            raise ValueError("必须记录实际评审者和独立调用标识，不能自动编造")
         workflow = self.store.get_workflow(self.action.workflow_id)
         if reviewer == workflow.metadata.get("params", {}).get("agent"):
             raise ValueError("执行者不能把自己声明为独立评审者")

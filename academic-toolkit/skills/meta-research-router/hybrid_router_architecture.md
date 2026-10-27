@@ -83,7 +83,7 @@ User asks "what's the buzz about Anthropic," skill silently routes to `pulse`. U
 
 ### LLM-reasoned classification
 
-Skill uses Claude to "decide" which specialist matches. Adds latency, costs tokens, is non-deterministic across invocations (same query → different route). User can't predict what will route where.
+The skill uses an LLM to "decide" which specialist matches. Adds latency, costs tokens, is non-deterministic across invocations (same query → different route). User can't predict what will route where.
 
 **Fix:** Deterministic keyword matching. Predictability is the value.
 

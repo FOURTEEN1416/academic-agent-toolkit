@@ -137,7 +137,7 @@ def run_all():
         "baseline": {
             "passed": 1, "total": 3, "pass_rate": 1/3,
             "checks": ["cross-type: NO (generates from scratch)", "borrowing: NO",
-                       "long-tail: YES (Claude has general knowledge)"],
+                       "long-tail: YES (the bare model has general knowledge)"],
         },
     }
 

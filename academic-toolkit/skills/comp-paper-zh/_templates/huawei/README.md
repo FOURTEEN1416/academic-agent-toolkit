@@ -8,7 +8,7 @@ modex-3-skills 模板目录入库，修复 SKILL.md 华为杯分支 `cp _templat
 
 - 基线 = 本目录原 v2.3（含本地补丁：`\clearpage` 摘要后换页防空白页、题目行 parbox
   防掉字号 (v1.5.0)、`[normalem]{ulem}`、中文引号锁字体块（原 `mhquote` 族，本轮更名
-  `zhquote` 去宿主标记）、图表题注宋体加粗）。
+  `zhquote`）、图表题注宋体加粗）。
 - 上游 = GMCMthesis v2.4（latexstudio/GMCMthesis + andy123t 合并版，2024-09-17 更新）。
 - 本轮吸收：①封面更新（题目行 `-2` 号隶书标签样式 + `\vskip0.2cm`）；②首页页码修复
   （封面 `thispagestyle empty`，移除 `\setcounter{page}{0}`/`\thepage{0}` hack，正文页

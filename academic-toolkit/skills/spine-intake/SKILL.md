@@ -4,7 +4,7 @@ description: "Collects PaperSpine workflow options and writes config for flash/p
 ---
 
 
-<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（dist/claude 分发，单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # PaperSpine Intake
 
 Use this skill before substantive PaperSpine work when the workflow is not yet
@@ -54,30 +54,24 @@ Allowed values:
 
 ## Interaction Rules
 
-The command-line wizard is the supported UI for Claude Code and Codex CLI.
-When a real terminal is available, route through `spine-config-ui` and use the
-bundled external terminal wizard; do not downgrade to asking the user to
-hand-write JSON or type every option in chat.
+The command-line wizard is the supported interactive UI. When a real terminal
+is available, route through `spine-config-ui` and use the bundled external
+terminal wizard; do not downgrade to asking the user to hand-write JSON or type
+every option in chat.
 
-In Claude Code, do not run the intake wizard directly from an
-agent Bash/tool call. That execution surface may not expose stdin and can hang.
-Use `/paperspine` for normal work; it launches this intake UI automatically
-when configuration is missing. The UI is a real terminal TUI with Up/Down option switching,
-Left/Right field switching, Enter edit/confirm, and `S` save. Claude Code does
-not currently expose a public third-party skill API for embedding this custom
-keyboard UI inside the chat input box itself. If needed, run the launcher
-by its absolute installed path (never a path relative to the project directory):
+Do not run the intake wizard directly from a hidden agent tool execution
+surface: stdin may not be connected and the command can hang. The UI is a real
+terminal TUI with Up/Down option switching, Left/Right field switching, Enter
+edit/confirm, and `S` save. When configuration is missing, launch the wizard
+automatically. If needed, run the launcher by its absolute path inside the
+repository checkout (never a path relative to the project directory):
 
 ```powershell
-# Pass the ABSOLUTE path to the installed launcher. Codex/Claude run from the
+# Resolve the launcher from the repository checkout. Run commands from the
 # user's project folder, where `scripts/` does not exist, so a relative path is
-# the most common reason the UI window never opens. Resolve the install dir:
-$launcher = @(
-  "$env:USERPROFILE\.codex\skills\spine-config-ui\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\.claude\skills\spine-config-ui\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\.codex\skills\spine-intake\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\.claude\skills\spine-intake\scripts\launch_paperspine_ui.ps1"
-) | Where-Object { Test-Path $_ } | Select-Object -First 1
+# the most common reason the UI window never opens.
+$repo = git rev-parse --show-toplevel
+$launcher = Join-Path $repo "academic-toolkit/skills/spine-intake/scripts/launch_paperspine_ui.ps1"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File $launcher -OutputDir paper_rewriting_output
 ```
 
@@ -85,7 +79,7 @@ This opens a separate interactive PowerShell window. For a user-run terminal,
 this direct command is also supported:
 
 ```bash
-WIZARD="$(find "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" -path "*spine-config-ui/scripts/intake_wizard.py" 2>/dev/null | head -1)"（ACAT-GOVERNANCE：上游脚本未随本仓库集成，宿主安装路径已废弃；2026-09-23 宿主中性化改写，改用本仓技能目录内路径）
+WIZARD="$(git rev-parse --show-toplevel)/academic-toolkit/skills/spine-intake/scripts/intake_wizard.py"
 python "$WIZARD" --output-dir paper_rewriting_output
 ```
 
@@ -93,8 +87,8 @@ The wizard provides arrow-key menus in a real terminal, falls back to numbered
 menus when needed, shows descriptions for each option, runs a final review
 screen and edit loop, and writes both JSON and Markdown config.
 
-Use native structured questions only if the host exposes them reliably in the
-current session. If neither terminal execution nor native questions are
+Use native structured questions only if the current execution environment can
+provide them reliably. If neither terminal execution nor native questions are
 available, then and only then ask the user to answer with the fallback template.
 
 Read `references/interactive-intake.md` for the exact question order and
@@ -122,7 +116,7 @@ On first setup, or when the user asks to change PaperSpine interface language,
 run the wizard in global setup mode:
 
 ```bash
-WIZARD="$(find "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" -path "*spine-config-ui/scripts/intake_wizard.py" 2>/dev/null | head -1)"（ACAT-GOVERNANCE：上游脚本未随本仓库集成，宿主安装路径已废弃；2026-09-23 宿主中性化改写，改用本仓技能目录内路径）
+WIZARD="$(git rev-parse --show-toplevel)/academic-toolkit/skills/spine-intake/scripts/intake_wizard.py"
 python "$WIZARD" --setup-global --output-dir paper_rewriting_output
 ```
 

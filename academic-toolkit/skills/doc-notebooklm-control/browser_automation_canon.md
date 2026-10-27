@@ -52,7 +52,7 @@ NotebookLM skill uses generic terms — NOT hardcoded to a specific tool:
 
 | Skill says | Tool-specific implementation examples |
 |---|---|
-| "browser automation tool" | Claude computer-use, Claude Chrome Extension, Playwright, Puppeteer |
+| "browser automation tool" | vision-based computer-use agent, browser-extension automation, Playwright, Puppeteer |
 | "screenshot tool" | `screenshot()`, `page.screenshot()`, `browser.captureScreenshot()` |
 | "find tool" | `find_element()`, `page.locator()`, `$$(selector)` |
 | "click tool" | `click()`, `page.click()`, `element.click()` |
@@ -157,7 +157,7 @@ Security risk + brittle. Always halt and ask user to log in manually.
 
 Default Studio prompts produce mediocre output. Always open the customization menu (chevron next to main button) and write a custom prompt.
 
-### "Hardcode 'Claude Chrome Extension'"
+### "Hardcode a specific product's browser-extension tool name"
 
 Tool-specific. Use "browser automation tool" or equivalent generic term.
 
@@ -177,7 +177,7 @@ Opens native file picker, breaks automation. Use the file-upload tool.
 
 ## Citations (7 sources)
 
-1. **Anthropic Computer Use documentation (Claude 3.5 Sonnet + later).** Source for the screenshot-first + semantic-find discipline in Claude's official browser automation tool. The patterns in this reference are the production patterns Anthropic recommends.
+1. **Anthropic Computer Use documentation.** Source for the screenshot-first + semantic-find discipline in vision-based computer-use tooling. The patterns in this reference follow the vendor's recommended production patterns.
 
 2. **Playwright documentation — playwright.dev.** Source for the semantic locator patterns (`page.locator()`, role-based selectors, accessibility tree). Playwright's locator model is the modern standard.
 

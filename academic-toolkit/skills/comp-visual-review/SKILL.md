@@ -9,13 +9,13 @@ The designated visual-review subagent inspects final PNGs and PDF pages.
 
 ## ⛔ 视觉审核通道铁律（必须遵守 · 2026-09-23 用户裁定）
 
-**视觉审核强制由项目驱动宿主执行：宿主使用自身具备视觉能力的 LLM，在独立窗口（独立会话/平台视觉审子代理，与产出图的窗口相互隔离）完成逐图审核。** 禁止把"赛前填写 API key、调用外部视觉 API"当作必须通道；禁止只用 PIL/PyMuPDF 等确定性检查后直接判 pass。`engine/modex-core/contest_models.json` 的 `visual_reviewer` 角色声明此通道（`host-vision/independent-window`）；审稿证据声明串须与之一致方过 strict 闸。
+**视觉审核强制由项目驱动 Agent 执行：驱动 Agent 使用自身具备视觉能力的 LLM，在独立窗口（独立会话/平台视觉审子代理，与产出图的窗口相互隔离）完成逐图审核。** 禁止把"赛前填写 API key、调用外部视觉 API"当作必须通道；禁止只用 PIL/PyMuPDF 等确定性检查后直接判 pass。`engine/modex-core/contest_models.json` 的 `visual_reviewer` 角色声明此通道（`independent-window/visual-capable`）；审稿证据声明串须与之一致方过 strict 闸。
 
 1. 先运行确定性图像检查（PIL 解码/尺寸/DPI、PyMuPDF 页数与嵌入图）。
-2. **每张图必须由宿主独立窗口的视觉模型实际读图审查**：坐标轴名称与单位、刻度可读性、图例、颜色区分、截断、重叠、误导性比例、题注对应、文字溢出、配色对比度、**黑白打印下仍可分辨（仅靠色相区分的系列必须有线型/hatch 冗余编码——打印安全三件套）**、**色盲模拟（红绿色弱）下各系列可区分**。
+2. **每张图必须由驱动 Agent 的独立窗口视觉模型实际读图审查**：坐标轴名称与单位、刻度可读性、图例、颜色区分、截断、重叠、误导性比例、题注对应、文字溢出、配色对比度、**黑白打印下仍可分辨（仅靠色相区分的系列必须有线型/hatch 冗余编码——打印安全三件套）**、**色盲模拟（红绿色弱）下各系列可区分**。
 3. 记录独立窗口逐图审核输出（PASS / ISSUE N: ...）作为 `VISUAL_REVIEW.md` 的证据，并注明执行窗口/子代理标识。
 4. 检查 PDF 页面布局与图题对应关系（确定性检查辅助）。
-5. **工具=任务卡与证据收集器**：`tools/data_fig_vision_check.py`（数据图）/ `tools/tikz_vision_check.py`（TikZ/流程/架构图）/ `tools/drawio_vision_check.py`（draw.io 图）已整体换驱动为宿主独立窗口模式——运行后生成审核任务卡（`visual_review_tasks/<图名>.task.md`），由宿主独立窗口按卡实际读图，回写 `<图名>.verdict.md`（含 `Reviewed-by: <窗口标识>` + PASS/ISSUE）后重跑收集。三件工具不发起网络调用、不需要任何 API key。
+5. **工具=任务卡与证据收集器**：`tools/data_fig_vision_check.py`（数据图）/ `tools/tikz_vision_check.py`（TikZ/流程/架构图）/ `tools/drawio_vision_check.py`（draw.io 图）已整体改为驱动 Agent 的独立窗口模式——运行后生成审核任务卡（`visual_review_tasks/<图名>.task.md`），由驱动 Agent 的独立窗口按卡实际读图，回写 `<图名>.verdict.md`（含 `Reviewed-by: <窗口标识>` + PASS/ISSUE）后重跑收集。三件工具不发起网络调用、不需要任何 API key。
 
 ## ⛔⛔ --review 审核模式（审核/终审必须使用，防伪造证据）
 
@@ -45,15 +45,15 @@ python tools/tikz_vision_check.py figures/tikz_arch.pdf --review       # TikZ �
  "status":"pass|fail|manual_review|unavailable"}
 ```
 
-- `status=pass`：仅当所有确定性检查通过 **且** 视觉审核通道实际产生逐图证据（宿主独立窗口视觉模型逐图证据）且未发现 fatal/major 问题。
+- `status=pass`：仅当所有确定性检查通过 **且** 视觉审核通道实际产生逐图证据（驱动 Agent 的独立窗口视觉模型逐图证据）且未发现 fatal/major 问题。
 - `status=fail`：发现 fatal/major 视觉问题。
-- `status=manual_review`：视觉审核通道不可用（宿主无独立视觉窗口且兜底 API 亦不可用）时的**受控人工降级**（见下方降级预案），必须伴随合规的 `VISUAL_REVIEW_MANUAL_CHECK.md`，否则质量闸硬拦。
+- `status=manual_review`：视觉审核通道不可用（执行环境无独立视觉窗口且兜底 API 亦不可用）时的**受控人工降级**（见下方降级预案），必须伴随合规的 `VISUAL_REVIEW_MANUAL_CHECK.md`，否则质量闸硬拦。
 - `status=unavailable`：视觉审核通道不可用且**未完成人工复核**。**此时禁止判 pass**——在报告中明确列出未验证项，`VISUAL_REVIEW.md` 中标注"视觉复核未验证"，不得伪造通过。注意：`unavailable` 且无人工复核记录时，review 闸一律不放行（静默降级被拦截是设计行为）。
 - `fatal_count` 必须为整数；任何 fatal 都阻止后续 final-review 放行。
 
 ## ⛔ 视觉审核通道不可用降级预案（A7-M5：禁止静默跳过，也禁止第 11 步永久卡死）
 
-宿主开不出独立视觉窗口（无视觉审子代理/独立会话可用）时，按以下顺序处置：
+执行环境开不出独立视觉窗口（无视觉审子代理/独立会话可用）时，按以下顺序处置：
 
 1. **先确认是真不可用**：重试派发独立窗口并重跑收集（`python tools/data_fig_vision_check.py <工作区>/figures/fig_q1.png --review`）；
    仍无独立窗口可派发才进入降级。
@@ -103,7 +103,7 @@ python tools/tikz_vision_check.py figures/tikz_arch.pdf --review       # TikZ �
 ## 方法
 
 1. PIL/PyMuPDF 确定性检查（解码、尺寸、DPI、页数、嵌入图、图题命中）。
-2. 逐图由宿主独立窗口的视觉模型读图审查，记录每张图的审核输出与执行窗口标识。
+2. 逐图由驱动 Agent 的独立窗口视觉模型读图审查，记录每张图的审核输出与执行窗口标识。
 3. 汇总 findings，按严重性分级，写 `VISUAL_REVIEW.md`。
 4. 生成 `VISUAL_REVIEW_VERDICT.json`（含 `status` 字段）。
 5. 若视觉审核通道不可用：按"视觉审核通道不可用降级预案"走人工复核（status=`manual_review` +
@@ -114,7 +114,7 @@ python tools/tikz_vision_check.py figures/tikz_arch.pdf --review       # TikZ �
 
 本步完成前逐项自检（不达标即视为未完成）：
 
-- [ ] 由驱动宿主的独立窗口（只读视觉审子代理）执行且实际读图审核
+- [ ] 由驱动 Agent 的独立窗口（只读视觉审子代理）执行且实际读图审核
 - [ ] 发现项按分级列出，含图号与具体位置
 - [ ] 走兜底 API 通道时审查模式为 review（不受开发期迭代计数限制）
 - [ ] 不可用时如实记录 unavailable，绝不伪造通过

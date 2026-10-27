@@ -213,7 +213,7 @@ After generating the JSON, you MUST run the render-view-fix loop until the diagr
 
 ## Large / Comprehensive Diagram Strategy
 
-**For comprehensive or technical diagrams, you MUST build the JSON one section at a time.** Do NOT attempt to generate the entire file in a single pass. 这是硬约束——多数宿主有单次输出上限（如 Claude Code 约 32,000 token），一张完整图很容易一次超限。 Even if it didn't, generating everything at once leads to worse quality. Section-by-section is better in every way.
+**For comprehensive or technical diagrams, you MUST build the JSON one section at a time.** Do NOT attempt to generate the entire file in a single pass. 这是硬约束——多数执行环境有单次输出上限（常见为几万 token），一张完整图很容易一次超限。 Even if it didn't, generating everything at once leads to worse quality. Section-by-section is better in every way.
 
 ### The Section-by-Section Workflow
 
@@ -457,7 +457,7 @@ You cannot judge a diagram from JSON alone. After generating or editing the Exca
 ### How to Render
 
 ```bash
-cd <本技能安装目录>/references && uv run python render_excalidraw.py <path-to-file.excalidraw>  # 宿主技能目录以实际安装位置为准
+cd <本技能安装目录>/references && uv run python render_excalidraw.py <path-to-file.excalidraw>  # 技能安装目录以实际安装位置为准
 ```
 
 This outputs a PNG next to the `.excalidraw` file. Then use the **Read tool** on the PNG to actually view it.

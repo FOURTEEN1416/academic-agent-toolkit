@@ -1,8 +1,9 @@
-"""审计存储与报告生成 — 读取 plugin 写入的 operations.jsonl，产出结构化审计报告。
+"""审计存储与报告生成 — 读取外部审计写入器写入的 operations.jsonl，产出结构化审计报告。
 
 审计数据流：
-  1. OpenCode plugin（.opencode/plugins/audit-trail.ts）拦截式记录所有工具调用/文件编辑/会话
-     → 共享根/.engine/audit/operations.jsonl（JSONL，每行一个事件）
+  1. 外部审计写入器（驱动方注册的 hook / 插件 / 包装脚本，实现形态不限）
+     把 tool_call/file_edit/session 事件追加到 共享根/.engine/audit/operations.jsonl
+     （JSONL，每行一个事件）
   2. 引擎侧 workflow_store 记录编排事件（started/completed/checkpoint...）→ workflow.sqlite
   3. 本模块汇总两侧 + evidence 声明，生成审计报告并检测"未申报操作"（防绕过）
 """
@@ -29,21 +30,20 @@ def default_audit_dir(project_root: Path) -> Path:
 
 
 def audit_log_path(project_root: Path) -> Path:
-    """参数级审计日志（本套件 audit-trail 插件）。"""
+    """参数级审计日志（外部审计写入器写入）。"""
     return default_audit_dir(project_root) / "operations.jsonl"
 
 
 def official_logger_paths(project_root: Path) -> list[Path]:
-    """官方 opencode-logger 的全事件日志（log.jsonl + 轮转文件）。
+    """外部审计写入器的全事件日志（log.jsonl + 轮转文件）。
 
-    兼容两个可能位置：
-      1. 项目根/logs/opencode/log.jsonl（官方默认，未配置环境变量时）
-      2. 项目根/.engine/audit/log.jsonl（配置 OPENCODE_LOGGER_DIR=.engine/audit 时）
+    默认扫描 项目根/.engine/audit/log*.jsonl；如需追加位置，用环境变量
+    ACAT_AUDIT_EXTRA_DIRS 指定目录列表（os.pathsep 分隔）。
     """
-    candidates = [
-        default_audit_dir(project_root),
-        Path(project_root).resolve() / "logs" / "opencode",
-    ]
+    candidates = [default_audit_dir(project_root)]
+    extra_dirs = os.environ.get("ACAT_AUDIT_EXTRA_DIRS", "").strip()
+    if extra_dirs:
+        candidates.extend(Path(part.strip()) for part in extra_dirs.split(os.pathsep) if part.strip())
     files: list[Path] = []
     for directory in candidates:
         files.extend(sorted(directory.glob("log*.jsonl")))
@@ -59,7 +59,7 @@ def official_logger_paths(project_root: Path) -> list[Path]:
 
 
 class AuditStore:
-    """读写 operations.jsonl 审计日志（参数级，audit-trail 插件写入）。"""
+    """读写 operations.jsonl 审计日志（参数级，外部审计写入器写入）。"""
 
     def __init__(self, project_root: Path | str):
         self.root = Path(project_root).resolve()
@@ -67,7 +67,7 @@ class AuditStore:
 
     # ---------- 写入 ----------
     def record(self, entry: dict[str, Any]) -> None:
-        """追加一条审计事件（与 plugin 同格式）。"""
+        """追加一条审计事件（与外部审计写入器同格式）。"""
         self.path.parent.mkdir(parents=True, exist_ok=True)
         line = json.dumps({"ts": _now(), **entry}, ensure_ascii=False)
         with self.path.open("a", encoding="utf-8") as f:
@@ -132,7 +132,7 @@ class AuditStore:
         }
 
     def official_events(self) -> list[dict[str, Any]]:
-        """读取官方 opencode-logger 的全事件流（log.jsonl + 轮转文件）。"""
+        """读取外部审计写入器的全事件流（log.jsonl + 轮转文件）。"""
         events = []
         for path in official_logger_paths(self.root):
             try:
@@ -386,7 +386,7 @@ def detect_unreported_operations(workspace: Path, project_root: Path, *,
     if candidate_evidence is not None:
         declared_paths.update(candidate_evidence["outputs"])
         declared_paths.update(candidate_evidence["inputs"])
-    # L1 宿主常写绝对路径，evidence 契约写相对路径；比较同一工作区规范路径。
+    # L1 外部审计常写绝对路径，evidence 契约写相对路径；比较同一工作区规范路径。
     def canonical_path(value):
         path = Path(value)
         return (path if path.is_absolute() else workspace / path).resolve()
@@ -425,7 +425,7 @@ def _parse_event_ts(value: Any) -> datetime | None:
 def _workflow_window_start(workspace: Path) -> datetime | None:
     """本工作区引擎库中最早 workflow 的创建时刻——L1 事件归属窗口的下界。
 
-    无库/无表/解析失败一律返回 None（不猜测窗口，保持旧宿主行为）。
+    无库/无表/解析失败一律返回 None（不猜测窗口，保持旧运行行为）。
     """
     db = workspace / ".engine" / "workflow.sqlite"
     if not db.is_file():
@@ -474,21 +474,23 @@ def verify_skill_bindings(workspace: Path, project_root: Path, *,
 
     为什么需要第二道：`complete_step` 的 skill_binding 闸校验的是 **agent 自己申报的**
     evidence（L3），本质仍是"自述合规"。本函数把同一份声明拿去和 **L1 实际调用记录**
-    对账——L1 由宿主 hook / 插件写入，agent 无法跳过：
+    对账——L1 由外部审计写入器（hook/插件/包装脚本）写入，agent 无法跳过：
 
       - 声明读取主技能 / 必用技能 ⟷ L1 中是否存在该技能的 `skill` 工具调用，
         或对该技能 `SKILL.md` 的 `read` 操作。
 
-    窗口归属（2026-09-26 修复）：L1 日志是全仓共享文件，可能残留**旧宿主/旧赛事**的
+    窗口归属（2026-09-26 修复）：L1 日志是全仓共享文件，可能残留**旧运行/旧赛事**的
     历史事件。以本工作区 .engine/workflow.sqlite 中最早 workflow 创建时刻为下界，
-    只把窗口内的宿主 tool_call/tool_result 事件视为"L1 对当届启用"的证据；
+    只把窗口内的外部审计 tool_call/tool_result 事件视为"L1 对当届启用"的证据；
     窗口外（含早于本工作区诞生）的事件既不用于证明启用，也不参与绑定匹配。
 
-    三类结论（诚实降级，不伪造通过）：
-      - ``unavailable``：窗口内无任何 L1 宿主工具事件（当前宿主未启用 L1）——
-        如实标注，不判通过（与仓库根 AGENTS.md「无宿主 hook 记 unavailable、不阻断」对齐）；
-      - ``warning``：L1 在窗口内确有宿主事件、但存在"声明了绑定却无对应实际操作"的步骤；
-      - ``ok``：全部绑定在窗口内 L1 中可核。
+    四类结论（诚实降级，不伪造通过）：
+      - ``unavailable``：窗口内无任何 L1 外部审计工具事件（部署未注册 L1 写入器）——
+        如实标注，不判通过（与仓库根 AGENTS.md「无外部审计写入器记 unavailable、不阻断」对齐）；
+      - ``warning``：L1 在窗口内确有外部审计事件、但存在"声明了绑定却无对应实际操作"的步骤；
+      - ``ok``：全部绑定在窗口内 L1 中可核；
+      - ``ok``（持久化核验）：无 L1 时，引擎已持久化的资源读取可核，不依赖 L1，
+        ``verification_source=persisted_execution_resource_reads_*``。
 
     返回::
 
@@ -544,11 +546,11 @@ def verify_skill_bindings(workspace: Path, project_root: Path, *,
         return {"verdict": "ok", "steps_checked": len(declared), "unverified": [],
                 "unavailable_reason": "", "verification_source": "persisted_execution_resource_reads_not_host_L1"}
     if not host_events:
-        scope = (f"（窗口={window_start.date()} 起，早于本工作区诞生的旧宿主/旧赛事事件不计入）"
+        scope = (f"（窗口={window_start.date()} 起，早于本工作区诞生的旧运行/旧赛事事件不计入）"
                  if window_start else "")
         return {"verdict": "unavailable", "steps_checked": len(declared), "unverified": [],
-                "unavailable_reason": f"L1 审计日志缺失或窗口内无宿主工具事件{scope}"
-                                      "（当前宿主未启用 L1 拦截式审计）；"
+                "unavailable_reason": f"L1 审计日志缺失或窗口内无外部审计工具事件{scope}"
+                                      "（部署未注册 L1 写入器）；"
                                       "绑定声明无法与实际行动对账，如实标记 unavailable 而非判通过"}
 
     # L1 实际痕迹：skill 工具调用的技能名 + read 操作读过的文件路径
@@ -1234,7 +1236,7 @@ def _candidate_approval_gate(store: Any, candidate: Any, workspace: Path) -> dic
     if not event_by or event_by not in approvers:
         return _candidate_gate(False, "workflow event approver is outside the frozen whitelist")
     if payload.get("l1_available") is not True:
-        return _candidate_gate(False, "L1 host attestation is unavailable")
+        return _candidate_gate(False, "L1 外部审计证据不可用（l1_available=false）")
     for flag in ("agent_approve_seen", "same_session_approve", "degraded_host_attestation"):
         if payload.get(flag) is not False:
             return _candidate_gate(False, f"approval rejected by {flag}")
@@ -1628,8 +1630,8 @@ def build_final_audit_report(workspace: Path, project_root: Path,
     # P4：技能绑定对账接入交付判定。判定映射与理由：
     #   ok          → pass（声明绑定全部在 L1 可核）
     #   warning     → fail（声明了绑定但 L1 无对应操作 = 自述与事实不符）
-    #   unavailable → pass + 降级留痕（L1 缺席是宿主治理决策、agent 无法绕过；
-    #                 若判 fail 则所有未启用 L1 的宿主都无法交付，属误伤）
+    #   unavailable → pass + 降级留痕（L1 缺席是部署侧治理决策（是否注册外部审计写入器）、
+    #                 agent 无法绕过；若判 fail 则所有未注册 L1 写入器的部署都无法交付，属误伤）
     skill_bindings = verify_skill_bindings(workspace, project_root, evidence_paths=evidence_paths,
         candidate_action=candidate_action, candidate_evidence=candidate_evidence, workflow_db=workflow_db)
     binding_verdict = str(skill_bindings.get("verdict", "ok"))
@@ -1839,9 +1841,9 @@ def build_final_audit_report(workspace: Path, project_root: Path,
             "unavailable_reason": skill_bindings.get("unavailable_reason", ""),
             "verification_source": skill_bindings.get("verification_source", "host_L1_or_declared_unavailable"),
             "blocking_rule": ("warning（声明绑定但 L1 无对应操作）→ 交付 blocked；"
-                              "unavailable（宿主未启用 L1）→ 不阻断但降级留痕，"
-                              "理由：L1 由宿主 hook/插件提供、agent 无法绕过，"
-                              "判 fail 会误伤所有未启用 L1 的宿主"),
+                              "unavailable（部署未注册 L1 写入器）→ 不阻断但降级留痕，"
+                              "理由：L1 由外部审计写入器（hook/插件/包装脚本）提供、agent 无法绕过，"
+                              "判 fail 会误伤所有未注册 L1 写入器的部署"),
         },
         "operation_audit_detail": {
             "verdict": unreported["verdict"],

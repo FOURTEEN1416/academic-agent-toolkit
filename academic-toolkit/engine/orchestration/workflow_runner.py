@@ -1214,7 +1214,7 @@ class WorkflowRunner:
         """收集候选终审批准所需的 L1 归属证据（window + workspace path）。
 
         pathless 事件不能支撑 ``l1_available``；只有 detail.command/filePath 指向
-        当前工作区的宿主事件才进入归属集合，避免共享 L1 日志跨工作区冒充。
+        当前工作区的外部审计事件才进入归属集合，避免共享 L1 日志跨工作区冒充。
         """
         from datetime import datetime, timezone
         from ..audit.audit_store import _parse_event_ts, _workflow_window_start
@@ -1354,7 +1354,7 @@ class WorkflowRunner:
                 self._record_candidate_approval_event(
                     candidate_id, checkpoint_id, current.id, "candidate_approval_degraded", l1)
                 return RunResult(candidate.workflow_id, "blocked", current.id,
-                                 "批准被拒：当前工作流时间窗内没有路径归属的宿主 L1 事件，"
+                                 "批准被拒：当前工作流时间窗内没有路径归属的 L1 外部审计事件，"
                                  "无法核验人工批准（degraded_host_attestation=true）",
                                  diagnostics={**l1, "candidate_id": candidate_id})
             if l1["agent_approve_seen"] or l1["same_session_approve"]:

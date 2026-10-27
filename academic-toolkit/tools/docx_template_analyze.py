@@ -10,7 +10,7 @@
 用法：
     python docx_template_analyze.py --template path/to/template.docx --output template_map.json
 
-供 Claude SKILL 读取后输出准确的占位映射。
+供技能/执行 Agent 读取后输出准确的占位映射。
 """
 from __future__ import annotations
 
@@ -120,12 +120,12 @@ def analyze(template_path: Path) -> dict:
         'total_paragraphs': para_idx,
         'total_tables': table_idx,
         'elements': elements_data,
-        'summary_for_claude': _build_summary(elements_data, language),
+        'summary': _build_summary(elements_data, language),
     }
 
 
 def _build_summary(elements_data: list, language: str) -> str:
-    """把元素清单转成给 Claude 看的可读摘要。"""
+    """把元素清单转成给执行 Agent 看的可读摘要。"""
     lines = [f'=== 模板结构清单（语言：{language}）===\n']
     for el in elements_data:
         if el['type'] == 'table':
@@ -149,7 +149,7 @@ def main():
     parser.add_argument('--template', '-t', type=Path, required=True)
     parser.add_argument('--output', '-o', type=Path, required=True, help='输出 JSON 路径')
     parser.add_argument('--summary', '-s', type=Path, default=None,
-                        help='可选：输出可读摘要 .txt 路径（用于喂给 Claude）')
+                        help='可选：输出可读摘要 .txt 路径（用于喂给执行 Agent）')
     args = parser.parse_args()
 
     result = analyze(args.template)
@@ -158,7 +158,7 @@ def main():
     print(f'OK: analyzed → {args.output}')
     if args.summary:
         args.summary.parent.mkdir(parents=True, exist_ok=True)
-        args.summary.write_text(result['summary_for_claude'], encoding='utf-8')
+        args.summary.write_text(result['summary'], encoding='utf-8')
         print(f'     summary → {args.summary}')
 
 

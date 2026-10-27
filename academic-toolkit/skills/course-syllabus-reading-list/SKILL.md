@@ -11,7 +11,7 @@ metadata:
 
 # Syllabus — Course Supplementary Reading List
 
-> **Portability:** Requires a Consensus MCP connection, Node.js with `docx` package, and file reading capability for the syllabus. 任何具备上述能力的宿主均可运行（Claude Code / Claude.ai 为示例宿主）。
+> **Portability:** Requires a Consensus MCP connection, Node.js with `docx` package, and file reading capability for the syllabus. 任何具备上述能力、能执行 Node.js 脚本的 Agent 均可运行。
 
 For an instructor or student with a course syllabus, produce a professional supplementary reading list as `.docx` containing recent peer-reviewed papers per course section.
 

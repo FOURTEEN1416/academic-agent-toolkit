@@ -345,7 +345,8 @@ def image_generation_event(args: argparse.Namespace, run_dir: Path, state: dict[
         "route_guard_rule": route_guard["route_guard_rule"],
         "generator_policy": (
             "Target-paper S2/S5 images must come from the environment-locked image-generation route: "
-            "Codex=image_gen, ChatGPT web=Create Image / ChatGPT Images 2.0, other runtimes=named approved image-generation API. "
+            "first-party chat image tool=create-image, first-party CLI image tool=image_gen, "
+            "other environments=named approved image-generation API. "
             "Programmatic raster drawing is invalid even if it saves PNG/JPG/WebP files."
         ),
         "status": "generation_succeeded",

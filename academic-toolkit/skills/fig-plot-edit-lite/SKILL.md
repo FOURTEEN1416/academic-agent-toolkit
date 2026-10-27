@@ -13,7 +13,7 @@ description: "无 Origin 的出版级数据图路线：继承 fig-plot-edit 纪�
 > **与 fig-plot-edit 的关系**：不是上游副本（无 UPSTREAM 溯源件），渲染代码为本仓原创；
 > fig-plot-edit 路线（OPJU 可编辑工程）见该技能——需要 Origin 工程文件时用它，不需要时用本技能。
 
-## 一、环境（宿主中立，任何满足以下条件的 Python 即可）
+## 一、环境（任意满足以下条件的 Python 3.10–3.12 即可）
 
 - CPython 3.10–3.12 + 包：`matplotlib` `scienceplots` `numpy` `pandas` `Pillow`
 - 本仓标准 venv：`vendor/forks/editaplot/runtime/.editaplot-venv`（由

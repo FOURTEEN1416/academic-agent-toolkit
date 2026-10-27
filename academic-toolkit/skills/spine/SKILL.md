@@ -4,7 +4,7 @@ description: "Write, rewrite, or build a paper or report (journal, conference, r
 ---
 
 
-<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（dist/claude 分发，单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # PaperSpine Orchestrator
 
 Use this skill as the suite entrypoint. It is the main orchestrator: it routes
@@ -54,20 +54,17 @@ Required fields:
 ## Non-Negotiable Route
 
 1. If configuration is missing or incomplete, run the terminal wizard from
-   `spine-config-ui`, then `spine-intake`; do not ask the user to
-   hand-write JSON or answer a long plain chat checklist when a terminal is
-   available. The wizard is the supported Claude Code/Codex command-line UI.
-   In Claude Code, `/paperspine` is the preferred entry: it launches the
-   external intake window automatically when configuration is missing.
+   `spine-config-ui`, then `spine-intake`; do not ask the user to hand-write
+   JSON or answer a long plain chat checklist when a terminal is available.
+   The wizard is the supported command-line UI.
 
-   **Codex hard constraint (do not skip):** when
+   **Do not skip (hard constraint):** when
    `paper_rewriting_output/paper_spine_config.json` is missing, the FIRST tool
-   action after reading this skill MUST be to run the absolute
-   `launch_paperspine_ui.ps1` (resolve its absolute path inside the repo checkout;
-   host-private skill installs are retired) with `sandbox_permissions: require_escalated` so the
-   window can open. Do NOT inspect materials, infer defaults, create config
-   files, or continue the workflow before the UI has launched or explicitly
-   failed. Only fall back to numbered/chat intake if the launch returns an error.
+   action after reading this skill MUST be to run `launch_paperspine_ui.ps1`
+   by its absolute path inside the repository checkout so the window can open.
+   Do NOT inspect materials, infer defaults, create config files, or continue
+   the workflow before the UI has launched or explicitly failed. Only fall back
+   to numbered/chat intake if the launch returns an error.
 2. Always create or verify `source_map.md`.
 3. Always use `spine-research` before choosing the final motivation.
    Research must first index local/default references according to
@@ -202,15 +199,8 @@ directly.
 
 ## Command-Line UI
 
-Claude Code and Codex do not guarantee a native graphical picker for skills.
-The supported UI is the bundled terminal wizard. When configuration is missing,
-run `spine-intake`. In Claude Code, `/paperspine` must launch the intake
-UI automatically; do not ask the user to call a separate UI command. The launcher
-opens the bundled terminal TUI, which supports Up/Down for option values,
-Left/Right for fields, Enter for edit or confirm, and `S` to save. Claude Code
-does not currently provide third-party skills with an API for embedding a custom
-keyboard UI directly inside the chat input box, so the real terminal TUI is the
-supported interactive path. Use native structured questions only when the host
-exposes them reliably in the current session. Use chat fallback only when
-terminal execution is impossible.
+The terminal wizard is the supported interactive interface. When configuration
+is missing, run `spine-intake`. If the execution environment cannot expose an
+interactive terminal, add `-InPlace`; if stdin is still unavailable, fall back
+to numbered menus, then native structured questions, then chat as a last resort.
 

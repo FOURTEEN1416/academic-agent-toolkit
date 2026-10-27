@@ -311,7 +311,7 @@ def route(query: str, records: dict | None = None, top_k: int = 3,
           all_templates: bool = False, all_skills: bool = False) -> list[dict]:
     """确定性词法路由（用于回归测试与人工诊断）。
 
-    **定位与诚实边界**：宿主真实的路由是语义的（模型读 description 判断）。本函数用
+    **定位与诚实边界**：实际路由是语义的（模型读 description 判断）。本函数用
     纯词法重叠给候选排序，因此它测的是"描述是否具备足够的**词法可分性**"——
     这是正确路由的**必要条件而非充分条件**：词法都分不开的一对技能，语义路由也必然
     摇摆；反之词法分开不等于语义一定分对。

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """extract_pdf_figures -- figure-level (not page-level) figure extraction
-from a paper PDF. Host-neutral port, 2026-09.
+from a paper PDF. Runtime-neutral port, 2026-09.
 
 Source (vendor fork, read-only, kept in place):
   vendor/forks/Auto-claude-code-research-in-sleep/skills/paper-poster-html/
@@ -10,7 +10,7 @@ Its only cross-module dependency was ``_posterly.textutil.ascii_safe``
 beyond PyMuPDF + Pillow.
 
 Ported changes vs upstream:
-  * CLI is flag-based and host-neutral: ``--pdf`` / ``--outdir`` (upstream
+  * CLI is flag-based and runtime-neutral: ``--pdf`` / ``--outdir`` (upstream
     used a positional pdf + ``--out`` with a poster-specific manifest-in-
     parent-dir convention; the manifest now lives INSIDE --outdir as
     ``figures_manifest.json``).
@@ -396,7 +396,7 @@ def _parse_bbox(s: str) -> tuple[float, float, float, float]:
 
 
 def _manifest_path_for(out_dir: Path) -> Path:
-    """Host-neutral: manifest lives INSIDE the output dir (upstream put it
+    """Runtime-neutral: manifest lives INSIDE the output dir (upstream put it
     at the parent per a poster-html convention)."""
     return out_dir.resolve() / "figures_manifest.json"
 

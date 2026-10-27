@@ -20,7 +20,7 @@ Modex 后续版本更新时，对照本批次文件逐个 diff，仍按"本仓�
 - `compile_check.sh`：库内版为基线，吸收上游独有块——`CHECKS_UNAVAILABLE` 退出码 3 机检块、
   `run_python_check` 包装、`paper_source_scope.py`/`compile_source_check.py` 依赖存在性校验与
   活跃源清单（`ACTIVE_TEX`→`TEX_SRC`，解析为空回退库内 glob 口径）、`MH_PYTHON` 软探测
-  （带宿主中立回退 python/python3/py）。库内独有 `gcount()` 计数消毒与 `PYTHON="python3"`
+  （带环境中立回退 python/python3/py）。库内独有 `gcount()` 计数消毒与 `PYTHON="python3"`
   兜底全部保留。
 - `writing_check.sh`：整替为上游 42 行编排器（委派 `writing_source_check.py`、
   `figure_narrative_check.py`、`modeling_tex_policy.py`、`assumption_layout_check.py`、

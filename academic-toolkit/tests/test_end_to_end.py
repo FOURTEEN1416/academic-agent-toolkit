@@ -43,7 +43,7 @@ def execute_action(runner, wf_id, output_text="x"):
         stdout=output_text,
         metadata={"execution_evidence": {
             "schema_version": 1,
-            "agent": "OpenCode Desktop test harness",
+            "agent": "end-to-end test harness",
             "step_id": action.step_id,
             "skill_name": action.skill_name,
             "skill_sha256": hashlib.sha256(action.skill_path.read_bytes()).hexdigest(),

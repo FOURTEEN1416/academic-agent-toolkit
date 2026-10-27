@@ -1,4 +1,4 @@
-# ChatGPT Web Checkpoint Bundle Policy v3.2.9
+# Checkpoint Bundle Policy v3.2.9
 
 Every checkpoint zip or split checkpoint part must be a cumulative restore snapshot from S0/project start through the current public stage/internal substage. This includes dynamic substage checkpoints such as text-prepare, image-generate, text-audit, rerun, review, and aggregate units.
 
@@ -14,4 +14,4 @@ Do not hard-code image counts, candidate IDs, expected filenames, paper-specific
 
 After writing the zip, reopen its member list and verify every required existing asset is present. Also run the cumulative integrity guard: every already-existing cumulative root through the current stage/substage must have its files present in the archive member union. If any required existing asset or cumulative root is missing, write exact repair diagnostics, redo the producing stage/substage if generic rebuild cannot recover the required files, then rebuild the cumulative checkpoint until the guard passes. Do not close the stage or present the archive as recoverable while required assets are missing.
 
-A ChatGPT web response may call a checkpoint `complete_restore_ready` only when the saved integrity report is `PASS`.
+A response may call a checkpoint `complete_restore_ready` only when the saved integrity report is `PASS`.

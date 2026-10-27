@@ -6,7 +6,7 @@ version: 0.2.0
 
 # Skill Development
 
-Use this skill to create or repair Claude skills in the **current local environment**, not in an abstract plugin template.
+Use this skill to create or repair Agent 技能（Skills）in the **current local environment**, not in an abstract plugin template.
 
 ## Goal
 
@@ -23,7 +23,7 @@ Produce a skill that is:
 - Keep `SKILL.md` focused on workflow and boundaries.
 - Move detailed catalogs, templates, and long explanations into `references/` or `examples/`.
 - Do not mention files that do not exist.
-- Do not inherit stale names, agents, or sibling skill references without verifying they exist locally.
+- Do not inherit stale names, sibling skill, or tool references without verifying they exist locally.
 
 ## Default workflow
 
@@ -32,7 +32,7 @@ Produce a skill that is:
 Before writing anything:
 - inspect the target skill directory,
 - inspect neighboring skills that already solve a similar problem,
-- verify which agents, commands, and sibling skills actually exist,
+- verify which skills and tools actually exist,
 - identify stale references before adding new ones.
 
 Use the local inventory as the authority. Do not write guidance against an imagined plugin layout.
@@ -95,7 +95,7 @@ If a resource exists but is never referenced or used, delete it.
 At minimum, verify:
 - frontmatter parses,
 - referenced local files exist,
-- sibling skill or agent references are real,
+- sibling skill or tool references are real,
 - `SKILL.md` is not overloaded with material that belongs in references,
 - temporary logs, caches, and editor artifacts are not left inside the skill directory.
 
@@ -114,7 +114,7 @@ At minimum, verify:
 ### When the skill has stale references
 - remove dead paths immediately,
 - replace historical names with current local names,
-- re-check neighboring agents/commands/skills against the live directory.
+- re-check neighboring skills/tools against the live directory.
 
 ## Recommended output shape
 

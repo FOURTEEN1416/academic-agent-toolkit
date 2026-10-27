@@ -18,7 +18,8 @@
       "2026-09-22 批次三 B3-6: 入册 19 条（17 条 data/ 前缀新暴露——多为正文词组/运行时产物路径伪引用，2 条 fig-spec 上游 ARIS 安装布局件）；目录级条目全部枚举化为正文实际断链引用；auto-review-loop*/paper-write-nature-docx 3 条系批次四领地暂入册，主窗收编后可处置",
       "2026-09-22 主窗收编: 入册 2 条（paper-framework-figure-studio-pro data/ 伪引用——local-only 技能正文贡献类型枚举词组，batch3 工作树不可见、主检出回归门暴露；与 B3-6 17 条 data/ 伪引用同性质）",
       "2026-09-22 主窗收编处置: 批次四领地 3 条销账（auto-review-loop/-minimax「external data/models」、paper-write-nature-docx「data/comparison/literature」均为正文词组伪引用；收编后改写为 data or models / data, comparison, literature 消除误报，收紧棘轮 338→335）；paper-framework-figure-studio-pro 2 条目录形态补过期台账",
-      "2026-09-23 v2.0 收尾：销账 dev-code-frontend/references/styles（文件已在库）；删 meta-agent-harness 自重复 1 条；baseline_count 校正为实测值。"
+      "2026-09-23 v2.0 收尾：销账 dev-code-frontend/references/styles（文件已在库）；删 meta-agent-harness 自重复 1 条；baseline_count 校正为实测值。",
+      "2026-10-27 宿主清洗收口批：销账 3 条（meta-agent-config / meta-command-development / meta-hook-development 整件退役，条目与技能一并移除）。"
     ],
     "dir_entry_expiry": {
       "policy": "B3-6 ④：目录形态条目=正文仅引用目录本身、无可枚举具体文件；到期未枚举/销账须重新审计",
@@ -185,12 +186,6 @@
       "references/statistical_interpretation_guide.md",
       "references/study_state_protocol.md"
     ],
-    "meta-agent-config": [
-      "references/agent-creation-system-prompt.md",
-      "references/system-prompt-design.md",
-      "references/triggering-examples.md",
-      "scripts/validate-agent.sh"
-    ],
     "dev-ml-registry-pattern": [
       "references/auto_import.md",
       "references/code_style.md",
@@ -204,10 +199,6 @@
       "references/javascript-errors.md",
       "references/python-errors.md",
       "references/shell-errors.md"
-    ],
-    "meta-command-development": [
-      "references/frontmatter-reference.md",
-      "references/plugin-features-reference.md"
     ],
     "lit-daily-digest": [
       "references/keywords.md",
@@ -232,13 +223,6 @@
       "references/conflict-resolution.md",
       "references/gitignore-guide.md",
       "references/merge-strategies.md"
-    ],
-    "meta-hook-development": [
-      "references/advanced.md",
-      "references/migration.md",
-      "references/patterns.md",
-      "scripts/test-hook.sh",
-      "scripts/validate-hook-schema.sh"
     ],
     "kaggle-learner": [
       "references/knowledge/nlp/",

@@ -282,7 +282,7 @@ save_fig(fig, './figures/heatmap.pdf')
 
 ---
 
-<!-- modex-3 同源吸收 P3（2026-09-22）：以下段落自 modex-3-skills 上游对应文件增量合入，宿主中性化后与上文并行生效。 -->
+<!-- modex-3 同源吸收 P3（2026-09-22）：以下段落自 modex-3-skills 上游对应文件增量合入，按本仓统一口径改写后与上文并行生效。 -->
 
 # Tutorials — publication layout with the real shared helpers
 

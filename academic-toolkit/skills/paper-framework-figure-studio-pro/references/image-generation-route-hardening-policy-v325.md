@@ -19,12 +19,12 @@ A target-paper image is any image intended to stand as a paper framework / archi
 
 Resolve `runtime_environment.environment` before any target-paper IMAGE_* unit.
 
-| Runtime | Required target-image route | Forbidden substitute examples |
+| Runtime capability | Required target-image route | Forbidden substitute examples |
 |---|---|---|
-| `codex` | call Codex Image Gen through `image_gen` | `create-image`, Python/PIL/Pillow, Matplotlib/Plotly, Graphviz, TikZ/LaTeX, Mermaid, SVG/HTML/canvas, browser screenshots, SVG-to-PNG, PPT/PDF rendering, hand-written PNG files |
-| `chatgpt_web` | use Create Image / ChatGPT Images 2.0 | direct SVG output, Mermaid/HTML/canvas, Python/PIL/Pillow, Matplotlib/Plotly, Graphviz, TikZ/LaTeX, screenshots, SVG-to-PNG, PPT/PDF rendering, any local raster renderer |
-| `claude_code` / `other` | named approved image-generation API only | any programmatic renderer, drawing script, screenshot pipeline, SVG/PPT/PDF conversion, or prompt-only placeholder |
-| `unknown` | blocked | all image generation and registration |
+| `builtin_image_gen` | call the built-in image-generation tool through `image_gen` | `create-image`, Python/PIL/Pillow, Matplotlib/Plotly, Graphviz, TikZ/LaTeX, Mermaid, SVG/HTML/canvas, browser screenshots, SVG-to-PNG, PPT/PDF rendering, hand-written PNG files |
+| `web_image_chat` | use the web chat image-generation surface through `create-image` | direct SVG output, Mermaid/HTML/canvas, Python/PIL/Pillow, Matplotlib/Plotly, Graphviz, TikZ/LaTeX, screenshots, SVG-to-PNG, PPT/PDF rendering, any local raster renderer |
+| `approved_api` | named approved image-generation API only | any programmatic renderer, drawing script, screenshot pipeline, SVG/PPT/PDF conversion, or prompt-only placeholder |
+| `none` / `unknown` | blocked | all image generation and registration |
 
 The rule is route-based, not extension-based. A `.png`, `.jpg`, `.jpeg`, or `.webp` file is invalid if it was produced by a forbidden local/programmatic renderer.
 
@@ -42,7 +42,7 @@ A target-paper image unit must not:
 
 ## Approved API Fallback
 
-`approved-image-api` is not a general escape hatch. It is allowed only in non-Codex/non-ChatGPT runtimes where neither Codex `image_gen` nor ChatGPT web Create Image is available. The state must record:
+`approved-image-api` is not a general escape hatch. It is allowed only when the environment has no built-in image-generation tool and no web chat image-generation surface, so neither `image_gen` nor `create-image` is available. The state must record:
 
 - `approved_api_name`;
 - `route_unavailable_reason`;

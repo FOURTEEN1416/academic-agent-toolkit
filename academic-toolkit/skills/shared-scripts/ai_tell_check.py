@@ -180,7 +180,7 @@ SOFT = ["由此可见", "换言之", "具有重要的理论意义", "具有重�
 # ⛔ 只扫论文正文；报告/审计/清单类文件本就该用工程语汇，扫它们是误报
 EXCLUDE_NAME = re.compile(
     r"REPORT|AUDIT|CHECK|TODO|PROFILE|LEDGER|MANIFEST|CHECKLIST|VERDICT"
-    r"|ANALYSIS|PARAMS|RESULTS|CLAUDE|README|_writing_context", re.I)
+    r"|ANALYSIS|PARAMS|RESULTS|README|_writing_context", re.I)
 
 # ⛔ 三批校准（735 篇真实获奖论文反证）：参考文献区是被引文献的标题/出处，措辞非作者所能改写
 #    （实测 2024/2025 年获奖论文引用标题含「赋能」等词），从该区起不再扫描。只认整行标题行，

@@ -89,7 +89,7 @@ def _make_action(tmp_path):
 def _evidence(action, command):
     return {
         "schema_version": 1,
-        "agent": "OpenCode Desktop",
+        "agent": "acat-agent",
         "step_id": action.step_id,
         "skill_name": action.skill_name,
         "skill_sha256": hashlib.sha256(action.skill_path.read_bytes()).hexdigest(),

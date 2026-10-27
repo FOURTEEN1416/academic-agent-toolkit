@@ -7,14 +7,14 @@ When invoking `claude_bridge.py`, be careful: your *shell* parses the command li
 Markdown inline code uses backticks (`` `like/this` ``). In bash/zsh, backticks mean **command substitution**, even inside double quotes, so this breaks:
 
 ```bash
-> ⛔ `.codex/` 宿主私有路径未随本仓集成（示例性质，经宿主适配层等效实现）：
+> ⛔ 以下反例沿用上游路径；本仓脚本在 `scripts/claude_bridge.py`：
 
-python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py \
+python3 scripts/claude_bridge.py \
   --cd "." \
   --PROMPT "Analyze `tmp/eth_dev_news_raw.json` and summarize."
 ```
 
-Typical symptoms (from the shell, before Claude runs):
+Typical symptoms (from the shell, before the collaborator runs):
 
 - `zsh: permission denied: tmp/eth_dev_news_raw.json`
 - `zsh: command not found: as_of`
@@ -30,7 +30,7 @@ Set `as_of` to `YYYY-MM-DD`.
 EOF
 )"
 
-python3 .codex/skills/collaborating-with-claude/scripts/claude_bridge.py \
+python3 scripts/claude_bridge.py \
   --cd "." \
   --PROMPT "$PROMPT" \
   --output-format stream-json

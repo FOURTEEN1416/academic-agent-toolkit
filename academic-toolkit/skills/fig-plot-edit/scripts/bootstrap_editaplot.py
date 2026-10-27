@@ -786,8 +786,17 @@ def install_skill(argv: list[str], *, _lock_held: bool = False) -> int:
         _emit({"ok": False, "error": argument_error}, stream=sys.stderr)
         return 2
     if target is None:
-        codex_home = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))).expanduser()
-        target = codex_home / "skills" / "fig-plot-edit"
+        _emit(
+            {
+                "ok": False,
+                "error": {
+                    "code": "setup_target_missing",
+                    "message": "no install target: pass --target <dir> (host-agnostic; no default host directory)",
+                },
+            },
+            stream=sys.stderr,
+        )
+        return 2
     if target.is_symlink():
         _emit(
             {
@@ -1083,8 +1092,8 @@ def _setup_next_step(doctor_payload: dict[str, object]) -> str:
         "requires_current_user_approval"
     ):
         return (
-            "Let Codex request approval for the exact local Origin command. Only if that "
-            "request is approved may Codex rerun the same Origin command; approval is not guaranteed."
+            "Let the driving agent request approval for the exact local Origin command. Only if "
+            "that request is approved may it rerun the same Origin command; approval is not guaranteed."
         )
     if doctor_payload.get("ready_for_render"):
         return "Submit a data file; Origin callability will be tested when rendering starts."
@@ -1099,10 +1108,7 @@ def _setup_filesystem_failure(
 
     requested_target, _argument_error = _parse_setup_target(argv)
     if requested_target is None:
-        codex_home = Path(
-            os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))
-        ).expanduser()
-        requested_target = codex_home / "skills" / "fig-plot-edit"
+        requested_target = Path("<missing --target>")
     permission_denied = isinstance(error, PermissionError)
     _emit(
         {
@@ -1114,8 +1120,8 @@ def _setup_filesystem_failure(
                     else "setup_filesystem_operation_failed"
                 ),
                 "message": (
-                    "EditaPlot setup could not write to the project or current-user Codex "
-                    "Skills location. Grant Codex write access to those two locations and "
+                    "EditaPlot setup could not write to the project or current-user "
+                    "skills location. Grant the agent write access to those two locations and "
                     "rerun setup; administrator, DCOM, registry, and firewall changes are "
                     "not required."
                 ),

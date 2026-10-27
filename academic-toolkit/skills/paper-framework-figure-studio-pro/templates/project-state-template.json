@@ -85,7 +85,7 @@
   "step_runs": {},
   "output_root": "figure-studio-runs/PROJECT_ID",
   "state_file": "state/project-state.json",
-  "path_storage_policy": "all stored paths are project-run relative; host-specific absolute paths are not persisted",
+  "path_storage_policy": "all stored paths are project-run relative; environment-specific absolute paths are not persisted",
   "v3215_candidate_id_coherence_policy": {
     "status": "hard_required",
     "source_of_truth": "S1/S4 prompt-index candidates[].candidate_id",
@@ -158,9 +158,9 @@
     "s4_to_s5_rule": "S4 prepares F01-F02 prompts and stops; S5 image generation requires a new explicit user turn."
   },
   "image_generation_chunk_policy": {
-    "chatgpt_web_image_chunk_limit": 4,
-    "chatgpt_web_recommended_image_chunk_size": 4,
-    "codex_image_chunk_limit": 4,
+    "chat_image_chunk_limit": 4,
+    "chat_recommended_image_chunk_size": 4,
+    "cli_image_chunk_limit": 4,
     "default_candidate_count_by_step": {
       "S2-SKETCH-EXPLORE": 4,
       "S5-CANDIDATE-IMAGE": 2

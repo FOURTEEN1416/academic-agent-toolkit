@@ -18,8 +18,6 @@ from engine.agent_protocol import (  # noqa: E402
 )
 from engine.capability_probe import probe  # noqa: E402
 from engine.tool_forge import (  # noqa: E402
-    forge_adapter,
-    forge_from_gap,
     forge_skill,
     forge_tool,
     validate_name,
@@ -29,7 +27,7 @@ from engine.tool_forge import (  # noqa: E402
 def test_agent_bridge_has_single_canonical_model():
     assert StepAction.__module__ == "engine.agent_bridge"
     assert StepResult.__module__ == "engine.agent_bridge"
-    assert not (ROOT / "engine" / ("opencode" + "_bridge.py")).exists()
+    assert len(list((ROOT / "engine").glob("*bridge*.py"))) == 1
 
 
 def test_bootstrap_contract_is_host_agnostic():
@@ -37,15 +35,12 @@ def test_bootstrap_contract_is_host_agnostic():
     assert contract["protocol_version"] == 1
     assert contract["role"] == "executor"
     assert "workflow_cli" in contract["engine"]["module"]
-    assert "optional_adapters" in contract
-    assert "opencode" in contract["optional_adapters"]
-    assert "generic" in contract["optional_adapters"]
+    assert "optional_adapters" not in contract
+    assert "adapter_note" not in contract
     joined = " ".join(contract["hard_rules"])
     assert "只编排" in joined
     assert "TOOL_GAP" in joined
     assert "无证据" in joined
-    # 不得把某宿主写成唯一驱动前提
-    assert "必须 OpenCode" not in json.dumps(contract, ensure_ascii=False)
     completion = contract["completion_contract"]
     assert completion["target"] == ["step_id", "attempt_id", "expected_revision"]
     assert "pending" in completion["delivery_recovery"]
@@ -57,18 +52,19 @@ def test_bootstrap_contract_is_host_agnostic():
 def test_default_agent_label_prefers_hint(monkeypatch):
     monkeypatch.delenv("ACAT_AGENT_LABEL", raising=False)
     assert default_agent_label("") == DEFAULT_AGENT_LABEL
-    assert default_agent_label("claude-code") == "claude-code"
-    monkeypatch.setenv("ACAT_AGENT_LABEL", "cursor")
-    assert default_agent_label("") == "cursor"
+    assert default_agent_label("agent-label-x") == "agent-label-x"
+    monkeypatch.setenv("ACAT_AGENT_LABEL", "operator-tool-7")
+    assert default_agent_label("") == "operator-tool-7"
 
 
-def test_probe_reports_adapters_and_gaps():
+def test_probe_reports_capabilities_and_gaps():
     result = probe(ROOT)
     assert result["drive_ready"] is True
     assert "packages" in result
     assert "cli" in result
-    assert "host_adapters" in result
-    assert result["host_adapters"]["generic"]["present"] is True
+    # 可选适配器子系统已退休：probe 不再输出任何适配器探测段。
+    assert "optional_capabilities" not in result
+    assert "host_adapters" not in result
     assert isinstance(result["gaps"], list)
     # 探测不泄漏环境变量值
     raw = json.dumps(result, ensure_ascii=False)
@@ -108,25 +104,11 @@ def test_forge_tool_and_skill_scaffold(tmp_path):
     assert skill["catalog_capability_id"] == "demo-probe-skill"
 
 
-def test_forge_adapter_and_gap_advisory(tmp_path):
-    suite = tmp_path / "academic-toolkit"
-    (suite / "engine").mkdir(parents=True)
-    adapter = forge_adapter("demo-host", "演示适配器", project_root=suite)
-    assert adapter["created"] is True
-    payload = json.loads((tmp_path / "agents" / "adapters" / "demo-host" / "adapter.json").read_text(encoding="utf-8"))
-    assert payload["required_for_drive"] is False
-    assert payload["adapter_id"] == "demo-host"
+def test_optional_adapter_subsystem_is_retired():
+    """可选适配器子系统整体退休：不再提供适配器铸造入口。"""
+    import engine.tool_forge as tool_forge
 
-    advice = forge_from_gap({"kind": "python_package", "id": "fitz", "hint": "pip install pymupdf"}, suite)
-    assert advice["forged"] is False
-    assert advice["action"] == "advise_only"
-
-    forged = forge_from_gap(
-        {"kind": "optional_adapter", "id": "demo-host2", "hint": "another optional host"},
-        suite,
-    )
-    assert forged.get("kind") == "adapter"
-    assert forged.get("created") is True
+    assert not hasattr(tool_forge, "forge_adapter")
 
 
 def test_workflow_cli_boot_probe_and_forge(tmp_path, monkeypatch):

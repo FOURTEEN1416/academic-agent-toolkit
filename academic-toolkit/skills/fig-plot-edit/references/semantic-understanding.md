@@ -61,6 +61,6 @@ should be retained without display, then regenerate the proposal.
 
 ## Conversation contract
 
-Keep the first response compact. The full JSON is audit evidence for Codex and advanced users, not
-the default beginner explanation. Ask only questions that can change the scientific meaning or
+Keep the first response compact. The full JSON is audit evidence for the driving agent and advanced
+users, not the default beginner explanation. Ask only questions that can change the scientific meaning or
 visible elements.

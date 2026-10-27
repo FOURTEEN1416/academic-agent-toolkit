@@ -55,7 +55,7 @@ glow_line(ax, x, y, color, *, lw=1.8, alpha=0.22)                 # lw+2.8 底�
 2. `xelatex×2`，`grep -c "^!" main.log` = 0；fitz 扫 `\uffff` notdef=0
 3. 硬门禁：`学术工作流/academic-toolkit/skills/shared-scripts/figure_pdf_quality_check.py figures --paper paper`（插入后 ≥8pt、对比度 ≥4.5）+ `figure_text_budget.py figures`（图内解释性文字移 caption）
    - ⚠ 路径雷：shared-scripts 在 `academic-toolkit/` 下，旧 `科研工具箱/` 路径已失效
-4. **宿主视觉全页复审**（montage + 关键页单独渲染），文字门禁抓不到的（标题互碰、图例丢手柄、面板挤压）只能靠看图
+4. **驱动 Agent 视觉全页复审**（montage + 关键页单独渲染），文字门禁抓不到的（标题互碰、图例丢手柄、面板挤压）只能靠看图
 5. 图型改动后同步正文措辞（如"柱状图的形态"→"得分点阵的对比"）
 
 ## 五、matplotlib 坑清单（本轮实测）

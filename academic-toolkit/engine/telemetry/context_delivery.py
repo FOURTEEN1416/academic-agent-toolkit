@@ -10,7 +10,7 @@
   有效、本次不再重发。
 
 配置查找顺序（``resolve_policy``）：工作区级 ``<workspace>/.engine/context_delivery.json``
-（存在且合法时优先——供 V4 宿主 A/B 在单个工作区开跑，不动全局出厂值）→ 全局
+（存在且合法时优先——供 V4 发布前 A/B 验证在单个工作区开跑，不动全局出厂值）→ 全局
 ``checkers/context_delivery.json`` → 出厂关闭。工作区文件缺失/非法时跳过并回落
 全局（非法不得启用，fail-open 只指向关闭）。
 
@@ -22,7 +22,7 @@
 legacy 合同/候选 acceptance 哈希，新增根级 json 会静默改变哈希面。
 
 配置缺失/不可读/非法时一律按出厂关闭处理（fail-open 到现状）：单次投递尚未通过
-V4 宿主 A/B，任何配置问题都不得把未验证的行为静默打开。返回值的 ``status`` 字段
+V4 发布前 A/B 验证，任何配置问题都不得把未验证的行为静默打开。返回值的 ``status`` 字段
 保留诊断信息，调用方无需处理。
 """
 from __future__ import annotations
@@ -87,7 +87,7 @@ def single_delivery_enabled(policy: dict | None = None) -> bool:
 def resolve_policy(workspace: Path | str | None = None) -> dict:
     """按『工作区覆盖 → 全局 → 出厂』解析生效策略。
 
-    工作区文件存在且合法时其 ``single_delivery`` 优先（供 V4 宿主 A/B 单工作区
+    工作区文件存在且合法时其 ``single_delivery`` 优先（供 V4 发布前 A/B 验证单工作区
     开跑）；缺失/非法时跳过并回落全局——非法的工作区文件不得启用未验证行为，
     fail-open 只指向关闭。返回值附 ``source``/``status`` 供诊断。
     """

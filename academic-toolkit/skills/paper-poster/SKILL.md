@@ -733,11 +733,11 @@ for iteration in 1..MAX_ITERATIONS:
 
 > ⚠️ **Targeted fixes only.** Each iteration should fix at most 3 specific issues. Do NOT rewrite the entire LaTeX — small, focused edits prevent regression.
 
-**Optional: Gemini visual generation** （若宿主提供图像生成工具/CLI，工具名随宿主）:
+**Optional: Gemini visual generation**（若当前 Agent 环境提供图像生成工具/CLI，工具名随环境而定）:
 
 For poster elements that need custom illustrations (e.g., hero architecture diagram, method workflow), use the Gemini illustration pipeline:
 1. Write a detailed specification for the illustration
-2. 以该规格调用宿主的图像生成能力
+2. 以该规格调用当前环境的图像生成能力
 3. 执行 Agent reviews the generated image for accuracy
 4. Iterate until score ≥ 9 or max 3 attempts
 5. Save final illustration to `poster/figures/` and embed in LaTeX

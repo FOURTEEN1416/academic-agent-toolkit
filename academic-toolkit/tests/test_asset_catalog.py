@@ -80,7 +80,7 @@ def test_boot_contract_exposes_assets():
     assert "assets" in contract, "boot 契约须含 assets 使用说明节"
     intents = [r["intent"] for r in contract["routing_shortcuts"]]
     assert any("资产" in i for i in intents), "路由快捷方式须含资产直查入口"
-    assert "adapters" not in paths, "agents/adapters 已随宿主适配层裁决退役，不得残留指针"
+    assert "adapters" not in paths, "agents/adapters 元数据目录已退役，boot 契约不得残留指针"
 
 
 def test_probe_exposes_asset_summary():

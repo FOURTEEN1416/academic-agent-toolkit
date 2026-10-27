@@ -1,18 +1,18 @@
 ---
 name: latex-paper-collab-breadth
-description: "Use the Gemini CLI as a breadth-exploration co-pilot for paper-from-zero. Primary role: candidate direction expansion and idea divergence (breadth over depth). 只用于选题/方向发散；逐点深挖与论证收敛场景改用 latex-paper-collab-depth. Optional collaborator, skips when CLI absent."
+description: "Use an external CLI agent as a breadth-exploration co-pilot for paper-from-zero. Primary role: candidate direction expansion and idea divergence (breadth over depth). 只用于选题/方向发散；逐点深挖与论证收敛场景改用 latex-paper-collab-depth. Optional collaborator, skips when CLI absent."
 metadata:
-  short-description: Breadth co-pilot (Gemini) for paper-from-zero
+  short-description: Breadth co-pilot (external CLI) for paper-from-zero
 ---
 
 
 <!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（collaborating-with-gemini + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
-# Collaborating with Gemini (Codex)
+# Collaborating with Gemini
 
 Use Gemini CLI as a **breadth-exploration** collaborator for paper-from-zero,
 or as a generic code collaborator in fallback mode.
 
-> **ACAT 宿主中立声明**：本技能把 gemini CLI 当作**外部评审桥协作者**调用（可选增强），不预设执行宿主；`gemini` 不在 PATH 时跳过该协作者、由当前 Agent 自审降级，不阻断流程。
+> **协作者定位**：本技能把 gemini CLI 当作**外部评审桥协作者**调用（可选增强），不预设执行环境；`gemini` 不在 PATH 时跳过该协作者、由当前 Agent 自审降级，不阻断流程。
 
 
 This skill provides a lightweight bridge script that returns structured JSON
@@ -32,8 +32,8 @@ and supports multi-turn sessions via `SESSION_ID`.
 - Fallback: generic code collaboration tasks (analysis, patch, review).
 
 ## When NOT to Use
-- Claim-level logical analysis or reviewer objection stress tests (use Claude).
-- Final routing judgment between review/empirical (use Claude).
+- Claim-level logical analysis or reviewer objection stress tests (use latex-paper-collab-depth).
+- Final routing judgment between review/empirical (use latex-paper-collab-depth).
 - Generating `ref.bib` entries or verified citations.
 - Tasks requiring depth reasoning rather than breadth scanning.
 
@@ -51,13 +51,15 @@ and supports multi-turn sessions via `SESSION_ID`.
 
 If your prompt contains Markdown backticks, use a heredoc; see `references/shell-quoting.md`.
 
+> 本技能未随包提供 gemini bridge 脚本；`gemini` 在 PATH 时由调用方按上游参数（`--cd`/`--PROMPT`/`--SESSION_ID`/`--output-format`）直接调用，或使用自备的等价桥脚本；CLI 缺位时按协作者定位声明降级。
+
 ```bash
 PROMPT="$(cat <<'EOF'
 Review src/auth.py around login() and propose fixes.
 OUTPUT: Unified Diff Patch ONLY.
 EOF
 )"
-python3 .codex/skills/collaborating-with-gemini/scripts/gemini_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --cd "." --PROMPT "$PROMPT"
+python3 <gemini-bridge-script> --cd "." --PROMPT "$PROMPT"
 ```
 
 **Output:** JSON with `success`, `SESSION_ID`, `agent_messages`, and optional `error` / `all_messages`.
@@ -70,14 +72,14 @@ PROMPT="$(cat <<'EOF'
 Analyze the bug in foo(). Keep it short.
 EOF
 )"
-python3 .codex/skills/collaborating-with-gemini/scripts/gemini_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --cd "." --PROMPT "$PROMPT"
+python3 <gemini-bridge-script> --cd "." --PROMPT "$PROMPT"
 
 # Continue the same session
 PROMPT="$(cat <<'EOF'
 Now propose a minimal fix as Unified Diff Patch ONLY.
 EOF
 )"
-python3 .codex/skills/collaborating-with-gemini/scripts/gemini_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --cd "." --SESSION_ID "<SESSION_ID>" --PROMPT "$PROMPT"
+python3 <gemini-bridge-script> --cd "." --SESSION_ID "<SESSION_ID>" --PROMPT "$PROMPT"
 ```
 
 ## Prompting Patterns (Paper Mode)
@@ -103,7 +105,7 @@ Each template specifies its input sources, output artifact mappings, and constra
 
 ## Verification
 - Cross-check both collaborators: use the `check-collaborators` skill
-- Smoke-test the bridge: `python3 .codex/skills/collaborating-with-gemini/scripts/gemini_bridge.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> --help`
+- Smoke-test the bridge: `python3 <gemini-bridge-script> --help`
 
 ## References
 - `../../_shared/collaboration-base.md` (shared rules)

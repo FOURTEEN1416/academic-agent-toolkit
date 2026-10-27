@@ -34,13 +34,9 @@ If the user does not specify a stack, default to `html-tailwind`.
 
 ### 2. Generate the design system first
 
-Use the helper script to produce a compact design recommendation:
+> 上游检索脚本未随本仓集成（见 ASSET-GAP.md），按本节列出的设计维度人工判断。
 
-```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/ui-ux-pro-max/scripts/search.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用-->" "<product_type> <industry> <keywords>" --design-system -p "Project Name"
-```
-
-This produces:
+Settle these design dimensions before coding:
 - recommended style direction,
 - palette family,
 - typography direction,
@@ -49,26 +45,10 @@ This produces:
 - anti-patterns to avoid.
 
 If the work spans multiple turns or pages, persist the design system:
-
-```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/ui-ux-pro-max/scripts/search.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用-->" "<query>" --design-system --persist -p "Project Name"
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/ui-ux-pro-max/scripts/search.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用-->" "<query>" --design-system --persist -p "Project Name" --page "dashboard"
-```
-
-This creates:
 - `design-system/MASTER.md`
 - optional page-level override notes under `design-system/pages/`
 
 ### 3. Pull targeted guidance only when needed
-
-Use a focused search instead of loading everything at once:
-
-```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/ui-ux-pro-max/scripts/search.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用-->" "glassmorphism dark" --domain style
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/ui-ux-pro-max/scripts/search.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用-->" "animation accessibility" --domain ux
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/ui-ux-pro-max/scripts/search.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用-->" "real-time dashboard" --domain chart
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/ui-ux-pro-max/scripts/search.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用-->" "elegant luxury serif" --domain typography
-```
 
 Supported domains:
 - `product`
@@ -80,10 +60,6 @@ Supported domains:
 - `ux`
 
 ### 4. Add stack-specific guidance before coding
-
-```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/ui-ux-pro-max/scripts/search.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用-->" "forms table responsive" --stack html-tailwind
-```
 
 Supported stacks:
 - `html-tailwind`
@@ -126,11 +102,9 @@ A good response should usually include:
 - Do not weaken text contrast for visual flair.
 - Do not scale interactive cards on hover if it destabilizes layout.
 - Do not use animation that violates `prefers-reduced-motion`.
-- Do not invent unsupported helper scripts or datasets; use the bundled `search.py` and `data/ui-reasoning.csv` only.
+- Do not invent unsupported helper scripts or datasets; base recommendations on the design dimensions listed above.
 
 ## References
 
 Load only what is needed:
-- `references/USAGE.md` - recommended command patterns and retrieval flow
-- `data/ui-reasoning.csv` - compact product-to-design heuristics used by the helper script
-- `scripts/search.py` - deterministic helper for design-system, domain, and stack lookup
+- `ASSET-GAP.md` - upstream assets not bundled with this repo (retrieval script and usage reference)

@@ -53,13 +53,13 @@ def test_evidence_is_masked():
 def test_config_absolute_path_fails_and_json_embedded_python_does_not():
     # 真实盘符路径（配置可移植性违例）→ FAIL
     real = secret_scan.scan_text('"roots": ["C:/Users/someone/docs"]',
-                                 "opencode.json", is_config=True)
+                                 "config.json", is_config=True)
     assert any(f["kind"] == "config-abs-path" for f in real)
     # 回归：JSON 内嵌 Python 的 "exc:\\n" / "root:\\n"（冒号+字面反斜杠n）
-    # 曾整体误命中盘符正则（2026-09-20 .zcode/config.json 三处假阳性实证）
+    # 曾整体误命中盘符正则（2026-09-20 嵌套 JSON 配置三处假阳性实证）
     embedded = secret_scan.scan_text(
         '"except Exception as exc:\\n    print(exc)\\nif root:\\n    pass"',
-        ".zcode/config.json", is_config=True)
+        "nested/config.json", is_config=True)
     assert not [f for f in embedded if f["kind"] == "config-abs-path"]
 
 
@@ -68,13 +68,13 @@ def test_home_path_requires_real_segment():
     doc = secret_scan.scan_text("不得写入 `C:\\Users\\...`、过期项目根", "AGENTS.md", False)
     assert not [f for f in doc if f["kind"] == "home-path"]
     # 真实用户名段 → WARN
-    leak = secret_scan.scan_text("装在 `C:\\Users\\FOUR\\.zcode\\` 下", "x.md", False)
+    leak = secret_scan.scan_text("装在 `C:\\Users\\FOUR\\.cache\\` 下", "x.md", False)
     assert any(f["kind"] == "home-path" for f in leak)
 
 
 def test_allowlist_suppresses_by_line_hash(tmp_path):
     target = tmp_path / "a.md"
-    line = "path C:\\Users\\SOMEONE\\.zcode here"
+    line = "path C:\\Users\\SOMEONE\\project-cache here"
     target.write_text(line + "\n", encoding="utf-8")
     findings = secret_scan.scan_text(line, "a.md", False)
     assert findings

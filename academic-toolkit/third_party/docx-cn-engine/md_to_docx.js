@@ -241,7 +241,7 @@ function parseInlineWithMath(text, textStyle) {
       // 上标引用 [n] — 强制 superScript，但保留字体/字号
       parts.push(makeTextRun(m[5], { superScript: true }));
     } else if (m[6]) {
-      // <sup>...</sup> HTML 上标 — 提取内部文本作为上标 (Claude 常输出 <sup>[2]</sup>)
+      // <sup>...</sup> HTML 上标 — 提取内部文本作为上标 (部分 LLM 输出以 HTML 上标标注引文，如 <sup>[2]</sup>)
       const _supInner = m[6].replace(/^<sup>/i, '').replace(/<\/sup>$/i, '');
       parts.push(makeTextRun(_supInner, { superScript: true }));
     } else if (m[7]) {

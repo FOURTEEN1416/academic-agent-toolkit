@@ -87,11 +87,11 @@ PLACEHOLDER_MARKERS = ("YOUR", "XXXX", "PLACEHOLDER", "EXAMPLE", "CHANGEME",
 GENERIC_MAX_LINE = 400
 
 # 配置文件（硬性规则 6 的机检面：tracked 配置必须可移植，出现盘符绝对路径即 FAIL）。
-# 机检面 = 精确文件名 + requirements*.txt + 三个宿主配置目录；不做全后缀毯式扫描——
+# 机检面 = 精确文件名 + requirements*.txt + tracked 配置目录；不做全后缀毯式扫描——
 # 盘上 .json/.txt 全量纳入会误伤 "C:/Program Files" 族通用安装位默认值
 # （puppeteer-config / .eval_results 等，与本仓"通用位置合规"判据冲突）。
-CONFIG_DIR_MARKERS = (".github", ".opencode", ".zcode")
-CONFIG_NAME_EXACT = {"opencode.json", "pytest.ini", "requirements-dev.txt"}
+CONFIG_DIR_MARKERS = (".github",)
+CONFIG_NAME_EXACT = {"pytest.ini", "requirements-dev.txt"}
 
 # 家目录路径（B1-5 扩展）：Users/<name> 与 Desktop/<user> 两族，正反斜杠均可；
 # 段内必须含字母数字（规则文档引用的 "C:\Users\..." 示例段为纯点、

@@ -154,7 +154,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--generator",
         required=True,
         choices=["image_gen", "imagegen", "create-image", "approved-image-api"],
-        help="Canonical values: image_gen for Codex Image Gen, create-image for ChatGPT web Create Image, approved-image-api only in other runtimes.",
+        help="Canonical values: image_gen for the first-party CLI image tool, create-image for the first-party chat image tool, approved-image-api only when no first-party image tool is available.",
     )
     p_record_generation.add_argument("--environment", choices=sorted(RUNTIME_ENVIRONMENTS), help="Override state runtime only when migrating alias-based state; normal runs use set-runtime-config first.")
     p_record_generation.add_argument(

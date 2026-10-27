@@ -4,31 +4,33 @@ description: "This skill should be used when the user asks to ”add MCP server�
 version: 0.1.0
 ---
 
-# MCP Integration for Claude Code Plugins
+# MCP Integration Pattern Reference
+
+> **宿主无关口径**：本文件是宿主无关的 MCP 集成模式参考。MCP 协议本体（server/client、传输方式、tool schema、鉴权模式）是通用的；插件打包方式、插件根目录变量、工具命名前缀、调试/状态命令等属于各运行时的落地约定——接入时按**目标运行时自己的 MCP/插件文档**适配，下文以通用占位符示例。
 
 ## Overview
 
-Model Context Protocol (MCP) enables Claude Code plugins to integrate with external services and APIs by providing structured tool access. Use MCP integration to expose external service capabilities as tools within Claude Code.
+Model Context Protocol (MCP) enables an agent runtime (host) to integrate with external services and APIs by providing structured tool access. Use MCP integration to expose external service capabilities as tools within the runtime's tool system.
 
 **Key capabilities:**
 - Connect to external services (databases, APIs, file systems)
 - Provide 10+ related tools from a single service
 - Handle OAuth and complex authentication flows
-- Bundle MCP servers with plugins for automatic setup
+- Bundle MCP servers with plugins/packages for automatic setup
 
 ## MCP Server Configuration Methods
 
-Plugins can bundle MCP servers in two ways:
+Runtimes typically accept MCP server declarations in two ways. Field and file naming follow the target runtime's own MCP/plugin conventions.
 
-### Method 1: Dedicated .mcp.json (Recommended)
+### Method 1: Dedicated MCP Config File (Recommended)
 
-Create `.mcp.json` at plugin root:
+Declare servers in a dedicated JSON config file (commonly `.mcp.json` at project or plugin root; exact file name and location per the runtime's docs):
 
 ```json
 {
   "database-tools": {
-    "command": "${CLAUDE_PLUGIN_ROOT}/servers/db-server",
-    "args": ["--config", "${CLAUDE_PLUGIN_ROOT}/config.json"],
+    "command": "${PLUGIN_ROOT}/servers/db-server",
+    "args": ["--config", "${PLUGIN_ROOT}/config.json"],
     "env": {
       "DB_URL": "${DB_URL}"
     }
@@ -36,14 +38,16 @@ Create `.mcp.json` at plugin root:
 }
 ```
 
+**Note:** `${PLUGIN_ROOT}` is a placeholder for the runtime's plugin/asset root variable. If the target runtime provides an equivalent variable (name varies), always use it when building paths so the configuration stays portable.
+
 **Benefits:**
 - Clear separation of concerns
 - Easier to maintain
 - Better for multiple servers
 
-### Method 2: Inline in plugin.json
+### Method 2: Inline in the Plugin/Extension Manifest
 
-Add `mcpServers` field to plugin.json:
+Add an `mcpServers` field to the runtime's plugin manifest (where supported):
 
 ```json
 {
@@ -51,7 +55,7 @@ Add `mcpServers` field to plugin.json:
   "version": "1.0.0",
   "mcpServers": {
     "plugin-api": {
-      "command": "${CLAUDE_PLUGIN_ROOT}/servers/api-server",
+      "command": "${PLUGIN_ROOT}/servers/api-server",
       "args": ["--port", "8080"]
     }
   }
@@ -88,9 +92,9 @@ Execute local MCP servers as child processes. Best for local tools and custom se
 - NPM-packaged MCP servers
 
 **Process management:**
-- Claude Code spawns and manages the process
+- The runtime spawns and manages the process
 - Communicates via stdin/stdout
-- Terminates when Claude Code exits
+- Terminates when the runtime exits
 
 ### SSE (Server-Sent Events)
 
@@ -113,9 +117,9 @@ Connect to hosted MCP servers with OAuth support. Best for cloud services.
 - No local installation needed
 
 **Authentication:**
-- OAuth flows handled automatically
+- OAuth flows handled automatically by the runtime
 - User prompted on first use
-- Tokens managed by Claude Code
+- Tokens managed by the runtime
 
 ### HTTP (REST API)
 
@@ -168,10 +172,10 @@ Connect to WebSocket MCP servers for real-time bidirectional communication.
 
 All MCP configurations support environment variable substitution:
 
-**${CLAUDE_PLUGIN_ROOT}** - Plugin directory (always use for portability):
+**${PLUGIN_ROOT} (example name)** - Plugin/asset root directory variable (always use the target runtime's equivalent for portability):
 ```json
 {
-  "command": "${CLAUDE_PLUGIN_ROOT}/servers/my-server"
+  "command": "${PLUGIN_ROOT}/servers/my-server"
 }
 ```
 
@@ -185,29 +189,28 @@ All MCP configurations support environment variable substitution:
 }
 ```
 
-**Best practice:** Document all required environment variables in plugin README.
+**Best practice:** Document all required environment variables in the plugin/package README.
 
 ## MCP Tool Naming
 
-When MCP servers provide tools, they're automatically prefixed:
+Many runtimes namespace MCP tools behind a prefixed name so they do not collide with built-in tools.
 
-**Format:** `mcp__plugin_<plugin-name>_<server-name>__<tool-name>`
+**Format (example):** `mcp__<server-name>__<tool-name>`（前缀格式以目标运行时为准）
 
 **Example:**
-- Plugin: `asana`
 - Server: `asana`
 - Tool: `create_task`
-- **Full name:** `mcp__plugin_asana_asana__asana_create_task`
+- **Full name (example):** `mcp__asana__asana_create_task`
 
 ### Using MCP Tools in Commands
 
-Pre-allow specific MCP tools in command frontmatter:
+Pre-allow specific MCP tools in command frontmatter (where the runtime supports permission frontmatter):
 
 ```markdown
 ---
 allowed-tools: [
-  "mcp__plugin_asana_asana__asana_create_task",
-  "mcp__plugin_asana_asana__asana_search_tasks"
+  "mcp__asana__asana_create_task",
+  "mcp__asana__asana_search_tasks"
 ]
 ---
 ```
@@ -215,7 +218,7 @@ allowed-tools: [
 **Wildcard (use sparingly):**
 ```markdown
 ---
-allowed-tools: ["mcp__plugin_asana_asana__*"]
+allowed-tools: ["mcp__asana__*"]
 ---
 ```
 
@@ -224,25 +227,25 @@ allowed-tools: ["mcp__plugin_asana_asana__*"]
 ## Lifecycle Management
 
 **Automatic startup:**
-- MCP servers start when plugin enables
+- MCP servers start when the plugin/package enables
 - Connection established before first tool use
 - Restart required for configuration changes
 
 **Lifecycle:**
-1. Plugin loads
+1. Plugin/package loads
 2. MCP configuration parsed
 3. Server process started (stdio) or connection established (SSE/HTTP/WS)
 4. Tools discovered and registered
-5. Tools available as `mcp__plugin_...__...`
+5. Tools available under their runtime-assigned names
 
 **Viewing servers:**
-Use `/mcp` command to see all servers including plugin-provided ones.
+Use the runtime's MCP status command/panel (if provided) to see all servers including plugin-provided ones.
 
 ## Authentication Patterns
 
 ### OAuth (SSE/HTTP)
 
-OAuth handled automatically by Claude Code:
+OAuth handled automatically by the runtime:
 
 ```json
 {
@@ -294,12 +297,12 @@ Commands use MCP tools with user interaction:
 ```markdown
 # Command: create-item.md
 ---
-allowed-tools: ["mcp__plugin_name_server__create_item"]
+allowed-tools: ["mcp__<server>__create_item"]
 ---
 
 Steps:
 1. Gather item details from user
-2. Use mcp__plugin_name_server__create_item
+2. Use mcp__<server>__create_item
 3. Confirm creation
 ```
 
@@ -313,7 +316,7 @@ Agents use MCP tools autonomously:
 # Agent: data-analyzer.md
 
 Analysis Process:
-1. Query data via mcp__plugin_db_server__query
+1. Query data via mcp__db_server__query
 2. Process and analyze results
 3. Generate insights report
 ```
@@ -368,11 +371,11 @@ Pre-allow only necessary MCP tools:
 
 ```markdown
 ✅ allowed-tools: [
-  "mcp__plugin_api_server__read_data",
-  "mcp__plugin_api_server__create_item"
+  "mcp__api_server__read_data",
+  "mcp__api_server__create_item"
 ]
 
-❌ allowed-tools: ["mcp__plugin_api_server__*"]
+❌ allowed-tools: ["mcp__api_server__*"]
 ```
 
 ## Error Handling
@@ -424,18 +427,18 @@ for id in task_ids:
 
 ### Local Testing
 
-1. Configure MCP server in `.mcp.json`
-2. Install plugin locally (`.claude-plugin/`)
-3. Run `/mcp` to verify server appears
+1. Configure the MCP server in the runtime's MCP config file (or manifest)
+2. Install the plugin/package locally (directory layout per the runtime's conventions)
+3. Run the runtime's MCP status command/panel to verify the server appears
 4. Test tool calls in commands
-5. Check `claude --debug` logs for connection issues
+5. Check the runtime's debug logs for connection issues
 
 ### Validation Checklist
 
 - [ ] MCP configuration is valid JSON
 - [ ] Server URL is correct and accessible
 - [ ] Required environment variables documented
-- [ ] Tools appear in `/mcp` output
+- [ ] Tools appear in the runtime's MCP status output
 - [ ] Authentication works (OAuth or tokens)
 - [ ] Tool calls succeed from commands
 - [ ] Error cases handled gracefully
@@ -444,8 +447,10 @@ for id in task_ids:
 
 ### Enable Debug Logging
 
+Start the target runtime with its debug/verbose flag (flag name per the runtime's CLI docs):
+
 ```bash
-claude --debug
+<runtime-cli> --debug
 ```
 
 Look for:
@@ -465,8 +470,8 @@ Look for:
 **Tools not available:**
 - Verify server connected successfully
 - Check tool names match exactly
-- Run `/mcp` to see available tools
-- Restart Claude Code after config changes
+- Use the runtime's MCP status command to see available tools
+- Restart the runtime (or reload MCP config) after config changes
 
 **Authentication failing:**
 - Clear cached auth tokens
@@ -492,12 +497,12 @@ Look for:
 - [ ] Authentication configured
 - [ ] Environment variables documented
 - [ ] HTTPS/WSS used (not HTTP/WS)
-- [ ] ${CLAUDE_PLUGIN_ROOT} used for paths
+- [ ] Runtime plugin-root variable (or portable relative paths) used for paths
 
 ### Best Practices
 
 **DO:**
-- ✅ Use ${CLAUDE_PLUGIN_ROOT} for portable paths
+- ✅ Use the runtime's plugin-root variable for portable paths
 - ✅ Document required environment variables
 - ✅ Use secure connections (HTTPS/WSS)
 - ✅ Pre-allow specific MCP tools in commands
@@ -533,22 +538,21 @@ Working examples in `examples/`:
 ### External Resources
 
 - **Official MCP Docs**: https://modelcontextprotocol.io/
-- **Claude Code MCP Docs**: https://docs.claude.com/en/docs/claude-code/mcp
 - **MCP SDK**: @modelcontextprotocol/sdk
-- **Testing**: Use `claude --debug` and `/mcp` command
+- **Testing**: use the target runtime's debug logging and MCP status command
 
 ## Implementation Workflow
 
-To add MCP integration to a plugin:
+To add MCP integration to a plugin/package:
 
 1. Choose MCP server type (stdio, SSE, HTTP, ws)
-2. Create `.mcp.json` at plugin root with configuration
-3. Use ${CLAUDE_PLUGIN_ROOT} for all file references
+2. Declare the server in the target runtime's MCP config file (or manifest), following its own conventions
+3. Use the runtime's plugin-root variable (or portable relative paths) for all file references
 4. Document required environment variables in README
-5. Test locally with `/mcp` command
-6. Pre-allow MCP tools in relevant commands
+5. Test locally with the runtime's MCP status command
+6. Pre-allow MCP tools in relevant commands (where the runtime supports it)
 7. Handle authentication (OAuth or tokens)
 8. Test error cases (connection failures, auth errors)
-9. Document MCP integration in plugin README
+9. Document MCP integration in the plugin/package README
 
 Focus on stdio for custom/local servers, SSE for hosted services with OAuth.

@@ -489,7 +489,7 @@ def _spec_runner(tmp_path, specs, text):
     result = runner.complete_step(wf, StepResult(
         ok=True, artifacts=list(action.output_files),
         metadata={"execution_evidence": {
-            "schema_version": 1, "agent": "OpenCode Desktop",
+            "schema_version": 1, "agent": "acat-agent",
             "step_id": action.step_id, "skill_name": action.skill_name,
             "skill_sha256": hashlib.sha256(action.skill_path.read_bytes()).hexdigest(),
             "commands": [{"command": "python analysis.py", "returncode": 0, "cwd": "."}],

@@ -389,7 +389,7 @@ For detailed evaluation criteria and examples, consult:
 ```
 User: "Analyze skill quality for skills/git-workflow"
 
-[Claude executes the 8-step workflow and generates:]
+[执行方（当前驱动 Agent）执行 8 步工作流并生成：]
 - quality-report-git-workflow.md
 - improvement-plan-git-workflow.md
 ```
@@ -398,7 +398,7 @@ User: "Analyze skill quality for skills/git-workflow"
 ```
 User: "Review my new skill before I publish it"
 
-[Claude analyzes the skill and provides:]
+[执行方（当前驱动 Agent）分析技能并给出：]
 - Detailed quality assessment
 - Specific improvement recommendations
 - Expected score after implementing fixes
@@ -408,7 +408,7 @@ User: "Review my new skill before I publish it"
 ```
 User: "Check skill quality of api-helper"
 
-[Claude evaluates and reports:]
+[执行方（当前驱动 Agent）评估并报告：]
 - Current grade and score
 - Top improvement opportunities
 - Quick wins for easy score gains
@@ -418,7 +418,7 @@ User: "Check skill quality of api-helper"
 ```
 User: "Review all skills in this repo's skills directory and tell me what to fix first"
 
-[Claude evaluates and reports:]
+[执行方（当前驱动 Agent）评估并报告：]
 - portfolio matrix
 - grouped issue clusters
 - shortlist for second-pass remediation

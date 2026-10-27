@@ -6,14 +6,14 @@
   </p>
   <p>
     <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-2ea44f"></a>
-    <a href="#安装与使用"><img alt="Install" src="https://img.shields.io/badge/install-Claude%20Code%20%7C%20Codex%20%7C%20Cursor%20%7C%20Copilot-111827"></a>
+    <a href="#在仓库中使用"><img alt="Install" src="https://img.shields.io/badge/install-in-repo-111827"></a>
     <a href="#图表类型全览"><img alt="Figure Types" src="https://img.shields.io/badge/figures-29-0ea5e9"></a>
     <a href="#assets-figure-atlas"><img alt="QA" src="https://img.shields.io/badge/QA-4%20pass%2030%2B%20checks-success"></a>
     <a href="README_EN.md"><img alt="Language" src="https://img.shields.io/badge/语言-English%20%7C%20中文-1f6feb"></a>
   </p>
   <p>
     <a href="#项目介绍">项目介绍</a>
-    · <a href="#安装与使用">安装与使用</a>
+    · <a href="#在仓库中使用">在仓库中使用</a>
     · <a href="#图表类型全览">图表类型</a>
     · <a href="#系统工作流">工作流</a>
     · <a href="#项目结构">项目结构</a>
@@ -46,7 +46,7 @@
 
 ## 项目介绍
 
-Academic Figure Skill 是一个面向 AI 编程助手（Claude Code、Codex 等）的 Skill 包。其工作方式是：将 Nature / Cell / Science 系列期刊的图表制作规范（字体 Arial/Helvetica、栏宽 89mm/183mm、PDF 矢量导出、300dpi 栅格预览）和 29 种常见图型的视觉参数编码为 `SKILL.md` 及其引用的 16 份参考文档。当用户提供数据和科学问题后，Skill 引导 LLM 执行一个标准化的 8 步流程：澄清研究问题 → 分类图型原型 → 论证面板方案并获取用户确认 → 检测 Python/R 运行时 → 注入统一的排版和配色基线 → 扫描 `assets/figures/` 中的生产脚本（匹配则原生运行，无匹配则跨类型继承视觉参数）→ 数据校验 → 4 轮 QA 自检 → 输出矢量 PDF 与统计报告。
+Academic Figure Skill 是一个面向能读文件并执行 Python/R 的任意 Agent 的 Skill 包。其工作方式是：将 Nature / Cell / Science 系列期刊的图表制作规范（字体 Arial/Helvetica、栏宽 89mm/183mm、PDF 矢量导出、300dpi 栅格预览）和 29 种常见图型的视觉参数编码为 `SKILL.md` 及其引用的 16 份参考文档。当用户提供数据和科学问题后，Skill 引导 LLM 执行一个标准化的 8 步流程：澄清研究问题 → 分类图型原型 → 论证面板方案并获取用户确认 → 检测 Python/R 运行时 → 注入统一的排版和配色基线 → 扫描 `assets/figures/` 中的生产脚本（匹配则原生运行，无匹配则跨类型继承视觉参数）→ 数据校验 → 4 轮 QA 自检 → 输出矢量 PDF 与统计报告。
 
 该 Skill 不替代 Python 或 R 的绘图能力，而是提供一套结构化的约束条件（constraints）和先验知识（priors），使 LLM 在生成绘图代码时遵循 CNS 期刊的视觉标准，减少人工调整排版、配色和导出参数的工作量。在多面板合成场景中，Skill 支持 Python 脚本和 R 脚本的混合编排——R 面板通过 Cairo 设备渲染为位图，Python 的 `compose.py` 排版引擎按物理尺寸拼合多面板。
 
@@ -128,24 +128,9 @@ Academic Figure Skill 是一个面向 AI 编程助手（Claude Code、Codex 等�
 
 ---
 
-## 安装与使用（宿主中性版 · 2026-09-23 改写）
+## 在仓库中使用
 
-`fig-academic` 是一个以 `SKILL.md` 为核心的 Skill 包。使用时必须保留 `references/`、`scripts/`、
-`assets/` 等目录与 `SKILL.md` 的相对结构——Skill 依赖这些文件完成视觉基线注入、资产检索和跨平台适配。
-
-> 2026-09-24 改写融入：上游的 `install/` 宿主适配器样例目录及其生成器已自本仓移除
->（本仓不依赖任何宿主安装路径；如需上游原样适配器，见上游仓库）。
-
-**在本仓库（academic-toolkit）中随仓使用，无需安装到任何宿主目录**：
-
-- 技能位于本仓 `skills/fig-academic/`，驱动 Agent 按本仓 `AGENTS.md` 驱动协议加载 `SKILL.md` 执行；
-- 引擎路由与技能索引自动发现本技能，不需要复制到任何宿主私有目录；
-- 上游原仓库（github.com/TingxiYu/academic-figure-skill）另提供面向各宿主的独立安装方式，
-  本仓不采用；上游的 `install/` 适配器样例目录已自本仓移除（2026-09-24 改写融入），
-  本仓运行时不依赖任何宿主安装路径。
-
-<!-- 2026-09-23 宿主中性化改写：原 README 含逐宿主安装教学（复制到各宿主私有技能目录），
-     在本仓语境下为死路径误导，已整节替换为随仓使用口径。 -->
+`fig-academic` 是一个以 `SKILL.md` 为核心的 Skill 包。技能位于 `skills/fig-academic/`，按 `AGENTS.md` 驱动协议加载 `SKILL.md`，并保留 `references/`、`scripts/`、`assets/` 与 `SKILL.md` 的相对结构。
 
 ---
 
@@ -186,7 +171,6 @@ Academic Figure Skill 是一个面向 AI 编程助手（Claude Code、Codex 等�
     │   ├── check_export.py            ← 导出参数检查
     │   ├── check_fontsize.py          ← 字号合规检查
     │   ├── check_figure.py            ← 图表综合检查
-    │   ├── generate_adapters.py       ← 跨平台适配文件生成
     │   ├── generate_atlas.py          ← 图鉴自动生成
     │   └── run_ab_tests.py            ← A/B 测试运行器
     ├── assets/
@@ -224,10 +208,6 @@ Academic Figure Skill 是一个面向 AI 编程助手（Claude Code、Codex 等�
     │   │   ├── multipanel/            ← 多面板模板
     │   │   └── other/                 ← 长尾图型
     │   └── figure-atlas/              ← 图鉴预览 PNG 合集
-        ├── claude-code/               ← Claude Code（原生支持，开箱即用）
-        ├── cursor/                    ← Cursor IDE 适配
-        ├── copilot/                   ← GitHub Copilot 适配
-        └── codex/                     ← Codex CLI 适配
 ```
 
 ---

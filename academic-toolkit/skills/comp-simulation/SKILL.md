@@ -149,7 +149,7 @@ python skills/comp-simulation/scripts/sim_env_probe.py
 - **论文**：仿真专章建议结构 = 问题与机理 → 模型规格（五要素）→ 校准与 V&V → 实验设计 → 结果与情景对比 → 敏感性/稳健性 → 管理启示。
   写作走 `comp-paper-zh`（中文）；引用与去 AI 味按主链既有契约。
 - **仿真视频**（本赛事为**必要**交付件）：展示 ①界面与功能模块 ②运行过程（录屏，关键参数特写）③结果与可视化。
-  规格与制作链路见 `references/deliverables.md`；录制走宿主录屏或 CDP screencast，剪辑/压缩走 ffmpeg。
+  规格与制作链路见 `references/deliverables.md`；录制走执行环境自带录屏（或系统录屏工具）或 CDP screencast，剪辑/压缩走 ffmpeg。
 - **反 AI 味**：仿真视频的旁白/字幕与论文文字同受赛事 AIGC 审查口径约束（本赛事当届阈值未取证，
   首届为 AIGC>30% 即判雷同——按保守对待）。
 

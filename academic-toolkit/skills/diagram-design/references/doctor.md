@@ -53,24 +53,7 @@ Run all checks in this order and report each as `pass`, `warn`, or `fail`.
 - In installed-skill mode, report that maintainer scripts are not applicable;
   their absence is not a warning or failure.
 
-4. Plugin wiring surfaces (maintainer-checkout mode only)
-- Verify Claude command files exist and point to their references:
-  - `commands/export-diagram.md` -> `references/export.md`
-  - `commands/import-drawio.md` -> `references/import-drawio.md`
-  - `commands/import-mermaid.md` -> `references/import-mermaid.md`
-  - `commands/profile.md` -> `references/profiles.md`
-  - `commands/doctor.md` -> `references/doctor.md`
-- Verify Pi prompt files exist and point to their references:
-  - `prompts/export-diagram.md` -> `references/export.md`
-  - `prompts/import-mermaid.md` -> `references/import-mermaid.md`
-  - `prompts/profile.md` -> `references/profiles.md`
-  - `prompts/doctor.md` -> `references/doctor.md`
-- Missing files are `fail`.
-- Mismatched reference routing is `fail`.
-- In installed-skill mode, report that maintainer command/prompt wiring is not
-  applicable; partial or absent repository routing trees are not failures.
-
-5. Common path mistakes
+4. Common path mistakes
 - Verify `SKILL.md` beneath the resolved installation root. Do not search for it
   relative to the user's current project and do not instruct users to enter the
   maintainer repository.

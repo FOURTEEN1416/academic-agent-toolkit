@@ -11,9 +11,9 @@ from typing import Any
 
 from .constants import (
     CANDIDATE_STATUS_VALUES,
-    CHATGPT_WEB_IMAGE_CHUNK_LIMIT,
-    CHATGPT_WEB_RECOMMENDED_IMAGE_CHUNK_SIZE,
-    CODEX_IMAGE_CHUNK_LIMIT,
+    CHAT_IMAGE_CHUNK_LIMIT,
+    CHAT_IMAGE_RECOMMENDED_IMAGE_CHUNK_SIZE,
+    CLI_IMAGE_CHUNK_LIMIT,
     DEFAULT_CANDIDATE_COUNT_BY_STEP,
     DEFAULT_NEXT_STEP_BY_STEP,
     IMAGE_ONLY_ROW_ATOMICITY_POLICY,
@@ -85,13 +85,13 @@ def runtime_from_state(state: dict[str, Any], explicit_runtime: str | None = Non
 
 
 def image_chunk_limit(runtime: str) -> int:
-    return CHATGPT_WEB_IMAGE_CHUNK_LIMIT if runtime == "chatgpt_web" else CODEX_IMAGE_CHUNK_LIMIT
+    return CHAT_IMAGE_CHUNK_LIMIT if runtime == "web_image_chat" else CLI_IMAGE_CHUNK_LIMIT
 
 
 def image_chunk_size(runtime: str) -> int:
-    if runtime == "chatgpt_web":
-        return min(CHATGPT_WEB_RECOMMENDED_IMAGE_CHUNK_SIZE, CHATGPT_WEB_IMAGE_CHUNK_LIMIT)
-    return CODEX_IMAGE_CHUNK_LIMIT
+    if runtime == "web_image_chat":
+        return min(CHAT_IMAGE_RECOMMENDED_IMAGE_CHUNK_SIZE, CHAT_IMAGE_CHUNK_LIMIT)
+    return CLI_IMAGE_CHUNK_LIMIT
 
 
 def validate_candidate_count(step: str, count: int) -> None:
@@ -199,8 +199,9 @@ def make_substage_plan(step: str, runtime: str, candidate_count: int, candidate_
                 "rule": (
                     "Generate only the single prompt-index candidate listed in candidate_ids. This is a row-atomic image call: "
                     "read exactly that row prompt_path, activate exactly that candidate_id, and mirror the raster to exactly that row target_image_path. "
-                    "Use the environment-locked image route only: Codex=image_gen; ChatGPT web=Create Image / ChatGPT Images 2.0; "
-                    "other runtimes=named approved image-generation API. Do not write audit/ranking/explanation/aggregate/next-step text. "
+                    "Use the environment-locked image route only: first-party chat image tool=create-image; "
+                    "first-party CLI image tool=image_gen; other environments=named approved image-generation API. "
+                    "Do not write audit/ranking/explanation/aggregate/next-step text. "
                     "Do not create SVG, code-drawn PNGs, screenshots, PPT/PDF renders, or local programmatic raster substitutes. "
                     "Do not composite, tile, contact-sheet, batch-render, or combine multiple prompt-index rows in one image."
                 ),
@@ -273,9 +274,9 @@ def default_manifest(step: str, runtime: str, candidate_count: int, candidate_id
             "s5_is_terminal": step == "S5-CANDIDATE-IMAGE",
         },
         "substage_execution_policy": {
-            "chatgpt_web": "use row-atomic image calls only: one selected/non-skipped prompt-index row per Create Image call; never satisfy multiple candidate rows with one broad/batch/composite image",
-            "codex": "candidate image workers may run in parallel, but every worker is row-atomic and must call image_gen for exactly one prompt-index candidate; only the coordinator writes project-state.json",
-            "image_route_guard": "Image stages are not file-production chores. They must call the runtime image-generation route: Codex=image_gen; ChatGPT web=Create Image / ChatGPT Images 2.0; other runtimes=named approved image-generation API. SVG, Python/PIL, Matplotlib, Graphviz, TikZ, Mermaid, canvas, PPT/PDF rendering, screenshots, and local programmatic raster PNG/WebP files are invalid even when target_image_path is filled.",
+            "web_image_chat": "use row-atomic image calls only: one selected/non-skipped prompt-index row per create-image call; never satisfy multiple candidate rows with one broad/batch/composite image",
+            "builtin_image_gen": "candidate image workers may run in parallel, but every worker is row-atomic and must call image_gen for exactly one prompt-index candidate; only the coordinator writes project-state.json",
+            "image_route_guard": "Image stages are not file-production chores. They must call the configured image-generation route: first-party chat image tool=create-image; first-party CLI image tool=image_gen; other environments=named approved image-generation API. SVG, Python/PIL, Matplotlib, Graphviz, TikZ, Mermaid, canvas, PPT/PDF rendering, screenshots, and local programmatic raster PNG/WebP files are invalid even when target_image_path is filled.",
             "text_image_separation": "S2 and S5 image stages must not write audit/ranking/explanation/aggregate/next-step text. S1 owns S2 prompt preparation, S3 owns S3 review/aggregate over S2 outputs, and S4 owns S5 prompt preparation.",
             "row_atomic_completion_gate": "The stage is incomplete until every selected and non-skipped prompt-index row has exactly one active generated raster mirrored to that same row target_image_path and bound to the same candidate_id; orphan rasters are not candidate outputs.",
             "user_guidance": "Before image-only units, the preceding text stage shows only a compact prompt-index or prompt-file reference as user-facing copyable text; full image prompts stay in prompt files.",

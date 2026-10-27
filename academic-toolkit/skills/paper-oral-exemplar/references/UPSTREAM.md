@@ -5,7 +5,7 @@
 - Checklist date: 2026-09-22
 - License: **未声明**——上游仓库根目录无 LICENSE/COPYING 文件（2026-09-22 经 GitHub API 核查 `license: null`，git tracked 文件中无 license 文件）。本仓以 status `experimental` 收编。
 - Local use: `skills/paper-oral-exemplar/` 论文范例对照改进与学习复盘；八十八三篇证据卡语料与蒸馏脚本未入库，仅存上游仓库/本地 vendor 副本。
-- Local adaptation: 正文为上游原文（SKILL.md 从 `# Oral Paper Skill` 标题起逐字保留）；仅头部加本仓适配块（触发条件/输入输出契约/质量铁律/数模桥接表/STEP_MANIFEST）。`references/` 四件（abstract-derived-practices / archetypes / oral-patterns / review-scorecard）与 `agents/openai.yaml` 为上游原样拷贝。上游 `prompts/`（免依赖提示词）与 `research/`、`scripts/`（语料与蒸馏管线）不随收编——需要时从上游仓库获取。
+- Local adaptation: 正文为上游原文（SKILL.md 从 `# Oral Paper Skill` 标题起逐字保留）；仅头部加本仓适配块（触发条件/输入输出契约/质量铁律/数模桥接表/STEP_MANIFEST）。`references/` 四件（abstract-derived-practices / archetypes / oral-patterns / review-scorecard）为上游原样拷贝（平台专属 `agents/openai.yaml` 已按宿主清洗删除）。上游 `prompts/`（免依赖提示词）与 `research/`、`scripts/`（语料与蒸馏管线）不随收编——需要时从上游仓库获取。
 
 ## 与 anti-defensive-writing 的关系
 

@@ -39,9 +39,10 @@
   `USERNAME` or `USERPROFILE` values. `codex_sandbox` stops before COM with
   `origin_codex_sandbox_context`; `unknown` Windows identity also stops fail-closed with
   `origin_execution_context_unknown`.
-- For `origin_codex_sandbox_context`, Codex may submit a formal, narrowly scoped local-execution
-  request for the same exact `origin-smoke` or `render` command. Rerun only if that exact request is
-  approved, either by the user when prompted or by the configured Codex auto-reviewer. Approval is
+- For `origin_codex_sandbox_context`, the driving agent may submit a formal, narrowly scoped
+  local-execution request for the same exact `origin-smoke` or `render` command. Rerun only if that
+  exact request is approved, either by the user when prompted or by the hosting runtime's configured
+  auto-reviewer. Approval is
   not guaranteed, auto-review does not pre-grant Origin access, and this handoff is not a sandbox
   bypass. Do not ask the user to copy the command into another PowerShell session.
 - Never install, replace, patch, or modify the Origin application. Runtime dependency setup is
@@ -72,7 +73,7 @@
 - After the automatic attempt is exhausted, allow at most one user-approved retry in the active
   interactive Windows-user context. Use a new empty sibling smoke directory and preserve the first
   report. Do not fall back to `ApplicationSI`.
-- Keep that post-activation retry distinct from the Codex execution-context handoff: sandbox
+- Keep that post-activation retry distinct from the external-agent execution-context handoff: sandbox
   detection happens before COM and cannot be diagnosed as an Origin activation failure.
 - Serialize only the active Origin section of current EditaPlot `origin-smoke` and `render` workers
   within one signed-in Windows session. Data inspection, recommendation, and planning may remain

@@ -1,4 +1,4 @@
-"""Runtime environment and hard image-generation route policy.
+"""Runtime environment capability and hard image-generation route policy.
 
 This module is intentionally paper-agnostic.  It validates only *how* target
 paper images are produced, never *what* a particular paper should show.
@@ -8,30 +8,36 @@ from __future__ import annotations
 
 from typing import Any
 
+from .constants import IMAGE_GENERATION_ROUTE_ALIASES, RUNTIME_ENVIRONMENT_ALIASES
 from .errors import StateError
 
-CANONICAL_CODEX_GENERATOR = "image_gen"
-CANONICAL_CHATGPT_WEB_GENERATOR = "create-image"
+CANONICAL_BUILTIN_GENERATOR = "image_gen"
+CANONICAL_WEB_CHAT_GENERATOR = "create-image"
 CANONICAL_APPROVED_API_GENERATOR = "approved-image-api"
 
-# Aliases are accepted only to normalize older state/CLI vocabulary into the
-# canonical generator names used by the v3.2.5 route guard.
+# Legacy generator labels are accepted only to normalize older state/CLI
+# vocabulary into the canonical generator names used by the route guard.
 GENERATOR_ALIASES = {
-    "imagegen": CANONICAL_CODEX_GENERATOR,
-    "image-gen": CANONICAL_CODEX_GENERATOR,
-    "image_gen": CANONICAL_CODEX_GENERATOR,
-    "codex-imagegen": CANONICAL_CODEX_GENERATOR,
-    "codex-image-gen": CANONICAL_CODEX_GENERATOR,
-    "codex_imagegen": CANONICAL_CODEX_GENERATOR,
-    "codex_image_gen": CANONICAL_CODEX_GENERATOR,
-    "create-image": CANONICAL_CHATGPT_WEB_GENERATOR,
-    "create_image": CANONICAL_CHATGPT_WEB_GENERATOR,
-    "chatgpt-create-image": CANONICAL_CHATGPT_WEB_GENERATOR,
-    "chatgpt_create_image": CANONICAL_CHATGPT_WEB_GENERATOR,
-    "chatgpt-web-create-image": CANONICAL_CHATGPT_WEB_GENERATOR,
+    "imagegen": CANONICAL_BUILTIN_GENERATOR,
+    "image-gen": CANONICAL_BUILTIN_GENERATOR,
+    "image_gen": CANONICAL_BUILTIN_GENERATOR,
+    "create-image": CANONICAL_WEB_CHAT_GENERATOR,
+    "create_image": CANONICAL_WEB_CHAT_GENERATOR,
     "approved-image-api": CANONICAL_APPROVED_API_GENERATOR,
     "approved_image_api": CANONICAL_APPROVED_API_GENERATOR,
 }
+
+# Legacy generator labels may carry an environment prefix; match the generic
+# route token so old state normalizes without hard-coding vendor names.
+LEGACY_GENERATOR_TOKENS = (
+    ("imagegen", CANONICAL_BUILTIN_GENERATOR),
+    ("image-gen", CANONICAL_BUILTIN_GENERATOR),
+    ("image_gen", CANONICAL_BUILTIN_GENERATOR),
+    ("create-image", CANONICAL_WEB_CHAT_GENERATOR),
+    ("create_image", CANONICAL_WEB_CHAT_GENERATOR),
+    ("approved-image", CANONICAL_APPROVED_API_GENERATOR),
+    ("approved_image", CANONICAL_APPROVED_API_GENERATOR),
+)
 
 PROGRAMMATIC_GENERATOR_DENYLIST = {
     "python",
@@ -56,6 +62,24 @@ PROGRAMMATIC_GENERATOR_DENYLIST = {
     "local-renderer",
 }
 
+# Legacy route labels are accepted only for migrating existing state; new state
+# writes capability values.
+ROUTE_ALIASES = {
+    **IMAGE_GENERATION_ROUTE_ALIASES,
+    "image_gen": "builtin_image_gen",
+    "imagegen": "builtin_image_gen",
+    "image-gen": "builtin_image_gen",
+    "create-image": "web_image_chat",
+    "create_image": "web_image_chat",
+    "approved-image-api": "approved_api",
+}
+
+
+def normalize_runtime_environment(environment: str | None) -> str:
+    """Return the canonical capability value for a runtime environment label."""
+    value = (environment or "unknown").strip().lower() or "unknown"
+    return RUNTIME_ENVIRONMENT_ALIASES.get(value, value)
+
 
 def canonicalize_generator(generator: str | None) -> str:
     """Return the canonical target-image generator name or raise on denied routes."""
@@ -66,76 +90,80 @@ def canonicalize_generator(generator: str | None) -> str:
     key = key.replace("/", "-")
     if key in PROGRAMMATIC_GENERATOR_DENYLIST:
         raise StateError(
-            f"forbidden target-image generator route: {generator!r}; use Codex image_gen, ChatGPT web Create Image, "
-            "or a named approved image-generation API only in an environment where first-party routes are unavailable"
+            f"forbidden target-image generator route: {generator!r}; use the built-in image route (image_gen), "
+            "the web chat image route (create-image), or a named approved image-generation API only in an "
+            "environment where those routes are unavailable"
         )
     if key in GENERATOR_ALIASES:
         return GENERATOR_ALIASES[key]
+    for token, target in LEGACY_GENERATOR_TOKENS:
+        if token in key:
+            return target
     raise StateError(
         f"unknown target-image generator route: {generator!r}; allowed canonical values are "
-        f"{CANONICAL_CODEX_GENERATOR}, {CANONICAL_CHATGPT_WEB_GENERATOR}, or {CANONICAL_APPROVED_API_GENERATOR}"
+        f"{CANONICAL_BUILTIN_GENERATOR}, {CANONICAL_WEB_CHAT_GENERATOR}, or {CANONICAL_APPROVED_API_GENERATOR}"
     )
 
 
 def infer_image_generation_route(environment: str, explicit_route: str | None) -> str:
+    env = normalize_runtime_environment(environment)
     if explicit_route:
-        route = explicit_route.strip()
-        if route == "codex_imagegen":
-            return "codex_image_gen"
-        if route == "chatgpt_create_image":
-            return "chatgpt_create_image"
-        if route == "approved_image_api":
-            return "approved_image_api"
-        return route
-    if environment == "chatgpt_web":
-        return "chatgpt_create_image"
-    if environment == "codex":
-        return "codex_image_gen"
-    if environment in {"claude_code", "other"}:
-        return "user_supplied_api_required"
+        route = explicit_route.strip().lower()
+        return ROUTE_ALIASES.get(route, route)
+    if env == "builtin_image_gen":
+        return "builtin_image_gen"
+    if env == "web_image_chat":
+        return "web_image_chat"
+    if env == "approved_api":
+        return "approved_api"
     return "unknown"
 
 
 def required_generator_for_environment(environment: str) -> str | None:
-    if environment == "codex":
-        return CANONICAL_CODEX_GENERATOR
-    if environment == "chatgpt_web":
-        return CANONICAL_CHATGPT_WEB_GENERATOR
-    if environment in {"claude_code", "other"}:
+    env = normalize_runtime_environment(environment)
+    if env == "builtin_image_gen":
+        return CANONICAL_BUILTIN_GENERATOR
+    if env == "web_image_chat":
+        return CANONICAL_WEB_CHAT_GENERATOR
+    if env == "approved_api":
         return CANONICAL_APPROVED_API_GENERATOR
     return None
 
 
 def default_image_generation_note(environment: str) -> str:
-    if environment == "codex":
+    env = normalize_runtime_environment(environment)
+    if env == "builtin_image_gen":
         return (
-            "Codex must call Image Gen through the codex image_gen route for every target-paper sketch and formal candidate. "
-            "Generate each image separately. "
-            "Python/PIL/Matplotlib/Graphviz/TikZ/Mermaid/canvas screenshots/SVG-to-PNG/PPT-rendered/programmatic raster PNGs are invalid substitutes."
+            "The built-in image-generation tool must be used through the image_gen route for every target-paper "
+            "sketch and formal candidate. Generate each image separately. "
+            "Python/PIL/Matplotlib/Graphviz/TikZ/Mermaid/canvas screenshots/SVG-to-PNG/PPT-rendered/programmatic "
+            "raster PNGs are invalid substitutes."
         )
-    if environment == "chatgpt_web":
+    if env == "web_image_chat":
         return (
-            "ChatGPT web must use Create Image / ChatGPT Images 2.0 for every target-paper sketch and formal candidate. "
-            "Generate each image separately. "
-            "Do not satisfy an image unit by writing SVG/HTML/Mermaid/canvas/PPT/PDF or by rendering any local raster file."
+            "The web chat image-generation surface must be used through the create-image route for every "
+            "target-paper sketch and formal candidate. Generate each image separately. "
+            "Do not satisfy an image unit by writing SVG/HTML/Mermaid/canvas/PPT/PDF or by rendering any local "
+            "raster file."
         )
-    if environment in {"claude_code", "other"}:
+    if env == "approved_api":
         return (
-            "Use a named approved image-generation API only when neither Codex image_gen nor ChatGPT web Create Image is available; "
-            "record the API name and unavailability reason. Programmatic drawing or renderer output is never an approved image API."
+            "Use a named approved image-generation API only when neither the built-in route nor the web chat "
+            "route is available; record the API name and unavailability reason. Programmatic drawing or renderer "
+            "output is never an approved image API."
         )
     return (
-        "Resolve runtime before image steps: Codex => image_gen only; ChatGPT web => Create Image / ChatGPT Images 2.0 only; "
-        "other runtimes require a named approved image-generation API. Do not generate target images with code, SVG, screenshots, or local renderers."
+        "Resolve runtime capability before image steps: builtin_image_gen => image_gen only; "
+        "web_image_chat => create-image only; approved_api => named approved image-generation API. "
+        "Do not generate target images with code, SVG, screenshots, or local renderers."
     )
 
 
 def runtime_environment_note(environment: str) -> str:
-    if environment == "codex":
-        return "Codex uses text replies plus direct Markdown image embeds for saved atlas boards; generated web pages are not produced."
-    if environment == "chatgpt_web":
-        return "ChatGPT web uses text replies plus direct Markdown image embeds for saved atlas boards; generated web pages are not produced."
-    return "Use text replies plus direct atlas-board image embeds when package assets are available; generated web pages are not produced."
+    return (
+        "Use text replies plus direct Markdown image embeds for saved atlas boards; "
+        "generated web pages are not produced."
+    )
 
 
 def validate_image_generation_route(
@@ -145,34 +173,40 @@ def validate_image_generation_route(
     approved_api_name: str | None = None,
     route_unavailable_reason: str | None = None,
 ) -> dict[str, Any]:
-    """Validate the environment-locked generator for a target-paper image unit.
+    """Validate the capability-locked generator for a target-paper image unit.
 
     Returns a small provenance payload that can be stored in state. The function
     rejects all programmatic/local renderer routes even when they produce a PNG.
     """
-    env = (environment or "unknown").strip() or "unknown"
+    raw_env = (environment or "unknown").strip() or "unknown"
+    env = normalize_runtime_environment(raw_env)
     canonical = canonicalize_generator(generator)
+    if env == "none":
+        raise StateError(
+            "runtime_environment.environment=none blocks target-paper IMAGE_* units; configure "
+            "builtin_image_gen, web_image_chat, or approved_api before recording image generation"
+        )
     required = required_generator_for_environment(env)
     if required is None:
         raise StateError(
             "runtime_environment.environment must be configured before target-paper IMAGE_* units; "
-            "set it to codex, chatgpt_web, claude_code, or other before recording image generation"
+            "set it to builtin_image_gen, web_image_chat, or approved_api before recording image generation"
         )
-    if env == "codex" and canonical != CANONICAL_CODEX_GENERATOR:
+    if env == "builtin_image_gen" and canonical != CANONICAL_BUILTIN_GENERATOR:
         raise StateError(
-            "Codex target-paper image units must call image_gen. Do not use create-image, SVG, Python/PIL, "
-            "Matplotlib, Graphviz, TikZ, Mermaid, canvas, PPT/PDF, screenshots, or local raster renderers."
+            "builtin_image_gen target-paper image units must call image_gen. Do not use create-image, SVG, "
+            "Python/PIL, Matplotlib, Graphviz, TikZ, Mermaid, canvas, PPT/PDF, screenshots, or local raster renderers."
         )
-    if env == "chatgpt_web" and canonical != CANONICAL_CHATGPT_WEB_GENERATOR:
+    if env == "web_image_chat" and canonical != CANONICAL_WEB_CHAT_GENERATOR:
         raise StateError(
-            "ChatGPT web target-paper image units must use Create Image / ChatGPT Images 2.0. Do not output SVG, "
-            "HTML, Mermaid, canvas, PPT/PDF, Python/PIL, Matplotlib, or any locally rendered raster substitute."
+            "web_image_chat target-paper image units must use create-image. Do not output SVG, HTML, Mermaid, "
+            "canvas, PPT/PDF, Python/PIL, Matplotlib, or any locally rendered raster substitute."
         )
-    if env in {"claude_code", "other"}:
+    if env == "approved_api":
         if canonical != CANONICAL_APPROVED_API_GENERATOR:
             raise StateError(
                 f"environment={env} must use a named approved image-generation API for target images; "
-                "programmatic renderers and first-party route aliases from another runtime are invalid."
+                "programmatic renderers and route aliases from another capability are invalid."
             )
         if not approved_api_name:
             raise StateError("approved_api_name is required for approved-image-api target generation")
@@ -193,7 +227,7 @@ def validate_image_generation_route(
         "route_unavailable_reason": route_unavailable_reason or None,
         "route_guard_status": "passed",
         "route_guard_rule": (
-            "Codex=image_gen only; ChatGPT web=Create Image / ChatGPT Images 2.0 only; other runtimes require a named approved "
-            "image-generation API; programmatic/local renderer outputs are invalid even when saved as PNG/JPG/WebP."
+            "builtin_image_gen=image_gen only; web_image_chat=create-image only; approved_api=approved-image-api only; "
+            "programmatic/local renderer outputs are invalid even when saved as PNG/JPG/WebP."
         ),
     }

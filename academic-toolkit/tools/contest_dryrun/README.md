@@ -8,7 +8,7 @@
 | `chain_driver.py` | 14 步 CUMCM 工作流端到端驱动：状态机推进、4 次 checkpoint 硬闸（blocked→approve）、每步 STEP_MANIFEST、执行证据申报、真实 xelatex 编译、真实 pulp 求解 | 引擎/门禁/审计/模板编译 |
 | `final_review_probe.py` | 用**当前配置的模型**真实调用终审（API 响应 id 留痕） | strict 模型比对所需的真实证据 |
 
-## 比赛时用法（ZCode 主控）
+## 比赛时用法（主控 Agent）
 
 ```bash
 # 1) 全链推进（前 11 步 + 编辑步自动完成；review/视觉步会停下等子智能体产物）

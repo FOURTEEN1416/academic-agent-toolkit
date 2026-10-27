@@ -75,3 +75,28 @@ def test_exemption_registry_schema_valid() -> None:
         assert e["reason"].strip(), f"豁免缺理由：{e}"
         assert (hds.TOOLBOX / e["file"]).is_file(), f"豁免指向不存在的文件：{e['file']}"
         assert e["pattern"] in dict(hds.PATTERNS), f"豁免 pattern 不在词表内：{e['pattern']}"
+
+
+def test_patterns_cover_zcode_opencode_anchored_forms() -> None:
+    """2026-10-27 扩容批钉：路径锚定 zcode/opencode 形态必须在词表内，裸词必须不在。
+
+    双向防回退：锚定形态缺失 = 扩容被回退；裸词入表 = 误伤 comp-visual-review
+    自指词红线枚举与工作区名 huawei2026d_zcode 等合法场景。
+    """
+    names = set(hds.PATTERN_NAMES)
+    assert {".zcode", ".opencode", "opencode.json"} <= names
+    assert "zcode" not in names, "裸词 zcode 会误伤工作区名 huawei2026d_zcode 等合法场景"
+    assert "opencode" not in names, "裸词 opencode 会误伤 comp-visual-review 自指词红线枚举"
+
+
+def test_zcode_opencode_anchored_hits_fail_scan(tmp_path: Path) -> None:
+    """扩容模式对注入命中必须 FAIL（与 test_new_hit_fails_scan 同构，覆盖新词）。"""
+    target = tmp_path / "probe.md"
+    target.write_text(
+        "copy skills into ~/.zcode/skills\n"
+        "project config lives under .opencode/\n"
+        "adapter file: opencode.json\n",
+        encoding="utf-8")
+    text = target.read_text(encoding="utf-8")
+    hits = {pat for pat, _ in hds.PATTERNS if pat in text}
+    assert {".zcode", ".opencode", "opencode.json"} <= hits, hits

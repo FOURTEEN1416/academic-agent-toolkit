@@ -510,7 +510,7 @@ M1 | forbid: linprog
     assert any("must" in v for v in result["violations"])
 
 
-# P3 判等修复：真实工作区的块形状（huawei2026d / huawei2026d_zcode）
+# P3 判等修复：真实工作区的块形状（变体 A / 变体 B）
 # 表头 claims_scope: 与逐声称 assumptions/scope 续行不是“缺 must 的声称行”。
 _MODELING_SELFCHECK = """
 ## 问题一 载荷反解
@@ -549,7 +549,7 @@ claims_scope:
     assert result["assumption_lines"] == 3  # claims_scope: 表头 + 2 条续行
     assert not any("must 铁证" in v for v in result["violations"])
 
-    # zcode 形状：scope:/assumptions: 直接做块表头，M 行才是签名行
+    # 变体 B 形状：scope:/assumptions: 直接做块表头，M 行才是签名行
     _write(tmp_path / "MODELING_REPORT.md", "# 建模报告\n" + _MODELING_SELFCHECK + """
 <!-- METHOD_CLAIMS_MACHINE
 scope: Q1~Q4 全部子问题
@@ -563,10 +563,10 @@ P1-C1 | must: sympy | forbid: handwave
 {"LOGIC_CONTRACT_MACHINE": {"bounds": []}}
 ```
 """)
-    zcode = QualityGate(tmp_path).check_modeling_machine_contract()
-    assert zcode["status"] == "pass", zcode["reason"]
-    assert zcode["claims_lines"] == 3
-    assert zcode["assumption_lines"] == 2
+    variant_b = QualityGate(tmp_path).check_modeling_machine_contract()
+    assert variant_b["status"] == "pass", variant_b["reason"]
+    assert variant_b["claims_lines"] == 3
+    assert variant_b["assumption_lines"] == 2
 
 
 def test_modeling_machine_contract_covers_old_output_selfcheck_items(tmp_path):

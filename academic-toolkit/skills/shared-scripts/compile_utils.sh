@@ -111,7 +111,7 @@ done
 echo "  done"
 
 # 2.5 修复封面 \cline{N-N} 被当文本渲染的问题
-# Claude 有时在封面 tabular 中把 \cline 写在文本位置而非行分隔符位置
+# 驱动 Agent 有时在封面 tabular 中把 \cline 写在文本位置而非行分隔符位置
 echo "--- 修复封面 cline 问题 ---"
 for f in "$PAPER_DIR"/main.tex "$PAPER_DIR"/sections/*.tex; do
     [ -f "$f" ] || continue
@@ -1137,7 +1137,7 @@ for f in "$PAPER_DIR"/sections/*.tex; do
     fi
 done
 
-# 9.1 自动检测并报告未嵌入的图表（供 Claude 编译步骤修复）
+# 9.1 自动检测并报告未嵌入的图表（供驱动 Agent 编译步骤修复）
 echo "--- 未嵌入图表检测 ---"
 UNEMBED_COUNT=0
 UNEMBED_LIST=""
@@ -1253,7 +1253,7 @@ for f in "$PAPER_DIR"/main.tex "$PAPER_DIR"/sections/*.tex; do
         sed -i 's/\[中文摘要内容[^]]*\]//g; s/\[English abstract[^]]*\]//g' "$f"
         sed -i 's/\[关键词1\]//g; s/\[关键词2\]//g; s/\[关键词3\]//g' "$f"
     fi
-    # stats 模板封面特有占位符检查（不自动清理，必须由 Claude 手动替换）
+    # stats 模板封面特有占位符检查（不自动清理，必须由驱动 Agent 手动替换）
     if grep -q '\[学校名称\]\|\[队员1\]\|\[指导老师\]\|\[竞赛年份\]\|\[届数\]' "$f" 2>/dev/null; then
         echo "  ⚠ $(basename $f) 中发现 stats 封面占位符未替换：[学校名称]/[队员]/[指导老师]/[竞赛年份]"
         echo "    → 必须替换这些占位符，否则封面会显示方括号文字"

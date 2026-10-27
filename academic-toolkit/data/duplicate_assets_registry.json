@@ -497,15 +497,6 @@
     },
     {
       "paths": [
-        "academic-toolkit/skills/_utils/humanities-platform-guide.md",
-        "academic-toolkit/skills/shared-scripts/humanities-platform-guide.md"
-      ],
-      "size": 5310,
-      "wasted_bytes": 5310,
-      "reason": "双副本设计（_utils↔shared-scripts，已有 test_dual_copy_consistency 守护同步）"
-    },
-    {
-      "paths": [
         "academic-toolkit/skills/_utils/humanities-terminology-bilingual.md",
         "academic-toolkit/skills/shared-scripts/humanities-terminology-bilingual.md"
       ],

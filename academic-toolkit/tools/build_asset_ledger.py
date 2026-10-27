@@ -132,7 +132,7 @@ def _markdown_summary(summary: dict[str, Any]) -> str:
 - Root: `{summary["root"]}`
 - Registered files: {summary["total_records"]}
 - `.env` entries are path-only sensitive records. Their content was not opened and their SHA-256 values are `null`.
-- No record establishes ownership, license, redistribution permission, formal capability status, or host compatibility.
+- No record establishes ownership, license, redistribution permission, formal capability status, or runtime compatibility.
 
 ## Classification Counts
 
@@ -148,7 +148,7 @@ def _markdown_summary(summary: dict[str, Any]) -> str:
 
 ## Required Follow-Up
 
-Every `candidate_public_core` or `experimental` record remains blocked until provenance, licensing, dependency, security, benchmark, and OpenCode Desktop acceptance evidence is recorded. Private, historical, and sensitive records are excluded from a public package.
+Every `candidate_public_core` or `experimental` record remains blocked until provenance, licensing, dependency, security, benchmark, and driver-side (runtime) acceptance evidence（驱动端验收证据） is recorded. Private, historical, and sensitive records are excluded from a public package.
 """
 
 

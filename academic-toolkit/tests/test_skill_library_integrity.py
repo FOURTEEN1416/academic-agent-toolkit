@@ -48,7 +48,7 @@ def test_templates_reference_existing_skills(audit_report):
 
 
 def test_no_name_mismatch_or_duplicates(audit_report):
-    """frontmatter name 必须等于目录名，且全库无重名（防宿主发现遮蔽）。"""
+    """frontmatter name 必须等于目录名，且全库无重名（防技能发现遮蔽）。"""
     rep = audit_report
     assert not rep["failures"].get("name_mismatch"), rep["failures"].get("name_mismatch", [])[:5]
     assert not rep["failures"].get("name_duplicate"), rep["failures"].get("name_duplicate")

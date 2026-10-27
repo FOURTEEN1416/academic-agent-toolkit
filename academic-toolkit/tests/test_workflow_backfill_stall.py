@@ -99,7 +99,7 @@ def complete_ok(runner, wf_id):
     return runner.complete_step(wf_id, StepResult(
         ok=True, artifacts=list(action.output_files),
         metadata={"execution_evidence": {
-            "schema_version": 1, "agent": "OpenCode Desktop",
+            "schema_version": 1, "agent": "acat-agent",
             "step_id": action.step_id, "skill_name": action.skill_name,
             "skill_sha256": hashlib.sha256(action.skill_path.read_bytes()).hexdigest(),
             "commands": [{"command": "python code/gen_report.py", "returncode": 0, "cwd": "."}],

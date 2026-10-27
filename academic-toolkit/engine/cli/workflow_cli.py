@@ -1,6 +1,6 @@
 """CLI entry point for agent-in-the-loop workflow engine (host-agnostic).
 
-任意 Agent 使用方式（无需 OpenCode/ZCode）：
+任意 Agent 使用方式：
   python -m engine.workflow_cli boot                # 驱动协议契约
   python -m engine.workflow_cli probe               # 能力探测 + TOOL_GAP
   python -m engine.workflow_cli forge --tool ...    # 自适应铸造工具/技能
@@ -30,7 +30,7 @@ from ..host.capability_probe import probe as capability_probe
 from ..telemetry.run_logger import RunLogger, RunLogEntry
 from ..host.runtime_adapter import RuntimePaths
 from ..storage.step_manifest import atomic_write_json
-from ..host.tool_forge import forge_adapter, forge_skill, forge_tool, forge_from_gap
+from ..host.tool_forge import forge_skill, forge_tool, forge_from_gap
 
 
 def _load_runner_types():
@@ -365,7 +365,6 @@ def _build_parser() -> argparse.ArgumentParser:
     forge = sub.add_parser("forge")
     forge.add_argument("--tool", default="", help="铸造 tools/<name>.py")
     forge.add_argument("--skill", default="", help="铸造 skills/<name>/SKILL.md")
-    forge.add_argument("--adapter", default="", help="铸造 agents/adapters/<name>/adapter.json")
     forge.add_argument("--purpose", default="", help="铸造目的（写入骨架契约）")
     forge.add_argument("--linked-tool", default="", help="技能骨架关联的工具名（默认与 skill 同名）")
     forge.add_argument("--force", action="store_true", help="覆盖已存在文件")
@@ -551,18 +550,15 @@ def _run_command(args, parser) -> int:
             results.append(forge_from_gap(gap if isinstance(gap, dict) else {}, ROOT, force=force))
         tool_name = str(getattr(args, "tool", "") or "").strip()
         skill_name = str(getattr(args, "skill", "") or "").strip()
-        adapter_name = str(getattr(args, "adapter", "") or "").strip()
         if tool_name:
             results.append(forge_tool(tool_name, purpose, ROOT, force=force))
         if skill_name:
             linked = str(getattr(args, "linked_tool", "") or "").strip() or None
             results.append(forge_skill(skill_name, purpose, ROOT, tool_name=linked, force=force))
-        if adapter_name:
-            results.append(forge_adapter(adapter_name, purpose, ROOT, force=force))
         if not results:
             print(json.dumps({
                 "status": "error",
-                "message": "forge 需要 --tool/--skill/--adapter/--gap 之一",
+                "message": "forge 需要 --tool/--skill/--gap 之一",
                 "example": (
                     "python -m engine.workflow_cli forge --tool my-tool "
                     "--purpose \"...\" [--skill my-skill] [--force]"

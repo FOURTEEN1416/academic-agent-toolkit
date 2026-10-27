@@ -1,10 +1,10 @@
 ---
 name: spine-config-ui
-description: Launches the PaperSpine external terminal configuration UI for Codex and Claude Code. (internal /paperspine step)
+description: Launches the PaperSpine external terminal configuration UI. (internal /paperspine step)
 ---
 
 
-<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（dist/claude 分发，单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # PaperSpine UI
 
 Use this branch whenever `paper_spine_config.json` is missing, incomplete, or
@@ -13,35 +13,24 @@ the user asks to configure PaperSpine interactively.
 ## Required Behavior
 
 The supported interaction is a real terminal window launched by
-the installed `launch_paperspine_ui.ps1` (resolve its absolute path inside the repo
-checkout; host-private skill installs are retired in this repo). Do not run `input()`-based Python inside a
-hidden tool surface when the host cannot expose stdin.
-
-In Claude Code, `/paperspine` must call this branch automatically when config is
-missing.
-
-In Codex, launching this window opens a visible GUI/terminal, which Codex treats
-as an escalated action — request it with `sandbox_permissions: require_escalated`,
-or the window will not reliably appear. Launch the UI as the first action when
-config is missing; do not infer config from materials instead.
+the bundled `launch_paperspine_ui.ps1` (resolve its absolute path inside the repo
+checkout). When configuration is missing, launch the UI as the first action; do
+not infer config from materials instead. Do not run `input()`-based Python in an
+execution environment where stdin is not exposed (hidden terminal or sandbox).
 
 ```powershell
-# Pass the ABSOLUTE path to the installed launcher. Codex/Claude run from the
+# Resolve the launcher from the repository checkout. Run commands from the
 # user's project folder, where `scripts/` does not exist, so a relative path is
-# the most common reason the UI window never opens. Resolve the install dir:
-$launcher = @(
-  "$env:USERPROFILE\.codex\skills\spine-config-ui\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\.claude\skills\spine-config-ui\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\.codex\skills\spine-intake\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\.claude\skills\spine-intake\scripts\launch_paperspine_ui.ps1"
-) | Where-Object { Test-Path $_ } | Select-Object -First 1
+# the most common reason the UI window never opens.
+$repo = git rev-parse --show-toplevel
+$launcher = Join-Path $repo "academic-toolkit/skills/spine-intake/scripts/launch_paperspine_ui.ps1"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File $launcher -OutputDir paper_rewriting_output
 ```
 
-If no separate window appears (headless or sandboxed Codex with no
-interactive desktop), add `-InPlace` to run the wizard in the current
-terminal instead; if stdin is still not interactive, fall back to numbered
-menus or native questions. Never silently skip configuration.
+If no separate window appears (no interactive desktop, or a sandboxed
+environment), add `-InPlace` to run the wizard in the current terminal instead;
+if stdin is still not interactive, fall back to numbered menus or native
+structured questions. Never silently skip configuration.
 
 The UI writes:
 

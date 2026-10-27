@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""图表质量自检脚本 — Claude 每生成一张图后运行此脚本检查代码质量。
+"""图表质量自检脚本 — 驱动 Agent 每生成一张图后运行此脚本检查代码质量。
 
 用法：python _utils/figure_check.py figures/gen_fig_xxx.py
 输出：PASS 或 FAIL + 具体问题列表

@@ -10,8 +10,11 @@
   3. 豁免条目命中归零时 WARN，提示收缩清单（豁免是裁决过的封闭集合，不是垃圾抽屉）。
 
 词表口径（有意排除项）：
-  - `opencode` / `OpenCode`：根级 opencode.json 是本仓合法可选适配器，comp-visual-review
-    的模型枚举亦含该词——误报面大，不入默认词表（宿主适配器话题由 AGENTS.md 治理）；
+  - 裸词 `opencode` / `OpenCode` / `zcode` / `ZCode`：comp-visual-review 的 agent 自指词
+    红线枚举含裸词 opencode/zcode，工作区名 huawei2026d_zcode 亦含裸词 zcode——误报面大，
+    裸词不入词表（宿主适配话题由 AGENTS.md 治理）。路径锚定形态 `.zcode` / `.opencode`
+    与配置文件名 opencode.json 自 2026-10-27 扩容批起入表（opencode.json 已随宿主清洗
+    批退役，skills/ 内提及即残留）；
   - `OPENROUTER_API_KEY` / `GEMINI_API_KEY` 等：外部 LLM API 依赖事实，非宿主绑定；
   - scope 只扫 skills/：engine/tests/tools 内的命中属守卫与审计工具自身
     （capability_probe 的适配器探测、棘轮测试词表、CHANGELOG 历史记录），用 --repo-wide
@@ -41,6 +44,9 @@ PATTERNS: tuple[tuple[str, str], ...] = (
     ("CLAUDE.md", "宿主绑定参数文件（工作区参数文件一律 AGENTS.md）"),
     ("~/.codex", "Codex 宿主目录（已退役）"),
     ("mcp__codex", "Codex MCP 评审桥绑定（已退役）"),
+    (".zcode", "ZCode 宿主配置目录（路径锚定：~/.zcode 与项目级 .zcode/；裸词 zcode 不入表）"),
+    (".opencode", "OpenCode 宿主配置目录（路径锚定：~/.opencode 与项目级 .opencode/；裸词 opencode 不入表）"),
+    ("opencode.json", "OpenCode 适配器配置文件名（已随宿主清洗批退役；skills/ 内提及即残留）"),
     ("ANTHROPIC_API_KEY", "宿主系 API 密钥（仅在豁免登记为运行时依赖事实时放行）"),
 )
 PATTERN_NAMES = tuple(p for p, _ in PATTERNS)

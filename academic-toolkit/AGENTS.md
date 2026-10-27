@@ -7,12 +7,13 @@
 
 | 层 | 唯一职责 | 位置 |
 |---|---|---|
-| 当前Agent | 理解任务、领域推理、方法选择、内容与结果解释 | 当前宿主 |
+| 驱动 Agent | 理解任务、领域推理、方法选择、内容与结果解释 | 由主控 Agent 自身承担 |
 | 技能 | 当前单步的专业作业方法，不重复排整条流程 | `skills/` |
 | 执行侧 | 资源读取、文件编辑、真实工具运行、依赖复用、评审收发 | `execution/` |
 | 引擎 | 合同解析、状态、唯一验收、检查点与审计 | `engine/` |
 | 工具 | 检索、求解、编译、格式化等具体操作 | `tools/` |
 | 目录与资产 | 能力、技能索引、数据和参考材料 | `data/`；`../capabilities/`、`../assets-local/`（仓库根，本表其余路径相对 `academic-toolkit/`） |
+| L1 审计钩子（可选） | 工具事件留痕与治理拦截 | `hooks/` |
 
 引擎只编排不执行Agent。执行侧不决定研究结论，也不自行批准。工作流SQLite是状态真源，操作表记录真实执行；没有证据不能写成成功。
 
@@ -92,7 +93,7 @@ PLAN 的 `nodes` 声明 `id/argv/inputs/outputs`，`depends_on` 指定依赖。�
 
 ## 五、评审与批准
 
-`session review-request` 指定实际输入、输出和rubric，生成版本绑定任务。宿主提供独立上下文执行，只评不改。`session review-receive` 接收真实原文、评审者和实际宿主调用标识；稿件版本变化必须重新评审。终审执行证据用 `session review-evidence --roles` 从工作区真实输出文件计算四角色哈希并生成 `REVIEW_EXECUTION_EVIDENCE.json`；哈希与时间戳不接受手填（`completed_at` 是证据固化时刻，不区分各角色完成时刻）。
+`session review-request` 指定实际输入、输出和rubric，生成版本绑定任务。由独立上下文执行，只评不改。`session review-receive` 接收真实原文、评审者与实际调用标识（现 CLI 参数名为 `--host-call-id`，中性化改名另行评审）；稿件版本变化必须重新评审。终审执行证据用 `session review-evidence --roles` 从工作区真实输出文件计算四角色哈希并生成 `REVIEW_EXECUTION_EVIDENCE.json`；哈希与时间戳不接受手填（`completed_at` 是证据固化时刻，不区分各角色完成时刻）。
 
 收发记录证明收到什么、针对哪个版本；不能声称独立认证了模型身份。没有独立上下文则明确缺席，不冒用主控自己做的裁定。研究内部的评审-修订可循环，但不重启整条工作流。
 
@@ -105,28 +106,30 @@ PLAN 的 `nodes` 声明 `id/argv/inputs/outputs`，`depends_on` 指定依赖。�
 - `status` 查看真实事实；只有确认进程已停，才能 `recover --operation-id ID --reason REASON --confirm-stopped`，不自动杀进程或清历史。
 - `retry` 用于真实失败/批准后版本更新，旧attempt不能写入新步骤。未经验证的历史补录不当作交付成功。
 - 程序检查字节，不把mtime当成内容真值；目录检查保留成员集合，不能漏掉新增、删除或兄弟文件变动。
-- 宿主原生工具未接入执行侧时，使用真实集成证据接口，不能凭空补返回码或会话。`complete/preflight/backfill`属于集成与历史恢复接口，不是模型日常填写流程。
+- 驱动 Agent 的原生工具未接入执行侧时，使用真实集成证据接口，不能凭空补返回码或会话。`complete/preflight/backfill`属于集成与历史恢复接口，不是模型日常填写流程。
 
 ## 七、审计与安全
 
 | 来源 | 含义 |
 |---|---|
-| L1 | 可选宿主hook的实际工具事件；缺席标unavailable，不伪造 |
+| L1 | 可选工具事件钩子采集的实际工具事件（随仓参考实现 `hooks/agent_audit_l1.py`：PreToolUse/PostToolUse/PostToolUseFailure → 仓库根 `.engine/audit/operations.jsonl`，治理命令 deny exit 2，其余只记录，钩子故障 fail-open，`--print-bootstrap` 出注册引导器）；缺席标 unavailable，不伪造 |
 | L2 | 引擎状态、检查点、事务与提交事件 |
 | 执行事实 | `execution_operations` 的真实资源/写入/命令/评审记录 |
 | L3 | 引擎从事实或外部集成证据生成的已接受回执 |
 
 原始数据、历史证据和科研成果不是清理对象。密钥不写入tracked配置、任务正文、命令参数或产物；只通过执行环境使用。全仓同一主控，代码和数据库不由两个状态所有者同时维护。
 
-## 八、宿主与集成
+## 八、集成边界
 
-可选宿主适配器只提供资源发现与L1，不是驱动前提。OpenCode的`opencode.json`、ZCode的`.zcode/skills`按本地需要配置；不使用的宿主不创建空壳。统一数据模型为 `engine.agent_bridge`。
+驱动协议只依赖读文件与 Python CLI；L1 工具事件审计由可选钩子提供，注册时用 `python hooks/agent_audit_l1.py --print-bootstrap` 生成的引导器嵌入驱动方工具事件配置，缺席标 unavailable，不阻断也不伪造。统一数据模型为 `engine.agent_bridge`。
 
-新增能力必须同时具备：专业技能正文、明确输入输出、真实执行入口、必要业务检查、来源许可及验收证据。可复用就复用；没有工具报告TOOL_GAP，不写“已完成”。旧调用迁移后删除无用实现，活跃正文直接改正，不用“以新规则为准”保留矛盾。
+新增能力必须同时具备：专业技能正文、明确输入输出、真实执行入口、必要业务检查、来源许可及验收证据。可复用就复用；没有工具报告TOOL_GAP，不写“已完成”。缺口用 `python -m engine.workflow_cli forge --tool/--skill <名> --purpose "..."` 铸造（`probe` 的 gaps 条目用 `--gap <gap JSON>`）；新技能或改名必须登记 `../capabilities/catalog.json`（赛事技能另归 `CONTEST_SKILL_MAP.md`），再 `python tools/build_skill_index.py --emit` 重建路由索引——未登记的技能不会出现在按查询返回的候选里，只能由模板步骤或显式 `session read --kind skill --name` 点名读取。旧调用迁移后删除无用实现，活跃正文直接改正，不用“以新规则为准”保留矛盾。
 
 ## 九、开发验证
 
 更改后运行实际受影响业务链，再运行仓库回归与溯源检查。测试计数以根 `pytest.ini` 为真源；全绿测试不能替代科研质量、外部来源或全业务验收。
+
+在 `academic-toolkit/` 中：
 
 ```bash
 python -m pytest -q
@@ -134,12 +137,12 @@ python tools/check_provenance.py
 python tools/project_health_check.py --strict
 ```
 
-**基线、终检与清理入口**（2026-10-23 W6 批；三者均从仓库根调用，退出码可直接用于门禁）：
+**基线、终检与清理入口**（2026-10-23 W6 批；三者均在 `academic-toolkit/` 内调用，脚本自行解析仓库根、cwd 不影响；在仓库根调用须写全 `academic-toolkit/tools/…`，退出码可直接用于门禁）：
 
 | 工具 | 作用 | 用法 |
 |------|------|------|
 | `tools/sync_baselines.py` | 基线数字单源传播：实测 tests/skills/capabilities，比对 `pytest.ini` 与全部权威文档；`--accept` 只改写 `DRIFT_SOURCES` 捕获组（历史横幅行跳过） | `--check`（不一致 exit 1）/ `--accept` / `--accept --dry-run` |
-| `tools/final_check.py` | 统一终检：固定仓库根跑 `pytest -q` + `check_provenance` + `secret_scan --strict`，命令/退出码/耗时/尾 40 行写 `dev-docs/FINAL_CHECK.json`；任一步失败 exit 1。**全量 pytest 只由本脚本执行** | `--background`（分离进程）/ `--status`（读最近结果）/ `--only <step>`（调试） |
+| `tools/final_check.py` | 统一终检：固定仓库根跑 `pytest -q` + `check_provenance` + `secret_scan --strict`，命令/退出码/耗时/尾 40 行写 `dev-docs/FINAL_CHECK.json`；任一步失败 exit 1。**全量 pytest 的正式终检记录只由本脚本生成**（手工 `pytest -q` 可作开发回归，但不写 `dev-docs/FINAL_CHECK.json`、不算终检） | `--background`（分离进程）/ `--status`（读最近结果）/ `--only <step>`（调试） |
 | `tools/safe_cleanup.py` | 缓存与失败残留清理：显式 allowlist + `git ls-files` 为空 + 工作区内三重核验；默认 dry-run，`--apply` 才删除并追加 `dev-docs/DELETION_LOG.md` | `--dry-run`（默认）/ `--apply` |
 
 `python tools/project_health_check.py --print-baselines` 一行输出实测基线（`tests=… skills=… capabilities=…`），供脚本消费，不跑组件检查。

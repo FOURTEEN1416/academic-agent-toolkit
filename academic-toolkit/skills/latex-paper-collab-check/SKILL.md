@@ -1,23 +1,23 @@
 ---
 name: latex-paper-collab-check
-description: "Verify that Gemini CLI and Claude Code CLI are installed, authenticated, and API-reachable before starting a collaboration workflow; missing CLIs only skip that phase."
+description: "Verify that the external CLI collaborators are installed, authenticated, and API-reachable before starting a collaboration workflow; missing CLIs only skip that phase."
 metadata:
   short-description: Collaborator CLI health check
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（check-collaborators + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（check-collaborators + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-10-27 宿主叙事中性化（B′ 批遗留）：Claude Code 探测节改写为通用外部协作者 CLI 可用性探测，其余 Claude 专名同步中性化；Gemini 探测链作为既定外部协作者保留。-->
 # Collaborator CLI Health Check
 
-> **ACAT 宿主中立声明**：被检查的 CLI 是外部协作者而非执行宿主；任一缺位仅降级对应协作阶段，当前 Agent 可继续自审运行。
+> **协作者定位**：被检查的 CLI 是外部协作者，不是执行前提；任一缺位仅降级对应协作阶段，当前 Agent 可继续自审运行。
 
 ## When to use
-- Before starting any collaboration workflow that depends on Gemini or Claude Code（可选增强检查：CLI 缺位时对应协作阶段直接跳过，不构成阻断）。
+- Before starting any collaboration workflow that depends on external collaborator CLIs（可选增强检查：CLI 缺位时对应协作阶段直接跳过，不构成阻断）。
 - When diagnosing CLI connectivity or authentication issues.
-- After installing or reconfiguring either CLI.
+- After installing or reconfiguring any collaborator CLI.
 
 ## When not to use
-- Both CLIs are already confirmed working in the current session.
+- All collaborator CLIs are already confirmed working in the current session.
 - The task does not involve cross-agent collaboration.
 
 ## Inputs
@@ -31,7 +31,7 @@ metadata:
 
 ## Workflow
 
-Run the Gemini and Claude detection chains **in parallel** where possible.
+Run each configured collaborator's detection chain **in parallel** where possible.
 For each collaborator, execute steps sequentially and **short-circuit on the first failure** — skip subsequent steps and mark the failure reason.
 
 ### Step 0: Detect OS
@@ -102,48 +102,58 @@ timeout 30 gemini --prompt "Reply with exactly: HEALTH_OK"
 
 ---
 
-### Claude Code Detection Chain
+### External Collaborator CLI Detection (Generic Pattern, Optional Enhancement)
+
+The four-step pattern below applies to **any** collaborator CLI: detect command
+existence and authentication state the same way regardless of which product
+provides the CLI. Instantiate `<collaborator-cli>` with the actual command name,
+and take install/auth specifics from that CLI's own documentation. The Gemini
+chain above is one concrete instantiation of this pattern.
 
 #### 1. CLI Exists
 
 ```bash
 # Unix
-which claude
+which <collaborator-cli>
 # Windows
-where claude
+where <collaborator-cli>
 ```
 
 **Pass**: command exits 0 and outputs a path.
-**Fail**: command not found — suggest: `npm install -g @anthropic-ai/claude-code` or see https://docs.anthropic.com/en/docs/claude-code
+**Fail**: command not found — suggest installing per the collaborator's official documentation (`<install-command>`).
 
 #### 2. Version
 
 ```bash
-timeout 15 claude --version
+timeout 15 <collaborator-cli> --version
 ```
 
-**Pass**: output contains a version string (e.g., `2.1.74`).
+**Pass**: output contains a version string (e.g., `1.2.3`).
 **Fail**: timeout or no version output.
 
 #### 3. Auth
 
-```bash
-claude auth status
-```
+Check for any of the following (any one is sufficient):
+1. A credentials/profile file under the CLI's home directory.
+2. The API-key environment variable documented by that CLI.
+3. An auth/status subcommand reporting a logged-in state (e.g., `<collaborator-cli> auth status`, if the CLI provides one).
 
-**Pass**: output contains `Logged in` or JSON field `loggedIn: true`.
-**Fail**: not logged in — suggest: run `claude` interactively and use `/login`.
+**Pass**: any one condition is true.
+**Fail**: none found — suggest running `<collaborator-cli>` interactively to complete its login/OAuth flow.
 
 #### 4. API Connectivity
 
 ```bash
-timeout 30 claude --print "Reply with exactly: HEALTH_OK" --output-format text --no-session-persistence --max-budget-usd 0.50
+timeout 30 <collaborator-cli> <minimal-prompt-flag> "Reply with exactly: HEALTH_OK"
 ```
 
 **Pass**: stdout contains `HEALTH_OK`.
-**Fail**: timeout or no `HEALTH_OK` — suggest checking API key, network, or account quota.
+**Fail**: timeout or no `HEALTH_OK` — suggest checking network, API key validity, or quota.
 
-**Note**: `--max-budget-usd` must be at least `0.50`. Lower values (e.g., `0.01`, `0.05`) cause immediate `Exceeded budget` errors because model inference has a minimum cost floor.
+**Note**: if the collaborator CLI supports a spend/limit flag, leave headroom
+above the per-call minimum cost floor. Limit values below that floor
+(e.g., `0.01`, `0.05`) can trigger immediate budget-exceeded errors before
+inference starts.
 
 ---
 
@@ -155,7 +165,7 @@ Present a summary table after all checks:
 | Collaborator | CLI | Version | Auth | API | Status    |
 |--------------|-----|---------|------|-----|-----------|
 | Gemini       | ✓/✗ | x.y.z   | ✓/✗  | ✓/✗ | Available / Failed |
-| Claude Code  | ✓/✗ | x.y.z   | ✓/✗  | ✓/✗ | Available / Failed |
+| <collaborator-cli> | ✓/✗ | x.y.z | ✓/✗ | ✓/✗ | Available / Failed |
 ```
 
 - Use `✓` for passed steps, `✗` for failed steps, `—` for skipped steps (due to short-circuit).
@@ -171,16 +181,16 @@ For any failed step, append actionable remediation advice below the table:
 No API key or OAuth credentials detected.
 → Set `GEMINI_API_KEY` environment variable, or run `gemini` to complete OAuth login.
 
-**Claude Code — CLI not found**
-Claude Code CLI is not installed.
-→ Install: `npm install -g @anthropic-ai/claude-code`
-→ Docs: https://docs.anthropic.com/en/docs/claude-code
+**<collaborator-cli> — CLI not found**
+The collaborator CLI is not installed.
+→ Install: `<install-command>` (per the collaborator's official docs)
+→ Docs: the collaborator CLI's official documentation site
 ```
 
-If both collaborators pass all checks:
+If all configured collaborators pass all checks:
 
 ```
-Both collaborators are available and ready for collaboration workflows.
+All collaborator CLIs are available and ready for collaboration workflows.
 ```
 
 ## Verification

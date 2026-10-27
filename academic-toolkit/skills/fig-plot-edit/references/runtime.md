@@ -30,8 +30,8 @@ Windows host whenever that fact is unknown. VMs remain unsupported in V1.
 Request only the permissions needed for the current local workflow:
 
 1. Read the complete EditaPlot repository, selected table, and optional reference image.
-2. Write to the repository for `.editaplot-venv`, to the current host's skill data directory for
-   setup/update（上游原文为 Codex Skill 目录；宿主无关，指当前技能运行数据目录）, and to the source data folder for the timestamped delivery directory.
+2. Write to the repository for `.editaplot-venv`, to the current skill's data directory for
+   setup/update, and to the source data folder for the timestamped delivery directory.
 3. Run the local batch launcher, PowerShell/Python subprocesses, and an EditaPlot-owned Origin
    process in the same active interactive Windows user session.
 4. Use network access only for repository download/update and the locked dependency source.
@@ -42,25 +42,24 @@ DCOM, registry, firewall, user-group, or Origin-installation changes. When a pro
 organization policy, cloud-sync client, or security tool blocks writing, request access only to the
 specific repository/data folder or ask the user for an explicit writable destination.
 
-A normal Codex desktop command may initially run under an isolated account even when inherited
+A normal agent session may initially run under an isolated account even when inherited
 profile variables look like the signed-in user. The Origin worker checks its real Windows token and
-stops before COM with `origin_codex_sandbox_context` when the current process is the Codex sandbox.
-Codex must then submit a formal, narrowly scoped local-execution request for the same exact
-`origin-smoke` or `render` command. Rerun it only if that exact request is approved, either by the
-user when prompted or by the configured Codex auto-reviewer. Approval is not guaranteed; auto-review
-evaluates one request and does not pre-grant unrestricted Origin access. This is not a sandbox
+stops before COM with `origin_codex_sandbox_context` when the current process is the sandboxed
+execution context. The driving agent must then submit a formal, narrowly scoped local-execution
+request for the same exact `origin-smoke` or `render` command. Rerun it only if that exact request
+is approved by the user when prompted. Approval is not guaranteed. This is not a sandbox
 bypass. Do not send a beginner to a separate PowerShell window, request administrator rights, or
 change DCOM, the registry, or other system configuration.
 
 The bundled runtime and Origin process do not initiate a network upload of selected files. A file
-explicitly supplied through Codex remains subject to the user's Codex account, organization, and
-retention policies. Require deidentification and burned-in-text confirmation before inspecting
+explicitly supplied through the agent session remains subject to the user's account, organization,
+and retention policies. Require deidentification and burned-in-text confirmation before inspecting
 medical data or reference images; EditaPlot does not automatically detect PHI.
 
 ## Use the launcher
 
 Prefer `editaplot.cmd` in the installed Skill directory. When operating in a cloned or extracted
-repository, use the repository-root `editaplot.cmd`. Pass an absolute launcher path from Codex.
+repository, use the repository-root `editaplot.cmd`. Pass an absolute launcher path from the driving agent.
 Do not ask a beginner to choose a Python executable or call `scripts/editaplot.py` directly.
 
 The launcher first honors an explicitly configured compatible interpreter, then reuses an existing
@@ -93,10 +92,13 @@ use an untrusted mirror. This permission applies only to Python; never install o
 Run setup from a **complete repository**, never from a copied `skill/editaplot` folder:
 
 ```powershell
-.\editaplot.cmd setup
+.\editaplot.cmd setup --target <directory>
 .\editaplot.cmd --diagnose
 .\editaplot.cmd doctor
 ```
+
+`--target` names a repository directory or a user-specified directory; do not rely on an implicit
+user-level skill directory.
 
 `setup` installs or updates the Skill, writes an untracked local runtime pointer, selects a compatible
 Python, creates the project-local managed environment when required, installs only the locked audited
@@ -130,7 +132,7 @@ Use this internal sequence:
 1. Doctor discovers `Origin.Application`, `Origin.ApplicationSI`, installed candidates,
    `originpro`, and `OriginExt` without starting Origin.
 2. Immediately before an Origin worker calls COM, it verifies the real Windows execution context.
-   A detected Codex sandbox stops before COM and exposes the one-request approval recovery above;
+   A detected sandboxed execution context stops before COM and exposes the one-request approval recovery above;
    an unknown Windows context stops fail-closed.
 3. Current EditaPlot workers acquire one session-local Origin job slot for their active smoke/render
    section. Data inspection, recommendation, and planning remain outside this slot.
@@ -203,7 +205,7 @@ After `plan`, the required formal sequence is `origin-smoke → render → verif
 because Doctor reported `ready_for_render`.
 
 Reference-image adaptation uses three separate inputs at plan time: the local image, the reviewed
-strict ReferenceFigureSpec JSON, and its exact confirmation JSON. Codex constructs the declarative
+strict ReferenceFigureSpec JSON, and its exact confirmation JSON. The driving agent constructs the declarative
 grammar from visual inspection; the runtime does not OCR the image and never executes model-generated
 Python, LabTalk, shell, or commands. Use `template_adaptation` for supported registered templates.
 `controlled_composition` remains experimental and blocked until its exact Origin route is verified.
@@ -270,7 +272,7 @@ service-level promise:
   confirmations have been supplied, local execution of the complete analysis, smoke, render,
   export, and verification sequence taking up to roughly **4–5 minutes** can be treated as normal.
 - First-time repository download, `setup`, dependency installation, `doctor --repair`, time spent
-  waiting for a user confirmation, and Codex conversation latency are separate. Do not charge them
+  waiting for a user confirmation, and agent conversation latency are separate. Do not charge them
   to Origin rendering.
 - Time reported by `origin_job_queue` is also separate from the active holder's Origin execution.
   Its 30-minute bound is only the maximum wait for the queued worker; it is not a render timeout and
@@ -281,7 +283,7 @@ service-level promise:
 
 Do not diagnose "slow network" from total time alone. Repository/dependency download uses the
 network; ordinary `--diagnose`, `doctor`, `start`, `understand`, `origin-smoke`, `render`, and
-`verify` are local engine operations. Codex service or network latency can delay when a command is
+`verify` are local engine operations. Agent service or network latency can delay when a command is
 started or when its result reaches the conversation, but that is outside the EditaPlot runtime.
 
 Keep these six timing groups separate:
@@ -297,7 +299,7 @@ Keep these six timing groups separate:
 
 Smoke and render workers emit one JSON object per line. Every worker event contains
 `elapsed_seconds`, measured with a monotonic clock from the start of that worker. It resets between
-the smoke worker and the render worker; it is not the total Codex task duration. Terminal events are
+the smoke worker and the render worker; it is not the total task duration. Terminal events are
 bounded to 32 KiB, with compact scientific summaries only; complete plot specifications and Origin
 readback remain in the output reports. Capture render
 output without changing the data or plan:
@@ -336,7 +338,7 @@ For an ordinary render, omit `--output-dir`. The runtime creates a unique folder
 `<source_stem>_EditaPlot_YYYYMMDD_HHMMSS` directly beside the original CSV/TXT/XLS/XLSX file. This
 keeps one dataset and all of its deliverables together instead of writing to the repository, Skill
 directory, current working directory, or a shared global output location. Honor an explicit
-`--output-dir` only when the user asks for a different destination. If the host exposes only a
+`--output-dir` only when the user asks for a different destination. If the execution environment exposes only a
 temporary copy of an attachment, obtain the intended original folder from the user before rendering;
 the temporary filename alone cannot reveal that folder safely.
 

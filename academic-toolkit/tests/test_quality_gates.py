@@ -547,9 +547,9 @@ def test_full_review_gate_accepts_matching_output_hashes(tmp_path):
 
 
 def test_full_review_gate_warns_but_does_not_block_model_mismatch(tmp_path, monkeypatch):
-    """软校验：证据模型与 agent 配置不一致 → 警告但不阻断（模型策略由 .opencode/agents 决定）。
-    2026-09-10：比赛配置槽已填 glm-5.3-flash（真实 contest_models.json），本测试测的是
-    宿主 agents 回退路径的软校验，故用 ACAT_CONTEST_MODELS 指向空配置隔离真实槽。"""
+    """软校验：证据模型与角色定义配置不一致 → 警告但不阻断
+    （模型策略由配置槽/角色定义目录决定）。本测试测的是角色定义目录回退路径的
+    软校验，故用 ACAT_CONTEST_MODELS 指向空配置隔离真实槽。"""
     empty_slot = tmp_path / "empty_contest_models.json"
     empty_slot.write_text(json.dumps({"configured_at": "", "roles": {r: "" for r in (
         "reviewer", "visual_reviewer", "editor", "final_reviewer")}}), encoding="utf-8")
@@ -564,7 +564,7 @@ def test_full_review_gate_warns_but_does_not_block_model_mismatch(tmp_path, monk
         ("数模专家.md", "deepseek/deepseek-v4-flash"),
     ):
         (agents_dir / fname).write_text(f"---\nmodel: {model}\n---\n", encoding="utf-8")
-    monkeypatch.setenv("OPENCODE_AGENTS_DIR", str(agents_dir))
+    monkeypatch.setenv("ACAT_AGENT_ROLES_DIR", str(agents_dir))
 
     _write_review_files(tmp_path)
     hashes = {
@@ -601,7 +601,7 @@ def test_full_review_gate_can_hard_fail_on_model_mismatch_when_strict(tmp_path, 
         ("数模专家.md", "deepseek/deepseek-v4-flash"),
     ):
         (agents_dir / fname).write_text(f"---\nmodel: {model}\n---\n", encoding="utf-8")
-    monkeypatch.setenv("OPENCODE_AGENTS_DIR", str(agents_dir))
+    monkeypatch.setenv("ACAT_AGENT_ROLES_DIR", str(agents_dir))
 
     _write_review_files(tmp_path)
     hashes = {
@@ -655,7 +655,7 @@ def test_visual_verdict_requires_status_field(tmp_path):
 
 
 def test_visual_verdict_status_unavailable_blocks_pass(tmp_path):
-    """宿主开不出独立视觉窗口时 status=unavailable，不得伪装成 pass 通过门禁。"""
+    """独立视觉审核通道不可用时 status=unavailable，不得伪装成 pass 通过门禁。"""
     _write_review_files(tmp_path)
     (tmp_path / "VISUAL_REVIEW_VERDICT.json").write_text(
         '{"findings": [], "fatal_count": 0, "status": "unavailable"}', encoding="utf-8"

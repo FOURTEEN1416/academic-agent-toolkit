@@ -92,7 +92,7 @@ fs.save_fig(fig, "f.png", "f.pdf")   # PNG(300dpi)+矢量 PDF 双出
 3. **图内文字预算**：`python skills/_utils/figure_text_budget.py figures`（解释性文字移 caption）。
 4. **渲染级 PDF 检查**：`python skills/_utils/figure_pdf_quality_check.py figures --paper paper`
    （插入后 ≥8pt、对比度 ≥4.5、重叠/越界/空白带）。
-5. **宿主视觉全页复审**：montage + 关键页单独渲染——文字检查抓不到的（标题互碰、图例丢手柄、
+5. **执行者视觉全页复审**（当前 Agent 独立窗口读图）：montage + 关键页单独渲染——文字检查抓不到的（标题互碰、图例丢手柄、
    面板挤压）只能靠看图。
 6. 图型改动后**同步正文措辞**（如"柱状图的形态"→"得分点阵的对比"）。
 

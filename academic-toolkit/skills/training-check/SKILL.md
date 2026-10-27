@@ -20,7 +20,7 @@ Periodically read WandB metrics during training to catch problems early. Do not 
 ## When to Use
 
 - After training is confirmed running (session alive, loss decreasing for first few steps)
-- Set up via CronCreate to fire periodically during training
+- Set up through the execution environment's scheduled-task mechanism (cron/scheduler) to fire periodically during training
 - **This skill checks training QUALITY, not process HEALTH.** Process health (session alive, GPU utilization) is [watchdog.py](../../tools/watchdog.py)'s job.
 
 ## Workflow
@@ -64,7 +64,7 @@ Check these signals:
 仅在信号模糊时升级到评审桥 the signal is ambiguous. For clearly good or clearly bad signals, act directly.
 
 ```
-review_bridge.invoke:  # 经评审桥调用独立评审模型（工具名随宿主；缺席时降级为当前 Agent 自审）
+review_bridge.invoke:  # 调用方式由当前执行环境决定；评审桥缺席时降级为当前 Agent 自审
   config: {"model_reasoning_effort": "high"}
   prompt: |
     TRAINING HEALTH CHECK — need your judgment on ambiguous metrics.
@@ -110,14 +110,14 @@ Use both together:
 - When stopping training, always save the WandB run URL and key metrics as evidence.
 - If both WandB and log files are unreachable, report the connectivity issue and try again next interval. Do not assume training is broken.
 - Gradually increase check interval when healthy (10 → 20 → 30 → 60 min). Reset to 10 min after any anomaly.
-- This skill is meant to be automated via CronCreate — do not ask the user whether to set it up. Just set it.
+- This skill is meant to be automated through the execution environment's scheduled-task mechanism — do not ask the user whether to set it up. Just set it.
 
-## CronCreate Setup Example
+## Scheduled Trigger Setup Example
 
 ```
 After training is confirmed stable:
-  CronCreate (recurring, every 10 minutes initially):
+  Scheduled task (recurring, every 10 minutes initially):
     "Run /training-check for wandb run <entity>/<project>/<run_id>"
 ```
 
-As the check interval increases, delete the old CronCreate job and create a new one with the longer interval.
+As the check interval increases, delete the old scheduled task and create a new one with the longer interval.

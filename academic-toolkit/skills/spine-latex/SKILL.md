@@ -4,7 +4,7 @@ description: "Handles LaTeX project assembly, figure placement, citations, label
 ---
 
 
-<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（dist/claude 分发，单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产回填自 WUBING2023/PaperSpine@1fe46f0e76aa（单技能拆分重组编排）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # PaperSpine LaTeX
 
 Use this skill for LaTeX assembly, template integration, figure placement,

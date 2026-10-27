@@ -1,4 +1,4 @@
-"""A7-M5 回归测试：宿主开不出独立视觉窗口时的人工降级路径（manual_review 三态）。
+"""A7-M5 回归测试：独立视觉审核通道不可用时的人工降级路径（manual_review 三态）。
 
 修复前：VISUAL_REVIEW_VERDICT.status ≠ pass 一律 ok=False，视觉审核通道不可用时
 第 11 步永久卡死且无预案。修复后新增合法值 manual_review——仅当工作区同时存在

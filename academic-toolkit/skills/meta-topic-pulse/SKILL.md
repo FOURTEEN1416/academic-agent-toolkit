@@ -11,7 +11,7 @@ metadata:
 
 # Pulse — Multi-Source Recency Research
 
-> **Portability:** 任何具备网页检索能力的宿主均可运行（宿主名仅为示例）。 The optional X/Twitter phase requires browser automation and is skipped automatically if unavailable.
+> **Portability:** 任何具备网页检索与抓取能力的执行环境均可运行；可选 X/Twitter 阶段需要浏览器自动化，不可用时自动跳过。
 
 A recency-oriented research skill that synthesizes what people are saying about a topic across Reddit, Hacker News, the open web, and (optionally) X/Twitter — within a configurable time window. Output is a single coherent briefing with citations, engagement signals, and cross-platform pattern analysis. The skill captures the **current conversation**, not the canonical reference.
 
@@ -140,7 +140,7 @@ Run last. Reasons:
 **Interface (in priority order):**
 1. **Grok** if available in the harness
 2. **X API** if authenticated
-3. **Browser automation** if the harness supports it (Claude Code CLI with `playwright` or similar)
+3. **Browser automation** if the execution environment provides it (`playwright` or an equivalent driver)
 4. **Skip with note** if none of the above available
 
 **Documented behavior:**

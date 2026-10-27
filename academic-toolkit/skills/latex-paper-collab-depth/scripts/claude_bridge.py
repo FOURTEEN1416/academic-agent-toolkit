@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
-Claude Code Bridge Script for Codex Skills.
+External collaborator CLI bridge (example implementation).
 
-Wraps the Claude Code CLI to provide a JSON-based interface and multi-turn sessions via SESSION_ID.
+Bridges an external AI collaborator CLI to provide a JSON-based interface and
+multi-turn sessions via SESSION_ID. Current example targets the Anthropic
+`claude` command; the bridge can be replaced with any similar collaborator CLI.
 """
 
 import argparse
@@ -38,7 +40,7 @@ def read_output_lines(cmd: List[str], cwd: Optional[str] = None) -> Tuple[List[s
 
 
 def extract_text(value: Any) -> str:
-    """Recursively extract text from a Claude Code JSON payload."""
+    """Recursively extract text from a collaborator CLI JSON payload."""
     if isinstance(value, str):
         return value
     if isinstance(value, list):
@@ -128,7 +130,7 @@ def parse_json_output(lines: List[str]) -> Tuple[Optional[str], str, List[Dict[s
 
 def main() -> None:
     # Windows consoles may run with legacy encodings (e.g., GBK) that cannot
-    # represent certain Unicode characters returned by Claude (e.g., "m³/s").
+    # represent certain Unicode characters returned by the collaborator (e.g., "m³/s").
     # Avoid crashing on stdout/stderr encoding errors in those environments.
     try:
         sys.stdout.reconfigure(errors="backslashreplace")

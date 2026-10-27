@@ -10,7 +10,7 @@ CHECKS_UNAVAILABLE=0   # 机检工具故障标记：最终 exit 3，与内容失
 # ⛔ 检测可用 Python（Windows 上 python3 常是 Microsoft Store stub：不执行代码、退出码非0）。
 #   历史 bug：本脚本裸用 python3 跑内嵌检查，stub 环境下检查没真跑却因退出码非0 触发 EXIT_CODE=1，
 #   且 2>/dev/null 吞掉 stub 提示 → AI 看到 "(see above)" 后空无一物 → 死循环。与 compile_utils.sh 对齐。
-#   MH_PYTHON 仅作首选候选（宿主软探测），未设置或不可用时回退 python/python3/py，宿主中立。
+#   MH_PYTHON 仅作首选候选（环境软探测），未设置或不可用时回退 python/python3/py，环境中立。
 PYTHON=""
 for _py in "${MH_PYTHON}" python python3 py; do
     [ -z "$_py" ] && continue
@@ -69,7 +69,7 @@ SOURCE_STATUS=$?
 [ "$SOURCE_STATUS" -ne 0 ] && EXIT_CODE=1
 export PYTHONPATH="$SCRIPT_DIR${PYTHONPATH:+:$PYTHONPATH}"
 
-# 活跃源清单供后续内联检查复用；解析为空时回退旧 glob 口径（宿主中立兜底，不悬空）。
+# 活跃源清单供后续内联检查复用；解析为空时回退旧 glob 口径（环境中立兜底，不悬空）。
 if [ "${#ACTIVE_TEX[@]}" -gt 0 ]; then
     TEX_SRC=("${ACTIVE_TEX[@]}")
 else
@@ -143,7 +143,7 @@ if [ -f "$PAPER_DIR/main.log" ]; then
     font_err=$(gcount 'Font.*not found\|cannot find font' "$PAPER_DIR/main.log")
     [ "$font_err" -gt 0 ] && echo "  WARN: $font_err font errors (check fc-list)"
 
-    # Extract specific error locations for Claude to fix
+    # Extract specific error locations for the driving Agent to fix
     if [ "$LATEX_ERRORS" -gt 0 ]; then
         echo ""
         echo "  ============================================================"

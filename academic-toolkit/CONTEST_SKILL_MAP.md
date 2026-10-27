@@ -1,6 +1,6 @@
 # CUMCM 竞赛技能全库地图（CONTEST_SKILL_MAP）
 
-> **定位**：全库 263 个技能（含 SKILL.md 的目录；tracked 263）× comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
+> **定位**：全库 259 个技能（含 SKILL.md 的目录；tracked 259）× comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
 > `companion_skills` 字段每步主动给出本步推荐；本文件是全量真源，
 > 含"情境可用"、"外域不接入"与"未接入库"的完整分类账——**任何一个技能都不允许处于"无人知晓"状态**。
 > 维护纪律：新增技能入库时必须归入下列五类之一并同步本文件与引擎
@@ -46,10 +46,10 @@
 | 8 论文 | （无） | 写作铁律/去 AI 化（ai_tell_check）/格式（cumcmthesis cls）全部内嵌合同+_utils 脚本 |
 | 9 一致性 | analyze-results | 数值口径交叉核对方法论（机器兜底 = 本步资产 paper_data_check） |
 | 10 编译 | （无） | Word 交付需求由 output_format=docx 参数机制自动加步，不再重复推荐 |
-| 11 视觉审查 | fig-critique, fig-spec | 外部图审视角清单/图规格说明 |
-| 12 编辑 | anti-defensive-writing | 修订删 hedge/免责/过度解释（该技能唯一正确档位，S8 写作期不适用） |
-| 13 终审 | paper-self-review | 外部审稿人视角批判清单（参考用，不替代独立审稿通道） |
-| 14 交付审计 | citation-check, quality-check | 引用终检+产出质量终检（按本步 `metadata.compliance_profile` 挂 `engine/modex-core/comp_rules.json` 对应族约束带逐条核验，口径 vintage 2026-23rd：国赛 cumcm_2026_format 口径；华为杯 hw-* 带——承诺书方向 hw-pledge=unknown（出现「承诺书」转人工确认不硬判）、正文页口径 hw-page-limit=unknown 当届无机读上限（任务口径须显式声明）） |
+| 11 视觉审查 | fig-critique, fig-spec | 外部图审视角清单/图规格说明（`fig-spec` 必用） |
+| 12 编辑 | anti-defensive-writing | 修订删 hedge/免责/过度解释（`anti-defensive-writing` 必用；该技能唯一正确档位，S8 写作期不适用） |
+| 13 终审 | paper-self-review | 外部审稿人视角批判清单（必用参考清单，不替代独立审稿通道） |
+| 14 交付审计 | citation-check, quality-check | 引用终检（`citation-check` 必用）+产出质量终检（`quality-check` 可跳过推荐项）（按本步 `metadata.compliance_profile` 挂 `engine/modex-core/comp_rules.json` 对应族约束带逐条核验，口径 vintage 2026-23rd：国赛 cumcm_2026_format 口径；华为杯 hw-* 带——承诺书方向 hw-pledge=unknown（出现「承诺书」转人工确认不硬判）、正文页口径 hw-page-limit=unknown 当届无机读上限（任务口径须显式声明）） |
 
 **赛后/场外情境推荐**（不在 14 步内）：`contest-retrospective`（赛后复盘与经验沉淀——留痕取证→场景/坑/清单三分类→每条归因仓库内真实强制点→双写经验库→机检闭环；**每个赛事周期结束后应跑一次**）、`paper-slides`/`paper-poster`/`doc-poster-latex`（答辩幻灯与海报）、`team-coordination`（三人分工时）、`feishu-notify`（进度通知）、`rebuttal`（答辩质询应答结构）。
 
@@ -66,8 +66,9 @@
 `pymoo`（多目标优化：NSGA-II/III、MOEA/D、Pareto 前沿与约束处理，C 赛道参数与调度寻优）、
 `stable-baselines3`（强化学习：PPO/SAC/DQN 等标准实现，C 赛道智能决策策略学习）、
 `pymc`（贝叶斯校准与不确定性量化：MCMC/变分推断/后验检验，C 赛道参数校准与 UQ）、
-`experimental-design`（实验设计 DOE：因子/部分因子/响应面/序贯设计，仿真与数据采集前的方案设计）、
-`paper-figure-palette`（**统一配色体系（多场景）**——先按数据类型选分类/顺序/发散，再按场景（竞赛/期刊投稿/学位与课程/幻灯海报/Office 内嵌）落地；真源 `assets/palette_registry.json`（9 套色板）+ `references/scenarios.md`（三步选色法/10 条规范/禁用清单），机检 `palette_kit.py registry-verify`；本地 8 色板「夏日海滩」同源，与 `palette-health-check` 配套，绘图/视觉审查按需加载）。
+`experimental-design`（实验设计 DOE：因子/部分因子/响应面/序贯设计，仿真与数据采集前的方案设计）。
+
+**配色资产（1 个）**——`paper-figure-palette`（**统一配色体系（多场景）**——先按数据类型选分类/顺序/发散，再按场景（竞赛/期刊投稿/学位与课程/幻灯海报/Office 内嵌）落地；真源 `assets/palette_registry.json`（9 套色板）+ `references/scenarios.md`（三步选色法/10 条规范/禁用清单），机检 `palette_kit.py registry-verify`；本地 8 色板「夏日海滩」同源，与 `palette-health-check` 配套；与上述仿真引擎簇同属按需加载资产，绘图/视觉审查按需加载）。
 
 **§二修剪移入（39 个）**——被步骤推荐清单移出的结构性冗余/低频技能，
 功能多已被主技能合同、内建脚本（data_check/constraint_audit/facts_audit/ai_tell_check）或
@@ -121,13 +122,13 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 | 期刊套件（12） | paper-citation-verify, paper-data-availability, paper-figure-nature, paper-figure-planner, paper-manuscript-optimize, paper-project-bootstrap, paper-workflow-router, paper-journal-selection, paper-rebuttal-nature, paper-results-revision, paper-writing-scientific, paper-submission-audit | 期刊投稿口径，与国赛格式/审稿逻辑不符 |
 | spine-*（12） | spine 及其 11 个内部子技能 | 自媒体长文管线 |
 | latex-paper-*（8） | latex-paper-survey-writer 等 | arXiv/合作论文管线 |
-| meta-*（12） | meta-agent-config / meta-skill-* / meta-planning-files 等 | 宿主与技能开发元域 |
-| lit-*（7） | lit-citation-verify / lit-obsidian-* / lit-daily-digest / lit-zotero-obsidian | 文献管理域（外域；kaggle-learner 亦此批具名） |
+| meta-*（18） | meta-skill-* / meta-planning-files / meta-research-* 等 | 智能体配置与技能开发元域（2026-10-27 退役 4 件插件教学技能） |
+| lit-*（13） | lit-citation-verify / lit-obsidian-* / lit-daily-digest / lit-review-obsidian / lit-zotero-obsidian | 文献管理域（外域；kaggle-learner 亦此批具名） |
 | doc-*（2） | doc-coauthoring, doc-post-acceptance | 文档生产域 |
 | fig-*（1） | fig-publication-chart | 出版图表顾问（外域） |
 | paper-* 外域件（5） | paper-humanize, paper-polish-nature, paper-results-report, paper-sections-nature, paper-template-organizer | 期刊写作族未接入件（paper-self-review 在 §二 S13 推荐位，非外域） |
 | 散名（4） | idea-brainstorm, rebuttal, results-analysis, kaggle-learner | 单件外域 |
-| dev-*（7） | dev-requirement → dev-selfcheck | 毕设/软件项目管线 |
+| dev-*（21） | dev-requirement → dev-selfcheck | 毕设/软件项目管线 |
 | 知识产权（5） | copyright-build/draft/source-materials, patent-build/draft | 软著专利域 |
 | 课程/人文（9） | course-paper, course-plan, course-report, course-report-plan, humanities-plan/write/write-latex, grant-proposal, thesis-proposal | 课程论文/人文/基金开题域 |
 | 科研选题与实验（10） | idea-discovery, idea-discovery-robotics, research-pipeline, research-refine, research-refine-pipeline, research-review, experiment-plan, experiment-bridge, monitor-experiment, run-experiment | 长周期科研管线，赛时 3 天用不上 |
@@ -135,7 +136,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 | scholar 期刊投稿系（6） | arxiv-metadata, arxiv-submission-package, latex-bib-doi-toggle, lit-citation-verify-latex, doi-bibtex, openalex-search | arXiv/DOI 投稿工具 |
 | 基础设施（6 + shared-scripts 目录） | meta-skill-creator, meta-doc-governance, ip-source-extractor, agent-bootstrap, tool-forge, candidate-reproduction, shared-scripts(目录，非技能) | 仓库治理/技能开发/宿主无关自举与工具铸造/候选交付复现/软著，非解题用 |
 | 其他（1） | pixel-art | 像素画风，与学术图规范冲突 |
-| Origin 可编辑绘图（1） | fig-plot-edit | 需本机 Origin/OriginPro 2021+ 商业软件 + Windows COM 自动化，非赛时工具；学术科研域按需（整技能收编自 hang-jin/editaplot，Apache-2.0；本机 Origin 未装、登记待用；runtime 引擎在 vendor/forks/editaplot 不入库） |
+| Origin 可编辑绘图（1） | fig-plot-edit | 需本机 Origin/OriginPro 2021+ 商业软件 + Windows COM 自动化，非赛时工具；学术科研域按需（整技能收编自 hang-jin/editaplot，Apache-2.0；本机 Origin 未装、登记待用；runtime 引擎在 `vendor/forks/editaplot/`（仓库根入库，不随 academic-toolkit 套件目录分发；溯源见 `tools/check_provenance.py`）） |
 | 语料挖掘（1） | award-paper-mining | 获奖论文语料挖掘与统计沉淀（赛后/赛前语料建设用） |
 
 ## 五、未接入库（2 个）
@@ -144,35 +145,37 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 激活面路由**，保留在册仅作对账透明；
 赛时不主动加载；确需使用时按情境技能对待并照常留痕：
 
-- `pdf-toolkit`（PDF 合并/拆分/OCR/填表）——已随 `academic-toolkit/AGENTS.md` §三 路由表接入
-  （"非竞赛域"行），disposition 记 `routed`（经路由表面，非本地图 §一-§三 具名）。
-- `paper-compile-zh`（中文编译变体，主链用 comp-compile-zh）——已随 AGENTS.md §三
-  路由表接入，且为 `paper_writing_zh` 等模板步骤主技能（引擎绑定面覆盖），
+- `pdf-toolkit`（PDF 合并/拆分/OCR/填表）——已随 `data/skill_routing_index.json` 路由索引接入（tier `ondemand`），
+  disposition 记 `routed`（经路由表面，非本地图 §一-§三 具名）。
+- `paper-compile-zh`（中文编译变体，主链用 comp-compile-zh）——已随 `data/skill_routing_index.json`
+  路由索引接入（tier `core`），且为 `paper_writing_zh` 模板编译步主技能（引擎绑定面覆盖），
   disposition 记 `evidence-bound`。
 
 ## 六、统计（check_asset_utilization.py 机对账）
 
 **机检对账口径**（词边界 + 斜杠缩写展开 + 前缀域 fnmatch，与 `tools/check_asset_utilization.py` 的
 `load_map_coverage` 完全同口径）：§一主链 / §二推荐 / §三情境 / §四外域 / §五未接入库五段合并覆盖全库，
-`python tools/check_asset_utilization.py --strict` 实跑 **实存 263 技能 / 覆盖 263 / 漏网 0（前缀域 11 个）**，
-与 skills/ 下含 SKILL.md 的目录实测数（263）逐一相符：零幽灵名、零漏网。
+`python tools/check_asset_utilization.py --strict` 实跑 **实存 259 技能 / 覆盖 259 / 漏网 0（前缀域 12 个）**，
+与 skills/ 下含 SKILL.md 的目录实测数（259）逐一相符：零幽灵名、零漏网。
 （2026-10-16 仿真建模赛补齐批 +7：`comp-simulation`、`figure-craft` 与仿真引擎簇 `simpy`/`pymoo`/`stable-baselines3`/`pymc`/`experimental-design`，均归 §三 情境可用。）
-口径说明（避免读者对不上数）：§三/§四 标题不钉条目数——技能增删/改名会让分节计数漂移，精确数一律以机检实跑为准；
+口径说明（避免读者对不上数）：§三/§四 不钉总条目数（§四 域列为前缀全量口径）——技能增删/改名会让分节计数漂移，精确数一律以机检实跑为准；
 `paper-figure-palette` 首现于 §二 step5 必用位，按首匹配归 §二；§四 的前缀域
 （`spine-*`/`latex-paper-*`/`dev-*`/`meta-*`/`lit-*`/`doc-*`/`fig-*`/`paper-*`）
 按前缀展开计入外域。
 修剪只改变"哪一步主动推荐"（现 12 槽位），不改变任何技能的可知性——全部 39 个移入 §三在册。
 **P4 技能绑定**：comp_cumcm 全部 14 步声明 `metadata.skill_binding`（`main_required` =
-主技能契约必须留真实读取痕迹）；step5 另声明 `mandatory: [paper-figure-palette]`（必用、不可 skipped）。
-其余步骤的推荐位仍是"申报即可跳过、跳过须给理由"（C1 闸），不做过度强制——
-把辅助技能一律设为必用会制造假失败（如无数值推导的题目无法合法使用 sympy）。
+主技能契约必须留真实读取痕迹）；其中 S5 声明 `mandatory: [paper-figure-palette]`，
+S11/S12/S13/S14 分别声明 `mandatory: [fig-spec]`/`[anti-defensive-writing]`/`[paper-self-review]`/`[citation-check]`
+（均必用、不可 skipped，且须留命令级痕迹）。其余未列入 mandatory 的推荐项（如 S5 的
+`fig-aesthetics-craft`、S11 的 `fig-critique`、S14 的 `quality-check`）仍是"申报即可跳过、跳过须给理由"（C1 闸），
+不做过度强制——把辅助技能一律设为必用会制造假失败（如无数值推导的题目无法合法使用 sympy）。
 对账口径：技能 = skills/ 下含 SKILL.md 的目录（减 `_utils`/`shared-scripts`/`shared-references` 三个非技能目录）；
 主链 = §一具名，推荐 = §二表格 + 赛后段具名，情境 = §三具名，外域 = §四具名 + 前缀域
 （`spine-*`/`latex-paper-*`/`dev-*`/`meta-*`/`lit-*`/`doc-*`/`fig-*`/`paper-*` 按前缀展开）+ 斜杠缩写展开
 （如 `copyright-build/draft/source-materials`），未接入库 = §五具名。
 **零漏网对账已固化为机检**（词边界+斜杠展开+前缀 fnmatch）：
 `python tools/check_asset_utilization.py --strict` + `tests/test_asset_utilization.py::test_real_map_covers_all_skills_zero_missing`。
-全库技能 263（实存 263 / tracked 263；`scholar-critique-manuscript` 已并入 `paper-self-review`）；
+全库技能 259（实存 259 / tracked 259；`scholar-critique-manuscript` 已并入 `paper-self-review`）；
 计数以本机 `check_asset_utilization` 机检为准。
 ——任何改动本文件的维护者必须跑过机检后方可保留本节统计行。
 

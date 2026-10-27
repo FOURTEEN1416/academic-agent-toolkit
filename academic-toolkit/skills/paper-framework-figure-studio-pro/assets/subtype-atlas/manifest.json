@@ -5,8 +5,8 @@
   "build_source": "project-local diagram evidence corpus",
   "asset_root": "assets/subtype-atlas",
   "display_markdown_template": "![{alt_text}]({image_path})",
-  "codex_display_rule": "Codex does not use direct atlas-board image embeds; when an atlas/category board is mentioned, display the package-local PNG directly with a Markdown image embed.",
-  "chatgpt_sources_display_rule": "When an atlas/category board is mentioned, display the saved PNG board directly with Markdown image syntax when available.",
+  "display_rule": "The runtime does not use generated web-page display; when an atlas/category board is mentioned, display the package-local PNG directly with a Markdown image embed.",
+  "sources_display_rule": "When an atlas/category board is mentioned, display the saved PNG board directly with Markdown image syntax when available.",
   "plain_path_list_is_not_display": true,
   "required_abstract_decision_display_rule": "If a reply mentions subtype, category, layout grammar, visual style, reader role, communication style, density, metaphor, modeling pattern, candidate scheme differences, or final content architecture, display the matching saved atlas/category board image immediately with Markdown syntax. Prose-only mention does not satisfy this rule.",
   "required_visual_structure_display_rule": "If a reply mentions visual structure, layout skeleton, panel choreography, module topology, arrow grammar, candidate-board structure, local-refinement geometry, or content architecture, display the matching saved atlas/category board image immediately with Markdown syntax. Prose-only mention does not satisfy this rule.",
@@ -59,10 +59,10 @@
     ]
   },
   "generation_route": {
-    "chatgpt_web": "Create image through ChatGPT Images 2.0",
-    "codex_priority": "$imagegen skill first",
-    "codex_actual_route": "$imagegen skill / built-in image generation",
-    "codex_fallback": "ChatGPT Images 2.0 API or another approved image-generation API"
+    "web_image_chat": "Generate through the first-party chat image tool (create-image route)",
+    "builtin_priority": "Use the built-in CLI image-generation tool first",
+    "builtin_actual_route": "Built-in CLI image generation (image_gen route)",
+    "approved_api_fallback": "Another approved image-generation API when no first-party tool is available"
   },
   "assets": [
     {

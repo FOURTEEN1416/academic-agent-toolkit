@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Guidelines for coordinating multi-person academic research teams using the pipeline. Claude Code runs as a single-user session; this protocol documents the **human coordination layer** that wraps around pipeline executions.
+Guidelines for coordinating multi-person academic research teams using the pipeline. The pipeline runs as a single-user session; this protocol documents the **human coordination layer** that wraps around pipeline executions.
 
 ---
 
@@ -224,8 +224,8 @@ All disagreements must be documented in the revision tracking:
 
 ```
 Person A (Research Lead + Lead Author):
-  - Runs Stage 1 (RESEARCH) with their Claude session
-  - Runs Stage 2 (WRITE) with their Claude session
+  - Runs Stage 1 (RESEARCH) with their own agent session
+  - Runs Stage 2 (WRITE) with their own agent session
   - Receives revision items, runs Stage 4/4'
   - Runs Stage 5 (FINALIZE)
 
@@ -253,8 +253,8 @@ Add Integration Lead role:
 
 ## Limitations
 
-- Claude Code runs as a single-user session; this protocol documents the HUMAN coordination layer
-- Each team member runs their own pipeline stages independently in separate Claude sessions
+- The pipeline runs as a single-user session; this protocol documents the HUMAN coordination layer
+- Each team member runs their own pipeline stages independently in separate sessions
 - Handoff materials (conforming to schemas in `shared/handoff_schemas.md`) ensure consistency across sessions
 - Real-time co-editing is not supported; use git or shared documents for synchronization
 - Pipeline state tracking is per-session; the Integration Lead must manually synchronize state across sessions

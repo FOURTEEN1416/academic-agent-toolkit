@@ -43,7 +43,7 @@ Produces a structured report with findings from all three personas, deduplicated
 
 ## Problem This Solves
 
-When Claude reviews code it wrote (or code it just read), it shares the same mental model, assumptions, and blind spots as the author. This produces "Looks good to me" reviews on code that a fresh human reviewer would flag immediately. Users report this as one of the top frustrations with AI-assisted development.
+When the reviewing agent reviews code it wrote (or code it just read), it shares the same mental model, assumptions, and blind spots as the author. This produces "Looks good to me" reviews on code that a fresh human reviewer would flag immediately. Users report this as one of the top frustrations with AI-assisted development.
 
 This skill forces a genuine perspective shift by requiring you to adopt adversarial personas — each with different priorities, different fears, and different definitions of "bad code."
 
@@ -236,7 +236,7 @@ You are likely reviewing code you just wrote or just read. Your brain (weights) 
 
 - **Before merging any PR** — especially self-authored PRs with no human reviewer
 - **After a long coding session** — fatigue produces blind spots; this skill compensates
-- **When Claude said "looks good"** — if you got an easy approval, run this for a second opinion
+- **When the reviewing agent said "looks good"** — if you got an easy approval, run this for a second opinion
 - **On security-sensitive code** — auth, payments, data access, API endpoints
 - **When something "feels off"** — trust that instinct and run an adversarial review
 

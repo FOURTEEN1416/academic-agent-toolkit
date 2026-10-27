@@ -7,8 +7,7 @@ description: "Checks and updates PaperSpine from GitHub, preserving global confi
 
 Use this skill when the user asks to update PaperSpine, check whether
 PaperSpine is the latest version, reinstall the local suite from GitHub, or
-upgrade the local Codex, Claude Code, or OpenClaw PaperSpine skills while
-preserving settings.
+upgrade the locally installed PaperSpine skill copies while preserving settings.
 
 ## Required Behavior
 
@@ -16,13 +15,13 @@ Run the bundled updater using the full path to the installed skill:
 
 **Windows:**
 ```powershell
-$script = Join-Path $env:USERPROFILE ".claude\skills\spine-update\scripts\paperspine_update.py"
+$script = Join-Path (git rev-parse --show-toplevel) "academic-toolkit\skills\spine-update\scripts\paperspine_update.py"
 python $script --yes
 ```
 
 **macOS / Linux:**
 ```bash
-python3 <repo>/skills/spine-update/scripts/paperspine_update.py --yes（ACAT-GOVERNANCE：上游脚本未随本仓库集成，宿主安装路径已废弃；2026-09-23 宿主中性化改写，改用本仓技能目录内路径）
+python3 <repo>/academic-toolkit/skills/spine-update/scripts/paperspine_update.py --yes
 ```
 
 For a version check only, use `--check-only` instead of `--yes`.
@@ -35,7 +34,8 @@ The updater must:
   state is missing,
 - compare against the GitHub `main` manifest at
   `dist/paperspine_version.json`,
-- update Codex, Claude Code, and OpenClaw installs by default,
+- update all installed skill copies by default (the concrete target list is
+  defined by the bundled updater),
 - preserve `~/.paperspine/config.json`, including UI language preferences,
 - never touch project artifacts such as `paper_rewriting_output/`,
 - print a clear already-latest message when no update is needed,
@@ -44,8 +44,8 @@ The updater must:
 
 ## Advanced Usage
 
-- Use `--target codex`, `--target claude`, or `--target openclaw` only when the
-  user explicitly asks to update one host.
+- Use `--target <name>` only when the user explicitly asks to update one
+  target; allowed values follow the script's `--help` / argparse choices.
 - Use `--repo-archive <path-or-url>` for local testing or offline update from a
   downloaded PaperSpine archive.
 - Use `--config-home <path>` only for tests or when the user has explicitly

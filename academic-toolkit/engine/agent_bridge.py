@@ -1,7 +1,7 @@
 """Agent 驱动模型：引擎不执行，只编排。
 
-定位澄清：本系统由**当前驱动本项目的 Agent**（任意宿主：Claude Code / Cursor /
-Gemini CLI / MiMo Desktop / OpenCode / ZCode / 自写脚本）直接驱动。
+定位澄清：本系统由**当前驱动本项目的 Agent**（任何能读文件、能执行
+`python -m engine.workflow_cli` 的智能体或脚本）直接驱动。
 引擎（本模块 + workflow_store/runner）只负责两件事：
   1. 告诉 agent「下一步做什么」—— next_action()
   2. 记录 agent 回报的「做完了」结果 —— complete_step()

@@ -6,16 +6,16 @@
     机器算法判断不准，会大量假阳性）。
     引擎只做两件事：
     1. 准备「数据原料清单」（PAPER_DATA_CHECKLIST.md）— 把 JSON 全数据 +
-       TABLE_*.tex|md 全文贴在一起给 Claude 看
+       TABLE_*.tex|md 全文贴在一起供执行 Agent 阅读
     2. 确定性硬规则检查（LaTeX 表格残留、Markdown 残留）— 这两类是格式问题，
        不依赖语义
 
-    数据真实性的判断与修复完全交给 Claude：
-    - Claude 读 PAPER_DATA_CHECKLIST.md（数据原料）
-    - Claude 读论文（main.md / sections/*.tex）
-    - Claude 自己判断：论文里出现的数字哪些应该核对、哪些是叙述里的自然数字
-    - Claude 自己修：以 JSON 为准，禁止反向操作
-    - Claude 修完后在论文末尾写 `<!-- DATA_CHECK_PASSED -->`（DOCX）
+    数据真实性的判断与修复完全交给执行 Agent（驱动本项目的 Agent）：
+    - 执行 Agent 读 PAPER_DATA_CHECKLIST.md（数据原料）
+    - 执行 Agent 读论文（main.md / sections/*.tex）
+    - 执行 Agent 自己判断：论文里出现的数字哪些应该核对、哪些是叙述里的自然数字
+    - 执行 Agent 自己修：以 JSON 为准，禁止反向操作
+    - 执行 Agent 修完后在论文末尾写 `<!-- DATA_CHECK_PASSED -->`（DOCX）
       或 `% DATA_CHECK_PASSED`（PDF）标记已自检
 
 CLI：
@@ -70,9 +70,9 @@ class DataCheckReport:
         if self.warn:
             parts.append(f'{len(self.warn)} 警告')
         if self.passed_marker_found:
-            parts.append('Claude 已自检')
+            parts.append('执行 Agent 已自检')
         elif self.need_self_check:
-            parts.append('待 Claude 自检')
+            parts.append('待执行 Agent 自检')
         return ' / '.join(parts) if parts else '无问题'
 
 
@@ -169,7 +169,7 @@ def _format_value(v: Any) -> str:
 
 
 def build_data_checklist(workspace: Path, mode: str) -> tuple[str, int]:
-    """构建给 Claude 的数据原料清单（含 JSON 全数据 + TABLE 文件全文）。
+    """构建给执行 Agent 的数据原料清单（含 JSON 全数据 + TABLE 文件全文）。
 
     返回 (markdown 内容, 数据条目数)。
     """
@@ -377,7 +377,7 @@ def _safe_read(p: Path) -> str:
 
 
 def has_passed_marker(content: str, mode: str) -> bool:
-    """检测论文末尾是否有 Claude 写的自证标记。"""
+    """检测论文末尾是否有执行 Agent 写的自证标记。"""
     marker = _PASSED_MARKER_DOCX if mode == 'docx' else _PASSED_MARKER_PDF
     return marker in content
 
@@ -471,13 +471,13 @@ def _render_report(report: DataCheckReport) -> str:
             lines.append(f'- {m}')
         lines.append('')
     if report.passed_marker_found:
-        lines.append('## ✅ 已通过 Claude 自检')
+        lines.append('## ✅ 已通过执行 Agent 自检')
         lines.append('')
         lines.append(f'论文中含 `{_PASSED_MARKER_DOCX if report.mode == "docx" else _PASSED_MARKER_PDF}` 标记。')
     elif report.need_self_check:
-        lines.append('## 🔄 待 Claude 自检')
+        lines.append('## 🔄 待执行 Agent 自检')
         lines.append('')
-        lines.append('数据原料已写入 `PAPER_DATA_CHECKLIST.md`，等待 Claude 读清单 + 论文进行自检修复。')
+        lines.append('数据原料已写入 `PAPER_DATA_CHECKLIST.md`，等待执行 Agent 读清单 + 论文进行自检修复。')
     return '\n'.join(lines)
 
 
@@ -506,9 +506,9 @@ class TableCheckReport:
         if self.warn:
             parts.append(f'{len(self.warn)} 警告')
         if self.passed_marker_found:
-            parts.append('Claude 已自检')
+            parts.append('执行 Agent 已自检')
         elif self.need_self_check:
-            parts.append('待 Claude 自检 TABLE')
+            parts.append('待执行 Agent 自检 TABLE')
         return ' / '.join(parts) if parts else '无 TABLE 文件，跳过'
 
 
@@ -732,11 +732,11 @@ def _render_table_report(report: TableCheckReport) -> str:
             lines.append(f'- {m}')
         lines.append('')
     if report.passed_marker_found:
-        lines.append('## ✅ 已通过 Claude 自检')
+        lines.append('## ✅ 已通过执行 Agent 自检')
         lines.append('')
         lines.append(f'`figures/{_TABLE_PASSED_MARKER_FILE}` 已存在。')
     elif report.need_self_check:
-        lines.append('## 🔄 待 Claude 自检')
+        lines.append('## 🔄 待执行 Agent 自检')
         lines.append('')
         lines.append('数据原料已写入 `TABLE_DATA_CHECKLIST.md`。')
     return '\n'.join(lines)

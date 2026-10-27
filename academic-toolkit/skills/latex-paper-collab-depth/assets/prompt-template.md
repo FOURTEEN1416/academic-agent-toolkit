@@ -1,6 +1,6 @@
-# Claude Prompt Templates — Paper-from-Zero Depth Mode
+# Depth-Collaborator Prompt Templates — Paper-from-Zero Depth Mode
 
-Note: Prefer choosing models via CLI aliases (e.g., `--model sonnet` for routine work, `--model opus` for harder tasks) instead of hard-coding versioned model IDs. If you omit `--model`, Claude Code uses its configured default.
+Note: Prefer choosing models via CLI aliases (e.g., `--model sonnet` for routine work, `--model opus` for harder tasks) instead of hard-coding versioned model IDs. If you omit `--model`, the collaborator CLI uses its configured default.
 
 ## `claim-stress-test` — Find logical holes, weak claims, reviewer objections
 
@@ -15,7 +15,7 @@ Input:
 
 Constraints:
 - Be adversarial. Assume a skeptical reviewer perspective.
-- Do NOT propose alternative framings (that is Gemini's job).
+- Do NOT propose alternative framings (that is the breadth collaborator's job).
 - Do NOT generate or suggest citations.
 - For each weakness found, provide:
   severity (critical / major / minor),

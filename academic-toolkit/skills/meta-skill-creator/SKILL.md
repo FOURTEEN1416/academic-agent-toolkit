@@ -64,7 +64,7 @@ Check available MCPs - if useful for research (searching docs, finding similar s
 Based on the user interview, fill in these components:
 
 - **name**: Skill identifier
-- **description**: When to trigger, what it does. This is the primary triggering mechanism - include both what the skill does AND specific contexts for when to use it. All "when to use" info goes here, not in the body. 注意：目前多数宿主模型有个倾向 to "undertrigger" skills -- to not use them when they'd be useful. To combat this, please make the skill descriptions a little bit "pushy". So for instance, instead of "How to build a simple fast dashboard to display internal Anthropic data.", you might write "How to build a simple fast dashboard to display internal Anthropic data. Make sure to use this skill whenever the user mentions dashboards, data visualization, internal metrics, or wants to display any kind of company data, even if they don't explicitly ask for a 'dashboard.'"
+- **description**: When to trigger, what it does. This is the primary triggering mechanism - include both what the skill does AND specific contexts for when to use it. All "when to use" info goes here, not in the body. 注意：目前多数模型有 under-trigger 倾向（"undertrigger"）-- to not use them when they'd be useful. To combat this, please make the skill descriptions a little bit "pushy". So for instance, instead of "How to build a simple fast dashboard to display internal Anthropic data.", you might write "How to build a simple fast dashboard to display internal Anthropic data. Make sure to use this skill whenever the user mentions dashboards, data visualization, internal metrics, or wants to display any kind of company data, even if they don't explicitly ask for a 'dashboard.'"
 - **compatibility**: Required tools, dependencies (optional, rarely needed)
 - **the rest of the skill :)**
 
@@ -395,7 +395,7 @@ This handles the full optimization loop automatically. It splits the eval set in
 
 ### How skill triggering works
 
-Understanding the triggering mechanism helps design better eval queries. Skills appear in 执行 Agent's `available_skills` list with their name + description, and 执行 Agent decides whether to consult a skill based on that description. The important thing to know is that 宿主模型只对它不确定的任务参考技能 easily handle on its own — simple, one-step queries like "read this PDF" may not trigger a skill even if the description matches perfectly, 因为模型可以直接处理它们 with basic tools. Complex, multi-step, or specialized queries reliably trigger skills when the description matches.
+Understanding the triggering mechanism helps design better eval queries. Skills appear in 执行 Agent's `available_skills` list with their name + description, and 执行 Agent decides whether to consult a skill based on that description. The important thing to know is that 模型只对它不确定的任务参考技能 easily handle on its own — simple, one-step queries like "read this PDF" may not trigger a skill even if the description matches perfectly, 因为模型可以直接处理它们 with basic tools. Complex, multi-step, or specialized queries reliably trigger skills when the description matches.
 
 This means your eval queries should be substantive enough that the Agent would actually benefit from consulting a skill. Simple queries like "read file X" are poor test cases — they won't trigger skills regardless of description quality.
 
@@ -483,3 +483,17 @@ Repeating one more time the core loop here for emphasis:
 Please add steps to your TodoList, if you have such a thing, to make sure you don't forget. If you're in Cowork, please specifically put "Create evals JSON and run `eval-viewer/generate_review.py` so human can review test cases" in your TodoList to make sure it happens.
 
 Good luck!
+
+---
+
+## 运行时组件指引（2026-10-27 自退役技能并入）
+
+四件原「Claude Code 插件教学」技能（meta-agent-config / meta-command-development / meta-hook-development / meta-plugin-structure）已整件退役；其知识以宿主无关口径浓缩于此，供需要产出 agent 定义 / 命令 / 钩子 / 插件结构的任务参考。
+
+**统一原则**：本仓库是宿主无关工具箱，不为任何特定运行时写配置；下列结构是通行约定，落地时按**目标运行时自己的文档**核对字段名与目录。
+
+1. **Agent 定义（subagent）**：一个 Markdown 文件 = 一个 agent；frontmatter 至少含 `name`（kebab-case 标识）、`description`（触发描述，写清"何时用"而非"是什么"）、可选 `tools`（允许的工具白名单）；正文是 system prompt。设计要点：单一职责、description 里写触发词、tools 最小授权。
+2. **Slash 命令**：一个 Markdown 文件 = 一个命令，置于运行时的 commands 目录；frontmatter 含 `description`（命令用途）、可选 `argument-hint`（参数提示）与 `allowed-tools`；正文是注入会话的 prompt 模板，`$ARGUMENTS` 占位符接收用户参数。
+3. **钩子（hooks）**：事件驱动脚本，在工具调用前/后等生命周期点触发；配置为「事件名 → 匹配器 → 命令」三层；设计铁律：fail-open（钩子自身故障不得阻断主流程）、只读优先（PreToolUse 类拦截要慎用）、输出 JSON 契约（如 `{"decision": "approve"|"block", "reason": ...}`）。
+4. **插件结构**：一个目录 = 一个插件，清单文件（如 plugin.json）声明 name/version/components；commands/agents/skills/hooks 四类组件按运行时约定目录摆放、自动发现；铁律：相对路径、无安装脚本副作用、组件可独立存在。
+

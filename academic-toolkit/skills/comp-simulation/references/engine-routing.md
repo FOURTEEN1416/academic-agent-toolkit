@@ -154,7 +154,7 @@ class SimOpt(Problem):
 |---|---|---|
 | **三维孪生渲染**（CesiumJS / PyVista / three.js / Unity） | B 赛道"虚实联动"呈现 | 未建资产；选 B 前先确认可行，否则降级"二维态势 + 数据孪生"并声明 |
 | AnyMath 商业软件 | 赛事设有 AnyMath 专项奖金 | 组委会不承担授权；不可用则放弃该奖金项，不影响主体评分 |
-| 视频录制/剪辑链 | 仿真视频为必要交付件 | 见 `deliverables.md`（ffmpeg + 宿主录屏 / CDP screencast） |
+| 视频录制/剪辑链 | 仿真视频为必要交付件 | 见 `deliverables.md`（ffmpeg + 执行环境录屏 / CDP screencast） |
 | 商业仿真软件（AnyLogic / Vensim / Arena） | 图形化建模 | 非必需；Python 方案可覆盖 |
 
 ## 四、探测脚本

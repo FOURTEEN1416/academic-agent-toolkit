@@ -113,7 +113,7 @@ python3 scripts/harness_manifest_builder.py --domain engineering-team \
 
 ## Related skills
 
-- **workflow-builder**: （Claude Code 专属可选件）为其 Workflow 编写确定性 `.js` 脚本；其他宿主用本地脚本替代
+- **workflow-builder**：（非本仓内置的可选件）为其 Workflow 编写确定性 `.js` 脚本；不可用时以本地脚本替代
   tool. NOT for goal-to-close loop state (this skill).
 - **agenthub**: N parallel agents competing on ONE task in git worktrees. Use it *inside* a
   harness task that wants competing attempts.

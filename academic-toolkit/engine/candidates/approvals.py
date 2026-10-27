@@ -123,7 +123,7 @@ def assert_candidate_approval_allowed(
         raise CandidateApprovalError("候选审批事件自报 degraded_host_attestation=true，不能通过")
     if evidence["degraded_host_attestation"] or not evidence["l1_available"]:
         raise CandidateApprovalError(
-            "候选审批缺少当前工作流窗口内、路径归属本工作区的 L1 宿主证据"
+            "候选审批缺少当前工作流窗口内、路径归属本工作区的 L1 外部审计证据"
             "（degraded_host_attestation=true）")
     if evidence["agent_approve_seen"] or claimed.get("agent_approve_seen") is True:
         raise CandidateApprovalError("L1 检测到 agent 自批/直写审批事实，候选审批被拒")

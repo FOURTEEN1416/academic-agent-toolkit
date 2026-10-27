@@ -141,13 +141,11 @@ print(m.group(0) if m else '⚠ 未找到 Matrix，需先补到 OUTLINE.md')
 
 
 
-读取文献综述/拆解方法 + 中国学者发表路径（哪类期刊看哪种文献最多）：
+读取文献综述/拆解方法：
 
 ```bash
 
 cat _utils/humanities-literature-review.md 2>/dev/null || cat skills/shared-scripts/humanities-literature-review.md
-
-cat _utils/humanities-platform-guide.md 2>/dev/null || cat skills/shared-scripts/humanities-platform-guide.md
 
 ```
 

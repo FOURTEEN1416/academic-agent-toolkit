@@ -1,6 +1,6 @@
 ---
 name: paper-illustration
-description: "Generate publication-quality AI illustrations for academic papers using Gemini image generation. Creates architecture schematics and concept figures with agent-supervised review."
+description: "Generate publication-quality AI illustrations for academic papers using an image-generation model. Creates architecture schematics and concept figures with agent-supervised review."
 argument-hint: [description-or-method-file]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch
 ---

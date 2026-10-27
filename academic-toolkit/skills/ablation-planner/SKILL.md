@@ -30,7 +30,7 @@ CC reads available project files to build the full picture:
 ### Step 2: 独立评审模型设计消融
 
 ```
-review_bridge.invoke:  # 经评审桥调用独立评审模型（工具名随宿主；缺席时降级为当前 Agent 自审）
+review_bridge.invoke:  # 经评审桥调用独立评审模型（工具名由当前执行环境提供；缺席时降级为当前 Agent 自审）
   config: {"model_reasoning_effort": "xhigh"}
   prompt: |
     You are a rigorous ML reviewer planning ablation studies.

@@ -69,14 +69,14 @@ for the single producer/state authority.
 | Paper Information | Title, final deliverables list |
 | Stage-by-Stage Process | Input/output/key decisions for each stage, with verbatim user quotes |
 | Iteration Details | Review comment summaries, revision items, re-review results |
-| Interaction Pattern Summary | User role, Claude role, intervention count, key turning points — statistics table |
+| Interaction Pattern Summary | User role, AI role, intervention count, key turning points — statistics table |
 | User Key Decisions | Chronological list of every important decision made by the user |
 | Key Lessons | Reusable lessons learned from the process |
 | **Collaboration Quality Evaluation** | **Final chapter: 1-100 score + dimensional analysis + improvement suggestions** (see below) |
 
 ## Collaboration Quality Evaluation (Final Chapter, Mandatory)
 
-The final chapter of the process record is a "Collaboration Quality Evaluation" that honestly and constructively assesses the user's performance in the human-AI collaboration. Format follows the Claude Code CLI `/insight` feature.
+The final chapter of the process record is a "Collaboration Quality Evaluation" that honestly and constructively assesses the user's performance in the human-AI collaboration. Format follows a generic CLI session-insight panel format.
 
 ### Scoring Dimensions (each 1-100, weighted average for overall score)
 
@@ -135,7 +135,7 @@ The final chapter of the process record is a "Collaboration Quality Evaluation" 
 - **Evidence-based**: Every score is supported by specific behaviors or conversation records
 - **Constructive**: Every criticism must include actionable improvement suggestions
 - **Acknowledge uncertainty**: If certain dimensions cannot be evaluated (e.g., mid-entry skipped the research stage), mark as N/A
-- **Bidirectional reflection**: Also candidly point out Claude's shortcomings during the process (e.g., areas requiring multiple corrections)
+- **Bidirectional reflection**: Also candidly point out the AI's shortcomings during the process (e.g., areas requiring multiple corrections)
 
 ## AI Self-Reflection Report (Mandatory)
 

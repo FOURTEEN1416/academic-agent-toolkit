@@ -10,6 +10,9 @@ python scripts/figure_studio_release_check_paths.py scan --target <package-dir-o
 
 ## What the check protects against
 
+The Codex entry below is a historical cleanup detection word enforced by the scanner's
+`local_codex_skill_path_*` patterns; it is kept for regression scanning and is not a host dependency.
+
 - build-machine user directories;
 - local Codex install paths;
 - sandbox or temporary runtime paths;

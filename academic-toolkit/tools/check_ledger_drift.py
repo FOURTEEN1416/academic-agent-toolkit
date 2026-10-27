@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """多窗口账本漂移巡检与自动修复（2026-09-11 赛时新增）。
 
-背景：ZCode/OpenCode 双宿主并行窗口下，审计 hook 的落账路径按进程 cwd 相对解析，
+背景：多窗口并行（各窗口 cwd 不同）下，审计记录路径按进程 cwd 相对解析，
 会在 skills/_utils/.engine、academic-toolkit/.engine/audit、skills/shared-scripts/.engine
 等位置产生"分账"（真实交互记录落错位置）——触发 test_dual_copy_consistency 挂 +
 账本碎片化。本工具巡检已知漂移点，--fix 时按 ts 升序补账合并至主账本并清除错位文件。

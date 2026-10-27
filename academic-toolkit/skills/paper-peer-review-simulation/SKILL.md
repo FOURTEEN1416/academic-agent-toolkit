@@ -13,7 +13,7 @@ metadata:
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 franklee16/academic-research-skills@5debcd2efb68（academic-paper-reviewer），正文未改；上游 research-lookup 类 API 依赖以宿主 web_search/web_fetch 替代。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 franklee16/academic-research-skills@5debcd2efb68（academic-paper-reviewer），正文未改；上游 research-lookup 类 API 依赖以执行环境的网页检索/抓取工具（web_search/web_fetch 类）替代。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Academic Paper Reviewer v1.10.0 — Multi-Perspective Academic Paper Review Agent Team
 
 Simulates a complete international journal peer review process: automatically identifies the paper's field, dynamically configures 5 reviewers (Editor-in-Chief + 3 peer reviewers + Devil's Advocate) who review from four non-overlapping perspectives — methodology, domain expertise, cross-disciplinary viewpoints, and core argument challenges — ultimately producing a structured Editorial Decision and Revision Roadmap.

@@ -92,15 +92,9 @@ def test_final_audit_cli_accepts_bound_candidate_without_committing_it(tmp_path,
         monkeypatch.setattr(workflow_cli, "ROOT", suite)
         monkeypatch.setattr(sys, "argv", ["workflow_cli", "final-audit", "--workspace", str(ws),
             "--db", str(db), "--wf", wf.id, "--evidence-file", str(ev_path)])
-        # Exercise the actual pre-use hook parser/writer, not only handcrafted L1.
-        import os
-        import subprocess
+        # 用规范 L1 记录格式写入编排调用，而非手搓证据。
         control = f'python -m engine.workflow_cli final-audit --workspace "{ws}" --db "{db}" --wf {wf.id} --evidence-file "{ev_path}"'
-        hook = subprocess.run([sys.executable, str(ROOT / "hooks/zcode_audit_l1.py"), "pre"],
-            input=json.dumps({"tool_name": "Bash", "tool_input": {"command": control}}),
-            text=True, capture_output=True, encoding="utf-8",
-            env={**os.environ, "ZCODE_PROJECT_DIR": str(tmp_path)}, check=False)
-        assert hook.returncode == 0, hook.stderr
+        AuditStore(tmp_path).record({"type": "tool_call", "tool": "bash", "detail": {"command": control}})
         assert workflow_cli.main() == 0
         capsys.readouterr()
         report = json.loads((ws / "AUDIT_REPORT.json").read_text(encoding="utf-8"))

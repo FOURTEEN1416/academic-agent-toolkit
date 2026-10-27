@@ -437,12 +437,12 @@ def test_accepted_new_child_extends_directory_without_accepting_other_files(tmp_
 
 
 def test_official_logger_paths_and_events(tmp_path):
-    """官方 opencode-logger 输出（log.jsonl + 轮转）可被审计报告读取。"""
+    """外部 logger 兼容格式（行式 JSONL + 轮转）可被审计报告读取。"""
     project_root = tmp_path / "project"
     project_root.mkdir()
     audit_dir = default_audit_dir(project_root)
     audit_dir.mkdir(parents=True)
-    # 模拟官方 logger 输出（eventType 格式）
+    # 模拟外部 logger 输出（eventType 格式）
     (audit_dir / "log.jsonl").write_text(
         json.dumps({"timestamp": "2026-01-01T00:00:00Z", "eventType": "tool.execute.before",
                     "payload": {"tool": "bash"}}) + "\n" +

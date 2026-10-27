@@ -68,11 +68,6 @@ mkdir -p paper
 
 ### Step 2: 文献检索（SCHOLAR — 真实文献，禁编造）
 
-**先读中国学者发表路径指南**（哪类期刊看哪种文献最多，CSSCI / 北核 / 集刊 / 学位论文差异）：
-```bash
-cat _utils/humanities-platform-guide.md 2>/dev/null || cat skills/shared-scripts/humanities-platform-guide.md
-```
-
 按 OUTLINE.md 的文献关键词检索：
 ```bash
 PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python

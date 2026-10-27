@@ -54,7 +54,7 @@ def _run_step(tmp_path: Path, metadata: dict, evidence_extra: dict | None = None
     (workspace / "OUT.md").write_text("# out\n" + "内容" * 200, encoding="utf-8")
     evidence = {
         "schema_version": 1,
-        "agent": "OpenCode Desktop",
+        "agent": "acat-agent",
         "step_id": action.step_id,
         "skill_name": action.skill_name,
         "skill_sha256": hashlib.sha256(action.skill_path.read_bytes()).hexdigest(),
@@ -297,9 +297,9 @@ def _seed_l1_event(project: Path, ts: str) -> None:
         encoding="utf-8")
 
 
-def test_verify_bindings_window_ignores_stale_host_logs(tmp_path):
-    """窗口归属修复（2026-09-26）：L1 日志若只剩旧宿主/旧赛事（早于本工作区
-    workflow 创建时刻）的宿主事件，当窗口内视为 L1 未启用 ⇒ unavailable，不判 warning。"""
+def test_verify_bindings_window_ignores_stale_session_logs(tmp_path):
+    """窗口归属修复（2026-09-26）：L1 日志若只剩旧会话/旧赛事（早于本工作区
+    workflow 创建时刻）的 L1 工具调用事件，当窗口内视为 L1 未启用 ⇒ unavailable，不判 warning。"""
     from engine.audit_store import verify_skill_bindings
     ws = tmp_path / "ws"
     project = tmp_path / "project"
@@ -313,7 +313,7 @@ def test_verify_bindings_window_ignores_stale_host_logs(tmp_path):
 
 
 def test_verify_bindings_window_keeps_in_window_warning(tmp_path):
-    """窗口内确有宿主事件但无绑定痕迹 → 仍 warning（窗口过滤不是一刀切豁免）。"""
+    """窗口内确有 L1 工具调用事件但无绑定痕迹 → 仍 warning（窗口过滤不是一刀切豁免）。"""
     from engine.audit_store import verify_skill_bindings
     ws = tmp_path / "ws"
     project = tmp_path / "project"

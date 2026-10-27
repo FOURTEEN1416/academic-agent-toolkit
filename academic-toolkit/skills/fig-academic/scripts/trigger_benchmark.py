@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Academic Figure Skill Trigger Accuracy Benchmark.
 
-Simulates Claude's skill dispatcher by scoring prompts against the SKILL.md
+Simulates a skill trigger dispatcher by scoring prompts against the SKILL.md
 description field. Reports precision / recall / F1 / false-positive and
 false-negative rates with misclassification analysis.
 

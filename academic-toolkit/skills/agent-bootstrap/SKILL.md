@@ -1,17 +1,16 @@
 ---
 name: agent-bootstrap
-description: 任意智能体自举驱动本academic-toolkit：读协议、探测能力、选择路由或启动工作流。触发词：启动项目、如何驱动、bootstrap、自举、宿主无关接入、agent 开始工作。
+description: 任意智能体自举驱动本academic-toolkit：读协议、探测能力、选择路由或启动工作流。触发词：启动项目、如何驱动、bootstrap、自举、任意 Agent 接入、agent 开始工作。
 status: active
 ---
 
-# agent-bootstrap — 宿主无关 Agent 自举协议
+# agent-bootstrap — 任意 Agent 自举协议
 
 ## 定位
 
-本技能告诉**当前驱动本项目的任意 Agent**（Claude Code / Cursor / Gemini CLI /
-MiMo Desktop / OpenCode / ZCode / 自写脚本）如何在 5 分钟内合法接入并开始工作。
+本技能告诉**当前驱动本项目的任意 Agent**（任何能读文件、能执行 `python -m engine.workflow_cli` 的 Agent：IDE 内嵌助手、CLI 编码代理、自写脚本等）如何在 5 分钟内接入并开始工作。
 
-**不依赖任何宿主专用配置。** OpenCode / ZCode 配置仅为可选适配器（本地可选自建）。
+**不依赖任何特定产品配置；平台专属配置仅为可选增强，不是驱动前提。**
 
 ## 输入契约
 
@@ -21,7 +20,7 @@ MiMo Desktop / OpenCode / ZCode / 自写脚本）如何在 5 分钟内合法接�
 ## 执行步骤
 
 1. **读协议**
-   - 仓库根 `AGENTS.md`（宿主中立入口）
+   - 仓库根 `AGENTS.md`（仓库驱动入口）
    - `academic-toolkit/AGENTS.md`（路由与门禁细节）
    - 机器可读契约：在 `academic-toolkit/` 下执行 `python -m engine.workflow_cli boot`
 
@@ -30,10 +29,10 @@ MiMo Desktop / OpenCode / ZCode / 自写脚本）如何在 5 分钟内合法接�
    cd academic-toolkit
    python -m engine.workflow_cli probe
    ```
-   阅读 `host_adapters` 与 `gaps`。适配器缺失不阻断；环境缺口按 hint 补齐或改用替代路径。
+   阅读 probe 的能力摘要与 `gaps`。缺口按 hint 补齐或改用替代路径，不阻断协议闭环。
 
 3. **确定驱动标签**
-   - 在 evidence 中自报 `agent`：如 `claude-code` / `cursor` / `mimo-desktop`
+   - 在 evidence 中自报 `agent`：填入当前驱动工具的通用名称（自由字符串），如 `my-agent-cli`
    - 可用环境变量 `ACAT_AGENT_LABEL` 固定默认标签
 
 3.5 **扫资产台账（先知道自己有什么，再决定怎么做）**
@@ -54,12 +53,12 @@ MiMo Desktop / OpenCode / ZCode / 自写脚本）如何在 5 分钟内合法接�
    - 默认用 `session run --session <next返回路径> --plan <任务计划> --finish`；纯内容用 `session write --path <产物> --stdin`，完成后 `session finish`。程序采集实际返回码、输入输出和指纹，不手填 evidence JSON。
    - 计划只声明业务命令/依赖/产物；明确纯计算且完整依赖的节点可复用，变化时自动重跑受影响节点。不要缓存网络、独立评审或人工批准。
    - `needs_work` 保持本步可编辑，一次修复诊断后再次 finish；不为修字段创建 retry 循环。中断恢复需确认进程已停，不能伪造成功。
-   - 旧外部接入仍可 `complete_step` + 真实 `execution_evidence`。无宿主 L1 时审计如实降级；执行会话的机器采集记录独立核验，不冒充宿主L1。
+   - 旧外部接入仍可 `complete_step` + 真实 `execution_evidence`。无 L1 拦截式审计时审计如实降级；执行会话的机器采集记录独立核验，不冒充任何拦截式审计通道。
 
 ## 输出契约
 
 - 已选定的驱动路径（工作流 ID 或技能名）
-- probe 摘要（可用适配器 / 关键 gaps）
+- probe 摘要（可用能力 / 关键 gaps）
 - 后续动作清单
 
 ## 质量铁律
@@ -74,4 +73,3 @@ MiMo Desktop / OpenCode / ZCode / 自写脚本）如何在 5 分钟内合法接�
 - 协议实现: `academic-toolkit/engine/host/agent_protocol.py`
 - 能力探测: `academic-toolkit/engine/host/capability_probe.py`
 - 工具铸造: `skills/tool-forge`
-- 可选适配器: 协议不依赖（`forge --adapter` 可本地生成）

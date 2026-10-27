@@ -1,5 +1,5 @@
 {
   "version": 1,
   "single_delivery": false,
-  "rationale": "裁决 6.1 门控前提：P1 单次投递机制先落地、出厂关闭；默认路径必须与 P0 现状逐字节等价。仅当 V4 宿主 A/B（ZCode/OpenCode 各 20 次 next，传/不传 sha）证明读取次数真的下降且产出质量无退化后，才允许把 single_delivery 改为 true。配置查找顺序：工作区级 <workspace>/.engine/context_delivery.json（合法即优先，供 V4 在单工作区开跑不动全局）→ 本文件 → 出厂关闭；工作区文件非法时跳过回落，不得启用未验证行为。配套求救通道：模型上下文丢失正文时声明 SKILL_LOST，执行方 next --resend（channel=resend）强制重发全文并入账本。文件必须留在 checkers/ 子目录：modex-core 根下 glob(\"*.json\") 与 _RULE_FILE_NAMES 会进 legacy 合同/候选 acceptance 哈希，根级新增 json 会改变哈希面。"
+  "rationale": "裁决 6.1 门控前提：P1 单次投递机制先落地、出厂关闭；默认路径必须与 P0 现状逐字节等价。仅当 V4 发布前 A/B 验证（双通道各 20 次 next，传/不传 sha 对照）证明读取次数下降且质量无退化后，才允许把 single_delivery 改为 true。配置查找顺序：工作区级 <workspace>/.engine/context_delivery.json（合法即优先，供 V4 在单工作区开跑不动全局）→ 本文件 → 出厂关闭；工作区文件非法时跳过回落，不得启用未验证行为。配套求救通道：模型上下文丢失正文时声明 SKILL_LOST，执行方 next --resend（channel=resend）强制重发全文并入账本。文件必须留在 checkers/ 子目录：modex-core 根下 glob(\"*.json\") 与 _RULE_FILE_NAMES 会进 legacy 合同/候选 acceptance 哈希，根级新增 json 会改变哈希面。"
 }

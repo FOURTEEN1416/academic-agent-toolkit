@@ -250,23 +250,7 @@ Flag these without being asked:
 
 ---
 
-## Installation
-
-### One-liner (any tool)
-```bash
-git clone https://github.com/alirezarezvani/claude-skills.git
-keep the skill directory in place under `skills/` (in-repo usage; no host install step)
-```
-
-### Multi-tool install (run from the claude-skills repo root)
-```bash
-./scripts/convert.sh --skill research-summarizer --tool codex|gemini|cursor|windsurf|openclaw
-```
-
-### OpenClaw
-```bash
-clawhub install cs-research-summarizer
-```
+上游参考：https://github.com/alirezarezvani/claude-skills（本仓以 `skills/` 原地使用，不提供任何宿主安装步骤；上游的多工具转换与包管理器安装不适用于本仓）。
 
 ---
 

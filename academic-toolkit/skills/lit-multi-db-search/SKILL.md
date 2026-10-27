@@ -7,7 +7,7 @@ metadata:
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以宿主 web_search/web_fetch 替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以执行侧 web_search/web_fetch 工具替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Paper Lookup
 
 You have access to 10 academic paper databases through their REST APIs. Your job is to figure out which database(s) best serve the user's query, call them, and return the results.
@@ -111,18 +111,11 @@ Most of these databases are fully open. A few benefit from API keys for higher r
 
 ## Making API Calls
 
-Use your environment's HTTP fetch tool to call REST endpoints:
+Use your execution environment's HTTP fetch capability to call REST endpoints:
 
-| Platform | HTTP Fetch Tool | Fallback |
-|---|---|---|
-| Claude Code | `WebFetch` | `curl` via Bash |
-| Gemini CLI | `web_fetch` | `curl` via shell |
-| Windsurf | `read_url_content` | `curl` via terminal |
-| Cursor | No dedicated fetch tool | `curl` via `run_terminal_cmd` |
-| Codex CLI | No dedicated fetch tool | `curl` via `shell` |
-| Cline | No dedicated fetch tool | `curl` via `execute_command` |
-
-If the fetch tool fails, fall back to `curl` via whatever shell tool is available.
+1. If a dedicated HTTP fetch tool is available, use it to call REST endpoints.
+2. If there is none, use the current shell to run `curl -s <url>` (add `-H`/`--data` etc. as needed) and report failures honestly.
+3. If the fetch tool fails, fall back to `curl` via whatever shell tool is available.
 
 ### Special cases
 

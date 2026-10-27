@@ -21,16 +21,13 @@ status: active
 1. **确认缺口类型**
    - `python_package` / `cli`：环境类——**不自动伪造安装**，按 probe hint 配置或改用替代
    - 任务缺工具/技能：进入铸造
-   - 可选宿主适配器缺失：可铸造 adapter 元数据，或直接忽略（协议不依赖）
+   - 环境适配元数据铸造已退役，不再作为缺口类型
 
 2. **铸造资产**
    ```bash
    cd academic-toolkit
    python -m engine.workflow_cli forge --tool my-tool --purpose "一句话目的"
    python -m engine.workflow_cli forge --skill my-skill --purpose "一句话目的" --linked-tool my-tool
-   python -m engine.workflow_cli forge --adapter my-host --purpose "某宿主可选适配"
-   # 或按 probe gap 建议：
-   python -m engine.workflow_cli forge --gap '{"kind":"optional_adapter","id":"foo","hint":"..."}'
    ```
    默认不覆盖已有文件；确需覆盖加 `--force`。
 

@@ -85,24 +85,7 @@ If you cannot programmatically verify a citation, you MUST:
 
 ### Recommended: Install Exa MCP for Paper Search
 
-For the best paper search experience, install **Exa MCP** which provides real-time academic search:
-
-**Claude Code:**
-```bash
-claude mcp add exa -- npx -y mcp-remote "https://mcp.exa.ai/mcp"
-```
-
-**Cursor / VS Code** (add to MCP settings):
-```json
-{
-  "mcpServers": {
-    "exa": {
-      "type": "http",
-      "url": "https://mcp.exa.ai/mcp"
-    }
-  }
-}
-```
+If the current environment supports MCP, register `https://mcp.exa.ai/mcp` (HTTP transport) as an MCP server named `exa`; the exact command or configuration format depends on the environment.
 
 Exa MCP enables searches like:
 - "Find papers on RLHF for language models published after 2023"

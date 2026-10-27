@@ -49,7 +49,7 @@ After S5, human decisions are outside this assistant workflow.
    - 明确说明：这些偏好只用于 S1-FIGURE-STRATEGY 的图类型、读者效果和表达方向建议，不自动传递到后续 step。
 
 2. 运行环境：
-   - 询问用户使用 ChatGPT web、Codex、Claude Code，还是其他工具。
+   - 询问用户当前环境提供哪一种图像生成能力（对应 state 值：`builtin_image_gen` / `web_image_chat` / `approved_api` / `none`）：① 内置图像生成工具；② 网页对话式图像生成；③ 仅外部已批准 API；④ 无。
    - 这只影响 image-generation route 和 local-path handling。
    - 不询问是否启用 generated web-page display；该路线已删除。
 
@@ -68,8 +68,11 @@ Bootstrap plan-only replies are exempt from atlas display. Do not display atlas 
 
 ## Runtime Environment Policy
 
-- `chatgpt_web`: use ChatGPT Create image / ChatGPT Images for target-paper image generation.
-- `codex`: use `$imagegen` first; no generated web pages.
+- 状态键 `runtime_environment.environment` 记录能力类别：`builtin_image_gen` / `web_image_chat` / `approved_api` / `none`；未判定时为 `unknown`，图像步骤阻断。历史值在迁移时按别名归一化。
+- `builtin_image_gen`: use the built-in image-generation tool for target-paper image generation.
+- `web_image_chat`: use the web chat image-generation surface for target-paper image generation.
+- `approved_api`: use a named approved image-generation API only.
+- `none`: block target-paper image generation.
 
 所有持久化路径必须保持 project-run-relative。
 

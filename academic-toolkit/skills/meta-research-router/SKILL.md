@@ -9,7 +9,7 @@ description: "Default research router: classifies requests, then delegates to a 
 
 ## Portability
 
-Requires `WebSearch` + `WebFetch` for the fallback workflow; specialist skills (`pulse`, `grants`, `litreview`, `syllabus`, `patent`, `dossier`) must be present for delegation to work. Node.js with `docx` package required if Q2 = document mode. 任何具备检索/抓取能力的宿主均可运行（Claude Code / Claude.ai 为示例宿主）。
+Requires `WebSearch` + `WebFetch` for the fallback workflow; specialist skills (`pulse`, `grants`, `litreview`, `syllabus`, `patent`, `dossier`) must be present for delegation to work. Node.js with `docx` package required if Q2 = document mode. 任何具备检索/抓取能力的执行环境均可运行。
 
 ## Distinct From `engineering/autoresearch-agent`
 

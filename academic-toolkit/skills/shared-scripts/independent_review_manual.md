@@ -64,6 +64,6 @@ Minimum fixes / READY 判定。
 
 - `auto-review-loop`（多轮审稿循环）已内置本手册：每轮任务卡/verdict 进 `review_tasks/`，
   驱动方记入 `REVIEW_STATE.json` 的 `review_driver`（`independent` / `self-fallback`）。
-- 视觉审核三工具由 `tools/host_visual_review.py` 承载同一任务卡制（`visual_review_tasks/`）。
+- 视觉审核三工具由 `tools/visual_review.py` 承载同一任务卡制（`visual_review_tasks/`）。
 - 其余技能文中出现 `reviewer_client.py` / 外部审稿 API / APIKey 配置等字样时，
   **一律以本手册为准**：不配置密钥、不发起网络调用、按上述四步执行。

@@ -39,7 +39,7 @@ Input:
 
 Constraints:
 - ALL framings must be marked status = "candidate".
-- Do NOT evaluate evidence sufficiency (that is Claude's job).
+- Do NOT evaluate evidence sufficiency (that is the depth collaborator's job).
 - Do NOT recommend a routing decision (review vs empirical).
 - For each framing provide: label, one-sentence claim, differentiation
   from nearest existing work, and 2-3 risk factors.
@@ -67,7 +67,7 @@ Constraints:
 - ONLY flag gaps; do NOT fill them in.
 - Any candidate supplementary rows must be marked
   verification_status = "unverified".
-- Do NOT evaluate evidence quality or sufficiency (that is Claude's job).
+- Do NOT evaluate evidence quality or sufficiency (that is the depth collaborator's job).
 - Do NOT modify existing verified entries.
 
 Output:
@@ -134,7 +134,7 @@ Input diff:
 
 ```
 Task:
-- Analyze the UI screenshot at `.codex_uploads/<filename>.png`.
+- Analyze the UI screenshot at `<uploads-dir>/<filename>.png`.
 
 Constraints:
 - Describe what you see, then answer: <specific question>.

@@ -12,11 +12,12 @@
 
 ## 密钥与隐私边界（本仓的底线）
 
-- **本地密钥不入库**：`academic-toolkit/.env`、任何 API key、token、证书私钥**永不提交**。`.gitignore` 已排除 `.env` 族；工具链不读取任何宿主凭据文件。
-- **tracked 配置必须可移植**：`opencode.json` / `pytest.ini` 等使用占位符（`${DOCSEARCH_MCP_SERVER}` 等）；本机绝对路径（`C:\Users\...`）与过期项目根不得写入。宿主本地配置一律不入库。
+- **本地密钥不入库**：`academic-toolkit/.env`、任何 API key、token、证书私钥**永不提交**。`.gitignore` 已排除 `.env` 族；工具链不读取任何外部平台/运行环境的凭据文件。
+- **tracked 配置必须可移植**：`pytest.ini`、`requirements-dev.txt` 等不得写入本机绝对路径（`C:\Users\...`）与过期项目根；环境相关配置放在本地未提交的覆盖中，不入库。
 - **机检门禁**：`python academic-toolkit/tools/secret_scan.py --strict` 扫描全部 tracked 文本文件的高置信凭证模式与配置绝对路径（豁免须登记 `data/secret_scan_allowlist.json` 并给出理由）；CI 每次推送执行。
 - **单一真源**：`tools/` 只有 `.py` 单一真源，零 `.pyc`（`test_tool_reliability` 棘轮钉住）。
-- **上游 fork**：`vendor/forks/` 为上游 fork 收编区，**已 tracked 并随公开仓分发**（2026-09-28 用户裁决；`node_modules` 按全局排除不入库）。溯源与许可边界以 `academic-toolkit/tools/check_provenance.py` 为准。
+- **上游 fork**：`vendor/forks/` 为上游 fork 收编区，**已 tracked 并随公开仓分发**（2026-09-28 用户裁决；`node_modules` 按全局排除不入库）。各 fork 保留其上游许可证，授权以各目录随附的 `LICENSE` / `UPSTREAM.md` 为准（当前仅部分目录齐备，缺失者待补台账）；`python academic-toolkit/tools/check_provenance.py` 目前只审计 `third_party/` 与技能 `UPSTREAM.md` 台账，尚未覆盖 `vendor/forks/`。
+- **审计日志不入库**：L1 审计钩子（`academic-toolkit/hooks/agent_audit_l1.py`，须与本条一并入库）把工具事件写入项目根 `.engine/audit/operations.jsonl`，只记命令/查询模式、路径与内容长度，不记文件正文；`.engine/` 已由 `.gitignore` 排除，不随仓分发；无 L1 钩子时审计状态如实记为 `unavailable`，不阻断执行。
 
 ## 报告漏洞
 

@@ -584,10 +584,10 @@ def dispatch_review(out_dir: Path, manuscript_path: Path,
         out_path.write_text(prompt, encoding="utf-8")
         file_list.append(str(out_path.relative_to(out_dir)))
 
-    # Write dispatch instructions for the main Claude
+    # Write dispatch instructions for the main (driving) agent
     dispatch_md = (
         "# Review Dispatch Instructions\n\n"
-        "Launch **three sub-agents in parallel** using the Agent tool. "
+        "Launch three sub-agents in parallel through the driving agent's subagent mechanism. "
         "Each agent reads only its own prompt file and the manuscript — "
         "they must NOT see each other's outputs or the other prompts.\n\n"
         "### Agent 1: Methods Reviewer\n"

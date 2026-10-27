@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""宿主独立窗口视觉审核驱动（2026-09-23 第三次用户裁定：换驱动，不拆机制）。
+"""独立审核会话视觉审核驱动（2026-09-23 第三次用户裁定：换驱动，不拆机制）。
 
 视觉审核的底层驱动从「填 APIKey 调外部视觉 LLM API」整体置换为：
-**项目驱动宿主自身具备视觉能力的 LLM，在独立窗口完成读图审核。**
+**由驱动本项目、具备视觉能力的主控 Agent，在独立审核会话/窗口中完成读图审核。**
 
 本模块是三个视觉质检工具（data_fig / tikz / drawio）的共享实现本体。
 CLI 契约与旧实现完全兼容：入口名、<image> 参数、--review 开关、
@@ -14,11 +14,11 @@ exit 语义（0=pass 或 STOP 定稿放行 / 1=发现 issue / 2=unavailable）�
 1. 开发期防死循环计数（沿用旧实现 STOP_VISION_LOOP 全套治理：图名归一、
    per-图 2 轮、全局 图数×2+2、--review 审核模式不计数不受限）；
 2. 确定性检查（PIL/PyMuPDF 解码、尺寸、页数）——辅助，不阻断；
-3. 若独立窗口已回写 verdict（visual_review_tasks/<stem>.verdict.md），
+3. 若独立审核会话已回写 verdict（visual_review_tasks/<stem>.verdict.md），
    校验并汇总输出 PASS / ISSUE N: ...；
-4. 否则生成独立窗口审核任务卡（<stem>.task.md）并提示派发，exit 2。
+4. 否则生成独立审核会话审核任务卡（<stem>.task.md）并提示派发，exit 2。
 
-审核执行者永远是宿主独立窗口（视觉审子代理/独立会话），本工具只做
+审核执行者永远是独立审核会话（视觉审子代理/独立会话），本工具只做
 任务卡生成与证据收集：不发起任何网络 API 调用、不读取任何 API key。
 """
 from __future__ import annotations
@@ -156,7 +156,7 @@ def deterministic_check(image_path: Path) -> list[str]:
             import fitz  # PyMuPDF
 
             with fitz.open(image_path) as doc:
-                notes.append(f"PDF 页数: {doc.page_count}（独立窗口请逐页审查嵌入图）")
+                notes.append(f"PDF 页数: {doc.page_count}（独立审核会话请逐页审查嵌入图）")
         except Exception as exc:  # noqa: BLE001
             notes.append(f"确定性 PDF 检查跳过: {exc}")
         return notes
@@ -172,7 +172,7 @@ def deterministic_check(image_path: Path) -> list[str]:
     return notes
 
 
-# ---------------- 任务卡 / 证据（宿主独立窗口驱动核心） ----------------
+# ---------------- 任务卡 / 证据（独立审核会话驱动核心） ----------------
 
 def task_dir(workspace: Path) -> Path:
     return Path(workspace) / TASK_DIR_NAME
@@ -188,15 +188,16 @@ def verdict_path(workspace: Path, image_path: Path) -> Path:
 
 def build_task_card(backend: str, image_path: Path, review: bool,
                     checklist: list[str] | None = None) -> str:
-    """生成宿主独立窗口审核任务卡。审核执行者=宿主视觉模型独立窗口。"""
+    """生成独立审核会话审核任务卡。审核执行者=独立审核会话中的视觉能力 Agent。"""
     items = checklist if checklist is not None else CHECKLIST
     lines = [
         "# 独立窗口视觉审核任务卡",
         "",
         f"- backend: {backend}",
         f"- 待审图件: {image_path}",
-        "- 执行者要求: 必须由项目驱动宿主的**独立窗口**（视觉审子代理/独立会话，"
-        "与产出该图的窗口隔离）中的视觉能力 LLM **实际读图**执行；"
+        "- 执行者要求: 必须由驱动本项目、具备视觉能力的**主控 Agent**，"
+        "在独立审核会话（独立窗口/独立会话，与产出该图的窗口隔离）中"
+        "**实际读图**执行；"
         "禁止由产图窗口自审，禁止以确定性检查结果冒充视觉结论。",
         "- 审查模式: " + ("review（审核/终审，证据供 review 闸）" if review else "dev（开发迭代）"),
         "",
@@ -211,7 +212,7 @@ def build_task_card(backend: str, image_path: Path, review: bool,
         "格式（缺一即判证据无效）:",
         "",
         "```markdown",
-        f"{REVIEWED_BY_PREFIX} <执行窗口标识，如 zcode-visual-judge>",
+        f"{REVIEWED_BY_PREFIX} <执行会话标识>",
         "",
         "PASS",
         "",
@@ -224,7 +225,7 @@ def build_task_card(backend: str, image_path: Path, review: bool,
 
 
 def parse_verdict(text: str) -> tuple[str, list[str], str]:
-    """解析独立窗口 verdict。返回 (reviewed_by, issues, verdict_word)。"""
+    """解析独立审核会话 verdict。返回 (reviewed_by, issues, verdict_word)。"""
     reviewed_by = ""
     issues: list[str] = []
     verdict_word = ""
@@ -241,13 +242,13 @@ def parse_verdict(text: str) -> tuple[str, list[str], str]:
 
 
 def collect_and_report(workspace: Path, image_path: Path) -> tuple[int, str]:
-    """校验独立窗口回写的 verdict 并汇总。返回 (exit_code, 输出文本)。"""
+    """校验独立审核会话回写的 verdict 并汇总。返回 (exit_code, 输出文本)。"""
     vpath = verdict_path(workspace, image_path)
     if not vpath.is_file():
-        return 2, "NO_HOST_WINDOW_VERDICT: 独立窗口尚未回写审核结论"
+        return 2, "NO_INDEPENDENT_REVIEW_VERDICT: 独立审核会话尚未回写审核结论"
     reviewed_by, issues, verdict_word = parse_verdict(_read_text(vpath))
     if not reviewed_by:
-        return 2, "INVALID_VERDICT: 缺少 Reviewed-by 执行窗口标识（独立窗口证据必须注明执行者）"
+        return 2, "INVALID_VERDICT: 缺少 Reviewed-by 执行会话标识（独立审核证据必须注明执行者）"
     if not verdict_word:
         return 2, "INVALID_VERDICT: 既无 PASS 也无 ISSUE 行，不构成审核结论"
     if issues:
@@ -294,7 +295,7 @@ def run(backend: str, image_arg: str, review: bool = False,
         for note in deterministic_check(image_path):
             print(f"[确定性] {note}")
         print(
-            "PENDING_HOST_WINDOW_REVIEW: 请派发宿主独立窗口（视觉审子代理/独立会话）"
+            "PENDING_INDEPENDENT_REVIEW: 请派发独立审核会话（视觉审子代理/独立会话）"
             f"按任务卡实际读图审核，并将结论回写 {verdict_path(ws, image_path)} "
             "后重跑本命令收集。"
         )
@@ -339,6 +340,6 @@ def main_stub(backend: str, usage: str, checklist: list[str] | None = None) -> i
 if __name__ == "__main__":
     # 裸执行本文件不是有效入口（真实入口：data_fig_vision_check.py /
     # drawio_vision_check.py / tikz_vision_check.py）；零输出 exit 0 会被当通过。
-    print("SKIP: host_visual_review.py 是任务卡/证据库模块，无直接 CLI 语义；"
+    print("SKIP: visual_review.py 是任务卡/证据库模块，无直接 CLI 语义；"
           "请用 tools/data_fig_vision_check.py 等入口（exit 2）")
     raise SystemExit(2)

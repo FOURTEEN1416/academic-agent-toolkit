@@ -5,7 +5,7 @@
 
 # Integration Contract
 
-<!-- modex-3 同源吸收 P3（2026-09-22）：自上游共享参考收编为本技能 references/，补齐 SKILL.md 悬空指针；内容保持上游原样（无宿主专有引用）。 -->
+<!-- modex-3 同源吸收 P3（2026-09-22）：自上游共享参考收编为本技能 references/，补齐 SKILL.md 悬空指针；内容保持上游原样。 -->
 
 When one skill delegates work to another (or to persistent project
 state), the coupling must be **engineered**, not assumed. This document
@@ -304,7 +304,7 @@ here first.
 | Helper (canonical name) | Policy | Rationale |
 |---|---|---|
 | `verify_paper_audits.sh` | A (gate) | Exit code is the source of truth for submission readiness |
-| `copilot_native_evidence.py` | A (gate) | Binds `/auto-review-loop` to the current Copilot root session and revalidates the native `rubber-duck` lifecycle, actual model pair, and raw response; without verified evidence, a native verdict cannot stop the loop |
+| `copilot_native_evidence.py` | A (gate) | Binds `/auto-review-loop` to the session-bound native review channel and revalidates the native reviewer lifecycle, actual model pair, and raw response; without verified evidence, a native verdict cannot stop the loop (upstream mechanism; not bundled here) |
 | `review_gate.py` | A (gate) | Authoritative stop/continue/escalate transition table for `/auto-review-loop`; missing helper means the loop cannot safely decide termination |
 | `save_trace.sh` | C (forensic) | Trace artifacts are load-bearing for audit traceability and reviewer-independence audit |
 | `research_wiki.py ingest_paper` (caller skills) | B (side-effect) | Primary output (idea ranking, paper summary) is delivered without wiki ingestion |
@@ -317,12 +317,12 @@ here first.
 | `figure_renderer.py` | A (skill-local gate, single-skill) | `fig-spec` cannot produce vector SVG output without the renderer. **Phase 3.1 move**: canonical location is `skills/fig-spec/scripts/figure_renderer.py`; `tools/figure_renderer.py` retained as `os.execv` shim for legacy resolver layers. |
 | `experiment_queue/queue_manager.py`, `experiment_queue/build_manifest.py` | A (skill-local gate, single-skill) | `/experiment-queue` cannot operate without these; canonical resolver applies the same chain. **Phase 3.3 move**: canonical location is `skills/experiment-queue/scripts/{queue_manager.py, build_manifest.py}`; both `tools/experiment_queue/*.py` retained as `os.execv` shims for legacy resolver layers. |
 | `overleaf_audit.sh` | E (diagnostic) | Reports overleaf sync drift; surfaces gaps but does not gate the parent workflow |
-| `evidence_check.py` (in `/result-to-claim`, `/paper-claim-audit`) | B (side-effect) | Deterministic pre-check that downgrades hallucinated-evidence claims before the Codex jury; if unresolved the jury still runs (warn-and-skip). A deterministic gate DRIVES, it does not ACQUIT — `verified` means the cited number exists, not that it supports the claim |
+| `evidence_check.py` (in `/result-to-claim`, `/paper-claim-audit`) | B (side-effect) | Deterministic pre-check that downgrades hallucinated-evidence claims before the external reviewer jury; if unresolved the jury still runs (warn-and-skip). A deterministic gate DRIVES, it does not ACQUIT — `verified` means the cited number exists, not that it supports the claim |
 | `capture_filter.py` (in `/research-wiki` capture, `/meta-optimize` Step 3) | B (side-effect) | Anti-self-poisoning screen on durable captures; if unresolved the capture proceeds (the screen is advisory, and a passing screen is never an ACCEPT — the cross-model jury still judges) |
 | `provenance.py` (in `/meta-apply`; `assert_cross_family`/`stamp`) | A (gate) | The landing acquittal: if unresolved, `/meta-apply` cannot verify author≠reviewer family and MUST refuse to land (fail-closed). `stamp()` itself raises on same-family, so an unresolved or same-family case blocks the corpus mutation |
 | `run_state.py` (in `/research-pipeline`) | B (side-effect) | Resumability is a convenience; the pipeline still runs end-to-end without it (warn-and-skip, never block). Predicate = `RESUMABLE` / `— resume <run_id>` set |
 | `forensics_gate.py` (in `/integrity-forensics`, `/paper-writing` Phase 5.9/6.0, `/resubmit-pipeline`) | A (gate) | Typed policy gate + append-only obligations ledger for the Anti-Autoresearch launcher; at `assurance: submission` an unresolved helper blocks the Final Report / Overleaf push (never improvise the gate). `fresh` is the one-command downstream preflight; exit code is the source of truth |
-| `iteration_log.py` (in `/research-pipeline`, `/idea-discovery`) | B (side-effect) | Stall→pivot ledger is a convenience for overnight loops; the pipeline runs without it (warn-and-skip, never block). Predicate = an overnight heartbeat is driving the loop. Mainline-only for now (Codex-mirror sync pending external-cadence mirror). |
+| `iteration_log.py` (in `/research-pipeline`, `/idea-discovery`) | B (side-effect) | Stall→pivot ledger is a convenience for overnight loops; the pipeline runs without it (warn-and-skip, never block). Predicate = an overnight heartbeat is driving the loop. Mainline-only for now (upstream-mirror sync pending external cadence). |
 
 When a SKILL invokes a helper not listed above, add the row here as
 part of the same commit and link the chosen policy. Inconsistency in

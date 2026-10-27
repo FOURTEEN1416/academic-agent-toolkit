@@ -11,7 +11,7 @@ metadata:
 
 # Dossier — Decision-Grade Entity Research
 
-> **Portability:** Requires `WebSearch` + `WebFetch`, Node.js with `docx` package, and optionally `bash_tool` + `curl` for free APIs (SEC EDGAR, GitHub, ProPublica). BYOK MCPs (LinkedIn, Crunchbase, Apollo, Pitchbook, SimilarWeb) are optional enhancements. 任何具备上述能力的宿主均可运行（Claude Code / Claude.ai 仅为示例）。
+> **Portability:** Requires `WebSearch` + `WebFetch`, Node.js with `docx` package, and optionally `bash_tool` + `curl` for free APIs (SEC EDGAR, GitHub, ProPublica). BYOK MCPs (LinkedIn, Crunchbase, Apollo, Pitchbook, SimilarWeb) are optional enhancements. 任何具备上述能力的执行环境均可运行。
 
 ## Non-Generic Framing — The Differentiator
 

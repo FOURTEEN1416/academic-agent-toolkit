@@ -24,7 +24,7 @@ ARS's v3.2 `disclosure` mode renders a venue-targeted applicability/status bundl
 4. **Cold-start fallback**: when the renderer runs outside a pipeline (no `slr_lineage` set), the author supplies `mode=<value>` explicitly. Silent fallback to general track on missing input is **forbidden** by §4.3 G2 invariant.
 5. **v3.2 Phase 2 AI usage categorization**: the same input shape v3.2 uses. Each AI usage category carries state ∈ `{USED, NOT USED, UNCERTAIN}`.
 6. **Optional `ai_used: true | false`**: explicit author-supplied flag layered on top of category state. Composes with category state per §2 G10 7-row precedence table below.
-7. **Tool identity per AI tool** (concern #2 resolution): auto-detected from session metadata (mirror v3.2 `disclosure_mode_protocol.md` Phase 4 detection); explicit fallback per tool when session metadata absent or non-Claude tools are involved.
+7. **Tool identity per AI tool** (concern #2 resolution): auto-detected from session metadata (mirror v3.2 `disclosure_mode_protocol.md` Phase 4 detection); explicit fallback per tool when session metadata is absent or the tool is not auto-detectable.
 
 ---
 
@@ -175,7 +175,7 @@ The §4.3 invariants constrain the evaluation:
 For audit traceability, this protocol implements each Decision Doc §4.4 open concern as follows. See implementation spec §3 for full rationale.
 
 - **concern #1** — Track-selection lookup mechanism resolved as: explicit `slr_lineage` input from pipeline orchestrator; cold-start `mode=` parameter.
-- **concern #2** — Tool identity collection: auto-detect from session metadata (v3.2 Phase 4 pattern); explicit fallback per tool for cold-start or non-Claude pipelines.
+- **concern #2** — Tool identity collection: auto-detect from session metadata (v3.2 Phase 4 pattern); explicit fallback per tool for cold-start or tool-undetectable pipelines.
 - **concern #3** — Prompt scope: per-(tool × task) tuple across M3.a 6-stage enum; missing tuples emit "not supplied" annotation per tuple.
 - **concern #4** — IEEE section locator: free-form list with recommended IMRaD exemplars; parallel to G8 `level_of_involvement` design.
 - **concern #5** — Nature image metadata + labelling: hybrid output channel — standalone annotation block + suggested inline manuscript patches; ARS does not modify manuscript source autonomously.

@@ -21,28 +21,24 @@ Ask these fields in order:
 
 ## Supported Command-Line UI
 
-Claude Code and Codex do not guarantee a native graphical picker for skills.
-The supported PaperSpine UI is the bundled terminal wizard. In Claude Code, use
-the `/paperspine` command when installed, or launch the PowerShell wrapper so
-the wizard runs in a real interactive terminal window:
+The supported PaperSpine UI is the bundled terminal wizard (`intake_wizard.py`)
+together with the `launch_paperspine_ui.ps1` PowerShell wrapper in
+`spine-intake/scripts/`, which runs the wizard in a real interactive terminal
+window. Resolve the launcher's absolute path from the repository checkout root:
 
 ```powershell
-# Pass the ABSOLUTE path to the installed launcher. Codex/Claude run from the
-# user's project folder, where `scripts/` does not exist, so a relative path is
-# the most common reason the UI window never opens. Resolve the install dir:
-$launcher = @(
-  "$env:USERPROFILE\.codex\skills\paper-spine\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\.claude\skills\paper-spine\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\AppData\Local\hermes\skills\academic-writing\paper-spine\scripts\launch_paperspine_ui.ps1"
-) | Where-Object { Test-Path $_ } | Select-Object -First 1
+# Run commands from the user's project folder, where `scripts/` does not exist,
+# so a relative path is the most common reason the UI window never opens.
+$repo = git rev-parse --show-toplevel
+$launcher = Join-Path $repo "academic-toolkit/skills/spine-intake/scripts/launch_paperspine_ui.ps1"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File $launcher -OutputDir paper_rewriting_output
 ```
 
 For a user-run terminal, the direct wizard command is:
 
 ```bash
-# intake_wizard.py 已收编至本技能 scripts/（2026-09-28，pin 1fe46f0）
-WIZARD="$(find "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" -path "*intake_wizard.py" 2>/dev/null | head -1)"
+# intake_wizard.py 位于 spine-intake/scripts/（2026-09-28 回填，pin 1fe46f0）
+WIZARD="$(git rev-parse --show-toplevel)/academic-toolkit/skills/spine-intake/scripts/intake_wizard.py"
 python "$WIZARD" --output-dir paper_rewriting_output
 ```
 
@@ -54,13 +50,13 @@ screen, and an edit loop before writing config files.
 For first-time setup or changing interface language:
 
 ```bash
-# intake_wizard.py 已收编至本技能 scripts/（2026-09-28，pin 1fe46f0）
-WIZARD="$(find "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" -path "*intake_wizard.py" 2>/dev/null | head -1)"
+# intake_wizard.py 位于 spine-intake/scripts/（2026-09-28 回填，pin 1fe46f0）
+WIZARD="$(git rev-parse --show-toplevel)/academic-toolkit/skills/spine-intake/scripts/intake_wizard.py"
 python "$WIZARD" --setup-global --output-dir paper_rewriting_output
 ```
 
-Use native structured questions only when the host exposes them reliably in the
-current session. The result must still be written to the same JSON/Markdown
+Use native structured questions only when the current execution environment can
+provide them reliably. The result must still be written to the same JSON/Markdown
 config files.
 
 ## Last-Resort Chat Fallback

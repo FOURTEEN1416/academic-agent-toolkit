@@ -39,8 +39,8 @@ Use this skill when you need to:
 
 ## Usage Steps
 
-1. **Provide reviewer comments** - Share the reviewer comments text or file with Claude
-2. **Analysis and classification** - Claude automatically parses and classifies the comments
+1. **Provide reviewer comments** - Share the reviewer comments text or file with the current Agent
+2. **Analysis and classification** - The current Agent automatically parses and classifies the comments
 3. **Strategy recommendations** - Receive response strategy suggestions for each comment
 4. **Write rebuttal** - Generate a structured rebuttal document based on the strategy
 5. **Optimize tone** - Review and optimize the professionalism and politeness of responses
@@ -93,8 +93,7 @@ When the rebuttal task involves:
 
 read the active installed writing memory before drafting:
 
-- the upstream `ml-paper-writing` writing-memory knowledge file（ACAT-GOVERNANCE：上游文件未随本仓库集成，宿主安装路径已废弃；2026-09-23 宿主中性化改写）
-- the equivalent installed skill-home path on Codex/OpenCode branches
+- the upstream `ml-paper-writing` writing-memory knowledge file（上游未集成，不可用；2026-09-23 已改中性表述）
 - otherwise skip this optional memory and continue with the local review-response references
 
 ### Default read order for rebuttal work

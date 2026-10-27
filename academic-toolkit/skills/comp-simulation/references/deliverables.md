@@ -24,7 +24,7 @@
 
 ### 链路（按可用性从高到低）
 
-1. **真实运行录屏**（首选）：宿主录屏 / OBS / `ffmpeg -f gdigrab`（Windows）/ CDP `Page.startScreencast`
+1. **真实运行录屏**（首选）：执行环境自带录屏 / OBS / `ffmpeg -f gdigrab`（Windows）/ CDP `Page.startScreencast`
    （动态网页可用 `cdp-headless-screencast` 技能）。
 2. **图上动画化**：把仿真逐帧图序列 → `ffmpeg -framerate 24 -i frame_%05d.png -c:v libx264 -pix_fmt yuv420p out.mp4`。
 3. **压缩到 ≤300MB**：

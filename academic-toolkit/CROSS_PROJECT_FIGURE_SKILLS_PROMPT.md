@@ -1,7 +1,7 @@
 # 跨项目科研绘图技能借用提示词（Cross-Project Figure Skills Prompt）
 
 > **用法**：把下方"提示词正文"整段复制，注入其它项目的 agent（作为系统规则附件或任务前导即可）。
-> **宿主无关（2026-09-20）**：任意 Agent 可直接 Read 本仓技能路径；若使用 ZCode，也可注册用户级技能（`~/.zcode/skills/acat-figure-skills/SKILL.md`）。路径以**本机 clone 后的仓库根**为准（本检出名 `学术工作流`），禁止写死过期项目根。
+> **可移植性（2026-09-20）**：任意 Agent 可直接 Read 本仓技能路径；路径以本机 clone 后的仓库根为准（本检出名 `学术工作流`），禁止写死过期项目根。
 > **真源**：技能清单以 `academic-toolkit/CONTEST_SKILL_MAP.md` 与 `capabilities/catalog.json` 为准，本文件为绘图技能借用提示词快照。
 
 ---
@@ -18,7 +18,7 @@
 4. **自检**：出图后按 SKILL.md 的质检段落 + 下方"出图红线"逐条自检。
 5. **留痕**：报告中注明模板来源（"Academic Agent Toolkit·academic-toolkit/<技能名>"）。
 
-### 二、技能清单（28 个 · 6 类）
+### 二、技能清单（32 个 · 6 类；`fig-spec` 在 A/F 各出现一次）
 
 **A. 论文主图主力（重量级，先读这里）**
 
@@ -28,6 +28,7 @@
 | `paper-figure-drawio` | draw.io 源文件级框架图/流程图 |
 | `paper-figure-html` | HTML/CSS 高密度信息图表 |
 | `fig-spec` | 图规格说明书（尺寸/字号/导出参数的成文规范） |
+| `paper-figure-palette` | 统一配色注册表（9 套色板与三步选色法，色值不得自创） |
 
 **B. 风格模板直出（给数据就出图）**
 
@@ -36,6 +37,7 @@
 | `plot-from-data` | 8 种顶会风格模板（配对增益柱/置信带曲线/断轴散点/双雷达等），选风格+代入数据，dpi=300 |
 | `fig-visualization-advisor` | CNS 级图表精修 |
 | `fig-academic` | 学术图表范式与 84M 图集参考 |
+| `fig-plot-edit-lite` | 无 Origin 的出版级数据图（逐列角色确认/方案哈希冻结/出版图形合同，propose→确认→render） |
 
 **C. 图库参考（照着好看的复现）**
 
@@ -54,6 +56,8 @@
 | `eco-community-plots` | 群落生态多元统计 R 模板 6 件：PCoA+边缘箱线+PERMANOVA / RDA 双标图+envfit / Mantel 热图 / Procrustes / 回归组合面板 / 富集 z-score（毫米制印刷导出） |
 | `fig-publication-chart` | 期刊级图表 |
 | `visualization` | 通用可视化方法 |
+| `fig-aesthetics-craft` | 图形质感技法（渐变合法语义/边色继承/绘图五纪律） |
+| `figure-craft` | 出版级优化制图总控（版面级图重绘/四道验收/视觉复审） |
 
 **E. 概念图/框架图/示意图**
 
@@ -73,6 +77,7 @@
 | `fig-critique` | 外部图审批判清单 |
 | `fig-spec` | 图规格核对 |
 | `comp-visual-review` | 视觉审查流程 |
+| `palette-health-check` | 配色去灰提彩体检（C*/C*max 去灰指标与色带入带序复核） |
 
 ### 三、选型决策树
 
@@ -104,4 +109,4 @@
 
 - 技能清单与全库分类账：`<REPO_ROOT>/academic-toolkit/CONTEST_SKILL_MAP.md`
 - 能力目录（机检 schema）：`<REPO_ROOT>/capabilities/catalog.json`
-- 本文件为 2026-09-11 快照；清单变动以上述真源为准。
+- 本文件为 2026-10-27 快照；清单变动以上述真源为准。

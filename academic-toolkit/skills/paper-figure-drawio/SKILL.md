@@ -415,7 +415,7 @@ done
 
 **其余架构/pipeline/framework/hierarchy 图同样过通用 XML、字号、重叠检查**：
 ```bash
-# 解析可用 Python：在候选里挑一个能真正执行的（宿主中性探测）。
+# 解析可用 Python：在候选里挑一个能真正执行的（多环境兼容探测）。
 PYTHON=""
 for _cand in python python3 "py -3"; do
     if $_cand -c "import sys" >/dev/null 2>&1; then PYTHON="$_cand"; break; fi
@@ -432,9 +432,9 @@ for diagram in figures/*.drawio; do
 done
 ```
 
-### Step 5.7: DrawIO 视觉自检（宿主独立窗口视觉模型，自动修复，⛔ 不阻塞）
+### Step 5.7: DrawIO 视觉自检（独立审核会话视觉模型，自动修复，⛔ 不阻塞）
 
-**结构自检只看 XML；本步由宿主视觉模型查溢出/重叠/穿线/留白/配色，最多 3 轮。**
+**结构自检只看 XML；本步由驱动端派发的独立审核会话（视觉审子代理/独立会话）按任务卡读图并回写 verdict，查溢出/重叠/穿线/留白/配色，最多 3 轮。**
 
 ⛔ **执行原则：**
 - **只跑 DrawIO**：`*.drawio` 取同名 `.pdf`；数据图 PDF 不归本步。
@@ -610,9 +610,9 @@ done
 
 **如果没有 TikZ 图需要生成 → 跳过此步骤。**
 
-### Step 7.5: TikZ 视觉自检（宿主独立窗口视觉模型，自动修复）
+### Step 7.5: TikZ 视觉自检（独立审核会话视觉模型，自动修复）
 
-**每个 TikZ PDF 由宿主视觉模型查布局，最多 3 轮。**
+**每个 TikZ PDF 由驱动端派发的独立审核会话（视觉审子代理/独立会话）按任务卡读图并回写 verdict，查布局，最多 3 轮。**
 
 **⛔ 任何模式都执行**：块内 detect FAST_MODE；快速模式清空待审列表使循环不进，但仍 `rm -f` 清标记并跑 gate 几何自检（防残留误判）。
 
@@ -741,8 +741,8 @@ imgs[0].save('_tmp/${bn}_vcheck.png', 'PNG')
             echo "✅ $bn 视觉检查通过"
             break
         elif [ "$VEXIT" -eq 2 ]; then
-            echo "🟥🟥🟥 $bn: 独立窗口证据未就绪（宿主未派发视觉审子代理按任务卡审核回写 verdict）——【本图未做视觉审查，遮挡类问题可能漏网】"
-            echo "   💡 由宿主开独立窗口按任务卡审核并回写 verdict 后即可自动收集，无需任何 API key"
+            echo "🟥🟥🟥 $bn: 独立窗口证据未就绪（驱动端未派发视觉审子代理按任务卡审核回写 verdict）——【本图未做视觉审查，遮挡类问题可能漏网】"
+            echo "   💡 由驱动端开独立审核会话按任务卡审核并回写 verdict 后即可自动收集，无需任何 API key"
             echo "$bn (独立窗口证据未就绪/未回写 verdict)" >> _tmp/vision_skipped.txt
             break
         fi
@@ -954,7 +954,7 @@ if grep -qi 'tikz\|TikZ\|模型架构\|变量关系' PROBLEM_ANALYSIS.md 2>/dev/
             _n_skip=$(wc -l < _tmp/vision_skipped.txt 2>/dev/null); _n_skip=${_n_skip:-0}
             echo "🟥🟥🟥 警告：$_n_skip 张图【未做视觉审查】（仅过了静态几何检查，遮挡类问题可能漏网）："
             sed 's/^/     - /' _tmp/vision_skipped.txt
-            echo "     → 想让这些图被真正审查：确认宿主可开独立窗口按任务卡审核回写 verdict，并确保工作区有 pdftoppm 或 pdf2image。"
+            echo "     → 想让这些图被真正审查：确认驱动端可开独立审核会话按任务卡审核回写 verdict，并确保工作区有 pdftoppm 或 pdf2image。"
         fi
     else
         echo "❌ TikZ planned but no .tex files"; GATE_FAIL=$((GATE_FAIL+1))

@@ -66,7 +66,7 @@ Low fidelity relaxes polish, typography, and geometry. It does not relax paper s
 
 ## Evidence-Locked Prompt Compilation Gate
 
-Before sending any S2 or S5 prompt to the environment-locked image-generation route (`image_gen` in Codex, Create Image / ChatGPT Images 2.0 in ChatGPT web), the assistant must compile the candidate contract into an evidence-locked prompt package. For S2, first compile a `s2_pre_image_contract_sheet`, then compile `sketch_evidence_locked_prompt_package` from that sheet and the S1 sketch card. For S5 it is named `evidence_locked_prompt_package` and is compiled from the S4 formal candidate contract. This package is part of the text/image handoff and must be checked before generation.
+Before sending any S2 or S5 prompt to the environment-locked image-generation route (the named image-generation tool of the hosting runtime), the assistant must compile the candidate contract into an evidence-locked prompt package. For S2, first compile a `s2_pre_image_contract_sheet`, then compile `sketch_evidence_locked_prompt_package` from that sheet and the S1 sketch card. For S5 it is named `evidence_locked_prompt_package` and is compiled from the S4 formal candidate contract. This package is part of the text/image handoff and must be checked before generation.
 
 Required fields:
 

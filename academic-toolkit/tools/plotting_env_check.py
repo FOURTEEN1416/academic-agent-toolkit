@@ -92,11 +92,11 @@ def check() -> dict:
         "enables": ["infographics", "scientific-schematics"],
         "note": "生成类 AI 绘图必须有多模态 LLM 图像生成后端（如 OpenRouter 上的图像生成模型；"
                 "质量评审可用任意具备视觉能力的模型——仓库不预设，比赛时经 env 配置）",
-        "setup_hint": "export OPENROUTER_API_KEY=sk-...（或配置宿主原生 generate_image 后端）",
+        "setup_hint": "export OPENROUTER_API_KEY=sk-...（或配置执行 Agent 原生的图像生成后端，任意具备图像生成能力的驱动端均可）",
     }
 
     env_file = ROOT / ".env"
-    r["kit_env_file"] = {"exists": env_file.is_file(), "note": "存在则可能含宿主视觉后端配置（内容不读取）"}
+    r["kit_env_file"] = {"exists": env_file.is_file(), "note": "存在则可能含图像生成/视觉后端配置（内容不读取）"}
 
     per_skill = {}
     for skill, ok in [("graphviz", bool(dot)), ("mermaid-diagram", bool(mmdc)),

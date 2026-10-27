@@ -67,7 +67,7 @@ def create_prompt_index(
         "prompt_mode": "file_reference_handoff",
         "candidate_ids": ids,
         "candidates": rows,
-        "image_route_policy": "Codex must use image_gen; ChatGPT web must use Create Image / ChatGPT Images 2.0; other runtimes require a named approved image-generation API. Do not use SVG, Python/PIL, Matplotlib, Graphviz, TikZ, Mermaid, canvas, PPT/PDF rendering, screenshots, or any local raster substitute.",
+        "image_route_policy": "The first-party chat image tool must use create-image; the first-party CLI image tool must use image_gen; other environments require a named approved image-generation API. Do not use SVG, Python/PIL, Matplotlib, Graphviz, TikZ, Mermaid, canvas, PPT/PDF rendering, screenshots, or any local raster substitute.",
         "user_visible_policy": "Visible handoff prompts should reference this index and should not inline full prompt bodies.",
         "candidate_id_source_of_truth": "candidate_id in this prompt-index; do not renumber or reinterpret IDs during image generation or registration.",
     }
@@ -93,7 +93,7 @@ def user_visible_handoff(index_path: str | Path, *, mode: str = "IMAGE_GENERATE"
         "若这是 S5-CANDIDATE-IMAGE 且行内存在 reference_image_paths，请先读取这些 S2 参考图路径；当前图像路线支持参考图输入时附加使用，不支持时自动忽略并继续。"
         "不得改写、重排、重命名或猜测 candidate_id；图像、状态、artifact、checkpoint 中的 ID 必须与 prompt-index 完全一致。"
         "孤立生成图、未镜像到 target_image_path 的图、未绑定同一 candidate_id 的图、或把多个 sibling rows 合成一张的图，都不得视为候选产出。"
-        "必须使用当前 runtime 锁定的图像生成路线：Codex=image_gen；ChatGPT web=Create Image / ChatGPT Images 2.0；其他 runtime=已登记的 approved image-generation API。"
+        "必须使用当前环境锁定的图像生成路线：第一方对话式生图工具=create-image；第一方 CLI 生图工具=image_gen；其他环境=已登记的 approved image-generation API。"
         "禁止用 SVG、Python/PIL、Matplotlib、Graphviz、TikZ、Mermaid、canvas、PPT/PDF 渲染、截图或本地程序化 PNG/WebP 代替生图。"
         "本轮为 image-only：只逐行生成/附加并注册图像；不要写解释、审核、排序、修改建议或下一步提示词。"
     )

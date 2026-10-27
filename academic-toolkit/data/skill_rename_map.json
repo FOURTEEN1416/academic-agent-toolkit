@@ -3,7 +3,8 @@
     "purpose": "v2.0 技能改名/合并的一次性迁移档案（旧名→新名反查表）",
     "status": "migration-archive（非运行时资产；无代码消费者，供人工与下游迁移反查）",
     "created": "2026-09-23",
-    "note": "renames=W3 改名映射；merges=W3f/收尾D 合并映射（dup→primary，正文折叠于 primary 的 references/merged-*.md）"
+    "note": "renames=W3 改名映射；merges=W3f/收尾D 合并映射（dup→primary，正文折叠于 primary 的 references/merged-*.md）",
+    "retired_2026-10-27": "四件 meta-* 教学技能整件退役；对应 galaxy-* 旧名映射 4 条已移除（不参与反查）"
   },
   "renames": {
     "spine-paper-spine": "spine",
@@ -26,12 +27,10 @@
     "latexpap-latex-rhythm-refiner": "latex-paper-prose-rhythm",
     "latexpap-paper-from-zero": "latex-paper-from-zero",
     "latexpap-results-backfill": "latex-paper-results-backfill",
-    "galaxy-agent-identifier": "meta-agent-config",
     "galaxy-architecture-design": "dev-ml-registry-pattern",
     "galaxy-bug-detective": "dev-debug",
     "galaxy-citation-verification": "lit-citation-verify",
     "galaxy-code-review-excellence": "dev-code-review-guide",
-    "galaxy-command-development": "meta-command-development",
     "galaxy-daily-coding": "dev-daily-coding",
     "galaxy-daily-paper-generator": "lit-daily-digest",
     "galaxy-defuddle": "meta-web-extract",
@@ -39,7 +38,6 @@
     "galaxy-expression-skill": "meta-task-reporting",
     "galaxy-frontend-design": "dev-frontend-design",
     "galaxy-git-workflow": "dev-git-workflow",
-    "galaxy-hook-development": "meta-hook-development",
     "galaxy-kaggle-learner": "kaggle-learner",
     "galaxy-latex-conference-template-organizer": "paper-template-organizer",
     "galaxy-mcp-integration": "meta-mcp-integration",
@@ -51,7 +49,6 @@
     "galaxy-obsidian-source-ingestion": "lit-obsidian-ingest",
     "galaxy-paper-self-review": "paper-self-review",
     "galaxy-planning-with-files": "meta-planning-files",
-    "galaxy-plugin-structure": "meta-plugin-structure",
     "galaxy-post-acceptance": "doc-post-acceptance",
     "galaxy-publication-chart-skill": "fig-publication-chart",
     "galaxy-research-ideation": "idea-brainstorm",

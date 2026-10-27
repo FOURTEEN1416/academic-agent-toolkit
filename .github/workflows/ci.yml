@@ -72,9 +72,7 @@ jobs:
         run: npm ci
 
       - name: Repository-root test suite
-        # 口径：1005 collected（基线锚点）。唯一真源 = pytest.ini 注释——那里区分
-        # collect 锚点与最近一次全仓实跑；本注释不钉 passed 数字，避免双真源漂移
-        # （2026-09-27 修正：旧注释"1005 passed 实跑"与真源口径矛盾）。
+        # 口径：本机完整仓 collected 数见 `pytest.ini`（唯一真源）；本注释不钉数字，避免双真源漂移
         # 公开侧与本机差异来自：gitignored 私有资产缺席时相关用例按语义 SKIP（理由随 -rs 输出）
         # 与并行窗尚未提交的新测试；两侧收集总数应一致。
         run: python -m pytest -q -rs
@@ -87,8 +85,7 @@ jobs:
       - name: Secret & path hygiene scan
         # 2026-09-20 建立：tracked 面密钥/配置绝对路径扫描（吸收 gitleaks 的
         # "CI 纵深防御"思路，自建实现保持自包含）。豁免台账逐条见
-        # academic-toolkit/data/secret_scan_allowlist.json（2026-09-22 实测在册 21 条，
-        # 台账为真源、此处不钉数）。
+        # academic-toolkit/data/secret_scan_allowlist.json（台账为真源、此处不钉数）。
         run: python academic-toolkit/tools/secret_scan.py --strict
 
       - name: Lint ratchet

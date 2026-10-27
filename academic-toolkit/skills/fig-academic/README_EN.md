@@ -6,14 +6,14 @@
   </p>
   <p>
     <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-2ea44f"></a>
-    <a href="#installation"><img alt="Install" src="https://img.shields.io/badge/install-Claude%20Code%20%7C%20Codex%20%7C%20Cursor%20%7C%20Copilot-111827"></a>
+    <a href="#in-repo-usage"><img alt="Install" src="https://img.shields.io/badge/install-in-repo-111827"></a>
     <a href="#figure-type-gallery"><img alt="Figure Types" src="https://img.shields.io/badge/figures-29-0ea5e9"></a>
     <a href="#quality-assessment"><img alt="QA" src="https://img.shields.io/badge/QA-4%20pass%2030%2B%20checks-success"></a>
     <a href="README.md"><img alt="Language" src="https://img.shields.io/badge/语言-中文%20%7C%20English-1f6feb"></a>
   </p>
   <p>
     <a href="#about">About</a>
-    · <a href="#installation">Installation</a>
+    · <a href="#in-repo-usage">In-Repo Usage</a>
     · <a href="#figure-type-gallery">Figure Types</a>
     · <a href="#workflow">Workflow</a>
     · <a href="#directory-layout">Structure</a>
@@ -46,7 +46,7 @@
 
 ## About
 
-Academic Figure Skill is a skill package for AI coding assistants (Claude Code, Codex, and others). It encodes the figure preparation conventions of Nature, Cell, and Science family journals — Arial/Helvetica typography, 89 mm / 183 mm column widths, PDF vector export, and 300 dpi raster previews — along with the visual parameters of 29 common figure types into `SKILL.md` and 16 supporting reference documents. When a user provides data and a scientific question, the skill guides the LLM through a standardized 8-step workflow: clarifying the research question → classifying the figure archetype → proposing and justifying a panel plan for user confirmation → detecting Python/R runtimes → injecting a unified typography and color baseline → scanning `assets/figures/` for production scripts (native execution when matched, cross-type parameter inheritance otherwise) → pre-render data validation → 4-pass QA self-check → delivering a vector PDF master and a statistical report.
+Academic Figure Skill is a skill package for any agent that can read files and run Python/R. It encodes the figure preparation conventions of Nature, Cell, and Science family journals — Arial/Helvetica typography, 89 mm / 183 mm column widths, PDF vector export, and 300 dpi raster previews — along with the visual parameters of 29 common figure types into `SKILL.md` and 16 supporting reference documents. When a user provides data and a scientific question, the skill guides the LLM through a standardized 8-step workflow: clarifying the research question → classifying the figure archetype → proposing and justifying a panel plan for user confirmation → detecting Python/R runtimes → injecting a unified typography and color baseline → scanning `assets/figures/` for production scripts (native execution when matched, cross-type parameter inheritance otherwise) → pre-render data validation → 4-pass QA self-check → delivering a vector PDF master and a statistical report.
 
 The skill does not replace the plotting capabilities of Python or R. It provides a set of structured constraints and priors so that LLM-generated plotting code adheres to CNS journal visual standards, reducing the manual effort of adjusting typography, color schemes, and export parameters. For multi-panel compositions, the skill supports mixed Python and R orchestration: R panels are rendered to bitmaps via the Cairo graphics device, and the Python `compose.py` layout engine tiles them at exact physical dimensions.
 
@@ -128,30 +128,9 @@ The skill does not replace the plotting capabilities of Python or R. It provides
 
 ---
 
-## Installation (Host-Neutral · rewritten 2026-09-23)
+## In-Repo Usage
 
-`fig-academic` is a Skill package built around `SKILL.md`. Keep `references/`, `scripts/` and
-`assets/` alongside `SKILL.md` with their relative structure intact — the skill depends on them
-for visual baseline injection, asset lookup and cross-platform adaptation.
-
-> Rewritten-integration note (2026-09-24): the upstream `install/` host-adapter samples and
-> their generator were removed from this repo — no host install path is used here. For the
-> original adapters, see the upstream repository.
-
-**Inside this repository (academic-toolkit) the skill is used in-place; no host installation is needed:**
-
-- The skill lives at `skills/fig-academic/` in this repo; the driving agent loads `SKILL.md`
-  through the repo's `AGENTS.md` driving protocol;
-- Engine routing and the skill index discover it automatically — do NOT copy it into
-  any host-private directory;
-- The upstream repository (github.com/TingxiYu/academic-figure-skill) documents per-host
-  installation for standalone use; this repo does not use it. The upstream `install/`
-  adapter samples were removed during rewritten integration (2026-09-24) — no host
-  install path exists in this repo.
-
-<!-- 2026-09-23 host-neutral rewrite: the original README taught per-host installation
-     (copying into host-private skill directories) which is a dead-path hazard in this
-     repo's context; the whole section was replaced with in-repo usage. -->
+`fig-academic` is a Skill package built around `SKILL.md`. The skill lives at `skills/fig-academic/` in this repo; load `SKILL.md` through the `AGENTS.md` driving protocol and keep `references/`, `scripts/`, and `assets/` in their relative structure.
 
 ---
 
@@ -193,7 +172,6 @@ for visual baseline injection, asset lookup and cross-platform adaptation.
     │   ├── check_export.py            ← Export parameter check
     │   ├── check_fontsize.py          ← Font size compliance check
     │   ├── check_figure.py            ← Figure comprehensive check
-    │   ├── generate_adapters.py       ← Cross-platform adapter generation
     │   ├── generate_atlas.py          ← Figure atlas auto-generation
     │   └── run_ab_tests.py            ← A/B test runner
     ├── assets/
@@ -231,10 +209,6 @@ for visual baseline injection, asset lookup and cross-platform adaptation.
     │   │   ├── multipanel/            ← Multi-panel templates
     │   │   └── other/                 ← Long-tail figure types
     │   └── figure-atlas/              ← Figure atlas preview PNG collection
-        ├── claude-code/               ← Claude Code (native support, ready to use)
-        ├── cursor/                    ← Cursor IDE adapter
-        ├── copilot/                   ← GitHub Copilot adapter
-        └── codex/                     ← Codex CLI adapter
 ```
 
 ---

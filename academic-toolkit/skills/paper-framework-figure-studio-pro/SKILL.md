@@ -192,7 +192,7 @@ Use this full non-copyable Chinese reminder at S3-to-S4; do not summarize it:
 可选第二轮表面风格：S5 正式候选默认由 S4 根据论文需要设置表面风格；表面风格只约束渲染层，不改变候选图的论文语义、布局骨架、连线证据和密度预算。若希望指定第二轮表面风格，请在下一轮 S4 请求中另行写入“第二轮采用 <表面风格名> 表面风格”。可选项包括：正式出版风格、干净扁平极简线稿、轻量蓝图精密稿、轻量科学插画、轻量界面隐喻、轻量等距结构、轻量信息图板、ACM/IEEE/AAAI 双栏论文 line-art schematic。也可以写“取消默认表面风格，请 S4 根据论文实际需要自行设置 S5 表面风格”。低保真草图、白板线框、手绘故事板默认只适合第一轮探索；若要用于第二轮，必须在 S4 请求中明确说明它仍需保持 formal candidate 可读性。
 ```
 
-## ChatGPT Web Text-Only Guard
+## Chat Image Tool Text-Only Guard
 
 For every text-only public step, the displayed copyable prompt must include:
 
@@ -310,9 +310,9 @@ After S5, the workflow ends. If the user asks what comes next, answer exactly:
 
 Target paper images must be generated only through the approved image route for the runtime:
 
-- Codex: `image_gen`.
-- ChatGPT web: Create Image / ChatGPT Images 2.0.
-- Other runtimes: a named approved image-generation API only when first-party routes are unavailable and the reason is recorded.
+- First-party chat image tool: `create-image`.
+- First-party CLI image tool: `image_gen`.
+- Other environments: a named approved image-generation API only when first-party routes are unavailable and the reason is recorded.
 
 Do not use SVG, Mermaid, HTML/canvas, Python/PIL/Pillow, Matplotlib/Plotly, Graphviz, TikZ/LaTeX, PPT/PDF rendering, screenshots, SVG-to-PNG, or any local programmatic raster substitute for target paper images.
 
@@ -327,7 +327,7 @@ State files and registries must store relative paths only. Never add target-proj
 Useful state commands. When a prompt-index exists, pass it to `plan-substages` or rely on the default prompt-index path so candidate ids come from the prompt-index rather than from stage defaults:
 
 ```bash
-python scripts/figure_studio_state.py plan-substages --project-id <project_id> --step S2-SKETCH-EXPLORE --runtime chatgpt_web --prompt-index outputs/S2-sketch-explore/prompt-index.json
+python scripts/figure_studio_state.py plan-substages --project-id <project_id> --step S2-SKETCH-EXPLORE --runtime web_image_chat --prompt-index outputs/S2-sketch-explore/prompt-index.json
 python scripts/figure_studio_image_only_row_guard.py --run-dir figure-studio-runs/<project_id> --stage S2-SKETCH-EXPLORE --mode preflight --write-queue --fail-on-error
 python scripts/figure_studio_state.py scan-substages --project-id <project_id> --step S2-SKETCH-EXPLORE
 python scripts/figure_studio_image_only_row_guard.py --run-dir figure-studio-runs/<project_id> --stage S2-SKETCH-EXPLORE --mode postflight --require-state-provenance --fail-on-error
@@ -380,7 +380,7 @@ Keep this `SKILL.md` as the short controller. Load detailed references only when
 - `references/candidate-artifact-id-coherence-policy-v3215.md`
 - `references/substage-user-guidance-policy-v316.md`
 - `references/continue-next-action-policy-v316.md`
-- `references/chatgpt-web-checkpoint-bundle-policy.md`
+- `references/checkpoint-bundle-policy.md`
 - `references/figure-caption-codesign-policy-v311.md`
 - `references/figure-caption-symbiosis-policy-v314a.md`
 - `references/candidate-issue-ledger-and-caption-burden-policy-v324.md`

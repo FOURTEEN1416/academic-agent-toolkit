@@ -5,17 +5,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from tools import host_visual_review
+from tools import visual_review
 
-# ── 2026-09-23 换驱动（第三次用户裁定）：外部 vision API → 宿主独立窗口 └──
+# ── 2026-09-23 换驱动（第三次用户裁定）：外部 vision API → 独立审核会话 └──
 # 旧实现的 API 端点归一化（chat_completions_path）随 HTTP 驱动一并移除：
-# 宿主独立窗口驱动不发起任何网络调用、不读取任何 API key。
+# 独立审核会话驱动不发起任何网络调用、不读取任何 API key。
 
 
 def test_no_api_key_semantics_in_driver_sources():
     """换驱动锁定：视觉质检工具源码不得再含外部 API key / HTTP 端点语义。"""
     for name in ("tikz_vision_check.py", "data_fig_vision_check.py",
-                 "drawio_vision_check.py", "host_visual_review.py"):
+                 "drawio_vision_check.py", "visual_review.py"):
         text = (ROOT / "tools" / name).read_text(encoding="utf-8")
         for banned in ("EDITOR_AI_API_KEY", "OPENAI_API_KEY", "SENSENOVA_API_KEY",
                        "image_url", "chat/completions", "Bearer"):
@@ -33,7 +33,7 @@ def test_count_real_vision_figs_counts_data_pngs(tmp_path):
     for name in ["fig_q1.png", "fig_q2.png", "fig_q3.png", "fig_q4.png"]:
         (figdir / name).write_bytes(b"fake-png")
     cf = ws / "_tmp" / ".tikz_vision_calls.json"
-    n = host_visual_review._count_real_tikz_figs(cf)
+    n = visual_review._count_real_tikz_figs(cf)
     assert n == 4, f"期望数据图计入真实图数(4)，实际 {n}"
 
 
@@ -45,7 +45,7 @@ def test_global_cap_covers_all_vision_products(tmp_path):
     for i in range(8):
         (figdir / f"fig_q{i}.png").write_bytes(b"png")
     cf = ws / "_tmp" / ".tikz_vision_calls.json"
-    nfig = host_visual_review._count_real_tikz_figs(cf)
+    nfig = visual_review._count_real_tikz_figs(cf)
     cap = nfig * 2 + 2 if nfig > 0 else 6
     assert cap == 18, f"期望 8 张图 cap=18，实际 cap={cap}"
 
@@ -60,96 +60,96 @@ def test_review_mode_bypasses_global_cap(tmp_path):
     cf = ws / "_tmp" / ".tikz_vision_calls.json"
     cf.parent.mkdir(parents=True, exist_ok=True)
     cf.write_text('{"__total__": 9999, "fig_final": 99}', encoding="utf-8")
-    allowed, n, global_hit = host_visual_review._bump_and_check(img, mode="review")
+    allowed, n, global_hit = visual_review._bump_and_check(img, mode="review")
     assert allowed, f"审核模式不应被全局上限阻塞：allowed={allowed}, n={n}, global_hit={global_hit}"
     data = json.loads(cf.read_text(encoding="utf-8"))
     assert data.get("__total__") == 9999, f"审核模式不应累计 __total__，实际 {data.get('__total__')}"
 
 
-# ── 宿主独立窗口驱动契约：任务卡 → 独立窗口读图 → verdict 回写 → 收集 ────
+# ── 独立审核会话驱动契约：任务卡 → 独立会话读图 → verdict 回写 → 收集 ────
 
 
 def test_task_card_requires_independent_window(tmp_path):
-    """任务卡必须锁定执行者=宿主独立窗口视觉模型，禁产图窗口自审。"""
+    """任务卡必须锁定执行者=独立审核会话视觉模型，禁产图窗口自审。"""
     figdir = tmp_path / "figures"
     figdir.mkdir(parents=True)
     img = figdir / "fig_q1.png"
     img.write_bytes(b"png")
-    card = host_visual_review.build_task_card("tikz", img, review=True)
+    card = visual_review.build_task_card("tikz", img, review=True)
     assert "fig_q1.png" in card
     assert "独立窗口" in card and "实际读图" in card
     assert "隔离" in card and "自审" in card
-    assert host_visual_review.REVIEWED_BY_PREFIX in card
+    assert visual_review.REVIEWED_BY_PREFIX in card
     assert "PASS" in card and "ISSUE" in card
     # TikZ 专属检查单进入任务卡
-    tikz_card = host_visual_review.build_task_card(
-        "tikz", img, review=False, checklist=host_visual_review.TIKZ_CHECKLIST)
+    tikz_card = visual_review.build_task_card(
+        "tikz", img, review=False, checklist=visual_review.TIKZ_CHECKLIST)
     assert "节点间距" in tikz_card
 
 
 def test_run_generates_task_card_and_pends_without_verdict(tmp_path):
-    """无独立窗口 verdict → exit 2 + 任务卡落盘 + 派发提示。"""
+    """无独立审核会话 verdict → exit 2 + 任务卡落盘 + 派发提示。"""
     figdir = tmp_path / "figures"
     figdir.mkdir(parents=True)
     img = figdir / "fig_q1.png"
     img.write_bytes(b"png")
-    code = host_visual_review.run("data-fig", str(img), review=True, workspace=str(tmp_path))
+    code = visual_review.run("data-fig", str(img), review=True, workspace=str(tmp_path))
     assert code == 2
-    card = host_visual_review.task_card_path(tmp_path, img)
+    card = visual_review.task_card_path(tmp_path, img)
     assert card.is_file(), "应生成独立窗口审核任务卡"
     assert "fig_q1.png" in card.read_text(encoding="utf-8")
 
 
 def test_collect_pass_verdict(tmp_path):
-    """独立窗口回写合规 PASS verdict → exit 0，输出携带 Reviewed-by。"""
+    """独立审核会话回写合规 PASS verdict → exit 0，输出携带 Reviewed-by。"""
     figdir = tmp_path / "figures"
     figdir.mkdir(parents=True)
     img = figdir / "fig_q1.png"
     img.write_bytes(b"png")
-    vp = host_visual_review.verdict_path(tmp_path, img)
+    vp = visual_review.verdict_path(tmp_path, img)
     vp.parent.mkdir(parents=True, exist_ok=True)
-    vp.write_text(f"{host_visual_review.REVIEWED_BY_PREFIX} zcode-visual-judge\n\nPASS\n",
+    vp.write_text(f"{visual_review.REVIEWED_BY_PREFIX} visual-judge-1\n\nPASS\n",
                   encoding="utf-8")
-    code = host_visual_review.run("data-fig", str(img), review=True, workspace=str(tmp_path),
-                                  collect_only=True)
+    code = visual_review.run("data-fig", str(img), review=True, workspace=str(tmp_path),
+                             collect_only=True)
     assert code == 0
-    # 报告同时校验：run 输出含 PASS 与窗口标识
+    # 报告同时校验：run 输出含 PASS 与执行会话标识
     import io
     from contextlib import redirect_stdout
     buf = io.StringIO()
     with redirect_stdout(buf):
-        host_visual_review.run("data-fig", str(img), review=True, workspace=str(tmp_path),
-                               collect_only=True)
+        visual_review.run("data-fig", str(img), review=True, workspace=str(tmp_path),
+                          collect_only=True)
     out = buf.getvalue()
-    assert "PASS" in out and "zcode-visual-judge" in out
+    assert "PASS" in out and "visual-judge-1" in out
 
 
 def test_collect_issue_verdict(tmp_path):
-    """独立窗口发现 ISSUE → exit 1 并原样输出问题清单。"""
+    """独立审核会话发现 ISSUE → exit 1 并原样输出问题清单。"""
     figdir = tmp_path / "figures"
     figdir.mkdir(parents=True)
     img = figdir / "fig_q2.png"
     img.write_bytes(b"png")
-    vp = host_visual_review.verdict_path(tmp_path, img)
+    vp = visual_review.verdict_path(tmp_path, img)
     vp.parent.mkdir(parents=True, exist_ok=True)
-    vp.write_text(f"{host_visual_review.REVIEWED_BY_PREFIX} win-2\n\n"
+    vp.write_text(f"{visual_review.REVIEWED_BY_PREFIX} visual-judge-2\n\n"
                   "ISSUE 1: [左下角] 图例遮挡曲线\n", encoding="utf-8")
-    code = host_visual_review.run("data-fig", str(img), review=True, workspace=str(tmp_path),
-                                  collect_only=True)
+    code = visual_review.run("data-fig", str(img), review=True, workspace=str(tmp_path),
+                             collect_only=True)
     assert code == 1
 
 
 def test_collect_rejects_verdict_without_reviewer(tmp_path):
-    """verdict 缺 Reviewed-by 窗口标识 → 证据无效（exit 2），不得冒充通过。"""
+    """verdict 缺 Reviewed-by 执行会话标识 → 证据无效（exit 2），不得冒充通过。"""
     figdir = tmp_path / "figures"
     figdir.mkdir(parents=True)
     img = figdir / "fig_q3.png"
     img.write_bytes(b"png")
-    vp = host_visual_review.verdict_path(tmp_path, img)
+    vp = visual_review.verdict_path(tmp_path, img)
     vp.parent.mkdir(parents=True, exist_ok=True)
     vp.write_text("PASS\n", encoding="utf-8")
-    code = host_visual_review.run("data-fig", str(img), review=True, workspace=str(tmp_path),
-                                  collect_only=True)
+    code = visual_review.run("data-fig", str(img), review=True, workspace=str(tmp_path),
+                             collect_only=True)
     assert code == 2
 
 

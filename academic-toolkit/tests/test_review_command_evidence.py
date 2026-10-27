@@ -27,7 +27,7 @@ def _make_skill(tmp_path, name="comp-review"):
 def _evidence(action, commands, subagent="ses_test"):
     return {
         "schema_version": 1,
-        "agent": "OpenCode Desktop",
+        "agent": "acat-agent",
         "step_id": action.step_id,
         "skill_name": action.skill_name,
         "skill_sha256": hashlib.sha256(action.skill_path.read_bytes()).hexdigest(),

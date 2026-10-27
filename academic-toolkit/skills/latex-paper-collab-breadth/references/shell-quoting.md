@@ -1,13 +1,15 @@
 # Shell quoting for `--PROMPT`
 
-When invoking `gemini_bridge.py`, be careful: your *shell* parses the command line before Python runs.
+When invoking the bridge script with `--PROMPT`, be careful: your *shell* parses the command line before Python runs.
 
 ## The pitfall: Markdown backticks
 
 Markdown inline code uses backticks (`` `like/this` ``). In bash/zsh, backticks mean **command substitution**, even inside double quotes, so this breaks:
 
+> 本技能未随包提供 bridge 脚本：下例中的 `<gemini-bridge-script>` 为占位符，替换为调用方自备的等价桥脚本路径（上游示例路径为其他平台布局，见 `references/UPSTREAM.md`）。
+
 ```bash
-python3 .codex/skills/collaborating-with-gemini/scripts/gemini_bridge.py \
+python3 <gemini-bridge-script> \
   --cd "." \
   --PROMPT "Analyze `tmp/eth_dev_news_raw.json` and summarize."
 ```
@@ -28,7 +30,7 @@ Set `as_of` to `YYYY-MM-DD`.
 EOF
 )"
 
-python3 .codex/skills/collaborating-with-gemini/scripts/gemini_bridge.py \
+python3 <gemini-bridge-script> \
   --cd "." \
   --PROMPT "$PROMPT"
 ```

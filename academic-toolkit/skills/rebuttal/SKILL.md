@@ -178,7 +178,7 @@ Run all lints:
 ### Phase 6: 评审桥压力测试
 
 ```
-review_bridge.invoke:  # 经评审桥调用独立评审模型（工具名随宿主；缺席时降级为当前 Agent 自审）
+review_bridge.invoke:  # 经评审桥调用独立评审模型（工具名以当前环境为准；缺席时降级为当前 Agent 自审）
   config: {"model_reasoning_effort": "xhigh"}
   prompt: |
     Stress-test this rebuttal draft:

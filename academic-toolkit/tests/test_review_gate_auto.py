@@ -72,7 +72,7 @@ def test_final_review_skill_auto_enforces_strict_model_match(tmp_path, monkeypat
         ("数模专家.md", "model-d"),
     ):
         (agents_dir / fname).write_text(f"---\nmodel: {model}\n---\n", encoding="utf-8")
-    monkeypatch.setenv("OPENCODE_AGENTS_DIR", str(agents_dir))
+    monkeypatch.setenv("ACAT_AGENT_ROLES_DIR", str(agents_dir))
 
     import hashlib, json
     for name in ("COMP_REVIEW.md", "VISUAL_REVIEW.md", "EDITOR_CHANGELOG.md", "FINAL_REVIEW.md"):

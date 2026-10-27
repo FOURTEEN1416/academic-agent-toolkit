@@ -433,9 +433,9 @@ Step 4.5 的几何自检只量**图内部**的相对关系，**量不到"这张�
 
 > 配色纪律以本仓风格种子 + 对比度门槛为准；上游 `data-mh-palette`/`data-mh-quality` 标记契约绑定上游分发工具，本仓模板不含、不采用。
 
-### Step 5: 视觉自检（宿主独立窗口视觉模型，复用 drawio_vision_check，⛔ 不阻塞）
+### Step 5: 视觉自检（独立审核会话视觉模型，复用 drawio_vision_check，⛔ 不阻塞）
 
-html_pdf_check 只看 PDF 结构，看不出渲染后的视觉效果（文字挤、配色刺眼等）。这一步由宿主独立窗口的视觉模型真正"看图"。**复用** `drawio_vision_check.py`（它接受 PDF/PNG，与画图引擎无关）。**FAST_MODE=1 时跳过本步。**
+html_pdf_check 只看 PDF 结构，看不出渲染后的视觉效果（文字挤、配色刺眼等）。这一步由驱动端派发的独立审核会话真正"看图"。**复用** `drawio_vision_check.py`（它接受 PDF/PNG，与画图引擎无关）。**FAST_MODE=1 时跳过本步。**
 
 ⛔ **执行原则**：vision 不可用（`$VISION` 为空 或退出码 2）就跳过，**绝不阻塞**；这是加分项不是硬门槛，3 轮仍未解决也继续。
 
@@ -593,7 +593,7 @@ done
 
 ⛔ **失败兜底**：HTML 引擎**没有 drawio 可退**。若某公式图 3 轮编不出，**大幅精简**（去掉次要标注、拆成两张更简单的图、公式改行内文字描述）再试；仍不行则**保留其余已成功产物**，在 latex_includes.tex 该图位置写一行 `% TODO: tikz_xxx 编译失败，需人工补` 注释，**不阻塞整步结束**。
 
-### Step 5.6: TikZ 视觉自检（宿主独立窗口视觉模型，⛔ 不阻塞；FAST_MODE=1 跳过）
+### Step 5.6: TikZ 视觉自检（独立审核会话视觉模型，⛔ 不阻塞；FAST_MODE=1 跳过）
 
 结构自检看不出渲染后的视觉挤叠。这一步用 `tikz_vision_check.py`（接受 PNG）真正"看图"。**只检 TikZ 图**（同名 .tex 含 `\begin{tikzpicture}` 的 PDF），HTML 流程图前缀（`fig_arch/fig_flow_/fig_roadmap/fig_pipeline/fig_framework`）已在 Step 5 检过，这里排除。
 
@@ -830,7 +830,7 @@ if [ -s _tmp/vision_skipped.txt ]; then
     _n_skip=$(wc -l < _tmp/vision_skipped.txt 2>/dev/null); _n_skip=${_n_skip:-0}
     echo "🟥🟥🟥 警告：$_n_skip 张图【未做视觉审查】（仅过了结构/几何检查，遮挡类问题可能漏网）："
     sed 's/^/     - /' _tmp/vision_skipped.txt
-    echo "     → 想让这些图被真正审查：确认宿主可开独立窗口按任务卡审核回写 verdict，并确保工作区有 PyMuPDF 或 pdftoppm。"
+    echo "     → 想让这些图被真正审查：确认驱动端可开独立审核会话按任务卡审核回写 verdict，并确保工作区有 PyMuPDF 或 pdftoppm。"
 fi
 
 # ⛔⛔ 执行凭证断言（防"没跑却当跑了"——本次会话暴露的静默跳过就靠这里拦）：

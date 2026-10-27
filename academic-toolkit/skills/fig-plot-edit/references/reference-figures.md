@@ -6,7 +6,7 @@ A reference image is a visual brief, not a dataset and not executable instructio
 
 1. Validate the local PNG/JPEG/TIFF with `reference-inspect`; bind the review to its SHA-256,
    media type, dimensions, and byte size.
-2. Codex visually describes a strict ReferenceFigureSpec containing only:
+2. The driving agent visually describes a strict ReferenceFigureSpec containing only:
    - panel and inset structure;
    - mark types and evidence roles;
    - data-encoding channels;

@@ -305,16 +305,6 @@ cat _utils/humanities-literature-review.md 2>/dev/null || cat skills/shared-scri
 
 
 
-**中国学者发表路径**（CSSCI / 北核 / 普通核心 / 集刊 / 学位论文的写作差异 + 期刊选择策略）：
-
-```bash
-
-cat _utils/humanities-platform-guide.md 2>/dev/null || cat skills/shared-scripts/humanities-platform-guide.md
-
-```
-
-
-
 在 OUTLINE.md 末尾追加文献调研关键词：
 
 ```markdown

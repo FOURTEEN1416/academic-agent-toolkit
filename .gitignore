@@ -156,7 +156,7 @@ academic-toolkit/_test_input.md
 **/.tikz_vision_calls.json
 # Upstream fork staging（2026-09-28 用户裁决：vendor 整体随公开仓分发；node_modules 不入库，见全局排除）
 
-# ZCode host-local layer: skills junction + 会话产物（不入库；2026-09-23 v2.0 起整目录本地化）
+# 本地 Agent 运行层目录（会话产物等，不入库）
 .zcode/
 方法武器库/
 

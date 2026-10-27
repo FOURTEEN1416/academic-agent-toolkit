@@ -13,7 +13,7 @@ Check whether a proposed method/idea has already been done in the literature: **
 
 ## 检索范围与证据
 
-按任务预算进行新颖性检索，保留真实查询、来源及最接近工作。进度直接汇报，不调用shell打印心跳；工具超时或不可用时说明证据缺口，不能推断“无人做过”。时间预算来自用户任务，不假定宿主五分钟无stdout就强杀。
+按任务预算进行新颖性检索，保留真实查询、来源及最接近工作。进度直接汇报，不调用shell打印心跳；工具超时或不可用时说明证据缺口，不能推断“无人做过”。时间预算来自用户任务，不假定执行会话五分钟无 stdout 就强杀。
 
 ## Instructions
 

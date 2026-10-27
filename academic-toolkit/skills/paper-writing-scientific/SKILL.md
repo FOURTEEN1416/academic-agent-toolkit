@@ -4,7 +4,7 @@ description: "Use when writing or revising scientific manuscripts, abstracts, fi
 ---
 
 
-<!--ACAT-ADAPTED: 混合上游资产补齐（scientific-agent-skills + paper-writing-clinical .claude 副本），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 混合上游资产补齐（scientific-agent-skills + paper-writing-clinical 上游安装态副本），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Scientific Writing
 
 ## Overview
@@ -49,8 +49,7 @@ Before finalizing any document:
 **Prompt template (tool-agnostic):**
 `"Publication-style scientific schematic of your method; white background; clean labels; colorblind-friendly palette; high contrast"` —
 save to `figures/output.png` at the highest resolution the tool supports, then iterate on the prompt until the figure is publication-ready.
-（ACAT-GOVERNANCE：上游 `inno-figure-gen` 脚本未随本仓库集成，原宿主安装路径已废弃，不可直接调用；
-2026-09-23 宿主中性化改写。用本仓 `infographics` 等图像能力或环境内可用的生成工具执行。）
+（ACAT-GOVERNANCE：上游 `inno-figure-gen` 脚本未随本仓库集成，不可直接调用；2026-09-23 已改为工具中性表述。用本仓 `infographics` 等图像能力或环境内可用的生成工具执行。）
 
 External generation APIs (if used) take their keys from environment variables — never write keys into repo files.
 

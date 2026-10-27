@@ -6,7 +6,7 @@ This reference answers exactly one decision: **for each NotebookLM action, does 
 
 Browser-automation sessions have practical time limits:
 
-- **Claude Code CLI sessions:** typically time out after ~10 minutes of inactivity
+- **CLI/terminal agent sessions:** often time out after ~10 minutes of inactivity (varies by harness)
 - **Chrome Extension sessions:** depend on the user keeping the tab open
 - **API contexts:** strict timeout (60s-5min depending on tier)
 

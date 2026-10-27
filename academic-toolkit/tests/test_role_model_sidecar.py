@@ -19,15 +19,13 @@ import engine.quality_gates as qg
 
 
 def _isolate_model_config(monkeypatch, tmp_path):
-    """隔离机器真实配置：竞赛配置槽置空 + 宿主 agents 目录置空。"""
+    """隔离机器真实配置：竞赛配置槽置空 + 可选适配器 agent 目录置空。"""
     empty_slot = tmp_path / "empty_contest_models.json"
     empty_slot.write_text(json.dumps({"configured_at": "", "roles": {
         r: "" for r in ("reviewer", "visual_reviewer", "editor", "final_reviewer")}}),
         encoding="utf-8")
     monkeypatch.setenv("ACAT_CONTEST_MODELS", str(empty_slot))
-    agents_dir = tmp_path / "agents_empty"
-    agents_dir.mkdir()
-    monkeypatch.setenv("OPENCODE_AGENTS_DIR", str(agents_dir))
+    monkeypatch.setattr(qg, "_optional_adapter_agents_dirs", lambda: [])
 
 
 class _FakeResponse:

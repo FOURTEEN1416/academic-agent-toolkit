@@ -44,7 +44,6 @@ SCRIPT=$(python3 -c "
 import pathlib
 candidates = [
     pathlib.Path('tools/arxiv_fetch.py'),
-    pathlib.Path.home() / '.claude' / 'skills' / 'arxiv' / 'arxiv_fetch.py',
 ]
 for p in candidates:
     if p.exists():

@@ -1,7 +1,7 @@
 """能力探测：任意 Agent 驱动本项目前，先知道自己能做什么、缺什么。
 
 原则（TOOL_GAP）：探测只报告事实，不伪造可用性。
-缺 CLI/缺包/缺适配器都进入 gaps，供 tool_forge 或人工补齐。
+缺 CLI/缺包都进入 gaps，供 tool_forge 或人工补齐。
 """
 from __future__ import annotations
 
@@ -41,22 +41,14 @@ PROBE_CLIS: tuple[tuple[str, str], ...] = (
 PROBE_ENV_KEYS: tuple[str, ...] = (
     "ACAT_AGENT_LABEL",
     "ACAT_CONTEST_MODELS",
+    "ACAT_AGENT_ROLES_DIR",
     "ACAT_ADAPTER_AGENTS_DIRS",
+    "ACAT_AUDIT_EXTRA_DIRS",
     "OPENAI_API_KEY",
     "REVIEWER_BASE_URL",
     "REVIEWER_MODEL_ID",
     "AGNES_API_KEY",
     "DOCSEARCH_ROOTS",
-)
-
-# 可选宿主适配器：id → (探测根相对仓库根的路径列表, 说明)
-ADAPTER_MARKERS: tuple[tuple[str, tuple[str, ...], str], ...] = (
-    ("generic", (), "协议层通用适配（无宿主配置，永远可用）"),
-    ("opencode", ("opencode.json", ".opencode/"), "OpenCode 桌面/CLI 可选适配"),
-    ("zcode", (".zcode/config.json", ".zcode/"), "ZCode 可选适配"),
-    ("claude-code", (".claude/AGENTS.md", ".claude/agents/", "CLAUDE.md"), "Claude Code 可选适配"),
-    ("mimocode", (".mimocode/",), "MiMo Desktop / MiMoCode 可选适配"),
-    ("cursor", (".cursor/", ".cursorrules"), "Cursor 可选适配"),
 )
 
 # 关键包缺失 → TOOL_GAP 提示
@@ -80,27 +72,6 @@ def _cli_path(name: str) -> str | None:
     if name == "python":
         return sys.executable or shutil.which("python") or shutil.which("python3")
     return shutil.which(name)
-
-
-def _adapter_status(repo_root: Path) -> dict[str, Any]:
-    out: dict[str, Any] = {}
-    for adapter_id, markers, note in ADAPTER_MARKERS:
-        if not markers:
-            out[adapter_id] = {
-                "present": True,
-                "required": False,
-                "note": note,
-                "matched": [],
-            }
-            continue
-        matched = [m for m in markers if (repo_root / m).exists()]
-        out[adapter_id] = {
-            "present": bool(matched),
-            "required": False,
-            "note": note,
-            "matched": matched,
-        }
-    return out
 
 
 def _asset_summary(suite: Path) -> dict[str, Any]:
@@ -143,7 +114,6 @@ def probe(project_root: Path | None = None) -> dict[str, Any]:
         clis[name] = {"available": path is not None, "path": path, "description": desc}
 
     env_presence = {key: bool(os.environ.get(key)) for key in PROBE_ENV_KEYS}
-    adapters = _adapter_status(repo)
 
     gaps: list[dict[str, str]] = []
     for name, ok in packages.items():
@@ -160,15 +130,6 @@ def probe(project_root: Path | None = None) -> dict[str, Any]:
                 "id": name,
                 "hint": info["description"] + " 不在 PATH；按技能说明安装或改用替代工具",
             })
-    for adapter_id, info in adapters.items():
-        if adapter_id == "generic" or info["present"]:
-            continue
-        gaps.append({
-            "kind": "optional_adapter",
-            "id": adapter_id,
-            "hint": f"可选适配器未配置（{info['note']}）；协议层不依赖，可忽略",
-        })
-
     return {
         "protocol_version": 1,
         "suite_root": str(suite),
@@ -181,7 +142,6 @@ def probe(project_root: Path | None = None) -> dict[str, Any]:
         "packages": packages,
         "cli": clis,
         "env_presence": env_presence,
-        "host_adapters": adapters,
         "asset_catalog": _asset_summary(suite),
         "gaps": gaps,
         "drive_ready": True,

@@ -11,13 +11,9 @@ Use this skill for late-stage manuscript QA. It is narrower than `manuscript-opt
 
 The core rule is simple: never treat a clean-looking manuscript as submission-ready until the front half, figures, legends, methods, supplement, and venue expectations have been checked against each other.
 
-Use the helper script when you want a fast local pass over figure citations:
+For a fast local pass over figure citations:
 
-```bash
-The upstream helper script is **not bundled with this repo**（ACAT-GOVERNANCE：上游脚本未随本仓库集成，
-宿主安装路径已废弃，不可直接调用；2026-09-24 宿主中性化改写）— check figure references directly
-against the manuscript instead.
-```
+The upstream helper script is **not bundled with this repo** — check figure references directly against the manuscript instead.
 
 ## When To Use
 

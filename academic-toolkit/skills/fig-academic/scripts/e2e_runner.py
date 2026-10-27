@@ -2,7 +2,7 @@
 """Academic Figure Skill E2E Integration Test Runner.
 
 Validates generated figure scripts against the A/B test scenario criteria from
-ab_test.py. Post-generation structural checks — no Claude needed.
+ab_test.py. Post-generation structural checks — no model call needed.
 
 Each scenario defines a set of MUST_HAVE (required patterns) and MUST_NOT
 (forbidden patterns) checks. The runner scores pass/fail per scenario.

@@ -1668,7 +1668,7 @@ def inspect_reference(
         "next_step": {
             "action": "describe_reference_grammar",
             "message_zh": (
-                "请让 Codex 只提取参考图的面板、图形标记、编码关系、布局和视觉层级；"
+                "请让当前 Agent 只提取参考图的面板、图形标记、编码关系、布局和视觉层级；"
                 "不要复制原图数值、统计结果、作者文字、Logo 或水印。"
             ),
         },
@@ -3907,12 +3907,12 @@ def doctor(*, engine_home: str | Path | None = None) -> dict[str, Any]:
         manual_blockers.append("python_originext_package_missing")
     if ready_render and requires_current_user_approval:
         summary_zh = (
-            "环境已具备绘图前提；当前 Doctor 在 Codex 沙箱中运行，"
+            "环境已具备绘图前提；当前 Doctor 在隔离账户沙箱中运行，"
             "真正启动 Origin 时需要一次当前用户权限审批。"
         )
         next_step_zh = (
-            "请允许 Codex 为 origin-smoke 或 render 发起的本地 Origin 权限申请；"
-            "只有申请获批后 Codex 才会重新执行同一条 Origin 命令；审批不保证通过。"
+            "请允许当前 Agent 为 origin-smoke 或 render 发起的本地 Origin 权限申请；"
+            "只有申请获批后当前 Agent 才会重新执行同一条 Origin 命令；审批不保证通过。"
         )
     elif ready_render and execution_context["status"] == "unknown":
         summary_zh = (

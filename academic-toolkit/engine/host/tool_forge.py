@@ -11,7 +11,6 @@
 """
 from __future__ import annotations
 
-import json
 import re
 from pathlib import Path
 from typing import Any
@@ -194,52 +193,6 @@ def forge_skill(
     }
 
 
-def forge_adapter(
-    name: str,
-    purpose: str,
-    project_root: Path | None = None,
-    force: bool = False,
-) -> dict[str, Any]:
-    """铸造可选宿主适配器元数据 agents/adapters/<name>/adapter.json。"""
-    adapter_name = validate_name(name)
-    repo = _suite_root(project_root).parent
-    path = repo / "agents" / "adapters" / adapter_name / "adapter.json"
-    existed = path.exists()
-    if existed and not force:
-        return {
-            "kind": "adapter",
-            "name": adapter_name,
-            "path": str(path),
-            "status": "exists",
-            "created": False,
-            "message": "已存在，未覆盖",
-        }
-    purpose_text = (purpose or "").strip() or f"可选适配器 {adapter_name}"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    # 内建宿主复用探测器的单一真源；未知宿主仍是待补配置的骨架。
-    from .capability_probe import ADAPTER_MARKERS
-    markers = next((paths for key, paths, _note in ADAPTER_MARKERS if key == adapter_name), ())
-    payload = {
-        "adapter_id": adapter_name,
-        "status": "optional",
-        "kind": "host_config",
-        "required_for_drive": adapter_name == "generic",
-        "config_paths": list(markers),
-        "l1_audit": "none",
-        "skill_discovery": "protocol (AGENTS.md + skills/)",
-        "notes": purpose_text,
-    }
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return {
-        "kind": "adapter",
-        "name": adapter_name,
-        "path": str(path),
-        "status": "created" if not existed else "overwritten",
-        "created": True,
-        "message": "可选适配器元数据已铸造；驱动协议不依赖它",
-    }
-
-
 def forge_from_gap(gap: dict[str, Any], project_root: Path | None = None, force: bool = False) -> dict[str, Any]:
     """根据 probe 的一条 gap 尝试铸造对应资产。
 
@@ -257,15 +210,6 @@ def forge_from_gap(gap: dict[str, Any], project_root: Path | None = None, force:
             "hint": hint,
             "forged": False,
         }
-    if kind == "optional_adapter":
-        name = gap_id or "custom-adapter"
-        try:
-            result = forge_adapter(name, hint or f"optional adapter {name}", project_root=project_root, force=force)
-        except ValueError as exc:
-            return {"action": "error", "gap": gap, "message": str(exc), "forged": False}
-        result["action"] = "forge_adapter"
-        result["forged"] = bool(result.get("created"))
-        return result
     return {
         "action": "manual_forge",
         "gap": gap,

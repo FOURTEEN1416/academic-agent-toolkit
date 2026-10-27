@@ -58,7 +58,7 @@ def complete_ok(runner, wf_id):
         ok=True, artifacts=list(action.output_files), step_id=action.step_id,
         attempt_id=action.attempt_id, expected_revision=action.expected_revision,
         metadata={"execution_evidence": {
-            "schema_version": 1, "agent": "OpenCode Desktop",
+            "schema_version": 1, "agent": "acat-agent",
             "step_id": action.step_id, "skill_name": action.skill_name,
             "skill_sha256": hashlib.sha256(action.skill_path.read_bytes()).hexdigest(),
             "commands": [{"command": "python code/gen_report.py", "returncode": 0, "cwd": "."}],
@@ -310,7 +310,7 @@ def test_cli_complete_waiting_checkpoint_output_contains_checkpoint_id(cli_env, 
     path.write_text(body * 12 + manifest, encoding="utf-8")
     skill_sha = hashlib.sha256(Path(action["skill_path"]).read_bytes()).hexdigest()
     evidence = {
-        "schema_version": 1, "agent": "OpenCode Desktop",
+        "schema_version": 1, "agent": "acat-agent",
         "step_id": action["step_id"], "skill_name": action["skill_name"],
         "skill_sha256": skill_sha,
         # P4 技能绑定（2026-09-19）：真实模板步骤默认声明 main_required=true，

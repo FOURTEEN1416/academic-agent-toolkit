@@ -62,4 +62,5 @@ prove that every template is available. Apply the selected template's capability
 - Check that scientific direction and transforms match the figure contract.
 - Check that the figure remains readable at its intended physical size.
 - Allow legend overlap only when the legend remains editable and no data meaning is lost.
-- Record visual QA as pending until a human or Codex with image inspection has reviewed an export.
+- Record visual QA as pending until a human or the driving agent with image inspection has reviewed
+  an export.

@@ -40,7 +40,7 @@ Assemble the key information:
 将收集到的结果送独立评审模型（经评审桥）做客观评估:
 
 ```
-review_bridge.invoke:  # 经评审桥调用独立评审模型（工具名随宿主；缺席时降级为当前 Agent 自审）
+review_bridge.invoke:  # 经评审桥调用独立评审模型（工具名随执行环境；缺席时降级为当前 Agent 自审）
   config: {"model_reasoning_effort": "xhigh"}
   prompt: |
     RESULT-TO-CLAIM EVALUATION

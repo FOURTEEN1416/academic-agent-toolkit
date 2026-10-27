@@ -34,7 +34,7 @@ python _utils/figure_pdf_quality_check.py figures --paper paper
 大面积空白带（>25% 页高）、PDF-vs-PNG 偏色告警、多页处理、`gates_override.json` 逐图阈值豁免。
 exit 1 on fail。
 
-### 5. 宿主视觉全页复审（机检抓不到的只能看图）
+### 5. 执行者视觉全页复审（机检抓不到的只能看图）
 montage 拼图 + 关键页单独渲染，逐页看：标题互碰、图例丢手柄、面板挤压、灰度打印下浅色头偏弱。
 **图型改动后同步正文措辞**（"柱状图的形态"→"得分点阵的对比"）。
 

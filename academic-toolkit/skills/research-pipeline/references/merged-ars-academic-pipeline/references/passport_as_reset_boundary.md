@@ -35,7 +35,7 @@ When the orchestrator reaches a FULL checkpoint with the flag ON:
      ```
      resume_from_passport=<hash>
      ```
-   - A one-line note that the next stage should be invoked in a fresh Claude Code session to realize the token-savings intent.
+   - A one-line note that the next stage should be invoked in a fresh session（全新会话） to realize the token-savings intent.
 5. **Halt after emission.** The orchestrator stops after emitting the reset boundary and awaits resume in a fresh session.
 6. **In-session override (non-SR modes).** If the user pastes `continue` in the same session, the orchestrator acknowledges but treats the passport as the only input to the next stage. Working-memory content from prior turns is non-authoritative and must not be replayed.
 7. **Systematic-review hard stop.** In `systematic-review` mode, in-session continuation is refused outright. The orchestrator repeats the Resume Instruction and asks the user to start a fresh session.

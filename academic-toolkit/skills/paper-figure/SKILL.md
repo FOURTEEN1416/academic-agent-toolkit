@@ -654,7 +654,7 @@ GPT Image 2 can generate high-quality scene diagrams, technical roadmaps, flowch
 
 
 
-API Key 已通过配置文件 `_utils/_gpt_image_config.json` 注入（ACAT-GOVERNANCE：该文件为 OpenCode 后端**运行时写入**的工作区配置，非仓库资产，故不在库内；检索逻辑见 `tools/gpt_image.py` 的 cfg_path 循环。用户在设置页面配置，后端自动写入）。
+API Key 已通过配置文件 `_utils/_gpt_image_config.json` 注入（ACAT-GOVERNANCE：该文件由驱动端在运行时写入的工作区配置，非仓库资产，故不在库内；检索逻辑见 `tools/gpt_image.py` 的 cfg_path 循环。用户在前端设置页配置，由驱动端自动写入）。
 
 **直接调用即可。成功就用，失败 3 次后 DrawIO 兜底。不需要检测 Python 或检查环境变量。**
 
@@ -662,13 +662,13 @@ API Key 已通过配置文件 `_utils/_gpt_image_config.json` 注入（ACAT-GOVE
 
 ```bash
 
-# Python 路径：MH_PYTHON 由后端注入，fallback 到系统 python
+# Python 路径：MH_PYTHON 由驱动端注入，fallback 到系统 python
 
 PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
 
 GPT_IMG=1
 
-# ACAT-GOVERNANCE：下方 _utils/_gpt_image_config.json 为后端运行时写入的工作区文件，非仓库资产
+# ACAT-GOVERNANCE：下方 _utils/_gpt_image_config.json 为驱动端运行时写入的工作区文件，非仓库资产
 echo "GPT_IMAGE: ready (Python=$PYTHON, config=_utils/_gpt_image_config.json)"
 
 ```
@@ -1597,7 +1597,7 @@ python _utils/figure_pdf_quality_check.py figures --paper paper
 
 
 
-⛔ **这一步默认不执行**。只有工作区 AGENTS.md 含 `MH_DATA_FIG_VISION=1` 标记（用户在前端「高级选项」开启了「数据图视觉质检」）时才跑。它会对每张数据图由宿主独立窗口的视觉模型看图，检查坐标轴标签截断 / 图例压数据 / 刻度重叠等**肉眼硬伤**（`figure_check.sh` 的静态检查抓不到这些渲染层问题）。**每张图每轮都占一次独立窗口审核轮次**，所以默认关。
+⛔ **这一步默认不执行**。只有工作区 AGENTS.md 含 `MH_DATA_FIG_VISION=1` 标记（用户在前端「高级选项」开启了「数据图视觉质检」）时才跑。它会对每张数据图由驱动端派发的独立审核会话按任务卡看图，检查坐标轴标签截断 / 图例压数据 / 刻度重叠等**肉眼硬伤**（`figure_check.sh` 的静态检查抓不到这些渲染层问题）。**每张图每轮都占一次独立窗口审核轮次**，所以默认关。
 
 
 

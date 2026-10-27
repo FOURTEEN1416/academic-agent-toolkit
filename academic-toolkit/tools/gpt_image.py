@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GPT Image 2 命令行工具 — 供 Claude skill 调用生成示意图/技术路线图/流程图。
+"""GPT Image 2 命令行工具 — 供技能调用生成示意图/技术路线图/流程图。
 
 用法:
   python _utils/gpt_image.py --check
@@ -61,7 +61,7 @@ SAFETY_SUFFIX = (
 
 
 def build_prompt(user_prompt: str, lang: str) -> str:
-    """注入语言适配 + 统一风格 + 安全约束。Claude 只需写核心场景描述。"""
+    """注入语言适配 + 统一风格 + 安全约束。调用方只需写核心场景描述。"""
     if lang == "zh":
         prefix = ZH_LANG_PREFIX
     else:

@@ -32,9 +32,11 @@
   "terminal_step": "S5-CANDIDATE-IMAGE",
   "terminal_reply": "我的任务已经完成，剩下由人类来决策。",
   "image_route_policy": {
-    "codex": "image_gen only",
-    "chatgpt_web": "Create Image / ChatGPT Images 2.0 only",
-    "other": "named approved image-generation API only",
+    "builtin_image_gen": "image_gen only",
+    "web_image_chat": "create-image only",
+    "approved_api": "named approved image-generation API only",
+    "none": "blocked",
+    "unknown": "blocked",
     "forbidden": "SVG, HTML/canvas, Mermaid, Python/PIL, Matplotlib, Graphviz, TikZ, PPT/PDF rendering, screenshots, SVG-to-PNG, and local programmatic raster substitutes"
   },
   "s5_reference_image_input_policy": {

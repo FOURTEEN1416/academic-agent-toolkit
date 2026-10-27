@@ -10,7 +10,7 @@
 [![Stack](https://img.shields.io/badge/Stack-matplotlib%20%7C%20seaborn%20%7C%20plotly-orange.svg)](#)
 [![Agent Skill](https://img.shields.io/badge/Agent-Skill-orange.svg)](../README.md)
 
-A [Claude Code](https://claude.com/claude-code) / [Codex](https://github.com/openai/codex) / Cursor Skill that does **two things in order**: (1) profiles your data and recommends the right chart for the argument you want to make, (2) renders it at publication grade for Nature / Science / IEEE / Elsevier / PNAS / Chinese journals. Built on **matplotlib + seaborn + SciencePlots** (static) and **plotly** (interactive), with **CJK font auto-configuration** so Chinese text never renders as boxes.
+An Agent Skill that does **two things in order**: (1) profiles your data and recommends the right chart for the argument you want to make, (2) renders it at publication grade for Nature / Science / IEEE / Elsevier / PNAS / Chinese journals. Built on **matplotlib + seaborn + SciencePlots** (static) and **plotly** (interactive), with **CJK font auto-configuration** so Chinese text never renders as boxes.
 
 > [中文文档](#中文文档) | [English](#english)
 
@@ -106,7 +106,7 @@ A [Claude Code](https://claude.com/claude-code) / [Codex](https://github.com/ope
 
 ```bash
 git clone https://github.com/Haojae/scipilot-figure-skill.git \
-          skills/fig-visualization-advisor (in-repo; no host install step)
+          skills/fig-visualization-advisor (in-repo; no separate install step)
 pip install -r skills/fig-visualization-advisor/requirements.txt
 ```
 

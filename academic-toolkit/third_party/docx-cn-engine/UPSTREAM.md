@@ -5,7 +5,7 @@
 - Checklist date: 2026-08-18
 - Local use: `tools/docx_export.py`、`tools/docx_precheck.py`、`tools/docx_template_*.py`
 - License: 与本套件一致；第三方运行时依赖遵循各自 license。
-- Local adaptation: 面向中文论文、课程报告、竞赛论文和软著材料统一封装字号、行距、标题、图表与模板填充流程。
+- Local adaptation: 面向中文论文、课程报告、竞赛论文和软著材料统一封装字号、行距、标题、图表与模板填充流程；2026-10-27 将 `md_to_docx.js` 上标解析注释中的宿主名改为中性表述「部分 LLM 输出」，无行为变更。
 
 ## Upgrade rule
 

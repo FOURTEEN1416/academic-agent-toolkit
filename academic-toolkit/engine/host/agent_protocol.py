@@ -1,7 +1,7 @@
 """宿主中立的 Agent 驱动协议。
 
 任意能读文件、能调用 `python -m engine.workflow_cli` 的智能体，
-读取 bootstrap() 返回的契约即可驱动本项目；无需 OpenCode/ZCode。
+读取 bootstrap() 返回的契约即可驱动本项目。
 """
 from __future__ import annotations
 
@@ -11,18 +11,6 @@ from typing import Any
 
 PROTOCOL_VERSION = 1
 DEFAULT_AGENT_LABEL = "acat-agent"
-
-# 可选宿主适配器：仅增强（技能发现/L1 hook/角色定义），不是驱动前提。
-# 唯一真相源 = capability_probe.ADAPTER_MARKERS（B3-7 三方对账：清单/探测标记/目录须一致；
-# gemini-cli 因无探测标记与 adapter.json 于 2026-09-22 移除，需要时按 cursor 先例补齐三件套）。
-OPTIONAL_ADAPTERS: tuple[str, ...] = (
-    "generic",
-    "opencode",
-    "zcode",
-    "claude-code",
-    "mimocode",
-    "cursor",
-)
 
 HARD_RULES: tuple[str, ...] = (
     "引擎（engine/）只编排不执行；执行者 = 当前驱动本项目的 Agent",
@@ -34,7 +22,7 @@ HARD_RULES: tuple[str, ...] = (
 
 _CLI_COMMANDS: tuple[tuple[str, str], ...] = (
     ("boot", "输出本协议契约 JSON"),
-    ("probe", "能力探测（python/包/CLI/适配器/TOOL_GAP）"),
+    ("probe", "能力探测（python/包/CLI/TOOL_GAP）"),
     ("forge", "按 TOOL_GAP 铸造工具或技能脚手架"),
     ("caps", "可选运行时命令能力（xelatex/node 等）"),
     ("start", "创建工作流"),
@@ -64,7 +52,7 @@ def repo_root() -> Path:
 def default_agent_label(host_hint: str | None = None) -> str:
     """返回当前驱动方的 agent 标签；host_hint 优先，否则通用标签。
 
-    证据 agent 字段是自由字符串，由驱动方自报宿主/工具名。
+    证据 agent 字段是自由字符串，由驱动方自报工具/智能体名。
     """
     hint = (host_hint or os.environ.get("ACAT_AGENT_LABEL") or "").strip()
     return hint or DEFAULT_AGENT_LABEL
@@ -83,7 +71,7 @@ def bootstrap(root_path: Path | None = None) -> dict[str, Any]:
         "system": "Academic Agent Toolkit (host-agnostic)",
         "role": "executor",
         "agent_label_default": DEFAULT_AGENT_LABEL,
-        "agent_label_hint": "在 evidence.agent 填入你的工具名（如 claude-code / cursor / mimo-desktop）",
+        "agent_label_hint": "在 evidence.agent 填入你实际使用的驱动工具/智能体名（自报即可，如 acat-agent；可用环境变量 ACAT_AGENT_LABEL 固定）",
         "paths": {
             "suite_root": str(root),
             "repo_root": str(repo),
@@ -135,15 +123,10 @@ def bootstrap(root_path: Path | None = None) -> dict[str, Any]:
             "resource_statistics": "offered 来自下发清单，used 是申报而非已验证贡献；外置库使用 check_asset_utilization.py --workflow-db WORKSPACE=DB，只统计当前已接受尝试",
         },
         "audit": {
-            "L1": "可选宿主 hook/插件；无宿主时 unavailable，不阻断交付",
+            "L1": "外部审计写入器（hook/插件/包装脚本）；未注册时 unavailable，不阻断交付",
             "L2": "走 workflow_runner 时写入 .engine/audit/operations.jsonl",
             "L3": "complete_step 的 execution_evidence（强制，schema_version=1）",
         },
-        "optional_adapters": list(OPTIONAL_ADAPTERS),
-        "adapter_note": (
-            "opencode.json / .zcode / .opencode 仅为可选适配器；"
-            "无它们时协议与引擎功能完整可用。"
-        ),
         "hard_rules": list(HARD_RULES),
         "adaptation": {
             "capability_probe": "python -m engine.workflow_cli probe",

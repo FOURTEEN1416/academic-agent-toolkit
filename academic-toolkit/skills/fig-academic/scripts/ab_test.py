@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Academic Figure Skill A/B Test Framework — Academic Figure Skill vs Bare Claude.
+"""Academic Figure Skill A/B Test Framework — Academic Figure Skill vs bare no-skill baseline.
 
 Defines 5 test scenarios with objective scoring criteria.
 Each scenario returns: asset_hit, font_ok, palette_ok, spine_ok, render_ok, vector_export.
 
 Usage:
     python ab_test.py              # print all 5 scenarios and scoring rubrics
-    python ab_test.py --baseline   # run bare-Claude tests (generate without skill)
+    python ab_test.py --baseline   # run baseline (no-skill) tests (generate without skill)
     python ab_test.py --fig-academic   # run Academic Figure Skill tests
     python ab_test.py --compare    # compare both results
 """
@@ -232,7 +232,7 @@ if __name__ == "__main__":
         print_ab_report(baseline, acad_fig_skill)
     else:
         print_scenarios()
-        print("To run A/B tests: send each scenario prompt to both bare Claude and Academic Figure Skill.")
+        print("To run A/B tests: send each scenario prompt to both the bare no-skill baseline and Academic Figure Skill.")
         print("Score each run using the checks above. Save results with --baseline or --fig-academic.")
         print()
         print(f"Results saved to: {PROJECT_ROOT}/fig-academic/scripts/.ab_baseline.json and .ab_fig-academic.json")
